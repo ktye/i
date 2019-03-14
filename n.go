@@ -3,11 +3,30 @@ package i
 import (
 	"math"
 	"math/cmplx"
-
-	"github.com/cosmos72/gomacro/base/reflect"
+	"reflect"
 )
 
 // Monads
+func rneg(a float64) float64       { return -a }
+func zneg(a complex128) complex128 { return -a }
+func rflr(a float64) float64       { return math.Floor(a) }
+func zflr(a complex128) complex128 { return complex(math.Floor(cmplx.Abs(a)), 0) }
+func rsqr(a float64) float64       { return math.Sqrt(a) }
+func zsqr(a complex128) complex128 { return cmplx.Sqrt(a) }
+func rnot(a float64) float64 {
+	if a == 0 {
+		return 1
+	}
+	return 0
+}
+func znot(a complex128) complex128 { // or should that not exist?
+	if a == 0 {
+		return complex(1, 0)
+	}
+	return complex(1, 0)
+}
+
+// Dyads
 func radd(a, b float64) float64       { return a + b }
 func zadd(a, b complex128) complex128 { return a + b }
 func rsub(a, b float64) float64       { return a - b }
@@ -27,26 +46,6 @@ func zmor(a, b complex128) complex128 { return zter(cmplx.Abs(a) > cmplx.Abs(b),
 func reql(a, b float64) float64       { return rter(a == b, 1, 0) }
 func zeql(a, b complex128) complex128 { return zter(cmplx.Abs(a) == cmplx.Abs(b), 1, 0) }
 
-// Dyads
-func rneg(a float64) float64       { return -a }
-func zneg(a complex128) complex128 { return -a }
-func rflr(a float64) float64       { return math.Floor(a) }
-func zflr(a complex128) complex128 { return complex(math.Floor(cmplx.Abs(a)), 0) }
-func rsqr(a float64) float64       { return math.Sqrt(a) }
-func csqr(a complex128) complex128 { return cmplx.Sqrt(a) }
-func rnot(a float64) float64 {
-	if a == 0 {
-		return 1
-	}
-	return 0
-}
-func znot(a complex128) complex128 { // or should that not exist?
-	if a == 0 {
-		return complex(1, 0)
-	}
-	return complex(1, 0)
-}
-
 func rter(c bool, a, b float64) float64 {
 	if c {
 		return a
@@ -60,15 +59,92 @@ func zter(c bool, a, b complex128) complex128 {
 	return b
 }
 
-//modelType := reflect.TypeOf((*Model)(nil)).Elem()
+type f1 func(interface{}) interface{}
+type f2 func(interface{}, interface{}) interface{}
+type fr1 func(float64) float64
+type fr2 func(float64, float64) float64
+type fz1 func(complex128) complex128
+type fz2 func(complex128, complex128) complex128
 
+func nm(x interface{}, fr fr1, fz fz1, m method) interface{} {
+	switch t := x.(type) {
+	case float64:
+		return fr(t)
+	case complex128:
+		return fz(t)
+	case []float64:
+		r := make([]float64, len(t))
+		for i := range r {
+			r[i] = fr(t[i])
+		}
+		return r
+	case []complex128:
+		r := make([]complex128, len(t))
+		for i := range r {
+			r[i] = fz(t[i])
+		}
+		return r
+	case []interface{}:
+		r := make([]interface{}, len(t))
+		for i := range r {
+			r[i] = nm(t[i], fr, fz, m)
+		}
+		return r
+	}
+
+	if r, ok := m.call1(x); ok {
+		return r
+	}
+
+	v := reflect.ValueOf(x)
+	if v.Kind() == reflect.Slice {
+		n := v.Len()
+		r := make([]interface{}, n)
+		for i := range r {
+			r[i] = nm(v.Index(i).Interface(), fr, fz, m)
+		}
+		return r
+	}
+	r, z, isz := n1(x) // panics
+	if isz {
+		return fz(z)
+	}
+	return fr(r)
+}
+
+func nd(x, y interface{}, fr fr2, fz fz2, mt string) f2 {
+	e("TODO")
+	return nil
+}
+
+type method string
+
+func (m method) call1(x interface{}) (interface{}, bool) {
+	v := reflect.ValueOf(x)
+	if v.Kind() == reflect.Slice {
+		n := v.Len()
+		if m, ok := v.Type().Elem().MethodByName(string(m)); ok {
+			r := make([]interface{}, n)
+			for i := range r {
+				r[i] = m.Func.Call([]reflect.Value{v.Index(i)})[0].Interface()
+			}
+			return r, true
+		}
+		return nil, false
+	} else if m, ok := v.Type().MethodByName(string(m)); ok {
+		return m.Func.Call([]reflect.Value{v})[0].Interface(), true
+	}
+	return nil, false
+}
+
+/*
 func nd(fr func(float64, float64) float64, fz func(complex128, complex128) complex128, it reflect.Type) func(v ...interface{}) interface{} {
 	return func(v ...interface{}) interface{} {
 		x, y := v[0], v[1]
 		xn, yn := ln(x, ln(y))
 		if xn < 0 && yn < 0 {
 			if f := impl(x, it); f != nil {
-				return call(f, x, y)
+				return ical(f, x, y)
 			}
 			a, b, c, d, z := n2(x, y)
 			if z {
@@ -88,7 +164,7 @@ func nd(fr func(float64, float64) float64, fz func(complex128, complex128) compl
 		}
 		x0, y0 := lz(x), lz(y)
 
-		/* TODO
+		TODO
 		if _, _, _, _, z := n2(x0, y0); z {
 
 		}
@@ -98,6 +174,7 @@ func nd(fr func(float64, float64) float64, fz func(complex128, complex128) compl
 		} else if (bn < 0 || bn < 0)
 
 		b := v[1]
-		*/
+
 	}
 }
+*/

@@ -1,3 +1,4 @@
+// ⍳ interpret
 package main
 
 import (

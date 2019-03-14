@@ -1,10 +1,6 @@
 package i
 
-import (
-	"fmt"
-	"testing"
-)
-
+/*
 type myComplex complex128
 type myFloat float64
 type myShort int16
@@ -31,3 +27,4 @@ func TestV(t *testing.T) {
 		fmt.Println(tc.a, "+", tc.b, "=", r)
 	}
 }
+*/
