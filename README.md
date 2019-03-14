@@ -1,7 +1,7 @@
 # ⍳ interpret
 
 ## Usage
-The package exports only two functions and not types. The functions are *P* and *E*.
+The package exports only two functions and no types. The functions are *P* and *E*.
 ```go
     // Make a new interpreter with an empty k-tree
     a := make(map[interface{}]interface{}) 
