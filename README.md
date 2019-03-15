@@ -15,26 +15,30 @@ The package exports only two functions and no types. The functions are *P* and *
 ```
 
 ## Types
-The package does not define any special types. Most Go types can be used directly, even user defined ones.
-- If a type is a slice, it is interperted as a list and all vector functions are supported. The default list, is `[]interface{}`.
-- If a type is a map, it is used as a dictionary. The default dict is: `map[interface{}]interface{}`
-- A struct is a dictionary as well. It's keys are strings.
-- If it is a function, it can be used as one.
-- Numbers are converted to float64 or complex128. The conversion is only done if math functions are called. Structural functions preserve the types.
-- Numerical methods (Neg, Add, Div, ...) can be overloaded for custom types and used directly, by defining a method:
-  - `type myInt string;  func (s myInt) Neg() interface{} { return "-" + s }`
-- To create a value with a custom type, call a custom function that returns one.
-- To create a custom function, add it to the k-tree: `a["myfunc"] = func(...interface{}) interface{} { return 42 }`
+The interpreter uses `float64` and `complex128` for numbers, slices of them for uniform vectors,
+`[]interface{}` for a general list, `map[interface{}]interface{}` for dicts, `string` for symbols,
+`[]rune` for character vectors and `func` for functions.
+
+But any user supplied types can be used as well:
+- If a type is a slice, it is interperted as a list and all vector functions are supported.
+- If a type is a map or a struct, it is used as a dictionary with string keys in the latter case.
+- Any func can be used as a function.
+- Types can overload all numerical operators, by implementing the interface:
+  - Monadic example: `func (t myType) Neg() interface{}`
+  - Dyadic example: `func (t myType) Add(b interface{}, recvIsLeft bool) interface{}`
+  - The overloaded type may be a slice, that receives the vector directly, or it is called for every atom.
+- Convertible numeric types (to float or complex) can be used for all mathematical operators. The results are converted back to the original type (including booleans).
+- To use native Go values or functions, add them to the k-tree directly: `a["myfunc"] = func(...interface{}) interface{} { return 42 }`
 
 ## Verbs
 
 ```
     a          l          a-a        l-a        a-l        l-l     triad  tetrad
-+   idn        flp        [add]      [add]      [add]      [add]    -      -        ⍉
++   flp        flp        [add]      [add]      [add]      [add]    -      -        ⍉
 -   [neg]      [neg]      [sub]      [sub]      [sub]      [sub]    -      -      
 *   fst        fst        [mul]      [mul]      [mul]      [mul]    -      -        ×
-%   sqr        [sqr]      [div]      [div]      [div]      [div]    -      -        √÷
-!   iot        odo        mod        -          mod>       mkd      -      -        ⍳
+%   [sqr]      [sqr]      [div]      [div]      [div]      [div]    -      -        √÷
+!   til        odo        mod        -          mod>       mkd      -      -        ⍳
 &   wer        wer        [min]      [min]      [min]      [min]    -      -        ⍸⌊
 |   rev        rev        [max]      [max]      [max]      [max]    -      -        ⌽⌈
 <   asc        asc        [les]      [les]      [les]      [les]    -      -        ⍋

@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/cmplx"
 	"reflect"
+
+	"github.com/ktye/i/internal/fmtsort"
 )
 
 // Parse
@@ -14,11 +16,16 @@ func P(s string) interface{} {
 
 // Eval
 func E(a map[interface{}]interface{}, l interface{}) interface{} {
+	if a == nil {
+		a = make(map[interface{}]interface{})
+	}
+	// TODO: if len(a) == 0 ... initialize k-tree.
 	return eva(a, l)
 }
 
 func cpy(v interface{}) interface{} {
-	return e("TODO")
+	// TODO
+	return v
 }
 
 func e(s string) interface{} { panic(s); return nil }
@@ -207,4 +214,13 @@ func set(l interface{}, i int, v interface{}) {
 		return
 	}
 	reflect.ValueOf(l).Index(i).Set(reflect.ValueOf(v))
+}
+
+func keys(v interface{}) []interface{} {
+	s := fmtsort.Sort(reflect.ValueOf(v))
+	r := make([]interface{}, len(s.Key))
+	for i, v := range s.Key {
+		r[i] = v.Interface()
+	}
+	return r
 }

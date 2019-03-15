@@ -4,7 +4,6 @@ import "reflect"
 
 // monadic verbs
 
-func idn(x interface{}) interface{} { return x }
 func flp(x interface{}) interface{} { return e("TODO") }
 func neg(x interface{}) interface{} { return nm(x, rneg, zneg, "Neg") }
 func fst(v interface{}) interface{} {
@@ -18,7 +17,7 @@ func fst(v interface{}) interface{} {
 	return at(v, 0)
 }
 func sqr(x interface{}) interface{} { return nm(x, rsqr, zsqr, "Sqr") }
-func iot(x interface{}) interface{} { return e("TODO") }
+func til(x interface{}) interface{} { return e("TODO") }
 func odo(x interface{}) interface{} { return e("TODO") }
 func wer(x interface{}) interface{} { return e("TODO") }
 func rev(x interface{}) interface{} { return e("TODO") }
@@ -39,7 +38,7 @@ func enl(x interface{}) interface{} {
 }
 func is0(x interface{}) interface{} { return e("TODO") }
 func cnt(x interface{}) interface{} { return e("TODO") }
-func flr(x interface{}) interface{} { return e("TODO") }
+func flr(x interface{}) interface{} { return nm(x, rflr, zflr, "Flr") }
 func fmt(x interface{}) interface{} { return e("TODO") }
 func fgn(x interface{}) interface{} { return e("TODO") }
 func unq(x interface{}) interface{} { return e("TODO") }
@@ -96,6 +95,20 @@ func cat(x, y interface{}) interface{} {
 }
 func tak(x, y interface{}) interface{} { return e("TODO") }
 func rsh(x, y interface{}) interface{} {
+	// TODO temporarily only rsh(int, []interface{}) is supported.
+	n := x.(int)
+	v := y.([]interface{})
+	m := len(v)
+	if n == m {
+		return v
+	}
+	r := make([]interface{}, n)
+	for i := range r {
+		//println(i, n, i%n)
+		r[i] = cpy(v[i%m])
+	}
+	return r
+
 	// if (y.t == 4) { return md(x, atx(y, x)); }
 	// if (y.t != 3) { y = enlist(y); }
 	// var a = first(x); var b = x.v[len(x)-1]; var c = 0;
@@ -135,7 +148,6 @@ func rsh(x, y interface{}) interface{} {
 		}
 	*/
 
-	return e("TODO")
 	//return na(a) ? (!len(y) ? y : cut(krange(len(y)/b.v, function(z) { return k(0, z*b.v); }), y)) :
 	//      na(b) ? cut(krange(a.v, function(z) { return k(0, Math.floor(z*len(y)/a.v)); }), y) :
 	//     rshr(l(x), len(y) ? y : enlist(y), 0);
