@@ -27,7 +27,7 @@ func eye(x interface{}) interface{} { return e("TODO") }
 func grp(x interface{}) interface{} { return e("TODO") }
 func not(x interface{}) interface{} { return nm(x, rnot, znot, "Not") }
 func enl(x interface{}) interface{} {
-	v := reflect.ValueOf(x)
+	v := rval(x)
 	switch v.Kind() {
 	case reflect.Func, reflect.Slice, reflect.Map:
 		return []interface{}{x}
@@ -73,14 +73,14 @@ func cat(x, y interface{}) interface{} {
 		y = enl(y)
 		ny = 1
 	}
-	if t := reflect.TypeOf(x); t == reflect.TypeOf(y) {
+	if t := rtyp(x); t == rtyp(y) {
 		var l reflect.Value
 		l = reflect.MakeSlice(t, nx+ny, nx+ny)
 		for i := 0; i < nx; i++ {
-			l.Index(i).Set(reflect.ValueOf(at(x, i)))
+			l.Index(i).Set(rval(at(x, i)))
 		}
 		for i := 0; i < ny; i++ {
-			l.Index(nx + i).Set(reflect.ValueOf(at(y, i)))
+			l.Index(nx + i).Set(rval(at(y, i)))
 		}
 		return l.Interface()
 	}

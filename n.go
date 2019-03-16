@@ -58,22 +58,19 @@ func nm(x interface{}, fr fr1, fz fz1, m method) interface{} {
 	if r, ok := m.call1(x); ok {
 		return r
 	}
-
-	switch t := x.(type) {
-	case []interface{}:
-		r := make([]interface{}, len(t))
-		for i := range r {
-			r[i] = nm(t[i], fr, fz, m)
+	if d, ok := md(x); ok {
+		for i, v := range d.v {
+			d.v[i] = nm(v, fr, fz, m)
 		}
-		return r
-	case map[interface{}]interface{}:
-		r := make(map[interface{}]interface{})
-		for k, v := range t {
-			r[cpy(k)] = nm(v, fr, fz, m)
+		return d.mp()
+	}
+	if iv, ok := x.([]interface{}); ok {
+		r := make([]interface{}, len(iv))
+		for i := range r {
+			r[i] = nm(iv[i], fr, fz, m)
 		}
 		return r
 	}
-	// TODO: custom map and struct types.
 
 	y, z, vec, t := nv(x)
 	if y != nil {
@@ -171,24 +168,35 @@ func nd(x, y interface{}, fr fr2, fz fz2, m method) interface{} {
 	return vn(xr, xz, vec, nil)
 }
 func ndic(x, y interface{}, fr fr2, fz fz2, me method) (interface{}, bool) {
-	// TODO custom dicts and structs
-	xd, isx := x.(map[interface{}]interface{})
-	yd, isy := y.(map[interface{}]interface{})
+	xd, isx := md(x)
+	yd, isy := md(y)
 	if isx == false && isy == false {
 		return nil, false
 	}
 	if isx && isy {
-		r := cpy(xd).(map[interface{}]interface{})
-		var ok bool
-		for k, v := range yd {
-			if x, ok = xd[k]; ok {
-				r[k] = nd(x, v, fr, fz, me)
+		// That could be an identity element, depending on the verb.
+		// oK just fills the other value without applying the function.
+		zero := 0.0 // If there is no agreement, i can do what i want.
+		for i, k := range xd.k {
+			yi, v := yd.at(k)
+			if yi < 0 {
+				xd.v[i] = nd(xd.v[i], zero, fr, fz, me)
 			} else {
-				r[cpy(k)] = cpy(v)
+				xd.v[i] = nd(xd.v[i], v, fr, fz, me)
 			}
 		}
-		return r, true
+		for i, k := range yd.k {
+			if idx, _ := xd.at(k); idx < 0 {
+				xd.k = append(xd.k, k)
+				xd.v = append(xd.v, nd(zero, yd.v[i], fr, fz, me))
+			}
+		}
+		if xd.t != yd.t {
+			xd.t = nil
+		}
+		return xd.mp(), true
 	}
+	// d+v is not allowed, but d+a is.
 	d := xd
 	a := y
 	flip := false
@@ -197,34 +205,23 @@ func ndic(x, y interface{}, fr fr2, fz fz2, me method) (interface{}, bool) {
 		a = x
 		flip = true
 	}
-	r := cpy(d).(map[interface{}]interface{})
-	n := len(r)
-	m := ln(a)
-	if m < 0 {
-		a = []interface{}{a}
-		m = 1
+	if ln(a) >= 0 {
+		e("type") // d+v is not allowed
 	}
-	if m == 1 && n > 1 {
-		a = rsh(n, m)
-		m = n
-	}
-	if n != m {
-		e("size")
-	}
-	for i, k := range keys(r) {
-		x, y = r[k], at(a, i)
+	for i, _ := range d.k {
+		x, y = d.v[i], a
 		if flip {
 			x, y = y, x
 		}
-		r[k] = nd(x, y, fr, fz, me)
+		d.v[i] = nd(x, y, fr, fz, me)
 	}
-	return r, true
+	return xd.mp(), true
 }
 
 type method string
 
 func (m method) call1(x interface{}) (interface{}, bool) {
-	v := reflect.ValueOf(x)
+	v := rval(x)
 	t := v.Type()
 	if t.NumMethod() > 0 {
 		if m, ok := t.MethodByName(string(m)); ok {
@@ -241,7 +238,7 @@ func (m method) call1(x interface{}) (interface{}, bool) {
 			r := reflect.MakeSlice(v.Type(), n, n)
 			for i := 0; i < n; i++ {
 				y := m.Func.Call([]reflect.Value{v.Index(i)})[0].Interface()
-				r.Index(i).Set(reflect.ValueOf(y))
+				r.Index(i).Set(rval(y))
 			}
 			return r.Interface(), true
 		}
@@ -251,60 +248,62 @@ func (m method) call1(x interface{}) (interface{}, bool) {
 }
 
 func (m method) call2(x, y interface{}) (interface{}, bool) {
-	v := reflect.ValueOf(x)
+	v := rval(x)
 	t := v.Type()
 	if t.NumMethod() > 0 {
 		if m, ok := t.MethodByName(string(m)); ok {
-			return m.Func.Call([]reflect.Value{v, reflect.ValueOf(y), reflect.ValueOf(true)})[0].Interface(), true
+			return m.Func.Call([]reflect.Value{v, rval(y), rval(true)})[0].Interface(), true
 		}
 	}
 	// TODO: apply to slices of values that implement the method.
 
-	v = reflect.ValueOf(y)
+	v = rval(y)
 	t = v.Type()
 	if t.NumMethod() > 0 {
 		if m, ok := t.MethodByName(string(m)); ok {
-			return m.Func.Call([]reflect.Value{v, reflect.ValueOf(x), reflect.ValueOf(false)})[0].Interface(), true
+			return m.Func.Call([]reflect.Value{v, rval(x), rval(false)})[0].Interface(), true
 		}
 	}
 	return nil, false
 }
 
-func nv(x interface{}) ([]float64, []complex128, bool, reflect.Type) {
+func nv(x v) (fv, zv, bool, rT) {
 	switch t := x.(type) {
-	case float64:
-		return []float64{t}, nil, false, floatT
-	case complex128:
-		return nil, []complex128{t}, false, complexT
-	case []float64:
-		r := make([]float64, len(t))
+	case f:
+		return fv{t}, nil, false, rTf
+	case z:
+		return nil, zv{t}, false, rTz
+	case fv:
+		r := make(fv, len(t))
 		copy(r, t)
-		return r, nil, true, floatT
-	case []complex128:
-		r := make([]complex128, len(t))
+		return r, nil, true, rTf
+	case zv:
+		r := make(zv, len(t))
 		copy(r, t)
-		return nil, t, true, complexT
+		return nil, t, true, rTz
+	case s:
+		e("type")
 	}
-	v := reflect.ValueOf(x)
+	v := rval(x)
 	if v.Kind() == reflect.Slice {
 		n := v.Len()
 		z := reflect.Zero(v.Type().Elem())
-		if z.Type().ConvertibleTo(floatT) {
+		if z.Type().ConvertibleTo(rTf) {
 			r := make([]float64, n)
 			for i := range r {
-				r[i] = v.Index(i).Convert(floatT).Float()
+				r[i] = v.Index(i).Convert(rTf).Float()
 			}
 			return r, nil, true, z.Type()
-		} else if z.Type().ConvertibleTo(complexT) {
+		} else if z.Type().ConvertibleTo(rTz) {
 			r := make([]complex128, n)
 			for i := range r {
-				r[i] = v.Index(i).Convert(complexT).Complex()
+				r[i] = v.Index(i).Convert(rTz).Complex()
 			}
 			return nil, r, true, z.Type()
-		} else if z.Type().ConvertibleTo(boolT) {
+		} else if z.Type().ConvertibleTo(rTb) {
 			r := make([]float64, n)
 			for i := range r {
-				b := v.Index(i).Convert(boolT).Bool()
+				b := v.Index(i).Convert(rTb).Bool()
 				if b {
 					r[i] = 1
 				}
@@ -314,14 +313,14 @@ func nv(x interface{}) ([]float64, []complex128, bool, reflect.Type) {
 		e("type")
 	}
 
-	if v.Type().ConvertibleTo(floatT) {
-		return []float64{v.Convert(floatT).Float()}, nil, false, v.Type()
+	if v.Type().ConvertibleTo(rTf) {
+		return []float64{v.Convert(rTf).Float()}, nil, false, v.Type()
 	}
-	if v.Type().ConvertibleTo(complexT) {
-		return nil, []complex128{v.Convert(complexT).Complex()}, false, v.Type()
+	if v.Type().ConvertibleTo(rTz) {
+		return nil, []complex128{v.Convert(rTz).Complex()}, false, v.Type()
 	}
-	if v.Type().ConvertibleTo(boolT) {
-		b := v.Convert(boolT).Bool()
+	if v.Type().ConvertibleTo(rTb) {
+		b := v.Convert(rTb).Bool()
 		r := 0.0
 		if b {
 			r = 1.0
@@ -329,16 +328,16 @@ func nv(x interface{}) ([]float64, []complex128, bool, reflect.Type) {
 		return []float64{r}, nil, false, v.Type()
 	}
 	e("type")
-	return nil, nil, false, floatT
+	return nil, nil, false, rTf
 }
 func vn(x []float64, z []complex128, vec bool, t reflect.Type) interface{} {
-	if x != nil && (t == floatT || t == nil) {
+	if x != nil && (t == rTf || t == nil) {
 		if vec {
 			return x
 		}
 		return x[0]
 	}
-	if z != nil && (t == complexT || t == nil) {
+	if z != nil && (t == rTz || t == nil) {
 		if vec {
 			return z
 		}
@@ -346,16 +345,16 @@ func vn(x []float64, z []complex128, vec bool, t reflect.Type) interface{} {
 	}
 	if vec == false {
 		if x != nil {
-			if t.ConvertibleTo(boolT) {
+			if t.ConvertibleTo(rTb) {
 				b := false
 				if x[0] != 0 {
 					b = true
 				}
-				return reflect.ValueOf(b).Convert(t).Interface()
+				return rval(b).Convert(t).Interface()
 			}
-			return reflect.ValueOf(x[0]).Convert(t).Interface()
+			return rval(x[0]).Convert(t).Interface()
 		}
-		return reflect.ValueOf(z[0]).Convert(t).Interface()
+		return rval(z[0]).Convert(t).Interface()
 	}
 	n := len(x)
 	if x == nil {
@@ -364,17 +363,17 @@ func vn(x []float64, z []complex128, vec bool, t reflect.Type) interface{} {
 	r := reflect.MakeSlice(reflect.SliceOf(t), n, n)
 	for i := 0; i < n; i++ {
 		if x != nil {
-			if t.ConvertibleTo(boolT) {
+			if t.ConvertibleTo(rTb) {
 				b := false
 				if x[0] != 0 {
 					b = true
 				}
-				r.Index(i).Set(reflect.ValueOf(b).Convert(t))
+				r.Index(i).Set(rval(b).Convert(t))
 			} else {
-				r.Index(i).Set(reflect.ValueOf(x[i]).Convert(t))
+				r.Index(i).Set(rval(x[i]).Convert(t))
 			}
 		} else {
-			r.Index(i).Set(reflect.ValueOf(z[i]).Convert(t))
+			r.Index(i).Set(rval(z[i]).Convert(t))
 		}
 	}
 	return r.Interface()
@@ -402,11 +401,11 @@ func nrsh(x []float64, z []complex128, n int) ([]float64, []complex128) {
 	return r, nil
 }
 func nl(x interface{}) []interface{} {
-	v := reflect.ValueOf(x)
+	v := rval(x)
 	if v.Kind() == reflect.Slice {
 		r := make([]interface{}, v.Len())
 		for i := range r {
-			reflect.ValueOf(x).Index(i).Set(v.Index(i))
+			rval(x).Index(i).Set(v.Index(i))
 		}
 		return r
 	} else {

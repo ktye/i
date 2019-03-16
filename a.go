@@ -5,33 +5,87 @@ import (
 	"math"
 	"math/cmplx"
 	"reflect"
-
-	"github.com/ktye/i/internal/fmtsort"
 )
 
-// Parse
-func P(s string) interface{} {
+func P(s s) v {
 	return prs(s)
 }
-
-// Eval
-func E(a map[interface{}]interface{}, l interface{}) interface{} {
+func E(l v, a kt) v {
 	if a == nil {
-		a = make(map[interface{}]interface{})
+		a = make(kt)
 	}
-	// TODO: if len(a) == 0 ... initialize k-tree.
+	if len(a) == 0 {
+		kinit(a)
+	}
 	return eva(a, l)
 }
 
-func cpy(v interface{}) interface{} {
-	// TODO
-	return v
+type (
+	i  = int
+	f  = float64
+	fv = []f
+	z  = complex128
+	zv = []z
+	s  = string
+	sv = []s
+	v  = interface{}
+	l  = []v
+	d  = dict
+	kt = map[v]v
+)
+type rV = reflect.Value
+type rT = reflect.Type
+
+func rval(x v) rV { return reflect.ValueOf(x) }
+func rtyp(x v) rT { return reflect.TypeOf(x) }
+
+var rTb = rtyp(true)
+var rTf = rtyp(0.0)
+var rTz = rtyp(complex(0, 0))
+var rTs = rtyp("")
+
+func cpy(x v) v {
+	switch t := x.(type) {
+	case f:
+		return x
+	case z:
+		return x
+	case s:
+		return x
+	case l:
+		r := make(l, len(t))
+		for i := range r {
+			r[i] = cpy(t[i])
+		}
+		return r
+	case d:
+		r := t
+		r.k = cpy(t.k).(l)
+		r.v = cpy(t.v).(l)
+	}
+	v := rval(x)
+	switch v.Kind() {
+	case reflect.Slice:
+		n := v.Len()
+		r := reflect.MakeSlice(v.Type(), n, n)
+		for i := 0; i < n; i++ {
+			y := cpy(v.Index(i).Interface())
+			r.Index(i).Set(rval(y))
+		}
+		return r.Interface()
+	case reflect.Chan, reflect.Interface, reflect.Ptr, reflect.UnsafePointer:
+		// TODO: allow pointer, with or without deep copy, depending on type?
+		e("type") // TODO: these types should be returned verbatim
+	case reflect.Map, reflect.Struct:
+		e("assert") // already converted to dict
+	}
+	return x
 }
 
 func e(s string) interface{} { panic(s); return nil }
 
 func ln(v interface{}) int {
-	r := reflect.ValueOf(v)
+	r := rval(v)
 	if r.Kind() == reflect.Slice {
 		return r.Len()
 	}
@@ -39,9 +93,10 @@ func ln(v interface{}) int {
 }
 
 func lz(l interface{}) interface{} {
-	return reflect.Zero(reflect.TypeOf(l).Elem()).Interface()
+	return reflect.Zero(rtyp(l).Elem()).Interface()
 }
 
+/*
 func mk(l interface{}, n int) interface{} {
 	switch l.(type) {
 	case float64:
@@ -51,12 +106,133 @@ func mk(l interface{}, n int) interface{} {
 	case string:
 		return make([]string, n)
 	}
-	return reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(l)), n, n).Interface()
+	return reflect.MakeSlice(reflect.SliceOf(rtyp(l)), n, n).Interface()
+}
+*/
+
+type dict struct {
+	k, v          l
+	f, s, u, p, g bool // flipped, sorted, uniq, parted, grouped
+	t             reflect.Type
+}
+
+func md(x interface{}) (d, bool) {
+	var d d
+	switch m := x.(type) {
+	case map[v]v:
+		off := 0
+		if h, ok := m["_"]; ok {
+			hdr := h.(dict)
+			d.f, d.s, d.u, d.p, d.g = hdr.f, hdr.s, hdr.u, hdr.p, hdr.g
+			d.k = cpy(hdr.k).(l)
+			off = 1
+		}
+		n := len(m) - off
+		if off == 0 {
+			d.k = make(l, n)
+			d.v = make(l, n)
+			i := 0
+			for k, v := range m {
+				d.k[i] = cpy(k)
+				d.v[i] = cpy(v)
+				i++
+			}
+		} else {
+			d.v = make([]interface{}, n)
+			for i, k := range d.k {
+				d.v[i] = cpy(m[k])
+			}
+		}
+		return d, true
+	}
+	// convert from user supplied map or struct
+
+	v := rval(x)
+	d.t = v.Type()
+	if kind := v.Kind(); kind == reflect.Map || kind == reflect.Struct {
+		n := 0
+		if kind == reflect.Map {
+			n = v.Len()
+		} else {
+			n = v.NumField()
+		}
+		d.k = make(l, n)
+		d.v = make(l, n)
+		if kind == reflect.Map {
+			keys := v.MapKeys()
+			for i, k := range keys {
+				d.k[i] = cpy(k.Interface())
+				d.v[i] = cpy(v.MapIndex(k).Interface())
+			}
+		} else {
+			t := v.Type()
+			for i := 0; i < n; i++ {
+				d.k[i] = t.Field(i).Name
+				d.v[i] = cpy(v.Field(i).Interface())
+			}
+		}
+		return d, true
+	}
+	return d, false
+}
+func (d dict) mp() interface{} {
+	if d.t == nil {
+		r := make(map[v]v)
+		r["_"] = dict{d.k, nil, d.f, d.s, d.u, d.p, d.g, nil}
+		for i, k := range d.k {
+			r[k] = d.v[i]
+		}
+		return r
+	}
+
+	// convert back to original map or struct type.
+	v := reflect.New(d.t)
+	v = v.Elem()
+	if v.Kind() == reflect.Map {
+		v = reflect.MakeMap(d.t)
+		keytype := v.Type().Key()
+		valtype := v.Type().Elem()
+		for i, k := range d.k {
+			rk := rval(k)
+			if t := rk.Type(); t != keytype {
+				rk = rk.Convert(t)
+			}
+			rv := rval(d.v[i])
+			if t := rv.Type(); t != valtype {
+				rv = rv.Convert(t)
+			}
+			v.SetMapIndex(rk, rv)
+		}
+		return v.Interface()
+	} else if v.Kind() == reflect.Struct {
+		for i, k := range d.k {
+			f := v.FieldByName(rval(k).String())
+			if f.Kind() == reflect.Slice {
+				w := rval(d.v[i])
+				if w.IsValid() == false {
+					continue
+				}
+				sv := reflect.MakeSlice(f.Type(), w.Len(), w.Len())
+				reflect.Copy(sv, w)
+			} // TODO: make other types, that need it.
+			f.Set(rval(d.v[i]))
+		}
+		return v.Interface()
+	}
+	return e("type")
+}
+func (d dict) at(key v) (int, v) {
+	for i, k := range d.k {
+		if k == key {
+			return i, d.v[i]
+		}
+	}
+	return -1, nil
 }
 
 // function krange(x, f) { var r=[]; for(var z=0;z<x;z++) { r.push(f(z)); } return k(3,r); }
-func krange(n int, f func(int) interface{}) []interface{} {
-	l := make([]interface{}, n)
+func krange(n int, f func(int) v) l {
+	l := make(l, n)
 	for i := 0; i < n; i++ {
 		l[i] = f(i)
 	}
@@ -64,7 +240,7 @@ func krange(n int, f func(int) interface{}) []interface{} {
 }
 
 // function kmap (x, f) { return k(3, l(x).v.map(f)); }
-func kmap(x interface{}, f func(interface{}, int) interface{}) interface{} {
+func kmap(x v, f func(v, int) v) v {
 	n := ln(x)
 	if n < 0 {
 		e("type")
@@ -76,90 +252,29 @@ func kmap(x interface{}, f func(interface{}, int) interface{}) interface{} {
 }
 
 // function kzip (x, y, f) { return kmap(sl(x,y), function(z, i) { return f(z, y.v[i]); }); }
-func kzip(x, y interface{}, f func(interface{}, interface{}) interface{}) interface{} {
-	return kmap(sl, func(v interface{}, i int) interface{} {
+func kzip(x, y v, f func(v, v) v) v {
+	return kmap(sl, func(v v, i int) v {
 		return f(v, at(y, i))
 	})
 }
 
-func sl(x, y interface{}) interface{} {
+func sl(x, y v) v {
 	if ln(x) != ln(y) {
 		e("len")
 	}
 	return x
 }
 
-func na(v interface{}) bool {
-	if ln(v) < 0 {
-		return false
-	}
-	return math.IsNaN(re(v))
-}
-
-func impl(v interface{}, t reflect.Type) reflect.Method {
-	if reflect.TypeOf(v).Implements(t) {
+func impl(v v, t reflect.Type) reflect.Method {
+	if rtyp(v).Implements(t) {
 		return t.Elem().Method(0)
 	}
 	return reflect.Method{}
 }
 
-/*
-func icall1(f reflect.Value, x reflect.Value) reflect.Value {
-	r := f.Call([]reflect.Value{x})
-	return r[0].Interface()
-}
-*/
+func idx(v v) int { return int(re(v)) }
 
-func c1(v interface{}) (complex128, bool) {
-	if z, ok := v.(complex128); ok {
-		return z, true
-	}
-	if r := reflect.ValueOf(v); r.Kind() == reflect.Complex128 {
-		return r.Complex(), true
-	}
-	if r := reflect.ValueOf(v); r.Kind() == reflect.Complex128 {
-		return r.Complex(), true
-	}
-	return 0, false
-}
-
-var boolT = reflect.TypeOf(true)
-var floatT = reflect.TypeOf(0.0)
-var complexT = reflect.TypeOf(complex(0, 0))
-
-func n1(x interface{}) (float64, complex128, bool) {
-	v := reflect.ValueOf(x)
-	if v.Type().ConvertibleTo(boolT) {
-		b := v.Convert(boolT).Bool()
-		if b {
-			return 1, 0, false
-		}
-		return 0, 0, false
-	} else if v.Type().ConvertibleTo(floatT) {
-		return v.Convert(floatT).Float(), 0, false
-	} else if v.Type().ConvertibleTo(complexT) {
-		return 0, v.Convert(complexT).Complex(), true
-	}
-	e("type")
-	return 0, 0, false
-}
-
-func n2(x, y interface{}) (float64, float64, complex128, complex128, bool) {
-	a, aok := c1(x)
-	b, bok := c1(y)
-	if aok && bok {
-		return 0, 0, a, b, true
-	} else if aok {
-		return 0, 0, a, complex(re(y), 0), true
-	} else if bok {
-		return 0, 0, complex(re(x), 0), b, true
-	}
-	return re(x), re(y), 0, 0, false
-}
-
-func idx(v interface{}) int { return int(re(v)) }
-
-func re(v interface{}) float64 {
+func re(v v) float64 {
 	switch w := v.(type) {
 	case float64:
 		return w
@@ -176,7 +291,7 @@ func re(v interface{}) float64 {
 		}
 		return real(w)
 	}
-	r := reflect.ValueOf(v)
+	r := rval(v)
 	if k := r.Kind(); k == reflect.Bool {
 		if r.Bool() {
 			return 1
@@ -188,7 +303,7 @@ func re(v interface{}) float64 {
 	return float64(r.Int()) // panics
 }
 
-func at(l interface{}, i int) interface{} {
+func at(l v, i int) interface{} {
 	switch v := l.(type) {
 	case []interface{}:
 		return v[i]
@@ -197,7 +312,7 @@ func at(l interface{}, i int) interface{} {
 	case []complex128:
 		return v[i]
 	}
-	v := reflect.ValueOf(l)
+	v := rval(l)
 	return v.Index(i).Interface()
 }
 
@@ -213,14 +328,7 @@ func set(l interface{}, i int, v interface{}) {
 		t[i] = v.(complex128)
 		return
 	}
-	reflect.ValueOf(l).Index(i).Set(reflect.ValueOf(v))
+	rval(l).Index(i).Set(rval(v))
 }
 
-func keys(v interface{}) []interface{} {
-	s := fmtsort.Sort(reflect.ValueOf(v))
-	r := make([]interface{}, len(s.Key))
-	for i, v := range s.Key {
-		r[i] = v.Interface()
-	}
-	return r
-}
+func kinit(a kt) {}

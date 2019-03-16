@@ -1,17 +1,11 @@
 # ⍳ interpret
 
 ## Usage
-The package exports only two functions and no types. The functions are *P* and *E*.
+The package exports two functions *P* and *E* and no types.
 ```go
-    // Make a new interpreter with an empty k-tree
-    a := make(map[interface{}]interface{}) 
-    
-    // Parse: func P(s string) interface{}
-    l := P("k-expression")  // The return value is an ast
-    
-    // Eval: func E(a map[interface{}]interface{}, l interface{}) interface{}
-    v := E(a, l)           // The return value is a list of values
-
+    var  a map[interface{}]interface{} // k tree
+    l := P("!3")  // Parse expr to ast (list []interface{})
+    v := E(l, a)  // Evaluate to value (interface{})
 ```
 
 ## Types

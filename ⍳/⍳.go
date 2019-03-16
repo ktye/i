@@ -19,8 +19,11 @@ import (
 var file string
 var line int
 
+type v = interface{}
+type kt = map[v]v
+
 func main() {
-	a := new(i.A)
+	var a kt
 
 	var r io.Reader
 	if len(os.Args) < 2 {
@@ -42,7 +45,7 @@ func main() {
 	}
 }
 
-func run(a *i.A, t string) (r interface{}) {
+func run(a kt, t string) (r interface{}) {
 	defer func() {
 		if c := recover(); c != nil {
 			debug.PrintStack()
@@ -53,6 +56,6 @@ func run(a *i.A, t string) (r interface{}) {
 			}
 		}
 	}()
-	r = a.E(a.P(t))
+	r = i.E(i.P(t), a)
 	return
 }
