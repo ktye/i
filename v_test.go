@@ -43,7 +43,9 @@ func TestMV(t *testing.T) {
 		{"sqr", sqr, 4, 2},
 		// {"sqr", sqr, -1.0, math.NaN()}, not comparable
 		{"sqr", sqr, -7 + 24i, c(3, 4)},
-		// til TODO
+		{"til", til, 3.0, fv{0, 1, 2}},
+		{"til", til, 3, iv{0, 1, 2}},
+		// TODO til l (odometer)
 		// odo TODO
 		// wer TODO
 		// rev TODO

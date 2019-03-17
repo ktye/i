@@ -44,7 +44,11 @@ var rTf = rtyp(0.0)
 var rTz = rtyp(complex(0, 0))
 var rTs = rtyp("")
 
-func cpy(x v) v {
+type cpr interface {
+	Copy() v
+}
+
+func cp(x v) v {
 	switch t := x.(type) {
 	case f:
 		return x
@@ -55,13 +59,16 @@ func cpy(x v) v {
 	case l:
 		r := make(l, len(t))
 		for i := range r {
-			r[i] = cpy(t[i])
+			r[i] = cp(t[i])
 		}
 		return r
 	case d:
 		r := t
-		r.k = cpy(t.k).(l)
-		r.v = cpy(t.v).(l)
+		r.k = cp(t.k).(l)
+		r.v = cp(t.v).(l)
+	}
+	if v, ok := x.(cpr); ok {
+		return v.Copy()
 	}
 	v := rval(x)
 	switch v.Kind() {
@@ -69,7 +76,7 @@ func cpy(x v) v {
 		n := v.Len()
 		r := reflect.MakeSlice(v.Type(), n, n)
 		for i := 0; i < n; i++ {
-			y := cpy(v.Index(i).Interface())
+			y := cp(v.Index(i).Interface())
 			r.Index(i).Set(rval(y))
 		}
 		return r.Interface()
@@ -91,7 +98,6 @@ func ln(v interface{}) int {
 	}
 	return -1
 }
-
 func lz(l interface{}) interface{} {
 	return reflect.Zero(rtyp(l).Elem()).Interface()
 }
@@ -124,7 +130,7 @@ func md(x interface{}) (d, bool) {
 		if h, ok := m["_"]; ok {
 			hdr := h.(dict)
 			d.f, d.s, d.u, d.p, d.g = hdr.f, hdr.s, hdr.u, hdr.p, hdr.g
-			d.k = cpy(hdr.k).(l)
+			d.k = cp(hdr.k).(l)
 			off = 1
 		}
 		n := len(m) - off
@@ -133,14 +139,14 @@ func md(x interface{}) (d, bool) {
 			d.v = make(l, n)
 			i := 0
 			for k, v := range m {
-				d.k[i] = cpy(k)
-				d.v[i] = cpy(v)
+				d.k[i] = cp(k)
+				d.v[i] = cp(v)
 				i++
 			}
 		} else {
 			d.v = make([]interface{}, n)
 			for i, k := range d.k {
-				d.v[i] = cpy(m[k])
+				d.v[i] = cp(m[k])
 			}
 		}
 		return d, true
@@ -161,14 +167,14 @@ func md(x interface{}) (d, bool) {
 		if kind == reflect.Map {
 			keys := v.MapKeys()
 			for i, k := range keys {
-				d.k[i] = cpy(k.Interface())
-				d.v[i] = cpy(v.MapIndex(k).Interface())
+				d.k[i] = cp(k.Interface())
+				d.v[i] = cp(v.MapIndex(k).Interface())
 			}
 		} else {
 			t := v.Type()
 			for i := 0; i < n; i++ {
 				d.k[i] = t.Field(i).Name
-				d.v[i] = cpy(v.Field(i).Interface())
+				d.v[i] = cp(v.Field(i).Interface())
 			}
 		}
 		return d, true

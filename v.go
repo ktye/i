@@ -17,7 +17,23 @@ func fst(v interface{}) interface{} {
 	return at(v, 0)
 }
 func sqr(x interface{}) interface{} { return nm(x, rsqr, zsqr, "Sqr") }
-func til(x interface{}) interface{} { return e("TODO") }
+func til(x interface{}) interface{} {
+	if d, ok := md(x); ok {
+		return d.k
+	}
+	f, z, vec, t := nv(x)
+	if z != nil || vec {
+		e("type") // !z
+	}
+	if f[0] < 0 {
+		return e("domain") // !-n
+	}
+	r := make(fv, int(f[0]))
+	for i := range r {
+		r[i] = float64(i)
+	}
+	return vn(r, nil, true, t)
+}
 func odo(x interface{}) interface{} { return e("TODO") }
 func wer(x interface{}) interface{} { return e("TODO") }
 func rev(x interface{}) interface{} { return e("TODO") }
@@ -104,8 +120,7 @@ func rsh(x, y interface{}) interface{} {
 	}
 	r := make([]interface{}, n)
 	for i := range r {
-		//println(i, n, i%n)
-		r[i] = cpy(v[i%m])
+		r[i] = cp(v[i%m])
 	}
 	return r
 
