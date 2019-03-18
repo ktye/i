@@ -42,7 +42,7 @@ Verbs
 #   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴≢↑ 
 _  [flr] [flr]  drp   fil   drp   cut    -    -   ↓ (not ⌊)
 $   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕∪
-?   rng   unq   rnd   fnd   pik   fnd>  spl  -    ⍷
+?   rng   unq   rnd   fnd   pik   fnd>  spl   -   ⍷
 @   typ   typ   atx   atx   atx   atx   amd  amd  ⌶⌷
 .   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
 '    -     -     -    bin    -    bin>   -    -     

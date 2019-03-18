@@ -3,10 +3,9 @@ package i
 import "reflect"
 
 // monadic verbs
-
-func flp(x interface{}) interface{} { return e("TODO") }
-func neg(x interface{}) interface{} { return nm(x, rneg, zneg, "Neg") }
-func fst(v interface{}) interface{} {
+func flp(x v) v { return e("TODO") }
+func neg(x v) v { return nm(x, rneg, zneg, "Neg") }
+func fst(v v) v {
 	//function first (x) { return (x.t == 4) ? first(x.v) : (x.t != 3) ? x : len(x) ? x.v[0]:k(3,[]); }
 	// TODO dict
 	if n := ln(v); n < 0 {
@@ -16,8 +15,8 @@ func fst(v interface{}) interface{} {
 	}
 	return at(v, 0)
 }
-func sqr(x interface{}) interface{} { return nm(x, rsqr, zsqr, "Sqr") }
-func til(x interface{}) interface{} {
+func sqr(x v) v { return nm(x, rsqr, zsqr, "Sqr") }
+func til(x v) v {
 	if d, ok := md(x); ok {
 		return d.k
 	}
@@ -34,50 +33,46 @@ func til(x interface{}) interface{} {
 	}
 	return vn(r, nil, true, t)
 }
-func odo(x interface{}) interface{} { return e("TODO") }
-func wer(x interface{}) interface{} { return e("TODO") }
-func rev(x interface{}) interface{} { return e("TODO") }
-func asc(x interface{}) interface{} { return e("TODO") }
-func dsc(x interface{}) interface{} { return e("TODO") }
-func eye(x interface{}) interface{} { return e("TODO") }
-func grp(x interface{}) interface{} { return e("TODO") }
-func not(x interface{}) interface{} { return nm(x, rnot, znot, "Not") }
-func enl(x interface{}) interface{} {
+func odo(x v) v { return e("TODO") } // →impl
+func wer(x v) v { return e("TODO") }
+func rev(x v) v { return e("TODO") }
+func asc(x v) v { return e("TODO") }
+func dsc(x v) v { return e("TODO") }
+func eye(x v) v { return e("TODO") }
+func grp(x v) v { return e("TODO") }
+func not(x v) v { return nm(x, rnot, znot, "Not") }
+func enl(x v) v {
 	v := rval(x)
 	switch v.Kind() {
 	case reflect.Func, reflect.Slice, reflect.Map:
-		return []interface{}{x}
+		return l{x}
 	}
 	l := reflect.MakeSlice(reflect.SliceOf(v.Type()), 1, 1)
 	l.Index(0).Set(v)
 	return l.Interface()
 }
-func is0(x interface{}) interface{} { return e("TODO") }
-func cnt(x interface{}) interface{} { return e("TODO") }
-func flr(x interface{}) interface{} { return nm(x, rflr, zflr, "Flr") }
-func fmt(x interface{}) interface{} { return e("TODO") }
-func fgn(x interface{}) interface{} { return e("TODO") }
-func unq(x interface{}) interface{} { return e("TODO") }
-func evl(x interface{}) interface{} { return e("TODO") }
+func is0(x v) v { return e("TODO") }
+func cnt(x v) v { return e("TODO") }
+func flr(x v) v { return nm(x, rflr, zflr, "Flr") }
+func fmt(x v) v { return e("TODO") }
+func fgn(x v) v { return e("TODO") }
+func unq(x v) v { return e("TODO") }
+func evl(x v) v { return e("TODO") }
 
 // dyadic verbs
-
-func add(x, y interface{}) interface{} { return nd(x, y, radd, zadd, "Add") }
-func sub(x, y interface{}) interface{} { return nd(x, y, rsub, zsub, "Sub") }
-func mul(x, y interface{}) interface{} { return nd(x, y, rmul, zmul, "Mul") }
-func div(x, y interface{}) interface{} { return nd(x, y, rdiv, zdiv, "Div") }
-func mod(x, y interface{}) interface{} { return e("TODO") }
-func mkd(x, y interface{}) interface{} { return e("TODO") }
-func min(x, y interface{}) interface{} { return nd(x, y, rmin, zmin, "Min") }
-func max(x, y interface{}) interface{} { return nd(x, y, rmax, zmax, "Max") } // cast to bool?
-func les(x, y interface{}) interface{} { return nd(x, y, rles, zles, "Les") } // ?
-func mor(x, y interface{}) interface{} { return nd(x, y, rmor, zmor, "Mor") } // ?
-func eql(x, y interface{}) interface{} { return nd(x, y, reql, zeql, "Eql") } // ?
-func mch(x, y interface{}) interface{} { return e("TODO") }
-func cat(x, y interface{}) interface{} {
-	// if (x.t==4&&y.t==4) { x=c(x); kmap(y.k, function(v) { dset(x,v,dget(y,v)); }); return x; };
-	// return k(3, (x.t==3?x.v:[x]).concat(y.t==3?y.v:[y]));
-
+func add(x, y v) v { return nd(x, y, radd, zadd, "Add") }
+func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") }
+func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") }
+func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") }
+func mod(x, y v) v { return e("TODO") }
+func mkd(x, y v) v { return e("TODO") }
+func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
+func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") } // cast to bool?
+func les(x, y v) v { return nd(x, y, rles, zles, "Les") } // ?
+func mor(x, y v) v { return nd(x, y, rmor, zmor, "Mor") } // ?
+func eql(x, y v) v { return nd(x, y, reql, zeql, "Eql") } // ?
+func mch(x, y v) v { return e("TODO") }
+func cat(x, y v) v {
 	// TODO dict
 	nx := ln(x)
 	if nx < 0 {
@@ -100,7 +95,7 @@ func cat(x, y interface{}) interface{} {
 		}
 		return l.Interface()
 	}
-	l := make([]interface{}, nx+ny)
+	l := make(l, nx+ny)
 	for i := 0; i < nx; i++ {
 		l[i] = at(x, i)
 	}
@@ -109,94 +104,66 @@ func cat(x, y interface{}) interface{} {
 	}
 	return l
 }
-func tak(x, y interface{}) interface{} { return e("TODO") }
-func rsh(x, y interface{}) interface{} {
+func tak(x, y v) v { return e("TODO") }
+func rsh(x, y v) v {
 	// TODO temporarily only rsh(int, []interface{}) is supported.
 	n := x.(int)
-	v := y.([]interface{})
+	v := y.(l)
 	m := len(v)
 	if n == m {
 		return v
 	}
-	r := make([]interface{}, n)
+	r := make(l, n)
 	for i := range r {
 		r[i] = cp(v[i%m])
 	}
 	return r
-
-	// if (y.t == 4) { return md(x, atx(y, x)); }
-	// if (y.t != 3) { y = enlist(y); }
-	// var a = first(x); var b = x.v[len(x)-1]; var c = 0;
-	// function rshr(x, y, i) {
-	// 	return krange(x.v[i].v, function(z) {
-	// 		return i==len(x)-1 ? y.v[kmod(c++, len(y))] : rshr(x, y, i+1);
-	// 	});
-	// }
-	// return na(a) ? (!len(y) ? y : cut(krange(len(y)/b.v, function(z) { return k(0, z*b.v); }), y)) :
-	//        na(b) ? cut(krange(a.v, function(z) { return k(0, Math.floor(z*len(y)/a.v)); }), y) :
-	//        rshr(l(x), len(y) ? y : enlist(y), 0);
-	/*
-		nx := ln(x)
-		if nx < 0 {
-			e("type")
-		} else if nx == 0 {
-			return nil
-		}
-
-		ny := ln(y)
-		if ny < 0 {
-			y = enl(y)
-			ny = 1
-		}
-
-		a := fst(x)
-		b := at(x, n-1)
-		c := 0
-		rshr := func(x, y interface{}, i int) {
-			return krange(idx(at(x, i)), func(_ int) {
-				if i == ln(x)-1 {
-					c++
-					return at(y, c%ln(y))
-				}
-				return rshr(x, y, i+1)
-			})
-		}
-	*/
-
-	//return na(a) ? (!len(y) ? y : cut(krange(len(y)/b.v, function(z) { return k(0, z*b.v); }), y)) :
-	//      na(b) ? cut(krange(a.v, function(z) { return k(0, Math.floor(z*len(y)/a.v)); }), y) :
-	//     rshr(l(x), len(y) ? y : enlist(y), 0);
-	/*
-		if na(a) {
-			// (!len(y) ? y : cut(krange(len(y)/b.v, function(z) { return k(0, z*b.v); }), y))
-			if ny == 0 {
-				return y
-			}
-
-		} else if na(b) {
-				// return cut(...
-			}
-		}
-	*/
+	// TODO
 }
-func fil(x, y interface{}) interface{} { return e("TODO") }
-func drp(x, y interface{}) interface{} { return e("TODO") }
-func cut(x, y interface{}) interface{} {
-	// return kzip(x, cat(drop(k1,x),count(y)), function(a, b) { // {x{x@y+!z-y}[y]'1_x,#y} ?
-	// 	var r=[]; for(var z=p(a);z<p(b);z++) { r.push(lget(y,z)); } return k(3,r);
-	// });
+func fil(x, y v) v { return e("TODO") }
+func drp(x, y v) v { return e("TODO") }
+func cut(x, y v) v { return e("TODO") }
+func cst(x, y v) v { return e("TODO") }
+func rnd(x, y v) v { return e("TODO") }
+func fnd(x, y v) v { return e("TODO") }
+func pik(x, y v) v { return e("TODO") }
+func rfd(x, y v) v { return e("TODO") }
+func atx(x, y v, a kt) v {
+	if s, o := x.(s); o {
+		return atx(a.at(s), y, a)
+	}
+	if y == nil {
+		return x
+	}
+	xl, yl := false, false
+	if ln(x) > 0 {
+		xl = true
+	}
+	if ln(y) > 0 {
+		yl = true
+	}
+	xdict, xd := md(x)
+	ydict, yd := md(y)
+	_ = xdict
+	_ = ydict
+	switch {
+	case xl && yd:
+		// TODO
+	// TODO x verb, y adverb
+	case xl || xd && yl:
+		// TODO
+	case xl:
+		// TODO nested
+	case xd:
+		// TODO
+	}
+	// TODO call
 	return e("TODO")
 }
-func cst(x, y interface{}) interface{} { return e("TODO") }
-func rnd(x, y interface{}) interface{} { return e("TODO") }
-func fnd(x, y interface{}) interface{} { return e("TODO") }
-func pik(x, y interface{}) interface{} { return e("TODO") }
-func rfd(x, y interface{}) interface{} { return e("TODO") }
-func atx(x, y interface{}) interface{} { return e("TODO") }
-func cal(x, y interface{}) interface{} { return e("TODO") }
-func bin(x, y interface{}) interface{} { return e("TODO") }
-func rbn(x, y interface{}) interface{} { return e("TODO") }
-func pak(x, y interface{}) interface{} { return e("TODO") }
-func upk(x, y interface{}) interface{} { return e("TODO") }
-func spl(x, y interface{}) interface{} { return e("TODO") }
-func win(x, y interface{}) interface{} { return e("TODO") }
+func cal(x, y v) v { return e("TODO") }
+func bin(x, y v) v { return e("TODO") }
+func rbn(x, y v) v { return e("TODO") }
+func pak(x, y v) v { return e("TODO") }
+func upk(x, y v) v { return e("TODO") }
+func spl(x, y v) v { return e("TODO") }
+func win(x, y v) v { return e("TODO") }

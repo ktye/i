@@ -7,18 +7,8 @@ import (
 	"reflect"
 )
 
-func P(s s) v {
-	return prs(s)
-}
-func E(l v, a kt) v {
-	if a == nil {
-		a = make(kt)
-	}
-	if len(a) == 0 {
-		kinit(a)
-	}
-	return eva(a, l)
-}
+func P(s s) v            { return prs(s) }
+func E(l v, a map[v]v) v { return eva(l, kinit(a)) }
 
 type (
 	i  = int
@@ -31,7 +21,6 @@ type (
 	v  = interface{}
 	l  = []v
 	d  = dict
-	kt = map[v]v
 )
 type rV = reflect.Value
 type rT = reflect.Type
@@ -144,7 +133,7 @@ func md(x interface{}) (d, bool) {
 				i++
 			}
 		} else {
-			d.v = make([]interface{}, n)
+			d.v = make(l, n)
 			for i, k := range d.k {
 				d.v[i] = cp(m[k])
 			}
@@ -309,32 +298,35 @@ func re(v v) float64 {
 	return float64(r.Int()) // panics
 }
 
-func at(l v, i int) interface{} {
-	switch v := l.(type) {
-	case []interface{}:
-		return v[i]
-	case []float64:
-		return v[i]
-	case []complex128:
-		return v[i]
+func at(L v, i int) v {
+	switch t := L.(type) {
+	case l:
+		return t[i]
+	case fv:
+		return t[i]
+	case zv:
+		return t[i]
 	}
-	v := rval(l)
-	return v.Index(i).Interface()
+	return rval(L).Index(i).Interface()
 }
-
-func set(l interface{}, i int, v interface{}) {
-	switch t := l.(type) {
-	case []interface{}:
-		t[i] = v
+func set(L v, i int, x v) {
+	switch t := L.(type) {
+	case l:
+		t[i] = x
 		return
-	case []float64:
-		t[i] = v.(float64)
+	case fv:
+		t[i] = x.(float64)
 		return
-	case []complex128:
-		t[i] = v.(complex128)
+	case zv:
+		t[i] = x.(complex128)
 		return
 	}
-	rval(l).Index(i).Set(rval(v))
+	rval(L).Index(i).Set(rval(x))
 }
 
-func kinit(a kt) {}
+type kt map[v]v
+
+func (a kt) at(s s) v { return e("TODO") }
+func kinit(a kt) kt {
+	return kt(a)
+}
