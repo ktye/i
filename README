@@ -1,0 +1,63 @@
+⍳ interpret - a k interpreter for Go
+
+Package interface (2 function, no types):
+  l := P("!3")  // Parse expr to ast (list []interface{})
+  v := E(l, a)  // Evaluate to value (interface{})
+  //k-tree: a map[interface{}]interface{}
+
+Types
+Interpreter default:
+    float64,   complex128      numbers
+  []float64, []complex128      uniform vectors
+  []interface{}                list (`_ is reserved)
+  []rune                       character array
+  string                       symbol
+  map[interface{}]interface{}  dict
+  func                         function
+Any Go variable that is present in the k-tree can be used as well:
+  any slice                    list
+  any map or struct            dict (string keys for structs)
+  any numeric type             number
+  any function can be called
+  any type implementing a verb interface can be used:
+    monadic: func (t myType) Neg() interface{}
+    dyadic:  func (t myType) Add(y interface{}, tLeft bool) interface{}
+  called for each scalar, or a single call if t is a slice
+
+Verbs
+    a     l     a-a   l-a   a-l   l-l   tri  tet
++   flp   flp  [add] [add] [add] [add]   -    -   ⍉
+-  [neg] [neg] [sub] [sub] [sub] [sub]   -    -    
+*   fst   fst  [mul] [mul] [mul] [mul]   -    -   ×
+%  [sqr] [sqr] [div] [div] [div] [div]   -    -   √÷
+!   til   odo   mod    -    mod>  mkd    -    -   ⍳
+&   wer   wer  [min] [min] [min] [min]   -    -   ⍸⌊
+|   rev   rev  [max] [max] [max] [max]   -    -   ⌽⌈
+<   asc   asc  [les] [les] [les] [les]   -    -   ⍋
+>   dsc   dsc  [mor] [mor] [mor] [mor]   -    -   ⍒
+=   eye   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
+~  [not] [not]  mch   mch   mch   mch    -    -   ≡
+,   enl   enl   cat   cat   cat   cat    -    -   ∊
+^   is0  [is0]  ept   ept   ept   ept    -    -   ∧
+#   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴≢↑ 
+_  [flr] [flr]  drp   fil   drp   cut    -    -   ↓ (not ⌊)
+$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕∪
+?   rng   unq   rnd   fnd   pik   fnd>  spl  -    ⍷
+@   typ   typ   atx   atx   atx   atx   amd  amd  ⌶⌷
+.   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
+'    -     -     -    bin    -    bin>   -    -     
+/    -     -     -     -    pak   pak    -    -     
+\    -     -     -    upk   spl   -      -    -     
+':   -     -     -     -    win   -      -    -     
+
+Adverbs
+    mv/nv dv    l-mv  l-dv  3+v
+':   -    ecp    -    ecp    -       ⍨
+'   ech   ecd   ecd   ecd   eca      ¨
+/:   -     -    ecr   ecr    -       ⌿
+\:   -     -    ecl   ecl    -       ⍀
+/   fxd   ovr   fxw   ovd   ova       
+\   scf   scn   scw   scd   sca         :← x⍺ y⍵ o∇
+
+Ref
+  github.com/JohnEarnest/ok
