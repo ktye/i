@@ -73,15 +73,7 @@ func TestMV(t *testing.T) {
 
 	for _, tc := range testCases {
 		r := tc.f(tc.x)
-		if m, ok := r.(map[v]v); ok {
-			delete(m, "_")
-			r = m
-		}
-		printf("%s %+v: %+v\n", tc.s, tc.x, r)
-		if reflect.DeepEqual(r, tc.r) == false {
-			printf("exp:\n%+#v\ngot:\n%+#v\n", tc.r, r)
-			t.Fatalf("%s %+v: exp: %+v got %+v\n", tc.s, tc.x, tc.r, r)
-		}
+		tt(t, tc.r, r, "%s %+v: %+v\n", tc.s, tc.x, r)
 	}
 }
 
@@ -142,7 +134,6 @@ func TestDV(t *testing.T) {
 		// fnd: TODO
 		// pik: TODO
 		// rfd: TODO
-		// atx: TODO
 		// cal: TODO
 		// bin: TODO
 		// rbn: TODO
@@ -151,18 +142,43 @@ func TestDV(t *testing.T) {
 		// spl: TODO
 		// win: TODO
 	}
-
 	for _, tc := range testCases {
 		r := tc.f(tc.x, tc.y)
-		if m, ok := r.(map[v]v); ok {
-			delete(m, "_")
-			r = m
-		}
-		printf("%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
-		if reflect.DeepEqual(r, tc.r) == false {
-			printf("exp:\n%+#v\ngot:\n%+#v\n", tc.r, r)
-			t.Fatalf("%s %+v %+v: exp: %+v got %+v\n", tc.s, tc.x, tc.y, tc.r, r)
-		}
+		tt(t, tc.r, r, "%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
+	}
+}
+
+func TestVKt(t *testing.T) {
+	type IV []int
+	testCases := []struct {
+		s       string
+		f       func(v, v, kt) v
+		a       kt
+		x, y, r v
+	}{
+		{"atx", atx, nil, iv{4, 5, 6}, 1, 5},
+		{"atx", atx, nil, iv{4, 5, 6}, iv{0, 2}, iv{4, 6}},
+		{"atx", atx, nil, map[v]v{"a": -1.0, "b": -2.0}, "b", -2.0},
+		{"atx", atx, nil, map[v]v{"a": -1.0, "b": -2.0}, sv{"b", "a"}, fv{-2, -1}},
+		// TODO atx var adv
+		// TODO atx verb *
+	}
+	for _, tc := range testCases {
+		r := tc.f(tc.x, tc.y, nil)
+		tt(t, tc.r, r, "%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
+	}
+}
+
+func tt(t *testing.T, exp, got v, s string, a ...v) {
+	if m, ok := got.(map[v]v); ok {
+		delete(m, "_")
+		got = m
+	}
+	printf(s, a...)
+	if reflect.DeepEqual(exp, got) == false {
+		_fmt.Printf("exp: %+v (%T)\n", exp, exp)
+		_fmt.Printf("got: %+v (%T)\n", got, got)
+		t.Fatal()
 	}
 }
 
@@ -202,9 +218,8 @@ type mystruct struct {
 // mymap is a custom dict type defined as a map.
 type mymap map[string]int
 
-func printf(v ...v) {
+func printf(f s, v ...v) {
 	if !testing.Verbose() { // temporarily switched
-		s := v[0].(string)
-		_fmt.Printf(s, v[1:]...)
+		_fmt.Printf(f, v...)
 	}
 }

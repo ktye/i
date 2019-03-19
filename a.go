@@ -78,17 +78,41 @@ func cp(x v) v {
 	return x
 }
 
-func e(s string) interface{} { panic(s); return nil }
+func e(s string) v { panic(s); return nil }
 
-func ln(v interface{}) int {
+func ln(v v) int {
 	r := rval(v)
 	if r.Kind() == reflect.Slice {
 		return r.Len()
 	}
 	return -1
 }
-func lz(l interface{}) interface{} {
+func lz(l v) v { // zero element of a slice (returns nil for type l)
 	return reflect.Zero(rtyp(l).Elem()).Interface()
+}
+func ls(v v) (l, rT) {
+	if v, ok := v.(l); ok {
+		return v, nil
+	}
+	r := rval(v)
+	if r.Kind() != reflect.Slice {
+		e("type")
+	}
+	l := make(l, r.Len())
+	for i := range l {
+		l[i] = cp(r.Index(i).Interface())
+	}
+	return l, r.Type().Elem()
+}
+func sl(l l, et rT) v {
+	if et == nil {
+		return l
+	}
+	r := reflect.MakeSlice(reflect.SliceOf(et), len(l), len(l))
+	for i := 0; i < len(l); i++ {
+		r.Index(i).Set(rval(l[i]).Convert(et))
+	}
+	return r.Interface()
 }
 
 /*
@@ -235,30 +259,44 @@ func krange(n int, f func(int) v) l {
 }
 
 // function kmap (x, f) { return k(3, l(x).v.map(f)); }
-func kmap(x v, f func(v, int) v) v {
+func kmap(x v, f func(v) v) v {
 	n := ln(x)
 	if n < 0 {
 		e("type")
 	}
-	for i := 0; i < n; i++ {
-		set(x, i, f(at(x, i), i))
+	var it, ot rT
+	if t := rtyp(lz(x)); t != nil && t.Kind() != reflect.Interface {
+		it = t
 	}
-	return x
+	in, _ := ls(x) // rT is determined by result of f(x)
+	l := make(l, n)
+	for i := 0; i < n; i++ {
+		l[i] = f(in[i])
+		t := rval(l[i]).Type()
+		if t != nil && i == 0 {
+			ot = t
+		} else if t != nil && ot != nil && t != ot {
+			e("type") // f returns non-uniform on uniform input
+		}
+	}
+	if it == nil || ot == nil {
+		return l
+	}
+	r := reflect.MakeSlice(reflect.SliceOf(ot), n, n)
+	for i := 0; i < n; i++ {
+		r.Index(i).Set(rval(l[i]).Convert(ot))
+	}
+	return r.Interface()
 }
 
+/*
 // function kzip (x, y, f) { return kmap(sl(x,y), function(z, i) { return f(z, y.v[i]); }); }
 func kzip(x, y v, f func(v, v) v) v {
-	return kmap(sl, func(v v, i int) v {
+	return kmap(xxx, func(v v, i int) v {
 		return f(v, at(y, i))
 	})
 }
-
-func sl(x, y v) v {
-	if ln(x) != ln(y) {
-		e("len")
-	}
-	return x
-}
+*/
 
 func impl(v v, t reflect.Type) reflect.Method {
 	if rtyp(v).Implements(t) {
@@ -267,7 +305,23 @@ func impl(v v, t reflect.Type) reflect.Method {
 	return reflect.Method{}
 }
 
-func idx(v v) int { return int(re(v)) }
+func idx(v v) int {
+	var n int
+	var f float64
+	switch w := v.(type) {
+	case int:
+		return w
+	case float64:
+		f, n = w, int(w)
+	default:
+		f = re(v)
+		n = int(f)
+	}
+	if float64(n) != f {
+		e("type") // rounding
+	}
+	return n
+}
 
 func re(v v) float64 {
 	switch w := v.(type) {
@@ -307,7 +361,11 @@ func at(L v, i int) v {
 	case zv:
 		return t[i]
 	}
-	return rval(L).Index(i).Interface()
+	if r := rval(L); r.Kind() != reflect.Slice {
+		return e("type")
+	} else {
+		return r.Index(i).Interface()
+	}
 }
 func set(L v, i int, x v) {
 	switch t := L.(type) {
@@ -326,7 +384,7 @@ func set(L v, i int, x v) {
 
 type kt map[v]v
 
-func (a kt) at(s s) v { return e("TODO") }
+func (a kt) at(s s) v { return e("nyi") }
 func kinit(a kt) kt {
 	return kt(a)
 }

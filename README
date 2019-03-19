@@ -6,7 +6,6 @@ Package interface (2 function, no types):
   //k-tree: a map[interface{}]interface{}
 
 Types
-Interpreter default:
     float64,   complex128      numbers
   []float64, []complex128      uniform vectors
   []interface{}                list (`_ is reserved)
@@ -61,3 +60,9 @@ Adverbs
 
 Ref
   github.com/JohnEarnest/ok
+
+Status nyi
+  This is a slow version of k. It does no ref-counting, copies everything
+  and is based on type reflection. It's focus is direct integration into
+  the go type system, to be usable by existing programs with minimal glue.
+  

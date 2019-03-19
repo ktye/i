@@ -3,7 +3,7 @@ package i
 import "reflect"
 
 // monadic verbs
-func flp(x v) v { return e("TODO") }
+func flp(x v) v { return e("nyi") }
 func neg(x v) v { return nm(x, rneg, zneg, "Neg") }
 func fst(v v) v {
 	//function first (x) { return (x.t == 4) ? first(x.v) : (x.t != 3) ? x : len(x) ? x.v[0]:k(3,[]); }
@@ -33,13 +33,13 @@ func til(x v) v {
 	}
 	return vn(r, nil, true, t)
 }
-func odo(x v) v { return e("TODO") } // →impl
-func wer(x v) v { return e("TODO") }
-func rev(x v) v { return e("TODO") }
-func asc(x v) v { return e("TODO") }
-func dsc(x v) v { return e("TODO") }
-func eye(x v) v { return e("TODO") }
-func grp(x v) v { return e("TODO") }
+func odo(x v) v { return e("nyi") } // →impl
+func wer(x v) v { return e("nyi") }
+func rev(x v) v { return e("nyi") }
+func asc(x v) v { return e("nyi") }
+func dsc(x v) v { return e("nyi") }
+func eye(x v) v { return e("nyi") }
+func grp(x v) v { return e("nyi") }
 func not(x v) v { return nm(x, rnot, znot, "Not") }
 func enl(x v) v {
 	v := rval(x)
@@ -51,27 +51,27 @@ func enl(x v) v {
 	l.Index(0).Set(v)
 	return l.Interface()
 }
-func is0(x v) v { return e("TODO") }
-func cnt(x v) v { return e("TODO") }
+func is0(x v) v { return e("nyi") }
+func cnt(x v) v { return e("nyi") }
 func flr(x v) v { return nm(x, rflr, zflr, "Flr") }
-func fmt(x v) v { return e("TODO") }
-func fgn(x v) v { return e("TODO") }
-func unq(x v) v { return e("TODO") }
-func evl(x v) v { return e("TODO") }
+func fmt(x v) v { return e("nyi") }
+func fgn(x v) v { return e("nyi") }
+func unq(x v) v { return e("nyi") }
+func evl(x v) v { return e("nyi") }
 
 // dyadic verbs
 func add(x, y v) v { return nd(x, y, radd, zadd, "Add") }
 func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") }
 func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") }
 func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") }
-func mod(x, y v) v { return e("TODO") }
-func mkd(x, y v) v { return e("TODO") }
+func mod(x, y v) v { return e("nyi") }
+func mkd(x, y v) v { return e("nyi") }
 func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
 func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") } // cast to bool?
 func les(x, y v) v { return nd(x, y, rles, zles, "Les") } // ?
 func mor(x, y v) v { return nd(x, y, rmor, zmor, "Mor") } // ?
 func eql(x, y v) v { return nd(x, y, reql, zeql, "Eql") } // ?
-func mch(x, y v) v { return e("TODO") }
+func mch(x, y v) v { return e("nyi") }
 func cat(x, y v) v {
 	// TODO dict
 	nx := ln(x)
@@ -104,7 +104,7 @@ func cat(x, y v) v {
 	}
 	return l
 }
-func tak(x, y v) v { return e("TODO") }
+func tak(x, y v) v { return e("nyi") }
 func rsh(x, y v) v {
 	// TODO temporarily only rsh(int, []interface{}) is supported.
 	n := x.(int)
@@ -120,26 +120,27 @@ func rsh(x, y v) v {
 	return r
 	// TODO
 }
-func fil(x, y v) v { return e("TODO") }
-func drp(x, y v) v { return e("TODO") }
-func cut(x, y v) v { return e("TODO") }
-func cst(x, y v) v { return e("TODO") }
-func rnd(x, y v) v { return e("TODO") }
-func fnd(x, y v) v { return e("TODO") }
-func pik(x, y v) v { return e("TODO") }
-func rfd(x, y v) v { return e("TODO") }
+func fil(x, y v) v { return e("nyi") }
+func drp(x, y v) v { return e("nyi") }
+func cut(x, y v) v { return e("nyi") }
+func cst(x, y v) v { return e("nyi") }
+func rnd(x, y v) v { return e("nyi") }
+func fnd(x, y v) v { return e("nyi") }
+func pik(x, y v) v { return e("nyi") }
+func rfd(x, y v) v { return e("nyi") }
 func atx(x, y v, a kt) v {
 	if s, o := x.(s); o {
-		return atx(a.at(s), y, a)
+		return atx(a.at(s), y, a) // 1
 	}
 	if y == nil {
-		return x
+		return x // 2
 	}
 	xl, yl := false, false
-	if ln(x) > 0 {
+	nx, ny := ln(x), ln(y)
+	if nx > 0 {
 		xl = true
 	}
-	if ln(y) > 0 {
+	if ny > 0 {
 		yl = true
 	}
 	xdict, xd := md(x)
@@ -147,23 +148,31 @@ func atx(x, y v, a kt) v {
 	_ = xdict
 	_ = ydict
 	switch {
-	case xl && yd:
-		// TODO
-	// TODO x verb, y adverb
-	case xl || xd && yl:
-		// TODO
-	case xl:
-		// TODO nested
-	case xd:
-		// TODO
+	case xl && yd: // 3
+		ydict.v = atx(x, cp(ydict.v), a).(l)
+		return yd
+	case rval(x).Kind() == reflect.Func && rval(y).Kind() == reflect.Func:
+		return e("nyi") // x, verb, y adverb: // 4
+	case (xl || xd) && yl: // 5
+		return kmap(y, func(z v) v { return atx(x, z, nil) })
+	case xl: // 6
+		// TODO other checks: (y.t > 1 || y.v < 0 || y.v >= len(x) || y.v%1 != 0) ? NA
+		i := idx(y)
+		if i < 0 || i >= nx {
+			return e("range")
+		}
+		return at(x, i)
+	case xd: // 7
+		_, r := xdict.at(y)
+		return cp(r)
 	}
-	// TODO call
-	return e("TODO")
+	// TODO call // 8
+	return e("nyi")
 }
-func cal(x, y v) v { return e("TODO") }
-func bin(x, y v) v { return e("TODO") }
-func rbn(x, y v) v { return e("TODO") }
-func pak(x, y v) v { return e("TODO") }
-func upk(x, y v) v { return e("TODO") }
-func spl(x, y v) v { return e("TODO") }
-func win(x, y v) v { return e("TODO") }
+func cal(x, y v) v { return e("nyi") }
+func bin(x, y v) v { return e("nyi") }
+func rbn(x, y v) v { return e("nyi") }
+func pak(x, y v) v { return e("nyi") }
+func upk(x, y v) v { return e("nyi") }
+func spl(x, y v) v { return e("nyi") }
+func win(x, y v) v { return e("nyi") }
