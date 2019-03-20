@@ -55,6 +55,7 @@ func cp(x v) v {
 		r := t
 		r.k = cp(t.k).(l)
 		r.v = cp(t.v).(l)
+		return r
 	}
 	if v, ok := x.(cpr); ok {
 		return v.Copy()
