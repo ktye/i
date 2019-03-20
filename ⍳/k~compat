@@ -1,12 +1,12 @@
-
 expr       k2    k4    kona   ngn   oK   i ...
 ----------------------------------------------
 ...
 
-k2   | ..
-k4   | ..
-k7   | ..
+
+k2   | nsl.com/k/k2
+k4   | kx.com
+k7   | shakti.com, anaconda.org/shaktidb
 kona | github.com/kevinlawler/kona
-ngn  | to be released soon
+ngn  | tio.run/#k-ngn, gitlab.com/n9n/k
 oK   | github.com/JohnEarnest/ok
 i    | github.com/ktye/i
