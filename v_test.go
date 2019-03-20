@@ -45,10 +45,10 @@ func TestMV(t *testing.T) {
 		{"sqr", sqr, -7 + 24i, c(3, 4)},
 		{"til", til, 3.0, fv{0, 1, 2}},
 		{"til", til, 3, iv{0, 1, 2}},
-		// TODO til l (odometer)
 		// odo TODO
 		// wer TODO
-		// rev TODO
+		{"rev", rev, fv{1, 2, 3}, fv{3, 2, 1}},
+		// {"rev", rev, dct(l{"a", "b"}, l{1, 2}), "→[b:2;a:1]"}, // cannot compare
 		{"asc", asc, fv{4, 5, 6}, fv{0, 1, 2}},
 		{"asc", asc, sv{"be", "g", "a"}, fv{2, 0, 1}},
 		{"asc", asc, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},

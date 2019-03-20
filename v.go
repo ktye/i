@@ -44,8 +44,28 @@ func til(x v) v {
 	return vn(r, nil, true, t)
 }
 func odo(x v) v { return e("nyi") } // →impl
-func wer(x v) v { return e("nyi") }
-func rev(x v) v { return e("nyi") }
+func wer(x v) v { return e("nyi") } // →take, over asverb
+func rev(x v) v {
+	if d, ok := md(x); ok {
+		k, u := rev(d.k).(l), rev(d.v).(l)
+		d.k, d.v = k, u
+		return d.mp()
+	}
+	x = cp(x)
+	r := rval(x)
+	if r.Kind() != reflect.Slice {
+		return e("type")
+	}
+	n := r.Len()
+	tmp := reflect.New(r.Type().Elem()).Elem()
+	for i := n/2 - 1; i >= 0; i-- {
+		j := n - 1 - i
+		tmp.Set(r.Index(i))
+		r.Index(i).Set(r.Index(j))
+		r.Index(j).Set(tmp)
+	}
+	return r.Interface()
+}
 func asc(x v) v { return grade(true, x) }
 func dsc(x v) v { return grade(false, x) }
 func eye(x v) v { return e("nyi") }
