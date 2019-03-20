@@ -9,8 +9,15 @@ import (
 func flp(x v) v { return e("nyi") }
 func neg(x v) v { return nm(x, rneg, zneg, "Neg") }
 func fst(v v) v {
-	//function first (x) { return (x.t == 4) ? first(x.v) : (x.t != 3) ? x : len(x) ? x.v[0]:k(3,[]); }
-	// TODO dict
+	/*function first (x) { return
+	(x.t == 4) ? first(x.v)
+	: (x.t != 3) ? x
+	: len(x) ? x.v[0]
+	:k(3,[])
+	*/
+	if d, o := md(v); o {
+		return fst(d.v)
+	}
 	if n := ln(v); n < 0 {
 		return v
 	} else if n == 0 {

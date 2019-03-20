@@ -39,7 +39,7 @@ func TestMV(t *testing.T) {
 		{"fst", fst, l{c(2, 3), 0, 0}, c(2, 3)},
 		{"fst", fst, IV{5, 6}, 5},
 		{"fst", fst, IV{}, nil},
-		// fst: TODO dict
+		{"fst", fst, dct(l{"d", "c"}, l{5, 6}), 5},
 		{"sqr", sqr, 4, 2},
 		// {"sqr", sqr, -1.0, math.NaN()}, not comparable
 		{"sqr", sqr, -7 + 24i, c(3, 4)},
@@ -248,3 +248,5 @@ func printf(f s, v ...v) {
 		_fmt.Printf(f, v...)
 	}
 }
+
+func dct(k, u l) map[v]v { return d{k: k, v: u}.mp().(map[v]v) }

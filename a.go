@@ -388,7 +388,7 @@ func re(v v) float64 {
 func at(L v, i int) v {
 	switch t := L.(type) {
 	case l:
-		return t[i]
+		return cp(t[i])
 	case fv:
 		return t[i]
 	case zv:
@@ -397,7 +397,7 @@ func at(L v, i int) v {
 	if r := rval(L); r.Kind() != reflect.Slice {
 		return e("type")
 	} else {
-		return r.Index(i).Interface()
+		return cp(r.Index(i).Interface())
 	}
 }
 func set(L v, i int, x v) {
