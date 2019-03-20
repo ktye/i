@@ -331,6 +331,15 @@ func kzip(x, y v, f func(v, v) v) v {
 }
 */
 
+func some(l l, f func(v v) bool) bool {
+	for _, i := range l {
+		if f(i) {
+			return true
+		}
+	}
+	return false
+}
+
 func impl(v v, t reflect.Type) reflect.Method {
 	if rtyp(v).Implements(t) {
 		return t.Elem().Method(0)

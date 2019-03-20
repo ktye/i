@@ -109,7 +109,16 @@ func cnt(x v) v {
 func flr(x v) v { return nm(x, rflr, zflr, "Flr") }
 func fmt(x v) v { return e("nyi") }
 func fgn(x v) v { return e("nyi") }
-func unq(x v) v { return e("nyi") }
+func unq(x v) v {
+	w, t := ls(x)
+	r := make(l, 0)
+	for i := range w {
+		if !some(r, func(x v) bool { return mch(w[i], x) == 1.0 }) {
+			r = append(r, cp(w[i]))
+		}
+	}
+	return sl(r, t)
+}
 func evl(x v) v { return e("nyi") }
 
 // dyadic verbs
@@ -120,11 +129,37 @@ func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") }
 func mod(x, y v) v { return e("nyi") }
 func mkd(x, y v) v { return e("nyi") }
 func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
-func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") } // cast to bool?
-func les(x, y v) v { return nd(x, y, rles, zles, "Les") } // ?
-func mor(x, y v) v { return nd(x, y, rmor, zmor, "Mor") } // ?
-func eql(x, y v) v { return nd(x, y, reql, zeql, "Eql") } // ?
-func mch(x, y v) v { return e("nyi") }
+func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }
+func les(x, y v) v { return nd(x, y, rles, zles, "Les") }
+func mor(x, y v) v { return nd(x, y, rmor, zmor, "Mor") }
+func eql(x, y v) v { return nd(x, y, reql, zeql, "Eql") } // TODO: strings
+func mch(x, y v) v {
+	if rtyp(x) != rtyp(y) {
+		return 0.0
+	}
+	if xd, o := md(x); o {
+		if yd, o := md(y); o {
+			return min(mch(xd.k, yd.k), mch(xd.v, yd.v))
+		}
+		return e("assert")
+	}
+	if n := ln(x); n < 0 {
+		return re(eql(x, y))
+	}
+	xl, _ := ls(x)
+	yl, _ := ls(y)
+	if ln(xl) != ln(yl) {
+		return 0.0
+	}
+	r := make(l, len(xl))
+	for i := range xl {
+		r[i] = mch(xl[i], yl[i])
+	}
+	if u, o := uf(r); o {
+		return u
+	}
+	return r
+}
 func cat(x, y v) v {
 	// TODO dict
 	nx := ln(x)

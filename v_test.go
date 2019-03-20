@@ -74,7 +74,9 @@ func TestMV(t *testing.T) {
 		{"flr", flr, 3.5, 3.0},
 		// fmt TODO
 		// fng TODO
-		// unq TODO
+		{"unq", unq, l{}, l{}},
+		//{"unq", unq, iv{1, 2, 2, 1}, iv{1, 2}},
+		//{"unq", unq, l{1.0, 1.0}, l{1.0}},
 		// evl TODO
 	}
 
@@ -145,7 +147,14 @@ func TestDV(t *testing.T) {
 		{"mor", mor, 2, 3, 0},
 		{"mor", mor, 2, c(3, 3), c(0, 0)},
 		{"eql", eql, fv{1, 2, math.NaN(), math.Inf(1)}, iv{5, 2, 7, 8}, fv{0, 1, 0, 0}},
-		// mch TODO
+		{"eql", eql, "a", "a", 1.0},
+		{"eql", eql, sv{"a", "b"}, "a", fv{1.0, 0.0}},
+		{"mch", mch, 1, 1, 1.0},
+		{"mch", mch, 1, 0, 0.0},
+		{"mch", mch, iv{1, 2}, iv{1, 2}, fv{1.0, 1.0}},
+		{"mch", mch, iv{1, 2}, fv{1, 2}, 0.0},
+		{"mch", mch, dct(l{"a", "b"}, l{1, 2}), dct(l{"a", "b"}, l{1, 2}), map[v]v{"a": 1.0, "b": 1.0}},
+		{"mch", mch, dct(l{"a", "b"}, l{1, 2}), dct(l{"b", "a"}, l{2, 1}), 1.0},
 		{"cat", cat, 1, 2, iv{1, 2}},
 		{"cat", cat, 1, iv{2, 3}, iv{1, 2, 3}},
 		{"cat", cat, iv{2, 3}, 1, iv{2, 3, 1}},
