@@ -65,7 +65,10 @@ func TestMV(t *testing.T) {
 		{"enl", enl, iv{1, 2}, l{iv{1, 2}}},
 		{"enl", enl, IV{4, 5, 6}, l{IV{4, 5, 6}}},
 		// is0 TODO
-		// cnt TODO
+		{"cnt", cnt, iv{1, 2, 3}, 3.0},
+		{"cnt", cnt, 4, 1.0},
+		{"cnt", cnt, "alpha", 1.0},
+		{"cnt", cnt, map[v]v{"a": iv{1, 2, 3}, "b": iv{2, 3, 4}}, 2.0},
 		{"flr", flr, 3.5, 3.0},
 		// fmt TODO
 		// fng TODO

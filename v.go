@@ -55,7 +55,14 @@ func enl(x v) v {
 	return l.Interface()
 }
 func is0(x v) v { return e("nyi") }
-func cnt(x v) v { return e("nyi") }
+func cnt(x v) v {
+	if d, o := md(x); o {
+		return f(len(d.k))
+	} else if n := ln(x); n >= 0 {
+		return f(n)
+	}
+	return f(1)
+}
 func flr(x v) v { return nm(x, rflr, zflr, "Flr") }
 func fmt(x v) v { return e("nyi") }
 func fgn(x v) v { return e("nyi") }
