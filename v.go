@@ -68,7 +68,23 @@ func rev(x v) v {
 }
 func asc(x v) v { return grade(true, x) }
 func dsc(x v) v { return grade(false, x) }
-func eye(x v) v { return e("nyi") }
+func eye(x v) v {
+	f, _, vec, _ := nv(x)
+	if vec {
+		return e("rank")
+	}
+	if f == nil {
+		return e("type")
+	}
+	n := int(f[0])
+	l := make(l, n)
+	for i := range l {
+		r := make(fv, n)
+		r[i] = 1
+		l[i] = r
+	}
+	return l
+}
 func grp(x v) v { return e("nyi") }
 func not(x v) v { return nm(x, rnot, znot, "Not") }
 func enl(x v) v {

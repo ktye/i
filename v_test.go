@@ -53,7 +53,8 @@ func TestMV(t *testing.T) {
 		{"asc", asc, sv{"be", "g", "a"}, fv{2, 0, 1}},
 		{"asc", asc, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
 		{"dsc", dsc, fv{5, -1, 3}, fv{0, 2, 1}},
-		// eye TODO
+		{"eye", eye, 0, l{}},
+		{"eye", eye, 2, l{fv{1, 0}, fv{0, 1}}},
 		// grp TODO
 		{"not", not, 1, 0},
 		{"not", not, 1 + 2i, 0 + 0i},
@@ -65,6 +66,7 @@ func TestMV(t *testing.T) {
 		{"enl", enl, iv{1, 2}, l{iv{1, 2}}},
 		{"enl", enl, IV{4, 5, 6}, l{IV{4, 5, 6}}},
 		// is0 TODO
+		{"cnt", cnt, l{}, 0.0},
 		{"cnt", cnt, iv{1, 2, 3}, 3.0},
 		{"cnt", cnt, 4, 1.0},
 		{"cnt", cnt, "alpha", 1.0},
