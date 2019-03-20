@@ -49,8 +49,10 @@ func TestMV(t *testing.T) {
 		// odo TODO
 		// wer TODO
 		// rev TODO
-		// asc TODO
-		// dsc TODO
+		{"asc", asc, fv{4, 5, 6}, iv{0, 1, 2}},
+		{"asc", asc, sv{"be", "g", "a"}, iv{2, 0, 1}},
+		{"asc", asc, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
+		{"dsc", dsc, fv{5, -1, 3}, iv{0, 2, 1}},
 		// eye TODO
 		// grp TODO
 		{"not", not, 1, 0},
@@ -76,6 +78,27 @@ func TestMV(t *testing.T) {
 		tt(t, tc.r, r, "%s %+v: %+v\n", tc.s, tc.x, r)
 	}
 }
+
+/*
+func TestGrade(t *testing.T) {
+	testCases := []struct {
+		s    string
+		f    func(bool, v) v
+		up   bool
+		x, r v
+	}{
+		{"grade", grade, true, fv{4, 5, 6}, iv{0, 1, 2}},
+
+		{"grade", grade, true, sv{"be", "g", "a"}, iv{2, 0, 1}},
+		{"grade", grade, true, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
+
+	}
+	for _, tc := range testCases {
+		r := tc.f(tc.up, tc.x)
+		tt(t, tc.r, r, "%s %v %+v: %+v\n", tc.s, tc.up, tc.x, r)
+	}
+}
+*/
 
 func TestDV(t *testing.T) {
 	type IV []int
@@ -149,7 +172,6 @@ func TestDV(t *testing.T) {
 }
 
 func TestVKt(t *testing.T) {
-	type IV []int
 	testCases := []struct {
 		s       string
 		f       func(v, v, kt) v

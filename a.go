@@ -81,7 +81,7 @@ func cp(x v) v {
 
 func e(s string) v { panic(s); return nil }
 
-func ln(v v) int {
+func ln(v v) int { // slice len
 	r := rval(v)
 	if r.Kind() == reflect.Slice {
 		return r.Len()
@@ -91,7 +91,7 @@ func ln(v v) int {
 func lz(l v) v { // zero element of a slice (returns nil for type l)
 	return reflect.Zero(rtyp(l).Elem()).Interface()
 }
-func ls(v v) (l, rT) {
+func ls(v v) (l, rT) { // list from slice and element type
 	if v, ok := v.(l); ok {
 		return v, nil
 	}
@@ -105,7 +105,7 @@ func ls(v v) (l, rT) {
 	}
 	return l, r.Type().Elem()
 }
-func sl(l l, et rT) v {
+func sl(l l, et rT) v { // slice from list with element type
 	if et == nil {
 		return l
 	}
@@ -114,6 +114,18 @@ func sl(l l, et rT) v {
 		r.Index(i).Set(rval(l[i]).Convert(et))
 	}
 	return r.Interface()
+}
+func uf(l l) (v, bool) { // uniform vector
+	if len(l) == 0 {
+		return l, false
+	}
+	t := rtyp(l[0])
+	for i := range l {
+		if rtyp(l[i]) != t || ln(l[i]) >= 0 {
+			return l, false
+		}
+	}
+	return sl(l, t), true
 }
 
 /*
@@ -250,6 +262,25 @@ func (d dict) at(key v) (int, v) {
 	return -1, nil
 }
 
+/*
+function ktos(x, esc) {
+	if (x.t != 3) { x = enlist(x); }
+	var h = x.v.some(function(v){ return (v.v<32||v.v>127)&v.v!=9&v.v!=10; });
+	if (h) { return "0x"+x.v.map(h2).join(""); }
+	var r = x.v.map(function(k) { return String.fromCharCode(k.v); }).join("");
+	return esc ? '"'+EC.reduce(function(r,p) { return r.split(p[0]).join(p[1]); }, r)+'"' : r;
+}
+func ktos(x, esc v) v {
+	if ln(x) < 0 {
+		x = enl(x)
+	}
+	r := rval(x)
+	if r.Kind() != reflect.Slice {
+	}
+}
+*/
+
+/*
 // function krange(x, f) { var r=[]; for(var z=0;z<x;z++) { r.push(f(z)); } return k(3,r); }
 func krange(n int, f func(int) v) l {
 	l := make(l, n)
@@ -259,6 +290,7 @@ func krange(n int, f func(int) v) l {
 	return l
 }
 
+*/
 // function kmap (x, f) { return k(3, l(x).v.map(f)); }
 func kmap(x v, f func(v) v) v {
 	n := ln(x)

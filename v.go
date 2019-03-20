@@ -1,6 +1,9 @@
 package i
 
-import "reflect"
+import (
+	"reflect"
+	"sort"
+)
 
 // monadic verbs
 func flp(x v) v { return e("nyi") }
@@ -36,8 +39,8 @@ func til(x v) v {
 func odo(x v) v { return e("nyi") } // →impl
 func wer(x v) v { return e("nyi") }
 func rev(x v) v { return e("nyi") }
-func asc(x v) v { return e("nyi") }
-func dsc(x v) v { return e("nyi") }
+func asc(x v) v { return grade(true, x) }
+func dsc(x v) v { return grade(false, x) }
 func eye(x v) v { return e("nyi") }
 func grp(x v) v { return e("nyi") }
 func not(x v) v { return nm(x, rnot, znot, "Not") }
@@ -176,3 +179,57 @@ func pak(x, y v) v { return e("nyi") }
 func upk(x, y v) v { return e("nyi") }
 func spl(x, y v) v { return e("nyi") }
 func win(x, y v) v { return e("nyi") }
+
+// adverbs
+// nyi
+
+func grade(up bool, x v) v {
+	if d, o := md(x); o {
+		return atx(d.k, grade(up, d.v), nil)
+	}
+	x = cp(x)
+	switch t := x.(type) {
+	case fv:
+		x = sort.Float64Slice(t)
+	case sv:
+		x = sort.StringSlice(t)
+	}
+	if d, o := x.(sort.Interface); o {
+		if !up {
+			d = sort.Reverse(d)
+		}
+		i := make([]int, d.Len())
+		for n := range i {
+			i[n] = n
+		}
+		sort.Sort(grades{d, i})
+		return i
+	}
+	if l, o := x.(l); o {
+		u, o := uf(l)
+		if !o {
+			return e("type")
+		}
+		x = u
+	}
+	fv, zv, vec, _ := nv(x)
+	switch {
+	case vec && fv != nil:
+		return grade(up, fv)
+	case vec && zv != nil:
+		return grade(up, zv)
+	}
+
+	println(rtyp(x).String())
+	return e("type")
+}
+
+type grades struct {
+	sort.Interface
+	idx []int
+}
+
+func (s grades) Swap(i, j int) {
+	s.Interface.Swap(i, j)
+	s.idx[i], s.idx[j] = s.idx[j], s.idx[i]
+}
