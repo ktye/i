@@ -198,9 +198,9 @@ func grade(up bool, x v) v {
 		if !up {
 			d = sort.Reverse(d)
 		}
-		i := make([]int, d.Len())
+		i := make(fv, d.Len())
 		for n := range i {
-			i[n] = n
+			i[n] = f(n)
 		}
 		sort.Sort(grades{d, i})
 		return i
@@ -226,7 +226,7 @@ func grade(up bool, x v) v {
 
 type grades struct {
 	sort.Interface
-	idx []int
+	idx fv
 }
 
 func (s grades) Swap(i, j int) {

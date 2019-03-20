@@ -49,10 +49,10 @@ func TestMV(t *testing.T) {
 		// odo TODO
 		// wer TODO
 		// rev TODO
-		{"asc", asc, fv{4, 5, 6}, iv{0, 1, 2}},
-		{"asc", asc, sv{"be", "g", "a"}, iv{2, 0, 1}},
+		{"asc", asc, fv{4, 5, 6}, fv{0, 1, 2}},
+		{"asc", asc, sv{"be", "g", "a"}, fv{2, 0, 1}},
 		{"asc", asc, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
-		{"dsc", dsc, fv{5, -1, 3}, iv{0, 2, 1}},
+		{"dsc", dsc, fv{5, -1, 3}, fv{0, 2, 1}},
 		// eye TODO
 		// grp TODO
 		{"not", not, 1, 0},
