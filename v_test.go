@@ -49,10 +49,14 @@ func TestMV(t *testing.T) {
 		// wer TODO
 		{"rev", rev, fv{1, 2, 3}, fv{3, 2, 1}},
 		// {"rev", rev, dct(l{"a", "b"}, l{1, 2}), "→[b:2;a:1]"}, // cannot compare
+		{"asc", asc, 3, fv{0}},
 		{"asc", asc, fv{4, 5, 6}, fv{0, 1, 2}},
 		{"asc", asc, sv{"be", "g", "a"}, fv{2, 0, 1}},
 		{"asc", asc, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
+		{"asc", asc, "a", fv{0}},
+		{"asc", asc, sv{"b", "c", "alpha"}, fv{2, 0, 1}},
 		{"dsc", dsc, fv{5, -1, 3}, fv{0, 2, 1}},
+		{"dsc", dsc, sv{"b", "c", "alpha"}, fv{1, 0, 2}},
 		{"eye", eye, 0, l{}},
 		{"eye", eye, 2, l{fv{1, 0}, fv{0, 1}}},
 		// grp TODO
@@ -144,8 +148,11 @@ func TestDV(t *testing.T) {
 		{"max", max, 2, 3, 3},
 		{"les", les, 2, 3, 1},
 		{"les", les, 2, c(4, 0), c(1, 0)},
+		{"les", les, "a", "b", 1.0},
+		{"les", les, "a", sv{"b", "a"}, fv{1, 0}},
 		{"mor", mor, 2, 3, 0},
 		{"mor", mor, 2, c(3, 3), c(0, 0)},
+		{"mor", mor, sv{"z", "a"}, sv{"g", "h"}, fv{1, 0}},
 		{"eql", eql, fv{1, 2, math.NaN(), math.Inf(1)}, iv{5, 2, 7, 8}, fv{0, 1, 0, 0}},
 		{"eql", eql, "a", "a", 1.0},
 		{"eql", eql, sv{"a", "b"}, "a", fv{1.0, 0.0}},

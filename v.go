@@ -130,9 +130,9 @@ func mod(x, y v) v { return e("nyi") }
 func mkd(x, y v) v { return e("nyi") }
 func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
 func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }
-func les(x, y v) v { return nd(x, y, rles, zles, "Les") }
-func mor(x, y v) v { return nd(x, y, rmor, zmor, "Mor") }
-func eql(x, y v) v { return nd(x, y, reql, zeql, "Eql") } // TODO: strings
+func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles, "Les") }
+func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor, "Mor") }
+func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql, "Eql") }
 func mch(x, y v) v {
 	if rtyp(x) != rtyp(y) {
 		return 0.0
@@ -272,6 +272,9 @@ func grade(up bool, x v) v {
 	if d, o := md(x); o {
 		return atx(d.k, grade(up, d.v), nil)
 	}
+	if ln(x) < 0 {
+		x = enl(x)
+	}
 	x = cp(x)
 	switch t := x.(type) {
 	case fv:
@@ -304,8 +307,6 @@ func grade(up bool, x v) v {
 	case vec && zv != nil:
 		return grade(up, zv)
 	}
-
-	println(rtyp(x).String())
 	return e("type")
 }
 

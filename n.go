@@ -4,6 +4,7 @@ import (
 	"math"
 	"math/cmplx"
 	"reflect"
+	"sort"
 )
 
 // atomic numeric monads
@@ -267,7 +268,7 @@ func (m method) call2(x, y v) (v, bool) {
 	return nil, false
 }
 
-func nv(x v) (fv, zv, bool, rT) {
+func nv(x v) (fv, zv, bool, rT) { // import any number or numeric vector types
 	switch t := x.(type) {
 	case f:
 		return fv{t}, nil, false, rTf
@@ -331,7 +332,7 @@ func nv(x v) (fv, zv, bool, rT) {
 	e("type")
 	return nil, nil, false, rTf
 }
-func vn(x fv, z zv, vec bool, t reflect.Type) interface{} {
+func vn(x fv, z zv, vec bool, t reflect.Type) interface{} { // convert numbers back to original type
 	if x != nil && (t == rTf || t == nil) {
 		if vec {
 			return x
@@ -378,6 +379,80 @@ func vn(x fv, z zv, vec bool, t reflect.Type) interface{} {
 		}
 	}
 	return r.Interface()
+}
+func sn(v v) (fv, bool, bool) { // import strings as numbers; for =<>^
+	s, n, _, o := sy(v)
+	if o == false {
+		return nil, false, false
+	}
+	if n < 0 {
+		if s[0] == "" {
+			return fv{0}, false, true // for ^
+		} else {
+			return fv{1}, false, true
+		}
+	}
+	m := strmap(s)
+	r := make(fv, n)
+	for i := range s {
+		r[i] = m[s[i]]
+	}
+	return r, true, true
+}
+func sn2(x, y v) (v, v) { // map strings to floats
+	sx, nx, _, o := sy(x)
+	if o == false {
+		return x, y
+	}
+	sy, ny, _, o := sy(y)
+	if o == false {
+		return x, y
+	}
+	vec := true
+	if nx < 0 && ny < 0 {
+		vec = false
+	}
+	if nx < 0 {
+		nx = 1
+	}
+	if ny < 0 {
+		ny = 1
+	}
+	b := make(sv, nx+ny)
+	copy(b, sx)
+	copy(b[nx:], sy)
+	m := strmap(b)
+	rx := make(fv, nx)
+	for i := range sx {
+		rx[i] = m[sx[i]]
+	}
+	ry := make(fv, ny)
+	for i := range sy {
+		ry[i] = m[sy[i]]
+	}
+	if !vec {
+		return rx[0], ry[0]
+	}
+	return rx, ry
+}
+func strmap(x sv) map[s]f { // map s to f uniq and comparable
+	n := len(x)
+	idx := til(f(n)).(fv)
+	c := cp(x).(sv)
+	u := grades{sort.StringSlice(c), idx}
+	sort.Sort(u)
+	m := make(map[s]f)
+	w := 1.0
+	for i := range u.idx {
+		if i == 0 || c[i] != c[i-1] {
+			if i == 0 && c[i] == "" {
+				w = 0.0 // for ^
+			}
+			m[c[i]] = w
+			w += 1.0
+		}
+	}
+	return m
 }
 
 func toZ(x fv) zv {

@@ -91,7 +91,7 @@ func ln(v v) int { // slice len
 func lz(l v) v { // zero element of a slice (returns nil for type l)
 	return reflect.Zero(rtyp(l).Elem()).Interface()
 }
-func ls(v v) (l, rT) { // list from slice and element type
+func ls(v v) (l, rT) { // import list from any slice
 	if v, ok := v.(l); ok {
 		return v, nil
 	}
@@ -105,7 +105,7 @@ func ls(v v) (l, rT) { // list from slice and element type
 	}
 	return l, r.Type().Elem()
 }
-func sl(l l, et rT) v { // slice from list with element type
+func sl(l l, et rT) v { // convert list back to slice with original element type
 	if et == nil {
 		return l
 	}
@@ -115,7 +115,7 @@ func sl(l l, et rT) v { // slice from list with element type
 	}
 	return r.Interface()
 }
-func uf(l l) (v, bool) { // uniform vector
+func uf(l l) (v, bool) { // convert a list to a uniform vector if possible
 	if len(l) == 0 {
 		return l, false
 	}
@@ -128,27 +128,13 @@ func uf(l l) (v, bool) { // uniform vector
 	return sl(l, t), true
 }
 
-/*
-func mk(l interface{}, n int) interface{} {
-	switch l.(type) {
-	case float64:
-		return make([]float64, n)
-	case complex128:
-		return make([]complex128, n)
-	case string:
-		return make([]string, n)
-	}
-	return reflect.MakeSlice(reflect.SliceOf(rtyp(l)), n, n).Interface()
-}
-*/
-
 type dict struct {
 	k, v          l
 	f, s, u, p, g bool // flipped, sorted, uniq, parted, grouped
 	t             reflect.Type
 }
 
-func md(x interface{}) (d, bool) {
+func md(x interface{}) (d, bool) { // import maps and structs as dicts
 	var d d
 	switch m := x.(type) {
 	case map[v]v:
@@ -207,7 +193,7 @@ func md(x interface{}) (d, bool) {
 	}
 	return d, false
 }
-func (d dict) mp() interface{} {
+func (d dict) mp() interface{} { // convert dict back to original type
 	if d.t == nil {
 		r := make(map[v]v)
 		r["_"] = dict{d.k, nil, d.f, d.s, d.u, d.p, d.g, nil}
@@ -260,6 +246,37 @@ func (d dict) at(key v) (int, v) {
 		}
 	}
 	return -1, nil
+}
+
+func sy(v v) (sv, int, rT, bool) { // import any string or string slice to symbols
+	switch t := v.(type) {
+	case s:
+		return sv{t}, -1, nil, true
+	case sv:
+		return t, len(t), nil, true
+	}
+	r := rval(v)
+	if r.Kind() == reflect.String {
+		return sv{r.String()}, -1, r.Type(), true
+	} else if r.Kind() == reflect.Slice && reflect.Zero(r.Type().Elem()).Kind() == reflect.String {
+		n := r.Len()
+		u := make(sv, n, n)
+		for i := range u {
+			u[i] = r.Index(i).String()
+		}
+		return u, n, r.Type().Elem(), true
+	}
+	return nil, 0, nil, false
+}
+func ys(x sv, vec bool, eT rT) v { // convert strings back to orig type
+	if !vec {
+		return rval(x[0]).Convert(eT).Interface()
+	}
+	r := reflect.MakeSlice(reflect.SliceOf(eT), len(x), len(x))
+	for i := range x {
+		r.Index(i).Set(rval(x[i]).Convert(eT))
+	}
+	return r.Interface()
 }
 
 /*
