@@ -143,22 +143,28 @@ func mch(x, y v) v {
 		}
 		return e("assert")
 	}
-	if n := ln(x); n < 0 {
-		return re(eql(x, y))
+	if reflect.DeepEqual(x, y) {
+		return 1.0
 	}
-	xl, _ := ls(x)
-	yl, _ := ls(y)
-	if ln(xl) != ln(yl) {
-		return 0.0
-	}
-	r := make(l, len(xl))
-	for i := range xl {
-		r[i] = mch(xl[i], yl[i])
-	}
-	if u, o := uf(r); o {
-		return u
-	}
-	return r
+	return 0.0
+	/*
+		if n := ln(x); n < 0 {
+			return re(eql(x, y))
+		}
+		xl, _ := ls(x)
+		yl, _ := ls(y)
+		if ln(xl) != ln(yl) {
+			return 0.0
+		}
+		r := make(l, len(xl))
+		for i := range xl {
+			r[i] = mch(xl[i], yl[i])
+		}
+		if u, o := uf(r); o {
+			return u
+		}
+		return r
+	*/
 }
 func cat(x, y v) v {
 	// TODO dict
