@@ -169,6 +169,7 @@ func TestDV(t *testing.T) {
 		{"cat", cat, iv{2, 3}, 1, iv{2, 3, 1}},
 		{"cat", cat, iv{2, 3}, fv{4, 5}, l{2, 3, 4.0, 5.0}},
 		{"cat", cat, dct(l{"a", "b"}, l{1, 2}), dct(l{"a", "c"}, l{7, 6}), map[v]v{"a": 7, "b": 2, "c": 6}},
+		{"cat", cat, dct(l{"a"}, l{1}), 3, l{dct(l{"a"}, l{1}), 3}},
 		// ept: TODO
 		// tak: TODO
 		// rsh: TODO

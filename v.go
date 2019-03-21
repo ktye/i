@@ -88,6 +88,9 @@ func eye(x v) v {
 func grp(x v) v { return e("nyi") }
 func not(x v) v { return nm(x, rnot, znot, "Not") }
 func enl(x v) v {
+	if d, o := x.(dict); o {
+		return l{d}
+	}
 	v := rval(x)
 	switch v.Kind() {
 	case reflect.Func, reflect.Slice, reflect.Map:
@@ -147,24 +150,6 @@ func mch(x, y v) v {
 		return 1.0
 	}
 	return 0.0
-	/*
-		if n := ln(x); n < 0 {
-			return re(eql(x, y))
-		}
-		xl, _ := ls(x)
-		yl, _ := ls(y)
-		if ln(xl) != ln(yl) {
-			return 0.0
-		}
-		r := make(l, len(xl))
-		for i := range xl {
-			r[i] = mch(xl[i], yl[i])
-		}
-		if u, o := uf(r); o {
-			return u
-		}
-		return r
-	*/
 }
 func cat(x, y v) v {
 	if xd, yd, o := md2(x, y); o {
@@ -175,6 +160,13 @@ func cat(x, y v) v {
 			xd.t = nil
 		}
 		return xd.mp()
+	}
+	xd, yd := false, false
+	if dx, o := md(x); o {
+		x, xd = dx, true
+	}
+	if dy, o := md(y); o {
+		y, yd = dy, true
 	}
 	nx := ln(x)
 	if nx < 0 {
@@ -197,14 +189,21 @@ func cat(x, y v) v {
 		}
 		return l.Interface()
 	}
-	l := make(l, nx+ny)
+	r := make(l, nx+ny)
 	for i := 0; i < nx; i++ {
-		l[i] = at(x, i)
+		if i == 0 && xd {
+			r[i] = x.(l)[0].(dict).mp()
+		} else {
+			r[i] = at(x, i)
+		}
 	}
 	for i := 0; i < ny; i++ {
-		l[i+nx] = at(y, i)
+		if i == 0 && yd {
+			r[nx] = y.(l)[0].(dict).mp()
+		}
+		r[i+nx] = at(y, i)
 	}
-	return l
+	return r
 }
 func tak(x, y v) v { return e("nyi") }
 func rsh(x, y v) v {
