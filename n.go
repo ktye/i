@@ -380,17 +380,13 @@ func vn(x fv, z zv, vec bool, t reflect.Type) interface{} { // convert numbers b
 	}
 	return r.Interface()
 }
-func sn(v v) (fv, bool, bool) { // import strings as numbers; for =<>^
+func sn(v v) (fv, bool, bool) { // import strings as numbers; for =<>
 	s, n, _, o := sy(v)
 	if o == false {
 		return nil, false, false
 	}
 	if n < 0 {
-		if s[0] == "" {
-			return fv{0}, false, true // for ^
-		} else {
-			return fv{1}, false, true
-		}
+		return fv{0}, false, true
 	}
 	m := strmap(s)
 	r := make(fv, n)
@@ -442,12 +438,9 @@ func strmap(x sv) map[s]f { // map s to f uniq and comparable
 	u := grades{sort.StringSlice(c), idx}
 	sort.Sort(u)
 	m := make(map[s]f)
-	w := 1.0
+	w := 0.0
 	for i := range u.idx {
 		if i == 0 || c[i] != c[i-1] {
-			if i == 0 && c[i] == "" {
-				w = 0.0 // for ^
-			}
 			m[c[i]] = w
 			w += 1.0
 		}
