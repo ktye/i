@@ -193,6 +193,17 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 	}
 	return d, false
 }
+func md2(x, y interface{}) (dict, dict, bool) {
+	dx, o := md(x)
+	if !o {
+		return dict{}, dict{}, false
+	}
+	dy, o := md(y)
+	if !o {
+		return dict{}, dict{}, false
+	}
+	return dx, dy, true
+}
 func (d dict) mp() interface{} { // convert dict back to original type
 	if d.t == nil {
 		r := make(map[v]v)
@@ -246,6 +257,14 @@ func (d dict) at(key v) (int, v) {
 		}
 	}
 	return -1, nil
+}
+func (d *dict) set(key, val v) {
+	if i, _ := d.at(key); i < 0 {
+		d.k = append(d.k, key)
+		d.v = append(d.v, val)
+	} else {
+		d.v[i] = val
+	}
 }
 
 func sy(v v) (sv, int, rT, bool) { // import any string or string slice to symbols

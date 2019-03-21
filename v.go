@@ -167,7 +167,15 @@ func mch(x, y v) v {
 	*/
 }
 func cat(x, y v) v {
-	// TODO dict
+	if xd, yd, o := md2(x, y); o {
+		for i := range yd.k {
+			xd.set(yd.k[i], yd.v[i])
+		}
+		if xd.t != yd.t {
+			xd.t = nil
+		}
+		return xd.mp()
+	}
 	nx := ln(x)
 	if nx < 0 {
 		x = enl(x)
