@@ -1,6 +1,7 @@
 package i
 
 import (
+	"math"
 	"reflect"
 	"sort"
 )
@@ -207,23 +208,103 @@ func cat(x, y v) v {
 }
 func tak(x, y v) v { return e("nyi") }
 func rsh(x, y v) v {
-	// TODO temporarily only rsh(int, []interface{}) is supported.
-	n := x.(int)
-	v := y.(l)
-	m := len(v)
-	if n == m {
-		return v
+	if yd, o := md(y); o { // select from dict
+		yd.v = atx(y, x, nil).(l)
+		xl, _ := ls(x)
+		yd.k = xl
+		return yd.mp()
 	}
-	r := make(l, n)
-	for i := range r {
-		r[i] = cp(v[i%m])
+	nx, ny := ln(x), ln(y)
+	if ny < 0 {
+		y, ny = enl(y), 1
 	}
-	return r
-	// TODO
+	if nx <= 0 {
+		x, nx = enl(x), 1
+	}
+	xv := make(fv, nx)
+	for i := range xv {
+		u := at(x, i)
+		switch t := u.(type) {
+		case f:
+			xv[i] = t
+		case int:
+			xv[i] = f(t)
+		default:
+			e("type")
+		}
+	}
+	a, b, c := xv[0], xv[len(xv)-1], 0
+	var rshr func(x, y v, i int) v
+	rshr = func(x, y v, i int) v {
+		nx, ny := ln(x), ln(y)
+		return krange(int(xv[i]), func(z int) v {
+			if i == nx-1 {
+				c++
+				return at(y, (c-1)%ny)
+			}
+			return rshr(x, y, i+1)
+		})
+	}
+	if math.IsNaN(a) {
+		if ny == 0 {
+			return y
+		}
+		return cut(krange(int(math.Ceil(f(ny)/b)), func(z int) v { return z * int(b) }), y)
+	} else if math.IsNaN(b) {
+		return cut(krange(int(a), func(z int) v { return z * ny / int(a) }), y)
+	}
+	return rshr(x, y, 0)
 }
 func fil(x, y v) v { return e("nyi") }
-func drp(x, y v) v { return e("nyi") }
-func cut(x, y v) v { return e("nyi") }
+func drp(x, y v) v {
+	if d, o := md(y); o {
+		d.k = drp(x, d.k).(l)
+		d.v = drp(x, d.v).(l)
+		return d.mp()
+	}
+	n := ln(y)
+	if n <= 0 {
+		return y
+	}
+	if ln(x) >= 0 {
+		return e("length")
+	}
+	j := int(re(x))
+	y = cp(y)
+	if (j < 0 && j+n <= 0) || (j > 0 && n-j <= 0) {
+		return reflect.MakeSlice(rtyp(y), 0, 0).Interface()
+	}
+	if j < 0 {
+		return rval(y).Slice(0, n+j).Interface()
+	}
+	return rval(y).Slice(j, n).Interface()
+}
+func cut(x, y v) v {
+	p := func(v v) int {
+		n := -1
+		switch t := v.(type) {
+		case f:
+			n = int(t)
+		case int:
+			n = t
+		default:
+			e("type")
+		}
+		if n < 0 {
+			e("domain")
+		}
+		return n
+	}
+	return kzip(x, cat(drp(1, x), cnt(y)), func(a, b v) v {
+		pa, pb := p(a), p(b)
+		r := make(l, pb-pa)
+		for i := pa; i < pb; i++ {
+			r[i-pa] = at(y, i)
+		}
+		u, _ := uf(r)
+		return u
+	})
+}
 func cst(x, y v) v { return e("nyi") }
 func rnd(x, y v) v { return e("nyi") }
 func fnd(x, y v) v { return e("nyi") }
@@ -255,7 +336,7 @@ func atx(x, y v, a kt) v {
 	case rval(x).Kind() == reflect.Func && rval(y).Kind() == reflect.Func:
 		return e("nyi") // x, verb, y adverb: // 4
 	case (xl || xd) && yl: // 5
-		return kmap(y, func(z v) v { return atx(x, z, nil) })
+		return kmap(y, func(z v, i int) v { return atx(x, z, nil) })
 	case xl: // 6
 		// TODO other checks: (y.t > 1 || y.v < 0 || y.v >= len(x) || y.v%1 != 0) ? NA
 		i := idx(y)

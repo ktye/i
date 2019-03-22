@@ -82,7 +82,6 @@ func nm(x v, fr fr1, fz fz1, m method) v {
 	}
 	for i, x := range z {
 		z[i] = fz(x)
-
 	}
 	return vn(nil, z, vec, t)
 }
@@ -95,32 +94,29 @@ func nd(x, y v, fr fr2, fz fz2, m method) v {
 		return r
 	}
 
-	xi, isxf := x.(l)
-	yi, isyf := y.(l)
-	if isxf && !isyf {
-		yi = nl(y)
-		isyf = true
-	} else if !isxf && isyf {
-		xi = nl(x)
-		isxf = true
+	xn, yn := ln(x), ln(y)
+	switch {
+	case xn >= 0 && yn >= 0 && xn != yn:
+		return e("length")
+	case xn < 0 && yn >= 0:
+		x, xn = rsh(yn, x), yn
+	case yn < 0 && xn >= 0:
+		y, yn = rsh(xn, y), xn
 	}
-	if isxf && isyf {
-		if len(xi) == 0 || len(yi) == 0 {
-			return nil
-		}
-		if len(xi) == 1 || len(yi) > 1 {
-			xi = rsh(len(yi), xi).(l)
-		} else if len(xi) > 1 || len(yi) == 1 {
-			yi = rsh(len(xi), yi).(l)
-		}
-		r := make(l, len(xi))
+	xl, yl := false, false
+	if xn >= 0 && rtyp(x).Elem().Kind() == reflect.Interface {
+		xl = true
+	}
+	if yn >= 0 && rtyp(y).Elem().Kind() == reflect.Interface {
+		yl = true
+	}
+	if xl || yl {
+		r := make(l, xn) // TODO: make custom interface type, if both have the same type
 		for i := range r {
-			r[i] = nd(xi[i], yi[i], fr, fz, m)
+			r[i] = nd(at(x, i), at(y, i), fr, fz, m)
 		}
 		return r
 	}
-
-	// TODO: any is an interface of a custom type
 
 	xr, xz, xvec, xt := nv(x)
 	yr, yz, yvec, yt := nv(y)
@@ -138,7 +134,10 @@ func nd(x, y v, fr fr2, fz fz2, m method) v {
 		n1, n2 = len(xz), len(yz)
 	}
 	if n1 == 0 || n2 == 0 {
-		return nil
+		if xt == yt && xt != nil {
+			return reflect.MakeSlice(reflect.SliceOf(xt), 0, 0).Interface()
+		}
+		return l{}
 	}
 	if n1 == 1 && n2 > 1 {
 		xr, xz = nrsh(xr, xz, n2)
@@ -148,7 +147,7 @@ func nd(x, y v, fr fr2, fz fz2, m method) v {
 		n1 = n2
 	}
 	if n1 != n2 {
-		e("size")
+		e("length")
 	}
 	if xr != nil {
 		for i := range xr {
@@ -311,7 +310,6 @@ func nv(x v) (fv, zv, bool, rT) { // import any number or numeric vector types
 			}
 			return r, nil, true, z.Type()
 		}
-		println(v.Type().String()) // rm
 		e("type")
 	}
 
@@ -367,7 +365,7 @@ func vn(x fv, z zv, vec bool, t reflect.Type) interface{} { // convert numbers b
 		if x != nil {
 			if t.ConvertibleTo(rTb) {
 				b := false
-				if x[0] != 0 {
+				if x[i] != 0 {
 					b = true
 				}
 				r.Index(i).Set(rval(b).Convert(t))

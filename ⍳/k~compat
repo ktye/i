@@ -11,3 +11,17 @@ kona | github.com/kevinlawler/kona
 ngn  | tio.run/#k-ngn, gitlab.com/n9n/k
 oK   | github.com/JohnEarnest/ok
 i    | github.com/ktye/i
+
+% cat ks
+echo "k2>"
+echo "$@" | ./k2
+echo "k4>"
+echo '\
+'"$@" | /c/q/w32/q.exe
+# TODO k7
+echo "kona>"
+echo "$@" | ./kona
+echo "oK>"
+/mingw64/bin/node repl.js "$@"
+# TODO ngn
+# TODO i

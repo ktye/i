@@ -129,9 +129,9 @@ func uf(l l) (v, bool) { // convert a list to a uniform vector if possible
 }
 
 type dict struct {
-	k, v          l
-	f, s, u, p, g bool // flipped, sorted, uniq, parted, grouped
-	t             reflect.Type
+	k, v l
+	f    bool         // flipped
+	t    reflect.Type // orig type
 }
 
 func md(x interface{}) (d, bool) { // import maps and structs as dicts
@@ -141,7 +141,7 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 		off := 0
 		if h, ok := m["_"]; ok {
 			hdr := h.(dict)
-			d.f, d.s, d.u, d.p, d.g = hdr.f, hdr.s, hdr.u, hdr.p, hdr.g
+			d.f = hdr.f
 			d.k = cp(hdr.k).(l)
 			off = 1
 		}
@@ -162,8 +162,12 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 			}
 		}
 		return d, true
+	case [2]l:
+		d.k = cp(m[0]).(l)
+		d.v = cp(m[1]).(l)
+		d.t = rtyp(x)
+		return d, true
 	}
-	// convert from user supplied map or struct
 
 	v := rval(x)
 	d.t = v.Type()
@@ -207,11 +211,13 @@ func md2(x, y interface{}) (dict, dict, bool) {
 func (d dict) mp() interface{} { // convert dict back to original type
 	if d.t == nil {
 		r := make(map[v]v)
-		r["_"] = dict{d.k, nil, d.f, d.s, d.u, d.p, d.g, nil}
+		r["_"] = dict{d.k, nil, d.f, nil}
 		for i, k := range d.k {
 			r[k] = d.v[i]
 		}
 		return r
+	} else if d.t == rtyp([2]l{}) {
+		return [2]l{cp(d.k).(l), cp(d.v).(l)}
 	}
 
 	// convert back to original map or struct type.
@@ -298,37 +304,15 @@ func ys(x sv, vec bool, eT rT) v { // convert strings back to orig type
 	return r.Interface()
 }
 
-/*
-function ktos(x, esc) {
-	if (x.t != 3) { x = enlist(x); }
-	var h = x.v.some(function(v){ return (v.v<32||v.v>127)&v.v!=9&v.v!=10; });
-	if (h) { return "0x"+x.v.map(h2).join(""); }
-	var r = x.v.map(function(k) { return String.fromCharCode(k.v); }).join("");
-	return esc ? '"'+EC.reduce(function(r,p) { return r.split(p[0]).join(p[1]); }, r)+'"' : r;
-}
-func ktos(x, esc v) v {
-	if ln(x) < 0 {
-		x = enl(x)
-	}
-	r := rval(x)
-	if r.Kind() != reflect.Slice {
-	}
-}
-*/
-
-/*
-// function krange(x, f) { var r=[]; for(var z=0;z<x;z++) { r.push(f(z)); } return k(3,r); }
-func krange(n int, f func(int) v) l {
+func krange(n int, f func(int) v) v { // function krange(x, f) { var r=[]; for(var z=0;z<x;z++) { r.push(f(z)); } return k(3,r); }
 	l := make(l, n)
-	for i := 0; i < n; i++ {
+	for i := range l {
 		l[i] = f(i)
 	}
-	return l
+	u, _ := uf(l)
+	return u
 }
-
-*/
-// function kmap (x, f) { return k(3, l(x).v.map(f)); }
-func kmap(x v, f func(v) v) v {
+func kmap(x v, f func(v, int) v) v { // function kmap (x, f) { return k(3, l(x).v.map(f)); }
 	n := ln(x)
 	if n < 0 {
 		e("type")
@@ -340,12 +324,12 @@ func kmap(x v, f func(v) v) v {
 	in, _ := ls(x) // rT is determined by result of f(x)
 	l := make(l, n)
 	for i := 0; i < n; i++ {
-		l[i] = f(in[i])
+		l[i] = f(in[i], i)
 		t := rval(l[i]).Type()
 		if t != nil && i == 0 {
 			ot = t
 		} else if t != nil && ot != nil && t != ot {
-			e("type") // f returns non-uniform on uniform input
+			ot = nil
 		}
 	}
 	if it == nil || ot == nil {
@@ -357,15 +341,15 @@ func kmap(x v, f func(v) v) v {
 	}
 	return r.Interface()
 }
-
-/*
-// function kzip (x, y, f) { return kmap(sl(x,y), function(z, i) { return f(z, y.v[i]); }); }
-func kzip(x, y v, f func(v, v) v) v {
-	return kmap(xxx, func(v v, i int) v {
+func kzip(x, y v, f func(v, v) v) v { // function kzip (x, y, f) { return kmap(sl(x,y), function(z, i) { return f(z, y.v[i]); }); }
+	nx, ny := ln(x), ln(y)
+	if nx != ny {
+		return e("length")
+	}
+	return kmap(x, func(v v, i int) v {
 		return f(v, at(y, i))
 	})
 }
-*/
 
 func some(l l, f func(v v) bool) bool {
 	for _, i := range l {

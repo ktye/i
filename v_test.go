@@ -39,7 +39,7 @@ func TestMV(t *testing.T) {
 		{"fst", fst, l{c(2, 3), 0, 0}, c(2, 3)},
 		{"fst", fst, IV{5, 6}, 5},
 		{"fst", fst, IV{}, nil},
-		{"fst", fst, dct(l{"d", "c"}, l{5, 6}), 5},
+		{"fst", fst, [2]l{l{"d", "c"}, l{5, 6}}, 5},
 		{"sqr", sqr, 4, 2},
 		// {"sqr", sqr, -1.0, math.NaN()}, not comparable
 		{"sqr", sqr, -7 + 24i, c(3, 4)},
@@ -118,21 +118,21 @@ func TestDV(t *testing.T) {
 		f       func(v, v) v
 		x, y, r v
 	}{
-		{"add", add, 1, 2, 3},
 		{"add", add, 1, 2.0, 3.0},
-		{"add", add, 1.0, uint(2), 3.0},
+		{"add", add, 1.0, uint(3), 4.0},
 		{"add", add, iv{1, 2}, 3, iv{4, 5}},
-		{"add", add, iv{1, 2}, iv{3}, iv{4, 5}},
+		{"add", add, iv{1, 2}, 3, iv{4, 5}},
 		{"add", add, 1, iv{2, 3}, iv{3, 4}},
-		{"add", add, iv{1}, iv{2, 3}, iv{3, 4}},
+		{"add", add, 1, iv{2, 3}, iv{3, 4}},
 		{"add", add, iv{1, 2, 3}, iv{4, 5, 6}, iv{5, 7, 9}},
 		{"add", add, l{1, 2.0, 3}, 1, l{2, 3.0, 4}},
+		{"add", add, iv{1, 2}, l{1, iv{2, 3}}, l{2, iv{4, 5}}},
 		//{"add", add,
 		//	map[v]v{"a": 1, "b": 2.0},
 		//	map[v]v{"b": fv{3, 4}},
 		//	map[v]v{"a": 1, "b": fv{5.0, 6.0}}}, // eql but fail?
 		{"add", add, map[v]v{"a": false}, map[v]v{"a": true}, map[v]v{"a": true}},
-		//{"add", add, map[v]v{"a": []bool{false}}, map[v]v{"a": []bool{false, true}}, map[v]v{"a": []bool{false, true}}}, // eql but fail?
+		{"add", add, [2]l{l{"a"}, l{false}}, [2]l{l{"a"}, l{[]bool{false, true}}}, [2]l{l{"a"}, l{[]bool{false, true}}}}, // eql but fail?
 		{"add", add, map[v]v{"a": 1, "b": fv{2, 3}}, 3, map[v]v{"a": 4, "b": fv{5, 6}}},
 		{"add", add, mystruct{}, mystruct{true, 2, nil}, mystruct{true, 2, nil}},
 		{"add", add, mystruct{false, 1, []myint{1, 2}}, mystruct{true, 2, []myint{3, 4}}, mystruct{true, 3, []myint{4, 6}}},
@@ -162,20 +162,36 @@ func TestDV(t *testing.T) {
 		{"mch", mch, iv{1, 2}, fv{1, 2}, 0.0},
 		{"mch", mch, "a", "a", 1.0},
 		{"mch", mch, "alpha", "beta", 0.0},
-		{"mch", mch, dct(l{"a", "b"}, l{1, 2}), dct(l{"a", "b"}, l{1, 2}), 1.0},
-		{"mch", mch, dct(l{"a", "b"}, l{1, 2}), dct(l{"b", "a"}, l{2, 1}), 0.0},
+		{"mch", mch, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"a", "b"}, l{1, 2}}, 1.0},
+		{"mch", mch, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"b", "a"}, l{2, 1}}, 0.0},
 		{"cat", cat, 1, 2, iv{1, 2}},
 		{"cat", cat, 1, iv{2, 3}, iv{1, 2, 3}},
 		{"cat", cat, iv{2, 3}, 1, iv{2, 3, 1}},
 		{"cat", cat, iv{2, 3}, fv{4, 5}, l{2, 3, 4.0, 5.0}},
-		{"cat", cat, dct(l{"a", "b"}, l{1, 2}), dct(l{"a", "c"}, l{7, 6}), map[v]v{"a": 7, "b": 2, "c": 6}},
-		{"cat", cat, dct(l{"a"}, l{1}), 3, l{dct(l{"a"}, l{1}), 3}},
+		{"cat", cat, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"a", "c"}, l{7, 6}}, [2]l{l{"a", "b", "c"}, l{7, 2, 6}}},
+		{"cat", cat, [2]l{{"a"}, l{1}}, 3, l{[2]l{l{"a"}, l{1}}, 3}},
 		// ept: TODO
 		// tak: TODO
-		// rsh: TODO
+		{"rsh", rsh, 3, 3, iv{3, 3, 3}},
+		{"rsh", rsh, l{2}, l{1, 2}, iv{1, 2}},
+		{"rsh", rsh, l{3, 2}, l{1, 2, 3}, l{iv{1, 2}, iv{3, 1}, iv{2, 3}}},
+		{"rsh", rsh, l{2, 2}, 5, l{iv{5, 5}, iv{5, 5}}},
+		{"rsh", rsh, l{2, 0}, l{1, 2, 3, 4}, l{l{}, l{}}},
+		{"rsh", rsh, l{2, 3}, l{1, 2, l{3, 4}}, l{l{1, 2, iv{3, 4}}, l{1, 2, iv{3, 4}}}},
+		{"rsh", rsh, l{math.NaN(), 3}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1, 2}, iv{3, 4, 5}, iv{6}}},
+		{"rsh", rsh, l{3, math.NaN()}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1}, iv{2, 3}, iv{4, 5, 6}}},
 		// fil: TODO
 		// drp: TODO
-		// cut: TODO
+		{"drp", drp, 1, l{1, 2, 3}, l{2, 3}},
+		{"drp", drp, -1, l{1, 2, 3}, l{1, 2}},
+		{"drp", drp, -3, l{1, 2, 3}, l{}},
+		{"drp", drp, -4, iv{1, 2, 3}, iv{}},
+		{"drp", drp, 4, l{1, 2, 3}, l{}},
+		{"drp", drp, 1, fv{1, 2}, fv{2}},
+		{"drp", drp, 1, [2]l{l{"a", "b", "c"}, l{1, 2, 3}}, [2]l{l{"b", "c"}, l{2, 3}}},
+		{"cut", cut, l{1}, iv{1, 2}, l{iv{2}}},
+		{"cut", cut, l{0, 3}, l{0, 1, 2, 3, 4, 5}, l{iv{0, 1, 2}, iv{3, 4, 5}}},
+		{"cut", cut, iv{1, 1, 3}, iv{0, 1, 2, 3, 4, 5}, l{l{}, iv{1, 2}, iv{3, 4, 5}}},
 		// cst: TODO
 		// rnd: TODO
 		// fnd: TODO
@@ -222,8 +238,8 @@ func tt(t *testing.T, exp, got v, s string, a ...v) {
 	}
 	printf(s, a...)
 	if reflect.DeepEqual(exp, got) == false {
-		_fmt.Printf("exp: %+v (%T)\n", exp, exp)
-		_fmt.Printf("got: %+v (%T)\n", got, got)
+		_fmt.Printf("exp: %#v (%T)\n", exp, exp)
+		_fmt.Printf("got: %#v (%T)\n", got, got)
 		t.Fatal()
 	}
 }
@@ -269,5 +285,3 @@ func printf(f s, v ...v) {
 		_fmt.Printf(f, v...)
 	}
 }
-
-func dct(k, u l) map[v]v { return d{k: k, v: u}.mp().(map[v]v) }
