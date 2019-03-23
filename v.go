@@ -65,7 +65,40 @@ func til(x v) v {
 	}
 	return vn(r, nil, true, t)
 }
-func odo(x v) v { return e("nyi") } // →impl
+func odo(x v) v {
+	inc := func(idx, shp []i) {
+		for i := len(idx) - 1; i >= 0; i-- {
+			idx[i]++
+			if idx[i] < shp[i] {
+				break
+			}
+			idx[i] = 0
+		}
+	}
+	n := ln(x)
+	if n < 0 {
+		return e("domain")
+	}
+	shp, idx, r, m := make([]int, n), make([]int, n), make(l, n), 1
+	for i := range shp {
+		n = pi(at(x, i))
+		if n == 0 {
+			return e("domain")
+		}
+		shp[i] = n
+		m *= n
+	}
+	for i := range shp {
+		r[i] = make(fv, m)
+	}
+	for j := 0; j < m; j++ {
+		for i := range r {
+			r[i].(fv)[j] = f(idx[i])
+		}
+		inc(idx, shp)
+	}
+	return r
+}
 func wer(x v) v {
 	nx := ln(x)
 	if nx < 0 {

@@ -55,7 +55,8 @@ func TestMV(t *testing.T) {
 		{"til", til, 3, iv{0, 1, 2}},
 		{"til", til, 0, iv{}},
 		{"til", til, 0.0, fv{}},
-		// odo TODO
+		{"odo", odo, fv{2, 3}, l{fv{0, 0, 0, 1, 1, 1}, fv{0, 1, 2, 0, 1, 2}}},
+		{"odo", odo, l{true, 2, 1.0, c(3, 0)}, l{fv{0, 0, 0, 0, 0, 0}, fv{0, 0, 0, 1, 1, 1}, fv{0, 0, 0, 0, 0, 0}, fv{0, 1, 2, 0, 1, 2}}},
 		{"wer", wer, 3, fv{0, 0, 0}},
 		{"wer", wer, zv{3}, fv{0, 0, 0}},
 		{"wer", wer, []bool{false, false, true, false, true, true}, fv{2, 4, 5}},
