@@ -86,6 +86,9 @@ func TestMV(t *testing.T) {
 		{"is0", is0, nil, 1.0},
 		{"is0", is0, iv{}, iv{}},
 		{"is0", is0, l{1, math.NaN(), c(1, 0), c(1, math.NaN())}, l{0, 1.0, c(0, 0), c(1, 0)}},
+		{"exp", exp, l{0, c(1, 0)}, l{1, c(math.E, 0)}},
+		{"log", log, fv{1, 1.0 / math.E}, fv{0, -1}},
+		{"log", log, c(-1, 0), c(0, math.Pi)},
 		{"cnt", cnt, l{}, 0.0},
 		{"cnt", cnt, iv{1, 2, 3}, 3.0},
 		{"cnt", cnt, 4, 1.0},
@@ -149,6 +152,7 @@ func TestDV(t *testing.T) {
 		{"eql", eql, fv{1, 2, math.NaN(), math.Inf(1)}, iv{5, 2, 7, 8}, fv{0, 1, 0, 0}},
 		{"eql", eql, "a", "a", 1.0},
 		{"eql", eql, sv{"a", "b"}, "a", fv{1.0, 0.0}},
+		{"pow", pow, fv{2, 2}, fv{0.5, 2}, fv{math.Sqrt2, 4}},
 		{"mch", mch, 1, 1, 1.0},
 		{"mch", mch, 1, 0, 0.0},
 		{"mch", mch, l{}, fv{}, 0.0}, // ()~!0

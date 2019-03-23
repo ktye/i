@@ -28,7 +28,7 @@ Verbs
 +   flp   flp  [add] [add] [add] [add]   -    -   ⍉
 -  [neg] [neg] [sub] [sub] [sub] [sub]   -    -    
 *   fst   fst  [mul] [mul] [mul] [mul]   -    -   ×
-%  [sqr] [sqr] [div] [div] [div] [div]   -    -   √÷
+%  [inv] [inv] [div] [div] [div] [div]   -    -   ÷
 !   til   odo   mod    -    mod>  mkd    -    -   ⍳
 &   wer   wer  [min] [min] [min] [min]   -    -   ⍸⌊
 |   rev   rev  [max] [max] [max] [max]   -    -   ⌽⌈
@@ -47,8 +47,8 @@ $   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕∪
 '    -     -     -    bin    -    bin>   -    -     
 /    -     -     -     -    pak   pak    -    -     
 \    -     -     -    upk   spl   -      -    -     
-':   -     -     -     -    win   -      -    -     
-
+':   -     -     -     -    win   -      -    -   pow⍣ abs¯ reℜ imℑ 
+                                                  piπ  nanø sqr√ log⍟
 Adverbs
     mv/nv dv    l-mv  l-dv  3+v
 ':   -    ecp    -    ecp    -       ⍨

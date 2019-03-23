@@ -213,6 +213,8 @@ func is0(x v) v {
 	}
 	return nm(x, ris0, zis0, "Is0")
 }
+func exp(x v) v { return nm(x, rexp, zexp, "Exp") }
+func log(x v) v { return nm(x, rlog, zlog, "Log") }
 func cnt(x v) v {
 	if d, o := md(x); o {
 		return f(len(d.k))
@@ -254,6 +256,7 @@ func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }
 func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles, "Les") }
 func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor, "Mor") }
 func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql, "Eql") }
+func pow(x, y v) v { return nd(x, y, rpow, zpow, "Pow") }
 func mch(x, y v) v {
 	if rtyp(x) != rtyp(y) {
 		return 0.0

@@ -32,6 +32,10 @@ func zis0(a complex128) complex128 {
 	}
 	return 0.0
 }
+func rexp(a float64) float64       { return math.Exp(a) }
+func zexp(a complex128) complex128 { return cmplx.Exp(a) }
+func rlog(a float64) float64       { return math.Log(a) }
+func zlog(a complex128) complex128 { return cmplx.Log(a) }
 
 // atomic numeric dyads
 func radd(a, b float64) float64       { return a + b }
@@ -54,6 +58,8 @@ func rmor(a, b float64) float64       { return rter(a > b, 1, 0) }
 func zmor(a, b complex128) complex128 { return zter(cmplx.Abs(a) > cmplx.Abs(b), 1, 0) }
 func reql(a, b float64) float64       { return rter(a == b, 1, 0) } // tolerance?
 func zeql(a, b complex128) complex128 { return zter(a == b, 1, 0) }
+func rpow(a, b float64) float64       { return math.Pow(a, b) }
+func zpow(a, b complex128) complex128 { return cmplx.Pow(a, b) }
 
 func rter(c bool, a, b float64) float64 {
 	if c {
