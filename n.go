@@ -20,6 +20,18 @@ func rabs(a float64) float64       { return math.Abs(a) }
 func zabs(a complex128) complex128 { return complex(cmplx.Abs(a), 0) }
 func rnot(a float64) float64       { return rter(a == 0, 1, 0) }
 func znot(a complex128) complex128 { return zter(a == 0, 1, 0) }
+func ris0(a float64) float64 {
+	if math.IsNaN(a) {
+		return 1.0
+	}
+	return 0.0
+}
+func zis0(a complex128) complex128 {
+	if cmplx.IsNaN(a) {
+		return 1.0
+	}
+	return 0.0
+}
 
 // atomic numeric dyads
 func radd(a, b float64) float64       { return a + b }

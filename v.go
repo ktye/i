@@ -142,7 +142,24 @@ func enl(x v) v {
 	l.Index(0).Set(v)
 	return l.Interface()
 }
-func is0(x v) v { return e("nyi") }
+func is0(x v) v {
+	if x == nil {
+		return 1.0
+	} else if s, n, _, o := sy(x); o {
+		if n < 0 && s[0] == "" {
+			return 1.0
+		} else if n >= 0 {
+			r := make(fv, len(s))
+			for i := range s {
+				if s[i] == "" {
+					r[i] = math.NaN()
+				}
+			}
+			x = r
+		}
+	}
+	return nm(x, ris0, zis0, "Is0")
+}
 func cnt(x v) v {
 	if d, o := md(x); o {
 		return f(len(d.k))
