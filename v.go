@@ -241,7 +241,14 @@ func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") }
 func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") }
 func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") }
 func mod(x, y v) v { return nd(x, y, rmod, zmod, "Mod") }
-func mkd(x, y v) v { return e("nyi") }
+func mkd(x, y v) v {
+	a, _ := ls(x)
+	b, _ := ls(y)
+	if len(a) != len(b) {
+		return e("length")
+	}
+	return dict{k: a, v: b}.mp()
+}
 func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
 func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }
 func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles, "Les") }
@@ -387,23 +394,6 @@ func drp(x, y v) v {
 	return rval(y).Slice(j, n).Interface()
 }
 func cut(x, y v) v {
-	/* TODO rm
-	p := func(v v) int {
-		n := -1
-		switch t := v.(type) {
-		case f:
-			n = int(t)
-		case int:
-			n = t
-		default:
-			e("type")
-		}
-		if n < 0 {
-			e("domain")
-		}
-		return n
-	}
-	*/
 	return kzip(x, cat(drp(1, x), cnt(y)), func(a, b v) v {
 		pa, pb := pi(a), pi(b)
 		r := make(l, pb-pa)
