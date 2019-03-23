@@ -416,9 +416,20 @@ func re(v v) float64 {
 		}
 		return 0
 	} else if k < reflect.Uint {
-		return float64(r.Uint())
+		return float64(r.Int())
 	}
-	return float64(r.Int()) // panics
+	return float64(r.Uint()) // panics
+}
+func pi(v v) int { // to positive int
+	f := re(v)
+	if f < 0 {
+		e("range")
+	}
+	n := int(f)
+	if float64(n) != f {
+		e("type")
+	}
+	return n
 }
 
 func at(L v, i int) v {

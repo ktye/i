@@ -66,7 +66,27 @@ func til(x v) v {
 	return vn(r, nil, true, t)
 }
 func odo(x v) v { return e("nyi") } // →impl
-func wer(x v) v { return e("nyi") } // →take, over asverb
+func wer(x v) v {
+	nx := ln(x)
+	if nx < 0 {
+		x, nx = enl(x), 1
+	}
+	xi := make([]int, nx)
+	n := 0
+	for i := range xi {
+		xi[i] = pi(at(x, i))
+		n += xi[i]
+	}
+	r := make(fv, n)
+	j := 0
+	for i := range xi {
+		for k := 0; k < xi[i]; k++ {
+			r[j] = f(i)
+			j++
+		}
+	}
+	return r
+}
 func rev(x v) v {
 	if d, ok := md(x); ok {
 		k, u := rev(d.k).(l), rev(d.v).(l)
@@ -335,6 +355,7 @@ func drp(x, y v) v {
 	return rval(y).Slice(j, n).Interface()
 }
 func cut(x, y v) v {
+	/* TODO rm
 	p := func(v v) int {
 		n := -1
 		switch t := v.(type) {
@@ -350,8 +371,9 @@ func cut(x, y v) v {
 		}
 		return n
 	}
+	*/
 	return kzip(x, cat(drp(1, x), cnt(y)), func(a, b v) v {
-		pa, pb := p(a), p(b)
+		pa, pb := pi(a), pi(b)
 		r := make(l, pb-pa)
 		for i := pa; i < pb; i++ {
 			r[i-pa] = at(y, i)

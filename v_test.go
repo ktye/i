@@ -56,7 +56,10 @@ func TestMV(t *testing.T) {
 		{"til", til, 0, iv{}},
 		{"til", til, 0.0, fv{}},
 		// odo TODO
-		// wer TODO
+		{"wer", wer, 3, fv{0, 0, 0}},
+		{"wer", wer, zv{3}, fv{0, 0, 0}},
+		{"wer", wer, []bool{false, false, true, false, true, true}, fv{2, 4, 5}},
+		{"wer", wer, l{false, 0, c(1, 0), 0.0, 1.0, myint(1)}, fv{2, 4, 5}},
 		{"rev", rev, fv{1, 2, 3}, fv{3, 2, 1}},
 		// {"rev", rev, dct(l{"a", "b"}, l{1, 2}), "→[b:2;a:1]"}, // cannot compare
 		{"asc", asc, 3, fv{0}},
