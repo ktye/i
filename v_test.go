@@ -45,6 +45,8 @@ func TestMV(t *testing.T) {
 		{"sqr", sqr, -7 + 24i, c(3, 4)},
 		{"til", til, 3.0, fv{0, 1, 2}},
 		{"til", til, 3, iv{0, 1, 2}},
+		{"til", til, 0, iv{}},
+		{"til", til, 0.0, fv{}},
 		// odo TODO
 		// wer TODO
 		{"rev", rev, fv{1, 2, 3}, fv{3, 2, 1}},
@@ -127,16 +129,13 @@ func TestDV(t *testing.T) {
 		{"add", add, iv{1, 2, 3}, iv{4, 5, 6}, iv{5, 7, 9}},
 		{"add", add, l{1, 2.0, 3}, 1, l{2, 3.0, 4}},
 		{"add", add, iv{1, 2}, l{1, iv{2, 3}}, l{2, iv{4, 5}}},
-		//{"add", add,
-		//	map[v]v{"a": 1, "b": 2.0},
-		//	map[v]v{"b": fv{3, 4}},
-		//	map[v]v{"a": 1, "b": fv{5.0, 6.0}}}, // eql but fail?
+		//{"add", add, [2]l{l{"a", "b"}, l{1, 2.0}}, [2]l{l{"b"}, l{fv{3, 4}}}, [2]l{l{"a", "b"}, l{1, fv{5, 6}}}}, // eql but fail?
 		{"add", add, map[v]v{"a": false}, map[v]v{"a": true}, map[v]v{"a": true}},
 		{"add", add, [2]l{l{"a"}, l{false}}, [2]l{l{"a"}, l{[]bool{false, true}}}, [2]l{l{"a"}, l{[]bool{false, true}}}}, // eql but fail?
 		{"add", add, map[v]v{"a": 1, "b": fv{2, 3}}, 3, map[v]v{"a": 4, "b": fv{5, 6}}},
 		{"add", add, mystruct{}, mystruct{true, 2, nil}, mystruct{true, 2, nil}},
 		{"add", add, mystruct{false, 1, []myint{1, 2}}, mystruct{true, 2, []myint{3, 4}}, mystruct{true, 3, []myint{4, 6}}},
-		// {"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "I": 1 + 1i, "V": fv{3, 4}}, map[v]v{"B": 4.0, "F": 1, "I": 2 + 1i, "V": fv{4, 6}}}, // eql but fail?
+		//{"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "I": 1 + 1i, "V": fv{3, 4}}, map[v]v{"B": 4.0, "F": 1, "I": 2 + 1i, "V": fv{4, 6}}}, // eql but fail?
 		{"sub", sub, 1, 2, -1},
 		{"mul", mul, 2, 3, 6},
 		{"div", div, 1.0, 0, math.Inf(1)},
@@ -158,6 +157,7 @@ func TestDV(t *testing.T) {
 		{"eql", eql, sv{"a", "b"}, "a", fv{1.0, 0.0}},
 		{"mch", mch, 1, 1, 1.0},
 		{"mch", mch, 1, 0, 0.0},
+		{"mch", mch, l{}, fv{}, 0.0}, // ()~!0
 		{"mch", mch, iv{1, 2}, iv{1, 2}, 1.0},
 		{"mch", mch, iv{1, 2}, fv{1, 2}, 0.0},
 		{"mch", mch, "a", "a", 1.0},
@@ -174,10 +174,13 @@ func TestDV(t *testing.T) {
 		// tak: TODO
 		{"rsh", rsh, 3, 3, iv{3, 3, 3}},
 		{"rsh", rsh, l{2}, l{1, 2}, iv{1, 2}},
+		{"rsh", rsh, l{3}, 2.0, fv{2, 2, 2}},
+		{"rsh", rsh, l{3}, fv{1, 2}, fv{1, 2, 1}},
+		{"rsh", rsh, l{2, 3}, fv{1, 2}, l{fv{1, 2, 1}, fv{2, 1, 2}}},
 		{"rsh", rsh, l{3, 2}, l{1, 2, 3}, l{iv{1, 2}, iv{3, 1}, iv{2, 3}}},
 		{"rsh", rsh, l{2, 2}, 5, l{iv{5, 5}, iv{5, 5}}},
 		{"rsh", rsh, l{2, 0}, l{1, 2, 3, 4}, l{l{}, l{}}},
-		{"rsh", rsh, l{2, 3}, l{1, 2, l{3, 4}}, l{l{1, 2, iv{3, 4}}, l{1, 2, iv{3, 4}}}},
+		{"rsh", rsh, l{2, 3}, l{1, 2, iv{3, 4}}, l{l{1, 2, iv{3, 4}}, l{1, 2, iv{3, 4}}}},
 		{"rsh", rsh, l{math.NaN(), 3}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1, 2}, iv{3, 4, 5}, iv{6}}},
 		{"rsh", rsh, l{3, math.NaN()}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1}, iv{2, 3}, iv{4, 5, 6}}},
 		// fil: TODO

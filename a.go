@@ -53,8 +53,7 @@ func cp(x v) v {
 		return r
 	case d:
 		r := t
-		r.k = cp(t.k).(l)
-		r.v = cp(t.v).(l)
+		r.k, r.v = cp(t.k).(l), cp(t.v).(l)
 		return r
 	}
 	if v, ok := x.(cpr); ok {
@@ -63,6 +62,9 @@ func cp(x v) v {
 	v := rval(x)
 	switch v.Kind() {
 	case reflect.Slice:
+		if v.IsNil() {
+			return v.Interface()
+		}
 		n := v.Len()
 		r := reflect.MakeSlice(v.Type(), n, n)
 		for i := 0; i < n; i++ {
@@ -125,7 +127,16 @@ func uf(l l) (v, bool) { // convert a list to a uniform vector if possible
 			return l, false
 		}
 	}
+	if t.Kind() == reflect.Slice {
+		return l, false
+	}
 	return sl(l, t), true
+}
+func ms(eT rT, n i) rV { // make slice from element type, but lists from slices
+	if eT == nil || eT.Kind() == reflect.Slice {
+		return rval(make(l, n))
+	}
+	return reflect.MakeSlice(reflect.SliceOf(eT), n, n)
 }
 
 type dict struct {
@@ -141,18 +152,14 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 		off := 0
 		if h, ok := m["_"]; ok {
 			hdr := h.(dict)
-			d.f = hdr.f
-			d.k = cp(hdr.k).(l)
-			off = 1
+			d.f, d.k, off = hdr.f, cp(hdr.k).(l), 1
 		}
 		n := len(m) - off
 		if off == 0 {
-			d.k = make(l, n)
-			d.v = make(l, n)
+			d.k, d.v = make(l, n), make(l, n)
 			i := 0
 			for k, v := range m {
-				d.k[i] = cp(k)
-				d.v[i] = cp(v)
+				d.k[i], d.v[i] = cp(k), cp(v)
 				i++
 			}
 		} else {
@@ -163,9 +170,7 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 		}
 		return d, true
 	case [2]l:
-		d.k = cp(m[0]).(l)
-		d.v = cp(m[1]).(l)
-		d.t = rtyp(x)
+		d.k, d.v, d.t = cp(m[0]).(l), cp(m[1]).(l), rtyp(x)
 		return d, true
 	}
 
@@ -178,20 +183,24 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 		} else {
 			n = v.NumField()
 		}
-		d.k = make(l, n)
-		d.v = make(l, n)
+		d.k, d.v = make(l, n), make(l, n)
 		if kind == reflect.Map {
 			keys := v.MapKeys()
 			for i, k := range keys {
-				d.k[i] = cp(k.Interface())
-				d.v[i] = cp(v.MapIndex(k).Interface())
+				d.k[i], d.v[i] = cp(k.Interface()), cp(v.MapIndex(k).Interface())
 			}
 		} else {
 			t := v.Type()
+			j := 0
 			for i := 0; i < n; i++ {
-				d.k[i] = t.Field(i).Name
-				d.v[i] = cp(v.Field(i).Interface())
+				u := cp(v.Field(i).Interface())
+				if rv := rval(u); rv.Kind() == reflect.Slice && rv.IsNil() {
+					continue // skip nil slices
+				}
+				d.k[j], d.v[j] = t.Field(i).Name, u
+				j++
 			}
+			d.k, d.v = d.k[:j], d.v[:j]
 		}
 		return d, true
 	}
@@ -266,8 +275,7 @@ func (d dict) at(key v) (int, v) {
 }
 func (d *dict) set(key, val v) {
 	if i, _ := d.at(key); i < 0 {
-		d.k = append(d.k, key)
-		d.v = append(d.v, val)
+		d.k, d.v = append(d.k, key), append(d.v, val)
 	} else {
 		d.v[i] = val
 	}
@@ -332,10 +340,10 @@ func kmap(x v, f func(v, int) v) v { // function kmap (x, f) { return k(3, l(x).
 			ot = nil
 		}
 	}
-	if it == nil || ot == nil {
+	if it == nil || ot == nil || ot.Kind() == reflect.Slice {
 		return l
 	}
-	r := reflect.MakeSlice(reflect.SliceOf(ot), n, n)
+	r := ms(ot, n)
 	for i := 0; i < n; i++ {
 		r.Index(i).Set(rval(l[i]).Convert(ot))
 	}
@@ -376,8 +384,7 @@ func idx(v v) int {
 	case float64:
 		f, n = w, int(w)
 	default:
-		f = re(v)
-		n = int(f)
+		f, n = re(v), int(f)
 	}
 	if float64(n) != f {
 		e("type") // rounding

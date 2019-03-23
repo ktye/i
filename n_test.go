@@ -36,7 +36,7 @@ func TestSn2(t *testing.T) {
 		{"sn2", "a", "a", 0.0, 0.0},
 		{"sn2", "a", "b", 0.0, 1.0},
 		{"sn2", sv{"b", "a"}, "a", fv{1, 0}, fv{0}},
-		{"sn2", sv{"x", "x", "", "b", "w", "b"}, sv{"b", "a", "c"}, fv{5, 5, 0, 2, 4, 2}, fv{2, 1, 3}},
+		{"sn2", sv{"x", "x", "", "b", "w", "b"}, sv{"b", "a", "c", "z", "z", "z"}, fv{5, 5, 0, 2, 4, 2}, fv{2, 1, 3, 6, 6, 6}},
 	}
 	for _, tc := range testCases {
 		rx, ry := sn2(tc.x, tc.y)

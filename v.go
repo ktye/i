@@ -81,8 +81,7 @@ func eye(x v) v {
 	l := make(l, n)
 	for i := range l {
 		r := make(fv, n)
-		r[i] = 1
-		l[i] = r
+		r[i], l[i] = 1, r
 	}
 	return l
 }
@@ -97,7 +96,7 @@ func enl(x v) v {
 	case reflect.Func, reflect.Slice, reflect.Map:
 		return l{x}
 	}
-	l := reflect.MakeSlice(reflect.SliceOf(v.Type()), 1, 1)
+	l := ms(v.Type(), 1)
 	l.Index(0).Set(v)
 	return l.Interface()
 }
@@ -171,13 +170,11 @@ func cat(x, y v) v {
 	}
 	nx := ln(x)
 	if nx < 0 {
-		x = enl(x)
-		nx = 1
+		x, nx = enl(x), 1
 	}
 	ny := ln(y)
 	if ny < 0 {
-		y = enl(y)
-		ny = 1
+		y, ny = enl(y), 1
 	}
 	if t := rtyp(x); t == rtyp(y) {
 		var l reflect.Value
@@ -258,8 +255,7 @@ func rsh(x, y v) v {
 func fil(x, y v) v { return e("nyi") }
 func drp(x, y v) v {
 	if d, o := md(y); o {
-		d.k = drp(x, d.k).(l)
-		d.v = drp(x, d.v).(l)
+		d.k, d.v = drp(x, d.k).(l), drp(x, d.v).(l)
 		return d.mp()
 	}
 	n := ln(y)
@@ -272,7 +268,7 @@ func drp(x, y v) v {
 	j := int(re(x))
 	y = cp(y)
 	if (j < 0 && j+n <= 0) || (j > 0 && n-j <= 0) {
-		return reflect.MakeSlice(rtyp(y), 0, 0).Interface()
+		return ms(rtyp(y).Elem(), 0).Interface()
 	}
 	if j < 0 {
 		return rval(y).Slice(0, n+j).Interface()
@@ -327,8 +323,6 @@ func atx(x, y v, a kt) v {
 	}
 	xdict, xd := md(x)
 	ydict, yd := md(y)
-	_ = xdict
-	_ = ydict
 	switch {
 	case xl && yd: // 3
 		ydict.v = atx(x, cp(ydict.v), a).(l)

@@ -404,13 +404,13 @@ func sn2(x, y v) (v, v) { // map strings to floats
 	}
 	vec := true
 	if nx < 0 && ny < 0 {
-		vec = false
-	}
-	if nx < 0 {
-		nx = 1
-	}
-	if ny < 0 {
-		ny = 1
+		vec, nx, ny = false, 1, 1
+	} else if nx < 0 {
+		sx, nx = rsh(ny, sx).(sv), ny
+	} else if ny < 0 {
+		sy, ny = rsh(nx, sy).(sv), nx
+	} else if nx != ny {
+		e("length")
 	}
 	b := make(sv, nx+ny)
 	copy(b, sx)
