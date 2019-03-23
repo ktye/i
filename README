@@ -1,6 +1,6 @@
 ⍳ interpret - a k interpreter for Go
 
-Package interface (2 function, no types):
+Package interface (2 functions, no types):
   l := P("!3")  // Parse expr to ast (list []interface{})
   v := E(l, a)  // Evaluate to value (interface{})
   //k-tree: a map[interface{}]interface{}
@@ -8,10 +8,10 @@ Package interface (2 function, no types):
 Types
     float64,   complex128      numbers
   []float64, []complex128      uniform vectors
-  []interface{}                list (`_ is reserved)
+  []interface{}                list
   []rune                       character array
   string                       symbol
-  map[interface{}]interface{}  dict
+  map[interface{}]interface{}  dict (`_ is reserved)
   func                         function
 Any Go variable that is present in the k-tree can be used as well:
   any slice                    list

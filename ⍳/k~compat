@@ -1,7 +1,8 @@
 expr       k2      k4      k7      kona    ngn     oK      i    ...
 -------------------------------------------------------------------
-^          shp/pow ?       ?       shp/pow ?       is0/ept is0/ept
-~`         `"."    ?       `"."    ?       E       E          
+^          shp/pow ?       is0/ept shp/pow ?       is0/ept is0/ept
+~`         `"."    e       1       ?       e       e          
+()~!0      0       0b      0       0       0       1       0       
 
 
 k2   | nsl.com/k/k2

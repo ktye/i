@@ -7,15 +7,34 @@ import (
 )
 
 // monadic verbs
-func flp(x v) v { return e("nyi") }
+func flp(x v) v {
+	if d, o := md(x); o {
+		d.f = !d.f
+		return d.mp()
+	}
+	n, m := ln(x), -1
+	if n < 0 {
+		return x
+	}
+	var rl l
+	for i := 0; i < n; i++ {
+		rw := at(x, i)
+		if nn := ln(rw); nn < 0 {
+			return x
+		} else if i == 0 {
+			m = nn
+			rl = make(l, m*n)
+		} else if nn != m {
+			return e("length")
+		}
+		for k := 0; k < m; k++ {
+			rl[k*n+i] = at(rw, k)
+		}
+	}
+	return cut(mul(n, (til(n-1))), rl)
+}
 func neg(x v) v { return nm(x, rneg, zneg, "Neg") }
 func fst(v v) v {
-	/*function first (x) { return
-	(x.t == 4) ? first(x.v)
-	: (x.t != 3) ? x
-	: len(x) ? x.v[0]
-	:k(3,[])
-	*/
 	if d, o := md(v); o {
 		return fst(d.v)
 	}

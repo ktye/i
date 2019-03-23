@@ -20,7 +20,10 @@ func TestMV(t *testing.T) {
 		f    func(v) v
 		x, r v
 	}{
-		// flp TODO
+		{"flp", flp, 1.0, 1.0},
+		{"flp", flp, iv{1, 2}, iv{1, 2}},
+		{"flp", flp, l{fv{1, 2}, fv{3, 4}, fv{5, 6}}, l{fv{1, 3, 5}, fv{2, 4, 6}}},
+		{"flp", flp, l{fv{1, 2}, fv{3, 4}, l{5, l{6, 7}}}, l{l{1, 3, 5}, l{2, 4, l{6, 7}}}}, // eql but fail?
 		{"neg", neg, 1.0, -1.0},
 		{"neg", neg, c(1, 2), c(-1, -2)},
 		{"neg", neg, fv{1, 2, 3}, fv{-1, -2, -3}},
