@@ -89,10 +89,10 @@ func TestMV(t *testing.T) {
 		{"cnt", cnt, map[v]v{"a": iv{1, 2, 3}, "b": iv{2, 3, 4}}, 2.0},
 		{"flr", flr, 3.5, 3.0},
 		// fmt TODO
-		// fng TODO
+		// fgn TODO
 		{"unq", unq, l{}, l{}},
-		//{"unq", unq, iv{1, 2, 2, 1}, iv{1, 2}},
-		//{"unq", unq, l{1.0, 1.0}, l{1.0}},
+		{"unq", unq, iv{1, 2, 2, 1}, iv{1, 2}},
+		{"unq", unq, l{1.0, 1.0}, l{1.0}},
 		// evl TODO
 	}
 
@@ -207,7 +207,11 @@ func TestDV(t *testing.T) {
 		{"cut", cut, iv{1, 1, 3}, iv{0, 1, 2, 3, 4, 5}, l{l{}, iv{1, 2}, iv{3, 4, 5}}},
 		// cst: TODO
 		// rnd: TODO
-		// fnd: TODO
+		{"fnd", fnd, iv{3}, iv{1, 2, 3}, fv{1, 1, 0}},
+		{"fnd", fnd, iv{3}, 3, 0.0},
+		{"fnd", fnd, iv{3}, 1, 1.0},
+		{"fnd", fnd, iv{3, 4}, [2]l{l{"a", "b"}, l{6, 3}}, [2]l{l{"a", "b"}, l{2.0, 0.0}}},
+		{"fnd", fnd, iv{3}, flp(map[v]v{"a": iv{1, 2}, "b": iv{3, 4}}), map[v]v{"a": fv{1, 1}, "b": fv{0, 1}}},
 		// pik: TODO
 		// rfd: TODO
 		// cal: TODO

@@ -362,7 +362,50 @@ func cut(x, y v) v {
 }
 func cst(x, y v) v { return e("nyi") }
 func rnd(x, y v) v { return e("nyi") }
-func fnd(x, y v) v { return e("nyi") }
+func fnd(x, y v) v {
+	nx := ln(x)
+	if nx < 0 {
+		return e("length")
+	}
+	if d, o := md(y); o {
+		if d.f {
+			println("table find")
+			for i := range d.k {
+				d.v[i] = fnd(x, d.v[i])
+			}
+			return d.mp()
+		}
+		for i := range d.k {
+			u := d.v[i]
+			d.v[i] = f(nx)
+			for j := 0; j < nx; j++ {
+				if mch(at(x, j), u) == 1.0 {
+					d.v[i] = f(j)
+					break
+				}
+			}
+		}
+		return d.mp()
+	}
+	ny, vec := ln(y), true
+	if ny < 1 {
+		y, ny, vec = enl(y), 1, false
+	}
+	r := make(fv, ny)
+	for i := range r {
+		for j := 0; j < nx; j++ {
+			r[i] = f(nx)
+			if mch(at(x, j), at(y, i)) == 1.0 {
+				r[i] = f(j)
+				break
+			}
+		}
+	}
+	if !vec {
+		return r[0]
+	}
+	return r // nyi: extension to rectangular arrays
+}
 func pik(x, y v) v { return e("nyi") }
 func rfd(x, y v) v { return e("nyi") }
 func atx(x, y v, a kt) v {
