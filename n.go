@@ -12,8 +12,12 @@ func rneg(a float64) float64       { return -a }
 func zneg(a complex128) complex128 { return -a }
 func rflr(a float64) float64       { return math.Floor(a) }
 func zflr(a complex128) complex128 { return complex(math.Floor(cmplx.Abs(a)), 0) }
+func rinv(a float64) float64       { return 1.0 / a }
+func zinv(a complex128) complex128 { return complex(1, 0) / a }
 func rsqr(a float64) float64       { return math.Sqrt(a) }
 func zsqr(a complex128) complex128 { return cmplx.Sqrt(a) }
+func rabs(a float64) float64       { return math.Abs(a) }
+func zabs(a complex128) complex128 { return complex(cmplx.Abs(a), 0) }
 func rnot(a float64) float64       { return rter(a == 0, 1, 0) }
 func znot(a complex128) complex128 { return zter(a == 0, 1, 0) }
 

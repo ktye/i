@@ -46,6 +46,8 @@ func fst(v v) v {
 	return at(v, 0)
 }
 func sqr(x v) v { return nm(x, rsqr, zsqr, "Sqr") }
+func inv(x v) v { return nm(x, rinv, zinv, "Inv") }
+func abs(x v) v { return nm(x, rabs, zabs, "Abs") }
 func til(x v) v {
 	if d, ok := md(x); ok {
 		return d.k
