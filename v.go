@@ -106,7 +106,28 @@ func eye(x v) v {
 	}
 	return l
 }
-func grp(x v) v { return e("nyi") }
+func grp(x v) v {
+	n := ln(x)
+	if n <= 0 {
+		return e("type")
+	}
+	d := dict{}
+	d.k, _ = ls(unq(x))
+	d.v = make(l, len(d.k))
+	m := make(map[v]int)
+	for i := range d.v {
+		d.v[i] = fv{}
+		m[d.k[i]] = i
+	}
+	for i := 0; i < n; i++ {
+		u := at(x, i)
+		j := m[u]
+		w := d.v[j].(fv)
+		w = append(w, f(i))
+		d.v[j] = w
+	}
+	return d.mp()
+}
 func not(x v) v { return nm(x, rnot, znot, "Not") }
 func enl(x v) v {
 	if d, o := x.(dict); o {

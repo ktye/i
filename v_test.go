@@ -69,7 +69,7 @@ func TestMV(t *testing.T) {
 		{"dsc", dsc, sv{"b", "c", "alpha"}, fv{1, 0, 2}},
 		{"eye", eye, 0, l{}},
 		{"eye", eye, 2, l{fv{1, 0}, fv{0, 1}}},
-		// grp TODO
+		{"grp", grp, fv{1, 3, 3, 3, 1, 2}, map[v]v{1: fv{0, 4}, 3: fv{1, 2, 3}, 2: fv{5}}}, // eql but fail?
 		{"not", not, 1, 0},
 		{"not", not, 1 + 2i, 0 + 0i},
 		{"not", not, 0 + 0i, 1 + 0i},
