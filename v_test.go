@@ -93,7 +93,6 @@ func TestMV(t *testing.T) {
 		{"cnt", cnt, map[v]v{"a": iv{1, 2, 3}, "b": iv{2, 3, 4}}, 2.0},
 		{"flr", flr, 3.5, 3.0},
 		// fmt TODO
-		// fgn TODO
 		{"unq", unq, l{}, l{}},
 		{"unq", unq, iv{1, 2, 2, 1}, iv{1, 2}},
 		{"unq", unq, l{1.0, 1.0}, l{1.0}},
@@ -105,27 +104,6 @@ func TestMV(t *testing.T) {
 		tt(t, tc.r, r, "%s %+v: %+v\n", tc.s, tc.x, r)
 	}
 }
-
-/*
-func TestGrade(t *testing.T) {
-	testCases := []struct {
-		s    string
-		f    func(bool, v) v
-		up   bool
-		x, r v
-	}{
-		{"grade", grade, true, fv{4, 5, 6}, iv{0, 1, 2}},
-
-		{"grade", grade, true, sv{"be", "g", "a"}, iv{2, 0, 1}},
-		{"grade", grade, true, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
-
-	}
-	for _, tc := range testCases {
-		r := tc.f(tc.up, tc.x)
-		tt(t, tc.r, r, "%s %v %+v: %+v\n", tc.s, tc.up, tc.x, r)
-	}
-}
-*/
 
 func TestDV(t *testing.T) {
 	type IV []int
@@ -154,7 +132,9 @@ func TestDV(t *testing.T) {
 		{"mul", mul, 2, 3, 6},
 		{"div", div, 1.0, 0, math.Inf(1)},
 		//{"div", div, c(1, 0), 0, c(math.Inf(1), math.NaN())}, // cannot be compared
-		// mod TODO
+		{"mod", mod, 2, fv{1, 2, 3, 4, 5, 6}, fv{1, 0, 1, 0, 1, 0}},
+		{"mod", mod, 3, l{1, 2, 3, fv{4, 5}}, l{1, 2, 0, fv{1, 2}}},
+		{"mod", mod, c(3, 0), l{1, 2, 3, c(4, 0)}, l{c(1, 0), c(2, 0), c(0, 0), c(1, 0)}},
 		// mkd TODO
 		{"min", min, 2, 3, 2},
 		{"min", min, iv{1, 2, 3}, 2, iv{1, 2, 2}},

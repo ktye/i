@@ -223,7 +223,6 @@ func cnt(x v) v {
 }
 func flr(x v) v { return nm(x, rflr, zflr, "Flr") }
 func fmt(x v) v { return e("nyi") }
-func fgn(x v) v { return e("nyi") }
 func unq(x v) v {
 	w, t := ls(x)
 	r := make(l, 0)
@@ -241,7 +240,7 @@ func add(x, y v) v { return nd(x, y, radd, zadd, "Add") }
 func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") }
 func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") }
 func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") }
-func mod(x, y v) v { return e("nyi") }
+func mod(x, y v) v { return nd(x, y, rmod, zmod, "Mod") }
 func mkd(x, y v) v { return e("nyi") }
 func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
 func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }
@@ -424,7 +423,6 @@ func fnd(x, y v) v {
 	}
 	if d, o := md(y); o {
 		if d.f {
-			println("table find")
 			for i := range d.k {
 				d.v[i] = fnd(x, d.v[i])
 			}

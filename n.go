@@ -42,6 +42,8 @@ func rmul(a, b float64) float64       { return a * b }
 func zmul(a, b complex128) complex128 { return a * b }
 func rdiv(a, b float64) float64       { return a / b }
 func zdiv(a, b complex128) complex128 { return a / b }
+func rmod(a, b float64) float64       { return math.Mod(b, a) }
+func zmod(a, b complex128) complex128 { return complex(math.Mod(re(b), re(a)), 0) }
 func rmin(a, b float64) float64       { return rter(a < b, a, b) }
 func zmin(a, b complex128) complex128 { return zter(cmplx.Abs(a) < cmplx.Abs(b), a, b) } // what about equal abs? compare angle?
 func rmax(a, b float64) float64       { return rter(a > b, a, b) }
