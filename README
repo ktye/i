@@ -39,7 +39,7 @@ Verbs
 ,   enl   enl   cat   cat   cat   cat    -    -   
 ^   is0  [is0]  ept   ept   ept   ept    -    -   ∧
 #   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴≢↑ 
-_  [flr] [flr]  drp   fil   drp   cut    -    -   ⌊↓
+_  [flr] [flr]  drp   drp   drp   cut    -    -   ⌊↓
 $   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕⌶
 ?   rng   unq   rnd   fnd   pik   fnd>  spl   -   ∪
 @   typ   typ   atx   atx   atx   atx   amd  amd  
@@ -49,14 +49,14 @@ $   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕⌶
 \    -     -     -    upk   spl   -      -    -     
 ':   -     -     -     -    win   -      -    -    
                                                   
-Adverbs                                  :← x⍺ y⍵ o∇
-    mv/nv dv    l-mv  l-dv  3+v          pow⍣ abs¯ reℜ imℑ
-':   -    ecp    -    ecp    -       ⍨   piπ  nanø sqr√ log⍟
+Adverbs                                  
+    mv/nv dv    l-mv  l-dv  3+v          
+':   -    ecp    -    ecp    -       ⍨   
 '   ech   ecd   ecd   ecd   eca      ¨
 /:   -     -    ecr   ecr    -       ⌿
-\:   -     -    ecl   ecl    -       ⍀
-/   fxd   ovr   fxw   ovd   ova       
-\   scf   scn   scw   scd   sca         
+\:   -     -    ecl   ecl    -       ⍀   :← x⍺ y⍵ o∇
+/   fxd   ovr   fxw   ovd   ova          pow⍣ abs¯ reℜ imℑ
+\   scf   scn   scw   scd   sca          piπ  nanø sqr√ log⍟
 
 Ref
   github.com/JohnEarnest/ok

@@ -428,10 +428,15 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 	}
 	return rshr(x, y, 0)
 }
-func fil(x, y v) v { return e("nyi") }
 func drp(x, y v) v { // x_y x↓y drop
 	if d, o := md(y); o {
-		d.k, d.v = drp(x, d.k).(l), drp(x, d.v).(l)
+		nx := ln(x)
+		if nx < 0 {
+			d.k, d.v = drp(x, d.k).(l), drp(x, d.v).(l)
+		} else {
+			d.k = ept(d.k, x).(l)
+			d.v = atx(y, d.k, nil).(l)
+		}
 		return d.mp()
 	}
 	n := ln(y)
