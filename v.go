@@ -586,7 +586,6 @@ func fnd(x, y v) v { // l?a xl?yl find
 	}
 	return r // nyi: extension to rectangular arrays
 }
-func pik(x, y v) v { return e("nyi") } // x?l pick random
 func atx(x, y v, a kt) v { // x@y at, index
 	if s, o := x.(s); o {
 		return atx(a.at(s), y, a) // 1

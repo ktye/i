@@ -40,8 +40,8 @@ Verbs
 ^   is0  [is0]  ept   ept   ept   ept    -    -   ∧
 #   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴≢↑ 
 _  [flr] [flr]  drp   drp   drp   cut    -    -   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕⌶
-?   rng   unq   rnd   fnd   pik   fnd>  spl   -   ∪
+$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕
+?   rng   unq   rnd   fnd   rnd   fnd>  spl   -   ∪
 @   typ   typ   atx   atx   atx   atx   amd  amd  
 .   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
 '    -     -     -    bin    -    bin>   -    -     

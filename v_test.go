@@ -207,7 +207,6 @@ func TestDV(t *testing.T) {
 		{"fnd", fnd, iv{3}, 1, 1.0},
 		{"fnd", fnd, iv{3, 4}, [2]l{l{"a", "b"}, l{6, 3}}, [2]l{l{"a", "b"}, l{2.0, 0.0}}},
 		{"fnd", fnd, iv{3}, flp(map[v]v{"a": iv{1, 2}, "b": iv{3, 4}}), map[v]v{"a": fv{1, 1}, "b": fv{0, 1}}},
-		// pik: TODO
 		// cal: TODO
 		// bin: TODO
 		// rbn: TODO
