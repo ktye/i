@@ -241,7 +241,6 @@ func TestVKt(t *testing.T) {
 		tt(t, tc.r, r, "%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
 	}
 }
-
 func TestRng(t *testing.T) {
 	testCases := []struct {
 		s string
@@ -259,6 +258,29 @@ func TestRng(t *testing.T) {
 	for _, tc := range testCases {
 		r := tc.f(tc.x)
 		printf("%s %+v: %+v\n", tc.s, tc.x, r)
+		if n := ln(r); n != tc.n {
+			t.Fatalf("exp len %d got %d", tc.n, n)
+		}
+		if tp := rtyp(r).Elem(); tp != tc.t {
+			t.Fatalf("exp type: %s got %s", tc.t, tp)
+		}
+	}
+}
+func TestRnd(t *testing.T) {
+	testCases := []struct {
+		s    string
+		f    func(v, v) v
+		x, y v
+		n    int
+		t    rT
+	}{
+		{"rnd", rnd, 6, 49, 6, rtyp(0)},
+		{"rnd", rnd, -6, 49, 6, rtyp(0)},
+		{"rnd", rnd, -6, 7.0, 6, rTf},
+	}
+	for _, tc := range testCases {
+		r := tc.f(tc.x, tc.y)
+		printf("%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
 		if n := ln(r); n != tc.n {
 			t.Fatalf("exp len %d got %d", tc.n, n)
 		}

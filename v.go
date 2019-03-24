@@ -510,8 +510,38 @@ func cut(x, y v) v { // x_y cut
 	})
 }
 func cst(x, y v) v { return e("nyi") } // x$y x⌶y cast
-func rnd(x, y v) v { // x?y random
-	return e("nyi")
+func rnd(x, y v) v { // x?y random, roll, -x?y deal
+	ff := re(x)
+	n := int(ff)
+	if f(n) != ff {
+		return e("type")
+	}
+	ny := ln(y)
+	if ny < 0 {
+		y = til(y)
+		ny = ln(y)
+	}
+	var r l
+	ll, rT := ls(cp(y))
+	if n < 0 {
+		if -n > ny {
+			e("size")
+		}
+		rand.Shuffle(ny, func(i, j int) { ll[i], ll[j] = ll[j], ll[i] })
+		r = make(l, -n)
+		for i := range r {
+			r[i] = ll[i]
+		}
+	} else {
+		if n > ny {
+			e("size")
+		}
+		r = make(l, n)
+		for i := range r {
+			r[i] = ll[int(math.Round(f(ny)*rand.Float64()))]
+		}
+	}
+	return sl(r, rT)
 }
 func fnd(x, y v) v { // l?a xl?yl find
 	nx := ln(x)
