@@ -324,7 +324,38 @@ func cat(x, y v) v {
 	}
 	return r
 }
-func tak(x, y v) v { return e("nyi") }
+func tak(x, y v) v {
+	// nyi: 5,8,9: function, verb, adverb
+	if d, o := md(y); o {
+		k := tak(x, d.k)
+		u := tak(x, d.v)
+		d.k, d.v = k.(l), u.(l)
+		return d.mp()
+	}
+	ny := ln(y)
+	if ny <= 0 {
+		y, ny = enl(y), 1
+	}
+	p := re(x)
+	n := int(p)
+	if f(n) != p {
+		return e("type")
+	}
+	a := 0
+	if n < 0 {
+		a = ny + n
+		n = -n
+	}
+	r := make(l, n)
+	for i := range r {
+		j := (a + i) % ny
+		if j < 0 {
+			j += ny
+		}
+		r[i] = at(y, j)
+	}
+	return sl(r, rtyp(y).Elem())
+}
 func rsh(x, y v) v {
 	if yd, o := md(y); o { // select from dict
 		yd.v = atx(y, x, nil).(l)
