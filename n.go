@@ -8,76 +8,76 @@ import (
 )
 
 // atomic numeric monads
-func rneg(a float64) float64       { return -a }
-func zneg(a complex128) complex128 { return -a }
-func rflr(a float64) float64       { return math.Floor(a) }
-func zflr(a complex128) complex128 { return complex(math.Floor(cmplx.Abs(a)), 0) }
-func rinv(a float64) float64       { return 1.0 / a }
-func zinv(a complex128) complex128 { return complex(1, 0) / a }
-func rsqr(a float64) float64       { return math.Sqrt(a) }
-func zsqr(a complex128) complex128 { return cmplx.Sqrt(a) }
-func rabs(a float64) float64       { return math.Abs(a) }
-func zabs(a complex128) complex128 { return complex(cmplx.Abs(a), 0) }
-func rnot(a float64) float64       { return rter(a == 0, 1, 0) }
-func znot(a complex128) complex128 { return zter(a == 0, 1, 0) }
-func ris0(a float64) float64 {
+func rneg(a f) f { return -a }
+func zneg(a z) z { return -a }
+func rflr(a f) f { return math.Floor(a) }
+func zflr(a z) z { return complex(math.Floor(cmplx.Abs(a)), 0) }
+func rinv(a f) f { return 1.0 / a }
+func zinv(a z) z { return complex(1, 0) / a }
+func rsqr(a f) f { return math.Sqrt(a) }
+func zsqr(a z) z { return cmplx.Sqrt(a) }
+func rabs(a f) f { return math.Abs(a) }
+func zabs(a z) z { return complex(cmplx.Abs(a), 0) }
+func rnot(a f) f { return rter(a == 0, 1, 0) }
+func znot(a z) z { return zter(a == 0, 1, 0) }
+func ris0(a f) f {
 	if math.IsNaN(a) {
 		return 1.0
 	}
 	return 0.0
 }
-func zis0(a complex128) complex128 {
+func zis0(a z) z {
 	if cmplx.IsNaN(a) {
 		return 1.0
 	}
 	return 0.0
 }
-func rexp(a float64) float64       { return math.Exp(a) }
-func zexp(a complex128) complex128 { return cmplx.Exp(a) }
-func rlog(a float64) float64       { return math.Log(a) }
-func zlog(a complex128) complex128 { return cmplx.Log(a) }
+func rexp(a f) f { return math.Exp(a) }
+func zexp(a z) z { return cmplx.Exp(a) }
+func rlog(a f) f { return math.Log(a) }
+func zlog(a z) z { return cmplx.Log(a) }
 
 // atomic numeric dyads
-func radd(a, b float64) float64       { return a + b }
-func zadd(a, b complex128) complex128 { return a + b }
-func rsub(a, b float64) float64       { return a - b }
-func zsub(a, b complex128) complex128 { return a - b }
-func rmul(a, b float64) float64       { return a * b }
-func zmul(a, b complex128) complex128 { return a * b }
-func rdiv(a, b float64) float64       { return a / b }
-func zdiv(a, b complex128) complex128 { return a / b }
-func rmod(a, b float64) float64       { return math.Mod(b, a) }
-func zmod(a, b complex128) complex128 { return complex(math.Mod(re(b), re(a)), 0) }
-func rmin(a, b float64) float64       { return rter(a < b, a, b) }
-func zmin(a, b complex128) complex128 { return zter(cmplx.Abs(a) < cmplx.Abs(b), a, b) } // what about equal abs? compare angle?
-func rmax(a, b float64) float64       { return rter(a > b, a, b) }
-func zmax(a, b complex128) complex128 { return zter(cmplx.Abs(a) > cmplx.Abs(b), a, b) }
-func rles(a, b float64) float64       { return rter(a < b, 1, 0) }
-func zles(a, b complex128) complex128 { return zter(cmplx.Abs(a) < cmplx.Abs(b), 1, 0) }
-func rmor(a, b float64) float64       { return rter(a > b, 1, 0) }
-func zmor(a, b complex128) complex128 { return zter(cmplx.Abs(a) > cmplx.Abs(b), 1, 0) }
-func reql(a, b float64) float64       { return rter(a == b, 1, 0) } // tolerance?
-func zeql(a, b complex128) complex128 { return zter(a == b, 1, 0) }
-func rpow(a, b float64) float64       { return math.Pow(a, b) }
-func zpow(a, b complex128) complex128 { return cmplx.Pow(a, b) }
+func radd(a, b f) f { return a + b }
+func zadd(a, b z) z { return a + b }
+func rsub(a, b f) f { return a - b }
+func zsub(a, b z) z { return a - b }
+func rmul(a, b f) f { return a * b }
+func zmul(a, b z) z { return a * b }
+func rdiv(a, b f) f { return a / b }
+func zdiv(a, b z) z { return a / b }
+func rmod(a, b f) f { return math.Mod(b, a) }
+func zmod(a, b z) z { return complex(math.Mod(re(b), re(a)), 0) }
+func rmin(a, b f) f { return rter(a < b, a, b) }
+func zmin(a, b z) z { return zter(cmplx.Abs(a) < cmplx.Abs(b), a, b) } // what about equal abs? compare angle?
+func rmax(a, b f) f { return rter(a > b, a, b) }
+func zmax(a, b z) z { return zter(cmplx.Abs(a) > cmplx.Abs(b), a, b) }
+func rles(a, b f) f { return rter(a < b, 1, 0) }
+func zles(a, b z) z { return zter(cmplx.Abs(a) < cmplx.Abs(b), 1, 0) }
+func rmor(a, b f) f { return rter(a > b, 1, 0) }
+func zmor(a, b z) z { return zter(cmplx.Abs(a) > cmplx.Abs(b), 1, 0) }
+func reql(a, b f) f { return rter(a == b, 1, 0) } // tolerance?
+func zeql(a, b z) z { return zter(a == b, 1, 0) }
+func rpow(a, b f) f { return math.Pow(a, b) }
+func zpow(a, b z) z { return cmplx.Pow(a, b) }
 
-func rter(c bool, a, b float64) float64 {
+func rter(c bool, a, b f) f {
 	if c {
 		return a
 	}
 	return b
 }
-func zter(c bool, a, b complex128) complex128 {
+func zter(c bool, a, b z) z {
 	if c {
 		return a
 	}
 	return b
 }
 
-type fr1 func(float64) float64
-type fr2 func(float64, float64) float64
-type fz1 func(complex128) complex128
-type fz2 func(complex128, complex128) complex128
+type fr1 func(f) f
+type fr2 func(f, f) f
+type fz1 func(z) z
+type fz2 func(z, z) z
 
 func nm(x v, fr fr1, fz fz1, m method) v {
 	if r, ok := m.call1(x); ok {
@@ -159,7 +159,7 @@ func nd(x, y v, fr fr2, fz fz2, m method) v {
 	}
 	if n1 == 0 || n2 == 0 {
 		if xt == yt && xt != nil {
-			return reflect.MakeSlice(reflect.SliceOf(xt), 0, 0).Interface()
+			return ms(xt, 0).Interface()
 		}
 		return l{}
 	}
@@ -338,10 +338,10 @@ func nv(x v) (fv, zv, bool, rT) { // import any number or numeric vector types
 	}
 
 	if v.Type().ConvertibleTo(rTf) {
-		return []float64{v.Convert(rTf).Float()}, nil, false, v.Type()
+		return fv{v.Convert(rTf).Float()}, nil, false, v.Type()
 	}
 	if v.Type().ConvertibleTo(rTz) {
-		return nil, []complex128{v.Convert(rTz).Complex()}, false, v.Type()
+		return nil, zv{v.Convert(rTz).Complex()}, false, v.Type()
 	}
 	if v.Type().ConvertibleTo(rTb) {
 		b := v.Convert(rTb).Bool()
@@ -349,12 +349,12 @@ func nv(x v) (fv, zv, bool, rT) { // import any number or numeric vector types
 		if b {
 			r = 1.0
 		}
-		return []float64{r}, nil, false, v.Type()
+		return fv{r}, nil, false, v.Type()
 	}
 	e("type")
 	return nil, nil, false, rTf
 }
-func vn(x fv, z zv, vec bool, t reflect.Type) interface{} { // convert numbers back to original type
+func vn(x fv, z zv, vec bool, t rT) interface{} { // convert numbers back to original type
 	if x != nil && (t == rTf || t == nil) {
 		if vec {
 			return x
@@ -384,7 +384,7 @@ func vn(x fv, z zv, vec bool, t reflect.Type) interface{} { // convert numbers b
 	if x == nil {
 		n = len(z)
 	}
-	r := reflect.MakeSlice(reflect.SliceOf(t), n, n)
+	r := ms(t, n)
 	for i := 0; i < n; i++ {
 		if x != nil {
 			if t.ConvertibleTo(rTb) {
