@@ -168,7 +168,11 @@ func TestDV(t *testing.T) {
 		{"cat", cat, iv{2, 3}, fv{4, 5}, l{2, 3, 4.0, 5.0}},
 		{"cat", cat, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"a", "c"}, l{7, 6}}, [2]l{l{"a", "b", "c"}, l{7, 2, 6}}},
 		{"cat", cat, [2]l{{"a"}, l{1}}, 3, l{[2]l{l{"a"}, l{1}}, 3}},
-		// ept: TODO
+		{"ept", ept, iv{5, 6}, 3, iv{5, 6}},
+		{"ept", ept, iv{5, 6}, 5, iv{6}},
+		{"ept", ept, iv{5, 6}, l{1, 2, 3, 4, 5, 6, 7}, iv{}},
+		{"ept", ept, l{5, 8, 13.0, 12, 8}, l{13.0, 8}, l{5, 12}},
+		{"ept", ept, 8.0, l{1.0, 3.0, 5.0}, fv{0, 2, 4, 6, 7}},
 		{"tak", tak, 2, iv{1, 2, 3, 4}, iv{1, 2}},
 		{"tak", tak, -2.0, l{1, 2, 3, 4}, l{3, 4}},
 		{"tak", tak, c(4, 0), l{1, 2.0}, l{1, 2.0, 1, 2.0}},
@@ -187,7 +191,6 @@ func TestDV(t *testing.T) {
 		{"rsh", rsh, l{math.NaN(), 3}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1, 2}, iv{3, 4, 5}, iv{6}}},
 		{"rsh", rsh, l{3, math.NaN()}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1}, iv{2, 3}, iv{4, 5, 6}}},
 		// fil: TODO
-		// drp: TODO
 		{"drp", drp, 1, l{1, 2, 3}, l{2, 3}},
 		{"drp", drp, -1, l{1, 2, 3}, l{1, 2}},
 		{"drp", drp, -3, l{1, 2, 3}, l{}},
@@ -206,7 +209,6 @@ func TestDV(t *testing.T) {
 		{"fnd", fnd, iv{3, 4}, [2]l{l{"a", "b"}, l{6, 3}}, [2]l{l{"a", "b"}, l{2.0, 0.0}}},
 		{"fnd", fnd, iv{3}, flp(map[v]v{"a": iv{1, 2}, "b": iv{3, 4}}), map[v]v{"a": fv{1, 1}, "b": fv{0, 1}}},
 		// pik: TODO
-		// rfd: TODO
 		// cal: TODO
 		// bin: TODO
 		// rbn: TODO

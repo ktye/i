@@ -34,29 +34,29 @@ Verbs
 |   rev   rev  [max] [max] [max] [max]   -    -   ⌽⌈
 <   asc   asc  [les] [les] [les] [les]   -    -   ⍋
 >   dsc   dsc  [mor] [mor] [mor] [mor]   -    -   ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
+=   dia   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
 ~  [not] [not]  mch   mch   mch   mch    -    -   ≡
-,   enl   enl   cat   cat   cat   cat    -    -   ∊
+,   enl   enl   cat   cat   cat   cat    -    -   
 ^   is0  [is0]  ept   ept   ept   ept    -    -   ∧
 #   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴≢↑ 
-_  [flr] [flr]  drp   fil   drp   cut    -    -   ↓ (not ⌊)
-$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕∪
-?   rng   unq   rnd   fnd   pik   fnd>  spl   -   ⍷
-@   typ   typ   atx   atx   atx   atx   amd  amd  ⌶⌷
+_  [flr] [flr]  drp   fil   drp   cut    -    -   ⌊↓
+$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕⌶
+?   rng   unq   rnd   fnd   pik   fnd>  spl   -   ∪
+@   typ   typ   atx   atx   atx   atx   amd  amd  
 .   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
 '    -     -     -    bin    -    bin>   -    -     
 /    -     -     -     -    pak   pak    -    -     
 \    -     -     -    upk   spl   -      -    -     
-':   -     -     -     -    win   -      -    -   pow⍣ abs¯ reℜ imℑ 
-                                                  piπ  nanø sqr√ log⍟
-Adverbs
-    mv/nv dv    l-mv  l-dv  3+v
-':   -    ecp    -    ecp    -       ⍨
+':   -     -     -     -    win   -      -    -    
+                                                  
+Adverbs                                  :← x⍺ y⍵ o∇
+    mv/nv dv    l-mv  l-dv  3+v          pow⍣ abs¯ reℜ imℑ
+':   -    ecp    -    ecp    -       ⍨   piπ  nanø sqr√ log⍟
 '   ech   ecd   ecd   ecd   eca      ¨
 /:   -     -    ecr   ecr    -       ⌿
 \:   -     -    ecl   ecl    -       ⍀
 /   fxd   ovr   fxw   ovd   ova       
-\   scf   scn   scw   scd   sca         :← x⍺ y⍵ o∇
+\   scf   scn   scw   scd   sca         
 
 Ref
   github.com/JohnEarnest/ok

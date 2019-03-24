@@ -7,7 +7,7 @@ import (
 )
 
 // monadic verbs
-func flp(x v) v {
+func flp(x v) v { // +x ⍉x flip
 	if d, o := md(x); o {
 		d.f = !d.f
 		return d.mp()
@@ -33,8 +33,8 @@ func flp(x v) v {
 	}
 	return cut(mul(n, (til(n-1))), rl)
 }
-func neg(x v) v { return nm(x, rneg, zneg, "Neg") }
-func fst(v v) v {
+func neg(x v) v { return nm(x, rneg, zneg, "Neg") } // -x negate
+func fst(v v) v { // *x first
 	if d, o := md(v); o {
 		return fst(d.v)
 	}
@@ -45,10 +45,10 @@ func fst(v v) v {
 	}
 	return at(v, 0)
 }
-func sqr(x v) v { return nm(x, rsqr, zsqr, "Sqr") }
-func inv(x v) v { return nm(x, rinv, zinv, "Inv") }
-func abs(x v) v { return nm(x, rabs, zabs, "Abs") }
-func til(x v) v {
+func sqr(x v) v { return nm(x, rsqr, zsqr, "Sqr") } // √x sqrt
+func inv(x v) v { return nm(x, rinv, zinv, "Inv") } // %x inverse
+func abs(x v) v { return nm(x, rabs, zabs, "Abs") } // ¯x absolute value
+func til(x v) v { // !x ⍳x iota
 	if d, ok := md(x); ok {
 		return d.k
 	}
@@ -65,7 +65,7 @@ func til(x v) v {
 	}
 	return vn(r, nil, true, t)
 }
-func odo(x v) v {
+func odo(x v) v { // !l odometer
 	inc := func(idx, shp []i) {
 		for i := len(idx) - 1; i >= 0; i-- {
 			idx[i]++
@@ -99,7 +99,7 @@ func odo(x v) v {
 	}
 	return r
 }
-func wer(x v) v {
+func wer(x v) v { // &x ⍸x where
 	nx := ln(x)
 	if nx < 0 {
 		x, nx = enl(x), 1
@@ -120,7 +120,7 @@ func wer(x v) v {
 	}
 	return r
 }
-func rev(x v) v {
+func rev(x v) v { // |x ⌽x reverse
 	if d, ok := md(x); ok {
 		k, u := rev(d.k).(l), rev(d.v).(l)
 		d.k, d.v = k, u
@@ -141,9 +141,9 @@ func rev(x v) v {
 	}
 	return r.Interface()
 }
-func asc(x v) v { return grade(true, x) }
-func dsc(x v) v { return grade(false, x) }
-func eye(x v) v {
+func asc(x v) v { return grade(true, x) }  // <x ⍋x grade up
+func dsc(x v) v { return grade(false, x) } // >x ⍒x grade down
+func eye(x v) v { // =x unit matrix
 	f, _, vec, _ := nv(x)
 	if vec {
 		return e("rank")
@@ -159,7 +159,7 @@ func eye(x v) v {
 	}
 	return l
 }
-func grp(x v) v {
+func grp(x v) v { // =x ⌸x group
 	n := ln(x)
 	if n <= 0 {
 		return e("type")
@@ -181,8 +181,8 @@ func grp(x v) v {
 	}
 	return d.mp()
 }
-func not(x v) v { return nm(x, rnot, znot, "Not") }
-func enl(x v) v {
+func not(x v) v { return nm(x, rnot, znot, "Not") } // ~x not
+func enl(x v) v { // ,x enlist
 	if d, o := x.(dict); o {
 		return l{d}
 	}
@@ -195,7 +195,7 @@ func enl(x v) v {
 	l.Index(0).Set(v)
 	return l.Interface()
 }
-func is0(x v) v {
+func is0(x v) v { // ^x isnil, isnan
 	if x == nil {
 		return 1.0
 	} else if s, n, _, o := sy(x); o {
@@ -213,9 +213,9 @@ func is0(x v) v {
 	}
 	return nm(x, ris0, zis0, "Is0")
 }
-func exp(x v) v { return nm(x, rexp, zexp, "Exp") }
-func log(x v) v { return nm(x, rlog, zlog, "Log") }
-func cnt(x v) v {
+func exp(x v) v { return nm(x, rexp, zexp, "Exp") } // ⍣x exponential
+func log(x v) v { return nm(x, rlog, zlog, "Log") } // ⍟x logarithm
+func cnt(x v) v { // #x ⍴x count, length
 	if d, o := md(x); o {
 		return f(len(d.k))
 	} else if n := ln(x); n >= 0 {
@@ -223,9 +223,9 @@ func cnt(x v) v {
 	}
 	return f(1)
 }
-func flr(x v) v { return nm(x, rflr, zflr, "Flr") }
-func fmt(x v) v { return e("nyi") }
-func unq(x v) v {
+func flr(x v) v { return nm(x, rflr, zflr, "Flr") } // _x ⌊x floor
+func fmt(x v) v { return e("nyi") }                 // $x ⍕x format
+func unq(x v) v { // ?x ∪x uniq
 	w, t := ls(x)
 	r := make(l, 0)
 	for i := range w {
@@ -235,15 +235,15 @@ func unq(x v) v {
 	}
 	return sl(r, t)
 }
-func evl(x v) v { return e("nyi") }
+func evl(x v) v { return e("nyi") } // .x ⍎x evaluate
 
 // dyadic verbs
-func add(x, y v) v { return nd(x, y, radd, zadd, "Add") }
-func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") }
-func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") }
-func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") }
-func mod(x, y v) v { return nd(x, y, rmod, zmod, "Mod") }
-func mkd(x, y v) v {
+func add(x, y v) v { return nd(x, y, radd, zadd, "Add") } // x+y add
+func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") } // x-y substract
+func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") } // x*x x×y multiply
+func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") } // x%y x÷y divide
+func mod(x, y v) v { return nd(x, y, rmod, zmod, "Mod") } // x!y modulo
+func mkd(x, y v) v { // xl!yl make dictionary
 	a, _ := ls(x)
 	b, _ := ls(y)
 	if len(a) != len(b) {
@@ -251,13 +251,13 @@ func mkd(x, y v) v {
 	}
 	return dict{k: a, v: b}.mp()
 }
-func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }
-func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }
-func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles, "Les") }
-func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor, "Mor") }
-func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql, "Eql") }
-func pow(x, y v) v { return nd(x, y, rpow, zpow, "Pow") }
-func mch(x, y v) v {
+func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }                   // x&y x⌊y minimum
+func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }                   // x|y x⌈y maximum
+func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles, "Les") } // x<y less than
+func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor, "Mor") } // x>y more than
+func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql, "Eql") } // x=y equal
+func pow(x, y v) v { return nd(x, y, rpow, zpow, "Pow") }                   // x⍣y power
+func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
 		return 0.0
 	}
@@ -272,7 +272,7 @@ func mch(x, y v) v {
 	}
 	return 0.0
 }
-func cat(x, y v) v {
+func cat(x, y v) v { // x,y catenate
 	if xd, yd, o := md2(x, y); o {
 		for i := range yd.k {
 			xd.set(yd.k[i], yd.v[i])
@@ -324,7 +324,31 @@ func cat(x, y v) v {
 	}
 	return r
 }
-func tak(x, y v) v {
+func ept(x, y v) v { // x^y except
+	nx, ny := ln(x), ln(y)
+	if nx < 0 {
+		x = til(x)
+		nx = ln(x)
+	}
+	if ny < 0 {
+		y, ny = enl(y), 1
+	}
+	r := make(l, 0, nx)
+	m := make(map[v]bool)
+	for i := 0; i < ny; i++ {
+		m[at(y, i)] = true
+	}
+	for i := 0; i < nx; i++ {
+		if u := at(x, i); !m[u] {
+			r = append(r, u)
+		}
+	}
+	if t := rtyp(x); t.Kind() == reflect.Slice {
+		return sl(r, t.Elem())
+	}
+	return r
+}
+func tak(x, y v) v { // x#y take
 	// nyi: 5,8,9: function, verb, adverb
 	if d, o := md(y); o {
 		k := tak(x, d.k)
@@ -356,7 +380,7 @@ func tak(x, y v) v {
 	}
 	return sl(r, rtyp(y).Elem())
 }
-func rsh(x, y v) v {
+func rsh(x, y v) v { // x#y x⍴y reshape
 	if yd, o := md(y); o { // select from dict
 		yd.v = atx(y, x, nil).(l)
 		xl, _ := ls(x)
@@ -405,7 +429,7 @@ func rsh(x, y v) v {
 	return rshr(x, y, 0)
 }
 func fil(x, y v) v { return e("nyi") }
-func drp(x, y v) v {
+func drp(x, y v) v { // x_y x↓y drop
 	if d, o := md(y); o {
 		d.k, d.v = drp(x, d.k).(l), drp(x, d.v).(l)
 		return d.mp()
@@ -427,7 +451,7 @@ func drp(x, y v) v {
 	}
 	return rval(y).Slice(j, n).Interface()
 }
-func cut(x, y v) v {
+func cut(x, y v) v { // x_y cut
 	return kzip(x, cat(drp(1, x), cnt(y)), func(a, b v) v {
 		pa, pb := pi(a), pi(b)
 		r := make(l, pb-pa)
@@ -438,9 +462,9 @@ func cut(x, y v) v {
 		return u
 	})
 }
-func cst(x, y v) v { return e("nyi") }
-func rnd(x, y v) v { return e("nyi") }
-func fnd(x, y v) v {
+func cst(x, y v) v { return e("nyi") } // x$y x⌶y cast
+func rnd(x, y v) v { return e("nyi") } // x?y random
+func fnd(x, y v) v { // l?a xl?yl find
 	nx := ln(x)
 	if nx < 0 {
 		return e("length")
@@ -483,9 +507,8 @@ func fnd(x, y v) v {
 	}
 	return r // nyi: extension to rectangular arrays
 }
-func pik(x, y v) v { return e("nyi") }
-func rfd(x, y v) v { return e("nyi") }
-func atx(x, y v, a kt) v {
+func pik(x, y v) v { return e("nyi") } // x?l pick random
+func atx(x, y v, a kt) v { // x@y at, index
 	if s, o := x.(s); o {
 		return atx(a.at(s), y, a) // 1
 	}
@@ -524,7 +547,7 @@ func atx(x, y v, a kt) v {
 	// TODO call // 8
 	return e("nyi")
 }
-func cal(x, y v) v { return e("nyi") }
+func cal(x, y v) v { return e("nyi") } // x.y call
 func bin(x, y v) v { return e("nyi") }
 func rbn(x, y v) v { return e("nyi") }
 func pak(x, y v) v { return e("nyi") }
