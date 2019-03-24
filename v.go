@@ -2,6 +2,7 @@ package i
 
 import (
 	"math"
+	"math/rand"
 	"reflect"
 	"sort"
 )
@@ -225,6 +226,47 @@ func cnt(x v) v { // #x ⍴x count, length
 }
 func flr(x v) v { return nm(x, rflr, zflr, "Flr") } // _x ⌊x floor
 func fmt(x v) v { return e("nyi") }                 // $x ⍕x format
+func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
+	xf, xz, vec, t := nv(x)
+	if vec {
+		return e("domain")
+	}
+	if xf == nil {
+		r := make(zv, int(math.Floor(real(xz[0])))) // complex(n,0)
+		for i := range r {
+			r[i] = complex(rand.NormFloat64(), rand.NormFloat64())
+		}
+		if t == rTz {
+			return r
+		}
+		s := ms(t, len(r))
+		for i := range r {
+			s.Index(i).Set(rval(r[i]).Convert(t))
+		}
+		return s.Interface()
+	}
+	f, norm := xf[0], false
+	if f < 0 {
+		f, norm = -f, true
+	}
+	r := make(fv, int(math.Floor(f)))
+	for i := range r {
+		if norm {
+			r[i] = rand.NormFloat64()
+		} else {
+			r[i] = rand.Float64()
+		}
+	}
+	if t == rTf {
+		return r
+	}
+	s := ms(t, len(r))
+	for i := range r {
+		s.Index(i).Set(rval(r[i]).Convert(t))
+	}
+	return s.Interface()
+}
+
 func unq(x v) v { // ?x ∪x uniq
 	w, t := ls(x)
 	r := make(l, 0)
@@ -468,7 +510,9 @@ func cut(x, y v) v { // x_y cut
 	})
 }
 func cst(x, y v) v { return e("nyi") } // x$y x⌶y cast
-func rnd(x, y v) v { return e("nyi") } // x?y random
+func rnd(x, y v) v { // x?y random
+	return e("nyi")
+}
 func fnd(x, y v) v { // l?a xl?yl find
 	nx := ln(x)
 	if nx < 0 {

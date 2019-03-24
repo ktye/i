@@ -190,7 +190,6 @@ func TestDV(t *testing.T) {
 		{"rsh", rsh, l{2, 3}, l{1, 2, iv{3, 4}}, l{l{1, 2, iv{3, 4}}, l{1, 2, iv{3, 4}}}},
 		{"rsh", rsh, l{math.NaN(), 3}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1, 2}, iv{3, 4, 5}, iv{6}}},
 		{"rsh", rsh, l{3, math.NaN()}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1}, iv{2, 3}, iv{4, 5, 6}}},
-		// fil: TODO
 		{"drp", drp, 1, l{1, 2, 3}, l{2, 3}},
 		{"drp", drp, -1, l{1, 2, 3}, l{1, 2}},
 		{"drp", drp, -3, l{1, 2, 3}, l{}},
@@ -203,7 +202,6 @@ func TestDV(t *testing.T) {
 		{"cut", cut, l{0, 3}, l{0, 1, 2, 3, 4, 5}, l{iv{0, 1, 2}, iv{3, 4, 5}}},
 		{"cut", cut, iv{1, 1, 3}, iv{0, 1, 2, 3, 4, 5}, l{l{}, iv{1, 2}, iv{3, 4, 5}}},
 		// cst: TODO
-		// rnd: TODO
 		{"fnd", fnd, iv{3}, iv{1, 2, 3}, fv{1, 1, 0}},
 		{"fnd", fnd, iv{3}, 3, 0.0},
 		{"fnd", fnd, iv{3}, 1, 1.0},
@@ -241,6 +239,32 @@ func TestVKt(t *testing.T) {
 	for _, tc := range testCases {
 		r := tc.f(tc.x, tc.y, nil)
 		tt(t, tc.r, r, "%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
+	}
+}
+
+func TestRng(t *testing.T) {
+	testCases := []struct {
+		s string
+		f func(v) v
+		x v
+		n int
+		t rT
+	}{
+		{"rng", rng, 5.0, 5, rTf},
+		{"rng", rng, -5.0, 5, rTf},
+		{"rng", rng, myfloat(5), 5, rtyp(myfloat(0))},
+		{"rng", rng, myfloat(-5), 5, rtyp(myfloat(0))},
+		{"rng", rng, c(3, 0), 3, rTz},
+	}
+	for _, tc := range testCases {
+		r := tc.f(tc.x)
+		printf("%s %+v: %+v\n", tc.s, tc.x, r)
+		if n := ln(r); n != tc.n {
+			t.Fatalf("exp len %d got %d", tc.n, n)
+		}
+		if tp := rtyp(r).Elem(); tp != tc.t {
+			t.Fatalf("exp type: %s got %s", tc.t, tp)
+		}
 	}
 }
 
@@ -289,6 +313,9 @@ type mystruct struct {
 	F float64
 	V []myint
 }
+
+// myfloat is a custom float type
+type myfloat float64
 
 // mymap is a custom dict type defined as a map.
 type mymap map[string]int
