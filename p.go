@@ -4,7 +4,107 @@ type rn = rune
 type rv = []rn
 type sf func(rv) i
 
+type p struct {
+	b rv
+	d int
+}
+
+func (p *p) o() bool     { return len(p.b) > 0 } // buffer ok (not empty)
+func (p *p) t(f sf) bool { return f(p.b) > 0 }   // test and keep token
+func (p *p) p(f sf) s { // parse and remove token return capture
+	n := f(p.b)
+	if n < 0 {
+		e("parse")
+		return ""
+	}
+	s := s(p.b[:n])
+	p.b = p.b[n:]
+	return s
+}
+func (p *p) m(f sf) bool { // match and remove token
+	if len(p.b) == 0 {
+		return false
+	}
+	n := f(p.b)
+	p.b = p.b[n:]
+	return n > 0
+}
+
 func prs(v interface{}) interface{} { // string contains no comments
+	// p := p{b: pbeg(rv(v.(s)))}
+	p := p{b: rv(v.(s))}
+	if len(p.b) == 0 {
+		return l{}
+	}
+	/*
+		r := p.lst(nil, false)
+		if len(p.b) > 0 {
+			return e("parse:" + string(p.b))
+		}
+		return r
+	*/
+	return e("nyi")
+}
+
+/*
+func (p *p) mul() l { // expr;expr... → (; expr expr ...)
+	var m l
+	for p.o() {
+		if p.m(ws
+		       if !p.m(sSem) {
+			       break
+		       }
+		       }
+		       for p.o() {
+			       e := p.expr(p.noun())
+}
+*/
+/*
+func (p *p) lst(tf sf, c bool) (r l) {
+	for p.o() {
+		if tf != nil && tf(p.b) > 0 {
+			break
+		}
+		for p.m(sSem) {
+			if !c {
+				r = append(r, nil)
+			}
+		}
+		ex := p.expr(p.noun())
+		// find sticky // TODO
+		if ex != nil {
+			r = append(r, ex)
+		} else if !c {
+			r = append(r, nil)
+		}
+		if p.m(sSem) == false {
+			break
+		}
+	}
+	if tf != nil {
+		p.p(tf)
+	}
+	return
+}
+*/
+func (p *p) expr(node v) v {
+	return e("nyi")
+	/*
+		if node == nil {
+			return nil
+		}
+		if p.m(sAdv) {
+			return p.adv(nil, node)
+		}
+		if w, o := node.(vrb); o && w.curry == nil {
+			pa := p.m(sOpa)
+			x := p.noun()
+		}
+	*/
+}
+func (p *p) noun() v { return e("nyi") }
+
+/*
 	b, n := rv(v.(s)), 0
 	for _, r := range b { // trim left
 		if !any(r, wsp) {
@@ -12,32 +112,8 @@ func prs(v interface{}) interface{} { // string contains no comments
 		}
 		n++
 	}
-	b = b[n:]
-	var c rv
-	for { // preserve strings, disambiguate minus, replace \n
-		if len(b) == 0 {
-			break
-		} else if len(b) == 1 {
-			c = append(c, b[0])
-			break
-		}
-		if n := sStr(b); n > 0 {
-			c = append(c, b[:n]...)
-			b = b[n:]
-		} else if n := sNum(b); n > 0 {
-			c = append(c, b[:n]...)
-			b = b[n:]
-		} else if b[0] == '\r' {
-			b = b[1:]
-		} else if b[0] == '\n' {
-			c = append(c, ';')
-			b = b[1:]
-		} else if b[0] == '-' {
-			c = append(c, '-', ' ')
-			b = b[1:]
-		}
-	}
-	if len(c) == 0 {
+	b = pbeg(b[n:])
+	if len(b) == 0 {
 		return l{}
 	}
 	for i := len(c) - 1; i >= 0; i-- { // trim right
@@ -55,63 +131,69 @@ func prs(v interface{}) interface{} { // string contains no comments
 		return e("parse")
 	}
 	return r
-}
-
-func pLst(b rv, term sf, cull bool) (rv, l) {
-	/*
-		r := l{}
-		for {
-			if len(b) < 1 {
-				break
-			}
-			if term != nil {
-				if n := term(b); n > 0 {
-					b = b[:n]
-					break
-				}
-			}
-			for {
-				if len(b) > 0
-			}
+*/
+/* TODO: do we need this?
+func pbeg(b rv) (c rv) { // preserve strings, disambiguate +-, replace \n
+	push := func(n int) { c = append(c, b[:n]...); b = b[n:] }
+	for {
+		if len(b) == 0 {
+			return
 		}
-	*/
-	e("nyi")
-	return nil, nil
+		if n := sStr(b); n > 0 {
+			push(n)
+		} else if n := sNum(b); n > 0 {
+			push(n)
+		} else if any(b[0], "\r\n+-") {
+			switch b[0] {
+			case '\n':
+				c = append(c, ';')
+			case '\r':
+			default:
+				c = append(c, b[0], ' ')
+			}
+			b = b[1:]
+		} else {
+			push(1)
+		}
+	}
 }
+*/
 
 const dig = "0123456789"
-const con = "πø"
+const con = "π"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
 const uni = `⍉×÷⍳⍸⌊⌽⌈⍋⌸≡∧⍴≢↑⌊↓⍕∪⍎⍣¯ℜℑ√⍟`
 const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 
-func sNum(s rv) i {
-	sn := 0
+// Tokenizers return the rune count of the matched input or 0; input len > 1.
+func sNum(s rv) i { // number f | fjf, allow leading +
+	n := 0
+l:
 	for i, r := range s {
 		switch {
-		case i == 0 && !any(r, "-+"+dig):
-			return 0
+		case i == 0 && any(r, "-+"):
 		case any(r, dig):
-		case any(r, "eEaj"):
-			if i == 1 && any(s[0], "-+") {
+		case i > 0 && any(r, "eEaij"): // 1j0 0i1 not 1i
+			if len(s) < i+1 || i == 1 && any(s[0], "-+") {
 				return 0
 			}
-			if n := sNum(s[i:]); n > 0 {
-				return i + n
+			if n := sNum(s[i+1:]); n > 0 {
+				return i + n + 1
 			}
 			return i
+		case r == '.' && i > 0 && i < len(s)-1 && any(s[i-1], dig) && any(s[i+1], dig):
 		default:
-			break
+			break l
 		}
-		sn++
+		n++
 	}
-	if sn == 1 && any(s[0], "+-") {
+	if n == 1 && any(s[0], "+-") {
 		return 0
 	}
-	return sn
+	return n
 }
-func sNam(s rv) i {
+func sNam(s rv) i { // name [a-Z][a-Z0-9]*
 	a := func(r rn) bool {
 		if alpha(r) {
 			return true
@@ -125,7 +207,7 @@ func sNam(s rv) i {
 			return 1
 		case i == 0 && !a(r):
 			return 0
-		case a(r) || any(r, "0123456789"):
+		case a(r) || (i > 0 && any(r, "0123456789")):
 		default:
 			return i
 		}
@@ -133,7 +215,7 @@ func sNam(s rv) i {
 	}
 	return n
 }
-func sSym(s rv) i {
+func sSym(s rv) i { // symbol `name
 	if s[0] != '`' {
 		return 0
 	}
@@ -142,7 +224,7 @@ func sSym(s rv) i {
 	}
 	return 1 + sNam(s[1:])
 }
-func sStr(s rv) i {
+func sStr(s rv) i { // string "str\esc"
 	if len(s) < 2 || s[0] != '"' {
 		return 0
 	}
@@ -153,12 +235,12 @@ func sStr(s rv) i {
 		case r == '\\':
 			h = !h
 		case r == '"' && !h:
-			return i
+			return i + 1
 		}
 	}
 	return 0
 }
-func sVrb(s rv) i {
+func sVrb(s rv) i { // verb single rune ascii or unicode
 	for _, r := range s {
 		if any(r, sym) || any(r, uni) {
 			return 1
@@ -167,13 +249,13 @@ func sVrb(s rv) i {
 	}
 	return 0
 }
-func sAsn(s rv) i {
+func sAsn(s rv) i { // assignment verb:
 	if n := sVrb(s); n != 0 && len(s) > n && s[n] == ':' {
 		return n + 1
 	}
 	return 0
 }
-func sIov(s rv) i {
+func sIov(s rv) i { // io verb [0-9]:
 	if len(s) < 2 {
 		return 0
 	}
@@ -182,7 +264,7 @@ func sIov(s rv) i {
 	}
 	return 0
 }
-func sAdv(s rv) i {
+func sAdv(s rv) i { // adverb ascii or unicode
 	for i, r := range s {
 		if i == 0 && any(r, uav) {
 			return 1
@@ -196,31 +278,38 @@ func sAdv(s rv) i {
 	}
 	return 0
 }
-func sSem(s rv) i { return pref(s, ";") }
-func sCol(s rv) i { return pref(s, ":") }
-func sViw(s rv) i { return pref(s, "::") }
-func sCnd(s rv) i { return pref(s, `$[`) }
-func sDct(s rv) i {
-	if pref(s, "[") == 0 {
-		return 0
-	}
-	for i, r := range s[1:] {
-		switch {
-		case alpha(r):
-		case i > 0 && i == ':':
-			return i
-		default:
-			break
-		}
+func sSem(s rv) i { // ;|\n
+	if any(s[0], ";\n") {
+		return 1
 	}
 	return 0
 }
-func sObr(s rv) i { return pref(s, "[") }
-func sOpa(s rv) i { return pref(s, "(") }
-func sOcb(s rv) i { return pref(s, "{") }
-func sCbr(s rv) i { return pref(s, "]") }
-func sCpa(s rv) i { return pref(s, ")") }
-func sCcb(s rv) i { return pref(s, "}") }
+func sWsp(s rv) i { // whitespace
+	for i, r := range s {
+		if !any(r, wsp) {
+			return i
+		}
+	}
+	return len(s)
+}
+func sCol(s rv) i { return pref(s, ":") }  // :
+func sViw(s rv) i { return pref(s, "::") } // ::
+func sCnd(s rv) i { return pref(s, `$[`) } // $[
+func sDct(s rv) i { // dict [name:
+	if len(s) < 2 || s[0] != '[' {
+		return 0
+	}
+	if n := sNam(s[1:]); n > 0 && len(s) > n+1 && s[n+1] == ':' {
+		return n + 2
+	}
+	return 0
+}
+func sObr(s rv) i { return pref(s, "[") } // [
+func sOpa(s rv) i { return pref(s, "(") } // (
+func sOcb(s rv) i { return pref(s, "{") } // ]
+func sCbr(s rv) i { return pref(s, "]") } // ]
+func sCpa(s rv) i { return pref(s, ")") } // )
+func sCcb(s rv) i { return pref(s, "}") } // }
 
 func any(r rn, s s) bool {
 	for _, x := range s {
@@ -236,12 +325,12 @@ func pref(r rv, p string) int {
 		return 0
 	}
 	if s[:len(p)] == p {
-		return 1
+		return len([]rune(p))
 	}
 	return 0
 }
 func alpha(r rn) bool {
-	if (r >= 'a' && r <= 'a') || (r >= 'A' && r <= 'Z') {
+	if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
 		return true
 	}
 	return false

@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-func P(s s) v            { return prs(s) }
+func P(s s) l            { return prs(s).(l) }
 func E(l v, a map[v]v) v { return eva(l, kinit(a)) }
 
 type (
