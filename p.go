@@ -10,26 +10,26 @@ type p struct {
 }
 
 /*        k4 (-5!"expr")    k7 (`p@"expr")    ngn (`p@"expr")     i
-1       → e                                   ,1                  1                    / atom → itself
-(1)     → 1                                   ,1                  1
-,1      → e                                   ,(,:;1))            l{",",1}             / list → function
-1;2     → (";";1;2)                           (1;2)               l{";",1,2}           / special func ";": LR sequence
-(1;2)   → (,;1;2)                             ,(X:;1;2)           l{nil,l{nil,1,2}}    / l[0] nil → list l[1:]
-(1;;3)  → (,;1;::;3)                          ,(X:;1;::;3)        l{nil,1,nil,3}
-+1      → e                                   ,(+:;1)             l{"+",nil,1}         / monad: first arg is nil
-1+      → (+;1)                               ,(+;1)              l{"+",1}             / currying: seconds arg is missing
-1+2     → (+;1;2)                             ,(+;1;2)            l{"+",1,2}           / dyad
-+[1;2]  → (+;1;2)                             ,(+;1;2)            l{"+",1,2}
-1+a     → (+;1;`a)                            ,(+;1;`a)           l{"+",1,"a"}         / symbol evaluates (lookup)
-1+`a    → (+;1;,`a)                           ,(+;1;,`a)          l{"+",1,l{"`","a"}}}
-1+"a"   → (+;1;,"a")                          ,(+;1;,"a")         l{"+",1,'a'}         / rune character, multiple: rv
-1+(1;2) → (+;1;(,;1;2))                       ,(+;1;(X:;1;2))     l{"+",1,l{nil,1,2}}  / nested function
-1-2+3   → (-;1;(+2;3))                        ,(-1;(+;2;3))       l{"-",l{"+",2,3}}
-+/1 2 3 → e                                   ,((/;+);1 2 3)      l{l{"/","+"}},fv{1,2,3}          / derived verb
-1{x+y}2 → e                                   e                   l{"λ",l{l{'+',"x","y"}},"x","y"} / lambda function
-{x}[3]  → ({x};3)                             ,({x};3)            l{"λ",l{"x"}}
-a[3]:4  → (:;(`a;3);4)                        (:;(`a;3);4;::)     l{":",l{"a",3},4}    / assignment
-a[3]+:4 → (+:;(`a;3;4);5)                     (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
+1       → e                 e                 ,1                  1                    / atom → itself
+(1)     → 1                 1                 ,1                  1
+,1      → e                 (,:;1)            ,(,:;1))            l{",",1}             / list → function
+1;2     → (";";1;2)         (/;1;2)           (1;2)               l{";",1,2}           / special func ";": LR sequence
+(1;2)   → (,;1;2)           (\;1;2)           ,(X:;1;2)           l{nil,l{nil,1,2}}    / l[0] nil → list l[1:]
+(1;;3)  → (,;1;::;3)        (\;1;::;2)        ,(X:;1;::;3)        l{nil,1,nil,3}
++1      → e                 (+:;1)            ,(+:;1)             l{"+",nil,1}         / monad: first arg is nil
+1+      → (+;1)             (+;1)             ,(+;1)              l{"+",1}             / currying: seconds arg is missing
+1+2     → (+;1;2)           (+;1;2)           ,(+;1;2)            l{"+",1,2}           / dyad
++[1;2]  → (+;1;2)           ?                 ,(+;1;2)            l{"+",1,2}
+1+a     → (+;1;`a)          (+;1;`a)          ,(+;1;`a)           l{"+",1,"a"}         / symbol evaluates (lookup)
+1+`a    → (+;1;,`a)         (+;1;,`a)         ,(+;1;,`a)          l{"+",1,l{"`","a"}}}
+1+"a"   → (+;1;,"a")        (+;1;,"a")        ,(+;1;,"a")         l{"+",1,'a'}         / rune character, multiple: rv
+1+(1;2) → (+;1;(,;1;2))     (+;1;(\;1;2))     ,(+;1;(X:;1;2))     l{"+",1,l{nil,1,2}}  / nested function
+1-2+3   → (-;1;(+2;3))      (-;1;(+;2;3))     ,(-;1;(+;2;3))      l{"-",l{"+",2,3}}
++/1 2 3 → e                 ((/;+);1 2 3)     ,((/;+);1 2 3)      l{l{"/","+"}},fv{1,2,3}          / derived verb
+1{x+y}2 → e                 e                 e                   l{"λ",l{l{'+',"x","y"}},"x","y"} / lambda function
+{x}[3]  → ({x};3)           ({x};3)           ,({x};3)            l{"λ",l{"x"}}
+a[3]:4  → (:;(`a;3);4)      (::;(`a;3);4)     (:;(`a;3);4;::)     l{":",l{"a",3},4}    / assignment
+a[3;4]+:5→(+:;(`a;3;4);5)   (+:;(`a;3;4);5)   (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
 */
 
 func (p *p) a() bool     { return len(p.w().b) > 0 } // buffer available (not empty)
