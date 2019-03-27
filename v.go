@@ -266,7 +266,6 @@ func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
 	}
 	return s.Interface()
 }
-
 func unq(x v) v { // ?x ∪x uniq
 	w, t := ls(x)
 	r := make(l, 0)
@@ -277,6 +276,7 @@ func unq(x v) v { // ?x ∪x uniq
 	}
 	return sl(r, t)
 }
+func typ(x v) v { return e("nyi") } // @x type of
 func evl(x v) v { return e("nyi") } // .x ⍎x evaluate
 
 // dyadic verbs
@@ -586,9 +586,9 @@ func fnd(x, y v) v { // l?a xl?yl find
 	}
 	return r // nyi: extension to rectangular arrays
 }
-func atx(x, y v, a kt) v { // x@y at, index
+func atx(x, y v, a map[v]v) v { // x@y at, index
 	if s, o := x.(s); o {
-		return atx(a.at(s), y, a) // 1
+		return atx(atx(a, s, nil), y, a) // 1
 	}
 	if y == nil {
 		return x // 2
@@ -622,16 +622,25 @@ func atx(x, y v, a kt) v { // x@y at, index
 		_, r := xdict.at(y)
 		return cp(r)
 	}
-	// TODO call // 8
-	return e("nyi")
+	return cal(x, enl(y), a)
 }
-func cal(x, y v) v { return e("nyi") } // x.y call
-func bin(x, y v) v { return e("nyi") }
-func rbn(x, y v) v { return e("nyi") }
-func pak(x, y v) v { return e("nyi") }
-func upk(x, y v) v { return e("nyi") }
-func spl(x, y v) v { return e("nyi") }
-func win(x, y v) v { return e("nyi") }
+func cal(x, y v, a map[v]v) v { // x.y call
+	if x == nil {
+		return e("call nil")
+	}
+	if sy, o := x.(s); o {
+		return cal(lup(a, sy), y, a)
+	}
+	return e("nyi") // other cases
+}
+func bin(x, y v) v       { return e("nyi") }
+func rbn(x, y v) v       { return e("nyi") }
+func pak(x, y v) v       { return e("nyi") }
+func upk(x, y v) v       { return e("nyi") }
+func spl(x, y v) v       { return e("nyi") }
+func amd(x, y, z, w v) v { return e("nyi") } // amend
+func dmd(x, y, z, w v) v { return e("nyi") } // dmend
+func win(x, y v) v       { return e("nyi") }
 
 // adverbs
 // nyi

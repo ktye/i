@@ -34,20 +34,18 @@ Verbs
 |   rev   rev  [max] [max] [max] [max]   -    -   ⌽⌈
 <   asc   asc  [les] [les] [les] [les]   -    -   ⍋
 >   dsc   dsc  [mor] [mor] [mor] [mor]   -    -   ⍒
-=   dia   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
+=   eye   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
 ~  [not] [not]  mch   mch   mch   mch    -    -   ≡
 ,   enl   enl   cat   cat   cat   cat    -    -   
-^   is0  [is0]  ept   ept   ept   ept    -    -   ∧
-#   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴≢↑ 
+^   is0  [is0]  ept   ept   ept   ept    -    -   
+#   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴↑ 
 _  [flr] [flr]  drp   drp   drp   cut    -    -   ⌊↓
 $   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕
 ?   rng   unq   rnd   fnd   rnd   fnd>  spl   -   ∪
 @   typ   typ   atx   atx   atx   atx   amd  amd  
 .   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
-'    -     -     -    bin    -    bin>   -    -     
 /    -     -     -     -    pak   pak    -    -     
 \    -     -     -    upk   spl   -      -    -     
-':   -     -     -     -    win   -      -    -    
                                                   
 Adverbs                                  
     mv/nv dv    l-mv  l-dv  3+v          

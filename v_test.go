@@ -224,8 +224,8 @@ func TestDV(t *testing.T) {
 func TestVKt(t *testing.T) {
 	testCases := []struct {
 		s       string
-		f       func(v, v, kt) v
-		a       kt
+		f       func(v, v, map[v]v) v
+		a       map[v]v
 		x, y, r v
 	}{
 		{"atx", atx, nil, iv{4, 5, 6}, 1, 5},

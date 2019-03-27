@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-func P(s s) l            { return prs(s).(l) }
+func P(s s) v            { return prs(rv(s)) }
 func E(l v, a map[v]v) v { return eva(l, kinit(a)) }
 
 type (
@@ -462,9 +462,74 @@ func set(L v, i int, x v) {
 	rval(L).Index(i).Set(rval(x))
 }
 
-type kt map[v]v
-
-func (a kt) at(s s) v { return e("nyi") }
-func kinit(a kt) kt {
-	return kt(a)
+func kinit(a map[v]v) map[v]v {
+	vtab := map[s][8]v{
+		//        a    l    a-a  l-a  a-l  l-l  tri  tet
+		"+": [8]v{flp, flp, add, add, add, add, nil, nil},
+		"⍉": [8]v{flp, nil, nil, nil, nil, nil, nil, nil},
+		"-": [8]v{neg, neg, sub, sub, sub, sub, nil, nil},
+		"*": [8]v{fst, fst, mul, nil, nil, nil, nil, nil},
+		"×": [8]v{nil, nil, mul, mul, mul, mul, nil, nil},
+		"%": [8]v{inv, inv, div, div, div, div, nil, nil},
+		"÷": [8]v{inv, inv, div, div, div, div, nil, nil},
+		"!": [8]v{til, odo, mod, nil, mod, mkd, nil, nil},
+		"⍳": [8]v{til, nil, nil, nil, nil, nil, nil, nil},
+		"&": [8]v{wer, wer, min, min, min, min, nil, nil},
+		"⍸": [8]v{wer, nil, nil, nil, nil, nil, nil, nil},
+		"⌊": [8]v{flr, flr, min, min, min, min, nil, nil},
+		"|": [8]v{rev, rev, max, max, max, max, nil, nil},
+		"⌽": [8]v{rev, rev, nil, nil, nil, nil, nil, nil},
+		"⌈": [8]v{nil, nil, max, max, max, max, nil, nil},
+		"<": [8]v{asc, asc, les, les, les, les, nil, nil},
+		"⍋": [8]v{asc, asc, nil, nil, nil, nil, nil, nil},
+		">": [8]v{dsc, dsc, mor, mor, mor, mor, nil, nil},
+		"⍒": [8]v{dsc, dsc, nil, nil, nil, nil, nil, nil},
+		"=": [8]v{eye, grp, eql, eql, eql, eql, nil, nil},
+		"⌸": [8]v{nil, grp, nil, nil, nil, nil, nil, nil},
+		"~": [8]v{not, not, mch, mch, mch, mch, nil, nil},
+		"≡": [8]v{nil, nil, mch, mch, mch, mch, nil, nil},
+		",": [8]v{enl, enl, cat, cat, cat, cat, nil, nil},
+		"^": [8]v{is0, is0, ept, ept, ept, ept, nil, nil},
+		"#": [8]v{cnt, cnt, tak, rsh, tak, rsh, nil, nil},
+		"⍴": [8]v{cnt, cnt, nil, rsh, nil, rsh, nil, nil},
+		"↑": [8]v{nil, nil, nil, rsh, nil, rsh, nil, nil},
+		"_": [8]v{flr, flr, drp, drp, drp, drp, nil, nil},
+		"↓": [8]v{nil, nil, drp, drp, drp, drp, nil, nil},
+		"$": [8]v{fmt, fmt, cst, cst, cst, cst, nil, nil},
+		"⍕": [8]v{fmt, fmt, nil, nil, nil, nil, nil, nil},
+		"?": [8]v{rng, unq, rnd, fnd, rnd, fnd, spl, nil},
+		"∪": [8]v{nil, unq, nil, nil, nil, nil, nil, nil},
+		"@": [8]v{typ, typ, atx, atx, atx, atx, amd, amd},
+		".": [8]v{evl, evl, cal, cal, cal, cal, dmd, dmd},
+		"⍎": [8]v{evl, evl, nil, nil, nil, nil, nil, nil},
+		"/": [8]v{nil, nil, nil, nil, pak, pak, nil, nil}, // a/l join,  l/l encode?
+		`\`: [8]v{nil, nil, nil, upk, spl, nil, nil, nil}, // a\l split, l/l decode?
+	}
+	for sym, u := range vtab {
+		s, t := sym, u
+		a[sym] = func(w ...v) v {
+			var f v
+			var cs uint8
+			for i := range w {
+				if i < 2 && rval(w[i]).Kind() == reflect.Slice {
+					cs |= 1 << uint(i)
+				}
+			}
+			switch len(w) {
+			case 1:
+				f = t[int(cs)]
+			case 2:
+				f = t[2+int(cs)]
+			case 3:
+				f = t[6]
+			case 4:
+				f = t[7]
+			}
+			if f == nil {
+				e(s + "args")
+			}
+			return e("nyi") // TODO call func
+		}
+	}
+	return a
 }
