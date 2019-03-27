@@ -1,5 +1,56 @@
 package i
 
+import (
+	"math"
+	"math/cmplx"
+	"strconv"
+)
+
+/*         k4 (-5!"expr")    k7 (`p@"expr")    ngn (`p@"expr")     i
+	 →                                     ::                  nil
+1        → e                 e                 ,1                  1                    / atom → itself
+(1)      → 1                 1                 ,1                  1
+,1       → e                 (,:;1)            ,(,:;1))            l{",",1}             / list → function
+1;2      → (";";1;2)         (/;1;2)           (1;2)               l{";",1,2}           / special func ";": LR sequence
+(1;2)    → (,;1;2)           (\;1;2)           ,(X:;1;2)           l{nil,l{nil,1,2}}    / l[0] nil → list l[1:]
+(1;;3)   → (,;1;::;3)        (\;1;::;2)        ,(X:;1;::;3)        l{nil,1,nil,3}
++1       → e                 (+:;1)            ,(+:;1)             l{"+",nil,1}         / monad: first arg is nil
+1+       → (+;1)             (+;1)             ,(+;1)              l{"+",1}             / currying: seconds arg is missing
+1+2      → (+;1;2)           (+;1;2)           ,(+;1;2)            l{"+",1,2}           / dyad
++[1;2]   → (+;1;2)           ?                 ,(+;1;2)            l{"+",1,2}
+1+a      → (+;1;`a)          (+;1;`a)          ,(+;1;`a)           l{"+",1,"a"}         / symbol evaluates (lookup)
+1+`a     → (+;1;,`a)         (+;1;,`a)         ,(+;1;,`a)          l{"+",1,l{"`","a"}}}
+1+"a"    → (+;1;,"a")        (+;1;,"a")        ,(+;1;,"a")         l{"+",1,'a'}         / rune character, multiple: rv
+1+(1;2)  → (+;1;(,;1;2))     (+;1;(\;1;2))     ,(+;1;(X:;1;2))     l{"+",1,l{nil,1,2}}  / nested function
+1-2+3    → (-;1;(+2;3))      (-;1;(+;2;3))     ,(-;1;(+;2;3))      l{"-",l{"+",2,3}}
++/1 2 3  → e                 ((/;+);1 2 3)     ,((/;+);1 2 3)      l{l{"/","+"}},fv{1,2,3}          / derived verb
+1{x+y}2  → e                 e                 e                   l{"λ",l{l{'+',"x","y"}},"x","y"} / lambda function
+{x}[3]   → ({x};3)           ({x};3)           ,({x};3)            l{"λ",l{"x"}}
+a[3]:4   → (:;(`a;3);4)      (::;(`a;3);4)     (:;(`a;3);4;::)     l{":",l{"a",3},4}    / assignment
+a[3;4]+:5→ (+:;(`a;3;4);5)   (+:;(`a;3;4);5)   (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
+*/
+
+func prs(s v) v { // s: rv (no comments)
+	p := p{b: s.(rv)}
+	r := l{}
+	for p.a() { // ex;ex...
+		ex := p.ex(p.noun())
+		if ex == nil {
+			break
+		}
+		r = append(r, ex)
+	}
+	if p.a() {
+		e("prs:" + string(p.b))
+	}
+	if len(r) == 0 {
+		return nil
+	} else if len(r) == 1 {
+		return r[0]
+	}
+	return append(l{";"}, r...)
+}
+
 type rn = rune
 type rv = []rn
 type sf func(rv) i
@@ -9,31 +60,8 @@ type p struct {
 	d int
 }
 
-/*        k4 (-5!"expr")    k7 (`p@"expr")    ngn (`p@"expr")     i
-1       → e                 e                 ,1                  1                    / atom → itself
-(1)     → 1                 1                 ,1                  1
-,1      → e                 (,:;1)            ,(,:;1))            l{",",1}             / list → function
-1;2     → (";";1;2)         (/;1;2)           (1;2)               l{";",1,2}           / special func ";": LR sequence
-(1;2)   → (,;1;2)           (\;1;2)           ,(X:;1;2)           l{nil,l{nil,1,2}}    / l[0] nil → list l[1:]
-(1;;3)  → (,;1;::;3)        (\;1;::;2)        ,(X:;1;::;3)        l{nil,1,nil,3}
-+1      → e                 (+:;1)            ,(+:;1)             l{"+",nil,1}         / monad: first arg is nil
-1+      → (+;1)             (+;1)             ,(+;1)              l{"+",1}             / currying: seconds arg is missing
-1+2     → (+;1;2)           (+;1;2)           ,(+;1;2)            l{"+",1,2}           / dyad
-+[1;2]  → (+;1;2)           ?                 ,(+;1;2)            l{"+",1,2}
-1+a     → (+;1;`a)          (+;1;`a)          ,(+;1;`a)           l{"+",1,"a"}         / symbol evaluates (lookup)
-1+`a    → (+;1;,`a)         (+;1;,`a)         ,(+;1;,`a)          l{"+",1,l{"`","a"}}}
-1+"a"   → (+;1;,"a")        (+;1;,"a")        ,(+;1;,"a")         l{"+",1,'a'}         / rune character, multiple: rv
-1+(1;2) → (+;1;(,;1;2))     (+;1;(\;1;2))     ,(+;1;(X:;1;2))     l{"+",1,l{nil,1,2}}  / nested function
-1-2+3   → (-;1;(+2;3))      (-;1;(+;2;3))     ,(-;1;(+;2;3))      l{"-",l{"+",2,3}}
-+/1 2 3 → e                 ((/;+);1 2 3)     ,((/;+);1 2 3)      l{l{"/","+"}},fv{1,2,3}          / derived verb
-1{x+y}2 → e                 e                 e                   l{"λ",l{l{'+',"x","y"}},"x","y"} / lambda function
-{x}[3]  → ({x};3)           ({x};3)           ,({x};3)            l{"λ",l{"x"}}
-a[3]:4  → (:;(`a;3);4)      (::;(`a;3);4)     (:;(`a;3);4;::)     l{":",l{"a",3},4}    / assignment
-a[3;4]+:5→(+:;(`a;3;4);5)   (+:;(`a;3;4);5)   (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
-*/
-
-func (p *p) a() bool     { return len(p.w().b) > 0 } // buffer available (not empty)
-func (p *p) t(f sf) bool { return f(p.w().b) > 0 }   // test and keep token
+func (p *p) a() bool     { return len(p.w().b) > 0 }               // buffer available (not empty)
+func (p *p) t(f sf) bool { return len(p.w().b) > 0 && f(p.b) > 0 } // test and keep token
 func (p *p) p(f sf) s { // (must)parse and remove token return capture
 	n := f(p.w().b)
 	if n < 0 {
@@ -64,136 +92,126 @@ func (p *p) w() *p { // remove wsp
 	p.b = p.b[i:]
 	return p
 }
-
-func prs(v interface{}) interface{} { // string contains no comments
-	// p := p{b: pbeg(rv(v.(s)))}
-	p := p{b: rv(v.(s))}
-	if len(p.b) == 0 {
-		return l{}
+func (p *p) ex(a v) v {
+	// TODO
+	if a == nil {
+		return nil
 	}
-	/*
-		r := p.lst(nil, false)
-		if len(p.b) > 0 {
-			return e("parse:" + string(p.b))
+	// TODO
+	return a
+}
+func (p *p) noun() v {
+	switch {
+	// TODO colon
+	// TODO ioverb
+	case p.t(sNum):
+		r := zv{}
+		c := false
+		for p.t(sNum) {
+			x, ic := p.num(p.p(sNum))
+			r, c = append(r, x), c || ic
+		}
+		switch {
+		case !c && len(r) == 1:
+			return real(r[0])
+		case !c:
+			fv := make(fv, len(r))
+			for i := range r {
+				fv[i] = real(r[i])
+			}
+			return fv
+		case c && len(r) == 1:
+			return r[0]
 		}
 		return r
-	*/
-	return e("nyi")
-}
-
-/*
-func (p *p) mul() l { // expr;expr... → (; expr expr ...)
-	var m l
-	for p.o() {
-		if p.m(ws
-		       if !p.m(sSem) {
-			       break
-		       }
-		       }
-		       for p.o() {
-			       e := p.expr(p.noun())
-}
-*/
-/*
-func (p *p) lst(tf sf, c bool) (r l) {
-	for p.o() {
-		if tf != nil && tf(p.b) > 0 {
-			break
+	case p.t(sSym):
+		r := sv{}
+		for p.t(sSym) {
+			r = append(r, p.sym(p.p(sSym)))
 		}
-		for p.m(sSem) {
-			if !c {
-				r = append(r, nil)
+		if len(r) == 1 {
+			return l{"`", r[0]}
+		}
+		return r
+	case p.t(sStr):
+		r := p.str(p.p(sStr))
+		if len(r) == 1 {
+			return r[0]
+		}
+		return r
+	case p.t(sObr):
+		var key, val l
+		p.p(sObr)
+		for {
+			key = append(key, p.p(sNam))
+			p.p(sCol)
+			val = append(val, p.ex(p.noun()))
+			if !p.t(sSem) {
+				break
 			}
+			p.p(sSem)
 		}
-		ex := p.expr(p.noun())
-		// find sticky // TODO
-		if ex != nil {
-			r = append(r, ex)
-		} else if !c {
-			r = append(r, nil)
+		p.p(sCbr)
+		return l{"!", key, val}
+	// TODO {}
+	// TODO ()
+	// TODO verb
+	case p.t(sNam):
+		ref := p.p(sNam)
+		println("ref", ref)
+		if p.t(sCol) {
+			p.p(sCol)
+			return l{":", ref, p.ex(p.noun())}
 		}
-		if p.m(sSem) == false {
-			break
-		}
+		return ref
+		// TODO compound assign []
 	}
-	if tf != nil {
-		p.p(tf)
-	}
-	return
+	return nil
 }
-*/
-func (p *p) expr(node v) v {
-	return e("nyi")
-	/*
-		if node == nil {
-			return nil
+func (p *p) num(s s) (z, bool) {
+	pf := func(s string) f {
+		f, o := strconv.ParseFloat(s, 64)
+		if o != nil {
+			e("num")
 		}
-		if p.m(sAdv) {
-			return p.adv(nil, node)
-		}
-		if w, o := node.(vrb); o && w.curry == nil {
-			pa := p.m(sOpa)
-			x := p.noun()
-		}
-	*/
-}
-func (p *p) noun() v { return e("nyi") }
-
-/*
-	b, n := rv(v.(s)), 0
-	for _, r := range b { // trim left
-		if !any(r, wsp) {
-			break
-		}
-		n++
+		return f
 	}
-	b = pbeg(b[n:])
-	if len(b) == 0 {
-		return l{}
-	}
-	for i := len(c) - 1; i >= 0; i-- { // trim right
-		if !any(c[i], wsp) {
-			break
-		}
-		c = c[:i]
-	}
-	if len(c) == 0 {
-		return l{}
-	}
-	var r l
-	c, r = pLst(c, nil, false)
-	if len(c) != 0 {
-		return e("parse")
-	}
-	return r
-*/
-/* TODO: do we need this?
-func pbeg(b rv) (c rv) { // preserve strings, disambiguate +-, replace \n
-	push := func(n int) { c = append(c, b[:n]...); b = b[n:] }
-	for {
-		if len(b) == 0 {
-			return
-		}
-		if n := sStr(b); n > 0 {
-			push(n)
-		} else if n := sNum(b); n > 0 {
-			push(n)
-		} else if any(b[0], "\r\n+-") {
-			switch b[0] {
-			case '\n':
-				c = append(c, ';')
-			case '\r':
+	for i, r := range s {
+		if r == 'a' {
+			rp := pf(s[:i])
+			switch j := s[i+1:]; j {
+			case "0":
+				return complex(rp, 0), true
+			case "90":
+				return complex(0, rp), true
+			case "180":
+				return complex(-rp, 0), true
+			case "270":
+				return complex(0, -rp), true
 			default:
-				c = append(c, b[0], ' ')
+				return cmplx.Rect(rp, math.Pi*pf(j)/180.0), true
 			}
-			b = b[1:]
-		} else {
-			push(1)
+		} else if r == 'i' {
+			return complex(pf(s[:i]), pf(s[i+1:])), true
 		}
 	}
+	return complex(pf(s), 0), false
 }
-*/
+func (p *p) sym(s s) s { // `a | `"a"
+	if len(s) < 4 || s[1] != '"' {
+		return s[1:]
+	}
+	return s[2 : len(s)-1]
+}
+func (p *p) str(s s) rv {
+	s, o := strconv.Unquote(s)
+	if o != nil {
+		e("str")
+	}
+	return rv(s)
+}
 
+// scanner
 const dig = "0123456789"
 const con = "π"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
@@ -201,7 +219,7 @@ const uni = `⍉×÷⍳⍸⌊⌽⌈⍋⌸≡∧⍴≢↑⌊↓⍕∪⍎⍣¯ℜ�
 const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 
-// Tokenizers return the rune count of the matched input or 0; input len > 1.
+// Scanners return the rune count of the matched input or 0; input len > 1.
 func sNum(s rv) i { // number f | fjf, allow leading +
 	n := 0
 l:
@@ -209,7 +227,7 @@ l:
 		switch {
 		case i == 0 && any(r, "-+"):
 		case any(r, dig):
-		case i > 0 && any(r, "eEaij"): // 1j0 0i1 not 1i
+		case i > 0 && any(r, "eEai"): // 1i0, 0i1 not 1i
 			if len(s) < i+1 || i == 1 && any(s[0], "-+") {
 				return 0
 			}
@@ -228,7 +246,7 @@ l:
 	}
 	return n
 }
-func sNam(s rv) i { // name [a-Z][a-Z0-9]*
+func sNam(s rv) i { // name [a-Z][_a-Z0-9]*
 	a := func(r rn) bool {
 		if alpha(r) {
 			return true
@@ -242,7 +260,7 @@ func sNam(s rv) i { // name [a-Z][a-Z0-9]*
 			return 1
 		case i == 0 && !a(r):
 			return 0
-		case a(r) || (i > 0 && any(r, "0123456789")):
+		case a(r) || (i > 0 && any(r, "_0123456789")):
 		default:
 			return i
 		}
@@ -250,12 +268,14 @@ func sNam(s rv) i { // name [a-Z][a-Z0-9]*
 	}
 	return n
 }
-func sSym(s rv) i { // symbol `name
+func sSym(s rv) i { // symbol `name|`string
 	if s[0] != '`' {
 		return 0
 	}
 	if len(s) == 1 {
 		return 1
+	} else if n := sStr(s[1:]); n > 0 {
+		return 1 + n
 	}
 	return 1 + sNam(s[1:])
 }
@@ -263,14 +283,17 @@ func sStr(s rv) i { // string "str\esc"
 	if len(s) < 2 || s[0] != '"' {
 		return 0
 	}
-	h := false
+	q := false
 	for i, r := range s {
 		switch {
 		case i == 0:
 		case r == '\\':
-			h = !h
-		case r == '"' && !h:
+			q = !q
+		case r == '"' && !q:
 			return i + 1
+		}
+		if q && r != '\\' {
+			q = false
 		}
 	}
 	return 0
@@ -329,7 +352,6 @@ func sWsp(s rv) i { // whitespace
 }
 func sCol(s rv) i { return pref(s, ":") }  // :
 func sViw(s rv) i { return pref(s, "::") } // ::
-func sCnd(s rv) i { return pref(s, `$[`) } // $[
 func sDct(s rv) i { // dict [name:
 	if len(s) < 2 || s[0] != '[' {
 		return 0
