@@ -4,7 +4,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -13,39 +13,37 @@ import (
 )
 
 // args:
-// 0: read from stdin, continue on error
+// 0: read from stdin, execute each line, continue on error
 // filename: execute file, exit on error
-// else: execute argv
+// else: exec argv
 var file string
 var line int
 
 type v = interface{}
-type kt = map[v]v
 
 func main() {
-	var a kt
+	a := make(map[v]v)
+	i.E(nil, a)
 
-	var r io.Reader
-	if len(os.Args) < 2 {
-		r = os.Stdin
-	} else {
-		if f, err := os.Open(os.Args[1]); err == nil {
-			defer f.Close()
-			r = f
-			file = os.Args[1]
+	if len(os.Args) > 1 {
+		if b, err := ioutil.ReadFile(os.Args[1]); err == nil {
+			i.E(i.P(string(b)), a)
 		} else {
-			r = strings.NewReader(strings.Join(os.Args[1:], " "))
+			p(i.E(i.P(strings.Join(os.Args[1:], " ")), a))
 		}
+		return
 	}
 
-	s := bufio.NewScanner(r)
+	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
 		line++
-		fmt.Println(run(a, s.Text()))
+		if c(s.Text(), a) {
+			p(run(s.Text(), a))
+		}
 	}
 }
 
-func run(a kt, t string) (r interface{}) {
+func run(t string, a map[v]v) (r interface{}) {
 	defer func() {
 		if c := recover(); c != nil {
 			debug.PrintStack()
@@ -56,6 +54,9 @@ func run(a kt, t string) (r interface{}) {
 			}
 		}
 	}()
-	r = i.E(i.P(t), a)
-	return
+	return i.E(i.P(t), a)
+}
+
+func p(v v) {
+	fmt.Printf("%+v\n", v)
 }
