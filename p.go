@@ -14,8 +14,8 @@ import (
 1;2      → (";";1;2)         (/;1;2)           (1;2)               l{";",1,2}           / special func ";": LR sequence
 (1;2)    → (,;1;2)           (\;1;2)           ,(X:;1;2)           l{nil,l{nil,1,2}}    / l[0] nil → list l[1:]
 (1;;3)   → (,;1;::;3)        (\;1;::;2)        ,(X:;1;::;3)        l{nil,1,nil,3}
-+1       → e                 (+:;1)            ,(+:;1)             l{"+",nil,1}         / monad: first arg is nil
-1+       → (+;1)             (+;1)             ,(+;1)              l{"+",1}             / currying: seconds arg is missing
++1       → e                 (+:;1)            ,(+:;1)             l{"+",1}             / monad
+1+       → (+;1)             (+;1)             ,(+;1)              l{"+",1,nil}         / currying: second arg is missing
 1+2      → (+;1;2)           (+;1;2)           ,(+;1;2)            l{"+",1,2}           / dyad
 +[1;2]   → (+;1;2)           ?                 ,(+;1;2)            l{"+",1,2}
 1+a      → (+;1;`a)          (+;1;`a)          ,(+;1;`a)           l{"+",1,"a"}         / symbol evaluates (lookup)
@@ -39,6 +39,9 @@ func prs(s v) v { // s: rv (no comments)
 			break
 		}
 		r = append(r, ex)
+		if p.t(sSem) {
+			p.p(sSem)
+		}
 	}
 	if p.a() {
 		e("prs:" + string(p.b))
@@ -93,11 +96,42 @@ func (p *p) w() *p { // remove wsp
 	return p
 }
 func (p *p) ex(a v) v {
-	// TODO
+	atNoun := func() bool {
+		return p.t(sNum) || p.t(sNam) || p.t(sSym) || p.t(sStr) || p.t(sOpa) || p.t(sOcb)
+	}
+	str := func(x v) bool { _, o := x.(s); return o }
 	if a == nil {
 		return nil
 	}
-	// TODO
+	// TODO next is adverb
+	if str(a) { // vrb|sym // TODO: !node.r
+		// TODO at [
+		x := p.noun()
+		// TODO x is verb
+		if r := p.ex(x); r != nil {
+			a = l{a, r} // monad
+		}
+	}
+	if p.t(sVrb) || p.t(sIov) {
+		x := p.noun()
+		// TODO force monad
+		// TODO next is adverb
+		if r := p.ex(p.noun()); r != nil {
+			return l{x, a, r}
+		}
+		return l{x, a, nil} // curry
+	}
+	if atNoun() {
+		x := p.noun()
+		if _, o := x.(s); o { // vrb|sym
+			y := p.ex(p.noun())
+			if y == nil {
+				return l{a, x, nil} // curry
+			}
+			return l{a, x, y}
+		}
+		return l{a, p.ex(x)}
+	}
 	return a
 }
 func (p *p) noun() v {
@@ -110,6 +144,10 @@ func (p *p) noun() v {
 		for p.t(sNum) {
 			x, ic := p.num(p.p(sNum))
 			r, c = append(r, x), c || ic
+			if len(p.b) > 1 && any(p.b[0], "+-") && !any(p.b[1], wsp) { // 1+2 → 1+ 2
+				p.b = append(rv{p.b[0], ' '}, p.b[1:]...)
+				break
+			}
 		}
 		switch {
 		case !c && len(r) == 1:
@@ -155,10 +193,15 @@ func (p *p) noun() v {
 		return l{"!", key, val}
 	// TODO {}
 	// TODO ()
-	// TODO verb
+	case p.t(sVrb):
+		h := p.p(sVrb)
+		if p.t(sCol) { // modified assignment
+			h += p.p(sCol)
+		}
+		// TODO [ | dict
+		return h
 	case p.t(sNam):
 		ref := p.p(sNam)
-		println("ref", ref)
 		if p.t(sCol) {
 			p.p(sCol)
 			return l{":", ref, p.ex(p.noun())}

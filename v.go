@@ -629,9 +629,29 @@ func cal(x, y v, a map[v]v) v { // x.y call
 		return e("call nil")
 	}
 	if sy, o := x.(s); o {
-		return cal(lup(a, sy), y, a)
+		f := lup(a, sy)
+		if f == nil {
+			return e("nil:" + sy)
+		}
+		return cal(f, y, a)
 	}
-	return e("nyi") // other cases
+	// TODO other cases
+	f := rval(x)
+	if f.Kind() != reflect.Func {
+		return e("nyi:call:" + f.Kind().String())
+	}
+	var in, r []rV
+	if yl, o := y.(l); o {
+		in = make([]rV, len(yl))
+		for i := range in {
+			in[i] = rval(yl[i])
+		}
+	}
+	r = f.Call(in)
+	if len(r) == 0 {
+		return nil
+	}
+	return r[0].Interface()
 }
 func bin(x, y v) v       { return e("nyi") }
 func rbn(x, y v) v       { return e("nyi") }

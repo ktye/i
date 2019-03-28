@@ -8,33 +8,45 @@ import (
 
 func TestP(t *testing.T) {
 	testCases := []struct {
-		s s
-		r v
+		s    s
+		p, r v
 	}{
-		{"", nil},
-		{"1", 1.0},
-		{"1 2 3", fv{1, 2, 3}},
-		{"1.2 3a90", zv{c(1.2, 0), c(0, 3)}},
-		{" -1  3a180 0i2 ", zv{c(-1, 0), c(-3, 0), c(0, 2)}},
-		{"`a", l{"`", "a"}},
-		{"`", l{"`", ""}},
-		{"`a`b", sv{"a", "b"}},
-		{"`a_1 `bZ3`\"+-,:\"", sv{"a_1", "bZ3", "+-,:"}},
-		{`"x"`, 'x'},
-		{`""`, rv{}},
-		{`"xy"`, rv{'x', 'y'}},
-		{`"x\ny"`, rv{'x', '\n', 'y'}},
-		{`[a:1;beta:2 3]`, l{"!", l{"a", "beta"}, l{1.0, fv{2, 3}}}},
-		{"x", "x"},
-		{"x_3", "x_3"},
-		{"x_3:1 2i3", l{":", "x_3", zv{1, c(2, 3)}}},
+		{"", nil, nil},
+		{"1", 1.0, 1.0},
+		{"1;2\n3", l{";", 1.0, 2.0, 3.0}, 3.0},
+		{"1 2 3", fv{1, 2, 3}, fv{1, 2, 3}},
+		{"1.2 3a90", zv{1.2, c(0, 3)}, zv{1.2, c(0, 3)}},
+		{" -1  3a180 0i2 ", zv{-1, -3, c(0, 2)}, zv{-1, -3, c(0, 2)}},
+		{"`a", l{"`", "a"}, "a"},
+		{"`", l{"`", ""}, ""},
+		{"`a`b", sv{"a", "b"}, sv{"a", "b"}},
+		{"`a_1 `bZ3`\"+-,:\"", sv{"a_1", "bZ3", "+-,:"}, sv{"a_1", "bZ3", "+-,:"}},
+		{`"x"`, 'x', 'x'},
+		{`""`, rv{}, rv{}},
+		{`"xy"`, rv{'x', 'y'}, rv{'x', 'y'}},
+		{`"x\ny"`, rv{'x', '\n', 'y'}, rv{'x', '\n', 'y'}},
+		//{`[a:1;beta:2 3]`, l{"!", l{"a", "beta"}, l{1.0, fv{2, 3}}}, nil}, // TODO
+		{"x", "x", "x"},
+		{"x_3", "x_3", "x_3"},
+		{"x_3:1 2i3", l{":", "x_3", zv{1, c(2, 3)}}, zv{1, c(2, 3)}},
+		{"+", "+", "+"},
+		{"1+2", l{"+", 1.0, 2.0}, 3.0},
+		{"1+", l{"+", 1.0, nil}, "fn"},
+		{"*1", l{"*", 1.0}, 1.0},
 	}
 	for _, tc := range testCases {
-		r := P(tc.s)
-		_fmt.Printf("prs: %q %+v\n", tc.s, r) // TODO: change to printf
-		if reflect.DeepEqual(r, tc.r) == false {
-			_fmt.Printf("exp: %+v\n", tc.r) // TODO: change to printf
-			_fmt.Printf("got: %+v\n", r)    // TODO: change to printf
+		_fmt.Printf("P: %q %+v %+v\n", tc.s, tc.p, tc.r)
+		p := P(tc.s)
+		if reflect.DeepEqual(p, tc.p) == false {
+			_fmt.Printf("pexp: %#v\n", tc.p)
+			_fmt.Printf("pgot: %#v\n", p)
+			t.Fatal()
+		}
+		r := E(p, nil)
+		if tc.r == "fn" && rval(r).Kind() == reflect.Func {
+		} else if reflect.DeepEqual(r, tc.r) == false {
+			_fmt.Printf("eexp: %#v\n", tc.r)
+			_fmt.Printf("egot: %#v %s\n", r, rval(r).Kind().String())
 			t.Fatal()
 		}
 	}
