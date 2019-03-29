@@ -30,8 +30,8 @@ a[3]:4   → (:;(`a;3);4)      (::;(`a;3);4)     (:;(`a;3);4;::)     l{":",l{"a"
 a[3;4]+:5→ (+:;(`a;3;4);5)   (+:;(`a;3;4);5)   (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
 */
 
-func prs(s v) v { // s: rv (no comments)
-	p := p{b: s.(rv)}
+func prs(s v) v { // s: rv
+	p := p{b: beg(s.(rv))}
 	r := l{}
 	for p.a() { // ex;ex...
 		ex := p.ex(p.noun())
@@ -104,8 +104,8 @@ func (p *p) ex(a v) v {
 		return nil
 	}
 	// TODO next is adverb
-	if str(a) { // vrb|sym // TODO: !node.r
-		// TODO at [
+	if str(a) && sVrb(rv(a.(s))) > 0 { // vrb // TODO: !node.r
+		// TODO at (
 		x := p.noun()
 		// TODO x is verb
 		if r := p.ex(x); r != nil {
@@ -144,24 +144,20 @@ func (p *p) noun() v {
 		for p.t(sNum) {
 			x, ic := p.num(p.p(sNum))
 			r, c = append(r, x), c || ic
-			if len(p.b) > 1 && any(p.b[0], "+-") && !any(p.b[1], wsp) { // 1+2 → 1+ 2
-				p.b = append(rv{p.b[0], ' '}, p.b[1:]...)
-				break
-			}
 		}
 		switch {
 		case !c && len(r) == 1:
-			return real(r[0])
+			return p.idxr(real(r[0]))
 		case !c:
 			fv := make(fv, len(r))
 			for i := range r {
 				fv[i] = real(r[i])
 			}
-			return fv
+			return p.idxr(fv)
 		case c && len(r) == 1:
-			return r[0]
+			return p.idxr(r[0])
 		}
-		return r
+		return p.idxr(r)
 	case p.t(sSym):
 		r := sv{}
 		for p.t(sSym) {
@@ -170,15 +166,16 @@ func (p *p) noun() v {
 		if len(r) == 1 {
 			return l{"`", r[0]}
 		}
-		return r
+		return p.idxr(r)
 	case p.t(sStr):
 		r := p.str(p.p(sStr))
 		if len(r) == 1 {
 			return r[0]
 		}
-		return r
+		return p.idxr(r)
 	case p.t(sObr):
-		var key, val l
+		var key sv
+		var val = l{nil}
 		p.p(sObr)
 		for {
 			key = append(key, p.p(sNam))
@@ -190,9 +187,15 @@ func (p *p) noun() v {
 			p.p(sSem)
 		}
 		p.p(sCbr)
-		return l{"!", key, val}
+		return p.idxr(l{"!", key, val})
 	// TODO {}
-	// TODO ()
+	case p.t(sOpa):
+		p.p(sOpa)
+		r := p.lst(sCpa)
+		if len(r) == 1 {
+			return r[0]
+		}
+		return p.idxr(append(l{nil}, r...))
 	case p.t(sVrb):
 		h := p.p(sVrb)
 		if p.t(sCol) { // modified assignment
@@ -253,10 +256,38 @@ func (p *p) str(s s) rv {
 	}
 	return rv(s)
 }
+func (p *p) lst(term sf) l {
+	r := l{}
+	for {
+		if p.t(term) {
+			break
+		}
+		r = append(r, p.ex(p.noun()))
+		if !p.t(sSem) {
+			break
+		}
+		p.p(sSem)
+	}
+	p.p(term)
+	return r
+}
+func (p *p) idxr(x v) v {
+	// TODO x sticky and at verb
+	for p.t(sObr) {
+		p.p(sObr)
+		r := p.lst(sCbr)
+		if len(r) == 1 {
+			x = l{"@", x, r[0]}
+		} else {
+			x = l{"@", x, r}
+		}
+	}
+	return x
+}
 
 // scanner
 const dig = "0123456789"
-const con = "π"
+const con = "πø∞"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
 const uni = `⍉×÷⍳⍸⌊⌽⌈⍋⌸≡∧⍴≢↑⌊↓⍕∪⍎⍣¯ℜℑ√⍟`
 const uav = "⍨¨⌿⍀"
@@ -434,4 +465,50 @@ func alpha(r rn) bool {
 		return true
 	}
 	return false
+}
+func beg(x rv) rv { // preserve strings, strip comments, disambiguate +-
+	var y rv
+	p := func(n int) {
+		y = append(y, x[:n]...)
+		x = x[n:]
+	}
+	r, c := ' ', false
+L:
+	for {
+		switch {
+		case len(x) == 0:
+			break L
+		case sStr(x) > 0: // skip strings
+			p(sStr(x))
+			continue
+		case sNum(x) > 0:
+			if any(x[0], "+-") {
+				y = append(y, x[0])
+				x = x[1:]
+				if !(sVrb(rv{r}) == 1 || any(r, " ([{;")) {
+					y = append(y, ' ')
+				}
+			}
+			p(sNum(x))
+			r = '0'
+			continue
+		case x[0] == '/' && r == ' ': // if at newline or after blank: comment
+			c = true
+			fallthrough
+		default:
+			switch {
+			case c && x[0] == '\n':
+				c, r = false, ' '
+			case c:
+				x = x[1:]
+				continue
+			case any(x[0], " \t"):
+				r = ' '
+			default:
+				r = x[0]
+			}
+			p(1)
+		}
+	}
+	return y
 }

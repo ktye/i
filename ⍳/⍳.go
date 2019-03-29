@@ -37,9 +37,7 @@ func main() {
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
 		line++
-		if c(s.Text(), a) {
-			p(run(s.Text(), a))
-		}
+		p(run(s.Text(), a))
 	}
 }
 

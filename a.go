@@ -469,81 +469,81 @@ func kinit(a map[v]v) map[v]v {
 		a = make(map[v]v)
 	}
 	a["doc"] = doc
-	type v8 [8]v
-	vtab := map[s][8]v{
-		//      a    l    a-a  l-a  a-l  l-l  tri  tet
-		"+": v8{flp, flp, add, add, add, add, nil, nil},
-		"⍉": v8{flp, nil, nil, nil, nil, nil, nil, nil},
-		"-": v8{neg, neg, sub, sub, sub, sub, nil, nil},
-		"*": v8{fst, fst, mul, nil, nil, nil, nil, nil},
-		"×": v8{nil, nil, mul, mul, mul, mul, nil, nil},
-		"%": v8{inv, inv, div, div, div, div, nil, nil},
-		"÷": v8{inv, inv, div, div, div, div, nil, nil},
-		"!": v8{til, odo, mod, nil, mod, mkd, nil, nil},
-		"⍳": v8{til, nil, nil, nil, nil, nil, nil, nil},
-		"&": v8{wer, wer, min, min, min, min, nil, nil},
-		"⍸": v8{wer, nil, nil, nil, nil, nil, nil, nil},
-		"⌊": v8{flr, flr, min, min, min, min, nil, nil},
-		"|": v8{rev, rev, max, max, max, max, nil, nil},
-		"⌽": v8{rev, rev, nil, nil, nil, nil, nil, nil},
-		"⌈": v8{nil, nil, max, max, max, max, nil, nil},
-		"<": v8{asc, asc, les, les, les, les, nil, nil},
-		"⍋": v8{asc, asc, nil, nil, nil, nil, nil, nil},
-		">": v8{dsc, dsc, mor, mor, mor, mor, nil, nil},
-		"⍒": v8{dsc, dsc, nil, nil, nil, nil, nil, nil},
-		"=": v8{eye, grp, eql, eql, eql, eql, nil, nil},
-		"⌸": v8{nil, grp, nil, nil, nil, nil, nil, nil},
-		"~": v8{not, not, mch, mch, mch, mch, nil, nil},
-		"≡": v8{nil, nil, mch, mch, mch, mch, nil, nil},
-		",": v8{enl, enl, cat, cat, cat, cat, nil, nil},
-		"^": v8{is0, is0, ept, ept, ept, ept, nil, nil},
-		"#": v8{cnt, cnt, tak, rsh, tak, rsh, nil, nil},
-		"⍴": v8{cnt, cnt, nil, rsh, nil, rsh, nil, nil},
-		"↑": v8{nil, nil, nil, rsh, nil, rsh, nil, nil},
-		"_": v8{flr, flr, drp, drp, drp, drp, nil, nil},
-		"↓": v8{nil, nil, drp, drp, drp, drp, nil, nil},
-		"$": v8{fmt, fmt, cst, cst, cst, cst, nil, nil},
-		"⍕": v8{fmt, fmt, nil, nil, nil, nil, nil, nil},
-		"?": v8{rng, unq, rnd, fnd, rnd, fnd, spl, nil},
-		"∪": v8{nil, unq, nil, nil, nil, nil, nil, nil},
-		"@": v8{typ, typ, atx, atx, atx, atx, amd, amd},
-		".": v8{evl, evl, cal, cal, cal, cal, dmd, dmd},
-		"⍎": v8{evl, evl, nil, nil, nil, nil, nil, nil},
-		"/": v8{nil, nil, nil, nil, pak, pak, nil, nil}, // a/l join,  l/l encode?
-		`\`: v8{nil, nil, nil, upk, spl, nil, nil, nil}, // a\l split, l/l decode?
+	type v6 [6]v
+	vtab := map[s][6]v{
+		//      a    l    a-a  l-a  a-l  l-l
+		"+": v6{flp, flp, add, add, add, add},
+		"⍉": v6{flp, nil, nil, nil, nil, nil},
+		"-": v6{neg, neg, sub, sub, sub, sub},
+		"*": v6{fst, fst, mul, nil, nil, nil},
+		"×": v6{nil, nil, mul, mul, mul, mul},
+		"%": v6{inv, inv, div, div, div, div},
+		"÷": v6{inv, inv, div, div, div, div},
+		"!": v6{til, odo, mod, nil, mod, mkd},
+		"⍳": v6{til, nil, nil, nil, nil, nil},
+		"&": v6{wer, wer, min, min, min, min},
+		"⍸": v6{wer, nil, nil, nil, nil, nil},
+		"⌊": v6{flr, flr, min, min, min, min},
+		"|": v6{rev, rev, max, max, max, max},
+		"⌽": v6{rev, rev, nil, nil, nil, nil},
+		"⌈": v6{nil, nil, max, max, max, max},
+		"<": v6{asc, asc, les, les, les, les},
+		"⍋": v6{asc, asc, nil, nil, nil, nil},
+		">": v6{dsc, dsc, mor, mor, mor, mor},
+		"⍒": v6{dsc, dsc, nil, nil, nil, nil},
+		"=": v6{eye, grp, eql, eql, eql, eql},
+		"⌸": v6{nil, grp, nil, nil, nil, nil},
+		"~": v6{not, not, mch, mch, mch, mch},
+		"≡": v6{nil, nil, mch, mch, mch, mch},
+		",": v6{enl, enl, cat, cat, cat, cat},
+		"^": v6{is0, is0, ept, ept, ept, ept},
+		"#": v6{cnt, cnt, tak, rsh, tak, rsh},
+		"⍴": v6{cnt, cnt, nil, rsh, nil, rsh},
+		"↑": v6{nil, nil, nil, rsh, nil, rsh},
+		"_": v6{flr, flr, drp, drp, drp, drp},
+		"↓": v6{nil, nil, drp, drp, drp, drp},
+		"$": v6{fmt, fmt, cst, cst, cst, cst},
+		"⍕": v6{fmt, fmt, nil, nil, nil, nil},
+		"?": v6{rng, unq, rnd, fnd, rnd, fnd},
+		"∪": v6{nil, unq, nil, nil, nil, nil},
+		"@": v6{typ, typ, atx, atx, atx, atx},
+		".": v6{evl, evl, cal, cal, cal, cal},
+		"⍎": v6{nil, prs, nil, nil, nil, nil},
+		"/": v6{nil, nil, nil, nil, pak, pak}, // a/l join,  l/l encode?
+		`\`: v6{nil, nil, nil, upk, spl, nil}, // a\l split, l/l decode?
 	}
-	for sym, u := range vtab {
-		s, t := sym, u
-		a[sym] = func(w ...v) v {
+	for _s, _u := range vtab {
+		s, u := _s, _u
+		a[s] = func(w ...v) v {
 			var f v
-			var cs uint8
-			if len(w) > 0 && w[0] == nil { // monadic call
-				w = w[1:]
+			var cs int
+			if len(w) < 1 || len(w) > 2 {
+				return e(s + ":args")
 			}
-			for i := range w {
-				if i < 2 && rval(w[i]).Kind() == reflect.Slice {
-					cs |= 1 << uint(i)
+			if rval(w[0]).Kind() == reflect.Slice {
+				cs = 1
+			}
+			if len(w) == 2 {
+				cs |= 1 << 2
+				if rval(w[0]).Kind() == reflect.Slice {
+					cs |= 1 << 1
 				}
+				cs -= 2
 			}
-			switch len(w) {
-			case 1:
-				f = t[int(cs)]
-			case 2:
-				f = t[2+int(cs)]
-			case 3:
-				f = t[6]
-			case 4:
-				f = t[7]
-			}
+			f = u[cs]
 			if f == nil {
-				e(s + "args")
+				e(s + ":argtype")
 			}
-			// TODO: add kt as last arguments for functions that need it.
 			rf := rval(f)
-			if n := rf.Type().NumIn(); n != len(w) {
-				return e("nargs")
+			in := make([]rV, rf.Type().NumIn())
+			n := len(w)
+			if len(in) == 3 {
+				in[2] = rval(a)
+				n++
 			}
-			in := make([]rV, len(w))
+			if n != len(in) {
+				return e(s + ":nargs")
+			}
 			for i := range w {
 				in[i] = rval(w[i])
 			}
@@ -553,38 +553,48 @@ func kinit(a map[v]v) map[v]v {
 			return nil
 		}
 	}
+	for k, u := range map[s]v{
+		"prs": prs, "⍎": prs,
+		"pi": math.Pi, "π": math.Pi,
+		"⍺": "x", "⍵": "y",
+		// TODO o∇
+		"inf": math.Inf(1), "∞": math.Inf(1), "nan": math.NaN(), "ø": math.NaN(),
+		// TODO sqr, log, pow, exp, abs, ang, deg, re, im, con
+	} {
+		a[k] = u
+	}
 	return a
 }
 
 const doc = `Verbs
-    a     l     a-a   l-a   a-l   l-l   tri  tet
-+   flp   flp  [add] [add] [add] [add]   -    -   ⍉
--  [neg] [neg] [sub] [sub] [sub] [sub]   -    -    
-*   fst   fst  [mul] [mul] [mul] [mul]   -    -   ×
-%  [inv] [inv] [div] [div] [div] [div]   -    -   ÷
-!   til   odo   mod    -    mod>  mkd    -    -   ⍳
-&   wer   wer  [min] [min] [min] [min]   -    -   ⍸⌊
-|   rev   rev  [max] [max] [max] [max]   -    -   ⌽⌈
-<   asc   asc  [les] [les] [les] [les]   -    -   ⍋
->   dsc   dsc  [mor] [mor] [mor] [mor]   -    -   ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
-~  [not] [not]  mch   mch   mch   mch    -    -   ≡
-,   enl   enl   cat   cat   cat   cat    -    -   
-^   is0  [is0]  ept   ept   ept   ept    -    -   
-#   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴↑ 
-_  [flr] [flr]  drp   drp   drp   cut    -    -   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕
-?   rng   unq   rnd   fnd   rnd   fnd>  spl   -   ∪
-@   typ   typ   atx   atx   atx   atx   amd  amd  
-.   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
-/    -     -     -     -    pak   pak    -    -     
-\    -     -     -    upk   spl   -      -    -     
-                                                  
-Adverbs                                  
-    mv/nv dv    l-mv  l-dv  3+v          
-':   -    ecp    -    ecp    -       ⍨   
-'   ech   ecd   ecd   ecd   eca      ¨
-/:   -     -    ecr   ecr    -       ⌿
-\:   -     -    ecl   ecl    -       ⍀   :← x⍺ y⍵ o∇
-/   fxd   ovr   fxw   ovd   ova          pow⍣ abs¯ reℜ imℑ
-\   scf   scn   scw   scd   sca          piπ  nanø sqr√ log⍟`
+    a     l     a-a   l-a   a-l   l-l 
++   flp   flp  [add] [add] [add] [add]  ⍉
+-  [neg] [neg] [sub] [sub] [sub] [sub]   
+*   fst   fst  [mul] [mul] [mul] [mul]  ×
+%  [inv] [inv] [div] [div] [div] [div]  ÷
+!   til   odo   mod    -    mod>  mkd   ⍳
+&   wer   wer  [min] [min] [min] [min]  ⍸⌊
+|   rev   rev  [max] [max] [max] [max]  ⌽⌈
+<   asc   asc  [les] [les] [les] [les]  ⍋
+>   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
+=   eye   grp  [eql] [eql] [eql] [eql]  ⌸
+~  [not] [not]  mch   mch   mch   mch   ≡
+,   enl   enl   cat   cat   cat   cat   
+^   is0  [is0]  ept   ept   ept   ept   
+#   cnt   cnt   tak   rsh   tak   rsh   ⍴↑ 
+_  [flr] [flr]  drp   drp   drp   cut   ⌊↓
+$   fmt  [fmt]  cst   cst   cst   cst   ⍕
+?   rng   unq   rnd   fnd   rnd   fnd>  ∪
+@   typ   typ   atx   atx   atx   atx   
+.   evl   evl   cal   cal   cal   cal   
+/    -     -     -     -    pak   pak     
+\    -     -     -    upk   spl   -      
+                                                 
+Adverbs                                 :← prs⍎
+    mv/nv dv    l-mv  l-dv  3+v         x⍺
+':   -    ecp    -    ecp    -    ⍨     y⍵
+'   ech   ecd   ecd   ecd   eca   ¨     o∇ inf∞ nanø piπ
+/:   -     -    ecr   ecr    -    ⌿     sqr√ log⍟ pow,exp⍣
+\:   -     -    ecl   ecl    -    ⍀     sin cos tan
+/   fxd   ovr   fxw   ovd   ova         abs‖ ang deg
+\   scf   scn   scw   scd   sca         reℜ imℑ con`

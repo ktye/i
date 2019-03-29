@@ -3,22 +3,18 @@ package i
 import "reflect"
 
 func eva(x v, a map[v]v) v {
+	if sy, o := x.(s); o {
+		return lup(a, sy)
+	}
 	l, o := x.(l)
 	if !o || len(l) == 0 {
 		return x
 	}
-	if len(l) == 1 {
-		if t, o := l[0].(s); o {
-			u := lup(a, t)
-			if u == nil {
-				return e("undefined")
-			}
-			return u
-		}
-		return e("type")
-	}
 	switch l[0] {
 	case nil:
+		for i := len(l) - 1; i > 0; i-- { // right to left
+			l[i] = eva(l[i], a)
+		}
 		return l[1:]
 	case "`":
 		return l[1]
@@ -49,7 +45,7 @@ func eva(x v, a map[v]v) v {
 			f = lup(a, u)
 		}
 		if k := rval(f).Kind(); k != reflect.Func {
-			return e("type")
+			return e("type:func?" + k.String())
 		}
 		n := 0
 		for i := len(l) - 1; i > 0; i-- {
@@ -76,6 +72,16 @@ func eva(x v, a map[v]v) v {
 	return e("impossible")
 }
 
-func lup(a map[v]v, s s) v { // lookup `.a.b.c
-	return a[s] // TODO .a.b.c
+func lup(a map[v]v, s s) v { // lookup
+	if r := a[s]; r != nil {
+		return r
+	}
+	if p, o := a[".."]; o {
+		pp, o := p.(*map[v]v)
+		if !o {
+			return e("type")
+		}
+		return lup(*pp, s)
+	}
+	return e("undefined:" + s)
 }

@@ -1,7 +1,6 @@
 package i
 
 import (
-	_fmt "fmt"
 	"reflect"
 	"testing"
 )
@@ -25,29 +24,32 @@ func TestP(t *testing.T) {
 		{`""`, rv{}, rv{}},
 		{`"xy"`, rv{'x', 'y'}, rv{'x', 'y'}},
 		{`"x\ny"`, rv{'x', '\n', 'y'}, rv{'x', '\n', 'y'}},
-		//{`[a:1;beta:2 3]`, l{"!", l{"a", "beta"}, l{1.0, fv{2, 3}}}, nil}, // TODO
-		{"x", "x", "x"},
-		{"x_3", "x_3", "x_3"},
+		{`[a:1;beta:2 3]`, l{"!", sv{"a", "beta"}, l{nil, 1.0, fv{2, 3}}}, map[v]v{"a": 1.0, "beta": fv{2, 3}}},
 		{"x_3:1 2i3", l{":", "x_3", zv{1, c(2, 3)}}, zv{1, c(2, 3)}},
-		{"+", "+", "+"},
+		{"+", "+", "fn"},
 		{"1+2", l{"+", 1.0, 2.0}, 3.0},
 		{"1+", l{"+", 1.0, nil}, "fn"},
 		{"*1", l{"*", 1.0}, 1.0},
+		{"a:1;a", l{";", l{":", "a", 1.0}, "a"}, 1.0},
+		{"x_3:2", l{":", "x_3", 2.0}, 2.0},
+		{"x:1;x+1", l{";", l{":", "x", 1.0}, l{"+", "x", 1.0}}, 2.0},
+		{"1+(1;2;3)", l{"+", 1.0, l{nil, 1.0, 2.0, 3.0}}, l{2.0, 3.0, 4.0}},
+		{"(1+2)-3", l{"-", l{"+", 1.0, 2.0}, 3.0}, 0.0},
+		{"1 2 3[0 2]", l{"@", fv{1, 2, 3}, fv{0, 2}}, fv{1, 3}},
+		{"`a`b`c[2]", l{"@", sv{"a", "b", "c"}, 2.0}, "c"},
+		{`"alpha" [0 3]`, l{"@", rv("alpha"), fv{0, 3}}, rv("ah")},
+		{"(1;2;3)[0 1]", l{"@", l{nil, 1.0, 2.0, 3.0}, fv{0, 1}}, fv{1, 2}},
+		{"`a`b!3 4", l{"!", sv{"a", "b"}, fv{3, 4}}, map[v]v{"a": 3.0, "b": 4.0}},
+		{"[a:(1+2);b:4]", l{"!", sv{"a", "b"}, l{nil, l{"+", 1.0, 2.0}, 4.0}}, map[v]v{"a": 3.0, "b": 4.0}},
 	}
 	for _, tc := range testCases {
-		_fmt.Printf("P: %q %+v %+v\n", tc.s, tc.p, tc.r)
 		p := P(tc.s)
-		if reflect.DeepEqual(p, tc.p) == false {
-			_fmt.Printf("pexp: %#v\n", tc.p)
-			_fmt.Printf("pgot: %#v\n", p)
-			t.Fatal()
-		}
+		//_fmt.Printf("%+v\n", p)
+		tt(t, tc.p, p, "P: %q %+v\n", tc.s, tc.p)
 		r := E(p, nil)
 		if tc.r == "fn" && rval(r).Kind() == reflect.Func {
-		} else if reflect.DeepEqual(r, tc.r) == false {
-			_fmt.Printf("eexp: %#v\n", tc.r)
-			_fmt.Printf("egot: %#v %s\n", r, rval(r).Kind().String())
-			t.Fatal()
+		} else {
+			tt(t, tc.r, r, "E: %q %+v\n", tc.s, tc.r)
 		}
 	}
 }
@@ -111,5 +113,27 @@ func TestScan(t *testing.T) {
 				t.Fatalf("%q: f[%d] got %d, exp %d", tc.s, k, n, tc.r[k])
 			}
 		}
+	}
+}
+func TestBeg(t *testing.T) {
+	testCases := [][2]string{
+		{"xyz", "xyz"},
+		{"/xyz", ""},
+		{"/x\nyz", "\nyz"},
+		{"ab/x\nyz", "ab/x\nyz"},
+		{"ab /x\nyz", "ab \nyz"},
+		{"ab /x;yz", "ab "},
+		{`ab" /x;"yz`, `ab" /x;"yz`},
+		{"1+2", "1+ 2"},
+		{"a-2", "a- 2"},
+		{"a-b", "a-b"},
+		{"-13", "-13"},
+		{"2.5e-03", "2.5e-03"},
+		{"a+b", "a+b"},
+		{"a*2.3i-5", "a*2.3i-5"},
+	}
+	for _, tc := range testCases {
+		r := string(beg(rv(tc[0])))
+		tt(t, tc[1], r, "beg %q %q\n", tc[0], tc[1])
 	}
 }

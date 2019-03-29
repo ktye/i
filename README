@@ -24,37 +24,37 @@ Any Go variable that is present in the k-tree can be used as well:
   called for each scalar, or a single call if t is a slice
 
 Verbs
-    a     l     a-a   l-a   a-l   l-l   tri  tet
-+   flp   flp  [add] [add] [add] [add]   -    -   ⍉
--  [neg] [neg] [sub] [sub] [sub] [sub]   -    -    
-*   fst   fst  [mul] [mul] [mul] [mul]   -    -   ×
-%  [inv] [inv] [div] [div] [div] [div]   -    -   ÷
-!   til   odo   mod    -    mod>  mkd    -    -   ⍳
-&   wer   wer  [min] [min] [min] [min]   -    -   ⍸⌊
-|   rev   rev  [max] [max] [max] [max]   -    -   ⌽⌈
-<   asc   asc  [les] [les] [les] [les]   -    -   ⍋
->   dsc   dsc  [mor] [mor] [mor] [mor]   -    -   ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]   -    -   ⌸
-~  [not] [not]  mch   mch   mch   mch    -    -   ≡
-,   enl   enl   cat   cat   cat   cat    -    -   
-^   is0  [is0]  ept   ept   ept   ept    -    -   
-#   cnt   cnt   tak   rsh   tak   rsh    -    -   ⍴↑ 
-_  [flr] [flr]  drp   drp   drp   cut    -    -   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst    -    -   ⍕
-?   rng   unq   rnd   fnd   rnd   fnd>  spl   -   ∪
-@   typ   typ   atx   atx   atx   atx   amd  amd  
-.   evl   evl   cal   cal   cal   cal   dmd  dmd  ⍎
-/    -     -     -     -    pak   pak    -    -     
-\    -     -     -    upk   spl   -      -    -     
-                                                  
-Adverbs                                  
-    mv/nv dv    l-mv  l-dv  3+v          
-':   -    ecp    -    ecp    -       ⍨   
-'   ech   ecd   ecd   ecd   eca      ¨
-/:   -     -    ecr   ecr    -       ⌿
-\:   -     -    ecl   ecl    -       ⍀   :← x⍺ y⍵ o∇
-/   fxd   ovr   fxw   ovd   ova          pow⍣ abs¯ reℜ imℑ
-\   scf   scn   scw   scd   sca          piπ  nanø sqr√ log⍟
+    a     l     a-a   l-a   a-l   l-l 
++   flp   flp  [add] [add] [add] [add]  ⍉
+-  [neg] [neg] [sub] [sub] [sub] [sub]   
+*   fst   fst  [mul] [mul] [mul] [mul]  ×
+%  [inv] [inv] [div] [div] [div] [div]  ÷
+!   til   odo   mod    -    mod>  mkd   ⍳
+&   wer   wer  [min] [min] [min] [min]  ⍸⌊
+|   rev   rev  [max] [max] [max] [max]  ⌽⌈
+<   asc   asc  [les] [les] [les] [les]  ⍋
+>   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
+=   eye   grp  [eql] [eql] [eql] [eql]  ⌸
+~  [not] [not]  mch   mch   mch   mch   ≡
+,   enl   enl   cat   cat   cat   cat   
+^   is0  [is0]  ept   ept   ept   ept   
+#   cnt   cnt   tak   rsh   tak   rsh   ⍴↑ 
+_  [flr] [flr]  drp   drp   drp   cut   ⌊↓
+$   fmt  [fmt]  cst   cst   cst   cst   ⍕
+?   rng   unq   rnd   fnd   rnd   fnd>  ∪
+@   typ   typ   atx   atx   atx   atx   
+.   evl   evl   cal   cal   cal   cal   
+/    -     -     -     -    pak   pak     
+\    -     -     -    upk   spl   -      
+                                                 
+Adverbs                                 :← prs⍎
+    mv/nv dv    l-mv  l-dv  3+v         x⍺
+':   -    ecp    -    ecp    -    ⍨     y⍵
+'   ech   ecd   ecd   ecd   eca   ¨     o∇ inf∞ nanø piπ
+/:   -     -    ecr   ecr    -    ⌿     sqr√ log⍟ pow,exp⍣
+\:   -     -    ecl   ecl    -    ⍀     sin cos tan
+/   fxd   ovr   fxw   ovd   ova         abs‖ ang deg
+\   scf   scn   scw   scd   sca         reℜ imℑ con
 
 Ref
   github.com/JohnEarnest/ok

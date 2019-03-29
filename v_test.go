@@ -342,7 +342,7 @@ type myfloat float64
 type mymap map[string]int
 
 func printf(f s, v ...v) {
-	if testing.Verbose() { // temporarily switched
+	if testing.Verbose() { // toggle test output
 		_fmt.Printf(f, v...)
 	}
 }
