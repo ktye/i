@@ -663,7 +663,31 @@ func dmd(x, y, z, w v) v { return e("nyi") } // dmend
 func win(x, y v) v       { return e("nyi") }
 
 // adverbs
-// nyi
+func ech(f, x v, a map[v]v) v    { return e("nyi") } // f1'x  f1¨x each
+func ecd(f, x v, a map[v]v) v    { return e("nyi") } // f2'x  f2¨x each dyad
+func ecp(f, x v, a map[v]v) v    { return e("nyi") } // f1':x  f1⍨x each prior
+func eci(f, x, y v, a map[v]v) v { return e("nyi") } // x f2':y  x f2⍨y each prior initial
+func ecr(f, x, y v, a map[v]v) v { return e("nyi") } // x f/:y  x f⌿y each right
+func ecl(f, x, y v, a map[v]v) v { return e("nyi") } // x f\:y  x f⍀y each left
+func fix(f, x v, a map[v]v) v    { return e("nyi") } // f1/x fixed point
+func ovr(f, x v, a map[v]v) v { // f2/x
+	// TODO initial values
+	// TODO length 0, 1
+	w, _ := ls(x)
+	return ovd(f, w[0], w[1:], a)
+}
+func whl(f, x, y v, a map[v]v) v { return e("nyi") } // n f1/y for, g1 f1/y while
+func ovd(f, x, y v, a map[v]v) v { // x f2/y over initial
+	w, _ := ls(y)
+	for _, u := range w {
+		x = cal(f, l{x, u}, a)
+	}
+	return x
+}
+func sfx(f, x v, a map[v]v) v    { return e("nyi") } // f1\x scan fixed
+func scn(f, x v, a map[v]v) v    { return e("nyi") } // f2\x scan
+func swl(f, x, y v, a map[v]v) v { return e("nyi") } // x f1\y scan for, g1 f1\y scan while
+func sci(f, x, y v, a map[v]v) v { return e("nyi") } // x f2\x scan initial
 
 func grade(up bool, x v) v {
 	if d, o := md(x); o {

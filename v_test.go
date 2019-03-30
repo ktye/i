@@ -11,8 +11,6 @@ type (
 	iv = []i
 )
 
-func c(r, i float64) complex128 { return complex(r, i) }
-
 func TestMV(t *testing.T) {
 	type IV []int
 	testCases := []struct {
@@ -107,7 +105,6 @@ func TestMV(t *testing.T) {
 		tt(t, tc.r, r, "%s %+v: %+v\n", tc.s, tc.x, r)
 	}
 }
-
 func TestDV(t *testing.T) {
 	type IV []int
 	testCases := []struct {
@@ -220,7 +217,28 @@ func TestDV(t *testing.T) {
 		tt(t, tc.r, r, "%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
 	}
 }
-
+func TestAdv(t *testing.T) {
+	testCases := []struct {
+		s              string
+		av, f, x, y, r v
+	}{
+		{"ovr", ovr, add, fv{1, 2, 3}, nil, 6.0},
+		{"ovr", ovr, sub, fv{3, 6, 9}, nil, -12.0},
+		{"ovd", ovd, sub, 5, iv{2, 8, 9}, -14},
+		{"ovd", ovd, sub, iv{2, 6}, iv{1, 2, 3}, iv{-4, 0}},
+	}
+	for _, tc := range testCases {
+		var r v
+		if tc.y == nil {
+			g := tc.av.(func(v, v, map[v]v) v)
+			r = g(tc.f, tc.x, nil)
+		} else {
+			g := tc.av.(func(v, v, v, map[v]v) v)
+			r = g(tc.f, tc.x, tc.y, nil)
+		}
+		tt(t, tc.r, r, "%s %+v %+v %+v: %+v\n", tc.s, tc.f, tc.x, tc.y, tc.r)
+	}
+}
 func TestVKt(t *testing.T) {
 	testCases := []struct {
 		s       string
@@ -301,6 +319,8 @@ func tt(t *testing.T, exp, got v, s string, a ...v) {
 		t.Fatal()
 	}
 }
+
+func c(r, i float64) complex128 { return complex(r, i) }
 
 // myint is a custom number type that is convertible.
 type myint int8

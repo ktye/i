@@ -470,7 +470,7 @@ func kinit(a map[v]v) map[v]v {
 	}
 	a["doc"] = doc
 	type v6 [6]v
-	vtab := map[s][6]v{
+	vtab := map[s]v6{
 		//      a    l    a-a  l-a  a-l  l-l
 		"+": v6{flp, flp, add, add, add, add},
 		"⍉": v6{flp, nil, nil, nil, nil, nil},
@@ -508,7 +508,6 @@ func kinit(a map[v]v) map[v]v {
 		"∪": v6{nil, unq, nil, nil, nil, nil},
 		"@": v6{typ, typ, atx, atx, atx, atx},
 		".": v6{evl, evl, cal, cal, cal, cal},
-		"⍎": v6{nil, prs, nil, nil, nil, nil},
 		"/": v6{nil, nil, nil, nil, pak, pak}, // a/l join,  l/l encode?
 		`\`: v6{nil, nil, nil, upk, spl, nil}, // a\l split, l/l decode?
 	}
@@ -553,8 +552,51 @@ func kinit(a map[v]v) map[v]v {
 			return nil
 		}
 	}
+	type v4 [4]v
+	atab := map[s]v4{
+		//       m|x  d|x  xm|y xd|y
+		"'":  v4{ech, ecd, ecd, ecd},
+		"¨":  v4{ech, ecd, ecd, ecd},
+		"':": v4{nil, ecp, nil, eci},
+		"⍨":  v4{nil, ecp, nil, eci},
+		"/:": v4{nil, nil, ecr, ecr},
+		"⌿":  v4{nil, nil, ecr, ecr},
+		`\:`: v4{nil, nil, ecl, ecl},
+		`⍀`:  v4{nil, nil, ecl, ecl},
+		"/":  v4{fix, ovr, whl, ovd},
+		`\`:  v4{sfx, scn, swl, sci},
+	}
+	for _s, _u := range atab {
+		s, u := _s, _u
+		a[s] = func(f v) v {
+			if rval(f).Kind() != reflect.Func {
+				return e("type")
+			}
+			return func(w ...v) v {
+				cs := 1 // TODO: monadic lambda1: cs = 0
+				if len(w) < 1 || len(w) > 2 {
+					return e("nargs")
+				} else if len(w) == 2 {
+					cs += 2
+				}
+				g := u[cs]
+				if g == nil {
+					e(s + ":argtype")
+				}
+				in := make([]rV, len(w)+2)
+				in[0] = rval(f)
+				in[1] = rval(w[0])
+				if len(w) == 2 {
+					in[2] = rval(w[1])
+				}
+				in[len(in)-1] = rval(a)
+				r := rval(f).Call(in)
+				return r[0].Interface()
+			}
+		}
+	}
 	for k, u := range map[s]v{
-		"prs": prs, "⍎": prs,
+		"prs": prs, "evl": eva,
 		"pi": math.Pi, "π": math.Pi,
 		"⍺": "x", "⍵": "y",
 		// TODO o∇
@@ -590,11 +632,11 @@ $   fmt  [fmt]  cst   cst   cst   cst   ⍕
 /    -     -     -     -    pak   pak     
 \    -     -     -    upk   spl   -      
                                                  
-Adverbs                                 :← prs⍎
-    mv/nv dv    l-mv  l-dv  3+v         x⍺
-':   -    ecp    -    ecp    -    ⍨     y⍵
-'   ech   ecd   ecd   ecd   eca   ¨     o∇ inf∞ nanø piπ
-/:   -     -    ecr   ecr    -    ⌿     sqr√ log⍟ pow,exp⍣
-\:   -     -    ecl   ecl    -    ⍀     sin cos tan
-/   fxd   ovr   fxw   ovd   ova         abs‖ ang deg
-\   scf   scn   scw   scd   sca         reℜ imℑ con`
+Adverbs                           
+    mv/nv dv    l-mv  l-dv        x⍺ y⍵ o∇
+'   ech   ecd   ecd   ecd   ¨     prs evl
+':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
+/:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
+\:   -     -    ecl   ecl   ⍀     sin cos tan
+/   fidx  ovr   whl   ovd         abs‖ ang deg
+\   sfx   scn   swl   sci         reℜ imℑ con`

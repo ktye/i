@@ -47,14 +47,14 @@ $   fmt  [fmt]  cst   cst   cst   cst   ⍕
 /    -     -     -     -    pak   pak     
 \    -     -     -    upk   spl   -      
                                                  
-Adverbs                                 :← prs⍎
-    mv/nv dv    l-mv  l-dv  3+v         x⍺
-':   -    ecp    -    ecp    -    ⍨     y⍵
-'   ech   ecd   ecd   ecd   eca   ¨     o∇ inf∞ nanø piπ
-/:   -     -    ecr   ecr    -    ⌿     sqr√ log⍟ pow,exp⍣
-\:   -     -    ecl   ecl    -    ⍀     sin cos tan
-/   fxd   ovr   fxw   ovd   ova         abs‖ ang deg
-\   scf   scn   scw   scd   sca         reℜ imℑ con
+Adverbs                           
+    mv/nv dv    l-mv  l-dv        x⍺ y⍵ o∇
+'   ech   ecd   ecd   ecd   ¨     prs evl
+':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
+/:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
+\:   -     -    ecl   ecl   ⍀     sin cos tan
+/   fidx  ovr   whl   ovd         abs‖ ang deg
+\   sfx   scn   swl   sci         reℜ imℑ con
 
 Ref
   github.com/JohnEarnest/ok
