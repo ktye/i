@@ -145,34 +145,10 @@ type dict struct {
 }
 
 func md(x interface{}) (d, bool) { // import maps and structs as dicts
-	var d d
-	switch m := x.(type) {
-	case map[v]v:
-		off := 0
-		if h, ok := m["_"]; ok {
-			hdr := h.(dict)
-			d.k, off = cp(hdr.k).(l), 1
-		}
-		n := len(m) - off
-		if off == 0 {
-			d.k, d.v = make(l, n), make(l, n)
-			i := 0
-			for k, v := range m {
-				d.k[i], d.v[i] = cp(k), cp(v)
-				i++
-			}
-		} else {
-			d.v = make(l, n)
-			for i, k := range d.k {
-				d.v[i] = cp(m[k])
-			}
-		}
-		return d, true
-	case [2]l:
-		d.k, d.v, d.t = cp(m[0]).(l), cp(m[1]).(l), rtyp(x)
-		return d, true
+	if m, o := x.([2]l); o {
+		return dict{cp(m[0]).(l), cp(m[1]).(l), nil}, true
 	}
-
+	var d d
 	v := rval(x)
 	d.t = v.Type()
 	if kind := v.Kind(); kind == reflect.Map || kind == reflect.Struct {
@@ -218,14 +194,7 @@ func md2(x, y interface{}) (dict, dict, bool) {
 }
 func (d dict) mp() interface{} { // convert dict back to original type
 	if d.t == nil {
-		r := make(map[v]v)
-		r["_"] = dict{d.k, nil, nil}
-		for i, k := range d.k {
-			r[k] = d.v[i]
-		}
-		return r
-	} else if d.t == rtyp([2]l{}) {
-		return [2]l{cp(d.k).(l), cp(d.v).(l)}
+		return [2]l{d.k, d.v}
 	}
 
 	// convert back to original map or struct type.

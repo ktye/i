@@ -7,6 +7,7 @@ expr        k2       k4       k7       kona     ngn      oK       i    ...
 a:1;(a:5;a) 5 1      5 1      5 1      5 1      5 5      5 1      ?        / k2ref p.25
 1 2 [0]     e        1        [x:1]    1        e        1        1
 1 2  1      1 2 1    1 2 1    2        1 2 1    2        1 2 1    1 2 1
+[...]       e        block    dict     e        dict     dict     dict
 +\`a`b!2 3           [a:2;b:5][a:2;b:5]         [a:2;b:5][a:2;b:3]
 
 k2   | nsl.com/k/k2

@@ -21,7 +21,7 @@ func TestMV(t *testing.T) {
 		{"flp", flp, 1.0, 1.0},
 		{"flp", flp, iv{1, 2}, iv{1, 2}},
 		{"flp", flp, l{fv{1, 2}, fv{3, 4}, fv{5, 6}}, l{fv{1, 3, 5}, fv{2, 4, 6}}},
-		// {"flp", flp, l{fv{1, 2}, fv{3, 4}, l{5, l{6, 7}}}, l{l{1, 3, 5}, l{2, 4, l{6, 7}}}}, // eql but fail?
+		{"flp", flp, l{fv{1.1, 2.2}, fv{3.3, 4.4}, l{5, l{6, 7}}}, l{l{1.1, 3.3, 5}, l{2.2, 4.4, l{6, 7}}}},
 		{"neg", neg, 1.0, -1.0},
 		{"neg", neg, c(1, 2), c(-1, -2)},
 		{"neg", neg, fv{1, 2, 3}, fv{-1, -2, -3}},
@@ -30,6 +30,7 @@ func TestMV(t *testing.T) {
 		{"neg", neg, true, true},
 		{"neg", neg, uint16(4), uint16(65532)},
 		{"neg", neg, 1, -1},
+		{"neg", neg, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"a", "b"}, l{-1, -2}}},
 		{"neg", neg, map[v]v{"a": fv{1, 2}}, map[v]v{"a": fv{-1.0, -2.0}}},
 		{"neg", neg, mystruct{true, 2.0, []myint{1, 2, 3}}, mystruct{true, -2.0, []myint{-1, -2, -3}}},
 		{"fst", fst, iv{5, 6, 7}, 5},
@@ -57,7 +58,7 @@ func TestMV(t *testing.T) {
 		{"wer", wer, []bool{false, false, true, false, true, true}, fv{2, 4, 5}},
 		{"wer", wer, l{false, 0, c(1, 0), 0.0, 1.0, myint(1)}, fv{2, 4, 5}},
 		{"rev", rev, fv{1, 2, 3}, fv{3, 2, 1}},
-		// {"rev", rev, dct(l{"a", "b"}, l{1, 2}), "→[b:2;a:1]"}, // cannot compare
+		{"rev", rev, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"b", "a"}, l{2, 1}}},
 		{"asc", asc, 3, fv{0}},
 		{"asc", asc, fv{4, 5, 6}, fv{0, 1, 2}},
 		{"asc", asc, sv{"be", "g", "a"}, fv{2, 0, 1}},
@@ -68,7 +69,7 @@ func TestMV(t *testing.T) {
 		{"dsc", dsc, sv{"b", "c", "alpha"}, fv{1, 0, 2}},
 		{"eye", eye, 0, l{}},
 		{"eye", eye, 2, l{fv{1, 0}, fv{0, 1}}},
-		// {"grp", grp, fv{1, 3, 3, 3, 1, 2}, map[v]v{1: fv{0, 4}, 3: fv{1, 2, 3}, 2: fv{5}}}, // eql but fail?
+		{"grp", grp, fv{1, 3, 3, 3, 1, 2}, [2]l{l{1.0, 3.0, 2.0}, l{fv{0, 4}, fv{1, 2, 3}, fv{5}}}},
 		{"not", not, 1, 0},
 		{"not", not, 1 + 2i, 0 + 0i},
 		{"not", not, 0 + 0i, 1 + 0i},
@@ -118,13 +119,13 @@ func TestDV(t *testing.T) {
 		{"add", add, iv{1, 2, 3}, iv{4, 5, 6}, iv{5, 7, 9}},
 		{"add", add, l{1, 2.0, 3}, 1, l{2, 3.0, 4}},
 		{"add", add, iv{1, 2}, l{1, iv{2, 3}}, l{2, iv{4, 5}}},
-		//{"add", add, [2]l{l{"a", "b"}, l{1, 2.0}}, [2]l{l{"b"}, l{fv{3, 4}}}, [2]l{l{"a", "b"}, l{1, fv{5, 6}}}}, // eql but fail?
+		{"add", add, [2]l{l{"a", "b"}, l{1, 2.0}}, [2]l{l{"b"}, l{fv{3, 4}}}, [2]l{l{"a", "b"}, l{1.0, fv{5, 6}}}}, // zero value is 0.0
 		{"add", add, map[v]v{"a": false}, map[v]v{"a": true}, map[v]v{"a": true}},
-		{"add", add, [2]l{l{"a"}, l{false}}, [2]l{l{"a"}, l{[]bool{false, true}}}, [2]l{l{"a"}, l{[]bool{false, true}}}}, // eql but fail?
+		{"add", add, [2]l{l{"a"}, l{false}}, [2]l{l{"a"}, l{[]bool{false, true}}}, [2]l{l{"a"}, l{[]bool{false, true}}}},
 		{"add", add, map[v]v{"a": 1, "b": fv{2, 3}}, 3, map[v]v{"a": 4, "b": fv{5, 6}}},
 		{"add", add, mystruct{}, mystruct{true, 2, nil}, mystruct{true, 2, nil}},
 		{"add", add, mystruct{false, 1, []myint{1, 2}}, mystruct{true, 2, []myint{3, 4}}, mystruct{true, 3, []myint{4, 6}}},
-		//{"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "I": 1 + 1i, "V": fv{3, 4}}, map[v]v{"B": 4.0, "F": 1, "I": 2 + 1i, "V": fv{4, 6}}}, // eql but fail?
+		{"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "V": fv{3, 4}}, [2]l{l{"B", "F", "V"}, l{4.0, 1.0, fv{4, 6}}}},
 		{"sub", sub, 1, 2, -1},
 		{"mul", mul, 2, 3, 6},
 		{"div", div, 1.0, 0, math.Inf(1)},
@@ -132,7 +133,7 @@ func TestDV(t *testing.T) {
 		{"mod", mod, 2, fv{1, 2, 3, 4, 5, 6}, fv{1, 0, 1, 0, 1, 0}},
 		{"mod", mod, 3, l{1, 2, 3, fv{4, 5}}, l{1, 2, 0, fv{1, 2}}},
 		{"mod", mod, c(3, 0), l{1, 2, 3, c(4, 0)}, l{c(1, 0), c(2, 0), c(0, 0), c(1, 0)}},
-		{"mkd", mkd, iv{1, 2, 3}, fv{2, 3, 4}, map[v]v{1: 2.0, 2: 3.0, 3: 4.0}},
+		{"mkd", mkd, iv{1, 2, 3}, fv{2, 3, 4}, [2]l{l{1, 2, 3}, l{2.0, 3.0, 4.0}}},
 		{"min", min, 2, 3, 2},
 		{"min", min, iv{1, 2, 3}, 2, iv{1, 2, 2}},
 		{"max", max, 2, 3, 3},
@@ -319,10 +320,6 @@ func TestMethod(t *testing.T) {
 }
 
 func tt(t *testing.T, exp, got v, s string, a ...v) {
-	if m, ok := got.(map[v]v); ok {
-		delete(m, "_")
-		got = m
-	}
 	printf(s, a...)
 	if reflect.DeepEqual(exp, got) == false {
 		_fmt.Printf("exp: %#v (%T)\n", exp, exp)
