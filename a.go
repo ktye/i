@@ -11,7 +11,6 @@ func P(s s) v            { return prs(rv(s)) }
 func E(l v, a map[v]v) v { return eva(l, kinit(a)) }
 
 type (
-	i  = int
 	f  = float64
 	fv = []f
 	z  = complex128
@@ -132,7 +131,7 @@ func uf(l l) (v, bool) { // convert a list to a uniform vector if possible
 	}
 	return sl(l, t), true
 }
-func ms(eT rT, n i) rV { // make slice from element type, but lists from slices
+func ms(eT rT, n int) rV { // make slice from element type, but lists from slices
 	if eT == nil || eT.Kind() == reflect.Slice {
 		return rval(make(l, n))
 	}

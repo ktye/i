@@ -63,7 +63,7 @@ func til(x v) v { // !x ⍳x iota
 	return vn(r, nil, true, t)
 }
 func odo(x v) v { // !l odometer
-	inc := func(idx, shp []i) {
+	inc := func(idx, shp []int) {
 		for i := len(idx) - 1; i >= 0; i-- {
 			idx[i]++
 			if idx[i] < shp[i] {

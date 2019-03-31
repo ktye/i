@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	iv = []i
+	iv = []int
 )
 
 func TestMV(t *testing.T) {

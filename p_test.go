@@ -60,7 +60,7 @@ func TestP(t *testing.T) {
 }
 
 func TestScan(t *testing.T) {
-	type iv [11]i //0     1     2     3     4     5     6     7     8     9    10
+	type iv [11]int //0     1     2     3     4     5     6     7     8     9    10
 	var f = [11]sf{sNum, sNam, sSym, sStr, sVrb, sAsn, sIov, sAdv, sViw, sDct, sWsp}
 	var testCases = []struct {
 		s s

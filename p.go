@@ -56,7 +56,7 @@ func prs(s v) v { // s: rv
 
 type rn = rune
 type rv = []rn
-type sf func(rv) i
+type sf func(rv) int
 
 type p struct {
 	b rv
@@ -312,7 +312,7 @@ const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 
 // Scanners return the rune count of the matched input or 0; input len > 1.
-func sNum(s rv) i { // number f | fjf, allow leading +
+func sNum(s rv) int { // number f | fjf, allow leading +
 	n := 0
 l:
 	for i, r := range s {
@@ -338,7 +338,7 @@ l:
 	}
 	return n
 }
-func sNam(s rv) i { // name [a-Z][_a-Z0-9]*
+func sNam(s rv) int { // name [a-Z][_a-Z0-9]*
 	a := func(r rn) bool {
 		if alpha(r) {
 			return true
@@ -360,7 +360,7 @@ func sNam(s rv) i { // name [a-Z][_a-Z0-9]*
 	}
 	return n
 }
-func sSym(s rv) i { // symbol `name|`string
+func sSym(s rv) int { // symbol `name|`string
 	if s[0] != '`' {
 		return 0
 	}
@@ -371,7 +371,7 @@ func sSym(s rv) i { // symbol `name|`string
 	}
 	return 1 + sNam(s[1:])
 }
-func sStr(s rv) i { // string "str\esc"
+func sStr(s rv) int { // string "str\esc"
 	if len(s) < 2 || s[0] != '"' {
 		return 0
 	}
@@ -390,7 +390,7 @@ func sStr(s rv) i { // string "str\esc"
 	}
 	return 0
 }
-func sVrb(s rv) i { // verb single rune ascii or unicode
+func sVrb(s rv) int { // verb single rune ascii or unicode
 	for _, r := range s {
 		if any(r, sym) || any(r, uni) {
 			return 1
@@ -399,13 +399,13 @@ func sVrb(s rv) i { // verb single rune ascii or unicode
 	}
 	return 0
 }
-func sAsn(s rv) i { // assignment verb:
+func sAsn(s rv) int { // assignment verb:
 	if n := sVrb(s); n != 0 && len(s) > n && s[n] == ':' {
 		return n + 1
 	}
 	return 0
 }
-func sIov(s rv) i { // io verb [0-9]:
+func sIov(s rv) int { // io verb [0-9]:
 	if len(s) < 2 {
 		return 0
 	}
@@ -414,7 +414,7 @@ func sIov(s rv) i { // io verb [0-9]:
 	}
 	return 0
 }
-func sAdv(s rv) i { // adverb ascii or unicode
+func sAdv(s rv) int { // adverb ascii or unicode
 	for i, r := range s {
 		if i == 0 && any(r, uav) {
 			return 1
@@ -428,13 +428,13 @@ func sAdv(s rv) i { // adverb ascii or unicode
 	}
 	return 0
 }
-func sSem(s rv) i { // ;|\n
+func sSem(s rv) int { // ;|\n
 	if any(s[0], ";\n") {
 		return 1
 	}
 	return 0
 }
-func sWsp(s rv) i { // whitespace
+func sWsp(s rv) int { // whitespace
 	for i, r := range s {
 		if !any(r, wsp) {
 			return i
@@ -442,9 +442,9 @@ func sWsp(s rv) i { // whitespace
 	}
 	return len(s)
 }
-func sCol(s rv) i { return pref(s, ":") }  // :
-func sViw(s rv) i { return pref(s, "::") } // ::
-func sDct(s rv) i { // dict [name:
+func sCol(s rv) int { return pref(s, ":") }  // :
+func sViw(s rv) int { return pref(s, "::") } // ::
+func sDct(s rv) int { // dict [name:
 	if len(s) < 2 || s[0] != '[' {
 		return 0
 	}
@@ -453,12 +453,12 @@ func sDct(s rv) i { // dict [name:
 	}
 	return 0
 }
-func sObr(s rv) i { return pref(s, "[") } // [
-func sOpa(s rv) i { return pref(s, "(") } // (
-func sOcb(s rv) i { return pref(s, "{") } // ]
-func sCbr(s rv) i { return pref(s, "]") } // ]
-func sCpa(s rv) i { return pref(s, ")") } // )
-func sCcb(s rv) i { return pref(s, "}") } // }
+func sObr(s rv) int { return pref(s, "[") } // [
+func sOpa(s rv) int { return pref(s, "(") } // (
+func sOcb(s rv) int { return pref(s, "{") } // ]
+func sCbr(s rv) int { return pref(s, "]") } // ]
+func sCpa(s rv) int { return pref(s, ")") } // )
+func sCcb(s rv) int { return pref(s, "}") } // }
 
 func any(r rn, s s) bool {
 	for _, x := range s {
