@@ -9,10 +9,6 @@ import (
 
 // monadic verbs
 func flp(x v) v { // +x ⍉x flip
-	if d, o := md(x); o {
-		d.f = !d.f
-		return d.mp()
-	}
 	n, m := ln(x), -1
 	if n < 0 {
 		return x
@@ -551,12 +547,6 @@ func fnd(x, y v) v { // l?a xl?yl find
 		return e("length")
 	}
 	if d, o := md(y); o {
-		if d.f {
-			for i := range d.k {
-				d.v[i] = fnd(x, d.v[i])
-			}
-			return d.mp()
-		}
 		for i := range d.k {
 			u := d.v[i]
 			d.v[i] = f(nx)

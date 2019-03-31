@@ -141,7 +141,6 @@ func ms(eT rT, n i) rV { // make slice from element type, but lists from slices
 
 type dict struct {
 	k, v l
-	f    bool         // flipped
 	t    reflect.Type // orig type
 }
 
@@ -152,7 +151,7 @@ func md(x interface{}) (d, bool) { // import maps and structs as dicts
 		off := 0
 		if h, ok := m["_"]; ok {
 			hdr := h.(dict)
-			d.f, d.k, off = hdr.f, cp(hdr.k).(l), 1
+			d.k, off = cp(hdr.k).(l), 1
 		}
 		n := len(m) - off
 		if off == 0 {
@@ -220,7 +219,7 @@ func md2(x, y interface{}) (dict, dict, bool) {
 func (d dict) mp() interface{} { // convert dict back to original type
 	if d.t == nil {
 		r := make(map[v]v)
-		r["_"] = dict{d.k, nil, d.f, nil}
+		r["_"] = dict{d.k, nil, nil}
 		for i, k := range d.k {
 			r[k] = d.v[i]
 		}
