@@ -19,7 +19,6 @@ type (
 	sv = []s
 	v  = interface{}
 	l  = []v
-	d  = dict
 )
 type rV = reflect.Value
 type rT = reflect.Type
@@ -50,7 +49,7 @@ func cp(x v) v {
 			r[i] = cp(t[i])
 		}
 		return r
-	case d:
+	case dict:
 		r := t
 		r.k, r.v = cp(t.k).(l), cp(t.v).(l)
 		return r
@@ -143,11 +142,11 @@ type dict struct {
 	t    reflect.Type // orig type
 }
 
-func md(x interface{}) (d, bool) { // import maps and structs as dicts
+func md(x interface{}) (dict, bool) { // import maps and structs as dicts
 	if m, o := x.([2]l); o {
 		return dict{cp(m[0]).(l), cp(m[1]).(l), nil}, true
 	}
-	var d d
+	var d dict
 	v := rval(x)
 	d.t = v.Type()
 	if kind := v.Kind(); kind == reflect.Map || kind == reflect.Struct {
