@@ -34,7 +34,7 @@ func flp(x v) v { // +x ⍉x flip
 	}
 	return cut(mul(n, (til(n-1))), rl)
 }
-func neg(x v) v { return nm(x, rneg, zneg, "Neg") } // -x negate
+func neg(x v) v { return nm(x, rneg, zneg) } // -x negate
 func fst(v v) v { // *x first
 	if d, o := md(v); o {
 		return fst(d.v)
@@ -46,9 +46,9 @@ func fst(v v) v { // *x first
 	}
 	return at(v, 0)
 }
-func sqr(x v) v { return nm(x, rsqr, zsqr, "Sqr") } // √x sqrt
-func inv(x v) v { return nm(x, rinv, zinv, "Inv") } // %x inverse
-func abs(x v) v { return nm(x, rabs, zabs, "Abs") } // ¯x absolute value
+func sqr(x v) v { return nm(x, rsqr, zsqr) } // √x sqrt
+func inv(x v) v { return nm(x, rinv, zinv) } // %x inverse
+func abs(x v) v { return nm(x, rabs, zabs) } // ¯x absolute value
 func til(x v) v { // !x ⍳x iota
 	if d, ok := md(x); ok {
 		return d.k
@@ -182,7 +182,7 @@ func grp(x v) v { // =x ⌸x group
 	}
 	return d.mp()
 }
-func not(x v) v { return nm(x, rnot, znot, "Not") } // ~x not
+func not(x v) v { return nm(x, rnot, znot) } // ~x not
 func enl(x v) v { // ,x enlist
 	if d, o := x.(dict); o {
 		return l{d}
@@ -212,10 +212,10 @@ func is0(x v) v { // ^x isnil, isnan
 			x = r
 		}
 	}
-	return nm(x, ris0, zis0, "Is0")
+	return nm(x, ris0, zis0)
 }
-func exp(x v) v { return nm(x, rexp, zexp, "Exp") } // ⍣x exponential
-func log(x v) v { return nm(x, rlog, zlog, "Log") } // ⍟x logarithm
+func exp(x v) v { return nm(x, rexp, zexp) } // ⍣x exponential
+func log(x v) v { return nm(x, rlog, zlog) } // ⍟x logarithm
 func cnt(x v) v { // #x ⍴x count, length
 	if d, o := md(x); o {
 		return f(len(d.k))
@@ -224,8 +224,8 @@ func cnt(x v) v { // #x ⍴x count, length
 	}
 	return f(1)
 }
-func flr(x v) v { return nm(x, rflr, zflr, "Flr") } // _x ⌊x floor
-func fmt(x v) v { return e("nyi") }                 // $x ⍕x format
+func flr(x v) v { return nm(x, rflr, zflr) } // _x ⌊x floor
+func fmt(x v) v { return e("nyi") }          // $x ⍕x format
 func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
 	xf, xz, vec, t := nv(x)
 	if vec {
@@ -281,12 +281,12 @@ func evl(x v) v { return e("nyi") } // .x ⍎x evaluate
 
 // dyadic verbs
 func add(x, y v) v {
-	return nd(x, y, radd, zadd, "Add")
+	return nd(x, y, radd, zadd)
 }                  // x+y add
-func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") } // x-y substract
-func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") } // x*x x×y multiply
-func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") } // x%y x÷y divide
-func mod(x, y v) v { return nd(x, y, rmod, zmod, "Mod") } // x!y modulo
+func sub(x, y v) v { return nd(x, y, rsub, zsub) } // x-y substract
+func mul(x, y v) v { return nd(x, y, rmul, zmul) } // x*x x×y multiply
+func div(x, y v) v { return nd(x, y, rdiv, zdiv) } // x%y x÷y divide
+func mod(x, y v) v { return nd(x, y, rmod, zmod) } // x!y modulo
 func mkd(x, y v) v { // xl!yl make dictionary
 	a, _ := ls(x)
 	b, _ := ls(y)
@@ -295,12 +295,12 @@ func mkd(x, y v) v { // xl!yl make dictionary
 	}
 	return dict{k: a, v: b}.mp()
 }
-func min(x, y v) v { return nd(x, y, rmin, zmin, "Min") }                   // x&y x⌊y minimum
-func max(x, y v) v { return nd(x, y, rmax, zmax, "Max") }                   // x|y x⌈y maximum
-func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles, "Les") } // x<y less than
-func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor, "Mor") } // x>y more than
-func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql, "Eql") } // x=y equal
-func pow(x, y v) v { return nd(x, y, rpow, zpow, "Pow") }                   // x⍣y power
+func min(x, y v) v { return nd(x, y, rmin, zmin) }                   // x&y x⌊y minimum
+func max(x, y v) v { return nd(x, y, rmax, zmax) }                   // x|y x⌈y maximum
+func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles) } // x<y less than
+func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor) } // x>y more than
+func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql) } // x=y equal
+func pow(x, y v) v { return nd(x, y, rpow, zpow) }                   // x⍣y power
 func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
 		return 0.0

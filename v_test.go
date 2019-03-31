@@ -30,9 +30,6 @@ func TestMV(t *testing.T) {
 		{"neg", neg, true, true},
 		{"neg", neg, uint16(4), uint16(65532)},
 		{"neg", neg, 1, -1},
-		{"neg", neg, mynum("33"), mynum("-33")},
-		{"neg", neg, []mynum{"a", "b", "c"}, []mynum{"-a", "-b", "-c"}},
-		{"neg", neg, myvec{"a", "b"}, myvec{"<a", "b>"}},
 		{"neg", neg, map[v]v{"a": fv{1, 2}}, map[v]v{"a": fv{-1.0, -2.0}}},
 		{"neg", neg, mystruct{true, 2.0, []myint{1, 2, 3}}, mystruct{true, -2.0, []myint{-1, -2, -3}}},
 		{"fst", fst, iv{5, 6, 7}, 5},
@@ -325,28 +322,8 @@ func c(r, i float64) complex128 { return complex(r, i) }
 // myint is a custom number type that is convertible.
 type myint int8
 
-// mynum is a custom type (a string), that implements numeric methods.
-type mynum string
-
-func (s mynum) Neg() v { return "-" + s }
-func (x mynum) Add(y v, l bool) v {
-	if l {
-		return mynum(_fmt.Sprintf("%s+%v", x, y))
-	}
-	return mynum(_fmt.Sprintf("%v+%s", y, x))
-}
-
 // mynum is a custom vector type, that implements numeric methods.
 type myvec []string
-
-func (s myvec) Neg() v { s[0] = "<" + s[0]; s[len(s)-1] += ">"; return s }
-func (s myvec) Add(y v, l bool) v {
-	if l {
-		s[0] = "~" + s[0]
-	}
-	s[len(s)-1] += _fmt.Sprintf("+%v", y)
-	return s
-}
 
 // mystruct is a custom dict type defined as a struct.
 type mystruct struct {

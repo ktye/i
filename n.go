@@ -79,20 +79,17 @@ type fr2 func(f, f) f
 type fz1 func(z) z
 type fz2 func(z, z) z
 
-func nm(x v, fr fr1, fz fz1, m method) v {
-	if r, ok := m.call1(x); ok {
-		return r
-	}
+func nm(x v, fr fr1, fz fz1) v {
 	if d, ok := md(x); ok {
 		for i, v := range d.v {
-			d.v[i] = nm(v, fr, fz, m)
+			d.v[i] = nm(v, fr, fz)
 		}
 		return d.mp()
 	}
 	if iv, ok := x.(l); ok {
 		r := make(l, len(iv))
 		for i := range r {
-			r[i] = nm(iv[i], fr, fz, m)
+			r[i] = nm(iv[i], fr, fz)
 		}
 		return r
 	}
@@ -110,11 +107,8 @@ func nm(x v, fr fr1, fz fz1, m method) v {
 	return vn(nil, z, vec, t)
 }
 
-func nd(x, y v, fr fr2, fz fz2, m method) v {
-	if r, ok := m.call2(x, y); ok {
-		return r
-	}
-	if r, ok := ndic(x, y, fr, fz, m); ok {
+func nd(x, y v, fr fr2, fz fz2) v {
+	if r, ok := ndic(x, y, fr, fz); ok {
 		return r
 	}
 
@@ -137,7 +131,7 @@ func nd(x, y v, fr fr2, fz fz2, m method) v {
 	if xl || yl {
 		r := make(l, xn) // TODO: make custom interface type, if both have the same type
 		for i := range r {
-			r[i] = nd(at(x, i), at(y, i), fr, fz, m)
+			r[i] = nd(at(x, i), at(y, i), fr, fz)
 		}
 		return r
 	}
@@ -191,7 +185,7 @@ func nd(x, y v, fr fr2, fz fz2, m method) v {
 	}
 	return vn(xr, xz, vec, nil)
 }
-func ndic(x, y v, fr fr2, fz fz2, me method) (v, bool) {
+func ndic(x, y v, fr fr2, fz fz2) (v, bool) {
 	xd, isx := md(x)
 	yd, isy := md(y)
 	if isx == false && isy == false {
@@ -204,15 +198,15 @@ func ndic(x, y v, fr fr2, fz fz2, me method) (v, bool) {
 		for i, k := range xd.k {
 			yi, v := yd.at(k)
 			if yi < 0 {
-				xd.v[i] = nd(xd.v[i], zero, fr, fz, me)
+				xd.v[i] = nd(xd.v[i], zero, fr, fz)
 			} else {
-				xd.v[i] = nd(xd.v[i], v, fr, fz, me)
+				xd.v[i] = nd(xd.v[i], v, fr, fz)
 			}
 		}
 		for i, k := range yd.k {
 			if idx, _ := xd.at(k); idx < 0 {
 				xd.k = append(xd.k, k)
-				xd.v = append(xd.v, nd(zero, yd.v[i], fr, fz, me))
+				xd.v = append(xd.v, nd(zero, yd.v[i], fr, fz))
 			}
 		}
 		if xd.t != yd.t {
@@ -237,58 +231,9 @@ func ndic(x, y v, fr fr2, fz fz2, me method) (v, bool) {
 		if flip {
 			x, y = y, x
 		}
-		d.v[i] = nd(x, y, fr, fz, me)
+		d.v[i] = nd(x, y, fr, fz)
 	}
 	return xd.mp(), true
-}
-
-type method string
-
-func (m method) call1(x v) (v, bool) {
-	v := rval(x)
-	t := v.Type()
-	if t.NumMethod() > 0 {
-		if m, ok := t.MethodByName(string(m)); ok {
-			return m.Func.Call([]rV{v})[0].Interface(), true
-		}
-	}
-	if v.Kind() == reflect.Slice {
-		t := t.Elem()
-		if t.NumMethod() == 0 {
-			return nil, false
-		}
-		n := v.Len()
-		if m, ok := t.MethodByName(string(m)); ok {
-			r := reflect.MakeSlice(v.Type(), n, n)
-			for i := 0; i < n; i++ {
-				y := m.Func.Call([]rV{v.Index(i)})[0].Interface()
-				r.Index(i).Set(rval(y))
-			}
-			return r.Interface(), true
-		}
-		return nil, false
-	}
-	return nil, false
-}
-
-func (m method) call2(x, y v) (v, bool) {
-	v := rval(x)
-	t := v.Type()
-	if t.NumMethod() > 0 {
-		if m, ok := t.MethodByName(string(m)); ok {
-			return m.Func.Call([]rV{v, rval(y), rval(true)})[0].Interface(), true
-		}
-	}
-	// TODO: apply to slices of values that implement the method.
-
-	v = rval(y)
-	t = v.Type()
-	if t.NumMethod() > 0 {
-		if m, ok := t.MethodByName(string(m)); ok {
-			return m.Func.Call([]rV{v, rval(x), rval(false)})[0].Interface(), true
-		}
-	}
-	return nil, false
 }
 
 func nv(x v) (fv, zv, bool, rT) { // import any number or numeric vector types
