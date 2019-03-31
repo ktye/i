@@ -18,6 +18,7 @@ Any Go variable present in the k-tree can be used as well:
   any map or struct            dict (string keys for structs)
   any numeric type             number
   any function can be called                          func(){}
+  get methods with @           f:mytype@`m;f[3] or mytype.m[3]
 
 Verbs
     a     l     a-a   l-a   a-l   l-l 

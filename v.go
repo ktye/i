@@ -602,6 +602,11 @@ func atx(x, y v, a map[v]v) v { // x@y at, index
 	}
 	if ny > 0 {
 		yl = true
+	} else if m, o := y.(s); o {
+		var zero rV
+		if f := rval(x).MethodByName(m); f != zero {
+			return f.Interface()
+		}
 	}
 	xdict, xd := md(x)
 	ydict, yd := md(y)

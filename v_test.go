@@ -303,6 +303,21 @@ func TestRnd(t *testing.T) {
 		}
 	}
 }
+func TestMethod(t *testing.T) {
+	testCases := []struct {
+		m s
+		x l
+		r v
+	}{
+		{"F0", nil, 2.0},
+		{"F1", l{2.0}, 3.0},
+		{"Fn", l{5.0, 6.0, 7.0}, 19.0},
+	}
+	for _, tc := range testCases {
+		r := cal(atx(myfloat(1.0), tc.m, nil), tc.x, nil)
+		tt(t, tc.r, r, "method %s %+v: %+v\n", tc.m, tc.x, tc.r)
+	}
+}
 
 func tt(t *testing.T, exp, got v, s string, a ...v) {
 	if m, ok := got.(map[v]v); ok {
@@ -332,8 +347,18 @@ type mystruct struct {
 	V []myint
 }
 
-// myfloat is a custom float type
+// myfloat is a custom float type with methods
 type myfloat float64
+
+func (r myfloat) F0() f    { return f(r) + 1 }
+func (r myfloat) F1(x f) f { return f(r) + x }
+func (r myfloat) Fn(x ...f) f {
+	s := f(r)
+	for _, y := range x {
+		s += y
+	}
+	return s
+}
 
 // mymap is a custom dict type defined as a map.
 type mymap map[string]int
