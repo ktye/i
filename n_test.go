@@ -7,13 +7,13 @@ func TestSn(t *testing.T) {
 		n s
 		x v
 		c bool
-		r fv
+		r zv
 	}{
-		{"sn", "", false, fv{0}},
-		{"sn", "a", false, fv{0}},
-		{"sn", sv{"a", "b"}, true, fv{0, 1}},
-		{"sn", sv{"b", "a"}, true, fv{1, 0}},
-		{"sn", sv{"x", "x", "", "b", "w", "b"}, true, fv{3, 3, 0, 1, 2, 1}},
+		{"sn", "", false, zv{0}},
+		{"sn", "a", false, zv{0}},
+		{"sn", sv{"a", "b"}, true, zv{0, 1}},
+		{"sn", sv{"b", "a"}, true, zv{1, 0}},
+		{"sn", sv{"x", "x", "", "b", "w", "b"}, true, zv{3, 3, 0, 1, 2, 1}},
 	}
 	for _, tc := range testCases {
 		r, c, ok := sn(tc.x)
@@ -31,12 +31,12 @@ func TestSn2(t *testing.T) {
 		x, y   v
 		rx, ry v
 	}{
-		{"sn2", "", "", 0.0, 0.0},
+		{"sn2", "", "", z0, z0},
 		{"sn2", "a", 13, "a", 13},
-		{"sn2", "a", "a", 0.0, 0.0},
-		{"sn2", "a", "b", 0.0, 1.0},
-		{"sn2", sv{"b", "a"}, "a", fv{1, 0}, fv{0}},
-		{"sn2", sv{"x", "x", "", "b", "w", "b"}, sv{"b", "a", "c", "z", "z", "z"}, fv{5, 5, 0, 2, 4, 2}, fv{2, 1, 3, 6, 6, 6}},
+		{"sn2", "a", "a", z0, z0},
+		{"sn2", "a", "b", z0, z1},
+		{"sn2", sv{"b", "a"}, "a", zv{1, 0}, zv{0}},
+		{"sn2", sv{"x", "x", "", "b", "w", "b"}, sv{"b", "a", "c", "z", "z", "z"}, zv{5, 5, 0, 2, 4, 2}, zv{2, 1, 3, 6, 6, 6}},
 	}
 	for _, tc := range testCases {
 		rx, ry := sn2(tc.x, tc.y)

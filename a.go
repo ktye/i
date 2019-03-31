@@ -3,7 +3,6 @@ package i
 
 import (
 	"math"
-	"math/cmplx"
 	"reflect"
 )
 
@@ -11,8 +10,6 @@ func P(s s) v            { return prs(rv(s)) }
 func E(l v, a map[v]v) v { return eva(l, kinit(a)) }
 
 type (
-	f  = float64
-	fv = []f
 	z  = complex128
 	zv = []z
 	s  = string
@@ -36,13 +33,10 @@ type cpr interface {
 }
 
 func cp(x v) v {
+	if k := rval(x).Kind(); k < reflect.Array || k == reflect.String {
+		return x
+	}
 	switch t := x.(type) {
-	case f:
-		return x
-	case z:
-		return x
-	case s:
-		return x
 	case l:
 		r := make(l, len(t))
 		for i := range r {
@@ -340,40 +334,10 @@ func impl(v v, t reflect.Type) reflect.Method {
 	}
 	return reflect.Method{}
 }
-
 func idx(v v) int {
-	var n int
-	var f float64
 	switch w := v.(type) {
-	case int:
-		return w
-	case float64:
-		f, n = w, int(w)
-	default:
-		f, n = re(v), int(f)
-	}
-	if float64(n) != f {
-		e("type") // rounding
-	}
-	return n
-}
-
-func re(v v) float64 {
-	switch w := v.(type) {
-	case float64:
-		return w
-	case bool:
-		if w {
-			return 1
-		}
-		return 0
-	case int:
-		return float64(w)
-	case complex128:
-		if cmplx.IsNaN(w) {
-			return math.NaN()
-		}
-		return real(w)
+	case z:
+		return int(real(w))
 	}
 	r := rval(v)
 	if k := r.Kind(); k == reflect.Bool {
@@ -382,18 +346,16 @@ func re(v v) float64 {
 		}
 		return 0
 	} else if k < reflect.Uint {
-		return float64(r.Int())
+		return int(r.Int())
+	} else if k < reflect.Uintptr {
+		return int(r.Uint())
 	}
-	return float64(r.Uint()) // panics
+	return int(r.Float())
 }
-func pi(v v) int { // to positive int
-	f := re(v)
-	if f < 0 {
+func pidx(v v) int { // to positive int
+	n := idx(v)
+	if n < 0 {
 		e("range")
-	}
-	n := int(f)
-	if float64(n) != f {
-		e("type")
 	}
 	return n
 }
@@ -402,8 +364,6 @@ func at(L v, i int) v {
 	switch t := L.(type) {
 	case l:
 		return cp(t[i])
-	case fv:
-		return t[i]
 	case zv:
 		return t[i]
 	}
@@ -417,9 +377,6 @@ func set(L v, i int, x v) {
 	switch t := L.(type) {
 	case l:
 		t[i] = x
-		return
-	case fv:
-		t[i] = x.(float64)
 		return
 	case zv:
 		t[i] = x.(complex128)

@@ -8,8 +8,17 @@ import (
 )
 
 type (
+	f  = float64
+	fv = []f
+	i  = int
 	iv = []int
 )
+
+const z0 = complex(0, 0)
+const z1 = complex(1, 0)
+const z2 = complex(2, 0)
+const z3 = complex(3, 0)
+const z4 = complex(4, 0)
 
 func TestMV(t *testing.T) {
 	type IV []int
@@ -51,25 +60,26 @@ func TestMV(t *testing.T) {
 		{"til", til, 3, iv{0, 1, 2}},
 		{"til", til, 0, iv{}},
 		{"til", til, 0.0, fv{}},
-		{"odo", odo, fv{2, 3}, l{fv{0, 0, 0, 1, 1, 1}, fv{0, 1, 2, 0, 1, 2}}},
-		{"odo", odo, l{true, 2, 1.0, c(3, 0)}, l{fv{0, 0, 0, 0, 0, 0}, fv{0, 0, 0, 1, 1, 1}, fv{0, 0, 0, 0, 0, 0}, fv{0, 1, 2, 0, 1, 2}}},
-		{"wer", wer, 3, fv{0, 0, 0}},
-		{"wer", wer, zv{3}, fv{0, 0, 0}},
-		{"wer", wer, []bool{false, false, true, false, true, true}, fv{2, 4, 5}},
-		{"wer", wer, l{false, 0, c(1, 0), 0.0, 1.0, myint(1)}, fv{2, 4, 5}},
+		{"til", til, z4, zv{0, 1, 2, 3}},
+		{"odo", odo, fv{2, 3}, l{zv{0, 0, 0, 1, 1, 1}, zv{0, 1, 2, 0, 1, 2}}},
+		{"odo", odo, l{true, 2, 1.0, c(3, 0)}, l{zv{0, 0, 0, 0, 0, 0}, zv{0, 0, 0, 1, 1, 1}, zv{0, 0, 0, 0, 0, 0}, zv{0, 1, 2, 0, 1, 2}}},
+		{"wer", wer, 3, zv{0, 0, 0}},
+		{"wer", wer, zv{3}, zv{0, 0, 0}},
+		{"wer", wer, []bool{false, false, true, false, true, true}, zv{2, 4, 5}},
+		{"wer", wer, l{false, 0, c(1, 0), 0.0, 1.0, myint(1)}, zv{2, 4, 5}},
 		{"rev", rev, fv{1, 2, 3}, fv{3, 2, 1}},
 		{"rev", rev, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"b", "a"}, l{2, 1}}},
-		{"asc", asc, 3, fv{0}},
-		{"asc", asc, fv{4, 5, 6}, fv{0, 1, 2}},
-		{"asc", asc, sv{"be", "g", "a"}, fv{2, 0, 1}},
+		{"asc", asc, 3, zv{0}},
+		{"asc", asc, fv{4, 5, 6}, zv{0, 1, 2}},
+		{"asc", asc, sv{"be", "g", "a"}, zv{2, 0, 1}},
 		{"asc", asc, map[v]f{"b": 3, "c": 2, "a": 5}, sv{"c", "b", "a"}},
-		{"asc", asc, "a", fv{0}},
-		{"asc", asc, sv{"b", "c", "alpha"}, fv{2, 0, 1}},
-		{"dsc", dsc, fv{5, -1, 3}, fv{0, 2, 1}},
-		{"dsc", dsc, sv{"b", "c", "alpha"}, fv{1, 0, 2}},
+		{"asc", asc, "a", zv{0}},
+		{"asc", asc, sv{"b", "c", "alpha"}, zv{2, 0, 1}},
+		{"dsc", dsc, fv{5, -1, 3}, zv{0, 2, 1}},
+		{"dsc", dsc, sv{"b", "c", "alpha"}, zv{1, 0, 2}},
 		{"eye", eye, 0, l{}},
-		{"eye", eye, 2, l{fv{1, 0}, fv{0, 1}}},
-		{"grp", grp, fv{1, 3, 3, 3, 1, 2}, [2]l{l{1.0, 3.0, 2.0}, l{fv{0, 4}, fv{1, 2, 3}, fv{5}}}},
+		{"eye", eye, 2, l{zv{1, 0}, zv{0, 1}}},
+		{"grp", grp, fv{1, 3, 3, 3, 1, 2}, [2]l{l{1.0, 3.0, 2.0}, l{zv{0, 4}, zv{1, 2, 3}, zv{5}}}},
 		{"not", not, 1, 0},
 		{"not", not, 1 + 2i, 0 + 0i},
 		{"not", not, 0 + 0i, 1 + 0i},
@@ -79,17 +89,17 @@ func TestMV(t *testing.T) {
 		{"enl", enl, iv{1, 2}, l{iv{1, 2}}},
 		{"enl", enl, IV{4, 5, 6}, l{IV{4, 5, 6}}},
 		{"is0", is0, 0, 0},
-		{"is0", is0, nil, 1.0},
+		{"is0", is0, nil, z1},
 		{"is0", is0, iv{}, iv{}},
 		{"is0", is0, l{1, math.NaN(), c(1, 0), c(1, math.NaN())}, l{0, 1.0, c(0, 0), c(1, 0)}},
 		{"exp", exp, l{0, c(1, 0)}, l{1, c(math.E, 0)}},
 		{"log", log, fv{1, 1.0 / math.E}, fv{0, -1}},
 		{"log", log, c(-1, 0), c(0, math.Pi)},
-		{"cnt", cnt, l{}, 0.0},
-		{"cnt", cnt, iv{1, 2, 3}, 3.0},
-		{"cnt", cnt, 4, 1.0},
-		{"cnt", cnt, "alpha", 1.0},
-		{"cnt", cnt, map[v]v{"a": iv{1, 2, 3}, "b": iv{2, 3, 4}}, 2.0},
+		{"cnt", cnt, l{}, z0},
+		{"cnt", cnt, iv{1, 2, 3}, z3},
+		{"cnt", cnt, 4, z1},
+		{"cnt", cnt, "alpha", z1},
+		{"cnt", cnt, map[v]v{"a": iv{1, 2, 3}, "b": iv{2, 3, 4}}, z2},
 		{"flr", flr, 3.5, 3.0},
 		// fmt TODO
 		{"unq", unq, l{}, l{}},
@@ -110,14 +120,14 @@ func TestDV(t *testing.T) {
 		f       func(v, v) v
 		x, y, r v
 	}{
-		{"add", add, 1, 2.0, 3.0},
-		{"add", add, 1.0, uint(3), 4.0},
+		{"add", add, 1, 2.0, z3},
+		{"add", add, 1.0, uint(3), z4},
 		{"add", add, iv{1, 2}, 3, iv{4, 5}},
 		{"add", add, iv{1, 2}, 3, iv{4, 5}},
 		{"add", add, 1, iv{2, 3}, iv{3, 4}},
 		{"add", add, 1, iv{2, 3}, iv{3, 4}},
 		{"add", add, iv{1, 2, 3}, iv{4, 5, 6}, iv{5, 7, 9}},
-		{"add", add, l{1, 2.0, 3}, 1, l{2, 3.0, 4}},
+		{"add", add, l{1, 2.0, 3}, 1, l{2, z3, 4}},
 		{"add", add, iv{1, 2}, l{1, iv{2, 3}}, l{2, iv{4, 5}}},
 		{"add", add, [2]l{l{"a", "b"}, l{1, 2.0}}, [2]l{l{"b"}, l{fv{3, 4}}}, [2]l{l{"a", "b"}, l{1.0, fv{5, 6}}}}, // zero value is 0.0
 		{"add", add, map[v]v{"a": false}, map[v]v{"a": true}, map[v]v{"a": true}},

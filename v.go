@@ -2,6 +2,7 @@ package i
 
 import (
 	"math"
+	"math/cmplx"
 	"math/rand"
 	"reflect"
 	"sort"
@@ -30,7 +31,7 @@ func flp(x v) v { // +x ⍉x flip
 	}
 	return cut(mul(n, (til(n-1))), rl)
 }
-func neg(x v) v { return nm(x, rneg, zneg) } // -x negate
+func neg(x v) v { return nm(x, func(x z) z { return -x }) } // -x negate
 func fst(v v) v { // *x first
 	if d, o := md(v); o {
 		return fst(d.v)
@@ -42,25 +43,25 @@ func fst(v v) v { // *x first
 	}
 	return at(v, 0)
 }
-func sqr(x v) v { return nm(x, rsqr, zsqr) } // √x sqrt
-func inv(x v) v { return nm(x, rinv, zinv) } // %x inverse
-func abs(x v) v { return nm(x, rabs, zabs) } // ¯x absolute value
+func sqr(x v) v { return nm(x, func(x z) z { return cmplx.Sqrt(x) }) }            // √x sqrt
+func inv(x v) v { return nm(x, func(x z) z { return 1 / x }) }                    // %x inverse
+func abs(x v) v { return nm(x, func(x z) z { return complex(cmplx.Abs(x), 0) }) } // ¯x absolute value
 func til(x v) v { // !x ⍳x iota
 	if d, ok := md(x); ok {
 		return d.k
 	}
-	f, z, vec, t := nv(x)
-	if z != nil || vec {
-		e("type") // !z
+	z, vec, t := nv(x)
+	if vec {
+		e("type")
 	}
-	if f[0] < 0 {
+	if real(z[0]) < 0 || imag(z[0]) != 0 {
 		return e("domain") // !-n
 	}
-	r := make(fv, int(f[0]))
+	r := make(zv, int(real(z[0])))
 	for i := range r {
-		r[i] = float64(i)
+		r[i] = zi(i)
 	}
-	return vn(r, nil, true, t)
+	return vn(r, true, t)
 }
 func odo(x v) v { // !l odometer
 	inc := func(idx, shp []int) {
@@ -78,7 +79,7 @@ func odo(x v) v { // !l odometer
 	}
 	shp, idx, r, m := make([]int, n), make([]int, n), make(l, n), 1
 	for i := range shp {
-		n = pi(at(x, i))
+		n = pidx(at(x, i))
 		if n == 0 {
 			return e("domain")
 		}
@@ -86,11 +87,11 @@ func odo(x v) v { // !l odometer
 		m *= n
 	}
 	for i := range shp {
-		r[i] = make(fv, m)
+		r[i] = make(zv, m)
 	}
 	for j := 0; j < m; j++ {
 		for i := range r {
-			r[i].(fv)[j] = f(idx[i])
+			r[i].(zv)[j] = zi(idx[i])
 		}
 		inc(idx, shp)
 	}
@@ -104,14 +105,14 @@ func wer(x v) v { // &x ⍸x where
 	xi := make([]int, nx)
 	n := 0
 	for i := range xi {
-		xi[i] = pi(at(x, i))
+		xi[i] = pidx(at(x, i))
 		n += xi[i]
 	}
-	r := make(fv, n)
+	r := make(zv, n)
 	j := 0
 	for i := range xi {
 		for k := 0; k < xi[i]; k++ {
-			r[j] = f(i)
+			r[j] = zi(i)
 			j++
 		}
 	}
@@ -141,17 +142,17 @@ func rev(x v) v { // |x ⌽x reverse
 func asc(x v) v { return grade(true, x) }  // <x ⍋x grade up
 func dsc(x v) v { return grade(false, x) } // >x ⍒x grade down
 func eye(x v) v { // =x unit matrix
-	f, _, vec, _ := nv(x)
+	f, vec, _ := nv(x)
 	if vec {
 		return e("rank")
 	}
-	if f == nil {
+	if imag(f[0]) != 0 || real(f[0]) < 0 {
 		return e("type")
 	}
-	n := int(f[0])
+	n := int(real(f[0]))
 	l := make(l, n)
 	for i := range l {
-		r := make(fv, n)
+		r := make(zv, n)
 		r[i], l[i] = 1, r
 	}
 	return l
@@ -166,19 +167,19 @@ func grp(x v) v { // =x ⌸x group
 	d.v = make(l, len(d.k))
 	m := make(map[v]int)
 	for i := range d.v {
-		d.v[i] = fv{}
+		d.v[i] = zv{}
 		m[d.k[i]] = i
 	}
 	for i := 0; i < n; i++ {
 		u := at(x, i)
 		j := m[u]
-		w := d.v[j].(fv)
-		w = append(w, f(i))
+		w := d.v[j].(zv)
+		w = append(w, zi(i))
 		d.v[j] = w
 	}
 	return d.mp()
 }
-func not(x v) v { return nm(x, rnot, znot) } // ~x not
+func not(x v) v { return nm(x, func(x z) z { return zter(x == 0, 1, 0) }) } // ~x not
 func enl(x v) v { // ,x enlist
 	if d, o := x.(dict); o {
 		return l{d}
@@ -194,73 +195,67 @@ func enl(x v) v { // ,x enlist
 }
 func is0(x v) v { // ^x isnil, isnan
 	if x == nil {
-		return 1.0
+		return zi(1)
 	} else if s, n, _, o := sy(x); o {
 		if n < 0 && s[0] == "" {
-			return 1.0
+			return zi(1)
 		} else if n >= 0 {
-			r := make(fv, len(s))
+			r := make(zv, len(s))
 			for i := range s {
 				if s[i] == "" {
-					r[i] = math.NaN()
+					r[i] = cmplx.NaN()
 				}
 			}
 			x = r
 		}
 	}
-	return nm(x, ris0, zis0)
+	z0 := func(x z) z {
+		if cmplx.IsNaN(x) {
+			return zi(1)
+		}
+		return zi(0)
+	}
+	return nm(x, z0)
 }
-func exp(x v) v { return nm(x, rexp, zexp) } // ⍣x exponential
-func log(x v) v { return nm(x, rlog, zlog) } // ⍟x logarithm
+func exp(x v) v { return nm(x, func(x z) z { return cmplx.Exp(x) }) } // ⍣x exponential
+func log(x v) v { return nm(x, func(x z) z { return cmplx.Log(x) }) } // ⍟x logarithm
 func cnt(x v) v { // #x ⍴x count, length
 	if d, o := md(x); o {
-		return f(len(d.k))
+		return zi(len(d.k))
 	} else if n := ln(x); n >= 0 {
-		return f(n)
+		return zi(n)
 	}
-	return f(1)
+	return zi(1)
 }
-func flr(x v) v { return nm(x, rflr, zflr) } // _x ⌊x floor
-func fmt(x v) v { return e("nyi") }          // $x ⍕x format
+func flr(x v) v {
+	return nm(x, func(x z) z { return complex(math.Floor(real(x)), math.Floor(imag(x))) })
+}               // _x ⌊x floor
+func fmt(x v) v { return e("nyi") } // $x ⍕x format
 func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
-	xf, xz, vec, t := nv(x)
+	xz, vec, _ := nv(x)
 	if vec {
 		return e("domain")
 	}
-	if xf == nil {
-		r := make(zv, int(math.Floor(real(xz[0])))) // complex(n,0)
+	if imag(xz[0]) != 0 {
+		r := make(zv, int(math.Floor(imag(xz[0])))) // complex(0,n)
 		for i := range r {
 			r[i] = complex(rand.NormFloat64(), rand.NormFloat64())
 		}
-		if t == rTz {
-			return r
-		}
-		s := ms(t, len(r))
-		for i := range r {
-			s.Index(i).Set(rval(r[i]).Convert(t))
-		}
-		return s.Interface()
+		return r
 	}
-	f, norm := xf[0], false
+	f, norm := real(xz[0]), false
 	if f < 0 {
 		f, norm = -f, true
 	}
-	r := make(fv, int(math.Floor(f)))
+	r := make(zv, int(math.Floor(f)))
 	for i := range r {
 		if norm {
-			r[i] = rand.NormFloat64()
+			r[i] = complex(rand.NormFloat64(), 0)
 		} else {
-			r[i] = rand.Float64()
+			r[i] = complex(rand.Float64(), 0)
 		}
 	}
-	if t == rTf {
-		return r
-	}
-	s := ms(t, len(r))
-	for i := range r {
-		s.Index(i).Set(rval(r[i]).Convert(t))
-	}
-	return s.Interface()
+	return r
 }
 func unq(x v) v { // ?x ∪x uniq
 	w, t := ls(x)
@@ -276,13 +271,11 @@ func typ(x v) v { return e("nyi") } // @x type of
 func evl(x v) v { return e("nyi") } // .x ⍎x evaluate
 
 // dyadic verbs
-func add(x, y v) v {
-	return nd(x, y, radd, zadd)
-}                  // x+y add
-func sub(x, y v) v { return nd(x, y, rsub, zsub) } // x-y substract
-func mul(x, y v) v { return nd(x, y, rmul, zmul) } // x*x x×y multiply
-func div(x, y v) v { return nd(x, y, rdiv, zdiv) } // x%y x÷y divide
-func mod(x, y v) v { return nd(x, y, rmod, zmod) } // x!y modulo
+func add(x, y v) v { return nd(x, y, func(x, y z) z { return x + y }) }                                  // x+y add
+func sub(x, y v) v { return nd(x, y, func(x, y z) z { return x - y }) }                                  // x-y substract
+func mul(x, y v) v { return nd(x, y, func(x, y z) z { return x * y }) }                                  // x*x x×y multiply
+func div(x, y v) v { return nd(x, y, func(x, y z) z { return x / y }) }                                  // x%y x÷y divide
+func mod(x, y v) v { return nd(x, y, func(x, y z) z { return complex(math.Mod(real(y), real(x)), 0) }) } // x!y modulo
 func mkd(x, y v) v { // xl!yl make dictionary
 	a, _ := ls(x)
 	b, _ := ls(y)
@@ -291,12 +284,12 @@ func mkd(x, y v) v { // xl!yl make dictionary
 	}
 	return dict{k: a, v: b}.mp()
 }
-func min(x, y v) v { return nd(x, y, rmin, zmin) }                   // x&y x⌊y minimum
-func max(x, y v) v { return nd(x, y, rmax, zmax) }                   // x|y x⌈y maximum
-func les(x, y v) v { x, y = sn2(x, y); return nd(x, y, rles, zles) } // x<y less than
-func mor(x, y v) v { x, y = sn2(x, y); return nd(x, y, rmor, zmor) } // x>y more than
-func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, reql, zeql) } // x=y equal
-func pow(x, y v) v { return nd(x, y, rpow, zpow) }                   // x⍣y power
+func min(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) < real(y), x, y) }) } // x&y x⌊y minimum
+func max(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), x, y) }) } // x|y x⌈y maximum
+func les(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) < real(y), 1, 0) }) } // x<y less than
+func mor(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), 1, 0) }) } // x>y more than
+func eql(x, y v) v { return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) }            // x=y equal
+func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }               // x⍣y power
 func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
 		return 0.0
@@ -400,11 +393,7 @@ func tak(x, y v) v { // x#y take
 	if ny <= 0 {
 		y, ny = enl(y), 1
 	}
-	p := re(x)
-	n := int(p)
-	if f(n) != p {
-		return e("type")
-	}
+	n := idx(x)
 	a := 0
 	if n < 0 {
 		a = ny + n
@@ -434,23 +423,15 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 	if nx <= 0 {
 		x, nx = enl(x), 1
 	}
-	xv := make(fv, nx)
+	a, b, c := at(x, 0).(z), at(x, nx-1).(z), 0
+	xv := make([]int, nx)
 	for i := range xv {
-		u := at(x, i)
-		switch t := u.(type) {
-		case f:
-			xv[i] = t
-		case int:
-			xv[i] = f(t)
-		default:
-			e("type")
-		}
+		xv[i] = idx(at(x, i))
 	}
-	a, b, c := xv[0], xv[len(xv)-1], 0
 	var rshr func(x, y v, i int) v
 	rshr = func(x, y v, i int) v {
 		nx, ny := ln(x), ln(y)
-		return krange(int(xv[i]), func(z int) v {
+		return krange(xv[i], func(z int) v {
 			if i == nx-1 {
 				c++
 				return at(y, (c-1)%ny)
@@ -458,13 +439,13 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 			return rshr(x, y, i+1)
 		})
 	}
-	if math.IsNaN(a) {
+	if cmplx.IsNaN(a) {
 		if ny == 0 {
 			return y
 		}
-		return cut(krange(int(math.Ceil(f(ny)/b)), func(z int) v { return z * int(b) }), y)
-	} else if math.IsNaN(b) {
-		return cut(krange(int(a), func(z int) v { return z * ny / int(a) }), y)
+		return cut(krange(int(math.Ceil(float64(ny)/real(b))), func(z int) v { return z * idx(b) }), y)
+	} else if cmplx.IsNaN(b) {
+		return cut(krange(idx(a), func(z int) v { return z * ny / idx(a) }), y)
 	}
 	return rshr(x, y, 0)
 }
@@ -486,7 +467,7 @@ func drp(x, y v) v { // x_y x↓y drop
 	if ln(x) >= 0 {
 		return e("length")
 	}
-	j := int(re(x))
+	j := idx(x)
 	y = cp(y)
 	if (j < 0 && j+n <= 0) || (j > 0 && n-j <= 0) {
 		return ms(rtyp(y).Elem(), 0).Interface()
@@ -498,7 +479,7 @@ func drp(x, y v) v { // x_y x↓y drop
 }
 func cut(x, y v) v { // x_y cut
 	return kzip(x, cat(drp(1, x), cnt(y)), func(a, b v) v {
-		pa, pb := pi(a), pi(b)
+		pa, pb := pidx(a), pidx(b)
 		r := make(l, pb-pa)
 		for i := pa; i < pb; i++ {
 			r[i-pa] = at(y, i)
@@ -509,11 +490,7 @@ func cut(x, y v) v { // x_y cut
 }
 func cst(x, y v) v { return e("nyi") } // x$y x⌶y cast
 func rnd(x, y v) v { // x?y random, roll, -x?y deal
-	ff := re(x)
-	n := int(ff)
-	if f(n) != ff {
-		return e("type")
-	}
+	n := idx(x)
 	ny := ln(y)
 	if ny < 0 {
 		y = til(y)
@@ -536,7 +513,7 @@ func rnd(x, y v) v { // x?y random, roll, -x?y deal
 		}
 		r = make(l, n)
 		for i := range r {
-			r[i] = ll[int(math.Round(f(ny)*rand.Float64()))]
+			r[i] = ll[int(math.Round(float64(ny)*rand.Float64()))]
 		}
 	}
 	return sl(r, rT)
@@ -549,10 +526,10 @@ func fnd(x, y v) v { // l?a xl?yl find
 	if d, o := md(y); o {
 		for i := range d.k {
 			u := d.v[i]
-			d.v[i] = f(nx)
+			d.v[i] = zi(nx)
 			for j := 0; j < nx; j++ {
 				if mch(at(x, j), u) == 1.0 {
-					d.v[i] = f(j)
+					d.v[i] = zi(j)
 					break
 				}
 			}
@@ -563,12 +540,12 @@ func fnd(x, y v) v { // l?a xl?yl find
 	if ny < 1 {
 		y, ny, vec = enl(y), 1, false
 	}
-	r := make(fv, ny)
+	r := make(zv, ny)
 	for i := range r {
 		for j := 0; j < nx; j++ {
-			r[i] = f(nx)
+			r[i] = zi(nx)
 			if mch(at(x, j), at(y, i)) == 1.0 {
-				r[i] = f(j)
+				r[i] = zi(j)
 				break
 			}
 		}
@@ -715,9 +692,14 @@ func grade(up bool, x v) v {
 		x = enl(x)
 	}
 	x = cp(x)
+
 	switch t := x.(type) {
-	case fv:
-		x = sort.Float64Slice(t)
+	case zv:
+		f := make([]float64, len(t))
+		for i := range t {
+			f[i] = real(t[i])
+		}
+		x = sort.Float64Slice(f)
 	case sv:
 		x = sort.StringSlice(t)
 	}
@@ -725,9 +707,9 @@ func grade(up bool, x v) v {
 		if !up {
 			d = sort.Reverse(d)
 		}
-		i := make(fv, d.Len())
+		i := make(zv, d.Len())
 		for n := range i {
-			i[n] = f(n)
+			i[n] = zi(n)
 		}
 		sort.Sort(grades{d, i})
 		return i
@@ -739,19 +721,13 @@ func grade(up bool, x v) v {
 		}
 		x = u
 	}
-	fv, zv, vec, _ := nv(x)
-	switch {
-	case vec && fv != nil:
-		return grade(up, fv)
-	case vec && zv != nil:
-		return grade(up, zv)
-	}
-	return e("type")
+	zv, _, _ := nv(x)
+	return grade(up, zv)
 }
 
 type grades struct {
 	sort.Interface
-	idx fv
+	idx zv
 }
 
 func (s grades) Swap(i, j int) {

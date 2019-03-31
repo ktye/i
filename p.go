@@ -144,21 +144,10 @@ func (p *p) noun() v {
 	// TODO ioverb
 	case p.t(sNum):
 		r := zv{}
-		c := false
 		for p.t(sNum) {
-			x, ic := p.num(p.p(sNum))
-			r, c = append(r, x), c || ic
+			r = append(r, p.num(p.p(sNum)))
 		}
-		switch {
-		case !c && len(r) == 1:
-			return p.idxr(real(r[0]))
-		case !c:
-			fv := make(fv, len(r))
-			for i := range r {
-				fv[i] = real(r[i])
-			}
-			return p.idxr(fv)
-		case c && len(r) == 1:
+		if len(r) == 1 {
 			return p.idxr(r[0])
 		}
 		return p.idxr(r)
@@ -232,8 +221,8 @@ func (p *p) adv(left, w v) v {
 	}
 	return l{l{a, w}, left, r}
 }
-func (p *p) num(s s) (z, bool) {
-	pf := func(s string) f {
+func (p *p) num(s s) z {
+	pf := func(s string) float64 {
 		f, o := strconv.ParseFloat(s, 64)
 		if o != nil {
 			e("num")
@@ -245,21 +234,21 @@ func (p *p) num(s s) (z, bool) {
 			rp := pf(s[:i])
 			switch j := s[i+1:]; j {
 			case "0":
-				return complex(rp, 0), true
+				return complex(rp, 0)
 			case "90":
-				return complex(0, rp), true
+				return complex(0, rp)
 			case "180":
-				return complex(-rp, 0), true
+				return complex(-rp, 0)
 			case "270":
-				return complex(0, -rp), true
+				return complex(0, -rp)
 			default:
-				return cmplx.Rect(rp, math.Pi*pf(j)/180.0), true
+				return cmplx.Rect(rp, math.Pi*pf(j)/180.0)
 			}
 		} else if r == 'i' {
-			return complex(pf(s[:i]), pf(s[i+1:])), true
+			return complex(pf(s[:i]), pf(s[i+1:]))
 		}
 	}
-	return complex(pf(s), 0), false
+	return complex(pf(s), 0)
 }
 func (p *p) sym(s s) s { // `a | `"a"
 	if len(s) < 4 || s[1] != '"' {
