@@ -280,7 +280,9 @@ func typ(x v) v { return e("nyi") } // @x type of
 func evl(x v) v { return e("nyi") } // .x ⍎x evaluate
 
 // dyadic verbs
-func add(x, y v) v { return nd(x, y, radd, zadd, "Add") } // x+y add
+func add(x, y v) v {
+	return nd(x, y, radd, zadd, "Add")
+}                  // x+y add
 func sub(x, y v) v { return nd(x, y, rsub, zsub, "Sub") } // x-y substract
 func mul(x, y v) v { return nd(x, y, rmul, zmul, "Mul") } // x*x x×y multiply
 func div(x, y v) v { return nd(x, y, rdiv, zdiv, "Div") } // x%y x÷y divide
@@ -684,10 +686,31 @@ func ovd(f, x, y v, a map[v]v) v { // x f2/y over initial
 	}
 	return x
 }
-func sfx(f, x v, a map[v]v) v    { return e("nyi") } // f1\x scan fixed
-func scn(f, x v, a map[v]v) v    { return e("nyi") } // f2\x scan
+func sfx(f, x v, a map[v]v) v { return e("nyi") } // f1\x scan fixed
+func scn(f, x v, a map[v]v) v { // f2\x scan
+	// TODO initial value
+	w, t := ls(x)
+	r := make(l, len(w))
+	r[0] = w[0]
+	for i, u := range w[1:] {
+		r[i+1] = cal(f, l{r[i], u}, a)
+	}
+	return sl(r, t)
+}
 func swl(f, x, y v, a map[v]v) v { return e("nyi") } // x f1\y scan for, g1 f1\y scan while
-func sci(f, x, y v, a map[v]v) v { return e("nyi") } // x f2\x scan initial
+func sci(f, x, y v, a map[v]v) v { // x f2\x scan initial
+	w, t := ls(y)
+	nx := ln(x)
+	r := make(l, len(w))
+	for i, u := range w {
+		x = cal(f, l{x, u}, a)
+		r[i] = cp(x)
+	}
+	if nx < 0 {
+		return sl(r, t)
+	}
+	return r
+}
 
 func grade(up bool, x v) v {
 	if d, o := md(x); o {

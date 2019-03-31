@@ -6,22 +6,18 @@ Package interface (2 functions, no types):
   //k-tree: a map[interface{}]interface{}
 
 Types
-    float64,   complex128      numbers
-  []float64, []complex128      uniform vectors
-  []interface{}                list
-  []rune                       character array
-  string                       symbol
-  map[interface{}]interface{}  dict (`_ is reserved)
-  func                         function
-Any Go variable that is present in the k-tree can be used as well:
-  any slice                    list
+    float64,   complex128      numbers    1 -2.3 5e6 1i0 3a270
+  []float64, []complex128      uniform vectors       1 2.3 -55
+  []interface{}                list       (1;2;3;`b;"x";(4;5))
+  []rune                       character array   "alpha\nbeta"
+  string                       symbol  `single  `a`symbol`list
+  map[interface{}]interface{}  dict (`_ is reserved) [a:1;b:2]
+  func                         function                      +
+Any Go variable present in the k-tree can be used as well:
+  any slice                    list                 []mytype{}
   any map or struct            dict (string keys for structs)
   any numeric type             number
-  any function can be called
-  any type implementing a verb interface can be used:
-    monadic: func (t myType) Neg() interface{}
-    dyadic:  func (t myType) Add(y interface{}, tLeft bool) interface{}
-  called for each scalar, or a single call if t is a slice
+  any function can be called                          func(){}
 
 Verbs
     a     l     a-a   l-a   a-l   l-l 
@@ -48,13 +44,13 @@ $   fmt  [fmt]  cst   cst   cst   cst   ⍕
 \    -     -     -    upk   spl   -      
                                                  
 Adverbs                           
-    mv/nv dv    l-mv  l-dv        x⍺ y⍵ o∇
-'   ech   ecd   ecd   ecd   ¨     prs evl
+    mv/nv dv    l-mv  l-dv        x⍺   y⍵   o∇
+'   ech   ecd   ecd   ecd   ¨     prs  evl
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
-\:   -     -    ecl   ecl   ⍀     sin cos tan
-/   fidx  ovr   whl   ovd         abs‖ ang deg
-\   sfx   scn   swl   sci         reℜ imℑ con
+\:   -     -    ecl   ecl   ⍀     sin  cos  tan
+/   fidx  ovr   whl   ovd         abs‖ ang  deg
+\   sfx   scn   swl   sci         reℜ  imℑ  con
 
 Ref
   github.com/JohnEarnest/ok

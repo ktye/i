@@ -103,7 +103,9 @@ func (p *p) ex(a v) v {
 	if a == nil {
 		return nil
 	}
-	// TODO next is adverb
+	if p.t(sAdv) {
+		return p.adv(nil, a)
+	}
 	if str(a) && sVrb(rv(a.(s))) > 0 { // vrb // TODO: !node.r
 		// TODO at (
 		x := p.noun()
@@ -115,7 +117,9 @@ func (p *p) ex(a v) v {
 	if p.t(sVrb) || p.t(sIov) {
 		x := p.noun()
 		// TODO force monad
-		// TODO next is adverb
+		if p.t(sAdv) {
+			return p.adv(a, x)
+		}
 		if r := p.ex(p.noun()); r != nil {
 			return l{x, a, r}
 		}
@@ -213,6 +217,20 @@ func (p *p) noun() v {
 		// TODO compound assign []
 	}
 	return nil
+}
+func (p *p) adv(left, w v) v {
+	a := p.p(sAdv)
+	for p.t(sAdv) {
+		b := p.p(sAdv)
+		w = l{a, w}
+		a = b
+	}
+	// TODO [] callright
+	r := p.ex(p.noun())
+	if left == nil {
+		return l{l{a, w}, r}
+	}
+	return l{l{a, w}, left, r}
 }
 func (p *p) num(s s) (z, bool) {
 	pf := func(s string) f {

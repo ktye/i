@@ -475,7 +475,7 @@ func kinit(a map[v]v) map[v]v {
 		"+": v6{flp, flp, add, add, add, add},
 		"⍉": v6{flp, nil, nil, nil, nil, nil},
 		"-": v6{neg, neg, sub, sub, sub, sub},
-		"*": v6{fst, fst, mul, nil, nil, nil},
+		"*": v6{fst, fst, mul, mul, mul, mul},
 		"×": v6{nil, nil, mul, mul, mul, mul},
 		"%": v6{inv, inv, div, div, div, div},
 		"÷": v6{inv, inv, div, div, div, div},
@@ -585,12 +585,11 @@ func kinit(a map[v]v) map[v]v {
 				}
 				in := make([]rV, len(w)+2)
 				in[0] = rval(f)
-				in[1] = rval(w[0])
-				if len(w) == 2 {
-					in[2] = rval(w[1])
+				for i := range w {
+					in[i+1] = rval(w[i])
 				}
 				in[len(in)-1] = rval(a)
-				r := rval(f).Call(in)
+				r := rval(g).Call(in)
 				return r[0].Interface()
 			}
 		}
@@ -633,10 +632,10 @@ $   fmt  [fmt]  cst   cst   cst   cst   ⍕
 \    -     -     -    upk   spl   -      
                                                  
 Adverbs                           
-    mv/nv dv    l-mv  l-dv        x⍺ y⍵ o∇
-'   ech   ecd   ecd   ecd   ¨     prs evl
+    mv/nv dv    l-mv  l-dv        x⍺   y⍵   o∇
+'   ech   ecd   ecd   ecd   ¨     prs  evl
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
-\:   -     -    ecl   ecl   ⍀     sin cos tan
-/   fidx  ovr   whl   ovd         abs‖ ang deg
-\   sfx   scn   swl   sci         reℜ imℑ con`
+\:   -     -    ecl   ecl   ⍀     sin  cos  tan
+/   fidx  ovr   whl   ovd         abs‖ ang  deg
+\   sfx   scn   swl   sci         reℜ  imℑ  con`

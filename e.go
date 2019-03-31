@@ -1,6 +1,8 @@
 package i
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func eva(x v, a map[v]v) v {
 	if sy, o := x.(s); o {
@@ -43,6 +45,8 @@ func eva(x v, a map[v]v) v {
 		f := l[0]
 		if u, o := f.(s); o {
 			f = lup(a, u)
+		} else if u, o := f.([]v); o {
+			f = ead(u, a)
 		}
 		if k := rval(f).Kind(); k != reflect.Func {
 			return e("type:func?" + k.String())
@@ -67,11 +71,16 @@ func eva(x v, a map[v]v) v {
 		for i := len(l) - 1; i > 0; i-- { // right to left
 			l[i] = eva(l[i], a)
 		}
-		return cal(l[0], l[1:], a)
+		return cal(f, l[1:], a)
 	}
 	return e("impossible")
 }
-
+func ead(u l, a map[v]v) v { // evaluate adverb expr
+	// TODO: verb trains
+	af := lup(a, u[0].(s)).(func(v) v)
+	w := eva(u[1], a)
+	return af(w) // func(...v)v
+}
 func lup(a map[v]v, s s) v { // lookup
 	if r := a[s]; r != nil {
 		return r
