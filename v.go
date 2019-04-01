@@ -631,6 +631,11 @@ func cal(x, y v, a map[v]v) v { // x.y call
 			in[i] = rval(yl[i])
 		}
 	}
+	/*
+		if t := f.Type(); t.NumIn() == len(in)+1 && t.In(len(in)) == rtyp(a) {
+			in = append(in, rval(a))
+		}
+	*/
 	r = f.Call(in)
 	if len(r) == 0 {
 		return nil
@@ -647,8 +652,41 @@ func dmd(x, y, z, w v) v { return e("nyi") } // dmend
 func win(x, y v) v       { return e("nyi") }
 
 // adverbs
-func ech(f, x v, a map[v]v) v    { return e("nyi") } // f1'x  f1¨x each
-func ecd(f, x v, a map[v]v) v    { return e("nyi") } // f2'x  f2¨x each dyad
+func ech(f, x v, a map[v]v) v { // f1'x  f1¨x each
+	if n := ln(x); n < 0 {
+		return atx(f, x, a)
+	}
+	xl, t := ls(x)
+	r := make(l, len(xl))
+	for i := range r {
+		r[i] = cal(f, l{xl[i]}, a)
+	}
+	return sl(r, t)
+}
+func ecd(f, x, y v, a map[v]v) v { // x f2'y  x f2¨y each dyad
+	nx, ny := ln(x), ln(y)
+	if nx < 0 && ny < 0 {
+		return cal(f, l{x, y}, a)
+	}
+	if nx < 0 {
+		x, nx = rsh(ny, x), ny
+	} else if ny < 0 {
+		y, ny = rsh(nx, y), nx
+	}
+	if nx != ny {
+		return e("size")
+	}
+	xl, xt := ls(x)
+	yl, yt := ls(y)
+	r := make(l, nx)
+	for i := range r {
+		r[i] = cal(f, l{xl[i], yl[i]}, a)
+	}
+	if xt == yt {
+		return sl(r, xt)
+	}
+	return r
+}
 func ecp(f, x v, a map[v]v) v    { return e("nyi") } // f1':x  f1⍨x each prior
 func eci(f, x, y v, a map[v]v) v { return e("nyi") } // x f2':y  x f2⍨y each prior initial
 func ecr(f, x, y v, a map[v]v) v { return e("nyi") } // x f/:y  x f⌿y each right
