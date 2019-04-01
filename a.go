@@ -409,7 +409,7 @@ func kinit(a map[v]v) map[v]v {
 		"%": v6{inv, inv, div, div, div, div},
 		"÷": v6{inv, inv, div, div, div, div},
 		"√": v6{sqr, sqr, nrt, nrt, nrt, nrt},
-		"‖": v6{abs, abs, nil, nil, nil, nil},
+		"‖": v6{abs, abs, pol, pol, pol, pol},
 		"ℜ": v6{zre, zre, nil, nil, nil, nil},
 		"ℑ": v6{zim, zim, nil, nil, nil, nil},
 		"⍣": v6{exp, exp, pow, pow, pow, pow},
@@ -549,7 +549,7 @@ func kinit(a map[v]v) map[v]v {
 		// TODO o∇
 		"inf": math.Inf(1), "∞": math.Inf(1), "nan": math.NaN(), "ø": math.NaN(),
 		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn,
-		"abs": abs, "ang": ang, "deg": deg, "re": zre, "im": zim, "con": con,
+		"abs": abs, "ang": ang, "deg": deg, "re": zre, "im": zim, "con": con, "pol": pol,
 	} {
 		a[k] = u
 	}

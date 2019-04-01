@@ -307,8 +307,11 @@ func mor(x, y v) v {
 	return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), 1, 0) })
 }                  // x>y more than
 func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) } // x=y equal
-func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }                      // x⍣y power
-func nrt(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(y, 1/x) }) }                    // x√y nth root
+func pol(x, y v) v { // x‖y complex from abs and deg
+	return nd(x, y, func(x, y z) z { return cmplx.Rect(real(x), real(y)*math.Pi/180.0) })
+}
+func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }   // x⍣y power
+func nrt(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(y, 1/x) }) } // x√y nth root
 func lgn(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Log(y) / cmplx.Log(x) }) }
 func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
