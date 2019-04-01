@@ -3,6 +3,7 @@ package i
 
 import (
 	"math"
+	"math/cmplx"
 	"reflect"
 )
 
@@ -385,6 +386,19 @@ func set(L v, i int, x v) {
 	rval(L).Index(i).Set(rval(x))
 }
 
+type nfn func(w ...v) v // func that knows it's name
+func (f nfn) def() v { // def value for over.
+	s := f().(s)
+	switch s {
+	case "+", "/", "÷":
+		return complex(0, 0)
+	case "*", "×", "&", "⌊":
+		return complex(1, 0)
+	default:
+		return cmplx.NaN()
+	}
+}
+
 func kinit(a map[v]v) map[v]v {
 	if len(a) > 0 {
 		return a
@@ -436,10 +450,12 @@ func kinit(a map[v]v) map[v]v {
 	}
 	for _s, _u := range vtab {
 		s, u := _s, _u
-		a[s] = func(w ...v) v {
+		a[s] = nfn(func(w ...v) v {
 			var f v
 			var cs int
-			if len(w) < 1 || len(w) > 2 {
+			if len(w) == 0 {
+				return s
+			} else if len(w) > 2 {
 				return e(s + ":args")
 			}
 			if rval(w[0]).Kind() == reflect.Slice {
@@ -473,7 +489,7 @@ func kinit(a map[v]v) map[v]v {
 				return out[0].Interface()
 			}
 			return nil
-		}
+		})
 	}
 	type v4 [4]v
 	atab := map[s]v4{

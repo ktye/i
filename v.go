@@ -687,15 +687,31 @@ func ecd(f, x, y v, a map[v]v) v { // x f2'y  x f2¨y each dyad
 	}
 	return r
 }
-func ecp(f, x v, a map[v]v) v    { return e("nyi") } // f1':x  f1⍨x each prior
+func ecp(f, x v, a map[v]v) v { // f1':x  f1⍨x each prior
+	if xn := ln(x); xn < 1 {
+		return x // same as k4
+	}
+	xl, t := ls(x)
+	r := make(l, len(xl))
+	r[0] = cp(xl[0])
+	for i := 1; i < len(r); i++ {
+		r[i] = cal(f, l{xl[i], xl[i-1]}, a)
+	}
+	return sl(r, t)
+}
 func eci(f, x, y v, a map[v]v) v { return e("nyi") } // x f2':y  x f2⍨y each prior initial
 func ecr(f, x, y v, a map[v]v) v { return e("nyi") } // x f/:y  x f⌿y each right
 func ecl(f, x, y v, a map[v]v) v { return e("nyi") } // x f\:y  x f⍀y each left
 func fix(f, x v, a map[v]v) v    { return e("nyi") } // f1/x fixed point
 func ovr(f, x v, a map[v]v) v { // f2/x
-	// TODO initial values
-	// TODO length 0, 1
+	nx := ln(x)
+	if nx <= 0 { // no default values, but empty list, like k4
+		return x
+	}
 	w, _ := ls(x)
+	if nx == 1 {
+		return w[0]
+	}
 	return ovd(f, w[0], w[1:], a)
 }
 func whl(f, x, y v, a map[v]v) v { return e("nyi") } // n f1/y for, g1 f1/y while

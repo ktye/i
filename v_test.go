@@ -237,6 +237,7 @@ func TestAdv(t *testing.T) {
 		{"ecd", ecd, div, iv{8, 15}, iv{4, 5}, iv{2, 3}},
 		{"ecd", ecd, div, 12, iv{3, 4}, iv{4, 3}},
 		{"ecd", ecd, div, iv{12, 15}, 3, iv{4, 5}},
+		{"ecp", ecp, sub, iv{8, 2, 5}, nil, iv{8, -6, 3}},
 	}
 	for _, tc := range testCases {
 		var r v
@@ -326,7 +327,7 @@ func (r myfloat) Fn(x ...f) f {
 type mymap map[string]int
 
 func printf(f s, v ...v) {
-	if !testing.Verbose() { // toggle test output
+	if testing.Verbose() { // toggle test output
 		_fmt.Printf(f, v...)
 	}
 }
