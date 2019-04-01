@@ -54,8 +54,7 @@ func prs(s v) v { // s: rv
 	return append(l{";"}, r...)
 }
 
-type rn = rune
-type rv = []rn
+type rv = []rune
 type sf func(rv) int
 
 type p struct {
@@ -97,7 +96,7 @@ func (p *p) w() *p { // remove wsp
 }
 func (p *p) ex(a v) v {
 	atNoun := func() bool {
-		return p.t(sNum) || p.t(sNam) || p.t(sSym) || p.t(sStr) || p.t(sOpa) || p.t(sOcb)
+		return p.t(sNum) || p.t(sNam) || p.t(sStr) || p.t(sOpa) || p.t(sOcb)
 	}
 	str := func(x v) bool { _, o := x.(s); return o }
 	if a == nil {
@@ -151,19 +150,13 @@ func (p *p) noun() v {
 			return p.idxr(r[0])
 		}
 		return p.idxr(r)
-	case p.t(sSym):
+	case p.t(sStr):
 		r := sv{}
-		for p.t(sSym) {
-			r = append(r, p.sym(p.p(sSym)))
+		for p.t(sStr) {
+			r = append(r, p.str(p.p(sStr)))
 		}
 		if len(r) == 1 {
 			return l{"`", r[0]}
-		}
-		return p.idxr(r)
-	case p.t(sStr):
-		r := p.str(p.p(sStr))
-		if len(r) == 1 {
-			return r[0]
 		}
 		return p.idxr(r)
 	case p.t(sObr):
@@ -250,18 +243,15 @@ func (p *p) num(s s) z {
 	}
 	return complex(pf(s), 0)
 }
-func (p *p) sym(s s) s { // `a | `"a"
-	if len(s) < 4 || s[1] != '"' {
+func (p *p) str(s s) s { // "string" | `name
+	if s[0] == '`' {
 		return s[1:]
 	}
-	return s[2 : len(s)-1]
-}
-func (p *p) str(s s) rv {
 	s, o := strconv.Unquote(s)
 	if o != nil {
 		e("str")
 	}
-	return rv(s)
+	return s
 }
 func (p *p) lst(term sf) l {
 	r := l{}
@@ -328,7 +318,7 @@ l:
 	return n
 }
 func sNam(s rv) int { // name [a-Z][_a-Z0-9]*
-	a := func(r rn) bool {
+	a := func(r rune) bool {
 		if alpha(r) {
 			return true
 		}
@@ -349,18 +339,13 @@ func sNam(s rv) int { // name [a-Z][_a-Z0-9]*
 	}
 	return n
 }
-func sSym(s rv) int { // symbol `name|`string
-	if s[0] != '`' {
-		return 0
+func sStr(s rv) int { // string `name | "str\esc"
+	if s[0] == '`' {
+		if len(s) == 1 {
+			return 1
+		}
+		return 1 + sNam(s[1:])
 	}
-	if len(s) == 1 {
-		return 1
-	} else if n := sStr(s[1:]); n > 0 {
-		return 1 + n
-	}
-	return 1 + sNam(s[1:])
-}
-func sStr(s rv) int { // string "str\esc"
 	if len(s) < 2 || s[0] != '"' {
 		return 0
 	}
@@ -449,7 +434,7 @@ func sCbr(s rv) int { return pref(s, "]") } // ]
 func sCpa(s rv) int { return pref(s, ")") } // )
 func sCcb(s rv) int { return pref(s, "}") } // }
 
-func any(r rn, s s) bool {
+func any(r rune, s s) bool {
 	for _, x := range s {
 		if r == x {
 			return true
@@ -467,7 +452,7 @@ func pref(r rv, p string) int {
 	}
 	return 0
 }
-func alpha(r rn) bool {
+func alpha(r rune) bool {
 	if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
 		return true
 	}

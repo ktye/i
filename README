@@ -6,19 +6,18 @@ Package interface (2 functions, no types):
   //k-tree: a map[interface{}]interface{}
 
 Types
-    float64,   complex128  numbers    1 -2.3 5e6 1i0 3a270
-  []float64, []complex128  uniform vectors       1 2.3 -55
-  []interface{}            list       (1;2;3;`b;"x";(4;5))
-  []rune                   character array   "alpha\nbeta"
-  string                   symbol  `single  `a`symbol`list
-  [2][]interface{}         dict                  [a:1;b:2]
-  func                     function                      +
-Any Go variable present in the k-tree can be used as well:
-  any slice                list                 []mytype{}
-  any map or struct        dict (string keys for structs)
-  any numeric type         number
-  any function can be called                      func(){}
-  get methods with @       f:mytype@`m;f[3] or mytype.m[3]
+    complex128        numbers    1 -2.3 5e6 1i0 3a270
+  []complex128        uniform vectors       1 2.3 -55
+  []interface{}       list       (1;2;3;`b;"x";(4;5))
+  string              symbol/chars "x\nz" `a`str`list
+  [2][]interface{}    dict                  [a:1;b:2]
+  func                function            {x+y}  ⍟  +
+Any Go var present in the k-tree can be used as well:
+  any slice           list                 []mytype{}
+  any map or struct   dict  (string keys for structs)
+  any numeric type    number        type myint uint16
+  any function can be called                 func(){}
+  get methods with @  f:mytype@`m;f[3] or mytype.m[3]
 
 Verbs
     a     l     a-a   l-a   a-l   l-l 
