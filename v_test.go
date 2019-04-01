@@ -129,19 +129,19 @@ func TestDV(t *testing.T) {
 		{"add", add, iv{1, 2, 3}, iv{4, 5, 6}, iv{5, 7, 9}},
 		{"add", add, l{1, 2.0, 3}, 1, l{2, z3, 4}},
 		{"add", add, iv{1, 2}, l{1, iv{2, 3}}, l{2, iv{4, 5}}},
-		{"add", add, [2]l{l{"a", "b"}, l{1, 2.0}}, [2]l{l{"b"}, l{fv{3, 4}}}, [2]l{l{"a", "b"}, l{1.0, fv{5, 6}}}}, // zero value is 0.0
+		{"add", add, [2]l{l{"a", "b"}, l{1, 2.0}}, [2]l{l{"b"}, l{fv{3, 4}}}, [2]l{l{"a", "b"}, l{z1, fv{5, 6}}}}, // zero value is 0.0
 		{"add", add, map[v]v{"a": false}, map[v]v{"a": true}, map[v]v{"a": true}},
 		{"add", add, [2]l{l{"a"}, l{false}}, [2]l{l{"a"}, l{[]bool{false, true}}}, [2]l{l{"a"}, l{[]bool{false, true}}}},
-		{"add", add, map[v]v{"a": 1, "b": fv{2, 3}}, 3, map[v]v{"a": 4, "b": fv{5, 6}}},
+		{"add", add, map[v]v{"a": 1, "b": fv{2, 3}}, 3, map[v]v{"a": 4, "b": zv{5, 6}}},
 		{"add", add, mystruct{}, mystruct{true, 2, nil}, mystruct{true, 2, nil}},
 		{"add", add, mystruct{false, 1, []myint{1, 2}}, mystruct{true, 2, []myint{3, 4}}, mystruct{true, 3, []myint{4, 6}}},
-		{"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "V": fv{3, 4}}, [2]l{l{"B", "F", "V"}, l{4.0, 1.0, fv{4, 6}}}},
+		{"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "V": fv{3, 4}}, [2]l{l{"B", "F", "V"}, l{z4, 1.0, zv{4, 6}}}},
 		{"sub", sub, 1, 2, -1},
 		{"mul", mul, 2, 3, 6},
-		{"div", div, 1.0, 0, math.Inf(1)},
+		{"div", div, 2.0, 1, z2},
 		//{"div", div, c(1, 0), 0, c(math.Inf(1), math.NaN())}, // cannot be compared
-		{"mod", mod, 2, fv{1, 2, 3, 4, 5, 6}, fv{1, 0, 1, 0, 1, 0}},
-		{"mod", mod, 3, l{1, 2, 3, fv{4, 5}}, l{1, 2, 0, fv{1, 2}}},
+		{"mod", mod, 2, fv{1, 2, 3, 4, 5, 6}, zv{1, 0, 1, 0, 1, 0}},
+		{"mod", mod, 3, l{1, 2, 3, fv{4, 5}}, l{1, 2, 0, zv{1, 2}}},
 		{"mod", mod, c(3, 0), l{1, 2, 3, c(4, 0)}, l{c(1, 0), c(2, 0), c(0, 0), c(1, 0)}},
 		{"mkd", mkd, iv{1, 2, 3}, fv{2, 3, 4}, [2]l{l{1, 2, 3}, l{2.0, 3.0, 4.0}}},
 		{"min", min, 2, 3, 2},
@@ -149,14 +149,14 @@ func TestDV(t *testing.T) {
 		{"max", max, 2, 3, 3},
 		{"les", les, 2, 3, 1},
 		{"les", les, 2, c(4, 0), c(1, 0)},
-		{"les", les, "a", "b", 1.0},
-		{"les", les, "a", sv{"b", "a"}, fv{1, 0}},
+		{"les", les, "a", "b", z1},
+		{"les", les, "a", sv{"b", "a"}, zv{1, 0}},
 		{"mor", mor, 2, 3, 0},
 		{"mor", mor, 2, c(3, 3), c(0, 0)},
-		{"mor", mor, sv{"z", "a"}, sv{"g", "h"}, fv{1, 0}},
-		{"eql", eql, fv{1, 2, math.NaN(), math.Inf(1)}, iv{5, 2, 7, 8}, fv{0, 1, 0, 0}},
-		{"eql", eql, "a", "a", 1.0},
-		{"eql", eql, sv{"a", "b"}, "a", fv{1.0, 0.0}},
+		{"mor", mor, sv{"z", "a"}, sv{"g", "h"}, zv{1, 0}},
+		{"eql", eql, fv{1, 2, math.NaN(), math.Inf(1)}, iv{5, 2, 7, 8}, zv{0, 1, 0, 0}},
+		{"eql", eql, "a", "a", z1},
+		{"eql", eql, sv{"a", "b"}, "a", zv{1.0, 0.0}},
 		{"pow", pow, fv{2, 2}, fv{0.5, 2}, fv{math.Sqrt2, 4}},
 		{"mch", mch, 1, 1, 1.0},
 		{"mch", mch, 1, 0, 0.0},
@@ -193,8 +193,8 @@ func TestDV(t *testing.T) {
 		{"rsh", rsh, l{2, 2}, 5, l{iv{5, 5}, iv{5, 5}}},
 		{"rsh", rsh, l{2, 0}, l{1, 2, 3, 4}, l{l{}, l{}}},
 		{"rsh", rsh, l{2, 3}, l{1, 2, iv{3, 4}}, l{l{1, 2, iv{3, 4}}, l{1, 2, iv{3, 4}}}},
-		{"rsh", rsh, l{math.NaN(), 3}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1, 2}, iv{3, 4, 5}, iv{6}}},
-		{"rsh", rsh, l{3, math.NaN()}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1}, iv{2, 3}, iv{4, 5, 6}}},
+		{"rsh", rsh, l{-1, 3}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1, 2}, iv{3, 4, 5}, iv{6}}},
+		{"rsh", rsh, l{3, -1}, l{0, 1, 2, 3, 4, 5, 6}, l{iv{0, 1}, iv{2, 3}, iv{4, 5, 6}}},
 		{"drp", drp, 1, l{1, 2, 3}, l{2, 3}},
 		{"drp", drp, -1, l{1, 2, 3}, l{1, 2}},
 		{"drp", drp, -3, l{1, 2, 3}, l{}},
@@ -207,10 +207,10 @@ func TestDV(t *testing.T) {
 		{"cut", cut, l{0, 3}, l{0, 1, 2, 3, 4, 5}, l{iv{0, 1, 2}, iv{3, 4, 5}}},
 		{"cut", cut, iv{1, 1, 3}, iv{0, 1, 2, 3, 4, 5}, l{l{}, iv{1, 2}, iv{3, 4, 5}}},
 		// cst: TODO
-		{"fnd", fnd, iv{3}, iv{1, 2, 3}, fv{1, 1, 0}},
-		{"fnd", fnd, iv{3}, 3, 0.0},
-		{"fnd", fnd, iv{3}, 1, 1.0},
-		{"fnd", fnd, iv{3, 4}, [2]l{l{"a", "b"}, l{6, 3}}, [2]l{l{"a", "b"}, l{2.0, 0.0}}},
+		{"fnd", fnd, iv{3}, iv{1, 2, 3}, zv{1, 1, 0}},
+		{"fnd", fnd, iv{3}, 3, z0},
+		{"fnd", fnd, iv{3}, 1, z1},
+		{"fnd", fnd, iv{3, 4}, [2]l{l{"a", "b"}, l{6, 3}}, [2]l{l{"a", "b"}, l{z2, z0}}},
 		// cal: TODO
 		// bin: TODO
 		// rbn: TODO
@@ -263,54 +263,6 @@ func TestVKt(t *testing.T) {
 	for _, tc := range testCases {
 		r := tc.f(tc.x, tc.y, nil)
 		tt(t, tc.r, r, "%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
-	}
-}
-func TestRng(t *testing.T) {
-	testCases := []struct {
-		s string
-		f func(v) v
-		x v
-		n int
-		t rT
-	}{
-		{"rng", rng, 5.0, 5, rTf},
-		{"rng", rng, -5.0, 5, rTf},
-		{"rng", rng, myfloat(5), 5, rtyp(myfloat(0))},
-		{"rng", rng, myfloat(-5), 5, rtyp(myfloat(0))},
-		{"rng", rng, c(3, 0), 3, rTz},
-	}
-	for _, tc := range testCases {
-		r := tc.f(tc.x)
-		printf("%s %+v: %+v\n", tc.s, tc.x, r)
-		if n := ln(r); n != tc.n {
-			t.Fatalf("exp len %d got %d", tc.n, n)
-		}
-		if tp := rtyp(r).Elem(); tp != tc.t {
-			t.Fatalf("exp type: %s got %s", tc.t, tp)
-		}
-	}
-}
-func TestRnd(t *testing.T) {
-	testCases := []struct {
-		s    string
-		f    func(v, v) v
-		x, y v
-		n    int
-		t    rT
-	}{
-		{"rnd", rnd, 6, 49, 6, rtyp(0)},
-		{"rnd", rnd, -6, 49, 6, rtyp(0)},
-		{"rnd", rnd, -6, 7.0, 6, rTf},
-	}
-	for _, tc := range testCases {
-		r := tc.f(tc.x, tc.y)
-		printf("%s %+v %+v: %+v\n", tc.s, tc.x, tc.y, r)
-		if n := ln(r); n != tc.n {
-			t.Fatalf("exp len %d got %d", tc.n, n)
-		}
-		if tp := rtyp(r).Elem(); tp != tc.t {
-			t.Fatalf("exp type: %s got %s", tc.t, tp)
-		}
 	}
 }
 func TestMethod(t *testing.T) {

@@ -286,10 +286,16 @@ func mkd(x, y v) v { // xl!yl make dictionary
 }
 func min(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) < real(y), x, y) }) } // x&y x⌊y minimum
 func max(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), x, y) }) } // x|y x⌈y maximum
-func les(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) < real(y), 1, 0) }) } // x<y less than
-func mor(x, y v) v { return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), 1, 0) }) } // x>y more than
-func eql(x, y v) v { return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) }            // x=y equal
-func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }               // x⍣y power
+func les(x, y v) v {
+	x, y = sn2(x, y)
+	return nd(x, y, func(x, y z) z { return zter(real(x) < real(y), 1, 0) })
+} // x<y less than
+func mor(x, y v) v {
+	x, y = sn2(x, y)
+	return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), 1, 0) })
+}                  // x>y more than
+func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) } // x=y equal
+func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }                      // x⍣y power
 func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
 		return 0.0
@@ -423,7 +429,7 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 	if nx <= 0 {
 		x, nx = enl(x), 1
 	}
-	a, b, c := at(x, 0).(z), at(x, nx-1).(z), 0
+	a, b, c := idx(at(x, 0)), idx(at(x, nx-1)), 0
 	xv := make([]int, nx)
 	for i := range xv {
 		xv[i] = idx(at(x, i))
@@ -439,13 +445,17 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 			return rshr(x, y, i+1)
 		})
 	}
-	if cmplx.IsNaN(a) {
+	if a < 0 {
 		if ny == 0 {
 			return y
 		}
-		return cut(krange(int(math.Ceil(float64(ny)/real(b))), func(z int) v { return z * idx(b) }), y)
-	} else if cmplx.IsNaN(b) {
-		return cut(krange(idx(a), func(z int) v { return z * ny / idx(a) }), y)
+		n := ny / b
+		if n*b < ny {
+			n++
+		}
+		return cut(krange(n, func(z int) v { return z * b }), y)
+	} else if b < 0 {
+		return cut(krange(idx(a), func(z int) v { return z * ny / a }), y)
 	}
 	return rshr(x, y, 0)
 }
