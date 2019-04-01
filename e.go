@@ -39,7 +39,7 @@ func eva(x v, a map[v]v) v {
 		if !o {
 			return e("assign:type")
 		}
-		a[s] = cp(l[2]) // TODO namespace
+		a[s] = eva(cp(l[2]), a) // TODO namespace
 		return l[2]
 	default:
 		f := l[0]
@@ -51,21 +51,10 @@ func eva(x v, a map[v]v) v {
 		if k := rval(f).Kind(); k != reflect.Func {
 			return e("type:func?" + k.String())
 		}
-		n := 0
-		for i := len(l) - 1; i > 0; i-- {
-			if l[i] != nil {
-				break
-			}
-			n++
-		}
-		if n > 0 { // curry
-			argv := cp(l).([]v)
-			return func(u ...v) v {
-				if len(u) != n {
-					return e("args")
-				}
-				copy(argv[len(argv)-n:], u)
-				return eva(argv, a)
+		if len(l) == 3 && l[2] == nil { // curry
+			x := eva(l[1], a)
+			return func(y v) v {
+				return cal(f, []v{x, y}, a)
 			}
 		}
 		for i := len(l) - 1; i > 0; i-- { // right to left

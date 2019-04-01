@@ -94,18 +94,34 @@ func (p *p) w() *p { // remove wsp
 	p.b = p.b[i:]
 	return p
 }
+func (p *p) isVrb(x v) bool {
+	str := func(x v) bool { _, o := x.(s); return o }
+	if str(x) && sVrb(rv(x.(s))) > 0 {
+		return true // primitive
+	}
+	if lv, o := x.(l); o {
+		if len(lv) == 2 && str(lv[0]) && sAdv(rv(lv[0].(s))) > 0 {
+			return true // {adverb, verb}
+		} else if len(lv) == 3 && lv[2] == nil {
+			return true // curry
+		} else if lv[0] == "λ" {
+			return true
+		}
+	}
+	return false
+}
 func (p *p) ex(a v) v {
 	atNoun := func() bool {
 		return p.t(sNum) || p.t(sNam) || p.t(sStr) || p.t(sOpa) || p.t(sOcb)
 	}
-	str := func(x v) bool { _, o := x.(s); return o }
 	if a == nil {
 		return nil
 	}
 	if p.t(sAdv) {
 		return p.adv(nil, a)
 	}
-	if str(a) && sVrb(rv(a.(s))) > 0 { // vrb // TODO: !node.r
+	//if str(a) && sVrb(rv(a.(s))) > 0 { // vrb // TODO: !node.r
+	if p.isVrb(a) {
 		// TODO at (
 		x := p.noun()
 		// TODO x is verb
@@ -126,12 +142,12 @@ func (p *p) ex(a v) v {
 	}
 	if atNoun() {
 		x := p.noun()
-		if _, o := x.(s); o { // vrb|sym
+		if p.isVrb(x) {
 			y := p.ex(p.noun())
 			if y == nil {
-				return l{a, x, nil} // curry
+				return l{x, a, nil} // curry
 			}
-			return l{a, x, y}
+			return l{x, a, y}
 		}
 		return l{a, p.ex(x)}
 	}
@@ -179,7 +195,12 @@ func (p *p) noun() v {
 		p.p(sOpa)
 		r := p.lst(sCpa)
 		if len(r) == 1 {
+			if p.isVrb(r[0]) { // e.g. (2+)
+				return p.drv(r[0])
+			}
 			return r[0]
+		} else if p.isVrb(r) {
+			return r // curry
 		}
 		return p.idxr(append(l{nil}, r...))
 	case p.t(sVrb):
@@ -199,6 +220,13 @@ func (p *p) noun() v {
 		// TODO compound assign []
 	}
 	return nil
+}
+func (p *p) drv(w v) v {
+	for p.t(sAdv) {
+		a := p.p(sAdv)
+		w = l{a, w}
+	}
+	return w
 }
 func (p *p) adv(left, w v) v {
 	a := p.p(sAdv)
@@ -364,12 +392,12 @@ func sStr(s rv) int { // string `name | "str\esc"
 	}
 	return 0
 }
-func sVrb(s rv) int { // verb single rune ascii or unicode
-	for _, r := range s {
-		if any(r, sym) || any(r, uni) {
-			return 1
+func sVrb(s rv) int { // verb single rune ascii or unicode, possibly with : suffix
+	if any(s[0], sym) || any(s[0], uni) {
+		if len(s) > 1 && s[1] == ':' {
+			return 2
 		}
-		return 0
+		return 1
 	}
 	return 0
 }
@@ -477,7 +505,7 @@ L:
 			if any(x[0], "+-") {
 				y = append(y, x[0])
 				x = x[1:]
-				if !(sVrb(rv{r}) == 1 || any(r, " ([{;")) {
+				if !(sVrb(rv{r}) > 0 || any(r, " ([{;")) {
 					y = append(y, ' ')
 				}
 			}

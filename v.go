@@ -631,11 +631,7 @@ func cal(x, y v, a map[v]v) v { // x.y call
 			in[i] = rval(yl[i])
 		}
 	}
-	/*
-		if t := f.Type(); t.NumIn() == len(in)+1 && t.In(len(in)) == rtyp(a) {
-			in = append(in, rval(a))
-		}
-	*/
+	// TODO: functions might need a. Test with t:=f.Type();t.IsVariadic() == false && t.NumIn()... and append a.
 	r = f.Call(in)
 	if len(r) == 0 {
 		return nil
@@ -736,7 +732,21 @@ func ovr(f, x v, a map[v]v) v { // f2/x
 	}
 	return ovd(f, w[0], w[1:], a)
 }
-func whl(f, x, y v, a map[v]v) v { return e("nyi") } // n f1/y for, g1 f1/y while
+func whl(f, x, y v, a map[v]v) v { // n f1/y for, g1 f1/y while
+	if rval(x).Kind() == reflect.Func {
+		for {
+			if b := cal(x, l{y}, a); idx(b) != 1 {
+				return y
+			}
+			y = cal(f, l{y}, a)
+		}
+	}
+	n := pidx(x)
+	for i := 0; i < n; i++ {
+		y = cal(f, l{y}, a)
+	}
+	return y
+}
 func ovd(f, x, y v, a map[v]v) v { // x f2/y over initial
 	w, _ := ls(y)
 	for _, u := range w {
@@ -746,7 +756,6 @@ func ovd(f, x, y v, a map[v]v) v { // x f2/y over initial
 }
 func sfx(f, x v, a map[v]v) v { return e("nyi") } // f1\x scan fixed
 func scn(f, x v, a map[v]v) v { // f2\x scan
-	// TODO initial value
 	w, t := ls(x)
 	r := make(l, len(w))
 	r[0] = w[0]

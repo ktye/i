@@ -482,6 +482,14 @@ func kinit(a map[v]v) map[v]v {
 			}
 			return nil
 		})
+		a[s+":"] = func(x v) v { // forced monads
+			f := rval(u[1])
+			if ln(x) < 0 {
+				f = rval(u[0])
+			}
+			r := f.Call([]rV{rval(x)})
+			return r[0].Interface()
+		}
 	}
 	type v4 [4]v
 	atab := map[s]v4{
@@ -504,11 +512,14 @@ func kinit(a map[v]v) map[v]v {
 				return e("type")
 			}
 			return func(w ...v) v {
-				cs := 1 // TODO: monadic lambda1: cs = 0
+				cs := 1
 				if len(w) < 1 || len(w) > 2 {
 					return e("nargs")
 				} else if len(w) == 2 {
 					cs += 2
+				}
+				if t := rval(f).Type(); t.IsVariadic() == false && t.NumIn() == 1 {
+					cs-- // forced monad, or lambda
 				}
 				g := u[cs]
 				if g == nil {
