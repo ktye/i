@@ -408,7 +408,7 @@ func kinit(a map[v]v) map[v]v {
 		"×": v6{nil, nil, mul, mul, mul, mul},
 		"%": v6{inv, inv, div, div, div, div},
 		"÷": v6{inv, inv, div, div, div, div},
-		"√": v6{sqr, sqr, nil, nil, nil, nil},
+		"√": v6{sqr, sqr, nrt, nrt, nrt, nrt},
 		"‖": v6{abs, abs, nil, nil, nil, nil},
 		"ℜ": v6{zre, zre, nil, nil, nil, nil},
 		"ℑ": v6{zim, zim, nil, nil, nil, nil},
