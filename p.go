@@ -312,9 +312,9 @@ func (p *p) idxr(x v) v {
 
 // scanner
 const dig = "0123456789"
-const con = "πø∞"
+const consts = "πø∞"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
-const uni = `⍉×÷⍳⍸⌊⌽⌈⍋⌸≡∧⍴≢↑⌊↓⍕∪⍎⍣¯ℜℑ√⍟`
+const uni = `⍉×÷⍳⍸⌊⌽⌈⍋⌸≡∧⍴≢↑⌊↓⍕∪⍎⍣‖ℜℑ√⍟`
 const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 
@@ -355,7 +355,7 @@ func sNam(s rv) int { // name [a-Z][_a-Z0-9]*
 	n := 0
 	for i, r := range s {
 		switch {
-		case i == 0 && any(r, con):
+		case i == 0 && any(r, consts):
 			return 1
 		case i == 0 && !a(r):
 			return 0

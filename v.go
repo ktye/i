@@ -43,9 +43,22 @@ func fst(v v) v { // *x first
 	}
 	return at(v, 0)
 }
-func sqr(x v) v { return nm(x, func(x z) z { return cmplx.Sqrt(x) }) }            // √x sqrt
-func inv(x v) v { return nm(x, func(x z) z { return 1 / x }) }                    // %x inverse
-func abs(x v) v { return nm(x, func(x z) z { return complex(cmplx.Abs(x), 0) }) } // ¯x absolute value
+func con(x v) v { return nm(x, func(x z) z { return cmplx.Conj(x) }) }              // con x conjugate complex
+func sqr(x v) v { return nm(x, func(x z) z { return cmplx.Sqrt(x) }) }              // √x sqrt
+func inv(x v) v { return nm(x, func(x z) z { return 1 / x }) }                      // %x inverse
+func abs(x v) v { return nm(x, func(x z) z { return complex(cmplx.Abs(x), 0) }) }   // ‖x absolute value
+func ang(x v) v { return nm(x, func(x z) z { return complex(cmplx.Phase(x), 0) }) } // ang x complex phase [-π,π]
+func deg(x v) v {
+	return nm(x, func(x z) z { // ang x complex phase [0,360]
+		p := cmplx.Phase(x) / math.Pi * 360.0
+		if p < 0 {
+			p += 360.0
+		}
+		return complex(p, 0)
+	})
+}
+func zre(x v) v { return nm(x, func(x z) z { return complex(real(x), 0) }) } // ℜx real part
+func zim(x v) v { return nm(x, func(x z) z { return complex(imag(x), 0) }) } // ℑx real part
 func til(x v) v { // !x ⍳x iota
 	if d, ok := md(x); ok {
 		return d.k
@@ -227,10 +240,9 @@ func cnt(x v) v { // #x ⍴x count, length
 	}
 	return zi(1)
 }
-func flr(x v) v {
-	return nm(x, func(x z) z { return complex(math.Floor(real(x)), math.Floor(imag(x))) })
-}               // _x ⌊x floor
-func fmt(x v) v { return e("nyi") } // $x ⍕x format
+func flr(x v) v { return nm(x, func(x z) z { return complex(math.Floor(real(x)), 0) }) } // _x ⌊x floor
+func cil(x v) v { return nm(x, func(x z) z { return complex(math.Ceil(real(x)), 0) }) }  // ⌈x ceil
+func fmt(x v) v { return e("nyi") }                                                      // $x ⍕x format
 func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
 	xz, vec, _ := nv(x)
 	if vec {
@@ -261,7 +273,7 @@ func unq(x v) v { // ?x ∪x uniq
 	w, t := ls(x)
 	r := make(l, 0)
 	for i := range w {
-		if !some(r, func(x v) bool { return mch(w[i], x) == 1.0 }) {
+		if !some(r, func(x v) bool { return mch(w[i], x) == zi(1) }) {
 			r = append(r, cp(w[i]))
 		}
 	}
@@ -296,9 +308,10 @@ func mor(x, y v) v {
 }                  // x>y more than
 func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) } // x=y equal
 func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }                      // x⍣y power
+func lgn(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Log(y) / cmplx.Log(x) }) }
 func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
-		return 0.0
+		return zi(0)
 	}
 	if xd, o := md(x); o {
 		if yd, o := md(y); o {
@@ -307,9 +320,9 @@ func mch(x, y v) v { // x~y x≡y match
 		return e("assert")
 	}
 	if reflect.DeepEqual(x, y) {
-		return 1.0
+		return zi(1)
 	}
-	return 0.0
+	return zi(0)
 }
 func cat(x, y v) v { // x,y catenate
 	if xd, yd, o := md2(x, y); o {
@@ -538,7 +551,7 @@ func fnd(x, y v) v { // l?a xl?yl find
 			u := d.v[i]
 			d.v[i] = zi(nx)
 			for j := 0; j < nx; j++ {
-				if mch(at(x, j), u) == 1.0 {
+				if mch(at(x, j), u) == zi(1) {
 					d.v[i] = zi(j)
 					break
 				}
@@ -554,7 +567,7 @@ func fnd(x, y v) v { // l?a xl?yl find
 	for i := range r {
 		for j := 0; j < nx; j++ {
 			r[i] = zi(nx)
-			if mch(at(x, j), at(y, i)) == 1.0 {
+			if mch(at(x, j), at(y, i)) == zi(1) {
 				r[i] = zi(j)
 				break
 			}
@@ -720,7 +733,19 @@ func ecl(f, x, y v, a map[v]v) v { // x f\:y  x f⍀y each left
 	}
 	return sl(r, t)
 }
-func fix(f, x v, a map[v]v) v { return e("nyi") } // f1/x fixed point
+func fix(f, x v, a map[v]v) v { // f1/x fixed point
+	x0 := cp(x)
+	y := cp(x)
+	z1 := zi(1)
+	for {
+		r := cal(f, l{y}, a)
+		if mch(r, x0) == z1 || mch(r, y) == z1 {
+			break
+		}
+		y = r
+	}
+	return y
+}
 func ovr(f, x v, a map[v]v) v { // f2/x
 	nx := ln(x)
 	if nx <= 0 { // no default values, but empty list, like k4
