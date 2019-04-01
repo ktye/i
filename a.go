@@ -3,7 +3,6 @@ package i
 
 import (
 	"math"
-	"math/cmplx"
 	"reflect"
 )
 
@@ -106,7 +105,11 @@ func sl(l l, et rT) v { // convert list back to slice with original element type
 	}
 	r := reflect.MakeSlice(reflect.SliceOf(et), len(l), len(l))
 	for i := 0; i < len(l); i++ {
-		r.Index(i).Set(rval(l[i]).Convert(et))
+		if rv := rval(l[i]); rv.Type().ConvertibleTo(et) == false {
+			return l
+		} else {
+			r.Index(i).Set(rv.Convert(et))
+		}
 	}
 	return r.Interface()
 }
@@ -387,17 +390,6 @@ func set(L v, i int, x v) {
 }
 
 type nfn func(w ...v) v // func that knows it's name
-func (f nfn) def() v { // def value for over.
-	s := f().(s)
-	switch s {
-	case "+", "/", "÷":
-		return complex(0, 0)
-	case "*", "×", "&", "⌊":
-		return complex(1, 0)
-	default:
-		return cmplx.NaN()
-	}
-}
 
 func kinit(a map[v]v) map[v]v {
 	if len(a) > 0 {

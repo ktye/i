@@ -238,6 +238,7 @@ func TestAdv(t *testing.T) {
 		{"ecd", ecd, div, 12, iv{3, 4}, iv{4, 3}},
 		{"ecd", ecd, div, iv{12, 15}, 3, iv{4, 5}},
 		{"ecp", ecp, sub, iv{8, 2, 5}, nil, iv{8, -6, 3}},
+		{"eci", eci, cat, iv{99}, iv{2, 3, 4}, l{iv{2, 99}, iv{3, 2}, iv{4, 3}}}, // 99,':2 3 4
 	}
 	for _, tc := range testCases {
 		var r v

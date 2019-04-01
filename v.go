@@ -687,19 +687,27 @@ func ecd(f, x, y v, a map[v]v) v { // x f2'y  x f2¨y each dyad
 	}
 	return r
 }
-func ecp(f, x v, a map[v]v) v { // f1':x  f1⍨x each prior
+func ecp(f, x v, a map[v]v) v { // f2':x  f2⍨x each prior
 	if xn := ln(x); xn < 1 {
-		return x // same as k4
+		return x
 	}
 	xl, t := ls(x)
 	r := make(l, len(xl))
-	r[0] = cp(xl[0])
+	r[0] = cp(xl[0]) // always start with first. Some Ks have f dependend initials.
 	for i := 1; i < len(r); i++ {
 		r[i] = cal(f, l{xl[i], xl[i-1]}, a)
 	}
 	return sl(r, t)
 }
-func eci(f, x, y v, a map[v]v) v { return e("nyi") } // x f2':y  x f2⍨y each prior initial
+func eci(f, x, y v, a map[v]v) v { // x f2':y  x f2⍨y each prior initial
+	yl, t := ls(y)
+	r := make(l, len(yl))
+	r[0] = cal(f, l{yl[0], x}, a)
+	for i := 1; i < len(r); i++ {
+		r[i] = cal(f, l{yl[i], yl[i-1]}, a)
+	}
+	return sl(r, t)
+}
 func ecr(f, x, y v, a map[v]v) v { return e("nyi") } // x f/:y  x f⌿y each right
 func ecl(f, x, y v, a map[v]v) v { return e("nyi") } // x f\:y  x f⍀y each left
 func fix(f, x v, a map[v]v) v    { return e("nyi") } // f1/x fixed point
