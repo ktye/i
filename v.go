@@ -708,9 +708,23 @@ func eci(f, x, y v, a map[v]v) v { // x f2':y  x f2⍨y each prior initial
 	}
 	return sl(r, t)
 }
-func ecr(f, x, y v, a map[v]v) v { return e("nyi") } // x f/:y  x f⌿y each right
-func ecl(f, x, y v, a map[v]v) v { return e("nyi") } // x f\:y  x f⍀y each left
-func fix(f, x v, a map[v]v) v    { return e("nyi") } // f1/x fixed point
+func ecr(f, x, y v, a map[v]v) v { // x f/:y  x f⌿y each right
+	yl, t := ls(y)
+	r := make(l, len(yl))
+	for i := range r {
+		r[i] = cal(f, l{x, yl[i]}, a)
+	}
+	return sl(r, t)
+}
+func ecl(f, x, y v, a map[v]v) v { // x f\:y  x f⍀y each left
+	xl, t := ls(x)
+	r := make(l, len(xl))
+	for i := range r {
+		r[i] = cal(f, l{xl[i], y}, a)
+	}
+	return sl(r, t)
+}
+func fix(f, x v, a map[v]v) v { return e("nyi") } // f1/x fixed point
 func ovr(f, x v, a map[v]v) v { // f2/x
 	nx := ln(x)
 	if nx <= 0 { // no default values, but empty list, like k4
