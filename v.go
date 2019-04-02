@@ -849,7 +849,22 @@ func ovd(f, x, y v, a map[v]v) v { // x f2/y over initial
 	}
 	return x
 }
-func sfx(f, x v, a map[v]v) v { return e("nyi") } // f1\x scan fixed
+func sfx(f, x v, a map[v]v) v { // f1\x scan fixed
+	x0 := cp(x)
+	y := cp(x)
+	z1 := zi(1)
+	u := l{x0}
+	for {
+		r := cal(f, l{y}, a)
+		if mch(r, x0) == z1 || mch(r, y) == z1 {
+			break
+		}
+		u = append(u, r)
+		y = r
+	}
+	uu, _ := uf(u)
+	return uu
+}
 func scn(f, x v, a map[v]v) v { // f2\x scan
 	w, t := ls(x)
 	r := make(l, len(w))

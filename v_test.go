@@ -249,6 +249,8 @@ func TestAdv(t *testing.T) {
 		{"ecr", ecr, sub, iv{2, 3}, iv{4, 5, 6}, l{iv{-2, -1}, iv{-3, -2}, iv{-4, -3}}},
 		{"ecl", ecl, sub, fv{4, 2}, 5.0, fv{-1, -3}},
 		{"whl", whl, enl, 2, 5, l{iv{5}}},
+		{"fix", fix, neg, 1, nil, -1},
+		{"sfx", sfx, neg, 1, nil, iv{1, -1}},
 	}
 	for _, tc := range testCases {
 		var r v
