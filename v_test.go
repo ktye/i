@@ -29,6 +29,7 @@ func TestMV(t *testing.T) {
 	}{
 		{"flp", flp, 1.0, 1.0},
 		{"flp", flp, iv{1, 2}, iv{1, 2}},
+		{"flp", flp, l{iv{1, 2}}, l{iv{1}, iv{2}}},
 		{"flp", flp, l{fv{1, 2}, fv{3, 4}, fv{5, 6}}, l{fv{1, 3, 5}, fv{2, 4, 6}}},
 		{"flp", flp, l{fv{1.1, 2.2}, fv{3.3, 4.4}, l{5, l{6, 7}}}, l{l{1.1, 3.3, 5}, l{2.2, 4.4, l{6, 7}}}},
 		{"neg", neg, 1.0, -1.0},

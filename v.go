@@ -15,22 +15,31 @@ func flp(x v) v { // +x ⍉x flip
 	if n < 0 {
 		return x
 	}
-	var rl l
-	for i := 0; i < n; i++ {
-		rw := at(x, i)
-		if nn := ln(rw); nn < 0 {
+	a, _ := ls(x)
+	var r []l
+	for i := range a {
+		if na := ln(a[i]); na < 0 {
 			return x
 		} else if i == 0 {
-			m = nn
-			rl = make(l, m*n)
-		} else if nn != m {
+			m = na
+			r = make([]l, m)
+			for k := range r {
+				r[k] = make(l, len(a))
+			}
+		} else if na != m {
 			return e("length")
 		}
-		for k := 0; k < m; k++ {
-			rl[k*n+i] = at(rw, k)
+		b, _ := ls(a[i])
+		for k := range b {
+			r[k][i] = cp(b[k])
 		}
 	}
-	return cut(mul(n, (til(n-1))), rl)
+	ul := make(l, len(r))
+	for i := range r {
+		u, _ := uf(r[i])
+		ul[i] = u
+	}
+	return ul
 }
 func neg(x v) v { return nm(x, func(x z) z { return -x }) } // -x negate
 func fst(v v) v { // *x first
@@ -254,6 +263,9 @@ func fmt(x v) v { // $x format to string
 		vs := make(sv, len(r))
 		for i := range vs {
 			vs[i] = fmt(r[i]).(s)
+		}
+		if len(vs) == 1 {
+			return "," + vs[0]
 		}
 		if t == nil {
 			return "(" + jon(";", vs).(s) + ")"
