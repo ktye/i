@@ -3,7 +3,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	//"fmt"
 	"io/ioutil"
 	"os"
 	"runtime/debug"
@@ -20,6 +20,7 @@ var file string
 var line int
 
 type v = interface{}
+type l = []v
 
 func main() {
 	a := make(map[v]v)
@@ -47,7 +48,7 @@ func run(t string, a map[v]v) (r interface{}) {
 			debug.PrintStack()
 			r = c
 			if file != "" {
-				fmt.Printf("%s:%d: %v\n", file, line, r)
+				//fmt.Printf("%s:%d: %v\n", file, line, r)
 				os.Exit(1)
 			}
 		}
@@ -56,5 +57,13 @@ func run(t string, a map[v]v) (r interface{}) {
 }
 
 func p(v v) {
-	fmt.Printf("%+v\n", v)
+	println(fmt(v).(string))
+}
+
+var fmt func(v v) v
+
+func init() {
+	a := make(map[v]v)
+	i.E(l{}, a)
+	fmt = a["$:"].(func(v v) v)
 }

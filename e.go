@@ -20,10 +20,12 @@ func eva(x v, a map[v]v) v {
 		return l[1:]
 	case "`":
 		return l[1]
+	/* TODO cond
 	case "$":
 		if len(l) == 4 {
 			return e("nyi: $cond") // do not eval all args
 		}
+	*/
 	case ";":
 		l = l[1:]
 		var r interface{}

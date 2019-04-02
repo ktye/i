@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"reflect"
 	"sort"
+	"strconv"
 )
 
 // monadic verbs
@@ -242,7 +243,49 @@ func cnt(x v) v { // #x ⍴x count, length
 }
 func flr(x v) v { return nm(x, func(x z) z { return complex(math.Floor(real(x)), 0) }) } // _x ⌊x floor
 func cil(x v) v { return nm(x, func(x z) z { return complex(math.Ceil(real(x)), 0) }) }  // ⌈x ceil
-func fmt(x v) v { return e("nyi") }                                                      // $x ⍕x format
+func fmt(x v) v { // $x format to string
+	type stringer interface{ String() string }
+	if s, o := x.(stringer); o {
+		return s.String()
+	}
+	n := ln(x)
+	if n >= 0 {
+		r, t := ls(x)
+		vs := make(sv, len(r))
+		for i := range vs {
+			vs[i] = fmt(r[i]).(s)
+		}
+		if t == nil {
+			return "(" + jon(";", vs).(s) + ")"
+		}
+		return jon(" ", vs).(s)
+	} else if d, o := md(x); o {
+		return "(" + fmt(d.k).(s) + "!" + fmt(d.v).(s) + ")"
+	} else if y, o := x.(z); o {
+		if cmplx.IsNaN(y) {
+			return "ø"
+		} else if cmplx.IsInf(y) {
+			return "∞"
+		}
+		re := strconv.FormatFloat(real(y), 'g', -1, 64)
+		if imag(y) == 0 {
+			return re
+		}
+		im := strconv.FormatFloat(imag(y), 'g', -1, 64)
+		if im[0] != '-' {
+			return re + "+" + im + "i"
+		}
+		return re + im + "i"
+	}
+	u := rval(x)
+	if k := u.Kind(); k < reflect.Array && k != reflect.Uintptr {
+		r, _, _ := nv(x)
+		return fmt(r[0]).(s)
+	} else if k == reflect.String {
+		return strconv.Quote(u.String())
+	}
+	return "(?" + u.Type().String() + ")"
+}
 func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
 	xz, vec, _ := nv(x)
 	if vec {
