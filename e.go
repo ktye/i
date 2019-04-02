@@ -41,8 +41,9 @@ func eva(x v, a map[v]v) v {
 		if !o {
 			return e("assign:type")
 		}
-		a[s] = eva(cp(l[2]), a) // TODO namespace
-		return l[2]
+		y := eva(l[2], a)
+		a[s] = cp(y) // TODO namespace
+		return y
 	default:
 		f := l[0]
 		if u, o := f.(s); o {

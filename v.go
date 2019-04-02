@@ -252,51 +252,13 @@ func cnt(x v) v { // #x ⍴x count, length
 }
 func flr(x v) v { return nm(x, func(x z) z { return complex(math.Floor(real(x)), 0) }) } // _x ⌊x floor
 func cil(x v) v { return nm(x, func(x z) z { return complex(math.Ceil(real(x)), 0) }) }  // ⌈x ceil
-func fmt(x v) v { // $x format to string
-	type stringer interface{ String() string }
-	if s, o := x.(stringer); o {
-		return s.String()
+func fmt(x v) v { return cst("s", x) }                                                   // $x format to string
+func num(x v) v { // num s parse number
+	t, o := x.(s)
+	if !o {
+		return e("type")
 	}
-	n := ln(x)
-	if n >= 0 {
-		r, t := ls(x)
-		vs := make(sv, len(r))
-		for i := range vs {
-			vs[i] = fmt(r[i]).(s)
-		}
-		if len(vs) == 1 {
-			return "," + vs[0]
-		}
-		if t == nil {
-			return "(" + jon(";", vs).(s) + ")"
-		}
-		return jon(" ", vs).(s)
-	} else if d, o := md(x); o {
-		return "(" + fmt(d.k).(s) + "!" + fmt(d.v).(s) + ")"
-	} else if y, o := x.(z); o {
-		if cmplx.IsNaN(y) {
-			return "ø"
-		} else if cmplx.IsInf(y) {
-			return "∞"
-		}
-		re := strconv.FormatFloat(real(y), 'g', -1, 64)
-		if imag(y) == 0 {
-			return re
-		}
-		im := strconv.FormatFloat(imag(y), 'g', -1, 64)
-		if im[0] != '-' {
-			return re + "+" + im + "i"
-		}
-		return re + im + "i"
-	}
-	u := rval(x)
-	if k := u.Kind(); k < reflect.Array && k != reflect.Uintptr {
-		r, _, _ := nv(x)
-		return fmt(r[0]).(s)
-	} else if k == reflect.String {
-		return strconv.Quote(u.String())
-	}
-	return "(?" + u.Type().String() + ")"
+	return (&p{}).num(t)
 }
 func rng(x v) v { // ?x random uniform, ?-x normal ?z bi-normal
 	xz, vec, _ := nv(x)
@@ -580,7 +542,230 @@ func cut(x, y v) v { // x_y cut
 		return u
 	})
 }
-func cst(x, y v) v { return e("nyi") } // x$y cast
+func cst(x, y v) v { // x$y cast
+	// TODO type conversions other that tostring.
+	m, o := md(x)
+	if o == false {
+		m, _ = md(map[v]v{0: 0})
+	}
+	getf := func(a s) int {
+		if k, u := m.at(a); k == -1 {
+			return -1
+		} else {
+			return pidx(u)
+		}
+	}
+	mat := func(x v) int {
+		if n := ln(x); n <= 0 {
+			return 0
+		} else {
+			m := 0
+			for i := 0; i < n; i++ {
+				mm := ln(at(x, i))
+				if i == 0 {
+					if mm <= 0 {
+						return 0
+					}
+					m = mm
+				} else if mm != m {
+					return 0
+				}
+			}
+			return n
+		}
+	}
+	compact := func() dict {
+		mm := cp(m).(dict)
+		mm.set("l", 0)
+		mm.set("t", 0)
+		mm.set("d", 0)
+		return mm
+	}
+	tab := func(hdr, cols l, n int) s {
+		mm := compact()
+		m := make([]sv, n+2)
+		for i := range m {
+			m[i] = make(sv, len(cols))
+		}
+		for k := range hdr {
+			m[0][k] = ""
+			m[1][k] = ""
+			if hdr != nil {
+				m[0][k] = cst(mm, hdr[k]).(s)
+			}
+		}
+		for k := range cols {
+			mx := len(m[0][0])
+			c, _ := ls(cols[k])
+			for i := 0; i < n; i++ {
+				t := cst(mm, c[i]).(s)
+				m[2+i][k] = t
+				if n := len(rv(t)); n > mx {
+					mx = n
+				}
+			}
+			for i := range m {
+				f := rv(m[i][k])
+				w := make(rv, mx)
+				for j := range w {
+					if i == 1 {
+						w[j] = '-'
+					} else if j < len(f) {
+						w[j] = f[j]
+					} else {
+						w[j] = ' '
+					}
+				}
+				m[i][k] = string(w)
+			}
+		}
+		if hdr == nil {
+			m = m[2:]
+		}
+		var b []byte
+		for i := range m {
+			for k := range m[i] {
+				b = append(b, []byte(m[i][k])...)
+				if k < len(m[i])-1 {
+					c := byte(' ')
+					if i == 1 {
+						c = '-'
+					}
+					b = append(b, c)
+				}
+			}
+			if i < len(m)-1 {
+				b = append(b, '\n')
+			}
+		}
+		return string(b)
+	}
+	dct := func(d dict) string {
+		mm := compact()
+		q, qq := mm.at("q")
+		println(q, qq)
+		hb := make(sv, len(d.k))
+		var b []byte
+		mx := 0
+		for i := range d.k {
+			t := cst(mm, d.k[i]).(s)
+			if n := len(rv(t)); n > mx {
+				mx = n
+			}
+			hb[i] = t
+		}
+		for i := range d.k {
+			t := rv(hb[i])
+			b = append(b, []byte(hb[i])...)
+			for k := 0; k < mx-len(t); k++ {
+				b = append(b, ' ')
+			}
+			b = append(b, '|', ' ')
+			b = append(b, []byte(cst(mm, d.v[i]).(s))...)
+			if i < len(d.k)-1 {
+				b = append(b, '\n')
+			}
+		}
+		return string(b)
+	}
+
+	type stringer interface{ String() string }
+	if s, o := y.(stringer); o {
+		return s.String()
+	}
+	n := ln(y)
+	if n >= 0 {
+		if getf("m") > 0 {
+			if n := mat(y); n > 0 {
+				cols := flp(y).(l)
+				return tab(nil, cols, n)
+			}
+		}
+		r, t := ls(y)
+		vs := make(sv, len(r))
+		for i := range vs {
+			st := cst(m, r[i]).(s)
+			if getf("l") > 0 {
+				st = jon("\n ", spl("\n", st)).(s)
+			}
+			vs[i] = st
+		}
+		if len(vs) == 1 {
+			return "," + vs[0]
+		}
+		if t == nil {
+			if getf("l") > 0 && len(vs) > 0 {
+				vs[0] = "(" + vs[0]
+				vs[len(vs)-1] += ")"
+				return jon("\n ", vs)
+			}
+			return "(" + jon(";", vs).(s) + ")"
+		}
+		return jon(" ", vs).(s)
+	} else if d, o := md(y); o {
+		if getf("t") > 0 {
+			n := 0
+			for i := range d.v {
+				m := ln(d.v[i])
+				if m < 0 {
+					n = 0
+					break
+				} else if i == 0 {
+					n = m
+				} else if m != n {
+					break
+				}
+			}
+			if n > 0 {
+				return tab(d.k, d.v, n)
+			}
+		}
+		if getf("d") > 0 {
+			return dct(d)
+		}
+		return "(" + cst(m, d.k).(s) + "!" + cst(m, d.v).(s) + ")"
+	} else if y, o := y.(z); o {
+		if cmplx.IsNaN(y) {
+			return "ø"
+		} else if cmplx.IsInf(y) {
+			return "∞"
+		}
+		p := getf("p")
+		re := strconv.FormatFloat(real(y), 'g', p, 64)
+		if imag(y) == 0 {
+			return re
+		}
+		if d := getf("a"); d < 0 {
+			im := strconv.FormatFloat(imag(y), 'g', -1, 64)
+			if im[0] != '-' {
+				return re + "+" + im + "i"
+			}
+			return re + im + "i"
+		} else {
+			r, phi := cmplx.Polar(y)
+			phi *= 180.0 / math.Pi
+			if phi < 0 {
+				phi += 360
+			}
+			return strconv.FormatFloat(r, 'g', p, 64) + "a" + strconv.FormatFloat(phi, 'f', d, 64)
+		}
+	}
+	u := rval(y)
+	if k := u.Kind(); k < reflect.Array && k != reflect.Uintptr {
+		r, _, _ := nv(y)
+		return cst(m, r[0]).(s)
+	} else if k == reflect.String {
+		u := u.String()
+		t := strconv.Quote(u)
+		if getf("q") == 1 {
+			if u == t[1:len(t)-1] {
+				return t[1 : len(t)-1]
+			}
+		}
+		return t
+	}
+	return "(?" + u.Type().String() + ")"
+}
 func rnd(x, y v) v { // x?y random, roll, -x?y deal
 	n := idx(x)
 	ny := ln(y)

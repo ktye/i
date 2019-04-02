@@ -3,7 +3,6 @@ package main
 
 import (
 	"bufio"
-	//"fmt"
 	"io/ioutil"
 	"os"
 	"runtime/debug"
@@ -16,54 +15,59 @@ import (
 // 0: read from stdin, execute each line, continue on error
 // filename: execute file, exit on error
 // else: exec argv
-var file string
-var line int
 
 type v = interface{}
 type l = []v
 
 func main() {
-	a := make(map[v]v)
-	i.E(nil, a)
+	a := filter()
 
 	if len(os.Args) > 1 {
 		if b, err := ioutil.ReadFile(os.Args[1]); err == nil {
 			i.E(i.P(string(b)), a)
 		} else {
-			p(i.E(i.P(strings.Join(os.Args[1:], " ")), a))
+			a := filter()
+			p(i.E(i.P(jon(" ", os.Args[1:]).(string)), a))
 		}
 		return
 	}
 
-	s := bufio.NewScanner(os.Stdin)
-	for s.Scan() {
-		line++
-		p(run(s.Text(), a))
+	r := bufio.NewScanner(os.Stdin)
+	for r.Scan() {
+		p(run(r.Text(), a))
 	}
 }
 
 func run(t string, a map[v]v) (r interface{}) {
 	defer func() {
 		if c := recover(); c != nil {
-			debug.PrintStack()
-			r = c
-			if file != "" {
-				//fmt.Printf("%s:%d: %v\n", file, line, r)
-				os.Exit(1)
+			for _, s := range strings.Split(string(debug.Stack()), "\n") {
+				if strings.HasPrefix(s, "\t") {
+					println(s[1:])
+				}
 			}
+			r = c
 		}
 	}()
 	return i.E(i.P(t), a)
 }
 
-func p(v v) {
-	println(fmt(v).(string))
+func p(x v) {
+	s, o := x.(string)
+	if !o {
+		s = fmt(x).(string)
+	}
+	println(s)
 }
 
-var fmt func(v v) v
+var fmt func(v) v
+var jon func(v, v) v
+var num func(v) v
 
 func init() {
 	a := make(map[v]v)
 	i.E(l{}, a)
-	fmt = a["$:"].(func(v v) v)
+	fmt = a["$:"].(func(x v) v)
+	jon = a["jon"].(func(x, y v) v)
+	num = a["num"].(func(x v) v)
 }

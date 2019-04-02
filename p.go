@@ -30,8 +30,8 @@ a[3]:4   → (:;(`a;3);4)      (::;(`a;3);4)     (:;(`a;3);4;::)     l{":",l{"a"
 a[3;4]+:5→ (+:;(`a;3;4);5)   (+:;(`a;3;4);5)   (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
 */
 
-func prs(s v) v { // s: rv
-	p := p{b: beg(s.(rv))}
+func prs(x v) v { // s: rv
+	p := p{b: beg(rv(x.(s)))}
 	r := l{}
 	for p.a() { // ex;ex...
 		ex := p.ex(p.noun())

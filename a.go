@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func P(s s) v            { return prs(rv(s)) }
+func P(s s) v            { return prs(s) }
 func E(l v, a map[v]v) v { return eva(l, kinit(a)) }
 
 type (
@@ -143,6 +143,8 @@ type dict struct {
 func md(x interface{}) (dict, bool) { // import maps and structs as dicts
 	if m, o := x.([2]l); o {
 		return dict{cp(m[0]).(l), cp(m[1]).(l), nil}, true
+	} else if d, o := x.(dict); o {
+		return d, true
 	}
 	var d dict
 	v := rval(x)
@@ -389,7 +391,8 @@ func set(L v, i int, x v) {
 	rval(L).Index(i).Set(rval(x))
 }
 
-type nfn func(w ...v) v // func that knows it's name
+type nfn func(w ...v) v      // func that knows it's name
+func (f nfn) String() string { v := f(); return v.(s) }
 
 func kinit(a map[v]v) map[v]v {
 	if len(a) > 0 {
@@ -546,6 +549,7 @@ func kinit(a map[v]v) map[v]v {
 		"pi": math.Pi, "π": math.Pi,
 		"⍺": "x", "⍵": "y",
 		// TODO o∇
+		"jon": jon, "num": num,
 		"inf": math.Inf(1), "∞": math.Inf(1), "nan": math.NaN(), "ø": math.NaN(),
 		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn,
 		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
