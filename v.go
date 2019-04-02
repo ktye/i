@@ -874,7 +874,26 @@ func scn(f, x v, a map[v]v) v { // f2\x scan
 	}
 	return sl(r, t)
 }
-func swl(f, x, y v, a map[v]v) v { return e("nyi") } // x f1\y scan for, g1 f1\y scan while
+func swl(f, x, y v, a map[v]v) v { // x f1\y scan for, g1 f1\y scan while
+	r := l{cp(y)}
+	if rval(x).Kind() == reflect.Func {
+		for {
+			if b := cal(x, l{y}, a); idx(b) != 1 {
+				u, _ := uf(r)
+				return u
+			}
+			y = cal(f, l{y}, a)
+			r = append(r, cp(y))
+		}
+	}
+	n := pidx(x)
+	for i := 0; i < n; i++ {
+		y = cal(f, l{y}, a)
+		r = append(r, cp(y))
+	}
+	u, _ := uf(r)
+	return u
+}
 func sci(f, x, y v, a map[v]v) v { // x f2\x scan initial
 	w, t := ls(y)
 	nx := ln(x)

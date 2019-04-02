@@ -249,8 +249,11 @@ func TestAdv(t *testing.T) {
 		{"ecr", ecr, sub, iv{2, 3}, iv{4, 5, 6}, l{iv{-2, -1}, iv{-3, -2}, iv{-4, -3}}},
 		{"ecl", ecl, sub, fv{4, 2}, 5.0, fv{-1, -3}},
 		{"whl", whl, enl, 2, 5, l{iv{5}}},
+		{"whl", whl, sqr, 2, 81, 3},
 		{"fix", fix, neg, 1, nil, -1},
 		{"sfx", sfx, neg, 1, nil, iv{1, -1}},
+		{"swl", swl, sqr, 2, 81, iv{81, 9, 3}},
+		// TODO whl, swl while and scan while
 	}
 	for _, tc := range testCases {
 		var r v
