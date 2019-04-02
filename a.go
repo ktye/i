@@ -409,9 +409,11 @@ func kinit(a map[v]v) map[v]v {
 		"%": v6{inv, inv, div, div, div, div},
 		"÷": v6{inv, inv, div, div, div, div},
 		"√": v6{sqr, sqr, nrt, nrt, nrt, nrt},
-		"‖": v6{abs, abs, pol, pol, pol, pol},
 		"ℜ": v6{zre, zre, nil, nil, nil, nil},
 		"ℑ": v6{zim, zim, nil, nil, nil, nil},
+		"‖": v6{abs, abs, rct, rct, rct, rct},
+		"∡": v6{deg, deg, pol, pol, pol, pol},
+		"𝜑": v6{rad, rad, prd, prd, prd, prd},
 		"⍣": v6{exp, exp, pow, pow, pow, pow},
 		"⍟": v6{log, log, lgn, lgn, lgn, lgn},
 		"!": v6{til, odo, mod, nil, mod, mkd},
@@ -427,7 +429,6 @@ func kinit(a map[v]v) map[v]v {
 		">": v6{dsc, dsc, mor, mor, mor, mor},
 		"⍒": v6{dsc, dsc, nil, nil, nil, nil},
 		"=": v6{eye, grp, eql, eql, eql, eql},
-		"⌸": v6{nil, grp, nil, nil, nil, nil},
 		"~": v6{not, not, mch, mch, mch, mch},
 		"≡": v6{nil, nil, mch, mch, mch, mch},
 		",": v6{enl, enl, cat, cat, cat, cat},
@@ -438,9 +439,7 @@ func kinit(a map[v]v) map[v]v {
 		"_": v6{flr, flr, drp, drp, drp, drp},
 		"↓": v6{nil, nil, drp, drp, drp, drp},
 		"$": v6{fmt, fmt, cst, cst, cst, cst},
-		"⍕": v6{fmt, fmt, nil, nil, nil, nil},
 		"?": v6{rng, unq, rnd, fnd, rnd, fnd},
-		"∪": v6{nil, unq, nil, nil, nil, nil},
 		"@": v6{typ, typ, atx, atx, atx, atx},
 		".": v6{evl, evl, cal, cal, cal, cal},
 		"/": v6{nil, nil, nil, nil, pak, pak}, // a/l join,  l/l encode?
@@ -549,7 +548,7 @@ func kinit(a map[v]v) map[v]v {
 		// TODO o∇
 		"inf": math.Inf(1), "∞": math.Inf(1), "nan": math.NaN(), "ø": math.NaN(),
 		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn,
-		"abs": abs, "ang": ang, "deg": deg, "re": zre, "im": zim, "con": con, "pol": pol,
+		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
 	} {
 		a[k] = u
 	}
@@ -567,14 +566,14 @@ const doc = `Verbs
 |   rev   rev  [max] [max] [max] [max]  ⌽⌈
 <   asc   asc  [les] [les] [les] [les]  ⍋
 >   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]  ⌸
+=   eye   grp  [eql] [eql] [eql] [eql]  
 ~  [not] [not]  mch   mch   mch   mch   ≡
 ,   enl   enl   cat   cat   cat   cat   
 ^   is0  [is0]  ept   ept   ept   ept   
 #   cnt   cnt   tak   rsh   tak   rsh   ⍴↑ 
 _  [flr] [flr]  drp   drp   drp   cut   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst   ⍕
-?   rng   unq   rnd   fnd   rnd   fnd>  ∪
+$   fmt  [fmt]  cst   cst   cst   cst   
+?   rng   unq   rnd   fnd   rnd   fnd>  
 @   typ   typ   atx   atx   atx   atx   
 .   evl   evl   cal   cal   cal   cal   
 /    -     -     -     -    pak   pak     
@@ -586,5 +585,5 @@ Adverbs
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
 \:   -     -    ecl   ecl   ⍀     sin  cos  tan
-/   fidx  ovr   whl   ovd         abs‖ ang  deg
+/   fidx  ovr   whl   ovd         abs‖ ang𝜑 deg∡
 \   sfx   scn   swl   sci         reℜ  imℑ  con`

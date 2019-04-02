@@ -47,9 +47,9 @@ func con(x v) v { return nm(x, func(x z) z { return cmplx.Conj(x) }) }          
 func sqr(x v) v { return nm(x, func(x z) z { return cmplx.Sqrt(x) }) }              // √x sqrt
 func inv(x v) v { return nm(x, func(x z) z { return 1 / x }) }                      // %x inverse
 func abs(x v) v { return nm(x, func(x z) z { return complex(cmplx.Abs(x), 0) }) }   // ‖x absolute value
-func ang(x v) v { return nm(x, func(x z) z { return complex(cmplx.Phase(x), 0) }) } // ang x complex phase [-π,π]
+func rad(x v) v { return nm(x, func(x z) z { return complex(cmplx.Phase(x), 0) }) } // 𝜑x complex phase [-π,π]
 func deg(x v) v {
-	return nm(x, func(x z) z { // ang x complex phase [0,360]
+	return nm(x, func(x z) z { // ∡x complex angle [0,360]
 		p := cmplx.Phase(x) / math.Pi * 360.0
 		if p < 0 {
 			p += 360.0
@@ -307,11 +307,21 @@ func mor(x, y v) v {
 	return nd(x, y, func(x, y z) z { return zter(real(x) > real(y), 1, 0) })
 }                  // x>y more than
 func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) } // x=y equal
-func pol(x, y v) v { // x‖y complex from abs and deg
-	return nd(x, y, func(x, y z) z { return cmplx.Rect(real(x), real(y)*math.Pi/180.0) })
+func rct(x, y v) v { return nd(x, y, func(x, y z) z { return complex(real(x), real(y)) }) }            // x‖y complex from re and im
+func pol(x, y v) v { // x∡y complex from abs and deg
+	return nd(x, y, func(x, y z) z {
+		r := cmplx.Rect(real(x), real(y)*math.Pi/180.0)
+		if y == 0 || y == 180 {
+			r = complex(real(r), 0)
+		} else if y == 90 || y == 270 {
+			r = complex(0, imag(r))
+		}
+		return r
+	})
 }
-func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }   // x⍣y power
-func nrt(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(y, 1/x) }) } // x√y nth root
+func prd(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Rect(real(x), real(y)) }) } // x𝜑y complex from abs and phase (rad)
+func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }              // x⍣y power
+func nrt(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(y, 1/x) }) }            // x√y nth root
 func lgn(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Log(y) / cmplx.Log(x) }) }
 func mch(x, y v) v { // x~y x≡y match
 	if rtyp(x) != rtyp(y) {
