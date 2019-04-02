@@ -525,7 +525,7 @@ func cut(x, y v) v { // x_y cut
 		return u
 	})
 }
-func cst(x, y v) v { return e("nyi") } // x$y x⌶y cast
+func cst(x, y v) v { return e("nyi") } // x$y cast
 func rnd(x, y v) v { // x?y random, roll, -x?y deal
 	n := idx(x)
 	ny := ln(y)
@@ -665,14 +665,70 @@ func cal(x, y v, a map[v]v) v { // x.y call
 	}
 	return r[0].Interface()
 }
-func bin(x, y v) v       { return e("nyi") }
-func rbn(x, y v) v       { return e("nyi") }
-func pak(x, y v) v       { return e("nyi") }
-func upk(x, y v) v       { return e("nyi") }
-func spl(x, y v) v       { return e("nyi") }
-func amd(x, y, z, w v) v { return e("nyi") } // amend
-func dmd(x, y, z, w v) v { return e("nyi") } // dmend
-func win(x, y v) v       { return e("nyi") }
+func jon(x, y v) v { // a/l join
+	xs, xo := x.(s)
+	yy, yo := y.(sv)
+	if !xo || !yo {
+		return e("type") // TODO custom string types
+	}
+	if len(yy) == 0 {
+		return ""
+	}
+	n := 0
+	for i := range yy {
+		n += len(yy[i])
+	}
+	n += len(xs)*len(yy) - 1
+	r := make([]byte, 0, n)
+	sep := []byte(xs)
+	for i := range yy {
+		r = append(r, []byte(yy[i])...)
+		if i != len(yy)-1 {
+			r = append(r, sep...)
+		}
+	}
+	return string(r)
+}
+func spl(x, y v) v { // a\x split, decode?
+	eq := func(a, b []rune) bool {
+		for i := range a {
+			if a[i] != b[i] {
+				return false
+			}
+		}
+		return true
+	}
+	xs, xo := x.(s)
+	ys, yo := y.(s)
+	if !xo || !yo {
+		return e("type")
+	}
+	xr, yr := []rune(xs), []rune(ys)
+	var r sv
+	if len(xs) == 0 {
+		if len(ys) == 0 {
+			return sv{""}
+		}
+		r = make(sv, len(yr))
+		for i := range yr {
+			r[i] = string(yr[i])
+		}
+		return r
+	}
+	l := 0
+	for i := 0; i < len(yr); i++ {
+		if len(yr)-i < len(xr) {
+			break
+		}
+		if eq(yr[i:i+len(xr)], xr) {
+			r = append(r, string(yr[l:i]))
+			i += len(xr) - 1
+			l = i + 1
+		}
+	}
+	return append(r, string(yr[l:]))
+}
+func enc(x, y v) v { return e("nyi") } // l/a encode, pack
 
 // adverbs
 func ech(f, x v, a map[v]v) v { // f1'x  f1¨x each

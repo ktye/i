@@ -30,14 +30,14 @@ Verbs
 |   rev   rev  [max] [max] [max] [max]  ⌽⌈
 <   asc   asc  [les] [les] [les] [les]  ⍋
 >   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]  ⌸
+=   eye   grp  [eql] [eql] [eql] [eql]  
 ~  [not] [not]  mch   mch   mch   mch   ≡
 ,   enl   enl   cat   cat   cat   cat   
 ^   is0  [is0]  ept   ept   ept   ept   
 #   cnt   cnt   tak   rsh   tak   rsh   ⍴↑ 
 _  [flr] [flr]  drp   drp   drp   cut   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst   ⍕
-?   rng   unq   rnd   fnd   rnd   fnd>  ∪
+$   fmt  [fmt]  cst   cst   cst   cst   
+?   rng   unq   rnd   fnd   rnd   fnd>  
 @   typ   typ   atx   atx   atx   atx   
 .   evl   evl   cal   cal   cal   cal   
 /    -     -     -     -    pak   pak     
@@ -49,7 +49,7 @@ Adverbs
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
 \:   -     -    ecl   ecl   ⍀     sin  cos  tan
-/   fidx  ovr   whl   ovd         abs‖ ang  deg
+/   fidx  ovr   whl   ovd         abs‖ ang𝜑 deg∡
 \   sfx   scn   swl   sci         reℜ  imℑ  con
 
 Ref

@@ -442,8 +442,8 @@ func kinit(a map[v]v) map[v]v {
 		"?": v6{rng, unq, rnd, fnd, rnd, fnd},
 		"@": v6{typ, typ, atx, atx, atx, atx},
 		".": v6{evl, evl, cal, cal, cal, cal},
-		"/": v6{nil, nil, nil, nil, pak, pak}, // a/l join,  l/l encode?
-		`\`: v6{nil, nil, nil, upk, spl, nil}, // a\l split, l/l decode?
+		"/": v6{nil, nil, nil, nil, jon, enc},
+		`\`: v6{nil, nil, nil, spl, nil, nil},
 	}
 	for _s, _u := range vtab {
 		s, u := _s, _u

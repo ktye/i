@@ -218,6 +218,13 @@ func TestDV(t *testing.T) {
 		// upk: TODO
 		// spl: TODO
 		// win: TODO
+		{"jon", jon, "⍨", sv{"al", "beta", "ga"}, "al⍨beta⍨ga"},
+		{"spl", spl, ";;", "alpha;;beta", sv{"alpha", "beta"}},
+		{"spl", spl, ";", "alpha;;beta", sv{"alpha", "", "beta"}},
+		{"spl", spl, "a", "alphabeta", sv{"", "lph", "bet", ""}},
+		{"spl", spl, "", "alpha", sv{"a", "l", "p", "h", "a"}},
+		{"spl", spl, "x", "", sv{""}},
+		{"spl", spl, "", "", sv{""}},
 	}
 	for _, tc := range testCases {
 		r := tc.f(tc.x, tc.y)
