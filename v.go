@@ -296,7 +296,7 @@ func unq(x v) v { // ?x ∪x uniq
 	}
 	return sl(r, t)
 }
-func typ(x v) v { return e("nyi") } // @x type of
+func typ(x v) v { return rtyp(x) }  // @x type of
 func evl(x v) v { return e("nyi") } // .x ⍎x evaluate
 
 // dyadic verbs
@@ -889,6 +889,8 @@ func cal(x, y v, a map[v]v) v { // x.y call
 			return atd(x, y, a)
 		}
 		return atx(xn, y, a)
+	} else if _, o := md(x); o {
+		return atx(x, y, a)
 	}
 	f := rval(x)
 	if f.Kind() != reflect.Func {

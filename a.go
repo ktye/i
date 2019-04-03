@@ -64,13 +64,10 @@ func cp(x v) v {
 			r.Index(i).Set(rval(y))
 		}
 		return r.Interface()
-	case reflect.Chan, reflect.Interface, reflect.Ptr, reflect.UnsafePointer:
-		// TODO: allow pointer, with or without deep copy, depending on type?
-		e("type") // TODO: these types should be returned verbatim
 	case reflect.Map, reflect.Struct:
 		e("assert") // already converted to dict
 	}
-	return x
+	return x // Ptr, Chan, Interface, UnsafePointer are not copied
 }
 
 func e(s string) v { panic(s); return nil }
@@ -166,9 +163,14 @@ func md(x interface{}) (dict, bool) { // import maps and structs as dicts
 			t := v.Type()
 			j := 0
 			for i := 0; i < n; i++ {
-				u := cp(v.Field(i).Interface())
+				u := v.Field(i).Interface()
 				if rv := rval(u); rv.Kind() == reflect.Slice && rv.IsNil() {
 					continue // skip nil slices
+				}
+				if d, o := md(u); o {
+					u = d
+				} else {
+					u = cp(u)
 				}
 				d.k[j], d.v[j] = t.Field(i).Name, u
 				j++

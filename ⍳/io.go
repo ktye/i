@@ -70,7 +70,7 @@ func uf(x []v) v {
 	}
 	return n
 }
-func filter() map[v]v {
+func setup() map[v]v {
 	a := make(map[v]v)
 	i.E(l{}, a)
 	a["i"] = func(x v) v {
@@ -87,5 +87,6 @@ func filter() map[v]v {
 		"l": 0, // nested list
 		"q": 1, // auto quote
 	}
+	regplot(a)
 	return a
 }

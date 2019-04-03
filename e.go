@@ -1,9 +1,5 @@
 package i
 
-import (
-	"reflect"
-)
-
 func eva(x v, a map[v]v) v {
 	if sy, o := x.(s); o {
 		return lup(a, sy)
@@ -58,9 +54,6 @@ func eva(x v, a map[v]v) v {
 			f = lup(a, u)
 		} else if u, o := f.([]v); o {
 			f = ead(u, a)
-		}
-		if k := rval(f).Kind(); k != reflect.Func {
-			return e("type:func?" + k.String())
 		}
 		if len(l) == 3 && l[2] == nil { // curry
 			x := eva(l[1], a)

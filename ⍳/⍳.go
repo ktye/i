@@ -20,13 +20,12 @@ type v = interface{}
 type l = []v
 
 func main() {
-	a := filter()
+	a := setup()
 
 	if len(os.Args) > 1 {
 		if b, err := ioutil.ReadFile(os.Args[1]); err == nil {
 			i.E(i.P(string(b)), a)
 		} else {
-			a := filter()
 			p(i.E(i.P(jon(" ", os.Args[1:]).(string)), a))
 		}
 		return
