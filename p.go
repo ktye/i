@@ -6,30 +6,6 @@ import (
 	"strconv"
 )
 
-/*         k4 (-5!"expr")    k7 (`p@"expr")    ngn (`p@"expr")     i
-	 →                                     ::                  nil
-1        → e                 e                 ,1                  1                    / atom → itself
-(1)      → 1                 1                 ,1                  1
-,1       → e                 (,:;1)            ,(,:;1))            l{",",1}             / list → function
-1;2      → (";";1;2)         (/;1;2)           (1;2)               l{";",1,2}           / special func ";": LR sequence
-(1;2)    → (,;1;2)           (\;1;2)           ,(X:;1;2)           l{nil,l{nil,1,2}}    / l[0] nil → list l[1:]
-(1;;3)   → (,;1;::;3)        (\;1;::;2)        ,(X:;1;::;3)        l{nil,1,nil,3}
-+1       → e                 (+:;1)            ,(+:;1)             l{"+",1}             / monad
-1+       → (+;1)             (+;1)             ,(+;1)              l{"+",1,nil}         / currying: second arg is missing
-1+2      → (+;1;2)           (+;1;2)           ,(+;1;2)            l{"+",1,2}           / dyad
-+[1;2]   → (+;1;2)           ?                 ,(+;1;2)            l{"+",1,2}
-1+a      → (+;1;`a)          (+;1;`a)          ,(+;1;`a)           l{"+",1,"a"}         / symbol evaluates (lookup)
-1+`a     → (+;1;,`a)         (+;1;,`a)         ,(+;1;,`a)          l{"+",1,l{"`","a"}}}
-1+"a"    → (+;1;,"a")        (+;1;,"a")        ,(+;1;,"a")         l{"+",1,'a'}         / rune character, multiple: rv
-1+(1;2)  → (+;1;(,;1;2))     (+;1;(\;1;2))     ,(+;1;(X:;1;2))     l{"+",1,l{nil,1,2}}  / nested function
-1-2+3    → (-;1;(+2;3))      (-;1;(+;2;3))     ,(-;1;(+;2;3))      l{"-",l{"+",2,3}}
-+/1 2 3  → e                 ((/;+);1 2 3)     ,((/;+);1 2 3)      l{l{"/","+"}},fv{1,2,3}          / derived verb
-1{x+y}2  → e                 e                 e                   l{"λ",l{l{'+',"x","y"}},"x","y"} / lambda function
-{x}[3]   → ({x};3)           ({x};3)           ,({x};3)            l{"λ",l{"x"}}
-a[3]:4   → (:;(`a;3);4)      (::;(`a;3);4)     (:;(`a;3);4;::)     l{":",l{"a",3},4}    / assignment
-a[3;4]+:5→ (+:;(`a;3;4);5)   (+:;(`a;3;4);5)   (+:;(`a;3;4);5;);;) l{"+:"},l{"a",3,4},5 / modified assignment
-*/
-
 func prs(x v) v { // s: rv
 	p := p{b: beg(rv(x.(s)))}
 	r := l{}
@@ -190,7 +166,12 @@ func (p *p) noun() v {
 		}
 		p.p(sCbr)
 		return p.idxr(l{"!", key, val})
-	// TODO {}
+	case p.t(sOcb):
+		p.p(sOcb)
+		r := p.lst(sCcb)
+		// TODO find names
+		// TODO idxr or applyright?
+		return p.idxr(l{"λ", r})
 	case p.t(sOpa):
 		p.p(sOpa)
 		r := p.lst(sCpa)
@@ -209,14 +190,19 @@ func (p *p) noun() v {
 			h += p.p(sCol)
 		}
 		// TODO [ | dict
-		return h
+		return p.idxr(h)
 	case p.t(sNam):
 		ref := p.p(sNam)
 		if p.t(sCol) {
 			p.p(sCol)
-			return l{":", ref, p.ex(p.noun())}
+			col := ":"
+			if p.t(sCol) {
+				p.p(sCol)
+				col += ":" // :: global assignment
+			}
+			return l{col, ref, p.ex(p.noun())}
 		}
-		return ref
+		return p.idxr(ref)
 		// TODO compound assign []
 	}
 	return nil
@@ -301,11 +287,7 @@ func (p *p) idxr(x v) v {
 	for p.t(sObr) {
 		p.p(sObr)
 		r := p.lst(sCbr)
-		if len(r) == 1 {
-			x = l{"@", x, r[0]}
-		} else {
-			x = l{"@", x, r}
-		}
+		x = l{".", x, append(l{nil}, r...)}
 	}
 	return x
 }
@@ -314,7 +296,7 @@ func (p *p) idxr(x v) v {
 const dig = "0123456789"
 const consts = "πø∞"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
-const uni = `⍉×÷⍳⍸⌊⌽⌈⍋⍒≡∧⍴≢↑⌊↓⍕∪⍎⍣ℜℑ‖∡𝜑√⍟`
+const uni = `⍉×÷⍳⌊⌽⌈⍋⍒≡∧⍴≢↑⌊↓⍕∪⍎⍣ℜℑ‖∡𝜑√⍟∇`
 const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 

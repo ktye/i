@@ -279,6 +279,7 @@ func TestVKt(t *testing.T) {
 		{"atx", atx, nil, iv{4, 5, 6}, iv{0, 2}, iv{4, 6}},
 		{"atx", atx, nil, map[v]v{"a": -1.0, "b": -2.0}, "b", -2.0},
 		{"atx", atx, nil, map[v]v{"a": -1.0, "b": -2.0}, sv{"b", "a"}, fv{-2, -1}},
+		{"cal", cal, nil, l{1, l{2, 3}, 4}, l{1, 1}, 3}, // at depth
 		// TODO atx var adv
 		// TODO atx verb *
 	}
@@ -306,6 +307,7 @@ func TestMethod(t *testing.T) {
 func tt(t *testing.T, exp, got v, s string, a ...v) {
 	printf(s, a...)
 	if reflect.DeepEqual(exp, got) == false {
+		_fmt.Printf(s, a...)
 		_fmt.Printf("exp: %#v (%T)\n", exp, exp)
 		_fmt.Printf("got: %#v (%T)\n", got, got)
 		t.Fatal()

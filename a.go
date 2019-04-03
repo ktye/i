@@ -415,14 +415,13 @@ func kinit(a map[v]v) map[v]v {
 		"ℜ": v6{zre, zre, nil, nil, nil, nil},
 		"ℑ": v6{zim, zim, nil, nil, nil, nil},
 		"‖": v6{abs, abs, rct, rct, rct, rct},
-		"∡": v6{deg, deg, pol, pol, pol, pol},
+		"°": v6{deg, deg, pol, pol, pol, pol},
 		"𝜑": v6{rad, rad, prd, prd, prd, prd},
 		"⍣": v6{exp, exp, pow, pow, pow, pow},
 		"⍟": v6{log, log, lgn, lgn, lgn, lgn},
 		"!": v6{til, odo, mod, nil, mod, mkd},
 		"⍳": v6{til, nil, nil, nil, nil, nil},
 		"&": v6{wer, wer, min, min, min, min},
-		"⍸": v6{wer, nil, nil, nil, nil, nil},
 		"⌊": v6{flr, flr, min, min, min, min},
 		"|": v6{rev, rev, max, max, max, max},
 		"⌽": v6{rev, rev, nil, nil, nil, nil},
@@ -547,8 +546,6 @@ func kinit(a map[v]v) map[v]v {
 	for k, u := range map[s]v{
 		"prs": prs, "evl": eva,
 		"pi": math.Pi, "π": math.Pi,
-		"⍺": "x", "⍵": "y",
-		// TODO o∇
 		"jon": jon, "num": num,
 		"inf": math.Inf(1), "∞": math.Inf(1), "nan": math.NaN(), "ø": math.NaN(),
 		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn,
@@ -566,7 +563,7 @@ const doc = `Verbs
 *   fst   fst  [mul] [mul] [mul] [mul]  ×
 %  [inv] [inv] [div] [div] [div] [div]  ÷
 !   til   odo   mod    -    mod>  mkd   ⍳
-&   wer   wer  [min] [min] [min] [min]  ⍸⌊
+&   wer   wer  [min] [min] [min] [min]  ⌊
 |   rev   rev  [max] [max] [max] [max]  ⌽⌈
 <   asc   asc  [les] [les] [les] [les]  ⍋
 >   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
@@ -584,10 +581,10 @@ $   fmt  [fmt]  cst   cst   cst   cst
 \    -     -     -    upk   spl   -      
                                                  
 Adverbs                           
-    mv/nv dv    l-mv  l-dv        x⍺   y⍵   o∇
+    mv/nv dv    l-mv  l-dv        
 '   ech   ecd   ecd   ecd   ¨     prs  evl
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
 \:   -     -    ecl   ecl   ⍀     sin  cos  tan
-/   fidx  ovr   whl   ovd         abs‖ ang𝜑 deg∡
+/   fidx  ovr   whl   ovd         abs‖ ang𝜑 deg°
 \   sfx   scn   swl   sci         reℜ  imℑ  con`

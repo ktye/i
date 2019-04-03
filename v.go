@@ -59,7 +59,7 @@ func inv(x v) v { return nm(x, func(x z) z { return 1 / x }) }                  
 func abs(x v) v { return nm(x, func(x z) z { return complex(cmplx.Abs(x), 0) }) }   // ‖x absolute value
 func rad(x v) v { return nm(x, func(x z) z { return complex(cmplx.Phase(x), 0) }) } // 𝜑x complex phase [-π,π]
 func deg(x v) v {
-	return nm(x, func(x z) z { // ∡x complex angle [0,360]
+	return nm(x, func(x z) z { // °x complex angle [0,360]
 		p := cmplx.Phase(x) / math.Pi * 360.0
 		if p < 0 {
 			p += 360.0
@@ -120,7 +120,7 @@ func odo(x v) v { // !l odometer
 	}
 	return r
 }
-func wer(x v) v { // &x ⍸x where
+func wer(x v) v { // &x where
 	nx := ln(x)
 	if nx < 0 {
 		x, nx = enl(x), 1
@@ -325,7 +325,7 @@ func mor(x, y v) v {
 }                  // x>y more than
 func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) } // x=y equal
 func rct(x, y v) v { return nd(x, y, func(x, y z) z { return complex(real(x), real(y)) }) }            // x‖y complex from re and im
-func pol(x, y v) v { // x∡y complex from abs and deg
+func pol(x, y v) v { // x°y complex from abs and deg
 	return nd(x, y, func(x, y z) z {
 		r := cmplx.Rect(real(x), real(y)*math.Pi/180.0)
 		if y == 0 || y == 180 {
@@ -642,8 +642,6 @@ func cst(x, y v) v { // x$y cast
 	}
 	dct := func(d dict) string {
 		mm := compact()
-		q, qq := mm.at("q")
-		println(q, qq)
 		hb := make(sv, len(d.k))
 		var b []byte
 		mx := 0
@@ -668,7 +666,9 @@ func cst(x, y v) v { // x$y cast
 		}
 		return string(b)
 	}
-
+	if y == nil {
+		return "::"
+	}
 	type stringer interface{ String() string }
 	if s, o := y.(stringer); o {
 		return s.String()
@@ -737,10 +737,7 @@ func cst(x, y v) v { // x$y cast
 		}
 		if d := getf("a"); d < 0 {
 			im := strconv.FormatFloat(imag(y), 'g', -1, 64)
-			if im[0] != '-' {
-				return re + "+" + im + "i"
-			}
-			return re + im + "i"
+			return re + "i" + im
 		} else {
 			r, phi := cmplx.Polar(y)
 			phi *= 180.0 / math.Pi
@@ -887,6 +884,12 @@ func cal(x, y v, a map[v]v) v { // x.y call
 		return cal(f, y, a)
 	}
 	// TODO other cases
+	if xn := ln(x); xn > 0 {
+		if yn := ln(y); yn > 0 {
+			return atd(x, y, a)
+		}
+		return atx(xn, y, a)
+	}
 	f := rval(x)
 	if f.Kind() != reflect.Func {
 		return e("nyi:call:" + f.Kind().String())
@@ -904,6 +907,14 @@ func cal(x, y v, a map[v]v) v { // x.y call
 		return nil
 	}
 	return r[0].Interface()
+}
+func atd(x, y v, a map[v]v) v { // at depth
+	if n := ln(y); n < 0 {
+		return atx(x, y, a)
+	} else if n == 1 {
+		return atx(x, at(y, 0), a) // at(x, pidx(at(y, 0)))
+	}
+	return atd(at(x, pidx(at(y, 0))), drp(1, y), a)
 }
 func jon(x, y v) v { // a/l join
 	xs, xo := x.(s)

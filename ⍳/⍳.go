@@ -53,6 +53,9 @@ func run(t string, a map[v]v) (r interface{}) {
 }
 
 func p(x v) {
+	if x == nil {
+		return
+	}
 	s, o := x.(string)
 	if !o {
 		s = fmt(x).(string)
