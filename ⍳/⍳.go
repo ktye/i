@@ -48,7 +48,8 @@ func run(t string, a map[v]v) (r interface{}) {
 			r = c
 		}
 	}()
-	return i.E(i.P(t), a)
+	pr := i.P(t)
+	return i.E(pr, a)
 }
 
 func p(x v) {

@@ -489,10 +489,10 @@ L:
 		switch {
 		case len(x) == 0:
 			break L
-		case sStr(x) > 0: // skip strings
+		case !c && sStr(x) > 0: // skip strings
 			p(sStr(x))
 			continue
-		case sNum(x) > 0:
+		case !c && sNum(x) > 0:
 			if any(x[0], "+-") {
 				y = append(y, x[0])
 				x = x[1:]

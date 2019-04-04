@@ -153,6 +153,7 @@ func TestBeg(t *testing.T) {
 	testCases := [][2]string{
 		{"xyz", "xyz"},
 		{"/xyz", ""},
+		{`/ a:[a:1;b:[d:3;f:4]]`, ""},
 		{"/x\nyz", "\nyz"},
 		{"ab/x\nyz", "ab/x\nyz"},
 		{"ab /x\nyz", "ab \nyz"},
