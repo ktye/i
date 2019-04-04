@@ -169,9 +169,13 @@ func (p *p) noun() v {
 	case p.t(sOcb):
 		p.p(sOcb)
 		r := p.lst(sCcb)
-		// TODO find names
-		// TODO idxr or applyright?
-		return p.idxr(l{"λ", r})
+		λ := l{"λ", r}
+		if p.t(sObr) {
+			x := p.idxr(nil)
+			x.(l)[0] = λ
+			return x
+		}
+		return λ
 	case p.t(sOpa):
 		p.p(sOpa)
 		r := p.lst(sCpa)
@@ -283,11 +287,16 @@ func (p *p) lst(term sf) l {
 	return r
 }
 func (p *p) idxr(x v) v {
-	// TODO x sticky and at verb
 	for p.t(sObr) {
 		p.p(sObr)
 		r := p.lst(sCbr)
-		x = l{".", x, append(l{nil}, r...)}
+		if len(r) == 0 {
+			r = l{nilad(true)}
+		}
+		if xl, o := x.(l); o && len(xl) > 1 && xl[0] != nil {
+			return append(xl, r...)
+		}
+		return append(l{x}, r...)
 	}
 	return x
 }
@@ -514,3 +523,6 @@ L:
 	}
 	return y
 }
+
+type nilad bool           // mark argument of a niladic call f[] → ("f"; nilad)
+func (n nilad) String() s { return "nilad" }

@@ -883,10 +883,10 @@ func cal(x, y v, a map[v]v) v { // x.y call
 	if x == nil {
 		return e("call nil")
 	}
-	if sy, o := x.(s); o {
-		f := lup(a, sy)
+	if sx, o := x.(s); o {
+		f := lup(a, sx)
 		if f == nil {
-			return e("nil:" + sy)
+			return e("nil:" + sx)
 		}
 		return cal(f, y, a)
 	}
@@ -904,18 +904,40 @@ func cal(x, y v, a map[v]v) v { // x.y call
 		return e("nyi:call:" + f.Kind().String())
 	}
 	var in, r []rV
+	var cur []int
 	if yl, o := y.(l); o {
 		in = make([]rV, len(yl))
 		for i := range in {
-			in[i] = rval(yl[i])
+			if yl[i] == nil {
+				cur = append(cur, i)
+			} else {
+				in[i] = rval(yl[i])
+			}
 		}
 	}
-	// TODO: functions might need a. Test with t:=f.Type();t.IsVariadic() == false && t.NumIn()... and append a.
-	r = f.Call(in)
-	if len(r) == 0 {
-		return nil
+	if cur == nil {
+		// TODO: functions might need a. Test with t:=f.Type();t.IsVariadic() == false && t.NumIn()... and append a.
+		r = f.Call(in)
+		if len(r) == 0 {
+			return nil
+		}
+		return r[0].Interface()
 	}
-	return r[0].Interface()
+	return curry(func(w ...v) v { // curry
+		if len(w) == 0 { // report number of arguments
+			return len(cur)
+		}
+		if len(w) != len(cur) {
+			return e("args")
+		}
+		yl := y.(l)
+		for i := range w {
+			if w[i] != nil {
+				yl[cur[i]] = w[i]
+			}
+		}
+		return cal(x, yl, a)
+	})
 }
 func atd(x, y v, a map[v]v) v { // at depth
 	if n := ln(y); n < 0 {

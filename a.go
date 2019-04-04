@@ -129,6 +129,8 @@ func ms(eT rT, n int) rV { // make slice from element type, but lists from slice
 	}
 	return reflect.MakeSlice(reflect.SliceOf(eT), n, n)
 }
+func isl(x v) bool { _, o := x.(l); return o } // is list
+func iss(x v) bool { _, o := x.(s); return o } // is string
 
 type dict struct {
 	k, v l
@@ -391,7 +393,8 @@ func set(L v, i int, x v) {
 	rval(L).Index(i).Set(rval(x))
 }
 
-type nfn func(w ...v) v      // func that knows it's name
+type curry func(...v) v      // curry() reports it number of arguments
+type nfn func(...v) v        // func that knows it's name
 func (f nfn) String() string { v := f(); return v.(s) }
 
 func kinit(a map[v]v) map[v]v {
@@ -525,8 +528,10 @@ func kinit(a map[v]v) map[v]v {
 				} else if len(w) == 2 {
 					cs += 2
 				}
-				if t := rval(f).Type(); t.IsVariadic() == false && t.NumIn() == 1 {
-					cs-- // forced monad, or lambda
+				if cf, o := f.(curry); o && cf().(int) == 1 {
+					cs--
+				} else if t := rval(f).Type(); t.IsVariadic() == false && t.NumIn() == 1 {
+					cs--
 				}
 				g := u[cs]
 				if g == nil {

@@ -8,12 +8,19 @@ func eva(x v, a map[v]v) v {
 	if !o || len(l) == 0 {
 		return x
 	}
+
+	/* rm?
+	//if len(l) > 3 && l[0] == "$" {
 	if len(l) == 3 && l[0] == "." {
 		if l[1] == "$" && len(l[2].([]v)) > 2 {
 			return cnd(l[2].([]v)[1:], a) // (.;$;(::;A;B;C;...))
 		} else if l[1] == "∇" {
 			return tail(l[2].([]v)[1:]) // (.;∇;(::;X;Y;Z;...))
 		}
+	}
+	*/
+	if len(l) > 3 && l[0] == "$" {
+		return cnd(l[1:], a) // $[A;B;C;…]
 	}
 	switch l[0] {
 	case nil:
@@ -47,35 +54,39 @@ func eva(x v, a map[v]v) v {
 	case "∇":
 		return tail(l[1:])
 	case "λ":
-		return ead(l, a)
+		return λ(l[1:], a)
 	default:
-		f := l[0]
-		if u, o := f.(s); o {
-			f = lup(a, u)
-		} else if u, o := f.([]v); o {
-			f = ead(u, a)
+		if f, o := adv(l, a); o {
+			return f
 		}
-		if len(l) == 3 && l[2] == nil { // curry
-			x := eva(l[1], a)
-			return func(y v) v {
-				return cal(f, []v{x, y}, a)
-			}
-		}
-		for i := len(l) - 1; i > 0; i-- { // right to left
+		for i := len(l) - 1; i >= 0; i-- { // right to left
 			l[i] = eva(l[i], a)
 		}
-		return cal(f, l[1:], a)
+		if len(l) == 1 {
+			return l[0]
+		}
+		if _, o := l[1].(nilad); o {
+			return cal(l[0], []v{}, a)
+		}
+		return cal(l[0], l[1:], a)
 	}
 	return e("impossible")
 }
-func ead(u l, a map[v]v) v { // evaluate adverb expr
+func adv(u l, a map[v]v) (v, bool) { // evaluate adverb expr
 	// TODO: verb trains
-	if u[0].(s) == "λ" {
-		return λ(u[1].(l), a)
+	if len(u) != 2 || u[0] == nil || !iss(u[0]) {
+		return u, false
 	}
-	af := lup(a, u[0].(s)).(func(v) v)
+	s := u[0].(s)
+	//if s == "λ" {
+	//	return λ(u[1].(l), a), true
+	//} else
+	if sAdv(rv(s)) == 0 {
+		return u, false
+	}
+	af := lup(a, s).(func(v) v)
 	w := eva(u[1], a)
-	return af(w) // func(...v)v
+	return af(w), true // func(...v)v
 }
 func lup(a map[v]v, s s) v { // lookup
 	if r := a[s]; r != nil {
