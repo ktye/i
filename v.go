@@ -252,7 +252,7 @@ func cnt(x v) v { // #x ⍴x count, length
 }
 func flr(x v) v { return nm(x, func(x z) z { return complex(math.Floor(real(x)), 0) }) } // _x ⌊x floor
 func cil(x v) v { return nm(x, func(x z) z { return complex(math.Ceil(real(x)), 0) }) }  // ⌈x ceil
-func fmt(x v) v { return cst("s", x) }                                                   // $x format to string
+func fmt(x v) v { return cst(nil, x) }                                                   // $x format to string
 func num(x v) v { // num s parse number
 	t, o := x.(s)
 	if !o {
@@ -543,10 +543,17 @@ func cut(x, y v) v { // x_y cut
 	})
 }
 func cst(x, y v) v { // x$y cast
-	// TODO type conversions other that tostring.
-	m, o := md(x)
-	if o == false {
+	type cvt interface{ ConvertTo(v) v }
+	var m dict
+	if x == nil { // nil argument: tostring, same as fmt.
 		m, _ = md(map[v]v{0: 0})
+	} else if c, o := x.(cvt); o { // use ConvertTo method of x
+		return c.ConvertTo(y)
+	} else if d, o := md(x); o { // dict controls formatting
+		m = d
+	} else if rval(x).Kind() < reflect.Array { // convert to any numeric type
+		z, vec, _ := nv(y) // (int$-8)$255
+		return vn(z, vec, rtyp(x))
 	}
 	getf := func(a s) int {
 		if k, u := m.at(a); k == -1 {

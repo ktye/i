@@ -28,9 +28,7 @@ var rTf = rtyp(0.0)
 var rTz = rtyp(complex(0, 0))
 var rTs = rtyp("")
 
-type cpr interface {
-	Copy() v
-}
+type cpr interface{ Copy() v }
 
 func cp(x v) v {
 	if k := rval(x).Kind(); k < reflect.Array || k == reflect.String {
@@ -554,6 +552,10 @@ func kinit(a map[v]v) map[v]v {
 		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
 	} {
 		a[k] = u
+	}
+	a["int"] = map[z]v{
+		0: int(0), 1: false, 8: int8(0), 16: int16(0), 32: int32(0), 64: int64(0),
+		-1: uint(0), -8: uint8(0), -16: uint16(0), -32: uint32(0), -64: uint64(0),
 	}
 	return a
 }
