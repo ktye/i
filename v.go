@@ -896,7 +896,8 @@ func cal(x, y v, a map[v]v) v { // x.y call
 			return atd(x, y, a)
 		}
 		return atx(xn, y, a)
-	} else if _, o := md(x); o {
+	} else if _, o := md(x); o { // TODO same here, list and dict should be treated equally.
+		println("lookup dict at", fmt(y).(s))
 		return atx(x, y, a)
 	}
 	f := rval(x)
