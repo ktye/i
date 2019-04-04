@@ -546,11 +546,16 @@ func cst(x, y v) v { // x$y cast
 	type cvt interface {
 		ConvertTo(v) v
 	}
+	type cfm interface {
+		Format(s) s
+	}
 	var m dict
 	if x == nil { // nil argument: tostring, same as fmt.
 		m, _ = md(map[v]v{0: 0})
 	} else if c, o := x.(cvt); o { // use ConvertTo method of x
 		return c.ConvertTo(y)
+	} else if f, o := y.(cfm); o && iss(x) {
+		return f.Format(x.(s))
 	} else if d, o := md(x); o { // dict controls formatting
 		m = d
 	} else if rval(x).Kind() < reflect.Array { // convert to any numeric type

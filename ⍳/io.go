@@ -87,6 +87,7 @@ func setup() map[v]v {
 		"l": 0, // nested list
 		"q": 1, // auto quote
 	}
+	a["t"] = regtime()
 	regplot(a)
 	return a
 }

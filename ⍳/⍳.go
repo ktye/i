@@ -16,6 +16,7 @@ import (
 // filename: execute file, exit on error
 // else: exec argv
 
+type s = string
 type v = interface{}
 type l = []v
 
