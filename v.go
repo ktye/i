@@ -543,7 +543,9 @@ func cut(x, y v) v { // x_y cut
 	})
 }
 func cst(x, y v) v { // x$y cast
-	type cvt interface{ ConvertTo(v) v }
+	type cvt interface {
+		ConvertTo(v) v
+	}
 	var m dict
 	if x == nil { // nil argument: tostring, same as fmt.
 		m, _ = md(map[v]v{0: 0})
@@ -676,7 +678,9 @@ func cst(x, y v) v { // x$y cast
 	if y == nil {
 		return "::"
 	}
-	type stringer interface{ String() string }
+	type stringer interface {
+		String() string
+	}
 	if s, o := y.(stringer); o {
 		return s.String()
 	}
@@ -891,13 +895,10 @@ func cal(x, y v, a map[v]v) v { // x.y call
 		return cal(f, y, a)
 	}
 	// TODO other cases
-	if xn := ln(x); xn > 0 {
+	if _, o := md(x); o || ln(x) > 0 {
 		if yn := ln(y); yn > 0 {
 			return atd(x, y, a)
 		}
-		return atx(xn, y, a)
-	} else if _, o := md(x); o { // TODO same here, list and dict should be treated equally.
-		println("lookup dict at", fmt(y).(s))
 		return atx(x, y, a)
 	}
 	f := rval(x)
@@ -944,7 +945,11 @@ func atd(x, y v, a map[v]v) v { // at depth
 	if n := ln(y); n < 0 {
 		return atx(x, y, a)
 	} else if n == 1 {
-		return atx(x, at(y, 0), a) // at(x, pidx(at(y, 0)))
+		return atx(x, at(y, 0), a)
+	}
+	if d, o := md(x); o {
+		_, u := d.at(at(y, 0))
+		return atd(u, drp(1, y), a)
 	}
 	return atd(at(x, pidx(at(y, 0))), drp(1, y), a)
 }

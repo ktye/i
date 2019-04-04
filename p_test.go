@@ -43,8 +43,8 @@ func TestP(t *testing.T) {
 		{"(1;(2;3;(4;0)))[1;2;0]", l{l{nil, z1, l{nil, z2, z3, l{nil, z4, z0}}}, z1, z2, z0}, z4},
 		{"(1;(2;3;(4;0))).1 2 0", l{".", l{nil, z1, l{nil, z2, z3, l{nil, z4, z0}}}, zv{1, 2, 0}}, z4},
 		{"[a:1;b:[c:3;d:4]]", l{"!", sv{"a", "b"}, l{nil, z1, l{"!", sv{"c", "d"}, l{nil, z3, z4}}}}, [2]l{l{"a", "b"}, l{z1, [2]l{l{"c", "d"}, l{z3, z4}}}}},
-		{"[a:1;b:[c:3;d:4]]`a`b", l{l{"!", sv{"a", "b"}, l{nil, z1, l{"!", sv{"c", "d"}, l{nil, z3, z4}}}}, sv{"a", "b"}},
-			l{z1, [2]l{l{"c", "d"}, l{z3, z4}}}}, // TODO result should not be enlisted
+		{"[a:1;b:[c:3;d:4]]`a`b", l{l{"!", sv{"a", "b"}, l{nil, z1, l{"!", sv{"c", "d"}, l{nil, z3, z4}}}}, sv{"a", "b"}}, l{z1, [2]l{l{"c", "d"}, l{z3, z4}}}},
+		{"[a:1;b:[c:3;d:4]].`b`d", l{".", l{"!", sv{"a", "b"}, l{nil, z1, l{"!", sv{"c", "d"}, l{nil, z3, z4}}}}, sv{"b", "d"}}, z4},
 		{"+[3;4]", l{"+", z3, z4}, c(7, 0)},
 		{`a:+;a[1;2]`, l{";", l{":", "a", "+"}, l{"a", z1, z2}}, z3},
 		{"`a`b!3 4", l{"!", sv{"a", "b"}, zv{3, 4}}, [2]l{l{"a", "b"}, l{z3, z4}}},
