@@ -1378,6 +1378,10 @@ func sfx(f, x v, a map[v]v) v { // f1\x scan fixed
 	return uu
 }
 
+//  πø∞𝜀  constants            / (𝜑-1;0÷0;1÷0;1e-14)→ (π;ø;∞;𝜀)
+//    $[x;z;y;…] if, switch    / $[1>2;∞;ø]         → ø
+//   x∇y  tail call            / {$[x>100;x;∇x+1]}1 → 101
+
 func grade(up bool, x v) v {
 	if d, o := md(x); o {
 		return atx(d.k, grade(up, d.v), nil)

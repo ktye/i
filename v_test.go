@@ -1,9 +1,12 @@
 package i
 
 import (
+	"bytes"
 	_fmt "fmt"
+	"io/ioutil"
 	"math"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -301,6 +304,46 @@ func TestMethod(t *testing.T) {
 	for _, tc := range testCases {
 		r := cal(atx(myfloat(1.0), tc.m, nil), tc.x, nil)
 		tt(t, tc.r, r, "method %s %+v: %+v\n", tc.m, tc.x, tc.r)
+	}
+}
+func TestDoc(t *testing.T) {
+	var b bytes.Buffer
+	hdr := `⍳ interpret - a k interpreter for Go
+
+Package interface (2 functions, no types):
+  l := P("!3")  // Parse expr to ast (list []interface{})
+  v := E(l, a)  // Evaluate to value (interface{})
+  //k-tree: a map[interface{}]interface{}
+
+Types
+    complex128        numbers    1 -2.3 5e6 1i0 3a270
+  []complex128        uniform vectors       1 2.3 -55
+  []interface{}       list      (1;2;3;2∞b;"x";(4;5))
+  string              symbol/chars "x\nz" ∞a∞str∞list
+  [2][]interface{}    dict                  [a:1;b:2]
+  func                function            {x+y}  ⍟  +
+Any Go var present in the k-tree can be used as well:
+  any slice           list                 []mytype{}
+  any map or struct   dict  (string keys for structs)
+  any numeric type    number        type myint uint16
+  any function can be called                 func(){}
+  get methods with @  f:mytype@∞m;f[3] or mytype∞m[3]`
+	_fmt.Fprintln(&b, strings.Replace(hdr, "∞", "`", -1))
+	_fmt.Fprintln(&b, doc)
+	_fmt.Fprintln(&b)
+	bs, err := ioutil.ReadFile("v.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	docs := bytes.Split(bs, []byte("\n// "))
+	for _, d := range docs[1:] {
+		if to := bytes.IndexRune(d, '\n'); to > 0 {
+			d = d[:to]
+		}
+		_fmt.Fprintln(&b, string(d))
+	}
+	if err := ioutil.WriteFile("README", b.Bytes(), 0744); err != nil {
+		t.Fatal(err)
 	}
 }
 

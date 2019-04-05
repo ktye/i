@@ -567,7 +567,7 @@ func kinit(a map[v]v) map[v]v {
 	return a
 }
 
-const doc = `Verbs
+const doc = `
     a     l     a-a   l-a   a-l   l-l 
 +   flp   flp  [add] [add] [add] [add]  ⍉
 -  [neg] [neg] [sub] [sub] [sub] [sub]   
@@ -590,8 +590,7 @@ $   fmt  [fmt]  cst   cst   cst   cst
 .   evl   evl   cal   cal   cal   cal   
 /    -     -     -     -    pak   pak     
 \    -     -     -    upk   spl   -      
-                                                 
-Adverbs                           
+                                                                     
     mv/nv dv    l-mv  l-dv        
 '   ech   ecd   ecd   ecd   ¨     prs  evl
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
