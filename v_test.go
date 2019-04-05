@@ -239,8 +239,8 @@ func TestAdv(t *testing.T) {
 	}{
 		{"ovr", ovr, add, fv{1, 2, 3}, nil, 6.0},
 		{"ovr", ovr, sub, fv{3, 6, 9}, nil, -12.0},
-		{"ovd", ovd, sub, 5, iv{2, 8, 9}, -14},
-		{"ovd", ovd, sub, iv{2, 6}, iv{1, 2, 3}, iv{-4, 0}},
+		{"ovi", ovi, sub, 5, iv{2, 8, 9}, -14},
+		{"ovi", ovi, sub, iv{2, 6}, iv{1, 2, 3}, iv{-4, 0}},
 		{"ech", ech, inv, fv{4, 5}, nil, fv{0.25, 0.2}},
 		{"ecd", ecd, div, iv{8, 15}, iv{4, 5}, iv{2, 3}},
 		{"ecd", ecd, div, 12, iv{3, 4}, iv{4, 3}},

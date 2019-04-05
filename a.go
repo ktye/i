@@ -28,7 +28,9 @@ var rTf = rtyp(0.0)
 var rTz = rtyp(complex(0, 0))
 var rTs = rtyp("")
 
-type cpr interface{ Copy() v }
+type cpr interface {
+	Copy() v
+}
 
 func cp(x v) v {
 	if k := rval(x).Kind(); k < reflect.Array || k == reflect.String {
@@ -440,8 +442,8 @@ func kinit(a map[v]v) map[v]v {
 		"^": v6{is0, is0, ept, ept, ept, ept},
 		"#": v6{cnt, cnt, tak, rsh, tak, rsh},
 		"⍴": v6{cnt, cnt, nil, rsh, nil, rsh},
-		"↑": v6{nil, nil, nil, rsh, nil, rsh},
-		"_": v6{flr, flr, drp, drp, drp, drp},
+		"↑": v6{nil, nil, tak, nil, tak, nil},
+		"_": v6{flr, flr, drp, drp, drp, cut},
 		"↓": v6{nil, nil, drp, drp, drp, drp},
 		"$": v6{fmt, fmt, cst, cst, cst, cst},
 		"?": v6{rng, unq, rnd, fnd, rnd, fnd},
@@ -512,7 +514,7 @@ func kinit(a map[v]v) map[v]v {
 		"⌿":  v4{nil, nil, ecr, ecr},
 		`\:`: v4{nil, nil, ecl, ecl},
 		`⍀`:  v4{nil, nil, ecl, ecl},
-		"/":  v4{fix, ovr, whl, ovd},
+		"/":  v4{fix, ovr, whl, ovi},
 		`\`:  v4{sfx, scn, swl, sci},
 	}
 	for _s, _u := range atab {
@@ -550,10 +552,10 @@ func kinit(a map[v]v) map[v]v {
 	}
 	for k, u := range map[s]v{
 		"prs": prs, "evl": eva,
-		"pi": math.Pi, "π": math.Pi,
+		"pi": math.Pi, "π": complex(math.Pi, 0), "𝜀": complex(1E-14, 0),
 		"jon": jon, "num": num,
-		"inf": math.Inf(1), "∞": math.Inf(1), "nan": math.NaN(), "ø": math.NaN(),
-		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn,
+		"inf": complex(math.Inf(1), 0), "∞": complex(math.Inf(1), 0), "nan": complex(math.NaN(), 0), "ø": complex(math.NaN(), 0),
+		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn, "nrt": nrt,
 		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
 	} {
 		a[k] = u
@@ -595,5 +597,5 @@ Adverbs
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
 \:   -     -    ecl   ecl   ⍀     sin  cos  tan
-/   fidx  ovr   whl   ovd         abs‖ ang𝜑 deg°
+/   fidx  ovr   whl   ovi         abs‖ ang𝜑 deg°
 \   sfx   scn   swl   sci         reℜ  imℑ  con`

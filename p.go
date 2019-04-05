@@ -287,6 +287,9 @@ func (p *p) lst(term sf) l {
 	return r
 }
 func (p *p) idxr(x v) v {
+	if p.t(sDct) {
+		return x
+	}
 	for p.t(sObr) {
 		p.p(sObr)
 		r := p.lst(sCbr)
@@ -303,9 +306,9 @@ func (p *p) idxr(x v) v {
 
 // scanner
 const dig = "0123456789"
-const consts = "πø∞"
+const consts = "π𝜀ø∞"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
-const uni = `⍉×÷⍳⌊⌽⌈⍋⍒≡∧⍴≢↑⌊↓⍕∪⍎⍣ℜℑ‖∡𝜑√⍟∇`
+const uni = `⍉×÷⍳∈⌊⌽⌈⍋⍒≡∧⍴≢↑⌊↓⍕∪⍎⍣ℜℑ‖∡𝜑√⍟∇`
 const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 
