@@ -1,14 +1,17 @@
+// +build !js
+
 package main
 
 import "time"
 
 func regtime() timestamp {
-	return timestamp{Time:time.Now()}
+	return timestamp{Time: time.Now()}
 }
 
 type timestamp struct {
 	time.Time
 }
+
 func (t timestamp) cpy() timestamp {
 	return t
 }
@@ -35,7 +38,7 @@ func (t timestamp) ConvertTo(u v) v {
 		if sec == 0 {
 			return timestamp{time.Now()}
 		}
-		return timestamp{y2k.Add(time.Duration(float64(time.Second)*sec))}
+		return timestamp{y2k.Add(time.Duration(float64(time.Second) * sec))}
 	} else if vec, o := u.([]complex128); o {
 		w := [8]int{0, 1, 1, 0, 0, 0, 0, 0}
 		for i := range vec {

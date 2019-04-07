@@ -1,3 +1,5 @@
+// +build !js
+
 // ⍳ interpret
 package main
 
