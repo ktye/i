@@ -71,16 +71,18 @@ func (p *p) w() *p { // remove wsp
 	return p
 }
 func (p *p) isVrb(x v) bool {
-	str := func(x v) bool { _, o := x.(s); return o }
-	if str(x) && sVrb(rv(x.(s))) > 0 {
+	if iss(x) && sVrb(rv(x.(s))) > 0 {
 		return true // primitive
 	}
-	if lv, o := x.(l); o {
-		if len(lv) == 2 && str(lv[0]) && sAdv(rv(lv[0].(s))) > 0 {
-			return true // {adverb, verb}
-		} else if len(lv) == 3 && lv[2] == nil {
-			return true // curry
-		} else if lv[0] == "λ" {
+	lv, o := x.(l)
+	if o && len(lv) > 1 && iss(lv[0]) {
+		s0 := rv(lv[0].(s))
+		if sVrb(s0) > 0 && len(lv) == 3 && lv[2] == nil { // curry: e.g. (2+)
+			return true
+			// If λs are treated as verbs, they would be allowed infix.
+			// But this would breaks {lambda}@arg and {lambda}.(args)
+			// } else if len(lv) == 2 && (lv[0].(s) == "λ" || sAdv(s0) > 0) {
+		} else if len(lv) == 2 && sAdv(s0) > 0 {
 			return true
 		}
 	}
@@ -96,7 +98,6 @@ func (p *p) ex(a v) v {
 	if p.t(sAdv) {
 		return p.adv(nil, a)
 	}
-	//if str(a) && sVrb(rv(a.(s))) > 0 { // vrb // TODO: !node.r
 	if p.isVrb(a) {
 		// TODO at (
 		x := p.noun()
@@ -112,6 +113,7 @@ func (p *p) ex(a v) v {
 			return p.adv(a, x)
 		}
 		if r := p.ex(p.noun()); r != nil {
+
 			return l{x, a, r}
 		}
 		return l{x, a, nil} // curry
@@ -234,11 +236,31 @@ func (p *p) adv(left, w v) v {
 }
 func (p *p) num(s s) z {
 	pf := func(s string) float64 {
-		f, o := strconv.ParseFloat(s, 64)
-		if o != nil {
-			e("num")
+		neg := 1.0
+		if s[0] == '+' {
+			s = s[1:]
+		} else if s[0] == '-' {
+			s = s[1:]
+			neg = -1.0
 		}
-		return f
+		var f float64
+		switch rv(s)[0] {
+		case 'π':
+			f = math.Pi
+		case '∞':
+			f = math.Inf(1)
+		case '𝜀':
+			f = 1.0E-14
+		case 'ø':
+			f = math.NaN()
+		default:
+			var o error
+			f, o = strconv.ParseFloat(s, 64)
+			if o != nil {
+				e("num")
+			}
+		}
+		return neg * f
 	}
 	for i, r := range s {
 		if r == 'a' {
@@ -273,10 +295,11 @@ func (p *p) str(s s) s { // "string" | `name
 }
 func (p *p) lst(term sf) l {
 	r := l{}
+	if p.t(term) {
+		p.p(term)
+		return r
+	}
 	for {
-		if p.t(term) {
-			break
-		}
 		r = append(r, p.ex(p.noun()))
 		if !p.t(sSem) {
 			break
@@ -306,14 +329,27 @@ func (p *p) idxr(x v) v {
 
 // scanner
 const dig = "0123456789"
-const consts = "π𝜀ø∞"
 const sym = `+\-*%!&|<>=~,^#_$?@.`
-const uni = `⍉×÷⍳∈⌊⌽⌈⍋⍒≡∧⍴≢↑⌊↓⍕∪⍎⍣ℜℑ‖∡𝜑√⍟∇`
+const uni = `⍉×÷⍳∈⌊⌽⌈⍋⍒≡∧⍴≢↑⌊↓⍕∪⍎⍣ℜℑ‖°𝜑√⍟∇`
 const uav = "⍨¨⌿⍀"
 const wsp = " \t\r"
 
 // Scanners return the rune count of the matched input or 0; input len > 1.
 func sNum(s rv) int { // number f | fjf, allow leading +
+	if s[0] == 'ø' {
+		return 1
+	} else if any(s[0], "π∞𝜀") {
+		if len(s) > 2 && s[1] == 'i' {
+			if n := sNum(s[2:]); n > 0 {
+				return n + 2
+			}
+		}
+		return 1
+	} else if len(s) > 1 && any(s[0], "-+") && any(s[1], "π∞𝜀") {
+		if n := sNum(s[1:]); n > 0 {
+			return n + 1
+		}
+	}
 	n := 0
 l:
 	for i, r := range s {
@@ -321,7 +357,7 @@ l:
 		case i == 0 && any(r, "-+"):
 		case any(r, dig):
 		case i > 0 && any(r, "eEai"): // 1i0, 0i1 not 1i
-			if len(s) < i+1 || i == 1 && any(s[0], "-+") {
+			if len(s) < i+2 || i == 1 && any(s[0], "-+") {
 				return 0
 			}
 			if n := sNum(s[i+1:]); n > 0 {
@@ -339,7 +375,7 @@ l:
 	}
 	return n
 }
-func sNam(s rv) int { // name [a-Z][_a-Z0-9]*
+func sNam(s rv) int { // name [a-Z][a-Z0-9]*
 	a := func(r rune) bool {
 		if alpha(r) {
 			return true
@@ -349,11 +385,9 @@ func sNam(s rv) int { // name [a-Z][_a-Z0-9]*
 	n := 0
 	for i, r := range s {
 		switch {
-		case i == 0 && any(r, consts):
-			return 1
 		case i == 0 && !a(r):
 			return 0
-		case a(r) || (i > 0 && any(r, "_0123456789")):
+		case a(r) || (i > 0 && any(r, "0123456789")):
 		default:
 			return i
 		}

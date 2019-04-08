@@ -53,7 +53,6 @@ func TestMV(t *testing.T) {
 		{"fst", fst, IV{}, nil},
 		{"fst", fst, [2]l{l{"d", "c"}, l{5, 6}}, 5},
 		{"sqr", sqr, 4, 2},
-		// {"sqr", sqr, -1.0, math.NaN()}, not comparable
 		{"sqr", sqr, -7 + 24i, c(3, 4)},
 		{"inv", inv, 4.0, 0.25},
 		{"inv", inv, c(0, 0.5), c(0, -2)},
@@ -143,10 +142,9 @@ func TestDV(t *testing.T) {
 		{"sub", sub, 1, 2, -1},
 		{"mul", mul, 2, 3, 6},
 		{"div", div, 2.0, 1, z2},
-		//{"div", div, c(1, 0), 0, c(math.Inf(1), math.NaN())}, // cannot be compared
 		{"mod", mod, 2, fv{1, 2, 3, 4, 5, 6}, zv{1, 0, 1, 0, 1, 0}},
 		{"mod", mod, 3, l{1, 2, 3, fv{4, 5}}, l{1, 2, 0, zv{1, 2}}},
-		{"mod", mod, c(3, 0), l{1, 2, 3, c(4, 0)}, l{c(1, 0), c(2, 0), c(0, 0), c(1, 0)}},
+		{"mod", mod, c(3, 0), l{1, 2, 3, c(4, 0)}, zv{1, 2, 0, 1}},
 		{"mkd", mkd, iv{1, 2, 3}, fv{2, 3, 4}, [2]l{l{1, 2, 3}, l{2.0, 3.0, 4.0}}},
 		{"min", min, 2, 3, 2},
 		{"min", min, iv{1, 2, 3}, 2, iv{1, 2, 2}},
@@ -306,7 +304,25 @@ func TestMethod(t *testing.T) {
 		tt(t, tc.r, r, "method %s %+v: %+v\n", tc.m, tc.x, tc.r)
 	}
 }
-func TestDoc(t *testing.T) {
+func TestV(t *testing.T) { // test examples in v.go
+	for _, s := range vcom(t) {
+		idx := strings.Index(s, " / ")
+		if idx == -1 {
+			t.Fatal(s)
+		}
+		s = s[idx+3:]
+		p := strings.Split(s, "→")
+		if len(p) != 2 {
+			t.Fatal(s)
+		}
+		p[0], p[1] = strings.TrimSpace(p[0]), strings.TrimSpace(p[1])
+		_fmt.Printf("a=%s b=%s\n", p[0], p[1])
+		a := E(P(p[0]), nil)
+		b := E(P(p[1]), nil)
+		tt(t, b, a, "vgo a=%s b=%s: %+v\n", p[0], p[1], b)
+	}
+}
+func TestDoc(t *testing.T) { // write README, include examples in v.go
 	var b bytes.Buffer
 	hdr := `⍳ interpret - a k interpreter for Go
 
@@ -331,22 +347,29 @@ Any Go var present in the k-tree can be used as well:
 	_fmt.Fprintln(&b, strings.Replace(hdr, "∞", "`", -1))
 	_fmt.Fprintln(&b, doc)
 	_fmt.Fprintln(&b)
-	bs, err := ioutil.ReadFile("v.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	docs := bytes.Split(bs, []byte("\n// "))
-	for _, d := range docs[1:] {
-		if to := bytes.IndexRune(d, '\n'); to > 0 {
-			d = d[:to]
-		}
+	for _, d := range vcom(t) {
 		_fmt.Fprintln(&b, string(d))
 	}
 	if err := ioutil.WriteFile("README", b.Bytes(), 0744); err != nil {
 		t.Fatal(err)
 	}
 }
+func vcom(t *testing.T) []string {
+	bs, err := ioutil.ReadFile("v.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r []string
+	docs := bytes.Split(bs, []byte("\n// "))
+	for _, d := range docs[1:] {
+		if to := bytes.IndexRune(d, '\n'); to > 0 {
+			d = d[:to]
+		}
+		r = append(r, string(d))
 
+	}
+	return r
+}
 func tt(t *testing.T, exp, got v, s string, a ...v) {
 	printf(s, a...)
 	if reflect.DeepEqual(exp, got) == false {

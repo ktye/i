@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-//    +m  ⍉ flip, transpose    / (⍉3 2⍴⍳6)          → (0 3;1 4;2 5)
+//    +m  ⍉ flip, transpose    /  ⍉3 2⍴⍳6           → (0 2 4;1 3 5)
 func flp(x v) v {
 	n, m := ln(x), -1
 	if n < 0 {
@@ -42,7 +42,7 @@ func flp(x v) v {
 	return ul
 }
 
-//    -x  negate               / -(1;2;(3;(4;5)))   → (-1;-2;(-3;(-4;-5)))
+//    -x  negate               / -(1;2;(3;(4;5)))   → (-1;-2;(-3;(-4 -5)))
 func neg(x v) v { return nm(x, func(x z) z { return -x }) }
 
 //    *l  first                / *2 3 4             → 2
@@ -218,7 +218,7 @@ func eye(x v) v { // =x unit matrix
 	return l
 }
 
-//    =l  group                / =(3;"a";5;3;"a";3) → (3;"a";5)!(0 3 5;1 4;2)
+//    =l  group                / =(3;"a";5;3;"a";3) → (3;"a";5)!(0 3 5;1 4;,2)
 func grp(x v) v {
 	n := ln(x)
 	if n <= 0 {
@@ -286,7 +286,7 @@ func is0(x v) v {
 	return nm(x, z0)
 }
 
-//    ⍣x  exp[x] exponential   / 𝜀>‖-1+⍣0i1*π       → 1
+//    ⍣x  exp[x] exponential   / 𝜀>‖1+⍣0i1*π        → 1
 func exp(x v) v { return nm(x, func(x z) z { return cmplx.Exp(x) }) }
 
 //    ⍟x  log[x] logarithm     / ⍟⍣1                → 1
@@ -364,8 +364,18 @@ func unq(x v) v {
 func typ(x v) v { return rtyp(x) }
 
 //    .s  parse and eval       / ."1+2"             → 3
-//    .l  evaluate             / .{+;1;2}           → 3
-func evl(x v) v { return e("nyi") }
+//    .l  evaluate             / .(+;1;2)           → 3
+func evl(x v, a map[v]v) v {
+	var b l
+	if s, o := x.(s); o {
+		b = prs(s).(l)
+	} else if l, o := x.(l); o {
+		b = l
+	} else {
+		return e("type")
+	}
+	return eva(b, a)
+}
 
 //   x+y  add                  / 1+2 3 4            → 3 4 5
 func add(x, y v) v { return nd(x, y, func(x, y z) z { return x + y }) }
@@ -373,7 +383,7 @@ func add(x, y v) v { return nd(x, y, func(x, y z) z { return x + y }) }
 //   x-y  substract            / 2 3 4-1            → 1 2 3
 func sub(x, y v) v { return nd(x, y, func(x, y z) z { return x - y }) }
 
-//   x*y  × multiply           / 2 0i1 1a270*0i1    → 2i1 -1 1
+//   x*y  × multiply           / 2 0i1 1a270*0i1    → 0i2 -1 1
 func mul(x, y v) v { return nd(x, y, func(x, y z) z { return x * y }) }
 
 //   x%x  ÷ divide             / 1÷2                → 0.5
@@ -412,12 +422,21 @@ func mor(x, y v) v {
 }
 
 //   x=y  equals               / 1 ø ∞=(1a0;0%0;1%0)→ 1 1 1
-func eql(x, y v) v { x, y = sn2(x, y); return nd(x, y, func(x, y z) z { return zter(x == y, 1, 0) }) } // x=y equal
+func eql(x, y v) v {
+	x, y = sn2(x, y)
+	return nd(x, y, func(x, y z) z {
+		// all these are Inf not NaN: c(∞,ø) c(-∞,ø) c(ø, ∞) c(ø, -∞)
+		if (cmplx.IsNaN(x) && cmplx.IsNaN(y)) || (cmplx.IsInf(x) && cmplx.IsInf(y)) {
+			return 1
+		}
+		return zter(x == y, 1, 0)
+	})
+}
 
 //   x‖y  rct parts to complex / 2‖!4               → 2 2i1 2i2 2i3
 func rct(x, y v) v { return nd(x, y, func(x, y z) z { return complex(real(x), real(y)) }) }
 
-//   x°y  pol polar to complex / (!3)°45            → 0 1i1 2i2
+//   x°y  pol polar to complex / 1 2 3°0 90 180     → 1 0i2 -3
 func pol(x, y v) v { // x°y complex from abs and deg
 	return nd(x, y, func(x, y z) z {
 		r := cmplx.Rect(real(x), real(y)*math.Pi/180.0)
@@ -431,7 +450,17 @@ func pol(x, y v) v { // x°y complex from abs and deg
 }
 
 //   x𝜑y  prd polar to complex / 1𝜑0 π -π           → 1 -1 -1
-func prd(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Rect(real(x), real(y)) }) }
+func prd(x, y v) v {
+	return nd(x, y, func(x, y z) z {
+		switch real(y) {
+		case 0:
+			return complex(real(x), 0)
+		case math.Pi, -math.Pi:
+			return complex(-real(x), 0)
+		}
+		return cmplx.Rect(real(x), real(y))
+	})
+}
 
 //   x⍣y  power                / 2⍣3                → 8
 func pow(x, y v) v { return nd(x, y, func(x, y z) z { return cmplx.Pow(x, y) }) }
@@ -571,12 +600,11 @@ func tak(x, y v) v {
 }
 
 //   l#d  ⍴ select             / `a`c#[a:1;b:2;c:3] → [a:1;c:3]
-//   l#y  ⍴ reshape            / 2 3⍴⍳6             → (0 1 2;3 4 6)
+//   l#y  ⍴ reshape            / 2 3⍴⍳6             → (0 1 2;3 4 5)
 func rsh(x, y v) v { // x#y x⍴y reshape
 	if yd, o := md(y); o { // select from dict
-		yd.v = atx(y, x, nil).(l)
-		xl, _ := ls(x)
-		yd.k = xl
+		yd.v, _ = ls(atx(y, x, nil))
+		yd.k, _ = ls(x)
 		return yd.mp()
 	}
 	nx, ny := ln(x), ln(y)
@@ -618,7 +646,7 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 }
 
 //   x_d  ↓ delete             / `a`b_[a:1;b:2;c:3] → [c:3]
-//   x_y  ↓ drop               / (1_1 2;-1_!3;5_,1) → (,1;0 1;())
+//   x_y  ↓ drop               / (1_1 2;-1_!3;5_,1) → (,2;0 1;0#,0)
 func drp(x, y v) v {
 	if d, o := md(y); o {
 		nx := ln(x)
@@ -661,8 +689,7 @@ func cut(x, y v) v {
 	})
 }
 
-//   x$s  cast from string     / 0$"1.0a45"         → 1i1
-//   x$y  convert to typeof    / (int@8)$128        → -128
+//   x$y  convert to typeof    / (int@8)$128        → (int@8)$-128
 //   d$y  format               / [t:1]$[a:,1;b:,3]  → "a b\n---\n1 3"
 func cst(x, y v) v { // x$y cast
 	type cvt interface {
@@ -676,7 +703,7 @@ func cst(x, y v) v { // x$y cast
 		m, _ = md(map[v]v{0: 0})
 	} else if c, o := x.(cvt); o { // use ConvertTo method of x
 		return c.ConvertTo(y)
-	} else if f, o := y.(cfm); o && iss(x) {
+	} else if f, o := y.(cfm); o && iss(x) { // custom Format method
 		return f.Format(x.(s))
 	} else if d, o := md(x); o { // dict controls formatting
 		m = d
@@ -723,6 +750,7 @@ func cst(x, y v) v { // x$y cast
 		for i := range m {
 			m[i] = make(sv, len(cols))
 		}
+		mm.set("q", 1)
 		for k := range hdr {
 			m[0][k] = ""
 			m[1][k] = ""
@@ -730,6 +758,7 @@ func cst(x, y v) v { // x$y cast
 				m[0][k] = cst(mm, hdr[k]).(s)
 			}
 		}
+		mm.set("q", 0)
 		for k := range cols {
 			mx := len(m[0][0])
 			c, _ := ls(cols[k])
@@ -930,7 +959,8 @@ func rnd(x, y v) v {
 		}
 		r = make(l, n)
 		for i := range r {
-			r[i] = ll[int(math.Round(float64(ny)*rand.Float64()))]
+			idx := int(math.Round(float64(ny-1) * rand.Float64()))
+			r[i] = ll[idx]
 		}
 	}
 	return sl(r, rT)
@@ -976,9 +1006,9 @@ func fnd(x, y v) v {
 }
 
 //   l@y  at, index            / 2 5 6@0 2          → 2 6
-//   d@y  at, index            / [a:1;b:2;c:3]@`a`c → (1;3)
+//   d@y  at, index            / [a:1;b:2;c:3]@`a`c → 1 3
 //   f@y  monadic call         / {-x}@2 3           → -2 -3
-//   x@m  method
+/*   x@m  method TODO */
 func atx(x, y v, a map[v]v) v {
 	if s, o := x.(s); o {
 		return atx(atx(a, s, nil), y, a) // 1
@@ -1025,8 +1055,7 @@ func atx(x, y v, a map[v]v) v {
 
 //   l@y  depth list index     / (1;(2;(3;4))).1 1 0→ 3
 //   d@y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
-//   f@y  monadic call         / {-x}@2 3           → -2 -3
-//   x.y  call                 / +.(3;4 5)          → 7 8
+//   x.y  call                 / {x+y}.(3;4 5)      → 7 8
 //   x.y  curry                / ({x+y+z}.(1;;3)) 2 → 6
 func cal(x, y v, a map[v]v) v {
 	if x == nil {
@@ -1099,7 +1128,7 @@ func atd(x, y v, a map[v]v) v { // at depth
 	return atd(at(x, pidx(at(y, 0))), drp(1, y), a)
 }
 
-//   s/y  join                 / ";"/`alpha`beta    → "alpha;beta"
+/*   s/y  join                 / ";"/`alpha`beta    → "alpha;beta" TODO */
 func jon(x, y v) v { // a/l join
 	xs, xo := x.(s)
 	yy, yo := y.(sv)
@@ -1125,10 +1154,10 @@ func jon(x, y v) v { // a/l join
 	return string(r)
 }
 
-//   TODO encode
+/*   TODO encode */
 func enc(x, y v) v { return e("nyi") } // l/a encode, pack
 
-//   s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d
+/*   s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d  TODO */
 func spl(x, y v) v { // a\x split, decode?
 	eq := func(a, b []rune) bool {
 		for i := range a {
@@ -1169,7 +1198,7 @@ func spl(x, y v) v { // a\x split, decode?
 	return append(r, string(yr[l:]))
 }
 
-//   TODO decode
+/*   TODO decode */
 func dec(x, y v) v { return e("nyi") }
 
 //   f'x  ¨ each               / -:¨1 2             → -1 -2
@@ -1211,7 +1240,7 @@ func ecd(f, x, y v, a map[v]v) v {
 	return r
 }
 
-//   g':x ⍨ each prior         / -⍨1 5 3            → 1 5 3
+//   g':x ⍨ each prior         / -⍨1 5 3            → 1 4 -2
 func ecp(f, x v, a map[v]v) v {
 	if xn := ln(x); xn < 1 {
 		return x

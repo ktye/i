@@ -50,8 +50,8 @@ $   fmt  [fmt]  cst   cst   cst   cst
 /   fidx  ovr   whl   ovi         abs‖ ang𝜑 deg°
 \   sfx   scn   swl   sci         reℜ  imℑ  con
 
-   +m  ⍉ flip, transpose    / (⍉3 2⍴⍳6)          → (0 3;1 4;2 5)
-   -x  negate               / -(1;2;(3;(4;5)))   → (-1;-2;(-3;(-4;-5)))
+   +m  ⍉ flip, transpose    /  ⍉3 2⍴⍳6           → (0 2 4;1 3 5)
+   -x  negate               / -(1;2;(3;(4;5)))   → (-1;-2;(-3;(-4 -5)))
    *l  first                / *2 3 4             → 2
    *d  first                / *[a:1;b:2]         → 1
 con[x] conjugate complex    / con 1i3            → 1i-3
@@ -71,11 +71,11 @@ con[x] conjugate complex    / con 1i3            → 1i-3
    <x  ⍋ grade up           / ⍋8 2 9 1           → 3 1 0 2
    >x  ⍒ grade down         / ⍒`alpha`beta       → 1 0
    =n  unit matrix          / =3                 → (1 0 0;0 1 0;0 0 1)
-   =l  group                / =(3;"a";5;3;"a";3) → (3;"a";5)!(0 3 5;1 4;2)
+   =l  group                / =(3;"a";5;3;"a";3) → (3;"a";5)!(0 3 5;1 4;,2)
    ~x  not                  / ~3 2 -1 0          → 0 0 0 1
    ,x  enlist               / ,1                 → ,1
    ^x  isnil isnan          / ^(0%0;0;ø)         → 1 0 1
-   ⍣x  exp[x] exponential   / 𝜀>‖-1+⍣0i1*π       → 1
+   ⍣x  exp[x] exponential   / 𝜀>‖1+⍣0i1*π        → 1
    ⍟x  log[x] logarithm     / ⍟⍣1                → 1
    #x  ⍴ count, length      / ⍴2 3⍴⍳6            → 2
    _x  ⌊ floor              / ⌊1.23              → 1
@@ -87,10 +87,10 @@ con[x] conjugate complex    / con 1i3            → 1i-3
    ?x  unique               / ?2 3 3 0 4 0       → 2 3 0 4
    @x  type of              / (@5)≡@-1.2i5       → 1
    .s  parse and eval       / ."1+2"             → 3
-   .l  evaluate             / .{+;1;2}           → 3
+   .l  evaluate             / .(+;1;2)           → 3
   x+y  add                  / 1+2 3 4            → 3 4 5
   x-y  substract            / 2 3 4-1            → 1 2 3
-  x*y  × multiply           / 2 0i1 1a270*0i1    → 2i1 -1 1
+  x*y  × multiply           / 2 0i1 1a270*0i1    → 0i2 -1 1
   x%x  ÷ divide             / 1÷2                → 0.5
   x!y  modulo               / 2!5                → 1
   x!l  modulo               / 2!!10              → 0 1 0 1 0 1 0 1 0 1
@@ -101,7 +101,7 @@ con[x] conjugate complex    / con 1i3            → 1i-3
   x>y  more than            / 5>8 1 5            → 0 1 0
   x=y  equals               / 1 ø ∞=(1a0;0%0;1%0)→ 1 1 1
   x‖y  rct parts to complex / 2‖!4               → 2 2i1 2i2 2i3
-  x°y  pol polar to complex / (!3)°45            → 0 1i1 2i2
+  x°y  pol polar to complex / 1 2 3°0 90 180     → 1 0i2 -3
   x𝜑y  prd polar to complex / 1𝜑0 π -π           → 1 -1 -1
   x⍣y  power                / 2⍣3                → 8
   x√y  nrt[x;y] nth root    / 𝜀>‖2-3√8           → 1
@@ -112,12 +112,11 @@ con[x] conjugate complex    / con 1i3            → 1i-3
   a#d  ↑ take               / 2↑[a:1;b:2;c:3]    → [a:1;b:2]
   a#l  ↑ take               / -2↑⍳10             → 8 9
   l#d  ⍴ select             / `a`c#[a:1;b:2;c:3] → [a:1;c:3]
-  l#y  ⍴ reshape            / 2 3⍴⍳6             → (0 1 2;3 4 6)
+  l#y  ⍴ reshape            / 2 3⍴⍳6             → (0 1 2;3 4 5)
   x_d  ↓ delete             / `a`b_[a:1;b:2;c:3] → [c:3]
-  x_y  ↓ drop               / (1_1 2;-1_!3;5_,1) → (,1;0 1;())
+  x_y  ↓ drop               / (1_1 2;-1_!3;5_,1) → (,2;0 1;0#,0)
  xl_yl cut                  / 3 5_!8             → (3 4;5 6 7)
-  x$s  cast from string     / 0$"1.0a45"         → 1i1
-  x$y  convert to typeof    / (int@8)$128        → -128
+  x$y  convert to typeof    / (int@8)$128        → (int@8)$-128
   d$y  format               / [t:1]$[a:,1;b:,3]  → "a b\n---\n1 3"
   n?m  roll                 / 100>#?100?100      → 1
  -n?m  deal                 / #?-10?10           → 10
@@ -125,21 +124,15 @@ con[x] conjugate complex    / con 1i3            → 1i-3
  -n?l  deal shuffled        / #?-100?!100        → 100
  xl?y  find                 / 3 5?⍳7             → 2 2 2 0 2 1 2
   l@y  at, index            / 2 5 6@0 2          → 2 6
-  d@y  at, index            / [a:1;b:2;c:3]@`a`c → (1;3)
+  d@y  at, index            / [a:1;b:2;c:3]@`a`c → 1 3
   f@y  monadic call         / {-x}@2 3           → -2 -3
-  x@m  method
   l@y  depth list index     / (1;(2;(3;4))).1 1 0→ 3
   d@y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
-  f@y  monadic call         / {-x}@2 3           → -2 -3
-  x.y  call                 / +.(3;4 5)          → 7 8
+  x.y  call                 / {x+y}.(3;4 5)      → 7 8
   x.y  curry                / ({x+y+z}.(1;;3)) 2 → 6
-  s/y  join                 / ";"/`alpha`beta    → "alpha;beta"
-  TODO encode
-  s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d
-  TODO decode
   f'x  ¨ each               / -:¨1 2             → -1 -2
 x g'y  ¨ each pair          / 2 3*¨4 5           → 8 15
-  g':x ⍨ each prior         / -⍨1 5 3            → 1 5 3
+  g':x ⍨ each prior         / -⍨1 5 3            → 1 4 -2
 x g':y ⍨ each prior initial / 7-⍨1 5 3           → -6 4 -2
 x g/:y ⌿ each right         / 1 2+⌿3 4 5         → (4 5;5 6;6 7)
 x g\:  ⍀ each left          / 1 2+⌿3 4 5         → (4 5 6;5 6 7)

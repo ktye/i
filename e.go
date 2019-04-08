@@ -8,17 +8,6 @@ func eva(x v, a map[v]v) v {
 	if !o || len(l) == 0 {
 		return x
 	}
-
-	/* rm?
-	//if len(l) > 3 && l[0] == "$" {
-	if len(l) == 3 && l[0] == "." {
-		if l[1] == "$" && len(l[2].([]v)) > 2 {
-			return cnd(l[2].([]v)[1:], a) // (.;$;(::;A;B;C;...))
-		} else if l[1] == "∇" {
-			return tail(l[2].([]v)[1:]) // (.;∇;(::;X;Y;Z;...))
-		}
-	}
-	*/
 	if len(l) > 3 && l[0] == "$" {
 		return cnd(l[1:], a) // $[A;B;C;…]
 	}

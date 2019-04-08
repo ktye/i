@@ -410,7 +410,7 @@ func kinit(a map[v]v) map[v]v {
 	vtab := map[s]v6{
 		//      a    l    a-a  l-a  a-l  l-l
 		"+": v6{flp, flp, add, add, add, add},
-		"⍉": v6{flp, nil, nil, nil, nil, nil},
+		"⍉": v6{flp, flp, nil, nil, nil, nil},
 		"-": v6{neg, neg, sub, sub, sub, sub},
 		"*": v6{fst, fst, mul, mul, mul, mul},
 		"×": v6{nil, nil, mul, mul, mul, mul},
@@ -425,7 +425,7 @@ func kinit(a map[v]v) map[v]v {
 		"⍣": v6{exp, exp, pow, pow, pow, pow},
 		"⍟": v6{log, log, lgn, lgn, lgn, lgn},
 		"!": v6{til, odo, mod, nil, mod, mkd},
-		"⍳": v6{til, nil, nil, nil, nil, nil},
+		"⍳": v6{til, odo, nil, nil, nil, nil},
 		"&": v6{wer, wer, min, min, min, min},
 		"⌊": v6{flr, flr, min, min, min, min},
 		"|": v6{rev, rev, max, max, max, max},
@@ -444,7 +444,7 @@ func kinit(a map[v]v) map[v]v {
 		"⍴": v6{cnt, cnt, nil, rsh, nil, rsh},
 		"↑": v6{nil, nil, tak, nil, tak, nil},
 		"_": v6{flr, flr, drp, drp, drp, cut},
-		"↓": v6{nil, nil, drp, drp, drp, drp},
+		"↓": v6{nil, nil, drp, drp, drp, nil},
 		"$": v6{fmt, fmt, cst, cst, cst, cst},
 		"?": v6{rng, unq, rnd, fnd, rnd, fnd},
 		"@": v6{typ, typ, atx, atx, atx, atx},
@@ -467,7 +467,7 @@ func kinit(a map[v]v) map[v]v {
 			}
 			if len(w) == 2 {
 				cs |= 1 << 2
-				if rval(w[0]).Kind() == reflect.Slice {
+				if rval(w[1]).Kind() == reflect.Slice {
 					cs |= 1 << 1
 				}
 				cs -= 2
@@ -479,11 +479,16 @@ func kinit(a map[v]v) map[v]v {
 			rf := rval(f)
 			in := make([]rV, rf.Type().NumIn())
 			n := len(w)
+			if n == 1 && len(in) == 2 && rf.Type().In(1) == rtyp(a) {
+				in[1] = rval(a)
+				n++
+			}
 			if len(in) == 3 {
 				in[2] = rval(a)
 				n++
 			}
 			if n != len(in) {
+				println("args: got", n, "exp", len(in))
 				return e(s + ":nargs")
 			}
 			for i := range w {
