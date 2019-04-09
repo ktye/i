@@ -488,7 +488,6 @@ func kinit(a map[v]v) map[v]v {
 				n++
 			}
 			if n != len(in) {
-				println("args: got", n, "exp", len(in))
 				return e(s + ":nargs")
 			}
 			for i := range w {
@@ -526,6 +525,11 @@ func kinit(a map[v]v) map[v]v {
 		s, u := _s, _u
 		a[s] = func(f v) v {
 			if rval(f).Kind() != reflect.Func {
+				if s == "/" { // jon and spl are special, f is a string.
+					return func(x v) v { return jon(f, x) }
+				} else if s == `\` {
+					return func(x v) v { return spl(f, x) }
+				}
 				return e("type")
 			}
 			return func(w ...v) v {

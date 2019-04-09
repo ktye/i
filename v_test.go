@@ -255,7 +255,6 @@ func TestAdv(t *testing.T) {
 		{"fix", fix, neg, 1, nil, -1},
 		{"sfx", sfx, neg, 1, nil, iv{1, -1}},
 		{"swl", swl, sqr, 2, 81, iv{81, 9, 3}},
-		// TODO whl, swl while and scan while
 	}
 	for _, tc := range testCases {
 		var r v
@@ -316,7 +315,7 @@ func TestV(t *testing.T) { // test examples in v.go
 			t.Fatal(s)
 		}
 		p[0], p[1] = strings.TrimSpace(p[0]), strings.TrimSpace(p[1])
-		_fmt.Printf("a=%s b=%s\n", p[0], p[1])
+		//_fmt.Printf("a=%s b=%s\n", p[0], p[1])
 		a := E(P(p[0]), nil)
 		b := E(P(p[1]), nil)
 		tt(t, b, a, "vgo a=%s b=%s: %+v\n", p[0], p[1], b)

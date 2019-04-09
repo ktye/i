@@ -130,6 +130,8 @@ con[x] conjugate complex    / con 1i3            → 1i-3
   d@y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
   x.y  call                 / {x+y}.(3;4 5)      → 7 8
   x.y  curry                / ({x+y+z}.(1;;3)) 2 → 6
+  s/y  join                 / ";"/`alpha`beta    → "alpha;beta"
+  s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d 
   f'x  ¨ each               / -:¨1 2             → -1 -2
 x g'y  ¨ each pair          / 2 3*¨4 5           → 8 15
   g':x ⍨ each prior         / -⍨1 5 3            → 1 4 -2
@@ -141,10 +143,11 @@ x g\:  ⍀ each left          / 1 2+⍀3 4 5         → (4 5 6;5 6 7)
 x g/y  over initial         / 5+/1 2 3           → 11
 x g\y  scan initial         / 5+\1 2 3           → 6 8 11
 n f/y  for, repeat          / 3 (2⍣)/2           → 65536
+t f/y  while                / {x<100}{x*2}/1     → 128
 x f\y  scan for             / 2 √:\81            → 81 9 3
 t f\y  scan while           / {x<100}(2*)\1      → 1 2 4 8 16 32 64 128
-  f/y  fixed point          / √:/2                → 1
+  f/y  fixed point          / √:/2               → 1
   f\y  scan fixed           / -:\3               → 3 -3
- πø∞𝜀  numeric constants    / (π;ø;∞;𝜀)=π ø ∞ 𝜀   → 1 1 1 1
+ πø∞𝜀  numeric constants    / (π;ø;∞;𝜀)=π ø ∞ 𝜀  → 1 1 1 1
    $[x;z;y;…] if, switch    / $[1>2;∞;𝜀]         → 1e-14
   x∇y  tail call            / {$[x>100;x;∇x+1]}1 → 101

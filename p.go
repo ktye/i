@@ -128,7 +128,7 @@ func (p *p) ex(a v) v {
 			return l{x, a, y}
 		}
 		if p.t(sAdv) {
-			return l{p.adv(nil, x), a}
+			return p.adv(a, x)
 		}
 		return l{a, p.ex(x)}
 	}
@@ -531,6 +531,7 @@ L:
 			break L
 		case !c && sStr(x) > 0: // skip strings
 			p(sStr(x))
+			r = '.'
 			continue
 		case !c && sNum(x) > 0:
 			if any(x[0], "+-") {
