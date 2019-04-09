@@ -304,6 +304,12 @@ func TestMethod(t *testing.T) {
 	}
 }
 func TestV(t *testing.T) { // test examples in v.go
+	nkt := func() map[v]v {
+		a := make(map[v]v)
+		E(nil, a)
+		a["myf"] = myfloat(1.0)
+		return a
+	}
 	for _, s := range vcom(t) {
 		idx := strings.Index(s, " / ")
 		if idx == -1 {
@@ -315,9 +321,9 @@ func TestV(t *testing.T) { // test examples in v.go
 			t.Fatal(s)
 		}
 		p[0], p[1] = strings.TrimSpace(p[0]), strings.TrimSpace(p[1])
-		//_fmt.Printf("a=%s b=%s\n", p[0], p[1])
-		a := E(P(p[0]), nil)
-		b := E(P(p[1]), nil)
+		_fmt.Printf("a=%s b=%s\n", p[0], p[1])
+		a := E(P(p[0]), nkt())
+		b := E(P(p[1]), nkt())
 		tt(t, b, a, "vgo a=%s b=%s: %+v\n", p[0], p[1], b)
 	}
 }

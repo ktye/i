@@ -1009,6 +1009,8 @@ func fnd(x, y v) v {
 //   d@y  at, index            / [a:1;b:2;c:3]@`a`c → 1 3
 //   f@y  monadic call         / {-x}@2 3           → -2 -3
 /*   x@m  method TODO */
+/*   x@m  method               / (myf`T0)[] → myf+1.0 */
+/*   x@m  method               / m:myf@`T0;f[] → myf+1.0  */
 func atx(x, y v, a map[v]v) v {
 	if s, o := x.(s); o {
 		return atx(atx(a, s, nil), y, a) // 1
