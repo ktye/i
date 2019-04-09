@@ -1275,7 +1275,7 @@ func ecr(f, x, y v, a map[v]v) v {
 	return sl(r, t)
 }
 
-// x g\:  ⍀ each left          / 1 2+⌿3 4 5         → (4 5 6;5 6 7)
+// x g\:  ⍀ each left          / 1 2+⍀3 4 5         → (4 5 6;5 6 7)
 func ecl(f, x, y v, a map[v]v) v {
 	xl, t := ls(x)
 	r := make(l, len(xl))
@@ -1287,6 +1287,7 @@ func ecl(f, x, y v, a map[v]v) v {
 
 //   g/y  over, reduce         / +/1 2 3            → 6
 func ovr(f, x v, a map[v]v) v {
+	println("ovr")
 	nx := ln(x)
 	if nx <= 0 { // no default values, but empty list, like k4
 		return x
@@ -1334,8 +1335,9 @@ func sci(f, x, y v, a map[v]v) v {
 }
 
 // n f/y  for, repeat          / 3 (2⍣)/2           → 65536
-// t f/y  while                / {x<100}{x*2}/1     → 128
+/* t f/y  while                / {x<100}{x*2}/1     → 128 TODO */
 func whl(f, x, y v, a map[v]v) v {
+	println("whl")
 	if rval(x).Kind() == reflect.Func {
 		for {
 			if b := cal(x, l{y}, a); idx(b) != 1 {
@@ -1351,7 +1353,7 @@ func whl(f, x, y v, a map[v]v) v {
 	return y
 }
 
-// x f\y  scan for             / 2 √\81             → 81 9 3
+// x f\y  scan for             / 2 √:\81            → 81 9 3
 // t f\y  scan while           / {x<100}(2*)\1      → 1 2 4 8 16 32 64 128
 func swl(f, x, y v, a map[v]v) v { // x f1\y scan for, g1 f1\y scan while
 	r := l{cp(y)}
@@ -1374,8 +1376,9 @@ func swl(f, x, y v, a map[v]v) v { // x f1\y scan for, g1 f1\y scan while
 	return u
 }
 
-//   f/y  fixed point          / √/2                → 1
+//   f/y  fixed point          / √:/2                → 1
 func fix(f, x v, a map[v]v) v {
+	println("fix")
 	x0 := cp(x)
 	y := cp(x)
 	z1 := zi(1)
@@ -1407,8 +1410,8 @@ func sfx(f, x v, a map[v]v) v { // f1\x scan fixed
 	return uu
 }
 
-//  πø∞𝜀  constants            / (𝜑-1;0÷0;1÷0;1e-14)→ (π;ø;∞;𝜀)
-//    $[x;z;y;…] if, switch    / $[1>2;∞;ø]         → ø
+//  πø∞𝜀  numeric constants    / (π;ø;∞;𝜀)=π ø ∞ 𝜀   → 1 1 1 1
+//    $[x;z;y;…] if, switch    / $[1>2;∞;𝜀]         → 1e-14
 //   x∇y  tail call            / {$[x>100;x;∇x+1]}1 → 101
 
 func grade(up bool, x v) v {

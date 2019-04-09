@@ -127,6 +127,9 @@ func (p *p) ex(a v) v {
 			}
 			return l{x, a, y}
 		}
+		if p.t(sAdv) {
+			return l{p.adv(nil, x), a}
+		}
 		return l{a, p.ex(x)}
 	}
 	return a

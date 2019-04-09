@@ -153,7 +153,7 @@ func nv(x v) (zv, bool, rT) { // import any number or numeric vector types
 	case zv:
 		r := make(zv, len(t))
 		copy(r, t)
-		return t, true, rTz
+		return r, true, rTz
 	case s:
 		e("type")
 	}
