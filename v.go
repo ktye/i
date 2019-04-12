@@ -1063,6 +1063,16 @@ func cal(x, y v, a map[v]v) v {
 	if x == nil {
 		return e("call nil")
 	}
+	if y != nil {
+		if yl, o := y.(l); o && len(yl) == 1 {
+			if m, o := yl[0].(s); o {
+				var zero rV
+				if f := rval(x).MethodByName(m); f != zero {
+					return f.Interface()
+				}
+			}
+		}
+	}
 	if sx, o := x.(s); o {
 		f := lup(a, sx)
 		if f == nil {
@@ -1070,16 +1080,15 @@ func cal(x, y v, a map[v]v) v {
 		}
 		return cal(f, y, a)
 	}
-	// TODO other cases
-	if _, o := md(x); o || ln(x) > 0 {
-		if yn := ln(y); yn > 0 {
-			return atd(x, y, a)
-		}
-		return atx(x, y, a)
-	}
 	f := rval(x)
-	if f.Kind() != reflect.Func {
-		return e("nyi:call:" + f.Kind().String())
+	if f.Kind() != reflect.Func{
+		if _, o := md(x); o || ln(x) > 0 {
+			if yn := ln(y); yn > 0 {
+				return atd(x, y, a)
+			}
+			return atx(x, y, a)
+		}
+		return e("type:"+f.Kind().String())
 	}
 	var in, r []rV
 	var cur []int

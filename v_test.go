@@ -421,3 +421,22 @@ func printf(f s, v ...v) {
 		_fmt.Printf(f, v...)
 	}
 }
+
+// TODO
+func TestMethodCall(t *testing.T) {
+	t.Skip()
+	testCases := []struct{
+		s string
+		r v
+	}{
+		{"(x`F0)[]", 2.0},
+	}
+	for _, tc := range testCases {
+		a := make(map[v]v)
+		E(nil, a)
+		a["x"] = myfloat(1.0)
+		r := E(P(tc.s), a)
+		tt(t, tc.r, r, "method call %s", tc.s)
+	}
+}
+

@@ -91,5 +91,10 @@ func setup() map[v]v {
 	}
 	a["t"] = regtime()
 	regplot(a)
+	a["x"] = T(1.0)
 	return a
 }
+
+type T float64
+func (t T) Inc() T { return t + 1.0 }
+func (t T) Add(b T) T { return t+b }
