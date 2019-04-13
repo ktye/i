@@ -11,6 +11,12 @@ func eva(x v, a map[v]v) v {
 	if len(l) > 3 && l[0] == "$" {
 		return cnd(l[1:], a) // $[A;B;C;…]
 	}
+	if p, o := l[0].(s); o && len(l) == 3 && len(p) > 1 && p != "::" && p[len(p)-1] == ':' {
+		l = []v{":", p[:len(p)-1], l[1], l[2]}               // mod assignment
+		if p := l[1].(s); len(p) > 1 && p[len(p)-1] == ':' { // ::
+			l[0], l[1] = "::", p[:len(p)-1]
+		}
+	}
 	switch l[0] {
 	case nil:
 		for i := len(l) - 1; i > 0; i-- { // right to left
@@ -27,8 +33,14 @@ func eva(x v, a map[v]v) v {
 		}
 		return r
 	case ":", "::":
+		var mod v
+		if len(l) == 4 {
+			mod = l[1]
+			l[1] = l[0]
+			l = l[1:]
+		}
 		if len(l) != 3 {
-			return e("nyi:modified assignment")
+			return e("length")
 		}
 		s, o := l[1].(s)
 		if !o {
@@ -38,8 +50,12 @@ func eva(x v, a map[v]v) v {
 		if l[0] == "::" {
 			a = ktr(a)
 		}
-		a[s] = cp(y)
-		return y
+		var r v = y
+		if mod != nil {
+			r = cal(mod, []v{lup(a, s), y}, a)
+		}
+		a[s] = cp(r)
+		return r
 	case "∇":
 		return tail(l[1:])
 	case "λ":
@@ -67,9 +83,6 @@ func adv(u l, a map[v]v) (v, bool) { // evaluate adverb expr
 		return u, false
 	}
 	s := u[0].(s)
-	//if s == "λ" {
-	//	return λ(u[1].(l), a), true
-	//} else
 	if sAdv(rv(s)) == 0 {
 		return u, false
 	}
