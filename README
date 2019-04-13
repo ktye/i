@@ -128,10 +128,11 @@ con[x] conjugate complex    / con 1i3            → 1i-3
   f@y  monadic call         / {-x}@2 3           → -2 -3
   l@y  depth list index     / (1;(2;(3;4))).1 1 0→ 3
   d@y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
+  x@m  method               / (myf`F0)[]+0       → 2
   x.y  call                 / {x+y}.(3;4 5)      → 7 8
   x.y  curry                / ({x+y+z}.(1;;3)) 2 → 6
   s/y  join                 / ";"/`alpha`beta    → "alpha;beta"
-  s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d 
+  s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d
   f'x  ¨ each               / -:¨1 2             → -1 -2
 x g'y  ¨ each pair          / 2 3*¨4 5           → 8 15
   g':x ⍨ each prior         / -⍨1 5 3            → 1 4 -2

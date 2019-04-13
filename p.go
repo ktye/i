@@ -186,9 +186,9 @@ func (p *p) noun() v {
 		r := p.lst(sCpa)
 		if len(r) == 1 {
 			if p.isVrb(r[0]) { // e.g. (2+)
-				return p.drv(r[0])
+				return p.idxr(p.drv(r[0]))
 			}
-			return r[0]
+			return p.idxr(r[0])
 		} else if p.isVrb(r) {
 			return r // curry
 		}
@@ -321,9 +321,6 @@ func (p *p) idxr(x v) v {
 		r := p.lst(sCbr)
 		if len(r) == 0 {
 			r = l{nilad(true)}
-		}
-		if xl, o := x.(l); o && len(xl) > 1 && xl[0] != nil {
-			return append(xl, r...)
 		}
 		return append(l{x}, r...)
 	}

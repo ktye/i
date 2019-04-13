@@ -303,6 +303,25 @@ func TestMethod(t *testing.T) {
 		tt(t, tc.r, r, "method %s %+v: %+v\n", tc.m, tc.x, tc.r)
 	}
 }
+func TestMethodCall(t *testing.T) {
+	testCases := []struct {
+		s string
+		r v
+	}{
+		{"(x`F0)[]", 2.0},
+		{"(x`F1)[f]", 2.1},
+		{"(x`Fn)[f;f;f;f]", 5.4},
+	}
+	for _, tc := range testCases {
+		a := make(map[v]v)
+		E(nil, a)
+		a["x"] = myfloat(1.0)
+		a["f"] = float64(1.1)
+		l := P(tc.s)
+		r := E(l, a)
+		tt(t, tc.r, r, "method call %s", tc.s)
+	}
+}
 func TestV(t *testing.T) { // test examples in v.go
 	nkt := func() map[v]v {
 		a := make(map[v]v)
@@ -321,7 +340,7 @@ func TestV(t *testing.T) { // test examples in v.go
 			t.Fatal(s)
 		}
 		p[0], p[1] = strings.TrimSpace(p[0]), strings.TrimSpace(p[1])
-		_fmt.Printf("a=%s b=%s\n", p[0], p[1])
+		//_fmt.Printf("a=%s b=%s\n", p[0], p[1])
 		a := E(P(p[0]), nkt())
 		b := E(P(p[1]), nkt())
 		tt(t, b, a, "vgo a=%s b=%s: %+v\n", p[0], p[1], b)
@@ -421,22 +440,3 @@ func printf(f s, v ...v) {
 		_fmt.Printf(f, v...)
 	}
 }
-
-// TODO
-func TestMethodCall(t *testing.T) {
-	t.Skip()
-	testCases := []struct{
-		s string
-		r v
-	}{
-		{"(x`F0)[]", 2.0},
-	}
-	for _, tc := range testCases {
-		a := make(map[v]v)
-		E(nil, a)
-		a["x"] = myfloat(1.0)
-		r := E(P(tc.s), a)
-		tt(t, tc.r, r, "method call %s", tc.s)
-	}
-}
-

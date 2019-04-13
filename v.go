@@ -1008,9 +1008,6 @@ func fnd(x, y v) v {
 //   l@y  at, index            / 2 5 6@0 2          → 2 6
 //   d@y  at, index            / [a:1;b:2;c:3]@`a`c → 1 3
 //   f@y  monadic call         / {-x}@2 3           → -2 -3
-/*   x@m  method TODO */
-/*   x@m  method               / (myf`T0)[] → myf+1.0 */
-/*   x@m  method               / m:myf@`T0;f[] → myf+1.0  */
 func atx(x, y v, a map[v]v) v {
 	if s, o := x.(s); o {
 		return atx(atx(a, s, nil), y, a) // 1
@@ -1057,6 +1054,7 @@ func atx(x, y v, a map[v]v) v {
 
 //   l@y  depth list index     / (1;(2;(3;4))).1 1 0→ 3
 //   d@y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
+//   x@m  method               / (myf`F0)[]+0       → 2
 //   x.y  call                 / {x+y}.(3;4 5)      → 7 8
 //   x.y  curry                / ({x+y+z}.(1;;3)) 2 → 6
 func cal(x, y v, a map[v]v) v {
@@ -1081,14 +1079,14 @@ func cal(x, y v, a map[v]v) v {
 		return cal(f, y, a)
 	}
 	f := rval(x)
-	if f.Kind() != reflect.Func{
+	if f.Kind() != reflect.Func {
 		if _, o := md(x); o || ln(x) > 0 {
 			if yn := ln(y); yn > 0 {
 				return atd(x, y, a)
 			}
 			return atx(x, y, a)
 		}
-		return e("type:"+f.Kind().String())
+		return e("type:" + f.Kind().String())
 	}
 	var in, r []rV
 	var cur []int
@@ -1168,7 +1166,7 @@ func jon(x, y v) v { // a/l join
 /*   TODO encode */
 func enc(x, y v) v { return e("nyi") } // l/a encode, pack
 
-//   s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d 
+//   s\y  split                / ";"\"a;b;;c;d"     → `a`b``c`d
 func spl(x, y v) v { // a\x split, decode?
 	eq := func(a, b []rune) bool {
 		for i := range a {
