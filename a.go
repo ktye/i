@@ -110,20 +110,20 @@ func sl(l l, et rT) v { // convert list back to slice with original element type
 	}
 	return r.Interface()
 }
-func uf(l l) (v, bool) { // convert a list to a uniform vector if possible
+func uf(l l) v { // convert a list to a uniform vector if possible
 	if len(l) == 0 {
-		return l, false
+		return l
 	}
 	t := rtyp(l[0])
 	for i := range l {
 		if rtyp(l[i]) != t || ln(l[i]) >= 0 {
-			return l, false
+			return l
 		}
 	}
 	if t.Kind() == reflect.Slice {
-		return l, false
+		return l
 	}
-	return sl(l, t), true
+	return sl(l, t)
 }
 func ms(eT rT, n int) rV { // make slice from element type, but lists from slices
 	if eT == nil || eT.Kind() == reflect.Slice {
@@ -280,69 +280,6 @@ func ys(x sv, vec bool, eT rT) v { // convert strings back to orig type
 		r.Index(i).Set(rval(x[i]).Convert(eT))
 	}
 	return r.Interface()
-}
-
-func krange(n int, f func(int) v) v { // function krange(x, f) { var r=[]; for(var z=0;z<x;z++) { r.push(f(z)); } return k(3,r); }
-	l := make(l, n)
-	for i := range l {
-		l[i] = f(i)
-	}
-	u, _ := uf(l)
-	return u
-}
-func kmap(x v, f func(v, int) v) v { // function kmap (x, f) { return k(3, l(x).v.map(f)); }
-	n := ln(x)
-	if n < 0 {
-		e("type")
-	}
-	var it, ot rT
-	if t := rtyp(lz(x)); t != nil && t.Kind() != reflect.Interface {
-		it = t
-	}
-	in, _ := ls(x) // rT is determined by result of f(x)
-	l := make(l, n)
-	for i := 0; i < n; i++ {
-		l[i] = f(in[i], i)
-		t := rval(l[i]).Type()
-		if t != nil && i == 0 {
-			ot = t
-		} else if t != nil && ot != nil && t != ot {
-			ot = nil
-		}
-	}
-	if it == nil || ot == nil || ot.Kind() == reflect.Slice {
-		return l
-	}
-	r := ms(ot, n)
-	for i := 0; i < n; i++ {
-		r.Index(i).Set(rval(l[i]).Convert(ot))
-	}
-	return r.Interface()
-}
-func kzip(x, y v, f func(v, v) v) v { // function kzip (x, y, f) { return kmap(sl(x,y), function(z, i) { return f(z, y.v[i]); }); }
-	nx, ny := ln(x), ln(y)
-	if nx != ny {
-		return e("length")
-	}
-	return kmap(x, func(v v, i int) v {
-		return f(v, at(y, i))
-	})
-}
-
-func some(l l, f func(v v) bool) bool {
-	for _, i := range l {
-		if f(i) {
-			return true
-		}
-	}
-	return false
-}
-
-func impl(v v, t reflect.Type) reflect.Method {
-	if rtyp(v).Implements(t) {
-		return t.Elem().Method(0)
-	}
-	return reflect.Method{}
 }
 func idx(v v) int {
 	switch w := v.(type) {

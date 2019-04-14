@@ -75,7 +75,6 @@ func eva(x v, a map[v]v) v {
 		}
 		return cal(l[0], l[1:], a)
 	}
-	return e("impossible")
 }
 func adv(u l, a map[v]v) (v, bool) { // evaluate adverb expr
 	// TODO: verb trains

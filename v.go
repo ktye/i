@@ -36,8 +36,7 @@ func flp(x v) v {
 	}
 	ul := make(l, len(r))
 	for i := range r {
-		u, _ := uf(r[i])
-		ul[i] = u
+		ul[i] = uf(r[i])
 	}
 	return ul
 }
@@ -352,8 +351,16 @@ func rng(x v) v {
 func unq(x v) v {
 	w, t := ls(x)
 	r := make(l, 0)
+	nw := func(u v) bool {
+		for i := range r {
+			if mch(u, r[i]) == zi(1) {
+				return false
+			}
+		}
+		return true
+	}
 	for i := range w {
-		if !some(r, func(x v) bool { return mch(w[i], x) == zi(1) }) {
+		if nw(w[i]) {
 			r = append(r, cp(w[i]))
 		}
 	}
@@ -619,10 +626,17 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 	for i := range xv {
 		xv[i] = idx(at(x, i))
 	}
+	rng := func(n int, f func(int) v) v {
+		l := make(l, n)
+		for i := range l {
+			l[i] = f(i)
+		}
+		return uf(l)
+	}
 	var rshr func(x, y v, i int) v
 	rshr = func(x, y v, i int) v {
 		nx, ny := ln(x), ln(y)
-		return krange(xv[i], func(z int) v {
+		return rng(xv[i], func(z int) v {
 			if i == nx-1 {
 				c++
 				return at(y, (c-1)%ny)
@@ -638,9 +652,9 @@ func rsh(x, y v) v { // x#y x⍴y reshape
 		if n*b < ny {
 			n++
 		}
-		return cut(krange(n, func(z int) v { return z * b }), y)
+		return cut(rng(n, func(z int) v { return z * b }), y)
 	} else if b < 0 {
-		return cut(krange(idx(a), func(z int) v { return z * ny / a }), y)
+		return cut(rng(idx(a), func(z int) v { return z * ny / a }), y)
 	}
 	return rshr(x, y, 0)
 }
@@ -654,7 +668,7 @@ func drp(x, y v) v {
 			d.k, d.v = drp(x, d.k).(l), drp(x, d.v).(l)
 		} else {
 			d.k = ept(d.k, x).(l)
-			d.v = atx(y, d.k, nil).(l)
+			d.v, _ = ls(atx(y, d.k, nil))
 		}
 		return d.mp()
 	}
@@ -678,15 +692,21 @@ func drp(x, y v) v {
 
 //  xl_yl cut                  / 3 5_!8             → (3 4;5 6 7)
 func cut(x, y v) v {
-	return kzip(x, cat(drp(1, x), cnt(y)), func(a, b v) v {
-		pa, pb := pidx(a), pidx(b)
-		r := make(l, pb-pa)
-		for i := pa; i < pb; i++ {
-			r[i-pa] = at(y, i)
+	xl, _ := ls(x)
+	r := make(l, len(xl))
+	ll, _ := ls(cp(y))
+	for i := range xl {
+		a := pidx(xl[i])
+		b := len(ll)
+		if i < len(r)-1 {
+			b = pidx(xl[i+1])
 		}
-		u, _ := uf(r)
-		return u
-	})
+		if b < a {
+			return e("domain")
+		}
+		r[i] = uf(ll[a:b])
+	}
+	return r
 }
 
 //   x$y  convert to typeof    / (int@8)$128        → (int@8)$-128
@@ -1037,7 +1057,13 @@ func atx(x, y v, a map[v]v) v {
 	case rval(x).Kind() == reflect.Func && rval(y).Kind() == reflect.Func:
 		return e("nyi") // x, verb, y adverb: // 4
 	case (xl || xd) && yl: // 5
-		return kmap(y, func(z v, i int) v { return atx(x, z, nil) })
+		ll, _ := ls(y)
+		r := make(l, len(ll))
+		for i := range r {
+			r[i] = atx(x, ll[i], nil)
+		}
+		return uf(r)
+		// return kmap(y, func(z v, i int) v { return atx(x, z, nil) })
 	case xl: // 6
 		// TODO other checks: (y.t > 1 || y.v < 0 || y.v >= len(x) || y.v%1 != 0) ? NA
 		i := idx(y)
@@ -1367,8 +1393,7 @@ func swl(f, x, y v, a map[v]v) v { // x f1\y scan for, g1 f1\y scan while
 	if rval(x).Kind() == reflect.Func {
 		for {
 			if b := cal(x, l{y}, a); idx(b) != 1 {
-				u, _ := uf(r)
-				return u
+				return uf(r)
 			}
 			y = cal(f, l{y}, a)
 			r = append(r, cp(y))
@@ -1379,8 +1404,7 @@ func swl(f, x, y v, a map[v]v) v { // x f1\y scan for, g1 f1\y scan while
 		y = cal(f, l{y}, a)
 		r = append(r, cp(y))
 	}
-	u, _ := uf(r)
-	return u
+	return uf(r)
 }
 
 //   f/y  fixed point          / √:/2               → 1
@@ -1412,8 +1436,7 @@ func sfx(f, x v, a map[v]v) v { // f1\x scan fixed
 		u = append(u, r)
 		y = r
 	}
-	uu, _ := uf(u)
-	return uu
+	return uf(u)
 }
 
 //  πø∞𝜀  numeric constants    / (π;ø;∞;𝜀)=π ø ∞ 𝜀  → 1 1 1 1
@@ -1451,11 +1474,7 @@ func grade(up bool, x v) v {
 		return i
 	}
 	if l, o := x.(l); o {
-		u, o := uf(l)
-		if !o {
-			return e("type")
-		}
-		x = u
+		x = uf(l)
 	}
 	zv, _, _ := nv(x)
 	return grade(up, zv)

@@ -26,8 +26,7 @@ func nm(x v, fz fz1) v {
 		for i := range r {
 			r[i] = nm(iv[i], fz)
 		}
-		u, _ := uf(r)
-		return u
+		return uf(r)
 	}
 	z, vec, t := nv(x)
 	for i, x := range z {
@@ -62,8 +61,7 @@ func nd(x, y v, fz fz2) v {
 		for i := range r {
 			r[i] = nd(at(x, i), at(y, i), fz)
 		}
-		u, _ := uf(r)
-		return u
+		return uf(r)
 	}
 
 	xz, xvec, xt := nv(x)
