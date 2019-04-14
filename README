@@ -43,7 +43,7 @@ $   fmt  [fmt]  cst   cst   cst   cst
 \    -     -     -    upk   spl   -      
                                                                      
     mv/nv dv    l-mv  l-dv        
-'   ech   ecd   ecd   ecd   ¨     prs  evl
+'   ech   ecd   ecd   ecd   ¨     
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
 \:   -     -    ecl   ecl   ⍀     sin  cos  tan
@@ -84,6 +84,7 @@ con[x] conjugate complex    / con 1i3            → 1i-3
    ?n  random uniform       / +/1>?1000          → 1000
    ?-n random normal        / 900 > +/1>?-1000   → 1
    ?i  random binormal      / (+/‖?0i1000)<1300  → 1 / √π÷2
+   ?s  parse                / ?"1+2"             → ("+";1;2)
    ?x  unique               / ?2 3 3 0 4 0       → 2 3 0 4
    @x  type of              / (@5)≡@-1.2i5       → 1
    .s  parse and eval       / ."1+2"             → 3

@@ -320,7 +320,11 @@ func num(x v) v { // num s parse number // TODO: move to 0$"1.23" (needed in ⍳
 //    ?n  random uniform       / +/1>?1000          → 1000
 //    ?-n random normal        / 900 > +/1>?-1000   → 1
 //    ?i  random binormal      / (+/‖?0i1000)<1300  → 1 / √π÷2
+//    ?s  parse                / ?"1+2"             → ("+";1;2)
 func rng(x v) v {
+	if s, o := x.(s); o {
+		return prs(s)
+	}
 	xz, vec, _ := nv(x)
 	if vec {
 		return e("domain")

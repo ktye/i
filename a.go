@@ -497,7 +497,6 @@ func kinit(a map[v]v) map[v]v {
 		}
 	}
 	for k, u := range map[s]v{
-		"prs": prs, "evl": eva,
 		"pi": math.Pi, "π": complex(math.Pi, 0), "𝜀": complex(1E-14, 0),
 		"jon": jon, "num": num,
 		"inf": complex(math.Inf(1), 0), "∞": complex(math.Inf(1), 0), "nan": complex(math.NaN(), 0), "ø": complex(math.NaN(), 0),
@@ -538,7 +537,7 @@ $   fmt  [fmt]  cst   cst   cst   cst
 \    -     -     -    upk   spl   -      
                                                                      
     mv/nv dv    l-mv  l-dv        
-'   ech   ecd   ecd   ecd   ¨     prs  evl
+'   ech   ecd   ecd   ecd   ¨     
 ':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
 /:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
 \:   -     -    ecl   ecl   ⍀     sin  cos  tan
