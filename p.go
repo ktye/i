@@ -227,7 +227,12 @@ func (p *p) adv(left, w v) v {
 	a := p.p(sAdv)
 	for p.t(sAdv) {
 		b := p.p(sAdv)
-		w = l{a, w}
+		if iss(w) && sVrb(rv(w.(s))) > 0 {
+			// reflite p131: force monad for derived primitives
+			w = l{l{a, w}, nil}
+		} else {
+			w = l{a, w}
+		}
 		a = b
 	}
 	// TODO [] callright
