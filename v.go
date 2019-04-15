@@ -817,7 +817,7 @@ func cst(x, y v) v { // x$y cast
 				b = append(b, []byte(m[i][k])...)
 				if k < len(m[i])-1 {
 					c := byte(' ')
-					if i == 1 {
+					if i == 1 && hdr != nil {
 						c = '-'
 					}
 					b = append(b, c)
@@ -1082,9 +1082,9 @@ func atx(x, y v, a map[v]v) v {
 	return cal(x, enl(y), a)
 }
 
-//   l@y  depth list index     / (1;(2;(3;4))).1 1 0→ 3
-//   d@y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
-//   x@m  method               / (myf`F0)[]+0       → 2
+//   l.y  depth list index     / (1;(2;(3;4))).1 1 0→ 3
+//   d.y  depth dict index     / [a:1;b:[c:2]].`b`c → 2
+//   x.m  method               / (myf`F0)[]+0       → 2
 //   x.y  call                 / {x+y}.(3;4 5)      → 7 8
 //   x.y  curry                / ({x+y+z}.(1;;3)) 2 → 6
 func cal(x, y v, a map[v]v) v {

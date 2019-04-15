@@ -201,7 +201,7 @@ func (p *p) noun() v {
 		// TODO [ | dict
 		return p.idxr(h)
 	case p.t(sNam):
-		ref := p.p(sNam)
+		ref := p.idxr(p.p(sNam))
 		if p.t(sCol) {
 			p.p(sCol)
 			col := ":"
@@ -211,8 +211,7 @@ func (p *p) noun() v {
 			}
 			return l{col, ref, p.ex(p.noun())}
 		}
-		return p.idxr(ref)
-		// TODO compound assign []
+		return ref
 	}
 	return nil
 }

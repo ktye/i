@@ -42,9 +42,15 @@ func eva(x v, a map[v]v) v {
 		if len(l) != 3 {
 			return e("length")
 		}
+		var idx []v
 		s, o := l[1].(s)
 		if !o {
-			return e("assign:type")
+			if xl, o := l[1].([]v); o && len(xl) > 1 && iss(xl[0]) {
+				s = xl[0].(string)
+				idx = xl[1:]
+			} else {
+				return e("assign:type")
+			}
 		}
 		y := eva(l[2], a)
 		if l[0] == "::" {
@@ -52,7 +58,14 @@ func eva(x v, a map[v]v) v {
 		}
 		var r v = y
 		if mod != nil {
-			r = cal(mod, []v{lup(a, s), y}, a)
+			x := lup(a, s)
+			if idx != nil {
+				x = cal(x, idx, a)
+			}
+			r = cal(mod, []v{x, y}, a)
+		}
+		if idx != nil {
+			return xas(s, idx, y, a)
 		}
 		a[s] = cp(r)
 		return r
@@ -181,6 +194,9 @@ func cnd(x l, a map[v]v) v { // conditional, case
 		}
 	}
 	return eva(def, a)
+}
+func xas(x s, idx l, y v, a map[v]v) v { // indexed assignment
+	return e("nyi")
 }
 
 type tail l
