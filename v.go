@@ -1155,16 +1155,36 @@ func cal(x, y v, a map[v]v) v {
 	})
 }
 func atd(x, y v, a map[v]v) v { // at depth
-	if n := ln(y); n < 0 {
+	n := ln(y)
+	if n < 0 {
 		return atx(x, y, a)
 	} else if n == 1 {
 		return atx(x, at(y, 0), a)
 	}
+	var ata func(v) v
+	var all func() v
 	if d, o := md(x); o {
-		_, u := d.at(at(y, 0))
-		return atd(u, drp(1, y), a)
+		ata = func(x v) v { _, r := d.at(x); return r }
+		all = func() v { return d.k }
+	} else {
+		ata = func(z v) v { return at(x, pidx(z)) }
+		all = func() v { return til(cnt(x)) }
 	}
-	return atd(at(x, pidx(at(y, 0))), drp(1, y), a)
+	y0 := at(y, 0)
+	if y0 == nil {
+		y0 = all()
+	}
+	yp := drp(1, y)
+	m := ln(y0)
+	if m < 0 {
+		return atd(ata(y0), yp, a)
+	}
+	r := make(l, m)
+	for i := range r {
+		yi := at(y0, i)
+		r[i] = atd(ata(yi), yp, a)
+	}
+	return uf(r)
 }
 
 //   s/y  join                 / ";"/`alpha`beta    → "alpha;beta"

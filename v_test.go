@@ -23,6 +23,22 @@ const z2 = complex(2, 0)
 const z3 = complex(3, 0)
 const z4 = complex(4, 0)
 
+func TestFmt(t *testing.T) {
+	testCases := []struct {
+		s, r string
+	}{
+		{"1+1", "2"},
+		{"[a:[x:1;y:2];b:8;c:[x:3;y:4]][`a`c;`x`y]", "(1 2;3 4)"},
+		{"a:3 4 5⍴⍳60;a[0 2;3]", "(15 16 17 18 19;55 56 57 58 59)"},
+		{"a:3 4 5⍴⍳60;a[0 2;3;1 2 4]", "(16 17 19;56 57 59)"},
+		{"a:3 4 5⍴⍳60;a[0 2;;1 2 4]", "((1 2 4;6 7 9;11 12 14;16 17 19);(41 42 44;46 47 49;51 52 54;56 57 59))"},
+	}
+	for _, tc := range testCases {
+		u := E(P(tc.s), nil)
+		r := fmt(u).(s)
+		tt(t, tc.r, r, "fmt %q: %q\n", tc.s, tc.r)
+	}
+}
 func TestMV(t *testing.T) {
 	type IV []int
 	testCases := []struct {
@@ -280,8 +296,7 @@ func TestVKt(t *testing.T) {
 		{"atx", atx, nil, map[v]v{"a": -1.0, "b": -2.0}, "b", -2.0},
 		{"atx", atx, nil, map[v]v{"a": -1.0, "b": -2.0}, sv{"b", "a"}, fv{-2, -1}},
 		{"cal", cal, nil, l{1, l{2, 3}, 4}, l{1, 1}, 3}, // at depth
-		// TODO atx var adv
-		// TODO atx verb *
+		{"cal", cal, nil, l{iv{1, 2, 3}, sv{"a", "b", "c"}, iv{5, 6, 7}}, l{iv{1, 2}, iv{1, 2}}, l{sv{"b", "c"}, iv{6, 7}}},
 	}
 	for _, tc := range testCases {
 		r := tc.f(tc.x, tc.y, nil)
