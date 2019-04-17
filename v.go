@@ -1102,7 +1102,7 @@ func cal(x, y v, a map[v]v) v {
 		}
 	}
 	if sx, o := x.(s); o {
-		f := lup(a, sx)
+		f := lupr(a, sx)
 		if f == nil {
 			return e("nil:" + sx)
 		}

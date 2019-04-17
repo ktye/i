@@ -2,7 +2,7 @@ package i
 
 func eva(x v, a map[v]v) v {
 	if sy, o := x.(s); o {
-		return lup(a, sy)
+		return lupr(a, sy)
 	}
 	l, o := cp(x).(l)
 	if !o || len(l) == 0 {
@@ -33,42 +33,7 @@ func eva(x v, a map[v]v) v {
 		}
 		return r
 	case ":", "::":
-		var mod v
-		if len(l) == 4 {
-			mod = l[1]
-			l[1] = l[0]
-			l = l[1:]
-		}
-		if len(l) != 3 {
-			return e("length")
-		}
-		var idx []v
-		s, o := l[1].(s)
-		if !o {
-			if xl, o := l[1].([]v); o && len(xl) > 1 && iss(xl[0]) {
-				s = xl[0].(string)
-				idx = xl[1:]
-			} else {
-				return e("assign:type")
-			}
-		}
-		y := eva(l[2], a)
-		if l[0] == "::" {
-			a = ktr(a)
-		}
-		var r v = y
-		if mod != nil {
-			x := lup(a, s)
-			if idx != nil {
-				x = cal(x, idx, a)
-			}
-			r = cal(mod, []v{x, y}, a)
-		}
-		if idx != nil {
-			return xas(s, idx, y, a)
-		}
-		a[s] = cp(r)
-		return r
+		return asn(l[1:], l[0] == "::", a)
 	case "∇":
 		return tail(l[1:])
 	case "λ":
@@ -98,23 +63,24 @@ func adv(u l, a map[v]v) (v, bool) { // evaluate adverb expr
 	if sAdv(rv(s)) == 0 {
 		return u, false
 	}
-	af := lup(a, s).(func(v) v)
+	af := lupr(a, s).(func(v) v)
 	w := eva(u[1], a)
 	return af(w), true // func(...v)v
 }
-func lup(a map[v]v, s s) v { // lookup
+func lup(a map[v]v, s s) (v, map[v]v) { // lookup
 	if r := a[s]; r != nil {
-		return r
+		return r, a
 	}
 	if p, o := a[".."]; o {
 		pp, o := p.(*map[v]v)
 		if !o {
-			return e("type")
+			return e("type"), nil
 		}
-		return lup(*pp, s)
+		return lupr(*pp, s), *pp
 	}
-	return e("undefined:" + s)
+	return e("undefined:" + s), nil
 }
+func lupr(a map[v]v, s s) v { r, _ := lup(a, s); return r }
 func ktr(a map[v]v) map[v]v { // k-tree root
 	for {
 		p, o := a[".."]
@@ -195,8 +161,107 @@ func cnd(x l, a map[v]v) v { // conditional, case
 	}
 	return eva(def, a)
 }
-func xas(x s, idx l, y v, a map[v]v) v { // indexed assignment
-	return e("nyi")
+func asn(x l, g bool, a map[v]v) v { // assignment
+	var mod v
+	if len(x) == 3 {
+		mod = x[0]
+		x = x[1:]
+	}
+	if len(x) != 2 {
+		return e("length")
+	}
+	var idx l
+	s, o := x[0].(s)
+	if !o {
+		if xl, o := x[0].(l); o && len(xl) > 1 && iss(xl[0]) {
+			s = xl[0].(string)
+			idx = make(l, len(xl)-1)
+			for i, u := range xl[1:] {
+				idx[i] = eva(u, a)
+			}
+		} else {
+			return e("assign:type")
+		}
+	}
+	y := eva(x[1], a)
+	if g {
+		a = ktr(a)
+	}
+	var r v = y
+	if mod != nil {
+		x := lupr(a, s)
+		if idx != nil {
+			x = cal(x, idx, a)
+		}
+		r = cal(mod, []v{x, y}, a)
+	}
+	if idx == nil {
+		a[s] = cp(r)
+		return r
+	}
+	var u v
+	u, a = lup(a, s)
+	y = xas(u, r, idx)
+	a[s] = cp(y)
+	return y
+}
+func xas(u, y v, idx l) (r v) {
+	var get func(v) v
+	var set func(x, y v)
+	if d, o := md(u); o {
+		get = func(x v) v { _, r := d.at(x); return r } // maybe nil
+		set = d.set
+		defer func() {
+			r = d.mp()
+		}()
+	} else {
+		ul, t := ls(u)
+		defer func() {
+			r = sl(ul, t)
+			if l, o := r.(l); o {
+				r = uf(l)
+			}
+		}()
+		get = func(x v) v { return ul[pidx(x)] }
+		set = func(x, y v) { ul[pidx(x)] = y }
+	}
+	if len(idx) == 0 {
+		idx = l{nil}
+	}
+	d := len(idx)
+	i0 := idx[0]
+	idx = idx[1:]
+	if i0 == nil {
+		i0 = til(cnt(u))
+	}
+	n := ln(i0)
+	if n < 0 {
+		i0, n, y = l{i0}, 1, l{y}
+	}
+	m := ln(y)
+	if m < 0 {
+		q := make(l, n)
+		for i := range q {
+			q[i] = cp(y)
+		}
+		y = q
+		m = n
+	}
+	if m != n {
+		return e("size")
+	}
+	yl, _ := ls(y)
+	for i := range yl {
+		var w v
+		k := at(i0, i)
+		if d > 1 {
+			w = xas(get(k), yl[i], idx)
+		} else {
+			w = at(y, i)
+		}
+		set(k, w)
+	}
+	return u
 }
 
 type tail l

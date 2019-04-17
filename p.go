@@ -538,7 +538,7 @@ L:
 			if any(x[0], "+-") {
 				y = append(y, x[0])
 				x = x[1:]
-				if !(sVrb(rv{r}) > 0 || any(r, " ([{;")) {
+				if !(sVrb(rv{r}) > 0 || any(r, " ([{;:")) {
 					y = append(y, ' ')
 				}
 			}

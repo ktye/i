@@ -210,6 +210,7 @@ func TestBeg(t *testing.T) {
 		{"a+b", "a+b"},
 		{"a*2.3i-5", "a*2.3i-5"},
 		{"`a/`b`c", "`a/`b`c"},
+		{"a:-1 -1", "a:-1 -1"},
 	}
 	for _, tc := range testCases {
 		r := string(beg(rv(tc[0])))
