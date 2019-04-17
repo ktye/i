@@ -361,7 +361,7 @@ func kinit(a map[v]v) map[v]v {
 		"𝜑": v6{rad, rad, prd, prd, prd, prd},
 		"⍣": v6{exp, exp, pow, pow, pow, pow},
 		"⍟": v6{log, log, lgn, lgn, lgn, lgn},
-		"!": v6{til, odo, mod, nil, mod, mkd},
+		"!": v6{til, odo, mkd, mkd, mkd, mkd},
 		"⍳": v6{til, odo, nil, nil, nil, nil},
 		"&": v6{wer, wer, min, min, min, min},
 		"⌊": v6{flr, flr, min, min, min, min},
@@ -500,7 +500,7 @@ func kinit(a map[v]v) map[v]v {
 		"pi": math.Pi, "π": complex(math.Pi, 0), "𝜀": complex(1E-14, 0),
 		"jon": jon, "num": num,
 		"inf": complex(math.Inf(1), 0), "∞": complex(math.Inf(1), 0), "nan": complex(math.NaN(), 0), "ø": complex(math.NaN(), 0),
-		"sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn, "nrt": nrt,
+		"mod": mod, "sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn, "nrt": nrt,
 		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
 	} {
 		a[k] = u
@@ -518,7 +518,7 @@ const doc = `
 -  [neg] [neg] [sub] [sub] [sub] [sub]   
 *   fst   fst  [mul] [mul] [mul] [mul]  ×
 %  [inv] [inv] [div] [div] [div] [div]  ÷
-!   til   odo   mod    -    mod>  mkd   ⍳
+!   til   odo   mkd   mkd   mkd   mkd   ⍳
 &   wer   wer  [min] [min] [min] [min]  ⌊
 |   rev   rev  [max] [max] [max] [max]  ⌽⌈
 <   asc   asc  [les] [les] [les] [les]  ⍋

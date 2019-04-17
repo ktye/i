@@ -24,7 +24,7 @@ Any Go var present in the k-tree can be used as well:
 -  [neg] [neg] [sub] [sub] [sub] [sub]   
 *   fst   fst  [mul] [mul] [mul] [mul]  ×
 %  [inv] [inv] [div] [div] [div] [div]  ÷
-!   til   odo   mod    -    mod>  mkd   ⍳
+!   til   odo   mkd   mkd   mkd   mkd   ⍳
 &   wer   wer  [min] [min] [min] [min]  ⌊
 |   rev   rev  [max] [max] [max] [max]  ⌽⌈
 <   asc   asc  [les] [les] [les] [les]  ⍋
@@ -93,9 +93,8 @@ con[x] conjugate complex    / con 1i3            → 1i-3
   x-y  substract            / 2 3 4-1            → 1 2 3
   x*y  × multiply           / 2 0i1 1a270*0i1    → 0i2 -1 1
   x%x  ÷ divide             / 1÷2                → 0.5
-  x!y  modulo               / 2!5                → 1
-  x!l  modulo               / 2!!10              → 0 1 0 1 0 1 0 1 0 1
- xl!l  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
+  mod[x;y]  modulo          / mod[2;5]           → 1
+  x!y  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
   x&y  ⌊ min                / 1 2 3 4&4 3 2 1    → 1 2 2 1
   x|y  ⌈ max                / 1 2 3 4|4 3 2 1    → 4 3 3 4
   x<y  less than            / 5<8 1 5            → 1 0 0

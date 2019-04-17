@@ -400,12 +400,23 @@ func mul(x, y v) v { return nd(x, y, func(x, y z) z { return x * y }) }
 //   x%x  ÷ divide             / 1÷2                → 0.5
 func div(x, y v) v { return nd(x, y, func(x, y z) z { return x / y }) }
 
-//   x!y  modulo               / 2!5                → 1
-//   x!l  modulo               / 2!!10              → 0 1 0 1 0 1 0 1 0 1
+//   mod[x;y]  modulo          / mod[2;5]           → 1
 func mod(x, y v) v { return nd(x, y, func(x, y z) z { return complex(math.Mod(real(y), real(x)), 0) }) } // x!y modulo
 
-//  xl!l  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
+//   x!y  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
 func mkd(x, y v) v {
+	nx, ny := ln(x), ln(y)
+	if nx < 0 && ny < 0 {
+		x, y, nx, ny = l{x}, l{y}, 1, 1
+	} else if nx < 0 {
+		return dict{k: l{x}, v: l{y}}.mp()
+	} else if ny < 0 {
+		yl := make(l, nx)
+		for i := range yl {
+			yl[i] = cp(y)
+		}
+		y = yl
+	}
 	a, _ := ls(x)
 	b, _ := ls(y)
 	if len(a) != len(b) {
