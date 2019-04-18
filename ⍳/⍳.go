@@ -63,6 +63,7 @@ func p(x v) {
 	if !o {
 		s = fmt(x).(string)
 	}
+	s = sxl(s)
 	println(s)
 }
 

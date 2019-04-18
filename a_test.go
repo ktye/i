@@ -29,9 +29,22 @@ func TestEx(t *testing.T) {
 			rtyp(mymap{}),
 			mymap{"alpha": 1, "beta": 2},
 		},
+		{
+			[2]l{l{"Type", "Lines"}, l{"abc", l{[2]l{l{"A"}, l{1}}, [2]l{l{"A"}, l{2.0}}}}},
+			rtyp(Plot{}),
+			Plot{Type: "abc", Lines: []Line{Line{1}, Line{2}}},
+		},
 	}
 	for _, tc := range testCases {
 		r := ex(tc.i, tc.t)
 		tt(t, tc.r, r, "ex %+v %s: %+v\n", tc.i, tc.t, tc.r)
 	}
+}
+
+type Plot struct {
+	Type  string
+	Lines []Line
+}
+type Line struct {
+	A int
 }

@@ -92,6 +92,7 @@ func setup() map[v]v {
 	a["t"] = regtime()
 	regplot(a)
 	a["x"] = T(1.0)
+	a["print"] = p
 	return a
 }
 

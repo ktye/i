@@ -147,29 +147,38 @@ func ex(x v, dst rT) v { // export to dst type
 	switch dst.Kind() {
 	case reflect.Slice:
 		eT := dst.Elem()
-		if eT.Kind() <= reflect.Complex128 {
+		if k := eT.Kind(); k <= reflect.Complex128 {
 			c, vec, _ := nv(x)
 			if !vec {
 				return e("type")
 			}
 			return vn(c, true, eT)
-		} else if eT.Kind() == reflect.String {
+		} else if k == reflect.String {
 			n := ln(x)
 			sv := reflect.MakeSlice(dst, n, n)
 			for i := 0; i < n; i++ {
 				sv.Index(i).Set(rval(x).Index(i))
 			}
 			return sv.Interface()
-		} else { // TODO: []struct{...} ←→ l{dict}
-			return e("type")
+		} else if k == reflect.Struct { // []struct{...} ←→ l{dict}
+			n := ln(x)
+			if n < 0 {
+				return nil
+			}
+			sv := reflect.MakeSlice(dst, n, n)
+			for i := 0; i < n; i++ {
+				sv.Index(i).Set(rval(ex(at(x, i), eT)))
+			}
+			return sv.Interface()
 		}
+		return e("type")
 	case reflect.Map, reflect.Struct:
 		d, o := md(x)
 		if !o {
 			return e("type")
 		}
 		var r rV
-		if dst.Kind() == reflect.Struct {
+		if dst.Kind() == reflect.Struct { // TODO: error on extra fields?
 			r = reflect.New(dst).Elem()
 			for i := 0; i < dst.NumField(); i++ {
 				f := dst.Field(i)
@@ -197,7 +206,7 @@ func ex(x v, dst rT) v { // export to dst type
 			}
 			return vn(c, false, dst)
 		}
-		return rval(x).Convert(dst)
+		return rval(x).Convert(dst).Interface()
 	}
 }
 

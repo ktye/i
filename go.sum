@@ -2,6 +2,12 @@ github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 h1:DACJavvAHhabrF0
 github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0/go.mod h1:E/TSTwGwJL78qG/PmXZO1EjYhfJinVAhrmmHX6Z8B9k=
 github.com/ktye/plot v0.0.0-20190313115457-f0482d904546 h1:VX4mcBBtYQojfoJ+1ETLkOzKneZeb/JeswF99DLoyAo=
 github.com/ktye/plot v0.0.0-20190313115457-f0482d904546/go.mod h1:pCmVLJ22Fj9q6zZ7FutowrJY3N3ZcWKv0e0nObHoIe0=
+github.com/ktye/plot v0.0.0-20190418145510-8e0ab7910c77 h1:6VlwCxwyYkZggqET0dMUTRmo/mmn7lHYDmkhVbiWw94=
+github.com/ktye/plot v0.0.0-20190418145510-8e0ab7910c77/go.mod h1:pCmVLJ22Fj9q6zZ7FutowrJY3N3ZcWKv0e0nObHoIe0=
+github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81 h1:AiRo+166RFsFNOhKhNI5szixSWPInRmBjWvfSihTn5c=
+github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81/go.mod h1:zlzhYSuMbLdRdrxfutExxGpC+Pf2uUTJ6GpVQ4LB5dc=
+github.com/soniakeys/quant v1.0.0 h1:N1um9ktjbkZVcywBVAAYpZYSHxEfJGzshHCxx/DaI0Y=
+github.com/soniakeys/quant v1.0.0/go.mod h1:HI1k023QuVbD4H8i9YdfZP2munIHU4QpjsImz6Y6zds=
 golang.org/x/image v0.0.0-20190227222117-0694c2d4d067 h1:KYGJGHOQy8oSi1fDlSpcZF0+juKwk/hEMv5SiwHogR0=
 golang.org/x/image v0.0.0-20190227222117-0694c2d4d067/go.mod h1:kZ7UVZpmo3dzQBMxlp+ypCbDeSB+sBbTgSJuh5dn5js=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
