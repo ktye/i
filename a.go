@@ -27,6 +27,7 @@ var rTb = rtyp(true)
 var rTf = rtyp(0.0)
 var rTz = rtyp(complex(0, 0))
 var rTs = rtyp("")
+var rTv = rtyp(l{}).Elem()
 
 type cpr interface {
 	Copy() v
@@ -65,7 +66,11 @@ func cp(x v) v {
 		}
 		return r.Interface()
 	case reflect.Map, reflect.Struct:
-		e("assert") // already converted to dict
+		d, o := md(x)
+		if !o {
+			e("type")
+		}
+		return d.mp()
 	}
 	return x // Ptr, Chan, Interface, UnsafePointer are not copied
 }
@@ -133,13 +138,75 @@ func ms(eT rT, n int) rV { // make slice from element type, but lists from slice
 }
 func isl(x v) bool { _, o := x.(l); return o } // is list
 func iss(x v) bool { _, o := x.(s); return o } // is string
+func ex(x v, dst rT) v { // export to dst type
+	if t := rtyp(x); t == dst {
+		return x
+	} else if dst == rTv {
+		return x
+	}
+	switch dst.Kind() {
+	case reflect.Slice:
+		eT := dst.Elem()
+		if eT.Kind() <= reflect.Complex128 {
+			c, vec, _ := nv(x)
+			if !vec {
+				return e("type")
+			}
+			return vn(c, true, eT)
+		} else if eT.Kind() == reflect.String {
+			n := ln(x)
+			sv := reflect.MakeSlice(dst, n, n)
+			for i := 0; i < n; i++ {
+				sv.Index(i).Set(rval(x).Index(i))
+			}
+			return sv.Interface()
+		} else { // TODO: []struct{...} ←→ l{dict}
+			return e("type")
+		}
+	case reflect.Map, reflect.Struct:
+		d, o := md(x)
+		if !o {
+			return e("type")
+		}
+		var r rV
+		if dst.Kind() == reflect.Struct {
+			r = reflect.New(dst).Elem()
+			for i := 0; i < dst.NumField(); i++ {
+				f := dst.Field(i)
+				k, u := d.at(f.Name)
+				if k < 0 {
+					continue
+				}
+				u = ex(u, f.Type)
+				r.Field(i).Set(rval(u))
+			}
+		} else {
+			r = reflect.MakeMap(dst)
+			kT := dst.Key()
+			eT := dst.Elem()
+			for i := range d.k {
+				r.SetMapIndex(rval(ex(d.k[i], kT)), rval(ex(d.v[i], eT)))
+			}
+		}
+		return r.Interface()
+	default:
+		if dst.Kind() <= reflect.Complex128 {
+			c, vec, _ := nv(x)
+			if vec {
+				e("type")
+			}
+			return vn(c, false, dst)
+		}
+		return rval(x).Convert(dst)
+	}
+}
 
 type dict struct {
 	k, v l
 	t    reflect.Type // orig type
 }
 
-func md(x interface{}) (dict, bool) { // import maps and structs as dicts
+func md(x v) (dict, bool) { // import maps and structs as dicts
 	if m, o := x.([2]l); o {
 		return dict{cp(m[0]).(l), cp(m[1]).(l), nil}, true
 	} else if d, o := x.(dict); o {
@@ -183,7 +250,7 @@ func md(x interface{}) (dict, bool) { // import maps and structs as dicts
 	}
 	return d, false
 }
-func md2(x, y interface{}) (dict, dict, bool) {
+func md2(x, y v) (dict, dict, bool) {
 	dx, o := md(x)
 	if !o {
 		return dict{}, dict{}, false
@@ -194,46 +261,11 @@ func md2(x, y interface{}) (dict, dict, bool) {
 	}
 	return dx, dy, true
 }
-func (d dict) mp() interface{} { // convert dict back to original type
+func (d dict) mp() v { // convert dict back to original type
 	if d.t == nil {
 		return [2]l{d.k, d.v}
 	}
-
-	// convert back to original map or struct type.
-	v := reflect.New(d.t)
-	v = v.Elem()
-	if v.Kind() == reflect.Map {
-		v = reflect.MakeMap(d.t)
-		keytype := v.Type().Key()
-		valtype := v.Type().Elem()
-		for i, k := range d.k {
-			rk := rval(k)
-			if t := rk.Type(); t != keytype {
-				rk = rk.Convert(t)
-			}
-			rv := rval(d.v[i])
-			if t := rv.Type(); t != valtype {
-				rv = rv.Convert(t)
-			}
-			v.SetMapIndex(rk, rv)
-		}
-		return v.Interface()
-	} else if v.Kind() == reflect.Struct {
-		for i, k := range d.k {
-			f := v.FieldByName(rval(k).String())
-			if f.Kind() == reflect.Slice {
-				w := rval(d.v[i])
-				if w.IsValid() == false {
-					continue
-				}
-				sv := reflect.MakeSlice(f.Type(), w.Len(), w.Len())
-				reflect.Copy(sv, w)
-			} // TODO: make other types, that need it.
-			f.Set(rval(d.v[i]))
-		}
-		return v.Interface()
-	}
-	return e("type")
+	return ex([2]l{d.k, d.v}, d.t)
 }
 func (d dict) at(key v) (int, v) {
 	for i, k := range d.k {

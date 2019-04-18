@@ -72,7 +72,9 @@ func TestMV(t *testing.T) {
 		{"neg", neg, 1, -1},
 		{"neg", neg, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"a", "b"}, l{-1, -2}}},
 		{"neg", neg, map[v]v{"a": fv{1, 2}}, map[v]v{"a": fv{-1.0, -2.0}}},
-		{"neg", neg, mystruct{true, 2.0, []myint{1, 2, 3}}, mystruct{true, -2.0, []myint{-1, -2, -3}}},
+		{"neg", neg, Mystruct{true, 2.0, []myint{1, 2, 3}}, Mystruct{true, -2.0, []myint{-1, -2, -3}}},
+		{"neg", neg, nested{A: 1, S: Mystruct{false, 3.0, []myint{1, 2, 3}}}, nested{A: -1, S: Mystruct{false, -3.0, []myint{-1, -2, -3}}}},
+		{"neg", neg, embed{A: 1, Mystruct: Mystruct{false, 3.0, []myint{1, 2, 3}}}, embed{A: -1, Mystruct: Mystruct{false, -3.0, []myint{-1, -2, -3}}}},
 		{"fst", fst, iv{5, 6, 7}, 5},
 		{"fst", fst, fv{5, 6, 7}, 5.0},
 		{"fst", fst, l{c(2, 3), 0, 0}, c(2, 3)},
@@ -163,9 +165,9 @@ func TestDV(t *testing.T) {
 		{"add", add, map[v]v{"a": false}, map[v]v{"a": true}, map[v]v{"a": true}},
 		{"add", add, [2]l{l{"a"}, l{false}}, [2]l{l{"a"}, l{[]bool{false, true}}}, [2]l{l{"a"}, l{[]bool{false, true}}}},
 		{"add", add, map[v]v{"a": 1, "b": fv{2, 3}}, 3, map[v]v{"a": 4, "b": zv{5, 6}}},
-		{"add", add, mystruct{}, mystruct{true, 2, nil}, mystruct{true, 2, nil}},
-		{"add", add, mystruct{false, 1, []myint{1, 2}}, mystruct{true, 2, []myint{3, 4}}, mystruct{true, 3, []myint{4, 6}}},
-		{"add", add, mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "V": fv{3, 4}}, [2]l{l{"B", "F", "V"}, l{z4, 1.0, zv{4, 6}}}},
+		{"add", add, Mystruct{}, Mystruct{true, 2, nil}, Mystruct{true, 2, nil}},
+		{"add", add, Mystruct{false, 1, []myint{1, 2}}, Mystruct{true, 2, []myint{3, 4}}, Mystruct{true, 3, []myint{4, 6}}},
+		{"add", add, Mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "V": fv{3, 4}}, [2]l{l{"B", "F", "V"}, l{z4, 1.0, zv{4, 6}}}},
 		{"sub", sub, 1, 2, -1},
 		{"mul", mul, 2, 3, 6},
 		{"div", div, 2.0, 1, z2},
@@ -441,8 +443,8 @@ type myint int8
 // mynum is a custom vector type, that implements numeric methods.
 type myvec []string
 
-// mystruct is a custom dict type defined as a struct.
-type mystruct struct {
+// Mystruct is a custom dict type defined as a struct.
+type Mystruct struct {
 	B bool
 	F float64
 	V []myint
@@ -463,6 +465,15 @@ func (r myfloat) Fn(x ...f) f {
 
 // mymap is a custom dict type defined as a map.
 type mymap map[string]int
+
+type nested struct {
+	A int
+	S Mystruct
+}
+type embed struct {
+	Mystruct
+	A int
+}
 
 func printf(f s, v ...v) {
 	if testing.Verbose() { // toggle test output
