@@ -16,6 +16,8 @@ github.com/ktye/ui v0.0.0-20190210201213-3c0b096c17bb h1:NyFlDVcFaqgysgVkzLti9bD
 github.com/ktye/ui v0.0.0-20190210201213-3c0b096c17bb/go.mod h1:G2HgY+9EHhnN4CchdWK9ZqFRnc38JdpUAWRfN74zRA4=
 github.com/ktye/ui v0.0.0-20190419102356-8d12a357199a h1:tdqYKN5DMmYY4GotSif/VmQOZofa7IYa5h6tpijjhNc=
 github.com/ktye/ui v0.0.0-20190419102356-8d12a357199a/go.mod h1:vwFybifz04/5aMfyS/vPnhD6QY732nw3prfRV2/r/3E=
+github.com/ktye/ui v0.0.0-20190419182601-89856430f7e2 h1:mtSB3kB0xFIACHEHz2ZzB1GCxZJYDm0Tkm+Sqsdpcmc=
+github.com/ktye/ui v0.0.0-20190419182601-89856430f7e2/go.mod h1:gcylGGXMZYsIiLjsaJPcdEfgJYSoAqfPywqLBoYJzBs=
 github.com/mattn/go-sixel v0.0.0-20190216163338-cdfbdd9946b1/go.mod h1:zlzhYSuMbLdRdrxfutExxGpC+Pf2uUTJ6GpVQ4LB5dc=
 github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81 h1:AiRo+166RFsFNOhKhNI5szixSWPInRmBjWvfSihTn5c=
 github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81/go.mod h1:zlzhYSuMbLdRdrxfutExxGpC+Pf2uUTJ6GpVQ4LB5dc=
