@@ -1,7 +1,8 @@
+package main
+
 // wasm version
 // build with
 //	GOOS=js GOARCH=wasm go build
-package main
 
 import (
 	"runtime/debug"
@@ -10,12 +11,9 @@ import (
 	"github.com/ktye/i"
 )
 
-type v = interface{}
-type s = string
 type j = js.Value
 
 var a map[v]v
-var fmt func(v) v
 
 var ex = js.FuncOf(func(_ j, x []j) v {
 	return e(x[0].String())
@@ -35,13 +33,9 @@ func e(x s) (g s) {
 	return fmt(r).(s)
 }
 func main() {
+	a = kinit()
 	c := make(chan bool)
 	js.Global().Set("e", ex)
 	println("i am wasm")
 	<-c
-}
-func init() {
-	a = make(map[v]v)
-	i.E([]v{}, a)
-	fmt = a["$:"].(func(x v) v)
 }

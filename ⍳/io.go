@@ -1,13 +1,7 @@
-// +build !js
-
 package main
 
 import (
-	"io/ioutil"
-	"os"
 	"strings"
-
-	"github.com/ktye/i"
 )
 
 // in converts the string b (read from stdin) to data depending on x.
@@ -72,30 +66,3 @@ func uf(x []v) v {
 	}
 	return n
 }
-func setup() map[v]v {
-	a := make(map[v]v)
-	i.E(l{}, a)
-	a["i"] = func(x v) v {
-		b, _ := ioutil.ReadAll(os.Stdin)
-		return in(x, string(b))
-	}
-	// Custom output formatters for interactive use: o$...
-	a["o"] = map[v]v{
-		"p": 6, // precision
-		"a": 0, // polar complex degree precision
-		"t": 1, // tables if possible
-		"d": 1, // multiline dicts
-		"m": 1, // matrix
-		"l": 0, // nested list
-		"q": 1, // auto quote
-	}
-	a["t"] = regtime()
-	regplot(a)
-	a["x"] = T(1.0)
-	a["print"] = p
-	return a
-}
-
-type T float64
-func (t T) Inc() T { return t + 1.0 }
-func (t T) Add(b T) T { return t+b }

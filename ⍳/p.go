@@ -1,5 +1,3 @@
-// +build !js
-
 package main
 
 import "github.com/ktye/plot"
