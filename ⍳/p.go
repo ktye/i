@@ -1,9 +1,16 @@
 package main
 
-import "github.com/ktye/plot"
+import (
+	"github.com/golang/freetype/truetype"
+	af "github.com/ktye/iv/cmd/lui/font"
+	"github.com/ktye/plot"
+	"golang.org/x/image/font"
+)
 
 func regplot(a map[v]v) {
-	a["plot"] = plot.Plot{}
+	p := plot.Plot{}
+	p.Style.Dark = true
+	a["plot"] = p
 	a["line"] = plot.Line{}
 	a["plots"] = plots
 }
@@ -23,4 +30,20 @@ func plots(x v) v {
 		plts[i] = p
 	}
 	return plts
+}
+
+func init() {
+	ttf, err := truetype.Parse(af.APL385())
+	if err != nil {
+		panic(err)
+	}
+	face := func(size int) font.Face {
+		opt := truetype.Options{
+			Size: float64(size),
+			DPI:  72,
+		}
+		return truetype.NewFace(ttf, &opt)
+	}
+	font1, font2 := face(20), face(16)
+	plot.SetFonts(font1, font2)
 }
