@@ -27,9 +27,9 @@ func run(t string, a map[v]v) (r interface{}) {
 				}
 			}
 			if s, o := c.(string); o {
-				rs += s
+				rs += "\n" + s
 			} else if e, o := c.(error); o {
-				rs += e.Error()
+				rs += "\n" + e.Error()
 			}
 			r = rs
 		}

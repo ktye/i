@@ -8,6 +8,9 @@ package main
 
 import (
 	"image"
+	"io/ioutil"
+	"strconv"
+	"strings"
 
 	"github.com/eaburns/T/rope"
 	"github.com/ktye/iv/cmd/lui/font"
@@ -23,6 +26,7 @@ func main() {
 	repl := &ui.Repl{Reply: true}
 	repl.Nowrap = true
 	repl.SetText(rope.New(" "))
+	repl.Execute = plumb
 	interp.repl = repl
 	repl.Interp = &interp
 	interp.a = kinit()
@@ -104,3 +108,46 @@ func (i *interp) plot(p plot.Plots) {
 }
 
 func (i *interp) Cancel() {}
+
+func log(e *ui.Edit, err error) {
+	e.Write([]byte("\n" + err.Error() + "\n"))
+	e.MarkAddr("$")
+}
+
+// plumb executes a selection.
+// pathname: edit file
+// variable: show
+func plumb(e *ui.Edit, s string) {
+	if (len(s) > 0 && s[0] == '/') || (len(s) > 3 && s[1] == ':' && (s[2] == '/' || s[2] == '\\')) {
+		file, line := s, 0
+		if c := strings.LastIndexByte(s, ':'); c > 0 {
+			if n, err := strconv.Atoi(s[c+1:]); err == nil {
+				file, line = s[:c], n
+			}
+		}
+		b, err := ioutil.ReadFile(file)
+		if err != nil {
+			log(e, err)
+			return
+		}
+		save := win.Top.W
+		cmd := make(map[string]func(*ui.Sam, string))
+		cmd["q"] = func(sam *ui.Sam, c string) {
+			top(save)
+		}
+		sam := ui.NewSam(win)
+		sam.Commands = cmd
+		adr := strconv.Itoa(line)
+		if line > 0 {
+			adr += " 0"
+		}
+		sam.Cmd.SetText(rope.New(adr + " $ q\n"))
+		sam.Edt.SetText(rope.New(string(b)))
+		top(sam)
+		if line > 0 {
+			sam.Edt.MarkAddr(strconv.Itoa(line))
+		}
+		return
+	}
+	println("show", s)
+}
