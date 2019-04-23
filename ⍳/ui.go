@@ -7,8 +7,10 @@ package main
 //	go build -tags ui
 
 import (
+	"errors"
 	"image"
 	"io/ioutil"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -20,6 +22,8 @@ import (
 )
 
 var win *ui.Window
+var kt map[v]v
+var cnt func(v) v
 
 func main() {
 	var interp interp
@@ -29,11 +33,12 @@ func main() {
 	repl.Execute = plumb
 	interp.repl = repl
 	repl.Interp = &interp
-	interp.a = kinit()
+	kt = kinit()
+	cnt = kt["#:"].(func(v) v)
 
-	p := interp.a["plot"].(plot.Plot)
+	p := kt["plot"].(plot.Plot)
 	p.Style.Dark = false
-	interp.a["plot"] = p
+	kt["plot"] = p
 
 	win = ui.New(nil)
 	win.SetFont(font.APL385(), 20)
@@ -62,20 +67,27 @@ func top(w ui.Widget) { // set the top widget
 }
 
 type interp struct {
-	a    map[v]v
 	repl *ui.Repl
+}
+
+func isplot(x v) (plot.Plots, bool) {
+	if p, o := x.(plot.Plots); o {
+		return p, true
+	} else if p, o := x.(plot.Plot); o {
+		return plot.Plots{p}, true
+	} else if p, o := x.([]plot.Plot); o {
+		return plot.Plots(p), true
+	} // TODO: convert l{p…}
+	return nil, false
 }
 
 func (i *interp) Eval(s string) {
 	i.repl.Write([]byte{'\n'})
-	x := run(s, i.a)
+	x := run(s, kt)
 	if x != nil {
 		s, o := x.(string)
 		if !o {
-			if p, o := x.(plot.Plot); o {
-				i.plot(plot.Plots{p})
-				s = ""
-			} else if p, o := x.(plot.Plots); o {
+			if p, o := isplot(x); o {
 				i.plot(p)
 				s = ""
 			} else {
@@ -149,5 +161,23 @@ func plumb(e *ui.Edit, s string) {
 		}
 		return
 	}
-	println("show", s)
+	show(e, s)
+}
+
+func show(e *ui.Edit, s string) {
+	x := run(s, kt)
+	if _, o := isplot(x); o {
+		log(e, errors.New("plot"))
+	} else if s, o := x.(string); o {
+		log(e, errors.New(s))
+	}
+	z := cnt(x)
+	n := int(real(z.(complex128)))
+	if n == 0 {
+		log(e, errors.New("empty "+reflect.TypeOf(x).String()))
+	} else if n == 1 {
+		log(e, errors.New(fmt(x).(string)))
+	} else {
+		println("show", fmt(x).(string), "⍴x", n)
+	}
 }
