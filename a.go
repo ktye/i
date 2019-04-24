@@ -543,6 +543,8 @@ func kinit(a map[v]v) map[v]v {
 		"inf": complex(math.Inf(1), 0), "∞": complex(math.Inf(1), 0), "nan": complex(math.NaN(), 0), "ø": complex(math.NaN(), 0),
 		"mod": mod, "sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn, "nrt": nrt,
 		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
+		"at": func(x, y v) v { return atx(x, y, a) },
+		"ln": ln, "cst": cst,
 	} {
 		a[k] = u
 	}
