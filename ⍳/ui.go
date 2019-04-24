@@ -7,10 +7,8 @@ package main
 //	go build -tags ui
 
 import (
-	"errors"
 	"image"
 	"io/ioutil"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -22,19 +20,27 @@ import (
 )
 
 var win *ui.Window
+var ipr interp
 var kt map[v]v
 var cnt func(v) v
+var atx func(v, v) v
+var lnx func(v) int
+var til func(v) v
+var cst func(v, v) v
 
 func main() {
-	var interp interp
-	repl := &ui.Repl{Reply: true}
-	repl.Nowrap = true
-	repl.SetText(rope.New(" "))
-	repl.Execute = plumb
-	interp.repl = repl
-	repl.Interp = &interp
+	rpl := &ui.Repl{Reply: true}
+	rpl.Nowrap = true
+	rpl.SetText(rope.New(" "))
+	rpl.Execute = plumb
+	ipr.repl = rpl
+	rpl.Interp = &ipr
 	kt = kinit()
 	cnt = kt["#:"].(func(v) v)
+	atx = kt["at"].(func(v, v) v)
+	lnx = kt["ln"].(func(v) int)
+	til = kt["!:"].(func(v) v)
+	cst = kt["cst"].(func(v, v) v)
 
 	p := kt["plot"].(plot.Plot)
 	p.Style.Dark = false
@@ -42,7 +48,7 @@ func main() {
 
 	win = ui.New(nil)
 	win.SetFont(font.APL385(), 20)
-	win.Top.W = repl
+	win.Top.W = rpl
 	win.Render()
 
 	for {
@@ -57,13 +63,6 @@ func main() {
 			println("ui:", err.Error())
 		}
 	}
-}
-
-func top(w ui.Widget) { // set the top widget
-	win.Top.W = w
-	win.Top.Layout = ui.Dirty
-	win.Top.Draw = ui.Dirty
-	win.Render()
 }
 
 type interp struct {
@@ -89,34 +88,46 @@ func (i *interp) Eval(s string) {
 		if !o {
 			if p, o := isplot(x); o {
 				i.plot(p)
-				s = ""
+				return
 			} else {
 				s = fmt(x).(string)
 			}
 		}
-		i.repl.Write([]byte(s))
+		i.repl.Write([]byte(s + "\n"))
 	}
-	i.repl.Write([]byte{'\n', ' '})
 	i.repl.Edit.MarkAddr("$")
 }
 
-type plotui struct { // plotui overwrites the ESC button to return to the repl
-	ui.Plot
+func setTop(w ui.Widget) { // set the top widget
+	win.Top.W = w
+	win.Top.Layout = ui.Dirty
+	win.Top.Draw = ui.Dirty
+	win.Render()
+}
+
+func push(w ui.Widget) {
+	t := top{Widget: w, save: win.Top.W}
+	setTop(t)
+}
+
+type top struct {
+	ui.Widget
 	save ui.Widget
 }
 
-func (p *plotui) Key(w *ui.Window, self *ui.Kid, k key.Event, m ui.Mouse, orig image.Point) (r ui.Result) {
-	if k.Code == key.CodeEscape {
-		r.Consumed = true
-		top(p.save)
+func (t top) Key(w *ui.Window, self *ui.Kid, k key.Event, m ui.Mouse, orig image.Point) (res ui.Result) {
+	if k.Code == key.CodeEscape && k.Direction == key.DirRelease {
+		setTop(t.save)
+		res.Consumed = true
+		return res
 	}
-	return
+	return t.Widget.Key(w, self, k, m, orig)
 }
 
 func (i *interp) plot(p plot.Plots) {
-	w := plotui{save: win.Top.W}
+	w := &ui.Plot{}
 	w.SetPlots(p)
-	top(&w)
+	push(w)
 }
 
 func (i *interp) Cancel() {}
@@ -145,7 +156,7 @@ func plumb(e *ui.Edit, s string) {
 		save := win.Top.W
 		cmd := make(map[string]func(*ui.Sam, string))
 		cmd["q"] = func(sam *ui.Sam, c string) {
-			top(save)
+			setTop(save)
 		}
 		sam := ui.NewSam(win)
 		sam.Commands = cmd
@@ -155,29 +166,68 @@ func plumb(e *ui.Edit, s string) {
 		}
 		sam.Cmd.SetText(rope.New(adr + " $ q\n"))
 		sam.Edt.SetText(rope.New(string(b)))
-		top(sam)
+		setTop(sam)
 		if line > 0 {
 			sam.Edt.MarkAddr(strconv.Itoa(line))
 		}
 		return
 	}
-	show(e, s)
+	show(s)
 }
 
-func show(e *ui.Edit, s string) {
+func show(s string) {
 	x := run(s, kt)
-	if _, o := isplot(x); o {
-		log(e, errors.New("plot"))
-	} else if s, o := x.(string); o {
-		log(e, errors.New(s))
+	if p, o := isplot(x); o {
+		ipr.plot(p)
+		return
 	}
-	z := cnt(x)
-	n := int(real(z.(complex128)))
-	if n == 0 {
-		log(e, errors.New("empty "+reflect.TypeOf(x).String()))
-	} else if n == 1 {
-		log(e, errors.New(fmt(x).(string)))
-	} else {
-		println("show", fmt(x).(string), "⍴x", n)
+	tr := tree{x: x}
+	if tr.Leaf() {
+		ipr.repl.Write([]byte(fmt(x).(string) + "\n"))
+		ipr.repl.MarkAddr("$")
+		return
 	}
+	t := &ui.Tree{}
+	t.Single = true
+	t.SetRoot(&tr)
+	push(t)
+}
+
+type tree struct {
+	x v
+	s string
+	c []string
+}
+
+func (t *tree) String() string {
+	if t.s != "" {
+		return t.s
+	}
+	return fmt(t.x).(s)
+}
+func (t *tree) Count() int {
+	r := int(real(cnt(t.x).(complex128)))
+	if lnx(t.x) < 0 && r != 1 { // dict
+		d := [2]l{l{"d", "q"}, l{complex(1, 0), complex(1, 0)}}
+		f := cst(d, t.x).(string)
+		t.c = strings.Split(f, "\n")
+		println("count: is dict, len", len(t.c))
+	}
+	return r
+}
+func (t *tree) Leaf() bool { return t.Count() == 1 && lnx(t.x) < 0 }
+func (t *tree) Child(i int) ui.Plant {
+	var y v = complex(float64(i), 0)
+	var s = ""
+	if lnx(t.x) < 0 { // dict
+		println("child of dict i:", i, len(t.c))
+		keys := til(t.x)
+		y = atx(keys, y)
+		if i < len(t.c) {
+			s = t.c[i]
+			println("child s", s)
+		}
+	}
+	v := atx(t.x, y)
+	return &tree{x: v, s: s}
 }
