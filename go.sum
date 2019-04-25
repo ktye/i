@@ -21,6 +21,8 @@ github.com/ktye/ui v0.0.0-20190419182601-89856430f7e2 h1:mtSB3kB0xFIACHEHz2ZzB1G
 github.com/ktye/ui v0.0.0-20190419182601-89856430f7e2/go.mod h1:gcylGGXMZYsIiLjsaJPcdEfgJYSoAqfPywqLBoYJzBs=
 github.com/ktye/ui v0.0.0-20190424161947-d5658bb1a56f h1:TW3wl6JYPir4v4UX7gd3NrAWB+NOb5GNYxrmUeun28I=
 github.com/ktye/ui v0.0.0-20190424161947-d5658bb1a56f/go.mod h1:lY9dHjnOqeVVBYzE3oN286ys4G08qFKEKQlS26qK90M=
+github.com/ktye/ui v1.0.0 h1:4V5XjLLOZDBsoS956rkWeYw4QnzghO7uVP9TifdKURc=
+github.com/ktye/ui v1.0.0/go.mod h1:lY9dHjnOqeVVBYzE3oN286ys4G08qFKEKQlS26qK90M=
 github.com/mattn/go-sixel v0.0.0-20190216163338-cdfbdd9946b1/go.mod h1:zlzhYSuMbLdRdrxfutExxGpC+Pf2uUTJ6GpVQ4LB5dc=
 github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81 h1:AiRo+166RFsFNOhKhNI5szixSWPInRmBjWvfSihTn5c=
 github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81/go.mod h1:zlzhYSuMbLdRdrxfutExxGpC+Pf2uUTJ6GpVQ4LB5dc=
@@ -30,6 +32,7 @@ github.com/soniakeys/quant v1.0.0/go.mod h1:HI1k023QuVbD4H8i9YdfZP2munIHU4QpjsIm
 github.com/sv/kdbgo v0.11.1-0.20180806165624-70ef73f51093/go.mod h1:lyHv9e4qnygvREnnme0WWMZoSJ9gAE5DGMAQFULCrWU=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+golang.org/x/exp v0.0.0-20190316020145-860388717186 h1:WVLLpyUE5WfDFkoRe+vPPFxVzwDwXwwG197QU7doL0M=
 golang.org/x/exp v0.0.0-20190316020145-860388717186/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
 golang.org/x/exp v0.0.0-20190417140011-e40e924fdd3f h1:79Fa6/ltqFrfDOuFtvjgCbUujov4u+FOshmslay7ARc=
 golang.org/x/exp v0.0.0-20190417140011-e40e924fdd3f/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
