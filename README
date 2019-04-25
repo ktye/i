@@ -19,36 +19,33 @@ Any Go var present in the k-tree can be used as well:
   any function can be called                 func(){}
   get methods with @  f:mytype@`m;f[3] or mytype`m[3]
 
-    a     l     a-a   l-a   a-l   l-l 
-+   flp   flp  [add] [add] [add] [add]  ⍉
--  [neg] [neg] [sub] [sub] [sub] [sub]   
-*   fst   fst  [mul] [mul] [mul] [mul]  ×
-%  [inv] [inv] [div] [div] [div] [div]  ÷
-!   til   odo   mkd   mkd   mkd   mkd   ⍳
-&   wer   wer  [min] [min] [min] [min]  ⌊
-|   rev   rev  [max] [max] [max] [max]  ⌽⌈
-<   asc   asc  [les] [les] [les] [les]  ⍋
->   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]  
-~  [not] [not]  mch   mch   mch   mch   ≡
-,   enl   enl   cat   cat   cat   cat   
-^   is0  [is0]  ept   ept   ept   ept   
-#   cnt   cnt   tak   rsh   tak   rsh   ⍴↑ 
-_  [flr] [flr]  drp   drp   drp   cut   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst   
-?   rng   unq   rnd   fnd   rnd   fnd>  
-@   typ   typ   atx   atx   atx   atx   
-.   evl   evl   cal   cal   cal   cal   
-/    -     -     -     -    pak   pak     
-\    -     -     -    upk   spl   -      
++⍉  flp     add      ⍣exp|pow 
+-   neg     sub      ⍟log|lgn
+*×  fst     mul      √sqr|nrt        
+%÷  inv     div       sin cos tan
+!⍳  til,odo mkd      ‖abs|rct 
+&⌊  wer     min      𝜑rad|prd
+|⌽⌈ rev     max      °deg|pol
+<⍋  asc     les      ℜre ℑim  con
+>⍒  dsc     mor       odo jon num    
+=   grp,eye eql
+~≡  not     mch      ∞inf ønan πpi  𝜀
+,   enl     cat
+^   is0     ept
+#⍴↑ cnt     tak,rsh
+_⌊↓ flr     drp,cut
+$   fmt     dst
+?   unq,rng fnd,rng
+@   typ     atx
+.   evl     cal      
                                                                      
     mv/nv dv    l-mv  l-dv        
 '   ech   ecd   ecd   ecd   ¨     
-':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
-/:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
-\:   -     -    ecl   ecl   ⍀     sin  cos  tan
-/   fidx  ovr   whl   ovi         abs‖ ang𝜑 deg°
-\   sfx   scn   swl   sci         reℜ  imℑ  con
+':   -    ecp    -    eci   ⍨     
+/:   -     -    ecr   ecr   ⌿     
+\:   -     -    ecl   ecl   ⍀     
+/   fidx  ovr   whl   ovi         
+\   sfx   scn   swl   sci
 
    +m  ⍉ flip, transpose    /  ⍉3 2⍴⍳6           → (0 2 4;1 3 5)
    -x  negate               / -(1;2;(3;(4;5)))   → (-1;-2;(-3;(-4 -5)))
@@ -63,8 +60,9 @@ con[x] conjugate complex    / con 1i3            → 1i-3
    ℜx  re[x] real part      / ℜ1a90              → 0
    ℑx  im[x] imag part      / ℑ1a90              → 1
    !n  ⍳ til, iota          / ⍳3                 → 0 1 2
-   !d  keys                 / ![a:1;b:2]         → (`a;`b)
-   !l  ⍳ odometer           / ⍳3 2               → (0 0 1 1 2 2;0 1 0 1 0 1)
+   !l  ⍳ keys               / !5 3 1             → 0 1 2
+   !d  ⍳ keys               / ![a:1;b:2]         → (`a;`b)
+odo[l] odometer             / odo[3 2]           → (0 0 1 1 2 2;0 1 0 1 0 1)
    &l  where, repeat        / &3 0 4             → 0 0 0 2 2 2 2
    |x  ⌽ reverse            / ⌽1 2 3             → 3 2 1
    |d  ⌽ reverse            / ⌽[a:1;b:2]         → [b:2;a:1]
@@ -84,8 +82,8 @@ con[x] conjugate complex    / con 1i3            → 1i-3
    ?n  random uniform       / +/1>?1000          → 1000
    ?-n random normal        / 900 > +/1>?-1000   → 1
    ?i  random binormal      / (+/‖?0i1000)<1300  → 1 / √π÷2
-   ?s  parse                / ?"1+2"             → ("+";1;2)
    ?x  unique               / ?2 3 3 0 4 0       → 2 3 0 4
+   ?s  parse                / ?"1+2"             → ("+";1;2)
    @x  type of              / (@5)≡@-1.2i5       → 1
    .s  parse and eval       / ."1+2"             → 3
    .l  evaluate             / .(+;1;2)           → 3
@@ -93,7 +91,6 @@ con[x] conjugate complex    / con 1i3            → 1i-3
   x-y  substract            / 2 3 4-1            → 1 2 3
   x*y  × multiply           / 2 0i1 1a270*0i1    → 0i2 -1 1
   x%x  ÷ divide             / 1÷2                → 0.5
-  mod[x;y]  modulo          / mod[2;5]           → 1
   x!y  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
   x&y  ⌊ min                / 1 2 3 4&4 3 2 1    → 1 2 2 1
   x|y  ⌈ max                / 1 2 3 4|4 3 2 1    → 4 3 3 4

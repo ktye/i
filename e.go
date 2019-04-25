@@ -38,6 +38,7 @@ func eva(x v, a map[v]v) v {
 		return tail(l[1:])
 	case "λ":
 		return λ(l[1:], a)
+		//return λ(l[1].([]v), a)
 	default:
 		if f, o := adv(l, a); o {
 			return f
@@ -71,7 +72,7 @@ func lup(a map[v]v, s s) (v, map[v]v) { // lookup
 	if r := a[s]; r != nil {
 		return r, a
 	}
-	if p, o := a[".."]; o {
+	if p, o := a["↖"]; o {
 		pp, o := p.(*map[v]v)
 		if !o {
 			return e("type"), nil
@@ -83,7 +84,7 @@ func lup(a map[v]v, s s) (v, map[v]v) { // lookup
 func lupr(a map[v]v, s s) v { r, _ := lup(a, s); return r }
 func ktr(a map[v]v) map[v]v { // k-tree root
 	for {
-		p, o := a[".."]
+		p, o := a["↖"]
 		if !o {
 			break
 		}
@@ -95,7 +96,7 @@ func ktr(a map[v]v) map[v]v { // k-tree root
 func λ(b l, a map[v]v) v {
 	var λn func(w ...v) v
 	λn = func(w ...v) v {
-		env := map[v]v{"..": &a} // lexical scoping
+		env := map[v]v{"↖": &a} // lexical scoping
 		env["o"] = λn
 	tail:
 		for i, r := range "xyz" {

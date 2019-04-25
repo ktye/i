@@ -91,10 +91,14 @@ func zre(x v) v { return nm(x, func(x z) z { return complex(real(x), 0) }) }
 func zim(x v) v { return nm(x, func(x z) z { return complex(imag(x), 0) }) }
 
 //    !n  ⍳ til, iota          / ⍳3                 → 0 1 2
-//    !d  keys                 / ![a:1;b:2]         → (`a;`b)
+//    !l  ⍳ keys               / !5 3 1             → 0 1 2
+//    !d  ⍳ keys               / ![a:1;b:2]         → (`a;`b)
 func til(x v) v { // !x ⍳x iota
 	if d, ok := md(x); ok {
 		return d.k
+	}
+	if n := ln(x); n >= 0 {
+		return til(zi(n))
 	}
 	z, vec, t := nv(x)
 	if vec {
@@ -110,7 +114,7 @@ func til(x v) v { // !x ⍳x iota
 	return vn(r, true, t)
 }
 
-//    !l  ⍳ odometer           / ⍳3 2               → (0 0 1 1 2 2;0 1 0 1 0 1)
+// odo[l] odometer             / odo[3 2]           → (0 0 1 1 2 2;0 1 0 1 0 1)
 func odo(x v) v {
 	inc := func(idx, shp []int) {
 		for i := len(idx) - 1; i >= 0; i-- {
@@ -201,14 +205,7 @@ func dsc(x v) v { return grade(false, x) }
 
 //    =n  unit matrix          / =3                 → (1 0 0;0 1 0;0 0 1)
 func eye(x v) v { // =x unit matrix
-	f, vec, _ := nv(x)
-	if vec {
-		return e("rank")
-	}
-	if imag(f[0]) != 0 || real(f[0]) < 0 {
-		return e("type")
-	}
-	n := int(real(f[0]))
+	n := pidx(x)
 	l := make(l, n)
 	for i := range l {
 		r := make(zv, n)
@@ -220,8 +217,8 @@ func eye(x v) v { // =x unit matrix
 //    =l  group                / =(3;"a";5;3;"a";3) → (3;"a";5)!(0 3 5;1 4;,2)
 func grp(x v) v {
 	n := ln(x)
-	if n <= 0 {
-		return e("type")
+	if n < 0 {
+		return eye(x)
 	}
 	d := dict{}
 	d.k, _ = ls(unq(x))
@@ -320,11 +317,7 @@ func num(x v) v { // num s parse number // TODO: move to 0$"1.23" (needed in ⍳
 //    ?n  random uniform       / +/1>?1000          → 1000
 //    ?-n random normal        / 900 > +/1>?-1000   → 1
 //    ?i  random binormal      / (+/‖?0i1000)<1300  → 1 / √π÷2
-//    ?s  parse                / ?"1+2"             → ("+";1;2)
 func rng(x v) v {
-	if s, o := x.(s); o {
-		return prs(s)
-	}
 	xz, vec, _ := nv(x)
 	if vec {
 		return e("domain")
@@ -352,7 +345,15 @@ func rng(x v) v {
 }
 
 //    ?x  unique               / ?2 3 3 0 4 0       → 2 3 0 4
+//    ?s  parse                / ?"1+2"             → ("+";1;2)
 func unq(x v) v {
+	n := ln(x)
+	if n < 0 {
+		if s, o := x.(s); o {
+			return prs(s)
+		}
+		return rng(x)
+	}
 	w, t := ls(x)
 	r := make(l, 0)
 	nw := func(u v) bool {
@@ -400,7 +401,7 @@ func mul(x, y v) v { return nd(x, y, func(x, y z) z { return x * y }) }
 //   x%x  ÷ divide             / 1÷2                → 0.5
 func div(x, y v) v { return nd(x, y, func(x, y z) z { return x / y }) }
 
-//   mod[x;y]  modulo          / mod[2;5]           → 1
+//mod[x;y]  modulo             / mod[2;5]           → 1
 func mod(x, y v) v { return nd(x, y, func(x, y z) z { return complex(math.Mod(real(y), real(x)), 0) }) } // x!y modulo
 
 //   x!y  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
@@ -594,6 +595,9 @@ func ept(x, y v) v {
 //   a#l  ↑ take               / -2↑⍳10             → 8 9
 func tak(x, y v) v {
 	// nyi: 5,8,9: function, verb, adverb
+	if ln(x) >= 0 {
+		return rsh(x, y)
+	}
 	if d, o := md(y); o {
 		k := tak(x, d.k)
 		u := tak(x, d.v)
@@ -707,6 +711,9 @@ func drp(x, y v) v {
 
 //  xl_yl cut                  / 3 5_!8             → (3 4;5 6 7)
 func cut(x, y v) v {
+	if ln(x) < 0 || ln(y) < 0 {
+		return drp(x, y)
+	}
 	xl, _ := ls(x)
 	r := make(l, len(xl))
 	ll, _ := ls(cp(y))
@@ -1004,8 +1011,8 @@ func rnd(x, y v) v {
 //  xl?y  find                 / 3 5?⍳7             → 2 2 2 0 2 1 2
 func fnd(x, y v) v {
 	nx := ln(x)
-	if nx < 0 {
-		return e("length")
+	if nx < 0 || isd(x) {
+		return rnd(x, y)
 	}
 	if d, o := md(y); o {
 		for i := range d.k {

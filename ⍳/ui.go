@@ -37,10 +37,10 @@ func main() {
 	rpl.Interp = &ipr
 	kt = kinit()
 	cnt = kt["#:"].(func(v) v)
-	atx = kt["at"].(func(v, v) v)
+	atx = kt["@@"].(func(v, v) v)
 	lnx = kt["ln"].(func(v) int)
 	til = kt["!:"].(func(v) v)
-	cst = kt["cst"].(func(v, v) v)
+	cst = kt["$$"].(func(v, v) v)
 
 	p := kt["plot"].(plot.Plot)
 	p.Style.Dark = false
@@ -211,7 +211,6 @@ func (t *tree) Count() int {
 		d := [2]l{l{"d", "q"}, l{complex(1, 0), complex(1, 0)}}
 		f := cst(d, t.x).(string)
 		t.c = strings.Split(f, "\n")
-		println("count: is dict, len", len(t.c))
 	}
 	return r
 }
@@ -220,12 +219,10 @@ func (t *tree) Child(i int) ui.Plant {
 	var y v = complex(float64(i), 0)
 	var s = ""
 	if lnx(t.x) < 0 { // dict
-		println("child of dict i:", i, len(t.c))
 		keys := til(t.x)
 		y = atx(keys, y)
 		if i < len(t.c) {
 			s = t.c[i]
-			println("child s", s)
 		}
 	}
 	v := atx(t.x, y)

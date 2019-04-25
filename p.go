@@ -174,7 +174,7 @@ func (p *p) noun() v {
 	case p.t(sOcb):
 		p.p(sOcb)
 		r := p.lst(sCcb)
-		λ := l{"λ", r}
+		λ := append(l{"λ"}, r...)
 		if p.t(sObr) {
 			x := p.idxr(nil)
 			x.(l)[0] = λ

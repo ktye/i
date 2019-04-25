@@ -138,6 +138,18 @@ func ms(eT rT, n int) rV { // make slice from element type, but lists from slice
 }
 func isl(x v) bool { _, o := x.(l); return o } // is list
 func iss(x v) bool { _, o := x.(s); return o } // is string
+func isd(x v) bool { // is dict
+	switch x.(type) {
+	case dict:
+		return true
+	case [2]l:
+		return true
+	}
+	if k := rval(x).Kind(); k == reflect.Struct || k == reflect.Map {
+		return true
+	}
+	return false
+}
 func ex(x v, dst rT) v { // export to dst type
 	if t := rtyp(x); t == dst {
 		return x
@@ -373,9 +385,11 @@ func set(L v, i int, x v) {
 	rval(L).Index(i).Set(rval(x))
 }
 
-type curry func(...v) v      // curry() reports it number of arguments
-type nfn func(...v) v        // func that knows it's name
-func (f nfn) String() string { v := f(); return v.(s) }
+type curry func(...v) v // curry() reports it number of arguments
+//type nfn func(...v) v        // func that knows it's name
+//func (f nfn) String() string { v := f(); return v.(s) }
+func ni1(x v) v    { return e("undefined monad") }
+func ni2(x, y v) v { return e("undefined dyad") }
 
 func kinit(a map[v]v) map[v]v {
 	if len(a) > 0 {
@@ -384,107 +398,59 @@ func kinit(a map[v]v) map[v]v {
 		a = make(map[v]v)
 	}
 	a["doc"] = doc
-	type v6 [6]v
-	vtab := map[s]v6{
-		//      a    l    a-a  l-a  a-l  l-l
-		"+": v6{flp, flp, add, add, add, add},
-		"⍉": v6{flp, flp, nil, nil, nil, nil},
-		"-": v6{neg, neg, sub, sub, sub, sub},
-		"*": v6{fst, fst, mul, mul, mul, mul},
-		"×": v6{nil, nil, mul, mul, mul, mul},
-		"%": v6{inv, inv, div, div, div, div},
-		"÷": v6{inv, inv, div, div, div, div},
-		"√": v6{sqr, sqr, nrt, nrt, nrt, nrt},
-		"ℜ": v6{zre, zre, nil, nil, nil, nil},
-		"ℑ": v6{zim, zim, nil, nil, nil, nil},
-		"‖": v6{abs, abs, rct, rct, rct, rct},
-		"°": v6{deg, deg, pol, pol, pol, pol},
-		"𝜑": v6{rad, rad, prd, prd, prd, prd},
-		"⍣": v6{exp, exp, pow, pow, pow, pow},
-		"⍟": v6{log, log, lgn, lgn, lgn, lgn},
-		"!": v6{til, odo, mkd, mkd, mkd, mkd},
-		"⍳": v6{til, odo, nil, nil, nil, nil},
-		"&": v6{wer, wer, min, min, min, min},
-		"⌊": v6{flr, flr, min, min, min, min},
-		"|": v6{rev, rev, max, max, max, max},
-		"⌽": v6{rev, rev, nil, nil, nil, nil},
-		"⌈": v6{cil, cil, max, max, max, max},
-		"<": v6{asc, asc, les, les, les, les},
-		"⍋": v6{asc, asc, nil, nil, nil, nil},
-		">": v6{dsc, dsc, mor, mor, mor, mor},
-		"⍒": v6{dsc, dsc, nil, nil, nil, nil},
-		"=": v6{eye, grp, eql, eql, eql, eql},
-		"~": v6{not, not, mch, mch, mch, mch},
-		"≡": v6{nil, nil, mch, mch, mch, mch},
-		",": v6{enl, enl, cat, cat, cat, cat},
-		"^": v6{is0, is0, ept, ept, ept, ept},
-		"#": v6{cnt, cnt, tak, rsh, tak, rsh},
-		"⍴": v6{cnt, cnt, nil, rsh, nil, rsh},
-		"↑": v6{nil, nil, tak, nil, tak, nil},
-		"_": v6{flr, flr, drp, drp, drp, cut},
-		"↓": v6{nil, nil, drp, drp, drp, nil},
-		"$": v6{fmt, fmt, cst, cst, cst, cst},
-		"?": v6{rng, unq, rnd, fnd, rnd, fnd},
-		"@": v6{typ, typ, atx, atx, atx, atx},
-		".": v6{evl, evl, cal, cal, cal, cal},
-		"/": v6{nil, nil, nil, nil, jon, enc},
-		`\`: v6{nil, nil, nil, spl, nil, nil},
+	type v2 [2]v
+	vtab := map[s]v2{
+		"+": v2{flp, add}, "⍉": v2{flp, ni2},
+		"-": v2{neg, sub},
+		"*": v2{fst, mul}, "×": v2{ni1, mul},
+		"%": v2{inv, div}, "÷": v2{inv, div},
+		"√": v2{sqr, nrt},
+		"ℜ": v2{zre, ni2}, "ℑ": v2{zim, ni2},
+		"‖": v2{abs, rct},
+		"°": v2{deg, pol}, "𝜑": v2{rad, prd},
+		"⍣": v2{exp, pow}, "⍟": v2{log, lgn},
+		"!": v2{til, mkd}, "⍳": v2{til, ni2},
+		"&": v2{wer, min},
+		"⌊": v2{flr, min}, "⌈": v2{cil, max},
+		"|": v2{rev, max}, "⌽": v2{rev, ni2},
+		"<": v2{asc, les}, ">": v2{dsc, mor},
+		"⍋": v2{asc, ni2}, "⍒": v2{dsc, ni2},
+		"=": v2{grp, eql}, "^": v2{is0, ept},
+		"~": v2{not, mch}, "≡": v2{ni1, mch},
+		",": v2{enl, cat}, "_": v2{flr, cut},
+		"#": v2{cnt, tak}, "⍴": v2{cnt, rsh},
+		"↑": v2{ni1, tak}, "↓": v2{ni1, cut},
+		"$": v2{fmt, cst}, ".": v2{evl, cal},
+		"?": v2{unq, fnd}, "@": v2{typ, atx},
 	}
 	for _s, _u := range vtab {
 		s, u := _s, _u
-		a[s] = nfn(func(w ...v) v {
-			var f v
-			var cs int
-			if len(w) == 0 {
-				return s
-			} else if len(w) > 2 {
-				return e(s + ":args")
+		var monad func(v) v
+		if rtyp(u[0]).NumIn() == 2 {
+			f := u[0].(func(v, map[v]v) v) // evl
+			monad = func(x v) v { return f(x, a) }
+		} else {
+			monad = u[0].(func(v) v)
+		}
+		var dyad func(v, v) v
+		if rtyp(u[1]).NumIn() == 3 {
+			f := u[1].(func(v, v, map[v]v) v) // atx, cal
+			dyad = func(x, y v) v { return f(x, y, a) }
+		} else {
+			dyad = u[1].(func(v, v) v)
+		}
+		a[s+":"] = monad        // monad: "+:" is always func(v) v
+		a[s+s] = dyad           // dyad: "++" is always func(v, v) v
+		a[s] = func(w ...v) v { // ambivalent 1 or 2 args
+			if len(w) == 1 {
+				return monad(w[0])
+			} else if len(w) == 2 {
+				return dyad(w[0], w[1])
 			}
-			if rval(w[0]).Kind() == reflect.Slice {
-				cs = 1
-			}
-			if len(w) == 2 {
-				cs |= 1 << 2
-				if rval(w[1]).Kind() == reflect.Slice {
-					cs |= 1 << 1
-				}
-				cs -= 2
-			}
-			f = u[cs]
-			if f == nil {
-				e(s + ":argtype")
-			}
-			rf := rval(f)
-			in := make([]rV, rf.Type().NumIn())
-			n := len(w)
-			if n == 1 && len(in) == 2 && rf.Type().In(1) == rtyp(a) {
-				in[1] = rval(a)
-				n++
-			}
-			if len(in) == 3 {
-				in[2] = rval(a)
-				n++
-			}
-			if n != len(in) {
-				return e(s + ":nargs")
-			}
-			for i := range w {
-				in[i] = rval(w[i])
-			}
-			if out := rf.Call(in); len(out) > 0 {
-				return out[0].Interface()
-			}
-			return nil
-		})
-		a[s+":"] = func(x v) v { // forced monads
-			f := rval(u[1])
-			if ln(x) < 0 {
-				f = rval(u[0])
-			}
-			r := f.Call([]rV{rval(x)})
-			return r[0].Interface()
+			return e("args")
 		}
 	}
+
 	type v4 [4]v
 	atab := map[s]v4{
 		//       m|x  d|x  xm|y xd|y
@@ -539,12 +505,11 @@ func kinit(a map[v]v) map[v]v {
 	}
 	for k, u := range map[s]v{
 		"pi": math.Pi, "π": complex(math.Pi, 0), "𝜀": complex(1E-14, 0),
-		"jon": jon, "num": num,
+		"jon": jon, "num": num, "odo": odo,
 		"inf": complex(math.Inf(1), 0), "∞": complex(math.Inf(1), 0), "nan": complex(math.NaN(), 0), "ø": complex(math.NaN(), 0),
 		"mod": mod, "sqr": sqr, "pow": pow, "exp": exp, "log": log, "lgn": lgn, "nrt": nrt,
 		"abs": abs, "deg": deg, "rad": rad, "re": zre, "im": zim, "con": con, "pol": pol, "prd": prd, "rct": rct,
-		"at": func(x, y v) v { return atx(x, y, a) },
-		"ln": ln, "cst": cst,
+		"ln": ln,
 	} {
 		a[k] = u
 	}
@@ -556,33 +521,30 @@ func kinit(a map[v]v) map[v]v {
 }
 
 const doc = `
-    a     l     a-a   l-a   a-l   l-l 
-+   flp   flp  [add] [add] [add] [add]  ⍉
--  [neg] [neg] [sub] [sub] [sub] [sub]   
-*   fst   fst  [mul] [mul] [mul] [mul]  ×
-%  [inv] [inv] [div] [div] [div] [div]  ÷
-!   til   odo   mkd   mkd   mkd   mkd   ⍳
-&   wer   wer  [min] [min] [min] [min]  ⌊
-|   rev   rev  [max] [max] [max] [max]  ⌽⌈
-<   asc   asc  [les] [les] [les] [les]  ⍋
->   dsc   dsc  [mor] [mor] [mor] [mor]  ⍒
-=   eye   grp  [eql] [eql] [eql] [eql]  
-~  [not] [not]  mch   mch   mch   mch   ≡
-,   enl   enl   cat   cat   cat   cat   
-^   is0  [is0]  ept   ept   ept   ept   
-#   cnt   cnt   tak   rsh   tak   rsh   ⍴↑ 
-_  [flr] [flr]  drp   drp   drp   cut   ⌊↓
-$   fmt  [fmt]  cst   cst   cst   cst   
-?   rng   unq   rnd   fnd   rnd   fnd>  
-@   typ   typ   atx   atx   atx   atx   
-.   evl   evl   cal   cal   cal   cal   
-/    -     -     -     -    pak   pak     
-\    -     -     -    upk   spl   -      
++⍉  flp     add      ⍣exp|pow 
+-   neg     sub      ⍟log|lgn
+*×  fst     mul      √sqr|nrt        
+%÷  inv     div       sin cos tan
+!⍳  til,odo mkd      ‖abs|rct 
+&⌊  wer     min      𝜑rad|prd
+|⌽⌈ rev     max      °deg|pol
+<⍋  asc     les      ℜre ℑim  con
+>⍒  dsc     mor       odo jon num    
+=   grp,eye eql
+~≡  not     mch      ∞inf ønan πpi  𝜀
+,   enl     cat
+^   is0     ept
+#⍴↑ cnt     tak,rsh
+_⌊↓ flr     drp,cut
+$   fmt     dst
+?   unq,rng fnd,rng
+@   typ     atx
+.   evl     cal      
                                                                      
     mv/nv dv    l-mv  l-dv        
 '   ech   ecd   ecd   ecd   ¨     
-':   -    ecp    -    eci   ⍨     inf∞ nanø piπ
-/:   -     -    ecr   ecr   ⌿     sqr√ log⍟ pow,exp⍣
-\:   -     -    ecl   ecl   ⍀     sin  cos  tan
-/   fidx  ovr   whl   ovi         abs‖ ang𝜑 deg°
-\   sfx   scn   swl   sci         reℜ  imℑ  con`
+':   -    ecp    -    eci   ⍨     
+/:   -     -    ecr   ecr   ⌿     
+\:   -     -    ecl   ecl   ⍀     
+/   fidx  ovr   whl   ovi         
+\   sfx   scn   swl   sci`
