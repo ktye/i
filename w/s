@@ -1,0 +1,29 @@
+/ kwac
+I:0x7f;F:0x7c              / i32;f64
+x:0x2000;y:0x2001;z:0x2002 / local.get
+add:0x6a                   / i32.add
+f["add"]:(I;I,I;;x,y,add)  / ret;args;locals;body
+
+/ mm
+/ min 16B, 3 byte header, bucket:[4..30] 16B..2GB
+/ 0x04 0x08 0x0c 0x10 | 0x14 0x18 0x1c 0x20 | 0x24 0x28 0x2c 0x30 | ...
+/ free      buck ktyp      array  length      next free/ref count
+/ initial memory 1 wasm block: 64kB
+/ pointers to free list 128 byte (bucket=8)
+/ 0x01000008 | unused | unused | unused | ptr to bucket 4 | ..5 | ...
+
+/ emit
+/ header
+o: 0x0061736d01000000 
+
+/ type section
+o,:0x01 
+sig:{0x60,(`c$#x[1]),x[1],(`c$#x[0]),x[0]}
+ft:{}                      / map of function signatures
+{ft[sig[x]]::1}'f
+oo:(`c$#!ft),,/!ft
+o,:(`c$#oo),oo
+
+/ function section
+o,:0x03,(`c$1+#f),`c$#f 
+{o,::`c$*^ft=sig[x]}'f
