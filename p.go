@@ -138,6 +138,12 @@ func (p *p) noun() v {
 	switch {
 	// TODO colon
 	// TODO ioverb
+	case p.t(sHex):
+		r := p.hex(p.p(sHex))
+		if len(r) == 1 {
+			return l{"`", r[0]}
+		}
+		return p.idxr(r)
 	case p.t(sNum):
 		r := zv{}
 		for p.t(sNum) {
@@ -290,6 +296,18 @@ func (p *p) num(s s) z {
 	}
 	return complex(pf(s), 0)
 }
+func (p *p) hex(s s) sv { // 0x1234… → string vector
+	var r sv
+	s = s[2:]
+	for i := 0; i < len(s); i += 2 {
+		u, o := strconv.ParseUint(s[i:i+2], 16, 8)
+		if o != nil {
+			e("hex")
+		}
+		r = append(r, string(byte(u)))
+	}
+	return r
+}
 func (p *p) str(s s) s { // "string" | `name
 	if s[0] == '`' {
 		return s[1:]
@@ -396,6 +414,22 @@ func sNam(s rv) int { // name [a-Z][a-Z0-9]*
 			return i
 		}
 		n++
+	}
+	return n
+}
+func sHex(s rv) int { // 0x1234…
+	if len(s) < 3 || s[0] != '0' || s[1] != 'x' {
+		return 0
+	}
+	n := 2
+	for _, r := range s[2:] {
+		if !any(r, "0123456789abcdefABCDEF") {
+			break
+		}
+		n++
+	}
+	if n < 4 || n%2 == 1 {
+		return 0
 	}
 	return n
 }
