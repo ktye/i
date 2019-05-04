@@ -5,12 +5,21 @@ add:0x6a                   / i32.add
 f["add"]:(I;I,I;;x,y,add)  / ret;args;locals;body
 
 / mm
-/ min 16B, 3 byte header, bucket:[4..30] 16B..2GB
-/ 0x04 0x08 0x0c 0x10 | 0x14 0x18 0x1c 0x20 | 0x24 0x28 0x2c 0x30 | ...
-/ free      buck ktyp      array  length      next free/ref count
-/ initial memory 1 wasm block: 64kB
-/ pointers to free list 128 byte (bucket=8)
-/ 0x01000008 | unused | unused | unused | ptr to bucket 4 | ..5 | ...
+/ 12 byte header, buckets:[4..30] 16B..2GB
+/ 0    1    2    3   | 4   5   6   7 | 8    9   10   11  
+/ free ktype     buck| array length  | next free/ref count
+/ initial memory: 64kB (1 wasm block) 
+/ pointers to free list in first 128 byte (buck N @ 4xN):
+/ 0x01000008 | 0x00000010 | 0x00000000 | 0x00000000 | ptr to bucket 4 | ..5 | ...
+/ memory  4-7  currently allocated total memory (0x10 is 64kB), max 0x1f(4G)
+/ memory  8-11 number of globals
+/ memory 12-15 number of symbols
+/ next 128 bytes is the ktree (max 16 variables, 16x4B symbol hash + 16x4B pointers)
+/ next 256 bytes is the symbol map (max 32 symbols, 32x4B hash + 32x4B pointers to K byte array values)
+
+/ hash(djb2):(h;K;len): h=5381; for each char in s: h*=33^c
+/ f["hash"]:(I;I;;…) / nyi
+
 
 / emit
 / header
@@ -27,3 +36,4 @@ o,:(`c$#oo),oo
 / function section
 o,:0x03,(`c$1+#f),`c$#f 
 {o,::`c$*^ft=sig[x]}'f
+
