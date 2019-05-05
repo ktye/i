@@ -3,35 +3,42 @@ I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
 x:0x2000;y:0x2001;z:0x2002 / local.get
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
 add:0x6a                   / i32.add
-f:`ver!(I;;;C,num 0)
+f:`vers!(I;;;C,num 0)      / exported function (4-letter name)
 f[`add]:(I;I,I;;x,y,add)   / ret;args;locals;body
 
 
 / mm
-/ 12B header, buckets:[4..30] 16B..2GB
-/ 0    1    2    3   | 4   5   6   7 | 8    9   10   11  
-/ free ktype     buck| array length  | next free/ref count
+/ 8B header, buckets:[4..30] 16B..2GB
+/ 3  +5 bit|   24bit    |       32bit       | values...
+/ typ buckt|array length|next free/ref count|
+/ types ifzscgld (i32,f64,z128,symbol32,char8,func32,list32,dict64)
+/ 3bits for the k-type is not a lot, but:
+/ free:   ^v&0xffffffe0 all bits 0 except bucket at 32-bit addr v
+/ atomic:    v&0xe0=0   type bits are zero; type is stored in len; typ=v>>=8
+/ vector:               type bits are nonzero; 
+/ ext:     0x40=v&0xe0  vector list opens scalar extensions stored in len
+/ numeric:    typ<s     ifz
+/ compound:   typ>g     ld
+/
+/ f64 fits in the smallest bucket, f64 vectors are already aligned
+/ max array length: 2^24 16Million (128MB f64)
 / initial memory: 64kB (1 wasm block) 
 / pointers to free list in first 128 byte (buck N @ 4xN):
-/ 0x01000008 | 0x00000010 | unused | 0x00000000 | ptr to bucket 4 | ..5 | ...
+/ xxx | 0x00000010 | ktree-addr | num-globals | ptr to bucket 4 | ..5 | ...
 / memory  4-7  currently allocated total memory (0x10 is 64kB), max 0x1f(4G)
-/ memory  8-11 number of globals
-/ next 128 bytes is the ktree (max 16 variables, 16x4B symbol + 16x4B pointers)
-/ alternative: memory 8-11 points to ktree, a map from symbol to pointer, or a dict or list
-/ symbols: max lenth 4B, value is ifself as u32 (0padded)
+/ memory  8-11 points to ktree, initial addr 128 (16x4B symbol + 16x4B pointers); relocate if exceed
+/ symbols: max length 4B, value is itself as u32 (0padded)
 / [a-Z][a-Z0-9]{0,3} → 52*62*62*62 = 12393056 (no dot no underscore)
 
-f[`init]:(I;;;C,num 0)
-/ f[`init] 
+f[`ini]:(I;;;C,num 0)
+/ f[`ini] 
 / for buck=15..8 do { 
 /	divide
-/	set header at 2^buck to 0x010000$buck
-/	set free list at memory 4*buck to 2^buck
+/	set header at 2^buck to ...
+/	set free list at addr 4*buck to 2^buck
 / }
-/ set 0 to 0x0100008, 4 to 0x000000010
+/ set initial headers..
 
-/ exports
-ex:,`ver
 
 / emit
 / header
@@ -46,6 +53,7 @@ oo:(`c$#!ft),,/!ft
 o,:(`c$#oo),oo
 
 / export section
+ex:{4=#x}#f
 o,:0x03
 oo:(`c$#ex)
 {oo,::#x,x,0x00,num*&x=!f}'ex
@@ -56,4 +64,4 @@ o,:0x03,(num 1+#f),`c$#f
 {o,::num*^ft=sig[x]}'f
 
 / start section
-o,:0x0801,num#*&f=`init
+o,:0x0801,num#*&f=`ini
