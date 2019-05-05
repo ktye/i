@@ -1,25 +1,37 @@
 / kwac
-I:0x7f;F:0x7c              / i32;f64
+I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
 x:0x2000;y:0x2001;z:0x2002 / local.get
+num:{`c$x}                 / unsigned to LEB128, TODO x>127
 add:0x6a                   / i32.add
-f["add"]:(I;I,I;;x,y,add)  / ret;args;locals;body
+f:`ver!(I;;;C,num 0)
+f[`add]:(I;I,I;;x,y,add)   / ret;args;locals;body
+
 
 / mm
-/ 12 byte header, buckets:[4..30] 16B..2GB
+/ 12B header, buckets:[4..30] 16B..2GB
 / 0    1    2    3   | 4   5   6   7 | 8    9   10   11  
 / free ktype     buck| array length  | next free/ref count
 / initial memory: 64kB (1 wasm block) 
 / pointers to free list in first 128 byte (buck N @ 4xN):
-/ 0x01000008 | 0x00000010 | 0x00000000 | 0x00000000 | ptr to bucket 4 | ..5 | ...
+/ 0x01000008 | 0x00000010 | unused | 0x00000000 | ptr to bucket 4 | ..5 | ...
 / memory  4-7  currently allocated total memory (0x10 is 64kB), max 0x1f(4G)
 / memory  8-11 number of globals
-/ memory 12-15 number of symbols
-/ next 128 bytes is the ktree (max 16 variables, 16x4B symbol hash + 16x4B pointers)
-/ next 256 bytes is the symbol map (max 32 symbols, 32x4B hash + 32x4B pointers to K byte array values)
+/ next 128 bytes is the ktree (max 16 variables, 16x4B symbol + 16x4B pointers)
+/ alternative: memory 8-11 points to ktree, a map from symbol to pointer, or a dict or list
+/ symbols: max lenth 4B, value is ifself as u32 (0padded)
+/ [a-Z][a-Z0-9]{0,3} → 52*62*62*62 = 12393056 (no dot no underscore)
 
-/ hash(djb2):(h;K;len): h=5381; for each char in s: h*=33^c
-/ f["hash"]:(I;I;;…) / nyi
+f[`init]:(I;;;C,num 0)
+/ f[`init] 
+/ for buck=15..8 do { 
+/	divide
+/	set header at 2^buck to 0x010000$buck
+/	set free list at memory 4*buck to 2^buck
+/ }
+/ set 0 to 0x0100008, 4 to 0x000000010
 
+/ exports
+ex:,`ver
 
 / emit
 / header
@@ -33,7 +45,15 @@ ft:{}                      / map of function signatures
 oo:(`c$#!ft),,/!ft
 o,:(`c$#oo),oo
 
-/ function section
-o,:0x03,(`c$1+#f),`c$#f 
-{o,::`c$*^ft=sig[x]}'f
+/ export section
+o,:0x03
+oo:(`c$#ex)
+{oo,::#x,x,0x00,num*&x=!f}'ex
+o,:(`c$#oo),oo
 
+/ function section
+o,:0x03,(num 1+#f),`c$#f 
+{o,::num*^ft=sig[x]}'f
+
+/ start section
+o,:0x0801,num#*&f=`init
