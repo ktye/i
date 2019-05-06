@@ -5,4 +5,7 @@ It does not even have a system interface (no read, write, argv...).
 
 two versions:
 	go build
-	go build -tags ui
+	go build -tags ui (still working on it…)
+
+example:
+	plot$?0i1000	(requires xterm/mintty/... with sixel graphics)
