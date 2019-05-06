@@ -1,0 +1,8 @@
+'i' is just a go package. It does not run on it's own.
+It does not even have a system interface (no read, write, argv...).
+
+⍳ is the main application, one example of using 'i'.
+
+two versions:
+	go build
+	go build -tags ui
