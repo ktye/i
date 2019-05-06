@@ -1,4 +1,4 @@
-// +build !js,!ui
+// +build !ui
 
 // ⍳ interpret
 package main

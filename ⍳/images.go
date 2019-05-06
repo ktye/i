@@ -13,8 +13,6 @@ import (
 // instead of text, depending on the terminal type.
 // By default, images are converted to sixel format, which is supported by xterm and mintty.
 //
-// On wasm, images are set to the img node below the terminal.
-//
 // The plot package encodes plots in this format with the default stringer.
 
 const pngPrefix = "data:image/png;base64,"

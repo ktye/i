@@ -1,4 +1,4 @@
-// +build ui,!js
+// +build ui
 
 package main
 
