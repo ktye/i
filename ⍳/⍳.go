@@ -34,8 +34,7 @@ func main() {
 		p(run(r.Text(), a))
 	}
 }
-
-func p(x v) {
+func p(x v) { // print
 	if x == nil {
 		return
 	}

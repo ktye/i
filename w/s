@@ -3,9 +3,8 @@ I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
 x:0x2000;y:0x2001;z:0x2002 / local.get
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
 add:0x6a                   / i32.add
-f:`vers!(I;;;C,num 0)      / exported function (4-letter name)
+f:`v!(I;;;C,num 0)         / exported function (single letter name)
 f[`add]:(I;I,I;;x,y,add)   / ret;args;locals;body
-
 
 / mm
 / 8B header, buckets:[4..30] 16B..2GB
@@ -53,7 +52,7 @@ oo:(`c$#!ft),,/!ft
 o,:(`c$#oo),oo
 
 / export section
-ex:{4=#x}#f
+ex:{1=#x}#f
 o,:0x03
 oo:(`c$#ex)
 {oo,::#x,x,0x00,num*&x=!f}'ex

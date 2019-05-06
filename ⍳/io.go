@@ -5,7 +5,7 @@ import (
 )
 
 // in converts the string b (read from stdin) to data depending on x.
-// The function is present if ⍳ is used in filter mode as function i:
+// The function is present in the variable 'i' if ⍳ is used in filter mode:
 //	cat data | ⍳ 'i 0'
 // Conversions
 // 	i 0          → sv{}

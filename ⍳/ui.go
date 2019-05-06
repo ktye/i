@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/eaburns/T/rope"
-	"github.com/ktye/iv/cmd/lui/font"
+	"github.com/ktye/iv/cmd/lui/apl385"
 	"github.com/ktye/plot"
 	"github.com/ktye/ui"
 	"golang.org/x/mobile/event/key"
@@ -47,7 +47,7 @@ func main() {
 	kt["plot"] = p
 
 	win = ui.New(nil)
-	win.SetFont(font.APL385(), 20)
+	win.SetFont(apl385.TTF(), 20)
 	win.Top.W = rpl
 	win.Render()
 

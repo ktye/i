@@ -62,7 +62,6 @@ func kinit() map[v]v {
 	a["t"] = regtime()
 	regplot(a)
 	a["x"] = T(1.0)
-	a["q"] = func(x v) v { os.Exit(1); return 9876543210 } // a break point
 	return a
 }
 

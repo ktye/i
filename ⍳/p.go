@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/golang/freetype/truetype"
-	af "github.com/ktye/iv/cmd/lui/font"
+	"github.com/ktye/iv/cmd/lui/apl385"
 	"github.com/ktye/plot"
 	"golang.org/x/image/font"
 )
@@ -33,7 +33,7 @@ func plots(x v) v {
 }
 
 func init() {
-	ttf, err := truetype.Parse(af.APL385())
+	ttf, err := truetype.Parse(apl385.TTF())
 	if err != nil {
 		panic(err)
 	}
