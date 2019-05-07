@@ -7,8 +7,8 @@ package main
 //	go build -tags ui
 
 import (
-	"image"
 	"io/ioutil"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -16,10 +16,18 @@ import (
 	"github.com/ktye/iv/cmd/lui/apl385"
 	"github.com/ktye/plot"
 	"github.com/ktye/ui"
-	"golang.org/x/mobile/event/key"
+	"github.com/ktye/ui/base"
+	"github.com/ktye/ui/dpy"
+	"github.com/ktye/ui/editor"
+	"golang.org/x/exp/shiny/screen"
 )
 
 var win *ui.Window
+var rpl *editor.Repl
+var edt *editor.Edit
+var cnv ui.Widget
+var sp1, sp2 *base.Split
+
 var ipr interp
 var kt map[v]v
 var cnt func(v) v
@@ -29,12 +37,22 @@ var til func(v) v
 var cst func(v, v) v
 
 func main() {
-	rpl := &ui.Repl{Reply: true}
+	base.SetFont(apl385.TTF(), 20)
+	rpl = &editor.Repl{Reply: true, Prompt: " "}
+	rpl.Edit.SetText(rope.New(" "))
+	rpl.Execute = func(_ *editor.Edit, s string) int { rpl.DefaultExec(nil, s); return -1 }
 	rpl.Nowrap = true
-	rpl.SetText(rope.New(" "))
-	rpl.Execute = plumb
-	ipr.repl = rpl
 	rpl.Interp = &ipr
+
+	edt = editor.New("")
+	edt.Menu = edt.StandardMenu()
+	runbutton(edt)
+	cnv = &base.Blank{}
+	sp2 = base.NewSplit(edt, cnv)
+	sp1 = base.NewSplit(rpl, sp2)
+	sp1.Vertical = true
+	sp1.Ratio = 1
+
 	kt = kinit()
 	cnt = kt["#:"].(func(v) v)
 	atx = kt["@@"].(func(v, v) v)
@@ -46,28 +64,13 @@ func main() {
 	p.Style.Dark = false
 	kt["plot"] = p
 
-	win = ui.New(nil)
-	win.SetFont(apl385.TTF(), 20)
-	win.Top.W = rpl
-	win.Render()
-
-	for {
-		select {
-		case e := <-win.Inputs:
-			win.Input(e)
-
-		case err, ok := <-win.Error:
-			if !ok {
-				return
-			}
-			println("ui:", err.Error())
-		}
-	}
+	win = ui.New(dpy.New(&screen.NewWindowOptions{Title: "i"})) // win7 confuses iota and quad.
+	win.Top = &base.Scale{sp1}
+	done := win.Run()
+	<-done
 }
 
-type interp struct {
-	repl *ui.Repl
-}
+type interp struct{}
 
 func isplot(x v) (plot.Plots, bool) {
 	if p, o := x.(plot.Plots); o {
@@ -80,24 +83,84 @@ func isplot(x v) (plot.Plots, bool) {
 	return nil, false
 }
 
-func (i *interp) Eval(s string) {
-	i.repl.Write([]byte{'\n'})
+func (i *interp) Eval(s string) string {
+	s = plumb(s)
 	x := run(s, kt)
 	if x != nil {
 		s, o := x.(string)
 		if !o {
 			if p, o := isplot(x); o {
-				i.plot(p)
-				return
+				// i.plot(p)
+				_ = p
+				println("TODO plot")
+				return ""
 			} else {
 				s = fmt(x).(string)
 			}
 		}
-		i.repl.Write([]byte(s + "\n"))
+		return s
 	}
-	i.repl.Edit.MarkAddr("$")
+	return ""
 }
 
+func runbutton(e *editor.Edit) { // add a run menu entry to the editor
+	b := base.NewButton("run", "", func() int {
+		rpl.Execute(nil, e.Selection())
+		return -1
+	})
+	e.Menu.Buttons = append([]*base.Button{b}, e.Menu.Buttons...)
+}
+
+// plumb intercepts execute.
+// pathname: dirname: list files in the repl, filename: show file in the editor.
+// variable: show in repl, or as a tree in the canvas.
+// otherwise: return the input.
+func plumb(s string) string {
+	s = strings.TrimSpace(s)
+	if (len(s) > 0 && s[0] == '/') || (len(s) > 2 && s[1] == ':' && (s[2] == '/' || s[2] == '\\')) {
+		if fi, err := ioutil.ReadDir(s); err == nil {
+			dir := s
+			for _, f := range fi {
+				s = filepath.Join(dir, f.Name())
+				if f.IsDir() {
+					s += "/"
+				}
+				rpl.Write([]byte(s + "\n"))
+			}
+			return ""
+		}
+		file, line := s, 0
+		if c := strings.LastIndexByte(s, ':'); c > 0 {
+			if n, err := strconv.Atoi(s[c+1:]); err == nil {
+				file, line = s[:c], n
+			}
+		}
+		b, err := ioutil.ReadFile(file)
+		if err == nil {
+			edt.SetText(rope.New(string(b)))
+			if sp1.Ratio > 0.95 {
+				sp1.Ratio = 0
+			}
+			if line > 0 {
+				edt.MarkAddr(strconv.Itoa(line))
+			}
+			return ""
+		}
+	}
+	switch s {
+	case `\c`: // clear terminal
+		rpl.SetText(rope.New(""))
+	case `\h`:
+		return "doc"
+	case `\v`:
+		println("TODO list vars")
+	default:
+		return s
+	}
+	return ""
+}
+
+/*
 func setTop(w ui.Widget) { // set the top widget
 	win.Top.W = w
 	win.Top.Layout = ui.Dirty
@@ -136,10 +199,12 @@ func log(e *ui.Edit, err error) {
 	e.Write([]byte("\n" + err.Error() + "\n"))
 	e.MarkAddr("$")
 }
+*/
 
-// plumb executes a selection.
-// pathname: edit file
-// variable: show
+/* TODO: port tree to v2
+// plumb executes.
+// pathname: dirname: list files in the repl, filename: show file in the editor.
+// variable: show in repl, or as a tree in the canvas.
 func plumb(e *ui.Edit, s string) {
 	if (len(s) > 0 && s[0] == '/') || (len(s) > 3 && s[1] == ':' && (s[2] == '/' || s[2] == '\\')) {
 		file, line := s, 0
@@ -228,3 +293,4 @@ func (t *tree) Child(i int) ui.Plant {
 	v := atx(t.x, y)
 	return &tree{x: v, s: s}
 }
+*/
