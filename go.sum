@@ -15,6 +15,8 @@ github.com/ktye/plot v0.0.0-20190313115457-f0482d904546 h1:VX4mcBBtYQojfoJ+1ETLk
 github.com/ktye/plot v0.0.0-20190313115457-f0482d904546/go.mod h1:pCmVLJ22Fj9q6zZ7FutowrJY3N3ZcWKv0e0nObHoIe0=
 github.com/ktye/plot v0.0.0-20190418145510-8e0ab7910c77 h1:6VlwCxwyYkZggqET0dMUTRmo/mmn7lHYDmkhVbiWw94=
 github.com/ktye/plot v0.0.0-20190418145510-8e0ab7910c77/go.mod h1:pCmVLJ22Fj9q6zZ7FutowrJY3N3ZcWKv0e0nObHoIe0=
+github.com/ktye/plot v0.0.0-20190508121725-619e116aa2cf h1:/G4zBqkj7S+P9H2otL18GwFs19VzQsEOFesryErUScE=
+github.com/ktye/plot v0.0.0-20190508121725-619e116aa2cf/go.mod h1:pCmVLJ22Fj9q6zZ7FutowrJY3N3ZcWKv0e0nObHoIe0=
 github.com/ktye/ui v0.0.0-20190210201213-3c0b096c17bb h1:NyFlDVcFaqgysgVkzLti9bDDh6cZ7Z5Zg+cmShuEiQ4=
 github.com/ktye/ui v0.0.0-20190210201213-3c0b096c17bb/go.mod h1:G2HgY+9EHhnN4CchdWK9ZqFRnc38JdpUAWRfN74zRA4=
 github.com/ktye/ui v0.0.0-20190419102356-8d12a357199a h1:tdqYKN5DMmYY4GotSif/VmQOZofa7IYa5h6tpijjhNc=
