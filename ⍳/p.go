@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/ktye/iv/cmd/lui/apl385"
 	"github.com/ktye/plot"
+	"github.com/ktye/ui/fonts/apl385"
 	"golang.org/x/image/font"
 )
 
