@@ -8,10 +8,9 @@ require (
 	github.com/ktye/iv v0.0.0-20190506155233-ea1af1e66e83
 	github.com/ktye/plot v0.0.0
 	github.com/ktye/ui v1.0.0 // this is wrong: should be v0.0.0
-	github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81
-	golang.org/x/exp v0.0.0-20190417140011-e40e924fdd3f
-	golang.org/x/image v0.0.0-20190417020941-4e30a6eb7d9a
-	golang.org/x/mobile v0.0.0-20190415191353-3e0bab5405d6
+	golang.org/x/exp v0.0.0-20190510051728-0e2d8f6bf8da
+	golang.org/x/image v0.0.0-20190507092727-e4e5bf290fec
+	golang.org/x/mobile v0.0.0-20190509164839-32b2708ab171
 )
 
 replace github.com/ktye/ui => ../ui
