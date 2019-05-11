@@ -1,5 +1,3 @@
-// +build !ui
-
 // ⍳ interpret
 package main
 
