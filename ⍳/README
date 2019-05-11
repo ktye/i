@@ -1,11 +1,15 @@
-'i' is just a go package. It does not run on it's own.
+'i' by itself is a go package. It does not run on it's own.
 It does not even have a system interface (no read, write, argv...).
 
-⍳ is the main application, one example of using 'i'.
+⍳ is a command line application, one example of using 'i'.
 
-two versions:
 	go build
-	go build -tags ui (still working on it…)
+	./⍳
 
-example:
-	plot$?0i1000	(requires xterm/mintty/... with sixel graphics)
+A gui front-end including an interactive plotter and an editor is at:
+	github.com/ktye/ui/examples/interpret
+
+Extensions: time.go is an example how to add an external type (go time type) to i.
+By providing this interface, the interpreter can construct and convert time values
+with $.
+Go methods on custom types can be called as well, without having to provide an interface.
