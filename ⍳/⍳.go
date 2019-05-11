@@ -42,6 +42,6 @@ func p(x v) { // print
 	if !o {
 		s = fmt(x).(string)
 	}
-	s = sxl(s)
+	// s = sxl(s) convert "data:image/png;base64..." to sixel (see github.com/ktye/ui/examples/interpret/sixel.go)
 	println(s)
 }

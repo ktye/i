@@ -60,7 +60,6 @@ func kinit() map[v]v {
 		"q": 1, // auto quote
 	}
 	a["t"] = regtime()
-	regplot(a)
 	a["x"] = T(1.0)
 	return a
 }
