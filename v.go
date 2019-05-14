@@ -1280,6 +1280,14 @@ func dec(x, y v) v { return e("nyi") }
 
 //   f'x  ¨ each               / -:¨1 2             → -1 -2
 func ech(f, x v, a map[v]v) v {
+	if d, o := md(x); o {
+		r, _ := ls(ech(f, d.v, a))
+		if len(r) != len(d.k) {
+			return e("length")
+		}
+		d.v = r
+		return d.mp()
+	}
 	if n := ln(x); n < 0 {
 		return atx(f, x, a)
 	}
