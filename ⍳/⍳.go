@@ -20,7 +20,7 @@ func main() {
 
 	if len(os.Args) > 1 {
 		if b, err := ioutil.ReadFile(os.Args[1]); err == nil {
-			i.E(i.P(string(b)), a)
+			file(os.Args[1], b, a)
 		} else {
 			p(i.E(i.P(jon(" ", os.Args[1:]).(string)), a))
 		}

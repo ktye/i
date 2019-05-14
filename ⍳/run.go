@@ -17,21 +17,25 @@ var fmt func(v) v
 var jon func(v, v) v
 var num func(v) v
 
+func stack(c interface{}) (stk, err string) {
+	for _, s := range strings.Split(string(debug.Stack()), "\n") {
+		if strings.HasPrefix(s, "\t") {
+			stk += "\n" + s[1:]
+		}
+	}
+	err = "?"
+	if s, o := c.(string); o {
+		err = s
+	} else if e, o := c.(error); o {
+		err = e.Error()
+	}
+	return stk, err
+}
 func run(t string, a map[v]v) (r interface{}) {
 	defer func() {
 		if c := recover(); c != nil {
-			rs := ""
-			for _, s := range strings.Split(string(debug.Stack()), "\n") {
-				if strings.HasPrefix(s, "\t") {
-					rs += "\n" + s[1:]
-				}
-			}
-			if s, o := c.(string); o {
-				rs += "\n" + s
-			} else if e, o := c.(error); o {
-				rs += "\n" + e.Error()
-			}
-			r = rs
+			a, b := stack(c)
+			r = a + "\n" + b
 		}
 	}()
 	pr := i.P(t)

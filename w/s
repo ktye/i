@@ -46,7 +46,7 @@ o: 0x0061736d01000000
 / type section
 o,:0x01 
 sig:{0x60,(`c$#x[1]),x[1],(`c$#x[0]),x[0]}
-ft:{}                      / map of function signatures
+ft:()!()                      / map of function signatures
 {ft[sig[x]]::1}'f
 oo:(`c$#!ft),,/!ft
 o,:(`c$#oo),oo
