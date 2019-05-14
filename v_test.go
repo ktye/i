@@ -168,6 +168,8 @@ func TestDV(t *testing.T) {
 		{"add", add, Mystruct{}, Mystruct{true, 2, nil}, Mystruct{true, 2, nil}},
 		{"add", add, Mystruct{false, 1, []myint{1, 2}}, Mystruct{true, 2, []myint{3, 4}}, Mystruct{true, 3, []myint{4, 6}}},
 		{"add", add, Mystruct{true, 1, []myint{1, 2}}, map[v]v{"B": 3, "V": fv{3, 4}}, [2]l{l{"B", "F", "V"}, l{z4, 1.0, zv{4, 6}}}},
+		{"add", add, [2]l{l{"a", "b"}, l{1, 2}}, 3, [2]l{l{"a", "b"}, l{4, 5}}},
+		{"add", add, 3, [2]l{l{"a", "b"}, l{1, 2}}, [2]l{l{"a", "b"}, l{4, 5}}},
 		{"sub", sub, 1, 2, -1},
 		{"mul", mul, 2, 3, 6},
 		{"div", div, 2.0, 1, z2},

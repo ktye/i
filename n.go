@@ -141,7 +141,7 @@ func ndic(x, y v, fz fz2) (v, bool) {
 		}
 		d.v[i] = nd(x, y, fz)
 	}
-	return xd.mp(), true
+	return d.mp(), true
 }
 
 func nv(x v) (zv, bool, rT) { // import any number or numeric vector types
