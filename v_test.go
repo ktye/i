@@ -193,6 +193,7 @@ func TestDV(t *testing.T) {
 		{"eql", eql, fv{1, 2, math.NaN(), math.Inf(1)}, iv{5, 2, 7, 8}, zv{0, 1, 0, 0}},
 		{"eql", eql, "a", "a", z1},
 		{"eql", eql, sv{"a", "b"}, "a", zv{1.0, 0.0}},
+		{"eql", eql, "a", l{"a", "b", "c"}, zv{1, 0, 0}},
 		{"pow", pow, fv{2, 2}, fv{0.5, 2}, fv{math.Sqrt2, 4}},
 		{"mch", mch, 1, 1, z1},
 		{"mch", mch, 1, 0, z0},

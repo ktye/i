@@ -310,6 +310,11 @@ func sy(v v) (sv, int, rT, bool) { // import any string or string slice to symbo
 		return sv{t}, -1, nil, true
 	case sv:
 		return t, len(t), nil, true
+	case l:
+		u := uf(t)
+		if sv, o := u.(sv); o {
+			return sv, len(sv), nil, true
+		}
 	}
 	r := rval(v)
 	if r.Kind() == reflect.String {
