@@ -1138,14 +1138,13 @@ func cal(x, y v, a map[v]v) v {
 	}
 	var in, r []rV
 	var cur []int
-	if yl, o := y.(l); o {
-		in = make([]rV, len(yl))
-		for i := range in {
-			if yl[i] == nil {
-				cur = append(cur, i)
-			} else {
-				in[i] = rval(yl[i])
-			}
+	yl, _ := ls(y)
+	in = make([]rV, len(yl))
+	for i := range in {
+		if yl[i] == nil {
+			cur = append(cur, i)
+		} else {
+			in[i] = rval(yl[i])
 		}
 	}
 	if cur == nil {
