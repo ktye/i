@@ -1,10 +1,11 @@
 / kwac
+iv:7                       / ⍳/k7 switch, iv is a devvar in ⍳ always returning 1
 I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
 x:0x2000;y:0x2001;z:0x2002 / local.get
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
 add:0x6a                   / i32.add
-f:`v!(I;;;C,num 0)         / exported function (single letter name)
-f[`add]:(I;I,I;;x,y,add)   / ret;args;locals;body
+f:`v!(I;"";"";C,num 0)     / exported function (single letter name)
+f[`add]:(I;I,I;"";x,y,add) / ret;args;locals;body
 
 / mm
 / 8B header, buckets:[4..30] 16B..2GB
@@ -18,7 +19,7 @@ f[`add]:(I;I,I;;x,y,add)   / ret;args;locals;body
 / ext:     0x40=v&0xe0  vector list opens scalar extensions stored in len
 / numeric:    typ<s     ifz
 / compound:   typ>g     ld
-/
+/ 
 / f64 fits in the smallest bucket, f64 vectors are already aligned
 / max array length: 2^24 16Million (128MB f64)
 / initial memory: 64kB (1 wasm block) 
@@ -29,7 +30,7 @@ f[`add]:(I;I,I;;x,y,add)   / ret;args;locals;body
 / symbols: max length 4B, value is itself as u32 (0padded)
 / [a-Z][a-Z0-9]{0,3} → 52*62*62*62 = 12393056 (no dot no underscore)
 
-f[`ini]:(I;;;C,num 0)
+f[`ini]:(I;"";"";C,num 0)
 / f[`ini] 
 / for buck=15..8 do { 
 /	divide
@@ -38,29 +39,47 @@ f[`ini]:(I;;;C,num 0)
 / }
 / set initial headers..
 
+/ https://webassembly.github.io/wabt/demo/wat2wasm/
+/ https://github.com/sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
 
 / emit
-/ header
-o: 0x0061736d01000000 
+o: 0x0061736d01000000         / header
 
-/ type section
+/ 0x01(type section)
 o,:0x01 
 sig:{0x60,(`c$#x[1]),x[1],(`c$#x[0]),x[0]}
 ft:()!()                      / map of function signatures
-{ft[sig[x]]::1}'f
+{ft[sig[x]]::1}'f;
 oo:(`c$#!ft),,/!ft
-o,:(`c$#oo),oo
+o,:num[#oo],oo
 
-/ export section
-ex:{1=#x}#f
-o,:0x03
-oo:(`c$#ex)
-{oo,::#x,x,0x00,num*&x=!f}'ex
-o,:(`c$#oo),oo
+/ 0x02(import section)
+/ 0x03(function section, type declarations)
+o,:0x03,(num 1+#f),num[#f]
+o,:,/{num@&(!ft)~'(,#!ft)#,sig[x]}'f
 
-/ function section
-o,:0x03,(num 1+#f),`c$#f 
-{o,::num*^ft=sig[x]}'f
+/ 0x04(table section)
+/ 0x05(linear memory section)
+/ 0x06(global section)
+/ 0x07(export section)
+ln:{$[iv=1;#`\x;#$x]}         / all strings have length 1 in ⍳: need to split.
+str:{$[iv=1;x;$x]}
+ex:(!f)@&{1=ln x}'!f
+o,:0x03,num[#ex]
+g:{(num ln x),(str x),0x00,num[*&x=!f]}
+oo:,/g'ex
+o,:num[#oo],oo
 
-/ start section
-o,:0x0801,num#*&f=`ini
+/ 0x08(start section)
+o,:0x0801,num@*&`ini=!f
+
+/ 0x09(element section)
+/ 0x0a(code section)
+o,:0x0a,num@#f
+/TODO: section size
+/for each function
+/ body size, array of locals (num, type), instructions
+
+/ 0x0b(data section)
+
+o
