@@ -72,6 +72,12 @@ func lup(a map[v]v, s s) (v, map[v]v) { // lookup
 	if r := a[s]; r != nil {
 		return r, a
 	}
+	if dv, o := a["devvars"]; o {
+		d := dv.(map[string]func(v, v) v)
+		if f := d[s]; f != nil {
+			return f(nil, nil), a
+		}
+	}
 	if p, o := a["↖"]; o {
 		pp, o := p.(*map[v]v)
 		if !o {
@@ -187,6 +193,13 @@ func asn(x l, g bool, a map[v]v) v { // assignment
 	y := eva(x[1], a)
 	if g {
 		a = ktr(a)
+	}
+	if dv, o := a["devvars"]; o {
+		d := dv.(map[string]func(v, v) v)
+		if f := d[s]; f != nil {
+			f(cp(y), idx)
+			return y
+		}
 	}
 	var r v = y
 	if mod != nil {

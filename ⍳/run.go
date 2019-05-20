@@ -65,6 +65,7 @@ func kinit() map[v]v {
 	}
 	a["t"] = regtime()
 	a["x"] = T(1.0)
+	devvars(a)
 	return a
 }
 

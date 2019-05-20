@@ -4,3 +4,5 @@ github.com/ktye/i v0.0.0-20190514150949-32fedfeefbda h1:QOsTSiz3vcU6DMGbBOSHgxyl
 github.com/ktye/i v0.0.0-20190514150949-32fedfeefbda/go.mod h1:PD++Z9OoJZXZ/xu8bUZd8uf8GWPYHM8ofUW+XR34qJM=
 github.com/ktye/i v0.0.0-20190514152634-592d196ee5bc h1:1ige0scByxza8XMbUEbyn/lJnP1HZ8gXql6Z3bjGs80=
 github.com/ktye/i v0.0.0-20190514152634-592d196ee5bc/go.mod h1:PD++Z9OoJZXZ/xu8bUZd8uf8GWPYHM8ofUW+XR34qJM=
+github.com/ktye/i v0.0.0-20190515165356-d0f5b33b5e4f h1:rWRolwyv8ltB8Vyc6O+EzPLFR4R7KOiySHFZrpLiYhk=
+github.com/ktye/i v0.0.0-20190515165356-d0f5b33b5e4f/go.mod h1:PD++Z9OoJZXZ/xu8bUZd8uf8GWPYHM8ofUW+XR34qJM=
