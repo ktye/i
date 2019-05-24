@@ -11,7 +11,7 @@ f[`add]:(I;I,I;"";x,y,add) / ret;args;locals;body
 / 8B header, buckets:[4..30] 16B..2GB
 / 3  +5 bit|   24bit    |       32bit       | values...
 / typ buckt|array length|next free/ref count|
-/ types ifzscgld (i32,f64,z128,symbol32,char8,func32,list32,dict64)
+/ types ifzscgdl (i32,f64,z128,symbol32,char8,func32,dict64,list32)
 / 3bits for the k-type is not a lot, but:
 / free:   ^v&0xffffffe0 all bits 0 except bucket at 32-bit addr v
 / atomic:    v&0xe0=0   type bits are zero; type is stored in len; typ=v>>=8
