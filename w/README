@@ -1,0 +1,31 @@
+kwac - k webassembly compiler
+
+s is a k program that emits webassembly byte code.
+The resulting program is a k interpreter itself (a subset of k7).
+
+The goal is for these programs to output the same result 0x006173… for input s:
+k7:           k < s
+⍳:            ⍳ s
+k.go:         go test|sed 1q
+metacircular: k < s|wasm -|wasm -|…
+
+k.go is a reference implementation that uses the same memory layout as the wasm version.
+A repl is hosted on ktye.github.io
+
+Type and memory system
+32-bit system, buddy allocater with 8 byte headers
+7 vector types (ifzscgl) int32, float64, complex128, symbol32, byte8, func32, list32
+additional scalar types:  dict64 (255 are free)
+8 byte header:
+ byte[0]   3 bit vector type (000: atom), 5 bit bucket (4..30: 16B..1GB)
+ byte[1-3] 24bit array length or 1B atomic type
+ byte[4-7] ref count, of pointer to next free block (if free)
+a free block has first 4 bytes 0, except for the bucket type
+
+Initial memory (64kB)
+byte[0]     block header (bucket 7, 128B)
+byte[4-7]   total allocated memory (initial 64k, max 4G)
+byte[8-11]  pointer to initial ktree (dict), initial 0x00000080
+byte[12-16] unused
+followed by 120B free list:
+byte[4*n..4+4*n] points to free block of bucket size n, n=4..30

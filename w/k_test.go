@@ -1,4 +1,4 @@
-package kw
+package w
 
 import "testing"
 

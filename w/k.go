@@ -1,12 +1,12 @@
-package kw
+package w
 
 type b = byte
 type k = uint32
 type i = int32
 type f = float64
 
-//                  i  f   z  s  c  g  d  l
-var lns = [9]int{0, 4, 8, 16, 4, 1, 4, 8, 4}
+//                  i  f   z  s  c  g  l  d
+var lns = [9]int{0, 4, 8, 16, 4, 1, 4, 4, 8}
 var e k = 0xFFFFFFFF
 
 var m []b
@@ -40,7 +40,7 @@ func mk(t b, n int) k { // make type t of len n (-1:atom)
 		}
 	}
 	if fb == 0 {
-		return E
+		return e
 	}
 	for i := fb; i > bt; i-- {
 		put(k(4*i), get(a+8))

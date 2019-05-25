@@ -743,6 +743,13 @@ func cst(x, y v) v { // x$y cast
 	var m dict
 	if x == "c" {
 		x = byte(0)
+		if s, o := y.(s); o {
+			r := []byte(s)
+			if len(r) == 1 {
+				return r[0]
+			}
+			return r
+		}
 	}
 	if x == nil { // nil argument: tostring, same as fmt.
 		m, _ = md(map[v]v{0: 0})
