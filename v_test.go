@@ -46,6 +46,7 @@ func TestFmt(t *testing.T) {
 		{"0x12", "0x12"},
 		{"0x12ab", "0x12ab"},
 		{"0x12ab,0x34,0x5678", "0x12ab345678"},
+		{"`c$254 1 2", "0xfe0102"},
 	}
 	for _, tc := range testCases {
 		u := E(P(tc.s), nil)

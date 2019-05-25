@@ -741,6 +741,9 @@ func cst(x, y v) v { // x$y cast
 		Format(s) s
 	}
 	var m dict
+	if x == "c" {
+		x = byte(0)
+	}
 	if x == nil { // nil argument: tostring, same as fmt.
 		m, _ = md(map[v]v{0: 0})
 	} else if c, o := x.(cvt); o { // use ConvertTo method of x
