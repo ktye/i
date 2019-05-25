@@ -141,7 +141,7 @@ func (p *p) noun() v {
 	case p.t(sHex):
 		r := p.hex(p.p(sHex))
 		if len(r) == 1 {
-			return l{"`", r[0]}
+			return p.idxr(r[0])
 		}
 		return p.idxr(r)
 	case p.t(sNum):
@@ -296,15 +296,15 @@ func (p *p) num(s s) z {
 	}
 	return complex(pf(s), 0)
 }
-func (p *p) hex(s s) sv { // 0x1234… → string vector
-	var r sv
+func (p *p) hex(s s) []byte { // 0x1234… → []byte
+	var r []byte
 	s = s[2:]
 	for i := 0; i < len(s); i += 2 {
 		u, o := strconv.ParseUint(s[i:i+2], 16, 8)
 		if o != nil {
 			e("hex")
 		}
-		r = append(r, string(byte(u)))
+		r = append(r, byte(u))
 	}
 	return r
 }

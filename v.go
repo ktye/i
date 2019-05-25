@@ -882,8 +882,22 @@ func cst(x, y v) v { // x$y cast
 	if s, o := y.(stringer); o {
 		return s.String()
 	}
+	if b, o := y.(byte); o {
+		return cst(nil, []byte{b})
+	}
 	n := ln(y)
 	if n >= 0 {
+		if b, o := y.([]byte); o {
+			s := make([]byte, 2+2*len(b))
+			s[0] = '0'
+			s[1] = 'x'
+			t := "0123456789abcdef"
+			for i := range b {
+				s[2+2*i] = byte(t[b[i]>>4])
+				s[3+2*i] = byte(t[b[i]&15])
+			}
+			return string(s)
+		}
 		if getf("m") > 0 {
 			if n := mat(y); n > 0 {
 				cols := flp(y).(l)
