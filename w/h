@@ -1,7 +1,9 @@
 <html><head><script>
 var r = "replace this line with wasm binary base64 string"
-for (var i=0; i<r.length; i++)
-	b[i] = r.charCodeAt(i)
+var s = atob(r)
+var b = new Uint8Array(new ArrayBuffer(s.length))
+for (var i=0; i<s.length; i++)
+	b[i] = s.charCodeAt(i)
 var k = new WebAssembly.Instance(new WebAssembly.Module(b));
 var m = new Uint8Array(k.exports.memory.buffer);
 var f = k.exports.hello();

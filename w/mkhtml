@@ -1,0 +1,3 @@
+sed 1q h > index.html
+⍳ s 2>&1 | xxd -r -p | base64 -w 0 | sed -e 's/^/var r = "/' -e 's/$/"\n/' >> index.html
+sed -n '3,$p' h >> index.html
