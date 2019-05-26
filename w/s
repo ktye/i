@@ -1,11 +1,12 @@
 / kwac
+ver:0                      / kwac version
 iv:7                       / ⍳/k7 switch, iv is a devvar in ⍳ always returning 1
 I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
 x:0x2000;y:0x2001;z:0x2002 / local.get
 e:0#,0x00                  / empty []byte, "" is a string in ⍳
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
 add:0x6a                   / i32.add
-f:`v!(I;e;e;C,num 0)       / exported function (single letter name)
+f:`v!(I;e;e;C,num ver)     / exported function (single letter name)
 f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
 f[`sub]:(I;I,I;e;x,y,0x6b)
 f[`ini]:(I;I,I;e;e)        / start function
