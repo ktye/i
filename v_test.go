@@ -51,6 +51,7 @@ func TestFmt(t *testing.T) {
 		{"`c$\"ab\"", "0x6162"},
 		{"#:'(1;(2;3);`a`b`c)", "1 2 3"},
 		{"1 2,()", "1 2"},
+		{"+/`a`b`c!1 2 3", "6"},
 	}
 	for _, tc := range testCases {
 		u := E(P(tc.s), nil)

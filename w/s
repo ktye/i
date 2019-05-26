@@ -29,8 +29,6 @@ o,:num[#oo],oo
 o,:0x03,(num 1+#f),num[#f]
 o,:,/{num@&ul~'(,#ul)#,x}'sl
 
-// TODO: ⍳: +/`a`b`c!1 2 3 returns a dict instead of 6
-
 / 0x04(table section)
 / 0x05(linear memory section)
 / 0x06(global section)

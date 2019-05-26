@@ -1398,6 +1398,9 @@ func ecl(f, x, y v, a map[v]v) v {
 
 //   g/y  over, reduce         / +/1 2 3            → 6
 func ovr(f, x v, a map[v]v) v {
+	if d, o := md(x); o {
+		x = d.v
+	}
 	nx := ln(x)
 	if nx <= 0 { // no default values, but empty list, like k4
 		return x
