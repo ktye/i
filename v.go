@@ -511,7 +511,7 @@ func mch(x, y v) v {
 	return zi(0)
 }
 
-//   x,y  catentate            / (1;2),3            → (1;2;3)
+//   x,y  catentate            / (1;2),3            → 1 2 3
 func cat(x, y v) v {
 	if xd, yd, o := md2(x, y); o {
 		for i := range yd.k {
@@ -562,7 +562,7 @@ func cat(x, y v) v {
 		}
 		r[i+nx] = at(y, i)
 	}
-	return r
+	return uf(r)
 }
 
 //   x^y  except               / (!10)^!7           → 7 8 9
@@ -1319,6 +1319,9 @@ func ech(f, x v, a map[v]v) v {
 	for i := range r {
 		r[i] = cal(f, l{xl[i]}, a)
 	}
+	if t == nil {
+		return uf(r)
+	}
 	return sl(r, t)
 }
 
@@ -1342,10 +1345,10 @@ func ecd(f, x, y v, a map[v]v) v {
 	for i := range r {
 		r[i] = cal(f, l{xl[i], yl[i]}, a)
 	}
-	if xt == yt {
+	if xt == yt && xt != nil {
 		return sl(r, xt)
 	}
-	return r
+	return uf(r)
 }
 
 //   g':x ⍨ each prior         / -⍨1 5 3            → 1 4 -2

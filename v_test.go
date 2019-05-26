@@ -49,6 +49,8 @@ func TestFmt(t *testing.T) {
 		{"`c$254 1 2", "0xfe0102"},
 		{"`c$\"a\"", "0x61"},
 		{"`c$\"ab\"", "0x6162"},
+		{"#:'(1;(2;3);`a`b`c)", "1 2 3"},
+		{"1 2,()", "1 2"},
 	}
 	for _, tc := range testCases {
 		u := E(P(tc.s), nil)
