@@ -104,7 +104,7 @@ odo[l] odometer             / odo[3 2]           → (0 0 1 1 2 2;0 1 0 1 0 1)
   x√y  nrt[x;y] nth root    / 𝜀>‖2-3√8           → 1
   x⍟y  lgn[x;y] base n log  / 𝜀>‖3-10⍟1000       → 1
   x~y  ≡ match, deep equal  / 1a90 2.0 3≡0i1 2 3 → 1
-  x,y  catentate            / (1;2),3            → (1;2;3)
+  x,y  catentate            / (1;2),3            → 1 2 3
   x^y  except               / (!10)^!7           → 7 8 9
   a#d  ↑ take               / 2↑[a:1;b:2;c:3]    → [a:1;b:2]
   a#l  ↑ take               / -2↑⍳10             → 8 9
