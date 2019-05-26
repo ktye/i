@@ -27,8 +27,8 @@ o,:num[#oo],oo
 
 / 0x02(import section)
 / 0x03(function section, type declarations)
-o,:0x03,(num 1+#f),num[#f]
-o,:,/{num@&ul~'(,#ul)#,x}'sl
+oo:num[#f],/{num@&ul~'(,#ul)#,x}'sl
+o,:0x03,num[#oo],oo
 
 / 0x04(table section)
 / 0x05(linear memory section)
@@ -37,10 +37,9 @@ o,:,/{num@&ul~'(,#ul)#,x}'sl
 ln:{$[iv=1;#`\x;#$x]}         / all strings have length 1 in ⍳: need to split.
 str:{$[iv=1;`c$x;$x]}         / symbol to chars (⍳: string to []byte)
 ex:(!f)@&{1=ln x}'!f
-o,:0x03,num[#ex]
 g:{0x01,(str x),0x00,num[*&x=!f]}
-oo:$[iv=1;`c$`/g'ex;,/g'ex]
-o,:num[#oo],oo
+oo:num[#ex],$[iv=1;`c$`/g'ex;,/g'ex]
+o,:0x07,num[#oo],oo
 
 / 0x08(start section)
 o,:0x0801,num@*&`ini=!f
@@ -48,7 +47,7 @@ o,:0x0801,num@*&`ini=!f
 / 0x09(element section)
 / 0x0a(code section)
 h:{num[#?x],,/(+/+(x=)'?x),'?x} / array of local declarations I,I,F,F,F→2,2,I,3,F
-g:{h[x 2],x 3}                / function body: locals, instructions
+g:{h[x 2],x[3],0x0b}            / function body: locals, instructions
 oo:(num@#f),,/{num[#g x],g x}'f[!f]
 o,:0x0a,num[#oo],oo
 
