@@ -6,7 +6,7 @@ e:0#,0x00                  / empty []byte, "" is a string in ⍳
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
 add:0x6a                   / i32.add
 f:`v!(I;e;e;C,num 0)       / exported function (single letter name)
-f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body
+f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
 f[`sub]:(I;I,I;e;x,y,0x6b)
 f[`ini]:(I;I,I;e;e)        / start function
 
@@ -48,10 +48,10 @@ o,:0x0801,num@*&`ini=!f
 
 / 0x09(element section)
 / 0x0a(code section)
-o,:0x0a,num@#f
-/TODO: section size
-/for each function
-/ body size, array of locals (num, type), instructions
+h:{num[#?x],,/(+/+(x=)'?x),'?x} / array of local declarations I,I,F,F,F→2,2,I,3,F
+g:{h[x 2],x 3}                / function body: locals, instructions
+oo:(num@#f),,/{num[#g x],g x}'f[!f]
+o,:0x0a,num[#oo],oo
 
 / 0x0b(data section)
 
