@@ -9,9 +9,13 @@ o: s
 	⍳ s 2>&1 | xxd -r -p >o
 
 # https://github.com/WebAssembly/wabt/releases
-WABT=~/wabt
-validate: o
+WABT=/d/wabt
+valid: o
 	$(WABT)/wasm-validate o
 
 dump:	o
 	$(WABT)/wasm-objdump -s o
+
+wat:	o
+	$(WABT)/wasm2wat o
+	

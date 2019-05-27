@@ -5,11 +5,13 @@ I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
 x:0x2000;y:0x2001;z:0x2002 / local.get
 e:0#,0x00                  / empty []byte, "" is a string in ⍳
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
+snum:{`c$x}                / signed LEB128, TODO
+ci:{0x41,snum[x]}          / const.i32
 add:0x6a                   / i32.add
 f:`v!(I;e;e;C,num ver)     / exported function (single letter name)
 f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
 f[`sub]:(I;I,I;e;x,y,0x6b)
-f[`ini]:(I;I,I;e;e)        / start function
+f[`ini]:(e;e;e;e)          / start function
 
 / https://webassembly.github.io/wabt/demo/wat2wasm/
 / https://github.com/sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
@@ -32,13 +34,16 @@ o,:0x03,num[#oo],oo
 
 / 0x04(table section)
 / 0x05(linear memory section)
+o,:0x0503010001               / initial memory 1(64kB)
+
 / 0x06(global section)
-/ 0x07(export section)
+/ 0x07(export section)        / export memory to "m" and all single-letter functions in f
 ln:{$[iv=1;#`\x;#$x]}         / all strings have length 1 in ⍳: need to split.
 str:{$[iv=1;`c$x;$x]}         / symbol to chars (⍳: string to []byte)
 ex:(!f)@&{1=ln x}'!f
 g:{0x01,(str x),0x00,num[*&x=!f]}
-oo:num[#ex],$[iv=1;`c$`/g'ex;,/g'ex]
+mem:0x016d0200                / export memory at index 0
+oo:num[1+#ex],mem,$[iv=1;`c$`/g'ex;,/g'ex]
 o,:0x07,num[#oo],oo
 
 / 0x08(start section)

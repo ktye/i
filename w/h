@@ -5,8 +5,8 @@ var b = new Uint8Array(new ArrayBuffer(s.length))
 for (var i=0; i<s.length; i++)
 	b[i] = s.charCodeAt(i)
 var k = new WebAssembly.Instance(new WebAssembly.Module(b));
-var m = new Uint8Array(k.exports.memory.buffer);
-var f = k.exports.hello();
+var m = new Uint8Array(k.exports.m.buffer);
+var f = k.exports.v();
 </script>
 <meta charset="utf-8">
 <style>
@@ -41,7 +41,7 @@ term.value = window.location.hash.substr(1)
 if (term.value) {
 	term.value += "\n" + e(term.value) + "\n "
 } else {
-	term.value = "ESC(toggle hold) ENTER(exec selection or current line) \\(help) \\c(clear console)\n "
+	term.value = "ESC(toggle hold) ENTER(exec selection or current line) \\c(clear console) \\m(emory)\n "
 }
 term.onkeydown = function (evt) {
 	if (evt.which === 27) {
@@ -61,16 +61,37 @@ term.onkeydown = function (evt) {
 			s = term.value.substr(0, term.selectionStart).split("\n").pop()
 		}
 		evt.preventDefault()
-		if (s === " \\") {
-			term.value = help + "\n "
-			return
-		} else if (s === " \\c") {
+		if (s === " \\c") {
 			term.value = " "
 			return	
+		} else if (s == " \\m") {
+			term.value += "\n" + xxd() + " "
+			return
 		}
 		s = e(s)
 		term.value += "\n" + s + "\n "
 		term.scrollTo(0, term.scrollHeight)
 	}
+}
+function xxd() { // dump linear memory
+	var out = ""
+	var h = 0
+	var l = ""
+	var n = 0
+	for (var i=0; i<m.length; i+=2) {
+		if (i==h) {
+			// print block header
+		}
+		l += ("00"+m[i+0].toString(16)).slice(-2)
+		l += ("00"+m[i+1].toString(16)).slice(-2) + " "
+		n += 5
+		if (n == 40) {
+			n = 0
+			if (l != "0000 0000 0000 0000 0000 0000 0000 0000 ")
+				out += ("00000000" + (i-14).toString(16)).slice(-8) + " " + l + "\n"
+			l = ""
+		}
+	}
+	return out
 }
 </script></body></html>
