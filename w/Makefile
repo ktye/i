@@ -14,7 +14,7 @@ valid: o
 	$(WABT)/wasm-validate o
 
 dump:	o
-	$(WABT)/wasm-objdump -s o
+	$(WABT)/wasm-objdump -sd o
 
 wat:	o
 	$(WABT)/wasm2wat o

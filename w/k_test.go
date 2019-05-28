@@ -4,15 +4,15 @@ import "testing"
 
 func TestRst(t *testing.T) {
 	rst()
-	e := map[int]k{8: 256, 9: 512, 10: 1024, 11: 2048, 12: 4096, 13: 8192, 14: 16384, 15: 32768}
+	e := map[int]k{7: 0, 8: 256, 9: 0, 10: 1024, 11: 2048, 12: 4096, 13: 8192, 14: 16384, 15: 32768}
 	for i := 4; i < 30; i++ {
 		if get(k(4*i)) != e[i] {
 			t.Fatal()
 		}
 	}
-	pfl()
-	mk(1, 3)
-	pfl()
+	//pfl()
+	//mk(1, 3)
+	//pfl()
 	xxd()
 }
 func pfl() {

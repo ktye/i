@@ -1,17 +1,104 @@
 / kwac
 ver:0                      / kwac version
 iv:7                       / ⍳/k7 switch, iv is a devvar in ⍳ always returning 1
-I:0x7f;F:0x7c;C:0x41       / i32;f64;i32.const
+I:0x7f;F:0x7c              / i32;f64
 x:0x2000;y:0x2001;z:0x2002 / local.get
 e:0#,0x00                  / empty []byte, "" is a string in ⍳
+L:{0x0240034020,x,0x41016b22,x,0x4100480d01,y,0x0c000b0b} / loop y(body) n times, n stored at local index x is decremented
 num:{`c$x}                 / unsigned to LEB128, TODO x>127
 snum:{`c$x}                / signed LEB128, TODO
+c:{0x41,num[x]}            / i32.const
 ci:{0x41,snum[x]}          / const.i32
 add:0x6a                   / i32.add
-f:`v!(I;e;e;C,num ver)     / exported function (single letter name)
+lns:0 4 8 16 4 1 4 4 8     / type sizes -ifzscgld
+f:`v!(I;e;e;c ver)         / exported function (single letter name)
 f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
 f[`sub]:(I;I,I;e;x,y,0x6b)
-f[`ini]:(e;e;e;e)          / start function
+
+c:{0x41,num[x]}            / i32.const
+a:{0x21,num[x]}            / get_local
+s:{0x20,num[x]}            / set_local
+t:{0x22,num[x]}            / tee_local
+loop:{0x0340,x,0x0b}       / block void body end
+block:{0x0240,x,0x0b}      / loop void body end
+
+/ ini:,/(c 16;a 0;c 65536;s 1;block loop a 0)
+
+ini:0x4110210041808004210102400340200041016b22004108490d012001410176220120003a0000200041046c20013602000c000b0b410041073a000041044180800436020041800141073a0000
+/41 10 i32.const 16
+/21 00 set_local 0        i:15
+/41 808004 i32.const      1<<16
+/21 01 set_local 1        p:1<<16
+/02 40 block void
+/03 40 block loop            
+/20 00 get_local          i
+/41 01 i32.const          1
+/6b    i32.sub            i--
+/22 00 tee_local          :i
+/41 08 i32.const
+/49    i32.lt_u           i<8
+/0d 01 br_if
+/20 01 get_local 1        p
+/41 01 i32.const 1        1
+/76 right shift           p >>= 1
+/22 01 tee_local          :p
+/20 00 get_local          i
+/3a 00 00 i32.store8      mem[p]:i
+/20 00 get_local          i
+/41 04 i32.const
+/6c    i32.mul            4*i
+/20 01 get_local          p
+/36 02 00 i32.store       mem[4*i]:p
+/0c 00 br 0
+/0b 0b end end
+/41 00 i32.const          0
+/41 07 i32.const          7
+/3a 00 00 i32.store8      mem[0]:7
+/41 04 i32.const          4
+/41 808004 i32.const      1<<16
+/36 02 00 i32.store       m[4]:1<<16 (total memory)
+/TODO:                    pointer to k-tree at m[8]
+/41 8001 i32.const        1<<7
+/41 07 i32.const
+/3a 00 00 i32.store8      mem[128]:7
+
+/ TODO
+/store atomic type sizes: 0 4 8 16 4 1 4 4 8 -ifzscgld
+/ ini,:0x41c9004180043a0000418c044104360200419004410836020041940441103602004198944104360200419c04410136020041a004410436020041a404410436020041a8044108360200
+/41 c900 i32.const        73 (1<<6|9 type i, bucket 9)
+/41 8004 i32.const        1<<9
+/3a 0000 i32.store8
+/41 8c04 i32.const        1*4+8+1<<9
+/41 04   i32.const        4 (int size)
+/36 0200 i32.store
+/41 9004 i32.const        2*4+8+1<<9
+/41 08   i32.const        8 (float size)
+/36 0200 i32.store
+/41 9404 i32.const        3*4+8+1<<9
+/41 10   i32.const        16 (complex size)
+/36 0200 i32.store
+/41 9894 i32.const        4*4+8+1<<9
+/41 04   i32.const        4 (symbol size)
+/36 0200 i32.store
+/41 9c04 i32.const        5*4+8+1<<9
+/41 01   i32.const        1 (char size)
+/36 0200 i32.store
+/41 a004 i32.const        6*4+8+1<<9
+/41 04   i32.const        4 (func size)
+/36 0200 i32.store
+/41 a404 i32.const        7*4+8+1<<9
+/41 04   i32.const        4 (list size)
+/36 0200 i32.store
+/41 a804 i32.const        8*4+8+1<<9
+/41 08   i32.const        8 (dict size)
+/36 0200 i32.store
+f[`ini]:(e;e;I,I;ini)      / start function (k.go:rst)
+
+
+/ f[`c]:(I;e;I,I;0x41052100,L[0x00;0x200141016a2101],0x2001) / example: loop 5 times
+
+f[`t]:(I;I,I;e;0x200020016a)
+
 
 / https://webassembly.github.io/wabt/demo/wat2wasm/
 / https://github.com/sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md

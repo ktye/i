@@ -23,9 +23,10 @@ additional scalar types:  dict64 (255 are free)
 a free block has first 4 bytes 0, except for the bucket type
 
 Initial memory (64kB)
-byte[0]     block header (bucket 7, 128B)
-byte[4-7]   total allocated memory (initial 64k, max 4G)
-byte[8-11]  pointer to initial ktree (dict), initial 0x00000080
-byte[12-16] unused
-followed by 120B free list:
-byte[4*n..4+4*n] points to free block of bucket size n, n=4..30
+ byte[0]     block header (bucket 7, 128B)
+ byte[4-7]   total allocated memory (initial 64k, max 4G)
+ byte[8-11]  pointer to initial ktree (dict), initial 0x00000080
+ byte[12-16] unused
+ followed by 120B free list:
+ byte[4*n..4+4*n] points to free block of bucket size n, n=4..30
+ byte[512...] bucket 9 stores type size vector: 0,4,8,16,4,1,4,4,8
