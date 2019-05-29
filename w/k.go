@@ -69,21 +69,19 @@ func typ(a k) (b, int) { // type and length at addr
 func rst() { // reset memory
 	m = make([]b, 1<<16)
 	p := k(len(m))
-	for i := 15; i > 7; i-- {
+	for i := 15; i > 6; i-- {
 		p >>= 1
 		m[p] = b(i)
 		put(k(4*i), p)
 	}
 	m[0] = 7
-	put(4, 1<<16)
+	put(4, 15) // total memory (log2)
 	// TODO: pointer to k-tree at 8
-	m[k(1<<7)] = 7
 	put(k(4*9), 0)   // no free bucket 9
 	put(1<<9, k(73)) // 73: 1<<6|9 (type i, bucket 9), length is ignored
 	for i := range lns {
 		put(k(4*i+8)+1<<9, k(lns[i]))
 	}
-	put(4+1<<9, 1) // rc
 }
 func put(a, x k) {
 	i := int(a)

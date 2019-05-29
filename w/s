@@ -3,105 +3,52 @@ ver:0                      / kwac version
 iv:7                       / ⍳/k7 switch, iv is a devvar in ⍳ always returning 1
 I:0x7f;F:0x7c              / i32;f64
 x:0x2000;y:0x2001;z:0x2002 / local.get
+x1:0x2001;x2:0x2002;x3:0x2003;x4:0x2004;x5:0x2005;x6:0x2006 / local.get
 e:0#,0x00                  / empty []byte, "" is a string in ⍳
 L:{0x0240034020,x,0x41016b22,x,0x4100480d01,y,0x0c000b0b} / loop y(body) n times, n stored at local index x is decremented
-num:{`c$x}                 / unsigned to LEB128, TODO x>127
-snum:{`c$x}                / signed LEB128, TODO
+
+/ unsigned LEB128 this works for ⍳, TODO k7 needs modification; TODO: signed version
+leb128:{{~64>*x}{((_(*x)%128);mod[128;*x])}\(x;0)}
+lebu:{a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a}
+num:{|$[x<64;,`c$x;lebu x]}
+
 c:{0x41,num[x]}            / i32.const
-ci:{0x41,snum[x]}          / const.i32
-add:0x6a                   / i32.add
-lns:0 4 8 16 4 1 4 4 8     / type sizes -ifzscgld
+add:0x6a;sub:0x6b;mul:0x6c / i32.add,sub,mul
+ltu:0x49                   / i32.lt_u
+geu:0x4f;ge:0x4e           / i32.ge_u, ge_s
+shr:0x76                   / i32.shr_u
+setb:0x3a0000;seti:0x360200 / i32.store8, i32.store
+geti:0x280200              / i32.load
+bitnot:{0x417f,x,0x73}     / -1 x xor
 f:`v!(I;e;e;c ver)         / exported function (single letter name)
 f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
 f[`sub]:(I;I,I;e;x,y,0x6b)
 
 c:{0x41,num[x]}            / i32.const
-a:{0x21,num[x]}            / get_local
-s:{0x20,num[x]}            / set_local
+a:{0x20,num[x]}            / get_local
+s:{0x21,num[x]}            / set_local
 t:{0x22,num[x]}            / tee_local
-loop:{0x0340,x,0x0b}       / block void body end
-block:{0x0240,x,0x0b}      / loop void body end
+b1:0x0d01                  / br_if 01
+L:{0x02400340,x,0x0c000b0b} / block loop x(body), break with b1
+E:0x00                     / unreachable(trap)
+If:{0x0440,x,0x0b}         / (cond) if then x
+Else:{0x05,x}              / within If e.g.: If[x,Else y]
 
-/ ini:,/(c 16;a 0;c 65536;s 1;block loop a 0)
+/ divide initial memory and set free bucket headers: i:15…7: p:1<<i m[p]:i m[4*i]:p
+ini:,/(c 16;s 0;c 15;s 1;L[,/(x;c 1;sub;t 0;c 7;ltu;b1;x1;c 1;shr;t 1;x;setb;x;c 4;mul;y;seti)])
+ini,:,/(c 0;c 7;setb;c 4;c 65536;seti;c 36;c 0;seti;c 512;c 73;setb)
+lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzscgld
+ini,:,/(520+4*!lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
+/TODO: set pointer to k-tree at 8
+f[`ini]:(e;e;I,I;ini)                      / start function (k.go:rst)
 
-ini:0x4110210041808004210102400340200041016b22004108490d012001410176220120003a0000200041046c20013602000c000b0b410041073a000041044180800436020041800141073a0000
-/41 10 i32.const 16
-/21 00 set_local 0        i:15
-/41 808004 i32.const      1<<16
-/21 01 set_local 1        p:1<<16
-/02 40 block void
-/03 40 block loop            
-/20 00 get_local          i
-/41 01 i32.const          1
-/6b    i32.sub            i--
-/22 00 tee_local          :i
-/41 08 i32.const
-/49    i32.lt_u           i<8
-/0d 01 br_if
-/20 01 get_local 1        p
-/41 01 i32.const 1        1
-/76 right shift           p >>= 1
-/22 01 tee_local          :p
-/20 00 get_local          i
-/3a 00 00 i32.store8      mem[p]:i
-/20 00 get_local          i
-/41 04 i32.const
-/6c    i32.mul            4*i
-/20 01 get_local          p
-/36 02 00 i32.store       mem[4*i]:p
-/0c 00 br 0
-/0b 0b end end
-/41 00 i32.const          0
-/41 07 i32.const          7
-/3a 00 00 i32.store8      mem[0]:7
-/41 04 i32.const          4
-/41 808004 i32.const      1<<16
-/36 02 00 i32.store       m[4]:1<<16 (total memory)
-/TODO:                    pointer to k-tree at m[8]
-/41 8001 i32.const        1<<7
-/41 07 i32.const
-/3a 00 00 i32.store8      mem[128]:7
-
-/ TODO
-/store atomic type sizes: 0 4 8 16 4 1 4 4 8 -ifzscgld
-/ ini,:0x41c9004180043a0000418c044104360200419004410836020041940441103602004198944104360200419c04410136020041a004410436020041a404410436020041a8044108360200
-/41 c900 i32.const        73 (1<<6|9 type i, bucket 9)
-/41 8004 i32.const        1<<9
-/3a 0000 i32.store8
-/41 8c04 i32.const        1*4+8+1<<9
-/41 04   i32.const        4 (int size)
-/36 0200 i32.store
-/41 9004 i32.const        2*4+8+1<<9
-/41 08   i32.const        8 (float size)
-/36 0200 i32.store
-/41 9404 i32.const        3*4+8+1<<9
-/41 10   i32.const        16 (complex size)
-/36 0200 i32.store
-/41 9894 i32.const        4*4+8+1<<9
-/41 04   i32.const        4 (symbol size)
-/36 0200 i32.store
-/41 9c04 i32.const        5*4+8+1<<9
-/41 01   i32.const        1 (char size)
-/36 0200 i32.store
-/41 a004 i32.const        6*4+8+1<<9
-/41 04   i32.const        4 (func size)
-/36 0200 i32.store
-/41 a404 i32.const        7*4+8+1<<9
-/41 04   i32.const        4 (list size)
-/36 0200 i32.store
-/41 a804 i32.const        8*4+8+1<<9
-/41 08   i32.const        8 (dict size)
-/36 0200 i32.store
-f[`ini]:(e;e;I,I;ini)      / start function (k.go:rst)
+mk:,/(x;c[#lns];ge;If[E];x;c 4;mul;c 520;add;geti;s 2;y;c 0;ge;If[x2,y,mul,s 2];x2;c 8;add;s 2) / size needed including header
+buk:{,/(c 32;x;c 1;sub;0x67;sub)}   / bucket from size: 32-clz(x-1)
+mk,:,/(buk[x2];t 2;c 31;ge;If E;x2) / bucket type needed x2
+/ mk,:L[x2;c 4;geti;gtu;If[… grow]] / find free bucket x3 >= x2
+f[`t]:(I;I,I;,I;mk) /mk: make var x(type) y(len)
 
 
-/ f[`c]:(I;e;I,I;0x41052100,L[0x00;0x200141016a2101],0x2001) / example: loop 5 times
-
-f[`t]:(I;I,I;e;0x200020016a)
-
-
-/ https://webassembly.github.io/wabt/demo/wat2wasm/
-/ https://github.com/sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
 
 / emit
 o: 0x0061736d01000000         / header
@@ -116,7 +63,7 @@ o,:num[#oo],oo
 
 / 0x02(import section)
 / 0x03(function section, type declarations)
-oo:num[#f],/{num@&ul~'(,#ul)#,x}'sl
+oo:num[#f],/{num@*&ul~'(,#ul)#,x}'sl
 o,:0x03,num[#oo],oo
 
 / 0x04(table section)

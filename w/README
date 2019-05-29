@@ -30,3 +30,7 @@ Initial memory (64kB)
  followed by 120B free list:
  byte[4*n..4+4*n] points to free block of bucket size n, n=4..30
  byte[512...] bucket 9 stores type size vector: 0,4,8,16,4,1,4,4,8
+
+Wasm reference
+ webassembly.github.io/wabt/demo/wat2wasm (interactive)
+ sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
