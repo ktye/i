@@ -91,6 +91,7 @@ odo[l] odometer             / odo[3 2]           → (0 0 1 1 2 2;0 1 0 1 0 1)
   x-y  substract            / 2 3 4-1            → 1 2 3
   x*y  × multiply           / 2 0i1 1a270*0i1    → 0i2 -1 1
   x%x  ÷ divide             / 1÷2                → 0.5
+mod[x;y]  modulo            / mod[2;5]           → 1
   x!y  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
   x&y  ⌊ min                / 1 2 3 4&4 3 2 1    → 1 2 2 1
   x|y  ⌈ max                / 1 2 3 4|4 3 2 1    → 4 3 3 4

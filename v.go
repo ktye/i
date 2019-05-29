@@ -401,7 +401,7 @@ func mul(x, y v) v { return nd(x, y, func(x, y z) z { return x * y }) }
 //   x%x  ÷ divide             / 1÷2                → 0.5
 func div(x, y v) v { return nd(x, y, func(x, y z) z { return x / y }) }
 
-//mod[x;y]  modulo             / mod[2;5]           → 1
+// mod[x;y]  modulo            / mod[2;5]           → 1
 func mod(x, y v) v { return nd(x, y, func(x, y z) z { return complex(math.Mod(real(y), real(x)), 0) }) } // x!y modulo
 
 //   x!y  make dictionary      / `a`b`c!(10;2 3;`f) → [a:10;b:2 3;c:`f]
