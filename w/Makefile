@@ -2,14 +2,14 @@
 index.html: s h
 	sh mkhtml
 
-deploy:
-	echo TODO
+deploy: index.html
+	cp index.html ../../ktye.github.io
 
 o: s
 	⍳ s 2>&1 | xxd -r -p >o
 
 # https://github.com/WebAssembly/wabt/releases
-WABT=/d/wabt
+WABT=~/wabt
 valid: o
 	$(WABT)/wasm-validate o
 
