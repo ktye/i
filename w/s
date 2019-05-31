@@ -1,5 +1,5 @@
 / kwac
-ver:0                      / kwac version
+ver:1                      / kwac version
 iv:7                       / ⍳/k7 switch, iv is a devvar in ⍳ always returning 1
 I:0x7f;F:0x7c              / i32;f64
 x:0x2000;y:0x2001;z:0x2002 / local.get
@@ -15,11 +15,13 @@ num:{|$[x<64;,`c$x;lebu x]}
 c:{0x41,num[x]}            / i32.const
 add:0x6a;sub:0x6b;mul:0x6c / i32.add,sub,mul
 ltu:0x49                   / i32.lt_u
-geu:0x4f;ge:0x4e           / i32.ge_u, ge_s
-shr:0x76                   / i32.shr_u
+geu:0x4f;ge:0x4e           / i32.ge_u,ge_s
+shl:0x74;shr:0x76          / i32.shl,shr_u
 setb:0x3a0000;seti:0x360200 / i32.store8, i32.store
 geti:0x280200              / i32.load
-bitnot:{0x417f,x,0x73}     / -1 x xor
+eq:0x46;eqz:0x45           / i32.eq,eqz
+or:0x72;xor:0x73           / i32.or,xor (bitwise)
+not:{0x417f,x,0x73}        / -1 x xor
 f:`v!(I;e;e;c ver)         / exported function (single letter name)
 f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
 f[`sub]:(I;I,I;e;x,y,0x6b)
@@ -36,7 +38,7 @@ Else:{0x05,x}              / within If e.g.: If[x,Else y]
 
 / divide initial memory and set free bucket headers: i:15…7: p:1<<i m[p]:i m[4*i]:p
 ini:,/(c 16;s 0;c 65536;s 1;L[,/(x;c 1;sub;t 0;c 7;ltu;b1;x1;c 1;shr;t 1;x;setb;x;c 4;mul;y;seti)])
-ini,:,/(c 0;c 7;setb;c 4;c 15;seti;c 36;c 0;seti;c 512;c 73;setb)
+ini,:,/(c 0;c 7;setb;c 4;c 16;seti;c 36;c 0;seti;c 512;c 73;setb)
 lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzscgld
 ini,:,/(520+4*!lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
 /TODO: set pointer to k-tree at 8
@@ -44,10 +46,12 @@ f[`ini]:(e;e;I,I;ini)                      / start function (k.go:rst)
 
 mk:,/(x;c[#lns];ge;If[E];x;c 4;mul;c 520;add;geti;s 2;y;c 0;ge;If[x2,y,mul,s 2];x2;c 8;add;s 2) / size needed including header
 buk:{,/(c 32;x;c 1;sub;0x67;sub)}   / bucket from size: 32-clz(x-1)
-mk,:,/(buk[x2];t 2;c 31;ge;If E;x2) / bucket type needed x2
-/ mk,:L[x2;c 4;geti;gtu;If[… grow]] / find free bucket x3 >= x2
-f[`t]:(I;I,I;,I;mk) /mk: make var x(type) y(len)
-
+mk,:,/(buk[x2];t 2;c 31;ge;If[E]) / bucket type needed bt:x2
+grw:,/(c 1;c 4;geti;c 16;sub;shl;0x40001a;c 1;c 4;geti;shl;t 4;c 4;geti;seti;c 4;geti;c 4;mul;x4;seti;c 4;geti;c 1;add;c 4;seti)
+mk,:,/(x2;s 3;L[,/(x3;c 4;geti;geu;If[grw];x3;c 4;mul;geti;t 4;b1;c 1;x3;add;s 3)]) / find free bucket fb:x3(>=x2), at x4(addr)
+mk,:,/(x3;eqz;If[E];L[,/(x3;x2;eq;b1;x3;c 1;sub;t 3;c 4;mul;x4;seti;x4;x3;setb;x4;c 1;x3;shl;add;t 4;x3;setb)]) / split large buckets
+mk,:,/(y;c 0;ltu;If[,/(x4;c 1;add;x;setb;Else[,/(x4;x2;x;c 5;shl;or;y;c 8;shl;or;seti)])];x4;c 4;add;c 1;seti;x4) / set header, refcount, return addr
+f[`t]:(I;I,I;I,I,I;mk) /mk: make var x(type) y(len)
 
 
 / emit

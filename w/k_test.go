@@ -11,7 +11,7 @@ func TestRst(t *testing.T) {
 		}
 	}
 	//pfl()
-	//mk(1, 3)
+	//mk(1, 9000)
 	//pfl()
 	xxd()
 }
@@ -43,7 +43,7 @@ func xxd() { // memory dump
 				s[0] -= 32
 			}
 			rc = get(k(i + 4))
-			bt := m[i] & 63
+			bt := m[i] & 0x1f
 			s[1], s[2] = s2(bt)
 			h += 1 << bt
 		}

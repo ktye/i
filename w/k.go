@@ -31,7 +31,7 @@ func mk(t b, n int) k { // make type t of len n (-1:atom)
 	}
 	fb, a := 0, k(0)
 	for i := bt; i < 30; i++ { // find next free bucket >= bt
-		if 1<<b(i) > len(m) {
+		if k(i) >= get(4) {
 			grw()
 		}
 		if get(k(4*i)) != 0 {
@@ -42,29 +42,27 @@ func mk(t b, n int) k { // make type t of len n (-1:atom)
 	if fb == 0 {
 		return e
 	}
-	for i := fb; i > bt; i-- {
-		put(k(4*i), get(a+8))
-		l := k(1) << b(i-1)
-		put(k(a+l), k(i-1))
-		put(k(a), k(i-1))
-		put(k(a+8), a+l)
-		put(k(4*i-4), a+l)
+	for i := fb - 1; i >= bt; i-- { // split large buckets
+		put(k(4*i), a)
+		m[a] = b(i)
+		a += k(1) << b(i)
+		m[a] = b(i)
 	}
-	if n < 0 {
+	if n < 0 { // set header
 		m[int(a+1)] = t
 	} else {
-		m[int(a)] |= t << 6
+		put(k(a), k(m[int(a)]|t<<5)|k(n)<<8)
 	}
 	put(a+4, 1) // refcount
 	return a
 }
 func typ(a k) (b, int) { // type and length at addr
 	i := int(a)
-	t := m[i] >> 6
+	t := m[i] >> 5
 	if t == 0 {
 		return m[int(i+1)], -1
 	}
-	return t, int(m[i+1]) | int(m[i+2]<<8) | int(m[i+3]<<16)
+	return t, int(get(k(i)) >> 8) //int(m[i+1]) | int(m[i+2]<<8) | int(m[i+3]<<16)
 }
 func rst() { // reset memory
 	m = make([]b, 1<<16)
@@ -75,7 +73,7 @@ func rst() { // reset memory
 		put(k(4*i), p)
 	}
 	m[0] = 7
-	put(4, 15) // total memory (log2)
+	put(4, 16) // total memory (log2)
 	// TODO: pointer to k-tree at 8
 	put(k(4*9), 0)   // no free bucket 9
 	put(1<<9, k(73)) // 73: 1<<6|9 (type i, bucket 9), length is ignored
@@ -91,22 +89,13 @@ func put(a, x k) {
 	m[i+3] = b(x >> 24)
 }
 func get(a k) k { i := int(a); return k(m[i]) | k(m[i+1])<<8 | k(m[i+2])<<16 | k(m[i+3])<<24 }
-func grw()      { m = append(m, make([]b, len(m))...) }
-func Leb128(v uint32) []byte {
-	if v < 0x80 {
-		return []byte{byte(v)}
+func grw() {
+	s := m[4]
+	if 1<<k(s) != len(m) {
+		panic("grw")
 	}
-	var b []byte
-	for {
-		c := uint8(v & 0x7f)
-		v >>= 7
-		if v != 0 {
-			c |= 0x80
-		}
-		b = append(b, c)
-		if c&0x80 == 0 {
-			break
-		}
-	}
-	return b
+	put(k(4*s), k(len(m)))
+	m = append(m, make([]b, len(m))...)
+	m[4] = s + 1
+	m[1<<s] = s
 }

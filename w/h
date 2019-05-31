@@ -5,7 +5,6 @@ var b = new Uint8Array(new ArrayBuffer(s.length))
 for (var i=0; i<s.length; i++)
 	b[i] = s.charCodeAt(i)
 var k = new WebAssembly.Instance(new WebAssembly.Module(b));
-var m = new Uint8Array(k.exports.m.buffer);
 var f = k.exports.v();
 </script>
 <meta charset="utf-8">
@@ -74,6 +73,7 @@ term.onkeydown = function (evt) {
 	}
 }
 function xxd() { // dump linear memory
+	var m = new Uint8Array(k.exports.m.buffer);
 	var out = ""
 	var h = 0
 	var l = ""
