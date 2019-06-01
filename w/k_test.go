@@ -2,8 +2,8 @@ package w
 
 import "testing"
 
-func TestRst(t *testing.T) {
-	rst()
+func TestIni(t *testing.T) {
+	ini()
 	e := map[int]k{7: 128, 8: 256, 9: 0, 10: 1024, 11: 2048, 12: 4096, 13: 8192, 14: 16384, 15: 32768}
 	for i := 4; i < 30; i++ {
 		if get(k(4*i)) != e[i] {

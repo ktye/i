@@ -42,7 +42,7 @@ ini,:,/(c 0;c 7;setb;c 4;c 16;seti;c 36;c 0;seti;c 512;c 73;setb)
 lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzscgld
 ini,:,/(520+4*!lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
 /TODO: set pointer to k-tree at 8
-f[`ini]:(e;e;I,I;ini)                      / start function (k.go:rst)
+f[`ini]:(e;e;I,I;ini)                      / start function
 
 mk:,/(x;c[#lns];ge;If[E];x;c 4;mul;c 520;add;geti;s 2;y;c 0;ge;If[x2,y,mul,s 2];x2;c 8;add;s 2) / size needed including header
 buk:{,/(c 32;x;c 1;sub;0x67;sub)}   / bucket from size: 32-clz(x-1)
