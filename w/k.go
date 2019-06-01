@@ -1,5 +1,7 @@
 package w
 
+import "unsafe"
+
 type c = byte
 type k = uint32
 type i = int32
@@ -22,7 +24,33 @@ type (
 var lns = [9]k{0, 1, 4, 8, 16, 4, 4, 4, 8}
 var e k = 0xFFFFFFFF
 
-var m []c
+// var m []c
+
+var m struct {
+	c []c
+	k []k
+	f []f
+}
+
+func msl() { // update slice header after increasing m.f
+	f := *(*slice)(unsafe.Pointer(&m.f))
+	i := *(*slice)(unsafe.Pointer(&m.k))
+	i.l = f.l * 2
+	i.c = f.c * 2
+	i.p = f.p
+	m.k = *(*[]k)(unsafe.Pointer(&i))
+	b := *(*slice)(unsafe.Pointer(&m.c))
+	b.l = f.l * 8
+	b.c = f.c * 8
+	b.p = f.p
+	m.c = *(*[]c)(unsafe.Pointer(&b))
+}
+
+type slice struct {
+	p uintptr
+	l int
+	c int
+}
 
 func mk(t c, n int) k { // make type t of len n (-1:atom)
 	sz := lns[t]
@@ -44,11 +72,11 @@ func mk(t c, n int) k { // make type t of len n (-1:atom)
 	}
 	fb, a := 0, k(0)
 	for i := bt; i < 30; i++ { // find next free bucket >= bt
-		if k(i) >= get(4) {
+		if k(i) >= m.k[1] {
 			grw()
 		}
-		if get(k(4*i)) != 0 {
-			fb, a = i, get(k(4*i))
+		if m.k[i] != 0 {
+			fb, a = i, m.k[i]
 			break
 		}
 	}
@@ -56,74 +84,98 @@ func mk(t c, n int) k { // make type t of len n (-1:atom)
 		return e
 	}
 	for i := fb - 1; i >= bt; i-- { // split large buckets
-		put(k(4*i), a)
-		m[a] = c(i)
+		m.k[i] = a
+		m.c[a] = c(i)
 		a += k(1) << c(i)
-		m[a] = c(i)
+		m.c[a] = c(i)
 	}
 	if n < 0 { // set header
-		m[int(a+1)] = t
+		m.c[int(a+1)] = t
 	} else {
-		put(k(a), k(m[int(a)]|t<<5)|k(n)<<8)
+		//set(k(a), k(m[int(a)]|t<<5)|k(n)<<8)
+		m.k[a>>2] = k(m.c[int(a)]|t<<5) | k(n)<<8
 	}
-	put(a+4, 1) // refcount
+	m.k[1+a>>2] = 1 // refcount
 	return a
 }
 func typ(a k) (c, int) { // type and length at addr
 	i := int(a)
-	t := m[i] >> 5
+	t := m.c[i] >> 5
 	if t == 0 {
-		return m[int(i+1)], -1
+		return m.c[int(i+1)], -1
 	}
-	return t, int(get(k(i)) >> 8)
+	return t, int(m.k[k(i)>>2]) >> 8
 }
 func ini() { // start function
-	m = make([]c, 1<<16)
-	p := k(len(m))
+	m.f = make([]f, 1<<13)
+	msl()
+	println(len(m.f), len(m.k), len(m.c))
+	p := k(1 << 16)
 	for i := 15; i > 6; i-- {
 		p >>= 1
-		m[p] = c(i)
-		put(k(4*i), p)
+		m.c[p] = c(i)
+		m.k[i] = p
 	}
-	m[0] = 7
-	put(4, 16) // total memory (log2)
+	m.c[0] = 7
+	m.c[4] = 16 // total memory (log2)
 	// TODO: pointer to k-tree at 8
-	put(k(4*9), 0)   // no free bucket 9
-	put(1<<9, k(73)) // 73: 1<<6|9 (type i, bucket 9), length is ignored
+	m.k[9] = 0 // no free bucket 9
+	a := 1 << 7
+	m.k[a] = k(73) // 73: 1<<6|9 (type i, bucket 9), length is ignored
 	for i := range lns {
-		put(k(4*i+8)+1<<9, k(lns[i]))
+		m.k[a+i+2] = k(lns[i])
 	}
 }
-func put(a, x k) {
+
+/*
+func set(a, x k) {
 	i := int(a)
-	m[i] = c(x)
+	_ = m[i+3]
+	m[i+0] = c(x)
 	m[i+1] = c(x >> 8)
 	m[i+2] = c(x >> 16)
 	m[i+3] = c(x >> 24)
 }
-func putf(a k, x f) {
-	panic("TODO putf")
+func setf(a k, x f) {
+	u := *(*uint64)(unsafe.Pointer(&x))
+	i := int(a)
+	_ = m[i+7]
+	m[i+0] = byte(u)
+	m[i+1] = byte(u >> 8)
+	m[i+2] = byte(u >> 16)
+	m[i+3] = byte(u >> 24)
+	m[i+4] = byte(u >> 32)
+	m[i+5] = byte(u >> 40)
+	m[i+6] = byte(u >> 48)
+	m[i+7] = byte(u >> 56)
 }
-func get(a k) k  { i := int(a); return k(m[i]) | k(m[i+1])<<8 | k(m[i+2])<<16 | k(m[i+3])<<24 }
-func getf(a k) f { panic("TODO: getf"); return 0.0 }
+func get(a k) k { i := int(a); return k(m[i]) | k(m[i+1])<<8 | k(m[i+2])<<16 | k(m[i+3])<<24 }
+func getf(a k) f {
+	i := int(a)
+	_ = m[i+7]
+	u := uint64(m[i+7]) | uint64(m[i+6])<<8 | uint64(m[i+5])<<16 | uint64(m[i+4])<<24 |
+		uint64(m[i+3])<<32 | uint64(m[i+2])<<40 | uint64(m[i+1])<<48 | uint64(m[i])<<56
+	return *(*float64)(unsafe.Pointer(&u))
+}
+*/
 func grw() {
-	s := m[4]
-	if 1<<k(s) != len(m) {
+	s := m.k[1]
+	if 1<<k(s) != len(m.c) {
 		panic("grw")
 	}
-	put(k(4*s), k(len(m)))
-	m = append(m, make([]c, len(m))...)
-	m[4] = s + 1
-	m[1<<s] = s
+	m.k[s] = k(len(m.c))
+	m.f = append(m.f, make([]f, len(m.f))...)
+	msl()
+	m.k[1] = s + 1
+	m.c[1<<s] = c(s)
 }
-func inc(x k) k { put(x+4, get(x+4)+1); return x }
+func inc(x k) k { m.k[1+x>>2]++; return x }
 func dec(x k) {
-	rc := get(x + 4)
-	rc--
+	rc := m.k[1+x>>2] - 1
 	if rc == 0 {
 		panic("TODO free")
 	}
-	put(x+4, rc)
+	m.k[1+x>>2] = rc
 }
 func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
 	if rt == 0 {
@@ -140,17 +192,17 @@ func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
 	var g func(k, k)
 	switch {
 	case t == C && rt == I:
-		g = func(x, y k) { put(y, k(i(m[int(x)]))) }
+		g = func(x, y k) { m.k[y>>2] = k(i(m.c[int(x)])) }
 	case t == C && rt == F:
-		g = func(x, y k) { putf(y, f(m[int(x)])) }
+		g = func(x, y k) { m.f[y>>3] = f(m.c[int(x)]) }
 	case t == I && rt == C:
-		g = func(x, y k) { m[int(y)] = c(i(get(x))) }
+		g = func(x, y k) { m.c[int(y)] = c(i(m.k[x>>2])) }
 	case t == I && rt == F:
-		g = func(x, y k) { putf(y, f(i(get(x)))) }
+		g = func(x, y k) { m.f[y>>3] = f(i(m.k[int(x)])) }
 	case t == F && rt == C:
-		g = func(x, y k) { m[int(y)] = c(getf(x)) }
+		g = func(x, y k) { m.c[int(y)] = c(m.f[x>>3]) }
 	case t == F && rt == I:
-		g = func(x, y k) { put(y, k(i(getf(x)))) }
+		g = func(x, y k) { m.k[y>>2] = k(i(m.f[x>>3])) }
 		// TODO Z
 	}
 	xs, rs := lns[t], lns[rt]
@@ -162,29 +214,22 @@ func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
 	dec(x)
 	return r
 }
-func cl1(x, r k, n k, op fc1) {
+func cl1(x, r k, n k, op fc1) { // C vector r=f(x)
 	o := r - x
 	for j := 8 + x; j < 8+x+n; j++ {
-		m[j] = op(m[o+j])
+		m.c[j] = op(m.c[o+j])
 	}
 }
-func il1(x, r k, n k, op fi1) {
-	o := r - x
-	for j := 8 + x; j < 8+x+4*n; j += 4 {
-		put(o+j, k(op(i(get(j)))))
+func il1(x, r k, n k, op fi1) { // I vector r=f(x)
+	o := (r - x) >> 2
+	for j := 2 + x>>2; j < 2+n+x>>2; j++ {
+		m.k[o+j] = k(op(i(m.k[j])))
 	}
 }
-func fl1(x, r k, n k, op ff1) {
-	o := r - x
-	for j := 8 + x; j < 8+x+8*n; j += 8 {
-		putf(o+j, op(getf(j)))
-	}
-}
-func il2(x, y, r k, n k, op func(i, i) i) {
-	for j := k(0); j < n; j++ {
-		u := get(8 + x + 4*j)
-		v := get(8 + y + 4*j)
-		put(8+r+4*j, k(op(i(u), i(v))))
+func fl1(x, r k, n k, op ff1) { // F vector r=f(x)
+	o := (r - x) >> 3
+	for j := 1 + x; j < 1+x+n; j++ {
+		m.f[o+j] = op(m.f[j])
 	}
 }
 func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
@@ -202,7 +247,7 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 	if t == Z && fz == nil { // e.g. real functions
 		x, t = to(x, F), F
 	}
-	if get(x+4) == 1 {
+	if m.k[1+x>>2] == 1 {
 		r = inc(x)
 	} else {
 		r = mk(t, n)
@@ -212,14 +257,19 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 	}
 	switch t {
 	case L:
+		r >>= 2
+		x >>= 2
 		for j := k(0); j < k(n); j++ {
-			put(r+8+4*j, nm(inc(get(x+8+j*8)), fc, fi, ff, fz, rt))
+			//set(r+8+4*j, nm(inc(get(x+8+j*8)), fc, fi, ff, fz, rt))
+			m.k[r+2+j] = nm(inc(m.k[j+2+x]), fc, fi, ff, fz, rt)
 		}
+		r <<= 2
+		x <<= 2
 	case D:
 		if r != x {
-			put(r+8, inc(get(x+8)))
+			m.k[2+r>>2] = inc(m.k[2+x>>2])
 		}
-		put(r+12, nm(get(x+12), fc, fi, ff, fz, rt))
+		m.k[3+r>>2] = nm(m.k[3+x>>2], fc, fi, ff, fz, rt)
 	case C:
 		cl1(x, r, k(n), fc)
 	case I:
