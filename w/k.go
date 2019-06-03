@@ -6,7 +6,6 @@ type c = byte
 type k = uint32
 type i = int32
 type f = float64
-type z = complex128
 type s = string
 
 const (
@@ -17,12 +16,11 @@ type (
 	fc1 func(c) c
 	fi1 func(i) i
 	ff1 func(f) f
-	fz1 func(z) z
+	fz1 func(f, f) (f, f)
 )
 
 //                c  i  f   z  s  g  l  d
-var lns = [9]k{0, 1, 4, 8, 16, 4, 4, 4, 8}
-var e k = 0xFFFFFFFF
+var lns = [9]k{0, 1, 4, 8, 16, 8, 4, 4, 8}
 
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
@@ -39,7 +37,6 @@ type slice struct {
 func ini() { // start function
 	m.f = make([]f, 1<<13)
 	msl()
-	println(len(m.f), len(m.k), len(m.c))
 	p := k(1 << 16)
 	for i := 15; i > 6; i-- {
 		p >>= 1
@@ -48,6 +45,7 @@ func ini() { // start function
 	}
 	m.c[0] = 7
 	m.c[4] = 16 // total memory (log2)
+	println("ini mc4 mk1", m.c[4], m.k[1])
 	// TODO: pointer to k-tree at 8
 	m.k[9] = 0 // no free bucket 9
 	a := 1 << 7
@@ -72,7 +70,7 @@ func msl() { // update slice header after increasing m.f
 func grw() { // double memory
 	s := m.k[1]
 	if 1<<k(s) != len(m.c) {
-		panic("grw")
+		println(s, len(m.c), 1<<k(s))
 	}
 	m.k[s] = k(len(m.c))
 	m.f = append(m.f, make([]f, len(m.f))...)
@@ -96,10 +94,14 @@ func mk(t c, n int) k { // make type t of len n (-1:atom)
 		bs <<= 1
 	}
 	if bt == 0 {
-		return e
+		panic("memory")
 	}
 	fb, a := 0, k(0)
 	for i := bt; i < 30; i++ { // find next free bucket >= bt
+		if m.k[5] == 1 {
+			println("i", i)
+			panic("wrong 0")
+		}
 		if k(i) >= m.k[1] {
 			grw()
 		}
@@ -108,14 +110,13 @@ func mk(t c, n int) k { // make type t of len n (-1:atom)
 			break
 		}
 	}
-	if fb == 0 {
-		return e
-	}
+	m.k[fb] = m.k[1+a>>2]           // occupy
 	for i := fb - 1; i >= bt; i-- { // split large buckets
+		m.k[1+a>>2] = m.k[i]
 		m.k[i] = a
-		m.c[a] = c(i)
+		m.k[a>>2] = k(i)
 		a += k(1) << c(i)
-		m.c[a] = c(i)
+		m.k[a>>2] = k(i)
 	}
 	if n < 0 { // set header
 		m.c[int(a+1)] = t
@@ -135,12 +136,42 @@ func typ(a k) (c, int) { // type and length at addr
 	return t, int(m.k[k(i)>>2]) >> 8
 }
 func inc(x k) k { m.k[1+x>>2]++; return x }
+func free(x k) {
+	bt := 0x3f & m.c[x]
+	b := x ^ k(1<<bt) // buddy address
+	if m.c[b]&0x3f != bt {
+		panic("buddy has wrong bt") // TODO rm
+	}
+	m.k[x>>2] = k(bt) << 24
+	m.k[1+x>>2] = 0
+	if m.k[b>>2] == k(bt)<<24 { // buddy is free: merge
+		p := m.k[bt] // find free list parent of b
+		n := p
+		for n != b {
+			p = n
+			n = m.k[1+p>>2]
+		}
+		if p == b {
+			m.k[bt] = m.k[1+p>>2]
+		} else {
+			m.k[1+p>>2] = m.k[1+b>>2] // delete from within the free list
+		}
+		if b < x {
+			x = b
+		}
+		m.c[x] = bt + 1
+		free(x)
+	} else {
+		m.k[1+x>>2] = m.k[bt]
+		m.k[bt] = x
+	}
+}
 func dec(x k) {
 	rc := m.k[1+x>>2] - 1
-	if rc == 0 {
-		panic("TODO free")
-	}
 	m.k[1+x>>2] = rc
+	if rc == 0 {
+		free(x)
+	}
 }
 func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
 	if rt == 0 {
@@ -163,7 +194,10 @@ func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
 	case t == I && rt == C:
 		g = func(x, y k) { m.c[int(y)] = c(i(m.k[x>>2])) }
 	case t == I && rt == F:
-		g = func(x, y k) { m.f[y>>3] = f(i(m.k[int(x)])) }
+		g = func(x, y k) {
+			println("I2F", i(m.k[x>>2]))
+			m.f[y>>3] = f(i(m.k[x>>2]))
+		}
 	case t == F && rt == C:
 		g = func(x, y k) { m.c[int(y)] = c(m.f[x>>3]) }
 	case t == F && rt == I:
@@ -193,8 +227,14 @@ func il1(x, r k, n k, op fi1) { // I vector r=f(x)
 }
 func fl1(x, r k, n k, op ff1) { // F vector r=f(x)
 	o := (r - x) >> 3
-	for j := 1 + x; j < 1+x+n; j++ {
+	for j := 1 + x>>3; j < 1+n+x>>3; j++ {
 		m.f[o+j] = op(m.f[j])
+	}
+}
+func zl1(x, r k, n k, op fz1) { // Z vector r=f(x)
+	o := (r - x) >> 3
+	for j := 1 + x>>3; j < 1+2*n+x>>2; j += 2 {
+		m.f[o+j], m.f[o+j+1] = op(m.f[j], m.f[j+1])
 	}
 }
 func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
@@ -207,7 +247,10 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 		min = F
 	} // TODO: Z only for ff == nil ?
 	if min > t { // uptype x
+		println("min", min, t)
 		x, t = to(x, min), min
+		println("=>", x, t)
+		println("@x", m.c[0], m.c[1], m.c[2], m.c[3], m.c[4], m.f[1+x>>3])
 	}
 	if t == Z && fz == nil { // e.g. real functions
 		x, t = to(x, F), F
@@ -241,7 +284,8 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 		il1(x, r, k(n), fi)
 	case F:
 		fl1(x, r, k(n), ff)
-	// TODO Z
+	case Z:
+		zl1(x, r, k(n), fz)
 	default:
 		panic("type")
 	}
@@ -251,8 +295,39 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 	}
 	return r
 }
+func kdx(x k, t c) k { // x must be a numeric scalar
+	switch t {
+	case I:
+		return m.k[2+x>>2]
+	case F, Z:
+		i := int(m.f[1+x>>3])
+		if i < 0 {
+			panic("domain")
+		}
+		return k(i)
+	}
+	panic("type")
+}
+func til(x k) k { // !n
+	t, n := typ(x)
+	if n < 0 {
+		if t > Z {
+			panic("type")
+		}
+		n := kdx(x, t)
+		r := mk(I, int(n))
+		a := r >> 2
+		for i := k(0); i < n; i++ {
+			m.k[int(2+i+a)] = k(i)
+		}
+		return r
+	} else {
+		panic("nyi !a")
+	}
+	return 0
+}
 func neg(x k) k {
-	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, nil, 0) // TODO Z
+	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x, y f) (f, f) { return -x, -y }, 0) // TODO Z
 }
 func inv(x k) k { return nm(x, nil, nil, func(x f) f { return 1.0 / x }, nil, 0) } // TODO Z
 func flr(x k) k {
