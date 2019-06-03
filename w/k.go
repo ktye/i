@@ -24,14 +24,38 @@ type (
 var lns = [9]k{0, 1, 4, 8, 16, 4, 4, 4, 8}
 var e k = 0xFFFFFFFF
 
-// var m []c
-
-var m struct {
+var m struct { // linear memory (slices share underlying arrays)
 	c []c
 	k []k
 	f []f
 }
 
+type slice struct {
+	p uintptr
+	l int
+	c int
+}
+
+func ini() { // start function
+	m.f = make([]f, 1<<13)
+	msl()
+	println(len(m.f), len(m.k), len(m.c))
+	p := k(1 << 16)
+	for i := 15; i > 6; i-- {
+		p >>= 1
+		m.c[p] = c(i)
+		m.k[i] = p
+	}
+	m.c[0] = 7
+	m.c[4] = 16 // total memory (log2)
+	// TODO: pointer to k-tree at 8
+	m.k[9] = 0 // no free bucket 9
+	a := 1 << 7
+	m.k[a] = k(73) // 73: 1<<6|9 (type i, bucket 9), length is ignored
+	for i := range lns {
+		m.k[a+i+2] = k(lns[i])
+	}
+}
 func msl() { // update slice header after increasing m.f
 	f := *(*slice)(unsafe.Pointer(&m.f))
 	i := *(*slice)(unsafe.Pointer(&m.k))
@@ -45,13 +69,17 @@ func msl() { // update slice header after increasing m.f
 	b.p = f.p
 	m.c = *(*[]c)(unsafe.Pointer(&b))
 }
-
-type slice struct {
-	p uintptr
-	l int
-	c int
+func grw() { // double memory
+	s := m.k[1]
+	if 1<<k(s) != len(m.c) {
+		panic("grw")
+	}
+	m.k[s] = k(len(m.c))
+	m.f = append(m.f, make([]f, len(m.f))...)
+	msl()
+	m.k[1] = s + 1
+	m.c[1<<s] = c(s)
 }
-
 func mk(t c, n int) k { // make type t of len n (-1:atom)
 	sz := lns[t]
 	if n >= 0 {
@@ -105,69 +133,6 @@ func typ(a k) (c, int) { // type and length at addr
 		return m.c[int(i+1)], -1
 	}
 	return t, int(m.k[k(i)>>2]) >> 8
-}
-func ini() { // start function
-	m.f = make([]f, 1<<13)
-	msl()
-	println(len(m.f), len(m.k), len(m.c))
-	p := k(1 << 16)
-	for i := 15; i > 6; i-- {
-		p >>= 1
-		m.c[p] = c(i)
-		m.k[i] = p
-	}
-	m.c[0] = 7
-	m.c[4] = 16 // total memory (log2)
-	// TODO: pointer to k-tree at 8
-	m.k[9] = 0 // no free bucket 9
-	a := 1 << 7
-	m.k[a] = k(73) // 73: 1<<6|9 (type i, bucket 9), length is ignored
-	for i := range lns {
-		m.k[a+i+2] = k(lns[i])
-	}
-}
-
-/*
-func set(a, x k) {
-	i := int(a)
-	_ = m[i+3]
-	m[i+0] = c(x)
-	m[i+1] = c(x >> 8)
-	m[i+2] = c(x >> 16)
-	m[i+3] = c(x >> 24)
-}
-func setf(a k, x f) {
-	u := *(*uint64)(unsafe.Pointer(&x))
-	i := int(a)
-	_ = m[i+7]
-	m[i+0] = byte(u)
-	m[i+1] = byte(u >> 8)
-	m[i+2] = byte(u >> 16)
-	m[i+3] = byte(u >> 24)
-	m[i+4] = byte(u >> 32)
-	m[i+5] = byte(u >> 40)
-	m[i+6] = byte(u >> 48)
-	m[i+7] = byte(u >> 56)
-}
-func get(a k) k { i := int(a); return k(m[i]) | k(m[i+1])<<8 | k(m[i+2])<<16 | k(m[i+3])<<24 }
-func getf(a k) f {
-	i := int(a)
-	_ = m[i+7]
-	u := uint64(m[i+7]) | uint64(m[i+6])<<8 | uint64(m[i+5])<<16 | uint64(m[i+4])<<24 |
-		uint64(m[i+3])<<32 | uint64(m[i+2])<<40 | uint64(m[i+1])<<48 | uint64(m[i])<<56
-	return *(*float64)(unsafe.Pointer(&u))
-}
-*/
-func grw() {
-	s := m.k[1]
-	if 1<<k(s) != len(m.c) {
-		panic("grw")
-	}
-	m.k[s] = k(len(m.c))
-	m.f = append(m.f, make([]f, len(m.f))...)
-	msl()
-	m.k[1] = s + 1
-	m.c[1<<s] = c(s)
 }
 func inc(x k) k { m.k[1+x>>2]++; return x }
 func dec(x k) {
