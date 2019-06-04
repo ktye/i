@@ -3,53 +3,116 @@ package w
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
 type z = complex128
+type l = []interface{}
+type d = [2]interface{}
 
 func TestIni(t *testing.T) {
 	ini()
+	st := Stats()
+	if st.UsedBlocks() != 1 {
+		t.Fatal()
+	}
+	println("used blocks", st.UsedBlocks())
 	//mk(1, 9000)
 	//pfl()
 	//xxd()
 }
 
+func TestNumMonad(t *testing.T) {
+	ini()
+	xv := []interface{}{c(3), []c{3, 5}, -5, []int{3, -9}, 3.2, []f{-3.5, 2.9, 0}, 2 - 4i, []z{4 - 2i, 3 + 4i}}
+	testCases := []struct {
+		f func(k) k
+		s string
+		r []interface{}
+	}{
+		{neg, "-", []interface{}{c(253), []c{253, 251}, 5, []int{-3, 9}, -3.2, []f{3.5, -2.9, -0}, -2 + 4i, []z{-4 + 2i, -3 - 4i}}},
+		{fst, "*", []interface{}{c(3), c(3), -5, 3, 3.2, -3.5, 2 - 4i, 4 - 2i}},
+	}
+	for j, tc := range testCases {
+		for i := range xv {
+			x := K(xv[i])
+			if x == 0 {
+				t.Fatalf("cannot import go type %T", xv[i])
+			}
+			y := tc.f(x)
+			r := Go(y)
+			fmt.Printf("%s[%v] = %v\n", tc.s, xv[i], r)
+			if !reflect.DeepEqual(r, tc.r[i]) {
+				t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
+			}
+			xdec(x)
+			xdec(y)
+			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
+				panic("x|y is not free")
+			}
+			if u := Stats().UsedBlocks(); u != 1 {
+				t.Fatalf("leak")
+			}
+		}
+	}
+}
 func TestMonad(t *testing.T) {
 	ini()
 	testCases := []struct {
 		f    func(k) k
+		s    string
 		x, r interface{}
 	}{
-		{til, 3, []int{0, 1, 2}},
-		{neg, byte(3), byte(253)},
-		{neg, []byte{0, 1, 2}, []byte{0, 255, 254}},
-		{neg, 2, -2},
-		{neg, []int{2, 3}, []int{-2, -3}},
-		{neg, 2.1, -2.1},
-		{neg, []f{2.3, -3.4}, []f{-2.3, 3.4}},
-		{neg, 2 + 3i, -2 - 3i},
-		{neg, []z{1 + 2i, -3 + 4i}, []z{-1 - 2i, 3 - 4i}},
-		{inv, 4.0, 0.25},
-		{inv, 4, 0.25},
+		{til, "!", 3, []int{0, 1, 2}},
+		// TODO !overloads
+		{fst, "*", l{3, 4, 5}, 3},
+		{fst, "*", "alpha", "alpha"},
+		{fst, "*", l{"alpha"}, "alpha"},
+		{fst, "*", d{l{"x", "y"}, l{[]int{5, 3}, 4}}, []int{5, 3}},
+		{fst, "*", d{[]string{"x", "y"}, []int{7, 2}}, 7},
+		// TODO fst func
 	}
 	for j, tc := range testCases {
+		println("NEWTC")
 		x := K(tc.x)
 		if x == 0 {
-			t.Fatal()
+			t.Fatalf("cannot import go type %T", tc.x)
 		}
-		r := Go(tc.f(x))
-		fmt.Printf("f(%p)[%v] = %v\n", tc.f, tc.x, r)
+		fmt.Println("tc.x", tc.x)
+		xxd()
+		y := tc.f(x)
+		r := Go(y)
 		if !reflect.DeepEqual(r, tc.r) {
-			t.Fatalf("monad[%d]: expected: %v got %v\n", j, tc.r, r)
+			xxd()
+			t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
+		}
+		xxd()
+		println("xdec")
+		xdec(x)
+		xxd()
+		println("ydec")
+		xdec(y)
+		xxd()
+		if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
+			panic("x|y is not free")
+		}
+		if u := Stats().UsedBlocks(); u != 1 {
+			t.Fatalf("leak: %d", u)
 		}
 	}
 }
 func pfl() {
 	for i := 4; i < 32; i++ {
-		println(i, m.k[i])
+		println(i, strconv.FormatUint(uint64(m.k[i]), 16), strconv.FormatUint(uint64(m.k[i]<<2), 16))
 	}
 }
+func xdec(x k) {
+	if m.k[x]>>28 != 0 {
+		dec(x)
+	}
+}
+
 func xxd() { // memory dump
 	t := [16]c{48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102}
 	s2 := func(x c) (c, c) { return t[x>>4], t[x&0xF] }
@@ -113,6 +176,66 @@ func xxd() { // memory dump
 			e = true
 		}
 	}
+}
+
+type Bucket struct {
+	Type       uint32
+	Used, Free uint32 // num blocks
+	Net        uint32
+}
+type MemStats map[uint32]Bucket
+
+func (b Bucket) Overhead() uint32 {
+	return b.Used*uint32(1<<b.Type) - b.Net
+}
+func (s MemStats) UsedBlocks() (t uint32) {
+	for _, b := range s {
+		t += b.Used
+	}
+	return t
+}
+func Stats() MemStats {
+	st := make(MemStats)
+	a := uint32(0)
+	o := uint32(0)
+	for a < 1<<(m.k[2]-2) {
+		//ax := strconv.FormatUint(uint64(a<<2), 16)
+		tp := m.k[a] >> 28
+		//print("block ", a, " 0x", ax, " t=", tp)
+		if tp == 0 {
+			t := m.k[a]
+			//print(" free bt=", t)
+			if t < 4 || t > 31 {
+				println(a, t)
+				panic("size")
+			}
+			b := st[t]
+			b.Type = t
+			b.Free++
+			st[t] = b
+			o = 1 << (t - 2)
+		} else {
+			tt, n := typ(a)
+			t := bk(tt, n)
+			//print(" used type=", tt, " num=", n, " bt=", t)
+			if t < 4 || t > 31 {
+				println(a, t)
+				panic("size")
+			}
+			b := st[t]
+			b.Type = t
+			b.Used++
+			if n == atom {
+				n = 1
+			}
+			b.Net += n * lns[tp]
+			st[t] = b
+			o = 1 << (t - 2)
+		}
+		a += o
+		//print(" +", o, "\n")
+	}
+	return st
 }
 
 // type conversions between go and k:
@@ -193,7 +316,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 			}
 		}
 	case []interface{}:
-		r := mk(L, k(len(a)))
+		r = mk(L, k(len(a)))
 		for i, v := range a {
 			u := K(v)
 			m.k[2+i+int(r)] = u
@@ -217,7 +340,7 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		buf := make([]byte, 8)
 		n := 0
 		for i := range buf {
-			if v := m.c[8+8*j+int(x)+i]; v != 0 {
+			if v := m.c[8+8*j+int(x<<2)+i]; v != 0 {
 				buf[i] = v
 				n++
 			} else {
