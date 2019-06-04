@@ -108,7 +108,6 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	}
 	m.k[a] = n | t<<28 // ok for atoms
 	m.k[a+1] = 1       // refcount
-	println("alloc", addr(a))
 	return a
 }
 func typ(a k) (k, k) { // type and length at addr
@@ -135,7 +134,6 @@ func inc(x k) k {
 	return x
 }
 func free(x k) {
-	println("free", addr(x))
 	t, n := typ(x)
 	bt := bk(t, n)
 	m.k[x] = bt
@@ -337,10 +335,7 @@ func fst(x k) (r k) { // *x
 	t, n := typ(x)
 	if t == D {
 		inc(m.k[3+x])
-		println("dict=", x, "val=", m.k[3+x])
 		r = fst(m.k[3+x])
-		inc(r)
-		println("fist of dict is", r)
 		dec(x)
 		return r
 	}
@@ -350,7 +345,6 @@ func fst(x k) (r k) { // *x
 		panic("nyi: fst empty") // what to return? missing value? panic?
 	}
 	if t == L {
-		println("fstL")
 		r = m.k[2+x]
 		inc(r)
 		dec(x)

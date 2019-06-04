@@ -74,26 +74,18 @@ func TestMonad(t *testing.T) {
 		// TODO fst func
 	}
 	for j, tc := range testCases {
-		println("NEWTC")
 		x := K(tc.x)
 		if x == 0 {
 			t.Fatalf("cannot import go type %T", tc.x)
 		}
-		fmt.Println("tc.x", tc.x)
-		xxd()
 		y := tc.f(x)
 		r := Go(y)
 		if !reflect.DeepEqual(r, tc.r) {
 			xxd()
 			t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
 		}
-		xxd()
-		println("xdec")
 		xdec(x)
-		xxd()
-		println("ydec")
 		xdec(y)
-		xxd()
 		if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 			panic("x|y is not free")
 		}
