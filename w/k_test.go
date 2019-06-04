@@ -10,17 +10,11 @@ type z = complex128
 
 func TestIni(t *testing.T) {
 	ini()
-	e := map[int]k{7: 128, 8: 256, 9: 0, 10: 1024, 11: 2048, 12: 4096, 13: 8192, 14: 16384, 15: 32768}
-	for i := 4; i < 30; i++ {
-		if m.k[i] != e[i] {
-			t.Fatal()
-		}
-	}
-	//pfl()
 	//mk(1, 9000)
 	//pfl()
-	xxd()
+	//xxd()
 }
+
 func TestMonad(t *testing.T) {
 	ini()
 	testCases := []struct {
@@ -52,7 +46,7 @@ func TestMonad(t *testing.T) {
 	}
 }
 func pfl() {
-	for i := 0; i < 30; i++ {
+	for i := 4; i < 32; i++ {
 		println(i, m.k[i])
 	}
 }
@@ -69,18 +63,23 @@ func xxd() { // memory dump
 	h := 0
 	s := make([]c, 32)
 	s[3] = '#'
-	tp, tn, rc := c(0), 0, k(0)
+	var tp, tn, rc k
 	for i := 0; i < len(m.c); i += 2 {
 		if i == h {
 			tp, tn = typ(k(i))
 			b := [8]c{'x', 'i', 'f', 'z', 's', 'g', 'd', 'l'}
 			s[0] = b[tp]
-			if tn >= 0 {
+			if tn != atom {
 				s[0] -= 32
 			}
+			bt := k(0)
+			if tp == 0 {
+				bt = m.k[k(i)>>2]
+			} else {
+				bt = buk(m.k[k(i)>>2])
+			}
+			s[1], s[2] = s2(c(bt))
 			rc = m.k[1+k(i)>>2]
-			bt := m.c[i] & 0x1f
-			s[1], s[2] = s2(bt)
 			h += 1 << bt
 		}
 		if n == 0 {
@@ -107,7 +106,7 @@ func xxd() { // memory dump
 					} else {
 						print(string(s[:3]), ";", rc)
 					}
-					s[0], tn = 0, -1
+					s[0], tn = 0, atom
 				}
 				println()
 			}
@@ -132,32 +131,32 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	var r k
 	switch a := x.(type) {
 	case bool:
+		r = mk(C, atom)
+		m.c[8+r<<2] = 0
 		if a {
-			return K(1)
-		} else {
-			return K(0)
+			m.c[8+r<<2] = 1
 		}
 	case byte:
-		r = mk(C, -1)
-		m.c[8+r] = a
+		r = mk(C, atom)
+		m.c[8+r<<2] = a
 	case int:
-		r = mk(I, -1)
-		m.k[2+r>>2] = k(a)
+		r = mk(I, atom)
+		m.k[2+r] = k(a)
 	case float64:
-		r = mk(F, -1)
-		m.f[1+r>>3] = a
+		r = mk(F, atom)
+		m.f[1+r>>1] = a
 	case complex128:
-		r = mk(Z, -1)
-		m.f[1+r>>3] = real(a)
-		m.f[2+r>>3] = imag(a)
+		r = mk(Z, atom)
+		m.f[1+r>>1] = real(a)
+		m.f[2+r>>1] = imag(a)
 	case string:
 		buf := kstr(a)
-		r = mk(S, -1)
+		r = mk(S, atom)
 		for i := range buf {
-			m.c[8+i+int(r)] = buf[i]
+			m.c[8+i+int(r<<2)] = buf[i]
 		}
 	case []bool:
-		buf := make([]int, len(a))
+		buf := make([]byte, len(a))
 		for i, v := range a {
 			if v {
 				buf[i] = 1
@@ -165,39 +164,39 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		}
 		return K(buf)
 	case []byte:
-		r = mk(C, len(a))
+		r = mk(C, k(len(a)))
 		for i, v := range a {
-			m.c[8+i+int(r)] = v
+			m.c[8+i+int(r<<2)] = v
 		}
 	case []int:
-		r = mk(I, len(a))
+		r = mk(I, k(len(a)))
 		for i, v := range a {
-			m.k[i+2+int(r>>2)] = k(v)
+			m.k[2+i+int(r)] = k(v)
 		}
 	case []float64:
-		r = mk(F, len(a))
+		r = mk(F, k(len(a)))
 		for i, v := range a {
-			m.f[i+1+int(r>>3)] = v
+			m.f[1+i+int(r>>1)] = v
 		}
 	case []complex128:
-		r = mk(Z, len(a))
+		r = mk(Z, k(len(a)))
 		for i, v := range a {
-			m.f[1+2*i+int(r>>3)] = real(v)
-			m.f[2+2*i+int(r>>3)] = imag(v)
+			m.f[1+2*i+int(r>>1)] = real(v)
+			m.f[2+2*i+int(r>>1)] = imag(v)
 		}
 	case []string:
-		r = mk(S, len(a))
+		r = mk(S, k(len(a)))
 		for i := range a {
 			buf := kstr(a[i])
 			for j := range buf {
-				m.c[int(r)+8+8*i+j] = buf[j]
+				m.c[8+8*i+j+int(r<<2)] = buf[j]
 			}
 		}
 	case []interface{}:
-		r := mk(L, len(a))
+		r := mk(L, k(len(a)))
 		for i, v := range a {
 			u := K(v)
-			m.k[2+i+int(r>>2)] = u
+			m.k[2+i+int(r)] = u
 		}
 	case [2]interface{}:
 		key := K(a[0])
@@ -207,9 +206,9 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		if nk != nv {
 			return 0
 		}
-		r = mk(D, -1)
-		m.k[2+r>>2] = key
-		m.k[3+r>>2] = val
+		r = mk(D, atom)
+		m.k[2+r] = key
+		m.k[3+r] = val
 	}
 	return r
 }
@@ -228,45 +227,45 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		return string(buf[:n])
 	}
 	t, n := typ(x)
-	if n < 0 {
+	if n == atom {
 		switch t {
 		case C:
-			return c(m.c[8+x])
+			return c(m.c[8+x<<2])
 		case I:
-			return int(i(m.k[2+x>>2]))
+			return int(i(m.k[2+x]))
 		case F:
-			return m.f[1+x>>3]
+			return m.f[1+x>>1]
 		case Z:
-			return complex(m.f[1+x>>3], m.f[2+x>>3])
+			return complex(m.f[1+x>>1], m.f[2+x>>1])
 		case S:
 			return str(x, 0)
 		case D:
-			return [2]interface{}{Go(m.k[2+x>>2]), Go(m.k[3+x>>2])}
+			return [2]interface{}{Go(m.k[2+x]), Go(m.k[3+x])}
 		}
 	} else {
 		switch t {
 		case C:
 			r := make([]byte, n)
 			for i := range r {
-				r[i] = c(m.c[8+i+int(x)])
+				r[i] = c(m.c[8+i+int(x<<2)])
 			}
 			return r
 		case I:
 			r := make([]int, n)
 			for i := range r {
-				r[i] = int(int32(m.k[2+i+int(x>>2)]))
+				r[i] = int(int32(m.k[2+i+int(x)]))
 			}
 			return r
 		case F:
 			r := make([]f, n)
 			for i := range r {
-				r[i] = m.f[1+i+int(x>>3)]
+				r[i] = m.f[1+i+int(x>>1)]
 			}
 			return r
 		case Z:
 			r := make([]complex128, n)
 			for i := range r {
-				r[i] = complex(m.f[1+2*i+int(x>>3)], m.f[2+2*i+int(x>>3)])
+				r[i] = complex(m.f[1+2*i+int(x>>1)], m.f[2+2*i+int(x>>1)])
 			}
 			return r
 		case S:
@@ -278,7 +277,7 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		case L:
 			r := make([]interface{}, n)
 			for i := range r {
-				r[i] = Go(m.k[2+i+int(x>>2)])
+				r[i] = Go(m.k[2+i+int(x)])
 			}
 			return r
 		}

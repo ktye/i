@@ -9,7 +9,8 @@ type f = float64
 type s = string
 
 const (
-	C, I, F, Z, S, G, L, D byte = 1, 2, 3, 4, 5, 6, 7, 8
+	C, I, F, Z, S, G, L, D k = 1, 2, 3, 4, 5, 6, 7, 8
+	atom                   k = 0x0fffffff
 )
 
 type (
@@ -18,41 +19,34 @@ type (
 	ff1 func(f) f
 	fz1 func(f, f) (f, f)
 )
-
-//                c  i  f   z  s  g  l  d
-var lns = [9]k{0, 1, 4, 8, 16, 8, 4, 4, 8}
-
-var m struct { // linear memory (slices share underlying arrays)
-	c []c
-	k []k
-	f []f
-}
-
 type slice struct {
 	p uintptr
 	l int
 	c int
 }
 
+//                C  I  F   Z  S  G  L  D
+var lns = [9]k{0, 1, 4, 8, 16, 8, 4, 4, 8}
+var m struct { // linear memory (slices share underlying arrays)
+	c []c
+	k []k
+	f []f
+}
+
 func ini() { // start function
 	m.f = make([]f, 1<<13)
 	msl()
-	p := k(1 << 16)
-	for i := 15; i > 6; i-- {
-		p >>= 1
-		m.c[p] = c(i)
-		m.k[i] = p
+	m.k[2] = 16
+	p := k(256)
+	m.k[8] = p
+	for i := 9; i < 16; i++ {
+		p *= 2
+		m.k[i] = p >> 2
+		m.k[p>>2] = k(i)
 	}
-	m.c[0] = 7
-	m.c[4] = 16 // total memory (log2)
-	println("ini mc4 mk1", m.c[4], m.k[1])
-	// TODO: pointer to k-tree at 8
-	m.k[9] = 0 // no free bucket 9
-	a := 1 << 7
-	m.k[a] = k(73) // 73: 1<<6|9 (type i, bucket 9), length is ignored
-	for i := range lns {
-		m.k[a+i+2] = k(lns[i])
-	}
+	m.k[0] = (I << 28) | 31
+	// TODO: K tree
+	// TODO: size vector
 }
 func msl() { // update slice header after increasing m.f
 	f := *(*slice)(unsafe.Pointer(&m.f))
@@ -68,41 +62,32 @@ func msl() { // update slice header after increasing m.f
 	m.c = *(*[]c)(unsafe.Pointer(&b))
 }
 func grw() { // double memory
-	s := m.k[1]
+	s := m.k[2]
 	if 1<<k(s) != len(m.c) {
-		println(s, len(m.c), 1<<k(s))
+		println("grow", len(m.c), 1<<k(s))
+		panic("grow")
 	}
-	m.k[s] = k(len(m.c))
+	m.k[s] = k(len(m.c)) >> 2
 	m.f = append(m.f, make([]f, len(m.f))...)
 	msl()
-	m.k[1] = s + 1
-	m.c[1<<s] = c(s)
+	m.k[2] = s + 1
+	m.k[1<<(s-2)] = s // bucket type of new upper half
 }
-func mk(t c, n int) k { // make type t of len n (-1:atom)
+func bk(t, n k) k {
 	sz := lns[t]
-	if n >= 0 {
-		sz *= k(n)
+	if n != atom {
+		sz *= n
 	}
-	sz += 8 // size needed including header
-	bs := k(16)
-	bt := 0
-	for i := 4; i < 30; i++ { // calculate bucket bt from size sz (clz)
-		if sz <= bs {
-			bt = i
-			break
-		}
-		bs <<= 1
+	if sz > 1<<31 {
+		panic("size")
 	}
-	if bt == 0 {
-		panic("memory")
-	}
-	fb, a := 0, k(0)
-	for i := bt; i < 30; i++ { // find next free bucket >= bt
-		if m.k[5] == 1 {
-			println("i", i)
-			panic("wrong 0")
-		}
-		if k(i) >= m.k[1] {
+	return buk(sz + 8)
+}
+func mk(t, n k) k { // make type t of len n (-1:atom)
+	bt := bk(t, n)
+	fb, a := k(0), k(0)
+	for i := bt; i < 31; i++ { // find next free bucket >= bt
+		if k(i) >= m.k[2] {
 			grw()
 		}
 		if m.k[i] != 0 {
@@ -110,70 +95,34 @@ func mk(t c, n int) k { // make type t of len n (-1:atom)
 			break
 		}
 	}
-	m.k[fb] = m.k[1+a>>2]           // occupy
+	m.k[fb] = m.k[1+a]              // occupy
 	for i := fb - 1; i >= bt; i-- { // split large buckets
-		m.k[1+a>>2] = m.k[i]
-		m.k[i] = a
-		m.k[a>>2] = k(i)
-		a += k(1) << c(i)
-		m.k[a>>2] = k(i)
+		u := a + 1<<(i-2) // free upper half
+		m.k[1+u] = m.k[i]
+		m.k[i] = u
 	}
-	if n < 0 { // set header
-		m.c[int(a+1)] = t
-	} else {
-		//set(k(a), k(m[int(a)]|t<<5)|k(n)<<8)
-		m.k[a>>2] = k(m.c[int(a)]|t<<5) | k(n)<<8
-	}
-	m.k[1+a>>2] = 1 // refcount
+	m.k[a] = n | t<<28 // ok for atoms
+	m.k[a+1] = 1       // refcount
 	return a
 }
-func typ(a k) (c, int) { // type and length at addr
-	i := int(a)
-	t := m.c[i] >> 5
-	if t == 0 {
-		return m.c[int(i+1)], -1
-	}
-	return t, int(m.k[k(i)>>2]) >> 8
+func typ(a k) (k, k) { // type and length at addr
+	return m.k[a] >> 28, m.k[a] & 0x0fffffff
 }
-func inc(x k) k { m.k[1+x>>2]++; return x }
+func inc(x k) k { m.k[1+x]++; return x }
 func free(x k) {
-	bt := 0x3f & m.c[x]
-	b := x ^ k(1<<bt) // buddy address
-	if m.c[b]&0x3f != bt {
-		panic("buddy has wrong bt") // TODO rm
-	}
-	m.k[x>>2] = k(bt) << 24
-	m.k[1+x>>2] = 0
-	if m.k[b>>2] == k(bt)<<24 { // buddy is free: merge
-		p := m.k[bt] // find free list parent of b
-		n := p
-		for n != b {
-			p = n
-			n = m.k[1+p>>2]
-		}
-		if p == b {
-			m.k[bt] = m.k[1+p>>2]
-		} else {
-			m.k[1+p>>2] = m.k[1+b>>2] // delete from within the free list
-		}
-		if b < x {
-			x = b
-		}
-		m.c[x] = bt + 1
-		free(x)
-	} else {
-		m.k[1+x>>2] = m.k[bt]
-		m.k[bt] = x
-	}
+	t, n := typ(x)
+	bt := bk(t, n)
+	m.k[x] = bt
+	m.k[x+1] = m.k[bt]
+	m.k[bt] = x
 }
 func dec(x k) {
-	rc := m.k[1+x>>2] - 1
-	m.k[1+x>>2] = rc
-	if rc == 0 {
+	m.k[1+x]--
+	if m.k[1+x] == 0 {
 		free(x)
 	}
 }
-func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
+func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	if rt == 0 {
 		return x
 	}
@@ -181,63 +130,65 @@ func to(x k, rt c) (r k) { // numeric conversions for types CIFZ
 	if rt == t {
 		return x
 	}
-	r = mk(t, n)
-	if n < 0 {
+	r = mk(rt, n)
+	if n == atom {
 		n = 1
 	}
 	var g func(k, k)
 	switch {
 	case t == C && rt == I:
-		g = func(x, y k) { m.k[y>>2] = k(i(m.c[int(x)])) }
+		g = func(x, y k) { m.k[y] = k(i(m.c[x])) }
 	case t == C && rt == F:
-		g = func(x, y k) { m.f[y>>3] = f(m.c[int(x)]) }
+		g = func(x, y k) { m.f[y] = f(m.c[x]) }
 	case t == I && rt == C:
-		g = func(x, y k) { m.c[int(y)] = c(i(m.k[x>>2])) }
+		g = func(x, y k) { m.c[y] = c(i(m.k[x])) }
 	case t == I && rt == F:
 		g = func(x, y k) {
-			println("I2F", i(m.k[x>>2]))
-			m.f[y>>3] = f(i(m.k[x>>2]))
+			m.f[y] = f(i(m.k[x]))
 		}
 	case t == F && rt == C:
-		g = func(x, y k) { m.c[int(y)] = c(m.f[x>>3]) }
+		g = func(x, y k) { m.c[y] = c(m.f[x]) }
 	case t == F && rt == I:
-		g = func(x, y k) { m.k[y>>2] = k(i(m.f[x>>3])) }
+		g = func(x, y k) { m.k[y] = k(i(m.f[x])) }
 		// TODO Z
 	}
 	xs, rs := lns[t], lns[rt]
+	as, bs := l8t[xs-1], l8t[rs-1]
+	x <<= 2
+	r <<= 2
 	for j := k(0); j < k(n); j++ {
-		a := x + 8 + j*xs
-		b := r + 8 + j*rs
+		a := (x + 8 + j*xs) >> as
+		b := (r + 8 + j*rs) >> bs
 		g(a, b)
 	}
-	dec(x)
-	return r
+	dec(x >> 2)
+	return r >> 2
 }
 func cl1(x, r k, n k, op fc1) { // C vector r=f(x)
-	o := r - x
-	for j := 8 + x; j < 8+x+n; j++ {
+	o := (r - x) << 2
+	for j := 8 + x<<2; j < 8+n+x<<2; j++ {
 		m.c[j] = op(m.c[o+j])
 	}
 }
 func il1(x, r k, n k, op fi1) { // I vector r=f(x)
-	o := (r - x) >> 2
-	for j := 2 + x>>2; j < 2+n+x>>2; j++ {
+	o := r - x
+	for j := 2 + x; j < 2+n+x; j++ {
 		m.k[o+j] = k(op(i(m.k[j])))
 	}
 }
 func fl1(x, r k, n k, op ff1) { // F vector r=f(x)
-	o := (r - x) >> 3
-	for j := 1 + x>>3; j < 1+n+x>>3; j++ {
+	o := (r - x) >> 1
+	for j := 1 + x>>1; j < 1+n+x>>1; j++ {
 		m.f[o+j] = op(m.f[j])
 	}
 }
 func zl1(x, r k, n k, op fz1) { // Z vector r=f(x)
-	o := (r - x) >> 3
-	for j := 1 + x>>3; j < 1+2*n+x>>2; j += 2 {
+	o := (r - x) >> 1
+	for j := 1 + x>>1; j < 1+2*n+x>>1; j += 2 {
 		m.f[o+j], m.f[o+j+1] = op(m.f[j], m.f[j+1])
 	}
 }
-func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
+func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 	t, n := typ(x)
 	min := C
 	if fc == nil {
@@ -247,37 +198,29 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 		min = F
 	} // TODO: Z only for ff == nil ?
 	if min > t { // uptype x
-		println("min", min, t)
 		x, t = to(x, min), min
-		println("=>", x, t)
-		println("@x", m.c[0], m.c[1], m.c[2], m.c[3], m.c[4], m.f[1+x>>3])
 	}
 	if t == Z && fz == nil { // e.g. real functions
 		x, t = to(x, F), F
 	}
-	if m.k[1+x>>2] == 1 {
-		r = inc(x)
+	if m.k[1+x] == 1 {
+		r = inc(x) // reuse x
 	} else {
 		r = mk(t, n)
 	}
-	if n < 0 {
+	if n == atom {
 		n = 1
 	}
 	switch t {
 	case L:
-		r >>= 2
-		x >>= 2
 		for j := k(0); j < k(n); j++ {
-			//set(r+8+4*j, nm(inc(get(x+8+j*8)), fc, fi, ff, fz, rt))
 			m.k[r+2+j] = nm(inc(m.k[j+2+x]), fc, fi, ff, fz, rt)
 		}
-		r <<= 2
-		x <<= 2
 	case D:
 		if r != x {
-			m.k[2+r>>2] = inc(m.k[2+x>>2])
+			m.k[2+r] = inc(m.k[2+x])
 		}
-		m.k[3+r>>2] = nm(m.k[3+x>>2], fc, fi, ff, fz, rt)
+		m.k[3+r] = nm(m.k[3+x], fc, fi, ff, fz, rt)
 	case C:
 		cl1(x, r, k(n), fc)
 	case I:
@@ -290,17 +233,17 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt c) (r k) { // numeric monad
 		panic("type")
 	}
 	dec(x)
-	if r != 0 && t > rt {
+	if rt != 0 && t > rt {
 		r = to(r, rt) // downtype, e.g. floor
 	}
 	return r
 }
-func kdx(x k, t c) k { // x must be a numeric scalar
+func kdx(x, t k) k { // unsigned int from a numeric scalar
 	switch t {
 	case I:
-		return m.k[2+x>>2]
+		return m.k[2+x]
 	case F, Z:
-		i := int(m.f[1+x>>3])
+		i := int(m.f[1+x>>1]) // trunc and ignore imag part
 		if i < 0 {
 			panic("domain")
 		}
@@ -310,15 +253,14 @@ func kdx(x k, t c) k { // x must be a numeric scalar
 }
 func til(x k) k { // !n
 	t, n := typ(x)
-	if n < 0 {
+	if n == atom {
 		if t > Z {
 			panic("type")
 		}
-		n := kdx(x, t)
-		r := mk(I, int(n))
-		a := r >> 2
+		n := kdx(x, t) // TODO: handle negative
+		r := mk(I, n)
 		for i := k(0); i < n; i++ {
-			m.k[int(2+i+a)] = k(i)
+			m.k[2+i+r] = i
 		}
 		return r
 	} else {
@@ -338,4 +280,28 @@ func flr(x k) k {
 		}
 		return y
 	}, nil, I)
+}
+
+func buk(x uint32) (n k) { // from https://golang.org/src/math/bits/bits.go (Len32)
+	x--
+	if x >= 1<<16 {
+		x >>= 16
+		n = 16
+	}
+	if x >= 1<<8 {
+		x >>= 8
+		n += 8
+	}
+	n += k(l8t[x])
+	if n < 4 {
+		return 4
+	}
+	return n
+}
+
+var l8t = [256]c{
+	0x00, 0x01, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
