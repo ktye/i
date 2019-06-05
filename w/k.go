@@ -222,9 +222,9 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	case t == F && rt == I:
 		g = func(x, y k) { m.k[y] = k(i(m.f[x])) }
 	case t == Z && rt == F:
-		g = func(x, y k) {
-			m.f[y] = m.f[2+x<<1]
-		}
+		g = func(x, y k) { m.f[y] = m.f[2+x<<1] }
+	case t == Z && rt == C:
+		g = func(x, y k) { m.c[y] = c(i(m.f[2+x<<1])) }
 	default:
 		panic("to nyi")
 	}
@@ -348,7 +348,7 @@ func neg(x k) k { // -x
 }
 func inv(x k) k { // %x
 	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x z) z { return 1 / x }, 0)
-} // TODO Z
+}
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
 	if t == D {
@@ -427,7 +427,29 @@ func wer(x k) (r k) { panic("nyi"); return x } // &x
 func asc(x k) (r k) { panic("nyi"); return x } // <x
 func dsc(x k) (r k) { panic("nyi"); return x } // >x
 func grp(x k) (r k) { panic("nyi"); return x } // =x
-func not(x k) (r k) { panic("nyi"); return x } // ~x
+func not(x k) (r k) { // ~x
+	return nm(x, func(x c) (r c) {
+		if x == 0 {
+			r = 1
+		}
+		return r
+	}, func(x i) (r i) {
+		if x == 0 {
+			r = 1
+		}
+		return r
+	}, func(x f) (r f) {
+		if x == 0 {
+			r = 1
+		}
+		return r
+	}, func(x z) (r z) {
+		if x == 0 {
+			r = 1
+		}
+		return r
+	}, C)
+}
 func enl(x k) (r k) { // ,x
 	t, n := typ(x)
 	if t < L && n == atom {
