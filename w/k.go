@@ -226,7 +226,7 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	case t == Z && rt == C:
 		g = func(x, y k) { m.c[y] = c(i(m.f[2+x<<1])) }
 	default:
-		panic("to nyi")
+		panic("nyi")
 	}
 	xs, rs := lns[t], lns[rt]
 	as, bs := l8t[xs-1], l8t[rs-1]
@@ -513,7 +513,48 @@ func tip(x k) (r k) { // @x
 	dec(x)
 	return r
 }
-func evl(x k) (r k) { panic("nyi"); return x } // .x
+func evl(x k) (r k) { // .x
+	t, n := typ(x)
+	if t != L {
+		return x
+	}
+	if n == 0 {
+		panic("evl empty list?") // what TODO?
+	}
+	v := m.k[2+x]
+	vt, vn := typ(v)
+	switch vt {
+	case S:
+		if vn != atom || n != 2 {
+			panic("nyi")
+		}
+		c := m.c[8+v<<2]
+		s := "+-%*|&<>=~,^#_$?@."
+		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, is0, cnt, flr, fms, unq, tip, evl}
+		var g func(k) k
+		for i := range s {
+			if c == s[i] {
+				g = h[i]
+			}
+		}
+		if g == nil {
+			panic("nyi")
+		}
+		a := m.k[3+x]
+		at, _ := typ(a)
+		if at == L {
+			r = evl(inc(a))
+			//dec(a)
+			a = r
+		}
+		r = g(inc(a))
+		dec(a)
+		dec(x)
+		return r
+	}
+	panic("nyi")
+	return x
+}
 
 func nan() f {
 	u := uint64(0x7FF8000000000001)

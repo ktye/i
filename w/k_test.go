@@ -42,6 +42,7 @@ func TestNumMonad(t *testing.T) {
 		{enl, ",", l{[]c{3}, l{[]c{3, 5}}, iv{-5}, l{iv{3, -9}}, []f{3.2}, l{[]f{-3.5, 2.9, 0}}, []z{2 - 4i}, l{[]z{4 - 2i, 3 + 4i}}}},
 		{cnt, "#", l{1, 2, 1, 2, 1, 3, 1, 2}},
 		{tip, "@", l{"c", "C", "i", "I", "f", "F", "z", "Z"}},
+		{evl, ".", xv},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
@@ -110,6 +111,8 @@ func TestMonad(t *testing.T) {
 		{cnt, "#", d{iv{3, 4}, sv{"x", "y"}}, 2},
 		{tip, "@", l{}, ""},
 		{tip, "@", d{iv{1, 2}, iv{3, 4}}, "a"},
+		{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
+		{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
