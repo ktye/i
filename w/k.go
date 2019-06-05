@@ -148,7 +148,8 @@ func inc(x k) k {
 	return x
 }
 func use(x, t, n k) k {
-	if m.k[1+x] == 1 {
+	if m.k[1+x] == 1 && bk(typ(x)) == bk(t, n) {
+		m.k[x] = t<<28 | n
 		return x
 	} else {
 		return mk(t, n)
@@ -341,21 +342,13 @@ func til(x k) k { // !n
 	}
 	return 0
 }
+func flp(x k) k { panic("nyi"); return x } // +x
 func neg(x k) k { // -x
 	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x z) z { return -x }, 0) // TODO Z
 }
 func inv(x k) k { // %x
 	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x z) z { return 1 / x }, 0)
 } // TODO Z
-func flr(x k) k { // _x
-	return nm(x, func(x c) c { return x }, func(x i) i { return x }, func(x f) f {
-		y := float64(int32(x))
-		if x < y {
-			y -= 1.0
-		}
-		return y
-	}, nil, I)
-}
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
 	if t == D {
@@ -430,6 +423,11 @@ func rev(x k) (r k) { // |x
 	}
 	return decret(x, r)
 }
+func wer(x k) (r k) { panic("nyi"); return x } // &x
+func asc(x k) (r k) { panic("nyi"); return x } // <x
+func dsc(x k) (r k) { panic("nyi"); return x } // >x
+func grp(x k) (r k) { panic("nyi"); return x } // =x
+func not(x k) (r k) { panic("nyi"); return x } // ~x
 func enl(x k) (r k) { // ,x
 	t, n := typ(x)
 	if t < L && n == atom {
@@ -451,6 +449,32 @@ func enl(x k) (r k) { // ,x
 	m.k[2+r] = x
 	return r
 }
+func is0(x k) (r k) { panic("nyi"); return x } // ^x
+func cnt(x k) (r k) { // #x
+	t, n := typ(x)
+	r = mk(I, atom)
+	if t == D {
+		_, n = typ(m.k[x+2])
+	} else if n == atom {
+		n = 1
+	}
+	m.k[2+r] = k(i(n))
+	dec(x)
+	return r
+}
+func flr(x k) k { // _x
+	return nm(x, func(x c) c { return x }, func(x i) i { return x }, func(x f) f {
+		y := float64(int32(x))
+		if x < y {
+			y -= 1.0
+		}
+		return y
+	}, nil, I)
+}
+func fms(x k) (r k) { panic("nyi"); return x } // $x
+func unq(x k) (r k) { panic("nyi"); return x } // ?x
+func tip(x k) (r k) { panic("nyi"); return x } // @x
+func evl(x k) (r k) { panic("nyi"); return x } // .x
 
 func nan() f {
 	u := uint64(0x7FF8000000000001)
