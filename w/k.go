@@ -473,7 +473,24 @@ func flr(x k) k { // _x
 }
 func fms(x k) (r k) { panic("nyi"); return x } // $x
 func unq(x k) (r k) { panic("nyi"); return x } // ?x
-func tip(x k) (r k) { panic("nyi"); return x } // @x
+func tip(x k) (r k) { // @x
+	r = mk(S, atom)
+	m.k[2+r] = 0
+	m.k[3+r] = 0
+	t, n := typ(x)
+	if t == L {
+		dec(x)
+		return r // empty symbol
+	}
+	tns := "_cifzng a" // TODO k7 compatibility, function types 1..4?
+	s := tns[t]
+	if n != atom {
+		s -= 32
+	}
+	m.c[8+r<<2] = c(s)
+	dec(x)
+	return r
+}
 func evl(x k) (r k) { panic("nyi"); return x } // .x
 
 func nan() f {
