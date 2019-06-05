@@ -430,6 +430,27 @@ func rev(x k) (r k) { // |x
 	}
 	return decret(x, r)
 }
+func enl(x k) (r k) { // ,x
+	t, n := typ(x)
+	if t < L && n == atom {
+		r = use(x, t, 1)
+		if r == x {
+			m.k[r] = t<<28 | 1
+			return r
+		}
+		cp, o := cpx[t], k(0)
+		if lns[t] == 16 {
+			o = 8
+		}
+		src, dst := o+8+x<<2, o+8+r<<2
+		cp(dst, src)
+		dec(x)
+		return r
+	}
+	r = mk(L, 1)
+	m.k[2+r] = x
+	return r
+}
 
 func nan() f {
 	u := uint64(0x7FF8000000000001)

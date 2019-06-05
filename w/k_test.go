@@ -37,11 +37,13 @@ func TestNumMonad(t *testing.T) {
 		{neg, "-", l{c(253), []c{253, 251}, 5, iv{-3, 9}, -3.2, []f{3.5, -2.9, -0}, -2 + 4i, []z{-4 + 2i, -3 - 4i}}},
 		{fst, "*", l{c(3), c(3), -5, 3, 3.2, -3.5, 2 - 4i, 4 - 2i}},
 		{rev, "|", l{c(3), []c{5, 3}, -5, iv{-9, 3}, 3.2, []f{0, 2.9, -3.5}, 2 - 4i, []z{3 + 4i, 4 - 2i}}},
+		{enl, ",", l{[]c{3}, l{[]c{3, 5}}, iv{-5}, l{iv{3, -9}}, []f{3.2}, l{[]f{-3.5, 2.9, 0}}, []z{2 - 4i}, l{[]z{4 - 2i, 3 + 4i}}}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
 		for j, tc := range testCases {
 			for i := range xv {
+				// fmt.Println("TC", xv[i])
 				x := K(xv[i])
 				if x == 0 {
 					t.Fatalf("cannot import go type %T", xv[i])
@@ -50,14 +52,17 @@ func TestNumMonad(t *testing.T) {
 					inc(x)
 				}
 				y := tc.f(x)
+				if occ {
+					dec(x)
+				}
 				r := Go(y)
-				fmt.Printf("%s[%v] = %v\n", tc.s, xv[i], r)
+				fmt.Printf("%s(%v) = %v\n", tc.s, xv[i], r)
 				if !reflect.DeepEqual(r, tc.r[i]) {
 					t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
 				}
 				fpck("1")
-				xdec(x)
 				xdec(y)
+				xdec(x)
 				if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 					panic("x|y is not free")
 				}
@@ -92,6 +97,9 @@ func TestMonad(t *testing.T) {
 		{rev, "|", l{1, l{3, 4}}, l{l{3, 4}, 1}},
 		{rev, "|", d{iv{1, 2}, iv{3, 4}}, d{iv{2, 1}, iv{4, 3}}},
 		{rev, "|", d{sv{"alpha", "beta"}, l{3, iv{3, 5}}}, d{sv{"beta", "alpha"}, l{iv{3, 5}, 3}}},
+		{enl, ",", "alpha", sv{"alpha"}},
+		{enl, ",", l{1, 2, l{3, 4.5}}, l{l{1, 2, l{3, 4.5}}}},
+		{enl, ",", d{iv{3, 4}, sv{"x", "y"}}, l{d{iv{3, 4}, sv{"x", "y"}}}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
@@ -115,8 +123,8 @@ func TestMonad(t *testing.T) {
 			if !reflect.DeepEqual(r, tc.r) {
 				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
 			}
-			xdec(x)
 			xdec(y)
+			xdec(x)
 			fpck("2")
 			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 				panic("x|y is not free")
