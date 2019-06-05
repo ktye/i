@@ -9,6 +9,7 @@ type c = byte
 type k = uint32
 type i = int32
 type f = float64
+type z = complex128
 type s = string
 
 const (
@@ -20,7 +21,7 @@ type (
 	fc1 func(c) c
 	fi1 func(i) i
 	ff1 func(f) f
-	fz1 func(f, f) (f, f)
+	fz1 func(z) z
 )
 type slice struct {
 	p uintptr
@@ -34,7 +35,10 @@ var m struct { // linear memory (slices share underlying arrays)
 	c []c
 	k []k
 	f []f
+	z []z
 }
+var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI} // arguments are byte addresses
+var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI}
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -55,20 +59,26 @@ func ini() { // start function
 func msl() { // update slice header after increasing m.f
 	f := *(*slice)(unsafe.Pointer(&m.f))
 	i := *(*slice)(unsafe.Pointer(&m.k))
-	i.l = f.l * 2
-	i.c = f.c * 2
-	i.p = f.p
+	i.l, i.c, i.p = f.l*2, f.c*2, f.p
 	m.k = *(*[]k)(unsafe.Pointer(&i))
 	b := *(*slice)(unsafe.Pointer(&m.c))
-	b.l = f.l * 8
-	b.c = f.c * 8
-	b.p = f.p
+	b.l, b.c, b.p = f.l*8, f.c*8, f.p
 	m.c = *(*[]c)(unsafe.Pointer(&b))
+	zz := *(*slice)(unsafe.Pointer(&m.z))
+	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
+	m.z = *(*[]z)(unsafe.Pointer(&zz))
 }
+func cpC(dst, src k) { m.c[dst] = m.c[src] }
+func cpI(dst, src k) { m.k[dst>>2] = m.k[src>>2] }
+func cpF(dst, src k) { m.f[dst>>3] = m.f[src>>3] }
+func cpZ(dst, src k) { m.z[dst>>4] = m.z[src>>4] }
+func swC(dst, src k) { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
+func swI(dst, src k) { m.k[dst>>2], m.k[src>>2] = m.k[src>>2], m.k[dst>>2] }
+func swF(dst, src k) { m.f[dst>>3], m.f[src>>3] = m.f[src>>3], m.f[dst>>3] }
+func swZ(dst, src k) { m.z[dst>>4], m.z[src>>4] = m.z[src>>4], m.z[dst>>4] }
 func grw() { // double memory
 	s := m.k[2]
 	if 1<<k(s) != len(m.c) {
-		println("grow", len(m.c), 1<<k(s))
 		panic("grow")
 	}
 	m.k[s] = k(len(m.c)) >> 2
@@ -85,13 +95,14 @@ func bk(t, n k) k {
 	if sz > 1<<31 {
 		panic("size")
 	}
-	return buk(sz + 8)
+	return buk(sz + 8) // complex values have an additional 8 byte padding after the header (does not change bucket type)
 }
 func mk(t, n k) k { // make type t of len n (-1:atom)
 	bt := bk(t, n)
 	fb, a := k(0), k(0)
 	for i := bt; i < 31; i++ { // find next free bucket >= bt
 		if k(i) >= m.k[2] {
+			panic("grow")
 			grw()
 		}
 		if m.k[i] != 0 {
@@ -99,7 +110,10 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 			break
 		}
 	}
-	m.k[fb] = m.k[1+a]              // occupy
+	m.k[fb] = m.k[1+a] // occupy
+	if p := m.k[fb]; p > 0 && p < 40 {
+		panic("illegal free pointer")
+	}
 	for i := fb - 1; i >= bt; i-- { // split large buckets
 		u := a + 1<<(i-2) // free upper half
 		m.k[1+u] = m.k[i]
@@ -133,15 +147,21 @@ func inc(x k) k {
 	m.k[1+x]++
 	return x
 }
-func free(x k) {
-	t, n := typ(x)
-	bt := bk(t, n)
-	m.k[x] = bt
-	m.k[x+1] = m.k[bt]
-	m.k[bt] = x
+func use(x, t, n k) k {
+	if m.k[1+x] == 1 {
+		return x
+	} else {
+		return mk(t, n)
+	}
+}
+func decret(x, r k) k {
+	if r != x {
+		dec(x)
+	}
+	return r
 }
 func dec(x k) {
-	if m.k[1+x] == 0 {
+	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
 		panic("unref")
 	}
 	t, n := typ(x)
@@ -164,6 +184,13 @@ func dec(x k) {
 	if m.k[1+x] == 0 {
 		free(x)
 	}
+}
+func free(x k) {
+	t, n := typ(x)
+	bt := bk(t, n)
+	m.k[x] = bt
+	m.k[x+1] = m.k[bt]
+	m.k[bt] = x
 }
 func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	if rt == 0 {
@@ -193,9 +220,9 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 		g = func(x, y k) { m.c[y] = c(m.f[x]) }
 	case t == F && rt == I:
 		g = func(x, y k) { m.k[y] = k(i(m.f[x])) }
-	case t == Z && rt == F: // complex types are not 128-bit aligned
+	case t == Z && rt == F:
 		g = func(x, y k) {
-			m.f[y] = m.f[1+x<<1]
+			m.f[y] = m.f[2+x<<1]
 		}
 	default:
 		panic("to nyi")
@@ -213,9 +240,9 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	return r >> 2
 }
 func cl1(x, r k, n k, op fc1) { // C vector r=f(x)
-	o := (r - x) << 2
+	o := r<<2 - x<<2
 	for j := 8 + x<<2; j < 8+n+x<<2; j++ {
-		m.c[j] = op(m.c[o+j])
+		m.c[o+j] = op(m.c[j])
 	}
 }
 func il1(x, r k, n k, op fi1) { // I vector r=f(x)
@@ -225,15 +252,15 @@ func il1(x, r k, n k, op fi1) { // I vector r=f(x)
 	}
 }
 func fl1(x, r k, n k, op ff1) { // F vector r=f(x)
-	o := (r - x) >> 1
+	o := r>>1 - x>>1
 	for j := 1 + x>>1; j < 1+n+x>>1; j++ {
 		m.f[o+j] = op(m.f[j])
 	}
 }
 func zl1(x, r k, n k, op fz1) { // Z vector r=f(x)
-	o := (r - x) >> 1
-	for j := 1 + x>>1; j < 1+2*n+x>>1; j += 2 {
-		m.f[o+j], m.f[o+j+1] = op(m.f[j], m.f[j+1])
+	o := r>>2 - x>>2
+	for j := 1 + x>>2; j < 1+n+x>>2; j++ {
+		m.z[o+j] = op(m.z[j])
 	}
 }
 func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
@@ -251,11 +278,7 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 	if t == Z && fz == nil { // e.g. real functions
 		x, t = to(x, F), F
 	}
-	if m.k[1+x] == 1 {
-		r = inc(x) // reuse x
-	} else {
-		r = mk(t, n)
-	}
+	r = use(x, t, n)
 	if n == atom {
 		n = 1
 	}
@@ -280,7 +303,7 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 	default:
 		panic("type")
 	}
-	dec(x)
+	decret(x, r)
 	if rt != 0 && t > rt {
 		r = to(r, rt) // downtype, e.g. floor
 	}
@@ -302,7 +325,9 @@ func kdx(x, t k) k { // unsigned int from a numeric scalar
 func til(x k) k { // !n
 	t, n := typ(x)
 	if n == atom {
-		if t > Z {
+		if t == D {
+			return inc(m.k[2+x])
+		} else if t > Z {
 			panic("type")
 		}
 		n := kdx(x, t) // TODO: handle negative
@@ -317,10 +342,10 @@ func til(x k) k { // !n
 	return 0
 }
 func neg(x k) k { // -x
-	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x, y f) (f, f) { return -x, -y }, 0) // TODO Z
+	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x z) z { return -x }, 0) // TODO Z
 }
 func inv(x k) k { // %x
-	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x, y f) (f, f) { return zdiv(1, 0, x, y) }, 0)
+	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x z) z { return 1 / x }, 0)
 } // TODO Z
 func flr(x k) k { // _x
 	return nm(x, func(x c) c { return x }, func(x i) i { return x }, func(x f) f {
@@ -359,39 +384,53 @@ func fst(x k) (r k) { // *x
 	case F, S:
 		m.f[1+r>>1] = m.f[1+x>>1]
 	case Z:
-		m.f[1+r>>1] = m.f[1+x>>1]
-		m.f[2+r>>1] = m.f[2+x>>1]
+		m.z[1+r>>2] = m.z[1+x>>2]
 	default:
 		panic("nyi")
 	}
 	dec(x)
 	return r
 }
-
-func zdiv(a, b, c, d f) (f, f) { // (a+bi)/(c+di)
-	var g, h float64
-	if abs(c) >= abs(d) {
-		ratio := d / c
-		denom := c + ratio*d
-		g = (a + b*ratio) / denom
-		h = (b - a*ratio) / denom
+func rev(x k) (r k) { // |x
+	t, n := typ(x)
+	if n == atom || n < 2 {
+		if t == D {
+			r = use(x, t, n)
+			if r == x {
+				m.k[r+2] = rev(m.k[x+2])
+				m.k[r+3] = rev(m.k[x+3])
+			} else {
+				m.k[r+2] = rev(inc(m.k[x+2]))
+				m.k[r+3] = rev(inc(m.k[x+3]))
+			}
+			return decret(x, r)
+		}
+		return x
+	}
+	r = use(x, t, n)
+	if t < D {
+		sz, cp, m, o := lns[t], cpx[t], n, k(0)
+		if sz == 16 {
+			o = 8
+		}
+		src, dst := o+8+x<<2, o+8+r<<2
+		if src == dst {
+			cp, m = swx[t], n/2
+		}
+		for j := k(0); j < m; j++ {
+			cp(dst+(n-1-j)*sz, src+j*sz)
+		}
 	} else {
-		ratio := c / d
-		denom := d + ratio*c
-		g = (a*ratio + b) / denom
-		h = (b*ratio - a) / denom
+		panic("nyi")
 	}
-	if isnan(g) || isnan(h) {
-		return nan(), nan() // simplified
+	if t == L && x != r {
+		for i := k(0); i < n; i++ {
+			inc(m.k[2+i+r])
+		}
 	}
-	return g, h
+	return decret(x, r)
 }
-func abs(x f) f {
-	if x < 0 {
-		x = -x
-	}
-	return x
-}
+
 func nan() f {
 	u := uint64(0x7FF8000000000001)
 	return *(*f)(unsafe.Pointer(&u))

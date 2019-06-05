@@ -7,9 +7,12 @@ import (
 	"testing"
 )
 
-type z = complex128
-type l = []interface{}
-type d = [2]interface{}
+type (
+	l  = []interface{}
+	d  = [2]interface{}
+	iv = []int
+	sv = []string
+)
 
 func TestIni(t *testing.T) {
 	ini()
@@ -25,73 +28,104 @@ func TestIni(t *testing.T) {
 
 func TestNumMonad(t *testing.T) {
 	ini()
-	xv := []interface{}{c(3), []c{3, 5}, -5, []int{3, -9}, 3.2, []f{-3.5, 2.9, 0}, 2 - 4i, []z{4 - 2i, 3 + 4i}}
+	xv := []interface{}{c(3), []c{3, 5}, -5, iv{3, -9}, 3.2, []f{-3.5, 2.9, 0}, 2 - 4i, []z{4 - 2i, 3 + 4i}}
 	testCases := []struct {
 		f func(k) k
-		s string
+		s s
 		r []interface{}
 	}{
-		{neg, "-", []interface{}{c(253), []c{253, 251}, 5, []int{-3, 9}, -3.2, []f{3.5, -2.9, -0}, -2 + 4i, []z{-4 + 2i, -3 - 4i}}},
-		{fst, "*", []interface{}{c(3), c(3), -5, 3, 3.2, -3.5, 2 - 4i, 4 - 2i}},
+		{neg, "-", l{c(253), []c{253, 251}, 5, iv{-3, 9}, -3.2, []f{3.5, -2.9, -0}, -2 + 4i, []z{-4 + 2i, -3 - 4i}}},
+		{fst, "*", l{c(3), c(3), -5, 3, 3.2, -3.5, 2 - 4i, 4 - 2i}},
+		{rev, "|", l{c(3), []c{5, 3}, -5, iv{-9, 3}, 3.2, []f{0, 2.9, -3.5}, 2 - 4i, []z{3 + 4i, 4 - 2i}}},
 	}
-	for j, tc := range testCases {
-		for i := range xv {
-			x := K(xv[i])
-			if x == 0 {
-				t.Fatalf("cannot import go type %T", xv[i])
-			}
-			y := tc.f(x)
-			r := Go(y)
-			fmt.Printf("%s[%v] = %v\n", tc.s, xv[i], r)
-			if !reflect.DeepEqual(r, tc.r[i]) {
-				t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
-			}
-			xdec(x)
-			xdec(y)
-			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
-				panic("x|y is not free")
-			}
-			if u := Stats().UsedBlocks(); u != 1 {
-				t.Fatalf("leak")
+	occ := true // wrap x in inc dec
+	for i := 0; i < 2; i++ {
+		for j, tc := range testCases {
+			for i := range xv {
+				x := K(xv[i])
+				if x == 0 {
+					t.Fatalf("cannot import go type %T", xv[i])
+				}
+				if occ {
+					inc(x)
+				}
+				y := tc.f(x)
+				r := Go(y)
+				fmt.Printf("%s[%v] = %v\n", tc.s, xv[i], r)
+				if !reflect.DeepEqual(r, tc.r[i]) {
+					t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
+				}
+				fpck("1")
+				xdec(x)
+				xdec(y)
+				if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
+					panic("x|y is not free")
+				}
+				if u := Stats().UsedBlocks(); u != 1 {
+					t.Fatalf("leak")
+				}
+				fpck("2")
 			}
 		}
+		occ = false
 	}
 }
 func TestMonad(t *testing.T) {
 	ini()
 	testCases := []struct {
 		f    func(k) k
-		s    string
+		s    s
 		x, r interface{}
 	}{
-		{til, "!", 3, []int{0, 1, 2}},
+		{til, "!", 3, iv{0, 1, 2}},
+		{til, "!", d{sv{"a", "b"}, iv{1, 2}}, sv{"a", "b"}},
 		// TODO !overloads
 		{fst, "*", l{3, 4, 5}, 3},
 		{fst, "*", "alpha", "alpha"},
 		{fst, "*", l{"alpha"}, "alpha"},
-		{fst, "*", d{l{"x", "y"}, l{[]int{5, 3}, 4}}, []int{5, 3}},
-		{fst, "*", d{[]string{"x", "y"}, []int{7, 2}}, 7},
+		{fst, "*", d{l{"x", "y"}, l{iv{5, 3}, 4}}, iv{5, 3}},
+		{fst, "*", d{sv{"x", "y"}, iv{7, 2}}, 7},
 		// TODO fst func
+		{rev, "|", l{}, l{}},
+		{rev, "|", l{3}, l{3}},
+		{rev, "|", l{1, 2}, l{2, 1}},
+		{rev, "|", l{1, l{3, 4}}, l{l{3, 4}, 1}},
+		{rev, "|", d{iv{1, 2}, iv{3, 4}}, d{iv{2, 1}, iv{4, 3}}},
+		{rev, "|", d{sv{"alpha", "beta"}, l{3, iv{3, 5}}}, d{sv{"beta", "alpha"}, l{iv{3, 5}, 3}}},
 	}
-	for j, tc := range testCases {
-		x := K(tc.x)
-		if x == 0 {
-			t.Fatalf("cannot import go type %T", tc.x)
+	occ := true // wrap x in inc dec
+	for i := 0; i < 2; i++ {
+		for j, tc := range testCases {
+			// fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
+			x := K(tc.x)
+			_ = Stats().UsedBlocks()
+			if x == 0 {
+				t.Fatalf("cannot import go type %T", tc.x)
+			}
+			if occ {
+				inc(x)
+			}
+			y := tc.f(x)
+			fpck("1")
+			if occ {
+				dec(x)
+			}
+			r := Go(y)
+			fmt.Printf("%s[%v] = %v\n", tc.s, tc.x, r)
+			if !reflect.DeepEqual(r, tc.r) {
+				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
+			}
+			xdec(x)
+			xdec(y)
+			fpck("2")
+			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
+				panic("x|y is not free")
+			}
+			if u := Stats().UsedBlocks(); u != 1 {
+				t.Fatalf("leak: %d", u)
+			}
 		}
-		y := tc.f(x)
-		r := Go(y)
-		if !reflect.DeepEqual(r, tc.r) {
-			xxd()
-			t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
-		}
-		xdec(x)
-		xdec(y)
-		if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
-			panic("x|y is not free")
-		}
-		if u := Stats().UsedBlocks(); u != 1 {
-			t.Fatalf("leak: %d", u)
-		}
+		occ = false
 	}
 }
 func pfl() {
@@ -106,66 +140,64 @@ func xdec(x k) {
 }
 
 func xxd() { // memory dump
-	t := [16]c{48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102}
-	s2 := func(x c) (c, c) { return t[x>>4], t[x&0xF] }
-	l := make([]c, 49)
-	for i := 0; i < len(l); i++ {
-		l[i] = 32
-	}
-	n := 0
-	u := k(0)
-	e := true
-	h := 0
-	s := make([]c, 32)
-	s[3] = '#'
-	var tp, tn, rc k
-	for i := 0; i < len(m.c); i += 2 {
+	h := k(0)
+	for i := k(0); i < k(len(m.k)); i += 4 {
+		a, b, c, d := m.k[i+0], m.k[i+1], m.k[i+2], m.k[i+3]
+		if a == 0 && b == 0 && c == 0 && d == 0 {
+			continue
+		}
+		fmt.Printf("0x%04x %08x %08x %08x %08x", i, a, b, c, d)
 		if i == h {
-			tp, tn = typ(k(i))
-			b := [8]c{'x', 'i', 'f', 'z', 's', 'g', 'd', 'l'}
-			s[0] = b[tp]
-			if tn != atom {
-				s[0] -= 32
-			}
-			bt := k(0)
+			tp := m.k[i] >> 28
 			if tp == 0 {
-				bt = m.k[k(i)>>2]
-			} else {
-				bt = buk(m.k[k(i)>>2])
-			}
-			s[1], s[2] = s2(c(bt))
-			rc = m.k[1+k(i)>>2]
-			h += 1 << bt
-		}
-		if n == 0 {
-			l[0], l[1] = s2(c(u >> 24))
-			l[2], l[3] = s2(c(u >> 16))
-			l[4], l[5] = s2(c(u >> 8))
-			l[6], l[7] = s2(c(u))
-			u += 16
-			n = 8
-		}
-		l[n+1], l[n+2] = s2(m.c[i])
-		l[n+3], l[n+4] = s2(m.c[i+1])
-		if m.c[i] != 0 || m.c[i+1] != 0 {
-			e = false
-		}
-		n += 5
-		if n == 48 {
-			n = 0
-			if !e {
-				print(string(l))
-				if s[0] != 0 {
-					if tn >= 0 {
-						print(string(s[:4]), tn, ";", rc)
-					} else {
-						print(string(s[:3]), ";", rc)
-					}
-					s[0], tn = 0, atom
+				fmt.Printf("  %d", m.k[i])
+				h += 1 << (m.k[i] - 2)
+				nf := m.k[i+1]
+				if nf > 0 && nf < 64 {
+					fmt.Printf(" illegal fp")
+				} else if nf > 0 && m.k[nf]>>28 != 0 {
+					fmt.Printf(" fp is not free")
 				}
-				println()
+			} else {
+				atoms := "?cifzsgld?????"
+				vects := "?CIFZSGLD?????"
+				tp, n := typ(i)
+				bt := bk(tp, n)
+				if n == atom {
+					fmt.Printf(" %c%d +%d", atoms[tp], bt, b)
+				} else {
+					fmt.Printf(" %c%d #%d +%d", vects[tp], bt, n, b)
+				}
+				h += 1 << (bt - 2)
 			}
-			e = true
+		}
+		fmt.Println()
+	}
+}
+func fpck(s s) { // check free pointers
+	for i := 4; i < 32; i++ {
+		nf := m.k[i]
+		if nf > 0 && (nf < 64 || m.k[nf]>>28 != 0) {
+			xxd()
+			panic("fpck " + s + " bad pointer in free-list: @" + strconv.Itoa(int(i)))
+		}
+	}
+	h := k(0)
+	for i := k(0); i < k(len(m.k)); i += 4 {
+		if i == h {
+			tp := m.k[i] >> 28
+			if tp == 0 {
+				h += 1 << (m.k[i] - 2)
+				nf := m.k[i+1]
+				if nf > 0 && (nf < 64 || m.k[nf]>>28 != 0) {
+					xxd()
+					panic("fpck " + s + " illegal free-pointer")
+				}
+			} else {
+				tp, n := typ(i)
+				bt := bk(tp, n)
+				h += 1 << (bt - 2)
+			}
 		}
 	}
 }
@@ -198,7 +230,7 @@ func Stats() MemStats {
 			t := m.k[a]
 			//print(" free bt=", t)
 			if t < 4 || t > 31 {
-				println(a, t)
+				fmt.Printf("free block at %x with bt %d\n", a, t)
 				panic("size")
 			}
 			b := st[t]
@@ -262,8 +294,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		m.f[1+r>>1] = a
 	case complex128:
 		r = mk(Z, atom)
-		m.f[1+r>>1] = real(a)
-		m.f[2+r>>1] = imag(a)
+		m.z[1+r>>2] = a
 	case string:
 		buf := kstr(a)
 		r = mk(S, atom)
@@ -296,8 +327,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	case []complex128:
 		r = mk(Z, k(len(a)))
 		for i, v := range a {
-			m.f[1+2*i+int(r>>1)] = real(v)
-			m.f[2+2*i+int(r>>1)] = imag(v)
+			m.z[1+i+int(r>>2)] = v
 		}
 	case []string:
 		r = mk(S, k(len(a)))
@@ -351,7 +381,7 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		case F:
 			return m.f[1+x>>1]
 		case Z:
-			return complex(m.f[1+x>>1], m.f[2+x>>1])
+			return m.z[1+x>>2]
 		case S:
 			return str(x, 0)
 		case D:
@@ -380,7 +410,7 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		case Z:
 			r := make([]complex128, n)
 			for i := range r {
-				r[i] = complex(m.f[1+2*i+int(x>>1)], m.f[2+2*i+int(x>>1)])
+				r[i] = m.z[1+i+int(x>>2)]
 			}
 			return r
 		case S:
