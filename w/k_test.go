@@ -60,7 +60,7 @@ func TestNumMonad(t *testing.T) {
 				if occ {
 					dec(x)
 				}
-				r := Go(y)
+				r := G(y)
 				fmt.Printf("%s(%v) = %v\n", tc.s, xv[i], r)
 				if !reflect.DeepEqual(r, tc.r[i]) {
 					t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
@@ -111,8 +111,8 @@ func TestMonad(t *testing.T) {
 		{cnt, "#", d{iv{3, 4}, sv{"x", "y"}}, 2},
 		{tip, "@", l{}, ""},
 		{tip, "@", d{iv{1, 2}, iv{3, 4}}, "a"},
-		{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
-		{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
+		//{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
+		//{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
@@ -131,7 +131,7 @@ func TestMonad(t *testing.T) {
 			if occ {
 				dec(x)
 			}
-			r := Go(y)
+			r := G(y)
 			fmt.Printf("%s[%v] = %v\n", tc.s, tc.x, r)
 			if !reflect.DeepEqual(r, tc.r) {
 				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
@@ -378,7 +378,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	}
 	return r
 }
-func Go(x k) interface{} { // convert k value to go type (returns nil on error)
+func G(x k) interface{} { // convert k value to go type (returns nil on error)
 	str := func(x k, j int) string {
 		buf := make([]byte, 8)
 		n := 0
@@ -406,7 +406,7 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		case S:
 			return str(x, 0)
 		case D:
-			return [2]interface{}{Go(m.k[2+x]), Go(m.k[3+x])}
+			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
 		}
 	} else {
 		switch t {
@@ -443,7 +443,7 @@ func Go(x k) interface{} { // convert k value to go type (returns nil on error)
 		case L:
 			r := make([]interface{}, n)
 			for i := range r {
-				r[i] = Go(m.k[2+i+int(x)])
+				r[i] = G(m.k[2+i+int(x)])
 			}
 			return r
 		}

@@ -39,7 +39,7 @@ Else:{0x05,x}              / within If e.g.: If[x,Else y]
 / divide initial memory and set free bucket headers: i:15…7: p:1<<i m[p]:i m[4*i]:p
 ini:,/(c 16;s 0;c 65536;s 1;L[,/(x;c 1;sub;t 0;c 7;ltu;b1;x1;c 1;shr;t 1;x;setb;x;c 4;mul;y;seti)])
 ini,:,/(c 0;c 7;setb;c 4;c 16;seti;c 36;c 0;seti;c 512;c 73;setb)
-lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzscgld
+lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzschld
 ini,:,/(520+4*!lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
 /TODO: set pointer to k-tree at 8
 f[`ini]:(e;e;I,I;ini)                      / start function

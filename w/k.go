@@ -13,7 +13,7 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, G, L, D k = 1, 2, 3, 4, 5, 6, 7, 8
+	C, I, F, Z, S, H, L, D k = 1, 2, 3, 4, 5, 6, 7, 8
 	atom                   k = 0x0fffffff
 )
 
@@ -29,7 +29,7 @@ type slice struct {
 	c int
 }
 
-//                C  I  F   Z  S  G  L  D
+//                C  I  F   Z  S  H  L  D
 var lns = [9]k{0, 1, 4, 8, 16, 8, 4, 4, 8}
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
@@ -372,7 +372,7 @@ func fst(x k) (r k) { // *x
 	switch t {
 	case C:
 		m.c[8+r<<2] = m.c[8+x<<2]
-	case I, G:
+	case I, H:
 		m.k[2+r] = m.k[2+x]
 	case F, S:
 		m.f[1+r>>1] = m.f[1+x>>1]

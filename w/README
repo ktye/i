@@ -14,8 +14,8 @@ A repl is hosted on ktye.github.io
 
 Type and memory system
 32-bit system, buddy allocater with 8 byte headers
-7 vector types (ifzscgl) int32, float64, complex128, symbol64, byte8, func32, list32
-additional scalar types:  dict64 (255 are free)
+types (ifzschld) int32, float64, complex128, symbol64, byte8, func32, list32, dict64
+space for 15 types
 8 byte header:
   4 bits type p>>28
  28 bits vector size, atom: p&0x0fffffff == 0x0fffffff
