@@ -37,8 +37,11 @@ var m struct { // linear memory (slices share underlying arrays)
 	f []f
 	z []z
 }
-var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI} // arguments are byte addresses
-var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI}
+var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI}      // copy (arguments are byte addresses)
+var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI}      // swap
+var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, eqI, nil} // equal
+var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
+var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -68,14 +71,45 @@ func msl() { // update slice header after increasing m.f
 	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
 	m.z = *(*[]z)(unsafe.Pointer(&zz))
 }
-func cpC(dst, src k) { m.c[dst] = m.c[src] }
-func cpI(dst, src k) { m.k[dst>>2] = m.k[src>>2] }
-func cpF(dst, src k) { m.f[dst>>3] = m.f[src>>3] }
-func cpZ(dst, src k) { m.z[dst>>4] = m.z[src>>4] }
-func swC(dst, src k) { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
-func swI(dst, src k) { m.k[dst>>2], m.k[src>>2] = m.k[src>>2], m.k[dst>>2] }
-func swF(dst, src k) { m.f[dst>>3], m.f[src>>3] = m.f[src>>3], m.f[dst>>3] }
-func swZ(dst, src k) { m.z[dst>>4], m.z[src>>4] = m.z[src>>4], m.z[dst>>4] }
+func cpC(dst, src k)  { m.c[dst] = m.c[src] }
+func cpI(dst, src k)  { m.k[dst>>2] = m.k[src>>2] }
+func cpF(dst, src k)  { m.f[dst>>3] = m.f[src>>3] }
+func cpZ(dst, src k)  { m.z[dst>>4] = m.z[src>>4] }
+func swC(dst, src k)  { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
+func swI(dst, src k)  { m.k[dst>>2], m.k[src>>2] = m.k[src>>2], m.k[dst>>2] }
+func swF(dst, src k)  { m.f[dst>>3], m.f[src>>3] = m.f[src>>3], m.f[dst>>3] }
+func swZ(dst, src k)  { m.z[dst>>4], m.z[src>>4] = m.z[src>>4], m.z[dst>>4] }
+func eqC(x, y k) bool { return m.c[x] == m.c[y] }
+func ltC(x, y k) bool { return m.c[x] < m.c[y] }
+func gtC(x, y k) bool { return m.c[x] > m.c[y] }
+func eqI(x, y k) bool { return i(m.k[x>>2]) == i(m.k[y>>2]) }
+func ltI(x, y k) bool { return i(m.k[x>>2]) < i(m.k[y>>2]) }
+func gtI(x, y k) bool { return i(m.k[x>>2]) > i(m.k[y>>2]) }
+func eqF(x, y k) bool { return m.f[x>>3] == m.f[y>>3] }
+func ltF(x, y k) bool { return m.f[x>>3] < m.f[y>>3] }
+func gtF(x, y k) bool { return m.f[x>>3] > m.f[y>>3] }
+func eqZ(x, y k) bool { return eqF(x, y) && eqF(8+x, 8+y) }
+func ltZ(x, y k) bool { // real than imag
+	if ltF(x, y) {
+		return true
+	} else if eqF(x, y) {
+		return ltF(8+x, 8+y)
+	}
+	return false
+}
+func gtZ(x, y k) bool { // real than imag
+	if gtF(x, y) {
+		return true
+	} else if eqF(8+x, 8+y) {
+		return gtF(8+x, 8+y)
+	}
+	return false
+}
+func eqS(x, y k) bool { return m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2] }
+func ltS(x, y k) bool { return sym(x) < sym(y) }
+func gtS(x, y k) bool { return sym(x) > sym(y) }
+func sym(x k) uint64  { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
+
 func grw() { // double memory
 	s := m.k[2]
 	if 1<<k(s) != len(m.c) {
@@ -163,6 +197,7 @@ func decret(x, r k) k {
 }
 func dec(x k) {
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
+		println("unref", x, x<<2)
 		panic("unref")
 	}
 	t, n := typ(x)
@@ -192,6 +227,16 @@ func free(x k) {
 	m.k[x] = bt
 	m.k[x+1] = m.k[bt]
 	m.k[bt] = x
+}
+func srk(r, t, n, nn k) { // shrink bucket
+	m.k[r] = t<<28 | nn
+	big, small := bk(t, n), bk(t, nn)
+	s := k(1 << (big - 3))
+	for j := big; j > small; j-- {
+		m.k[r+s] = t<<28 | n>>(1+big-j)
+		free(r + s)
+		s >>= 1
+	}
 }
 func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	if rt == 0 {
@@ -323,19 +368,22 @@ func kdx(x, t k) k { // unsigned int from a numeric scalar
 	}
 	panic("type")
 }
-func til(x k) k { // !n
+func til(x k) (r k) { // !n
 	t, n := typ(x)
 	if n == atom {
 		if t == D {
-			return inc(m.k[2+x])
+			r = inc(m.k[2+x])
+			dec(x)
+			return r
 		} else if t > Z {
 			panic("type")
 		}
 		n := kdx(x, t) // TODO: handle negative
-		r := mk(I, n)
+		r = mk(I, n)
 		for i := k(0); i < n; i++ {
 			m.k[2+i+r] = i
 		}
+		dec(x)
 		return r
 	} else {
 		panic("nyi !a")
@@ -471,6 +519,7 @@ func enl(x k) (r k) { // ,x
 	m.k[2+r] = x
 	return r
 }
+
 func is0(x k) (r k) { panic("nyi"); return x } // ^x
 func cnt(x k) (r k) { // #x
 	t, n := typ(x)
@@ -494,7 +543,47 @@ func flr(x k) k { // _x
 	}, nil, I)
 }
 func fms(x k) (r k) { panic("nyi"); return x } // $x
-func unq(x k) (r k) { panic("nyi"); return x } // ?x
+func unq(x k) (r k) { // ?x
+	t, n := typ(x)
+	if n == atom {
+		panic("nyi") // overloads, random numbers?
+	} else if t == D { // what does ?d do?
+		panic("type")
+	} else if n < 2 {
+		return x
+	}
+	r = mk(t, n)
+	eq, cp, o := eqx[t], cpx[t], k(0)
+	if lns[t] == 16 {
+		o = 8
+	}
+	if t == L {
+		eq = match
+	}
+	sz := lns[t]
+	src, dst := o+8+x<<2, o+8+r<<2
+	nn := k(0)
+	for i := k(0); i < n; i++ { // quadratic, should be improved
+		u := true
+		srci := src + i*sz
+		for j := k(0); j < nn; j++ {
+			if (t == L) || eq(srci, dst+j*sz) {
+				u = false
+				break
+			}
+		}
+		if u {
+			cp(dst+nn*sz, srci)
+			if t == L {
+				inc(m.k[srci>>2])
+			}
+			nn++
+		}
+	}
+	srk(r, t, n, nn)
+	dec(x)
+	return r
+}
 func tip(x k) (r k) { // @x
 	r = mk(S, atom)
 	m.k[2+r] = 0
@@ -554,6 +643,50 @@ func evl(x k) (r k) { // .x
 	}
 	panic("nyi")
 	return x
+}
+
+func match(x, y k) bool { // recursive match, byte addressed
+	if x == y {
+		return true
+	}
+	x >>= 2
+	y >>= 2
+	t, n := typ(x)
+	tt, nn := typ(y)
+	if tt != t || nn != n {
+		return false
+	}
+	switch t {
+	case L:
+		for j := k(0); j < n; j++ {
+			if match(2+x+j, 2+y+j) == false {
+				return false
+			}
+		}
+		return true
+	case D:
+		if match(2+x, 2+y) == false || match(3+x, 3+y) == false {
+			return false
+		}
+		return true
+	default:
+		eq, sz, o := eqx[t], lns[t], k(0)
+		if sz == 16 {
+			o = 8
+		}
+		if eq == nil {
+			panic("type")
+		}
+		x, y = 8+o+x<<2, 8+o+y<<2
+		for j := k(0); j < n; j++ {
+			if eq(x+j*sz, y+j*sz) == false {
+				return false
+			}
+		}
+		return true
+	}
+	panic("reach")
+	return false
 }
 
 func nan() f {

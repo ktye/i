@@ -66,8 +66,7 @@ func TestNumMonad(t *testing.T) {
 					t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
 				}
 				fpck("1")
-				xdec(y)
-				xdec(x)
+				dec(y)
 				if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 					panic("x|y is not free")
 				}
@@ -111,8 +110,14 @@ func TestMonad(t *testing.T) {
 		{cnt, "#", d{iv{3, 4}, sv{"x", "y"}}, 2},
 		{tip, "@", l{}, ""},
 		{tip, "@", d{iv{1, 2}, iv{3, 4}}, "a"},
-		//{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
-		//{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
+		{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
+		{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
+		{unq, "?", []c{1, 2, 43, 2}, []c{1, 2, 43}},
+		{unq, "?", iv{1, 2, 3, 2}, iv{1, 2, 3}},
+		{unq, "?", []f{5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 5}, []f{5, 0, 8}},
+		{unq, "?", []z{0, 4i, 5i, 4i, 0, 3}, []z{0, 4i, 5i, 3}},
+		{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
+		{unq, "?", l{1i, l{2, l{"a"}}, l{3, "b"}, l{2, l{"a"}}, 1i}, l{1i, l{2, l{"a"}}, l{3, "b"}}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
@@ -136,8 +141,7 @@ func TestMonad(t *testing.T) {
 			if !reflect.DeepEqual(r, tc.r) {
 				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
 			}
-			xdec(y)
-			xdec(x)
+			dec(y)
 			fpck("2")
 			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 				panic("x|y is not free")
@@ -159,7 +163,6 @@ func xdec(x k) {
 		dec(x)
 	}
 }
-
 func xxd() { // memory dump
 	h := k(0)
 	for i := k(0); i < k(len(m.k)); i += 4 {
