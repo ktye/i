@@ -109,6 +109,24 @@ func eqS(x, y k) bool { return m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>
 func ltS(x, y k) bool { return sym(x) < sym(y) }
 func gtS(x, y k) bool { return sym(x) > sym(y) }
 func sym(x k) uint64  { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
+func mys(x k, u uint64) {
+	var b [8]c
+	b = *(*[8]c)(unsafe.Pointer(&u))
+	copy(m.c[x:x+8], b[:])
+}
+func str(u uint64) s {
+	var b [8]c
+	n := 8
+	for i := k(0); i < 8; i++ {
+		j := 8 * (7 - i)
+		b[i] = c((u & (0xFF << j)) >> j)
+		if b[i] == 0 {
+			n = int(i)
+			break
+		}
+	}
+	return s(b[:n])
+}
 
 func grw() { // double memory
 	s := m.k[2]
@@ -612,8 +630,7 @@ func fms(x k) (r k) { // $x
 		}
 		sep := ""
 		for j := k(0); j < n; j++ {
-			s := sep + fs(j)
-			if push(s) {
+			if push(sep + fs(j)) {
 				break
 			}
 			sep = " "
@@ -668,6 +685,8 @@ func fms(x k) (r k) { // $x
 		vecs(func(j k) s {
 			return strconv.FormatFloat(m.f[2+2*j+x>>1], 'g', -1, 64) + "i" + strconv.FormatFloat(m.f[3+2*j+x>>1], 'g', -1, 64)
 		})
+	case S:
+		vecs(func(j k) s { return str(sym(8 + 8*j + x<<2)) })
 	case L:
 		push("(")
 		for j := k(0); j < n; j++ {
@@ -686,6 +705,7 @@ func fms(x k) (r k) { // $x
 		pushr(m.k[3+x])
 		push(")")
 	default:
+		println("fms t=", t)
 		panic("nyi")
 	}
 	if dd {
@@ -707,13 +727,13 @@ func unq(x k) (r k) { // ?x
 	} else if n < 2 {
 		return x
 	}
-	r = mk(C, n)
+	r = mk(t, n)
 	eq, cp, o := eqx[t], cpx[t], k(0)
 	if lns[t] == 16 {
 		o = 8
 	}
 	if t == L {
-		eq = match
+		eq = func(x, y k) bool { return match(m.k[x>>2], m.k[y>>2]) }
 	}
 	sz := lns[t]
 	src, dst := o+8+x<<2, o+8+r<<2
@@ -722,7 +742,7 @@ func unq(x k) (r k) { // ?x
 		u := true
 		srci := src + i*sz
 		for j := k(0); j < nn; j++ {
-			if (t == L) || eq(srci, dst+j*sz) {
+			if eq(srci, dst+j*sz) {
 				u = false
 				break
 			}
@@ -735,7 +755,7 @@ func unq(x k) (r k) { // ?x
 			nn++
 		}
 	}
-	srk(r, C, n, nn)
+	srk(r, t, n, nn)
 	dec(x)
 	return r
 }
@@ -753,7 +773,7 @@ func tip(x k) (r k) { // @x
 	if n != atom {
 		s -= 32
 	}
-	m.c[8+r<<2] = c(s)
+	mys(8+r<<2, uint64(s)<<56)
 	dec(x)
 	return r
 }
@@ -772,7 +792,7 @@ func evl(x k) (r k) { // .x
 		if vn != atom || n != 2 {
 			panic("nyi")
 		}
-		c := m.c[8+v<<2]
+		c := c(sym(8+v<<2) >> 56) // TODO: this is only 1 char
 		s := "+-%*|&<>=~,^#_$?@."
 		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, is0, cnt, flr, fms, unq, tip, evl}
 		var g func(k) k
@@ -797,16 +817,17 @@ func evl(x k) (r k) { // .x
 	return x
 }
 
-func match(x, y k) bool { // recursive match, byte addressed
+func match(x, y k) bool { // recursive match
 	if x == y {
 		return true
 	}
-	x >>= 2
-	y >>= 2
 	t, n := typ(x)
 	tt, nn := typ(y)
 	if tt != t || nn != n {
 		return false
+	}
+	if n == atom {
+		n = 1
 	}
 	switch t {
 	case L:
@@ -837,7 +858,6 @@ func match(x, y k) bool { // recursive match, byte addressed
 		}
 		return true
 	}
-	panic("reach")
 	return false
 }
 

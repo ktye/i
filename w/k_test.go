@@ -15,6 +15,7 @@ type (
 )
 
 func TestIni(t *testing.T) {
+	//t.Skip()
 	ini()
 	st := Stats()
 	if st.UsedBlocks() != 1 {
@@ -27,7 +28,7 @@ func TestIni(t *testing.T) {
 }
 
 func TestNumMonad(t *testing.T) {
-	t.Skip() // rm
+	//t.Skip()
 	ini()
 	xv := []interface{}{c(3), []c{3, 5}, -5, iv{3, -9}, 3.2, []f{-3.5, 2.9, 0}, 2 - 4i, []z{4 - 2i, 3 + 4i}}
 	c0 := c(0)
@@ -81,6 +82,7 @@ func TestNumMonad(t *testing.T) {
 	}
 }
 func TestMonad(t *testing.T) {
+	//t.Skip()
 	ini()
 	testCases := []struct {
 		f    func(k) k
@@ -117,12 +119,12 @@ func TestMonad(t *testing.T) {
 		{evl, ".", l{"-", l{"-", 3}}, 3},
 		{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
 		{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
-		//{unq, "?", []c{1, 2, 43, 2}, []c{1, 2, 43}},
-		//{unq, "?", iv{1, 2, 3, 2}, iv{1, 2, 3}},
-		//{unq, "?", []f{5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 5}, []f{5, 0, 8}},
-		//{unq, "?", []z{0, 4i, 5i, 4i, 0, 3}, []z{0, 4i, 5i, 3}},
-		//{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
-		//{unq, "?", l{1i, l{2, l{"a"}}, l{3, "b"}, l{2, l{"a"}}, 1i}, l{1i, l{2, l{"a"}}, l{3, "b"}}},
+		{unq, "?", []c{1, 2, 43, 2}, []c{1, 2, 43}},
+		{unq, "?", iv{1, 2, 3, 2}, iv{1, 2, 3}},
+		{unq, "?", []f{5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 5}, []f{5, 0, 8}},
+		{unq, "?", []z{0, 4i, 5i, 4i, 0, 3}, []z{0, 4i, 5i, 3}},
+		{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
+		{unq, "?", l{1i, l{2, l{"a"}}, l{3, "b"}, l{2, l{"a"}}, 1i}, l{1i, l{2, l{"a"}}, l{3, "b"}}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
@@ -160,6 +162,7 @@ func TestMonad(t *testing.T) {
 	}
 }
 func TestFms(t *testing.T) {
+	//t.Skip()
 	ini()
 	testCases := []struct {
 		x interface{}
@@ -172,6 +175,9 @@ func TestFms(t *testing.T) {
 		{[]c{28}, ",0x1c"},
 		{[]c{0x1b, 0x5b, 0x5c}, "0x1b5b5c"},
 		{[]c("alpha"), `"alpha"`},
+		{"alpha", "`alpha"},
+		{sv{"alpha"}, ",`alpha"},
+		{sv{"a", "b", "c"}, "`a`b`c"},
 		{1, "1"},
 		{iv{}, "[-]"},
 		{iv{1}, ",1"},
@@ -193,6 +199,21 @@ func TestFms(t *testing.T) {
 			t.Fatalf("expected: %q got %s (%q)\n", tc.s, string(r), string(r))
 		}
 		dec(y)
+	}
+}
+func TestStr(t *testing.T) {
+	ini()
+	for _, x := range []s{"a", "b", "aa", "bb", "alpha", "betagammadelta"} {
+		n := len(x)
+		if n > 8 {
+			n = 8
+		}
+		if r := G(K(x)); r != x[:n] {
+			t.Fatalf("expected %s got %s\n", x, r)
+		}
+	}
+	if u := sym(8 + K("abcdefgh")<<2); u != 0x6162636465666768 {
+		t.Fatalf("%x\n", u)
 	}
 }
 func pfl() {
@@ -267,6 +288,14 @@ func fpck(s s) { // check free pointers
 		}
 	}
 }
+func pr(x k, a ...interface{}) {
+	fmt.Printf(":%x ", x)
+	r := fms(inc(x))
+	_, n := typ(r)
+	s := s(m.c[8+r<<2 : 8+n+r<<2])
+	dec(r)
+	fmt.Println(a, s)
+}
 
 type Bucket struct {
 	Type       uint32
@@ -331,15 +360,15 @@ func Stats() MemStats {
 // type conversions between go and k:
 
 func K(x interface{}) k { // convert go value to k type, returns 0 on error
-	kstr := func(s string) [8]byte {
-		var r [8]byte
-		a := []byte(s)
-		for i := range r {
-			if i < len(a) {
-				r[i] = a[i]
-			}
+	kstr := func(dst k, s string) { // byte order independend
+		u, n := uint64(0), len(s)
+		if n > 8 {
+			n = 8
 		}
-		return r
+		for i := 0; i < n; i++ {
+			u |= uint64(s[i]) << (8 * c(7-i))
+		}
+		mys(dst, u)
 	}
 	var r k
 	switch a := x.(type) {
@@ -362,11 +391,8 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		r = mk(Z, atom)
 		m.z[1+r>>2] = a
 	case string:
-		buf := kstr(a)
 		r = mk(S, atom)
-		for i := range buf {
-			m.c[8+i+int(r<<2)] = buf[i]
-		}
+		kstr(8+r<<2, a)
 	case []bool:
 		buf := make([]byte, len(a))
 		for i, v := range a {
@@ -398,10 +424,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	case []string:
 		r = mk(S, k(len(a)))
 		for i := range a {
-			buf := kstr(a[i])
-			for j := range buf {
-				m.c[8+8*i+j+int(r<<2)] = buf[j]
-			}
+			kstr(8+8*k(i)+r<<2, a[i])
 		}
 	case []interface{}:
 		r = mk(L, k(len(a)))
@@ -424,19 +447,6 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	return r
 }
 func G(x k) interface{} { // convert k value to go type (returns nil on error)
-	str := func(x k, j int) string {
-		buf := make([]byte, 8)
-		n := 0
-		for i := range buf {
-			if v := m.c[8+8*j+int(x<<2)+i]; v != 0 {
-				buf[i] = v
-				n++
-			} else {
-				break
-			}
-		}
-		return string(buf[:n])
-	}
 	t, n := typ(x)
 	if n == atom {
 		switch t {
@@ -449,7 +459,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 		case Z:
 			return m.z[1+x>>2]
 		case S:
-			return str(x, 0)
+			return str(sym(8 + x<<2))
 		case D:
 			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
 		}
@@ -482,7 +492,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 		case S:
 			r := make([]string, n)
 			for i := range r {
-				r[i] = str(x, i)
+				r[i] = str(sym(8 + 8*k(i) + x<<2))
 			}
 			return r
 		case L:
