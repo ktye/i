@@ -1,6 +1,7 @@
 package w
 
 import (
+	"strconv"
 	"unsafe"
 )
 
@@ -187,7 +188,7 @@ func cp(x k) (r k) {
 }
 */
 func typ(a k) (k, k) { // type and length at addr
-	return m.k[a] >> 28, m.k[a] & 0x0fffffff
+	return m.k[a] >> 28, m.k[a] & atom
 }
 func inc(x k) k {
 	t, n := typ(x)
@@ -225,7 +226,7 @@ func decret(x, r k) k {
 }
 func dec(x k) {
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
-		xxd()
+		//xxd()
 		panic("unref " + hxk(x))
 	}
 	t, n := typ(x)
@@ -258,11 +259,14 @@ func free(x k) {
 	m.k[bt] = x
 }
 func srk(r, t, n, nn k) { // shrink bucket
+	if m.k[r]>>28 != t {
+		panic("type")
+	}
 	m.k[r] = t<<28 | nn
 	big, small := bk(t, n), bk(t, nn)
 	s := k(1 << (big - 3))
 	for j := big; j > small; j-- {
-		m.k[r+s] = t<<28 | n>>(1+big-j)
+		m.k[r+s] = I<<28 | (1 << (j - 3)) - 2
 		free(r + s)
 		s >>= 1
 	}
@@ -571,7 +575,129 @@ func flr(x k) k { // _x
 		return y
 	}, nil, I)
 }
-func fms(x k) (r k) { panic("nyi"); return x } // $x
+func fms(x k) (r k) { // $x
+	lim := k(120)
+	r = mk(C, lim)
+	t, n := typ(x)
+	dd := false
+	pcnt := k(0)
+	push := func(s s) bool {
+		ln := k(len(s))
+		if pcnt+ln > lim {
+			dd, ln = true, lim-pcnt
+		}
+		for j := k(0); j < ln; j++ {
+			m.c[8+pcnt+r<<2] = c(s[j])
+			pcnt++
+		}
+		return dd
+	}
+	pushr := func(p k) (o bool) {
+		a := fms(inc(p))
+		as, ln := a<<2, m.k[a]&atom
+		if at, an := typ(a); at != C || an > lim {
+			panic("type")
+		}
+		if push(s(m.c[8+as : 8+as+ln])) {
+			o = true
+		}
+		dec(a)
+		return o
+	}
+	vecs := func(fs func(jj k) s) {
+		if n == 0 {
+			push("[-]") // TODO: format empty arrays?
+		} else if n == atom {
+			n = 1
+		}
+		sep := ""
+		for j := k(0); j < n; j++ {
+			s := sep + fs(j)
+			if push(s) {
+				break
+			}
+			sep = " "
+		}
+	}
+	if n == 1 {
+		push(",")
+	}
+	switch t {
+	case C:
+		nn, xc, o := n, x<<2, true
+		if nn == atom {
+			nn = 1
+		} else if nn > lim {
+			nn = lim
+		}
+		ispr := func(b c) bool { return b >= 0x20 && b < 0x7E }
+		for j := k(0); j < nn; j++ {
+			if !ispr(m.c[8+xc+j]) {
+				o = false
+				break
+			}
+		}
+		if o {
+			push(`"`)
+			push(s(m.c[8+xc : 8+xc+nn]))
+			push(`"`)
+		} else {
+			push("0x")
+			for j := k(0); j < nn; j++ {
+				c1, c2 := hxb(m.c[8+xc+j])
+				if push(s([]c{c1, c2})) {
+					break
+				}
+			}
+		}
+	case I: // TODO no strconv
+		vecs(func(j k) s { return strconv.Itoa(int(m.k[2+x+j])) })
+	case F: // TODO no strconv
+		vecs(func(j k) s { return strconv.FormatFloat(m.f[1+j+x>>1], 'g', -1, 64) })
+		o, af := 8+r<<2, true
+		for j := k(0); j < pcnt; j++ {
+			if m.c[o+j] == '.' {
+				af = false
+				break
+			}
+		}
+		if af {
+			push("f")
+		}
+	case Z: // TODO no strconv
+		vecs(func(j k) s {
+			return strconv.FormatFloat(m.f[2+2*j+x>>1], 'g', -1, 64) + "i" + strconv.FormatFloat(m.f[3+2*j+x>>1], 'g', -1, 64)
+		})
+	case L:
+		push("(")
+		for j := k(0); j < n; j++ {
+			if j > 0 {
+				push(";")
+			}
+			if pushr(m.k[2+x+j]) {
+				break
+			}
+		}
+		push(")")
+	case D:
+		push("(")
+		pushr(m.k[2+x])
+		push("!")
+		pushr(m.k[3+x])
+		push(")")
+	default:
+		panic("nyi")
+	}
+	if dd {
+		m.c[8+r+lim-1], m.c[8+r+lim-2] = '.', '.'
+	}
+	m.k[r] = C<<28 | pcnt
+	if nn := m.k[r] & atom; nn < (8+lim)>>1 {
+		srk(r, C, lim, nn)
+	}
+	dec(x)
+	return r
+}
 func unq(x k) (r k) { // ?x
 	t, n := typ(x)
 	if n == atom {
@@ -581,7 +707,7 @@ func unq(x k) (r k) { // ?x
 	} else if n < 2 {
 		return x
 	}
-	r = mk(t, n)
+	r = mk(C, n)
 	eq, cp, o := eqx[t], cpx[t], k(0)
 	if lns[t] == 16 {
 		o = 8
@@ -609,7 +735,7 @@ func unq(x k) (r k) { // ?x
 			nn++
 		}
 	}
-	srk(r, t, n, nn)
+	srk(r, C, n, nn)
 	dec(x)
 	return r
 }

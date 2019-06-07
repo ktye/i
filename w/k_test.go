@@ -27,6 +27,7 @@ func TestIni(t *testing.T) {
 }
 
 func TestNumMonad(t *testing.T) {
+	t.Skip() // rm
 	ini()
 	xv := []interface{}{c(3), []c{3, 5}, -5, iv{3, -9}, 3.2, []f{-3.5, 2.9, 0}, 2 - 4i, []z{4 - 2i, 3 + 4i}}
 	c0 := c(0)
@@ -95,6 +96,9 @@ func TestMonad(t *testing.T) {
 		{fst, "*", d{l{"x", "y"}, l{iv{5, 3}, 4}}, iv{5, 3}},
 		{fst, "*", d{sv{"x", "y"}, iv{7, 2}}, 7},
 		// TODO fst func
+		{fms, "$", iv{1, 2, 3}, []c("1 2 3")},
+		{fms, "$", l{1, 2, l{4, 5}}, []c("(1;2;(4;5))")},
+		{fms, "$", d{l{5, 5.5}, iv{1, 2}}, []c("((5;5.5)!1 2)")},
 		{rev, "|", l{}, l{}},
 		{rev, "|", l{3}, l{3}},
 		{rev, "|", l{1, 2}, l{2, 1}},
@@ -123,7 +127,7 @@ func TestMonad(t *testing.T) {
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
 		for j, tc := range testCases {
-			//fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
+			fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
 			x := K(tc.x)
 			_ = Stats().UsedBlocks()
 			if x == 0 {
@@ -153,6 +157,42 @@ func TestMonad(t *testing.T) {
 			}
 		}
 		occ = false
+	}
+}
+func TestFms(t *testing.T) {
+	ini()
+	testCases := []struct {
+		x interface{}
+		s s
+	}{
+		{[]c{}, `""`},
+		{c('x'), `"x"`},
+		{[]c{'x'}, `,"x"`},
+		{c(28), "0x1c"},
+		{[]c{28}, ",0x1c"},
+		{[]c{0x1b, 0x5b, 0x5c}, "0x1b5b5c"},
+		{[]c("alpha"), `"alpha"`},
+		{1, "1"},
+		{iv{}, "[-]"},
+		{iv{1}, ",1"},
+		{[]f{1.2, -3.5, 4}, "1.2 -3.5 4"},
+		{[]f{3, 5, 4}, "3 5 4f"},
+		{13.0, "13f"},
+		{1 + 2i, "1i2"},
+		{[]z{2i}, ",0i2"},
+		{[]z{2i, 3.5 + 7i}, "0i2 3.5i7"},
+		{l{1, 2, l{4, 5}}, "(1;2;(4;5))"},
+		{d{l{5, 5.5}, iv{1, 2}}, "((5;5.5)!1 2)"},
+	}
+	for _, tc := range testCases {
+		fmt.Printf("%v ?= %q\n", tc.x, tc.s)
+		x := K(tc.x)
+		y := fms(x)
+		r := G(y).([]c)
+		if reflect.DeepEqual(r, []byte(tc.s)) == false {
+			t.Fatalf("expected: %q got %s (%q)\n", tc.s, string(r), string(r))
+		}
+		dec(y)
 	}
 }
 func pfl() {
