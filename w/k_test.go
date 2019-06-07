@@ -110,19 +110,20 @@ func TestMonad(t *testing.T) {
 		{cnt, "#", d{iv{3, 4}, sv{"x", "y"}}, 2},
 		{tip, "@", l{}, ""},
 		{tip, "@", d{iv{1, 2}, iv{3, 4}}, "a"},
-		{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
+		{evl, ".", l{"-", l{"-", 3}}, 3},
 		{evl, ".", l{"-", l{"|", iv{3, 4}}}, iv{-4, -3}},
-		{unq, "?", []c{1, 2, 43, 2}, []c{1, 2, 43}},
-		{unq, "?", iv{1, 2, 3, 2}, iv{1, 2, 3}},
-		{unq, "?", []f{5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 5}, []f{5, 0, 8}},
-		{unq, "?", []z{0, 4i, 5i, 4i, 0, 3}, []z{0, 4i, 5i, 3}},
-		{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
-		{unq, "?", l{1i, l{2, l{"a"}}, l{3, "b"}, l{2, l{"a"}}, 1i}, l{1i, l{2, l{"a"}}, l{3, "b"}}},
+		{evl, ".", l{"-", iv{3, 4}}, iv{-3, -4}},
+		//{unq, "?", []c{1, 2, 43, 2}, []c{1, 2, 43}},
+		//{unq, "?", iv{1, 2, 3, 2}, iv{1, 2, 3}},
+		//{unq, "?", []f{5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 5}, []f{5, 0, 8}},
+		//{unq, "?", []z{0, 4i, 5i, 4i, 0, 3}, []z{0, 4i, 5i, 3}},
+		//{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
+		//{unq, "?", l{1i, l{2, l{"a"}}, l{3, "b"}, l{2, l{"a"}}, 1i}, l{1i, l{2, l{"a"}}, l{3, "b"}}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
 		for j, tc := range testCases {
-			// fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
+			//fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
 			x := K(tc.x)
 			_ = Stats().UsedBlocks()
 			if x == 0 {
@@ -142,6 +143,7 @@ func TestMonad(t *testing.T) {
 				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
 			}
 			dec(y)
+
 			fpck("2")
 			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 				panic("x|y is not free")

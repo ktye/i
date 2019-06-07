@@ -1,7 +1,6 @@
 package w
 
 import (
-	"strconv"
 	"unsafe"
 )
 
@@ -156,8 +155,37 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	}
 	m.k[a] = n | t<<28 // ok for atoms
 	m.k[a+1] = 1       // refcount
+	// println("mk", t, n, hxk(a))
 	return a
 }
+
+/* ?
+func cp(x k) (r k) {
+	if m.k[x+1] == 1 {
+		return x
+	}
+	t, n := typ(x)
+	r = mk(t, n)
+	switch t {
+	case C, I, F, Z, S:
+		sz := k(1 << bk(t, n))
+		src, dst := r<<2, x<<2
+		copy(m.c[dst:dst+sz], m.c[src:src+sz])
+		m.k[dst], m.k[dst+1] = t<<28|n, 1
+	case L:
+		for i := k(0); i < n; i++ {
+			m.k[2+r+i] = cp(inc(m.k[2+x+i])) ?
+		}
+	case D:
+		m.k[2+r] = cp(inc(m.k[2+x])) ?
+		m.k[3+r] = cp(inc(m.k[3+x])) ?
+	default:
+		panic("type")
+	}
+	dec(x)
+	return r
+}
+*/
 func typ(a k) (k, k) { // type and length at addr
 	return m.k[a] >> 28, m.k[a] & 0x0fffffff
 }
@@ -197,8 +225,8 @@ func decret(x, r k) k {
 }
 func dec(x k) {
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
-		println("unref", x, x<<2)
-		panic("unref")
+		xxd()
+		panic("unref " + hxk(x))
 	}
 	t, n := typ(x)
 	switch t {
@@ -222,6 +250,7 @@ func dec(x k) {
 	}
 }
 func free(x k) {
+	// println("free", hxk(x))
 	t, n := typ(x)
 	bt := bk(t, n)
 	m.k[x] = bt
@@ -629,15 +658,12 @@ func evl(x k) (r k) { // .x
 		if g == nil {
 			panic("nyi")
 		}
-		a := m.k[3+x]
+		a := inc(m.k[3+x])
 		at, _ := typ(a)
 		if at == L {
-			r = evl(inc(a))
-			//dec(a)
-			a = r
+			a = evl(a)
 		}
-		r = g(inc(a))
-		dec(a)
+		r = g(a)
 		dec(x)
 		return r
 	}
@@ -689,6 +715,16 @@ func match(x, y k) bool { // recursive match, byte addressed
 	return false
 }
 
+func hxb(x c) (c, c) { return hexs[x>>4], hexs[x&0x0F] }
+func hxk(x k) s {
+	b := []c{'0', 'x', '0', '0', '0', '0', '0', '0', '0', '0'}
+	for j := k(0); j < 4; j++ {
+		n := 8 * (3 - j)
+		b[2+2*j], b[3+2*j] = hxb(c((x & (0xFF << n)) >> n))
+	}
+	return s(b)
+}
+
 func nan() f {
 	u := uint64(0x7FF8000000000001)
 	return *(*f)(unsafe.Pointer(&u))
@@ -719,10 +755,4 @@ var l8t = [256]c{
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
 
-func addr(x k) string { // rm
-	s := strconv.FormatUint(uint64(x<<2), 16)
-	if len(s)%2 == 1 {
-		s = "0" + s
-	}
-	return "0x" + s
-}
+const hexs = "0123456780abcdef"
