@@ -14,7 +14,7 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, H, L, D k = 1, 2, 3, 4, 5, 6, 7, 8
+	C, I, F, Z, S, L, D, N k = 1, 2, 3, 4, 5, 6, 7, 8
 	atom                   k = 0x0fffffff
 )
 
@@ -30,19 +30,19 @@ type slice struct {
 	c int
 }
 
-//                C  I  F   Z  S  H  L  D
-var lns = [9]k{0, 1, 4, 8, 16, 8, 4, 4, 8}
+//                 C  I  F   Z  S  L  D  0  1  2  3  4
+var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 8, 4, 4, 4, 4, 4}
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
 	k []k
 	f []f
 	z []z
 }
-var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI}      // copy (arguments are byte addresses)
-var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI}      // swap
-var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, eqI, nil} // equal
-var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
-var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
+var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI} // copy (arguments are byte addresses)
+var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
+var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
+var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
+var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -457,7 +457,7 @@ func fst(x k) (r k) { // *x
 	switch t {
 	case C:
 		m.c[8+r<<2] = m.c[8+x<<2]
-	case I, H:
+	case I:
 		m.k[2+r] = m.k[2+x]
 	case F, S:
 		m.f[1+r>>1] = m.f[1+x>>1]
@@ -488,7 +488,7 @@ func rev(x k) (r k) { // |x
 	r = use(x, t, n)
 	if t < D {
 		sz, cp, m, o := lns[t], cpx[t], n, k(0)
-		if sz == 16 {
+		if t == Z {
 			o = 8
 		}
 		src, dst := o+8+x<<2, o+8+r<<2
@@ -509,8 +509,28 @@ func rev(x k) (r k) { // |x
 	return decret(x, r)
 }
 func wer(x k) (r k) { panic("nyi"); return x } // &x
-func asc(x k) (r k) { panic("nyi"); return x } // <x
-func dsc(x k) (r k) { panic("nyi"); return x } // >x
+func asc(x k) (r k) { // <x
+	t, n := typ(x)
+	if n == atom || t >= L {
+		panic("type")
+	}
+	a := mk(I, atom)
+	m.k[2+a] = n
+	r = til(a)
+	sz, lt, sw, o := lns[t], ltx[t], swI, k(0)
+	if t == Z {
+		o = 8
+	}
+	src, ind, dst := 8+o+x<<2, 2+r, 8+r<<2
+	for i := k(1); i < n; i++ { // insertion sort, should be replaced
+		for j := k(i); j > 0 && lt(src+sz*m.k[ind+j], src+sz*m.k[ind+j-1]); j-- {
+			sw(dst+4*j, dst+4*(j-1))
+		}
+	}
+	dec(x)
+	return r
+}
+func dsc(x k) (r k) { return rev(asc(x)) }     // >x
 func grp(x k) (r k) { panic("nyi"); return x } // =x
 func not(x k) (r k) { // ~x
 	return nm(x, func(x c) (r c) {
@@ -544,7 +564,7 @@ func enl(x k) (r k) { // ,x
 			return r
 		}
 		cp, o := cpx[t], k(0)
-		if lns[t] == 16 {
+		if t == Z {
 			o = 8
 		}
 		src, dst := o+8+x<<2, o+8+r<<2
@@ -745,7 +765,7 @@ func unq(x k) (r k) { // ?x
 	}
 	r = mk(t, n)
 	eq, cp, o := eqx[t], cpx[t], k(0)
-	if lns[t] == 16 {
+	if t == Z {
 		o = 8
 	}
 	if t == L {
@@ -784,7 +804,7 @@ func tip(x k) (r k) { // @x
 		dec(x)
 		return r // empty symbol
 	}
-	tns := "_cifzng a" // TODO k7 compatibility, function types 1..4?
+	tns := "_cifzn a" // TODO k7 compatibility, function types 1..4?
 	s := tns[t]
 	if n != atom {
 		s -= 32
@@ -860,7 +880,7 @@ func match(x, y k) (rv bool) { // recursive match
 		return true
 	default:
 		eq, sz, o := eqx[t], lns[t], k(0)
-		if sz == 16 {
+		if t == Z {
 			o = 8
 		}
 		if eq == nil {
