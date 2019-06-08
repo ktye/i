@@ -508,7 +508,32 @@ func rev(x k) (r k) { // |x
 	}
 	return decret(x, r)
 }
-func wer(x k) (r k) { panic("nyi"); return x } // &x
+func wer(x k) (r k) { // &x
+	t, n := typ(x)
+	if t != I {
+		panic("type")
+	} else if n == atom {
+		n = 1
+	}
+	nn := k(0)
+	for j := k(0); j < n; j++ {
+		if p := i(m.k[2+x+j]); p < 0 {
+			panic("domain")
+		} else {
+			nn += k(p)
+		}
+	}
+	r = mk(I, nn)
+	jj := k(0)
+	for j := k(0); j < n; j++ {
+		for p := k(0); p < m.k[2+x+j]; p++ {
+			m.k[2+r+jj] = j
+			jj++
+		}
+	}
+	dec(x)
+	return r
+}
 func asc(x k) (r k) { // <x
 	t, n := typ(x)
 	if n == atom || t >= L {
