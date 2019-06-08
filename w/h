@@ -20,7 +20,8 @@ var f = k.exports.v();
 	.row:after { content: ""; display: table; clear: both }
 </style>
 </head><body>
-<div class="row"><textarea id="term" class="col"></textarea><canvas id="draw" class="col"></canvas></div>
+<div id="dropbox">
+<div class="row"><textarea id="term" class="col"></textarea><canvas id="draw" class="col"></canvas></div></div>
 <script>
 function utf8ToString(m, r) {
 	let s = ""
@@ -50,28 +51,31 @@ term.onkeydown = function (evt) {
 		if (hold) 
 			term.style.border = "2px solid blue"
 	} else if (evt.which === 13) {
+		evt.preventDefault()
 		if (hold)
 			return
 		var a = term.selectionStart
 		var b = term.selectionEnd
 		var s = term.value.substr(a, b)
 		if (b == a) {
-			console.log(s)
 			s = term.value.substr(0, term.selectionStart).split("\n").pop()
 		}
-		evt.preventDefault()
-		if (s === " \\c") {
+		O("\n")
+		s = s.trim()	
+		if (s === "\\c") {
 			term.value = " "
-			return	
-		} else if (s == " \\m") {
+		} else if (s == "\\m") {
 			term.value += "\n" + xxd() + " "
-			return
+		} else if (s.length && s[0] == '/') {
+			ls(s.substring(1))
+		} else {
+			O(e(s))
 		}
-		s = e(s)
-		term.value += "\n" + s + "\n "
-		term.scrollTo(0, term.scrollHeight)
+		P()
 	}
 }
+function O(s) { term.value += s }
+function P() { term.value += "\n "; term.scrollTo(0, term.scrollHeight) }
 function xxd() { // dump linear memory
 	var m = new Uint8Array(k.exports.m.buffer);
 	var out = ""
@@ -93,5 +97,47 @@ function xxd() { // dump linear memory
 		}
 	}
 	return out
+}
+
+document.getElementById("dropbox").ondragover = function(ev) {
+	ev.preventDefault()
+}
+document.getElementById("dropbox").ondrop = function(ev) {
+	ev.preventDefault()
+	if (ev.dataTransfer.items) {
+		for (var i = 0; i< ev.dataTransfer.items.length; i++) {
+			if (ev.dataTransfer.items[i].kind == 'file') {
+				var file = ev.dataTransfer.items[i].getAsFile()
+				addfile(file)
+			}
+		}
+	} else
+		for (var i = 0; i<ev.dataTransfer.files.length; i++)
+			addfile(ev.dataTransfer.files[i])
+}
+var files = {}
+function addfile(f) {
+	O("/"+f.name+"\n")
+	files[f.name] = f
+}
+function ls(name) { // list files (empty name), or show
+	if (name.length == 0) {
+		for (var name in files)
+			O("/"+name+"\n")
+		return
+	}
+	var f = files[name]
+	if (f == undefined) {
+		O("?")
+		return
+	}
+	var r = new FileReader()
+	r.onload = function(f) {
+		return function(e) {
+			O(e.target.result)
+			P()
+		}
+	}(f)
+	r.readAsText(f) // readAsArrayBuffer...
 }
 </script></body></html>
