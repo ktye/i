@@ -102,7 +102,7 @@ func TestMonad(t *testing.T) {
 		{fms, "$", l{1, 2, l{4, 5}}, []c("(1;2;(4;5))")},
 		{fms, "$", d{l{5, 5.5}, iv{1, 2}}, []c("((5;5.5)!1 2)")},
 		{rev, "|", l{}, l{}},
-		{rev, "|", l{3}, l{3}},
+		{rev, "|", l{iv{3}}, l{iv{3}}},
 		{rev, "|", l{1, 2}, l{2, 1}},
 		{rev, "|", l{1, l{3, 4}}, l{l{3, 4}, 1}},
 		{rev, "|", d{iv{1, 2}, iv{3, 4}}, d{iv{2, 1}, iv{4, 3}}},
@@ -124,7 +124,7 @@ func TestMonad(t *testing.T) {
 		{unq, "?", []f{5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 5}, []f{5, 0, 8}},
 		{unq, "?", []z{0, 4i, 5i, 4i, 0, 3}, []z{0, 4i, 5i, 3}},
 		{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
-		{unq, "?", l{1i, l{2, l{"a"}}, l{3, "b"}, l{2, l{"a"}}, 1i}, l{1i, l{2, l{"a"}}, l{3, "b"}}},
+		{unq, "?", l{1i, l{2, sv{"a"}}, l{3, "b"}, l{2, sv{"a"}}, 1i}, l{1i, l{2, sv{"a"}}, l{3, "b"}}},
 	}
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
@@ -427,6 +427,17 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 			kstr(8+8*k(i)+r<<2, a[i])
 		}
 	case []interface{}:
+		if len(a) == 1 { // collapse list of atom to single element vector
+			rr := K(a[0])
+			t, n := typ(rr)
+			if n == atom { // TODO: allow ,d?
+				r = rr
+				m.k[r] = t<<28 | 1
+				return r
+			} else {
+				dec(rr)
+			}
+		}
 		r = mk(L, k(len(a)))
 		for i, v := range a {
 			u := K(v)

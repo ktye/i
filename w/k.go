@@ -1,7 +1,8 @@
 package w
 
 import (
-	"strconv"
+	"fmt"
+	"strconv" // to be removed
 	"unsafe"
 )
 
@@ -105,28 +106,13 @@ func gtZ(x, y k) bool { // real than imag
 	}
 	return false
 }
-func eqS(x, y k) bool { return m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2] }
+func eqS(x, y k) bool {
+	r := m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2]
+	fmt.Printf("eqS %x~%x %x%x %x%x %v\n", x>>2, y>>2, m.k[x>>2], m.k[1+x>>2], m.k[x>>2], m.k[1+x>>2], r)
+	return r
+}
 func ltS(x, y k) bool { return sym(x) < sym(y) }
 func gtS(x, y k) bool { return sym(x) > sym(y) }
-func sym(x k) uint64  { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
-func mys(x k, u uint64) {
-	var b [8]c
-	b = *(*[8]c)(unsafe.Pointer(&u))
-	copy(m.c[x:x+8], b[:])
-}
-func str(u uint64) s {
-	var b [8]c
-	n := 8
-	for i := k(0); i < 8; i++ {
-		j := 8 * (7 - i)
-		b[i] = c((u & (0xFF << j)) >> j)
-		if b[i] == 0 {
-			n = int(i)
-			break
-		}
-	}
-	return s(b[:n])
-}
 
 func grw() { // double memory
 	s := m.k[2]
@@ -686,9 +672,18 @@ func fms(x k) (r k) { // $x
 			return strconv.FormatFloat(m.f[2+2*j+x>>1], 'g', -1, 64) + "i" + strconv.FormatFloat(m.f[3+2*j+x>>1], 'g', -1, 64)
 		})
 	case S:
-		vecs(func(j k) s { return str(sym(8 + 8*j + x<<2)) })
+		if n == atom {
+			n = 1
+		}
+		for j := k(0); j < n; j++ {
+			if push("`" + str(sym(8+8*j+x<<2))) {
+				break
+			}
+		}
 	case L:
-		push("(")
+		if n != 1 {
+			push("(")
+		}
 		for j := k(0); j < n; j++ {
 			if j > 0 {
 				push(";")
@@ -697,7 +692,9 @@ func fms(x k) (r k) { // $x
 				break
 			}
 		}
-		push(")")
+		if n != 1 {
+			push(")")
+		}
 	case D:
 		push("(")
 		pushr(m.k[2+x])
@@ -717,6 +714,25 @@ func fms(x k) (r k) { // $x
 	}
 	dec(x)
 	return r
+}
+func sym(x k) uint64 { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
+func mys(x k, u uint64) {
+	var b [8]c
+	b = *(*[8]c)(unsafe.Pointer(&u))
+	copy(m.c[x:x+8], b[:])
+}
+func str(u uint64) s {
+	var b [8]c
+	n := 8
+	for i := k(0); i < 8; i++ {
+		j := 8 * (7 - i)
+		b[i] = c((u & (0xFF << j)) >> j)
+		if b[i] == 0 {
+			n = int(i)
+			break
+		}
+	}
+	return s(b[:n])
 }
 func unq(x k) (r k) { // ?x
 	t, n := typ(x)
@@ -817,7 +833,7 @@ func evl(x k) (r k) { // .x
 	return x
 }
 
-func match(x, y k) bool { // recursive match
+func match(x, y k) (rv bool) { // recursive match
 	if x == y {
 		return true
 	}
@@ -832,13 +848,13 @@ func match(x, y k) bool { // recursive match
 	switch t {
 	case L:
 		for j := k(0); j < n; j++ {
-			if match(2+x+j, 2+y+j) == false {
+			if match(m.k[2+x+j], m.k[2+y+j]) == false {
 				return false
 			}
 		}
 		return true
 	case D:
-		if match(2+x, 2+y) == false || match(3+x, 3+y) == false {
+		if match(m.k[2+x], m.k[2+y]) == false || match(m.k[3+x], m.k[3+y]) == false {
 			return false
 		}
 		return true
