@@ -1,7 +1,6 @@
 package w
 
 import (
-	"fmt"
 	"strconv" // to be removed
 	"unsafe"
 )
@@ -32,6 +31,8 @@ type slice struct {
 
 //                 C  I  F   Z  S  L  D  0  1  2  3  4
 var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 8, 4, 4, 4, 4, 4}
+var ofs = [13]k{0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0}
+
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
 	k []k
@@ -40,6 +41,7 @@ var m struct { // linear memory (slices share underlying arrays)
 }
 var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI} // copy (arguments are byte addresses)
 var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
+var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/nan
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
 var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
@@ -80,6 +82,11 @@ func swC(dst, src k)  { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
 func swI(dst, src k)  { m.k[dst>>2], m.k[src>>2] = m.k[src>>2], m.k[dst>>2] }
 func swF(dst, src k)  { m.f[dst>>3], m.f[src>>3] = m.f[src>>3], m.f[dst>>3] }
 func swZ(dst, src k)  { m.z[dst>>4], m.z[src>>4] = m.z[src>>4], m.z[dst>>4] }
+func naC(dst k)       { m.c[dst] = 32 }
+func naI(dst k)       { m.k[dst>>2] = 0x80000000 }
+func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst>>3] = *(*f)(unsafe.Pointer(&u)) }
+func naZ(dst k)       { naF(dst); naF(8 + dst) }
+func naS(dst k)       { mys(dst, uint64(' ')<<(56)) }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func ltC(x, y k) bool { return m.c[x] < m.c[y] }
 func gtC(x, y k) bool { return m.c[x] > m.c[y] }
@@ -106,13 +113,19 @@ func gtZ(x, y k) bool { // real than imag
 	}
 	return false
 }
-func eqS(x, y k) bool {
-	r := m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2]
-	fmt.Printf("eqS %x~%x %x%x %x%x %v\n", x>>2, y>>2, m.k[x>>2], m.k[1+x>>2], m.k[x>>2], m.k[1+x>>2], r)
-	return r
-}
+func eqS(x, y k) bool { return m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2] }
 func ltS(x, y k) bool { return sym(x) < sym(y) }
 func gtS(x, y k) bool { return sym(x) > sym(y) }
+func mv(dst, src k) {
+	t, n := typ(src)
+	ln := k(1 << bk(t, n))
+	rc := m.k[1+dst]
+	dst, src = dst<<2, src<<2
+	copy(m.c[dst:dst+ln], m.c[src:src+ln]) // copy bucket
+	dst >>= 2
+	m.k[dst] = t<<28 | n // restore header
+	m.k[1+dst] = rc
+}
 
 func grw() { // double memory
 	s := m.k[2]
@@ -536,7 +549,7 @@ func wer(x k) (r k) { // &x
 }
 func asc(x k) (r k) { // <x
 	t, n := typ(x)
-	if n == atom || t >= L {
+	if n == atom || t >= L { // k7 also sorts lists of different numeric types
 		panic("type")
 	}
 	a := mk(I, atom)
@@ -581,7 +594,6 @@ func grp(x k) (r k) { // =x
 				nr++
 			}
 		}
-		pr(b)
 		lj, p := mk(I, nr), k(0)
 		for jj := k(0); jj < n; jj++ { // over x
 			if m.c[bc+jj] == 1 {
@@ -639,8 +651,7 @@ func enl(x k) (r k) { // ,x
 	m.k[2+r] = x
 	return r
 }
-
-func is0(x k) (r k) { panic("nyi"); return x } // ^x
+func srt(x k) (r k) { return atx(x, asc(inc(x))) } // ^x  TODO: replace with a sort implementation
 func cnt(x k) (r k) { // #x
 	t, n := typ(x)
 	r = mk(I, atom)
@@ -893,7 +904,7 @@ func evl(x k) (r k) { // .x
 		}
 		c := c(sym(8+v<<2) >> 56) // TODO: this is only 1 char
 		s := "+-%*|&<>=~,^#_$?@."
-		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, is0, cnt, flr, fms, unq, tip, evl}
+		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, srt, cnt, flr, fms, unq, tip, evl}
 		var g func(k) k
 		for i := range s {
 			if c == s[i] {
@@ -914,6 +925,38 @@ func evl(x k) (r k) { // .x
 	}
 	panic("nyi")
 	return x
+}
+
+func atx(x, y k) (r k) { // x@y
+	xt, xn := typ(x)
+	yt, yn := typ(y)
+	switch {
+	case xt < L && yt == I:
+		cp, sz, na, o := cpx[xt], lns[xt], nax[xt], ofs[xt]
+		xc, idx := 8+o+x<<2, 2+y
+		r = mk(xt, yn)
+		if xn == atom {
+			xn = 1
+		}
+		if yn == atom {
+			yn = 1
+		}
+		rc := 8 + o + r<<2
+		for j := k(0); j < yn; j++ {
+			if j >= xn {
+				na(rc + sz*j)
+			} else {
+				cp(rc+sz*j, xc+sz*m.k[idx+j])
+			}
+		}
+		dec(x)
+		dec(y)
+		return r
+	// case xt == L:
+	//	missing element for a list is nax[type of first element]
+	default:
+		panic("nyi")
+	}
 }
 
 func match(x, y k) (rv bool) { // recursive match
@@ -970,10 +1013,6 @@ func hxk(x k) s {
 	return s(b)
 }
 
-func nan() f {
-	u := uint64(0x7FF8000000000001)
-	return *(*f)(unsafe.Pointer(&u))
-}
 func isnan(x f) bool { return x != x }
 
 func buk(x uint32) (n k) { // from https://golang.org/src/math/bits/bits.go (Len32)

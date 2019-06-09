@@ -128,6 +128,7 @@ func TestMonad(t *testing.T) {
 		{enl, ",", "alpha", sv{"alpha"}},
 		{enl, ",", l{1, 2, l{3, 4.5}}, l{l{1, 2, l{3, 4.5}}}},
 		{enl, ",", d{iv{3, 4}, sv{"x", "y"}}, l{d{iv{3, 4}, sv{"x", "y"}}}},
+		{srt, "^", iv{3, 1, 2, 3, 5}, iv{1, 2, 3, 3, 5}},
 		{cnt, "#", "alpha", 1},
 		{cnt, "#", l{}, 0},
 		{cnt, "#", l{1, 2, l{3, 4}}, 3},
@@ -147,7 +148,7 @@ func TestMonad(t *testing.T) {
 	occ := true // wrap x in inc dec
 	for i := 0; i < 2; i++ {
 		for j, tc := range testCases {
-			fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
+			//fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
 			x := K(tc.x)
 			_ = Stats().UsedBlocks()
 			if x == 0 {
@@ -168,6 +169,51 @@ func TestMonad(t *testing.T) {
 			}
 			dec(y)
 
+			fpck("2")
+			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
+				panic("x|y is not free")
+			}
+			if u := Stats().UsedBlocks(); u != 1 {
+				t.Fatalf("leak: %d", u)
+			}
+		}
+		occ = false
+	}
+}
+func TestDyad(t *testing.T) {
+	testCases := []struct {
+		f       func(k, k) k
+		s       s
+		x, y, r interface{}
+	}{
+		{atx, "@", iv{2, 1, 3, 5}, iv{2, 0, 1}, iv{3, 2, 1}},
+	}
+	occ := true
+	for i := 0; i < 2; i++ {
+		for j, tc := range testCases {
+			// fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
+			x := K(tc.x)
+			y := K(tc.y)
+			_ = Stats().UsedBlocks()
+			if x == 0 || y == 0 {
+				t.Fatalf("cannot import go type %T", tc.x)
+			}
+			if occ {
+				inc(x)
+				inc(y)
+			}
+			z := tc.f(x, y)
+			fpck("1")
+			if occ {
+				dec(x)
+				dec(y)
+			}
+			r := G(z)
+			fmt.Printf("%s[%v, %v] = %v\n", tc.s, tc.x, tc.y, r)
+			if !reflect.DeepEqual(r, tc.r) {
+				t.Fatalf("dyad[%d]: expected: %v got %v\n", j, tc.r, r)
+			}
+			dec(z)
 			fpck("2")
 			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
 				panic("x|y is not free")
