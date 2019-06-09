@@ -9,12 +9,12 @@ k7:           k < s
 k.go:         go test|sed 1q
 metacircular: k < s|wasm -|wasm -|…
 
-k.go is a reference implementation that uses the same memory layout as the wasm version.
+k.go is a reference implementation that uses the same memory layout as the wasm version (only on little endian).
 A repl is hosted on ktye.github.io
 
 Type and memory system
 32-bit system, buddy allocater with 8 byte headers
-types (ifzschld) int32, float64, complex128, symbol64, byte8, func32, list32, dict64
+types (cifzsld01234) byte8, int32, float64, complex128, symbol64, list32, dict64, func32...
 space for 15 types
 8 byte header:
   4 bits type p>>28
@@ -28,11 +28,32 @@ Initial memory (64kB)
  p[2]        total allocated memory log2 (initial 64k, max 4G) uint32
  p[3]        pointer to ktree (dict)
  followed by free list:
- p[4..31]    points to free block of bucket size n, n = 4..31
- ?byte[512...] bucket 9 stores type size vector: 0,4,8,16,8,1,4,4,8
+ p[4..31]    points to free block of bucket size n = 4..31
+ ?byte[512...] bucket 9 stores type size vector: 0,1,4,8,16,8,4,8,4,4,4,4,4
 
 Wasm reference
  webassembly.github.io/wabt/demo/wat2wasm (interactive)
  sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
+ 
+Algorithms (to be improved, open for suggestions)
+ !n
+ +x nyi
+ -x
+ %x 1f/x, Z: Smith116, (alt: Baudin, see iv/apl/big/complex.go)
+ *x
+ &x quadratic, alt? 
+ <x insertion, (alt: radix for CIFZS?)
+ >x |<x (alt: share sort implementation)
+ =x (?u)[<?u];boolean(#x);(over?x(over x));(over bools), alt?
+ ~x
+ ,x
+ ^x nyi
+ #x
+ _x
+ $x recursive, cut at limit, TODO itoa,ftoa
+ ?x 
+ @x
+ .x interp(walk), alt: partial eval, byte-code(on wasm), compile and feed back?
+ 
  
  

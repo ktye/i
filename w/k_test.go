@@ -97,7 +97,6 @@ func TestMonad(t *testing.T) {
 		{fst, "*", l{"alpha"}, "alpha"},
 		{fst, "*", d{l{"x", "y"}, l{iv{5, 3}, 4}}, iv{5, 3}},
 		{fst, "*", d{sv{"x", "y"}, iv{7, 2}}, 7},
-		// TODO fst func
 		{fms, "$", iv{1, 2, 3}, []c("1 2 3")},
 		{fms, "$", l{1, 2, l{4, 5}}, []c("(1;2;(4;5))")},
 		{fms, "$", d{l{5, 5.5}, iv{1, 2}}, []c("((5;5.5)!1 2)")},
@@ -120,6 +119,12 @@ func TestMonad(t *testing.T) {
 		{asc, "<", []z{0, 1 + 1i, 1, 2}, iv{0, 2, 1, 3}},
 		{asc, "<", sv{"b", "ab", "a", "aa"}, iv{2, 3, 1, 0}},
 		{dsc, ">", iv{1, 4, 3, 2}, iv{1, 2, 3, 0}},
+		{grp, "=", []c{'c', 'b', 'a', 'c', 'a', 'b', 'c'}, d{[]c{'c', 'b', 'a'}, l{iv{0, 3, 6}, iv{1, 5}, iv{2, 4}}}},
+		{grp, "=", iv{1, 2, 3}, d{iv{1, 2, 3}, l{iv{0}, iv{1}, iv{2}}}},
+		{grp, "=", iv{3, 3, 1, 3, 2, 1}, d{iv{3, 1, 2}, l{iv{0, 1, 3}, iv{2, 5}, iv{4}}}}, // TODO sort keys(k7)
+		{grp, "=", []f{5.5, 1, 3, 3, 2}, d{[]f{5.5, 1, 3, 2}, l{iv{0}, iv{1}, iv{2, 3}, iv{4}}}},
+		{grp, "=", []z{3, 3 + 1i, 3, 3 + 1i, 3 + 1i}, d{[]z{3, 3 + 1i}, l{iv{0, 2}, iv{1, 3, 4}}}},
+		{grp, "=", sv{"alpha", "beta", "alpha", "gamma", "alpha", "beta"}, d{sv{"alpha", "beta", "gamma"}, l{iv{0, 2, 4}, iv{1, 5}, iv{3}}}},
 		{enl, ",", "alpha", sv{"alpha"}},
 		{enl, ",", l{1, 2, l{3, 4.5}}, l{l{1, 2, l{3, 4.5}}}},
 		{enl, ",", d{iv{3, 4}, sv{"x", "y"}}, l{d{iv{3, 4}, sv{"x", "y"}}}},

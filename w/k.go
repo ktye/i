@@ -555,8 +555,46 @@ func asc(x k) (r k) { // <x
 	dec(x)
 	return r
 }
-func dsc(x k) (r k) { return rev(asc(x)) }     // >x
-func grp(x k) (r k) { panic("nyi"); return x } // =x
+func dsc(x k) (r k) { return rev(asc(x)) } // >x
+func grp(x k) (r k) { // =x
+	t, n := typ(x)
+	if n == atom {
+		panic("value")
+	}
+	eq, sz, o := eqx[t], lns[t], k(0)
+	if t == Z {
+		o = 8
+	}
+	r = mk(D, atom)
+	u := unq(inc(x)) // TODO: keys are sorted in k7
+	l, nu := mk(L, m.k[u]&atom), m.k[u]&atom
+	m.k[2+r], m.k[3+r] = u, l
+	uc, kc := 8+o+u<<2, 8+o+x<<2
+	b := mk(C, n) // boolean
+	bc := 8 + b<<2
+	for j := k(0); j < nu; j++ { // over ?x
+		nr := k(0)
+		for jj := k(0); jj < n; jj++ { // over x
+			m.c[bc+jj] = 0
+			if eq(uc+sz*j, kc+sz*jj) {
+				m.c[bc+jj] = 1
+				nr++
+			}
+		}
+		pr(b)
+		lj, p := mk(I, nr), k(0)
+		for jj := k(0); jj < n; jj++ { // over x
+			if m.c[bc+jj] == 1 {
+				m.k[2+lj+p] = jj
+				p++
+			}
+		}
+		m.k[2+l+j] = lj
+	}
+	dec(b)
+	dec(x)
+	return r
+}
 func not(x k) (r k) { // ~x
 	return nm(x, func(x c) (r c) {
 		if x == 0 {
