@@ -7,9 +7,8 @@ x1:0x2001;x2:0x2002;x3:0x2003;x4:0x2004;x5:0x2005;x6:0x2006 / local.get
 e:0#,0x00                  / empty []byte, "" is a string in ⍳
 L:{0x0240034020,x,0x41016b22,x,0x4100480d01,y,0x0c000b0b} / loop y(body) n times, n stored at local index x is decremented
 
-/ unsigned LEB128 this works for ⍳, TODO k7 needs modification; TODO: signed version
-leb128:{{~64>*x}{((_(*x)%128);mod[128;*x])}\(x;0)}
-lebu:{a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a}
+leb128:{{~64>*x}{((_(*x)%128);mod[128;*x])}\(x;0)} / unsigned only, TODO: switch when f g/x is until in k7
+lebu:$[iv=1;{a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a};{[x]a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a}]
 num:{|$[x<64;,`c$x;lebu x]}
 
 c:{0x41,num[x]}            / i32.const
@@ -40,7 +39,7 @@ Else:{0x05,x}              / within If e.g.: If[x,Else y]
 ini:,/(c 16;s 0;c 65536;s 1;L[,/(x;c 1;sub;t 0;c 7;ltu;b1;x1;c 1;shr;t 1;x;setb;x;c 4;mul;y;seti)])
 ini,:,/(c 0;c 7;setb;c 4;c 16;seti;c 36;c 0;seti;c 512;c 73;setb)
 lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzschld
-ini,:,/(520+4*!lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
+ini,:,/(520+4*!#lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
 /TODO: set pointer to k-tree at 8
 f[`ini]:(e;e;I,I;ini)                      / start function
 
@@ -89,7 +88,7 @@ o,:0x0801,num@*&`ini=!f
 
 / 0x09(element section)
 / 0x0a(code section)
-h:{num[#?x],,/(+/+(x=)'?x),'?x} / array of local declarations I,I,F,F,F→2,2,I,3,F
+h:{num[#?x],,/(+/+(x=)'?x),'?x} / array of local declarations I,I,F,F,F→2,2,I,3,F / TODO: Fix for k7
 g:{h[x 2],x[3],0x0b}            / function body: locals, instructions
 oo:(num@#f),,/{num[#g x],g x}'f[!f]
 o,:0x0a,num[#oo],oo
