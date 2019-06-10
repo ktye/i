@@ -39,7 +39,7 @@ var m struct { // linear memory (slices share underlying arrays)
 	f []f
 	z []z
 }
-var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpI, cpI} // copy (arguments are byte addresses)
+var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy (arguments are byte addresses)
 var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
 var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/nan
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
@@ -78,6 +78,7 @@ func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst>>2] = m.k[src>>2] }
 func cpF(dst, src k)  { m.f[dst>>3] = m.f[src>>3] }
 func cpZ(dst, src k)  { m.z[dst>>4] = m.z[src>>4] }
+func cpL(dst, src k)  { inc(m.k[src>>2]); cpI(dst, src) }
 func swC(dst, src k)  { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
 func swI(dst, src k)  { m.k[dst>>2], m.k[src>>2] = m.k[src>>2], m.k[dst>>2] }
 func swF(dst, src k)  { m.f[dst>>3], m.f[src>>3] = m.f[src>>3], m.f[dst>>3] }
@@ -154,7 +155,7 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	for i := bt; i < 31; i++ { // find next free bucket >= bt
 		if k(i) >= m.k[2] {
 			panic("grow")
-			grw()
+			grw() // TODO: run a gc cycle (merge blocks) before growing?
 		}
 		if m.k[i] != 0 {
 			fb, a = i, m.k[i]
@@ -177,33 +178,6 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	return a
 }
 
-/* ?
-func cp(x k) (r k) {
-	if m.k[x+1] == 1 {
-		return x
-	}
-	t, n := typ(x)
-	r = mk(t, n)
-	switch t {
-	case C, I, F, Z, S:
-		sz := k(1 << bk(t, n))
-		src, dst := r<<2, x<<2
-		copy(m.c[dst:dst+sz], m.c[src:src+sz])
-		m.k[dst], m.k[dst+1] = t<<28|n, 1
-	case L:
-		for i := k(0); i < n; i++ {
-			m.k[2+r+i] = cp(inc(m.k[2+x+i])) ?
-		}
-	case D:
-		m.k[2+r] = cp(inc(m.k[2+x])) ?
-		m.k[3+r] = cp(inc(m.k[3+x])) ?
-	default:
-		panic("type")
-	}
-	dec(x)
-	return r
-}
-*/
 func typ(a k) (k, k) { // type and length at addr
 	return m.k[a] >> 28, m.k[a] & atom
 }
@@ -405,42 +379,102 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 	}
 	return r
 }
-func kdx(x, t k) k { // unsigned int from a numeric scalar
+func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
 	switch t {
+	case C:
+		return i(m.c[8+x])
 	case I:
-		return m.k[2+x]
-	case F, Z:
-		i := int(m.f[1+x>>1]) // trunc and ignore imag part
-		if i < 0 {
-			panic("domain")
-		}
-		return k(i)
+		return i(m.k[2+x])
+	case F:
+		return i(m.f[1+x>>1])
+	case Z:
+		return i(m.f[2+x])
 	}
 	panic("type")
 }
 func til(x k) (r k) { // !n
 	t, n := typ(x)
-	if n == atom {
-		if t == D {
-			r = inc(m.k[2+x])
-			dec(x)
-			return r
-		} else if t > Z {
-			panic("type")
-		}
-		n := kdx(x, t) // TODO: handle negative
-		r = mk(I, n)
-		for i := k(0); i < n; i++ {
-			m.k[2+i+r] = i
-		}
+	if n != atom {
+		panic("nyi !a")
+	} else if t == D {
+		r = inc(m.k[2+x])
 		dec(x)
 		return r
-	} else {
-		panic("nyi !a")
+	} else if t > Z {
+		panic("type")
 	}
-	return 0
+	if nn := idx(x, t); nn < 0 {
+		dec(x)
+		return eye(k(-nn))
+	} else {
+		dec(x)
+		return jota(k(nn))
+	}
 }
-func flp(x k) k { panic("nyi"); return x } // +x
+func jota(n k) (r k) {
+	r = mk(I, n)
+	for j := k(0); j < n; j++ {
+		m.k[2+r+j] = j
+	}
+	return r
+}
+func eye(n k) (r k) {
+	r = mk(L, n)
+	for j := k(0); j < n; j++ {
+		rj := mk(I, n)
+		m.k[2+r+j] = rj
+		for jj := k(0); jj < n; jj++ {
+			if j == jj {
+				m.k[2+rj+jj] = 1
+			} else {
+				m.k[2+rj+jj] = 0
+			}
+		}
+	}
+	return r
+}
+func flp(x k) (r k) { // +x
+	t, n := typ(x)
+	if t > L || n == atom { // tables are not implemented
+		panic("type")
+	} else if t < L {
+		return x
+	}
+	l, mx, tt := m.k[2+x], k(0), L
+	for j := k(0); j < n; j++ {
+		tj, nj := typ(m.k[l+j])
+		if nj > mx {
+			mx = nj
+		}
+		if j == 0 {
+			tt = tj
+		} else if tt != L && tt != tj {
+			tt = k(0)
+		}
+	}
+	if tt > L {
+		panic("type")
+	}
+	cp, na, sz, o := cpx[t], nax[t], lns[t], ofs[t]
+	if tt == L {
+		panic("nyi") // update copy loop below
+	}
+	r = mk(L, mx)
+	for j := k(0); j < mx; j++ {
+		m.k[2+r*j] = mk(tt, n)
+	}
+	// TODO:
+	// row vectors with size < mx: fill with missing values
+	// row atoms: repeat (scalar extension)
+	_ = na
+	for k := k(0); k < n; k++ { // Rik = +Xki (cdn.mos.cms.futurecdn.net/XTZkbu7r5c4LZQ5SMzJDbV-970-80.jpg)
+		for i := uint32(0); i < mx; i++ {
+			cp(8+o+sz*k+m.k[2+r+i]<<2, 8+o+sz*i+m.k[2+x+k]<<2)
+		}
+	}
+	dec(x)
+	return r
+}
 func neg(x k) k { // -x
 	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x z) z { return -x }, 0) // TODO Z
 }
@@ -499,10 +533,11 @@ func rev(x k) (r k) { // |x
 		return x
 	}
 	r = use(x, t, n)
+	println("R=X?", r == x)
 	if t < D {
-		sz, cp, m, o := lns[t], cpx[t], n, k(0)
-		if t == Z {
-			o = 8
+		sz, cp, m, o := lns[t], cpx[t], n, ofs[t]
+		if t == L {
+			cp = cpI // copy pointer, don't inc.
 		}
 		src, dst := o+8+x<<2, o+8+r<<2
 		if src == dst {
@@ -555,10 +590,7 @@ func asc(x k) (r k) { // <x
 	a := mk(I, atom)
 	m.k[2+a] = n
 	r = til(a)
-	sz, lt, sw, o := lns[t], ltx[t], swI, k(0)
-	if t == Z {
-		o = 8
-	}
+	sz, lt, sw, o := lns[t], ltx[t], swI, ofs[t]
 	src, ind, dst := 8+o+x<<2, 2+r, 8+r<<2
 	for i := k(1); i < n; i++ { // insertion sort, should be replaced
 		for j := k(i); j > 0 && lt(src+sz*m.k[ind+j], src+sz*m.k[ind+j-1]); j-- {
@@ -574,10 +606,7 @@ func grp(x k) (r k) { // =x
 	if n == atom {
 		panic("value")
 	}
-	eq, sz, o := eqx[t], lns[t], k(0)
-	if t == Z {
-		o = 8
-	}
+	eq, sz, o := eqx[t], lns[t], ofs[t]
 	r = mk(D, atom)
 	u := unq(inc(x)) // TODO: keys are sorted in k7
 	l, nu := mk(L, m.k[u]&atom), m.k[u]&atom
@@ -638,10 +667,7 @@ func enl(x k) (r k) { // ,x
 			m.k[r] = t<<28 | 1
 			return r
 		}
-		cp, o := cpx[t], k(0)
-		if t == Z {
-			o = 8
-		}
+		cp, o := cpx[t], ofs[t]
 		src, dst := o+8+x<<2, o+8+r<<2
 		cp(dst, src)
 		dec(x)
@@ -838,10 +864,7 @@ func unq(x k) (r k) { // ?x
 		return x
 	}
 	r = mk(t, n)
-	eq, cp, o := eqx[t], cpx[t], k(0)
-	if t == Z {
-		o = 8
-	}
+	eq, cp, o := eqx[t], cpx[t], ofs[t]
 	if t == L {
 		eq = func(x, y k) bool { return match(m.k[x>>2], m.k[y>>2]) }
 	}
@@ -859,9 +882,6 @@ func unq(x k) (r k) { // ?x
 		}
 		if u {
 			cp(dst+nn*sz, srci)
-			if t == L {
-				inc(m.k[srci>>2])
-			}
 			nn++
 		}
 	}
@@ -985,10 +1005,7 @@ func match(x, y k) (rv bool) { // recursive match
 		}
 		return true
 	default:
-		eq, sz, o := eqx[t], lns[t], k(0)
-		if t == Z {
-			o = 8
-		}
+		eq, sz, o := eqx[t], lns[t], ofs[t]
 		if eq == nil {
 			panic("type")
 		}

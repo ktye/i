@@ -89,9 +89,12 @@ func TestMonad(t *testing.T) {
 		s    s
 		x, r interface{}
 	}{
+		// TODO +(flip)
 		{til, "!", 3, iv{0, 1, 2}},
+		{til, "!", -1, l{iv{1}}},
+		{til, "!", -3, l{iv{1, 0, 0}, iv{0, 1, 0}, iv{0, 0, 1}}},
 		{til, "!", d{sv{"a", "b"}, iv{1, 2}}, sv{"a", "b"}},
-		// TODO !overloads
+		// TODO !a(odometer)
 		{fst, "*", l{3, 4, 5}, 3},
 		{fst, "*", "alpha", "alpha"},
 		{fst, "*", l{"alpha"}, "alpha"},
@@ -310,8 +313,8 @@ func xxd() { // memory dump
 					fmt.Printf(" fp is not free")
 				}
 			} else {
-				atoms := "?cifzsgld?????"
-				vects := "?CIFZSGLD?????"
+				atoms := "?cifzsld01234"
+				vects := "?CIFZSLD01234"
 				tp, n := typ(i)
 				bt := bk(tp, n)
 				if n == atom {
