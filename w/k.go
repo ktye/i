@@ -1,4 +1,4 @@
-package w
+package main
 
 import (
 	"strconv" // to be removed
@@ -442,7 +442,7 @@ func flp(x k) (r k) { // +x
 	}
 	l, mx, tt := m.k[2+x], k(0), L
 	for j := k(0); j < n; j++ {
-		tj, nj := typ(m.k[l+j])
+		tj, nj := typ(l + j)
 		if nj > mx {
 			mx = nj
 		}
@@ -455,7 +455,7 @@ func flp(x k) (r k) { // +x
 	if tt > L {
 		panic("type")
 	}
-	cp, na, sz, o := cpx[t], nax[t], lns[t], ofs[t]
+	cp, na, sz, o := cpx[tt], nax[tt], lns[tt], ofs[tt]
 	if tt == L {
 		panic("nyi") // update copy loop below
 	}
@@ -533,7 +533,6 @@ func rev(x k) (r k) { // |x
 		return x
 	}
 	r = use(x, t, n)
-	println("R=X?", r == x)
 	if t < D {
 		sz, cp, m, o := lns[t], cpx[t], n, ofs[t]
 		if t == L {
