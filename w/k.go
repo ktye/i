@@ -15,6 +15,7 @@ type s = string
 const (
 	C, I, F, Z, S, L, D, N k = 1, 2, 3, 4, 5, 6, 7, 8
 	atom                   k = 0x0fffffff
+	NaI                    i = -2147483648
 )
 
 type (
@@ -440,37 +441,66 @@ func flp(x k) (r k) { // +x
 	} else if t < L {
 		return x
 	}
-	l, mx, tt := m.k[2+x], k(0), L
+	nr, tt := k(0), L
 	for j := k(0); j < n; j++ {
-		tj, nj := typ(l + j)
-		if nj > mx {
-			mx = nj
+		tj, nj := typ(m.k[2+x+j])
+		if j == 0 {
+			nr = nj
+		} else if nj != nr { // k7 does scalar extension for atoms, and nan-fills for short arrays
+			panic("size")
 		}
 		if j == 0 {
 			tt = tj
 		} else if tt != L && tt != tj {
-			tt = k(0)
+			tt = L
 		}
 	}
 	if tt > L {
 		panic("type")
 	}
-	cp, na, sz, o := cpx[tt], nax[tt], lns[tt], ofs[tt]
+	if nr == atom {
+		nr = 1
+	}
+	cp, sz, o := cpx[tt], lns[tt], ofs[tt]
+	r = mk(L, nr)
+	for j := k(0); j < nr; j++ {
+		rr := mk(tt, n)
+		m.k[2+r+j] = rr
+	}
 	if tt == L {
-		panic("nyi") // update copy loop below
-	}
-	r = mk(L, mx)
-	for j := k(0); j < mx; j++ {
-		m.k[2+r*j] = mk(tt, n)
-	}
-	// TODO:
-	// row vectors with size < mx: fill with missing values
-	// row atoms: repeat (scalar extension)
-	_ = na
-	for k := k(0); k < n; k++ { // Rik = +Xki (cdn.mos.cms.futurecdn.net/XTZkbu7r5c4LZQ5SMzJDbV-970-80.jpg)
-		for i := uint32(0); i < mx; i++ {
-			cp(8+o+sz*k+m.k[2+r+i]<<2, 8+o+sz*i+m.k[2+x+k]<<2)
+		for k := k(0); k < n; k++ {
+			col := explode(2 + x + k)
+			for i := uint32(0); i < nr; i++ {
+				m.k[2+k+m.k[2+r+i]] = inc(m.k[2+col+i])
+			}
+			dec(col)
 		}
+	} else {
+		for i := uint32(0); i < nr; i++ { // Rik = +Xki (cdn.mos.cms.futurecdn.net/XTZkbu7r5c4LZQ5SMzJDbV-970-80.jpg)
+			for k := k(0); k < n; k++ {
+				cp(8+o+sz*k+m.k[2+r+i]<<2, 8+o+sz*i+m.k[2+x+k]<<2)
+			}
+		}
+	}
+	dec(x)
+	return r
+}
+func explode(x k) (r k) { // explode an array to a list of atoms
+	t, n := typ(x)
+	if t == L {
+		return x
+	} else if t > L {
+		panic("type")
+	}
+	if n == atom {
+		n = 1
+	}
+	cp, sz, o := cpx[t], lns[t], ofs[t]
+	r = mk(L, n)
+	for j := k(0); j < n; j++ {
+		dst := mk(t, 1) << 2
+		cp(8+o+dst, 8+o+x+sz*j+x<<2)
+		m.k[2+r+j] = dst >> 2
 	}
 	dec(x)
 	return r
