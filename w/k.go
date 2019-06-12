@@ -182,6 +182,7 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 func typ(a k) (k, k) { // type and length at addr
 	return m.k[a] >> 28, m.k[a] & atom
 }
+func typs(x, y k) (xt, yt, xn, yn k) { xt, xn = typ(x); xt, yn = typ(y); return }
 func inc(x k) k {
 	t, n := typ(x)
 	switch t {
@@ -486,7 +487,7 @@ func flp(x k) (r k) { // +x
 	dec(x)
 	return r
 }
-func explode(x k) (r k) { // explode an array to a list of atoms
+func explode(x k) (r k) { // explode an array (or atom) to a list of atoms
 	t, n := typ(x)
 	if t == L {
 		return x
@@ -891,10 +892,11 @@ func fms(x k) (r k) { // $x
 	return r
 }
 func sym(x k) uint64 { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
-func mys(x k, u uint64) {
+func mys(x k, u uint64) k {
 	var b [8]c
 	b = *(*[8]c)(unsafe.Pointer(&u))
 	copy(m.c[x:x+8], b[:])
+	return x
 }
 func str(u uint64) s {
 	var b [8]c
@@ -908,6 +910,17 @@ func str(u uint64) s {
 		}
 	}
 	return s(b[:n])
+}
+func btos(b []c) (r k) {
+	if len(b) > 8 {
+		panic("size")
+	}
+	var u uint64
+	r = mk(S, 0)
+	for i := k(0); i < k(len(b)); i++ {
+		u |= uint64(b[i]) << (8 * c(7-1))
+	}
+	return mys(8+r<<2, u)
 }
 func unq(x k) (r k) { // ?x
 	t, n := typ(x)
@@ -1033,6 +1046,36 @@ func atx(x, y k) (r k) { // x@y
 		panic("nyi")
 	}
 }
+func cat(x, y k) (r k) { // x,y
+	xt, yt, xn, yn := typs(x, y)
+	switch {
+	case xt < L && yt == xt:
+		return ucat(x, y)
+	case xt > L || yt > L: // TODO: cat D?
+		panic("type")
+	case xt != L:
+		x = explode(x)
+		xt, xn = typ(x)
+	case yt != L:
+		y = explode(y)
+		xt, yn = typ(y)
+	}
+	if m.k[xt+1] > 1 || bk(L, xn+yn) > bk(L, xn) {
+		r = mk(L, xn+yn)
+		for j := k(0); j < xn; j++ {
+			m.k[2+r+j] = inc(m.k[2+x+j])
+		}
+		dec(x)
+	} else {
+		r = x
+	}
+	for j := k(0); j < yn; j++ {
+		m.k[2+r+xn+j] = inc(m.k[2+y+j])
+	}
+	dec(y)
+	return r
+}
+func ucat(x, y k) (r k) { panic("nyi") }
 
 func match(x, y k) (rv bool) { // recursive match
 	if x == y {
@@ -1102,6 +1145,12 @@ func buk(x uint32) (n k) { // from https://golang.org/src/math/bits/bits.go (Len
 		return 4
 	}
 	return n
+}
+func bol(x bool) (r k) {
+	if x {
+		r = 1
+	}
+	return r
 }
 
 var l8t = [256]c{

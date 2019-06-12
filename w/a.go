@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json" // to be removed when prs is implemented
+	// to be removed when prs is implemented
 	"runtime/debug"
 	"syscall"
 )
@@ -39,33 +39,21 @@ func do(s []byte) {
 			}
 		}
 	}()
-
-	//x := mk(C, len(s))
-	//r := fms(evl(prs(x)))
-	r := fms(evl(prs(s)))
+	r := fms(evl(prs(mk(C, k(len(s))))))
 	n := m.k[r] & atom
 	println(string(m.c[8+r<<2 : 8+n+r<<2]))
 	dec(r)
 }
 
-// The parse tree is parsed from json, until prs is implemented in k.go
-func prs(b []byte) k {
-	var v interface{}
-	if e := json.Unmarshal(b, &v); e != nil {
-		panic(e)
-	}
-	return K(v)
-}
-
 // type conversions between go and k (used here and in k_test.go)
 
 func K(x interface{}) k { // convert go value to k type, returns 0 on error
-	kstr := func(dst k, s string) { // byte order independend
+	kstr := func(dst k, s string) {
 		u, n := uint64(0), len(s)
 		if n > 8 {
 			n = 8
 		}
-		for i := 0; i < n; i++ {
+		for i := 0; i < n; i++ { // byte order independend
 			u |= uint64(s[i]) << (8 * c(7-i))
 		}
 		mys(dst, u)
