@@ -444,14 +444,12 @@ func flp(x k) (r k) { // +x
 	nr, tt := k(0), L
 	for j := k(0); j < n; j++ {
 		tj, nj := typ(m.k[2+x+j])
-		if j == 0 {
-			nr = nj
-		} else if nj != nr { // k7 does scalar extension for atoms, and nan-fills for short arrays
-			panic("size")
-		}
-		if j == 0 {
-			tt = tj
-		} else if tt != L && tt != tj {
+		switch {
+		case j == 0:
+			nr, tt = nj, tj
+		case nj != nr:
+			panic("size") // k7 does extends for atoms, and nan-fills short arrays
+		case j > 0 && tt != L && tt != tj:
 			tt = L
 		}
 	}
@@ -463,17 +461,20 @@ func flp(x k) (r k) { // +x
 	}
 	cp, sz, o := cpx[tt], lns[tt], ofs[tt]
 	r = mk(L, nr)
-	for j := k(0); j < nr; j++ {
+	for i := k(0); i < nr; i++ {
 		rr := mk(tt, n)
-		m.k[2+r+j] = rr
+		m.k[2+r+i] = rr
 	}
 	if tt == L {
 		for k := k(0); k < n; k++ {
-			col := explode(2 + x + k)
+			col := explode(inc(m.k[2+x+k]))
 			for i := uint32(0); i < nr; i++ {
 				m.k[2+k+m.k[2+r+i]] = inc(m.k[2+col+i])
 			}
 			dec(col)
+		}
+		for i := k(0); i < nr; i++ {
+			m.k[2+r+i] = uf(m.k[2+r+i])
 		}
 	} else {
 		for i := uint32(0); i < nr; i++ { // Rik = +Xki (cdn.mos.cms.futurecdn.net/XTZkbu7r5c4LZQ5SMzJDbV-970-80.jpg)
@@ -498,9 +499,34 @@ func explode(x k) (r k) { // explode an array to a list of atoms
 	cp, sz, o := cpx[t], lns[t], ofs[t]
 	r = mk(L, n)
 	for j := k(0); j < n; j++ {
-		dst := mk(t, 1) << 2
-		cp(8+o+dst, 8+o+x+sz*j+x<<2)
+		dst := mk(t, atom) << 2
+		cp(8+o+dst, 8+o+sz*j+x<<2)
 		m.k[2+r+j] = dst >> 2
+	}
+	dec(x)
+	return r
+}
+func uf(x k) (r k) { // unify lists if possible
+	xt, xn := typ(x)
+	if xt != L {
+		return x
+	}
+	ut := k(0)
+	for j := k(0); j < xn; j++ {
+		t, n := typ(m.k[2+x+j])
+		switch {
+		case t >= L || n != atom:
+			return x
+		case j == 0:
+			ut = t
+		case t != ut:
+			return x
+		}
+	}
+	r = mk(ut, xn)
+	cp, sz, o := cpx[ut], lns[ut], ofs[ut]
+	for j := k(0); j < xn; j++ {
+		cp(8+o+sz*j+r<<2, 8+o+m.k[2+x+j]<<2)
 	}
 	dec(x)
 	return r
