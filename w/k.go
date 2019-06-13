@@ -991,7 +991,7 @@ func evl(x k) (r k) { // .x
 			panic("nyi")
 		}
 		c := c(sym(8+v<<2) >> 56) // TODO: this is only 1 char
-		s := "+-%*|&<>=~,^#_$?@."
+		s := "+-%*|&<>=~,^#_$?@." // TODO: same as cOps
 		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, srt, cnt, flr, fms, unq, tip, evl}
 		var g func(k) k
 		for i := range s {

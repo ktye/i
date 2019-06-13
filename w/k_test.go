@@ -25,7 +25,33 @@ func TestIni(t *testing.T) {
 	//pfl()
 	//xxd()
 }
-
+func TestParse(t *testing.T) {
+	ini()
+	//t.Skip()
+	testCases := []struct {
+		x, r s
+	}{
+		{"`alpha", "`alpha"},
+	}
+	for i, occ := range []bool{true, false} {
+		for j, tc := range testCases {
+			x := K([]byte(tc.x))
+			if occ {
+				inc(x)
+			}
+			y := fms(prs(x))
+			r := string(G(y).([]c))
+			if !reflect.DeepEqual(r, tc.r) {
+				t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
+			}
+			dec(y)
+			if occ {
+				dec(x)
+			}
+			check(t)
+		}
+	}
+}
 func TestNumMonad(t *testing.T) {
 	//t.Skip()
 	ini()
@@ -45,8 +71,7 @@ func TestNumMonad(t *testing.T) {
 		{tip, "@", l{"c", "C", "i", "I", "f", "F", "z", "Z"}},
 		{evl, ".", xv},
 	}
-	occ := true // wrap x in inc dec
-	for i := 0; i < 2; i++ {
+	for _, occ := range []bool{true, false} {
 		for j, tc := range testCases {
 			for i := range xv {
 				// fmt.Println("TC", xv[i])
@@ -66,18 +91,10 @@ func TestNumMonad(t *testing.T) {
 				if !reflect.DeepEqual(r, tc.r[i]) {
 					t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
 				}
-				fpck("1")
 				dec(y)
-				if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
-					panic("x|y is not free")
-				}
-				if u := Stats().UsedBlocks(); u != 1 {
-					t.Fatalf("leak")
-				}
-				fpck("2")
+				check(t)
 			}
 		}
-		occ = false
 	}
 }
 func TestMonad(t *testing.T) {
@@ -150,8 +167,7 @@ func TestMonad(t *testing.T) {
 		{unq, "?", l{1, 2, 3, 1}, l{1, 2, 3}},
 		{unq, "?", l{1i, l{2, sv{"a"}}, l{3, "b"}, l{2, sv{"a"}}, 1i}, l{1i, l{2, sv{"a"}}, l{3, "b"}}},
 	}
-	occ := true // wrap x in inc dec
-	for i := 0; i < 2; i++ {
+	for _, occ := range []bool{true, false} {
 		for j, tc := range testCases {
 			//fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
 			x := K(tc.x)
@@ -173,16 +189,8 @@ func TestMonad(t *testing.T) {
 				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
 			}
 			dec(y)
-
-			fpck("2")
-			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
-				panic("x|y is not free")
-			}
-			if u := Stats().UsedBlocks(); u != 1 {
-				t.Fatalf("leak: %d", u)
-			}
+			check(t)
 		}
-		occ = false
 	}
 }
 func TestDyad(t *testing.T) {
@@ -193,8 +201,7 @@ func TestDyad(t *testing.T) {
 	}{
 		{atx, "@", iv{2, 1, 3, 5}, iv{2, 0, 1}, iv{3, 2, 1}},
 	}
-	occ := true
-	for i := 0; i < 2; i++ {
+	for _, occ := range []bool{true, false} {
 		for j, tc := range testCases {
 			// fmt.Println("TC", i, j, tc.s, tc.x, "occ", occ)
 			x := K(tc.x)
@@ -219,15 +226,8 @@ func TestDyad(t *testing.T) {
 				t.Fatalf("dyad[%d]: expected: %v got %v\n", j, tc.r, r)
 			}
 			dec(z)
-			fpck("2")
-			if m.k[x]>>28 != 0 || m.k[y]>>28 != 0 {
-				panic("x|y is not free")
-			}
-			if u := Stats().UsedBlocks(); u != 1 {
-				t.Fatalf("leak: %d", u)
-			}
+			check(t)
 		}
-		occ = false
 	}
 }
 func TestFms(t *testing.T) {
@@ -284,6 +284,12 @@ func TestStr(t *testing.T) {
 	if u := sym(8 + K("abcdefgh")<<2); u != 0x6162636465666768 {
 		t.Fatalf("%x\n", u)
 	}
+}
+func check(t *testing.T) {
+	if u := Stats().UsedBlocks(); u != 1 {
+		t.Fatalf("leak")
+	}
+	fpck("")
 }
 func pfl() {
 	for i := 4; i < 32; i++ {
