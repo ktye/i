@@ -6,7 +6,7 @@ func prs(x k) (r k) { // `p"…"
 		panic("type")
 	}
 	dec(x) // but keep using it
-	p := p{p: 8 + x<<2, n: n}
+	p := p{p: 8 + x<<2, e: n + 8 + x<<2, ln: 1}
 	r = mk(L, 0)
 	cat(r, mys(mk(S, 0), uint64(';')<<56))
 	for p.a() { // ex;ex;…
@@ -36,73 +36,52 @@ func prs(x k) (r k) { // `p"…"
 }
 
 type p struct {
-	p  k // m.c index to current position (after consumed part)
-	c  k // start of matched token (end is p)
-	t  k // length of token set at t
-	n  k // bytes available
+	p  k // current position, m.c[p.p:...]
+	m  k // pos after matched token (token: m.c[p.p:p.m])
+	e  k // pos after last byte available
 	ln k // current line number
 	lp k // m.c index of start of current line
 }
 
-func (p *p) a() bool { return p.w().n > 0 } // available
-func (p *p) t(f func([]byte) k) bool { // test but keep token
-	if p.w().n == 0 {
+func (p *p) t(f func([]c) int) bool { // test for next token
+	p.w()
+	if p.p == p.e {
 		return false
 	} else {
-		p.t = f(p.b())
-		return p.t > 0
-	}
-}
-func (p *p) s(n k) bool { p.c = p.p; p.p += n; p.n -= n; return n > 0 } // shift
-func (p *p) m(f func([]byte) k) []c { // must match token, advance and return length
-	delete
-	if n := p.t(f); n > 0 {
-		p.s(n)
-		return p.b()
-	}
-	p.xx()
-	return nil
-}
-func (p *p) any(f []func([]c) k) bool {
-	if p.w().n == 0 {
-		return false
-	}
-	for i := range f {
-		if f[i](p.b()) > 0 {
-			return true
+		if n := f(m.c[p.p:p.e]); n > 0 {
+			p.m = p.p + n
 		}
 	}
-	return false
+	return p.m > p.p
 }
-func (p *p) b() []byte { // remaining bytes
-	return m.c[p.p : p.p+p.n]
+func (p *p) a(f func([]c) k) (r k) { // accept, parse and advance
+	n := p.m - p.p
+	p.p = p.m
+	return f(m.c[p.p-n : p.p])
 }
-func (p *p) w() *p { // advance to next token, replace and count newlines
+func (p *p) w() { // remove whitespace and count lines
 	// TODO remove comments
-	p.bak()
 	for {
 		switch p.get() {
 		case ' ', '\t', '\r':
 		case '\n':
-			p.lp = p.p
+			p.lp = p.p + 1
 			p.ln++
-			p.bak()
+			p.p--
 			return p
 		default:
-			p.bak()
+			p.p--
 			return p
 		}
 	}
 }
 func (p *p) get() c {
-	if p.n == 0 {
+	if p.p == p.e {
 		return 0
 	}
 	p.p++
-	p.n--
 	return m.c[p.p-1]
 }
-func (p *p) bak() { p.p++; p.n-- }
 func (p *p) xx() {
 	panic("parse: " + string(m.c[p.lp:p.p+1]) + " <-")
 }
@@ -117,28 +96,45 @@ func (p *p) ex(x k) (r k) {
 func (p *p) noun() (r k) {
 	switch {
 	case p.t(sSym):
-		//btos(p.m(sSym
+		return p.a(pSym)
 	case p.t(sNam):
-		return btos(p.m(sNam)) // TODO idxr
-		// TODO colon
+		return p.a(pNam) // TODO idxr
 	}
 	panic("nyi")
 }
 
+func pNam(b []byte) (r k) { return btos(b) } // name: `n
+func pSym(b []byte) (r k) { // `name|`"name": `n
+	if len(b) == 1 || b[1] != '"' {
+		r = mk(S, atom)
+		mys(rc, btou(b[1:]))
+	} else {
+		r = pQot(b[1:])
+		_, n := typ(r)
+		m.k[r] = C<<28 | atom
+		rc := 8 + r<<2
+		mys(rc, btou(m.c[rc:rc+n]))
+	}
+	return r
+}
+func pQot(b []byte) (r k) { // "a\nb": `C
+	btos // TODO
+}
+
 // Scanners return the length of the matched input or 0
-func sNam(b []byte) (r k) {
+func sNam(b []byte) (r int) {
 	for i, c := range b {
 		if cr09(c) || craZ(c) { // TODO: dot?
 			if i == 0 && c09 {
 				return 0
 			}
 		} else {
-			return k(i)
+			return i
 		}
 	}
-	return k(len(b))
+	return len(b)
 }
-func sStr(b []byte) (r k) {
+func sStr(b []byte) (r int) {
 	if len(b) < 2 || b[0] != '"' {
 		return 0
 	}
@@ -149,25 +145,25 @@ func sStr(b []byte) (r k) {
 			q = !q
 		case '"':
 			if !q {
-				return k(i)
+				return i
 			}
 		}
 	}
 	return 0
 }
-func sSym(b []byte) (r k) { // `alp012|`"any\"thing"|`a.b.c
+func sSym(b []byte) (r int) { // `alp012|`"any\"thing"|`a.b.c
 	if b[0] != '`' {
 		return 0
 	}
 	if len(b) > 2 || b[1] == '"' {
-		return k(1) + sStr(b[1:])
+		return 1 + sStr(b[1:])
 	}
 	for i := 1; i < len(b); i++ {
 		if !(cr09(c) || craZ(c) || c == '.') {
-			return k(i)
+			return i
 		}
 	}
-	return k(len(b))
+	return len(b)
 }
 func sSem(b []byte) (r k) { return bol(b[0] == ';' || b[0] == '\n') }
 func cr09(c c) bool       { return c >= '0' && c <= '9' }

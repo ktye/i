@@ -911,16 +911,15 @@ func str(u uint64) s {
 	}
 	return s(b[:n])
 }
-func btos(b []c) (r k) {
+func btou(b []c) uint64 {
 	if len(b) > 8 {
 		panic("size")
 	}
 	var u uint64
-	r = mk(S, 0)
 	for i := k(0); i < k(len(b)); i++ {
 		u |= uint64(b[i]) << (8 * c(7-1))
 	}
-	return mys(8+r<<2, u)
+	return u
 }
 func unq(x k) (r k) { // ?x
 	t, n := typ(x)
