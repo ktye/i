@@ -132,6 +132,9 @@ func TestMonad(t *testing.T) {
 		{fst, "*", l{"alpha"}, "alpha"},
 		{fst, "*", d{l{"x", "y"}, l{iv{5, 3}, 4}}, iv{5, 3}},
 		{fst, "*", d{sv{"x", "y"}, iv{7, 2}}, 7},
+		{str, "$", "", []c("")},
+		{str, "$", "a", []c("a")},
+		{str, "$", sv{"", "a", "bb", "a\t\r\nb"}, l{[]c(""), []c("a"), []c("bb"), []c("a\t\r\nb")}},
 		{str, "$", l{1, c(3), l{4, 5.0}}, l{[]c("1"), c(3), l{[]c("4"), []c("5")}}},
 		{str, "$", d{sv{"x", "y"}, iv{1, 2}}, d{sv{"x", "y"}, l{[]c("1"), []c("2")}}},
 		{kst, "`k", iv{1, 2, 3}, []c("1 2 3")},
@@ -287,7 +290,7 @@ func TestKst(t *testing.T) {
 }
 func TestStr(t *testing.T) {
 	ini()
-	for _, x := range []s{"a", "b", "aa", "bb", "alpha", "betagammadelta"} {
+	for _, x := range []s{"a", "b", "aa", "bb", "alpha", "betagamm"} {
 		n := len(x)
 		if n > 8 {
 			n = 8

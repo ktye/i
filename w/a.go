@@ -49,14 +49,7 @@ func do(s []byte) {
 
 func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	kstr := func(dst k, s string) {
-		u, n := uint64(0), len(s)
-		if n > 8 {
-			n = 8
-		}
-		for i := 0; i < n; i++ { // byte order independend
-			u |= uint64(s[i]) << (8 * c(7-i))
-		}
-		mys(dst, u)
+		mys(dst, btou([]c(s)))
 	}
 	var r k
 	switch a := x.(type) {

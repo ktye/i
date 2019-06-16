@@ -46,7 +46,7 @@ var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/na
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
 var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
-var stx = []func(k, k) k{nil, nil, stI, stF, stZ}              // string
+var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS}         // tostring (assumes 56 bytes space at dst)
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -135,6 +135,17 @@ func stZ(dst, src k) k {
 	n := stF(dst, src)
 	m.c[dst+n] = 'i'
 	return 1 + n + stF(dst+1+n, src+8)
+}
+func stS(dst, src k) k {
+	u := sym(src)
+	for i := k(0); i < 8; i++ {
+		if c := c(u >> (8 * (7 - i))); c == 0 {
+			return i
+		} else {
+			m.c[dst+i] = c
+		}
+	}
+	return 8
 }
 func mv(dst, src k) {
 	t, n := typ(src)
@@ -955,18 +966,15 @@ func mys(x k, u uint64) k {
 	copy(m.c[x:x+8], b[:])
 	return x
 }
-func ustr(u uint64) s {
+func ustr(u uint64) s { // TODO move to G() after converting kst
 	var b [8]c
-	n := 8
 	for i := k(0); i < 8; i++ {
-		j := 8 * (7 - i)
-		b[i] = c((u & (0xFF << j)) >> j)
+		b[i] = c(u >> (8 * (7 - i)))
 		if b[i] == 0 {
-			n = int(i)
-			break
+			return s(b[:i])
 		}
 	}
-	return s(b[:n])
+	return s(b[:])
 }
 func btou(b []c) uint64 {
 	if len(b) > 8 {
@@ -974,7 +982,7 @@ func btou(b []c) uint64 {
 	}
 	var u uint64
 	for i := k(0); i < k(len(b)); i++ {
-		u |= uint64(b[i]) << (8 * c(7-1))
+		u |= uint64(b[i]) << (8 * c(7-i))
 	}
 	return u
 }
