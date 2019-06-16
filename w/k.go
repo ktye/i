@@ -46,6 +46,7 @@ var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/na
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
 var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
+var stx = []func(k, k) k{nil, nil, stI, stF, stZ}              // string
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -118,6 +119,23 @@ func gtZ(x, y k) bool { // real than imag
 func eqS(x, y k) bool { return m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2] }
 func ltS(x, y k) bool { return sym(x) < sym(y) }
 func gtS(x, y k) bool { return sym(x) > sym(y) }
+func stI(dst, src k) k { // TODO remove strconv
+	s := strconv.Itoa(int(i(m.k[src>>2])))
+	n := k(len(s))
+	copy(m.c[dst:dst+n], []byte(s))
+	return n
+}
+func stF(dst, src k) k { // TODO remove strconv
+	s := strconv.FormatFloat(m.f[src>>3], 'g', 6, 64)
+	n := k(len(s))
+	copy(m.c[dst:dst+n], []byte(s))
+	return n
+}
+func stZ(dst, src k) k {
+	n := stF(dst, src)
+	m.c[dst+n] = 'i'
+	return 1 + n + stF(dst+1+n, src+8)
+}
 func mv(dst, src k) {
 	t, n := typ(src)
 	ln := k(1 << bk(t, n))
@@ -755,7 +773,45 @@ func flr(x k) k { // _x
 		return y
 	}, nil, I)
 }
-func fms(x k) (r k) { // $x
+func str(x k) (r k) { // $x
+	t, n := typ(x)
+	if t == C {
+		return x
+	}
+	if t < L {
+		st, sz, o := stx[t], lns[t], ofs[t]
+		if n == atom {
+			r = mk(C, 56)
+			srk(r, C, 56, st(8+r<<2, 8+o+x<<2))
+		} else {
+			r = mk(L, n)
+			for i := k(0); i < n; i++ {
+				y := mk(C, 56)
+				srk(y, C, 56, st(8+y<<2, 8+o+i*sz+x<<2))
+				m.k[2+r+i] = y
+			}
+		}
+	} else {
+		switch t {
+		case L:
+			r = use(x, L, n)
+			for i := k(0); i < n; i++ {
+				if r != x {
+					inc(m.k[2+i+x])
+				}
+				m.k[2+i+r] = str(m.k[2+i+x])
+			}
+		case D:
+			r = mk(D, atom)
+			m.k[2+r] = inc(m.k[2+x])
+			m.k[3+r] = str(inc(m.k[3+x]))
+		default:
+			panic("nyi")
+		}
+	}
+	return decret(x, r)
+}
+func kst(x k) (r k) { // `k@x
 	lim := k(120)
 	r = mk(C, lim)
 	t, n := typ(x)
@@ -773,7 +829,7 @@ func fms(x k) (r k) { // $x
 		return dd
 	}
 	pushr := func(p k) (o bool) {
-		a := fms(inc(p))
+		a := kst(inc(p))
 		as, ln := a<<2, m.k[a]&atom
 		if at, an := typ(a); at != C || an > lim {
 			panic("type")
@@ -852,7 +908,7 @@ func fms(x k) (r k) { // $x
 			n = 1
 		}
 		for j := k(0); j < n; j++ {
-			if push("`" + str(sym(8+8*j+x<<2))) {
+			if push("`" + ustr(sym(8+8*j+x<<2))) {
 				break
 			}
 		}
@@ -899,7 +955,7 @@ func mys(x k, u uint64) k {
 	copy(m.c[x:x+8], b[:])
 	return x
 }
-func str(u uint64) s {
+func ustr(u uint64) s {
 	var b [8]c
 	n := 8
 	for i := k(0); i < 8; i++ {
@@ -994,7 +1050,7 @@ func evl(x k) (r k) { // .x
 		}
 		c := c(sym(8+v<<2) >> 56) // TODO: this is only 1 char
 		s := "+-%*|&<>=~,^#_$?@." // TODO: same as cOps
-		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, srt, cnt, flr, fms, unq, tip, evl}
+		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, srt, cnt, flr, str, unq, tip, evl}
 		var g func(k) k
 		for i := range s {
 			if c == s[i] {

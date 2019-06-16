@@ -45,11 +45,11 @@ func TestParse(t *testing.T) {
 				exp := tc.r
 				if at {
 					fmt.Printf("@`p(%q) ~ %v\n", tc.x, tc.t)
-					y = fms(tip(y))
+					y = kst(tip(y))
 					exp = tc.t
 				} else {
 					fmt.Printf("`p(%q) ~ %v\n", tc.x, tc.r)
-					y = fms(y)
+					y = kst(y)
 				}
 				r := string(G(y).([]c))
 				if !reflect.DeepEqual(r, tc.r) {
@@ -80,6 +80,7 @@ func TestNumMonad(t *testing.T) {
 		{not, "~", l{c0, []c{0, 0}, c0, []c{0, 0}, c0, []c{0, 0, 1}, c0, []c{0, 0}}},
 		{enl, ",", l{[]c{3}, l{[]c{3, 5}}, iv{-5}, l{iv{3, -9}}, []f{3.2}, l{[]f{-3.5, 2.9, 0}}, []z{2 - 4i}, l{[]z{4 - 2i, 3 + 4i}}}},
 		{cnt, "#", l{1, 2, 1, 2, 1, 3, 1, 2}},
+		{str, "$", l{c(3), []c{3, 5}, []c("-5"), l{[]c("3"), []c("-9")}, []c("3.2"), l{[]c("-3.5"), []c("2.9"), []c("0")}, []c("2i-4"), l{[]c("4i-2"), []c("3i4")}}},
 		{tip, "@", l{"c", "C", "i", "I", "f", "F", "z", "Z"}},
 		{evl, ".", xv},
 	}
@@ -131,9 +132,11 @@ func TestMonad(t *testing.T) {
 		{fst, "*", l{"alpha"}, "alpha"},
 		{fst, "*", d{l{"x", "y"}, l{iv{5, 3}, 4}}, iv{5, 3}},
 		{fst, "*", d{sv{"x", "y"}, iv{7, 2}}, 7},
-		{fms, "$", iv{1, 2, 3}, []c("1 2 3")},
-		{fms, "$", l{1, 2, l{4, 5}}, []c("(1;2;(4;5))")},
-		{fms, "$", d{l{5, 5.5}, iv{1, 2}}, []c("((5;5.5)!1 2)")},
+		{str, "$", l{1, c(3), l{4, 5.0}}, l{[]c("1"), c(3), l{[]c("4"), []c("5")}}},
+		{str, "$", d{sv{"x", "y"}, iv{1, 2}}, d{sv{"x", "y"}, l{[]c("1"), []c("2")}}},
+		{kst, "`k", iv{1, 2, 3}, []c("1 2 3")},
+		{kst, "`k", l{1, 2, l{4, 5}}, []c("(1;2;(4;5))")},
+		{kst, "`k", d{l{5, 5.5}, iv{1, 2}}, []c("((5;5.5)!1 2)")},
 		{rev, "|", l{}, l{}},
 		{rev, "|", l{iv{3}}, l{iv{3}}},
 		{rev, "|", l{1, 2}, l{2, 1}},
@@ -242,7 +245,7 @@ func TestDyad(t *testing.T) {
 		}
 	}
 }
-func TestFms(t *testing.T) {
+func TestKst(t *testing.T) {
 	//t.Skip()
 	ini()
 	testCases := []struct {
@@ -274,7 +277,7 @@ func TestFms(t *testing.T) {
 	for _, tc := range testCases {
 		fmt.Printf("%v ?= %q\n", tc.x, tc.s)
 		x := K(tc.x)
-		y := fms(x)
+		y := kst(x)
 		r := G(y).([]c)
 		if reflect.DeepEqual(r, []byte(tc.s)) == false {
 			t.Fatalf("expected: %q got %s (%q)\n", tc.s, string(r), string(r))
@@ -377,7 +380,7 @@ func fpck(s s) { // check free pointers
 }
 func pr(x k, a ...interface{}) {
 	fmt.Printf(":%x ", x)
-	r := fms(inc(x))
+	r := kst(inc(x))
 	_, n := typ(r)
 	s := s(m.c[8+r<<2 : 8+n+r<<2])
 	dec(r)

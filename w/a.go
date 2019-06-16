@@ -39,7 +39,7 @@ func do(s []byte) {
 			}
 		}
 	}()
-	r := fms(evl(prs(mk(C, k(len(s))))))
+	r := kst(evl(prs(mk(C, k(len(s))))))
 	n := m.k[r] & atom
 	println(string(m.c[8+r<<2 : 8+n+r<<2]))
 	dec(r)
@@ -158,7 +158,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 		case Z:
 			return m.z[1+x>>2]
 		case S:
-			return str(sym(8 + x<<2))
+			return ustr(sym(8 + x<<2))
 		case D:
 			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
 		}
@@ -191,7 +191,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 		case S:
 			r := make([]string, n)
 			for i := range r {
-				r[i] = str(sym(8 + 8*k(i) + x<<2))
+				r[i] = ustr(sym(8 + 8*k(i) + x<<2))
 			}
 			return r
 		case L:
