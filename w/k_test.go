@@ -29,26 +29,38 @@ func TestParse(t *testing.T) {
 	ini()
 	//t.Skip()
 	testCases := []struct {
-		x, r s
+		x, r, t s
 	}{
-		{"`alpha", "`alpha"},
+	//{"", "", ""},
+	//{"`alpha", ",`alpha", "N"},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
-			x := K([]byte(tc.x))
-			if occ {
-				inc(x)
+			for _, at := range []bool{false, true} {
+				x := K([]byte(tc.x))
+				if occ {
+					inc(x)
+				}
+				y := prs(x)
+				exp := tc.r
+				if at {
+					fmt.Printf("@`p(%q) ~ %v\n", tc.x, tc.t)
+					y = fms(tip(y))
+					exp = tc.t
+				} else {
+					fmt.Printf("`p(%q) ~ %v\n", tc.x, tc.r)
+					y = fms(y)
+				}
+				r := string(G(y).([]c))
+				if !reflect.DeepEqual(r, tc.r) {
+					t.Fatalf("[%d/%d]: expected: %v got %v\n", j, i, exp, r)
+				}
+				dec(y)
+				if occ {
+					dec(x)
+				}
+				check(t)
 			}
-			y := fms(prs(x))
-			r := string(G(y).([]c))
-			if !reflect.DeepEqual(r, tc.r) {
-				t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
-			}
-			dec(y)
-			if occ {
-				dec(x)
-			}
-			check(t)
 		}
 	}
 }

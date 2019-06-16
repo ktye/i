@@ -6,33 +6,32 @@ func prs(x k) (r k) { // `p"…"
 		panic("type")
 	}
 	dec(x) // but keep using it
+	if n == 0 {
+		return mk(N, atom)
+	}
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, ln: 1}
 	r = mk(L, 0)
 	cat(r, mys(mk(S, 0), uint64(';')<<56))
-	for p.a() { // ex;ex;…
+	for p.p < p.e { // ex;ex;…
 		x = p.ex(p.noun())
 		if x == 0 {
 			break
 		}
-		cat(r, x)
-		if !p.s(p.t(sSem)) {
+		r = cat(r, x)
+		if !p.t(sSem) {
 			break
 		}
 	}
-	if p.a() {
+	if p.p < p.e {
 		p.xx() // unprocessed input
 	}
 	_, n = typ(r)
 	if n == 1 {
+		inc(m.k[2+r])
 		dec(r)
-		return mk(C, 0) // nil, empty, `0, 0?
-	} else if n == 2 {
-		x = m.k[2+r+1]
-		inc(x)
-		dec(r)
-		return x
+		return m.k[2+r] // r[0]
 	}
-	return x
+	return r
 }
 
 type p struct {
@@ -49,7 +48,7 @@ func (p *p) t(f func([]c) int) bool { // test for next token
 		return false
 	} else {
 		if n := f(m.c[p.p:p.e]); n > 0 {
-			p.m = p.p + n
+			p.m = p.p + k(n)
 		}
 	}
 	return p.m > p.p
@@ -60,7 +59,6 @@ func (p *p) a(f func([]c) k) (r k) { // accept, parse and advance
 	return f(m.c[p.p-n : p.p])
 }
 func (p *p) w() { // remove whitespace and count lines
-	// TODO remove comments
 	for {
 		switch p.get() {
 		case ' ', '\t', '\r':
@@ -68,10 +66,24 @@ func (p *p) w() { // remove whitespace and count lines
 			p.lp = p.p + 1
 			p.ln++
 			p.p--
-			return p
+			return
+		case '/':
+			if p.p == p.ln+1 || m.c[p.p]-1 == ' ' || m.c[p.p]-1 == '\t' {
+				for {
+					if c := p.get(); c == 0 {
+						return
+					} else if c == '\n' {
+						p.p--
+						break
+					}
+				}
+			} else {
+				p.p--
+				return
+			}
 		default:
 			p.p--
-			return p
+			return
 		}
 	}
 }
@@ -96,18 +108,34 @@ func (p *p) ex(x k) (r k) {
 func (p *p) noun() (r k) {
 	switch {
 	case p.t(sSym):
-		return p.a(pSym)
+		r = p.a(pSym)
+		for p.p != p.e && m.c[p.p] == '`' { // `a`b`c without whitespace
+			if p.t(sSym) {
+				r = cat(r, p.a(pSym))
+			}
+		}
+		if m.k[r]&atom == atom { // `a → ,`a
+			m.k[r] = S<<28 + 1
+		} else { // `a`b → ,`a`b
+			r = enl(r)
+		}
+		return p.idxr(r)
 	case p.t(sNam):
-		return p.a(pNam) // TODO idxr
+		return p.idxr(p.a(pNam))
 	}
 	panic("nyi")
 }
+func (p *p) idxr(x k) (r k) { return x } // TODO
 
-func pNam(b []byte) (r k) { return btos(b) } // name: `n
+func pNam(b []byte) (r k) { // name: `n
+	r = mk(S, atom)
+	mys(8+r<<2, btou(b))
+	return r
+}
 func pSym(b []byte) (r k) { // `name|`"name": `n
 	if len(b) == 1 || b[1] != '"' {
 		r = mk(S, atom)
-		mys(rc, btou(b[1:]))
+		mys(8+r<<2, btou(b[1:]))
 	} else {
 		r = pQot(b[1:])
 		_, n := typ(r)
@@ -118,14 +146,37 @@ func pSym(b []byte) (r k) { // `name|`"name": `n
 	return r
 }
 func pQot(b []byte) (r k) { // "a\nb": `C
-	btos // TODO
+	r = mk(C, k(len(b)-2))
+	p := 8 + r<<2
+	q := false
+	for _, c := range b[1 : len(b)-1] {
+		if c == '\\' && !q {
+			q = true
+		} else {
+			if q {
+				q = false
+				switch c {
+				case 'r':
+					c = '\r'
+				case 'n':
+					c = '\n'
+				case 't':
+					c = '\t'
+				}
+			}
+			m.c[p] = c
+			p++
+		}
+	}
+	srk(r, C, k(len(b)-2), k(p-(8+r<<2)))
+	return r
 }
 
 // Scanners return the length of the matched input or 0
 func sNam(b []byte) (r int) {
 	for i, c := range b {
 		if cr09(c) || craZ(c) { // TODO: dot?
-			if i == 0 && c09 {
+			if i == 0 && cr09(c) {
 				return 0
 			}
 		} else {
@@ -158,18 +209,23 @@ func sSym(b []byte) (r int) { // `alp012|`"any\"thing"|`a.b.c
 	if len(b) > 2 || b[1] == '"' {
 		return 1 + sStr(b[1:])
 	}
-	for i := 1; i < len(b); i++ {
+	for i, c := range b[1:] {
 		if !(cr09(c) || craZ(c) || c == '.') {
 			return i
 		}
 	}
 	return len(b)
 }
-func sSem(b []byte) (r k) { return bol(b[0] == ';' || b[0] == '\n') }
-func cr09(c c) bool       { return c >= '0' && c <= '9' }
-func craZ(c c) bool       { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
+func sSem(b []byte) (r int) {
+	if b[0] == ';' || b[0] == '\n' {
+		r = 1
+	}
+	return r
+}
+func cr09(c c) bool { return c >= '0' && c <= '9' }
+func craZ(c c) bool { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
 func cOps(c c) bool {
-	for i, b := range []byte("+-%*|&<>=~,^#_$?@.") { // TODO: store in ktree for kwac compat
+	for _, b := range []byte("+-%*|&<>=~,^#_$?@.") { // TODO: store in ktree for kwac compat
 		if c == b {
 			return true
 		}

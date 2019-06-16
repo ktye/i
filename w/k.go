@@ -877,6 +877,7 @@ func fms(x k) (r k) { // $x
 		push("!")
 		pushr(m.k[3+x])
 		push(")")
+	case N:
 	default:
 		println("fms t=", t)
 		panic("nyi")
@@ -961,17 +962,19 @@ func tip(x k) (r k) { // @x
 	m.k[2+r] = 0
 	m.k[3+r] = 0
 	t, n := typ(x)
+	dec(x)
 	if t == L {
-		dec(x)
 		return r // empty symbol
 	}
-	tns := "_cifzn a" // TODO k7 compatibility, function types 1..4?
+	tns := "_cifzn.a_1234" // TODO k7 compatibility, function types 1..4?
 	s := tns[t]
-	if n != atom {
+	if n != atom && t != L {
 		s -= 32
 	}
 	mys(8+r<<2, uint64(s)<<56)
-	dec(x)
+	if s == '_' {
+		mys(8+r<<2, 0)
+	}
 	return r
 }
 func evl(x k) (r k) { // .x
@@ -1144,12 +1147,6 @@ func buk(x uint32) (n k) { // from https://golang.org/src/math/bits/bits.go (Len
 		return 4
 	}
 	return n
-}
-func bol(x bool) (r k) {
-	if x {
-		r = 1
-	}
-	return r
 }
 
 var l8t = [256]c{
