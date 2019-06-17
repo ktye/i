@@ -31,8 +31,8 @@ func TestParse(t *testing.T) {
 	testCases := []struct {
 		x, r, t s
 	}{
-	//{"", "", ""},
-	//{"`alpha", ",`alpha", "N"},
+		//{"", "", ""},
+		//{"`alpha", ",`alpha", "N"},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
@@ -262,6 +262,7 @@ func TestKst(t *testing.T) {
 		{[]c{28}, ",0x1c"},
 		{[]c{0x1b, 0x5b, 0x5c}, "0x1b5b5c"},
 		{[]c("alpha"), `"alpha"`},
+		{[]c("a\nb\rc\t\"d"), `"a\nb\rc\t\"d"`},
 		{"alpha", "`alpha"},
 		{sv{"alpha"}, ",`alpha"},
 		{sv{"a", "b", "c"}, "`a`b`c"},
@@ -283,7 +284,7 @@ func TestKst(t *testing.T) {
 		y := kst(x)
 		r := G(y).([]c)
 		if reflect.DeepEqual(r, []byte(tc.s)) == false {
-			t.Fatalf("expected: %q got %s (%q)\n", tc.s, string(r), string(r))
+			t.Fatalf("expected: %s got %s (%q)\n", tc.s, string(r), string(r))
 		}
 		dec(y)
 	}

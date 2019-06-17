@@ -823,6 +823,153 @@ func str(x k) (r k) { // $x
 	return decret(x, r)
 }
 func kst(x k) (r k) { // `k@x
+	t, n := typ(x)
+	atm := n == atom
+	if atm {
+		n = 1
+	}
+	if n == 0 {
+		r = mk(C, 0)
+		rc, rn := 8+r<<2, k(0)
+		switch t { // these could also be in the k-tree
+		case C:
+			rn = putb(rc, rn, []c(`""`))
+		case I:
+			rn = putb(rc, rn, []c("!0"))
+		case F:
+			rn = putb(rc, rn, []c("!0.0"))
+		case Z:
+			rn = putb(rc, rn, []c("!0i0"))
+		case S:
+			rn = putb(rc, rn, []c("0#`"))
+		case L:
+			rn = putb(rc, rn, []c("()"))
+		case D:
+			rn = putb(rc, rn, []c("()!()"))
+		default:
+			panic("nyi")
+		}
+		m.k[r] = C<<28 | rn
+	}
+	switch t {
+	case C: // ,"a" "a" "ab" "a\nb" ,0x01 0x010203
+		r = mk(C, 2+2*n) // for both "a\nb" or 0x01234 or ,"\n"(short enough)
+		// no need to shrink: 2*(10+n) is never <= 10+2*n
+		rc, rn, xc := 8+r<<2, k(0), 8+x<<2
+		if n == 1 && !atm {
+			rn = putc(rc, rn, ',')
+		}
+		rn = putc(rc, rn, '"')
+		hex := false
+		for i := k(0); i < n; i++ {
+			c := m.c[xc+i]
+			if c < 32 || c > 126 || c == '"' {
+				if c, o := qot(c); o {
+					rn = putc(rc, rn, '\\')
+					rn = putc(rc, rn, c)
+				} else {
+					hex = true
+					break
+				}
+			} else {
+				rn = putc(rc, rn, c)
+			}
+		}
+		rn = putc(rc, rn, '"')
+		if hex {
+			rn = 0
+			if n == 1 && !atm {
+				rn = 1
+			}
+			rn = putc(rc, rn, '0')
+			rn = putc(rc, rn, 'x')
+			for i := k(0); i < n; i++ {
+				c1, c2 := hxb(m.c[xc+i])
+				rn = putc(rc, rn, c1)
+				rn = putc(rc, rn, c2)
+			}
+		}
+		m.k[r] = C<<28 | rn
+	case S:
+		if atm || n == 1 {
+			rr := mk(C, 0)
+			sn, rrc, rn, q := stS(8+rr<<2, 8+x<<2), 8+rr<<2, k(1), false
+			for i := k(0); i < sn; i++ {
+				c := m.c[rrc+i]
+				if !(cr09(c) || craZ(c) || c == '.') {
+					q = true
+				}
+				if _, o := qot(c); o {
+					rn++
+				}
+				rn++
+			}
+			if q {
+				rn += 2
+			}
+			if !atm {
+				rn++
+			}
+			r = mk(C, rn)
+			rc, rn := 8+r<<2, k(0)
+			if !atm {
+				rn = putc(rc, rn, ',')
+			}
+			rn = putc(rc, rn, '`')
+			if q {
+				rn = putc(rc, rn, '"')
+			}
+			for i := k(0); i < sn; i++ {
+				c, o := qot(m.c[rrc+i])
+				if o {
+					rn = putc(rc, rn, '\\')
+				}
+				rn = putc(rc, rn, c)
+			}
+			if q {
+				rn = putc(rc, rn, '"')
+			}
+			dec(rr)
+		} else {
+			r = mk(C, 0)
+			ix := mk(I, atom)
+			for i := k(0); i < n; i++ {
+				m.k[2+ix] = i
+				r = cat(r, kst(atx(inc(x), inc(ix))))
+			}
+			dec(ix)
+		}
+
+	default: // I  F  Z  S  L  D  0  1  2  3  4
+		panic("nyi")
+	}
+	dec(x)
+	return r
+}
+func putc(rc, rn k, c c) k { // assumes enough space
+	m.c[rc+rn] = c
+	return rn + 1
+}
+func putb(rc, rn k, b []c) k {
+	rc += rn
+	copy(m.c[rc:rc+k(len(b))], b)
+	return rn + k(len(b))
+}
+func qot(c c) (c, bool) {
+	if c == '"' {
+		return c, true
+	} else if c == '\n' {
+		return 'n', true
+	} else if c == '\t' {
+		return 't', true
+	} else if c == '\r' {
+		return 'r', true
+	}
+	return c, false
+}
+
+/*
+func kst(x k) (r k) { // `k@x
 	lim := k(120)
 	r = mk(C, lim)
 	t, n := typ(x)
@@ -959,6 +1106,7 @@ func kst(x k) (r k) { // `k@x
 	dec(x)
 	return r
 }
+*/
 func sym(x k) uint64 { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
 func mys(x k, u uint64) k {
 	var b [8]c
@@ -1084,14 +1232,14 @@ func evl(x k) (r k) { // .x
 func atx(x, y k) (r k) { // x@y
 	xt, xn := typ(x)
 	yt, yn := typ(y)
+	if xn == atom {
+		panic("type") // TODO overloads
+	}
 	switch {
 	case xt < L && yt == I:
 		cp, sz, na, o := cpx[xt], lns[xt], nax[xt], ofs[xt]
 		xc, idx := 8+o+x<<2, 2+y
 		r = mk(xt, yn)
-		if xn == atom {
-			xn = 1
-		}
 		if yn == atom {
 			yn = 1
 		}
@@ -1142,6 +1290,21 @@ func cat(x, y k) (r k) { // x,y
 	return r
 }
 func ucat(x, y k) (r k) { panic("nyi") }
+
+/*
+func ccat(x k, c c) (r k) { // append c to x, assumes x:C refcount 1
+	_, n := typ(x)
+	r = x
+	if nn := buk(8 + n + 1); nn > buk(8+n) {
+		r = mk(C, n+1)
+		mv(r, x)
+		dec(x)
+	}
+	m.k[r] = C<<28 | (n + 1)
+	m.c[8+n+r<<2] = c
+	return r
+}
+*/
 
 func match(x, y k) (rv bool) { // recursive match
 	if x == y {
