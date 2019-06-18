@@ -140,6 +140,13 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 }
 func G(x k) interface{} { // convert k value to go type (returns nil on error)
 	t, n := typ(x)
+	str := func(xc k) s {
+		r := mk(C, 0)
+		rc := 8 + r<<2
+		n := stS(rc, xc)
+		dec(r)
+		return string(m.c[rc : rc+n])
+	}
 	if n == atom {
 		switch t {
 		case C:
@@ -151,7 +158,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 		case Z:
 			return m.z[1+x>>2]
 		case S:
-			return ustr(sym(8 + x<<2))
+			return str(8 + x<<2)
 		case D:
 			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
 		}
@@ -184,7 +191,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 		case S:
 			r := make([]string, n)
 			for i := range r {
-				r[i] = ustr(sym(8 + 8*k(i) + x<<2))
+				r[i] = str(8 + 8*k(i) + x<<2)
 			}
 			return r
 		case L:

@@ -204,14 +204,13 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	}
 	m.k[a] = n | t<<28 // ok for atoms
 	m.k[a+1] = 1       // refcount
-	// println("mk", t, n, hxk(a))
 	return a
 }
 
 func typ(a k) (k, k) { // type and length at addr
 	return m.k[a] >> 28, m.k[a] & atom
 }
-func typs(x, y k) (xt, yt, xn, yn k) { xt, xn = typ(x); xt, yn = typ(y); return }
+func typs(x, y k) (xt, yt, xn, yn k) { xt, xn = typ(x); yt, yn = typ(y); return }
 func inc(x k) k {
 	t, n := typ(x)
 	switch t {
@@ -273,7 +272,6 @@ func dec(x k) {
 	}
 }
 func free(x k) {
-	// println("free", hxk(x))
 	t, n := typ(x)
 	bt := bk(t, n)
 	m.k[x] = bt
@@ -829,7 +827,7 @@ func kst(x k) (r k) { // `k@x
 		n = 1
 	}
 	if n == 0 {
-		r = mk(C, 0)
+		r = use(x, C, 0)
 		rc, rn := 8+r<<2, k(0)
 		switch t { // these could also be in the k-tree
 		case C:
@@ -850,6 +848,7 @@ func kst(x k) (r k) { // `k@x
 			panic("nyi")
 		}
 		m.k[r] = C<<28 | rn
+		return decret(x, r)
 	}
 	switch t {
 	case C: // ,"a" "a" "ab" "a\nb" ,0x01 0x010203
@@ -890,6 +889,43 @@ func kst(x k) (r k) { // `k@x
 			}
 		}
 		m.k[r] = C<<28 | rn
+	case I, F, Z:
+		r = mk(C, 0)
+		if n == 1 && !atm {
+			m.c[8+r<<2] = ','
+			m.k[r] = C<<28 | 1
+		}
+		rr := mk(C, 56)
+		st, o := stx[t], ofs[t]
+		rrc, xc, sz := 8+rr<<2, 8+o+x<<2, lns[t]
+		sp := mk(C, 1)
+		m.c[8+sp<<2] = ' '
+		for i := k(0); i < n; i++ {
+			rn := st(rrc, xc+i*sz)
+			m.k[rr] = C<<28 | rn
+			r = cat(r, inc(rr))
+			if i < n-1 {
+				r = cat(r, inc(sp))
+			}
+		}
+		dec(sp)
+		m.k[rr] = C<<28 | 56
+		dec(rr)
+		if t == F {
+			_, n = typ(r)
+			rc, dot := 8+r<<2, false
+			for i := k(0); i < n; i++ {
+				if m.c[rc+i] == '.' {
+					dot = true
+					break
+				}
+			}
+			if !dot {
+				f := mk(C, 1)
+				m.c[8+f<<2] = 'f'
+				r = cat(r, f)
+			}
+		}
 	case S:
 		if atm || n == 1 {
 			rr := mk(C, 0)
@@ -939,8 +975,48 @@ func kst(x k) (r k) { // `k@x
 			}
 			dec(ix)
 		}
-
+	case L:
+		r = mk(C, 1)
+		rc := 8 + r<<2
+		m.c[rc] = '('
+		y := mk(C, 1)
+		m.c[8+y<<2] = ';'
+		ix := mk(I, atom)
+		for i := k(0); i < n; i++ {
+			m.k[2+ix] = i
+			r = cat(r, kst(atx(inc(x), inc(ix))))
+			if i < n-1 {
+				r = cat(r, inc(y))
+			}
+		}
+		dec(ix)
+		m.c[8+y<<2] = ')'
+		r = cat(r, y)
+	case D:
+		r = mk(C, 0)
+		rr, encl := kst(inc(m.k[x+2])), false
+		_, nr := typ(rr)
+		for i := k(0); i < nr; i++ {
+			if c := m.c[8+i+rr<<2]; c == '!' || c == '#' {
+				encl = true
+				break
+			}
+		}
+		y := mk(C, 1)
+		if encl {
+			m.c[8+y<<2] = '('
+			r = cat(r, inc(y))
+			r = cat(r, rr)
+			m.c[8+y<<2] = ')'
+			r = cat(r, inc(y))
+		} else {
+			r = cat(r, rr)
+		}
+		m.c[8+y<<2] = '!'
+		r = cat(r, y)
+		r = cat(r, kst(inc(m.k[x+3])))
 	default: // I  F  Z  S  L  D  0  1  2  3  4
+		println("kst t/n", t, n)
 		panic("nyi")
 	}
 	dec(x)
@@ -967,162 +1043,12 @@ func qot(c c) (c, bool) {
 	}
 	return c, false
 }
-
-/*
-func kst(x k) (r k) { // `k@x
-	lim := k(120)
-	r = mk(C, lim)
-	t, n := typ(x)
-	dd := false
-	pcnt := k(0)
-	push := func(s s) bool {
-		ln := k(len(s))
-		if pcnt+ln > lim {
-			dd, ln = true, lim-pcnt
-		}
-		for j := k(0); j < ln; j++ {
-			m.c[8+pcnt+r<<2] = c(s[j])
-			pcnt++
-		}
-		return dd
-	}
-	pushr := func(p k) (o bool) {
-		a := kst(inc(p))
-		as, ln := a<<2, m.k[a]&atom
-		if at, an := typ(a); at != C || an > lim {
-			panic("type")
-		}
-		if push(s(m.c[8+as : 8+as+ln])) {
-			o = true
-		}
-		dec(a)
-		return o
-	}
-	vecs := func(fs func(jj k) s) {
-		if n == 0 {
-			push("[-]") // TODO: format empty arrays?
-		} else if n == atom {
-			n = 1
-		}
-		sep := ""
-		for j := k(0); j < n; j++ {
-			if push(sep + fs(j)) {
-				break
-			}
-			sep = " "
-		}
-	}
-	if n == 1 {
-		push(",")
-	}
-	switch t {
-	case C:
-		nn, xc, o := n, x<<2, true
-		if nn == atom {
-			nn = 1
-		} else if nn > lim {
-			nn = lim
-		}
-		ispr := func(b c) bool { return b >= 0x20 && b < 0x7E }
-		for j := k(0); j < nn; j++ {
-			if !ispr(m.c[8+xc+j]) {
-				o = false
-				break
-			}
-		}
-		if o {
-			push(`"`)
-			push(s(m.c[8+xc : 8+xc+nn]))
-			push(`"`)
-		} else {
-			push("0x")
-			for j := k(0); j < nn; j++ {
-				c1, c2 := hxb(m.c[8+xc+j])
-				if push(s([]c{c1, c2})) {
-					break
-				}
-			}
-		}
-	case I: // TODO no strconv
-		vecs(func(j k) s { return strconv.Itoa(int(m.k[2+x+j])) })
-	case F: // TODO no strconv
-		vecs(func(j k) s { return strconv.FormatFloat(m.f[1+j+x>>1], 'g', -1, 64) })
-		o, af := 8+r<<2, true
-		for j := k(0); j < pcnt; j++ {
-			if m.c[o+j] == '.' {
-				af = false
-				break
-			}
-		}
-		if af {
-			push("f")
-		}
-	case Z: // TODO no strconv
-		vecs(func(j k) s {
-			return strconv.FormatFloat(m.f[2+2*j+x>>1], 'g', -1, 64) + "i" + strconv.FormatFloat(m.f[3+2*j+x>>1], 'g', -1, 64)
-		})
-	case S:
-		if n == atom {
-			n = 1
-		}
-		for j := k(0); j < n; j++ {
-			if push("`" + ustr(sym(8+8*j+x<<2))) {
-				break
-			}
-		}
-	case L:
-		if n != 1 {
-			push("(")
-		}
-		for j := k(0); j < n; j++ {
-			if j > 0 {
-				push(";")
-			}
-			if pushr(m.k[2+x+j]) {
-				break
-			}
-		}
-		if n != 1 {
-			push(")")
-		}
-	case D:
-		push("(")
-		pushr(m.k[2+x])
-		push("!")
-		pushr(m.k[3+x])
-		push(")")
-	case N:
-	default:
-		println("fms t=", t)
-		panic("nyi")
-	}
-	if dd {
-		m.c[8+r+lim-1], m.c[8+r+lim-2] = '.', '.'
-	}
-	m.k[r] = C<<28 | pcnt
-	if nn := m.k[r] & atom; nn < (8+lim)>>1 {
-		srk(r, C, lim, nn)
-	}
-	dec(x)
-	return r
-}
-*/
 func sym(x k) uint64 { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
 func mys(x k, u uint64) k {
 	var b [8]c
 	b = *(*[8]c)(unsafe.Pointer(&u))
 	copy(m.c[x:x+8], b[:])
 	return x
-}
-func ustr(u uint64) s { // TODO move to G() after converting kst
-	var b [8]c
-	for i := k(0); i < 8; i++ {
-		b[i] = c(u >> (8 * (7 - i)))
-		if b[i] == 0 {
-			return s(b[:i])
-		}
-	}
-	return s(b[:])
 }
 func btou(b []c) uint64 {
 	if len(b) > 8 {
@@ -1254,17 +1180,30 @@ func atx(x, y k) (r k) { // x@y
 		dec(x)
 		dec(y)
 		return r
+	case xt == L && yt == I:
+		if yn == atom {
+			r = inc(m.k[2+x+m.k[2+y]])
+		} else {
+			r = mk(L, yn)
+			for i := k(0); i < yn; i++ {
+				m.k[2+r+i] = inc(m.k[2+x+m.k[2+y+i]])
+			}
+			r = uf(r)
+		}
+		dec(x)
+		dec(y)
+		return r
 	// case xt == L:
 	//	missing element for a list is nax[type of first element]
 	default:
-		panic("nyi")
+		panic("nyi atx")
 	}
 }
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
 	switch {
 	case xt < L && yt == xt:
-		return ucat(x, y)
+		return ucat(x, y, xt, xn, yn)
 	case xt > L || yt > L: // TODO: cat D?
 		panic("type")
 	case xt != L:
@@ -1289,7 +1228,32 @@ func cat(x, y k) (r k) { // x,y
 	dec(y)
 	return r
 }
-func ucat(x, y k) (r k) { panic("nyi") }
+func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
+	if xn == atom {
+		xn = 1
+	}
+	if yn == atom {
+		yn = 1
+	}
+	cp, sz, o := cpx[t], lns[t], ofs[t]
+	if m.k[x+1] > 1 || bk(t, xn+yn) != bk(t, xn) {
+		r = mk(t, xn+yn)
+		rc, xc := 8+o+r<<2, 8+o+x<<2
+		for i := k(0); i < xn; i++ {
+			cp(rc+i*sz, xc+i*sz)
+		}
+	} else {
+		r = inc(x)
+		m.k[r] = t<<28 | (xn + yn)
+	}
+	rc, yc := 8+o+xn*sz+r<<2, 8+o+y<<2
+	for i := k(0); i < yn; i++ {
+		cp(rc+i*sz, yc+i*sz)
+	}
+	dec(x)
+	dec(y)
+	return r
+}
 
 /*
 func ccat(x k, c c) (r k) { // append c to x, assumes x:C refcount 1
