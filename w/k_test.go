@@ -32,7 +32,7 @@ func TestParse(t *testing.T) {
 		x, r, t s
 	}{
 		//{"", "", ""},
-		//{"`alpha", ",`alpha", "N"},
+		{"`a", ",`a", "`N"},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
@@ -52,7 +52,7 @@ func TestParse(t *testing.T) {
 					y = kst(y)
 				}
 				r := string(G(y).([]c))
-				if !reflect.DeepEqual(r, tc.r) {
+				if !reflect.DeepEqual(r, exp) {
 					t.Fatalf("[%d/%d]: expected: %v got %v\n", j, i, exp, r)
 				}
 				dec(y)

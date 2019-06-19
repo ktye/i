@@ -742,7 +742,7 @@ func not(x k) (r k) { // ~x
 		return r
 	}, C)
 }
-func enl(x k) (r k) { // ,x
+func enl(x k) (r k) { // ,x (collaps uniform)
 	t, n := typ(x)
 	if t < L && n == atom {
 		r = use(x, t, 1)
@@ -1015,7 +1015,7 @@ func kst(x k) (r k) { // `k@x
 		m.c[8+y<<2] = '!'
 		r = cat(r, y)
 		r = cat(r, kst(inc(m.k[x+3])))
-	default: // I  F  Z  S  L  D  0  1  2  3  4
+	default: // 0  1  2  3  4
 		println("kst t/n", t, n)
 		panic("nyi")
 	}
@@ -1252,6 +1252,21 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	}
 	dec(x)
 	dec(y)
+	return r
+}
+func lcat(x, y k) (r k) { // append anything to a list; no unify
+	_, nl := typ(x)
+	if m.k[x+1] == 1 && bk(L, nl) == bk(L, nl+1) {
+		m.k[2+x+nl] = y
+		m.k[x] = L<<28 | (nl + 1)
+		return x
+	}
+	r = mk(L, nl+1)
+	for i := k(0); i < nl; i++ {
+		m.k[2+i+r] = inc(m.k[2+i+x])
+	}
+	m.k[2+nl+r] = y
+	dec(x)
 	return r
 }
 

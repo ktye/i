@@ -10,14 +10,15 @@ func prs(x k) (r k) { // `p"…"
 		return mk(N, atom)
 	}
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, ln: 1}
-	r = mk(L, 0)
-	cat(r, mys(mk(S, 0), uint64(';')<<56))
-	for p.p < p.e { // ex;ex;…
+	r = mk(L, 1)
+	m.k[2+r] = mk(S, atom)
+	mys(8+m.k[2+r]<<2, 0) // ;→`
+	for p.p < p.e {       // ex;ex;…
 		x = p.ex(p.noun())
 		if x == 0 {
 			break
 		}
-		r = cat(r, x)
+		r = lcat(r, x)
 		if !p.t(sSem) {
 			break
 		}
@@ -26,10 +27,11 @@ func prs(x k) (r k) { // `p"…"
 		p.xx() // unprocessed input
 	}
 	_, n = typ(r)
-	if n == 1 {
-		inc(m.k[2+r])
+	// TODO n == 0 (no input) → "" type` (nil?)
+	if n == 2 {
+		inc(m.k[3+r])
 		dec(r)
-		return m.k[2+r] // r[0]
+		return m.k[3+r] // r[1]
 	}
 	return r
 }
@@ -49,6 +51,7 @@ func (p *p) t(f func([]c) int) bool { // test for next token
 	} else {
 		if n := f(m.c[p.p:p.e]); n > 0 {
 			p.m = p.p + k(n)
+			println("t: n=", n, p.p, p.m)
 		}
 	}
 	return p.m > p.p
@@ -61,6 +64,8 @@ func (p *p) a(f func([]c) k) (r k) { // accept, parse and advance
 func (p *p) w() { // remove whitespace and count lines
 	for {
 		switch p.get() {
+		case 0:
+			return
 		case ' ', '\t', '\r':
 		case '\n':
 			p.lp = p.p + 1
@@ -114,16 +119,11 @@ func (p *p) noun() (r k) {
 				r = cat(r, p.a(pSym))
 			}
 		}
-		if m.k[r]&atom == atom { // `a → ,`a
-			m.k[r] = S<<28 + 1
-		} else { // `a`b → ,`a`b
-			r = enl(r)
-		}
-		return p.idxr(r)
+		return p.idxr(enl(r))
 	case p.t(sNam):
 		return p.idxr(p.a(pNam))
 	}
-	panic("nyi")
+	panic("nyi prs:noun")
 }
 func (p *p) idxr(x k) (r k) { return x } // TODO
 
@@ -133,7 +133,10 @@ func pNam(b []byte) (r k) { // name: `n
 	return r
 }
 func pSym(b []byte) (r k) { // `name|`"name": `n
-	if len(b) == 1 || b[1] != '"' {
+	if len(b) == 1 {
+		r = mk(S, atom)
+		mys(8+r<<2, 0)
+	} else if len(b) > 1 || b[1] != '"' {
 		r = mk(S, atom)
 		mys(8+r<<2, btou(b[1:]))
 	} else {
