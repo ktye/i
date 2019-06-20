@@ -37,6 +37,8 @@ func TestParse(t *testing.T) {
 		{"0xF", "0x0f", "`c"},
 		{"0x", `""`, "`C"},
 		{"0x1234", "0x1234", "`C"},
+		{`"a"`, `"a"`, "`c"},
+		{`"a\t\n\r\"xyz"`, `"a\t\n\r\"xyz"`, "`C"},
 		//{"10", "10", "`i"},
 	}
 	for i, occ := range []bool{true, false} {

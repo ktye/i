@@ -114,6 +114,9 @@ func (p *p) noun() (r k) {
 	case p.t(sHex):
 		r = p.a(pHex)
 		return p.idxr(r)
+	case p.t(sStr):
+		r = p.a(pStr)
+		return p.idxr(r)
 	case p.t(sSym):
 		r = p.a(pSym)
 		for p.p != p.e && m.c[p.p] == '`' { // `a`b`c without whitespace
@@ -157,6 +160,13 @@ func xtoc(x c) c {
 	default:
 		return 10 + x - 'a'
 	}
+}
+func pStr(b []byte) (r k) { // "a"|"a\nbc": `c|`C
+	r = pQot(b)
+	if _, n := typ(r); n == 1 {
+		m.k[r] = C<<28 | atom
+	}
+	return r
 }
 func pNam(b []byte) (r k) { // name: `n
 	r = mk(S, atom)
@@ -248,14 +258,14 @@ func sStr(b []byte) (r int) {
 		return 0
 	}
 	q := false
-	for i := 1; i < len(b); i++ {
-		switch b[i] {
-		case '\\':
-			q = !q
-		case '"':
-			if !q {
-				return i
+	for i, c := range b[1:] {
+		if !q && c == '\\' {
+			q = true
+		} else {
+			if q == false && c == '"' {
+				return i + 2
 			}
+			q = false
 		}
 	}
 	return 0
