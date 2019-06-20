@@ -278,18 +278,20 @@ func free(x k) {
 	m.k[x+1] = m.k[bt]
 	m.k[bt] = x
 }
-func srk(r, t, n, nn k) { // shrink bucket
-	if m.k[r]>>28 != t {
+func srk(x, t, n, nn k) (r k) { // shrink bucket
+	if m.k[x]>>28 != t {
 		panic("type")
 	}
-	m.k[r] = t<<28 | nn
-	big, small := bk(t, n), bk(t, nn)
-	s := k(1 << (big - 3))
-	for j := big; j > small; j-- {
-		m.k[r+s] = I<<28 | (1 << (j - 3)) - 2
-		free(r + s)
-		s >>= 1
+	if bk(t, nn) < bk(t, n) { // alloc not split: prevent small object accumulation
+		r = mk(t, nn)
+		o, ln := ofs[t], nn*lns[t]
+		rc, xc := 8+o+r<<2, 8+o+x<<2
+		copy(m.c[rc:rc+ln], m.c[xc:xc+ln])
+		dec(x)
+		return r
 	}
+	m.k[x] = t<<28 | nn
+	return x
 }
 func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	if rt == 0 {
@@ -306,37 +308,35 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	var g func(k, k)
 	switch {
 	case t == C && rt == I:
-		g = func(x, y k) { m.k[y] = k(i(m.c[x])) }
+		g = func(x, y k) { m.k[y>>2] = k(i(m.c[x])) }
 	case t == C && rt == F:
-		g = func(x, y k) { m.f[y] = f(m.c[x]) }
+		g = func(x, y k) { m.f[y>>3] = f(m.c[x]) }
 	case t == I && rt == C:
-		g = func(x, y k) { m.c[y] = c(i(m.k[x])) }
+		g = func(x, y k) { m.c[y] = c(i(m.k[x>>2])) }
 	case t == I && rt == F:
-		g = func(x, y k) {
-			m.f[y] = f(i(m.k[x]))
-		}
+		g = func(x, y k) { m.f[y>>3] = f(i(m.k[x>>2])) }
+	case t == I && rt == Z:
+		g = func(x, y k) { m.f[y>>3] = f(i(m.k[x>>2])); m.f[1+y>>3] = 0 }
 	case t == F && rt == C:
-		g = func(x, y k) { m.c[y] = c(m.f[x]) }
+		g = func(x, y k) { m.c[y] = c(m.f[x>>3]) }
 	case t == F && rt == I:
-		g = func(x, y k) { m.k[y] = k(i(m.f[x])) }
+		g = func(x, y k) { m.k[y>>2] = k(i(m.f[x>>3])) }
+	case t == F && rt == Z:
+		g = func(x, y k) { m.f[y>>3] = m.f[x>>3]; m.f[1+y>>3] = 0 }
 	case t == Z && rt == F:
-		g = func(x, y k) { m.f[y] = m.f[2+x<<1] }
+		g = func(x, y k) { m.f[y>>3] = m.f[x>>3] }
 	case t == Z && rt == C:
-		g = func(x, y k) { m.c[y] = c(i(m.f[2+x<<1])) }
+		g = func(x, y k) { m.c[y] = c(i(m.f[x>>3])) }
 	default:
 		panic("nyi")
 	}
-	xs, rs := lns[t], lns[rt]
-	as, bs := l8t[xs-1], l8t[rs-1]
-	x <<= 2
-	r <<= 2
+	xs, rs, xo, ro := lns[t], lns[rt], ofs[t], ofs[rt]
+	ac, rc := 8+xo+x<<2, 8+ro+r<<2
 	for j := k(0); j < k(n); j++ {
-		a := (x + 8 + j*xs) >> as
-		b := (r + 8 + j*rs) >> bs
-		g(a, b)
+		g(ac+j*xs, rc+j*rs)
 	}
-	dec(x >> 2)
-	return r >> 2
+	dec(x)
+	return r
 }
 func cl1(x, r k, n k, op fc1) { // C vector r=f(x)
 	o := r<<2 - x<<2
@@ -791,13 +791,12 @@ func str(x k) (r k) { // $x
 		st, sz, o := stx[t], lns[t], ofs[t]
 		if n == atom {
 			r = mk(C, 56)
-			srk(r, C, 56, st(8+r<<2, 8+o+x<<2))
+			r = srk(r, C, 56, st(8+r<<2, 8+o+x<<2))
 		} else {
 			r = mk(L, n)
 			for i := k(0); i < n; i++ {
 				y := mk(C, 56)
-				srk(y, C, 56, st(8+y<<2, 8+o+i*sz+x<<2))
-				m.k[2+r+i] = y
+				m.k[2+r+i] = srk(y, C, 56, st(8+y<<2, 8+o+i*sz+x<<2))
 			}
 		}
 	} else {
@@ -1093,9 +1092,8 @@ func unq(x k) (r k) { // ?x
 			nn++
 		}
 	}
-	srk(r, t, n, nn)
 	dec(x)
-	return r
+	return srk(r, t, n, nn)
 }
 func tip(x k) (r k) { // @x
 	r = mk(S, atom)

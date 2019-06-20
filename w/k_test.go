@@ -25,6 +25,7 @@ func TestIni(t *testing.T) {
 	//pfl()
 	//xxd()
 }
+
 func TestParse(t *testing.T) {
 	ini()
 	//t.Skip()
@@ -39,7 +40,18 @@ func TestParse(t *testing.T) {
 		{"0x1234", "0x1234", "`C"},
 		{`"a"`, `"a"`, "`c"},
 		{`"a\t\n\r\"xyz"`, `"a\t\n\r\"xyz"`, "`C"},
-		//{"10", "10", "`i"},
+		{"10", "10", "`i"},
+		{"10 20", "10 20", "`I"},
+		{"-3", "-3", "`i"},
+		{".1", "0.1", "`f"},
+		{"2.", "2f", "`f"},
+		{"-1.23e-005", "-1.23e-05", "`f"},
+		{"1 2f", "1 2f", "`F"},
+		{"1.23 3", "1.23 3", "`F"},
+		{"1 2 3. ", "1 2 3f", "`F"},
+		{"2i-3", "2i-3", "`z"},
+		{"-2.0e+012i-3.6", "-2e+12i-3.6", "`z"},
+		{"1 2 3. 2i-3", "1i0 2i0 3i0 2i-3", "`Z"},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
@@ -298,6 +310,45 @@ func TestKst(t *testing.T) {
 			t.Fatalf("expected: %s got %s (%q)\n", tc.s, string(r), string(r))
 		}
 		dec(y)
+	}
+}
+func TestTo(t *testing.T) {
+	ini()
+	testCases := []struct {
+		x, r interface{}
+		t    k
+	}{
+		{c(1), 1, I},
+		{c(1), 1.0, F},
+		{[]c{1, 2, 3, 4}, iv{1, 2, 3, 4}, I},
+		{1, c(1), C},
+		{5, 5.0, F},
+		{1, 1 + 0i, Z},
+		{iv{1, 2, 3, 4}, []z{1, 2, 3, 4}, Z},
+		{2.3, c(2), C},
+		{2.3, 2, I},
+		{2.3, 2.3 + 0i, Z},
+		{-2.3 + 4.5i, -2.3, F},
+		{2.3 - 4.5i, c(2), C},
+	}
+	for _, occ := range []bool{true, false} {
+		for _, tc := range testCases {
+			x := K(tc.x)
+			if occ {
+				inc(x)
+			}
+			y := to(x, tc.t)
+			if occ {
+				dec(x)
+			}
+			r := G(y)
+			fmt.Printf("to(%v,%d) = %v\n", tc.x, tc.t, tc.r)
+			if !reflect.DeepEqual(r, tc.r) {
+				t.Fatalf("expected: %v got %v\n", tc.r, r)
+			}
+			dec(y)
+			check(t)
+		}
 	}
 }
 func TestStr(t *testing.T) {

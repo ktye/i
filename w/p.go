@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"strconv"
+)
+
 func prs(x k) (r k) { // `p"…"
 	t, n := typ(x)
 	if t != C || n == atom {
@@ -23,6 +28,7 @@ func prs(x k) (r k) { // `p"…"
 			break
 		}
 	}
+	fmt.Printf("x=%x r=%x\n", x, r)
 	if p.p < p.e {
 		p.xx() // unprocessed input
 	}
@@ -114,6 +120,19 @@ func (p *p) noun() (r k) {
 	case p.t(sHex):
 		r = p.a(pHex)
 		return p.idxr(r)
+	case p.t(sNum):
+		r = p.a(pNum)
+		for p.t(sNum) {
+			y := p.a(pNum)
+			rt, yt, _, _ := typs(r, y)
+			if rt < yt {
+				r = to(r, yt)
+			} else if yt < rt {
+				y = to(y, rt)
+			}
+			r = cat(r, y)
+		}
+		return p.idxr(r)
 	case p.t(sStr):
 		r = p.a(pStr)
 		return p.idxr(r)
@@ -160,6 +179,47 @@ func xtoc(x c) c {
 	default:
 		return 10 + x - 'a'
 	}
+}
+func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
+	for i, c := range b {
+		if c == 'i' {
+			r = to(pNum(b[:i]), Z)
+			y := to(pNum(b[i+1:]), F)
+			m.f[3+r>>1] = m.f[1+y>>1]
+			dec(y)
+			return r
+		}
+	}
+	f := 0
+	if len(b) > 1 {
+		if c := b[len(b)-1]; c == 'f' || c == '.' {
+			b = b[:len(b)-1]
+			f = 1
+		} else if b[0] == '.' {
+			b = b[1:]
+			f = 2
+		}
+	}
+	if x, err := strconv.Atoi(string(b)); err == nil { // TODO remove strconv
+		if f == 0 {
+			r = mk(I, atom)
+			m.k[2+r] = k(i(x))
+		} else {
+			r = mk(F, atom)
+			if f == 1 {
+				m.f[1+r>>1] = float64(x)
+			} else {
+				m.f[1+r>>1] = 0.1 * float64(x)
+			}
+		}
+		return r
+	}
+	if x, err := strconv.ParseFloat(string(b), 64); err == nil { // TODO remove strconv
+		r = mk(F, atom)
+		m.f[1+r>>1] = x
+		return r
+	}
+	panic("parse number")
 }
 func pStr(b []byte) (r k) { // "a"|"a\nbc": `c|`C
 	r = pQot(b)
@@ -212,8 +272,7 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 			p++
 		}
 	}
-	srk(r, C, k(len(b)-2), k(p-(8+r<<2)))
-	return r
+	return srk(r, C, k(len(b)-2), k(p-(8+r<<2)))
 }
 
 // Scanners return the length of the matched input or 0
@@ -229,18 +288,59 @@ func sHex(b []byte) (r int) {
 	return len(b)
 }
 
-/*
 func sNum(b []byte) (r int) {
-	// [-][.0123456789][efix
-	neg := 0
-	if b[0] == '-' && len(b) > 1 {
-		neg, b = 1, b[1:]
+	n := sFlt(b)
+	if len(b) > n && b[n] == 'i' {
+		n += 1 + sFlt(b[n+1:])
 	}
-	for i := range b {
-		// -1
-	}
+	return n
 }
-*/
+func sFlt(b []byte) (r int) { // -0.12e-12|1f
+	if len(b) > 1 && b[0] == '-' {
+		r++
+	}
+	for i := r; i < len(b); i++ {
+		if c := b[i]; cr09(c) {
+			r++
+		} else {
+			if c == '.' {
+				r += 1 + sDec(b[i+1:])
+			}
+			break
+		}
+	}
+	if len(b) > r && b[r] == 'e' {
+		r += 1 + sExp(b[r+1:])
+	}
+	if len(b) > r && b[r] == 'f' {
+		r++
+	}
+	if r == 1 && b[0] == '-' {
+		return 0
+	}
+	return r
+}
+func sDec(b []byte) (r int) {
+	for _, c := range b {
+		if !cr09(c) {
+			break
+		}
+		r++
+	}
+	return r
+}
+func sExp(b []byte) (r int) {
+	if len(b) > 0 && (b[0] == '+' || b[0] == '-') {
+		r++
+	}
+	for i := r; i < len(b); i++ {
+		if c := b[i]; !cr09(c) {
+			break
+		}
+		r++
+	}
+	return r
+}
 func sNam(b []byte) (r int) {
 	for i, c := range b {
 		if cr09(c) || craZ(c) { // TODO: dot?
