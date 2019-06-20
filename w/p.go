@@ -5,20 +5,20 @@ func prs(x k) (r k) { // `p"…"
 	if t != C || n == atom {
 		panic("type")
 	}
-	dec(x) // but keep using it
 	if n == 0 {
+		dec(x)
 		return mk(N, atom)
 	}
-	p := p{p: 8 + x<<2, e: n + 8 + x<<2, ln: 1}
+	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 8 + x<<2, ln: 1}
 	r = mk(L, 1)
 	m.k[2+r] = mk(S, atom)
 	mys(8+m.k[2+r]<<2, 0) // ;→`
 	for p.p < p.e {       // ex;ex;…
-		x = p.ex(p.noun())
+		y := p.ex(p.noun())
 		if x == 0 {
 			break
 		}
-		r = lcat(r, x)
+		r = lcat(r, y)
 		if !p.t(sSem) {
 			break
 		}
@@ -27,12 +27,12 @@ func prs(x k) (r k) { // `p"…"
 		p.xx() // unprocessed input
 	}
 	_, n = typ(r)
-	// TODO n == 0 (no input) → "" type` (nil?)
 	if n == 2 {
 		inc(m.k[3+r])
 		dec(r)
-		return m.k[3+r] // r[1]
+		r = m.k[3+r] // r[1]
 	}
+	dec(x)
 	return r
 }
 
@@ -51,7 +51,6 @@ func (p *p) t(f func([]c) int) bool { // test for next token
 	} else {
 		if n := f(m.c[p.p:p.e]); n > 0 {
 			p.m = p.p + k(n)
-			println("t: n=", n, p.p, p.m)
 		}
 	}
 	return p.m > p.p
@@ -112,6 +111,9 @@ func (p *p) ex(x k) (r k) {
 }
 func (p *p) noun() (r k) {
 	switch {
+	case p.t(sHex):
+		r = p.a(pHex)
+		return p.idxr(r)
 	case p.t(sSym):
 		r = p.a(pSym)
 		for p.p != p.e && m.c[p.p] == '`' { // `a`b`c without whitespace
@@ -127,6 +129,35 @@ func (p *p) noun() (r k) {
 }
 func (p *p) idxr(x k) (r k) { return x } // TODO
 
+func pHex(b []byte) (r k) { // 0x1234 `c|`C
+	if n := k(len(b)); n == 3 { // allow short form 0x1
+		r = mk(C, atom)
+		m.c[8+r<<2] = xtoc(b[2])
+	} else if n%2 != 0 {
+		panic("parse hex")
+	} else {
+		n = (n - 2) / 2
+		r, b = mk(C, n), b[2:]
+		rc := 8 + r<<2
+		for i := k(0); i < n; i++ {
+			m.c[rc+i] = (xtoc(b[2*i]) << 4) | xtoc(b[2*i+1])
+		}
+		if n == 1 {
+			m.k[r] = C<<28 | atom
+		}
+	}
+	return r
+}
+func xtoc(x c) c {
+	switch {
+	case x < ':':
+		return x - '0'
+	case x < 'G':
+		return 10 + x - 'A'
+	default:
+		return 10 + x - 'a'
+	}
+}
 func pNam(b []byte) (r k) { // name: `n
 	r = mk(S, atom)
 	mys(8+r<<2, btou(b))
@@ -176,6 +207,30 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 }
 
 // Scanners return the length of the matched input or 0
+func sHex(b []byte) (r int) {
+	if !(len(b) > 1 && b[0] == '0' && b[1] == 'x') {
+		return 0
+	}
+	for i, c := range b[2:] {
+		if crHx(c) == false {
+			return 2 + i
+		}
+	}
+	return len(b)
+}
+
+/*
+func sNum(b []byte) (r int) {
+	// [-][.0123456789][efix
+	neg := 0
+	if b[0] == '-' && len(b) > 1 {
+		neg, b = 1, b[1:]
+	}
+	for i := range b {
+		// -1
+	}
+}
+*/
 func sNam(b []byte) (r int) {
 	for i, c := range b {
 		if cr09(c) || craZ(c) { // TODO: dot?
@@ -227,6 +282,7 @@ func sSem(b []byte) (r int) {
 }
 func cr09(c c) bool { return c >= '0' && c <= '9' }
 func craZ(c c) bool { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
+func crHx(c c) bool { return cr09(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') }
 func cOps(c c) bool {
 	for _, b := range []byte("+-%*|&<>=~,^#_$?@.") { // TODO: store in ktree for kwac compat
 		if c == b {

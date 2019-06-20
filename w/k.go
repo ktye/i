@@ -1015,6 +1015,8 @@ func kst(x k) (r k) { // `k@x
 		m.c[8+y<<2] = '!'
 		r = cat(r, y)
 		r = cat(r, kst(inc(m.k[x+3])))
+	case N:
+		r = mk(C, 0)
 	default: // 0  1  2  3  4
 		println("kst t/n", t, n)
 		panic("nyi")
@@ -1106,7 +1108,7 @@ func tip(x k) (r k) { // @x
 	}
 	tns := "_cifzn.a_1234" // TODO k7 compatibility, function types 1..4?
 	s := tns[t]
-	if n != atom && t != L {
+	if n != atom && t < L {
 		s -= 32
 	}
 	mys(8+r<<2, uint64(s)<<56)

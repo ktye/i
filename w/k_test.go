@@ -31,8 +31,13 @@ func TestParse(t *testing.T) {
 	testCases := []struct {
 		x, r, t s
 	}{
-		//{"", "", ""},
+		{"", "", "`"},
 		{"`a", ",`a", "`N"},
+		{"0x01", "0x01", "`c"},
+		{"0xF", "0x0f", "`c"},
+		{"0x", `""`, "`C"},
+		{"0x1234", "0x1234", "`C"},
+		//{"10", "10", "`i"},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
