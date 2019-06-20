@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -14,7 +13,7 @@ func prs(x k) (r k) { // `p"…"
 		dec(x)
 		return mk(N, atom)
 	}
-	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 8 + x<<2, ln: 1}
+	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, ln: 1}
 	r = mk(L, 1)
 	m.k[2+r] = mk(S, atom)
 	mys(8+m.k[2+r]<<2, 0) // ;→`
@@ -27,8 +26,8 @@ func prs(x k) (r k) { // `p"…"
 		if !p.t(sSem) {
 			break
 		}
+		p.p++
 	}
-	fmt.Printf("x=%x r=%x\n", x, r)
 	if p.p < p.e {
 		p.xx() // unprocessed input
 	}
@@ -47,17 +46,16 @@ type p struct {
 	m  k // pos after matched token (token: m.c[p.p:p.m])
 	e  k // pos after last byte available
 	ln k // current line number
-	lp k // m.c index of start of current line
+	lp k // m.c index of last newline
 }
 
 func (p *p) t(f func([]c) int) bool { // test for next token
 	p.w()
 	if p.p == p.e {
 		return false
-	} else {
-		if n := f(m.c[p.p:p.e]); n > 0 {
-			p.m = p.p + k(n)
-		}
+	}
+	if n := f(m.c[p.p:p.e]); n > 0 {
+		p.m = p.p + k(n)
 	}
 	return p.m > p.p
 }
@@ -73,12 +71,14 @@ func (p *p) w() { // remove whitespace and count lines
 			return
 		case ' ', '\t', '\r':
 		case '\n':
-			p.lp = p.p + 1
-			p.ln++
+			if p.p != p.lp+1 {
+				p.lp = p.p - 1
+				p.ln++
+			}
 			p.p--
 			return
 		case '/':
-			if p.p == p.ln+1 || m.c[p.p]-1 == ' ' || m.c[p.p]-1 == '\t' {
+			if p.p == p.lp+2 || m.c[p.p-2] == ' ' || m.c[p.p-2] == '\t' {
 				for {
 					if c := p.get(); c == 0 {
 						return
@@ -105,7 +105,7 @@ func (p *p) get() c {
 	return m.c[p.p-1]
 }
 func (p *p) xx() {
-	panic("parse: " + string(m.c[p.lp:p.p+1]) + " <-")
+	panic("parse: " + string(m.c[p.lp+1:p.p+1]) + " <-")
 }
 
 // Parsers
@@ -147,7 +147,7 @@ func (p *p) noun() (r k) {
 	case p.t(sNam):
 		return p.idxr(p.a(pNam))
 	}
-	panic("nyi prs:noun")
+	return mk(N, atom)
 }
 func (p *p) idxr(x k) (r k) { return x } // TODO
 
@@ -374,21 +374,21 @@ func sSym(b []byte) (r int) { // `alp012|`"any\"thing"|`a.b.c
 	if b[0] != '`' {
 		return 0
 	}
-	if len(b) > 2 || b[1] == '"' {
+	if len(b) > 2 && b[1] == '"' {
 		return 1 + sStr(b[1:])
 	}
 	for i, c := range b[1:] {
 		if !(cr09(c) || craZ(c) || c == '.') {
-			return i
+			return 1 + i
 		}
 	}
 	return len(b)
 }
-func sSem(b []byte) (r int) {
+func sSem(b []byte) int {
 	if b[0] == ';' || b[0] == '\n' {
-		r = 1
+		return 1
 	}
-	return r
+	return 0
 }
 func cr09(c c) bool { return c >= '0' && c <= '9' }
 func craZ(c c) bool { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }

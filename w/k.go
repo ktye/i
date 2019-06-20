@@ -978,6 +978,9 @@ func kst(x k) (r k) { // `k@x
 		r = mk(C, 1)
 		rc := 8 + r<<2
 		m.c[rc] = '('
+		if n == 1 {
+			m.c[rc] = ','
+		}
 		y := mk(C, 1)
 		m.c[8+y<<2] = ';'
 		ix := mk(I, atom)
@@ -989,8 +992,12 @@ func kst(x k) (r k) { // `k@x
 			}
 		}
 		dec(ix)
-		m.c[8+y<<2] = ')'
-		r = cat(r, y)
+		if n != 1 {
+			m.c[8+y<<2] = ')'
+			r = cat(r, y)
+		} else {
+			dec(y)
+		}
 	case D:
 		r = mk(C, 0)
 		rr, encl := kst(inc(m.k[x+2])), false
@@ -1101,9 +1108,6 @@ func tip(x k) (r k) { // @x
 	m.k[3+r] = 0
 	t, n := typ(x)
 	dec(x)
-	if t == L {
-		return r // empty symbol
-	}
 	tns := "_cifzn.a_1234" // TODO k7 compatibility, function types 1..4?
 	s := tns[t]
 	if n != atom && t < L {
