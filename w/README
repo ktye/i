@@ -29,8 +29,8 @@ Initial memory (64kB)
  p[3]        pointer to ktree (dict)
  followed by free list:
  p[4..31]    points to free block of bucket size n = 4..31
- ?byte[512...] bucket 9 stores type size vector: 0,1,4,8,16,8,4,8,4,4,4,4,4
- ?           store symbols +-%*|&<>=~,^#_$?@.
+ byte[136…163] symbols :+-*%&|<>=!~,^#_$?@.01234'/\
+ byte[?]     type size vector: 0,1,4,8,16,8,4,8,4,4,4,4,4
 
 Wasm reference
  webassembly.github.io/wabt/demo/wat2wasm (interactive)

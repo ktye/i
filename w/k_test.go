@@ -56,6 +56,9 @@ func TestParse(t *testing.T) {
 		{"2i-3", "2i-3", "`z"},
 		{"-2.0e+012i-3.6", "-2e+12i-3.6", "`z"},
 		{"1 2 3. 2i-3", "1i0 2i0 3i0 2i-3", "`Z"},
+		{"+", "+", "`2"},
+		{"+:", "+:", "`1"},
+		{"0:", "0:", "`2"},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
@@ -305,6 +308,13 @@ func TestKst(t *testing.T) {
 		{l{1, 2, l{4, 5}}, "(1;2;(4;5))"},
 		{l{iv{1, 2}}, ",1 2"},
 		{d{l{5, 5.5}, iv{1, 2}}, "(5;5.5)!1 2"},
+		{nil, ``},
+		{uint16(0), `::`},
+		{uint16(1), `+:`},
+		{uint16(20), `:`},
+		{uint16(39), `.`},
+		{uint16(40), `0:`},
+		{uint16(44), `4:`},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%v ?= %q\n", tc.x, tc.s)

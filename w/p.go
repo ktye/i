@@ -120,6 +120,8 @@ func (p *p) noun() (r k) {
 	case p.t(sHex):
 		r = p.a(pHex)
 		return p.idxr(r)
+	case p.t(sIvb):
+		return p.idxr(p.a(pVrb))
 	case p.t(sNum):
 		r = p.a(pNum)
 		for p.t(sNum) {
@@ -144,6 +146,8 @@ func (p *p) noun() (r k) {
 			}
 		}
 		return p.idxr(enl(r))
+	case p.t(sVrb):
+		return p.idxr(p.a(pVrb))
 	case p.t(sNam):
 		return p.idxr(p.a(pNam))
 	}
@@ -274,6 +278,21 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 	}
 	return srk(r, C, k(len(b)-2), k(p-(8+r<<2)))
 }
+func pVrb(b []byte) (r k) {
+	for i := k(0); i < 25; i++ { // :+-*%&|<>=!~,^#_$?@.01234
+		if b[0] == m.c[i+136] {
+			if len(b) == 1 || i > 19 {
+				r = mk(N+2, atom)
+				m.k[2+r] = k(i) + 20
+			} else {
+				r = mk(N+1, atom)
+				m.k[2+r] = k(i)
+			}
+			return r
+		}
+	}
+	panic("pVrb")
+}
 
 // Scanners return the length of the matched input or 0
 func sHex(b []byte) (r int) {
@@ -390,11 +409,26 @@ func sSem(b []byte) int {
 	}
 	return 0
 }
+func sIvb(b []byte) int { // ioverb 0: .. 4:
+	if len(b) > 1 && b[1] == ':' && b[0] >= '0' && b[0] <= '4' {
+		return 2
+	}
+	return 0
+}
+func sVrb(b []byte) int {
+	if cOps(b[0]) { // TODO: builtins?
+		if len(b) > 1 && b[1] == ':' {
+			return 2
+		}
+		return 1
+	}
+	return 0
+}
 func cr09(c c) bool { return c >= '0' && c <= '9' }
 func craZ(c c) bool { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
 func crHx(c c) bool { return cr09(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') }
 func cOps(c c) bool {
-	for _, b := range []byte("+-%*|&<>=~,^#_$?@.") { // TODO: store in ktree for kwac compat
+	for _, b := range m.c[136 : 136+20] { // :+-*%&|<>=!~,^#_$?@.
 		if c == b {
 			return true
 		}

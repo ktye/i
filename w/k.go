@@ -61,6 +61,9 @@ func ini() { // start function
 		m.k[p] = k(i)
 	}
 	m.k[0] = (I << 28) | 31
+	for i, u := range []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`) {
+		m.c[136+i] = u
+	}
 	// TODO: K tree
 	// TODO: size vector
 }
@@ -421,6 +424,7 @@ func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
 	}
 	panic("type")
 }
+func idn(x k) (r k) { return x } // :x
 func til(x k) (r k) { // !n
 	t, n := typ(x)
 	if n != atom {
@@ -813,6 +817,20 @@ func str(x k) (r k) { // $x
 			r = mk(D, atom)
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = str(inc(m.k[3+x]))
+		case N:
+			r = mk(C, 0)
+		case N + 1:
+			r = mk(C, 2)
+			m.c[8+r<<2] = m.c[136+m.k[2+x]]
+			m.c[9+r<<2] = ':'
+		case N + 2:
+			if f := m.k[2+x]; f < 40 {
+				r = mk(C, 1)
+			} else {
+				r = mk(C, 2)
+				m.c[9+r<<2] = ':'
+			}
+			m.c[8+r<<2] = m.c[136+m.k[2+x]-20]
 		default:
 			panic("nyi")
 		}
@@ -1021,9 +1039,9 @@ func kst(x k) (r k) { // `k@x
 		m.c[8+y<<2] = '!'
 		r = cat(r, y)
 		r = cat(r, kst(inc(m.k[x+3])))
-	case N:
-		r = mk(C, 0)
-	default: // 0  1  2  3  4
+	case N, N + 1, N + 2:
+		r = str(inc(x))
+	default:
 		println("kst t/n", t, n)
 		panic("nyi")
 	}
@@ -1330,7 +1348,7 @@ func match(x, y k) (rv bool) { // recursive match
 	return false
 }
 
-func hxb(x c) (c, c) { return hexs[x>>4], hexs[x&0x0F] }
+func hxb(x c) (c, c) { h := "0123456780abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
 	b := []c{'0', 'x', '0', '0', '0', '0', '0', '0', '0', '0'}
 	for j := k(0); j < 4; j++ {
@@ -1366,4 +1384,7 @@ var l8t = [256]c{
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
 
-const hexs = "0123456780abcdef"
+var table = []interface{}{ // function table :+-*%&|<>=!~,^#_$?@.01234
+	// 0-19 monads, 20-29 dyads, 30-34 ioverbs
+	idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
+}

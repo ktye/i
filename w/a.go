@@ -48,6 +48,9 @@ func do(s []byte) {
 // type conversions between go and k (used here and in k_test.go)
 
 func K(x interface{}) k { // convert go value to k type, returns 0 on error
+	if x == nil {
+		return mk(N, atom)
+	}
 	kstr := func(dst k, s string) {
 		mys(dst, btou([]c(s)))
 	}
@@ -64,6 +67,13 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		m.c[8+r<<2] = a
 	case int:
 		r = mk(I, atom)
+		m.k[2+r] = k(a)
+	case uint16: // function index
+		if a < 20 {
+			r = mk(N+1, atom)
+		} else {
+			r = mk(N+2, atom)
+		}
 		m.k[2+r] = k(a)
 	case float64:
 		r = mk(F, atom)
@@ -161,6 +171,10 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 			return str(8 + x<<2)
 		case D:
 			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
+		case N:
+			return nil
+		case N + 1, N + 2:
+			return uint16(m.k[2+x])
 		}
 	} else {
 		switch t {
