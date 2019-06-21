@@ -110,10 +110,26 @@ func (p *p) xx() {
 
 // Parsers
 func (p *p) ex(x k) (r k) {
-	switch {
-	//case p.t(sNam): // TODO ... atNoun
+	t, _ := typ(x)
+	switch t {
+	//TODO adverb
+	case N:
+		return x
+	case N + 1, N + 2:
+		y := p.ex(p.noun())
+		if yt, _ := typ(y); yt == N { // verb only
+			dec(y)
+			r = inc(x)
+			break
+		}
+		r = mk(L, 2) // monadic application
+		m.k[2+r] = monad(inc(x))
+		m.k[3+r] = y
+	default:
+		r = inc(x)
 	}
-	return x
+	dec(x)
+	return r
 }
 func (p *p) noun() (r k) {
 	switch {
@@ -154,7 +170,21 @@ func (p *p) noun() (r k) {
 	return mk(N, atom)
 }
 func (p *p) idxr(x k) (r k) { return x } // TODO
-
+func monad(x k) (r k) { // force monad
+	t, _ := typ(x)
+	if t == N+1 {
+		return x
+	} else if t == N+2 {
+		r = mk(N+1, atom)
+		m.k[2+r] = m.k[2+x] - 20
+		if m.k[2+x] > 39 {
+			panic("parse monad")
+		}
+		dec(x)
+		return r
+	}
+	panic("type")
+}
 func pHex(b []byte) (r k) { // 0x1234 `c|`C
 	if n := k(len(b)); n == 3 { // allow short form 0x1
 		r = mk(C, atom)

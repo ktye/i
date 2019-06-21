@@ -764,6 +764,11 @@ func enl(x k) (r k) { // ,x (collaps uniform)
 	m.k[2+r] = x
 	return r
 }
+func enlist(x k) (r k) { // dont unify
+	r = mk(L, 1)
+	m.k[2+r] = x
+	return r
+}
 func srt(x k) (r k) { return atx(x, asc(inc(x))) } // ^x  TODO: replace with a sort implementation
 func cnt(x k) (r k) { // #x
 	t, n := typ(x)

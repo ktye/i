@@ -26,6 +26,26 @@ func TestIni(t *testing.T) {
 	//xxd()
 }
 
+func TestK(t *testing.T) {
+	ini()
+	testCases := []struct {
+		x, r s
+	}{
+		{"1", "1"},
+		//{"*1 2 3", "1"},
+	}
+	for _, tc := range testCases {
+		fmt.Printf("%s → %s\n", tc.x, tc.r)
+		y := kst(evl(prs(K([]byte(tc.x)))))
+		r := string(G(y).([]c))
+		if r != tc.r {
+			t.Fatalf("expected %s got %s\n", tc.r, r)
+		}
+		dec(y)
+		check(t)
+	}
+}
+
 func TestParse(t *testing.T) {
 	ini()
 	//t.Skip()
@@ -59,6 +79,7 @@ func TestParse(t *testing.T) {
 		{"+", "+", "`2"},
 		{"+:", "+:", "`1"},
 		{"0:", "0:", "`2"},
+		{"*1 2 3", "(*:;1 2 3)", "`."},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
