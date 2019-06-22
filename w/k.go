@@ -352,6 +352,8 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 		g = func(x, y k) { m.f[y>>3] = m.f[x>>3] }
 	case t == Z && rt == C:
 		g = func(x, y k) { m.c[y] = c(i(m.f[x>>3])) }
+	case t == Z && rt == I:
+		g = func(x, y k) { m.k[y>>2] = k(i(m.f[x>>3])) }
 	default:
 		panic("nyi")
 	}
@@ -500,8 +502,8 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 		panic("type")
 	}
 	decret(x, r)
-	if rt != 0 && t > rt {
-		r = to(r, rt) // downtype, e.g. floor
+	if rt != 0 && t != rt {
+		r = to(r, rt)
 	}
 	return r
 }
@@ -890,7 +892,7 @@ func not(x k) (r k) { // ~x
 			r = 1
 		}
 		return r
-	}, C)
+	}, I)
 }
 func enl(x k) (r k) { // ,x (collaps uniform)
 	t, n := typ(x)
