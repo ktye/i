@@ -1,7 +1,6 @@
 package main
 
 import (
-	// to be removed when prs is implemented
 	"runtime/debug"
 	"syscall"
 )
@@ -39,182 +38,12 @@ func do(s []byte) {
 			}
 		}
 	}()
-	r := kst(evl(prs(mk(C, k(len(s))))))
-	n := m.k[r] & atom
-	println(string(m.c[8+r<<2 : 8+n+r<<2]))
+	ns := k(len(s))
+	c := mk(C, ns)
+	cc := 8 + c<<2
+	copy(m.c[cc:cc+ns], s)
+	r := kst(evl(prs(c)))
+	rc, nr := 8+r<<2, m.k[r]&atom
 	dec(r)
-}
-
-// type conversions between go and k (used here and in k_test.go)
-
-func K(x interface{}) k { // convert go value to k type, returns 0 on error
-	if x == nil {
-		return mk(N, atom)
-	}
-	kstr := func(dst k, s string) {
-		mys(dst, btou([]c(s)))
-	}
-	var r k
-	switch a := x.(type) {
-	case bool:
-		r = mk(C, atom)
-		m.c[8+r<<2] = 0
-		if a {
-			m.c[8+r<<2] = 1
-		}
-	case byte:
-		r = mk(C, atom)
-		m.c[8+r<<2] = a
-	case int:
-		r = mk(I, atom)
-		m.k[2+r] = k(a)
-	case uint16: // function index
-		if a < 20 {
-			r = mk(N+1, atom)
-		} else {
-			r = mk(N+2, atom)
-		}
-		m.k[2+r] = k(a)
-	case float64:
-		r = mk(F, atom)
-		m.f[1+r>>1] = a
-	case complex128:
-		r = mk(Z, atom)
-		m.z[1+r>>2] = a
-	case string:
-		r = mk(S, atom)
-		kstr(8+r<<2, a)
-	case []bool:
-		buf := make([]byte, len(a))
-		for i, v := range a {
-			if v {
-				buf[i] = 1
-			}
-		}
-		return K(buf)
-	case []byte:
-		r = mk(C, k(len(a)))
-		for i, v := range a {
-			m.c[8+i+int(r<<2)] = v
-		}
-	case []int:
-		r = mk(I, k(len(a)))
-		for i, v := range a {
-			m.k[2+i+int(r)] = k(v)
-		}
-	case []float64:
-		r = mk(F, k(len(a)))
-		for i, v := range a {
-			m.f[1+i+int(r>>1)] = v
-		}
-	case []complex128:
-		r = mk(Z, k(len(a)))
-		for i, v := range a {
-			m.z[1+i+int(r>>2)] = v
-		}
-	case []string:
-		r = mk(S, k(len(a)))
-		for i := range a {
-			kstr(8+8*k(i)+r<<2, a[i])
-		}
-	case []interface{}:
-		if len(a) == 1 { // collapse list of atom to single element vector
-			rr := K(a[0])
-			t, n := typ(rr)
-			if n == atom { // TODO: allow ,d?
-				r = rr
-				m.k[r] = t<<28 | 1
-				return r
-			} else {
-				dec(rr)
-			}
-		}
-		r = mk(L, k(len(a)))
-		for i, v := range a {
-			u := K(v)
-			m.k[2+i+int(r)] = u
-		}
-	case [2]interface{}:
-		key := K(a[0])
-		val := K(a[1])
-		_, nk := typ(key)
-		_, nv := typ(val)
-		if nk != nv {
-			return 0
-		}
-		r = mk(D, atom)
-		m.k[2+r] = key
-		m.k[3+r] = val
-	}
-	return r
-}
-func G(x k) interface{} { // convert k value to go type (returns nil on error)
-	t, n := typ(x)
-	str := func(xc k) s {
-		r := mk(C, 0)
-		rc := 8 + r<<2
-		n := stS(rc, xc)
-		dec(r)
-		return string(m.c[rc : rc+n])
-	}
-	if n == atom {
-		switch t {
-		case C:
-			return c(m.c[8+x<<2])
-		case I:
-			return int(i(m.k[2+x]))
-		case F:
-			return m.f[1+x>>1]
-		case Z:
-			return m.z[1+x>>2]
-		case S:
-			return str(8 + x<<2)
-		case D:
-			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
-		case N:
-			return nil
-		case N + 1, N + 2:
-			return uint16(m.k[2+x])
-		}
-	} else {
-		switch t {
-		case C:
-			r := make([]byte, n)
-			for i := range r {
-				r[i] = c(m.c[8+i+int(x<<2)])
-			}
-			return r
-		case I:
-			r := make([]int, n)
-			for i := range r {
-				r[i] = int(int32(m.k[2+i+int(x)]))
-			}
-			return r
-		case F:
-			r := make([]f, n)
-			for i := range r {
-				r[i] = m.f[1+i+int(x>>1)]
-			}
-			return r
-		case Z:
-			r := make([]complex128, n)
-			for i := range r {
-				r[i] = m.z[1+i+int(x>>2)]
-			}
-			return r
-		case S:
-			r := make([]string, n)
-			for i := range r {
-				r[i] = str(8 + 8*k(i) + x<<2)
-			}
-			return r
-		case L:
-			r := make([]interface{}, n)
-			for i := range r {
-				r[i] = G(m.k[2+i+int(x)])
-			}
-			return r
-		}
-	}
-	return nil
+	println(string(m.c[rc : rc+nr]))
 }

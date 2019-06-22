@@ -23,6 +23,10 @@ type (
 	fi1 func(i) i
 	ff1 func(f) f
 	fz1 func(z) z
+	fc2 func(c, c) c
+	fi2 func(i, i) i
+	ff2 func(f, f) f
+	fz2 func(z, z) z
 )
 type slice struct {
 	p uintptr
@@ -238,13 +242,31 @@ func use(x, t, n k) k {
 	if m.k[1+x] == 1 && bk(typ(x)) == bk(t, n) {
 		m.k[x] = t<<28 | n
 		return x
-	} else {
-		return mk(t, n)
 	}
+	return mk(t, n)
+}
+func use2(x, y, t, n k) k {
+	if m.k[1+x] == 1 && bk(typ(x)) == bk(t, n) {
+		m.k[x] = t<<28 | n
+		return x
+	} else if m.k[1+y] == 1 && bk(typ(y)) == bk(t, n) {
+		m.k[y] = t<<28 | n
+		return y
+	}
+	return mk(t, n)
 }
 func decret(x, r k) k {
 	if r != x {
 		dec(x)
+	}
+	return r
+}
+func decret2(x, y, r k) k {
+	if r != x {
+		dec(x)
+	}
+	if r != y {
+		dec(y)
 	}
 	return r
 }
@@ -341,28 +363,100 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	dec(x)
 	return r
 }
-func cl1(x, r k, n k, op fc1) { // C vector r=f(x)
+func cl1(x, r k, n k, op fc1) { // vector r=f(x)
 	o := r<<2 - x<<2
 	for j := 8 + x<<2; j < 8+n+x<<2; j++ {
 		m.c[o+j] = op(m.c[j])
 	}
 }
-func il1(x, r k, n k, op fi1) { // I vector r=f(x)
+func il1(x, r k, n k, op fi1) {
 	o := r - x
 	for j := 2 + x; j < 2+n+x; j++ {
 		m.k[o+j] = k(op(i(m.k[j])))
 	}
 }
-func fl1(x, r k, n k, op ff1) { // F vector r=f(x)
+func fl1(x, r k, n k, op ff1) {
 	o := r>>1 - x>>1
 	for j := 1 + x>>1; j < 1+n+x>>1; j++ {
 		m.f[o+j] = op(m.f[j])
 	}
 }
-func zl1(x, r k, n k, op fz1) { // Z vector r=f(x)
+func zl1(x, r k, n k, op fz1) {
 	o := r>>2 - x>>2
 	for j := 1 + x>>2; j < 1+n+x>>2; j++ {
 		m.z[o+j] = op(m.z[j])
+	}
+}
+func cl2(x, y, r, n k, op fc2, sc k) { // vector r=f(x,y)
+	ro, yo := r<<2-x<<2, y<<2-x<<2
+	if sc == 1 {
+		s := m.c[8+x<<2]
+		for j := 8 + x<<2; j < 8+n+x<<2; j++ {
+			m.c[ro+j] = op(s, m.c[j+yo])
+		}
+	} else if sc == 2 {
+		s := m.c[8+y<<2]
+		for j := 8 + x<<2; j < 8+n+x<<2; j++ {
+			m.c[ro+j] = op(m.c[j], s)
+		}
+	} else {
+		for j := 8 + x<<2; j < 8+n+x<<2; j++ {
+			m.c[ro+j] = op(m.c[j], m.c[j+yo])
+		}
+	}
+}
+func il2(x, y, r, n k, op fi2, sc k) {
+	ro, yo := r-x, y-x
+	if sc == 1 {
+		s := i(m.k[2+x])
+		for j := 2 + x; j < 2+n+x; j++ {
+			m.k[ro+j] = k(op(s, i(m.k[j+yo])))
+		}
+	} else if sc == 2 {
+		s := i(m.k[2+y])
+		for j := 2 + x; j < 2+n+x; j++ {
+			m.k[ro+j] = k(op(i(m.k[j]), s))
+		}
+	} else {
+		for j := 2 + x; j < 2+n+x; j++ {
+			m.k[ro+j] = k(op(i(m.k[j]), i(m.k[j+yo])))
+		}
+	}
+}
+func fl2(x, y, r, n k, op ff2, sc k) {
+	ro, yo := r>>1-x>>1, y>>1-x>>1
+	if sc == 1 {
+		s := m.f[1+x>>1]
+		for j := 1 + x>>1; j < 1+n+x>>1; j++ {
+			m.f[ro+j] = op(s, m.f[j+yo])
+		}
+	} else if sc == 2 {
+		s := m.f[1+y>>1]
+		for j := 1 + x>>1; j < 1+n+x>>1; j++ {
+			m.f[ro+j] = op(m.f[j], s)
+		}
+	} else {
+		for j := 1 + x>>1; j < 1+n+x>>1; j++ {
+			m.f[ro+j] = op(m.f[j], m.f[j+yo])
+		}
+	}
+}
+func zl2(x, y, r, n k, op fz2, sc k) {
+	ro, yo := r>>2-x>>2, y>>2-x>>2
+	if sc == 1 {
+		s := m.z[1+x>>2]
+		for j := 1 + x>>2; j < 1+n+x>>2; j++ {
+			m.z[ro+j] = op(s, m.z[j+yo])
+		}
+	} else if sc == 2 {
+		s := m.z[1+y>>2]
+		for j := 1 + x>>2; j < 1+n+x>>2; j++ {
+			m.z[ro+j] = op(m.z[j], s)
+		}
+	} else {
+		for j := 1 + x>>2; j < 1+n+x>>2; j++ {
+			m.z[ro+j] = op(m.z[j], m.z[j+yo])
+		}
 	}
 }
 func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
@@ -408,6 +502,57 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 	decret(x, r)
 	if rt != 0 && t > rt {
 		r = to(r, rt) // downtype, e.g. floor
+	}
+	return r
+}
+func nd(x, y k, fc fc2, fi fi2, ff ff2, fz fz2, rt k) (r k) { // numeric dyad
+	xt, yt, xn, yn := typs(x, y)
+	t, n, sc := xt, xn, k(0)
+	if yt > t {
+		t = yt
+	}
+	if t == C && fc == nil {
+		t = I
+	}
+	if (t == I && fi == nil) || (t == Z && fz == nil) {
+		t = F
+	}
+	if xt < L && yt < L {
+		if xn == atom {
+			n, sc = yn, 1
+		} else if yn == atom {
+			n, sc = xn, 2
+		} else if xn != yn {
+			panic("size")
+		}
+		if xt != t {
+			x, xt = to(x, t), t
+		}
+		if yt != t {
+			y, yt = to(y, t), t
+		}
+	}
+	r = use2(x, y, t, n)
+	if n == atom {
+		n = 1
+	}
+	switch xt {
+	case C:
+		cl2(x, y, r, n, fc, sc)
+	case I:
+		il2(x, y, r, n, fi, sc)
+	case F:
+		fl2(x, y, r, n, ff, sc)
+	case Z:
+		zl2(x, y, r, n, fz, sc)
+	//case L:
+	//case D:
+	default:
+		panic("type")
+	}
+	decret2(x, y, r)
+	if rt != 0 && t > rt {
+		r = to(r, rt)
 	}
 	return r
 }
@@ -1183,17 +1328,145 @@ func btou(b []c) uint64 {
 	return u
 }
 
-func add(x, y k) (r k) { panic("nyi") } // x+y
-func sub(x, y k) (r k) { panic("nyi") } // x-y
-func mul(x, y k) (r k) { panic("nyi") } // x*y
-func div(x, y k) (r k) { panic("nyi") } // x%y
-func min(x, y k) (r k) { panic("nyi") } // x&y
-func max(x, y k) (r k) { panic("nyi") } // x|y
-func les(x, y k) (r k) { panic("nyi") } // x<y
-func mor(x, y k) (r k) { panic("nyi") } // x>y
-func eql(x, y k) (r k) { panic("nyi") } // x=y
+func add(x, y k) (r k) { // x+y
+	return nd(x, y, func(x, y c) c { return x + y }, func(x, y i) i { return x + y }, func(x, y f) f { return x + y }, func(x, y z) z { return x + y }, 0)
+}
+func sub(x, y k) (r k) { // x-y
+	return nd(x, y, func(x, y c) c { return x - y }, func(x, y i) i { return x - y }, func(x, y f) f { return x - y }, func(x, y z) z { return x - y }, 0)
+}
+func mul(x, y k) (r k) { // x*y
+	return nd(x, y, func(x, y c) c { return x * y }, func(x, y i) i { return x * y }, func(x, y f) f { return x * y }, func(x, y z) z { return x * y }, 0)
+
+}
+func div(x, y k) (r k) { // x%y
+	return nd(x, y, nil, nil, func(x, y f) f { return x / y }, func(x, y z) z { return x / y }, 0)
+}
+func min(x, y k) (r k) { // x&y
+	return nd(x, y, func(x, y c) c {
+		if x < y {
+			return x
+		}
+		return y
+	}, func(x, y i) i {
+		if x < y {
+			return x
+		}
+		return y
+	}, func(x, y f) f {
+		if x < y {
+			return x
+		}
+		return y
+	}, func(x, y z) z {
+		if real(x) < real(y) || (real(x) == real(y) && imag(x) < imag(y)) {
+			return x
+		}
+		return y
+	}, 0)
+}
+func max(x, y k) (r k) { // x|y
+	return nd(x, y, func(x, y c) c {
+		if x > y {
+			return x
+		}
+		return y
+	}, func(x, y i) i {
+		if x > y {
+			return x
+		}
+		return y
+	}, func(x, y f) f {
+		if x > y {
+			return x
+		}
+		return y
+	}, func(x, y z) z {
+		if real(x) > real(y) || (real(x) == real(y) && imag(x) > imag(y)) {
+			return x
+		}
+		return y
+	}, 0)
+}
+func les(x, y k) (r k) { // x<y
+	return nd(x, y, func(x, y c) c {
+		if x < y {
+			return 1
+		}
+		return 0
+	}, func(x, y i) i {
+		if x < y {
+			return 1
+		}
+		return 0
+	}, func(x, y f) f {
+		if x < y {
+			return 1
+		}
+		return 0
+	}, func(x, y z) z {
+		if real(x) < real(y) || (real(x) == real(y) && imag(x) < imag(y)) {
+			return 1
+		}
+		return 0
+	}, C)
+}
+func mor(x, y k) (r k) { // x>y
+	return nd(x, y, func(x, y c) c {
+		if x > y {
+			return 1
+		}
+		return 0
+	}, func(x, y i) i {
+		if x > y {
+			return 1
+		}
+		return 0
+	}, func(x, y f) f {
+		if x > y {
+			return 1
+		}
+		return 0
+	}, func(x, y z) z {
+		if real(x) > real(y) || (real(x) == real(y) && imag(x) > imag(y)) {
+			return 1
+		}
+		return 0
+	}, C)
+}
+func eql(x, y k) (r k) { // x=y
+	return nd(x, y, func(x, y c) c {
+		if x == y {
+			return 1
+		}
+		return 0
+	}, func(x, y i) i {
+		if x == y {
+			return 1
+		}
+		return 0
+	}, func(x, y f) f {
+		if x == y {
+			return 1
+		}
+		return 0
+	}, func(x, y z) z {
+		if x == y {
+			return 1
+		}
+		return 0
+	}, C)
+}
 func key(x, y k) (r k) { panic("nyi") } // x!y
-func mch(x, y k) (r k) { panic("nyi") } // x~y
+func mch(x, y k) (r k) { // x~y
+	r = mk(C, atom)
+	m.k[2+r] = 0
+	if match(x, y) {
+		m.c[8+r<<2] = 1
+	}
+	dec(x)
+	dec(y)
+	return r
+}
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
 	switch {
