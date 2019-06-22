@@ -44,88 +44,63 @@ var m struct { // linear memory (slices share underlying arrays)
 	f []f
 	z []z
 }
-var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy (arguments are byte addresses)
+
+var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
 var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/nan
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
-var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
-var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS}         // tostring (assumes 56 bytes space at dst)
 
-func ini() { // start function
-	m.f = make([]f, 1<<13)
-	msl()
-	m.k[2] = 16
-	p := k(64)
-	m.k[8] = p
-	m.k[p] = 8
-	for i := 9; i < 16; i++ {
-		p *= 2
-		m.k[i] = p
-		m.k[p] = k(i)
-	}
-	m.k[0] = (I << 28) | 31
-	for i, u := range []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`) {
-		m.c[136+i] = u
-	}
-	// TODO: K tree
-	// TODO: size vector
-}
-func msl() { // update slice header after increasing m.f
-	f := *(*slice)(unsafe.Pointer(&m.f))
-	i := *(*slice)(unsafe.Pointer(&m.k))
-	i.l, i.c, i.p = f.l*2, f.c*2, f.p
-	m.k = *(*[]k)(unsafe.Pointer(&i))
-	b := *(*slice)(unsafe.Pointer(&m.c))
-	b.l, b.c, b.p = f.l*8, f.c*8, f.p
-	m.c = *(*[]c)(unsafe.Pointer(&b))
-	zz := *(*slice)(unsafe.Pointer(&m.z))
-	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
-	m.z = *(*[]z)(unsafe.Pointer(&zz))
-}
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
-func cpI(dst, src k)  { m.k[dst>>2] = m.k[src>>2] }
-func cpF(dst, src k)  { m.f[dst>>3] = m.f[src>>3] }
-func cpZ(dst, src k)  { m.z[dst>>4] = m.z[src>>4] }
-func cpL(dst, src k)  { inc(m.k[src>>2]); cpI(dst, src) }
+func cpI(dst, src k)  { m.k[dst] = m.k[src] }
+func cpF(dst, src k)  { m.f[dst] = m.f[src] }
+func cpZ(dst, src k)  { m.z[dst] = m.z[src] }
+func cpL(dst, src k)  { inc(m.k[src]); cpI(dst, src) }
 func swC(dst, src k)  { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
-func swI(dst, src k)  { m.k[dst>>2], m.k[src>>2] = m.k[src>>2], m.k[dst>>2] }
-func swF(dst, src k)  { m.f[dst>>3], m.f[src>>3] = m.f[src>>3], m.f[dst>>3] }
-func swZ(dst, src k)  { m.z[dst>>4], m.z[src>>4] = m.z[src>>4], m.z[dst>>4] }
+func swI(dst, src k)  { m.k[dst], m.k[src] = m.k[src], m.k[dst] }
+func swF(dst, src k)  { m.f[dst], m.f[src] = m.f[src], m.f[dst] }
+func swZ(dst, src k)  { m.z[dst], m.z[src] = m.z[src], m.z[dst] }
 func naC(dst k)       { m.c[dst] = 32 }
-func naI(dst k)       { m.k[dst>>2] = 0x80000000 }
-func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst>>3] = *(*f)(unsafe.Pointer(&u)) }
-func naZ(dst k)       { naF(dst); naF(8 + dst) }
-func naS(dst k)       { mys(dst, uint64(' ')<<(56)) }
+func naI(dst k)       { m.k[dst] = 0x80000000 }
+func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst] = *(*f)(unsafe.Pointer(&u)) }
+func naZ(dst k)       { naF(dst << 1); naF(1 + dst<<1) }
+func naS(dst k)       { mys(dst<<2, uint64(' ')<<(56)) }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
+func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
+func eqF(x, y k) bool { return m.f[x] == m.f[y] }
+func eqZ(x, y k) bool { return eqF(x<<1, y<<1) && eqF(1+x<<1, 1+y<<1) }
+func eqS(x, y k) bool { return m.k[x<<1] == m.k[y<<1] && m.k[1+x<<1] == m.k[1+y<<1] }
 func ltC(x, y k) bool { return m.c[x] < m.c[y] }
-func gtC(x, y k) bool { return m.c[x] > m.c[y] }
-func eqI(x, y k) bool { return i(m.k[x>>2]) == i(m.k[y>>2]) }
-func ltI(x, y k) bool { return i(m.k[x>>2]) < i(m.k[y>>2]) }
-func gtI(x, y k) bool { return i(m.k[x>>2]) > i(m.k[y>>2]) }
-func eqF(x, y k) bool { return m.f[x>>3] == m.f[y>>3] }
-func ltF(x, y k) bool { return m.f[x>>3] < m.f[y>>3] }
-func gtF(x, y k) bool { return m.f[x>>3] > m.f[y>>3] }
-func eqZ(x, y k) bool { return eqF(x, y) && eqF(8+x, 8+y) }
+func ltI(x, y k) bool { return i(m.k[x]) < i(m.k[y]) }
+func ltF(x, y k) bool { return m.f[x] < m.f[y] }
 func ltZ(x, y k) bool { // real than imag
-	if ltF(x, y) {
+	if ltF(x<<1, y<<1) {
 		return true
-	} else if eqF(x, y) {
-		return ltF(8+x, 8+y)
+	} else if eqF(x<<1, y<<1) {
+		return ltF(1+x<<1, 1+y<<1)
 	}
 	return false
 }
-func gtZ(x, y k) bool { // real than imag
-	if gtF(x, y) {
-		return true
-	} else if eqF(8+x, 8+y) {
-		return gtF(8+x, 8+y)
+func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
+
+func ptr(x, t k) k { // convert k address to type dependend index of data section
+	switch t {
+	case C:
+		return (2 + x) << 2
+	case I, L:
+		return 2 + x
+	case F, S:
+		return (2 + x) >> 1
+	case Z:
+		return (4 + x) >> 2
 	}
-	return false
+	println(t)
+	panic("type")
 }
-func eqS(x, y k) bool { return m.k[x>>2] == m.k[y>>2] && m.k[1+x>>2] == m.k[1+y>>2] }
-func ltS(x, y k) bool { return sym(x) < sym(y) }
-func gtS(x, y k) bool { return sym(x) > sym(y) }
+
+// TODO convert (dont use byte addresses)
+var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
+
 func stI(dst, src k) k { // TODO remove strconv
 	s := strconv.Itoa(int(i(m.k[src>>2])))
 	n := k(len(s))
@@ -165,6 +140,37 @@ func mv(dst, src k) {
 	m.k[1+dst] = rc
 }
 
+func ini() { // start function
+	m.f = make([]f, 1<<13)
+	msl()
+	m.k[2] = 16
+	p := k(64)
+	m.k[8] = p
+	m.k[p] = 8
+	for i := 9; i < 16; i++ {
+		p *= 2
+		m.k[i] = p
+		m.k[p] = k(i)
+	}
+	m.k[0] = (I << 28) | 31
+	for i, u := range []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`) {
+		m.c[136+i] = u
+	}
+	// TODO: K tree
+	// TODO: size vector
+}
+func msl() { // update slice header after increasing m.f
+	f := *(*slice)(unsafe.Pointer(&m.f))
+	i := *(*slice)(unsafe.Pointer(&m.k))
+	i.l, i.c, i.p = f.l*2, f.c*2, f.p
+	m.k = *(*[]k)(unsafe.Pointer(&i))
+	b := *(*slice)(unsafe.Pointer(&m.c))
+	b.l, b.c, b.p = f.l*8, f.c*8, f.p
+	m.c = *(*[]c)(unsafe.Pointer(&b))
+	zz := *(*slice)(unsafe.Pointer(&m.z))
+	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
+	m.z = *(*[]z)(unsafe.Pointer(&zz))
+}
 func grw() { // double memory
 	s := m.k[2]
 	if 1<<k(s) != len(m.c) {
@@ -581,12 +587,13 @@ func explode(x k) (r k) { // explode an array (or atom) to a list of atoms
 	if n == atom {
 		n = 1
 	}
-	cp, sz, o := cpx[t], lns[t], ofs[t]
+	cp, xp := cpx[t], ptr(x, t)
 	r = mk(L, n)
-	for j := k(0); j < n; j++ {
-		dst := mk(t, atom) << 2
-		cp(8+o+dst, 8+o+sz*j+x<<2)
-		m.k[2+r+j] = dst >> 2
+	for i := k(0); i < n; i++ {
+		rk := mk(t, atom)
+		rp := ptr(rk, t)
+		cp(rp, xp+i)
+		m.k[2+r+i] = rk
 	}
 	dec(x)
 	return r
@@ -609,9 +616,9 @@ func uf(x k) (r k) { // unify lists if possible
 		}
 	}
 	r = mk(ut, xn)
-	cp, sz, o := cpx[ut], lns[ut], ofs[ut]
-	for j := k(0); j < xn; j++ {
-		cp(8+o+sz*j+r<<2, 8+o+m.k[2+x+j]<<2)
+	cp, rp := cpx[ut], ptr(r, ut)
+	for i := k(0); i < xn; i++ {
+		cp(rp+i, ptr(m.k[2+x+i], ut))
 	}
 	dec(x)
 	return r
@@ -643,7 +650,7 @@ func flp(x k) (r k) { // +x
 	if nr == atom {
 		nr = 1
 	}
-	cp, sz, o := cpx[tt], lns[tt], ofs[tt]
+	cp := cpx[tt]
 	r = mk(L, nr)
 	for i := k(0); i < nr; i++ {
 		rr := mk(tt, n)
@@ -663,7 +670,7 @@ func flp(x k) (r k) { // +x
 	} else {
 		for i := uint32(0); i < nr; i++ { // Rik = +Xki (cdn.mos.cms.futurecdn.net/XTZkbu7r5c4LZQ5SMzJDbV-970-80.jpg)
 			for k := k(0); k < n; k++ {
-				cp(8+o+sz*k+m.k[2+r+i]<<2, 8+o+sz*i+m.k[2+x+k]<<2)
+				cp(k+ptr(m.k[2+r+i], tt), i+ptr(m.k[2+x+k], tt))
 			}
 		}
 	}
@@ -755,16 +762,16 @@ func rev(x k) (r k) { // |x
 	}
 	r = use(x, t, n)
 	if t < D {
-		sz, cp, m, o := lns[t], cpx[t], n, ofs[t]
+		cp, m := cpx[t], n
 		if t == L {
-			cp = cpI // copy pointer, don't inc.
+			cp = cpI
 		}
-		src, dst := o+8+x<<2, o+8+r<<2
+		src, dst := ptr(x, t), ptr(r, t)
 		if src == dst {
 			cp, m = swx[t], n/2
 		}
-		for j := k(0); j < m; j++ {
-			cp(dst+(n-1-j)*sz, src+j*sz)
+		for i := k(0); i < m; i++ {
+			cp(dst+n-1-i, src+i)
 		}
 	} else {
 		panic("nyi")
@@ -784,11 +791,12 @@ func asc(x k) (r k) { // <x
 	a := mk(I, atom)
 	m.k[2+a] = n
 	r = til(a)
-	sz, lt, sw, o := lns[t], ltx[t], swI, ofs[t]
-	src, ind, dst := 8+o+x<<2, 2+r, 8+r<<2
+
+	lt, sw := ltx[t], swI
+	src, ind, dst := ptr(x, t), 2+r, ptr(r, I)
 	for i := k(1); i < n; i++ { // insertion sort, should be replaced
-		for j := k(i); j > 0 && lt(src+sz*m.k[ind+j], src+sz*m.k[ind+j-1]); j-- {
-			sw(dst+4*j, dst+4*(j-1))
+		for j := k(i); j > 0 && lt(src+m.k[ind+j], src+m.k[ind+j-1]); j-- {
+			sw(dst+j, dst+(j-1))
 		}
 	}
 	dec(x)
@@ -800,19 +808,19 @@ func grp(x k) (r k) { // =x
 	if n == atom {
 		panic("value")
 	}
-	eq, sz, o := eqx[t], lns[t], ofs[t]
+	eq := eqx[t]
 	r = mk(D, atom)
 	u := unq(inc(x)) // TODO: keys are sorted in k7
 	l, nu := mk(L, m.k[u]&atom), m.k[u]&atom
 	m.k[2+r], m.k[3+r] = u, l
-	uc, kc := 8+o+u<<2, 8+o+x<<2
+	up, xp := ptr(u, t), ptr(x, t)
 	b := mk(C, n) // boolean
 	bc := 8 + b<<2
 	for j := k(0); j < nu; j++ { // over ?x
 		nr := k(0)
 		for jj := k(0); jj < n; jj++ { // over x
 			m.c[bc+jj] = 0
-			if eq(uc+sz*j, kc+sz*jj) {
+			if eq(up+j, xp+jj) {
 				m.c[bc+jj] = 1
 				nr++
 			}
@@ -902,8 +910,8 @@ func enl(x k) (r k) { // ,x (collaps uniform)
 			m.k[r] = t<<28 | 1
 			return r
 		}
-		cp, o := cpx[t], ofs[t]
-		src, dst := o+8+x<<2, o+8+r<<2
+		cp := cpx[t]
+		src, dst := ptr(x, t), ptr(r, t)
 		cp(dst, src)
 		dec(x)
 		return r
@@ -1000,24 +1008,23 @@ func unq(x k) (r k) { // ?x
 		return x
 	}
 	r = mk(t, n)
-	eq, cp, o := eqx[t], cpx[t], ofs[t]
+	eq, cp := eqx[t], cpx[t]
 	if t == L {
-		eq = func(x, y k) bool { return match(m.k[x>>2], m.k[y>>2]) }
+		eq = func(x, y k) bool { return match(m.k[x], m.k[y]) }
 	}
-	sz := lns[t]
-	src, dst := o+8+x<<2, o+8+r<<2
+	src, dst := ptr(x, t), ptr(r, t)
 	nn := k(0)
 	for i := k(0); i < n; i++ { // quadratic, should be improved
 		u := true
-		srci := src + i*sz
+		srci := src + i
 		for j := k(0); j < nn; j++ {
-			if eq(srci, dst+j*sz) {
+			if eq(srci, dst+j) {
 				u = false
 				break
 			}
 		}
 		if u {
-			cp(dst+nn*sz, srci)
+			cp(dst+nn, srci)
 			nn++
 		}
 	}
@@ -1505,20 +1512,21 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	if yn == atom {
 		yn = 1
 	}
-	cp, sz, o := cpx[t], lns[t], ofs[t]
+
+	cp, xp := cpx[t], ptr(x, t)
 	if m.k[x+1] > 1 || bk(t, xn+yn) != bk(t, xn) {
 		r = mk(t, xn+yn)
-		rc, xc := 8+o+r<<2, 8+o+x<<2
+		rp := ptr(r, t)
 		for i := k(0); i < xn; i++ {
-			cp(rc+i*sz, xc+i*sz)
+			cp(rp+i, xp+i)
 		}
 	} else {
 		r = inc(x)
 		m.k[r] = t<<28 | (xn + yn)
 	}
-	rc, yc := 8+o+xn*sz+r<<2, 8+o+y<<2
+	rp, yp := xn+ptr(r, t), ptr(y, t)
 	for i := k(0); i < yn; i++ {
-		cp(rc+i*sz, yc+i*sz)
+		cp(rp+i, yp+i)
 	}
 	dec(x)
 	dec(y)
@@ -1552,18 +1560,19 @@ func atx(x, y k) (r k) { // x@y
 	}
 	switch {
 	case xt < L && yt == I:
-		cp, sz, na, o := cpx[xt], lns[xt], nax[xt], ofs[xt]
-		xc, idx := 8+o+x<<2, 2+y
+		cp, na, xp := cpx[xt], nax[xt], ptr(x, xt)
 		r = mk(xt, yn)
 		if yn == atom {
 			yn = 1
 		}
-		rc := 8 + o + r<<2
-		for j := k(0); j < yn; j++ {
-			if j >= xn {
-				na(rc + sz*j)
+		rp, yp := ptr(r, xt), 2+y
+		for i := k(0); i < yn; i++ {
+			if i >= xn {
+				// na(rc + sz*j)
+				na(rp + i)
 			} else {
-				cp(rc+sz*j, xc+sz*m.k[idx+j])
+				// cp(rc+sz*j, xc+sz*m.k[idx+j])
+				cp(rp+i, xp+m.k[yp+i])
 			}
 		}
 		dec(x)
@@ -1589,21 +1598,6 @@ func atx(x, y k) (r k) { // x@y
 	}
 }
 func cal(x, y k) (r k) { panic("nyi") } // x.y
-
-/*
-func ccat(x k, c c) (r k) { // append c to x, assumes x:C refcount 1
-	_, n := typ(x)
-	r = x
-	if nn := buk(8 + n + 1); nn > buk(8+n) {
-		r = mk(C, n+1)
-		mv(r, x)
-		dec(x)
-	}
-	m.k[r] = C<<28 | (n + 1)
-	m.c[8+n+r<<2] = c
-	return r
-}
-*/
 
 func match(x, y k) (rv bool) { // recursive match
 	if x == y {
@@ -1631,13 +1625,13 @@ func match(x, y k) (rv bool) { // recursive match
 		}
 		return true
 	default:
-		eq, sz, o := eqx[t], lns[t], ofs[t]
+		eq := eqx[t]
 		if eq == nil {
 			panic("type")
 		}
-		x, y = 8+o+x<<2, 8+o+y<<2
+		x, y = ptr(x, t), ptr(y, t)
 		for j := k(0); j < n; j++ {
-			if eq(x+j*sz, y+j*sz) == false {
+			if eq(x+j, y+j) == false {
 				return false
 			}
 		}
