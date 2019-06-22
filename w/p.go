@@ -119,17 +119,30 @@ func (p *p) ex(x k) (r k) {
 		y := p.ex(p.noun())
 		if yt, _ := typ(y); yt == N { // verb only
 			dec(y)
-			r = inc(x)
-			break
+			return x
 		}
 		r = mk(L, 2) // monadic application
 		m.k[2+r] = monad(inc(x))
 		m.k[3+r] = y
+		dec(x)
+		return r
 	default:
-		r = inc(x)
+		a := p.noun()
+		at, _ := typ(a)
+		if at == N {
+			dec(a)
+			return x
+		} else if at > N {
+			y := p.ex(p.noun())
+			r = mk(L, 3) // dyadic application (infix)
+			m.k[2+r] = a
+			m.k[3+r] = x
+			m.k[4+r] = y // maybe N (projection)
+			return r
+		}
+		// TODO adverb
+		panic("nyi") // TODO l{a, p.ex(a)}
 	}
-	dec(x)
-	return r
 }
 func (p *p) noun() (r k) {
 	switch {

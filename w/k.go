@@ -424,48 +424,53 @@ func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
 	}
 	panic("type")
 }
-func idn(x k) (r k) { return x } // :x
-func til(x k) (r k) { // !n
+func explode(x k) (r k) { // explode an array (or atom) to a list of atoms
 	t, n := typ(x)
-	if n != atom {
-		panic("nyi !a")
-	} else if t == D {
-		r = inc(m.k[2+x])
-		dec(x)
-		return r
-	} else if t > Z {
+	if t == L {
+		return x
+	} else if t > L {
 		panic("type")
 	}
-	if nn := idx(x, t); nn < 0 {
-		dec(x)
-		return eye(k(-nn))
-	} else {
-		dec(x)
-		return jota(k(nn))
+	if n == atom {
+		n = 1
 	}
-}
-func jota(n k) (r k) {
-	r = mk(I, n)
-	for j := k(0); j < n; j++ {
-		m.k[2+r+j] = j
-	}
-	return r
-}
-func eye(n k) (r k) {
+	cp, sz, o := cpx[t], lns[t], ofs[t]
 	r = mk(L, n)
 	for j := k(0); j < n; j++ {
-		rj := mk(I, n)
-		m.k[2+r+j] = rj
-		for jj := k(0); jj < n; jj++ {
-			if j == jj {
-				m.k[2+rj+jj] = 1
-			} else {
-				m.k[2+rj+jj] = 0
-			}
-		}
+		dst := mk(t, atom) << 2
+		cp(8+o+dst, 8+o+sz*j+x<<2)
+		m.k[2+r+j] = dst >> 2
 	}
+	dec(x)
 	return r
 }
+func uf(x k) (r k) { // unify lists if possible
+	xt, xn := typ(x)
+	if xt != L {
+		return x
+	}
+	ut := k(0)
+	for j := k(0); j < xn; j++ {
+		t, n := typ(m.k[2+x+j])
+		switch {
+		case t >= L || n != atom:
+			return x
+		case j == 0:
+			ut = t
+		case t != ut:
+			return x
+		}
+	}
+	r = mk(ut, xn)
+	cp, sz, o := cpx[ut], lns[ut], ofs[ut]
+	for j := k(0); j < xn; j++ {
+		cp(8+o+sz*j+r<<2, 8+o+m.k[2+x+j]<<2)
+	}
+	dec(x)
+	return r
+}
+
+func idn(x k) (r k) { return x } // :x
 func flp(x k) (r k) { // +x
 	t, n := typ(x)
 	if t > L || n == atom { // tables are not implemented
@@ -518,56 +523,8 @@ func flp(x k) (r k) { // +x
 	dec(x)
 	return r
 }
-func explode(x k) (r k) { // explode an array (or atom) to a list of atoms
-	t, n := typ(x)
-	if t == L {
-		return x
-	} else if t > L {
-		panic("type")
-	}
-	if n == atom {
-		n = 1
-	}
-	cp, sz, o := cpx[t], lns[t], ofs[t]
-	r = mk(L, n)
-	for j := k(0); j < n; j++ {
-		dst := mk(t, atom) << 2
-		cp(8+o+dst, 8+o+sz*j+x<<2)
-		m.k[2+r+j] = dst >> 2
-	}
-	dec(x)
-	return r
-}
-func uf(x k) (r k) { // unify lists if possible
-	xt, xn := typ(x)
-	if xt != L {
-		return x
-	}
-	ut := k(0)
-	for j := k(0); j < xn; j++ {
-		t, n := typ(m.k[2+x+j])
-		switch {
-		case t >= L || n != atom:
-			return x
-		case j == 0:
-			ut = t
-		case t != ut:
-			return x
-		}
-	}
-	r = mk(ut, xn)
-	cp, sz, o := cpx[ut], lns[ut], ofs[ut]
-	for j := k(0); j < xn; j++ {
-		cp(8+o+sz*j+r<<2, 8+o+m.k[2+x+j]<<2)
-	}
-	dec(x)
-	return r
-}
 func neg(x k) k { // -x
 	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x z) z { return -x }, 0) // TODO Z
-}
-func inv(x k) k { // %x
-	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x z) z { return 1 / x }, 0)
 }
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
@@ -600,6 +557,35 @@ func fst(x k) (r k) { // *x
 		m.z[1+r>>2] = m.z[1+x>>2]
 	default:
 		panic("nyi")
+	}
+	dec(x)
+	return r
+}
+func inv(x k) k { // %x
+	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x z) z { return 1 / x }, 0)
+}
+func wer(x k) (r k) { // &x
+	t, n := typ(x)
+	if t != I {
+		panic("type")
+	} else if n == atom {
+		n = 1
+	}
+	nn := k(0)
+	for j := k(0); j < n; j++ {
+		if p := i(m.k[2+x+j]); p < 0 {
+			panic("domain")
+		} else {
+			nn += k(p)
+		}
+	}
+	r = mk(I, nn)
+	jj := k(0)
+	for j := k(0); j < n; j++ {
+		for p := k(0); p < m.k[2+x+j]; p++ {
+			m.k[2+r+jj] = j
+			jj++
+		}
 	}
 	dec(x)
 	return r
@@ -642,32 +628,6 @@ func rev(x k) (r k) { // |x
 		}
 	}
 	return decret(x, r)
-}
-func wer(x k) (r k) { // &x
-	t, n := typ(x)
-	if t != I {
-		panic("type")
-	} else if n == atom {
-		n = 1
-	}
-	nn := k(0)
-	for j := k(0); j < n; j++ {
-		if p := i(m.k[2+x+j]); p < 0 {
-			panic("domain")
-		} else {
-			nn += k(p)
-		}
-	}
-	r = mk(I, nn)
-	jj := k(0)
-	for j := k(0); j < n; j++ {
-		for p := k(0); p < m.k[2+x+j]; p++ {
-			m.k[2+r+jj] = j
-			jj++
-		}
-	}
-	dec(x)
-	return r
 }
 func asc(x k) (r k) { // <x
 	t, n := typ(x)
@@ -721,6 +681,47 @@ func grp(x k) (r k) { // =x
 	}
 	dec(b)
 	dec(x)
+	return r
+}
+func til(x k) (r k) { // !x
+	t, n := typ(x)
+	if n != atom {
+		panic("nyi !a")
+	} else if t == D {
+		r = inc(m.k[2+x])
+		dec(x)
+		return r
+	} else if t > Z {
+		panic("type")
+	}
+	if nn := idx(x, t); nn < 0 {
+		dec(x)
+		return eye(k(-nn))
+	} else {
+		dec(x)
+		return jota(k(nn))
+	}
+}
+func jota(n k) (r k) { // !n
+	r = mk(I, n)
+	for j := k(0); j < n; j++ {
+		m.k[2+r+j] = j
+	}
+	return r
+}
+func eye(n k) (r k) { // !-n
+	r = mk(L, n)
+	for j := k(0); j < n; j++ {
+		rj := mk(I, n)
+		m.k[2+r+j] = rj
+		for jj := k(0); jj < n; jj++ {
+			if j == jj {
+				m.k[2+rj+jj] = 1
+			} else {
+				m.k[2+rj+jj] = 0
+			}
+		}
+	}
 	return r
 }
 func not(x k) (r k) { // ~x
@@ -841,6 +842,96 @@ func str(x k) (r k) { // $x
 		}
 	}
 	return decret(x, r)
+}
+func unq(x k) (r k) { // ?x
+	t, n := typ(x)
+	if n == atom {
+		panic("nyi") // overloads, random numbers?
+	} else if t == D { // what does ?d do?
+		panic("type")
+	} else if n < 2 {
+		return x
+	}
+	r = mk(t, n)
+	eq, cp, o := eqx[t], cpx[t], ofs[t]
+	if t == L {
+		eq = func(x, y k) bool { return match(m.k[x>>2], m.k[y>>2]) }
+	}
+	sz := lns[t]
+	src, dst := o+8+x<<2, o+8+r<<2
+	nn := k(0)
+	for i := k(0); i < n; i++ { // quadratic, should be improved
+		u := true
+		srci := src + i*sz
+		for j := k(0); j < nn; j++ {
+			if eq(srci, dst+j*sz) {
+				u = false
+				break
+			}
+		}
+		if u {
+			cp(dst+nn*sz, srci)
+			nn++
+		}
+	}
+	dec(x)
+	return srk(r, t, n, nn)
+}
+func tip(x k) (r k) { // @x
+	r = mk(S, atom)
+	m.k[2+r] = 0
+	m.k[3+r] = 0
+	t, n := typ(x)
+	dec(x)
+	tns := "_cifzn.a_1234" // TODO k7 compatibility, function types 1..4?
+	s := tns[t]
+	if n != atom && t < L {
+		s -= 32
+	}
+	mys(8+r<<2, uint64(s)<<56)
+	if s == '_' {
+		mys(8+r<<2, 0)
+	}
+	return r
+}
+func evl(x k) (r k) { // .x
+	t, n := typ(x)
+	if t != L {
+		return x
+	}
+	if n == 0 {
+		panic("evl empty list?") // what TODO?
+	}
+	v := m.k[2+x]
+	vt, _ := typ(v)
+	switch vt {
+	case N + 1, N + 2:
+		if n == 1 {
+			return x
+		} else if n+1 < vt-N {
+			panic("nyi projection")
+		}
+		a := mk(L, n-1)
+		for i := int(n - 2); i >= 0; i-- { // right to left
+			m.k[2+k(i)+a] = evl(inc(m.k[3+k(i)+x]))
+		}
+		switch vt {
+		case N + 1:
+			f := table[m.k[2+v]].(func(k) k)
+			r = f(inc(m.k[2+a]))
+		case N + 2:
+			f := table[m.k[2+v]].(func(k, k) k)
+			r = f(inc(m.k[2+a]), inc(m.k[3+a]))
+		default:
+			panic("nyi")
+		}
+		dec(a)
+		dec(x)
+		return r
+	}
+	println("evl vt", vt)
+	panic("nyi")
+	return x
 }
 func kst(x k) (r k) { // `k@x
 	t, n := typ(x)
@@ -1091,141 +1182,18 @@ func btou(b []c) uint64 {
 	}
 	return u
 }
-func unq(x k) (r k) { // ?x
-	t, n := typ(x)
-	if n == atom {
-		panic("nyi") // overloads, random numbers?
-	} else if t == D { // what does ?d do?
-		panic("type")
-	} else if n < 2 {
-		return x
-	}
-	r = mk(t, n)
-	eq, cp, o := eqx[t], cpx[t], ofs[t]
-	if t == L {
-		eq = func(x, y k) bool { return match(m.k[x>>2], m.k[y>>2]) }
-	}
-	sz := lns[t]
-	src, dst := o+8+x<<2, o+8+r<<2
-	nn := k(0)
-	for i := k(0); i < n; i++ { // quadratic, should be improved
-		u := true
-		srci := src + i*sz
-		for j := k(0); j < nn; j++ {
-			if eq(srci, dst+j*sz) {
-				u = false
-				break
-			}
-		}
-		if u {
-			cp(dst+nn*sz, srci)
-			nn++
-		}
-	}
-	dec(x)
-	return srk(r, t, n, nn)
-}
-func tip(x k) (r k) { // @x
-	r = mk(S, atom)
-	m.k[2+r] = 0
-	m.k[3+r] = 0
-	t, n := typ(x)
-	dec(x)
-	tns := "_cifzn.a_1234" // TODO k7 compatibility, function types 1..4?
-	s := tns[t]
-	if n != atom && t < L {
-		s -= 32
-	}
-	mys(8+r<<2, uint64(s)<<56)
-	if s == '_' {
-		mys(8+r<<2, 0)
-	}
-	return r
-}
-func evl(x k) (r k) { // .x
-	t, n := typ(x)
-	if t != L {
-		return x
-	}
-	if n == 0 {
-		panic("evl empty list?") // what TODO?
-	}
-	v := m.k[2+x]
-	vt, vn := typ(v)
-	switch vt {
-	case S:
-		if vn != atom || n != 2 {
-			panic("nyi")
-		}
-		c := c(sym(8+v<<2) >> 56) // TODO: this is only 1 char
-		s := "+-%*|&<>=~,^#_$?@." // TODO: same as cOps
-		h := []func(k) k{flp, neg, inv, fst, rev, wer, asc, dsc, grp, not, enl, srt, cnt, flr, str, unq, tip, evl}
-		var g func(k) k
-		for i := range s {
-			if c == s[i] {
-				g = h[i]
-			}
-		}
-		if g == nil {
-			panic("nyi")
-		}
-		a := inc(m.k[3+x])
-		at, _ := typ(a)
-		if at == L {
-			a = evl(a)
-		}
-		r = g(a)
-		dec(x)
-		return r
-	}
-	panic("nyi")
-	return x
-}
 
-func atx(x, y k) (r k) { // x@y
-	xt, xn := typ(x)
-	yt, yn := typ(y)
-	if xn == atom {
-		panic("type") // TODO overloads
-	}
-	switch {
-	case xt < L && yt == I:
-		cp, sz, na, o := cpx[xt], lns[xt], nax[xt], ofs[xt]
-		xc, idx := 8+o+x<<2, 2+y
-		r = mk(xt, yn)
-		if yn == atom {
-			yn = 1
-		}
-		rc := 8 + o + r<<2
-		for j := k(0); j < yn; j++ {
-			if j >= xn {
-				na(rc + sz*j)
-			} else {
-				cp(rc+sz*j, xc+sz*m.k[idx+j])
-			}
-		}
-		dec(x)
-		dec(y)
-		return r
-	case xt == L && yt == I:
-		if yn == atom {
-			r = inc(m.k[2+x+m.k[2+y]])
-		} else {
-			r = mk(L, yn)
-			for i := k(0); i < yn; i++ {
-				m.k[2+r+i] = inc(m.k[2+x+m.k[2+y+i]])
-			}
-			r = uf(r)
-		}
-		dec(x)
-		dec(y)
-		return r
-	// case xt == L:
-	//	missing element for a list is nax[type of first element]
-	default:
-		panic("nyi atx")
-	}
-}
+func add(x, y k) (r k) { panic("nyi") } // x+y
+func sub(x, y k) (r k) { panic("nyi") } // x-y
+func mul(x, y k) (r k) { panic("nyi") } // x*y
+func div(x, y k) (r k) { panic("nyi") } // x%y
+func min(x, y k) (r k) { panic("nyi") } // x&y
+func max(x, y k) (r k) { panic("nyi") } // x|y
+func les(x, y k) (r k) { panic("nyi") } // x<y
+func mor(x, y k) (r k) { panic("nyi") } // x>y
+func eql(x, y k) (r k) { panic("nyi") } // x=y
+func key(x, y k) (r k) { panic("nyi") } // x!y
+func mch(x, y k) (r k) { panic("nyi") } // x~y
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
 	switch {
@@ -1296,6 +1264,56 @@ func lcat(x, y k) (r k) { // append anything to a list; no unify
 	dec(x)
 	return r
 }
+func ept(x, y k) (r k) { panic("nyi") } // x^y
+func tak(x, y k) (r k) { panic("nyi") } // x#y
+func drp(x, y k) (r k) { panic("nyi") } // x_y
+func cst(x, y k) (r k) { panic("nyi") } // x$y
+func fnd(x, y k) (r k) { panic("nyi") } // x?y
+func atx(x, y k) (r k) { // x@y
+	xt, xn := typ(x)
+	yt, yn := typ(y)
+	if xn == atom {
+		panic("type") // TODO overloads
+	}
+	switch {
+	case xt < L && yt == I:
+		cp, sz, na, o := cpx[xt], lns[xt], nax[xt], ofs[xt]
+		xc, idx := 8+o+x<<2, 2+y
+		r = mk(xt, yn)
+		if yn == atom {
+			yn = 1
+		}
+		rc := 8 + o + r<<2
+		for j := k(0); j < yn; j++ {
+			if j >= xn {
+				na(rc + sz*j)
+			} else {
+				cp(rc+sz*j, xc+sz*m.k[idx+j])
+			}
+		}
+		dec(x)
+		dec(y)
+		return r
+	case xt == L && yt == I:
+		if yn == atom {
+			r = inc(m.k[2+x+m.k[2+y]])
+		} else {
+			r = mk(L, yn)
+			for i := k(0); i < yn; i++ {
+				m.k[2+r+i] = inc(m.k[2+x+m.k[2+y+i]])
+			}
+			r = uf(r)
+		}
+		dec(x)
+		dec(y)
+		return r
+	// case xt == L:
+	//	missing element for a list is nax[type of first element]
+	default:
+		panic("nyi atx")
+	}
+}
+func cal(x, y k) (r k) { panic("nyi") } // x.y
 
 /*
 func ccat(x k, c c) (r k) { // append c to x, assumes x:C refcount 1
@@ -1389,7 +1407,13 @@ var l8t = [256]c{
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
 
-var table = []interface{}{ // function table :+-*%&|<>=!~,^#_$?@.01234
+var table []interface{} // function table :+-*%&|<>=!~,^#_$?@.01234
+func init() {
 	// 0-19 monads, 20-29 dyads, 30-34 ioverbs
-	idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
+	for _, f := range []interface{}{
+		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
+		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
+	} {
+		table = append(table, f)
+	}
 }
