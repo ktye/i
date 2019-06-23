@@ -36,8 +36,6 @@ type slice struct {
 
 //                 C  I  F   Z  S  L  D  0  1  2  3  4
 var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 8, 4, 4, 4, 4, 4}
-var ofs = [13]k{0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0}
-
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
 	k []k
@@ -50,6 +48,7 @@ var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
 var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/nan
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
+var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS}         // tostring (assumes 56 bytes space at dst)
 
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
@@ -82,7 +81,34 @@ func ltZ(x, y k) bool { // real than imag
 	return false
 }
 func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
-
+func stI(dst, x k) k { // TODO remove strconv
+	s := strconv.Itoa(int(i(m.k[x])))
+	n := k(len(s))
+	copy(m.c[dst:dst+n], []byte(s))
+	return n
+}
+func stF(dst, x k) k { // TODO remove strconv
+	s := strconv.FormatFloat(m.f[x], 'g', 6, 64)
+	n := k(len(s))
+	copy(m.c[dst:dst+n], []byte(s))
+	return n
+}
+func stZ(dst, x k) k {
+	n := stF(dst, x<<1)
+	m.c[dst+n] = 'i'
+	return 1 + n + stF(dst+1+n, 1+x<<1)
+}
+func stS(dst, x k) k {
+	u := sym(x << 3)
+	for i := k(0); i < 8; i++ {
+		if c := c(u >> (8 * (7 - i))); c == 0 {
+			return i
+		} else {
+			m.c[dst+i] = c
+		}
+	}
+	return 8
+}
 func ptr(x, t k) k { // convert k address to type dependend index of data section
 	switch t {
 	case C:
@@ -96,38 +122,6 @@ func ptr(x, t k) k { // convert k address to type dependend index of data sectio
 	}
 	println(t)
 	panic("type")
-}
-
-// TODO convert (dont use byte addresses)
-var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
-
-func stI(dst, src k) k { // TODO remove strconv
-	s := strconv.Itoa(int(i(m.k[src>>2])))
-	n := k(len(s))
-	copy(m.c[dst:dst+n], []byte(s))
-	return n
-}
-func stF(dst, src k) k { // TODO remove strconv
-	s := strconv.FormatFloat(m.f[src>>3], 'g', 6, 64)
-	n := k(len(s))
-	copy(m.c[dst:dst+n], []byte(s))
-	return n
-}
-func stZ(dst, src k) k {
-	n := stF(dst, src)
-	m.c[dst+n] = 'i'
-	return 1 + n + stF(dst+1+n, src+8)
-}
-func stS(dst, src k) k {
-	u := sym(src)
-	for i := k(0); i < 8; i++ {
-		if c := c(u >> (8 * (7 - i))); c == 0 {
-			return i
-		} else {
-			m.c[dst+i] = c
-		}
-	}
-	return 8
 }
 func mv(dst, src k) {
 	t, n := typ(src)
@@ -315,8 +309,11 @@ func srk(x, t, n, nn k) (r k) { // shrink bucket
 	}
 	if bk(t, nn) < bk(t, n) { // alloc not split: prevent small object accumulation
 		r = mk(t, nn)
-		o, ln := ofs[t], nn*lns[t]
-		rc, xc := 8+o+r<<2, 8+o+x<<2
+		ln := nn * lns[t]
+		if t == Z {
+			ln += 8
+		}
+		rc, xc := 8+r<<2, 8+x<<2
 		copy(m.c[rc:rc+ln], m.c[xc:xc+ln])
 		dec(x)
 		return r
@@ -339,34 +336,33 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	var g func(k, k)
 	switch {
 	case t == C && rt == I:
-		g = func(x, y k) { m.k[y>>2] = k(i(m.c[x])) }
+		g = func(x, y k) { m.k[y] = k(i(m.c[x])) }
 	case t == C && rt == F:
-		g = func(x, y k) { m.f[y>>3] = f(m.c[x]) }
+		g = func(x, y k) { m.f[y] = f(m.c[x]) }
 	case t == I && rt == C:
-		g = func(x, y k) { m.c[y] = c(i(m.k[x>>2])) }
+		g = func(x, y k) { m.c[y] = c(i(m.k[x])) }
 	case t == I && rt == F:
-		g = func(x, y k) { m.f[y>>3] = f(i(m.k[x>>2])) }
+		g = func(x, y k) { m.f[y] = f(i(m.k[x])) }
 	case t == I && rt == Z:
-		g = func(x, y k) { m.f[y>>3] = f(i(m.k[x>>2])); m.f[1+y>>3] = 0 }
+		g = func(x, y k) { m.f[y<<1] = f(i(m.k[x])); m.f[1+y<<1] = 0 }
 	case t == F && rt == C:
-		g = func(x, y k) { m.c[y] = c(m.f[x>>3]) }
+		g = func(x, y k) { m.c[y] = c(m.f[x]) }
 	case t == F && rt == I:
-		g = func(x, y k) { m.k[y>>2] = k(i(m.f[x>>3])) }
+		g = func(x, y k) { m.k[y] = k(i(m.f[x])) }
 	case t == F && rt == Z:
-		g = func(x, y k) { m.f[y>>3] = m.f[x>>3]; m.f[1+y>>3] = 0 }
+		g = func(x, y k) { m.f[y<<1] = m.f[x]; m.f[1+y<<1] = 0 }
 	case t == Z && rt == F:
-		g = func(x, y k) { m.f[y>>3] = m.f[x>>3] }
+		g = func(x, y k) { m.f[y] = m.f[x<<1] }
 	case t == Z && rt == C:
-		g = func(x, y k) { m.c[y] = c(i(m.f[x>>3])) }
+		g = func(x, y k) { m.c[y] = c(i(m.f[x<<1])) }
 	case t == Z && rt == I:
-		g = func(x, y k) { m.k[y>>2] = k(i(m.f[x>>3])) }
+		g = func(x, y k) { m.k[y] = k(i(m.f[x<<1])) }
 	default:
 		panic("nyi")
 	}
-	xs, rs, xo, ro := lns[t], lns[rt], ofs[t], ofs[rt]
-	ac, rc := 8+xo+x<<2, 8+ro+r<<2
-	for j := k(0); j < k(n); j++ {
-		g(ac+j*xs, rc+j*rs)
+	xp, rp := ptr(x, t), ptr(r, rt)
+	for i := k(0); i < k(n); i++ {
+		g(xp+i, rp+i)
 	}
 	dec(x)
 	return r
@@ -953,15 +949,15 @@ func str(x k) (r k) { // $x
 		return x
 	}
 	if t < L {
-		st, sz, o := stx[t], lns[t], ofs[t]
+		st, xp := stx[t], ptr(x, t)
 		if n == atom {
 			r = mk(C, 56)
-			r = srk(r, C, 56, st(8+r<<2, 8+o+x<<2))
+			r = srk(r, C, 56, st(8+r<<2, xp))
 		} else {
 			r = mk(L, n)
 			for i := k(0); i < n; i++ {
 				y := mk(C, 56)
-				m.k[2+r+i] = srk(y, C, 56, st(8+y<<2, 8+o+i*sz+x<<2))
+				m.k[2+r+i] = srk(y, C, 56, st(8+y<<2, xp+i))
 			}
 		}
 	} else {
@@ -1163,12 +1159,11 @@ func kst(x k) (r k) { // `k@x
 			m.k[r] = C<<28 | 1
 		}
 		rr := mk(C, 56)
-		st, o := stx[t], ofs[t]
-		rrc, xc, sz := 8+rr<<2, 8+o+x<<2, lns[t]
+		st, xp, rrc := stx[t], ptr(x, t), 8+rr<<2
 		sp := mk(C, 1)
 		m.c[8+sp<<2] = ' '
 		for i := k(0); i < n; i++ {
-			rn := st(rrc, xc+i*sz)
+			rn := st(rrc, xp+i)
 			m.k[rr] = C<<28 | rn
 			r = cat(r, inc(rr))
 			if i < n-1 {
@@ -1196,7 +1191,7 @@ func kst(x k) (r k) { // `k@x
 	case S:
 		if atm || n == 1 {
 			rr := mk(C, 0)
-			sn, rrc, rn, q := stS(8+rr<<2, 8+x<<2), 8+rr<<2, k(1), false
+			sn, rrc, rn, q := stS(8+rr<<2, ptr(x, S)), 8+rr<<2, k(1), false
 			for i := k(0); i < sn; i++ {
 				c := m.c[rrc+i]
 				if !(cr09(c) || craZ(c) || c == '.') {
