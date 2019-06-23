@@ -44,6 +44,7 @@ var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
 var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS}         // tostring (assumes 56 bytes space at dst)
+var tox = []func(k, k){nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(m.k[x]), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
@@ -340,36 +341,9 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	if n == atom {
 		n = 1
 	}
-	var g func(k, k)
-	switch {
-	case t == C && rt == I:
-		g = func(x, y k) { m.k[y] = k(i(m.c[x])) }
-	case t == C && rt == F:
-		g = func(x, y k) { m.f[y] = f(m.c[x]) }
-	case t == I && rt == C:
-		g = func(x, y k) { m.c[y] = c(i(m.k[x])) }
-	case t == I && rt == F:
-		g = func(x, y k) { m.f[y] = f(i(m.k[x])) }
-	case t == I && rt == Z:
-		g = func(x, y k) { m.f[y<<1] = f(i(m.k[x])); m.f[1+y<<1] = 0 }
-	case t == F && rt == C:
-		g = func(x, y k) { m.c[y] = c(m.f[x]) }
-	case t == F && rt == I:
-		g = func(x, y k) { m.k[y] = k(i(m.f[x])) }
-	case t == F && rt == Z:
-		g = func(x, y k) { m.f[y<<1] = m.f[x]; m.f[1+y<<1] = 0 }
-	case t == Z && rt == F:
-		g = func(x, y k) { m.f[y] = m.f[x<<1] }
-	case t == Z && rt == C:
-		g = func(x, y k) { m.c[y] = c(i(m.f[x<<1])) }
-	case t == Z && rt == I:
-		g = func(x, y k) { m.k[y] = k(i(m.f[x<<1])) }
-	default:
-		panic("nyi")
-	}
-	xp, rp := ptr(x, t), ptr(r, rt)
+	xp, rp, g := ptr(x, t), ptr(r, rt), tox[4*(t-1)+rt-1]
 	for i := k(0); i < k(n); i++ {
-		g(xp+i, rp+i)
+		g(rp+i, xp+i)
 	}
 	dec(x)
 	return r
@@ -1361,16 +1335,7 @@ func cmp(fx []func(k, k) bool, t k) func(k, k, k) {
 			}
 		}
 	}
-	panic("type")
-}
-func cmpI(f func(k, k) bool) func(k, k, k) {
-	return func(r, x, y k) {
-		if f(x, y) {
-			m.k[r] = 1
-		} else {
-			m.k[r] = 0
-		}
-	}
+	panic("reach")
 }
 func les(x, y k) (r k) { // x<y
 	return nd(x, y, I, []f2{nil, cmp(ltx, C), cmp(ltx, I), cmp(ltx, F), cmp(ltx, Z), cmp(ltx, S)})
