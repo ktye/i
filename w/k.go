@@ -19,10 +19,8 @@ const (
 )
 
 type (
-	fc1 func(c) c
-	fi1 func(i) i
-	ff1 func(f) f
-	fz1 func(z) z
+	f1  func(k, k)
+	f2  func(k, k, k)
 	fc2 func(c, c) c
 	fi2 func(i, i) i
 	ff2 func(f, f) f
@@ -367,30 +365,6 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	dec(x)
 	return r
 }
-func cl1(x, r k, n k, op fc1) { // vector r=f(x)
-	o := r<<2 - x<<2
-	for j := 8 + x<<2; j < 8+n+x<<2; j++ {
-		m.c[o+j] = op(m.c[j])
-	}
-}
-func il1(x, r k, n k, op fi1) {
-	o := r - x
-	for j := 2 + x; j < 2+n+x; j++ {
-		m.k[o+j] = k(op(i(m.k[j])))
-	}
-}
-func fl1(x, r k, n k, op ff1) {
-	o := r>>1 - x>>1
-	for j := 1 + x>>1; j < 1+n+x>>1; j++ {
-		m.f[o+j] = op(m.f[j])
-	}
-}
-func zl1(x, r k, n k, op fz1) {
-	o := r>>2 - x>>2
-	for j := 1 + x>>2; j < 1+n+x>>2; j++ {
-		m.z[o+j] = op(m.z[j])
-	}
-}
 func cl2(x, y, r, n k, op fc2, sc k) { // vector r=f(x,y)
 	ro, yo := r<<2-x<<2, y<<2-x<<2
 	if sc == 1 {
@@ -463,19 +437,19 @@ func zl2(x, y, r, n k, op fz2, sc k) {
 		}
 	}
 }
-func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
+func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	t, n := typ(x)
 	min := C
-	if fc == nil {
+	if fx[C] == nil {
 		min = I
 	}
-	if fi == nil {
+	if fx[I] == nil {
 		min = F
 	} // TODO: Z only for ff == nil ?
 	if min > t { // uptype x
 		x, t = to(x, min), min
 	}
-	if t == Z && fz == nil { // e.g. real functions
+	if t == Z && fx[Z] == nil { // e.g. real functions
 		x, t = to(x, F), F
 	}
 	r = use(x, t, n)
@@ -485,21 +459,18 @@ func nm(x k, fc fc1, fi fi1, ff ff1, fz fz1, rt k) (r k) { // numeric monad
 	switch t {
 	case L:
 		for j := k(0); j < k(n); j++ {
-			m.k[r+2+j] = nm(inc(m.k[j+2+x]), fc, fi, ff, fz, rt)
+			m.k[r+2+j] = nm(inc(m.k[j+2+x]), rt, fx)
 		}
 	case D:
 		if r != x {
 			m.k[2+r] = inc(m.k[2+x])
 		}
-		m.k[3+r] = nm(m.k[3+x], fc, fi, ff, fz, rt)
-	case C:
-		cl1(x, r, k(n), fc)
-	case I:
-		il1(x, r, k(n), fi)
-	case F:
-		fl1(x, r, k(n), ff)
-	case Z:
-		zl1(x, r, k(n), fz)
+		m.k[3+r] = nm(m.k[3+x], rt, fx)
+	case C, I, F, Z:
+		rp, xp, f := ptr(r, t), ptr(x, t), fx[t]
+		for i := k(0); i < k(n); i++ {
+			f(rp+i, xp+i)
+		}
 	default:
 		panic("type")
 	}
@@ -674,7 +645,7 @@ func flp(x k) (r k) { // +x
 	return r
 }
 func neg(x k) k { // -x
-	return nm(x, func(x c) c { return -x }, func(x i) i { return -x }, func(x f) f { return -x }, func(x z) z { return -x }, 0) // TODO Z
+	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.z[r] = -m.z[x] }})
 }
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
@@ -712,7 +683,7 @@ func fst(x k) (r k) { // *x
 	return r
 }
 func inv(x k) k { // %x
-	return nm(x, nil, nil, func(x f) f { return 1.0 / x }, func(x z) z { return 1 / x }, 0)
+	return nm(x, 0, []f1{nil, nil, func(r, x k) { m.f[r] = 1 / m.f[x] }, func(r, x k) { m.z[r] = 1 / m.z[x] }})
 }
 func wer(x k) (r k) { // &x
 	t, n := typ(x)
@@ -876,27 +847,31 @@ func eye(n k) (r k) { // !-n
 	return r
 }
 func not(x k) (r k) { // ~x
-	return nm(x, func(x c) (r c) {
-		if x == 0 {
-			r = 1
+	return nm(x, I, []f1{nil, func(r, x k) {
+		if m.c[x] == 0 {
+			m.c[r] = 1
+		} else {
+			m.c[r] = 0
 		}
-		return r
-	}, func(x i) (r i) {
-		if x == 0 {
-			r = 1
+	}, func(r, x k) {
+		if m.k[x] == 0 {
+			m.k[r] = 1
+		} else {
+			m.k[r] = 0
 		}
-		return r
-	}, func(x f) (r f) {
-		if x == 0 {
-			r = 1
+	}, func(r, x k) {
+		if m.f[x] == 0 {
+			m.f[r] = 1
+		} else {
+			m.f[r] = 0
 		}
-		return r
-	}, func(x z) (r z) {
-		if x == 0 {
-			r = 1
+	}, func(r, x k) {
+		if m.z[x] == 0 {
+			m.z[r] = 1
+		} else {
+			m.z[r] = 0
 		}
-		return r
-	}, I)
+	}})
 }
 func enl(x k) (r k) { // ,x (collaps uniform)
 	t, n := typ(x)
@@ -935,13 +910,13 @@ func cnt(x k) (r k) { // #x
 	return r
 }
 func flr(x k) k { // _x
-	return nm(x, func(x c) c { return x }, func(x i) i { return x }, func(x f) f {
-		y := float64(int32(x))
-		if x < y {
+	return nm(x, I, []f1{nil, func(r, x k) { m.c[r] = m.c[x] }, func(r, x k) { m.k[r] = m.k[x] }, func(r, x k) {
+		y := f(i(m.f[x]))
+		if m.f[x] < y {
 			y -= 1.0
 		}
-		return y
-	}, nil, I)
+		m.f[r] = y
+	}, nil}) // TODO: k7 does not convert c to i
 }
 func str(x k) (r k) { // $x
 	t, n := typ(x)
