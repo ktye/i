@@ -42,6 +42,7 @@ var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
 var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/nan
 var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
 var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
+var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS}         // tostring (assumes 56 bytes space at dst)
 
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -64,7 +65,9 @@ func eqF(x, y k) bool { return m.f[x] == m.f[y] }
 func eqZ(x, y k) bool { return eqF(x<<1, y<<1) && eqF(1+x<<1, 1+y<<1) }
 func eqS(x, y k) bool { return m.k[x<<1] == m.k[y<<1] && m.k[1+x<<1] == m.k[1+y<<1] }
 func ltC(x, y k) bool { return m.c[x] < m.c[y] }
+func gtC(x, y k) bool { return m.c[x] > m.c[y] }
 func ltI(x, y k) bool { return i(m.k[x]) < i(m.k[y]) }
+func gtI(x, y k) bool { return i(m.k[x]) > i(m.k[y]) }
 func ltF(x, y k) bool { return m.f[x] < m.f[y] }
 func gtF(x, y k) bool { return m.f[x] > m.f[y] }
 func ltZ(x, y k) bool { // real than imag
@@ -84,6 +87,7 @@ func gtZ(x, y k) bool { // real than imag
 	return false
 }
 func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
+func gtS(x, y k) bool { return sym(x<<3) > sym(y<<3) }
 func stI(dst, x k) k { // TODO remove strconv
 	s := strconv.Itoa(int(i(m.k[x])))
 	n := k(len(s))
@@ -1313,14 +1317,69 @@ func max(x, y k) (r k) { // x|y
 		}
 	}})
 }
+func cmp(fx []func(k, k) bool, t k) func(k, k, k) {
+	f := fx[t]
+	switch t {
+	case C:
+		return func(r, x, y k) {
+			if f(x, y) {
+				m.c[r] = 1
+			} else {
+				m.c[r] = 0
+			}
+		}
+	case I:
+		return func(r, x, y k) {
+			if f(x, y) {
+				m.k[r] = 1
+			} else {
+				m.k[r] = 0
+			}
+		}
+	case F:
+		return func(r, x, y k) {
+			if f(x, y) {
+				m.f[r] = 1
+			} else {
+				m.f[r] = 0
+			}
+		}
+	case Z:
+		return func(r, x, y k) {
+			if f(x, y) {
+				m.z[r] = 1
+			} else {
+				m.z[r] = 0
+			}
+		}
+	case S:
+		return func(r, x, y k) {
+			if f(x, y) {
+				m.f[r] = 1 // non-zero
+			} else {
+				m.f[r] = 0
+			}
+		}
+	}
+	panic("type")
+}
+func cmpI(f func(k, k) bool) func(k, k, k) {
+	return func(r, x, y k) {
+		if f(x, y) {
+			m.k[r] = 1
+		} else {
+			m.k[r] = 0
+		}
+	}
+}
 func les(x, y k) (r k) { // x<y
-	panic("nyi")
+	return nd(x, y, I, []f2{nil, cmp(ltx, C), cmp(ltx, I), cmp(ltx, F), cmp(ltx, Z), cmp(ltx, S)})
 }
 func mor(x, y k) (r k) { // x>y
-	panic("nyi")
+	return nd(x, y, I, []f2{nil, cmp(gtx, C), cmp(gtx, I), cmp(gtx, F), cmp(gtx, Z), cmp(ltx, S)})
 }
 func eql(x, y k) (r k) { // x=y
-	panic("nyi")
+	return nd(x, y, I, []f2{nil, cmp(eqx, C), cmp(eqx, I), cmp(eqx, F), cmp(eqx, Z), cmp(ltx, S)})
 }
 func key(x, y k) (r k) { panic("nyi") } // x!y
 func mch(x, y k) (r k) { // x~y

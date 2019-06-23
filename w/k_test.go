@@ -38,6 +38,9 @@ func TestK(t *testing.T) {
 		{"3+1 2 3", "4 5 6"},
 		{"1 2 3+4", "5 6 7"},
 		{"1 2 3+4f", "5 6 7f"},
+		{"1 2 3<4f", "1 1 1"},
+		{"1 2>3 4f", "0 0"},
+		//{"`a`b`c=`c`b`a", "0 1 0"},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)
