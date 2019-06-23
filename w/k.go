@@ -403,16 +403,16 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	}
 	return r
 }
-func nd(x, y, rt k, fx []f2) (r k) { // numeric dyad
+func nd(x, y, rt k, fx []f2, fc []func(k, k) bool) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
 	t, n, sc := xt, xn, k(0)
 	if yt > t {
 		t = yt
 	}
-	if t == C && fx[C] == nil {
+	if t == C && fc == nil && fx[C] == nil {
 		t = I
 	}
-	if (t == I && fx[I] == nil) || (t == Z && fx[Z] == nil) {
+	if (t == I && fc == nil && fx[I] == nil) || (t == Z && fc == nil && fx[Z] == nil) {
 		t = F
 	}
 	if xt < L && yt < L {
@@ -430,27 +430,62 @@ func nd(x, y, rt k, fx []f2) (r k) { // numeric dyad
 			y, yt = to(y, t), t
 		}
 	}
-	r = use2(x, y, t, n)
+	if fc == nil {
+		r = use2(x, y, t, n)
+	} else if r != C {
+		r = use2(x, y, I, n)
+	} else {
+		r = mk(I, n)
+	}
 	if n == atom {
 		n = 1
 	}
 	switch xt {
 	case C, I, F, Z, S:
-		if xt == S && k(len(fx)) < S {
-			panic("type")
-		}
-		f, xp, yp, rp := fx[t], ptr(x, t), ptr(y, t), ptr(r, t)
-		if sc == 1 {
-			for i := k(0); i < n; i++ {
-				f(rp+i, xp, yp+i)
-			}
-		} else if sc == 2 {
-			for i := k(0); i < n; i++ {
-				f(rp+i, xp+i, yp)
+		if fc != nil {
+			f, xp, yp, rp := fc[t], ptr(x, t), ptr(y, t), ptr(r, I)
+			if sc == 1 {
+				for i := k(0); i < n; i++ {
+					if f(xp, yp+i) {
+						m.k[rp+i] = 1
+					} else {
+						m.k[rp+i] = 0
+					}
+				}
+			} else if sc == 2 {
+				for i := k(0); i < n; i++ {
+					if f(xp+i, yp) {
+						m.k[rp+i] = 1
+					} else {
+						m.k[rp+i] = 0
+					}
+				}
+			} else {
+				for i := k(0); i < n; i++ {
+					if f(xp+i, yp+i) {
+						m.k[rp+i] = 1
+					} else {
+						m.k[rp+i] = 0
+					}
+				}
 			}
 		} else {
-			for i := k(0); i < n; i++ {
-				f(rp+i, xp+i, yp+i)
+			if xt == S {
+				panic("type")
+			}
+			f, xp, yp, rp := fx[t], ptr(x, t), ptr(y, t), ptr(r, t)
+			if sc == 1 {
+				for i := k(0); i < n; i++ {
+					f(rp+i, xp, yp+i)
+				}
+			} else if sc == 2 {
+				for i := k(0); i < n; i++ {
+					f(rp+i, xp+i, yp)
+				}
+			} else {
+				for i := k(0); i < n; i++ {
+					f(rp+i, xp+i, yp+i)
+				}
 			}
 		}
 	//case L:
@@ -1247,16 +1282,16 @@ func btou(b []c) uint64 {
 }
 
 func add(x, y k) (r k) { // x+y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] + m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] + m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] + m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] + m.z[y] }})
+	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] + m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] + m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] + m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] + m.z[y] }}, nil)
 }
 func sub(x, y k) (r k) { // x-y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] - m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] - m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] - m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] - m.z[y] }})
+	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] - m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] - m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] - m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] - m.z[y] }}, nil)
 }
 func mul(x, y k) (r k) { // x*y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] * m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] * m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] * m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] * m.z[y] }})
+	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] * m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] * m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] * m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] * m.z[y] }}, nil)
 }
 func div(x, y k) (r k) { // x%y
-	return nd(x, y, 0, []f2{nil, nil, nil, func(r, x, y k) { m.f[r] = m.f[x] / m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] / m.z[y] }})
+	return nd(x, y, 0, []f2{nil, nil, nil, func(r, x, y k) { m.f[r] = m.f[x] / m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] / m.z[y] }}, nil)
 }
 func min(x, y k) (r k) { // x&y
 	return nd(x, y, 0, []f2{nil, func(r, x, y k) {
@@ -1283,7 +1318,7 @@ func min(x, y k) (r k) { // x&y
 		} else {
 			m.z[r] = m.z[y]
 		}
-	}})
+	}}, nil)
 }
 func max(x, y k) (r k) { // x|y
 	return nd(x, y, 0, []f2{nil, func(r, x, y k) {
@@ -1310,62 +1345,16 @@ func max(x, y k) (r k) { // x|y
 		} else {
 			m.z[r] = m.z[y]
 		}
-	}})
-}
-func cmp(fx []func(k, k) bool, t k) func(k, k, k) {
-	f := fx[t]
-	switch t {
-	case C:
-		return func(r, x, y k) {
-			if f(x, y) {
-				m.c[r] = 1
-			} else {
-				m.c[r] = 0
-			}
-		}
-	case I:
-		return func(r, x, y k) {
-			if f(x, y) {
-				m.k[r] = 1
-			} else {
-				m.k[r] = 0
-			}
-		}
-	case F:
-		return func(r, x, y k) {
-			if f(x, y) {
-				m.f[r] = 1
-			} else {
-				m.f[r] = 0
-			}
-		}
-	case Z:
-		return func(r, x, y k) {
-			if f(x, y) {
-				m.z[r] = 1
-			} else {
-				m.z[r] = 0
-			}
-		}
-	case S:
-		return func(r, x, y k) {
-			if f(x, y) {
-				m.f[r] = 1 // non-zero
-			} else {
-				m.f[r] = 0
-			}
-		}
-	}
-	panic("reach")
+	}}, nil)
 }
 func les(x, y k) (r k) { // x<y
-	return nd(x, y, I, []f2{nil, cmp(ltx, C), cmp(ltx, I), cmp(ltx, F), cmp(ltx, Z), cmp(ltx, S)})
+	return nd(x, y, I, nil, ltx)
 }
 func mor(x, y k) (r k) { // x>y
-	return nd(x, y, I, []f2{nil, cmp(gtx, C), cmp(gtx, I), cmp(gtx, F), cmp(gtx, Z), cmp(ltx, S)})
+	return nd(x, y, I, nil, gtx)
 }
 func eql(x, y k) (r k) { // x=y
-	return nd(x, y, I, []f2{nil, cmp(eqx, C), cmp(eqx, I), cmp(eqx, F), cmp(eqx, Z), cmp(eqx, S)})
+	return nd(x, y, I, nil, eqx)
 }
 func key(x, y k) (r k) { panic("nyi") } // x!y
 func mch(x, y k) (r k) { // x~y
