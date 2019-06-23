@@ -1462,7 +1462,29 @@ func lcat(x, y k) (r k) { // append anything to a list; no unify
 	dec(x)
 	return r
 }
-func ept(x, y k) (r k) { panic("nyi") } // x^y
+func ept(x, y k) (r k) { // x^y
+	t, yt, n, yn := typs(x, y)
+	if t != yt || t > L || n == atom {
+		panic("type")
+	} else if yt == atom {
+		yt = enl(y)
+	}
+	eq, b, xp, yp := eqx[t], mk(I, n), ptr(x, t), ptr(y, t)
+	if t == L {
+		eq = match
+	}
+	for i := k(0); i < n; i++ { // TODO: quadratic
+		m.k[2+i+b] = 1
+		for j := k(0); j < yn; j++ {
+			if eq(xp+i, yp+j) {
+				m.k[2+i+b] = 0
+				break
+			}
+		}
+	}
+	dec(y)
+	return atx(x, wer(b))
+}
 func tak(x, y k) (r k) { panic("nyi") } // x#y
 func drp(x, y k) (r k) { panic("nyi") } // x_y
 func cst(x, y k) (r k) { panic("nyi") } // x$y

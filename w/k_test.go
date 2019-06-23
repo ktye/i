@@ -278,6 +278,7 @@ func TestDyad(t *testing.T) {
 		x, y, r interface{}
 	}{
 		{atx, "@", iv{2, 1, 3, 5}, iv{2, 0, 1}, iv{3, 2, 1}},
+		{ept, "^", iv{1, 5, 3, 3, 2}, iv{6, 3}, iv{1, 5, 2}},
 	}
 	for _, occ := range []bool{true, false} {
 		for j, tc := range testCases {

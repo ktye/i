@@ -37,24 +37,42 @@ Wasm reference
  sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
  
 Algorithms (to be improved, open for suggestions)
- !n
  +x nyi
  -x
- %x 1f/x, Z: Smith116, (alt: Baudin, see iv/apl/big/complex.go)
  *x
+ %x 1/x
  &x quadratic, alt? 
+ |x
  <x insertion, (alt: radix for CIFZS?)
  >x |<x (alt: share sort implementation)
  =x (?u)[<?u];boolean(#x);(over?x(over x));(over bools), alt?
+ !x
  ~x
  ,x
- ^x nyi
+ ^x
  #x
  _x
- $x recursive, cut at limit, TODO itoa,ftoa
+ $x recursive, TODO itoa,ftoa
  ?x 
  @x
  .x interp(walk), alt: partial eval, byte-code(on wasm), compile and feed back?
- 
- 
+x+y
+x-y
+x*y
+x%y Z: Smith116, (alt: Baudin, see iv/apl/big/complex.go)
+x&y
+x|y
+x<y
+x>y
+x=y
+x!y
+x~y
+x,y
+x^y quadratic, alt?
+x#y
+x_y
+x$y
+x?y
+x@y
+x.y
  
