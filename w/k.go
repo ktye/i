@@ -1213,12 +1213,9 @@ func kst(x k) (r k) { // `k@x
 	case D:
 		r = mk(C, 0)
 		rr, encl := kst(inc(m.k[x+2])), false
-		_, nr := typ(rr)
-		for i := k(0); i < nr; i++ {
-			if c := m.c[8+i+rr<<2]; c == '!' || c == '#' {
-				encl = true
-				break
-			}
+		kt, nk := typ(m.k[x+2])
+		if (kt < L && nk == 1) || (kt == D) || (kt > D) {
+			encl = true
 		}
 		y := mk(C, 1)
 		if encl {
@@ -1356,7 +1353,34 @@ func mor(x, y k) (r k) { // x>y
 func eql(x, y k) (r k) { // x=y
 	return nd(x, y, I, nil, eqx)
 }
-func key(x, y k) (r k) { panic("nyi") } // x!y
+func key(x, y k) (r k) { // x!y
+	_, yt, xn, yn := typs(x, y)
+	if xn == atom {
+		x, xn = enl(x), 1
+	}
+	if yn == atom {
+		y, yn = ext(y, yt, xn), xn
+	}
+	if xn == 1 && yn > 1 {
+		y, yn = enl(y), 1
+	}
+	if xn != yn {
+		panic("length")
+	}
+	r = mk(D, atom)
+	m.k[2+r] = x
+	m.k[3+r] = y
+	return r
+}
+func ext(x, t, n k) (r k) { // scalar extension
+	r = mk(t, n)
+	xp, rp, cp := ptr(x, t), ptr(r, t), cpx[t]
+	for i := k(0); i < n; i++ {
+		cp(rp+i, xp)
+	}
+	dec(x)
+	return r
+}
 func mch(x, y k) (r k) { // x~y
 	r = mk(C, atom)
 	m.k[2+r] = 0
