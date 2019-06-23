@@ -337,11 +337,23 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	if rt == t {
 		return x
 	}
+	var g func(k, k)
+	if t == S && rt == I { // symbol comparison to bool
+		g = func(r, x k) {
+			if m.f[x] == 0 {
+				m.k[r] = 0
+			} else {
+				m.k[r] = 1
+			}
+		}
+	} else {
+		g = tox[4*(t-1)+rt-1]
+	}
 	r = mk(rt, n)
 	if n == atom {
 		n = 1
 	}
-	xp, rp, g := ptr(x, t), ptr(r, rt), tox[4*(t-1)+rt-1]
+	xp, rp := ptr(x, t), ptr(r, rt)
 	for i := k(0); i < k(n); i++ {
 		g(rp+i, xp+i)
 	}
@@ -423,7 +435,10 @@ func nd(x, y, rt k, fx []f2) (r k) { // numeric dyad
 		n = 1
 	}
 	switch xt {
-	case C, I, F, Z:
+	case C, I, F, Z, S:
+		if xt == S && k(len(fx)) < S {
+			panic("type")
+		}
 		f, xp, yp, rp := fx[t], ptr(x, t), ptr(y, t), ptr(r, t)
 		if sc == 1 {
 			for i := k(0); i < n; i++ {
@@ -948,6 +963,12 @@ func evl(x k) (r k) { // .x
 	v := m.k[2+x]
 	vt, _ := typ(v)
 	switch vt {
+	case S:
+		if n == 1 {
+			inc(v)
+			dec(x)
+			return v
+		}
 	case N + 1, N + 2:
 		if n == 1 {
 			return x
@@ -1344,7 +1365,7 @@ func mor(x, y k) (r k) { // x>y
 	return nd(x, y, I, []f2{nil, cmp(gtx, C), cmp(gtx, I), cmp(gtx, F), cmp(gtx, Z), cmp(ltx, S)})
 }
 func eql(x, y k) (r k) { // x=y
-	return nd(x, y, I, []f2{nil, cmp(eqx, C), cmp(eqx, I), cmp(eqx, F), cmp(eqx, Z), cmp(ltx, S)})
+	return nd(x, y, I, []f2{nil, cmp(eqx, C), cmp(eqx, I), cmp(eqx, F), cmp(eqx, Z), cmp(eqx, S)})
 }
 func key(x, y k) (r k) { panic("nyi") } // x!y
 func mch(x, y k) (r k) { // x~y
