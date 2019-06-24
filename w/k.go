@@ -1486,7 +1486,39 @@ func ept(x, y k) (r k) { // x^y
 	return atx(x, wer(b))
 }
 func tak(x, y k) (r k) { panic("nyi") } // x#y
-func drp(x, y k) (r k) { panic("nyi") } // x_y
+func drp(x, y k) (r k) { // x_y
+	xt, t, xn, yn := typs(x, y)
+	if xt != I || t == D {
+		panic("nyi") // `a`b_D (delete)
+	} else if yn == atom {
+		panic("rank")
+	} else if xn != atom {
+		return cut(x, y)
+	}
+	n, neg, o := m.k[2+x], false, m.k[2+x]
+	if nn := i(n); nn < 0 {
+		n, neg, o = k(-nn), true, 0
+	}
+	dec(x)
+	yp, cp := ptr(y, t), cpx[t]
+	if m.k[1+y] == 1 && t != L {
+		if neg {
+			return uf(srk(y, t, yn, yn-n))
+		}
+		for i := k(0); i < yn-n; i++ {
+			cp(yp+i, yp+o+i)
+		}
+		return uf(srk(y, t, yn, yn-n))
+	}
+	r = mk(t, yn-n)
+	rp := ptr(r, t)
+	for i := k(0); i < yn-n; i++ {
+		cp(rp+i, yp+o+i)
+	}
+	dec(y)
+	return uf(r)
+}
+func cut(x, y k) (r k) { panic("nyi") } // x_y
 func cst(x, y k) (r k) { panic("nyi") } // x$y
 func fnd(x, y k) (r k) { panic("nyi") } // x?y
 func atx(x, y k) (r k) { // x@y
