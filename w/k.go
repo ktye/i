@@ -1007,7 +1007,6 @@ func evl(x k) (r k) { // .x
 			dec(x)
 			return v
 		} else if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…): ex;ex…
-			println(";…")
 			for i := k(1); i < n; i++ {
 				if i > 1 {
 					dec(r)

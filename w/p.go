@@ -188,7 +188,16 @@ func (p *p) noun() (r k) {
 	}
 	return mk(N, atom)
 }
-func (p *p) idxr(x k) (r k) { return x } // TODO
+func (p *p) idxr(x k) (r k) { // […]
+	if p.t(sObr) {
+		p.p = p.m
+		r = lcat(p.lst(sCbr), x) // append then move to front
+		n := m.k[r] & atom
+		m.k[2+r], m.k[1+r+n] = m.k[1+r+n], m.k[2+r]
+		return r
+	}
+	return x
+}
 func (p *p) lst(term func([]c) int) (r k) {
 	r = mk(L, 0)
 	if p.t(term) {
