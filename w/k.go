@@ -990,6 +990,9 @@ func tip(x k) (r k) { // @x
 func evl(x k) (r k) { // .x
 	t, n := typ(x)
 	if t != L {
+		if t == S && n == 1 {
+			return fst(x)
+		}
 		return x
 	}
 	if n == 0 {
@@ -1003,9 +1006,24 @@ func evl(x k) (r k) { // .x
 			inc(v)
 			dec(x)
 			return v
+		} else if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…): ex;ex…
+			println(";…")
+			for i := k(1); i < n; i++ {
+				if i > 1 {
+					dec(r)
+				}
+				r = evl(inc(m.k[2+i+x]))
+			}
+			dec(x)
+			return r
 		}
-	case N:
-		return drop(1, x)
+	case N: // (;…) → list
+		r = mk(L, n-1)
+		for i := int(n - 2); i >= 0; i-- {
+			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
+		}
+		dec(x)
+		return uf(r)
 	case N + 1, N + 2:
 		if n == 1 {
 			return x
