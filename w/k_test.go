@@ -45,7 +45,7 @@ func TestK(t *testing.T) {
 		{"`a!4", "(,`a)!,4"},
 		{"`a!1 2 3", "(,`a)!,1 2 3"},
 		{"`a`b`c!!3", "`a`b`c!0 1 2"},
-		//{"`a`b`c!(1;2;3)", "`a`b`c!1 2 3"}, TODO
+		{"`a`b`c!(1;2;3)", "`a`b`c!1 2 3"},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)
@@ -93,6 +93,7 @@ func TestParse(t *testing.T) {
 		{"+:", "+:", "`1"},
 		{"0:", "0:", "`2"},
 		{"*1 2 3", "(*:;1 2 3)", "`."},
+		{"1+(2;`a;3.5)", "(+;1;(;2;,`a;3.5))", "`."},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
@@ -279,6 +280,10 @@ func TestDyad(t *testing.T) {
 	}{
 		{atx, "@", iv{2, 1, 3, 5}, iv{2, 0, 1}, iv{3, 2, 1}},
 		{ept, "^", iv{1, 5, 3, 3, 2}, iv{6, 3}, iv{1, 5, 2}},
+		{drp, "_", 2, iv{1, 2, 3, 4}, iv{3, 4}},
+		{drp, "_", -2, iv{1, 2, 3, 4}, iv{1, 2}},
+		{drp, "_", 2, l{1, 2.0, "a"}, sv{"a"}},
+		{drp, "_", -2, l{1, 2.0, "a"}, iv{1}},
 	}
 	for _, occ := range []bool{true, false} {
 		for j, tc := range testCases {

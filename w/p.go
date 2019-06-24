@@ -175,6 +175,12 @@ func (p *p) noun() (r k) {
 			}
 		}
 		return p.idxr(enl(r))
+	case p.t(sOpa):
+		p.p = p.m
+		r = p.lst(sCpa)
+		// TODO (2+)
+		// TODO isverb
+		return p.idxr(cat(enlist(mk(N, atom)), r))
 	case p.t(sVrb):
 		return p.idxr(p.a(pVrb))
 	case p.t(sNam):
@@ -183,6 +189,25 @@ func (p *p) noun() (r k) {
 	return mk(N, atom)
 }
 func (p *p) idxr(x k) (r k) { return x } // TODO
+func (p *p) lst(term func([]c) int) (r k) {
+	r = mk(L, 0)
+	if p.t(term) {
+		p.p = p.m
+		return r
+	}
+	for {
+		r = lcat(r, p.ex(p.noun()))
+		if !p.t(sSem) {
+			break
+		}
+		p.p = p.m
+	}
+	if p.t(term) == false {
+		panic("parse: unclosed list")
+	}
+	p.p = p.m
+	return r
+}
 func monad(x k) (r k) { // force monad
 	t, _ := typ(x)
 	if t == N+1 {
@@ -467,9 +492,15 @@ func sVrb(b []byte) int {
 	}
 	return 0
 }
-func cr09(c c) bool { return c >= '0' && c <= '9' }
-func craZ(c c) bool { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
-func crHx(c c) bool { return cr09(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') }
+func sObr(b []byte) int { return ib(b[0] == '[') }
+func sOpa(b []byte) int { return ib(b[0] == '(') }
+func sOcb(b []byte) int { return ib(b[0] == '{') }
+func sCbr(b []byte) int { return ib(b[0] == ']') }
+func sCpa(b []byte) int { return ib(b[0] == ')') }
+func sCcb(b []byte) int { return ib(b[0] == '}') }
+func cr09(c c) bool     { return c >= '0' && c <= '9' }
+func craZ(c c) bool     { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
+func crHx(c c) bool     { return cr09(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') }
 func cOps(c c) bool {
 	for _, b := range m.c[136 : 136+20] { // :+-*%&|<>=!~,^#_$?@.
 		if c == b {
@@ -477,4 +508,10 @@ func cOps(c c) bool {
 		}
 	}
 	return false
+}
+func ib(b bool) (r int) {
+	if b {
+		r = 1
+	}
+	return r
 }

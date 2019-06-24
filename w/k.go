@@ -1004,6 +1004,8 @@ func evl(x k) (r k) { // .x
 			dec(x)
 			return v
 		}
+	case N:
+		return drop(1, x)
 	case N + 1, N + 2:
 		if n == 1 {
 			return x
@@ -1495,11 +1497,16 @@ func drp(x, y k) (r k) { // x_y
 	} else if xn != atom {
 		return cut(x, y)
 	}
-	n, neg, o := m.k[2+x], false, m.k[2+x]
-	if nn := i(n); nn < 0 {
-		n, neg, o = k(-nn), true, 0
-	}
+	n := m.k[2+x]
 	dec(x)
+	return drop(i(n), y)
+}
+func drop(x i, y k) (r k) {
+	t, yn := typ(y)
+	n, neg, o := k(x), false, k(x)
+	if x < 0 {
+		n, neg, o = k(-x), true, 0
+	}
 	yp, cp := ptr(y, t), cpx[t]
 	if m.k[1+y] == 1 && t != L {
 		if neg {
