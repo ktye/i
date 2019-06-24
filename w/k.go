@@ -535,7 +535,7 @@ func explode(x k) (r k) { // explode an array (or atom) to a list of atoms
 }
 func uf(x k) (r k) { // unify lists if possible
 	xt, xn := typ(x)
-	if xt != L {
+	if xt != L || xn == 0 {
 		return x
 	}
 	ut := k(0)
@@ -1046,6 +1046,8 @@ func evl(x k) (r k) { // .x
 		dec(a)
 		dec(x)
 		return r
+	default:
+		return cal(evl(inc(v)), drop(1, x))
 	}
 	println("evl vt", vt)
 	panic("nyi")
@@ -1516,9 +1518,9 @@ func drp(x, y k) (r k) { // x_y
 	}
 	n := m.k[2+x]
 	dec(x)
-	return drop(i(n), y)
+	return uf(drop(i(n), y))
 }
-func drop(x i, y k) (r k) {
+func drop(x i, y k) (r k) { // int index; does not unify
 	t, yn := typ(y)
 	n, neg, o := k(x), false, k(x)
 	if x < 0 {
@@ -1527,7 +1529,7 @@ func drop(x i, y k) (r k) {
 	yp, cp := ptr(y, t), cpx[t]
 	if m.k[1+y] == 1 && t != L {
 		if neg {
-			return uf(srk(y, t, yn, yn-n))
+			return srk(y, t, yn, yn-n)
 		}
 		for i := k(0); i < yn-n; i++ {
 			cp(yp+i, yp+o+i)
@@ -1540,7 +1542,7 @@ func drop(x i, y k) (r k) {
 		cp(rp+i, yp+o+i)
 	}
 	dec(y)
-	return uf(r)
+	return r
 }
 func cut(x, y k) (r k) { panic("nyi") } // x_y
 func cst(x, y k) (r k) { panic("nyi") } // x$y
@@ -1561,10 +1563,8 @@ func atx(x, y k) (r k) { // x@y
 		rp, yp := ptr(r, xt), 2+y
 		for i := k(0); i < yn; i++ {
 			if i >= xn {
-				// na(rc + sz*j)
 				na(rp + i)
 			} else {
-				// cp(rc+sz*j, xc+sz*m.k[idx+j])
 				cp(rp+i, xp+m.k[yp+i])
 			}
 		}
@@ -1590,7 +1590,22 @@ func atx(x, y k) (r k) { // x@y
 		panic("nyi atx")
 	}
 }
-func cal(x, y k) (r k) { panic("nyi") } // x.y
+func cal(x, y k) (r k) { // x.y
+	xt, yt, _, yn := typs(x, y)
+	if xt < D { // TODO dict
+		if yt == L {
+			if yn == 0 {
+				dec(y)
+				return x
+			}
+			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
+		} else if yt != I {
+			panic("type")
+		}
+		return atx(x, y)
+	}
+	panic("nyi") // function call
+}
 
 func match(x, y k) (rv bool) { // recursive match
 	if x == y {

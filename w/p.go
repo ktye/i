@@ -177,7 +177,7 @@ func (p *p) noun() (r k) {
 		return p.idxr(enl(r))
 	case p.t(sOpa):
 		p.p = p.m
-		r = p.lst(sCpa)
+		r = p.lst(mk(C, 0), sCpa)
 		// TODO (2+)
 		// TODO isverb
 		return p.idxr(cat(enlist(mk(N, atom)), r))
@@ -191,15 +191,14 @@ func (p *p) noun() (r k) {
 func (p *p) idxr(x k) (r k) { // […]
 	if p.t(sObr) {
 		p.p = p.m
-		r = lcat(p.lst(sCbr), x) // append then move to front
-		n := m.k[r] & atom
-		m.k[2+r], m.k[1+r+n] = m.k[1+r+n], m.k[2+r]
-		return r
+		r = mk(L, 1)
+		m.k[2+r] = x
+		return p.lst(r, sCbr)
 	}
 	return x
 }
-func (p *p) lst(term func([]c) int) (r k) {
-	r = mk(L, 0)
+func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
+	r = l
 	if p.t(term) {
 		p.p = p.m
 		return r
