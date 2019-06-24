@@ -1047,7 +1047,13 @@ func evl(x k) (r k) { // .x
 		dec(x)
 		return r
 	default:
-		return cal(evl(inc(v)), drop(1, x))
+		inc(v)
+		r = mk(L, n-1)
+		for i := int(n - 2); i >= 0; i-- {
+			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
+		}
+		dec(x)
+		return cal(evl(v), r)
 	}
 	println("evl vt", vt)
 	panic("nyi")
@@ -1548,9 +1554,8 @@ func cut(x, y k) (r k) { panic("nyi") } // x_y
 func cst(x, y k) (r k) { panic("nyi") } // x$y
 func fnd(x, y k) (r k) { panic("nyi") } // x?y
 func atx(x, y k) (r k) { // x@y
-	xt, xn := typ(x)
-	yt, yn := typ(y)
-	if xn == atom {
+	xt, yt, xn, yn := typs(x, y)
+	if xn == atom && xt != D {
 		panic("type") // TODO overloads
 	}
 	switch {
@@ -1584,23 +1589,46 @@ func atx(x, y k) (r k) { // x@y
 		dec(x)
 		dec(y)
 		return r
+	case xt == D:
+		keys := m.k[2+x]
+		kt, nk := typ(keys)
+		vt, _ := typ(m.k[3+x])
+		if kt != yt {
+			panic("type")
+		}
+		r = mk(vt, yn)
+		if yn == atom {
+			yn = 1
+		}
+		cp, na, eq, kp, vp, rp, yp := cpx[vt], nax[vt], eqx[kt], ptr(keys, kt), ptr(m.k[3+x], vt), ptr(r, vt), ptr(y, yt)
+		for i := k(0); i < yn; i++ {
+			na(rp + i)
+			for j := k(0); j < nk; j++ {
+				if eq(kp+j, yp+i) {
+					cp(rp+i, vp+j)
+					break
+				}
+			}
+		}
+		dec(x)
+		dec(y)
+		return r
 	// case xt == L:
 	//	missing element for a list is nax[type of first element]
 	default:
+		println(xt, yt)
 		panic("nyi atx")
 	}
 }
 func cal(x, y k) (r k) { // x.y
 	xt, yt, _, yn := typs(x, y)
-	if xt < D { // TODO dict
+	if xt <= D { // TODO dict
 		if yt == L {
 			if yn == 0 {
 				dec(y)
 				return x
 			}
 			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
-		} else if yt != I {
-			panic("type")
 		}
 		return atx(x, y)
 	}

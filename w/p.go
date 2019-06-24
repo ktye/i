@@ -178,7 +178,10 @@ func (p *p) noun() (r k) {
 	case p.t(sOpa):
 		p.p = p.m
 		r = p.lst(mk(C, 0), sCpa)
-		// TODO (2+)
+		if m.k[r]&atom == 1 {
+			// TODO (2+)
+			return p.idxr(fst(r))
+		}
 		// TODO isverb
 		return p.idxr(cat(enlist(mk(N, atom)), r))
 	case p.t(sVrb):
