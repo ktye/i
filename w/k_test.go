@@ -90,6 +90,9 @@ func TestK(t *testing.T) {
 		{"`i$`", "0"},
 		{"`n$\"alpha\"", "`alpha"},
 		{"`n$\"x\"", "`x"}, // TODO: or `$"x"?
+		{"2 3 1 4 0?3", "1"},
+		{"2 3 1 4 0?3 1 0", "1 2 4"},
+		{"4 2 1f?5 6f", "3 3"}, // TODO: or 0N?
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)
@@ -336,6 +339,8 @@ func TestDyad(t *testing.T) {
 		{drp, "_", -2, iv{1, 2, 3, 4}, iv{1, 2}},
 		{drp, "_", 2, l{1, 2.0, "a"}, sv{"a"}},
 		{drp, "_", -2, l{1, 2.0, "a"}, iv{1}},
+		{fnd, "?", iv{1, 2}, iv{2}, iv{1}},
+		{fnd, "?", []c{5, 4, 3, 2}, c(2), 3},
 	}
 	for _, occ := range []bool{true, false} {
 		for j, tc := range testCases {

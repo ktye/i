@@ -1701,7 +1701,36 @@ func cst(x, y k) (r k) { // x$y
 	dec(x)
 	return r
 }
-func fnd(x, y k) (r k) { panic("nyi") } // x?y
+func fnd(x, y k) (r k) { // x?y
+	t, yt, xn, yn := typs(x, y)
+	if xn == atom || t != yt {
+		panic("type")
+	}
+	if t > C {
+		r = use(y, I, yn)
+	} else {
+		r = mk(I, yn)
+	}
+	if yn == atom {
+		yn = 1
+	}
+	eq, xp, yp := eqx[t], ptr(x, t), ptr(y, t)
+	if t == L {
+		eq = match
+	}
+	for j := k(0); j < yn; j++ {
+		n := xn // TODO: or 0N?
+		for i := k(0); i < xn; i++ {
+			if eq(xp+i, yp+j) {
+				n = i
+				break
+			}
+		}
+		m.k[2+j+r] = n
+	}
+	dec(x)
+	return decret(y, r)
+}
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt != D {
