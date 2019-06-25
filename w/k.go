@@ -1498,21 +1498,27 @@ func ept(x, y k) (r k) { // x^y
 	t, yt, n, yn := typs(x, y)
 	if t != yt || t > L || n == atom {
 		panic("type")
-	} else if yt == atom {
-		yt = enl(y)
+	} else if yn == atom {
+		y, yn = enl(y), 1
 	}
 	eq, b, xp, yp := eqx[t], mk(I, n), ptr(x, t), ptr(y, t)
 	if t == L {
 		eq = match
 	}
+	all := true
 	for i := k(0); i < n; i++ { // TODO: quadratic
 		m.k[2+i+b] = 1
 		for j := k(0); j < yn; j++ {
 			if eq(xp+i, yp+j) {
-				m.k[2+i+b] = 0
+				m.k[2+i+b], all = 0, false
 				break
 			}
 		}
+	}
+	if all {
+		dec(b)
+		dec(y)
+		return x
 	}
 	dec(y)
 	return atx(x, wer(b))
@@ -1520,10 +1526,7 @@ func ept(x, y k) (r k) { // x^y
 func tak(x, y k) (r k) { // x#y
 	xt, yt, xn, yn := typs(x, y)
 	if yt == D {
-		r = mk(D, atom)
-		m.k[2+r] = x
-		m.k[3+r] = atx(y, inc(x))
-		return r
+		return key(x, atx(y, inc(x)))
 	}
 	if xt != I {
 		panic("type")
@@ -1581,8 +1584,12 @@ func take(n, o k, y k) (r k) { // integer index and offset
 }
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
-	if t == D {
-		return del(x, y)
+	if t == D { // x_d: del
+		u := ept(inc(m.k[y+2]), x)
+		if r == m.k[y+2] {
+			return y
+		}
+		return key(u, atx(y, inc(u)))
 	} else if xt != I {
 		panic("type")
 	} else if yn == atom {
@@ -1617,9 +1624,6 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 	}
 	dec(y)
 	return r
-}
-func del(x, y k) (r k) { // x_d
-	panic("nyi")
 }
 func cut(x, y k) (r k) { panic("nyi") } // x_y
 func cst(x, y k) (r k) { panic("nyi") } // x$y
