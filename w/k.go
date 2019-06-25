@@ -90,6 +90,11 @@ func gtZ(x, y k) bool { // real than imag
 func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
 func gtS(x, y k) bool { return sym(x<<3) > sym(y<<3) }
 func stI(dst, x k) k { // TODO remove strconv
+	if m.k[x] == 0x80000000 {
+		m.c[dst] = '0'
+		m.c[dst+1] = 'N'
+		return 2
+	}
 	s := strconv.Itoa(int(i(m.k[x])))
 	n := k(len(s))
 	copy(m.c[dst:dst+n], []byte(s))
@@ -1512,7 +1517,65 @@ func ept(x, y k) (r k) { // x^y
 	dec(y)
 	return atx(x, wer(b))
 }
-func tak(x, y k) (r k) { panic("nyi") } // x#y
+func tak(x, y k) (r k) { // x#y
+	xt, yt, xn, yn := typs(x, y)
+	if yt == D {
+		panic("nyi") // x#d
+	}
+	if xt != I {
+		panic("type")
+	}
+	if xn == atom {
+		xn = 1
+	}
+	if yn == atom {
+		yn = 1
+	}
+	if xn == 1 {
+		n, o := m.k[2+x], k(0)
+		if i(n) < 0 {
+			if yn != 0 {
+				o = k(i(yn) + ((i(yn) + i(n)) % i(yn)))
+			}
+			n = k(-i(n))
+		}
+		dec(x)
+		return take(n, o, y)
+	}
+	panic("nyi") // reshape
+}
+func take(n, o k, y k) (r k) { // integer index and offset
+	t, yn := typ(y)
+	cp, yp := cpx[t], ptr(y, t)
+	if yn == 0 {
+		r = use(y, t, n)
+		rp, na := ptr(r, t), nax[t]
+		for i := k(0); i < n; i++ {
+			na(rp + i)
+		}
+		return decret(y, r)
+	}
+	if o == 0 && m.k[y+1] == 1 { // reuse only without offset
+		r = use(y, t, n)
+		rp := ptr(r, t)
+		if y != r {
+			for i := k(0); i < yn; i++ {
+				cp(rp+i, yp+i)
+			}
+		}
+		for i := yn; i < n; i++ {
+			cp(rp+i, rp+(i%n))
+		}
+		return decret(y, r)
+	}
+	r = mk(t, n)
+	rp := ptr(r, t)
+	for i := k(0); i < n; i++ {
+		cp(rp+i, yp+((i+o)%yn))
+	}
+	dec(y)
+	return r
+}
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
 	if xt != I || t == D {
@@ -1526,7 +1589,7 @@ func drp(x, y k) (r k) { // x_y
 	dec(x)
 	return uf(drop(i(n), y))
 }
-func drop(x i, y k) (r k) { // int index; does not unify
+func drop(x i, y k) (r k) { // integer index; does not unify
 	t, yn := typ(y)
 	n, neg, o := k(x), false, k(x)
 	if x < 0 {
