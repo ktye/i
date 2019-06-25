@@ -160,9 +160,8 @@ func ini() { // start function
 		m.k[p] = k(i)
 	}
 	m.k[0] = (I << 28) | 31
-	for i, u := range []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`) {
-		m.c[136+i] = u
-	}
+	copy(m.c[136:163], []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`))
+	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	// TODO: K tree
 	// TODO: size vector
 }
@@ -343,7 +342,7 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 		return x
 	}
 	var g func(k, k)
-	if t == S && rt == I { // symbol comparison to bool
+	if t == S && rt == I { // for symbol comparison to bool
 		g = func(r, x k) {
 			if m.f[x] == 0 {
 				m.k[r] = 0
@@ -981,15 +980,11 @@ func tip(x k) (r k) { // @x
 	m.k[3+r] = 0
 	t, n := typ(x)
 	dec(x)
-	tns := "_cifzn.a_1234" // TODO k7 compatibility, function types 1..4?
-	s := tns[t]
-	if n != atom && t < L {
+	s := m.c[164+t]
+	if n != atom && t < L && s != 0 {
 		s -= 32
 	}
 	mys(8+r<<2, uint64(s)<<56)
-	if s == '_' {
-		mys(8+r<<2, 0)
-	}
 	return r
 }
 func evl(x k) (r k) { // .x
@@ -1677,7 +1672,35 @@ func cut(x, y k) (r k) { // x_y
 	dec(y)
 	return r
 }
-func cst(x, y k) (r k) { panic("nyi") } // x$y
+func cst(x, y k) (r k) { // x$y
+	xt, yt, xn, yn := typs(x, y)
+	if xt != S || xn != atom {
+		panic("type")
+	}
+	s := c(sym(8+x<<2) >> 56)
+	t, o := k(0), k(164)
+	for i := o; i < o+15; i++ {
+		if s == m.c[i] {
+			t = i - o
+		}
+	}
+	if t < 1 || t >= L || yt >= L {
+		panic("type")
+	} else if t == S && yt == C { // TODO: or `$x
+		if yn == atom {
+			yn = 1
+		}
+		r = mk(S, atom)
+		rc, yc := 8+r<<2, 8+y<<2
+		mys(rc, btou(m.c[yc:yc+yn]))
+		dec(x)
+		dec(y)
+		return r
+	}
+	r = to(y, t) // TODO other conversions?
+	dec(x)
+	return r
+}
 func fnd(x, y k) (r k) { panic("nyi") } // x?y
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)

@@ -30,6 +30,7 @@ Initial memory (64kB)
  followed by free list:
  p[4..31]    points to free block of bucket size n = 4..31
  byte[136…163] symbols :+-*%&|<>=!~,^#_$?@.01234'/\
+ byte[164…176] type names _cifzn.a_1234
  byte[?]     type size vector: 0,1,4,8,16,8,4,8,4,4,4,4,4
 
 Wasm reference
