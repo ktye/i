@@ -93,6 +93,7 @@ func TestK(t *testing.T) {
 		{"2 3 1 4 0?3", "1"},
 		{"2 3 1 4 0?3 1 0", "1 2 4"},
 		{"4 2 1f?5 6f", "3 3"}, // TODO: or 0N?
+		// TODO (+).(1;2.0)
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)

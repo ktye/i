@@ -1023,29 +1023,6 @@ func evl(x k) (r k) { // .x
 		}
 		dec(x)
 		return uf(r)
-	case N + 1, N + 2:
-		if n == 1 {
-			return x
-		} else if n+1 < vt-N {
-			panic("nyi projection")
-		}
-		a := mk(L, n-1)
-		for i := int(n - 2); i >= 0; i-- { // right to left
-			m.k[2+k(i)+a] = evl(inc(m.k[3+k(i)+x]))
-		}
-		switch vt {
-		case N + 1:
-			f := table[m.k[2+v]].(func(k) k)
-			r = f(inc(m.k[2+a]))
-		case N + 2:
-			f := table[m.k[2+v]].(func(k, k) k)
-			r = f(inc(m.k[2+a]), inc(m.k[3+a]))
-		default:
-			panic("nyi")
-		}
-		dec(a)
-		dec(x)
-		return r
 	default:
 		inc(v)
 		r = mk(L, n-1)
@@ -1810,7 +1787,25 @@ func cal(x, y k) (r k) { // x.y
 		}
 		return atx(x, y)
 	}
-	panic("nyi") // function call
+	switch xt {
+	case N + 1:
+		if yn != 1 {
+			panic("valence") // TODO projection
+		}
+		f := table[m.k[2+x]].(func(k) k)
+		r = f(inc(m.k[2+y]))
+	case N + 2:
+		if yn != 2 {
+			panic("valence") // TODO projection
+		}
+		f := table[m.k[2+x]].(func(k, k) k)
+		r = f(inc(m.k[2+y]), inc(m.k[3+y]))
+	default:
+		panic("nyi")
+	}
+	dec(x)
+	dec(y)
+	return r
 }
 
 func match(x, y k) (rv bool) { // recursive match
