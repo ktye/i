@@ -1647,7 +1647,36 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 	dec(y)
 	return r
 }
-func cut(x, y k) (r k) { panic("nyi") } // x_y
+func cut(x, y k) (r k) { // x_y
+	xt, yt, xn, yn := typs(x, y)
+	if xt != I || yn == atom {
+		panic("type")
+	}
+	for i := k(0); i < xn; i++ {
+		if a := m.k[2+x+i]; int32(a) < 0 || (i > 0 && m.k[1+x+i] > a) || a > yn {
+			panic("domain")
+		}
+	}
+	r = mk(L, xn)
+	cp, yp := cpx[yt], ptr(y, yt)
+	for i := k(0); i < xn; i++ {
+		nn := yn
+		if i < xn-1 {
+			nn = m.k[3+i+x]
+		}
+		ln := nn - m.k[2+i+x]
+		a := mk(yt, ln)
+		yp, ap := yp+m.k[2+i+x], ptr(a, yt)
+		for j := k(0); j < ln; j++ {
+			cp(ap+j, yp+j)
+		}
+		yp += ln
+		m.k[2+i+r] = uf(a)
+	}
+	dec(x)
+	dec(y)
+	return r
+}
 func cst(x, y k) (r k) { panic("nyi") } // x$y
 func fnd(x, y k) (r k) { panic("nyi") } // x?y
 func atx(x, y k) (r k) { // x@y
