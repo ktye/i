@@ -63,6 +63,8 @@ func TestK(t *testing.T) {
 		{"2#!0", "0N 0N"},
 		{"-3#!0", "0N 0N 0N"},
 		{"-3#(1;(`a`b;4.5))", "((`a`b;4.5);1;(`a`b;4.5))"},
+		{"`a#`a`c!1 2", "`a!1"}, // or (,`a)!,1 ? check k7
+		{"`a`b`c#`a`c!1 2", "`a`b`c!1 0N 2"},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)

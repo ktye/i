@@ -1520,7 +1520,10 @@ func ept(x, y k) (r k) { // x^y
 func tak(x, y k) (r k) { // x#y
 	xt, yt, xn, yn := typs(x, y)
 	if yt == D {
-		panic("nyi") // x#d
+		r = mk(D, atom)
+		m.k[2+r] = x
+		m.k[3+r] = atx(y, inc(x))
+		return r
 	}
 	if xt != I {
 		panic("type")
@@ -1578,8 +1581,10 @@ func take(n, o k, y k) (r k) { // integer index and offset
 }
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
-	if xt != I || t == D {
-		panic("nyi") // `a`b_D (delete)
+	if t == D {
+		return del(x, y)
+	} else if xt != I {
+		panic("type")
 	} else if yn == atom {
 		panic("rank")
 	} else if xn != atom {
@@ -1612,6 +1617,9 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 	}
 	dec(y)
 	return r
+}
+func del(x, y k) (r k) { // x_d
+	panic("nyi")
 }
 func cut(x, y k) (r k) { panic("nyi") } // x_y
 func cst(x, y k) (r k) { panic("nyi") } // x$y
