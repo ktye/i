@@ -1533,24 +1533,46 @@ func tak(x, y k) (r k) { // x#y
 	}
 	if xn == atom {
 		xn = 1
+	} else if xn == 0 {
+		dec(x)
+		return fst(y)
 	}
 	if yn == atom {
 		yn = 1
 	}
-	if xn == 1 {
-		n, o := m.k[2+x], k(0)
-		if i(n) < 0 {
-			if yn != 0 {
-				o = k(i(yn) + ((i(yn) + i(n)) % i(yn)))
-			}
-			n = k(-i(n))
+	n, o := m.k[2+x+xn-1], k(0) // n:-1#x
+	if i(n) < 0 {
+		if yn != 0 {
+			o = k(i(yn) + ((i(yn) + i(n)) % i(yn)))
 		}
+		n = k(-i(n))
+	}
+	if xn == 1 {
 		dec(x)
 		return take(n, o, y)
 	}
-	panic("nyi") // reshape
+	r, o = rsh(2+x, xn-1, n, o, y, yn)
+	dec(x)
+	dec(y)
+	return r
 }
-func take(n, o k, y k) (r k) { // integer index and offset
+func rsh(xp, xn, n, o, y, yn k) (r, oo k) { // reshape (with offset): (x,n)#y
+	a := m.k[xp]
+	if i(a) < 0 {
+		panic("domain")
+	}
+	r = mk(L, a)
+	for i := k(0); i < a; i++ {
+		if xn > 1 {
+			m.k[2+i+r], o = rsh(xp+1, xn-1, n, o, y, yn)
+		} else {
+			m.k[2+i+r] = take(n, o, inc(y))
+			o = (o + n) % yn
+		}
+	}
+	return r, o
+}
+func take(n, o, y k) (r k) { // integer index and offset
 	t, yn := typ(y)
 	cp, yp := cpx[t], ptr(y, t)
 	if yn == 0 {
