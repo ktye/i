@@ -15,7 +15,7 @@ type (
 )
 
 func TestIni(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	ini()
 	st := Stats()
 	if st.UsedBlocks() != 1 {
@@ -27,6 +27,7 @@ func TestIni(t *testing.T) {
 }
 
 func TestK(t *testing.T) {
+	//t.Skip()
 	ini()
 	testCases := []struct {
 		x, r s
@@ -93,7 +94,10 @@ func TestK(t *testing.T) {
 		{"2 3 1 4 0?3", "1"},
 		{"2 3 1 4 0?3 1 0", "1 2 4"},
 		{"4 2 1f?5 6f", "3 3"}, // TODO: or 0N?
-		// TODO (+).(1;2.0)
+		{"2+", "2+"},
+		{"+[;3]", "+[;3]"},
+		{"(2+).,3", "5"},
+		// {"(-).(1 2)", "3"},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)
@@ -150,6 +154,8 @@ func TestParse(t *testing.T) {
 		{"x[1;2;3]", "(`x;1;2;3)", "`."},
 		{"(`a`b!1 2)", "(!;,`a`b;1 2)", "`."},
 		{"(`a`b!1 2)[`b]", "((!;,`a`b;1 2);,`b)", "`."},
+		{"2+", "(+;2)", "`."},
+		// {"(-).(1 2)", "(.;-;1 2)", "`."},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
@@ -182,7 +188,7 @@ func TestParse(t *testing.T) {
 	}
 }
 func TestNumMonad(t *testing.T) {
-	//t.Skip()
+	// t.Skip()
 	ini()
 	xv := []interface{}{c(3), []c{3, 5}, -5, iv{3, -9}, 3.2, []f{-3.5, 2.9, 0}, 2 - 4i, []z{4 - 2i, 3 + 4i}}
 	testCases := []struct {
@@ -228,7 +234,7 @@ func TestNumMonad(t *testing.T) {
 	}
 }
 func TestMonad(t *testing.T) {
-	//t.Skip()
+	// t.Skip()
 	ini()
 	testCases := []struct {
 		f    func(k) k
@@ -329,6 +335,7 @@ func TestMonad(t *testing.T) {
 	}
 }
 func TestDyad(t *testing.T) {
+	// t.Skip()
 	testCases := []struct {
 		f       func(k, k) k
 		s       s
@@ -373,7 +380,7 @@ func TestDyad(t *testing.T) {
 	}
 }
 func TestKst(t *testing.T) {
-	//t.Skip()
+	// t.Skip()
 	ini()
 	testCases := []struct {
 		x interface{}
@@ -425,6 +432,7 @@ func TestKst(t *testing.T) {
 	}
 }
 func TestTo(t *testing.T) {
+	// t.Skip()
 	ini()
 	testCases := []struct {
 		x, r interface{}
@@ -464,6 +472,7 @@ func TestTo(t *testing.T) {
 	}
 }
 func TestStr(t *testing.T) {
+	// t.Skip()
 	ini()
 	for _, x := range []s{"a", "b", "aa", "bb", "alpha", "betagamm"} {
 		n := len(x)
@@ -586,12 +595,9 @@ func Stats() MemStats {
 	a := uint32(0)
 	o := uint32(0)
 	for a < 1<<(m.k[2]-2) {
-		//ax := strconv.FormatUint(uint64(a<<2), 16)
 		tp := m.k[a] >> 28
-		//print("block ", a, " 0x", ax, " t=", tp)
 		if tp == 0 {
 			t := m.k[a]
-			//print(" free bt=", t)
 			if t < 4 || t > 31 {
 				fmt.Printf("free block at %x with bt %d\n", a, t)
 				panic("size")
@@ -604,7 +610,6 @@ func Stats() MemStats {
 		} else {
 			tt, n := typ(a)
 			t := bk(tt, n)
-			//print(" used type=", tt, " num=", n, " bt=", t)
 			if t < 4 || t > 31 {
 				println(a, t)
 				panic("size")
@@ -620,7 +625,6 @@ func Stats() MemStats {
 			o = 1 << (t - 2)
 		}
 		a += o
-		//print(" +", o, "\n")
 	}
 	return st
 }

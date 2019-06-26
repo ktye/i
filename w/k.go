@@ -247,6 +247,14 @@ func inc(x k) k {
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	}
+	if t > N {
+		if m.k[2+x] > 256 {
+			panic("inc lambda")
+		}
+		if n == 2 { // projection
+			inc(m.k[3+x])
+		}
+	}
 	m.k[1+x]++
 	return x
 }
@@ -302,6 +310,17 @@ func dec(x k) {
 		}
 		dec(m.k[2+x])
 		dec(m.k[3+x])
+	}
+	if t > N {
+		if n == 2 { // projection
+			if m.k[2+x] >= 256 {
+				panic("lambda")
+				dec(m.k[2+x])
+			}
+			dec(m.k[3+x])
+		} else if n == 3 {
+			panic("dec lambda")
+		}
 	}
 	m.k[1+x]--
 	if m.k[1+x] == 0 {
@@ -923,18 +942,34 @@ func str(x k) (r k) { // $x
 			m.k[3+r] = str(inc(m.k[3+x]))
 		case N:
 			r = mk(C, 0)
-		case N + 1:
-			r = mk(C, 2)
-			m.c[8+r<<2] = m.c[136+m.k[2+x]]
-			m.c[9+r<<2] = ':'
-		case N + 2:
-			if f := m.k[2+x]; f < 40 {
-				r = mk(C, 1)
-			} else {
+		case N + 1, N + 2, N + 3, N + 4:
+			f := m.k[2+x]
+			if f < 20 { // monad +:
 				r = mk(C, 2)
+				m.c[8+r<<2] = m.c[136+m.k[2+x]]
 				m.c[9+r<<2] = ':'
+			} else if f < 40 { // dyad *
+				r = mk(C, 1)
+				m.c[8+r<<2] = m.c[136+m.k[2+x]-20]
+			} else if f < 50 { // ioverb 4:
+				r = mk(C, 2)
+				m.c[8+r<<2] = '0' + c(f-40)
+				m.c[9+r<<2] = ':'
+			} else { // lambda
+				panic("lambda")
+				r = inc(m.k[3+x]) // `C
 			}
-			m.c[8+r<<2] = m.c[136+m.k[2+x]-20]
+			if n == 2 { // projection
+				a := m.k[3+x]
+				if f < 40 && m.k[m.k[3+a]]>>28 == N {
+					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
+				} else {
+					a = kst(inc(a))   // arg list
+					m.c[8+a<<2] = '[' // convert () to []
+					m.c[7+(m.k[a]&atom)+a<<2] = ']'
+					r = cat(r, a)
+				}
+			}
 		default:
 			panic("nyi")
 		}
@@ -1030,11 +1065,45 @@ func evl(x k) (r k) { // .x
 			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
 		}
 		dec(x)
-		return cal(evl(v), r)
+		v = evl(v)
+		vt, _ := typ(v)
+		if vt > N {
+			if n-1 > vt-N {
+				panic("args") // too many arguments
+			}
+			for i := n - 1; i < vt-N; i++ { // fill args, e.g. 2+
+				r = lcat(r, mk(N, atom))
+			}
+			for i := k(0); i < m.k[r]&atom; i++ {
+				if m.k[m.k[2+i+r]]>>28 == N {
+					return prj(v, r)
+				}
+			}
+		}
+		return cal(v, r)
 	}
 	println("evl vt", vt)
 	panic("nyi")
 	return x
+}
+func prj(x, y k) (r k) { // convert x to a projection
+	t := m.k[x] >> 28
+	r = mk(t, 2)
+	if f := m.k[2+x]; f < 256 {
+		m.k[2+r] = f // #1: function code if < 256
+		dec(x)
+	} else {
+		m.k[2+r] = x // #1: pointer to lambda function if code >= 256
+	}
+	m.k[3+r] = y // #2: argument list with holes
+	n := k(0)
+	for i := k(0); i < m.k[y]&atom; i++ {
+		if m.k[m.k[2+y+i]]>>28 == N {
+			n++
+		}
+	}
+	m.k[r] = k(N+n)<<28 | 2 // a projection has length 2
+	return r
 }
 func kst(x k) (r k) { // `k@x
 	t, n := typ(x)
@@ -1776,7 +1845,7 @@ func atx(x, y k) (r k) { // x@y
 	}
 }
 func cal(x, y k) (r k) { // x.y
-	xt, yt, _, yn := typs(x, y)
+	xt, yt, xn, yn := typs(x, y)
 	if xt <= D { // TODO dict
 		if yt == L {
 			if yn == 0 {
@@ -1786,6 +1855,36 @@ func cal(x, y k) (r k) { // x.y
 			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
 		}
 		return atx(x, y)
+	}
+	y = explode(y)
+	if xn == 2 { // convert projected to full call
+		l := m.k[x+3] // arg list with holes
+		n := m.k[l] & atom
+		if n != xt-N+yn {
+			panic("valence")
+		}
+		a, l, yi := mk(L, n), m.k[x+3], k(0) // a: full arg vector
+		for i := k(0); i < n; i++ {
+			if v := m.k[2+l+i]; m.k[v]>>28 == N {
+				m.k[2+a+i] = inc(m.k[2+y+yi])
+				yi++
+			} else {
+				m.k[2+a+i] = inc(v)
+			}
+		}
+		dec(y)
+		r = m.k[x+2]
+		if f := m.k[x+2]; f > 256 { // lambda
+			r = inc(f)
+		} else {
+			r = mk(N+1, atom)
+			m.k[2+r] = f
+			if f >= 20 {
+				m.k[r] = (N+2)<<28 | atom
+			}
+		}
+		dec(x)
+		x, y, xt, yn = r, a, N+n, n
 	}
 	switch xt {
 	case N + 1:
@@ -1801,6 +1900,7 @@ func cal(x, y k) (r k) { // x.y
 		f := table[m.k[2+x]].(func(k, k) k)
 		r = f(inc(m.k[2+y]), inc(m.k[3+y]))
 	default:
+		println("call xt", xt)
 		panic("nyi")
 	}
 	dec(x)
@@ -1887,7 +1987,7 @@ var l8t = [256]c{
 
 var table []interface{} // function table :+-*%&|<>=!~,^#_$?@.01234
 func init() {
-	// 0-19 monads, 20-29 dyads, 30-34 ioverbs
+	// 0-19 monads, 20-39 dyads, 40-50 ioverbs
 	for _, f := range []interface{}{
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,

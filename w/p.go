@@ -134,10 +134,17 @@ func (p *p) ex(x k) (r k) {
 			return x
 		} else if at > N {
 			y := p.ex(p.noun())
+			if m.k[y]>>28 == N { // projection, e.g. 2+
+				dec(y)
+				r = mk(L, 2)
+				m.k[2+r] = a
+				m.k[3+r] = x
+				return r
+			}
 			r = mk(L, 3) // dyadic application (infix)
 			m.k[2+r] = a
 			m.k[3+r] = x
-			m.k[4+r] = y // maybe N (projection)
+			m.k[4+r] = y
 			return r
 		}
 		// TODO adverb
@@ -179,7 +186,7 @@ func (p *p) noun() (r k) {
 		p.p = p.m
 		r = p.lst(mk(C, 0), sCpa)
 		if m.k[r]&atom == 1 {
-			// TODO (2+)
+			// TODO drv
 			return p.idxr(fst(r))
 		}
 		// TODO isverb
@@ -402,6 +409,10 @@ func sFlt(b []byte) (r int) { // -0.12e-12|1f
 			r++
 		} else {
 			if c == '.' {
+				d := sDec(b[i+1:])
+				if i == 0 && d == 0 {
+					return 0 // 1. or .1 is allowed but not .
+				}
 				r += 1 + sDec(b[i+1:])
 			}
 			break
