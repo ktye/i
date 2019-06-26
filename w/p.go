@@ -182,6 +182,21 @@ func (p *p) noun() (r k) {
 			}
 		}
 		return p.idxr(enl(r))
+	case p.t(sOcb):
+		p.p = p.m
+		st := p.m - 1
+		r = mk(N+1, 1)                   // lambda is indicated with length 1 but uses 2 fields:
+		m.k[3+r] = p.lst(mk(C, 0), sCcb) // #2: parse tree
+		dst, n := mk(C, p.p-st), p.p-st
+		m.k[2+r] = dst // #1: string representation
+		dst = 8 + dst<<2
+		copy(m.c[dst:dst+n], m.c[st:p.p])
+		args := argn(m.k[3+r], 0)
+		if args == 0 {
+			panic("valence(lambda)")
+		}
+		m.k[r] = (N+args)<<28 | 1
+		return p.idxr(r)
 	case p.t(sOpa):
 		p.p = p.m
 		r = p.lst(mk(C, 0), sCpa)
@@ -536,4 +551,28 @@ func ib(b bool) (r int) {
 		r = 1
 	}
 	return r
+}
+func argn(x, a k) k { // count args of lambda parse tree
+	t, n := typ(x)
+	switch t {
+	case S:
+		if n == atom {
+			n = 1
+		}
+		ux, uy, uz := uint64('x')<<56, uint64('y')<<56, uint64('z')<<56
+		for i := k(0); i < n; i++ {
+			if u := sym((2 + 2*i + x) << 2); u == ux && a < 1 {
+				a = 1
+			} else if u == uy && a < 2 {
+				a = 2
+			} else if u == uz && a < 3 {
+				a = 3
+			}
+		}
+	case L:
+		for i := k(0); i < n; i++ {
+			a = argn(m.k[2+i+x], a)
+		}
+	}
+	return a
 }

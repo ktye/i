@@ -32,6 +32,9 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		// {"x:3", "3"},
+		// {"{x+y}[2;3]", "4"},
+		// {"x", "?"},
 		{"1", "1"},
 		{"`a", "`a"},
 		{"`a`b", "`a`b"},
@@ -97,6 +100,7 @@ func TestK(t *testing.T) {
 		{"2+", "2+"},
 		{"+[;3]", "+[;3]"},
 		{"(2+).,3", "5"},
+		{"{1+x}", "{1+x}"},
 		// {"(-).(1 2)", "3"},
 	}
 	for _, tc := range testCases {
@@ -121,6 +125,9 @@ func TestParse(t *testing.T) {
 		{"`a", ",`a", "`N"},
 		{"`a`b", ",`a`b", "`."},
 		{"`a / b", ",`a", "`N"},
+		{"{1+x}", "{1+x}", "`1"},
+		{"{x+y}", "{x+y}", "`2"},
+		{"{1+(2;`a;y)}", "{1+(2;`a;y)}", "`2"},
 		{"/alpha\n`a", "(`;;,`a)", "`."},
 		{"/alpha\n`a /beta\n/gamma", "(`;;,`a;)", "`."},
 		{"0x01", "0x01", "`c"},
@@ -155,6 +162,7 @@ func TestParse(t *testing.T) {
 		{"(`a`b!1 2)", "(!;,`a`b;1 2)", "`."},
 		{"(`a`b!1 2)[`b]", "((!;,`a`b;1 2);,`b)", "`."},
 		{"2+", "(+;2)", "`."},
+		{"{x+y}[2;3]", "({x+y};2;3)", "`."},
 		// {"(-).(1 2)", "(.;-;1 2)", "`."},
 	}
 	for i, occ := range []bool{true, false} {
@@ -488,8 +496,8 @@ func TestStr(t *testing.T) {
 	}
 }
 func check(t *testing.T) {
-	if u := Stats().UsedBlocks(); u != 1 {
-		t.Fatalf("leak")
+	if u := Stats().UsedBlocks(); u != 4 {
+		t.Fatalf("leak: %d", u)
 	}
 	fpck("")
 }

@@ -162,7 +162,16 @@ func ini() { // start function
 	m.k[0] = (I << 28) | 31
 	copy(m.c[136:163], []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`))
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-	// TODO: K tree
+
+	keys := mk(S, 3)
+	vals := mk(L, 3)
+	mys(8+keys<<2, uint64('x')<<56)
+	mys(16+keys<<2, uint64('y')<<56)
+	mys(24+keys<<2, uint64('z')<<56)
+	m.k[2+vals] = 0
+	m.k[3+vals] = 0
+	m.k[4+vals] = 0
+	m.k[3] = key(keys, vals) // ktree, x y z is always at 0 1 2
 	// TODO: size vector
 }
 func msl() { // update slice header after increasing m.f
@@ -246,12 +255,14 @@ func inc(x k) k {
 		}
 		inc(m.k[2+x])
 		inc(m.k[3+x])
-	}
-	if t > N {
-		if m.k[2+x] > 256 {
-			panic("inc lambda")
-		}
-		if n == 2 { // projection
+	case N + 1, N + 2, N + 3, N + 4:
+		if n == 1 { // lambda
+			inc(m.k[2+x])
+			inc(m.k[3+x])
+		} else if n == 2 { // projection
+			if m.k[2+x] >= 256 {
+				inc(m.k[2+x])
+			}
 			inc(m.k[3+x])
 		}
 	}
@@ -310,16 +321,15 @@ func dec(x k) {
 		}
 		dec(m.k[2+x])
 		dec(m.k[3+x])
-	}
-	if t > N {
-		if n == 2 { // projection
+	case N + 1, N + 2, N + 3, N + 4:
+		if n == 1 { // lambda
+			dec(m.k[2+x])
+			dec(m.k[3+x])
+		} else if n == 2 { // projection
 			if m.k[2+x] >= 256 {
-				panic("lambda")
 				dec(m.k[2+x])
 			}
 			dec(m.k[3+x])
-		} else if n == 3 {
-			panic("dec lambda")
 		}
 	}
 	m.k[1+x]--
@@ -956,8 +966,7 @@ func str(x k) (r k) { // $x
 				m.c[8+r<<2] = '0' + c(f-40)
 				m.c[9+r<<2] = ':'
 			} else { // lambda
-				panic("lambda")
-				r = inc(m.k[3+x]) // `C
+				r = inc(m.k[2+x]) // `C
 			}
 			if n == 2 { // projection
 				a := m.k[3+x]
@@ -1027,6 +1036,8 @@ func evl(x k) (r k) { // .x
 	if t != L {
 		if t == S && n == 1 {
 			return fst(x)
+		} else if t == S && n == atom {
+			return lup(x)
 		}
 		return x
 	}
@@ -1060,6 +1071,17 @@ func evl(x k) (r k) { // .x
 		return uf(r)
 	default:
 		inc(v)
+		if vt > N && m.k[2+v] == 20 { // ':'
+			if n != 3 {
+				panic("nyi modified assignment")
+			}
+			/*
+				name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
+				dec(x)
+				return asn(name, val)
+			*/
+			panic("nyi")
+		}
 		r = mk(L, n-1)
 		for i := int(n - 2); i >= 0; i-- {
 			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
@@ -1885,6 +1907,10 @@ func cal(x, y k) (r k) { // x.y
 		}
 		dec(x)
 		x, y, xt, yn = r, a, N+n, n
+		// TODO: lambda projection adjust xn
+	}
+	if xn == 1 {
+		return lambda(x, y)
 	}
 	switch xt {
 	case N + 1:
@@ -1907,7 +1933,33 @@ func cal(x, y k) (r k) { // x.y
 	dec(y)
 	return r
 }
-
+func lambda(x, y k) (r k) { // call lambda
+	v := (m.k[x] >> 28) - N
+	if v < 1 || v > 3 {
+		panic("valence")
+	}
+	if m.k[y]>>28 != L {
+		panic("type")
+	}
+	vl := 3 + m.k[3]
+	vp, yp := 2+m.k[vl], ptr(y, L)
+	save := []k{vp, vp + 1, vp + 2} // save x, y z
+	for i := k(0); i < v; i++ {
+		m.k[2+vl] = yp + i
+	}
+	l := m.k[2+x] // eval lambda tree
+	for i := k(0); i < m.k[l]&atom; i++ {
+		if r > 0 {
+			dec(r)
+		}
+		r = evl(inc(x))
+	}
+	vl = 3 + m.k[3] // could have changed
+	for i := k(0); i < v; i++ {
+		m.k[2+vl] = save[i]
+	}
+	return r
+}
 func match(x, y k) (rv bool) { // recursive match
 	if x == y {
 		return true
@@ -1948,6 +2000,47 @@ func match(x, y k) (rv bool) { // recursive match
 	}
 	return false
 }
+func lup(x k) (r k) {
+	kt := m.k[3]
+	keys, vals := m.k[2+kt], m.k[3+kt]
+	kp, n := ptr(keys, S), m.k[keys]&atom
+	for i := k(0); i < n; i++ {
+		if match(kp+i, x) {
+			r = 2 + i + m.k[vals]
+			if r == 0 { // x, y, z are predefined as 0 pointers
+				panic("undefined")
+			}
+			return inc(r)
+		}
+	}
+	panic("undefined")
+}
+
+/* TODO
+func asn(x, y k) (r k) { return assign(x, 0, 0, y) } // assign
+func assign(x, idx, f, y k) (r k) {
+	if idx != 0 || f != 0 {
+		panic("nyi")
+	}
+	if t, n := typ(x); t != S || n != atom {
+		panic("type")
+	}
+	d := m.k[3]
+	eq, keys, vals := eqx[t], m.k[2+d], m.k[3+d]
+	kn, kp, vp := m.k[keys]&atom, ptr(keys, S), ptr(vals, L)
+	for i := k(0); i < nk; i++ {
+		if eq(kp+i, x) {
+			dec(m.k[2+vals+i])
+			m.k[2+vals+i] = inc(y)
+			dec(x)
+			return y
+		}
+	}
+	m.k[2+d] = cat(keys, x)
+	m.k[3+d] = cat(vals, inc(y))
+	return y
+}
+*/
 
 func hxb(x c) (c, c) { h := "0123456780abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
