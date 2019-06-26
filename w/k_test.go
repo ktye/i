@@ -121,6 +121,10 @@ func TestParse(t *testing.T) {
 	testCases := []struct {
 		x, r, t s
 	}{
+		{"in", "in", "`2"},
+		{"within", "within", "`2"},
+		{"bin", "bin", "`2"},
+		{"like", "like", "`2"},
 		{"", "", "`"},
 		{"`a", ",`a", "`N"},
 		{"`a`b", ",`a`b", "`."},

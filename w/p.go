@@ -185,7 +185,7 @@ func (p *p) noun() (r k) {
 	case p.t(sOcb):
 		p.p = p.m
 		st := p.m - 1
-		r = mk(N+1, 1)                   // lambda is indicated with length 1 but uses 2 fields:
+		r = mk(N+1, 0)                   // lambda is indicated with length 0 but uses 2 fields:
 		m.k[3+r] = p.lst(mk(C, 0), sCcb) // #2: parse tree
 		dst, n := mk(C, p.p-st), p.p-st
 		m.k[2+r] = dst // #1: string representation
@@ -195,7 +195,7 @@ func (p *p) noun() (r k) {
 		if args == 0 {
 			panic("valence(lambda)")
 		}
-		m.k[r] = (N+args)<<28 | 1
+		m.k[r] = (N+args)<<28 | 0
 		return p.idxr(r)
 	case p.t(sOpa):
 		p.p = p.m
@@ -208,6 +208,8 @@ func (p *p) noun() (r k) {
 		return p.idxr(cat(enlist(mk(N, atom)), r))
 	case p.t(sVrb):
 		return p.idxr(p.a(pVrb))
+	case p.t(sBin):
+		return p.idxr(p.a(pBin))
 	case p.t(sNam):
 		return p.idxr(p.a(pNam))
 	}
@@ -394,6 +396,20 @@ func pVrb(b []byte) (r k) {
 	}
 	panic("pVrb")
 }
+func pBin(b []byte) (r k) { // builtin
+	x := mk(S, atom)
+	mys(8+x<<2, btou(b))
+	x = wer(eql(inc(m.k[3]), x))
+	_, xn := typ(x)
+	if xn != 1 {
+		panic("parse builtin")
+	}
+	n := m.k[2+x]
+	dec(x)
+	r = mk(N+2, atom) // TODO: monadic builtins
+	m.k[2+r] = 50 + n
+	return r
+}
 
 // Scanners return the length of the matched input or 0
 func sHex(b []byte) (r int) {
@@ -407,10 +423,9 @@ func sHex(b []byte) (r int) {
 	}
 	return len(b)
 }
-
 func sNum(b []byte) (r int) {
 	n := sFlt(b)
-	if len(b) > n && b[n] == 'i' {
+	if n > 0 && len(b) > n && b[n] == 'i' {
 		n += 1 + sFlt(b[n+1:])
 	}
 	return n
@@ -521,11 +536,34 @@ func sIvb(b []byte) int { // ioverb 0: .. 4:
 	return 0
 }
 func sVrb(b []byte) int {
-	if cOps(b[0]) { // TODO: builtins?
+	if cOps(b[0]) {
 		if len(b) > 1 && b[1] == ':' {
 			return 2
 		}
 		return 1
+	}
+	return 0
+}
+func sBin(b []byte) int { // builtin
+	if b[0] < 'a' || b[0] > 'z' {
+		return 0
+	}
+	x := m.k[3]
+	_, n := typ(x)
+	xp, max := 8+x<<2, k(len(b))
+	for i := k(0); i < n; i++ {
+		u := sym(xp + 8*i)
+		for j := k(0); j < 8; j++ {
+			if c := c(u >> (8 * (7 - j))); c == 0 {
+				if j == max || !(cr09(b[j]) || craZ(b[j])) {
+					return int(j)
+				}
+			} else if j == max {
+				break
+			} else if c != b[j] {
+				break
+			}
+		}
 	}
 	return 0
 }

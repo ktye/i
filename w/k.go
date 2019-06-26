@@ -162,18 +162,16 @@ func ini() { // start function
 	m.k[0] = (I << 28) | 31
 	copy(m.c[136:163], []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`))
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-
-	keys := mk(S, 3)
-	vals := mk(L, 3)
-	mys(8+keys<<2, uint64('x')<<56)
-	mys(16+keys<<2, uint64('y')<<56)
-	mys(24+keys<<2, uint64('z')<<56)
-	m.k[2+vals] = 0
-	m.k[3+vals] = 0
-	m.k[4+vals] = 0
-	m.k[3] = key(keys, vals) // ktree, x y z is always at 0 1 2
+	m.k[0xb4] = mk(S, 0) // k-tree keys
+	m.k[0xb5] = mk(L, 0) // k-tree values
+	m.k[3] = mk(S, 4)
+	builtin([]c("in"), 0)
+	builtin([]c("within"), 1)
+	builtin([]c("bin"), 2)
+	builtin([]c("like"), 3)
 	// TODO: size vector
 }
+func builtin(b []c, at k) { mys(8+8*at+m.k[3]<<2, btou(b)) }
 func msl() { // update slice header after increasing m.f
 	f := *(*slice)(unsafe.Pointer(&m.f))
 	i := *(*slice)(unsafe.Pointer(&m.k))
@@ -235,8 +233,8 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	return a
 }
 
-func typ(a k) (k, k) { // type and length at addr
-	return m.k[a] >> 28, m.k[a] & atom
+func typ(x k) (k, k) { // type and length at addr
+	return m.k[x] >> 28, m.k[x] & atom
 }
 func typs(x, y k) (xt, yt, xn, yn k) { xt, xn = typ(x); yt, yn = typ(y); return }
 func inc(x k) k {
@@ -256,11 +254,11 @@ func inc(x k) k {
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
-		if n == 1 { // lambda
+		if n == 0 { // lambda
 			inc(m.k[2+x])
 			inc(m.k[3+x])
-		} else if n == 2 { // projection
-			if m.k[2+x] >= 256 {
+		} else if n != atom { // projection
+			if n == 1 { // lambda-projection
 				inc(m.k[2+x])
 			}
 			inc(m.k[3+x])
@@ -322,11 +320,11 @@ func dec(x k) {
 		dec(m.k[2+x])
 		dec(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
-		if n == 1 { // lambda
+		if n == 0 { // lambda
 			dec(m.k[2+x])
 			dec(m.k[3+x])
-		} else if n == 2 { // projection
-			if m.k[2+x] >= 256 {
+		} else if n != atom { // projection
+			if n == 1 { // lambda-projection
 				dec(m.k[2+x])
 			}
 			dec(m.k[3+x])
@@ -965,10 +963,15 @@ func str(x k) (r k) { // $x
 				r = mk(C, 2)
 				m.c[8+r<<2] = '0' + c(f-40)
 				m.c[9+r<<2] = ':'
-			} else { // lambda
+			} else if n == atom { // builtin
+				println("f?", f)
+				idx := mk(I, atom)
+				m.k[2+idx] = f - 50
+				r = str(atx(inc(m.k[3]), idx))
+			} else if n < 2 { // 0(lambda), 1(lambda-projection)
 				r = inc(m.k[2+x]) // `C
 			}
-			if n == 2 { // projection
+			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
 				if f < 40 && m.k[m.k[3+a]]>>28 == N {
 					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
@@ -979,6 +982,7 @@ func str(x k) (r k) { // $x
 					r = cat(r, a)
 				}
 			}
+
 		default:
 			panic("nyi")
 		}
@@ -1133,7 +1137,7 @@ func kst(x k) (r k) { // `k@x
 	if atm {
 		n = 1
 	}
-	if n == 0 {
+	if n == 0 && t < N {
 		r = use(x, C, 0)
 		rc, rn := 8+r<<2, k(0)
 		switch t { // these could also be in the k-tree
@@ -2015,6 +2019,62 @@ func lup(x k) (r k) {
 	}
 	panic("undefined")
 }
+func bin(x, y k) (r k) { // x bin y
+	xt, yt, xn, yn := typs(x, y)
+	if xt != yt || xt > S || xn == atom {
+		panic("type")
+	}
+	if m.k[1+y] == 1 || yt < F {
+		r = use(y, I, yn)
+	} else {
+		r = mk(I, yn)
+	}
+	if yn == atom {
+		yn = 1
+	}
+	lt, xp, yp := ltx[yt], ptr(x, xt), ptr(y, yt)
+	for i := k(0); i < yn; i++ {
+		m.k[2+i+r] = ibin(xp, xt, xn, yp+i, lt)
+	}
+	dec(x)
+	return decret(y, r)
+}
+func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
+	if n == 0 {
+		return 0
+	}
+	if lt(yp, xp) {
+		n := i(-1)
+		return k(n)
+	}
+	i, j, h := k(0), k(n), k(0)
+	for i < j {
+		h = (i + j) >> 2
+		if lt(yp, yp+h) {
+			i = h + 1
+		} else {
+			j = h
+		}
+	}
+	return i
+}
+func Search(n int, f func(int) bool) int {
+	// Define f(-1) == false and f(n) == true.
+	// Invariant: f(i-1) == false, f(j) == true.
+	i, j := 0, n
+	for i < j {
+		h := int(uint(i+j) >> 1) // avoid overflow when computing h
+		// i ≤ h < j
+		if !f(h) {
+			i = h + 1 // preserves f(i-1) == false
+		} else {
+			j = h // preserves f(j) == true
+		}
+	}
+	// i == j, f(i-1) == false, and f(j) (= f(i)) == true  =>  answer is i.
+	return i
+
+}
 
 /* TODO
 func asn(x, y k) (r k) { return assign(x, 0, 0, y) } // assign
@@ -2080,10 +2140,12 @@ var l8t = [256]c{
 
 var table []interface{} // function table :+-*%&|<>=!~,^#_$?@.01234
 func init() {
-	// 0-19 monads, 20-39 dyads, 40-50 ioverbs
+	// 0-19 monads, 20-39 dyads, 40-49 ioverbs, 50-... built-ins
 	for _, f := range []interface{}{
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, bin, nil, nil,
 	} {
 		table = append(table, f)
 	}
