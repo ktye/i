@@ -28,13 +28,9 @@ func TestIni(t *testing.T) {
 
 func TestK(t *testing.T) {
 	//t.Skip()
-	ini()
 	testCases := []struct {
 		x, r s
 	}{
-		// {"x:3", "3"},
-		// {"{x+y}[2;3]", "4"},
-		// {"x", "?"},
 		{"1", "1"},
 		{"`a", "`a"},
 		{"`a`b", "`a`b"},
@@ -104,9 +100,15 @@ func TestK(t *testing.T) {
 		{"1 3 4 8 10 bin 1 -3 3 5 9", "0 -1 1 3 4"},
 		{"1 3 4 8 10f bin 3.5", "2"},
 		{"`abc`def`ghi bin `d`e`j", "1 2 3"},
+		{"x:1;y:2;x+y", "3"},
+		{"x:1;x", "1"},
+		{"x:3;x:4", "4"},
+		{"x:3", "3"},
+		{"::x:3", "3"},
 		// {"(-).(1 2)", "3"},
 	}
 	for _, tc := range testCases {
+		ini()
 		fmt.Printf("%s → %s\n", tc.x, tc.r)
 		y := kst(evl(prs(K([]byte(tc.x)))))
 		r := string(G(y).([]c))
@@ -503,8 +505,12 @@ func TestStr(t *testing.T) {
 	}
 }
 func check(t *testing.T) {
-	if u := Stats().UsedBlocks(); u != 4 {
-		t.Fatalf("leak: %d", u)
+	// Number of used blocks after an expression should be:
+	// (block 0) + (list of built-ins) + (k-tree keys) + (k-tree values) + number of variables
+	vars := m.k[m.k[0x2d]] & atom
+	if u := Stats().UsedBlocks(); u != 4+vars {
+		xxd()
+		t.Fatalf("leak: %d (%d vars)", u, vars)
 	}
 	fpck("")
 }

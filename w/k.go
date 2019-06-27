@@ -162,8 +162,8 @@ func ini() { // start function
 	m.k[0] = (I << 28) | 31
 	copy(m.c[136:163], []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`))
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-	m.k[0xb4] = mk(S, 0) // k-tree keys
-	m.k[0xb5] = mk(L, 0) // k-tree values
+	m.k[0x2d] = mk(S, 0) // k-tree keys
+	m.k[0x2e] = mk(L, 0) // k-tree values
 	m.k[3] = mk(S, 4)
 	builtin([]c("in"), 0)
 	builtin([]c("within"), 1)
@@ -1079,12 +1079,10 @@ func evl(x k) (r k) { // .x
 			if n != 3 {
 				panic("nyi modified assignment")
 			}
-			/*
-				name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
-				dec(x)
-				return asn(name, val)
-			*/
-			panic("nyi")
+			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
+			dec(v)
+			dec(x)
+			return asn(name, val)
 		}
 		r = mk(L, n-1)
 		for i := int(n - 2); i >= 0; i-- {
@@ -1535,16 +1533,15 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 			cp(rp+i, xp+i)
 		}
 	} else {
-		r = inc(x)
+		r = x
 		m.k[r] = t<<28 | (xn + yn)
 	}
 	rp, yp := xn+ptr(r, t), ptr(y, t)
 	for i := k(0); i < yn; i++ {
 		cp(rp+i, yp+i)
 	}
-	dec(x)
 	dec(y)
-	return r
+	return decret(x, r)
 }
 func lcat(x, y k) (r k) { // append anything to a list; no unify
 	_, nl := typ(x)
@@ -2004,21 +2001,6 @@ func match(x, y k) (rv bool) { // recursive match
 	}
 	return false
 }
-func lup(x k) (r k) {
-	kt := m.k[3]
-	keys, vals := m.k[2+kt], m.k[3+kt]
-	kp, n := ptr(keys, S), m.k[keys]&atom
-	for i := k(0); i < n; i++ {
-		if match(kp+i, x) {
-			r = 2 + i + m.k[vals]
-			if r == 0 { // x, y, z are predefined as 0 pointers
-				panic("undefined")
-			}
-			return inc(r)
-		}
-	}
-	panic("undefined")
-}
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt > S || xn == atom {
@@ -2057,6 +2039,58 @@ func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
 		}
 	}
 	return i
+}
+func insert(x, y, idx k) (r k) { // insert y into x at k
+	xt, yt, xn, yn := typs(x, y)
+	if xt > L || xn == atom || yn != atom || (xt != L && xt != yt) {
+		panic("type")
+	}
+	if xt == L {
+		x = lcat(x, y)
+	} else {
+		x = ucat(x, y, xt, xn, yn)
+	}
+	if idx != xn {
+		sw, xp := swx[xt], ptr(x, xt)
+		sw(xp+idx, xp+idx+xn)
+	}
+	return x
+}
+func asn(x, y k) (r k) { // `x:y
+	keys, vals := m.k[0x2d], m.k[0x2e]
+	if ix, exists := varn(x); exists {
+		dec(m.k[2+vals+ix])
+		m.k[2+vals+ix] = inc(y)
+		dec(x)
+		return y
+	} else {
+		m.k[0x2d] = insert(keys, x, ix)
+		m.k[0x2e] = insert(vals, inc(y), ix)
+		return y
+	}
+}
+func lup(x k) (r k) {
+	ix, o := varn(x)
+	if !o {
+		panic("undefined")
+	}
+	vals := m.k[0x2e]
+	r = inc(m.k[2+vals+ix])
+	dec(x)
+	return r
+}
+func varn(x k) (idx k, exists bool) {
+	if xt, xn := typ(x); xt != S || xn != atom {
+		panic("type")
+	}
+	keys := m.k[0x2d]
+	kp, xp := ptr(keys, S), ptr(x, S)
+	kn := m.k[keys] & atom
+	ix := ibin(kp, S, kn, xp, ltS)
+	if i(ix) < 0 {
+		ix = 0
+	}
+	return ix, ix < kn && eqS(kp+ix, xp)
 }
 
 /* TODO
