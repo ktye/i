@@ -31,6 +31,8 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"x:1", "1"},
+		{"{2*x}3", "6"},
 		{"1", "1"},
 		{"`a", "`a"},
 		{"`a`b", "`a`b"},
@@ -105,7 +107,10 @@ func TestK(t *testing.T) {
 		{"x:3;x:4", "4"},
 		{"x:3", "3"},
 		{"::x:3", "3"},
+		{"x:3;-x", "-3"},
+		{"g:{x+y};g[3;4]", "7"},
 		// {"(-).(1 2)", "3"},
+		// (x;y):1 2 TODO multi assignment
 	}
 	for _, tc := range testCases {
 		ini()
@@ -116,6 +121,7 @@ func TestK(t *testing.T) {
 			t.Fatalf("expected %s got %s\n", tc.r, r)
 		}
 		dec(y)
+		clear()
 		check(t)
 	}
 }
@@ -172,6 +178,7 @@ func TestParse(t *testing.T) {
 		{"(`a`b!1 2)[`b]", "((!;,`a`b;1 2);,`b)", "`."},
 		{"2+", "(+;2)", "`."},
 		{"{x+y}[2;3]", "({x+y};2;3)", "`."},
+		{"g:{x+y};g[3;4]", "(`;(:;`g;{x+y});(`g;3;4))", "`."},
 		// {"(-).(1 2)", "(.;-;1 2)", "`."},
 	}
 	for i, occ := range []bool{true, false} {
@@ -507,10 +514,10 @@ func TestStr(t *testing.T) {
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
 	// (block 0) + (list of built-ins) + (k-tree keys) + (k-tree values) + number of variables
-	vars := m.k[m.k[0x2d]] & atom
-	if u := Stats().UsedBlocks(); u != 4+vars {
+	// vars := m.k[m.k[0x2d]] & atom
+	if u := Stats().UsedBlocks(); u != 4 {
 		xxd()
-		t.Fatalf("leak: %d (%d vars)", u, vars)
+		t.Fatalf("leak: %d", u)
 	}
 	fpck("")
 }

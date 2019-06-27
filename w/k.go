@@ -164,11 +164,12 @@ func ini() { // start function
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	m.k[0x2d] = mk(S, 0) // k-tree keys
 	m.k[0x2e] = mk(L, 0) // k-tree values
-	m.k[3] = mk(S, 4)
+	m.k[3] = mk(S, 5)
 	builtin([]c("in"), 0)
 	builtin([]c("within"), 1)
 	builtin([]c("bin"), 2)
 	builtin([]c("like"), 3)
+	builtin([]c("del"), 4)
 	// TODO: size vector
 }
 func builtin(b []c, at k) { mys(8+8*at+m.k[3]<<2, btou(b)) }
@@ -964,7 +965,6 @@ func str(x k) (r k) { // $x
 				m.c[8+r<<2] = '0' + c(f-40)
 				m.c[9+r<<2] = ':'
 			} else if n == atom { // builtin
-				println("f?", f)
 				idx := mk(I, atom)
 				m.k[2+idx] = f - 50
 				r = str(atx(inc(m.k[3]), idx))
@@ -1050,13 +1050,13 @@ func evl(x k) (r k) { // .x
 	}
 	v := m.k[2+x]
 	vt, _ := typ(v)
-	switch vt {
-	case S:
-		if n == 1 {
+	if vt == S {
+		if n == 1 { // ,`a`b → `a`b
 			inc(v)
 			dec(x)
 			return v
-		} else if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…): ex;ex…
+		}
+		if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…) → ex;ex…
 			for i := k(1); i < n; i++ {
 				if i > 1 {
 					dec(r)
@@ -1066,6 +1066,8 @@ func evl(x k) (r k) { // .x
 			dec(x)
 			return r
 		}
+	}
+	switch vt {
 	case N: // (;…) → list
 		r = mk(L, n-1)
 		for i := int(n - 2); i >= 0; i-- {
@@ -1075,6 +1077,10 @@ func evl(x k) (r k) { // .x
 		return uf(r)
 	default:
 		inc(v)
+		if vt == S {
+			v = lup(v)
+			vt, _ = typ(v)
+		}
 		if vt > N && m.k[2+v] == 20 { // ':'
 			if n != 3 {
 				panic("nyi modified assignment")
@@ -1701,7 +1707,7 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 		for i := k(0); i < yn-n; i++ {
 			cp(yp+i, yp+o+i)
 		}
-		return uf(srk(y, t, yn, yn-n))
+		return uf(srk(y, t, yn, yn-n)) // uf? TODO rm
 	}
 	r = mk(t, yn-n)
 	rp := ptr(r, t)
@@ -1880,7 +1886,7 @@ func cal(x, y k) (r k) { // x.y
 		return atx(x, y)
 	}
 	y = explode(y)
-	if xn == 2 { // convert projected to full call
+	if xn == 1 || xn == 2 { // convert projected to full call
 		l := m.k[x+3] // arg list with holes
 		n := m.k[l] & atom
 		if n != xt-N+yn {
@@ -1897,8 +1903,8 @@ func cal(x, y k) (r k) { // x.y
 		}
 		dec(y)
 		r = m.k[x+2]
-		if f := m.k[x+2]; f > 256 { // lambda
-			r = inc(f)
+		if f := m.k[x+2]; xn == 1 { // lambda projection
+			r, xn = inc(f), 0
 		} else {
 			r = mk(N+1, atom)
 			m.k[2+r] = f
@@ -1908,9 +1914,8 @@ func cal(x, y k) (r k) { // x.y
 		}
 		dec(x)
 		x, y, xt, yn = r, a, N+n, n
-		// TODO: lambda projection adjust xn
 	}
-	if xn == 1 {
+	if xn == 0 {
 		return lambda(x, y)
 	}
 	switch xt {
@@ -1927,7 +1932,6 @@ func cal(x, y k) (r k) { // x.y
 		f := table[m.k[2+x]].(func(k, k) k)
 		r = f(inc(m.k[2+y]), inc(m.k[3+y]))
 	default:
-		println("call xt", xt)
 		panic("nyi")
 	}
 	dec(x)
@@ -1939,26 +1943,41 @@ func lambda(x, y k) (r k) { // call lambda
 	if v < 1 || v > 3 {
 		panic("valence")
 	}
-	if m.k[y]>>28 != L {
+	if yt, yn := typ(y); yt != L || yn != v {
+		panic("args")
+	}
+	l := m.k[3+x] // lambda tree
+	lt, nl := typ(l)
+	if nl == 0 {
+		dec(x)
+		dec(y)
+		return mk(N, atom)
+	} else if lt != L {
 		panic("type")
 	}
-	vl := 3 + m.k[3]
-	vp, yp := 2+m.k[vl], ptr(y, L)
-	save := []k{vp, vp + 1, vp + 2} // save x, y z
+	var xx, vv [3]k // `x `y `z, x  y  z (save old values)
 	for i := k(0); i < v; i++ {
-		m.k[2+vl] = yp + i
+		xx[i] = mk(S, atom)
+		mys(8+xx[i]<<2, uint64('x'+i)<<56)
+		vv[i] = lupo(inc(xx[i]))
+		dec(asn(inc(xx[i]), inc(m.k[2+y+i])))
 	}
-	l := m.k[2+x] // eval lambda tree
-	for i := k(0); i < m.k[l]&atom; i++ {
+	dec(y)
+	// TODO assign f
+	for i := k(0); i < nl; i++ {
 		if r > 0 {
 			dec(r)
 		}
-		r = evl(inc(x))
+		r = evl(inc(m.k[2+i+l]))
 	}
-	vl = 3 + m.k[3] // could have changed
 	for i := k(0); i < v; i++ {
-		m.k[2+vl] = save[i]
+		if vv[i] != 0 { // reassign old value
+			dec(asn(xx[i], vv[i]))
+		} else { // delete variable
+			dec(del(xx[i]))
+		}
 	}
+	dec(x)
 	return r
 }
 func match(x, y k) (rv bool) { // recursive match
@@ -2042,7 +2061,8 @@ func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
 }
 func insert(x, y, idx k) (r k) { // insert y into x at k
 	xt, yt, xn, yn := typs(x, y)
-	if xt > L || xn == atom || yn != atom || (xt != L && xt != yt) {
+	if xt > L || xn == atom || (xt != L && (xt != yt || yn != atom)) {
+		println("insert", xt, yt, xn, yn)
 		panic("type")
 	}
 	if xt == L {
@@ -2056,9 +2076,37 @@ func insert(x, y, idx k) (r k) { // insert y into x at k
 	}
 	return x
 }
+func unsert(x, idx k) (r k) { // delete index from x
+	t, n := typ(x)
+	if t == atom || n > L || idx >= n {
+		panic("type")
+	}
+	cp, xp := cpx[t], ptr(x, t)
+	if m.k[x+1] == 1 && bk(t, n-1) == bk(t, n) {
+		if t == L {
+			cp = cpI
+			dec(m.k[2+x+idx])
+		}
+		for i := k(idx); i < n-1; i++ {
+			cp(xp+i, xp+i+1)
+		}
+		m.k[x] = t<<28 | (n - 1)
+		return x
+	}
+	r = mk(t, n-1)
+	rp := ptr(r, t)
+	for i := k(0); i < idx; i++ {
+		cp(rp+i, xp+i)
+	}
+	for i := k(idx) + 1; i < n; i++ {
+		cp(rp+i-1, xp+i)
+	}
+	dec(x)
+	return r
+}
 func asn(x, y k) (r k) { // `x:y
 	keys, vals := m.k[0x2d], m.k[0x2e]
-	if ix, exists := varn(x); exists {
+	if ix, exists := varn(ptr(x, S)); exists {
 		dec(m.k[2+vals+ix])
 		m.k[2+vals+ix] = inc(y)
 		dec(x)
@@ -2069,28 +2117,69 @@ func asn(x, y k) (r k) { // `x:y
 		return y
 	}
 }
-func lup(x k) (r k) {
-	ix, o := varn(x)
-	if !o {
+func lup(x k) (r k) { // lookup
+	r = lupo(x)
+	if r == 0 {
 		panic("undefined")
+	}
+	return r
+}
+func lupo(x k) (r k) { // lup, 0 on undefined
+	ix, o := varn(ptr(x, S))
+	if !o {
+		dec(x)
+		return 0
 	}
 	vals := m.k[0x2e]
 	r = inc(m.k[2+vals+ix])
 	dec(x)
 	return r
 }
-func varn(x k) (idx k, exists bool) {
-	if xt, xn := typ(x); xt != S || xn != atom {
-		panic("type")
-	}
+func varn(xp k) (idx k, exists bool) {
 	keys := m.k[0x2d]
-	kp, xp := ptr(keys, S), ptr(x, S)
+	kp := ptr(keys, S)
 	kn := m.k[keys] & atom
 	ix := ibin(kp, S, kn, xp, ltS)
 	if i(ix) < 0 {
 		ix = 0
 	}
 	return ix, ix < kn && eqS(kp+ix, xp)
+}
+func vars(dummy k) (r k) { dec(dummy); return inc(m.k[0x2d]) }
+func del(x k) (r k) { // delete variable
+	t, n := typ(x)
+	if t != S {
+		panic("type")
+	} else if n == atom {
+		n = 1
+	}
+	xp := ptr(x, S)
+	for i := k(0); i < n; i++ {
+		if idx, o := varn(xp + i); o {
+			m.k[0x2d] = unsert(m.k[0x2d], idx)
+			m.k[0x2e] = unsert(m.k[0x2e], idx)
+		}
+	}
+	dec(x)
+	return mk(N, atom)
+}
+func clear() { // clear variables
+	n := m.k[m.k[0x2d]] & atom
+	if n == 0 {
+		return
+	}
+	idx := mk(I, atom)
+	for i := int(n - 1); i >= 0; i-- {
+		m.k[2+idx] = k(i)
+		dec(del(atx(inc(m.k[0x2d]), inc(idx))))
+	}
+	dec(idx)
+	/*
+		m.k[0x2e+1]++  // inc before dec for not freeing the var list
+		dec(m.k[0x2e]) // dec all variables
+		m.k[0x2d] = srk(m.k[0x2d], S, n, 0)
+		m.k[0x2e] = srk(m.k[0x2e], L, n, 0)
+	*/
 }
 
 /* TODO
@@ -2162,7 +2251,7 @@ func init() {
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-		nil, nil, bin, nil, nil,
+		nil, nil, bin, nil, del,
 	} {
 		table = append(table, f)
 	}

@@ -406,7 +406,11 @@ func pBin(b []byte) (r k) { // builtin
 	}
 	n := m.k[2+x]
 	dec(x)
-	r = mk(N+2, atom) // TODO: monadic builtins
+	if n > 3 { // TODO: find a better rule
+		r = mk(N+1, atom)
+	} else {
+		r = mk(N+2, atom)
+	}
 	m.k[2+r] = 50 + n
 	return r
 }
