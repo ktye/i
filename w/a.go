@@ -28,6 +28,7 @@ func main() {
 	}
 }
 func do(s []byte) {
+	s = cmd(s)
 	defer func() {
 		if c := recover(); c != nil {
 			println(string(debug.Stack()))
@@ -46,4 +47,17 @@ func do(s []byte) {
 	rc, nr := 8+r<<2, m.k[r]&atom
 	dec(r)
 	println(string(m.c[rc : rc+nr]))
+}
+func cmd(b []byte) []byte {
+	if !(len(b) == 3 && b[0] == '\\' && b[2] == '\n') {
+		return b
+	}
+	switch b[1] {
+	case 'h':
+		return []c("help 0\n")
+	case '\\':
+		panic("bye")
+	default:
+		return b
+	}
 }

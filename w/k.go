@@ -164,12 +164,13 @@ func ini() { // start function
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	m.k[0x2d] = mk(S, 0) // k-tree keys
 	m.k[0x2e] = mk(L, 0) // k-tree values
-	m.k[3] = mk(S, 5)
+	m.k[3] = mk(S, 6)
 	builtin([]c("in"), 0)
 	builtin([]c("within"), 1)
 	builtin([]c("bin"), 2)
 	builtin([]c("like"), 3)
 	builtin([]c("del"), 4)
+	builtin([]c("help"), 5)
 	// TODO: size vector
 }
 func builtin(b []c, at k) { mys(8+8*at+m.k[3]<<2, btou(b)) }
@@ -2181,6 +2182,14 @@ func clear() { // clear variables
 		m.k[0x2e] = srk(m.k[0x2e], L, n, 0)
 	*/
 }
+func hlp(x k) (r k) {
+	dec(x)
+	n := k(163 - 136)
+	r = mk(C, n)
+	rc := 8 + r<<2
+	copy(m.c[rc:rc+n], m.c[136:163])
+	return cat(r, kst(inc(m.k[3])))
+}
 
 /* TODO
 func asn(x, y k) (r k) { return assign(x, 0, 0, y) } // assign
@@ -2251,7 +2260,7 @@ func init() {
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-		nil, nil, bin, nil, del,
+		nil, nil, bin, nil, del, hlp,
 	} {
 		table = append(table, f)
 	}
