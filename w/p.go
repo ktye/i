@@ -116,6 +116,9 @@ func (p *p) ex(x k) (r k) {
 	case N:
 		return x
 	case N + 1, N + 2:
+		if p.t(sAdv) {
+			return p.adv(0, x)
+		}
 		y := p.ex(p.noun())
 		if yt, _ := typ(y); yt == N { // verb only
 			dec(y)
@@ -146,8 +149,9 @@ func (p *p) ex(x k) (r k) {
 			m.k[3+r] = x
 			m.k[4+r] = y
 			return r
+		} else if p.t(sAdv) {
+			return p.adv(a, x)
 		}
-		// TODO adverb
 		panic("nyi") // TODO l{a, p.ex(a)}
 	}
 }
@@ -241,6 +245,30 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 		panic("parse: unclosed list")
 	}
 	p.p = p.m
+	return r
+}
+func (p *p) adv(x, v k) (r k) {
+	vn := m.k[v] & atom
+	a := p.a(pAdv)
+	if p.t(sAdv) {
+		b := p.p(sAdv)
+		if f := m.k[2+v]; xn == atom {
+			if f >= 20 && f < 40 {
+				m.k[2+v] -= 20 // force monad for derived primitive (reflite p131)
+				m.k[v] = (N+1)<<28 | atom
+			}
+		}
+		v, vn = lcat(lcat(mk(L, 0), a), v), 0
+		a = b
+	}
+	y := p.ex(p.noun())
+	if x == 0 {
+		return lcat(mk(L, 0), lcat(lcat(mk(L, 0), a), v), r) // ((a;v);r)
+	}
+	r = mk(L, 3) // ((a;v);x;y)
+	m.k[2+r] = lcat(lcat(mk(L, 0), a), v)
+	m.k[3+r] = x
+	m.k[4+r] = y
 	return r
 }
 func monad(x k) (r k) { // force monad
@@ -396,6 +424,20 @@ func pVrb(b []byte) (r k) {
 	}
 	panic("pVrb")
 }
+func pAdv(b []byte) (r k) {
+	f := k(1)
+	if len(b) > 1 {
+		f = 4
+	}
+	if b[0] == '/' {
+		f++
+	} else if b[0] == '\\' {
+		f += 2
+	}
+	r = mk(N+1, atom)
+	m.k[2+r] = f << 8
+	return r
+}
 func pBin(b []byte) (r k) { // builtin
 	x := mk(S, atom)
 	mys(8+x<<2, btou(b))
@@ -545,6 +587,14 @@ func sVrb(b []byte) int {
 			return 2
 		}
 		return 1
+	}
+	return 0
+}
+func sVrb(b []byte) {
+	if c := b[0]; c == '/' || c == '\\' || c == '\'' {
+		if len(b) > 1 && b[1] == ':' {
+			return 2
+		}
 	}
 	return 0
 }

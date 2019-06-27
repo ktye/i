@@ -48,6 +48,8 @@ Functions have type N+1…N+4 (valence)
  projection: length 1(over atoms) 2(over basic/builtins)
   x+2 function code or pointer to lambda function
   x+3 full argument list with holes (`N)
+Adverbs have type N+1, are atoms with function code > 256
+  adverb code is -1+code>>8: ' / \ ': /: \:
 
 Wasm reference
  webassembly.github.io/wabt/demo/wat2wasm (interactive)
