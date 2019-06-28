@@ -15,9 +15,8 @@ func prs(x k) (r k) { // `p"…"
 	}
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, ln: 1}
 	r = mk(L, 1)
-	m.k[2+r] = mk(S, atom)
-	mys(8+m.k[2+r]<<2, 0) // ;→`
-	for p.p < p.e {       // ex;ex;…
+	m.k[2+r] = mku(0) // ;→`
+	for p.p < p.e {   // ex;ex;…
 		y := p.ex(p.noun())
 		if x == 0 {
 			break
@@ -288,8 +287,7 @@ func monad(x k) (r k) { // force monad
 }
 func pHex(b []byte) (r k) { // 0x1234 `c|`C
 	if n := k(len(b)); n == 3 { // allow short form 0x1
-		r = mk(C, atom)
-		m.c[8+r<<2] = xtoc(b[2])
+		r = mkc(xtoc(b[2]))
 	} else if n%2 != 0 {
 		panic("parse hex")
 	} else {
@@ -337,8 +335,7 @@ func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
 	}
 	if x, err := strconv.Atoi(string(b)); err == nil { // TODO remove strconv
 		if f == 0 {
-			r = mk(I, atom)
-			m.k[2+r] = k(i(x))
+			r = mki(k(i(x)))
 		} else {
 			r = mk(F, atom)
 			if f == 1 {
@@ -364,17 +361,13 @@ func pStr(b []byte) (r k) { // "a"|"a\nbc": `c|`C
 	return r
 }
 func pNam(b []byte) (r k) { // name: `n
-	r = mk(S, atom)
-	mys(8+r<<2, btou(b))
-	return r
+	return mku(btou(b))
 }
 func pSym(b []byte) (r k) { // `name|`"name": `n
 	if len(b) == 1 {
-		r = mk(S, atom)
-		mys(8+r<<2, 0)
+		r = mku(0)
 	} else if len(b) > 1 || b[1] != '"' {
-		r = mk(S, atom)
-		mys(8+r<<2, btou(b[1:]))
+		r = mku(btou(b[1:]))
 	} else {
 		r = pQot(b[1:])
 		_, n := typ(r)
@@ -444,8 +437,7 @@ func pAdv(b []byte) (r k) {
 	return r
 }
 func pBin(b []byte) (r k) { // builtin
-	x := mk(S, atom)
-	mys(8+x<<2, btou(b))
+	x := mku(btou(b))
 	x = atx(inc(m.k[3]), x)
 	if xt, xn := typ(x); xt != C && xn != atom {
 		panic("parse builtin")

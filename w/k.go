@@ -243,9 +243,10 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	m.k[a+1] = 1       // refcount
 	return a
 }
-func mki(i k) (r k) { r = mk(I, atom); m.k[2+r] = i; return r }
-func mkc(c c) (r k) { r = mk(C, atom); m.c[8+r<<2] = c; return r }
-func mks(s s) (r k) { r = mk(S, atom); mys(8+r<<2, btou([]c(s))); return r }
+func mki(i k) (r k)      { r = mk(I, atom); m.k[2+r] = i; return r }
+func mkc(c c) (r k)      { r = mk(C, atom); m.c[8+r<<2] = c; return r }
+func mks(s s) (r k)      { return mku(btou([]c(s))) }
+func mku(u uint64) (r k) { r = mk(S, atom); mys(8+r<<2, u); return r }
 func typ(x k) (k, k) { // type and length at addr
 	return m.k[x] >> 28, m.k[x] & atom
 }
@@ -1028,9 +1029,7 @@ func unq(x k) (r k) { // ?x
 	return srk(r, t, n, nn)
 }
 func tip(x k) (r k) { // @x
-	r = mk(S, atom)
-	m.k[2+r] = 0
-	m.k[3+r] = 0
+	r = mku(0)
 	t, n := typ(x)
 	dec(x)
 	s := m.c[164+t]
@@ -1490,8 +1489,7 @@ func ext(x, t, n k) (r k) { // scalar extension
 	return r
 }
 func mch(x, y k) (r k) { // x~y
-	r = mk(C, atom)
-	m.k[2+r] = 0
+	r = mkc(0)
 	if match(x, y) {
 		m.c[8+r<<2] = 1
 	}
@@ -1770,9 +1768,8 @@ func cst(x, y k) (r k) { // x$y
 		if yn == atom {
 			yn = 1
 		}
-		r = mk(S, atom)
-		rc, yc := 8+r<<2, 8+y<<2
-		mys(rc, btou(m.c[yc:yc+yn]))
+		yc := 8 + y<<2
+		r = mku(btou(m.c[yc : yc+yn]))
 		dec(x)
 		dec(y)
 		return r
@@ -1962,8 +1959,7 @@ func lambda(x, y k) (r k) { // call lambda
 	}
 	var xx, vv [3]k // `x `y `z, x  y  z (save old values)
 	for i := k(0); i < v; i++ {
-		xx[i] = mk(S, atom)
-		mys(8+xx[i]<<2, uint64('x'+i)<<56)
+		xx[i] = mku(uint64('x'+i) << 56)
 		vv[i] = lupo(inc(xx[i]))
 		dec(asn(inc(xx[i]), inc(m.k[2+y+i])))
 	}

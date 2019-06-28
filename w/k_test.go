@@ -669,17 +669,14 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	var r k
 	switch a := x.(type) {
 	case bool:
-		r = mk(C, atom)
-		m.c[8+r<<2] = 0
+		r = mkc(0)
 		if a {
 			m.c[8+r<<2] = 1
 		}
 	case byte:
-		r = mk(C, atom)
-		m.c[8+r<<2] = a
+		r = mkc(a)
 	case int:
-		r = mk(I, atom)
-		m.k[2+r] = k(a)
+		r = mki(k(a))
 	case uint16: // function index
 		if a < 20 {
 			r = mk(N+1, atom)
@@ -694,8 +691,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		r = mk(Z, atom)
 		m.z[1+r>>2] = a
 	case string:
-		r = mk(S, atom)
-		kstr(8+r<<2, a)
+		r = mks(a)
 	case []bool:
 		buf := make([]byte, len(a))
 		for i, v := range a {
