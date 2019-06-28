@@ -167,7 +167,7 @@ func ini() { // start function
 	m.k[3] = mk(D, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
-	o := c(33) // monads
+	o := c(39) // monads
 	builtin(o+0, "lsv")
 	builtin(o+1, "clv")
 	builtin(o+5, "help")
@@ -965,7 +965,7 @@ func str(x k) (r k) { // $x
 			f := m.k[2+x]
 			if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
 				r = inc(m.k[2+x]) // `C
-			} else if (f > 33 && f < 50) || (f >= 83 && f < 100) { // built-ins
+			} else if (f >= 39 && f < 50) || (f >= 83 && f < 100) { // built-ins
 				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
 			} else if f < 33 { // monad +: 3: /:
 				r = mk(C, 2)
@@ -979,6 +979,7 @@ func str(x k) (r k) { // $x
 				r = mk(C, 1)
 				m.c[8+r<<2] = m.c[136+m.k[2+x]-50]
 			}
+			// TODO: derived?
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
 				if n == 2 && f < 100 && m.k[m.k[3+a]]>>28 == N {
@@ -1103,6 +1104,7 @@ func evl(x k) (r k) { // .x
 		dec(x)
 		v = evl(v)
 		vt, _ := typ(v)
+		// TODO: upgrade derived N+1 in case of 2 args
 		if vt > N {
 			if n-1 > vt-N {
 				panic("args") // too many arguments
@@ -1184,7 +1186,7 @@ func kst(x k) (r k) { // `k@x
 		for i := k(0); i < n; i++ {
 			c := m.c[xc+i]
 			if c < 32 || c > 126 || c == '"' {
-				if c, o := qot(c); o {
+				if c, o := qt(c); o {
 					rn = putc(rc, rn, '\\')
 					rn = putc(rc, rn, c)
 				} else {
@@ -1255,7 +1257,7 @@ func kst(x k) (r k) { // `k@x
 				if !(cr09(c) || craZ(c) || c == '.') {
 					q = true
 				}
-				if _, o := qot(c); o {
+				if _, o := qt(c); o {
 					rn++
 				}
 				rn++
@@ -1276,7 +1278,7 @@ func kst(x k) (r k) { // `k@x
 				rn = putc(rc, rn, '"')
 			}
 			for i := k(0); i < sn; i++ {
-				c, o := qot(m.c[rrc+i])
+				c, o := qt(m.c[rrc+i])
 				if o {
 					rn = putc(rc, rn, '\\')
 				}
@@ -1354,7 +1356,7 @@ func putb(rc, rn k, b []c) k {
 	copy(m.c[rc:rc+k(len(b))], b)
 	return rn + k(len(b))
 }
-func qot(c c) (c, bool) {
+func qt(c c) (c, bool) { // quote
 	if c == '"' {
 		return c, true
 	} else if c == '\n' {
@@ -1495,6 +1497,46 @@ func mch(x, y k) (r k) { // x~y
 	dec(x)
 	dec(y)
 	return r
+}
+func match(x, y k) (rv bool) { // recursive match
+	if x == y {
+		return true
+	}
+	t, n := typ(x)
+	tt, nn := typ(y)
+	if tt != t || nn != n {
+		return false
+	}
+	if n == atom {
+		n = 1
+	}
+	switch t {
+	case L:
+		for j := k(0); j < n; j++ {
+			if match(m.k[2+x+j], m.k[2+y+j]) == false {
+				return false
+			}
+		}
+		return true
+	case D:
+		if match(m.k[2+x], m.k[2+y]) == false || match(m.k[3+x], m.k[3+y]) == false {
+			return false
+		}
+		return true
+	default:
+		eq := eqx[t]
+		if eq == nil {
+			panic("type")
+		}
+		x, y = ptr(x, t), ptr(y, t)
+		for j := k(0); j < n; j++ {
+			if eq(x+j, y+j) == false {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
@@ -1919,18 +1961,35 @@ func cal(x, y k) (r k) { // x.y
 	if xn == 0 {
 		return lambda(x, y)
 	}
+	code := m.k[2+x]
+	if code > 255 { // derived
+		code >>= 8
+		switch yn {
+		case 1:
+			f := table[code].(func(k, k) k)
+			r = f(inc(m.k[2+x]), inc(m.k[2+y]))
+		case 2:
+			f := table[code+50].(func(k, k, k) k)
+			r = f(inc(m.k[2+x]), inc(m.k[2+y]), inc(m.k[3+y]))
+		default:
+			panic("valence")
+		}
+		dec(x)
+		dec(y)
+		return r
+	}
 	switch xt {
 	case N + 1:
 		if yn != 1 {
 			panic("valence") // TODO projection
 		}
-		f := table[m.k[2+x]].(func(k) k)
+		f := table[code].(func(k) k)
 		r = f(inc(m.k[2+y]))
 	case N + 2:
 		if yn != 2 {
 			panic("valence") // TODO projection
 		}
-		f := table[m.k[2+x]].(func(k, k) k)
+		f := table[code].(func(k, k) k)
 		r = f(inc(m.k[2+y]), inc(m.k[3+y]))
 	default:
 		panic("nyi")
@@ -1980,46 +2039,25 @@ func lambda(x, y k) (r k) { // call lambda
 	dec(x)
 	return r
 }
-func match(x, y k) (rv bool) { // recursive match
-	if x == y {
-		return true
+func qot(x k) (r k) { return drv(0, x) } // '
+func sla(x k) (r k) { // /
+	// TODO: as verb: div
+	t, _ := typ(x)
+	if t < N+1 {
+		panic("nyi div")
 	}
-	t, n := typ(x)
-	tt, nn := typ(y)
-	if tt != t || nn != n {
-		return false
-	}
-	if n == atom {
-		n = 1
-	}
-	switch t {
-	case L:
-		for j := k(0); j < n; j++ {
-			if match(m.k[2+x+j], m.k[2+y+j]) == false {
-				return false
-			}
-		}
-		return true
-	case D:
-		if match(m.k[2+x], m.k[2+y]) == false || match(m.k[3+x], m.k[3+y]) == false {
-			return false
-		}
-		return true
-	default:
-		eq := eqx[t]
-		if eq == nil {
-			panic("type")
-		}
-		x, y = ptr(x, t), ptr(y, t)
-		for j := k(0); j < n; j++ {
-			if eq(x+j, y+j) == false {
-				return false
-			}
-		}
-		return true
-	}
-	return false
+	return drv(1, x)
 }
+func bsl(x k) (r k) { return drv(2, x) } // \
+func drv(op k, x k) (r k) { // derived function
+	r = mk(N+1, atom)
+	m.k[2+r] = (30 + op) << 8 // op: 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
+	m.k[3+r] = x
+	return x
+}
+func ech(f, x k) (r k) { panic("nyi") } // f'
+func ovr(f, x k) (r k) { panic("nyi") } // f/
+func scn(f, x k) (r k) { panic("nyi") } // f\
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt > S || xn == atom {
@@ -2216,15 +2254,14 @@ var l8t = [256]c{
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
 
-var table [100]interface{} // function table :+-*%&|<>=!~,^#_$?@.01234
+var table [100]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 func init() {
-	// 0-19 monads, 20-39 dyads, 40-49 ioverbs, 50-... built-ins
 	table = [100]interface{}{
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ech, ovr, scn, nil, nil, nil,
+		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, nil, nil, nil, nil, nil, nil,
+		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,
 	}
 }

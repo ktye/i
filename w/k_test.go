@@ -31,6 +31,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		//{"+/1 2 3", "6"},
 		{"1", "1"},
 		{"`a", "`a"},
 		{"`a`b", "`a`b"},

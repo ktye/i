@@ -40,7 +40,8 @@ Function codes
   0-19 monadic primitives :+-*%&|<>=!~,^#_$?@.
  20-29 monadic ioverbs 0123456789
  30-32 monadic operator functions '/\
- 33-49 monadic builtins
+ 33-38 monadic derived functions f' f/ f\ f': f/: f\:
+ 39-49 monadic builtins
  50-99 dyadic versions
  100.. internal functions (wasm only)
  
@@ -54,8 +55,10 @@ Functions have type N+1…N+4 (valence)
  projection: length 1(over atoms) 2(over basic/builtins)
   x+2 function code or pointer to lambda function
   x+3 full argument list with holes (`N)
-Adverbs have type N+1, are atoms with function code > 256
-  adverb code is -1+code>>8: ' / \ ': /: \:
+ derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
+  x+2 derived function code<<8
+  x+3 points to the function operand
+ call will adjust the valence if a derived function has two arguments
 
 Wasm reference
  webassembly.github.io/wabt/demo/wat2wasm (interactive)
