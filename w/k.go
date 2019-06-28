@@ -2099,29 +2099,12 @@ func ovr(f, x k) (r k) { // f/x
 	return ovi(f, fst(take(1, 0, inc(x))), drop(1, x))
 }
 func ovi(f, x, y k) (r k) { // x f/y
-	t, yt, xn, yn := typs(x, y)
+	// TODO: direct version for numeric types and basic functions
+	yn := m.k[y] & atom
 	if yn == atom {
 		panic("class")
-	} else if yt > t {
-		t = yt
-		x = to(x, t)
-	} else if yt < t {
-		y = to(y, t)
 	}
-	cp, xp := cpx[t], ptr(x, t)
-	if m.k[1+x] == 1 {
-		r = x
-	} else {
-		r = mk(t, xn)
-		if xn == atom {
-			xn = 1
-		}
-		rp := ptr(r, t)
-		for i := k(0); i < xn; i++ {
-			cp(rp+i, xp+i)
-		}
-		dec(x)
-	}
+	r = x
 	l := mk(L, 2)
 	for i := k(0); i < yn; i++ {
 		m.k[1+l]++
