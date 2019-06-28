@@ -164,16 +164,25 @@ func ini() { // start function
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	m.k[0x2d] = mk(S, 0) // k-tree keys
 	m.k[0x2e] = mk(L, 0) // k-tree values
-	m.k[3] = mk(S, 6)
-	builtin([]c("in"), 0)
-	builtin([]c("within"), 1)
-	builtin([]c("bin"), 2)
-	builtin([]c("like"), 3)
-	builtin([]c("del"), 4)
-	builtin([]c("help"), 5)
-	// TODO: size vector
+	m.k[3] = mk(D, atom)
+	m.k[2+m.k[3]] = mk(S, 0)
+	m.k[3+m.k[3]] = mk(C, 0)
+	o := c(33) // monads
+	builtin(o+5, "help")
+	o += 50 // dyads
+	builtin(o+0, "in")
+	builtin(o+1, "within")
+	builtin(o+2, "bin")
+	builtin(o+3, "like")
+	builtin(o+4, "del")
 }
-func builtin(b []c, at k) { mys(8+8*at+m.k[3]<<2, btou(b)) }
+func builtin(code c, s string) {
+	key, val := mk(S, atom), mk(C, 1)
+	mys(8+key<<2, btou([]byte(s)))
+	m.c[8+val<<2] = code
+	m.k[2+m.k[3]] = cat(m.k[2+m.k[3]], key)
+	m.k[3+m.k[3]] = cat(m.k[3+m.k[3]], val)
+}
 func msl() { // update slice header after increasing m.f
 	f := *(*slice)(unsafe.Pointer(&m.f))
 	i := *(*slice)(unsafe.Pointer(&m.k))
@@ -234,7 +243,9 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	m.k[a+1] = 1       // refcount
 	return a
 }
-
+func mki(i k) (r k) { r = mk(I, atom); m.k[2+r] = i; return r }
+func mkc(c c) (r k) { r = mk(C, atom); m.c[8+r<<2] = c; return r }
+func mks(s s) (r k) { r = mk(S, atom); mys(8+r<<2, btou([]c(s))); return r }
 func typ(x k) (k, k) { // type and length at addr
 	return m.k[x] >> 28, m.k[x] & atom
 }
@@ -954,27 +965,25 @@ func str(x k) (r k) { // $x
 			r = mk(C, 0)
 		case N + 1, N + 2, N + 3, N + 4:
 			f := m.k[2+x]
-			if f < 20 { // monad +:
+			if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
+				r = inc(m.k[2+x]) // `C
+			} else if (f > 33 && f < 50) || (f >= 83 && f < 100) { // built-ins
+				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
+			} else if f < 33 { // monad +: 3: /:
 				r = mk(C, 2)
 				m.c[8+r<<2] = m.c[136+m.k[2+x]]
 				m.c[9+r<<2] = ':'
-			} else if f < 40 { // dyad *
-				r = mk(C, 1)
-				m.c[8+r<<2] = m.c[136+m.k[2+x]-20]
-			} else if f < 50 { // ioverb 4:
+			} else if f >= 70 && f < 80 { // dyadic ioverb 3:
 				r = mk(C, 2)
-				m.c[8+r<<2] = '0' + c(f-40)
+				m.c[8+r<<2] = '0' + c(f-70)
 				m.c[9+r<<2] = ':'
-			} else if n == atom { // builtin
-				idx := mk(I, atom)
-				m.k[2+idx] = f - 50
-				r = str(atx(inc(m.k[3]), idx))
-			} else if n < 2 { // 0(lambda), 1(lambda-projection)
-				r = inc(m.k[2+x]) // `C
+			} else if f > 49 && f < 83 { // dyad * /
+				r = mk(C, 1)
+				m.c[8+r<<2] = m.c[136+m.k[2+x]-50]
 			}
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
-				if f < 40 && m.k[m.k[3+a]]>>28 == N {
+				if n == 2 && f < 100 && m.k[m.k[3+a]]>>28 == N {
 					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
 				} else {
 					a = kst(inc(a))   // arg list
@@ -1082,7 +1091,7 @@ func evl(x k) (r k) { // .x
 			v = lup(v)
 			vt, _ = typ(v)
 		}
-		if vt > N && m.k[2+v] == 20 { // ':'
+		if vt > N && m.k[2+v] == 50 { // ':'
 			if n != 3 {
 				panic("nyi modified assignment")
 			}
@@ -1909,7 +1918,7 @@ func cal(x, y k) (r k) { // x.y
 		} else {
 			r = mk(N+1, atom)
 			m.k[2+r] = f
-			if f >= 20 {
+			if f >= 50 {
 				m.k[r] = (N+2)<<28 | atom
 			}
 		}
@@ -2188,34 +2197,8 @@ func hlp(x k) (r k) {
 	r = mk(C, n)
 	rc := 8 + r<<2
 	copy(m.c[rc:rc+n], m.c[136:163])
-	return cat(r, kst(inc(m.k[3])))
+	return cat(r, kst(inc(m.k[2+m.k[3]])))
 }
-
-/* TODO
-func asn(x, y k) (r k) { return assign(x, 0, 0, y) } // assign
-func assign(x, idx, f, y k) (r k) {
-	if idx != 0 || f != 0 {
-		panic("nyi")
-	}
-	if t, n := typ(x); t != S || n != atom {
-		panic("type")
-	}
-	d := m.k[3]
-	eq, keys, vals := eqx[t], m.k[2+d], m.k[3+d]
-	kn, kp, vp := m.k[keys]&atom, ptr(keys, S), ptr(vals, L)
-	for i := k(0); i < nk; i++ {
-		if eq(kp+i, x) {
-			dec(m.k[2+vals+i])
-			m.k[2+vals+i] = inc(y)
-			dec(x)
-			return y
-		}
-	}
-	m.k[2+d] = cat(keys, x)
-	m.k[3+d] = cat(vals, inc(y))
-	return y
-}
-*/
 
 func hxb(x c) (c, c) { h := "0123456780abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
@@ -2253,15 +2236,15 @@ var l8t = [256]c{
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
 
-var table []interface{} // function table :+-*%&|<>=!~,^#_$?@.01234
+var table [100]interface{} // function table :+-*%&|<>=!~,^#_$?@.01234
 func init() {
 	// 0-19 monads, 20-39 dyads, 40-49 ioverbs, 50-... built-ins
-	for _, f := range []interface{}{
+	table = [100]interface{}{
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, hlp, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-		nil, nil, bin, nil, del, hlp,
-	} {
-		table = append(table, f)
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 	}
 }

@@ -439,10 +439,10 @@ func TestKst(t *testing.T) {
 		{nil, ``},
 		{uint16(0), `::`},
 		{uint16(1), `+:`},
-		{uint16(20), `:`},
-		{uint16(39), `.`},
-		{uint16(40), `0:`},
-		{uint16(44), `4:`},
+		{uint16(50), `:`},
+		{uint16(69), `.`},
+		{uint16(70), `0:`},
+		{uint16(74), `4:`},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%v ?= %q\n", tc.x, tc.s)
@@ -513,9 +513,9 @@ func TestStr(t *testing.T) {
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
-	// (block 0) + (list of built-ins) + (k-tree keys) + (k-tree values) + number of variables
+	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v) + number of variables
 	// vars := m.k[m.k[0x2d]] & atom
-	if u := Stats().UsedBlocks(); u != 4 {
+	if u := Stats().UsedBlocks(); u != 6 {
 		xxd()
 		t.Fatalf("leak: %d", u)
 	}

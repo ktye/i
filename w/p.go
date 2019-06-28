@@ -160,8 +160,8 @@ func (p *p) noun() (r k) {
 	case p.t(sHex):
 		r = p.a(pHex)
 		return p.idxr(r)
-	case p.t(sIvb):
-		return p.idxr(p.a(pVrb))
+	case p.t(sIov):
+		return p.idxr(p.a(pIov))
 	case p.t(sNum):
 		r = p.a(pNum)
 		for p.t(sNum) {
@@ -251,8 +251,8 @@ func (p *p) adv(x, v k) (r k) {
 	vn := m.k[v] & atom
 	a := p.a(pAdv)
 	if p.t(sAdv) {
-		b := p.p(sAdv)
-		if f := m.k[2+v]; xn == atom {
+		b := p.a(pAdv)
+		if f := m.k[2+v]; vn == atom {
 			if f >= 20 && f < 40 {
 				m.k[2+v] -= 20 // force monad for derived primitive (reflite p131)
 				m.k[v] = (N+1)<<28 | atom
@@ -263,7 +263,7 @@ func (p *p) adv(x, v k) (r k) {
 	}
 	y := p.ex(p.noun())
 	if x == 0 {
-		return lcat(mk(L, 0), lcat(lcat(mk(L, 0), a), v), r) // ((a;v);r)
+		return lcat(lcat(mk(L, 0), lcat(lcat(mk(L, 0), a), v)), r) // ((a;v);r)
 	}
 	r = mk(L, 3) // ((a;v);x;y)
 	m.k[2+r] = lcat(lcat(mk(L, 0), a), v)
@@ -277,8 +277,8 @@ func monad(x k) (r k) { // force monad
 		return x
 	} else if t == N+2 {
 		r = mk(N+1, atom)
-		m.k[2+r] = m.k[2+x] - 20
-		if m.k[2+x] > 39 {
+		m.k[2+r] = m.k[2+x] - 50
+		if m.k[2+x] > 99 {
 			panic("parse monad")
 		}
 		dec(x)
@@ -412,9 +412,9 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 func pVrb(b []byte) (r k) {
 	for i := k(0); i < 25; i++ { // :+-*%&|<>=!~,^#_$?@.01234
 		if b[0] == m.c[i+136] {
-			if len(b) == 1 || i > 19 {
+			if len(b) == 1 || i > 49 {
 				r = mk(N+2, atom)
-				m.k[2+r] = k(i) + 20
+				m.k[2+r] = k(i) + 50
 			} else {
 				r = mk(N+1, atom)
 				m.k[2+r] = k(i)
@@ -423,6 +423,11 @@ func pVrb(b []byte) (r k) {
 		}
 	}
 	panic("pVrb")
+}
+func pIov(b []byte) (r k) {
+	r = mk(N+2, atom)
+	m.k[2+r] = 70 + k(b[0]-'0') // ioverb parses always as `2
+	return r
 }
 func pAdv(b []byte) (r k) {
 	f := k(1)
@@ -441,19 +446,18 @@ func pAdv(b []byte) (r k) {
 func pBin(b []byte) (r k) { // builtin
 	x := mk(S, atom)
 	mys(8+x<<2, btou(b))
-	x = wer(eql(inc(m.k[3]), x))
-	_, xn := typ(x)
-	if xn != 1 {
+	x = atx(inc(m.k[3]), x)
+	if xt, xn := typ(x); xt != C && xn != atom {
 		panic("parse builtin")
 	}
-	n := m.k[2+x]
-	dec(x)
-	if n > 3 { // TODO: find a better rule
+	if f := m.c[8+x<<2]; f < 50 {
 		r = mk(N+1, atom)
+		m.k[2+r] = k(f)
 	} else {
 		r = mk(N+2, atom)
+		m.k[2+r] = k(f)
 	}
-	m.k[2+r] = 50 + n
+	dec(x)
 	return r
 }
 
@@ -575,7 +579,7 @@ func sSem(b []byte) int {
 	}
 	return 0
 }
-func sIvb(b []byte) int { // ioverb 0: .. 4:
+func sIov(b []byte) int { // ioverb 0: .. 4:
 	if len(b) > 1 && b[1] == ':' && b[0] >= '0' && b[0] <= '4' {
 		return 2
 	}
@@ -590,8 +594,8 @@ func sVrb(b []byte) int {
 	}
 	return 0
 }
-func sVrb(b []byte) {
-	if c := b[0]; c == '/' || c == '\\' || c == '\'' {
+func sAdv(b []byte) int {
+	if cAdv(b[0]) {
 		if len(b) > 1 && b[1] == ':' {
 			return 2
 		}
@@ -602,7 +606,7 @@ func sBin(b []byte) int { // builtin
 	if b[0] < 'a' || b[0] > 'z' {
 		return 0
 	}
-	x := m.k[3]
+	x := til(inc(m.k[3]))
 	_, n := typ(x)
 	xp, max := 8+x<<2, k(len(b))
 	for i := k(0); i < n; i++ {
@@ -619,6 +623,7 @@ func sBin(b []byte) int { // builtin
 			}
 		}
 	}
+	dec(x)
 	return 0
 }
 func sObr(b []byte) int { return ib(b[0] == '[') }
@@ -635,6 +640,12 @@ func cOps(c c) bool {
 		if c == b {
 			return true
 		}
+	}
+	return cAdv(c)
+}
+func cAdv(c c) bool {
+	if c == '\'' || c == '/' || c == '\\' {
+		return true
 	}
 	return false
 }
