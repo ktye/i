@@ -111,10 +111,9 @@ func (p *p) xx() {
 func (p *p) ex(x k) (r k) {
 	t, _ := typ(x)
 	switch t {
-	//TODO adverb
 	case N:
 		return x
-	case N + 1, N + 2:
+	case N + 1, N + 2, N + 3, N + 4:
 		if p.t(sAdv) {
 			return p.adv(0, x)
 		}
@@ -130,6 +129,9 @@ func (p *p) ex(x k) (r k) {
 		return r
 	default:
 		a := p.noun()
+		if p.t(sAdv) {
+			return p.adv(x, a)
+		}
 		at, _ := typ(a)
 		if at == N {
 			dec(a)
@@ -149,7 +151,7 @@ func (p *p) ex(x k) (r k) {
 			m.k[4+r] = y
 			return r
 		} else if p.t(sAdv) {
-			return p.adv(a, x)
+			return p.adv(x, a)
 		}
 		panic("nyi") // TODO l{a, p.ex(a)}
 	}
@@ -246,23 +248,25 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 	p.p = p.m
 	return r
 }
-func (p *p) adv(x, v k) (r k) {
-	vn := m.k[v] & atom
+func (p *p) adv(x, v k) (r k) { // x(left arg) v(verb)
+	vt, vn := typ(v)
 	a := p.a(pAdv)
 	if p.t(sAdv) {
 		b := p.a(pAdv)
-		if f := m.k[2+v]; vn == atom {
-			if f >= 20 && f < 40 {
-				m.k[2+v] -= 20 // force monad for derived primitive (reflite p131)
-				m.k[v] = (N+1)<<28 | atom
-			}
+		if vt == N+2 && vn == atom && m.k[2+v] < 83 { // force monad ambivalent primitive (reflite p131)
+			m.k[v] = (N+1)<<28 | atom
+			m.k[2+v] -= 50
 		}
 		v, vn = lcat(lcat(mk(L, 0), a), v), 0
 		a = b
 	}
 	y := p.ex(p.noun())
 	if x == 0 {
-		return lcat(lcat(mk(L, 0), lcat(lcat(mk(L, 0), a), v)), r) // ((a;v);r)
+		if yt, _ := typ(y); yt == N {
+			dec(y)
+			return lcat(lcat(mk(L, 0), a), v) // (a;v)
+		}
+		return lcat(lcat(mk(L, 0), lcat(lcat(mk(L, 0), a), v)), y) // ((a;v);y)
 	}
 	r = mk(L, 3) // ((a;v);x;y)
 	m.k[2+r] = lcat(lcat(mk(L, 0), a), v)
@@ -403,7 +407,7 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 	return srk(r, C, k(len(b)-2), k(p-(8+r<<2)))
 }
 func pVrb(b []byte) (r k) {
-	for i := k(0); i < 25; i++ { // :+-*%&|<>=!~,^#_$?@.01234
+	for i := k(0); i < 34; i++ { // :+-*%&|<>=!~,^#_$?@.0123456789'/\
 		if b[0] == m.c[i+136] {
 			if len(b) == 1 || i > 49 {
 				r = mk(N+2, atom)
@@ -423,9 +427,9 @@ func pIov(b []byte) (r k) {
 	return r
 }
 func pAdv(b []byte) (r k) {
-	f := k(1)
+	f := k(80)
 	if len(b) > 1 {
-		f = 4
+		f -= 50
 	}
 	if b[0] == '/' {
 		f++
@@ -433,7 +437,7 @@ func pAdv(b []byte) (r k) {
 		f += 2
 	}
 	r = mk(N+1, atom)
-	m.k[2+r] = f << 8
+	m.k[2+r] = f
 	return r
 }
 func pBin(b []byte) (r k) { // builtin
@@ -591,6 +595,7 @@ func sAdv(b []byte) int {
 		if len(b) > 1 && b[1] == ':' {
 			return 2
 		}
+		return 1
 	}
 	return 0
 }

@@ -160,8 +160,8 @@ func ini() { // start function
 		m.k[p] = k(i)
 	}
 	m.k[0] = (I << 28) | 31
-	copy(m.c[136:163], []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`))
-	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
+	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
+	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	m.k[kkey] = mk(S, 0) // k-tree keys
 	m.k[kval] = mk(L, 0) // k-tree values
 	m.k[3] = mk(D, atom)
@@ -1034,7 +1034,7 @@ func tip(x k) (r k) { // @x
 	r = mku(0)
 	t, n := typ(x)
 	dec(x)
-	s := m.c[164+t]
+	s := m.c[169+t]
 	if n != atom && t < L && s != 0 {
 		s -= 32
 	}
@@ -1304,15 +1304,12 @@ func kst(x k) (r k) { // `k@x
 		}
 		y := mk(C, 1)
 		m.c[8+y<<2] = ';'
-		ix := mk(I, atom)
 		for i := k(0); i < n; i++ {
-			m.k[2+ix] = i
-			r = cat(r, kst(atx(inc(x), inc(ix))))
+			r = cat(r, kst(inc(m.k[2+i+x])))
 			if i < n-1 {
 				r = cat(r, inc(y))
 			}
 		}
-		dec(ix)
 		if n != 1 {
 			m.c[8+y<<2] = ')'
 			r = cat(r, y)
@@ -1339,7 +1336,7 @@ func kst(x k) (r k) { // `k@x
 		m.c[8+y<<2] = '!'
 		r = cat(r, y)
 		r = cat(r, kst(inc(m.k[x+3])))
-	case N, N + 1, N + 2:
+	case N, N + 1, N + 2, N + 3, N + 4:
 		r = str(inc(x))
 	default:
 		println("kst t/n", t, n)
@@ -1758,7 +1755,7 @@ func cst(x, y k) (r k) { // x$y
 		panic("type")
 	}
 	s := c(sym(8+x<<2) >> 56)
-	t, o := k(0), k(164)
+	t, o := k(0), k(169)
 	for i := o; i < o+15; i++ {
 		if s == m.c[i] {
 			t = i - o
@@ -2176,10 +2173,10 @@ func lsv(x k) (r k) { dec(x); return inc(m.k[kkey]) }       // \v (list variable
 func clv(x k) (r k) { dec(x); clear(); return mk(N, atom) } // \c (clear variables)
 func hlp(x k) (r k) {
 	dec(x)
-	n := k(163 - 136)
+	n := k(168 - 136)
 	r = mk(C, n)
 	rc := 8 + r<<2
-	copy(m.c[rc:rc+n], m.c[136:163])
+	copy(m.c[rc:rc+n], m.c[136:168])
 	return cat(r, kst(inc(m.k[2+m.k[3]])))
 }
 
