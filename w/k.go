@@ -168,6 +168,8 @@ func ini() { // start function
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	o := c(33) // monads
+	builtin(o+0, "lsv")
+	builtin(o+1, "clv")
 	builtin(o+5, "help")
 	o += 50 // dyads
 	builtin(o+0, "in")
@@ -2165,24 +2167,13 @@ func del(x k) (r k) { // delete variable
 	return mk(N, atom)
 }
 func clear() { // clear variables
-	// TODO rework
-	n := m.k[m.k[kkey]] & atom
-	if n == 0 {
-		return
-	}
-	idx := mk(I, atom)
-	for i := int(n - 1); i >= 0; i-- {
-		m.k[2+idx] = k(i)
-		dec(del(atx(inc(m.k[kkey]), inc(idx))))
-	}
-	dec(idx)
-	/*
-		m.k[0x2e+1]++  // inc before dec for not freeing the var list
-		dec(m.k[0x2e]) // dec all variables
-		m.k[0x2d] = srk(m.k[0x2d], S, n, 0)
-		m.k[0x2e] = srk(m.k[0x2e], L, n, 0)
-	*/
+	dec(m.k[kkey])
+	dec(m.k[kval]) // m.k[kkey] and m.k[kval] should not be free blocks
+	m.k[kkey] = mk(S, 0)
+	m.k[kval] = mk(L, 0)
 }
+func lsv(x k) (r k) { dec(x); return inc(m.k[kkey]) }       // \v (list variables)
+func clv(x k) (r k) { dec(x); clear(); return mk(N, atom) } // \c (clear variables)
 func hlp(x k) (r k) {
 	dec(x)
 	n := k(163 - 136)
@@ -2234,7 +2225,7 @@ func init() {
 	table = [100]interface{}{
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-		nil, nil, nil, nil, nil, hlp, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,

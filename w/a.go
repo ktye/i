@@ -53,6 +53,10 @@ func cmd(b []byte) []byte {
 		return b
 	}
 	switch b[1] {
+	case 'v':
+		return []c("lsv 0\n")
+	case 'c':
+		return []c("clv 0\n")
 	case 'h':
 		return []c("help 0\n")
 	case '\\':
