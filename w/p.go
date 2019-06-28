@@ -153,7 +153,7 @@ func (p *p) ex(x k) (r k) {
 		} else if p.t(sAdv) {
 			return p.adv(x, a)
 		}
-		panic("nyi") // TODO l{a, p.ex(a)}
+		return lcat(lcat(mk(L, 0), x), p.ex(a)) // (x;…) e.g. `p".."
 	}
 }
 func (p *p) noun() (r k) {

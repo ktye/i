@@ -223,7 +223,6 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	fb, a := k(0), k(0)
 	for i := bt; i < 31; i++ { // find next free bucket >= bt
 		if k(i) >= m.k[2] {
-			panic("grow")
 			grw() // TODO: run a gc cycle (merge blocks) before growing?
 		}
 		if m.k[i] != 0 {
@@ -270,7 +269,9 @@ func inc(x k) k {
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
-		if n == 0 { // lambda
+		if n == atom && m.k[2+x] > 255 { // derived
+			inc(m.k[3+x])
+		} else if n == 0 { // lambda
 			inc(m.k[2+x])
 			inc(m.k[3+x])
 		} else if n != atom { // projection
@@ -336,10 +337,12 @@ func dec(x k) {
 		dec(m.k[2+x])
 		dec(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
-		if n == 0 { // lambda
+		if n == atom && m.k[2+x] > 255 { // derived
+			dec(m.k[3+x])
+		} else if n == 0 { // lambda
 			dec(m.k[2+x])
 			dec(m.k[3+x])
-		} else if n != atom { // projection
+		} else if n != atom { // projection n: 1 or 2
 			if n == 1 { // lambda-projection
 				dec(m.k[2+x])
 			}
@@ -1056,7 +1059,7 @@ func evl(x k) (r k) { // .x
 		panic("evl empty list?") // what TODO?
 	}
 	v := m.k[2+x]
-	vt, _ := typ(v)
+	vt, vn := typ(v)
 	if vt == S {
 		if n == 1 { // ,`a`b → `a`b
 			inc(v)
@@ -1084,9 +1087,9 @@ func evl(x k) (r k) { // .x
 		return uf(r)
 	default:
 		inc(v)
-		if vt == S {
+		if vt == S && vn == atom {
 			v = lup(v)
-			vt, _ = typ(v)
+			vt, vn = typ(v)
 		}
 		if vt > N && m.k[2+v] == 50 { // ':'
 			if n != 3 {
@@ -1103,9 +1106,8 @@ func evl(x k) (r k) { // .x
 		}
 		dec(x)
 		v = evl(v)
-		vt, _ := typ(v)
-		// TODO: upgrade derived N+1 in case of 2 args
-		if vt > N {
+		vt, vn := typ(v)
+		if vt > N && !(vn == atom && vt == N+1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
 			if n-1 > vt-N {
 				panic("args") // too many arguments
 			}
@@ -1739,6 +1741,9 @@ func drp(x, y k) (r k) { // x_y
 }
 func drop(x i, y k) (r k) { // integer index; does not unify
 	t, yn := typ(y)
+	if yn == atom {
+		panic("type")
+	}
 	n, neg, o := k(x), false, k(x)
 	if x < 0 {
 		n, neg, o = k(-x), true, 0
@@ -1851,8 +1856,22 @@ func fnd(x, y k) (r k) { // x?y
 }
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
-	if xn == atom && xt != D {
-		panic("type") // TODO overloads
+	if xn == atom && xt == S {
+		x = str(x)
+		if m.k[x]&atom != 1 {
+			panic("class")
+		}
+		dec(x)
+		switch m.c[8+x<<2] {
+		case 'p':
+			return prs(y)
+		case 'k':
+			return kst(y)
+		default:
+			panic("class")
+		}
+	} else if xn == atom && xt != D {
+		panic("type")
 	}
 	switch {
 	case xt < L && yt == I:
@@ -1967,10 +1986,10 @@ func cal(x, y k) (r k) { // x.y
 		switch yn {
 		case 1:
 			f := table[code].(func(k, k) k)
-			r = f(inc(m.k[2+x]), inc(m.k[2+y]))
+			r = f(inc(m.k[3+x]), inc(m.k[2+y]))
 		case 2:
 			f := table[code+50].(func(k, k, k) k)
-			r = f(inc(m.k[2+x]), inc(m.k[2+y]), inc(m.k[3+y]))
+			r = f(inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y]))
 		default:
 			panic("valence")
 		}
@@ -2051,12 +2070,71 @@ func sla(x k) (r k) { // /
 func bsl(x k) (r k) { return drv(2, x) } // \
 func drv(op k, x k) (r k) { // derived function
 	r = mk(N+1, atom)
-	m.k[2+r] = (30 + op) << 8 // op: 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
+	m.k[2+r] = (33 + op) << 8 // op: 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
 	m.k[3+r] = x
-	return x
+	return r
 }
-func ech(f, x k) (r k) { panic("nyi") } // f'
-func ovr(f, x k) (r k) { panic("nyi") } // f/
+func ech(f, x k) (r k) { panic("nyi") } // f'x
+func ovr(f, x k) (r k) { // f/x
+	t, n := typ(x)
+	if t == D {
+		r = inc(m.k[3+x])
+		dec(x)
+		x = r
+		t, n = typ(x)
+	}
+	if t > L {
+		panic("type")
+	}
+	if n == atom {
+		x = enl(x)
+	}
+	if n == 0 { // TODO: k7 returns special values for empty arrays
+		dec(f)
+		return x
+	} else if n == 1 {
+		dec(f)
+		return fst(x)
+	}
+	return ovi(f, fst(take(1, 0, inc(x))), drop(1, x))
+}
+func ovi(f, x, y k) (r k) { // x f/y
+	t, yt, xn, yn := typs(x, y)
+	if yn == atom {
+		panic("class")
+	} else if yt > t {
+		t = yt
+		x = to(x, t)
+	} else if yt < t {
+		y = to(y, t)
+	}
+	cp, xp := cpx[t], ptr(x, t)
+	if m.k[1+x] == 1 {
+		r = x
+	} else {
+		r = mk(t, xn)
+		if xn == atom {
+			xn = 1
+		}
+		rp := ptr(r, t)
+		for i := k(0); i < xn; i++ {
+			cp(rp+i, xp+i)
+		}
+		dec(x)
+	}
+	l := mk(L, 2)
+	for i := k(0); i < yn; i++ {
+		m.k[1+l]++
+		m.k[2+l] = r
+		m.k[3+l] = atx(inc(y), mki(i))
+		r = cal(inc(f), l)
+	}
+	m.k[l] = I<<28 | 2 // prevent recursive dec
+	dec(l)
+	dec(y)
+	dec(f)
+	return r
+}
 func scn(f, x k) (r k) { panic("nyi") } // f\
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
@@ -2257,11 +2335,12 @@ var l8t = [256]c{
 var table [100]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 func init() {
 	table = [100]interface{}{
+		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ech, ovr, scn, nil, nil, nil,
 		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, nil, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, nil, ovi, nil, nil, nil, nil,
 		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,
 	}
 }
