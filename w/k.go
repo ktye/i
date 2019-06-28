@@ -14,7 +14,7 @@ type s = string
 
 const (
 	C, I, F, Z, S, L, D, N k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom                   k = 0x0fffffff
+	atom, kkey, kval       k = 0x0fffffff, 0x30, 0x31
 	NaI                    i = -2147483648
 )
 
@@ -162,8 +162,8 @@ func ini() { // start function
 	m.k[0] = (I << 28) | 31
 	copy(m.c[136:163], []c(`:+-*%&|<>=!~,^#_$?@.01234'/\`))
 	copy(m.c[164:176], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-	m.k[0x2d] = mk(S, 0) // k-tree keys
-	m.k[0x2e] = mk(L, 0) // k-tree values
+	m.k[kkey] = mk(S, 0) // k-tree keys
+	m.k[kval] = mk(L, 0) // k-tree values
 	m.k[3] = mk(D, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
@@ -767,10 +767,7 @@ func asc(x k) (r k) { // <x
 	if n == atom || t >= L { // k7 also sorts lists of different numeric types
 		panic("type")
 	}
-	a := mk(I, atom)
-	m.k[2+a] = n
-	r = til(a)
-
+	r = til(mki(n))
 	lt, sw := ltx[t], swI
 	src, ind, dst := ptr(x, t), 2+r, ptr(r, I)
 	for i := k(1); i < n; i++ { // insertion sort, should be replaced
@@ -911,15 +908,13 @@ func enlist(x k) (r k) { // dont unify
 func srt(x k) (r k) { return atx(x, asc(inc(x))) } // ^x  TODO: replace with a sort implementation
 func cnt(x k) (r k) { // #x
 	t, n := typ(x)
-	r = mk(I, atom)
 	if t == D {
 		_, n = typ(m.k[x+2])
 	} else if n == atom {
 		n = 1
 	}
-	m.k[2+r] = k(i(n))
 	dec(x)
-	return r
+	return mki(k(i(n)))
 }
 func flr(x k) k { // _x
 	return nm(x, I, []f1{nil, func(r, x k) { m.c[r] = m.c[x] }, func(r, x k) { m.k[r] = m.k[x] }, func(r, x k) {
@@ -2115,15 +2110,15 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return r
 }
 func asn(x, y k) (r k) { // `x:y
-	keys, vals := m.k[0x2d], m.k[0x2e]
+	keys, vals := m.k[kkey], m.k[kval]
 	if ix, exists := varn(ptr(x, S)); exists {
 		dec(m.k[2+vals+ix])
 		m.k[2+vals+ix] = inc(y)
 		dec(x)
 		return y
 	} else {
-		m.k[0x2d] = insert(keys, x, ix)
-		m.k[0x2e] = insert(vals, inc(y), ix)
+		m.k[kkey] = insert(keys, x, ix)
+		m.k[kval] = insert(vals, inc(y), ix)
 		return y
 	}
 }
@@ -2140,13 +2135,13 @@ func lupo(x k) (r k) { // lup, 0 on undefined
 		dec(x)
 		return 0
 	}
-	vals := m.k[0x2e]
+	vals := m.k[kval]
 	r = inc(m.k[2+vals+ix])
 	dec(x)
 	return r
 }
 func varn(xp k) (idx k, exists bool) {
-	keys := m.k[0x2d]
+	keys := m.k[kkey]
 	kp := ptr(keys, S)
 	kn := m.k[keys] & atom
 	ix := ibin(kp, S, kn, xp, ltS)
@@ -2155,7 +2150,7 @@ func varn(xp k) (idx k, exists bool) {
 	}
 	return ix, ix < kn && eqS(kp+ix, xp)
 }
-func vars(dummy k) (r k) { dec(dummy); return inc(m.k[0x2d]) }
+func vars(dummy k) (r k) { dec(dummy); return inc(m.k[kkey]) }
 func del(x k) (r k) { // delete variable
 	t, n := typ(x)
 	if t != S {
@@ -2166,22 +2161,23 @@ func del(x k) (r k) { // delete variable
 	xp := ptr(x, S)
 	for i := k(0); i < n; i++ {
 		if idx, o := varn(xp + i); o {
-			m.k[0x2d] = unsert(m.k[0x2d], idx)
-			m.k[0x2e] = unsert(m.k[0x2e], idx)
+			m.k[kkey] = unsert(m.k[kkey], idx)
+			m.k[kval] = unsert(m.k[kval], idx)
 		}
 	}
 	dec(x)
 	return mk(N, atom)
 }
 func clear() { // clear variables
-	n := m.k[m.k[0x2d]] & atom
+	// TODO rework
+	n := m.k[m.k[kkey]] & atom
 	if n == 0 {
 		return
 	}
 	idx := mk(I, atom)
 	for i := int(n - 1); i >= 0; i-- {
 		m.k[2+idx] = k(i)
-		dec(del(atx(inc(m.k[0x2d]), inc(idx))))
+		dec(del(atx(inc(m.k[kkey]), inc(idx))))
 	}
 	dec(idx)
 	/*

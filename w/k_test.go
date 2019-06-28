@@ -514,7 +514,7 @@ func TestStr(t *testing.T) {
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
 	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v) + number of variables
-	// vars := m.k[m.k[0x2d]] & atom
+	// vars := m.k[m.k[kkey]] & atom
 	if u := Stats().UsedBlocks(); u != 6 {
 		xxd()
 		t.Fatalf("leak: %d", u)
