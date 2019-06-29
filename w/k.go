@@ -454,18 +454,21 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	}
 	return r
 }
+func ntyps(xt, yt k, fx []f2, fc []fc) (t k) {
+	if yt > t {
+		xt = yt
+	}
+	if xt == C && fc == nil && fx[C] == nil {
+		xt = I
+	}
+	if (xt == I && fc == nil && fx[I] == nil) || (xt == Z && fc == nil && fx[Z] == nil) {
+		xt = F
+	}
+	return xt
+}
 func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
-	t, n, sc := xt, xn, k(0)
-	if yt > t {
-		t = yt
-	}
-	if t == C && fc == nil && fx[C] == nil {
-		t = I
-	}
-	if (t == I && fc == nil && fx[I] == nil) || (t == Z && fc == nil && fx[Z] == nil) {
-		t = F
-	}
+	t, n, sc := ntyps(xt, yt, fx, fc), xn, k(0)
 	if xt < L && yt < L {
 		if xn == atom {
 			n, sc = yn, 1
@@ -2116,31 +2119,57 @@ func ovi(f, x, y k) (r k) { // x f/y
 	dec(f)
 	return r
 }
-func scal(x, y, f k, g func(k, k, k, k, k, f2, fc) k) k {
-	if m.k[2]&atom != atom || m.k[2+f] > 255 { // basic function
+func scal(x, y, f k, g func(k, k, k, k, k, f2) k) k {
+	if m.k[f]&atom != atom || m.k[2+f] > 255 { // basic function
 		return 0
 	}
 	xt, yt, xn, yn := typs(x, y)
 	if xt >= L || yt >= L {
 		return 0
 	}
-	f2, fc := op2(m.k[2+f])
-	if f2 == nil && fc == nil {
+	opx, _ := op2(m.k[2+f])
+	if opx == nil {
 		return 0 // no scalar function
 	}
-	// TODO: uptype, check if f2 is nil (nd2)
-	_ = xn
-	_ = yn
-	return 0
-}
-func ovb(x, y, t, xn, yn k, f f2, g fc) (r k) {
-	if m.k[x+1] == 1 {
-		r = x
-	} else {
-		//r = mk(xt, xn)
-		mv(r, x)
+	dec(f)
+	t := ntyps(xt, yt, opx, nil)
+	op := opx[t]
+	if xt < t {
+		x, xt = to(x, t), t
 	}
-	panic("nyi")
+	if yt < t {
+		y, yt = to(y, t), t
+	}
+	return g(x, y, t, xn, yn, op)
+}
+func ovb(x, y, t, xn, yn k, op f2) (r k) {
+	if xn == atom || xn == 1 {
+		if m.k[x+1] == 1 {
+			r = x
+		} else {
+			r = mk(t, xn)
+			mv(r, x)
+		}
+		rp, yp := ptr(r, t), ptr(y, t)
+		for i := k(0); i < yn; i++ {
+			op(rp, rp, yp+i)
+		}
+		dec(y)
+		return decret(x, r)
+	}
+	l, yp := mk(L, yn), ptr(y, t)
+	for i := k(0); i < yn; i++ {
+		r = mk(t, xn)
+		mv(r, x)
+		rp := ptr(r, t)
+		for j := k(0); j < xn; j++ {
+			op(rp+j, rp+j, yp+j)
+		}
+		m.k[2+l+i] = r
+	}
+	dec(x)
+	dec(y)
+	return l
 }
 func sci(f, x, y k) (r k) { // x f\y
 	yn := m.k[y] & atom
