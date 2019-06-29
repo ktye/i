@@ -14,13 +14,14 @@ type s = string
 
 const (
 	C, I, F, Z, S, L, D, N k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom, kkey, kval       k = 0x0fffffff, 0x30, 0x31
+	atom, kkey, kval, dyad k = 0x0fffffff, 0x30, 0x31, 50
 	NaI                    i = -2147483648
 )
 
 type (
 	f1 func(k, k)
 	f2 func(k, k, k)
+	fc func(k, k) bool
 )
 type slice struct {
 	p uintptr
@@ -37,14 +38,14 @@ var m struct { // linear memory (slices share underlying arrays)
 	z []z
 }
 
-var cpx = []func(k, k){nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
-var swx = []func(k, k){nil, swC, swI, swF, swZ, swF, swI, swI} // swap
-var nax = []func(k){nil, naC, naI, naF, naZ, naS}              // set missing/nan
-var eqx = []func(k, k) bool{nil, eqC, eqI, eqF, eqZ, eqS, nil} // equal
-var ltx = []func(k, k) bool{nil, ltC, ltI, ltF, ltZ, ltS}      // less than
-var gtx = []func(k, k) bool{nil, gtC, gtI, gtF, gtZ, gtS}      // greater than
-var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS}         // tostring (assumes 56 bytes space at dst)
-var tox = []func(k, k){nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(m.k[x]), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
+var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
+var swx = []f1{nil, swC, swI, swF, swZ, swF, swI, swI} // swap
+var nax = []func(k){nil, naC, naI, naF, naZ, naS}      // set missing/nan
+var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
+var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
+var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
+var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
+var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(m.k[x]), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
@@ -453,7 +454,7 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	}
 	return r
 }
-func nd(x, y, rt k, fx []f2, fc []func(k, k) bool) (r k) { // numeric dyad
+func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
 	t, n, sc := xt, xn, k(0)
 	if yt > t {
@@ -1387,81 +1388,69 @@ func btou(b []c) uint64 {
 	}
 	return u
 }
-
-func add(x, y k) (r k) { // x+y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] + m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] + m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] + m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] + m.z[y] }}, nil)
+func op2(code k) ([]f2, []fc) {
+	switch code - dyad {
+	case 1: // +
+		return []f2{nil, adC, adI, adF, adZ, nil}, nil
+	case 2: // -
+		return []f2{nil, sbC, sbI, sbF, sbZ, nil}, nil
+	case 3: // *
+		return []f2{nil, muC, muI, muF, muZ, nil}, nil
+	case 4: // %
+		return []f2{nil, nil, nil, diF, diZ, nil}, nil
+	case 5: // &
+		return []f2{nil, miC, miI, miF, miZ, miS}, nil
+	case 6: // |
+		return []f2{nil, maC, maI, maF, maZ, maS}, nil
+	case 7: // <
+		return nil, ltx
+	case 8: // >
+		return nil, gtx
+	case 9: // =
+		return nil, eqx
+	default:
+		return nil, nil
+	}
 }
-func sub(x, y k) (r k) { // x-y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] - m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] - m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] - m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] - m.z[y] }}, nil)
-}
-func mul(x, y k) (r k) { // x*y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) { m.c[r] = m.c[x] * m.c[y] }, func(r, x, y k) { m.k[r] = m.k[x] * m.k[y] }, func(r, x, y k) { m.f[r] = m.f[x] * m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] * m.z[y] }}, nil)
-}
-func div(x, y k) (r k) { // x%y
-	return nd(x, y, 0, []f2{nil, nil, nil, func(r, x, y k) { m.f[r] = m.f[x] / m.f[y] }, func(r, x, y k) { m.z[r] = m.z[x] / m.z[y] }}, nil)
-}
-func min(x, y k) (r k) { // x&y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) {
-		if m.c[x] < m.c[y] {
-			m.c[r] = m.c[x]
-		} else {
-			m.c[r] = m.c[y]
-		}
-	}, func(r, x, y k) {
-		if i(m.k[x]) < i(m.k[y]) {
-			m.k[r] = m.k[x]
-		} else {
-			m.k[r] = m.k[y]
-		}
-	}, func(r, x, y k) {
-		if m.f[x] < m.f[y] {
-			m.f[r] = m.f[x]
-		} else {
-			m.f[r] = m.f[y]
-		}
-	}, func(r, x, y k) {
-		if ltZ(x, y) {
-			m.z[r] = m.z[x]
-		} else {
-			m.z[r] = m.z[y]
-		}
-	}}, nil)
-}
-func max(x, y k) (r k) { // x|y
-	return nd(x, y, 0, []f2{nil, func(r, x, y k) {
-		if m.c[x] > m.c[y] {
-			m.c[r] = m.c[x]
-		} else {
-			m.c[r] = m.c[y]
-		}
-	}, func(r, x, y k) {
-		if i(m.k[x]) > i(m.k[y]) {
-			m.k[r] = m.k[x]
-		} else {
-			m.k[r] = m.k[y]
-		}
-	}, func(r, x, y k) {
-		if m.f[x] > m.f[y] {
-			m.f[r] = m.f[x]
-		} else {
-			m.f[r] = m.f[y]
-		}
-	}, func(r, x, y k) {
-		if gtZ(x, y) {
-			m.z[r] = m.z[x]
-		} else {
-			m.z[r] = m.z[y]
-		}
-	}}, nil)
-}
-func les(x, y k) (r k) { // x<y
-	return nd(x, y, I, nil, ltx)
-}
-func mor(x, y k) (r k) { // x>y
-	return nd(x, y, I, nil, gtx)
-}
-func eql(x, y k) (r k) { // x=y
-	return nd(x, y, I, nil, eqx)
+func add(x, y k) (r k) { f, g := op2(1 + dyad); return nd(x, y, 0, f, g) } // x+y
+func sub(x, y k) (r k) { f, g := op2(2 + dyad); return nd(x, y, 0, f, g) } // x-y
+func mul(x, y k) (r k) { f, g := op2(3 + dyad); return nd(x, y, 0, f, g) } // x*y
+func div(x, y k) (r k) { f, g := op2(4 + dyad); return nd(x, y, 0, f, g) } // x%y
+func min(x, y k) (r k) { f, g := op2(5 + dyad); return nd(x, y, 0, f, g) } // x&y
+func max(x, y k) (r k) { f, g := op2(6 + dyad); return nd(x, y, 0, f, g) } // x|y
+func les(x, y k) (r k) { return nd(x, y, I, nil, ltx) }                    // x<y
+func mor(x, y k) (r k) { return nd(x, y, I, nil, gtx) }                    // x>y
+func eql(x, y k) (r k) { return nd(x, y, I, nil, eqx) }                    // x=y
+func adC(r, x, y k)    { m.c[r] = m.c[x] + m.c[y] }
+func adI(r, x, y k)    { m.k[r] = m.k[x] + m.k[y] }
+func adF(r, x, y k)    { m.f[r] = m.f[x] + m.f[y] }
+func adZ(r, x, y k)    { m.z[r] = m.z[x] + m.z[y] }
+func sbC(r, x, y k)    { m.c[r] = m.c[x] - m.c[y] }
+func sbI(r, x, y k)    { m.k[r] = m.k[x] - m.k[y] }
+func sbF(r, x, y k)    { m.f[r] = m.f[x] - m.f[y] }
+func sbZ(r, x, y k)    { m.z[r] = m.z[x] - m.z[y] }
+func muC(r, x, y k)    { m.c[r] = m.c[x] * m.c[y] }
+func muI(r, x, y k)    { m.k[r] = m.k[x] * m.k[y] }
+func muF(r, x, y k)    { m.f[r] = m.f[x] * m.f[y] }
+func muZ(r, x, y k)    { m.z[r] = m.z[x] * m.z[y] }
+func diF(r, x, y k)    { m.f[r] = m.f[x] / m.f[y] }
+func diZ(r, x, y k)    { m.z[r] = m.z[x] / m.z[y] }
+func miC(r, x, y k)    { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
+func miI(r, x, y k)    { m.k[r] = m.k[ter(i(m.k[x]) < i(m.k[y]), x, y)] }
+func miF(r, x, y k)    { m.f[r] = m.f[ter(m.f[x] < m.f[y], x, y)] }
+func miZ(r, x, y k)    { m.z[r] = m.z[ter(ltZ(x, y), x, y)] }
+func miS(r, x, y k)    { m.f[r] = m.f[ter(ltS(x, y), x, y)] }
+func maC(r, x, y k)    { m.c[r] = m.c[ter(m.c[x] > m.c[y], x, y)] }
+func maI(r, x, y k)    { m.k[r] = m.k[ter(i(m.k[x]) > i(m.k[y]), x, y)] }
+func maF(r, x, y k)    { m.f[r] = m.f[ter(m.f[x] > m.f[y], x, y)] }
+func maZ(r, x, y k)    { m.z[r] = m.z[ter(gtZ(x, y), x, y)] }
+func maS(r, x, y k)    { m.f[r] = m.f[ter(gtS(x, y), x, y)] }
+func ter(b bool, x, y k) k {
+	if b {
+		return x
+	} else {
+		return y
+	}
 }
 func key(x, y k) (r k) { // x!y
 	_, yt, xn, yn := typs(x, y)
@@ -2074,8 +2063,10 @@ func drv(op k, x k) (r k) { // derived function
 	m.k[3+r] = x
 	return r
 }
-func ech(f, x k) (r k) { panic("nyi") } // f'x
-func ovr(f, x k) (r k) { // f/x
+func ech(f, x k) (r k) { panic("nyi") }             // f'x
+func ovr(f, x k) (r k) { return ovsc(f, x, false) } // f/x
+func scn(f, x k) (r k) { return ovsc(f, x, true) }  // f\x
+func ovsc(f, x k, scan bool) (r k) {
 	t, n := typ(x)
 	if t == D {
 		r = inc(m.k[3+x])
@@ -2096,13 +2087,20 @@ func ovr(f, x k) (r k) { // f/x
 		dec(f)
 		return fst(x)
 	}
-	return ovi(f, fst(take(1, 0, inc(x))), drop(1, x))
+	if scan {
+		r = take(1, 0, inc(x))
+		return cat(r, sci(f, fst(inc(r)), drop(1, x)))
+	} else {
+		return ovi(f, fst(take(1, 0, inc(x))), drop(1, x))
+	}
 }
 func ovi(f, x, y k) (r k) { // x f/y
-	// TODO: direct version for numeric types and basic functions
 	yn := m.k[y] & atom
 	if yn == atom {
 		panic("class")
+	}
+	if r := scal(x, y, f, ovb); r != 0 {
+		return r
 	}
 	r = x
 	l := mk(L, 2)
@@ -2118,7 +2116,53 @@ func ovi(f, x, y k) (r k) { // x f/y
 	dec(f)
 	return r
 }
-func scn(f, x k) (r k) { panic("nyi") } // f\
+func scal(x, y, f k, g func(k, k, k, k, k, f2, fc) k) k {
+	if m.k[2]&atom != atom || m.k[2+f] > 255 { // basic function
+		return 0
+	}
+	xt, yt, xn, yn := typs(x, y)
+	if xt >= L || yt >= L {
+		return 0
+	}
+	f2, fc := op2(m.k[2+f])
+	if f2 == nil && fc == nil {
+		return 0 // no scalar function
+	}
+	// TODO: uptype, check if f2 is nil (nd2)
+	_ = xn
+	_ = yn
+	return 0
+}
+func ovb(x, y, t, xn, yn k, f f2, g fc) (r k) {
+	if m.k[x+1] == 1 {
+		r = x
+	} else {
+		//r = mk(xt, xn)
+		mv(r, x)
+	}
+	panic("nyi")
+}
+func sci(f, x, y k) (r k) { // x f\y
+	yn := m.k[y] & atom
+	if yn == atom {
+		panic("class")
+	}
+	r = mk(L, yn)
+	l := mk(L, 2)
+	for i := k(0); i < yn; i++ {
+		m.k[1+l]++
+		m.k[2+l] = x
+		m.k[3+l] = atx(inc(y), mki(i))
+		x = cal(inc(f), l)
+		m.k[2+i+r] = inc(x)
+	}
+	m.k[l] = I<<28 | 2
+	dec(l)
+	dec(x)
+	dec(y)
+	dec(f)
+	return uf(r)
+}
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt > S || xn == atom {
@@ -2323,7 +2367,7 @@ func init() {
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ech, ovr, scn, nil, nil, nil,
 		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, nil, ovi, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, nil, ovi, sci, nil, nil, nil,
 		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,
 	}
 }
