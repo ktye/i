@@ -2143,38 +2143,68 @@ func scal(x, y, f k, g func(k, k, k, k, k, f2) k) k {
 	return g(x, y, t, xn, yn, op)
 }
 func ovb(x, y, t, xn, yn k, op f2) (r k) {
-	if xn == atom || xn == 1 {
-		if m.k[x+1] == 1 {
-			r = x
-		} else {
-			r = mk(t, xn)
-			mv(r, x)
-		}
-		rp, yp := ptr(r, t), ptr(y, t)
-		for i := k(0); i < yn; i++ {
-			op(rp, rp, yp+i)
-		}
-		dec(y)
-		return decret(x, r)
-	}
-	l, yp := mk(L, yn), ptr(y, t)
-	for i := k(0); i < yn; i++ {
+	if m.k[x+1] == 1 {
+		r = x
+	} else {
 		r = mk(t, xn)
 		mv(r, x)
-		rp := ptr(r, t)
-		for j := k(0); j < xn; j++ {
-			op(rp+j, rp+j, yp+j)
-		}
-		m.k[2+l+i] = r
 	}
-	dec(x)
+	if xn == atom {
+		xn = 1
+	}
+	rp, yp := ptr(r, t), ptr(y, t)
+	for i := k(0); i < xn; i++ {
+		for j := k(0); j < yn; j++ {
+			op(rp+i, rp+i, yp+j)
+		}
+	}
 	dec(y)
-	return l
+	return decret(x, r)
+}
+func scb(x, y, t, xn, yn k, op f2) (r k) {
+	cp, xp, yp := cpx[t], ptr(x, t), ptr(y, t)
+	if xn == atom {
+		r = mk(t, yn)
+		rp := ptr(r, t)
+		if yn == atom {
+			yn = 1
+		}
+		cp(rp, xp)
+		for i := k(0); i < yn; i++ {
+			if i > 0 {
+				op(rp+i, rp+i-1, yp+i)
+			} else {
+				op(rp+i, rp+i, yp+i)
+			}
+		}
+		dec(x)
+		dec(y)
+		return r
+	} else {
+		l := mk(L, yn)
+		p := x
+		for j := k(0); j < yn; j++ {
+			r = mk(t, xn)
+			mv(r, p)
+			rp := ptr(r, t)
+			for i := k(0); i < xn; i++ {
+				op(rp+i, rp+i, yp+j)
+			}
+			p = r
+			m.k[2+j+l] = r
+		}
+		dec(x)
+		dec(y)
+		return l
+	}
 }
 func sci(f, x, y k) (r k) { // x f\y
 	yn := m.k[y] & atom
 	if yn == atom {
 		panic("class")
+	}
+	if r := scal(x, y, f, scb); r != 0 {
+		return r
 	}
 	r = mk(L, yn)
 	l := mk(L, 2)
