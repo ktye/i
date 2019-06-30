@@ -2071,8 +2071,10 @@ func ovr(f, x k) (r k) { return ovsc(f, x, false) } // f/x
 func scn(f, x k) (r k) { return ovsc(f, x, true) }  // f\x
 func ovsc(f, x k, scan bool) (r k) {
 	t, n := typ(x)
+	keys := k(0)
 	if t == D {
 		r = inc(m.k[3+x])
+		keys = inc(m.k[2+x])
 		dec(x)
 		x = r
 		t, n = typ(x)
@@ -2092,8 +2094,18 @@ func ovsc(f, x k, scan bool) (r k) {
 	}
 	if scan {
 		r = take(1, 0, inc(x))
-		return cat(r, sci(f, fst(inc(r)), drop(1, x)))
+		r = cat(r, sci(f, fst(inc(r)), drop(1, x)))
+		if keys != 0 {
+			d := mk(D, atom)
+			m.k[2+d] = keys
+			m.k[3+d] = r
+			r = d
+		}
+		return r
 	} else {
+		if keys != 0 {
+			dec(keys)
+		}
 		return ovi(f, fst(take(1, 0, inc(x))), drop(1, x))
 	}
 }
