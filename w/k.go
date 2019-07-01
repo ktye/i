@@ -381,7 +381,7 @@ func srk(x, t, n, nn k) (r k) { // shrink bucket
 	return x
 }
 func to(x, rt k) (r k) { // numeric conversions for types CIFZ
-	if rt == 0 {
+	if rt == 0 || rt >= L {
 		return x
 	}
 	t, n := typ(x)
@@ -468,90 +468,192 @@ func ntyps(xt, yt k, fx []f2, fc []fc) (t k) {
 }
 func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
-	t, n, sc := ntyps(xt, yt, fx, fc), xn, k(0)
-	if xt < L && yt < L {
+	if xt == D {
+		r = mk(D, atom)
+		m.k[2+r] = inc(m.k[2+x])
+		m.k[3+r] = nd(inc(m.k[3+x]), y, rt, fx, fc)
+		dec(x)
+		return r
+	} else if yt == D {
+		r = mk(D, atom)
+		m.k[2+r] = inc(m.k[2+y])
+		m.k[3+r] = nd(y, inc(m.k[3+y]), rt, fx, fc)
+		dec(y)
+		return r
+	}
+	n, sc := xn, k(0)
+	if xn == atom {
+		n, sc = yn, 1
+	} else if yn == atom {
+		n, sc = xn, 2
+	} else if xn != yn {
+		panic("size")
+	}
+	if xt == L || yt == L {
+		r = mk(L, n)
 		if xn == atom {
-			n, sc = yn, 1
+			for i := k(0); i<n; i++ {
+				m.k[2+r+i] = nd(inc(x), inc(m.k[2+y+i]), rt, fx, fc)
+			}
 		} else if yn == atom {
-			n, sc = xn, 2
-		} else if xn != yn {
-			panic("size")
+			for i := k(0); i<n; i++ {
+				m.k[2+r+i] = nd(inc(m.k[2+x+i]), inc(y), rt, fx, fc)
+			}
+		} else {
+			for i := k(0); i<n; i++ {
+				m.k[2+r+i] = nd(inc(m.k[2+x+i]), inc(m.k[2+y+i]), rt, fx, fc)
+			}
 		}
-		if xt != t {
-			x, xt = to(x, t), t
-		}
-		if yt != t {
-			y, yt = to(y, t), t
-		}
+		dec(x)
+		dec(y)
+		return uf(r)
+	} else if xt > S || yt > S {
+		panic("type")
+	}
+	t := ntyps(xt, yt, fx, fc)
+	if xt != t {
+		x, xt = to(x, t), t
+	}
+	if yt != t {
+		y, yt = to(y, t), t
 	}
 	if fc == nil {
 		r = use2(x, y, t, n)
-	} else if r != C {
+	} else if r < F && t < L {
 		r = use2(x, y, I, n)
-	} else {
+	} else if t < L {
 		r = mk(I, n)
+	} else {
+		r = mk(L, n)
 	}
 	if n == atom {
 		n = 1
 	}
-	switch xt {
-	case C, I, F, Z, S:
-		if fc != nil {
-			f, xp, yp, rp := fc[t], ptr(x, t), ptr(y, t), ptr(r, I)
-			if sc == 1 {
-				for i := k(0); i < n; i++ {
-					if f(xp, yp+i) {
-						m.k[rp+i] = 1
-					} else {
-						m.k[rp+i] = 0
-					}
-				}
-			} else if sc == 2 {
-				for i := k(0); i < n; i++ {
-					if f(xp+i, yp) {
-						m.k[rp+i] = 1
-					} else {
-						m.k[rp+i] = 0
-					}
-				}
+	if fc == nil {
+		if xt == S {
+			panic("type")
+		}
+		ns(ptr(r, t), ptr(x, t), ptr(y, t), t, n, n, sc, fx[t])
+	} else {
+		g := fc[t]
+		f := func(rp, xp, yp k) {
+			if x := g(xp, yp); x {
+				m.k[rp] = 1
 			} else {
-				for i := k(0); i < n; i++ {
-					if f(xp+i, yp+i) {
-						m.k[rp+i] = 1
-					} else {
-						m.k[rp+i] = 0
-					}
-				}
-			}
-		} else {
-			if xt == S {
-				panic("type")
-			}
-			f, xp, yp, rp := fx[t], ptr(x, t), ptr(y, t), ptr(r, t)
-			if sc == 1 {
-				for i := k(0); i < n; i++ {
-					f(rp+i, xp, yp+i)
-				}
-			} else if sc == 2 {
-				for i := k(0); i < n; i++ {
-					f(rp+i, xp+i, yp)
-				}
-			} else {
-				for i := k(0); i < n; i++ {
-					f(rp+i, xp+i, yp+i)
-				}
+				m.k[rp] = 0
 			}
 		}
-	//case L:
-	//case D:
-	default:
-		panic("type")
+		ns(ptr(r, I), ptr(x, t), ptr(y, t), t, n, n, sc, f)
 	}
 	decret2(x, y, r)
 	if rt != 0 && t > rt {
 		r = to(r, rt)
 	}
 	return r
+}
+func ns(rp, xp, yp, t, xn, yn, c k, f f2) {
+	switch c {
+	case 0:	// v f v
+		for i := k(0); i < xn; i++ {
+			f(rp+i, xp+i, yp+i)
+		}
+	case 1: // a f v
+		for i := k(0); i < yn; i++ {
+			f(rp+i, xp, yp+i)
+		}
+	case 2: // v f a
+		for i := k(0); i < xn; i++ {
+			f(rp+i, xp+i, yp)
+		}
+	case 3: // f/ x → a
+		cpx[t](rp, yp)
+		for i := k(1); i < yn; i++ {
+			f(rp, rp, yp+i)
+		}
+	case 4: // x f/ y → v(xn)
+		cp := cpx[t]
+		for i := k(0); i<xn; i++ {
+			rp++
+			cp(rp, xp+i)
+			for j := k(0); j<yn; j++ {
+				f(rp, rp, yp+j)
+			}
+		}
+	case 5: // f\ v → v
+		cpx[t](rp, yp)
+		for i := k(1); i<yn; i++ {
+			f(rp+i, rp+i-1, yp+i)
+		}
+	case 6: // a f\ v
+		f(rp, xp, yp)
+		for i := k(1); i<yn; i++ {
+			f(rp+i, rp+i-1, yp+i)
+		}
+	case 7: // v f\ v
+		p := rp
+		for j := k(0); j<yn; j++ {
+			m.k[rp+j] = mk(t, xn)
+		}
+		for i := k(0); i<xn; i++ {
+			rp = m.k[2+i+p]
+			f(rp, xp+i, yp)
+			for j := k(1); j<yn; j++ {
+				f(rp+i, rp+i-1, yp+j)
+			}
+		}
+	case 8: // f': v
+		if rp == yp {
+			cp, sw := cpx[t], swx[t]
+			p := mk(t, atom)
+			pt := ptr(p, t)
+			cp(rp, yp)
+			cp(pt, yp)
+			for i := k(1); i<yn; i++ {
+				f(rp+i, pt, yp+i-1)
+				sw(pt, yp+i-1)
+			}
+			dec(p)
+		} else {
+			cpx[t](rp, yp)
+			for i := k(1); i<yn; i++ {
+				f(rp+i, yp+i-1, yp+i)
+			}
+		}
+	case 9: // a f': v (vector x is not handled)
+		if rp == yp {
+			sw := swx[t]
+			p := mk(t, atom)
+			pt := ptr(p, t)
+			f(rp, pt, xp)
+			sw(pt, yp)
+			for i := k(1); i<yn; i++ {
+				f(rp+i, pt, yp+i-1)
+				sw(pt, yp+i-1)
+			}
+			dec(p)
+		} else {
+			f(rp, xp, yp)
+			for i := k(1); i<yn; i++ {
+				f(rp+i, yp+i-1, yp+i)
+			}
+		}
+	case 10: // x f/: y
+		for j := k(0); j<yn; j++ {
+			m.k[rp+j] = mk(t, xn)
+			p := ptr(m.k[rp+j], L)
+			for i := k(0); i<xn; i++ {
+				f(p+i, xp+i, yp+j)
+			}
+		}
+	case 11: // x f\: y
+		for i := k(0); i<xn; i++ {
+			m.k[rp+i] = mk(t, yn)
+			p := ptr(m.k[rp+i], L)
+			for j := k(0); j<yn; j++ {
+				f(p+j, xp+i, yp+j)
+			}
+		}
+	}
 }
 func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
 	switch t {
@@ -1980,15 +2082,19 @@ func cal(x, y k) (r k) { // x.y
 		switch yn {
 		case 1:
 			f := table[code].(func(k, k) k)
-			r = f(inc(m.k[3+x]), inc(m.k[2+y]))
+			a, b := inc(m.k[3+x]), inc(m.k[2+y])
+			dec(x) // allow reuse
+			dec(y)
+			r = f(a, b)
 		case 2:
 			f := table[code+50].(func(k, k, k) k)
-			r = f(inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y]))
+			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
+			dec(x)
+			dec(y)
+			r = f(a, b, c)
 		default:
 			panic("valence")
 		}
-		dec(x)
-		dec(y)
 		return r
 	}
 	switch xt {
@@ -2133,18 +2239,32 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		dec(f)
 		return x
 	}
-	r = explode(x)
-	p := inc(m.k[2+r])
-	for i := k(1); i < n; i++ {
-		l := mk(L, 2)
-		m.k[2+l] = inc(m.k[2+r+i])
-		m.k[3+l] = p
-		p = m.k[2+r+i]
-		m.k[2+r+i] = cal(inc(f), l)
+	cp := cpx[t]
+	r = use(x, t, n)
+	if r == x {
+		p := mk(t, atom)
+		pt, rp := ptr(p, t), ptr(r, t)
+		cp(pt, rp)
+		for i := k(1); i < n; i++ {
+			l := mk(L, 2)
+			println("x")
+			pr(m.k[2+r+i], "x")
+			pr(p, "y")
+			m.k[2+l] = inc(m.k[2+r+i])
+			m.k[3+l] = inc(p)
+			cp(pt, rp+i)
+			m.k[2+r+i] = cal(inc(f), l)
+		}
+		dec(p)
+		dec(f)
+		return uf(r)
 	}
-	dec(p)
-	dec(f)
-	return uf(r)
+	panic("nyi")
+	// TODO: share with epi
+	// TODO: scalar versions
+}
+func epi(f, x, y k) (r k) { // x f':y (each prior initial)
+	panic("nyi")
 }
 func ovr(f, x k) (r k) { return ovsc(f, x, false) } // f/x
 func scn(f, x k) (r k) { return ovsc(f, x, true) }  // f\x
@@ -2513,7 +2633,7 @@ func init() {
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, nil, nil,
 		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, nil, nil,
 		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,
 	}
 }
