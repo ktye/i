@@ -134,7 +134,6 @@ func ptr(x, t k) k { // convert k address to type dependend index of data sectio
 	case Z:
 		return (4 + x) >> 2
 	}
-	println(t)
 	panic("type")
 }
 func mv(dst, src k) {
@@ -285,38 +284,8 @@ func inc(x k) k {
 	m.k[1+x]++
 	return x
 }
-func use(x, t, n k) k {
-	if m.k[1+x] == 1 && bk(typ(x)) == bk(t, n) {
-		m.k[x] = t<<28 | n
-		return x
-	}
-	return mk(t, n)
-}
-func use2(x, y, t, n k) k {
-	if m.k[1+x] == 1 && bk(typ(x)) == bk(t, n) {
-		m.k[x] = t<<28 | n
-		return x
-	} else if m.k[1+y] == 1 && bk(typ(y)) == bk(t, n) {
-		m.k[y] = t<<28 | n
-		return y
-	}
-	return mk(t, n)
-}
-func decret(x, r k) k {
-	if r != x {
-		dec(x)
-	}
-	return r
-}
-func decret2(x, y, r k) k {
-	if r != x {
-		dec(x)
-	}
-	if r != y {
-		dec(y)
-	}
-	return r
-}
+func decr(x, r k) k     { dec(x); return r }
+func decr2(x, y, r k) k { dec(x); dec(y); return r }
 func dec(x k) {
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
 		//xxd()
@@ -374,8 +343,7 @@ func srk(x, t, n, nn k) (r k) { // shrink bucket
 		}
 		rc, xc := 8+r<<2, 8+x<<2
 		copy(m.c[rc:rc+ln], m.c[xc:xc+ln])
-		dec(x)
-		return r
+		return decr(x, r)
 	}
 	m.k[x] = t<<28 | nn
 	return x
@@ -408,8 +376,7 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	for i := k(0); i < k(n); i++ {
 		g(rp+i, xp+i)
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	t, n := typ(x)
@@ -426,7 +393,7 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	if t == Z && fx[Z] == nil { // e.g. real functions
 		x, t = to(x, F), F
 	}
-	r = use(x, t, n)
+	r = mk(t, n)
 	if n == atom {
 		n = 1
 	}
@@ -448,11 +415,10 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	default:
 		panic("type")
 	}
-	decret(x, r)
 	if rt != 0 && t != rt {
 		r = to(r, rt)
 	}
-	return r
+	return decr(x, r)
 }
 func ntyps(xt, yt k, fx []f2, fc []fc) (t k) {
 	if yt > t {
@@ -472,14 +438,12 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 		r = mk(D, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = nd(inc(m.k[3+x]), y, rt, fx, fc)
-		dec(x)
-		return r
+		return decr(x, r)
 	} else if yt == D {
 		r = mk(D, atom)
 		m.k[2+r] = inc(m.k[2+y])
 		m.k[3+r] = nd(y, inc(m.k[3+y]), rt, fx, fc)
-		dec(y)
-		return r
+		return decr(y, r)
 	}
 	n, sc := xn, k(0)
 	if xn == atom {
@@ -492,21 +456,19 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	if xt == L || yt == L {
 		r = mk(L, n)
 		if xn == atom {
-			for i := k(0); i<n; i++ {
+			for i := k(0); i < n; i++ {
 				m.k[2+r+i] = nd(inc(x), inc(m.k[2+y+i]), rt, fx, fc)
 			}
 		} else if yn == atom {
-			for i := k(0); i<n; i++ {
+			for i := k(0); i < n; i++ {
 				m.k[2+r+i] = nd(inc(m.k[2+x+i]), inc(y), rt, fx, fc)
 			}
 		} else {
-			for i := k(0); i<n; i++ {
+			for i := k(0); i < n; i++ {
 				m.k[2+r+i] = nd(inc(m.k[2+x+i]), inc(m.k[2+y+i]), rt, fx, fc)
 			}
 		}
-		dec(x)
-		dec(y)
-		return uf(r)
+		return decr2(x, y, uf(r))
 	} else if xt > S || yt > S {
 		panic("type")
 	}
@@ -518,9 +480,7 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 		y, yt = to(y, t), t
 	}
 	if fc == nil {
-		r = use2(x, y, t, n)
-	} else if r < F && t < L {
-		r = use2(x, y, I, n)
+		r = mk(t, n)
 	} else if t < L {
 		r = mk(I, n)
 	} else {
@@ -545,15 +505,14 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 		}
 		ns(ptr(r, I), ptr(x, t), ptr(y, t), t, n, n, sc, f)
 	}
-	decret2(x, y, r)
 	if rt != 0 && t > rt {
 		r = to(r, rt)
 	}
-	return r
+	return decr2(x, y, r)
 }
 func ns(rp, xp, yp, t, xn, yn, c k, f f2) {
 	switch c {
-	case 0:	// v f v
+	case 0: // v f v
 		for i := k(0); i < xn; i++ {
 			f(rp+i, xp+i, yp+i)
 		}
@@ -572,84 +531,58 @@ func ns(rp, xp, yp, t, xn, yn, c k, f f2) {
 		}
 	case 4: // x f/ y → v(xn)
 		cp := cpx[t]
-		for i := k(0); i<xn; i++ {
+		for i := k(0); i < xn; i++ {
 			rp++
 			cp(rp, xp+i)
-			for j := k(0); j<yn; j++ {
+			for j := k(0); j < yn; j++ {
 				f(rp, rp, yp+j)
 			}
 		}
 	case 5: // f\ v → v
 		cpx[t](rp, yp)
-		for i := k(1); i<yn; i++ {
+		for i := k(1); i < yn; i++ {
 			f(rp+i, rp+i-1, yp+i)
 		}
 	case 6: // a f\ v
 		f(rp, xp, yp)
-		for i := k(1); i<yn; i++ {
+		for i := k(1); i < yn; i++ {
 			f(rp+i, rp+i-1, yp+i)
 		}
 	case 7: // v f\ v
 		p := rp
-		for j := k(0); j<yn; j++ {
+		for j := k(0); j < yn; j++ {
 			m.k[rp+j] = mk(t, xn)
 		}
-		for i := k(0); i<xn; i++ {
+		for i := k(0); i < xn; i++ {
 			rp = m.k[2+i+p]
 			f(rp, xp+i, yp)
-			for j := k(1); j<yn; j++ {
+			for j := k(1); j < yn; j++ {
 				f(rp+i, rp+i-1, yp+j)
 			}
 		}
 	case 8: // f': v
-		if rp == yp {
-			cp, sw := cpx[t], swx[t]
-			p := mk(t, atom)
-			pt := ptr(p, t)
-			cp(rp, yp)
-			cp(pt, yp)
-			for i := k(1); i<yn; i++ {
-				f(rp+i, pt, yp+i-1)
-				sw(pt, yp+i-1)
-			}
-			dec(p)
-		} else {
-			cpx[t](rp, yp)
-			for i := k(1); i<yn; i++ {
-				f(rp+i, yp+i-1, yp+i)
-			}
+		cpx[t](rp, yp)
+		for i := k(1); i < yn; i++ {
+			f(rp+i, yp+i-1, yp+i)
 		}
 	case 9: // a f': v (vector x is not handled)
-		if rp == yp {
-			sw := swx[t]
-			p := mk(t, atom)
-			pt := ptr(p, t)
-			f(rp, pt, xp)
-			sw(pt, yp)
-			for i := k(1); i<yn; i++ {
-				f(rp+i, pt, yp+i-1)
-				sw(pt, yp+i-1)
-			}
-			dec(p)
-		} else {
-			f(rp, xp, yp)
-			for i := k(1); i<yn; i++ {
-				f(rp+i, yp+i-1, yp+i)
-			}
+		f(rp, xp, yp)
+		for i := k(1); i < yn; i++ {
+			f(rp+i, yp+i-1, yp+i)
 		}
 	case 10: // x f/: y
-		for j := k(0); j<yn; j++ {
+		for j := k(0); j < yn; j++ {
 			m.k[rp+j] = mk(t, xn)
 			p := ptr(m.k[rp+j], L)
-			for i := k(0); i<xn; i++ {
+			for i := k(0); i < xn; i++ {
 				f(p+i, xp+i, yp+j)
 			}
 		}
 	case 11: // x f\: y
-		for i := k(0); i<xn; i++ {
+		for i := k(0); i < xn; i++ {
 			m.k[rp+i] = mk(t, yn)
 			p := ptr(m.k[rp+i], L)
-			for j := k(0); j<yn; j++ {
+			for j := k(0); j < yn; j++ {
 				f(p+j, xp+i, yp+j)
 			}
 		}
@@ -686,8 +619,7 @@ func explode(x k) (r k) { // explode an array (or atom) to a list of atoms
 		cp(rp, xp+i)
 		m.k[2+r+i] = rk
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func uf(x k) (r k) { // unify lists if possible
 	xt, xn := typ(x)
@@ -711,8 +643,7 @@ func uf(x k) (r k) { // unify lists if possible
 	for i := k(0); i < xn; i++ {
 		cp(rp+i, ptr(m.k[2+x+i], ut))
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 
 func idn(x k) (r k) { return x } // :x
@@ -765,8 +696,7 @@ func flp(x k) (r k) { // +x
 			}
 		}
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func neg(x k) k { // -x
 	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.z[r] = -m.z[x] }})
@@ -776,8 +706,7 @@ func fst(x k) (r k) { // *x
 	if t == D {
 		inc(m.k[3+x])
 		r = fst(m.k[3+x])
-		dec(x)
-		return r
+		return decr(x, r)
 	}
 	if n == atom {
 		return x
@@ -787,8 +716,7 @@ func fst(x k) (r k) { // *x
 	if t == L {
 		r = m.k[2+x]
 		inc(r)
-		dec(x)
-		return r
+		return decr(x, r)
 	}
 	r = mk(t, atom)
 	switch t {
@@ -803,8 +731,7 @@ func fst(x k) (r k) { // *x
 	default:
 		panic("nyi")
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func inv(x k) k { // %x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = 1 / m.f[x] }, func(r, x k) { m.z[r] = 1 / m.z[x] }})
@@ -832,26 +759,20 @@ func wer(x k) (r k) { // &x
 			jj++
 		}
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func rev(x k) (r k) { // |x
 	t, n := typ(x)
 	if n == atom || n < 2 {
 		if t == D {
-			r = use(x, t, n)
-			if r == x {
-				m.k[r+2] = rev(m.k[x+2])
-				m.k[r+3] = rev(m.k[x+3])
-			} else {
-				m.k[r+2] = rev(inc(m.k[x+2]))
-				m.k[r+3] = rev(inc(m.k[x+3]))
-			}
-			return decret(x, r)
+			r = mk(t, n)
+			m.k[r+2] = rev(inc(m.k[x+2]))
+			m.k[r+3] = rev(inc(m.k[x+3]))
+			return decr(x, r)
 		}
 		return x
 	}
-	r = use(x, t, n)
+	r = mk(t, n)
 	if t < D {
 		cp, m := cpx[t], n
 		if t == L {
@@ -867,12 +788,12 @@ func rev(x k) (r k) { // |x
 	} else {
 		panic("nyi")
 	}
-	if t == L && x != r {
+	if t == L {
 		for i := k(0); i < n; i++ {
 			inc(m.k[2+i+r])
 		}
 	}
-	return decret(x, r)
+	return decr(x, r)
 }
 func asc(x k) (r k) { // <x
 	t, n := typ(x)
@@ -887,8 +808,7 @@ func asc(x k) (r k) { // <x
 			sw(dst+j, dst+(j-1))
 		}
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func dsc(x k) (r k) { return rev(asc(x)) } // >x
 func grp(x k) (r k) { // =x
@@ -922,9 +842,7 @@ func grp(x k) (r k) { // =x
 		}
 		m.k[2+l+j] = lj
 	}
-	dec(b)
-	dec(x)
-	return r
+	return decr2(b, x, r)
 }
 func til(x k) (r k) { // !x
 	t, n := typ(x)
@@ -932,17 +850,14 @@ func til(x k) (r k) { // !x
 		panic("nyi !a")
 	} else if t == D {
 		r = inc(m.k[2+x])
-		dec(x)
-		return r
+		return decr(x, r)
 	} else if t > Z {
 		panic("type")
 	}
 	if nn := idx(x, t); nn < 0 {
-		dec(x)
-		return eye(k(-nn))
+		return decr(x, eye(k(-nn)))
 	} else {
-		dec(x)
-		return jota(k(nn))
+		return decr(x, jota(k(nn)))
 	}
 }
 func jota(n k) (r k) { // !n
@@ -997,16 +912,11 @@ func not(x k) (r k) { // ~x
 func enl(x k) (r k) { // ,x (collaps uniform)
 	t, n := typ(x)
 	if t < L && n == atom {
-		r = use(x, t, 1)
-		if r == x {
-			m.k[r] = t<<28 | 1
-			return r
-		}
+		r = mk(t, 1)
 		cp := cpx[t]
 		src, dst := ptr(x, t), ptr(r, t)
 		cp(dst, src)
-		dec(x)
-		return r
+		return decr(x, r)
 	}
 	r = mk(L, 1)
 	m.k[2+r] = x
@@ -1025,8 +935,7 @@ func cnt(x k) (r k) { // #x
 	} else if n == atom {
 		n = 1
 	}
-	dec(x)
-	return mki(k(i(n)))
+	return decr(x, mki(k(i(n))))
 }
 func flr(x k) k { // _x
 	return nm(x, I, []f1{nil, func(r, x k) { m.c[r] = m.c[x] }, func(r, x k) { m.k[r] = m.k[x] }, func(r, x k) {
@@ -1057,12 +966,9 @@ func str(x k) (r k) { // $x
 	} else {
 		switch t {
 		case L:
-			r = use(x, L, n)
+			r = mk(L, n)
 			for i := k(0); i < n; i++ {
-				if r != x {
-					inc(m.k[2+i+x])
-				}
-				m.k[2+i+r] = str(m.k[2+i+x])
+				m.k[2+i+r] = str(inc(m.k[2+i+x]))
 			}
 		case D:
 			r = mk(D, atom)
@@ -1105,7 +1011,7 @@ func str(x k) (r k) { // $x
 			panic("nyi")
 		}
 	}
-	return decret(x, r)
+	return decr(x, r)
 }
 func unq(x k) (r k) { // ?x
 	t, n := typ(x)
@@ -1137,19 +1043,17 @@ func unq(x k) (r k) { // ?x
 			nn++
 		}
 	}
-	dec(x)
-	return srk(r, t, n, nn)
+	return decr(x, srk(r, t, n, nn))
 }
 func tip(x k) (r k) { // @x
 	r = mku(0)
 	t, n := typ(x)
-	dec(x)
 	s := m.c[169+t]
 	if n != atom && t < L && s != 0 {
 		s -= 32
 	}
 	mys(8+r<<2, uint64(s)<<56)
-	return r
+	return decr(x, r)
 }
 func evl(x k) (r k) { // .x
 	t, n := typ(x)
@@ -1169,8 +1073,7 @@ func evl(x k) (r k) { // .x
 	if vt == S {
 		if n == 1 { // ,`a`b → `a`b
 			inc(v)
-			dec(x)
-			return v
+			return decr(x, v)
 		}
 		if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…) → ex;ex…
 			for i := k(1); i < n; i++ {
@@ -1179,8 +1082,7 @@ func evl(x k) (r k) { // .x
 				}
 				r = evl(inc(m.k[2+i+x]))
 			}
-			dec(x)
-			return r
+			return decr(x, r)
 		}
 	}
 	switch vt {
@@ -1189,8 +1091,7 @@ func evl(x k) (r k) { // .x
 		for i := int(n - 2); i >= 0; i-- {
 			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
 		}
-		dec(x)
-		return uf(r)
+		return decr(x, uf(r))
 	default:
 		inc(v)
 		if vt == S && vn == atom {
@@ -1202,9 +1103,7 @@ func evl(x k) (r k) { // .x
 				panic("nyi modified assignment")
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
-			dec(v)
-			dec(x)
-			return asn(name, val)
+			return decr2(v, x, asn(name, val))
 		}
 		r = mk(L, n-1)
 		for i := int(n - 2); i >= 0; i-- {
@@ -1228,8 +1127,6 @@ func evl(x k) (r k) { // .x
 		}
 		return cal(v, r)
 	}
-	println("evl vt", vt)
-	panic("nyi")
 	return x
 }
 func prj(x, y k) (r k) { // convert x to a projection
@@ -1258,7 +1155,7 @@ func kst(x k) (r k) { // `k@x
 		n = 1
 	}
 	if n == 0 && t < N {
-		r = use(x, C, 0)
+		r = mk(C, 0)
 		rc, rn := 8+r<<2, k(0)
 		switch t { // these could also be in the k-tree
 		case C:
@@ -1279,7 +1176,7 @@ func kst(x k) (r k) { // `k@x
 			panic("nyi")
 		}
 		m.k[r] = C<<28 | rn
-		return decret(x, r)
+		return decr(x, r)
 	}
 	switch t {
 	case C: // ,"a" "a" "ab" "a\nb" ,0x01 0x010203
@@ -1449,11 +1346,9 @@ func kst(x k) (r k) { // `k@x
 	case N, N + 1, N + 2, N + 3, N + 4:
 		r = str(inc(x))
 	default:
-		println("kst t/n", t, n)
 		panic("nyi")
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func putc(rc, rn k, c c) k { // assumes enough space
 	m.c[rc+rn] = c
@@ -1582,17 +1477,14 @@ func ext(x, t, n k) (r k) { // scalar extension
 	for i := k(0); i < n; i++ {
 		cp(rp+i, xp)
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func mch(x, y k) (r k) { // x~y
 	r = mkc(0)
 	if match(x, y) {
 		m.c[8+r<<2] = 1
 	}
-	dec(x)
-	dec(y)
-	return r
+	return decr2(x, y, r)
 }
 func match(x, y k) (rv bool) { // recursive match
 	if x == y {
@@ -1660,8 +1552,7 @@ func cat(x, y k) (r k) { // x,y
 	for j := k(0); j < yn; j++ {
 		m.k[2+r+xn+j] = inc(m.k[2+y+j])
 	}
-	dec(y)
-	return r
+	return decr(y, r)
 }
 func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	if xn == atom {
@@ -1670,7 +1561,6 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	if yn == atom {
 		yn = 1
 	}
-
 	cp, xp := cpx[t], ptr(x, t)
 	if m.k[x+1] > 1 || bk(t, xn+yn) != bk(t, xn) {
 		r = mk(t, xn+yn)
@@ -1686,8 +1576,10 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	for i := k(0); i < yn; i++ {
 		cp(rp+i, yp+i)
 	}
-	dec(y)
-	return decret(x, r)
+	if r != x {
+		dec(x)
+	}
+	return decr(y, r)
 }
 func lcat(x, y k) (r k) { // append anything to a list; no unify
 	_, nl := typ(x)
@@ -1701,8 +1593,7 @@ func lcat(x, y k) (r k) { // append anything to a list; no unify
 		m.k[2+i+r] = inc(m.k[2+i+x])
 	}
 	m.k[2+nl+r] = y
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func ept(x, y k) (r k) { // x^y
 	t, yt, n, yn := typs(x, y)
@@ -1726,12 +1617,9 @@ func ept(x, y k) (r k) { // x^y
 		}
 	}
 	if all {
-		dec(b)
-		dec(y)
-		return x
+		return decr2(b, y, x)
 	}
-	dec(y)
-	return atx(x, wer(b))
+	return decr(y, atx(x, wer(b)))
 }
 func tak(x, y k) (r k) { // x#y
 	xt, yt, xn, yn := typs(x, y)
@@ -1758,13 +1646,10 @@ func tak(x, y k) (r k) { // x#y
 		n = k(-i(n))
 	}
 	if xn == 1 {
-		dec(x)
-		return take(n, o, y)
+		return decr(x, take(n, o, y))
 	}
 	r, o = rsh(2+x, xn-1, n, o, y, yn)
-	dec(x)
-	dec(y)
-	return r
+	return decr2(x, y, r)
 }
 func rsh(xp, xn, n, o, y, yn k) (r, oo k) { // reshape (with offset): (x,n)#y
 	a := m.k[xp]
@@ -1786,33 +1671,19 @@ func take(n, o, y k) (r k) { // integer index and offset
 	t, yn := typ(y)
 	cp, yp := cpx[t], ptr(y, t)
 	if yn == 0 {
-		r = use(y, t, n)
+		r = mk(t, n)
 		rp, na := ptr(r, t), nax[t]
 		for i := k(0); i < n; i++ {
 			na(rp + i)
 		}
-		return decret(y, r)
-	}
-	if o == 0 && m.k[y+1] == 1 { // reuse only without offset
-		r = use(y, t, n)
-		rp := ptr(r, t)
-		if y != r {
-			for i := k(0); i < yn; i++ {
-				cp(rp+i, yp+i)
-			}
-		}
-		for i := yn; i < n; i++ {
-			cp(rp+i, rp+(i%n))
-		}
-		return decret(y, r)
+		return decr(y, r)
 	}
 	r = mk(t, n)
 	rp := ptr(r, t)
 	for i := k(0); i < n; i++ {
 		cp(rp+i, yp+((i+o)%yn))
 	}
-	dec(y)
-	return r
+	return decr(y, r)
 }
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
@@ -1830,8 +1701,7 @@ func drp(x, y k) (r k) { // x_y
 		return cut(x, y)
 	}
 	n := m.k[2+x]
-	dec(x)
-	return uf(drop(i(n), y))
+	return decr(x, uf(drop(i(n), y)))
 }
 func drop(x i, y k) (r k) { // integer index; does not unify
 	t, yn := typ(y)
@@ -1857,8 +1727,7 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 	for i := k(0); i < yn-n; i++ {
 		cp(rp+i, yp+o+i)
 	}
-	dec(y)
-	return r
+	return decr(y, r)
 }
 func cut(x, y k) (r k) { // x_y
 	xt, yt, xn, yn := typs(x, y)
@@ -1886,9 +1755,7 @@ func cut(x, y k) (r k) { // x_y
 		yp += ln
 		m.k[2+i+r] = uf(a)
 	}
-	dec(x)
-	dec(y)
-	return r
+	return decr2(x, y, r)
 }
 func cst(x, y k) (r k) { // x$y
 	xt, yt, xn, yn := typs(x, y)
@@ -1910,24 +1777,16 @@ func cst(x, y k) (r k) { // x$y
 		}
 		yc := 8 + y<<2
 		r = mku(btou(m.c[yc : yc+yn]))
-		dec(x)
-		dec(y)
-		return r
+		return decr2(x, y, r)
 	}
-	r = to(y, t) // TODO other conversions?
-	dec(x)
-	return r
+	return decr(x, to(y, t)) // TODO other conversions?
 }
 func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
 	if xn == atom || t != yt {
 		panic("type")
 	}
-	if t > C {
-		r = use(y, I, yn)
-	} else {
-		r = mk(I, yn)
-	}
+	r = mk(I, yn)
 	if yn == atom {
 		yn = 1
 	}
@@ -1945,8 +1804,7 @@ func fnd(x, y k) (r k) { // x?y
 		}
 		m.k[2+j+r] = n
 	}
-	dec(x)
-	return decret(y, r)
+	return decr2(x, y, r)
 }
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
@@ -1984,9 +1842,7 @@ func atx(x, y k) (r k) { // x@y
 				cp(rp+i, xp+m.k[yp+i])
 			}
 		}
-		dec(x)
-		dec(y)
-		return r
+		return decr2(x, y, r)
 	case xt == L && yt == I:
 		if yn == atom {
 			r = inc(m.k[2+x+m.k[2+y]])
@@ -1997,9 +1853,7 @@ func atx(x, y k) (r k) { // x@y
 			}
 			r = uf(r)
 		}
-		dec(x)
-		dec(y)
-		return r
+		return decr2(x, y, r)
 	case xt == D:
 		keys := m.k[2+x]
 		kt, nk := typ(keys)
@@ -2021,13 +1875,10 @@ func atx(x, y k) (r k) { // x@y
 				}
 			}
 		}
-		dec(x)
-		dec(y)
-		return r
+		return decr2(x, y, r)
 	// case xt == L:
 	//	missing element for a list is nax[type of first element]
 	default:
-		println(xt, yt)
 		panic("nyi atx")
 	}
 }
@@ -2036,8 +1887,7 @@ func cal(x, y k) (r k) { // x.y
 	if xt <= D { // TODO dict
 		if yt == L {
 			if yn == 0 {
-				dec(y)
-				return x
+				return decr(y, x)
 			}
 			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
 		}
@@ -2083,19 +1933,15 @@ func cal(x, y k) (r k) { // x.y
 		case 1:
 			f := table[code].(func(k, k) k)
 			a, b := inc(m.k[3+x]), inc(m.k[2+y])
-			dec(x) // allow reuse
-			dec(y)
 			r = f(a, b)
 		case 2:
 			f := table[code+50].(func(k, k, k) k)
 			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
-			dec(x)
-			dec(y)
 			r = f(a, b, c)
 		default:
 			panic("valence")
 		}
-		return r
+		return decr2(x, y, r)
 	}
 	switch xt {
 	case N + 1:
@@ -2113,9 +1959,7 @@ func cal(x, y k) (r k) { // x.y
 	default:
 		panic("nyi")
 	}
-	dec(x)
-	dec(y)
-	return r
+	return decr2(x, y, r)
 }
 func lambda(x, y k) (r k) { // call lambda
 	v := (m.k[x] >> 28) - N
@@ -2128,9 +1972,7 @@ func lambda(x, y k) (r k) { // call lambda
 	l := m.k[3+x] // lambda tree
 	lt, nl := typ(l)
 	if nl == 0 {
-		dec(x)
-		dec(y)
-		return mk(N, atom)
+		return decr2(x, y, mk(N, atom))
 	} else if lt != L {
 		panic("type")
 	}
@@ -2155,8 +1997,7 @@ func lambda(x, y k) (r k) { // call lambda
 			dec(del(xx[i]))
 		}
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func qot(x k) (r k) { return drv(0, x) } // '
 func sla(x k) (r k) { // /
@@ -2183,8 +2024,7 @@ func ech(f, x k) (r k) { // f'x
 		r = mk(D, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = ech(f, inc(m.k[3+x]))
-		dec(x)
-		return r
+		return decr(x, r)
 	}
 	if n == atom {
 		return atx(f, x)
@@ -2193,9 +2033,7 @@ func ech(f, x k) (r k) { // f'x
 	for i := k(0); i < n; i++ {
 		m.k[2+r+i] = atx(inc(f), atx(inc(x), mki(i)))
 	}
-	dec(f)
-	dec(x)
-	return uf(r)
+	return decr2(f, x, uf(r))
 }
 func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	xt, yt, xn, yn := typs(x, y)
@@ -2220,10 +2058,8 @@ func ecd(f, x, y k) (r k) { // x f'y (each pair)
 		m.k[3+l] = atx(inc(y), mki(i))
 		m.k[2+i+r] = cal(inc(f), l)
 	}
-	dec(x)
-	dec(y)
 	dec(f)
-	return uf(r)
+	return decr2(x, y, uf(r))
 }
 func ecp(f, x k) (r k) { // f':x (each prior)
 	t, n := typ(x)
@@ -2231,34 +2067,14 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		r = mk(D, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = ecp(f, inc(m.k[3+x]))
-		dec(x)
-		return r
+		return decr(x, r)
 	} else if t > L || n == atom {
 		panic("class")
 	} else if n == 1 {
 		dec(f)
 		return x
 	}
-	cp := cpx[t]
-	r = use(x, t, n)
-	if r == x {
-		p := mk(t, atom)
-		pt, rp := ptr(p, t), ptr(r, t)
-		cp(pt, rp)
-		for i := k(1); i < n; i++ {
-			l := mk(L, 2)
-			println("x")
-			pr(m.k[2+r+i], "x")
-			pr(p, "y")
-			m.k[2+l] = inc(m.k[2+r+i])
-			m.k[3+l] = inc(p)
-			cp(pt, rp+i)
-			m.k[2+r+i] = cal(inc(f), l)
-		}
-		dec(p)
-		dec(f)
-		return uf(r)
-	}
+	r = mk(t, n)
 	panic("nyi")
 	// TODO: share with epi
 	// TODO: scalar versions
@@ -2275,8 +2091,7 @@ func ovsc(f, x k, scan bool) (r k) {
 			r = mk(D, atom)
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = ovsc(f, inc(m.k[3+x]), scan)
-			dec(x)
-			return r
+			return decr(x, r)
 		} else {
 			r = inc(m.k[3+x])
 			dec(x)
@@ -2291,41 +2106,38 @@ func ovsc(f, x k, scan bool) (r k) {
 		x = enl(x)
 	}
 	if n == 0 { // TODO: k7 returns special values for empty arrays
-		dec(f)
-		return x
+		return decr(f, x)
 	} else if n == 1 {
-		dec(f)
-		return fst(x)
+		return decr(f, fst(x))
 	}
 	if scan {
 		r = take(1, 0, inc(x))
 		return cat(r, sci(f, fst(inc(r)), drop(1, x)))
 	} else {
-		return ovi(f, fst(take(1, 0, inc(x))), drop(1, x))
+		return ov2(f, fst(take(1, 0, inc(x))), x, 1)
 	}
 }
-func ovi(f, x, y k) (r k) { // x f/y
+func ovi(f, x, y k) (r k) { return ov2(f, x, y, 0) } // x f/y
+func ov2(f, x, y, a k) (r k) {
 	yn := m.k[y] & atom
 	if yn == atom {
 		panic("class")
 	}
-	if r := scal(x, y, f, ovb); r != 0 {
-		return r
-	}
+	/*
+		if r := scal(x, y, f, ovb); r != 0 {
+			return r
+		}
+	*/
 	r = x
-	l := mk(L, 2)
-	for i := k(0); i < yn; i++ {
-		m.k[1+l]++
+	for i := k(a); i < yn; i++ {
+		l := mk(L, 2)
 		m.k[2+l] = r
 		m.k[3+l] = atx(inc(y), mki(i))
 		r = cal(inc(f), l)
 	}
-	m.k[l] = I<<28 | 2 // prevent recursive dec
-	dec(l)
-	dec(y)
-	dec(f)
-	return r
+	return decr2(y, f, r)
 }
+/*
 func scal(x, y, f k, g func(k, k, k, k, k, f2) k) k {
 	if m.k[f]&atom != atom || m.k[2+f] > 255 { // basic function
 		return 0
@@ -2349,6 +2161,7 @@ func scal(x, y, f k, g func(k, k, k, k, k, f2) k) k {
 	}
 	return g(x, y, t, xn, yn, op)
 }
+*/
 func ovb(x, y, t, xn, yn k, op f2) (r k) {
 	if m.k[x+1] == 1 {
 		r = x
@@ -2365,8 +2178,7 @@ func ovb(x, y, t, xn, yn k, op f2) (r k) {
 			op(rp+i, rp+i, yp+j)
 		}
 	}
-	dec(y)
-	return decret(x, r)
+	return decr2(x, y, r)
 }
 func scb(x, y, t, xn, yn k, op f2) (r k) {
 	cp, xp, yp := cpx[t], ptr(x, t), ptr(y, t)
@@ -2384,9 +2196,7 @@ func scb(x, y, t, xn, yn k, op f2) (r k) {
 				op(rp+i, rp+i, yp+i)
 			}
 		}
-		dec(x)
-		dec(y)
-		return r
+		return decr2(x, y, r)
 	} else {
 		l := mk(L, yn)
 		p := x
@@ -2400,9 +2210,7 @@ func scb(x, y, t, xn, yn k, op f2) (r k) {
 			p = r
 			m.k[2+j+l] = r
 		}
-		dec(x)
-		dec(y)
-		return l
+		return decr2(x, y, l)
 	}
 }
 func sci(f, x, y k) (r k) { // x f\y
@@ -2410,9 +2218,11 @@ func sci(f, x, y k) (r k) { // x f\y
 	if yn == atom {
 		panic("class")
 	}
+/*
 	if r := scal(x, y, f, scb); r != 0 {
 		return r
 	}
+*/
 	r = mk(L, yn)
 	l := mk(L, 2)
 	for i := k(0); i < yn; i++ {
@@ -2424,21 +2234,15 @@ func sci(f, x, y k) (r k) { // x f\y
 	}
 	m.k[l] = I<<28 | 2
 	dec(l)
-	dec(x)
-	dec(y)
 	dec(f)
-	return uf(r)
+	return decr2(x, y, uf(r))
 }
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt > S || xn == atom {
 		panic("type")
 	}
-	if m.k[1+y] == 1 || yt < F {
-		r = use(y, I, yn)
-	} else {
-		r = mk(I, yn)
-	}
+	r = mk(I, yn)
 	if yn == atom {
 		yn = 1
 	}
@@ -2446,8 +2250,7 @@ func bin(x, y k) (r k) { // x bin y
 	for i := k(0); i < yn; i++ {
 		m.k[2+i+r] = ibin(xp, xt, xn, yp+i, lt)
 	}
-	dec(x)
-	return decret(y, r)
+	return decr2(x, y, r)
 }
 func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
 	if n == 0 {
@@ -2471,7 +2274,6 @@ func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
 func insert(x, y, idx k) (r k) { // insert y into x at k
 	xt, yt, xn, yn := typs(x, y)
 	if xt > L || xn == atom || (xt != L && (xt != yt || yn != atom)) {
-		println("insert", xt, yt, xn, yn)
 		panic("type")
 	}
 	if xt == L {
@@ -2510,16 +2312,14 @@ func unsert(x, idx k) (r k) { // delete index from x
 	for i := k(idx) + 1; i < n; i++ {
 		cp(rp+i-1, xp+i)
 	}
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func asn(x, y k) (r k) { // `x:y
 	keys, vals := m.k[kkey], m.k[kval]
 	if ix, exists := varn(ptr(x, S)); exists {
 		dec(m.k[2+vals+ix])
 		m.k[2+vals+ix] = inc(y)
-		dec(x)
-		return y
+		return decr(x, y)
 	} else {
 		m.k[kkey] = insert(keys, x, ix)
 		m.k[kval] = insert(vals, inc(y), ix)
@@ -2536,13 +2336,11 @@ func lup(x k) (r k) { // lookup
 func lupo(x k) (r k) { // lup, 0 on undefined
 	ix, o := varn(ptr(x, S))
 	if !o {
-		dec(x)
-		return 0
+		return decr(x, 0)
 	}
 	vals := m.k[kval]
 	r = inc(m.k[2+vals+ix])
-	dec(x)
-	return r
+	return decr(x, r)
 }
 func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
@@ -2569,8 +2367,7 @@ func del(x k) (r k) { // delete variable
 			m.k[kval] = unsert(m.k[kval], idx)
 		}
 	}
-	dec(x)
-	return mk(N, atom)
+	return decr(x, mk(N, atom))
 }
 func clear() { // clear variables
 	dec(m.k[kkey])
