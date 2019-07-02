@@ -43,6 +43,7 @@ func TestK(t *testing.T) {
 		{"3+1 2 3", "4 5 6"},
 		{"1 2 3+4", "5 6 7"},
 		{"1 2 3+4f", "5 6 7f"},
+		{"3+0x02", "5"},
 		{"(1 2;3 4)+5", "(6 7;8 9)"},
 		{"2+(3f;,4 5)", "(5f;,6 7)"},
 		{"1 2 3<4f", "1 1 1"},
@@ -116,6 +117,7 @@ func TestK(t *testing.T) {
 		{"{2*x}3", "6"},
 		{"'", "'"},
 		{"`p\"1+2 3\"", "(+;1;2 3)"},
+		{"+/(0x01;2;3f)", "6f"},
 		{"+/1 2 3", "6"},
 		{"*/4 5 6", "120"},
 		{"+/,3", "3"},
@@ -124,6 +126,7 @@ func TestK(t *testing.T) {
 		{"+/(1;(2f;3))", "(3f;4)"},
 		{"4+/1 2 3f", "10f"},
 		{"3+/2 3 4", "12"},
+		{"3+/(0x02;3f;4)", "12f"},
 		{"(,3)+/2 3 4", ",12"},
 		{"3 4 5+/2 3", "8 9 10"},
 		{"1 2 3+/4 5", "10 11 12"},
@@ -133,6 +136,7 @@ func TestK(t *testing.T) {
 		{`3 2 1-\,3`, ",0 -1 -2"},
 		{`2 3-\5 9 3`, "(-3 -2;-12 -11;-15 -14)"},
 		{`+\4 8 9`, "4 12 21"},
+		{`+\(4f;0x08;9)`, "4 12 21f"},
 		{`-\4 8 9`, "4 -4 -13"},
 		{`-\(2 3;5 8;2 1)`, `(2 3;-3 -5;-5 -6)`},
 		{"+/`a`b`c!1 2 3", "6"},
@@ -149,17 +153,26 @@ func TestK(t *testing.T) {
 		// {"(-).(1 2)", "3"},
 		// (x;y):1 2 TODO multi assignment
 	}
-	for _, tc := range testCases {
-		ini()
-		fmt.Printf("%s → %s\n", tc.x, tc.r)
-		y := kst(evl(prs(K([]byte(tc.x)))))
-		r := string(G(y).([]c))
-		if r != tc.r {
-			t.Fatalf("expected %s got %s\n", tc.r, r)
+	for _, occ := range []bool{true, false} {
+		for _, tc := range testCases {
+			ini()
+			fmt.Printf("%s → %s\n", tc.x, tc.r)
+			x := prs(K([]byte(tc.x)))
+			if occ {
+				inc(x)
+			}
+			y := kst(evl(x))
+			r := string(G(y).([]c))
+			if r != tc.r {
+				t.Fatalf("expected %s got %s\n", tc.r, r)
+			}
+			if occ {
+				dec(x)
+			}
+			dec(y)
+			clear()
+			check(t)
 		}
-		dec(y)
-		clear()
-		check(t)
 	}
 }
 
