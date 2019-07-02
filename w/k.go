@@ -1961,6 +1961,12 @@ func cal(x, y k) (r k) { // x.y
 	}
 	return decr2(x, y, r)
 }
+func cal2(f, x, y k) (r k) {
+	l := mk(L, 2)
+	m.k[2+l] = x
+	m.k[3+l] = y
+	return cal(f, l)
+}
 func lambda(x, y k) (r k) { // call lambda
 	v := (m.k[x] >> 28) - N
 	if v < 1 || v > 3 {
@@ -2038,10 +2044,7 @@ func ech(f, x k) (r k) { // f'x
 func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom || yn == atom {
-		l := mk(L, 2)
-		m.k[2+l] = x
-		m.k[3+l] = y
-		return cal(f, l)
+		return cal2(f, x, y)
 	}
 	if xn == atom {
 		x, xn = ext(x, xt, yn), yn
@@ -2053,10 +2056,7 @@ func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	}
 	r = mk(L, xn)
 	for i := k(0); i < xn; i++ {
-		l := mk(L, 2)
-		m.k[2+l] = atx(inc(x), mki(i))
-		m.k[3+l] = atx(inc(y), mki(i))
-		m.k[2+i+r] = cal(inc(f), l)
+		m.k[2+i+r] = cal2(inc(f), atx(inc(x), mki(i)), atx(inc(y), mki(i)))
 	}
 	dec(f)
 	return decr2(x, y, uf(r))
@@ -2074,13 +2074,51 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		dec(f)
 		return x
 	}
-	r = mk(t, n)
-	panic("nyi")
-	// TODO: share with epi
-	// TODO: scalar versions
+	// TODO scalar
+	r = mk(L, n)
+	m.k[2+r] = atx(inc(x), mki(0))
+	for i := k(1); i < n; i++ {
+		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), atx(inc(x), mki(i-1)))
+	}
+	return decr2(f, x, uf(r))
 }
 func epi(f, x, y k) (r k) { // x f':y (each prior initial)
-	panic("nyi")
+	n := m.k[y] & atom
+	// TODO scalar
+	r = mk(L, n)
+	m.k[2+r] = cal2(inc(f), x, atx(inc(x), mki(0)))
+	for i := k(1); i < n; i++ {
+		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), atx(inc(x), mki(i-1)))
+	}
+	return decr2(f, x, uf(r))
+}
+func ecr(f, x, y k) (r k) { // x f/: y
+	xt, yt, _, yn := typs(x, y)
+	if xt > L || yt > L { // TODO D
+		panic("type")
+	} else if yn == atom {
+		return cal2(f, x, y)
+	}
+	r = mk(L, yn)
+	for i := k(0); i < yn; i++ {
+		m.k[2+r+i] = cal2(inc(f), inc(x), atx(inc(y), mki(i)))
+	}
+	dec(f)
+	return decr2(x, y, r)
+}
+func ecl(f, x, y k) (r k) { // x f\: y
+	xt, yt, xn, _ := typs(x, y)
+	if xt > L || yt > L { // TODO D
+		panic("type")
+	} else if xn == atom {
+		return cal2(f, x, y)
+	}
+	r = mk(L, xn)
+	for i := k(0); i < xn; i++ {
+		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), inc(y))
+	}
+	dec(f)
+	return decr2(x, y, r)
 }
 func ovr(f, x k) (r k) { return ovsc(f, x, false) } // f/x
 func scn(f, x k) (r k) { return ovsc(f, x, true) }  // f\x
@@ -2130,13 +2168,11 @@ func ov2(f, x, y, a k) (r k) {
 	*/
 	r = x
 	for i := k(a); i < yn; i++ {
-		l := mk(L, 2)
-		m.k[2+l] = r
-		m.k[3+l] = atx(inc(y), mki(i))
-		r = cal(inc(f), l)
+		r = cal2(inc(f), r, atx(inc(y), mki(i)))
 	}
 	return decr2(y, f, r)
 }
+
 /*
 func scal(x, y, f k, g func(k, k, k, k, k, f2) k) k {
 	if m.k[f]&atom != atom || m.k[2+f] > 255 { // basic function
@@ -2161,7 +2197,6 @@ func scal(x, y, f k, g func(k, k, k, k, k, f2) k) k {
 	}
 	return g(x, y, t, xn, yn, op)
 }
-*/
 func ovb(x, y, t, xn, yn k, op f2) (r k) {
 	if m.k[x+1] == 1 {
 		r = x
@@ -2213,27 +2248,22 @@ func scb(x, y, t, xn, yn k, op f2) (r k) {
 		return decr2(x, y, l)
 	}
 }
+*/
 func sci(f, x, y k) (r k) { // x f\y
 	yn := m.k[y] & atom
 	if yn == atom {
 		panic("class")
 	}
-/*
-	if r := scal(x, y, f, scb); r != 0 {
-		return r
-	}
-*/
+	/*
+		if r := scal(x, y, f, scb); r != 0 {
+			return r
+		}
+	*/
 	r = mk(L, yn)
-	l := mk(L, 2)
 	for i := k(0); i < yn; i++ {
-		m.k[1+l]++
-		m.k[2+l] = x
-		m.k[3+l] = atx(inc(y), mki(i))
-		x = cal(inc(f), l)
+		x = cal2(inc(f), x, atx(inc(y), mki(i)))
 		m.k[2+i+r] = inc(x)
 	}
-	m.k[l] = I<<28 | 2
-	dec(l)
 	dec(f)
 	return decr2(x, y, uf(r))
 }
@@ -2430,7 +2460,7 @@ func init() {
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, nil, nil,
 		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
 		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,
 	}
 }
