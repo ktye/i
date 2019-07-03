@@ -2045,7 +2045,15 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		dec(f)
 		return x
 	}
-	// TODO scalar
+	if x, t, op := scop1(f, x); op != nil {
+		r = mk(t, n)
+		rp, xp := ptr(r, t), ptr(x, t)
+		cpx[t](rp, xp)
+		for i := k(1); i<n; i++ {
+			op(rp+i, xp+i, xp+i-1)
+		}
+		return decr(x, r)
+	}
 	r = mk(L, n)
 	m.k[2+r] = atx(inc(x), mki(0))
 	for i := k(1); i < n; i++ {
@@ -2055,7 +2063,17 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 }
 func epi(f, x, y k) (r k) { // x f':y (each prior initial)
 	n := m.k[y] & atom
-	// TODO scalar
+	if m.k[x]&atom == atom {
+		if x, t, op := scop1(f, x); op != nil {
+			r = mk(t, n)
+			rp, xp, yp := ptr(r, t), ptr(x, t), ptr(y, t)
+			op(rp, yp, xp)
+			for i := k(1); i<n; i++ {
+				op(rp+i, yp+i, yp+i-1)
+			}
+			return decr2(x, y, r)
+		}
+	}
 	r = mk(L, n)
 	m.k[2+r] = cal2(inc(f), x, atx(inc(x), mki(0)))
 	for i := k(1); i < n; i++ {
@@ -2150,15 +2168,28 @@ func ovsc(f, x k, scan bool) (r k) {
 		return decr(f, fst(x))
 	}
 	if scan {
-		r = take(1, 0, inc(x))
-		return cat(r, sci(f, fst(inc(r)), drop(1, x)))
+		r = mk(L, n)
+		m.k[2+r] = atx(inc(x), mki(0))
+		p := m.k[2+r]
+		for i := k(1); i < n; i++ {
+			p = cal2(inc(f), inc(p), atx(inc(x), mki(i)))
+			m.k[2+i+r] = p
+		}
+		return decr2(x, f, uf(r))
 	} else {
-		return ov2(f, fst(take(1, 0, inc(x))), x, 1)
+		r = atx(inc(x), mki(0))
+		for i := k(1); i<n; i++ {
+			r = cal2(inc(f), r, atx(inc(x), mki(i)))
+		}
+		return decr2(x, f, r)
 	}
 }
 func ovi(f, x, y k) (r k) { // x f/y
+	xn, yn := m.k[x]&atom, m.k[y]&atom
+	if yn == atom {
+		panic("class")
+	}
 	if x, y, t, op := scop2(f, x, y); op != nil {
-		xn, yn := m.k[x]&atom, m.k[y]&atom
 		r := mk(t, xn)
 		xn, yn = atm1(xn), atm1(yn)
 		rp, xp, yp, cp := ptr(r, t), ptr(x, t), ptr(y, t), cpx[t]
@@ -2171,18 +2202,35 @@ func ovi(f, x, y k) (r k) { // x f/y
 		}
 		return decr2(x, y, r)
 	}
-	return ov2(f, x, y, 0)
-}
-func ov2(f, x, y, a k) (r k) {
-	_, yn := m.k[x]&atom, m.k[y]&atom
-	if yn == atom {
-		panic("class")
-	}
 	r = x
-	for i := k(a); i < yn; i++ {
+	for i := k(0); i < yn; i++ {
 		r = cal2(inc(f), r, atx(inc(y), mki(i)))
 	}
 	return decr2(y, f, r)
+}
+func sci(f, x, y k) (r k) { // x f\y
+	xn, yn := m.k[x]&atom, m.k[y]&atom
+	if yn == atom {
+		panic("class")
+	}
+	if xn == atom {
+		if x, y, t, op := scop2(f, x, y); op != nil {
+			r = mk(t, yn)
+			xp, yp, rp := ptr(x, t), ptr(y, t), ptr(r, t)
+			op(rp, xp, yp)
+			for i := k(1); i<yn; i++ {
+				op(rp+i, rp+i-1, yp+i)
+			}
+			return decr2(x, y, r)
+		}
+	}
+	r = mk(L, yn)
+	for i := k(0); i < yn; i++ {
+		x = cal2(inc(f), x, atx(inc(y), mki(i)))
+		m.k[2+i+r] = inc(x)
+	}
+	dec(f)
+	return decr2(x, y, uf(r))
 }
 func scop1(f, x k) (k, k, f2) {
 	if m.k[f]&atom != atom || m.k[2+f] > 255 {
@@ -2229,19 +2277,6 @@ func scop2(f, x, y k) (k, k, k, f2) {
 		y, yt = to(y, t), t
 	}
 	return x, y, t, op
-}
-func sci(f, x, y k) (r k) { // x f\y
-	yn := m.k[y] & atom
-	if yn == atom {
-		panic("class")
-	}
-	r = mk(L, yn)
-	for i := k(0); i < yn; i++ {
-		x = cal2(inc(f), x, atx(inc(y), mki(i)))
-		m.k[2+i+r] = inc(x)
-	}
-	dec(f)
-	return decr2(x, y, uf(r))
 }
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
