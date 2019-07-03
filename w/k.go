@@ -39,7 +39,6 @@ var m struct { // linear memory (slices share underlying arrays)
 }
 
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
-var swx = []f1{nil, swC, swI, swF, swZ, swF, swI, swI} // swap
 var nax = []func(k){nil, naC, naI, naF, naZ, naS}      // set missing/nan
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
 var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
@@ -52,10 +51,7 @@ func cpI(dst, src k)  { m.k[dst] = m.k[src] }
 func cpF(dst, src k)  { m.f[dst] = m.f[src] }
 func cpZ(dst, src k)  { m.z[dst] = m.z[src] }
 func cpL(dst, src k)  { inc(m.k[src]); cpI(dst, src) }
-func swC(dst, src k)  { m.c[dst], m.c[src] = m.c[src], m.c[dst] }
 func swI(dst, src k)  { m.k[dst], m.k[src] = m.k[src], m.k[dst] }
-func swF(dst, src k)  { m.f[dst], m.f[src] = m.f[src], m.f[dst] }
-func swZ(dst, src k)  { m.z[dst], m.z[src] = m.z[src], m.z[dst] }
 func naC(dst k)       { m.c[dst] = 32 }
 func naI(dst k)       { m.k[dst] = 0x80000000 }
 func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst] = *(*f)(unsafe.Pointer(&u)) }
@@ -763,16 +759,13 @@ func rev(x k) (r k) { // |x
 	}
 	r = mk(t, n)
 	if t < D {
-		cp, m := cpx[t], n
+		cp := cpx[t]
 		if t == L {
 			cp = cpI
 		}
-		src, dst := ptr(x, t), ptr(r, t)
-		if src == dst {
-			cp, m = swx[t], n/2
-		}
-		for i := k(0); i < m; i++ {
-			cp(dst+n-1-i, src+i)
+		xp, rp:= ptr(x, t), ptr(r, t)
+		for i := k(0); i < n; i++ {
+			cp(rp+n-1-i, xp+i)
 		}
 	} else {
 		panic("nyi")
@@ -2311,20 +2304,44 @@ func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
 	return i
 }
 func insert(x, y, idx k) (r k) { // insert y into x at k
-	xt, yt, xn, yn := typs(x, y)
-	if xt > L || xn == atom || (xt != L && (xt != yt || yn != atom)) {
+	t, yt, n, yn := typs(x, y)
+	if t > L || n == atom || (t != L && (t != yt || yn != atom)) {
 		panic("type")
 	}
-	if xt == L {
-		x = lcat(x, y)
-	} else {
-		x = ucat(x, y, xt, xn, yn)
+	cp, xp, yp := cpx[t], ptr(x, t), ptr(y, t)
+	if m.k[x+1] == 1 && bk(t, n) == bk(t, n+1) {
+		if t == L {
+			cp = cpI
+		}
+		m.k[x] = t<<28 | (n + 1)
+		for i := n; i>idx; i-- {
+			cp(xp+i, xp+i-1)
+		}
+		if t == L {
+			m.k[2+x+idx] = y
+		} else {
+			cp(xp+idx, yp)
+			dec(y)
+		}
+		return x
 	}
-	if idx != xn {
-		sw, xp := swx[xt], ptr(x, xt)
-		sw(xp+idx, xp+idx+xn)
+	r = mk(t, n+1)
+	rp := ptr(r, t)
+	for i := k(0); i<n+1; i++ {
+		if i == idx {
+			xp++
+			if t == L {
+				m.k[2+idx+r] = y
+			} else {
+				cp(rp+i, yp)
+				dec(y)
+			}
+		} else {
+			cp(rp+i, xp)
+		}
+		xp++
 	}
-	return x
+	return decr(x, r)
 }
 func unsert(x, idx k) (r k) { // delete index from x
 	t, n := typ(x)
