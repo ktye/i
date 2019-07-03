@@ -151,6 +151,10 @@ func TestK(t *testing.T) {
 		{"-':`a`b`c!3 8 1", "`a`b`c!3 5 -7"},
 		{"1 2 3+/:7 8", "(8 9 10;9 10 11)"},
 		{`1 2 3+\:7 8`, "(8 9;9 10;10 11)"},
+		{`{4>x}{x+1}/1`, "4"},
+		{`{4>x}{x+1}\1`, "1 2 3 4"},
+		{`{4>#x}{x,"k"}/"o"`, `"okkk"`},
+		//{`{4>#x}{x,"k"}\"o"`, `("o";"ok";"okk";"okkk")`},
 		// {"(-).(1 2)", "3"},
 		// (x;y):1 2 TODO multi assignment
 	}
@@ -688,6 +692,7 @@ func Stats() MemStats {
 		if tp == 0 {
 			t := m.k[a]
 			if t < 4 || t > 31 {
+				xxd()
 				fmt.Printf("free block at %x with bt %d\n", a, t)
 				panic("size")
 			}

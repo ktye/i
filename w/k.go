@@ -763,7 +763,7 @@ func rev(x k) (r k) { // |x
 		if t == L {
 			cp = cpI
 		}
-		xp, rp:= ptr(x, t), ptr(r, t)
+		xp, rp := ptr(x, t), ptr(r, t)
 		for i := k(0); i < n; i++ {
 			cp(rp+n-1-i, xp+i)
 		}
@@ -1162,7 +1162,6 @@ func kst(x k) (r k) { // `k@x
 	switch t {
 	case C: // ,"a" "a" "ab" "a\nb" ,0x01 0x010203
 		r = mk(C, 2+2*n) // for both "a\nb" or 0x01234 or ,"\n"(short enough)
-		// no need to shrink: 2*(10+n) is never <= 10+2*n
 		rc, rn, xc := 8+r<<2, k(0), 8+x<<2
 		if n == 1 && !atm {
 			rn = putc(rc, rn, ',')
@@ -1197,7 +1196,7 @@ func kst(x k) (r k) { // `k@x
 				rn = putc(rc, rn, c2)
 			}
 		}
-		m.k[r] = C<<28 | rn
+		r = srk(r, C, 2+2*n, rn)
 	case I, F, Z:
 		r = mk(C, 0)
 		if n == 1 && !atm {
@@ -1527,11 +1526,12 @@ func cat(x, y k) (r k) { // x,y
 		dec(x)
 	} else {
 		r = x
+		m.k[r] = L<<28 | (xn + yn)
 	}
 	for j := k(0); j < yn; j++ {
 		m.k[2+r+xn+j] = inc(m.k[2+y+j])
 	}
-	return decr(y, r)
+	return decr(y, uf(r))
 }
 func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	xn, yn = atm1(xn), atm1(yn)
@@ -2042,7 +2042,7 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		r = mk(t, n)
 		rp, xp := ptr(r, t), ptr(x, t)
 		cpx[t](rp, xp)
-		for i := k(1); i<n; i++ {
+		for i := k(1); i < n; i++ {
 			op(rp+i, xp+i, xp+i-1)
 		}
 		return decr(x, r)
@@ -2061,7 +2061,7 @@ func epi(f, x, y k) (r k) { // x f':y (each prior initial)
 			r = mk(t, n)
 			rp, xp, yp := ptr(r, t), ptr(x, t), ptr(y, t)
 			op(rp, yp, xp)
-			for i := k(1); i<n; i++ {
+			for i := k(1); i < n; i++ {
 				op(rp+i, yp+i, yp+i-1)
 			}
 			return decr2(x, y, r)
@@ -2171,15 +2171,17 @@ func ovsc(f, x k, scan bool) (r k) {
 		return decr2(x, f, uf(r))
 	} else {
 		r = atx(inc(x), mki(0))
-		for i := k(1); i<n; i++ {
+		for i := k(1); i < n; i++ {
 			r = cal2(inc(f), r, atx(inc(x), mki(i)))
 		}
 		return decr2(x, f, r)
 	}
 }
 func ovi(f, x, y k) (r k) { // x f/y
-	xn, yn := m.k[x]&atom, m.k[y]&atom
-	if yn == atom {
+	xt, _, xn, yn := typs(x, y)
+	if xt > N {
+		return whl(f, x, y)
+	} else if yn == atom {
 		panic("class")
 	}
 	if x, y, t, op := scop2(f, x, y); op != nil {
@@ -2202,8 +2204,10 @@ func ovi(f, x, y k) (r k) { // x f/y
 	return decr2(y, f, r)
 }
 func sci(f, x, y k) (r k) { // x f\y
-	xn, yn := m.k[x]&atom, m.k[y]&atom
-	if yn == atom {
+	xt, _, xn, yn := typs(x, y)
+	if xt > N {
+		return whls(f, x, y)
+	} else if yn == atom {
 		panic("class")
 	}
 	if xn == atom {
@@ -2211,7 +2215,7 @@ func sci(f, x, y k) (r k) { // x f\y
 			r = mk(t, yn)
 			xp, yp, rp := ptr(x, t), ptr(y, t), ptr(r, t)
 			op(rp, xp, yp)
-			for i := k(1); i<yn; i++ {
+			for i := k(1); i < yn; i++ {
 				op(rp+i, rp+i-1, yp+i)
 			}
 			return decr2(x, y, r)
@@ -2271,6 +2275,41 @@ func scop2(f, x, y k) (k, k, k, f2) {
 	}
 	return x, y, t, op
 }
+func whl(f, x, y k) (r k) { // g f/y
+	r = y
+	for {
+		b := atx(inc(x), inc(r))
+		br := m.k[2+b]
+		if bt, bn := typ(b); bt != I || bn != atom {
+			panic("type")
+		}
+		dec(b)
+		if br == 0 {
+			break
+		}
+		r = atx(inc(f), r)
+	}
+	return decr2(f, x, r)
+}
+func whls(f, x, y k) (r k) { // g f\y
+	r = y
+	l, b, br := cat(mk(L, 0), inc(r)), k(0), k(0)
+	for {
+		b = atx(inc(x), inc(r))
+		br = m.k[2+b]
+		if bt, bn := typ(b); bt != I || bn != atom {
+			panic("type")
+		}
+		dec(b)
+		if br == 0 {
+			break
+		}
+		r = atx(inc(f), r)
+		l = cat(l, inc(r))
+	}
+	dec(r)
+	return decr2(f, x, l)
+}
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt > S || xn == atom {
@@ -2314,7 +2353,7 @@ func insert(x, y, idx k) (r k) { // insert y into x at k
 			cp = cpI
 		}
 		m.k[x] = t<<28 | (n + 1)
-		for i := n; i>idx; i-- {
+		for i := n; i > idx; i-- {
 			cp(xp+i, xp+i-1)
 		}
 		if t == L {
@@ -2327,7 +2366,7 @@ func insert(x, y, idx k) (r k) { // insert y into x at k
 	}
 	r = mk(t, n+1)
 	rp := ptr(r, t)
-	for i := k(0); i<n+1; i++ {
+	for i := k(0); i < n+1; i++ {
 		if i == idx {
 			xp++
 			if t == L {
