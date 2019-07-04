@@ -132,6 +132,9 @@ func (p *p) ex(x k) (r k) {
 		dec(x)
 		return r
 	default:
+		if p.t(sAdv) { // e.g. 2/3
+			return p.adv(0, x)
+		}
 		a := p.noun()
 		if p.t(sAdv) {
 			return p.adv(x, a)

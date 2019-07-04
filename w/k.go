@@ -1679,6 +1679,8 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 	t, yn := typ(y)
 	if yn == atom {
 		panic("type")
+	} else if yn == 0 {
+		return y
 	}
 	n, neg, o := k(x), false, k(x)
 	if x < 0 {
@@ -2103,7 +2105,17 @@ func ecl(f, x, y k) (r k) { // x f\: y
 	return decr2(x, y, r)
 }
 func ovr(f, x k) (r k) { // f/x
-	if x, t, op := scop1(f, x); op != nil {
+	if m.k[f]>>28 == N+1 { // fixed
+		for {
+			r = x
+			x = atx(inc(f), inc(r))
+			if match(x, r) {
+				break
+			}
+			dec(r)
+		}
+		return decr2(f, r, x)
+	} else if x, t, op := scop1(f, x); op != nil {
 		n := m.k[x] & atom
 		if n == atom {
 			return x
@@ -2119,7 +2131,20 @@ func ovr(f, x k) (r k) { // f/x
 	return ovsc(f, x, false)
 }
 func scn(f, x k) (r k) { // f\x
-	if x, t, op := scop1(f, x); op != nil {
+	if m.k[f]>>28 == N+1 { // scan fixed
+		l := mk(L, 0)
+		for {
+			r = x
+			l = lcat(l, inc(r))
+			x = atx(inc(f), inc(r))
+			if match(x, r) {
+				dec(x)
+				break
+			}
+			dec(r)
+		}
+		return decr2(f, r, uf(l))
+	} else if x, t, op := scop1(f, x); op != nil {
 		n := m.k[x] & atom
 		if n == atom {
 			return x
@@ -2181,6 +2206,13 @@ func ovi(f, x, y k) (r k) { // x f/y
 	xt, _, xn, yn := typs(x, y)
 	if xt > N {
 		return whl(f, x, y)
+	} else if m.k[f]>>28 == N+1 && xt == I { // for
+		n := m.k[2+x]
+		r = y
+		for i := k(0); i < n; i++ {
+			r = atx(inc(f), r)
+		}
+		return decr2(f, x, r)
 	} else if yn == atom {
 		panic("class")
 	}
@@ -2207,6 +2239,16 @@ func sci(f, x, y k) (r k) { // x f\y
 	xt, _, xn, yn := typs(x, y)
 	if xt > N {
 		return whls(f, x, y)
+	} else if m.k[f]>>28 == N+1 && xt == I { // scan-for
+		n := m.k[2+x]
+		r = y
+		l := lcat(mk(L, 0), inc(r))
+		for i := k(0); i < n; i++ {
+			r = atx(inc(f), r)
+			l = lcat(l, inc(r))
+		}
+		dec(r)
+		return decr2(f, x, uf(l))
 	} else if yn == atom {
 		panic("class")
 	}
