@@ -344,7 +344,7 @@ func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
 			f = 2
 		}
 	}
-	if x, err := strconv.Atoi(string(b)); err == nil { // TODO remove strconv
+	if x, o := atoi(b); o {
 		if f == 0 {
 			r = mki(k(i(x)))
 		} else {
@@ -682,4 +682,17 @@ func argn(x, a k) k { // count args of lambda parse tree
 		}
 	}
 	return a
+}
+func atoi(b []c) (int, bool) {
+	n, s := 0, 1
+	for i, c := range b {
+		if i == 0 && c == '-' {
+			s = -1
+		} else if cr09(c) {
+			n = 10*n + int(c-'0')
+		} else {
+			return 0, false
+		}
+	}
+	return s * n, true
 }
