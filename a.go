@@ -25,15 +25,15 @@ func main() {
 			rd = f
 		}
 	}
-	pr()
+	sp()
 	r := bufio.NewScanner(rd)
 	for r.Scan() {
 		line++
 		do(r.Bytes())
-		pr()
+		sp()
 	}
 }
-func pr() {
+func sp() {
 	if file == "" {
 		os.Stdout.Write([]c{' '})
 	}
