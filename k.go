@@ -2410,7 +2410,6 @@ func insert(x, y, idx k) (r k) { // insert y into x at k
 	rp := ptr(r, t)
 	for i := k(0); i < n+1; i++ {
 		if i == idx {
-			xp++
 			if t == L {
 				m.k[2+idx+r] = y
 			} else {
@@ -2419,8 +2418,8 @@ func insert(x, y, idx k) (r k) { // insert y into x at k
 			}
 		} else {
 			cp(rp+i, xp)
+			xp++
 		}
-		xp++
 	}
 	return decr(x, r)
 }

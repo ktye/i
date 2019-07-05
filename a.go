@@ -1,52 +1,73 @@
 package main
 
 import (
+	"bufio"
+	"os"
 	"runtime/debug"
-	"syscall"
+	"strconv"
+	"strings"
 )
 
-// To read command line arguments without importing package os, see go/src/os/{proc.go,exec_windows.go}
-// Windows needs special handling, see: exec_windows.go (init)
-// 	p := syscall.GetCommandLine()
-// 	cmd := syscall.UTF16ToString((*[0xffff]uint16)(unsafe.Pointer(p))[:])
-//	cmd is a single string and might need special splitting
+var line int
+var file string
 
 func main() {
 	ini()
-	var buf [1024]byte
-	p := buf[:]
-	for {
-		// Read from stdin without os.Stdin
-		// syscall.Stdin is not 0 on windows, but a call to GetStdHandle(-10)
-		n, err := syscall.Read(syscall.Stdin, p)
-		if err != nil {
-			panic(err)
+	table[21] = out
+	rd := os.Stdin
+	if len(os.Args) < 2 {
+	} else {
+		file = os.Args[1]
+		if f, err := os.Open(file); err != nil {
+			fatal(err.Error())
+		} else {
+			defer f.Close()
+			rd = f
 		}
-		if n > 0 {
-			do(p[:n])
-		}
+	}
+	pr()
+	r := bufio.NewScanner(rd)
+	for r.Scan() {
+		line++
+		do(r.Bytes())
+		pr()
+	}
+}
+func pr() {
+	if file == "" {
+		os.Stdout.Write([]c{' '})
 	}
 }
 func do(s []byte) {
+	defer stk()
 	s = cmd(s)
-	defer func() {
-		if c := recover(); c != nil {
-			println(string(debug.Stack()))
-			if s, o := c.(string); o {
-				println(s)
-			} else if e, o := c.(error); o {
-				println(e.Error())
-			}
-		}
-	}()
 	ns := k(len(s))
 	c := mk(C, ns)
 	cc := 8 + c<<2
 	copy(m.c[cc:cc+ns], s)
-	r := kst(evl(prs(c)))
-	rc, nr := 8+r<<2, m.k[r]&atom
-	dec(r)
-	println(string(m.c[rc : rc+nr]))
+	p := prs(c)
+	if isasn(p) {
+		evl(p)
+	} else {
+		nl := mk(C, atom)
+		m.c[8+nl<<2] = '\n'
+		dec(out(cat(kst(evl(p)), nl)))
+	}
+}
+func out(x k) k {
+	if t, n := typ(x); t != C {
+		panic("type")
+	} else {
+		xp := ptr(x, t)
+		print(string(m.c[xp : xp+n]))
+	}
+	return x
+}
+func isasn(x k) bool {
+	if t, n := typ(x); t == L && n > 1 && m.k[m.k[2+x]]>>28 == N+2 && m.k[2+m.k[2+x]] == dyad {
+		return true
+	}
+	return false
 }
 func cmd(b []byte) []byte {
 	if !(len(b) == 3 && b[0] == '\\' && b[2] == '\n') {
@@ -65,3 +86,28 @@ func cmd(b []byte) []byte {
 		return b
 	}
 }
+func stk() {
+	if c := recover(); c != nil {
+		a, b := stack(c)
+		println(a)
+		println(file+":"+strconv.Itoa(line)+":", b)
+		if file != "" {
+			os.Exit(1)
+		}
+	}
+}
+func stack(c interface{}) (stk, err string) {
+	for _, s := range strings.Split(string(debug.Stack()), "\n") {
+		if strings.HasPrefix(s, "\t") {
+			stk += "\n" + s[1:]
+		}
+	}
+	err = "?"
+	if s, o := c.(string); o {
+		err = s
+	} else if e, o := c.(error); o {
+		err = e.Error()
+	}
+	return stk, err
+}
+func fatal(s string) { println(s); os.Exit(1) }
