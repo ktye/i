@@ -163,10 +163,7 @@ func ini() { // start function
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	o := c(39) // monads
-	builtin(o+0, "lsv")
-	builtin(o+1, "clv")
-	builtin(o+5, "help")
-	builtin(o+6, "exit")
+	builtin(o+1, "exit")
 	o += c(dyad) // dyads
 	builtin(o+0, "in")
 	builtin(o+1, "within")
@@ -1041,17 +1038,47 @@ func tip(x k) (r k) { // @x
 	mys(8+r<<2, uint64(s)<<56)
 	return decr(x, r)
 }
-func evp(x k) (r k) { // parse-eval-print
-	p, asn := prs(x), false
-	if t, n := typ(p); t == L && n > 1 && m.k[m.k[2+p]]>>28 == N+2 && m.k[2+m.k[2+p]] == dyad {
+func cmd(x k) (r k) {
+	xp := 8 + x<<2
+	switch m.c[xp] {
+	case 'v':
+		return decr(x, lsv())
+	case 'c':
+		return decr(x, clv())
+	case 'h':
+		return decr(x, hlp())
+	case '\\':
+		exi := table[40].(func(k) k)
+		if m.k[x]&atom > 1 {
+			return decr(x, exi(mki(1)))
+		}
+		return decr(x, exi(mki(0)))
+	default:
+		panic("undefined")
+	}
+}
+func evp(x k) { // parse-eval-print
+	if t, n := typ(x); t == C && n > 1 && m.c[8+x<<2] == '\\' {
+		out(cmd(drop(1, x)))
+		return
+	}
+	r, asn := prs(x), false
+	if t, n := typ(r); t == L && n > 1 && m.k[m.k[2+r]]>>28 == N+2 && m.k[2+m.k[2+r]] == dyad {
 		asn = true
 	}
-	r = evl(p)
-	if !asn && m.k[r]>>28 != N {
-		w := table[21+dyad].(func(k, k) k)
-		dec(w(mku(0), cat(kst(inc(r)), mkc('\n'))))
+	r = evl(r)
+	if asn {
+		dec(r)
+		return
 	}
-	return r
+	out(r)
+}
+func out(x k) {
+	if m.k[x]>>28 == N {
+		return
+	}
+	w := table[21+dyad].(func(k, k) k)
+	dec(w(mku(0), cat(kst(x), mkc('\n'))))
 }
 func evl(x k) (r k) { // .x
 	t, n := typ(x)
@@ -1187,7 +1214,7 @@ func kst(x k) (r k) { // `k@x
 		hex := false
 		for i := k(0); i < n; i++ {
 			c := m.c[xc+i]
-			if c < 32 || c > 126 || c == '"' {
+			if c < 32 || c > 126 || c == '"' || c == '\\' {
 				if c, o := qt(c); o {
 					rn = putc(rc, rn, '\\')
 					rn = putc(rc, rn, c)
@@ -1357,16 +1384,18 @@ func putb(rc, rn k, b []c) k {
 	return rn + k(len(b))
 }
 func qt(c c) (c, bool) { // quote
-	if c == '"' {
+	switch c {
+	case '"', '\\':
 		return c, true
-	} else if c == '\n' {
+	case '\n':
 		return 'n', true
-	} else if c == '\t' {
+	case '\t':
 		return 't', true
-	} else if c == '\r' {
+	case '\r':
 		return 'r', true
+	default:
+		return c, false
 	}
-	return c, false
 }
 func sym(x k) uint64 { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
 func mys(x k, u uint64) k {
@@ -2527,10 +2556,9 @@ func clear() { // clear variables
 	m.k[kkey] = mk(S, 0)
 	m.k[kval] = mk(L, 0)
 }
-func lsv(x k) (r k) { dec(x); return inc(m.k[kkey]) }       // \v (list variables)
-func clv(x k) (r k) { dec(x); clear(); return mk(N, atom) } // \c (clear variables)
-func hlp(x k) (r k) {
-	dec(x)
+func lsv() (r k) { return inc(m.k[kkey]) }       // \v (list variables)
+func clv() (r k) { clear(); return mk(N, atom) } // \c (clear variables)
+func hlp() (r k) {
 	n := k(168 - 136)
 	r = mk(C, n)
 	rc := 8 + r<<2
@@ -2585,7 +2613,7 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, nil, nil,
-		lsv, clv, nil, nil, nil, hlp, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
 		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,

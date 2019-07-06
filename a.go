@@ -13,7 +13,7 @@ var rd func() []c
 func main() {
 	ini()
 	table[21] = red
-	table[45] = exi
+	table[40] = exi
 	table[21+dyad] = wrt
 	if len(os.Args) < 2 {
 		rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
@@ -33,7 +33,7 @@ func try() {
 	if m.k[r]&atom == 0 {
 		exi(mki(0))
 	}
-	dec(evp(r))
+	evp(r)
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
@@ -63,10 +63,10 @@ func red(x k) (r k) { // 1:x
 }
 func read() []c { // read all from stdin (non-interactive)
 	b, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		panic(err)
+	if err == nil {
+		return b
 	}
-	return b
+	return []c{}
 }
 func readline(sc *bufio.Scanner) func() []c { // read single line (interactive)
 	return func() []c {
@@ -105,23 +105,6 @@ func exi(x k) (r k) { // exit built-in
 	}
 	os.Exit(1)
 	return mk(N, atom)
-}
-func cmd(b []byte) []byte {
-	if len(b) < 2 || b[0] != '\\' {
-		return b
-	}
-	switch b[1] {
-	case 'v':
-		return []c("lsv 0\n")
-	case 'c':
-		return []c("clv 0\n")
-	case 'h':
-		return []c("help 0\n")
-	case '\\':
-		panic("bye")
-	default:
-		return b
-	}
 }
 func stk() {
 	if c := recover(); c != nil {
