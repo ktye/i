@@ -16,12 +16,8 @@ func prs(x k) (r k) { // `p"…"
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, ln: 1}
 	r = mk(L, 1)
 	m.k[2+r] = mku(0) // ;→`
-	for p.p < p.e {   // ex;ex;…
-		y := p.ex(p.noun())
-		if x == 0 {
-			break
-		}
-		r = lcat(r, y)
+	for p.p <= p.e {  // ex;ex;…
+		r = lcat(r, p.ex(p.noun()))
 		if !p.t(sSem) {
 			break
 		}

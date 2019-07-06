@@ -46,12 +46,15 @@ func do(s []byte) {
 	cc := 8 + c<<2
 	copy(m.c[cc:cc+ns], s)
 	p := prs(c)
-	if isasn(p) {
-		evl(p)
-	} else {
-		nl := mk(C, atom)
-		m.c[8+nl<<2] = '\n'
-		dec(out(cat(kst(evl(p)), nl)))
+	r := evl(inc(p))
+	if !isasn(p) {
+		if m.k[r]>>28 != N {
+			nl := mk(C, atom)
+			m.c[8+nl<<2] = '\n'
+			dec(out(cat(kst(evl(p)), nl)))
+		} else {
+			dec(r)
+		}
 	}
 }
 func out(x k) k {
@@ -70,7 +73,7 @@ func isasn(x k) bool {
 	return false
 }
 func cmd(b []byte) []byte {
-	if !(len(b) == 3 && b[0] == '\\' && b[2] == '\n') {
+	if len(b) < 2 || b[0] != '\\' {
 		return b
 	}
 	switch b[1] {
