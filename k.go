@@ -142,7 +142,6 @@ func mv(dst, src k) {
 	m.k[dst] = t<<28 | n // restore header
 	m.k[1+dst] = rc
 }
-
 func ini() { // start function
 	m.f = make([]f, 1<<13)
 	msl()
@@ -167,6 +166,7 @@ func ini() { // start function
 	builtin(o+0, "lsv")
 	builtin(o+1, "clv")
 	builtin(o+5, "help")
+	builtin(o+6, "exit")
 	o += c(dyad) // dyads
 	builtin(o+0, "in")
 	builtin(o+1, "within")
@@ -1040,6 +1040,18 @@ func tip(x k) (r k) { // @x
 	}
 	mys(8+r<<2, uint64(s)<<56)
 	return decr(x, r)
+}
+func evp(x k) (r k) { // parse-eval-print
+	p, asn := prs(x), false
+	if t, n := typ(p); t == L && n > 1 && m.k[m.k[2+p]]>>28 == N+2 && m.k[2+m.k[2+p]] == dyad {
+		asn = true
+	}
+	r = evl(p)
+	if !asn && m.k[r]>>28 != N {
+		w := table[21+dyad].(func(k, k) k)
+		dec(w(mku(0), cat(kst(inc(r)), mkc('\n'))))
+	}
+	return r
 }
 func evl(x k) (r k) { // .x
 	t, n := typ(x)
