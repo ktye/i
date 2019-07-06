@@ -118,8 +118,10 @@ func (p *p) ex(x k) (r k) {
 			return p.adv(0, x)
 		}
 		v := p.noun()
-		if p.t(sAdv) {
-			return p.adv(x, v) // e.g. f g/x
+		if vt, vn := typ(v); vt > N && vn != atom { // not -g/x
+			if p.t(sAdv) {
+				return p.adv(x, v) // e.g. f g/x
+			}
 		}
 		y := p.ex(v)
 		if yt := m.k[y] >> 28; yt == N { // verb only
