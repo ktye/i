@@ -170,6 +170,8 @@ func ini() { // start function
 	builtin(o+2, "bin")
 	builtin(o+3, "like")
 	builtin(o+4, "del")
+	asn(mks(".f"), mk(C, 0)) // file name
+	asn(mks(".l"), mki(0))   // line number
 }
 func builtin(code c, s string) {
 	key, val := mk(S, atom), mk(C, 1)
@@ -241,6 +243,12 @@ func mki(i k) (r k)      { r = mk(I, atom); m.k[2+r] = i; return r }
 func mkc(c c) (r k)      { r = mk(C, atom); m.c[8+r<<2] = c; return r }
 func mks(s s) (r k)      { return mku(btou([]c(s))) }
 func mku(u uint64) (r k) { r = mk(S, atom); mys(8+r<<2, u); return r }
+func mkb(b []c) (r k) {
+	r, n := mk(C, k(len(b))), k(len(b))
+	rp := 8 + r<<2
+	copy(m.c[rp:rp+n], b)
+	return r
+}
 func typ(x k) (k, k) { // type and length at addr
 	return m.k[x] >> 28, m.k[x] & atom
 }
@@ -961,21 +969,14 @@ func str(x k) (r k) { // $x
 			} else if (f >= 39 && f < dyad) || (f >= 83 && f < 100) { // built-ins
 				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
 			} else if f < 20 || (f >= 30 && f <= 33) { // monad +: /:
-				r = mk(C, 2)
-				m.c[8+r<<2] = m.c[136+m.k[2+x]]
-				m.c[9+r<<2] = ':'
+				r = mkb([]c{m.c[136+m.k[2+x]], ':'})
 			} else if f >= 20 && f < 30 { // monadic ioverb
-				r = mk(C, 3)
-				m.c[8+r<<2] = '0' + c(f-20)
-				m.c[9+r<<2] = ':'
-				m.c[10+r<<2] = ':'
+				r = mkb([]c{'0' + c(f-20), ':', ':'})
 			} else if f >= 70 && f < 80 { // dyadic ioverb 3:
-				r = mk(C, 2)
-				m.c[8+r<<2] = '0' + c(f-70)
-				m.c[9+r<<2] = ':'
+				r = mkb([]c{'0' + c(f-70), ':'})
 			} else if f > 49 && f < 83 { // dyad * /
-				r = mk(C, 1)
-				m.c[8+r<<2] = m.c[136+m.k[2+x]-dyad]
+				r = mkc(m.c[136+m.k[2+x]-dyad])
+				m.k[r] = C<<28 | 1
 			}
 			// TODO: derived?
 			if n == 1 || n == 2 { // projection
@@ -1047,6 +1048,8 @@ func cmd(x k) (r k) {
 		return decr(x, clv())
 	case 'h':
 		return decr(x, hlp())
+	case 'l':
+		return lod(drop(1, x))
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
@@ -1056,6 +1059,10 @@ func cmd(x k) (r k) {
 	default:
 		panic("undefined")
 	}
+}
+func lod(x k) (r k) {
+	panic("nyi")
+	return mk(N, atom)
 }
 func evp(x k) { // parse-eval-print
 	if t, n := typ(x); t == C && n > 1 && m.c[8+x<<2] == '\\' {
@@ -1249,8 +1256,7 @@ func kst(x k) (r k) { // `k@x
 		}
 		rr := mk(C, 56)
 		st, xp, rrc := stx[t], ptr(x, t), 8+rr<<2
-		sp := mk(C, 1)
-		m.c[8+sp<<2] = ' '
+		sp := mkb([]c{' '})
 		for i := k(0); i < n; i++ {
 			rn := st(rrc, xp+i)
 			m.k[rr] = C<<28 | rn
@@ -1272,9 +1278,7 @@ func kst(x k) (r k) { // `k@x
 				}
 			}
 			if !dot {
-				f := mk(C, 1)
-				m.c[8+f<<2] = 'f'
-				r = cat(r, f)
+				r = cat(r, mkb([]c{'f'}))
 			}
 		}
 	case S:
@@ -1333,8 +1337,7 @@ func kst(x k) (r k) { // `k@x
 		if n == 1 {
 			m.c[rc] = ','
 		}
-		y := mk(C, 1)
-		m.c[8+y<<2] = ';'
+		y := mkb([]c{';'})
 		for i := k(0); i < n; i++ {
 			r = cat(r, kst(inc(m.k[2+i+x])))
 			if i < n-1 {
@@ -2556,16 +2559,9 @@ func clear() { // clear variables
 	m.k[kkey] = mk(S, 0)
 	m.k[kval] = mk(L, 0)
 }
-func lsv() (r k) { return inc(m.k[kkey]) }       // \v (list variables)
-func clv() (r k) { clear(); return mk(N, atom) } // \c (clear variables)
-func hlp() (r k) {
-	n := k(168 - 136)
-	r = mk(C, n)
-	rc := 8 + r<<2
-	copy(m.c[rc:rc+n], m.c[136:168])
-	return cat(r, kst(inc(m.k[2+m.k[3]])))
-}
-
+func lsv() (r k)     { return inc(m.k[kkey]) }                                  // \v (list variables)
+func clv() (r k)     { clear(); return mk(N, atom) }                            // \c (clear variables)
+func hlp() (r k)     { return cat(mkb(m.c[136:168]), kst(inc(m.k[2+m.k[3]]))) } // \h
 func hxb(x c) (c, c) { h := "0123456780abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
 	b := []c{'0', 'x', '0', '0', '0', '0', '0', '0', '0', '0'}

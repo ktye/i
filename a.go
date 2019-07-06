@@ -19,7 +19,15 @@ func main() {
 		rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
 		rpl()
 	} else {
-		panic("nyi") // read from file
+		rd = read
+		args := os.Args[1:]
+		zx := mk(L, k(len(args))) // .z.x: args
+		for i, a := range args {
+			m.k[2+k(i)+zx] = mkb([]c(a))
+		}
+		asn(mks(".z.x"), inc(zx))
+		lod(inc(m.k[2+zx]))
+		dec(zx)
 	}
 }
 func rpl() {
