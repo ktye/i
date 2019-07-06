@@ -117,6 +117,8 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		} else {
 			if y := p.ex(p.noun()); m.k[y]>>28 == N {
 				return l2(v, decr(y, x)) // e.g. 2+
+			} else if m.k[v]>>28 == N+2 && m.k[2+v] == dyad+18 { // @
+				return decr(v, l2(x, y)) // x@y
 			} else {
 				return l3(v, x, y) // nve
 			}
