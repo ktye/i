@@ -4,6 +4,7 @@ import (
 	"strconv"
 )
 
+// E:E;e|e e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 func prs(x k) (r k) { // `p"…"
 	t, n := typ(x)
 	if t != C || n == atom {
@@ -102,64 +103,50 @@ func (p *p) get() c {
 func (p *p) xx() {
 	panic("parse: " + string(m.c[p.lp+1:p.p+1]) + " <-")
 }
-
-// Parsers
-func (p *p) ex(x k) (r k) {
-	t, _ := typ(x)
-	switch t {
-	case N:
+func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
+	if m.k[x]>>28 == N {
 		return x
-	case N + 1, N + 2, N + 3, N + 4:
-		if p.t(sAdv) {
-			return p.adv(0, x)
-		}
-		v := p.noun()
-		if vt, vn := typ(v); vt > N && vn != atom { // not -g/x
-			if p.t(sAdv) {
-				return p.adv(x, v) // e.g. f g/x
-			}
-		}
-		y := p.ex(v)
-		if yt := m.k[y] >> 28; yt == N { // verb only
-			dec(y)
-			return x
-		}
-		r = mk(L, 2) // monadic application
-		m.k[2+r] = monad(inc(x))
-		m.k[3+r] = y
-		dec(x)
-		return r
-	default:
-		if p.t(sAdv) { // e.g. 2/3
-			return p.adv(0, x)
-		}
-		a := p.noun()
-		if p.t(sAdv) {
-			return p.adv(x, a)
-		}
-		at, _ := typ(a)
-		if at == N {
-			dec(a)
-			return x
-		} else if at > N {
-			y := p.ex(p.noun())
-			if m.k[y]>>28 == N { // projection, e.g. 2+
-				dec(y)
-				r = mk(L, 2)
-				m.k[2+r] = a
-				m.k[3+r] = x
-				return r
-			}
-			r = mk(L, 3) // dyadic application (infix)
-			m.k[2+r] = a
-			m.k[3+r] = x
-			m.k[4+r] = y
-			return r
-		} else if p.t(sAdv) {
-			return p.adv(x, a)
-		}
-		return lcat(lcat(mk(L, 0), x), p.ex(a)) // (x;…) e.g. `p".."
 	}
+	if r = p.verb(x); r == 0 { // n
+		r = p.noun()
+		if m.k[r]>>28 == N {
+			return decr(r, x) // n
+		}
+		if v := p.verb(r); v == 0 {
+			return l2(x, r) // te
+		} else {
+			if y := p.ex(p.noun()); m.k[y]>>28 == N {
+				return l2(v, decr(y, x)) // e.g. 2+
+			} else {
+				return l3(v, x, y) // nve
+			}
+		}
+	} else {
+		x = p.ex(p.noun())
+		if m.k[x]>>28 == N {
+			return decr(x, r) // v
+		} else {
+			return l2(monad(r), x) // ve
+		}
+	}
+}
+func (p *p) verb(x k) (r k) { // v:tA|V
+	if p.t(sAdv) {
+		for {
+			r = mk(L, 2)
+			m.k[2+r] = p.a(pAdv)
+			m.k[3+r] = x
+			x = r
+			if p.t(sAdv) == false {
+				break
+			}
+		}
+		return r
+	}
+	if t, n := typ(x); t > N && n == atom {
+		return x // V
+	}
+	return 0
 }
 func (p *p) noun() (r k) {
 	switch {
@@ -253,46 +240,17 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 	p.p = p.m
 	return r
 }
-func (p *p) adv(x, v k) (r k) { // x(left arg) v(verb)
-	vt, vn := typ(v)
-	a := p.a(pAdv)
-	if p.t(sAdv) {
-		b := p.a(pAdv)
-		if vt == N+2 && vn == atom && m.k[2+v] < 83 { // force monad ambivalent primitive (reflite p131)
-			m.k[v] = (N+1)<<28 | atom
-			m.k[2+v] -= 50
-		}
-		v, vn = lcat(lcat(mk(L, 0), a), v), 0
-		a = b
-	}
-	y := p.ex(p.noun())
-	if x == 0 {
-		if yt, _ := typ(y); yt == N {
-			dec(y)
-			return lcat(lcat(mk(L, 0), a), v) // (a;v)
-		}
-		return lcat(lcat(mk(L, 0), lcat(lcat(mk(L, 0), a), v)), y) // ((a;v);y)
-	}
-	r = mk(L, 3) // ((a;v);x;y)
-	m.k[2+r] = lcat(lcat(mk(L, 0), a), v)
-	m.k[3+r] = x
-	m.k[4+r] = y
-	return r
-}
 func monad(x k) (r k) { // force monad
 	t, _ := typ(x)
-	if t == N+1 {
-		return x
-	} else if t == N+2 {
+	if t == N+2 {
 		r = mk(N+1, atom)
 		m.k[2+r] = m.k[2+x] - 50
 		if m.k[2+x] > 99 {
 			panic("parse monad")
 		}
-		dec(x)
-		return r
+		return decr(x, r)
 	}
-	panic("type")
+	return x
 }
 func pHex(b []byte) (r k) { // 0x1234 `c|`C
 	if n := k(len(b)); n == 3 { // allow short form 0x1
@@ -428,13 +386,13 @@ func pVrb(b []byte) (r k) {
 }
 func pIov(b []byte) (r k) {
 	r = mk(N+2, atom)
-	m.k[2+r] = 70 + k(b[0]-'0') // ioverb parses always as `2
+	m.k[2+r] = dyad + 20 + k(b[0]-'0') // ioverb parses always as `2
 	return r
 }
 func pAdv(b []byte) (r k) {
-	f := k(80)
+	f := k(dyad + 30)
 	if len(b) > 1 {
-		f -= 50
+		f -= dyad
 	}
 	if b[0] == '/' {
 		f++
@@ -451,7 +409,7 @@ func pBin(b []byte) (r k) { // builtin
 	if xt, xn := typ(x); xt != C && xn != atom {
 		panic("parse builtin")
 	}
-	if f := m.c[8+x<<2]; f < 50 {
+	if f := m.c[8+x<<2]; f < c(dyad) {
 		r = mk(N+1, atom)
 		m.k[2+r] = k(f)
 	} else {
@@ -580,8 +538,8 @@ func sSem(b []byte) int {
 	}
 	return 0
 }
-func sIov(b []byte) int { // ioverb 0: .. 4:
-	if len(b) > 1 && b[1] == ':' && b[0] >= '0' && b[0] <= '4' {
+func sIov(b []byte) int { // ioverb 0: .. 9:
+	if len(b) > 1 && b[1] == ':' && b[0] >= '0' && b[0] <= '9' {
 		return 2
 	}
 	return 0
@@ -680,6 +638,16 @@ func argn(x, a k) k { // count args of lambda parse tree
 		}
 	}
 	return a
+}
+func l2(x, y k) (r k) {
+	r = mk(L, 2)
+	m.k[2+r], m.k[3+r] = x, y
+	return r
+}
+func l3(x, y, z k) (r k) {
+	r = mk(L, 3)
+	m.k[2+r], m.k[3+r], m.k[4+r] = x, y, z
+	return r
 }
 func atoi(b []c) (int, bool) {
 	n, s := 0, 1

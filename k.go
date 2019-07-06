@@ -963,10 +963,15 @@ func str(x k) (r k) { // $x
 				r = inc(m.k[2+x]) // `C
 			} else if (f >= 39 && f < dyad) || (f >= 83 && f < 100) { // built-ins
 				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
-			} else if f < 33 { // monad +: 3: /:
+			} else if f < 20 || (f >= 30 && f <= 33) { // monad +: /:
 				r = mk(C, 2)
 				m.c[8+r<<2] = m.c[136+m.k[2+x]]
 				m.c[9+r<<2] = ':'
+			} else if f >= 20 && f < 30 { // monadic ioverb
+				r = mk(C, 3)
+				m.c[8+r<<2] = '0' + c(f-20)
+				m.c[9+r<<2] = ':'
+				m.c[10+r<<2] = ':'
 			} else if f >= 70 && f < 80 { // dyadic ioverb 3:
 				r = mk(C, 2)
 				m.c[8+r<<2] = '0' + c(f-70)
