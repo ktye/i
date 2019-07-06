@@ -163,6 +163,8 @@ func TestK(t *testing.T) {
 		{"(1_)\\!3", "(0 1 2;1 2;,2;!0)"},
 		{"(1_)/!3", "!0"},
 		{`|+\!3`, `3 1 0`},
+		{`"-"\:"ab-cd--ef-gh-"`, `("ab";"cd";"";"ef";"gh";"")`},
+		{"`\\:\"ab\ncd\n\ne\n\n\"", `("ab";"cd";"";,"e";"")`}, // 1 trailing nl removed
 		// {"(-).(1 2)", "3"},
 		// (x;y):1 2 TODO multi assignment
 	}

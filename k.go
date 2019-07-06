@@ -519,68 +519,8 @@ func ns(rp, xp, yp, t, xn, yn, c k, f f2) {
 		for i := k(0); i < xn; i++ {
 			f(rp+i, xp+i, yp)
 		}
-	case 3: // f/ x → a
-		cpx[t](rp, yp)
-		for i := k(1); i < yn; i++ {
-			f(rp, rp, yp+i)
-		}
-	case 4: // x f/ y → v(xn)
-		cp := cpx[t]
-		for i := k(0); i < xn; i++ {
-			rp++
-			cp(rp, xp+i)
-			for j := k(0); j < yn; j++ {
-				f(rp, rp, yp+j)
-			}
-		}
-	case 5: // f\ v → v
-		cpx[t](rp, yp)
-		for i := k(1); i < yn; i++ {
-			f(rp+i, rp+i-1, yp+i)
-		}
-	case 6: // a f\ v
-		f(rp, xp, yp)
-		for i := k(1); i < yn; i++ {
-			f(rp+i, rp+i-1, yp+i)
-		}
-	case 7: // v f\ v
-		p := rp
-		for j := k(0); j < yn; j++ {
-			m.k[rp+j] = mk(t, xn)
-		}
-		for i := k(0); i < xn; i++ {
-			rp = m.k[2+i+p]
-			f(rp, xp+i, yp)
-			for j := k(1); j < yn; j++ {
-				f(rp+i, rp+i-1, yp+j)
-			}
-		}
-	case 8: // f': v
-		cpx[t](rp, yp)
-		for i := k(1); i < yn; i++ {
-			f(rp+i, yp+i-1, yp+i)
-		}
-	case 9: // a f': v (vector x is not handled)
-		f(rp, xp, yp)
-		for i := k(1); i < yn; i++ {
-			f(rp+i, yp+i-1, yp+i)
-		}
-	case 10: // x f/: y
-		for j := k(0); j < yn; j++ {
-			m.k[rp+j] = mk(t, xn)
-			p := ptr(m.k[rp+j], L)
-			for i := k(0); i < xn; i++ {
-				f(p+i, xp+i, yp+j)
-			}
-		}
-	case 11: // x f\: y
-		for i := k(0); i < xn; i++ {
-			m.k[rp+i] = mk(t, yn)
-			p := ptr(m.k[rp+i], L)
-			for j := k(0); j < yn; j++ {
-				f(p+j, xp+i, yp+j)
-			}
-		}
+	default:
+		panic("assert")
 	}
 }
 func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
@@ -1038,54 +978,6 @@ func tip(x k) (r k) { // @x
 	}
 	mys(8+r<<2, uint64(s)<<56)
 	return decr(x, r)
-}
-func cmd(x k) (r k) {
-	xp := 8 + x<<2
-	switch m.c[xp] {
-	case 'v':
-		return decr(x, lsv())
-	case 'c':
-		return decr(x, clv())
-	case 'h':
-		return decr(x, hlp())
-	case 'l':
-		return lod(drop(1, x))
-	case '\\':
-		exi := table[40].(func(k) k)
-		if m.k[x]&atom > 1 {
-			return decr(x, exi(mki(1)))
-		}
-		return decr(x, exi(mki(0)))
-	default:
-		panic("undefined")
-	}
-}
-func lod(x k) (r k) {
-	panic("nyi")
-	return mk(N, atom)
-}
-func evp(x k) { // parse-eval-print
-	if t, n := typ(x); t == C && n > 1 && m.c[8+x<<2] == '\\' {
-		out(cmd(drop(1, x)))
-		return
-	}
-	r, asn := prs(x), false
-	if t, n := typ(r); t == L && n > 1 && m.k[m.k[2+r]]>>28 == N+2 && m.k[2+m.k[2+r]] == dyad {
-		asn = true
-	}
-	r = evl(r)
-	if asn {
-		dec(r)
-		return
-	}
-	out(r)
-}
-func out(x k) {
-	if m.k[x]>>28 == N {
-		return
-	}
-	w := table[21+dyad].(func(k, k) k)
-	dec(w(mku(0), cat(kst(x), mkc('\n'))))
 }
 func evl(x k) (r k) { // .x
 	t, n := typ(x)
@@ -2401,6 +2293,88 @@ func whls(f, x, y k) (r k) { // g f\y
 	dec(r)
 	return decr2(f, x, l)
 }
+func rdl(x k) (r k) { // 0:x
+	rd := table[21].(func(k) k)
+	return spl(mku(0), rd(x))
+}
+func lod(x k) (r k) {
+	rd := table[20].(func(k) k)
+	r = rd(x)
+	panic("nyi")
+	return mk(N, atom)
+}
+func cmd(x k) (r k) {
+	xp := 8 + x<<2
+	switch m.c[xp] {
+	case 'v':
+		return decr(x, lsv())
+	case 'c':
+		return decr(x, clv())
+	case 'h':
+		return decr(x, hlp())
+	case 'l':
+		return lod(drop(1, x))
+	case '\\':
+		exi := table[40].(func(k) k)
+		if m.k[x]&atom > 1 {
+			return decr(x, exi(mki(1)))
+		}
+		return decr(x, exi(mki(0)))
+	default:
+		panic("undefined")
+	}
+}
+func evp(x k) { // parse-eval-print
+	if t, n := typ(x); t == C && n > 1 && m.c[8+x<<2] == '\\' {
+		out(cmd(drop(1, x)))
+		return
+	}
+	r, asn := prs(x), false
+	if t, n := typ(r); t == L && n > 1 && m.k[m.k[2+r]]>>28 == N+2 && m.k[2+m.k[2+r]] == dyad {
+		asn = true
+	}
+	r = evl(r)
+	if asn {
+		dec(r)
+		return
+	}
+	out(r)
+}
+func out(x k) {
+	if m.k[x]>>28 == N {
+		return
+	}
+	w := table[21+dyad].(func(k, k) k)
+	dec(w(mku(0), cat(kst(x), mkc('\n'))))
+}
+func spl(x, y k) (r k) { // x\:y (split)
+	xt, yt, xn, yn := typs(x, y)
+	if yt != C || yn == atom {
+		panic("type")
+	}
+	yp := ptr(y, C)
+	if xt == S && sym(8+x<<2) == 0 {
+		println("empty symbol")
+		if yn > 0 && m.c[yp+yn-1] == '\n' { // `\:y ignores trailing newline
+			y, yn = drop(-1, y), yn-1
+			yp = ptr(y, C)
+		}
+		dec(x)
+		x, xt, xn = mkc('\n'), C, atom
+	}
+	if xt != C || xn != atom {
+		panic("type")
+	}
+	k0 := k(0)
+	idx := cat(cat(mki(k0-1), wer(eql(inc(y), x))), mki(yn))
+	_, n := typ(idx)
+	r = mk(L, n-1)
+	for i := k(0); i < n-1; i++ {
+		a, b := 1+m.k[2+i+idx], m.k[3+i+idx]
+		m.k[2+i+r] = mkb(m.c[yp+a : yp+b])
+	}
+	return decr2(idx, y, r)
+}
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt > S || xn == atom {
@@ -2608,7 +2582,7 @@ func init() {
 	table = [100]interface{}{
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, nil, nil,
+		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, nil, spl,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
