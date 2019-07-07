@@ -119,7 +119,6 @@ func stk() {
 	if r := recover(); r != nil {
 		a, b := stack(r)
 		println(a)
-		// println(b)
 		s := cat(lup(mks(".f")), mkc(':'))
 		s = cat(s, str(lup(mks(".n"))))
 		s = cat(s, mkb([]c{':', ' '}))
@@ -130,9 +129,16 @@ func stk() {
 	}
 }
 func stack(c interface{}) (stk, err string) {
+	h := false
 	for _, s := range strings.Split(string(debug.Stack()), "\n") {
-		if strings.HasPrefix(s, "\t") {
-			stk += "\n" + s[1:]
+		if h && strings.HasPrefix(s, "\t") {
+			if i := strings.Index(s, "/ktye/i/"); i > 0 {
+				s = s[i+7:]
+			}
+			stk += "\n" + s
+		}
+		if strings.Index(s, "panic.go") > 0 { // skip first lines
+			h = true
 		}
 	}
 	err = "?"
