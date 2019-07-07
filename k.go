@@ -1807,17 +1807,24 @@ func atx(x, y k) (r k) { // x@y
 		if kt != yt {
 			panic("type")
 		}
-		r = mk(vt, yn)
-		yn = atm1(yn)
-		cp, na, eq, kp, vp, rp, yp := cpx[vt], nax[vt], eqx[kt], ptr(keys, kt), ptr(m.k[3+x], vt), ptr(r, vt), ptr(y, yt)
-		for i := k(0); i < yn; i++ {
-			na(rp + i)
+		r = mk(vt, atm1(yn))
+		cp, eq, kp, vp, rp, yp := cpx[vt], eqx[kt], ptr(keys, kt), ptr(m.k[3+x], vt), ptr(r, vt), ptr(y, yt)
+		for i := k(0); i < atm1(yn); i++ {
+			// na(rp + i)
 			for j := k(0); j < nk; j++ {
 				if eq(kp+j, yp+i) {
 					cp(rp+i, vp+j)
 					break
 				}
+				if j == nk-1 {
+					panic("index")
+				}
 			}
+		}
+		if vt == L && yn == atom {
+			e := inc(m.k[2+r])
+			dec(r)
+			return decr2(x, y, e)
 		}
 		return decr2(x, y, r)
 	// case xt == L:
@@ -2599,6 +2606,22 @@ func lup(x k) (r k) { // lookup
 	return r
 }
 func lupo(x k) (r k) { // lup, 0 on undefined
+	v := spl(mkc('.'), str(inc(x))) // split `a.b.c
+	n := m.k[v] & atom
+	if n == 0 {
+		return decr2(x, v, 0)
+	} else if n == 1 {
+		dec(v)
+	} else {
+		dec(x)
+		x = cst(mku(0), inc(m.k[2+v]))
+		v = cst(mku(0), jon(mkc('.'), drop(1, v))) // TODO: to `S: `b`c instead of "b.c"
+		r = lupo(x)
+		if r == 0 {
+			return decr(v, 0)
+		}
+		return atx(r, v) // TODO in-depth with `b`c
+	}
 	ix, o := varn(ptr(x, S))
 	if !o {
 		return decr(x, 0)
