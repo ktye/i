@@ -171,7 +171,8 @@ func ini() { // start function
 	builtin(o+3, "like")
 	builtin(o+4, "del")
 	asn(mks(".f"), mk(C, 0)) // file name
-	asn(mks(".l"), mki(0))   // line number
+	asn(mks(".n"), mki(0))   // line number
+	asn(mks(".l"), mk(C, 0)) // current line
 }
 func builtin(code c, s string) {
 	key, val := mk(S, atom), mk(C, 1)
@@ -2299,17 +2300,15 @@ func rdl(x k) (r k) { // 0:x
 	return spl(mku(0), rd(x))
 }
 func lod(x k) (r k) {
-	/*
-		rd := table[20].(func(k) k)
-		// asn(cst(mku(0), tak(min(mki(8), cnt(inc(x))), inc(x))))
-		r = rdl(x)
-		n := m.k[r] & atom
-		for i := k(0); i < n; i++ {
-
-		}
-	*/
-	panic("nyi")
-	return mk(N, atom)
+	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x))))
+	r = rdl(x)
+	n := m.k[r] & atom
+	for i := k(0); i < n; i++ {
+		dec(asn(mks(".n"), mki(i)))
+		dec(asn(mks(".l"), inc(m.k[2+i+r])))
+		evp(inc(m.k[2+i+r]))
+	}
+	return decr(r, mk(N, atom))
 }
 func cmd(x k) (r k) {
 	xp := 8 + x<<2

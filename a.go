@@ -19,6 +19,7 @@ func main() {
 		rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
 		rpl()
 	} else {
+		defer stk()
 		rd = read
 		args := os.Args[1:]
 		zx := mk(L, k(len(args))) // .z.x: args
@@ -57,7 +58,7 @@ func red(x k) (r k) { // 1:x
 		b = rd()
 	} else {
 		xp := 8 + x<<2
-		p, err := ioutil.ReadFile(string(m.c[xp:xp:n]))
+		p, err := ioutil.ReadFile(string(m.c[xp : xp+n]))
 		if err != nil {
 			panic(err)
 		}
@@ -115,11 +116,17 @@ func exi(x k) (r k) { // exit built-in
 	return mk(N, atom)
 }
 func stk() {
-	if c := recover(); c != nil {
-		a, b := stack(c)
+	if r := recover(); r != nil {
+		a, b := stack(r)
 		println(a)
-		println(b)
-		// println(file+":"+strconv.Itoa(line)+":", b) // TODO: file:line
+		// println(b)
+		s := cat(lup(mks(".f")), mkc(':'))
+		s = cat(s, str(lup(mks(".n"))))
+		s = cat(s, mkb([]c{':', ' '}))
+		s = cat(s, lup(mks(".l")))
+		s = cat(s, mkc('\n'))
+		s = cat(s, mkb([]c(b+"\n")))
+		dec(wrt(mku(0), s)) // file:n: "line"\nerror
 	}
 }
 func stack(c interface{}) (stk, err string) {
