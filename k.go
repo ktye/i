@@ -811,31 +811,30 @@ func eye(n k) (r k) { // !-n
 	return r
 }
 func not(x k) (r k) { // ~x
-	return nm(x, I, []f1{nil, func(r, x k) {
-		if m.c[x] == 0 {
-			m.c[r] = 1
-		} else {
-			m.c[r] = 0
+	t, n := typ(x)
+	if n == 0 {
+		return decr(x, mk(I, 0))
+	} else if t < S {
+		return to(eql(mki(0), x), I)
+	} else if t == S {
+		return eql(mku(0), x)
+	} else if t == L {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+i+r] = not(inc(m.k[2+x+i]))
 		}
-	}, func(r, x k) {
-		if m.k[x] == 0 {
-			m.k[r] = 1
-		} else {
-			m.k[r] = 0
-		}
-	}, func(r, x k) {
-		if m.f[x] == 0 {
-			m.f[r] = 1
-		} else {
-			m.f[r] = 0
-		}
-	}, func(r, x k) {
-		if m.z[x] == 0 {
-			m.z[r] = 1
-		} else {
-			m.z[r] = 0
-		}
-	}})
+		return decr(x, uf(r))
+	} else if t == D {
+		r = mk(D, atom)
+		m.k[2+r] = inc(m.k[2+x])
+		m.k[3+r] = not(inc(m.k[3+x]))
+		return decr(x, r)
+	} else if t == N {
+		return decr(x, mki(1))
+	} else if t > N {
+		return decr(x, mki(0))
+	}
+	panic("type")
 }
 func enl(x k) (r k) { // ,x (collaps uniform)
 	t, n := typ(x)
@@ -1029,6 +1028,8 @@ func evl(x k) (r k) { // .x
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
 			return decr2(v, x, asn(name, val))
+		} else if n > 3 && vt > N && vn == atom && m.k[2+v] == 66 { // $[...] delays evaluation
+			return decr(v, cnd(drop(1, x)))
 		}
 		r = mk(L, n-1)
 		for i := int(n - 2); i >= 0; i-- {
@@ -1037,16 +1038,23 @@ func evl(x k) (r k) { // .x
 		dec(x)
 		v = evl(v)
 		vt, vn := typ(v)
-		if vt > N && !(vn == atom && vt == N+1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
+		if n > 3 && vt > N && vn == atom {
+			switch m.k[2+v] { // triadics..
+			default:
+				panic("args")
+			}
+		} else if vt > N && !(vn == atom && vt == N+1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
 			if n-1 > vt-N {
 				panic("args") // too many arguments
 			}
 			for i := n - 1; i < vt-N; i++ { // fill args, e.g. 2+
 				r = lcat(r, mk(N, atom))
 			}
-			for i := k(0); i < m.k[r]&atom; i++ {
-				if m.k[m.k[2+i+r]]>>28 == N {
-					return prj(v, r)
+			if vt > N+1 { // no projection for monads, allow N argument
+				for i := k(0); i < m.k[r]&atom; i++ {
+					if m.k[m.k[2+i+r]]>>28 == N {
+						return prj(v, r)
+					}
 				}
 			}
 		} else if vt < N && n == 2 { // @
@@ -1055,6 +1063,31 @@ func evl(x k) (r k) { // .x
 		return cal(v, r)
 	}
 	return x
+}
+func cnd(x k) (r k) { // $[...]
+	n := m.k[x] & atom
+	for i := k(0); i < n-1; i += 2 {
+		if !is0(evl(inc(m.k[2+i+x]))) {
+			return decr(x, evl(inc(m.k[3+i+x])))
+		}
+	}
+	if n%2 == 0 {
+		return decr(x, mk(N, atom))
+	}
+	return decr(x, evl(inc(m.k[1+n+x])))
+}
+func is0(x k) bool { // for cnd
+	n := m.k[x] & atom
+	if n == atom {
+		x = not(x)
+		dec(x)
+		return m.k[2+x] == k(1)
+	}
+	dec(x)
+	if n == 0 {
+		return true
+	}
+	return false // e.g. $[,0;1;2] is 2
 }
 func prj(x, y k) (r k) { // convert x to a projection
 	t := m.k[x] >> 28
@@ -1404,9 +1437,9 @@ func ext(x, t, n k) (r k) { // scalar extension
 	return decr(x, r)
 }
 func mch(x, y k) (r k) { // x~y
-	r = mkc(0)
+	r = mki(0)
 	if match(x, y) {
-		m.c[8+r<<2] = 1
+		m.k[2+r] = 1
 	}
 	return decr2(x, y, r)
 }
@@ -2418,7 +2451,6 @@ func jon(x, y k) (r k) { // x/:y (join)
 	yn = atm1(yn)
 	r = cat(mk(C, 0), inc(m.k[2+y]))
 	for i := k(1); i < yn; i++ {
-		println(i, y)
 		if e := m.k[2+i+y]; m.k[e]>>28 != C {
 			panic("type")
 		} else {
