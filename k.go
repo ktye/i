@@ -1049,6 +1049,8 @@ func evl(x k) (r k) { // .x
 					return prj(v, r)
 				}
 			}
+		} else if vt < N && n == 2 { // @
+			return atx(v, fst(r))
 		}
 		return cal(v, r)
 	}
@@ -1792,9 +1794,9 @@ func atx(x, y k) (r k) { // x@y
 	}
 }
 func cal(x, y k) (r k) { // x.y
-	xt, yt, xn, yn := typs(x, y)
+	xt, _, xn, yn := typs(x, y)
 	if xt <= D { // TODO dict
-		if yt == L {
+		if yn != atom {
 			if yn == 0 {
 				return decr(y, x)
 			}
