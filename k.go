@@ -2348,8 +2348,10 @@ func out(x k) {
 	dec(w(mku(0), cat(kst(x), mkc('\n'))))
 }
 func spl(x, y k) (r k) { // x\:y (split)
-	// TODO base conversion
 	xt, yt, xn, yn := typs(x, y)
+	if xt == I && xn == atom && yt == I && yn == atom {
+		return bnc(x, y)
+	}
 	if yt != C || yn == atom {
 		panic("type")
 	}
@@ -2377,7 +2379,10 @@ func spl(x, y k) (r k) { // x\:y (split)
 }
 func jon(x, y k) (r k) { // x/:y (join)
 	// TODO base conversion
-	xt, yt, _, yn := typs(x, y)
+	xt, yt, xn, yn := typs(x, y)
+	if xt == I && xn == atom && yt == I {
+		return bdc(x, y)
+	}
 	if yt != L {
 		panic("type")
 	}
@@ -2402,6 +2407,28 @@ func jon(x, y k) (r k) { // x/:y (join)
 		}
 	}
 	return decr2(x, y, r)
+}
+func bnc(x, y k) (r k) { // encode y in base x
+	b, n := m.k[2+x], m.k[2+y]
+	if i(b) <= 0 || i(n) <= 0 {
+		panic("domain")
+	}
+	r = mk(I, 0)
+	for n > 0 {
+		m := n % b
+		r = cat(r, mki(m))
+		n /= b
+	}
+	return decr2(x, y, rev(r))
+}
+func bdc(x, y k) (r k) { // decode y given in base x
+	b := m.k[2+x]
+	yn := atm1(m.k[y] & atom)
+	n := k(0)
+	for i := k(0); i < yn; i++ {
+		n = b*n + m.k[2+y+i]
+	}
+	return decr2(x, y, mki(n))
 }
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
