@@ -205,12 +205,12 @@ func (p *p) noun() (r k) {
 		}
 		// TODO isverb
 		return p.idxr(cat(enlist(mk(N, atom)), r))
-	case p.t(sVrb):
-		return p.idxr(p.a(pVrb))
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
 	case p.t(sNam):
 		return p.idxr(p.a(pNam))
+	case p.t(sVrb):
+		return p.idxr(p.a(pVrb))
 	}
 	return mk(N, atom)
 }
@@ -492,16 +492,24 @@ func sExp(b []byte) (r int) {
 	return r
 }
 func sNam(b []byte) (r int) {
+	o := false
 	for i, c := range b {
-		if cr09(c) || craZ(c) { // TODO: dot?
+		if cr09(c) || craZ(c) {
+			o = true
 			if i == 0 && cr09(c) {
 				return 0
 			}
-		} else {
-			return i
+		} else if c != '.' {
+			if o {
+				return i
+			}
+			return 0
 		}
 	}
-	return len(b)
+	if o {
+		return len(b)
+	}
+	return 0
 }
 func sStr(b []byte) (r int) {
 	if len(b) < 2 || b[0] != '"' {
