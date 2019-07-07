@@ -1678,6 +1678,12 @@ func cst(x, y k) (r k) { // x$y
 		panic("type")
 	}
 	s := c(sym(8+x<<2) >> 56)
+	if (s == 0 || s == 'n') && yt == C { // `$x
+		yn = atm1(yn)
+		yc := 8 + y<<2
+		r = mku(btou(m.c[yc : yc+yn]))
+		return decr2(x, y, r)
+	}
 	t, o := k(0), k(169)
 	for i := o; i < o+15; i++ {
 		if s == m.c[i] {
@@ -1686,11 +1692,6 @@ func cst(x, y k) (r k) { // x$y
 	}
 	if t < 1 || t >= L || yt >= L {
 		panic("type")
-	} else if t == S && yt == C { // TODO: or `$x
-		yn = atm1(yn)
-		yc := 8 + y<<2
-		r = mku(btou(m.c[yc : yc+yn]))
-		return decr2(x, y, r)
 	}
 	return decr(x, to(y, t)) // TODO other conversions?
 }
@@ -2298,8 +2299,15 @@ func rdl(x k) (r k) { // 0:x
 	return spl(mku(0), rd(x))
 }
 func lod(x k) (r k) {
-	rd := table[20].(func(k) k)
-	r = rd(x)
+	/*
+		rd := table[20].(func(k) k)
+		// asn(cst(mku(0), tak(min(mki(8), cnt(inc(x))), inc(x))))
+		r = rdl(x)
+		n := m.k[r] & atom
+		for i := k(0); i < n; i++ {
+
+		}
+	*/
 	panic("nyi")
 	return mk(N, atom)
 }
@@ -2313,7 +2321,7 @@ func cmd(x k) (r k) {
 	case 'h':
 		return decr(x, hlp())
 	case 'l':
-		return lod(drop(1, x))
+		return lod(trm(x))
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
@@ -2323,6 +2331,17 @@ func cmd(x k) (r k) {
 	default:
 		panic("undefined")
 	}
+}
+func trm(x k) (r k) { // trim 1st char and additional spaces
+	xp, n, p := ptr(x, C), m.k[x]&atom, i(1)
+	for i := k(1); i < n; i++ {
+		if m.c[xp+i] == ' ' {
+			p++
+		} else {
+			break
+		}
+	}
+	return drop(p, x)
 }
 func evp(x k) { // parse-eval-print
 	if t, n := typ(x); t == C && n > 1 && m.c[8+x<<2] == '\\' {
@@ -2378,7 +2397,6 @@ func spl(x, y k) (r k) { // x\:y (split)
 	return decr2(idx, y, r)
 }
 func jon(x, y k) (r k) { // x/:y (join)
-	// TODO base conversion
 	xt, yt, xn, yn := typs(x, y)
 	if xt == I && xn == atom && yt == I {
 		return bdc(x, y)
