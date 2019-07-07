@@ -2348,13 +2348,13 @@ func out(x k) {
 	dec(w(mku(0), cat(kst(x), mkc('\n'))))
 }
 func spl(x, y k) (r k) { // x\:y (split)
+	// TODO base conversion
 	xt, yt, xn, yn := typs(x, y)
 	if yt != C || yn == atom {
 		panic("type")
 	}
 	yp := ptr(y, C)
 	if xt == S && sym(8+x<<2) == 0 {
-		println("empty symbol")
 		if yn > 0 && m.c[yp+yn-1] == '\n' { // `\:y ignores trailing newline
 			y, yn = drop(-1, y), yn-1
 			yp = ptr(y, C)
@@ -2374,6 +2374,34 @@ func spl(x, y k) (r k) { // x\:y (split)
 		m.k[2+i+r] = mkb(m.c[yp+a : yp+b])
 	}
 	return decr2(idx, y, r)
+}
+func jon(x, y k) (r k) { // x/:y (join)
+	// TODO base conversion
+	xt, yt, _, yn := typs(x, y)
+	if yt != L {
+		panic("type")
+	}
+	if xt == S {
+		dec(x)
+		y, yn = lcat(y, mk(C, 0)), yn+1
+		x, xt = mkc('\n'), C
+	} else if xt != C {
+		panic("type")
+	}
+	if yn == 0 {
+		return decr2(x, y, mk(C, 0))
+	}
+	yn = atm1(yn)
+	r = cat(mk(C, 0), inc(m.k[2+y]))
+	for i := k(1); i < yn; i++ {
+		println(i, y)
+		if e := m.k[2+i+y]; m.k[e]>>28 != C {
+			panic("type")
+		} else {
+			r = cat(cat(r, inc(x)), inc(e))
+		}
+	}
+	return decr2(x, y, r)
 }
 func bin(x, y k) (r k) { // x bin y
 	xt, yt, xn, yn := typs(x, y)
@@ -2582,7 +2610,7 @@ func init() {
 	table = [100]interface{}{
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
-		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, nil, spl,
+		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
