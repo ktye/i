@@ -26,7 +26,7 @@ func main() {
 		for i, a := range args {
 			m.k[2+k(i)+zx] = mkb([]c(a))
 		}
-		asn(mks(".z.x"), inc(zx))
+		asn(mks(".z.x"), inc(zx), mk(N, atom))
 		lod(inc(m.k[2+zx]))
 		dec(zx)
 	}

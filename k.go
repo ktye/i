@@ -175,9 +175,9 @@ func ini() { // start function
 	builtin(o+2, "bin")
 	builtin(o+3, "like")
 	builtin(o+4, "del")
-	asn(mks(".f"), mk(C, 0)) // file name
-	asn(mks(".n"), mki(0))   // line number
-	asn(mks(".l"), mk(C, 0)) // current line
+	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
+	asn(mks(".n"), mki(0), mk(N, atom))   // line number
+	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
 }
 func builtin(code c, s string) {
 	key, val := mk(S, atom), mk(C, 1)
@@ -1001,7 +1001,11 @@ func evl(x k) (r k) { // .x
 		if t == S && n == 1 {
 			return fst(x)
 		} else if t == S && n == atom {
-			return lup(x)
+			if r, x = spld(x); x != 0 {
+				return lup(x)
+			} else {
+				return evl(r)
+			}
 		}
 		return x
 	}
@@ -1037,18 +1041,39 @@ func evl(x k) (r k) { // .x
 	default:
 		inc(v)
 		if vt == S && vn == atom {
-			v = lup(v)
+			v = evl(v)
 			vt, vn = typ(v)
 		}
-		if vt > N && m.k[2+v] == dyad { // ':'
+		if (vt > N && m.k[2+v] == dyad) || (vt == N+1 && vn == atom && n == 3) { // ':' or *: (modified assignemnt)
 			if n != 3 {
-				panic("nyi modified assignment")
+				panic("args")
+			}
+			f := k(0)
+			if m.k[2+v] != dyad {
+				f = mk(N+2, atom)
+				m.k[2+f] = m.k[2+v] + dyad
+			} else {
+				f = mk(N, atom)
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
-			if m.k[name]>>28 == L {
-				name = drp(mki(1), name)
+			if m.k[name]>>28 == S {
+				name, r = spld(name)
 			}
-			return decr2(v, x, asn(name, val))
+			if nt, nn := typ(name); nt == L && nn > 1 {
+				if m.k[m.k[2+name]]>>28 == N { // (;`a;`b) vector assignment
+					name = drp(mki(1), name)
+				} else if nn == 2 { // (`a;i) indexed assignment
+					idx := inc(m.k[3+name])
+					name, _ = spld(fst(name))
+					if m.k[name]>>28 == L { // (`a.b;3) → (`a;,`b;3)
+						idx = cat(drop(1, inc(name)), idx)
+						name = fst(name)
+					}
+					dec(amd(name, idx, f, val))
+					return decr2(v, x, mk(N, atom))
+				}
+			}
+			return decr2(v, x, asn(name, val, f))
 		} else if n > 3 && vt > N && vn == atom && m.k[2+v] == 66 { // $[...] delays evaluation
 			return decr(v, cnd(drop(1, x)))
 		}
@@ -1061,6 +1086,16 @@ func evl(x k) (r k) { // .x
 		vt, vn := typ(v)
 		if n > 3 && vt > N && vn == atom {
 			switch m.k[2+v] { // triadics..
+			case 68: // @
+				if n == 4 {
+					x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
+					return decr2(v, r, amd(x, a, mk(N, atom), y))
+				} else if n == 5 {
+					x, a, f, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r]), inc(m.k[5+r])
+					return decr2(v, r, amd(x, a, f, y))
+				} else {
+					panic("args")
+				}
 			default:
 				panic("args")
 			}
@@ -1963,7 +1998,7 @@ func lambda(x, y k) (r k) { // call lambda
 	for i := k(0); i < v; i++ {
 		xx[i] = mku(uint64('x'+i) << 56)
 		vv[i] = lupo(inc(xx[i]))
-		dec(asn(inc(xx[i]), inc(m.k[2+y+i])))
+		dec(asn(inc(xx[i]), inc(m.k[2+y+i]), mk(N, atom)))
 	}
 	dec(y)
 	// TODO assign f
@@ -1975,7 +2010,7 @@ func lambda(x, y k) (r k) { // call lambda
 	}
 	for i := k(0); i < v; i++ {
 		if vv[i] != 0 { // reassign old value
-			dec(asn(xx[i], vv[i]))
+			dec(asn(xx[i], vv[i], mk(N, atom)))
 		} else { // delete variable
 			dec(del(xx[i]))
 		}
@@ -2368,12 +2403,12 @@ func rdl(x k) (r k) { // 0:x
 	return spl(mku(0), rd(x))
 }
 func lod(x k) (r k) {
-	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x))))
+	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), mk(N, atom)))
 	r = rdl(x)
 	n := m.k[r] & atom
 	for i := k(0); i < n; i++ {
-		dec(asn(mks(".n"), mki(i)))
-		dec(asn(mks(".l"), inc(m.k[2+i+r])))
+		dec(asn(mks(".n"), mki(i), mk(N, atom)))
+		dec(asn(mks(".l"), inc(m.k[2+i+r]), mk(N, atom)))
 		evp(inc(m.k[2+i+r]))
 	}
 	return decr(r, mk(N, atom))
@@ -2416,8 +2451,12 @@ func evp(x k) { // parse-eval-print
 		return
 	}
 	r, asn := prs(x), false
-	if t, n := typ(r); t == L && n > 1 && m.k[m.k[2+r]]>>28 == N+2 && m.k[2+m.k[2+r]] == dyad {
-		asn = true
+	if t, n := typ(r); t == L && n > 1 {
+		if f := m.k[2+r]; m.k[f]>>28 == N+2 && m.k[2+f] == dyad { // (::;`x;v)
+			asn = true
+		} else if m.k[f]>>28 == N+1 && m.k[f]&atom == atom && n == 3 { // (*:;`x;v) modified assignment
+			asn = true
+		}
 	}
 	r = evl(r)
 	if asn {
@@ -2615,7 +2654,7 @@ func unsert(x, idx k) (r k) { // delete index from x
 	}
 	return decr(x, r)
 }
-func asn(x, y k) (r k) { // `x:y
+func asn(x, y, f k) (r k) { // `x:y
 	_, yt, xn, yn := typs(x, y)
 	if xn != atom {
 		if yn == atom {
@@ -2625,9 +2664,15 @@ func asn(x, y k) (r k) { // `x:y
 			panic("length")
 		}
 		for i := k(0); i < xn; i++ {
-			dec(asn(atx(inc(x), mki(i)), atx(inc(y), mki(i))))
+			dec(asn(atx(inc(x), mki(i)), atx(inc(y), mki(i)), inc(f)))
 		}
+		dec(f)
 		return decr2(x, y, mk(N, atom))
+	}
+	if m.k[f]>>28 != N {
+		y = cal2(f, lup(inc(x)), y)
+	} else {
+		dec(f)
 	}
 	keys, vals := m.k[kkey], m.k[kval]
 	if ix, exists := varn(ptr(x, S)); exists {
@@ -2640,12 +2685,86 @@ func asn(x, y k) (r k) { // `x:y
 		return y
 	}
 }
-func lup(x k) (r k) { // lookup
-	if r = lupo(inc(x)); r != 0 {
+func amd(x, a, f, y k) (r k) { // @[x;i;y;f]
+	t, n := typ(x)
+	if t != S {
+		return amdv(x, a, f, y)
+	} else if n != atom {
+		panic("type")
+	}
+	dec(asn(inc(x), amdv(lup(inc(x)), a, f, y), mk(N, atom)))
+	return x
+}
+func amdv(x, a, f, y k) (r k) { // amd on value(x)
+	xt, at, xn, an := typs(x, a)
+	if xt == D {
+		if m.k[x+1] == 1 {
+			panic("in-place?")
+		}
+		r = mk(D, atom)
+		m.k[2+r] = inc(m.k[2+x])
+		m.k[3+r] = amdv(inc(m.k[3+x]), fnd(inc(m.k[2+x]), a), f, y)
 		return decr(x, r)
 	}
-	r = lupr(x)
-	if r == 0 {
+	if at != I {
+		panic("type")
+	}
+
+	if m.k[f]>>28 != N {
+		y = cal2(f, atx(inc(x), inc(a)), y)
+	} else {
+		dec(f)
+	}
+
+	yt, yn := typ(y)
+	if an != atom && yn == atom {
+		y, yn = ext(y, yt, an), an
+	}
+	if an != yn {
+		panic("length")
+	}
+	if m.k[x+1] == 1 {
+		panic("in-place?")
+	}
+	r = mk(xt, xn)
+	if xt == L {
+		for i := k(0); i < xn; i++ {
+			m.k[2+i+r] = inc(m.k[2+i+x])
+		}
+		if yn == atom {
+			y, yn = enl(y), 1
+		}
+		for i := k(0); i < yn; i++ {
+			j := m.k[2+i+a]
+			if int32(j) < 0 || j >= xn {
+				panic("index")
+			}
+			dec(m.k[2+j+r])
+			m.k[2+j+r] = atx(inc(y), mki(i))
+		}
+		r = uf(r)
+	} else if xt < L {
+		if xt != yt {
+			panic("type")
+		}
+		mv(r, x)
+		rp, yp, cp := ptr(r, xt), ptr(y, yt), cpx[xt]
+		yn = atm1(yn)
+		for i := k(0); i < yn; i++ {
+			j := m.k[2+i+a]
+			if int32(j) < 0 || j >= xn {
+				panic("index")
+			}
+			cp(rp+j, yp+i) // TODO f
+		}
+	} else {
+		panic("type")
+	}
+	dec(a)
+	return decr2(x, y, r)
+}
+func lup(x k) (r k) { // lookup
+	if r = lupo(x); r == 0 {
 		panic("undefined")
 	}
 	return r
@@ -2659,25 +2778,19 @@ func lupo(x k) (r k) { // lup, 0 on undefined
 	r = inc(m.k[2+vals+ix])
 	return decr(x, r)
 }
-func lupr(x k) (r k) { // lup (split `a.b.c), 0 on undefined
-	v := spl(mkc('.'), str(inc(x))) // split `a.b.c
+func spld(x k) (r, v k) { // split `a.b.c to (`a;,`b;,`c)
+	v = spl(mkc('.'), str(inc(x)))
 	n := m.k[v] & atom
-	if n == 0 || n == 1 {
-		return decr2(x, v, 0)
-	} else if n == 1 {
-		return decr2(x, v, 0)
+	if n <= 1 {
+		dec(v)
+		return x, x // no dot
 	}
-	dec(x)
-	r = lupo(cst(mku(0), inc(m.k[2+v])))
-	if r == 0 {
-		return decr(v, 0)
+	r = mk(L, n)
+	m.k[2+r] = cst(mku(0), inc(m.k[2+v]))
+	for i := k(1); i < n; i++ {
+		m.k[2+i+r] = enl(cst(mku(0), inc(m.k[2+i+v])))
 	}
-	v = drop(1, v)
-	for i := k(0); i < n-1; i++ {
-		m.k[2+i+v] = cst(mku(0), m.k[2+i+v])
-	}
-	v = uf(v)
-	return cal(r, uf(v))
+	return decr2(x, v, r), 0
 }
 func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
