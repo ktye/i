@@ -1546,11 +1546,24 @@ func match(x, y k) (rv bool) { // recursive match
 }
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
+	if xt > D {
+		x, xt, xn = enlist(x), L, 1
+	}
+	if yt > D {
+		y, yt, yn = enlist(y), L, 1
+	}
 	switch {
 	case xt < L && yt == xt:
 		return ucat(x, y, xt, xn, yn)
-	case xt > L || yt > L: // TODO: cat D?
-		panic("type")
+	case xt == D:
+		if yt != D {
+			panic("type")
+		} else {
+			r = mk(D, atom)
+			m.k[2+r] = cat(inc(m.k[2+x]), inc(m.k[2+y]))
+			m.k[3+r] = cat(inc(m.k[3+x]), inc(m.k[3+y]))
+			return decr2(x, y, r)
+		}
 	case xt != L:
 		x = explode(x)
 		xt, xn = typ(x)
@@ -1958,13 +1971,13 @@ func cal(x, y k) (r k) { // x.y
 	switch xt {
 	case N + 1:
 		if yn != 1 {
-			panic("valence") // TODO projection
+			panic("valence")
 		}
 		f := table[code].(func(k) k)
 		r = f(inc(m.k[2+y]))
 	case N + 2:
 		if yn != 2 {
-			panic("valence") // TODO projection
+			panic("valence")
 		}
 		f := table[code].(func(k, k) k)
 		r = f(inc(m.k[2+y]), inc(m.k[3+y]))
