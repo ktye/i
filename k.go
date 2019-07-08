@@ -1040,9 +1040,11 @@ func evl(x k) (r k) { // .x
 		return decr(x, uf(r))
 	default:
 		inc(v)
+		iev := false
 		if vt == S && vn == atom {
 			v = evl(v)
 			vt, vn = typ(v)
+			iev = true
 		}
 		if (vt > N && m.k[2+v] == dyad) || (vt == N+1 && vn == atom && n == 3) { // ':' or *: (modified assignemnt)
 			if n != 3 {
@@ -1062,14 +1064,18 @@ func evl(x k) (r k) { // .x
 			if nt, nn := typ(name); nt == L && nn > 1 {
 				if m.k[m.k[2+name]]>>28 == N { // (;`a;`b) vector assignment
 					name = drp(mki(1), name)
-				} else if nn == 2 { // (`a;i) indexed assignment
+				} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 					idx := inc(m.k[3+name])
 					name, _ = spld(fst(name))
 					if m.k[name]>>28 == L { // (`a.b;3) → (`a;,`b;3)
 						idx = cat(drop(1, inc(name)), idx)
 						name = fst(name)
 					}
-					dec(amd(name, idx, f, val))
+					if nn == 2 {
+						dec(amd(name, idx, f, val))
+					} else {
+						dec(dmd(name, idx, f, val))
+					}
 					return decr2(v, x, mk(N, atom))
 				}
 			}
@@ -1082,7 +1088,9 @@ func evl(x k) (r k) { // .x
 			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
 		}
 		dec(x)
-		v = evl(v)
+		if iev == false {
+			v = evl(v)
+		}
 		vt, vn := typ(v)
 		if n > 3 && vt > N && vn == atom {
 			switch m.k[2+v] { // triadics..
@@ -1115,6 +1123,12 @@ func evl(x k) (r k) { // .x
 			}
 		} else if vt < N && n == 2 { // @
 			return atx(v, fst(r))
+		} else if vt < N && n > 2 {
+			for i := k(0); i < n-1; i++ {
+				if m.k[m.k[2+i+r]]&atom != atom {
+					panic("nyi-matrix-indexing")
+				}
+			}
 		}
 		return cal(v, r)
 	}
@@ -2698,7 +2712,7 @@ func asn(x, y, f k) (r k) { // `x:y
 		return y
 	}
 }
-func amd(x, a, f, y k) (r k) { // @[x;i;y;f]
+func amd(x, a, f, y k) (r k) { // @[x;i;f;y]
 	t, n := typ(x)
 	if t != S {
 		return amdv(x, a, f, y)
@@ -2707,6 +2721,9 @@ func amd(x, a, f, y k) (r k) { // @[x;i;y;f]
 	}
 	dec(asn(inc(x), amdv(lup(inc(x)), a, f, y), mk(N, atom)))
 	return x
+}
+func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
+	panic("nyi-dmd")
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	xt, at, xn, an := typs(x, a)
