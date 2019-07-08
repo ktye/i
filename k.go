@@ -1045,6 +1045,9 @@ func evl(x k) (r k) { // .x
 				panic("nyi modified assignment")
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
+			if m.k[name]>>28 == L {
+				name = drp(mki(1), name)
+			}
 			return decr2(v, x, asn(name, val))
 		} else if n > 3 && vt > N && vn == atom && m.k[2+v] == 66 { // $[...] delays evaluation
 			return decr(v, cnd(drop(1, x)))
@@ -1447,6 +1450,13 @@ func key(x, y k) (r k) { // x!y
 	return r
 }
 func ext(x, t, n k) (r k) { // scalar extension
+	if t >= L {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+i+r] = inc(x)
+		}
+		return decr(x, r)
+	}
 	r = mk(t, n)
 	xp, rp, cp := ptr(x, t), ptr(r, t), cpx[t]
 	for i := k(0); i < n; i++ {
@@ -2606,6 +2616,19 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return decr(x, r)
 }
 func asn(x, y k) (r k) { // `x:y
+	_, yt, xn, yn := typs(x, y)
+	if xn != atom {
+		if yn == atom {
+			y, yn = ext(y, yt, xn), xn
+		}
+		if yn != xn {
+			panic("length")
+		}
+		for i := k(0); i < xn; i++ {
+			dec(asn(atx(inc(x), mki(i)), atx(inc(y), mki(i))))
+		}
+		return decr2(x, y, mk(N, atom))
+	}
 	keys, vals := m.k[kkey], m.k[kval]
 	if ix, exists := varn(ptr(x, S)); exists {
 		dec(m.k[2+vals+ix])
