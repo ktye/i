@@ -2645,13 +2645,16 @@ func lupr(x k) (r k) { // lup (split `a.b.c), 0 on undefined
 		return decr2(x, v, 0)
 	}
 	dec(x)
-	x = cst(mku(0), inc(m.k[2+v]))
-	v = cst(mku(0), jon(mkc('.'), drop(1, v))) // TODO: to `S: `b`c instead of "b.c"
-	r = lupo(x)
+	r = lupo(cst(mku(0), inc(m.k[2+v])))
 	if r == 0 {
 		return decr(v, 0)
 	}
-	return atx(r, v) // TODO in-depth with `b`c
+	v = drop(1, v)
+	for i := k(0); i < n-1; i++ {
+		m.k[2+i+v] = cst(mku(0), m.k[2+i+v])
+	}
+	v = uf(v)
+	return cal(r, uf(v))
 }
 func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
