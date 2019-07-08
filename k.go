@@ -98,6 +98,11 @@ func stI(dst, x k) k { // TODO remove strconv
 	return n
 }
 func stF(dst, x k) k { // TODO remove strconv
+	if m.f[x] != m.f[x] {
+		m.c[dst] = '0'
+		m.c[dst+1] = 'n'
+		return 2
+	}
 	s := strconv.FormatFloat(m.f[x], 'g', 6, 64)
 	n := k(len(s))
 	copy(m.c[dst:dst+n], []byte(s))
@@ -643,7 +648,16 @@ func fst(x k) (r k) { // *x
 	if n == atom {
 		return x
 	} else if n == 0 {
-		panic("nyi: fst empty") // what to return? missing value? panic?
+		if t < L {
+			r = mk(t, atom)
+			na, rp := nax[t], ptr(r, t)
+			na(rp)
+			return decr(x, r)
+		} else if t == L {
+			return decr(x, mk(C, 0))
+		} else {
+			return decr(x, mk(N, 0))
+		}
 	}
 	if t == L {
 		r = m.k[2+x]
@@ -784,6 +798,8 @@ func til(x k) (r k) { // !x
 	}
 	if nn := idx(x, t); nn < 0 {
 		return decr(x, eye(k(-nn)))
+	} else if nn == 0 {
+		return decr(x, mk(t, 0))
 	} else {
 		return decr(x, jota(k(nn)))
 	}
@@ -1012,8 +1028,10 @@ func evl(x k) (r k) { // .x
 	switch vt {
 	case N: // (;…) → list
 		r = mk(L, n-1)
-		for i := int(n - 2); i >= 0; i-- {
-			m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
+		if n > 1 {
+			for i := int(n - 2); i >= 0; i-- {
+				m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
+			}
 		}
 		return decr(x, uf(r))
 	default:
@@ -1200,7 +1218,7 @@ func kst(x k) (r k) { // `k@x
 			_, n = typ(r)
 			rc, dot := 8+r<<2, false
 			for i := k(0); i < n; i++ {
-				if m.c[rc+i] == '.' {
+				if c := m.c[rc+i]; c == '.' || c == 'n' {
 					dot = true
 					break
 				}
@@ -1821,10 +1839,8 @@ func atx(x, y k) (r k) { // x@y
 				}
 			}
 		}
-		if vt == L && yn == atom {
-			e := inc(m.k[2+r])
-			dec(r)
-			return decr2(x, y, e)
+		if yn == atom {
+			r = fst(r)
 		}
 		return decr2(x, y, r)
 	// case xt == L:
@@ -2415,6 +2431,9 @@ func spl(x, y k) (r k) { // x\:y (split)
 	if yt != C || yn == atom {
 		panic("type")
 	}
+	if yn == 0 {
+		return decr2(x, y, mk(L, 0)) // k7 returns () instead of ,""
+	}
 	yp := ptr(y, C)
 	if xt == S && sym(8+x<<2) == 0 {
 		if yn > 0 && m.c[yp+yn-1] == '\n' { // `\:y ignores trailing newline
@@ -2599,29 +2618,16 @@ func asn(x, y k) (r k) { // `x:y
 	}
 }
 func lup(x k) (r k) { // lookup
-	r = lupo(x)
+	if r = lupo(inc(x)); r != 0 {
+		return decr(x, r)
+	}
+	r = lupr(x)
 	if r == 0 {
 		panic("undefined")
 	}
 	return r
 }
 func lupo(x k) (r k) { // lup, 0 on undefined
-	v := spl(mkc('.'), str(inc(x))) // split `a.b.c
-	n := m.k[v] & atom
-	if n == 0 {
-		return decr2(x, v, 0)
-	} else if n == 1 {
-		dec(v)
-	} else {
-		dec(x)
-		x = cst(mku(0), inc(m.k[2+v]))
-		v = cst(mku(0), jon(mkc('.'), drop(1, v))) // TODO: to `S: `b`c instead of "b.c"
-		r = lupo(x)
-		if r == 0 {
-			return decr(v, 0)
-		}
-		return atx(r, v) // TODO in-depth with `b`c
-	}
 	ix, o := varn(ptr(x, S))
 	if !o {
 		return decr(x, 0)
@@ -2629,6 +2635,23 @@ func lupo(x k) (r k) { // lup, 0 on undefined
 	vals := m.k[kval]
 	r = inc(m.k[2+vals+ix])
 	return decr(x, r)
+}
+func lupr(x k) (r k) { // lup (split `a.b.c), 0 on undefined
+	v := spl(mkc('.'), str(inc(x))) // split `a.b.c
+	n := m.k[v] & atom
+	if n == 0 || n == 1 {
+		return decr2(x, v, 0)
+	} else if n == 1 {
+		return decr2(x, v, 0)
+	}
+	dec(x)
+	x = cst(mku(0), inc(m.k[2+v]))
+	v = cst(mku(0), jon(mkc('.'), drop(1, v))) // TODO: to `S: `b`c instead of "b.c"
+	r = lupo(x)
+	if r == 0 {
+		return decr(v, 0)
+	}
+	return atx(r, v) // TODO in-depth with `b`c
 }
 func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
