@@ -215,11 +215,11 @@ func (p *p) noun() (r k) {
 	return mk(N, atom)
 }
 func (p *p) idxr(x k) (r k) { // […]
-	if p.t(sObr) {
+	for p.t(sObr) {
 		p.p = p.m
 		r = mk(L, 1)
 		m.k[2+r] = x
-		return p.lst(r, sCbr)
+		x = p.lst(r, sCbr)
 	}
 	return x
 }
