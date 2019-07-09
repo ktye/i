@@ -1904,6 +1904,10 @@ func atx(x, y k) (r k) { // x@y
 		return decr2(x, y, r)
 	case xt == D:
 		keys := m.k[2+x]
+		if y == keys { // x[!x]
+			r = inc(m.k[3+x])
+			return decr2(x, y, r)
+		}
 		kt, nk := typ(keys)
 		vt, _ := typ(m.k[3+x])
 		if kt != yt {
