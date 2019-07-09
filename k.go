@@ -1124,7 +1124,7 @@ func evl(x k) (r k) { // .x
 		} else if vt < N && n == 2 { // @
 			return atx(v, fst(r))
 		} else if vt < N && n > 2 {
-			for i := k(0); i < n-1; i++ {
+			for i := k(0); i < n-2; i++ { // last index may be a vector
 				if m.k[m.k[2+i+r]]&atom != atom {
 					panic("nyi-matrix-indexing")
 				}
@@ -1927,7 +1927,10 @@ func cal(x, y k) (r k) { // x.y
 		if yn != atom {
 			if yn == 0 {
 				return decr(y, x)
+			} else if yn == 1 {
+				return atx(x, fst(y))
 			}
+			println("leny", yn)
 			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
 		}
 		return atx(x, y)
