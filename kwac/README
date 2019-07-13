@@ -51,7 +51,7 @@ Functions have type N+1…N+4 (valence)
   x+2 is the function code
  lambda functions: marked with length 0
   x+2 string form `C
-  x+3 parse tree, variables are always x,y,z
+  x+3 (arg list;parse tree), variables are always x,y,z
  projection: length 1(over atoms) 2(over basic/builtins)
   x+2 function code or pointer to lambda function
   x+3 full argument list with holes (`N)
