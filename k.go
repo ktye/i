@@ -30,7 +30,7 @@ type slice struct {
 }
 
 //                 C  I  F   Z  S  L  D  0  1  2  3  4
-var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 8, 4, 4, 4, 4, 4}
+var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 0, 4, 4, 4, 4, 4}
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
 	k []k
@@ -270,9 +270,6 @@ func inc(x k) k {
 			inc(m.k[2+x+i])
 		}
 	case D:
-		if n != atom {
-			panic("type")
-		}
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
@@ -308,9 +305,6 @@ func dec(x k) {
 			dec(m.k[2+x+i])
 		}
 	case D:
-		if n != atom {
-			panic("type")
-		}
 		dec(m.k[2+x])
 		dec(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
@@ -588,8 +582,38 @@ func uf(x k) (r k) { // unify lists if possible
 func idn(x k) (r k) { return x } // :x
 func flp(x k) (r k) { // +x
 	t, n := typ(x)
-	if t > L || n == atom { // tables are not implemented
+	if t > D {
 		panic("type")
+	} else if t == D {
+		if n == atom {
+			ln := k(0)
+			v := m.k[3+x]
+			for i := k(0); i < m.k[v]&atom; i++ {
+				vk := atx(inc(v), mki(i))
+				vn := m.k[vk] & atom
+				if i == 0 {
+					ln = vn
+					if vn == atom {
+						panic("class")
+					}
+				} else if vn != ln {
+					panic("size") // rows have different lengths
+				}
+				dec(vk)
+			}
+			r = mk(D, ln)
+			m.k[2+r] = inc(m.k[2+x])
+			m.k[3+r] = inc(m.k[3+x])
+			return decr(x, r)
+		} else if m.k[1+x] == 1 {
+			m.k[x] = D << 28 & atom
+			return x
+		} else {
+			r = mk(D, atom)
+			m.k[2+r] = inc(m.k[2+x])
+			m.k[3+r] = inc(m.k[3+x])
+			return decr(x, r)
+		}
 	} else if t < L {
 		return x
 	}
@@ -989,7 +1013,7 @@ func tip(x k) (r k) { // @x
 	r = mku(0)
 	t, n := typ(x)
 	s := m.c[169+t]
-	if n != atom && t < L && s != 0 {
+	if n != atom && (t < L || t == D) && s != 0 {
 		s -= 32
 	}
 	mys(8+r<<2, uint64(s)<<56)
@@ -1219,7 +1243,7 @@ func kst(x k) (r k) { // `k@x
 		case L:
 			rn = putb(rc, rn, []c("()"))
 		case D:
-			rn = putb(rc, rn, []c("()!()"))
+			rn = putb(rc, rn, []c("+()!()"))
 		default:
 			panic("nyi")
 		}
@@ -1368,6 +1392,9 @@ func kst(x k) (r k) { // `k@x
 		}
 	case D:
 		r = mk(C, 0)
+		if !atm {
+			r = cat(r, mkc('+'))
+		}
 		rr, encl := kst(inc(m.k[x+2])), false
 		kt, nk := typ(m.k[x+2])
 		if (kt < L && nk == 1) || (kt == D) || (kt > D) {
