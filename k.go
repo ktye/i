@@ -2047,7 +2047,7 @@ func lambda(x, y k) (r k) { // call lambda
 		panic("type")
 	}
 	vv := mk(L, nv) // save old values
-	//f := mku(uint64('f') << 56)
+	f := mku(uint64('f') << 56)
 	for i := k(0); i < nv; i++ {
 		name := atx(inc(loc), mki(i))
 		m.k[2+i+vv] = lupo(inc(name))
@@ -2058,9 +2058,9 @@ func lambda(x, y k) (r k) { // call lambda
 		}
 	}
 	dec(y)
-	//dec(asn(inc(f), inc(x), mk(N, 0)))
+	dec(asn(inc(f), inc(x), mk(N, 0)))
 	r = evl(inc(l))
-	//dec(del(f))
+	dec(del(f))
 	for i := k(0); i < nv; i++ { // restore old values
 		name, w := atx(inc(loc), mki(i)), m.k[2+i+vv]
 		if w == 0 {
@@ -3648,7 +3648,7 @@ func ib(b bool) (r int) {
 }
 func argn(x, l k) k { // count args of lambda parse tree
 	t, n := typ(x)
-	ln := m.k[l] >> atom
+	ln := m.k[l] & atom
 	ux, uy, uz := uint64('x')<<56, uint64('y')<<56, uint64('z')<<56
 	switch t {
 	case S:
