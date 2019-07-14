@@ -3124,7 +3124,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			return decr(r, x) // n
 		}
 		if v := p.verb(r); v == 0 {
-			return l2(x, r) // te
+			return l2(x, p.ex(r)) // te
 		} else {
 			if y := p.ex(p.noun()); m.k[y]>>28 == N {
 				return l2(v, decr(y, x)) // e.g. 2+
