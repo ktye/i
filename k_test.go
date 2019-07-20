@@ -713,7 +713,7 @@ func TestRef(t *testing.T) { // generate ref.md
 		if !craZ(r[i-1]) && craZ(r[i]) && craZ(r[i+1]) && craZ(r[i+2]) {
 			key := r[i : i+3]
 			if l, o := fl[s(key)]; o {
-				fmt.Fprintf(w, `<a href="../blob/master/k.go#L%d">%s</a>`, l, s(key))
+				fmt.Fprintf(w, `<a href="../../blob/master/k.go#L%d">%s</a>`, l, s(key))
 			} else {
 				w.Write(r[i : i+3])
 			}
