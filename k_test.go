@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -687,6 +690,39 @@ func TestStr(t *testing.T) {
 	if u := sym(8 + K("abcdefgh")<<2); u != 0x6162636465666768 {
 		t.Fatalf("%x\n", u)
 	}
+}
+func TestRef(t *testing.T) { // generate ref.md
+	k, e := ioutil.ReadFile("k.go")
+	if e != nil {
+		t.Fatal(e)
+	}
+	fl := make(map[s]i)
+	for i, b := range bytes.Split(k, []c("\n")) {
+		if bytes.HasPrefix(b, []c("func ")) && b[8] == '(' {
+			fl[s(b[5:8])] = int32(1 + i)
+		}
+	}
+	w, e := os.Create("ref.md")
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer w.Close()
+	r := []c(ref)
+	w.Write([]c("<pre>\n"))
+	for i := 1; i < len(r)-2; i++ {
+		if !craZ(r[i-1]) && craZ(r[i]) && craZ(r[i+1]) && craZ(r[i+2]) {
+			key := r[i : i+3]
+			if l, o := fl[s(key)]; o {
+				fmt.Fprintf(w, `<a href="../blob/master/k.go#L%d">%s</a>`, l, s(key))
+			} else {
+				w.Write(r[i : i+3])
+			}
+			i += 2
+		} else {
+			w.Write(r[i : i+1])
+		}
+	}
+	w.Write([]c("\n</pre>\n"))
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:

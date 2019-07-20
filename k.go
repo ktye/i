@@ -5,6 +5,19 @@ import (
 	"unsafe"
 )
 
+const ref = `
+00 : idn asn    10 ! til key    20 0 rdl nil    30 ' qtc key    40 exi  exit  90 ... in    
+01 + flp add    11 ~ not mch    21 1 nil nil    31 / slc sla    41            91 ... within
+02 - neg sub    12 , enl cat    22 2 nil nil    32 \ bsc bsl    42            92 bin       
+03 * fst mul    13 ^ srt ept    23 3 nil nil    33 ' ech ecd    43            93 ... like  
+04 % inv div    14 # cnt tak    24 4 nil nil    34 / ovr ovi    44            94 del       
+05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45            95           
+06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46            96           
+07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47            97           
+08 > dst mor    18 @ tip atx    28 8 nil nil    38 \ spl ecl    48            98           
+09 = grp eql    19 . evl cal    29 9 nil nil    39              49            99           
+`
+
 type c = byte
 type k = uint32
 type i = int32
@@ -1940,6 +1953,9 @@ func atx(x, y k) (r k) { // x@y
 		if y == keys { // x[!x]
 			r = inc(m.k[3+x])
 			return decr2(x, y, r)
+		}
+		if xn != atom {
+			panic("nyi table-index")
 		}
 		kt, nk := typ(keys)
 		vt, _ := typ(m.k[3+x])
