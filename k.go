@@ -15,7 +15,7 @@ const ref = `
 06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46            96           
 07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47            97           
 08 > dst mor    18 @ tip atx    28 8 nil nil    38 \ spl ecl    48            98           
-09 = grp eql    19 . evl cal    29 9 nil nil    39              49            99           
+09 = grp eql    19 . val cal    29 9 nil nil    39              49            99           
 `
 
 type c = byte
@@ -1032,7 +1032,19 @@ func tip(x k) (r k) { // @x
 	mys(8+r<<2, uint64(s)<<56)
 	return decr(x, r)
 }
-func evl(x k) (r k) { // .x
+func val(x k) (r k) { // . x
+	switch m.k[x] >> 28 {
+	case L:
+		return evl(x)
+	case C:
+		return evl(prs(x))
+	case D:
+		return decr(x, inc(m.k[3+x]))
+	default:
+		panic("type")
+	}
+}
+func evl(x k) (r k) {
 	t, n := typ(x)
 	if t != L {
 		if t == S && n == 1 {
@@ -3791,7 +3803,7 @@ var table [100]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 func init() {
 	table = [100]interface{}{
 		//   1                   5                        10                       15
-		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, evl,
+		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val,
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
