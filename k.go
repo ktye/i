@@ -26,7 +26,7 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, L, D, N k = 1, 2, 3, 4, 5, 6, 7, 8
+	C, I, F, Z, S, L, A, N k = 1, 2, 3, 4, 5, 6, 7, 8
 	atom, kkey, kval, dyad k = 0x0fffffff, 0x30, 0x31, 50
 	NaI                    i = -2147483648
 )
@@ -42,7 +42,7 @@ type slice struct {
 	c int
 }
 
-//                 C  I  F   Z  S  L  D  0  1  2  3  4
+//                 C  I  F   Z  S  L  A  0  1  2  3  4
 var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 0, 4, 4, 4, 4, 4}
 var m struct { // linear memory (slices share underlying arrays)
 	c []c
@@ -177,7 +177,7 @@ func ini() { // start function
 	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	m.k[kkey] = mk(S, 0) // k-tree keys
 	m.k[kval] = mk(L, 0) // k-tree values
-	m.k[3] = mk(D, atom)
+	m.k[3] = mk(A, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	o := c(39) // monads
@@ -282,7 +282,7 @@ func inc(x k) k {
 		for i := k(0); i < n; i++ {
 			inc(m.k[2+x+i])
 		}
-	case D:
+	case A:
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
@@ -317,7 +317,7 @@ func dec(x k) {
 		for i := k(0); i < n; i++ {
 			dec(m.k[2+x+i])
 		}
-	case D:
+	case A:
 		dec(m.k[2+x])
 		dec(m.k[3+x])
 	case N + 1, N + 2, N + 3, N + 4:
@@ -412,7 +412,7 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 		for j := k(0); j < k(n); j++ {
 			m.k[r+2+j] = nm(inc(m.k[j+2+x]), rt, fx)
 		}
-	case D:
+	case A:
 		if r != x {
 			m.k[2+r] = inc(m.k[2+x])
 		}
@@ -444,13 +444,13 @@ func ntyps(xt, yt k, fx []f2, fc []fc) (t k) {
 }
 func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
-	if xt == D {
-		r = mk(D, atom)
+	if xt == A {
+		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = nd(inc(m.k[3+x]), y, rt, fx, fc)
 		return decr(x, r)
-	} else if yt == D {
-		r = mk(D, atom)
+	} else if yt == A {
+		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+y])
 		m.k[3+r] = nd(y, inc(m.k[3+y]), rt, fx, fc)
 		return decr(y, r)
@@ -595,9 +595,9 @@ func uf(x k) (r k) { // unify lists if possible
 func idn(x k) (r k) { return x } // :x
 func flp(x k) (r k) { // +x
 	t, n := typ(x)
-	if t > D {
+	if t > A {
 		panic("type")
-	} else if t == D {
+	} else if t == A {
 		if n == atom {
 			ln := k(0)
 			v := m.k[3+x]
@@ -614,15 +614,15 @@ func flp(x k) (r k) { // +x
 				}
 				dec(vk)
 			}
-			r = mk(D, ln)
+			r = mk(A, ln)
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = inc(m.k[3+x])
 			return decr(x, r)
 		} else if m.k[1+x] == 1 {
-			m.k[x] = D << 28 & atom
+			m.k[x] = A << 28 & atom
 			return x
 		} else {
-			r = mk(D, atom)
+			r = mk(A, atom)
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = inc(m.k[3+x])
 			return decr(x, r)
@@ -677,7 +677,7 @@ func neg(x k) k { // -x
 }
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
-	if t == D {
+	if t == A {
 		inc(m.k[3+x])
 		r = fst(m.k[3+x])
 		return decr(x, r)
@@ -746,7 +746,7 @@ func wer(x k) (r k) { // &x
 func rev(x k) (r k) { // |x
 	t, n := typ(x)
 	if n == atom || n < 2 {
-		if t == D {
+		if t == A {
 			r = mk(t, n)
 			m.k[r+2] = rev(inc(m.k[x+2]))
 			m.k[r+3] = rev(inc(m.k[x+3]))
@@ -755,7 +755,7 @@ func rev(x k) (r k) { // |x
 		return x
 	}
 	r = mk(t, n)
-	if t < D {
+	if t < A {
 		cp := cpx[t]
 		if t == L {
 			cp = cpI
@@ -796,7 +796,7 @@ func grp(x k) (r k) { // =x
 		panic("value")
 	}
 	eq := eqx[t]
-	r = mk(D, atom)
+	r = mk(A, atom)
 	u := unq(inc(x)) // TODO: keys are sorted in k7
 	l, nu := mk(L, m.k[u]&atom), m.k[u]&atom
 	m.k[2+r], m.k[3+r] = u, l
@@ -827,7 +827,7 @@ func til(x k) (r k) { // !x
 	t, n := typ(x)
 	if n != atom {
 		panic("nyi !a")
-	} else if t == D {
+	} else if t == A {
 		r = inc(m.k[2+x])
 		return decr(x, r)
 	} else if t > Z {
@@ -877,8 +877,8 @@ func not(x k) (r k) { // ~x
 			m.k[2+i+r] = not(inc(m.k[2+x+i]))
 		}
 		return decr(x, uf(r))
-	} else if t == D {
-		r = mk(D, atom)
+	} else if t == A {
+		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = not(inc(m.k[3+x]))
 		return decr(x, r)
@@ -910,7 +910,7 @@ func enlist(x k) (r k) { // dont unify
 func srt(x k) (r k) { return atx(x, asc(inc(x))) } // ^x  TODO: replace with a sort implementation
 func cnt(x k) (r k) { // #x
 	t, n := typ(x)
-	if t == D {
+	if t == A {
 		_, n = typ(m.k[x+2])
 	}
 	n = atm1(n)
@@ -949,8 +949,8 @@ func str(x k) (r k) { // $x
 			for i := k(0); i < n; i++ {
 				m.k[2+i+r] = str(inc(m.k[2+i+x]))
 			}
-		case D:
-			r = mk(D, atom)
+		case A:
+			r = mk(A, atom)
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = str(inc(m.k[3+x]))
 		case N:
@@ -994,7 +994,7 @@ func unq(x k) (r k) { // ?x
 	t, n := typ(x)
 	if n == atom {
 		panic("nyi") // overloads, random numbers?
-	} else if t == D { // what does ?d do?
+	} else if t == A { // what does ?d do?
 		panic("type")
 	} else if n < 2 {
 		return x
@@ -1026,7 +1026,7 @@ func tip(x k) (r k) { // @x
 	r = mku(0)
 	t, n := typ(x)
 	s := m.c[169+t]
-	if n != atom && (t < L || t == D) && s != 0 {
+	if n != atom && (t < L || t == A) && s != 0 {
 		s -= 32
 	}
 	mys(8+r<<2, uint64(s)<<56)
@@ -1038,7 +1038,7 @@ func val(x k) (r k) { // . x
 		return evl(x)
 	case C:
 		return evl(prs(x))
-	case D:
+	case A:
 		return decr(x, inc(m.k[3+x]))
 	default:
 		panic("type")
@@ -1267,7 +1267,7 @@ func kst(x k) (r k) { // `k@x
 			rn = putb(rc, rn, []c("0#`"))
 		case L:
 			rn = putb(rc, rn, []c("()"))
-		case D:
+		case A:
 			rn = putb(rc, rn, []c("+()!()"))
 		default:
 			panic("nyi")
@@ -1415,14 +1415,14 @@ func kst(x k) (r k) { // `k@x
 		} else {
 			dec(y)
 		}
-	case D:
+	case A:
 		r = mk(C, 0)
 		if !atm {
 			r = cat(r, mkc('+'))
 		}
 		rr, encl := kst(inc(m.k[x+2])), false
 		kt, nk := typ(m.k[x+2])
-		if (kt < L && nk == 1) || (kt == D) || (kt > D) {
+		if (kt < L && nk == 1) || (kt == A) || (kt > A) {
 			encl = true
 		}
 		y := mk(C, 1)
@@ -1563,7 +1563,7 @@ func key(x, y k) (r k) { // x!y
 	if xn != yn {
 		panic("length")
 	}
-	r = mk(D, atom)
+	r = mk(A, atom)
 	m.k[2+r] = x
 	m.k[3+r] = y
 	return r
@@ -1608,7 +1608,7 @@ func match(x, y k) (rv bool) { // recursive match
 			}
 		}
 		return true
-	case D:
+	case A:
 		if match(m.k[2+x], m.k[2+y]) == false || match(m.k[3+x], m.k[3+y]) == false {
 			return false
 		}
@@ -1630,20 +1630,20 @@ func match(x, y k) (rv bool) { // recursive match
 }
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
-	if xt > D {
+	if xt > A {
 		x, xt, xn = enlist(x), L, 1
 	}
-	if yt > D {
+	if yt > A {
 		y, yt, yn = enlist(y), L, 1
 	}
 	switch {
 	case xt < L && yt == xt:
 		return ucat(x, y, xt, xn, yn)
-	case xt == D:
-		if yt != D {
+	case xt == A:
+		if yt != A {
 			panic("type")
 		} else {
-			r = mk(D, atom)
+			r = mk(A, atom)
 			m.k[2+r] = cat(inc(m.k[2+x]), inc(m.k[2+y]))
 			m.k[3+r] = cat(inc(m.k[3+x]), inc(m.k[3+y]))
 			return decr2(x, y, r)
@@ -1734,7 +1734,7 @@ func ept(x, y k) (r k) { // x^y
 }
 func tak(x, y k) (r k) { // x#y
 	xt, yt, xn, yn := typs(x, y)
-	if yt == D {
+	if yt == A {
 		return key(x, atx(y, inc(x)))
 	}
 	if xt != I {
@@ -1796,7 +1796,7 @@ func take(n, o, y k) (r k) { // integer index and offset
 }
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
-	if t == D { // x_d: del
+	if t == A { // x_d: del
 		u := ept(inc(m.k[y+2]), x)
 		if r == m.k[y+2] {
 			return y
@@ -1932,7 +1932,7 @@ func atx(x, y k) (r k) { // x@y
 		}
 	} else if xt > N {
 		return cal(x, enl(y))
-	} else if xn == atom && xt != D {
+	} else if xn == atom && xt != A {
 		panic("type")
 	}
 	switch {
@@ -1964,7 +1964,7 @@ func atx(x, y k) (r k) { // x@y
 			r = uf(r)
 		}
 		return decr2(x, y, r)
-	case xt == D:
+	case xt == A:
 		keys := m.k[2+x]
 		if y == keys { // x[!x]
 			r = inc(m.k[3+x])
@@ -1983,7 +1983,7 @@ func atx(x, y k) (r k) { // x@y
 			} else {
 				panic("table-index")
 			}
-			r = mk(D, m.k[idx]&atom)
+			r = mk(A, m.k[idx]&atom)
 			v := mk(L, m.k[m.k[3+x]]&atom)
 			m.k[2+r] = inc(m.k[2+x])
 			for i := k(0); i < atm1(m.k[v]&atom); i++ {
@@ -2023,7 +2023,7 @@ func atx(x, y k) (r k) { // x@y
 }
 func cal(x, y k) (r k) { // x.y
 	xt, _, xn, yn := typs(x, y)
-	if xt <= D { // TODO dict
+	if xt <= A { // TODO dict
 		if yn != atom {
 			if yn == 0 {
 				return decr(y, x)
@@ -2185,8 +2185,8 @@ func drv(op k, x k) (r k) { // derived function
 }
 func ech(f, x k) (r k) { // f'x
 	t, n := typ(x)
-	if t == D {
-		r = mk(D, atom)
+	if t == A {
+		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = ech(f, inc(m.k[3+x]))
 		return decr(x, r)
@@ -2222,8 +2222,8 @@ func ecd(f, x, y k) (r k) { // x f'y (each pair)
 }
 func ecp(f, x k) (r k) { // f':x (each prior)
 	t, n := typ(x)
-	if t == D {
-		r = mk(D, atom)
+	if t == A {
+		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = ecp(f, inc(m.k[3+x]))
 		return decr(x, r)
@@ -2271,7 +2271,7 @@ func epi(f, x, y k) (r k) { // x f':y (each prior initial)
 }
 func ecr(f, x, y k) (r k) { // x f/: y
 	xt, yt, _, yn := typs(x, y)
-	if xt > L || yt > L { // TODO D
+	if xt > L || yt > L { // TODO A
 		panic("type")
 	} else if yn == atom {
 		return cal2(f, x, y)
@@ -2285,7 +2285,7 @@ func ecr(f, x, y k) (r k) { // x f/: y
 }
 func ecl(f, x, y k) (r k) { // x f\: y
 	xt, yt, xn, _ := typs(x, y)
-	if xt > L || yt > L { // TODO D
+	if xt > L || yt > L { // TODO A
 		panic("type")
 	} else if xn == atom {
 		return cal2(f, x, y)
@@ -2354,9 +2354,9 @@ func scn(f, x k) (r k) { // f\x
 }
 func ovsc(f, x k, scan bool) (r k) {
 	t, n := typ(x)
-	if t == D {
+	if t == A {
 		if scan {
-			r = mk(D, atom)
+			r = mk(A, atom)
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = ovsc(f, inc(m.k[3+x]), scan)
 			return decr(x, r)
@@ -2874,8 +2874,8 @@ func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	xt, at, xn, an := typs(x, a)
-	if xt == D {
-		r = mk(D, atom)
+	if xt == A {
+		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = amdv(inc(m.k[3+x]), fnd(inc(m.k[2+x]), a), f, y)
 		return decr(x, r)

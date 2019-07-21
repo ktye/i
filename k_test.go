@@ -772,8 +772,8 @@ func xxd() { // memory dump
 					fmt.Printf(" fp is not free")
 				}
 			} else {
-				atoms := "?cifzsld01234"
-				vects := "?CIFZSLD01234"
+				atoms := "?cifzsla01234"
+				vects := "?CIFZSLA01234"
 				tp, n := typ(i)
 				bt := bk(tp, n)
 				if n == atom {
@@ -972,7 +972,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		if nk != nv {
 			return 0
 		}
-		r = mk(D, atom)
+		r = mk(A, atom)
 		m.k[2+r] = key
 		m.k[3+r] = val
 	}
@@ -999,7 +999,7 @@ func G(x k) interface{} { // convert k value to go type (returns nil on error)
 			return m.z[1+x>>2]
 		case S:
 			return str(1 + x>>1)
-		case D:
+		case A:
 			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
 		case N:
 			return nil
