@@ -1925,15 +1925,15 @@ func atx(x, y k) (r k) { // x@y
 	}
 	switch {
 	case xt < L && yt == I:
-		cp, na, xp := cpx[xt], nax[xt], ptr(x, xt)
+		cp, xp := cpx[xt], ptr(x, xt)
 		r = mk(xt, yn)
 		yn = atm1(yn)
 		rp, yp := ptr(r, xt), 2+y
 		for i := k(0); i < yn; i++ {
-			if i >= xn {
-				na(rp + i)
+			if ix := m.k[yp+i]; ix >= xn {
+				panic("index") // na(rp + i)
 			} else {
-				cp(rp+i, xp+m.k[yp+i])
+				cp(rp+i, xp+ix)
 			}
 		}
 		return decr2(x, y, r)
@@ -1943,7 +1943,11 @@ func atx(x, y k) (r k) { // x@y
 		} else {
 			r = mk(L, yn)
 			for i := k(0); i < yn; i++ {
-				m.k[2+r+i] = inc(m.k[2+x+m.k[2+y+i]])
+				if xi := m.k[2+y+i]; xi >= xn {
+					panic("index")
+				} else {
+					m.k[2+r+i] = inc(m.k[2+x+xi])
+				}
 			}
 			r = uf(r)
 		}
@@ -1954,8 +1958,27 @@ func atx(x, y k) (r k) { // x@y
 			r = inc(m.k[3+x])
 			return decr2(x, y, r)
 		}
-		if xn != atom {
-			panic("nyi table-index")
+		if xn != atom { // t[I;S]
+			idx := k(0)
+			if yt == I {
+				idx = y
+			} else if yt == S { // t[S]
+				return atx(flp(x), y)
+			} else if yt == L && yn == 2 {
+				idx = inc(m.k[2+y])
+				x = flp(tak(inc(m.k[3+y]), flp(x)))
+				dec(y)
+			} else {
+				panic("table-index")
+			}
+			r = mk(D, m.k[idx]&atom)
+			v := mk(L, m.k[m.k[3+x]]&atom)
+			m.k[2+r] = inc(m.k[2+x])
+			for i := k(0); i < atm1(m.k[v]&atom); i++ {
+				m.k[2+i+v] = atx(inc(m.k[2+i+m.k[3+x]]), inc(idx))
+			}
+			m.k[3+r] = uf(v)
+			return decr2(x, idx, r)
 		}
 		kt, nk := typ(keys)
 		vt, _ := typ(m.k[3+x])

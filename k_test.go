@@ -34,12 +34,13 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		//{"{$[x<3;f x+1;x]}1", "3"},
+		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
 		//{"x:3 3#!9;x[1 2;1 2]:0;x", "(0 1 2;3 0 0;6 0 0)"},
 		//{"x:3 3#!9;x[1 2;1 2]:2 2#1+!4", "(0 1 2;3 1 2;6 3 4)"},
 		//{"x:3 3#!9;x[1 2;1 2]*:10", "(0 1 2;3 40 50;6 70 80)"},
+		//{"t:+`a`b!(1 2;3 4);t[1 0;`b`a]", "(4 2;3 1)"},
 		{"1", "1"},
 		{"`a", "`a"},
 		{"`a`b", "`a`b"},
@@ -261,6 +262,10 @@ func TestK(t *testing.T) {
 		{"++`a`b!(1 2;3 4)", "`a`b!(1 2;3 4)"},
 		{"@`a`b!(1 2;3 4)", "`a"},
 		{"@+`a`b!(1 2;3 4)", "`A"},
+		{"t:+`a`b!(1 2;3 4);t`b", "3 4"},
+		{"t:+`a`b!(1 2;3 4);t 1", "`a`b!2 4"},
+		{"t:+`a`b!(1 2;3 4);t 1 0", "+`a`b!(2 1;4 3)"},
+		{"t:+`a`b!(1 2;3 4);t[1;`b`a]", "4 2"},
 		// {"(-).(1 2)", "3"},
 	}
 	for _, occ := range []bool{false, true} {
@@ -691,7 +696,7 @@ func TestStr(t *testing.T) {
 		t.Fatalf("%x\n", u)
 	}
 }
-func TestRef(t *testing.T) { // generate ref.md
+func TestRef(t *testing.T) { // generate readme.md
 	k, e := ioutil.ReadFile("k.go")
 	if e != nil {
 		t.Fatal(e)
@@ -702,7 +707,7 @@ func TestRef(t *testing.T) { // generate ref.md
 			fl[s(b[5:8])] = int32(1 + i)
 		}
 	}
-	w, e := os.Create("ref.md")
+	w, e := os.Create("readme.md")
 	if e != nil {
 		t.Fatal(e)
 	}
