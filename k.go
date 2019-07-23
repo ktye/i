@@ -44,13 +44,12 @@ type slice struct {
 
 //                 C  I  F   Z  S  L  A  0  1  2  3  4
 var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 0, 4, 4, 4, 4, 4}
-var m struct { // linear memory (slices share underlying arrays)
+var m struct { // linear memory (slices share underlying array)
 	c []c
 	k []k
 	f []f
 	z []z
 }
-
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var nax = []func(k){nil, naC, naI, naF, naZ, naS}      // set missing/nan
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
@@ -81,7 +80,7 @@ func ltI(x, y k) bool { return i(m.k[x]) < i(m.k[y]) }
 func gtI(x, y k) bool { return i(m.k[x]) > i(m.k[y]) }
 func ltF(x, y k) bool { return m.f[x] < m.f[y] }
 func gtF(x, y k) bool { return m.f[x] > m.f[y] }
-func ltZ(x, y k) bool { // real than imag
+func ltZ(x, y k) bool { // real then imag
 	if ltF(x<<1, y<<1) {
 		return true
 	} else if eqF(x<<1, y<<1) {
@@ -89,7 +88,7 @@ func ltZ(x, y k) bool { // real than imag
 	}
 	return false
 }
-func gtZ(x, y k) bool { // real than imag
+func gtZ(x, y k) bool {
 	if gtF(x<<1, y<<1) {
 		return true
 	} else if eqF(x<<1, y<<1) {
