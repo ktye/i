@@ -1529,8 +1529,12 @@ func muC(r, x, y k)    { m.c[r] = m.c[x] * m.c[y] }
 func muI(r, x, y k)    { m.k[r] = m.k[x] * m.k[y] }
 func muF(r, x, y k)    { m.f[r] = m.f[x] * m.f[y] }
 func muZ(r, x, y k)    { m.z[r] = m.z[x] * m.z[y] }
+func diC(r, x, y k)    { m.c[r] = m.c[x] / m.c[y] }
+func diI(r, x, y k)    { m.k[r] = k(i(m.k[x]) / i(m.k[y])) }
 func diF(r, x, y k)    { m.f[r] = m.f[x] / m.f[y] }
 func diZ(r, x, y k)    { m.z[r] = m.z[x] / m.z[y] }
+func mdC(r, x, y k)    { m.c[r] = m.c[x] % m.c[y] }
+func mdI(r, x, y k)    { m.k[r] = m.k[x] % m.k[y] } // unsigned only? which version for signed?
 func miC(r, x, y k)    { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
 func miI(r, x, y k)    { m.k[r] = m.k[ter(i(m.k[x]) < i(m.k[y]), x, y)] }
 func miF(r, x, y k)    { m.f[r] = m.f[ter(m.f[x] < m.f[y], x, y)] }
@@ -2164,14 +2168,7 @@ func ltr(x k) (r k) { // `p@{..} (lambda tree, k7: .{...})
 	return decr(x, r)
 }
 func qot(x k) (r k) { return drv(0, x) } // '
-func sla(x k) (r k) { // /
-	// TODO: as verb: div
-	t, _ := typ(x)
-	if t < N+1 {
-		panic("nyi div")
-	}
-	return drv(1, x)
-}
+func sla(x k) (r k) { return drv(1, x) } // /
 func bsl(x k) (r k) { return drv(2, x) } // \
 func qtc(x k) (r k) { return drv(3, x) } // ':
 func slc(x k) (r k) { return drv(4, x) } // /:
@@ -2297,7 +2294,12 @@ func ecl(f, x, y k) (r k) { // x f\: y
 	return decr2(x, y, r)
 }
 func ovr(f, x k) (r k) { // f/x
-	if m.k[f]>>28 == N+1 { // fixed
+	if xt := m.k[f] >> 28; xt < N { // x/y (idiv)
+		if xt > I {
+			panic("type")
+		}
+		return nd(f, x, 0, []f2{nil, diC, diI, nil, nil, nil}, nil)
+	} else if xt == N+1 { // fixed
 		for {
 			r = x
 			x = atx(inc(f), inc(r))
@@ -2323,7 +2325,12 @@ func ovr(f, x k) (r k) { // f/x
 	return ovsc(f, x, false)
 }
 func scn(f, x k) (r k) { // f\x
-	if m.k[f]>>28 == N+1 { // scan fixed
+	if xt := m.k[f] >> 28; xt < N { // x\y (mod)
+		if xt > I {
+			panic("type")
+		}
+		return nd(x, f, 0, []f2{nil, mdC, mdI, nil, nil, nil}, nil)
+	} else if xt == N+1 { // scan fixed
 		l := mk(L, 0)
 		for {
 			r = x
