@@ -1094,6 +1094,9 @@ func evl(x k) (r k) {
 			vt, vn = typ(v)
 			iev = true
 		}
+		if n == 1 && vt > N { // e.g. (-)
+			return decr(x, v)
+		}
 		af := m.k[2+v]
 		if (vt > N && af == dyad) || (vt == N+1 && vn == atom && n == 3) { // : or :: or *: (modified assignemnt)
 			// in k7 assignment is always monadic :: (`1)
@@ -3306,10 +3309,12 @@ func (p *p) noun() (r k) {
 		p.p = p.m
 		r = p.lst(mk(C, 0), sCpa)
 		if m.k[r]&atom == 1 {
+			if m.k[m.k[2+r]]>>28 > N { // verb
+				return p.idxr(r)
+			}
 			// TODO drv
 			return p.idxr(fst(r))
 		}
-		// TODO isverb
 		return p.idxr(cat(enlist(mk(N, atom)), r))
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
