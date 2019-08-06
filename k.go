@@ -1940,6 +1940,7 @@ func atx(x, y k) (r k) { // x@y
 	} else if xt > N {
 		return cal(x, enl(y))
 	} else if xn == atom && xt != A {
+		println(xn, xt)
 		panic("type")
 	}
 	switch {
@@ -3199,6 +3200,16 @@ func (p *p) get() c {
 	p.p++
 	return m.c[p.p-1]
 }
+func (p *p) nNum() bool { // minus part of a number
+	if m.c[p.p] != '-' || p.p == p.lp+1 {
+		return true
+	}
+	if c := m.c[p.p-1]; cr09(c) || craZ(c) || c == ')' || c == ']' {
+		p.m = p.p
+		return false // verb: exceptions (kref p28)
+	}
+	return true
+}
 func (p *p) xx() {
 	panic("parse: " + string(m.c[p.lp+1:p.p+1]) + " <-")
 }
@@ -3256,9 +3267,15 @@ func (p *p) noun() (r k) {
 		return p.idxr(r)
 	case p.t(sIov):
 		return p.idxr(p.a(pIov))
-	case p.t(sNum):
+	case p.t(sNum) && p.nNum():
 		r = p.a(pNum)
-		for p.t(sNum) {
+		for p.p != p.e && m.c[p.p] == ' ' {
+			if n := sNum(m.c[p.p+1 : p.e]); n == 0 {
+				break
+			} else {
+				p.p++
+				p.m = p.p + k(n)
+			}
 			y := p.a(pNum)
 			rt, yt, _, _ := typs(r, y)
 			if rt < yt {
