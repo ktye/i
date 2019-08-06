@@ -304,7 +304,7 @@ func decr(x, r k) k     { dec(x); return r }
 func decr2(x, y, r k) k { dec(x); dec(y); return r }
 func dec(x k) {
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
-		//xxd()
+		// xxd()
 		panic("unref " + hxk(x))
 	}
 	t, n := typ(x)
@@ -1658,16 +1658,17 @@ func cat(x, y k) (r k) { // x,y
 		y = explode(y)
 		xt, yn = typ(y)
 	}
-	if m.k[xt+1] > 1 || bk(L, xn+yn) > bk(L, xn) {
+	if m.k[x+1] == 1 && bk(L, xn+yn) == bk(L, xn) {
+		r = x
+		m.k[r] = L<<28 | (xn + yn)
+	} else {
 		r = mk(L, xn+yn)
 		for j := k(0); j < xn; j++ {
 			m.k[2+r+j] = inc(m.k[2+x+j])
 		}
 		dec(x)
-	} else {
-		r = x
-		m.k[r] = L<<28 | (xn + yn)
 	}
+
 	for j := k(0); j < yn; j++ {
 		m.k[2+r+xn+j] = inc(m.k[2+y+j])
 	}
