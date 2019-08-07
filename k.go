@@ -1,9 +1,6 @@
 package main
 
-import (
-	"strconv" // to be removed
-	"unsafe"
-)
+import "unsafe"
 
 const ref = `
 00 : idn asn    10 ! til key    20 0 rdl nil    30 ' qtc key    40 exi  exit  90 ... in    
@@ -71,7 +68,7 @@ func naZ(dst k)       { naF(dst << 1); naF(1 + dst<<1) }
 func naS(dst k)       { mys(dst<<2, uint64(' ')<<(56)) }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
-func eqF(x, y k) bool { return m.f[x] == m.f[y] }
+func eqF(x, y k) bool { return m.f[x] == m.f[y] || (m.f[x] != m.f[x] && m.f[y] != m.f[y]) }
 func eqZ(x, y k) bool { return eqF(x<<1, y<<1) && eqF(1+x<<1, 1+y<<1) }
 func eqS(x, y k) bool { return m.k[x<<1] == m.k[y<<1] && m.k[1+x<<1] == m.k[1+y<<1] }
 func ltC(x, y k) bool { return m.c[x] < m.c[y] }
@@ -1449,7 +1446,7 @@ func kst(x k) (r k) { // `k@x
 			_, n = typ(r)
 			rc, dot := 8+r<<2, false
 			for i := k(0); i < n; i++ {
-				if c := m.c[rc+i]; c == '.' || c == 'n' || c == 'e' {
+				if c := m.c[rc+i]; c == '.' || c == 'n' || c == 'e' || c == 'w' {
 					dot = true
 					break
 				}
@@ -3530,6 +3527,23 @@ func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
 			return r
 		}
 	}
+	if len(b) == 2 && b[0] == '0' { // 0N 0n 0w
+		if b[1] == 'N' {
+			return mki(0x80000000)
+		} else if b[1] == 'n' {
+			r = mk(F, atom)
+			naF(1 + r>>1)
+			return r
+		} else if b[1] == 'w' {
+			r = mku(0x7FF0000000000000)
+			m.k[r] = F<<28 | atom
+			return r
+		}
+	} else if len(b) == 3 && b[0] == '-' && b[1] == '0' && b[2] == 'w' {
+		r = mku(0xFFF0000000000000)
+		m.k[r] = F<<28 | atom
+		return r
+	}
 	f := 0
 	if len(b) > 1 {
 		if c := b[len(b)-1]; c == 'f' || c == '.' {
@@ -3553,7 +3567,7 @@ func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
 		}
 		return r
 	}
-	if x, err := strconv.ParseFloat(string(b), 64); err == nil { // TODO remove strconv
+	if x, o := atof(b); o {
 		r = mk(F, atom)
 		m.f[1+r>>1] = x
 		return r
@@ -3673,13 +3687,23 @@ func sHex(b []byte) (r int) {
 	return len(b)
 }
 func sNum(b []byte) (r int) {
-	n := sFlt(b)
+	n := 0
+	if len(b) > 1 && b[0] == '0' && b[1] == 'N' {
+		n = 2
+	} else {
+		n = sFlt(b)
+	}
 	if n > 0 && len(b) > n && b[n] == 'i' {
 		n += 1 + sFlt(b[n+1:])
 	}
 	return n
 }
 func sFlt(b []byte) (r int) { // -0.12e-12|1f
+	if len(b) > 1 && b[0] == '0' && (b[1] == 'n' || b[1] == 'w') {
+		return 2
+	} else if len(b) > 2 && b[2] == 'w' && b[1] == '0' && b[0] == '-' {
+		return 3
+	}
 	if len(b) > 1 && b[0] == '-' {
 		r++
 	}
@@ -3930,7 +3954,123 @@ func atoi(b []c) (int, bool) {
 	}
 	return s * n, true
 }
+func atof(b []c) (f, bool) {
+	man, exp, neg, o := flt(b)
+	if !o {
+		return 0, false
+	}
+	v := f(man)
+	if exp < 0 {
+		for exp < 0 {
+			if exp < -21 {
+				exp += 22
+				v /= e10[21]
+			} else {
+				v /= e10[-exp]
+				exp = 0
+			}
+		}
+	} else if exp > 0 {
+		for exp > 0 {
+			if exp > 21 {
+				exp -= 22
+				v *= e10[21]
+			} else {
+				v *= e10[exp]
+				exp = 0
+			}
+		}
+	}
+	if neg {
+		return -v, true
+	}
+	return v, true
+}
+func low(c c) c { return c | ('x' - 'X') }
+func flt(s []c) (man uint64, exp int, neg, ok bool) {
+	i := 0
+	if i >= len(s) {
+		return
+	}
+	switch {
+	case s[i] == '+':
+		i++
+	case s[i] == '-':
+		neg = true
+		i++
+	}
+	maxMantDigits := 19 // 10^19 fits in uint64
+	expChar := byte('e')
+	sawdot := false
+	sawdigits := false
+	nd := 0
+	ndMant := 0
+	dp := 0
+	for ; i < len(s); i++ {
+		switch c := s[i]; true {
+		case c == '.':
+			if sawdot {
+				return
+			}
+			sawdot = true
+			dp = nd
+			continue
+		case '0' <= c && c <= '9':
+			sawdigits = true
+			if c == '0' && nd == 0 { // ignore leading zeros
+				dp--
+				continue
+			}
+			nd++
+			if ndMant < maxMantDigits {
+				man *= 10
+				man += uint64(c - '0')
+				ndMant++
+			}
+			continue
+		}
+		break
+	}
+	if !sawdigits {
+		return
+	}
+	if !sawdot {
+		dp = nd
+	}
+	if i < len(s) && low(s[i]) == expChar {
+		i++
+		if i >= len(s) {
+			return
+		}
+		esign := 1
+		if s[i] == '+' {
+			i++
+		} else if s[i] == '-' {
+			i++
+			esign = -1
+		}
+		if i >= len(s) || s[i] < '0' || s[i] > '9' {
+			return
+		}
+		e := 0
+		for ; i < len(s) && ('0' <= s[i] && s[i] <= '9'); i++ {
+			if e < 10000 {
+				e = e*10 + int(s[i]) - '0'
+			}
+		}
+		dp += e * esign
+	}
+	if i != len(s) {
+		return
+	}
+	if man != 0 {
+		exp = dp - ndMant
+	}
+	ok = true
+	return
+}
 
+var e10 = [22]f{1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21}
 var l8t = [256]c{
 	0x00, 0x01, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
 	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
