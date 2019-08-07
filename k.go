@@ -98,16 +98,29 @@ func gtZ(x, y k) bool {
 }
 func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
 func gtS(x, y k) bool { return sym(x<<3) > sym(y<<3) }
-func stI(dst, x k) k { // TODO remove strconv
+func stI(dst, x k) k {
 	if m.k[x] == 0x80000000 {
 		m.c[dst] = '0'
 		m.c[dst+1] = 'N'
 		return 2
 	}
-	s := strconv.Itoa(int(i(m.k[x])))
-	n := k(len(s))
-	copy(m.c[dst:dst+n], []byte(s))
-	return n
+	v, s, b, n := i(m.k[x]), k(0), m.c[dst:], k(0)
+	if v < 0 {
+		v, s, b[0] = -v, 1, '-'
+		b = b[1:]
+	}
+	for i := 0; ; i++ {
+		b[i] = c(v%10 + '0')
+		n++
+		if v < 10 {
+			break
+		}
+		v /= 10
+	}
+	for i := k(0); i < n/2; i++ {
+		b[i], b[n-i-1] = b[n-i-1], b[i]
+	}
+	return s + n
 }
 func stF(dst, x k) k {
 	v := m.f[x]
