@@ -34,7 +34,6 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		//{`f:{(y+(-/(*x)**x;2f**/*x);1+*|x)};g:{{{(4f>+/(*x)**x)&255>*|x}f[;y]/x}[(x;0);x]};*|g 0 0.65`, "22"}, // ←panic
 		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
@@ -282,6 +281,7 @@ func TestK(t *testing.T) {
 		{`{x+1}3 4 5`, "4 5 6"},
 		{`{x-1}3 4 5`, "2 3 4"},
 		{`{x[0]-1}3 4 5`, "2"},
+		{`h:{(y+(-/(*x)**x;2f**/*x);1+*|x)};g:{{{(4f>+/(*x)**x)&255>*|x}h[;y]/x}[(x;0);x]};*|g 0 0.65`, "22"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

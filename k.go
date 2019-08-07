@@ -1076,6 +1076,10 @@ func str(x k) (r k) { // $x
 			} else if f > 49 && f < 83 { // dyad * /
 				r = mkc(m.c[136+m.k[2+x]-dyad])
 				m.k[r] = C<<28 | 1
+			} else if f > 256 && t == N+1 {
+				panic("todo derived")
+			} else {
+				panic("assert")
 			}
 			// TODO: derived?
 			if n == 1 || n == 2 { // projection
@@ -1338,11 +1342,13 @@ func is0(x k) bool { // for cnd
 func prj(x, y k) (r k) { // convert x to a projection
 	t := m.k[x] >> 28
 	r = mk(t, 2)
+	ln := k(2)
 	if f := m.k[2+x]; f < 256 {
 		m.k[2+r] = f // #1: function code if < 256
 		dec(x)
 	} else {
 		m.k[2+r] = x // #1: pointer to lambda function if code >= 256
+		ln = 1
 	}
 	m.k[3+r] = y // #2: argument list with holes
 	n := k(0)
@@ -1351,7 +1357,7 @@ func prj(x, y k) (r k) { // convert x to a projection
 			n++
 		}
 	}
-	m.k[r] = k(N+n)<<28 | 2 // a projection has length 2
+	m.k[r] = k(N+n)<<28 | ln
 	return r
 }
 func kst(x k) (r k) { // `k@x
@@ -2047,7 +2053,6 @@ func atx(x, y k) (r k) { // x@y
 	} else if xt > N {
 		return cal(x, enl(y))
 	} else if xn == atom && xt != A {
-		println(xn, xt)
 		panic("type")
 	}
 	switch {
@@ -2172,6 +2177,9 @@ func cal(x, y k) (r k) { // x.y
 		} else {
 			r = mk(N+1, atom)
 			m.k[2+r] = f
+			if f > 255 {
+				panic("assert proj")
+			}
 			if f >= dyad {
 				m.k[r] = (N+2)<<28 | atom
 			}
