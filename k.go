@@ -109,16 +109,113 @@ func stI(dst, x k) k { // TODO remove strconv
 	copy(m.c[dst:dst+n], []byte(s))
 	return n
 }
-func stF(dst, x k) k { // TODO remove strconv
-	if m.f[x] != m.f[x] {
+func stF(dst, x k) k {
+	v := m.f[x]
+	switch {
+	case v == 0:
+		m.c[dst] = '0'
+		return 1
+	case v != v:
 		m.c[dst] = '0'
 		m.c[dst+1] = 'n'
 		return 2
+	case v+v == v && v > 0:
+		m.c[dst] = '0'
+		m.c[dst+1] = 'w'
+		return 2
+	case v+v == v && v < 0:
+		m.c[dst] = '-'
+		m.c[dst+1] = '0'
+		m.c[dst+2] = 'w'
+		return 3
 	}
-	s := strconv.FormatFloat(m.f[x], 'g', 6, 64)
-	n := k(len(s))
-	copy(m.c[dst:dst+n], []byte(s))
-	return n
+	var b []c
+	e, sn, n, d, t := 0, k(0), k(7), k(1), k(1)
+	if v < 0 {
+		b = m.c[dst:]
+		b[0], v, sn = '-', -v, 1
+	} else {
+		b = m.c[dst-1:]
+	}
+	for v >= 10 {
+		e++
+		v /= 10
+	}
+	for v < 1 {
+		e--
+		v *= 10
+	}
+	h := 5.0
+	for i := k(0); i < n; i++ {
+		h /= 10
+	}
+	v += h
+	if v >= 10 {
+		e++
+		v /= 10
+	}
+	for i := k(0); i < n; i++ {
+		s := int(v)
+		b[i+2] = byte(s + '0')
+		v -= float64(s)
+		v *= 10
+	}
+	for b[1+n] == '0' && n > 1 {
+		n--
+	}
+	b[1] = b[2]
+	if n == 1 {
+		d = 0
+	}
+	if e == 0 { // 1
+		b[2] = '.'
+		return n + d + sn
+	} else if e < 0 && e > -5 { // 0.01234
+		for i := int(n); i >= 0; i-- {
+			b[2+i] = b[2+i+e]
+		}
+		for i := 1; i < -e; i++ {
+			b[1+i] = '0'
+		}
+		b[1] = '0'
+		b[2] = '.'
+		return n + sn + 1 + k(-e)
+	} else if e > 0 && e < 7 { // 123.456
+		if n <= k(e) {
+			n = k(e) + 1
+		}
+		b[2] = '.'
+		for i := 0; i < e; i++ {
+			b[2+i], b[3+i] = b[3+i], b[2+i]
+		}
+		if n == k(e)+1 {
+			d = 0
+		}
+		return n + sn + d
+	} else { // 1.234
+		b[2] = '.'
+	}
+	t = 1 + d
+	b[n+t] = 'e'
+	if e < 0 {
+		t++
+		e = -e
+		b[n+t] = '-'
+	}
+	uu := false
+	if u := c(e / 100); u > 0 {
+		t++
+		uu = true
+		b[n+t] = u + '0'
+	}
+	if u := c(e/10) % 10; uu || u > 0 {
+		t++
+		uu = true
+		b[n+t] = u + '0'
+	}
+	t++
+	b[n+t] = c(e%10) + '0'
+	return n + t + sn
 }
 func stZ(dst, x k) k {
 	n := stF(dst, x<<1)
@@ -1339,7 +1436,7 @@ func kst(x k) (r k) { // `k@x
 			_, n = typ(r)
 			rc, dot := 8+r<<2, false
 			for i := k(0); i < n; i++ {
-				if c := m.c[rc+i]; c == '.' || c == 'n' {
+				if c := m.c[rc+i]; c == '.' || c == 'n' || c == 'e' {
 					dot = true
 					break
 				}
