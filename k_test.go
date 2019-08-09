@@ -300,6 +300,7 @@ func TestK(t *testing.T) {
 		{"ina:3;ina", "3"},
 		{`{3>*x}{x+1}\1`, "1 2 3"},
 		{`{3>*x}{x+1}\1 0`, "(1 0;2 1;3 2)"},
+		{"(!10f)@(3 5;6 8;(1;2 3))", "(3 5f;6 8f;(1f;2 3f))"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

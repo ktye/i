@@ -945,7 +945,7 @@ func til(x k) (r k) { // !x
 	} else if nn == 0 {
 		return decr(x, mk(t, 0))
 	} else {
-		return decr(x, jota(k(nn)))
+		return decr(x, to(jota(k(nn)), t))
 	}
 }
 func jota(n k) (r k) { // !n
@@ -2160,6 +2160,12 @@ func atx(x, y k) (r k) { // x@y
 		}
 		if yn == atom {
 			r = fst(r)
+		}
+		return decr2(x, y, r)
+	case yt == L:
+		r = mk(L, yn)
+		for i := k(0); i < yn; i++ {
+			m.k[2+r+i] = atx(inc(x), inc(m.k[2+y+i]))
 		}
 		return decr2(x, y, r)
 	// case xt == L:
