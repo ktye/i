@@ -40,7 +40,7 @@ type slice struct {
 }
 
 //                 C  I  F   Z  S  L  A  0  1  2  3  4
-var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 0, 4, 4, 4, 4, 4}
+var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 0, 0, 0, 0, 0, 0}
 var m struct { // linear memory (slices share underlying array)
 	c []c
 	k []k
@@ -397,8 +397,8 @@ func inc(x k) k {
 		} else if n == 0 { // lambda
 			inc(m.k[2+x])
 			inc(m.k[3+x])
-		} else if n != atom { // projection
-			if n == 1 { // lambda-projection
+		} else if n != atom { // projection, composition
+			if n == 1 || n == 3 { // lambda-projection, composition
 				inc(m.k[2+x])
 			}
 			inc(m.k[3+x])
@@ -432,8 +432,8 @@ func dec(x k) {
 		} else if n == 0 { // lambda
 			dec(m.k[2+x])
 			dec(m.k[3+x])
-		} else if n != atom { // projection n: 1 or 2
-			if n == 1 { // lambda-projection
+		} else if n != atom { // n: 1, 2 (projection), 3(composition)
+			if n == 1 || n == 3 { // lambda-projection, or composition
 				dec(m.k[2+x])
 			}
 			dec(m.k[3+x])
@@ -1065,6 +1065,8 @@ func str(x k) (r k) { // $x
 			f := m.k[2+x]
 			if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
 				r = inc(m.k[2+x]) // `C
+			} else if n == 3 { // composition
+				r = cat(str(inc(m.k[2+x])), str(inc(m.k[3+x])))
 			} else if (f >= 39 && f < dyad) || (f >= 83 && f < 100) { // built-ins
 				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
 			} else if f < 20 || (f >= 30 && f <= 33) { // monad +: /:
@@ -1287,6 +1289,12 @@ func evl(x k) (r k) {
 			default:
 				panic("args")
 			}
+		} else if n == 3 && vt == N+2 && m.k[2+v] == 19+dyad && m.k[m.k[3+r]]>>28 > N { // composition
+			dec(v)
+			v = mk(m.k[m.k[3+r]]>>28, 3)
+			m.k[2+v] = inc(m.k[2+r])
+			m.k[3+v] = inc(m.k[3+r])
+			return decr(r, v)
 		} else if vt > N && !(vn == atom && vt == N+1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
 			if n-1 > vt-N {
 				panic("args") // too many arguments
@@ -2189,6 +2197,10 @@ func cal(x, y k) (r k) { // x.y
 	}
 	if xn == 0 {
 		return lambda(x, y)
+	} else if xn == 3 {
+		u, v := inc(m.k[2+x]), inc(m.k[3+x])
+		dec(x)
+		return cal(u, enl(cal(v, y)))
 	}
 	code := m.k[2+x]
 	if code > 255 { // derived
@@ -2225,12 +2237,7 @@ func cal(x, y k) (r k) { // x.y
 	}
 	return decr2(x, y, r)
 }
-func cal2(f, x, y k) (r k) {
-	l := mk(L, 2)
-	m.k[2+l] = x
-	m.k[3+l] = y
-	return cal(f, l)
-}
+func cal2(f, x, y k) (r k) { return cal(f, l2(x, y)) }
 func lambda(x, y k) (r k) { // call lambda
 	v := (m.k[x] >> 28) - N
 	if v < 1 || v > 3 {
@@ -3338,12 +3345,14 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			return decr(r, x) // n
 		}
 		if v := p.verb(r); v == 0 {
-			return l2(x, p.ex(r)) // te
+			return compose(l2(x, p.ex(r))) // te
 		} else {
 			if y := p.ex(p.noun()); m.k[y]>>28 == N {
 				return l2(v, decr(y, x)) // e.g. 2+
 			} else if m.k[v]>>28 == N+2 && m.k[2+v] == dyad+18 { // @
 				return decr(v, l2(x, y)) // x@y
+			} else if cmpvrb(y) {
+				return compose(l2(l2(v, x), y)) // 2+ *
 			} else {
 				return l3(v, x, y) // nve
 			}
@@ -3353,7 +3362,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		if m.k[x]>>28 == N {
 			return decr(x, r) // v
 		} else {
-			return l2(monad(r), x) // ve
+			return compose(l2(monad(r), x)) // ve
 		}
 	}
 }
@@ -3497,6 +3506,35 @@ func monad(x k) (r k) { // force monad
 	}
 	return x
 }
+func compose(x k) (r k) { // composition
+	t, n := typ(x)
+	if t != L {
+		panic("assert")
+	} else if n != 2 {
+		return x
+	}
+	if cmpvrb(m.k[2+x]) && cmpvrb(m.k[3+x]) {
+		r = mk(N+2, atom)
+		m.k[2+r] = 19 + dyad // cal
+		return cat(r, x)
+	}
+	return x
+}
+func cmpvrb(x k) bool { // is allowed in composition
+	t, n := typ(x)
+	if n == atom && (t == N+1 || t == N+2) {
+		return true
+	} else if t != L {
+		return false
+	}
+	u, v := m.k[2+x], m.k[3+x]
+	if n == 2 && m.k[u]>>28 == N+2 {
+		return true // 1+
+	} else if n == 3 && m.k[u]>>28 == N+2 && m.k[2+u] == 19+dyad && cmpvrb(v) {
+		return true // (.;v;w)
+	}
+	return false
+}
 func pHex(b []byte) (r k) { // 0x1234 `c|`C
 	if n := k(len(b)); n == 3 { // allow short form 0x1
 		r = mkc(xtoc(b[2]))
@@ -3636,7 +3674,7 @@ func pVrb(b []byte) (r k) {
 		if b[0] == m.c[i+136] {
 			if len(b) == 1 || i > 49 {
 				r = mk(N+2, atom)
-				m.k[2+r] = k(i) + 50
+				m.k[2+r] = k(i) + dyad
 			} else {
 				r = mk(N+1, atom)
 				m.k[2+r] = k(i)

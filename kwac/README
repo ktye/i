@@ -33,7 +33,7 @@ Initial memory (64kB)
  byte[169…181] type names _cifzn.a_1234
  p[192]      0x30 points to k tree keys (`S, always sorted)
  p[196]      0x31 points to k tree values (`L)
- byte[?]     type size vector: 0,1,4,8,16,8,4,0,4,4,4,4,4
+ byte[?]     type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
 
 
 Function codes
@@ -55,6 +55,8 @@ Functions have type N+1…N+4 (valence)
  projection: length 1(over lambda) 2(over basic/builtins)
   x+2 function code or pointer to lambda function
   x+3 full argument list with holes (`N)
+ composition: length 3, type N+1 or N+2
+  x+2, x+3: point to verbs
  derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
   x+2 derived function code<<8
   x+3 points to the function operand
