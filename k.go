@@ -2731,8 +2731,13 @@ func evp(x k) { // parse-eval-print
 		return
 	}
 	r, asn := prs(x), false
-	if t, n := typ(r); t == L && n > 1 {
-		if f := m.k[2+r]; m.k[f]>>28 == N+2 && m.k[2+f] == dyad { // (::;`x;v)
+	a, s := r, mku(0)
+	if t, n := typ(a); t == L && n > 1 && match(m.k[2+a], s) {
+		dec(s)
+		a = m.k[1+n+a] // last of multiple statements
+	}
+	if t, n := typ(a); t == L && n > 1 {
+		if f := m.k[2+a]; m.k[f]>>28 == N+2 && m.k[2+f] == dyad { // (::;`x;v)
 			asn = true
 		} else if m.k[f]>>28 == N+1 && m.k[f]&atom == atom && n == 3 { // (*:;`x;v) modified assignment
 			asn = true
@@ -3010,7 +3015,20 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	if xt == A {
 		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
-		m.k[3+r] = amdv(inc(m.k[3+x]), fnd(inc(m.k[2+x]), a), f, y)
+		m.k[3+r] = inc(m.k[3+x])
+		al := inc(a)
+		if m.k[al]&atom == atom {
+			al = enl(a)
+		}
+		idx, n := fnd(inc(m.k[2+x]), inc(a)), m.k[m.k[2+x]]&atom
+		u := unq(atx(al, wer(eql(mki(n), idx))))
+		if m.k[u]&atom > 0 {
+			m.k[3+r] = cat(m.k[3+r], mk(m.k[m.k[3+r]]>>28, m.k[u]&atom))
+			m.k[2+r] = cat(m.k[2+r], u)
+		} else {
+			dec(u)
+		}
+		m.k[3+r] = amdv(m.k[3+r], fnd(inc(m.k[2+r]), a), f, y)
 		return decr(x, r)
 	}
 	if at != I {
