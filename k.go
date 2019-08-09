@@ -48,7 +48,7 @@ var m struct { // linear memory (slices share underlying array)
 	z []z
 }
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
-var nax = []func(k){nil, naC, naI, naF, naZ, naS}      // set missing/nan
+var nax = []func(k){nil, naC, naI, naF, naZ, naS, naL} // set missing/nan
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
 var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
 var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
@@ -66,6 +66,7 @@ func naI(dst k)       { m.k[dst] = 0x80000000 }
 func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst] = *(*f)(unsafe.Pointer(&u)) }
 func naZ(dst k)       { naF(dst << 1); naF(1 + dst<<1) }
 func naS(dst k)       { mys(dst<<2, uint64(' ')<<(56)) }
+func naL(dst k)       { m.k[dst] = mk(C, 0) }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
 func eqF(x, y k) bool { return m.f[x] == m.f[y] || (m.f[x] != m.f[x] && m.f[y] != m.f[y]) }
@@ -2661,7 +2662,7 @@ func whl(f, x, y k) (r k) { // g f/y
 }
 func whls(f, x, y k) (r k) { // g f\y
 	r = y
-	l, b, br := cat(mk(L, 0), inc(r)), k(0), k(0)
+	l, b, br := lcat(mk(L, 0), inc(r)), k(0), k(0)
 	for {
 		b = atx(inc(x), inc(r))
 		br = m.k[2+b]
@@ -2673,10 +2674,10 @@ func whls(f, x, y k) (r k) { // g f\y
 			break
 		}
 		r = atx(inc(f), r)
-		l = cat(l, inc(r))
+		l = lcat(l, inc(r))
 	}
 	dec(r)
-	return decr2(f, x, l)
+	return decr2(f, x, uf(l))
 }
 func rdl(x k) (r k) { // 0:x
 	rd := table[21].(func(k) k)
@@ -3023,7 +3024,8 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		idx, n := fnd(inc(m.k[2+x]), inc(a)), m.k[m.k[2+x]]&atom
 		u := unq(atx(al, wer(eql(mki(n), idx))))
 		if m.k[u]&atom > 0 {
-			m.k[3+r] = cat(m.k[3+r], mk(m.k[m.k[3+r]]>>28, m.k[u]&atom))
+			e := take(m.k[u]&atom, 0, mk(m.k[m.k[3+r]]>>28, 0))
+			m.k[3+r] = cat(m.k[3+r], e)
 			m.k[2+r] = cat(m.k[2+r], u)
 		} else {
 			dec(u)
@@ -3899,28 +3901,18 @@ func sAdv(b []byte) int {
 	return 0
 }
 func sBin(b []byte) int { // builtin
-	if b[0] < 'a' || b[0] > 'z' {
+	n := sNam(b)
+	if n == 0 {
 		return 0
 	}
-	x := til(inc(m.k[3]))
-	_, n := typ(x)
-	xp, max := 8+x<<2, k(len(b))
-	for i := k(0); i < n; i++ {
-		u := sym(xp + 8*i)
-		for j := k(0); j < 8; j++ {
-			if c := c(u >> (8 * (7 - j))); c == 0 {
-				if j == max || !(cr09(b[j]) || craZ(b[j])) {
-					return int(j)
-				}
-			} else if j == max {
-				break
-			} else if c != b[j] {
-				break
-			}
-		}
+	names := m.k[2+m.k[3]]
+	a, max := fnd(inc(names), mku(btou(b[:n]))), cnt(inc(names))
+	if match(a, max) {
+		n = 0
 	}
-	dec(x)
-	return 0
+	dec(a)
+	dec(max)
+	return n
 }
 func sObr(b []byte) int { return ib(b[0] == '[') }
 func sOpa(b []byte) int { return ib(b[0] == '(') }
