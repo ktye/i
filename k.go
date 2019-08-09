@@ -3767,7 +3767,7 @@ func sFlt(b []byte) (r int) { // -0.12e-12|1f
 			break
 		}
 	}
-	if len(b) > r && b[r] == 'e' {
+	if len(b) > r && r > 1 && b[r] == 'e' {
 		r += 1 + sExp(b[r+1:])
 	}
 	if r > 0 && len(b) > r && b[r] == 'f' {
