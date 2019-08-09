@@ -1,12 +1,13 @@
 .PHONY: index.html
-index.html: s h
+index.html: s h o
 	sh mkhtml
 
 deploy: index.html
 	cp index.html ../../ktye.github.io
 
 o: s
-	⍳ s 2>&1 | xxd -r -p >o
+	#k s>0
+	i s>o
 
 # https://github.com/WebAssembly/wabt/releases
 WABT=~/wabt

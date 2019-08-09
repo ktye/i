@@ -1,14 +1,13 @@
 / kwac
 ver:1                      / kwac version
-iv:7                       / ⍳/k7 switch, iv is a devvar in ⍳ always returning 1
 I:0x7f;F:0x7c              / i32;f64
 x:0x2000;y:0x2001;z:0x2002 / local.get
 x1:0x2001;x2:0x2002;x3:0x2003;x4:0x2004;x5:0x2005;x6:0x2006 / local.get
 e:0#,0x00                  / empty []byte, "" is a string in ⍳
 L:{0x0240034020,x,0x41016b22,x,0x4100480d01,y,0x0c000b0b} / loop y(body) n times, n stored at local index x is decremented
 
-leb128:{{~64>*x}{((_(*x)%128);mod[128;*x])}\(x;0)} / unsigned only, TODO: switch when f g/x is until in k7
-lebu:$[iv=1;{a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a};{[x]a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a}]
+leb128:{{~64>*x}{((_(*x)%128);128\*x)}\(x;0)}    / unsigned only
+lebu:{;a:|1_leb128 x;(`c$(*a)@0),{`c$128+*|x}'a}
 num:{|$[x<64;,`c$x;lebu x]}
 
 c:{0x41,num[x]}            / i32.const
@@ -21,9 +20,9 @@ geti:0x280200              / i32.load
 eq:0x46;eqz:0x45           / i32.eq,eqz
 or:0x72;xor:0x73           / i32.or,xor (bitwise)
 not:{0x417f,x,0x73}        / -1 x xor
-f:`v!(I;e;e;c ver)         / exported function (single letter name)
-f[`add]:(I;I,I;e;x,y,add)  / ret;args;locals;body (locals e.g.: I,I,F,F,F)
-f[`sub]:(I;I,I;e;x,y,0x6b)
+fn:`v!(I;e;e;c ver)        / exported function (single letter name)
+fn[`add]:(I;I,I;e;x,y,add) / ret;args;locals;body (locals e.g.: I,I,F,F,F)
+fn[`sub]:(I;I,I;e;x,y,0x6b)
 
 c:{0x41,num[x]}            / i32.const
 a:{0x20,num[x]}            / get_local
@@ -41,7 +40,7 @@ ini,:,/(c 0;c 7;setb;c 4;c 16;seti;c 36;c 0;seti;c 512;c 73;setb)
 lns:0 4 8 16 4 1 4 4 8                     / type sizes -ifzschld
 ini,:,/(520+4*!#lns){(c x),(c y),seti}'lns  / set type size vector: m[(1<<9)+8+4*i]:lns[i]
 /TODO: set pointer to k-tree at 8
-f[`ini]:(e;e;I,I;ini)                      / start function
+fn[`ini]:(e;e;I,I;ini)                     / start function
 
 mk:,/(x;c[#lns];ge;If[E];x;c 4;mul;c 520;add;geti;s 2;y;c 0;ge;If[x2,y,mul,s 2];x2;c 8;add;s 2) / size needed including header
 buk:{,/(c 32;x;c 1;sub;0x67;sub)}   / bucket from size: 32-clz(x-1)
@@ -50,7 +49,7 @@ grw:,/(c 1;c 4;geti;c 16;sub;shl;0x40001a;c 1;c 4;geti;shl;t 4;c 4;geti;seti;c 4
 mk,:,/(x2;s 3;L[,/(x3;c 4;geti;geu;If[grw];x3;c 4;mul;geti;t 4;b1;c 1;x3;add;s 3)]) / find free bucket fb:x3(>=x2), at x4(addr)
 mk,:,/(x3;eqz;If[E];L[,/(x3;x2;eq;b1;x3;c 1;sub;t 3;c 4;mul;x4;seti;x4;x3;setb;x4;c 1;x3;shl;add;t 4;x3;setb)]) / split large buckets
 mk,:,/(y;c 0;ltu;If[,/(x4;c 1;add;x;setb;Else[,/(x4;x2;x;c 5;shl;or;y;c 8;shl;or;seti)])];x4;c 4;add;c 1;seti;x4) / set header, refcount, return addr
-f[`t]:(I;I,I;I,I,I;mk) /mk: make var x(type) y(len)
+fn[`t]:(I;I,I;I,I,I;mk) /mk: make var x(type) y(len)
 
 
 / emit
@@ -59,14 +58,14 @@ o: 0x0061736d01000000         / header
 / 0x01(type section)
 o,:0x01 
 sig:{0x60,(`c$#x[1]),x[1],(`c$#x[0]),x[0]}
-sl:{sig[x]}'f; sl:sl[!sl]    / list of function signatures
+sl:{sig[x]}'fn; sl:. sl    / list of function signatures
 ul:?sl
 oo:(`c$#ul),,/ul
 o,:num[#oo],oo
 
 / 0x02(import section)
 / 0x03(function section, type declarations)
-oo:num[#f],/{num@*&ul~'(,#ul)#,x}'sl
+oo:num[#fn],/{num@*&ul~'(,#ul)#,x}'sl
 o,:0x03,num[#oo],oo
 
 / 0x04(table section)
@@ -74,25 +73,24 @@ o,:0x03,num[#oo],oo
 o,:0x0503010001               / initial memory 1(64kB)
 
 / 0x06(global section)
-/ 0x07(export section)        / export memory to "m" and all single-letter functions in f
-ln:{$[iv=1;#`\x;#$x]}         / all strings have length 1 in ⍳: need to split.
-str:{$[iv=1;`c$x;$x]}         / symbol to chars (⍳: string to []byte)
-ex:(!f)@&{1=ln x}'!f
-g:{0x01,(str x),0x00,num[*&x=!f]}
+/ 0x07(export section)        / export memory to "m" and all single-letter functions in fn
+ex:(!fn)@&{1=#$x}'!fn
+g:{0x01,($x),0x00,num[*&x=!fn]}
 mem:0x016d0200                / export memory at index 0
-oo:num[1+#ex],mem,$[iv=1;`c$`/g'ex;,/g'ex]
+oo:num[1+#ex],mem,,/g'ex
 o,:0x07,num[#oo],oo
 
 / 0x08(start section)
-o,:0x0801,num@*&`ini=!f
+o,:0x0801,num@*&`ini=!fn
 
 / 0x09(element section)
 / 0x0a(code section)
-h:{num[#?x],,/(+/+(x=)'?x),'?x} / array of local declarations I,I,F,F,F→2,2,I,3,F / TODO: Fix for k7
+h:{num[#?x],,/(`c$+/+(x=)'?x),'?x} / array of local declarations I,I,F,F,F→2,2,I,3,F
 g:{h[x 2],x[3],0x0b}            / function body: locals, instructions
-oo:(num@#f),,/{num[#g x],g x}'f[!f]
+oo:(num@#fn),,/{num[#g x],g x}'. fn
 o,:0x0a,num[#oo],oo
 
 / 0x0b(data section)
 
-$[iv=1;print o;o]
+` 1:o;
+\\
