@@ -1758,6 +1758,9 @@ func match(x, y k) (rv bool) { // recursive match
 }
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
+	if yn == 0 {
+		return decr(y, x)
+	}
 	if xt > A {
 		x, xt, xn = enlist(x), L, 1
 	}
