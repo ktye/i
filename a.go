@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime/debug"
@@ -12,6 +13,10 @@ var rd func() []c
 
 func main() {
 	ini()
+	if len(os.Args) == 2 && os.Args[1] == "-kwac" {
+		inikwac()
+		return
+	}
 	table[21] = red
 	table[40] = exi
 	table[21+dyad] = wrt
@@ -148,5 +153,25 @@ func stack(c interface{}) (stk, err string) {
 		err = e.Error()
 	}
 	return stk, err
+}
+func inikwac() { // write initial memory as data section
+	skip := 0
+	fmt.Printf("(0;0x")
+	for i, c := range m.c {
+		if c == 0 {
+			skip++
+		} else {
+			if skip < 8 {
+				for i := 0; i < skip; i++ {
+					fmt.Printf("00")
+				}
+			} else if skip != 0 {
+				fmt.Printf(";%d;0x", i)
+			}
+			fmt.Printf("%02x", c)
+			skip = 0
+		}
+	}
+	fmt.Println(")")
 }
 func fatal(s string) { println(s); os.Exit(1) }
