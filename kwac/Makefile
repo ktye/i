@@ -1,4 +1,4 @@
-.PHONY: index.html
+.PHONY: index.html mem o
 index.html: s h o
 	sh mkhtml
 
@@ -8,6 +8,9 @@ deploy: index.html
 o: s
 	#k s>0
 	i s>o
+
+mem:
+	i -kwac > mem
 
 # https://github.com/WebAssembly/wabt/releases
 WABT=~/wabt

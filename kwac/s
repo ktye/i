@@ -52,6 +52,9 @@ mk,:,/(y;c 0;ltu;If[,/(x4;c 1;add;x;setb;Else[,/(x4;x2;x;c 5;shl;or;y;c 8;shl;or
 fn[`t]:(I;I,I;I,I,I;mk) /mk: make var x(type) y(len)
 
 
+/ initial memory (written by i -kwac)
+mem:(0;0x1f00002000000000100000004800000044;36;0x8000000000010000000200000004000000080000001000000020;136;0x3a2b2d2a25267c3c3e3d217e2c5e235f243f402e30313233343536373839272f5c006369667a6e2e6100313233;192;0x6000000068;256;0x040000005c;270;0x6c2e0400000040000000580000004c000000ffffff7f010000007000000050000000ffffff2f020000000000000074697865060000100100000028595a5b5c5d00000000001002;350;0x6e2e0000001002;365;0x6c656404;384;0x0300005001;398;0x662e0000000000006c2e0000000000006e2e030000600100000058000000540000004c;448;0x060000500100000000000000746978650000000000006e6900006e696874697700000000006e696200000000656b696c00000000006c6564;512;0x09;1024;0x0a;2048;0x0b;4096;0x0c;8192;0x0d;16384;0x0e;32768;0x0f)
+
 / emit
 o: 0x0061736d01000000         / header
 
@@ -76,8 +79,8 @@ o,:0x0503010001               / initial memory 1(64kB)
 / 0x07(export section)        / export memory to "m" and all single-letter functions in fn
 ex:(!fn)@&{1=#$x}'!fn
 g:{0x01,($x),0x00,num[*&x=!fn]}
-mem:0x016d0200                / export memory at index 0
-oo:num[1+#ex],mem,,/g'ex
+xmem:0x016d0200                / export memory at index 0
+oo:num[1+#ex],xmem,,/g'ex
 o,:0x07,num[#oo],oo
 
 / 0x08(start section)
@@ -90,7 +93,12 @@ g:{h[x 2],x[3],0x0b}            / function body: locals, instructions
 oo:(num@#fn),,/{num[#g x],g x}'. fn
 o,:0x0a,num[#oo],oo
 
-/ 0x0b(data section)
+/ 0x0b(data section) initial memory
+(off;dat):mem@0 1+\:2*!_(#mem)%2
+oo:(num@#off)
+g:{0x00,c[x],0x0b,num[#y],y}
+oo,:,/off g'dat
+o,:0x0b,num[#oo],oo
 
 ` 1:o;
 \\
