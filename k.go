@@ -2005,6 +2005,18 @@ func cst(x, y k) (r k) { // x$y
 	if xt != S || xn != atom {
 		panic("type")
 	}
+	if yt == L && yn > 0 {
+		r = mk(L, yn)
+		for i := k(0); i < yn; i++ {
+			m.k[2+r+i] = cst(inc(x), inc(m.k[2+y+i]))
+		}
+		return decr2(x, y, r)
+	} else if yt == A {
+		r = mk(yt, yn)
+		m.k[2+r] = inc(m.k[2+y])
+		m.k[3+r] = cst(x, inc(m.k[3+y]))
+		return decr(y, r)
+	}
 	s := c(sym(8+x<<2) >> 56)
 	if (s == 0 || s == 'n') && yt == C { // `$x
 		yn = atm1(yn)
@@ -2017,6 +2029,9 @@ func cst(x, y k) (r k) { // x$y
 		if s == m.c[i] {
 			t = i - o
 		}
+	}
+	if yn == 0 && t > 0 && t < A {
+		return decr2(x, y, mk(t, 0))
 	}
 	if t < 1 || t >= L || yt >= L {
 		panic("type")
