@@ -1866,6 +1866,9 @@ func ept(x, y k) (r k) { // x^y
 }
 func tak(x, y k) (r k) { // x#y
 	xt, yt, xn, yn := typs(x, y)
+	if xt > N {
+		return fil(x, y, false)
+	}
 	if yt == A {
 		return key(x, atx(y, inc(x)))
 	}
@@ -1928,6 +1931,9 @@ func take(n, o, y k) (r k) { // integer index and offset
 }
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
+	if xt > N {
+		return fil(x, y, true)
+	}
 	if t == A { // x_d: del
 		u := ept(inc(m.k[y+2]), x)
 		if r == m.k[y+2] {
@@ -1971,6 +1977,33 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 		cp(rp+i, yp+o+i)
 	}
 	return decr(y, r)
+}
+func fil(x, y k, drop bool) (r k) { // f#x f_x filter
+	xt, yt, _, yn := typs(x, y)
+	if xt != N+1 {
+		panic("type")
+	}
+	v := y
+	if yt == A {
+		v = m.k[3+y]
+		yn = m.k[v] & atom
+	}
+	yn = atm1(yn)
+	idx := mk(I, yn)
+	z := mki(0)
+	for i := k(0); i < yn; i++ {
+		r = cal(inc(x), enl(atx(inc(v), mki(i))))
+		if match(r, z) == drop {
+			m.k[2+idx+i] = 1
+		} else {
+			m.k[2+idx+i] = 0
+		}
+		dec(r)
+	}
+	if yt == A {
+		return decr2(x, z, tak(atx(inc(m.k[2+y]), wer(idx)), y))
+	}
+	return decr2(x, z, atx(y, wer(idx)))
 }
 func cut(x, y k) (r k) { // x_y
 	xt, yt, xn, yn := typs(x, y)
