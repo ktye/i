@@ -1658,6 +1658,8 @@ func diC(r, x, y k)    { m.c[r] = m.c[y] / m.c[x] }
 func diI(r, x, y k)    { m.k[r] = k(i(m.k[y]) / i(m.k[x])) }
 func diF(r, x, y k)    { m.f[r] = m.f[x] / m.f[y] }
 func diZ(r, x, y k)    { m.z[r] = m.z[x] / m.z[y] }
+func baC(r, x, y k)    { m.c[r] = m.c[x] * (m.c[y] / m.c[x]) }
+func baI(r, x, y k)    { m.k[r] = k(i(m.k[x]) * (i(m.k[y]) / i(m.k[x]))) }
 func mdC(r, x, y k)    { m.c[r] = m.c[x] % m.c[y] }
 func mdI(r, x, y k)    { m.k[r] = m.k[x] % m.k[y] } // unsigned only? which version for signed?
 func miC(r, x, y k)    { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
@@ -2365,6 +2367,15 @@ func drv(op k, x k) (r k) { // derived function
 	return r
 }
 func ech(f, x k) (r k) { // f'x
+	if t := m.k[f] >> 28; t < N { // x'y (bar: x*x/y)
+		if t > I {
+			panic("type")
+		}
+		if m.k[x]>>28 > I {
+			x = to(x, I)
+		}
+		return nd(f, x, 0, []f2{nil, baC, baI, nil, nil, nil}, nil)
+	}
 	t, n := typ(x)
 	if t == A {
 		r = mk(A, atom)
@@ -2479,12 +2490,15 @@ func ecl(f, x, y k) (r k) { // x f\: y
 	return decr2(x, y, r)
 }
 func ovr(f, x k) (r k) { // f/x
-	if xt := m.k[f] >> 28; xt < N { // x/y (idiv)
-		if xt > I {
+	if t := m.k[f] >> 28; t < N { // x/y (idiv)
+		if t > I {
 			panic("type")
 		}
+		if m.k[x]>>28 > I {
+			x = to(x, I)
+		}
 		return nd(f, x, 0, []f2{nil, diC, diI, nil, nil, nil}, nil)
-	} else if xt == N+1 { // fixed
+	} else if t == N+1 { // fixed
 		for {
 			r = x
 			x = atx(inc(f), inc(r))
