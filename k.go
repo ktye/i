@@ -1866,6 +1866,8 @@ func take(n, o, y k) (r k) { // integer index and offset
 			na(rp + i)
 		}
 		return decr(y, r)
+	} else if yn == atom {
+		yn = 1
 	}
 	r = mk(t, n)
 	rp := ptr(r, t)
@@ -2337,7 +2339,7 @@ func ech(f, x k) (r k) { // f'x
 }
 func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	xt, yt, xn, yn := typs(x, y)
-	if xn == atom || yn == atom {
+	if xn == atom && yn == atom {
 		return cal2(f, x, y)
 	}
 	if xn == atom {
