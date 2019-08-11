@@ -56,7 +56,7 @@ var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
 var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
 var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
-var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(m.k[x]), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
+var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(i(m.k[x])), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -163,118 +163,21 @@ func stI(dst, x k) k {
 	}
 	return s + n
 }
-func stF(dst, x k) k {
-	v := m.f[x]
-	switch {
-	case v == 0:
-		m.c[dst] = '0'
-		return 1
-	case v != v:
-		m.c[dst] = '0'
-		m.c[dst+1] = 'n'
-		return 2
-	case v+v == v && v > 0:
-		m.c[dst] = '0'
-		m.c[dst+1] = 'w'
-		return 2
-	case v+v == v && v < 0:
-		m.c[dst] = '-'
-		m.c[dst+1] = '0'
-		m.c[dst+2] = 'w'
-		return 3
-	}
-	var b []c
-	e, sn, n, d, t := 0, k(0), k(7), k(1), k(1)
-	if v < 0 {
-		b = m.c[dst:]
-		b[0], v, sn = '-', -v, 1
-	} else {
-		b = m.c[dst-1:]
-	}
-	for v >= 10 {
-		e++
-		v /= 10
-	}
-	for v < 1 {
-		e--
-		v *= 10
-	}
-	h := 5.0
-	for i := k(0); i < n; i++ {
-		h /= 10
-	}
-	v += h
-	if v >= 10 {
-		e++
-		v /= 10
-	}
-	for i := k(0); i < n; i++ {
-		s := int(v)
-		b[i+2] = byte(s + '0')
-		v -= float64(s)
-		v *= 10
-	}
-	for b[1+n] == '0' && n > 1 {
-		n--
-	}
-	b[1] = b[2]
-	if n == 1 {
-		d = 0
-	}
-	if e == 0 { // 1
-		b[2] = '.'
-		return n + d + sn
-	} else if e < 0 && e > -5 { // 0.01234
-		for i := int(n); i >= 0; i-- {
-			b[2+i] = b[2+i+e]
-		}
-		for i := 1; i < -e; i++ {
-			b[1+i] = '0'
-		}
-		b[1] = '0'
-		b[2] = '.'
-		return n + sn + 1 + k(-e)
-	} else if e > 0 && e < 7 { // 123.456
-		if n <= k(e) {
-			n = k(e) + 1
-		}
-		b[2] = '.'
-		for i := 0; i < e; i++ {
-			b[2+i], b[3+i] = b[3+i], b[2+i]
-		}
-		if n == k(e)+1 {
-			d = 0
-		}
-		return n + sn + d
-	} else { // 1.234
-		b[2] = '.'
-	}
-	t = 1 + d
-	b[n+t] = 'e'
-	if e < 0 {
-		t++
-		e = -e
-		b[n+t] = '-'
-	}
-	uu := false
-	if u := c(e / 100); u > 0 {
-		t++
-		uu = true
-		b[n+t] = u + '0'
-	}
-	if u := c(e/10) % 10; uu || u > 0 {
-		t++
-		uu = true
-		b[n+t] = u + '0'
-	}
-	t++
-	b[n+t] = c(e%10) + '0'
-	return n + t + sn
-}
+func stF(dst, x k) k { return ftoa(dst, m.f[x]) }
 func stZ(dst, x k) k {
-	n := stF(dst, x<<1)
-	m.c[dst+n] = 'i'
-	return 1 + n + stF(dst+1+n, 1+x<<1)
+	/*
+		n := stF(dst, x<<1)
+		m.c[dst+n] = 'i'
+		return 1 + n + stF(dst+1+n, 1+x<<1)
+	*/
+	re, im := m.f[x<<1], m.f[1+x<<1]
+	n := ftoa(dst, math.Hypot(re, im))
+	re = 180.0 * math.Atan2(im, re) / math.Pi
+	if re < 0 {
+		re += 360.0
+	}
+	m.c[dst+n] = 'a'
+	return 1 + n + ftoa(dst+1+n, re)
 }
 func stS(dst, x k) k {
 	u := sym(x << 3)
@@ -3824,6 +3727,9 @@ func pNum(b []byte) (r k) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 	for i, c := range b {
 		if c == 'i' || c == 'a' {
 			r = to(pNum(b[:i]), Z)
+			if i == len(b)-1 {
+				return r
+			}
 			y := to(pNum(b[i+1:]), F)
 			if c == 'i' {
 				m.f[3+r>>1] = m.f[1+y>>1]
@@ -4295,6 +4201,113 @@ func atof(b []c) (f, bool) {
 		return -v, true
 	}
 	return v, true
+}
+func ftoa(dst k, v f) k {
+	switch {
+	case v == 0:
+		m.c[dst] = '0'
+		return 1
+	case v != v:
+		m.c[dst] = '0'
+		m.c[dst+1] = 'n'
+		return 2
+	case v+v == v && v > 0:
+		m.c[dst] = '0'
+		m.c[dst+1] = 'w'
+		return 2
+	case v+v == v && v < 0:
+		m.c[dst] = '-'
+		m.c[dst+1] = '0'
+		m.c[dst+2] = 'w'
+		return 3
+	}
+	var b []c
+	e, sn, n, d, t := 0, k(0), k(7), k(1), k(1)
+	if v < 0 {
+		b = m.c[dst:]
+		b[0], v, sn = '-', -v, 1
+	} else {
+		b = m.c[dst-1:]
+	}
+	for v >= 10 {
+		e++
+		v /= 10
+	}
+	for v < 1 {
+		e--
+		v *= 10
+	}
+	h := 5.0
+	for i := k(0); i < n; i++ {
+		h /= 10
+	}
+	v += h
+	if v >= 10 {
+		e++
+		v /= 10
+	}
+	for i := k(0); i < n; i++ {
+		s := int(v)
+		b[i+2] = byte(s + '0')
+		v -= float64(s)
+		v *= 10
+	}
+	for b[1+n] == '0' && n > 1 {
+		n--
+	}
+	b[1] = b[2]
+	if n == 1 {
+		d = 0
+	}
+	if e == 0 { // 1
+		b[2] = '.'
+		return n + d + sn
+	} else if e < 0 && e > -5 { // 0.01234
+		for i := int(n); i >= 0; i-- {
+			b[2+i] = b[2+i+e]
+		}
+		for i := 1; i < -e; i++ {
+			b[1+i] = '0'
+		}
+		b[1] = '0'
+		b[2] = '.'
+		return n + sn + 1 + k(-e)
+	} else if e > 0 && e < 7 { // 123.456
+		if n <= k(e) {
+			n = k(e) + 1
+		}
+		b[2] = '.'
+		for i := 0; i < e; i++ {
+			b[2+i], b[3+i] = b[3+i], b[2+i]
+		}
+		if n == k(e)+1 {
+			d = 0
+		}
+		return n + sn + d
+	} else { // 1.234
+		b[2] = '.'
+	}
+	t = 1 + d
+	b[n+t] = 'e'
+	if e < 0 {
+		t++
+		e = -e
+		b[n+t] = '-'
+	}
+	uu := false
+	if u := c(e / 100); u > 0 {
+		t++
+		uu = true
+		b[n+t] = u + '0'
+	}
+	if u := c(e/10) % 10; uu || u > 0 {
+		t++
+		uu = true
+		b[n+t] = u + '0'
+	}
+	t++
+	b[n+t] = c(e%10) + '0'
+	return n + t + sn
 }
 func low(c c) c { return c | ('x' - 'X') }
 func flt(s []c) (man uint64, exp int, neg, ok bool) {
