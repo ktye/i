@@ -24,7 +24,8 @@ space for 15 types
  32 bits (p+1) are refcount for used blocks or pointer to next free
 
 Initial memory (64kB)
- p[0],p[1]   block header
+ p[0]        block header
+ p[1]        rng state
  p[2]        total allocated memory log2 (initial 64k, max 4G) uint32
  p[3]        points to a dict of built-ins `s(name):`c(code)
  followed by free list:

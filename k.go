@@ -1,6 +1,9 @@
 package main
 
-import "unsafe"
+import (
+	"math"
+	"unsafe"
+)
 
 const ref = `
 00 : idn asn    10 ! til key    20 0 rdl nil    30 ' qtc key    40 exi  exit  90 ... in    
@@ -8,7 +11,7 @@ const ref = `
 02 - neg sub    12 , enl cat    22 2 nil nil    32 \ bsc bsl    42            92 bin       
 03 * fst mul    13 ^ srt ept    23 3 nil nil    33 ' ech ecd    43            93 ... like  
 04 % inv div    14 # cnt tak    24 4 nil nil    34 / ovr ovi    44            94 del       
-05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45            95           
+05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45 rol  rand  95 rnd rand         
 06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46            96           
 07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47            97           
 08 > dst mor    18 @ tip atx    28 8 nil nil    38 \ spl ecl    48            98           
@@ -280,6 +283,7 @@ func ini() { // start function
 		m.k[p] = k(i)
 	}
 	m.k[0] = (I << 28) | 31
+	m.k[1] = 0x70881342
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
 	m.k[kkey] = mk(S, 0) // k-tree keys
@@ -295,6 +299,7 @@ func ini() { // start function
 	builtin(o+2, "bin")
 	builtin(o+3, "like")
 	builtin(o+4, "del")
+	builtin(o+5, "rand")                  // also monad
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
@@ -343,7 +348,7 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	bt := bk(t, n)
 	fb, a := k(0), k(0)
 	for i := bt; i < 31; i++ { // find next free bucket >= bt
-		if k(i) >= m.k[2] {
+		for k(i) >= m.k[2] {
 			grw() // TODO: run a gc cycle (merge blocks) before growing?
 		}
 		if m.k[i] != 0 {
@@ -652,7 +657,7 @@ func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
 	case F:
 		return i(m.f[1+x>>1])
 	case Z:
-		return i(m.f[2+x])
+		return i(m.f[2+x>>1])
 	}
 	panic("type")
 }
@@ -3289,6 +3294,122 @@ func hxk(x k) s {
 	}
 	return s(b)
 }
+func rol(x, y k) (r k) { // roll, deal
+	xt, yt, xn, yn := typs(x, y)
+	if xt != I || xn != atom {
+		panic("type")
+	}
+	n := i(m.k[2+x])
+	if yn == atom {
+		if yt == I { // n roll m → n roll !m
+			yn = m.k[2+y]
+			y = til(y)
+		} else if yt == F { // n roll yf uniform [0,y] #n
+			if n < 0 {
+				panic("type")
+			}
+			r = rnd(x)
+			c := m.f[1+y]
+			for i := k(0); i < m.k[r]&atom; i++ {
+				m.f[1+r+i] *= c
+			}
+			return decr(y, r)
+		}
+	}
+	if n < 0 { // -n roll y (draw -n, no repetitions)
+		n = -n
+		if k(n) > yn {
+			panic("type")
+		}
+		r = mk(I, k(n))
+		for i := k(0); i < k(n); i++ {
+			m.k[2+r+i] = 888
+		}
+		for i := k(0); i < k(n); i++ { // fisher-yates (inside-out)
+			j := rndn(i + 1)
+			if i != j {
+				m.k[2+r+i] = m.k[2+r+j]
+			}
+			m.k[2+r+j] = i
+		}
+		return decr(x, atx(y, r))
+	} else { // n roll y (draw n with repetitions)
+		r = mk(I, k(n))
+		for i := k(0); i < k(n); i++ {
+			m.k[2+r+i] = rndn(yn)
+		}
+		return decr(x, atx(y, r))
+	}
+	return decr2(x, y, r)
+}
+func rnd(x k) (r k) { // rand
+	t, xn := typ(x)
+	if xn != atom { // draw a random element from x
+		return atx(x, mki(rndn(xn)))
+	} else if t == Z { // rand Ni: binormal #N
+		n := idx(x, Z)
+		if n < 0 {
+			panic("type")
+		}
+		r = mk(Z, k(n))
+		rc := 2 + r>>1
+		for i := k(0); i < 2*k(n); i += 2 {
+			m.f[rc+i], m.f[rc+1+i] = normal()
+		}
+	} else if t == I {
+		n := i(m.k[2+x])
+		if n < 0 { // rand -N: normal #N
+			n = -n
+			r = mk(F, k(n))
+			rp := 1 + r>>1
+			m.f[rp], _ = normal()
+			rp++
+			for i := k(0); i < k(n-1); i += 2 {
+				m.f[rp+i], m.f[rp+i+1] = normal()
+			}
+		} else { // rand N: uniform [0, 1] #N
+			r = mk(F, k(n))
+			rp := 1 + r>>1
+			for i := k(0); i < k(n); i++ {
+				m.f[rp+i] = f(rng()) / f(4294967295)
+			}
+		}
+	} else {
+		panic("type")
+	}
+	return decr(x, r)
+}
+func rng() (r k) { // xor-shift
+	r = m.k[1]
+	r ^= (r << 13)
+	r ^= (r >> 17)
+	r ^= (r << 5)
+	m.k[1] = r
+	return r
+}
+func rndn(n k) (r k) { // random [0,n) math/rand/rand.go:int32n (lemire)
+	r = rng()
+	p := uint64(r) * uint64(n)
+	if l := k(p); l < k(n) {
+		t := k(-i(n)) % n
+		for l < t {
+			r = rng()
+			p = uint64(r) * uint64(n)
+			l = k(p)
+		}
+	}
+	return k(p >> 32)
+}
+func normal() (f, f) { // marsaglia polar
+	var u, v, s f
+	for s == 0 || s >= 1 {
+		u = f(rng())/f(4294967295)*2.0 - 1.0
+		v = f(rng())/f(4294967295)*2.0 - 1.0
+		s = u*u + v*v
+	}
+	s = math.Sqrt(-2.0 * math.Log(s) / s)
+	return s, v * s
+}
 
 func isnan(x f) bool { return x != x }
 func atm1(n k) k {
@@ -4211,9 +4332,9 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val,
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, rnd, nil, nil, nil, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
-		nil, nil, bin, nil, del, nil, nil, nil, nil, nil, nil,
+		nil, nil, bin, nil, del, rol, nil, nil, nil, nil, nil,
 	}
 }
