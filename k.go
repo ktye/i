@@ -2453,10 +2453,35 @@ func ovr(f, x k) (r k) { // f/x
 			dec(r)
 		}
 		return decr2(f, r, x)
-	} else if x, t, op := scop1(f, x); op != nil {
+	}
+	if t, n := typ(x); n == 0 { // verb depended values for empty y
+		if code := m.k[2+f]; m.k[f]&atom == atom && code < 256 {
+			switch code - dyad {
+			case 12: // ,
+				return decr2(x, f, mk(t, 0))
+			case 1, 2, 6: // +-|
+				if t > C {
+					return decr2(x, f, to(mki(0), t))
+				}
+			case 3, 5: // *&
+				if t > C {
+					return decr2(x, f, to(mki(1), t))
+				}
+			}
+		}
+		r = mk(t, atom)
+		na, rp := nax[t], ptr(r, t)
+		na(rp)
+		return decr2(x, f, r)
+	} else if n == atom && t != A {
+		return decr(f, x)
+	}
+	if x, t, op := scop1(f, x); op != nil {
 		n := m.k[x] & atom
 		if n == atom {
 			return x
+		} else if n == 0 {
+
 		}
 		r := mk(t, atom)
 		rp, xp, cp := ptr(r, t), ptr(x, t), cpx[t]
@@ -2523,7 +2548,7 @@ func ovsc(f, x k, scan bool) (r k) {
 	if n == atom {
 		x = enl(x)
 	}
-	if n == 0 { // TODO: k7 returns special values for empty arrays
+	if n == 0 {
 		return decr(f, x)
 	} else if n == 1 {
 		return decr(f, fst(x))
