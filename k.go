@@ -3776,6 +3776,16 @@ func xtoc(x c) c {
 	}
 }
 func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
+	if len(b) > 1 && b[len(b)-1] == 'p' { // 2p→2*π
+		r = pNum(b[:len(b)-1])
+		if m.k[r]>>28 == I {
+			m.f[1+r>>1] = f(i(m.k[2+r])) * math.Pi
+			m.k[r] = F<<28 | atom
+		} else {
+			m.f[1+r>>1] *= math.Pi
+		}
+		return r
+	}
 	for i, c := range b {
 		if c == 'i' {
 			r = to(pNum(b[:i]), Z)
@@ -3951,7 +3961,7 @@ func sNum(b []byte) (r int) {
 	} else {
 		n = sFlt(b)
 	}
-	if n > 0 && len(b) > n && b[n] == 'i' {
+	if n > 0 && len(b) > n && (b[n] == 'i' || b[n] == 'p') {
 		n += 1 + sFlt(b[n+1:])
 	}
 	return n

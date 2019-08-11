@@ -318,6 +318,8 @@ func TestK(t *testing.T) {
 		{"3 rand 10", "1 9 5"},
 		{"4 rand \"a\"+`c$!26", `"exng"`},
 		{"-5 rand !6", "3 2 4 0 1"},
+		{"2p", "6.283185"},
+		{".1p", "0.3141593"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
