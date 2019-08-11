@@ -320,6 +320,16 @@ func TestK(t *testing.T) {
 		{"-5 rand !6", "3 2 4 0 1"},
 		{"2p", "6.283185"},
 		{".1p", "0.3141593"},
+		{"sqrt 2 4", "1.414214 2"},
+		{"sin 0 .5p", "0 1f"},
+		{"cos 0 1p", "1 -1f"},
+		{"abs -3 2 0", "3 2 0"},
+		{"abs -3 2 0f", "3 2 0f"},
+		{"abs 3i4 6", "5 6f"},
+		{"exp 1 2", "2.718282 7.389056"},
+		{"log exp 1 2", "1 2f"},
+		{"2 3 exp 3", "8 27f"},
+		{"2 log 8", "3f"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

@@ -7,13 +7,13 @@ import (
 
 const ref = `
 00 : idn asn    10 ! til key    20 0 rdl nil    30 ' qtc key    40 exi  exit  90 ... in    
-01 + flp add    11 ~ not mch    21 1 nil nil    31 / slc sla    41            91 ... within
-02 - neg sub    12 , enl cat    22 2 nil nil    32 \ bsc bsl    42            92 bin       
-03 * fst mul    13 ^ srt ept    23 3 nil nil    33 ' ech ecd    43            93 ... like  
-04 % inv div    14 # cnt tak    24 4 nil nil    34 / ovr ovi    44            94 del       
-05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45 rol  rand  95 rnd rand         
-06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46            96           
-07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47            97           
+01 + flp add    11 ~ not mch    21 1 nil nil    31 / slc sla    41 sqr  sqrt  91 ... within
+02 - neg sub    12 , enl cat    22 2 nil nil    32 \ bsc bsl    42 sin        92 bin       
+03 * fst mul    13 ^ srt ept    23 3 nil nil    33 ' ech ecd    43 cos        93 ... like  
+04 % inv div    14 # cnt tak    24 4 nil nil    34 / ovr ovi    44 abs        94 del       
+05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45 log        95 lgn      
+06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46 exp        96 pow          
+07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47 rnd  rand  97 rol rand          
 08 > dst mor    18 @ tip atx    28 8 nil nil    38 \ spl ecl    48            98           
 09 = grp eql    19 . val cal    29 9 nil nil    39              49            99           
 `
@@ -58,6 +58,46 @@ var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(m.k[x]), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 
+func ini() { // start function
+	m.f = make([]f, 1<<13)
+	msl()
+	m.k[2] = 16
+	p := k(64)
+	m.k[8] = p
+	m.k[p] = 8
+	for i := 9; i < 16; i++ {
+		p *= 2
+		m.k[i] = p
+		m.k[p] = k(i)
+	}
+	m.k[0] = (I << 28) | 31
+	m.k[1] = 0x70881342
+	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
+	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
+	m.k[kkey] = mk(S, 0) // k-tree keys
+	m.k[kval] = mk(L, 0) // k-tree values
+	m.k[3] = mk(A, atom)
+	m.k[2+m.k[3]] = mk(S, 0)
+	m.k[3+m.k[3]] = mk(C, 0)
+	o := c(39) // monads
+	builtin(o+1, "exit")
+	builtin(o+2, "sqrt")
+	builtin(o+3, "sin")
+	builtin(o+4, "cos")
+	builtin(o+5, "abs")
+	o += c(dyad) // dyads
+	builtin(o+1, "in")
+	builtin(o+2, "within")
+	builtin(o+3, "bin")
+	builtin(o+4, "like")
+	builtin(o+5, "del")
+	builtin(o+6, "log")
+	builtin(o+7, "exp")
+	builtin(o+8, "rand")
+	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
+	asn(mks(".n"), mki(0), mk(N, atom))   // line number
+	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
+}
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
 func cpF(dst, src k)  { m.f[dst] = m.f[src] }
@@ -68,7 +108,7 @@ func naC(dst k)       { m.c[dst] = 32 }
 func naI(dst k)       { m.k[dst] = 0x80000000 }
 func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst] = *(*f)(unsafe.Pointer(&u)) }
 func naZ(dst k)       { naF(dst << 1); naF(1 + dst<<1) }
-func naS(dst k)       { mys(dst<<2, uint64(' ')<<(56)) }
+func naS(dst k)       { mys(dst<<3, uint64(0)) }
 func naL(dst k)       { m.k[dst] = mk(C, 0) }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
@@ -269,40 +309,6 @@ func mv(dst, src k) {
 	dst >>= 2
 	m.k[dst] = t<<28 | n // restore header
 	m.k[1+dst] = rc
-}
-func ini() { // start function
-	m.f = make([]f, 1<<13)
-	msl()
-	m.k[2] = 16
-	p := k(64)
-	m.k[8] = p
-	m.k[p] = 8
-	for i := 9; i < 16; i++ {
-		p *= 2
-		m.k[i] = p
-		m.k[p] = k(i)
-	}
-	m.k[0] = (I << 28) | 31
-	m.k[1] = 0x70881342
-	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
-	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-	m.k[kkey] = mk(S, 0) // k-tree keys
-	m.k[kval] = mk(L, 0) // k-tree values
-	m.k[3] = mk(A, atom)
-	m.k[2+m.k[3]] = mk(S, 0)
-	m.k[3+m.k[3]] = mk(C, 0)
-	o := c(39) // monads
-	builtin(o+1, "exit")
-	o += c(dyad) // dyads
-	builtin(o+0, "in")
-	builtin(o+1, "within")
-	builtin(o+2, "bin")
-	builtin(o+3, "like")
-	builtin(o+4, "del")
-	builtin(o+5, "rand")                  // also monad
-	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
-	asn(mks(".n"), mki(0), mk(N, atom))   // line number
-	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
 }
 func builtin(code c, s string) {
 	key, val := mk(S, atom), mk(C, 1)
@@ -537,7 +543,7 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	default:
 		panic("type")
 	}
-	if rt != 0 && t != rt {
+	if rt != 0 && t > rt { // only down-type
 		r = to(r, rt)
 	}
 	return decr(x, r)
@@ -1574,6 +1580,29 @@ func kst(x k) (r k) { // `k@x
 	}
 	return decr(x, r)
 }
+func sqr(x k) (r k) { // sqrt x
+	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
+}
+func sin(x k) (r k) { // sin x
+	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sin(m.f[x]) }, nil})
+}
+func cos(x k) (r k) { // cos x
+	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Cos(m.f[x]) }, nil})
+}
+func abs(x k) (r k) { // abs x
+	return nm(x, F, []f1{nil, nil, func(r, x k) {
+		m.k[r] = m.k[x]
+		if i(m.k[r]) < 0 {
+			m.k[r] = k(-i(m.k[r]))
+		}
+	}, func(r, x k) { m.f[r] = math.Abs(m.f[x]) }, func(r, x k) { m.z[r] = complex(math.Hypot(real(m.z[x]), imag(m.z[x])), 0) }})
+}
+func log(x k) (r k) { // log x
+	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Log(m.f[x]) }, nil})
+}
+func exp(x k) (r k) { // exp x
+	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Exp(m.f[x]) }, nil})
+}
 func putc(rc, rn k, c c) k { // assumes enough space
 	m.c[rc+rn] = c
 	return rn + 1
@@ -1647,36 +1676,42 @@ func max(x, y k) (r k) { f, g := op2(6 + dyad); return nd(x, y, 0, f, g) } // x|
 func les(x, y k) (r k) { return nd(x, y, I, nil, ltx) }                    // x<y
 func mor(x, y k) (r k) { return nd(x, y, I, nil, gtx) }                    // x>y
 func eql(x, y k) (r k) { return nd(x, y, I, nil, eqx) }                    // x=y
-func adC(r, x, y k)    { m.c[r] = m.c[x] + m.c[y] }
-func adI(r, x, y k)    { m.k[r] = m.k[x] + m.k[y] }
-func adF(r, x, y k)    { m.f[r] = m.f[x] + m.f[y] }
-func adZ(r, x, y k)    { m.z[r] = m.z[x] + m.z[y] }
-func sbC(r, x, y k)    { m.c[r] = m.c[x] - m.c[y] }
-func sbI(r, x, y k)    { m.k[r] = m.k[x] - m.k[y] }
-func sbF(r, x, y k)    { m.f[r] = m.f[x] - m.f[y] }
-func sbZ(r, x, y k)    { m.z[r] = m.z[x] - m.z[y] }
-func muC(r, x, y k)    { m.c[r] = m.c[x] * m.c[y] }
-func muI(r, x, y k)    { m.k[r] = m.k[x] * m.k[y] }
-func muF(r, x, y k)    { m.f[r] = m.f[x] * m.f[y] }
-func muZ(r, x, y k)    { m.z[r] = m.z[x] * m.z[y] }
-func diC(r, x, y k)    { m.c[r] = m.c[y] / m.c[x] }
-func diI(r, x, y k)    { m.k[r] = k(i(m.k[y]) / i(m.k[x])) }
-func diF(r, x, y k)    { m.f[r] = m.f[x] / m.f[y] }
-func diZ(r, x, y k)    { m.z[r] = m.z[x] / m.z[y] }
-func baC(r, x, y k)    { m.c[r] = m.c[x] * (m.c[y] / m.c[x]) }
-func baI(r, x, y k)    { m.k[r] = k(i(m.k[x]) * (i(m.k[y]) / i(m.k[x]))) }
-func mdC(r, x, y k)    { m.c[r] = m.c[x] % m.c[y] }
-func mdI(r, x, y k)    { m.k[r] = m.k[x] % m.k[y] } // unsigned only? which version for signed?
-func miC(r, x, y k)    { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
-func miI(r, x, y k)    { m.k[r] = m.k[ter(i(m.k[x]) < i(m.k[y]), x, y)] }
-func miF(r, x, y k)    { m.f[r] = m.f[ter(m.f[x] < m.f[y], x, y)] }
-func miZ(r, x, y k)    { m.z[r] = m.z[ter(ltZ(x, y), x, y)] }
-func miS(r, x, y k)    { m.f[r] = m.f[ter(ltS(x, y), x, y)] }
-func maC(r, x, y k)    { m.c[r] = m.c[ter(m.c[x] > m.c[y], x, y)] }
-func maI(r, x, y k)    { m.k[r] = m.k[ter(i(m.k[x]) > i(m.k[y]), x, y)] }
-func maF(r, x, y k)    { m.f[r] = m.f[ter(m.f[x] > m.f[y], x, y)] }
-func maZ(r, x, y k)    { m.z[r] = m.z[ter(gtZ(x, y), x, y)] }
-func maS(r, x, y k)    { m.f[r] = m.f[ter(gtS(x, y), x, y)] }
+func lgn(x, y k) (r k) { // x log y
+	return nd(x, y, 0, []f2{nil, nil, nil, func(r, x, y k) { m.f[r] = math.Log(m.f[y]) / math.Log(m.f[x]) }, nil, nil}, nil)
+}
+func pow(x, y k) (r k) { // x exp y
+	return nd(x, y, 0, []f2{nil, nil, nil, func(r, x, y k) { m.f[r] = math.Pow(m.f[x], m.f[y]) }, nil, nil}, nil)
+}
+func adC(r, x, y k) { m.c[r] = m.c[x] + m.c[y] }
+func adI(r, x, y k) { m.k[r] = m.k[x] + m.k[y] }
+func adF(r, x, y k) { m.f[r] = m.f[x] + m.f[y] }
+func adZ(r, x, y k) { m.z[r] = m.z[x] + m.z[y] }
+func sbC(r, x, y k) { m.c[r] = m.c[x] - m.c[y] }
+func sbI(r, x, y k) { m.k[r] = m.k[x] - m.k[y] }
+func sbF(r, x, y k) { m.f[r] = m.f[x] - m.f[y] }
+func sbZ(r, x, y k) { m.z[r] = m.z[x] - m.z[y] }
+func muC(r, x, y k) { m.c[r] = m.c[x] * m.c[y] }
+func muI(r, x, y k) { m.k[r] = m.k[x] * m.k[y] }
+func muF(r, x, y k) { m.f[r] = m.f[x] * m.f[y] }
+func muZ(r, x, y k) { m.z[r] = m.z[x] * m.z[y] }
+func diC(r, x, y k) { m.c[r] = m.c[y] / m.c[x] }
+func diI(r, x, y k) { m.k[r] = k(i(m.k[y]) / i(m.k[x])) }
+func diF(r, x, y k) { m.f[r] = m.f[x] / m.f[y] }
+func diZ(r, x, y k) { m.z[r] = m.z[x] / m.z[y] }
+func baC(r, x, y k) { m.c[r] = m.c[x] * (m.c[y] / m.c[x]) }
+func baI(r, x, y k) { m.k[r] = k(i(m.k[x]) * (i(m.k[y]) / i(m.k[x]))) }
+func mdC(r, x, y k) { m.c[r] = m.c[x] % m.c[y] }
+func mdI(r, x, y k) { m.k[r] = m.k[x] % m.k[y] } // unsigned only? which version for signed?
+func miC(r, x, y k) { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
+func miI(r, x, y k) { m.k[r] = m.k[ter(i(m.k[x]) < i(m.k[y]), x, y)] }
+func miF(r, x, y k) { m.f[r] = m.f[ter(m.f[x] < m.f[y], x, y)] }
+func miZ(r, x, y k) { m.z[r] = m.z[ter(ltZ(x, y), x, y)] }
+func miS(r, x, y k) { m.f[r] = m.f[ter(ltS(x, y), x, y)] }
+func maC(r, x, y k) { m.c[r] = m.c[ter(m.c[x] > m.c[y], x, y)] }
+func maI(r, x, y k) { m.k[r] = m.k[ter(i(m.k[x]) > i(m.k[y]), x, y)] }
+func maF(r, x, y k) { m.f[r] = m.f[ter(m.f[x] > m.f[y], x, y)] }
+func maZ(r, x, y k) { m.z[r] = m.z[ter(gtZ(x, y), x, y)] }
+func maS(r, x, y k) { m.f[r] = m.f[ter(gtS(x, y), x, y)] }
 func ter(b bool, x, y k) k {
 	if b {
 		return x
@@ -4342,9 +4377,9 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val,
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl,
-		nil, nil, nil, nil, nil, rnd, nil, nil, nil, nil, nil,
+		nil, nil, sqr, sin, cos, abs, log, exp, rnd, nil, nil,
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
-		nil, nil, bin, nil, del, rol, nil, nil, nil, nil, nil,
+		nil, nil, nil, bin, nil, del, lgn, pow, rol, nil, nil,
 	}
 }
