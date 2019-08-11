@@ -3810,7 +3810,7 @@ func xtoc(x c) c {
 		return 10 + x - 'a'
 	}
 }
-func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
+func pNum(b []byte) (r k) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 	if len(b) > 1 && b[len(b)-1] == 'p' { // 2p→2*π
 		r = pNum(b[:len(b)-1])
 		if m.k[r]>>28 == I {
@@ -3822,10 +3822,27 @@ func pNum(b []byte) (r k) { // 0|1f|-2.3e+4|1i2: `i|`f|`z
 		return r
 	}
 	for i, c := range b {
-		if c == 'i' {
+		if c == 'i' || c == 'a' {
 			r = to(pNum(b[:i]), Z)
 			y := to(pNum(b[i+1:]), F)
-			m.f[3+r>>1] = m.f[1+y>>1]
+			if c == 'i' {
+				m.f[3+r>>1] = m.f[1+y>>1]
+			} else {
+				var s, c f
+				switch a := m.f[1+y>>1]; a { // avoid rounding errors
+				case 0:
+					s, c = 0, 1
+				case 90:
+					s, c = 1, 0
+				case 180:
+					s, c = 0, -1
+				case 270:
+					s, c = -1, 0
+				default:
+					s, c = math.Sincos(math.Pi * a / 180.0)
+				}
+				m.f[2+r>>1], m.f[3+r>>1] = m.f[2+r>>1]*c, m.f[2+r>>1]*s
+			}
 			dec(y)
 			return r
 		}
@@ -3996,7 +4013,7 @@ func sNum(b []byte) (r int) {
 	} else {
 		n = sFlt(b)
 	}
-	if n > 0 && len(b) > n && (b[n] == 'i' || b[n] == 'p') {
+	if n > 0 && len(b) > n && (b[n] == 'i' || b[n] == 'a' || b[n] == 'p') {
 		n += 1 + sFlt(b[n+1:])
 	}
 	return n
