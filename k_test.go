@@ -348,6 +348,9 @@ func TestK(t *testing.T) {
 		{`1,*\7#2`, "1 2 4 8 16 32 64 128"},
 		{`*\1_&1 1 7`, "1 2 4 8 16 32 64 128"},
 		{`*\&0 1 7`, "1 2 4 8 16 32 64 128"},
+		{"norm 3 4", "5f"},
+		{"norm 3i4", "5f"},
+		{"norm 0x0304", "5f"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
