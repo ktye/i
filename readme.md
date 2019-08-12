@@ -8,7 +8,7 @@
 06 | <a href="../../blob/master/k.go#L780">rev</a> <a href="../../blob/master/k.go#L1591">max</a>    26 6 nil nil    46 <a href="../../blob/master/k.go#L1519">exp</a>        126 <a href="../../blob/master/k.go#L1598">pow</a> <a href="../../blob/master/k.go#L1519">exp</a>      
 07 < <a href="../../blob/master/k.go#L811">asc</a> <a href="../../blob/master/k.go#L1592">les</a>    27 7 nil nil    47 <a href="../../blob/master/k.go#L3323">rnd</a>  rand  127 <a href="../../blob/master/k.go#L3275">rol</a> rand          
 08 > dst <a href="../../blob/master/k.go#L1593">mor</a>    28 8 nil nil    48 <a href="../../blob/master/k.go#L3408">nrm</a>  norm  128           
-09 = <a href="../../blob/master/k.go#L827">grp</a> <a href="../../blob/master/k.go#L1594">eql</a>    29 9 nil nil    49 <a href="../../blob/master/k.go#L3431">qrd</a>  solve 129 <a href="../../blob/master/k.go#L3432">slv</a> solve
+09 = <a href="../../blob/master/k.go#L827">grp</a> <a href="../../blob/master/k.go#L1594">eql</a>    29 9 nil nil    49 <a href="../../blob/master/k.go#L3431">qrd</a>  solve 129 <a href="../../blob/master/k.go#L3504">slv</a> solve
 
 10 ! <a href="../../blob/master/k.go#L860">til</a> <a href="../../blob/master/k.go#L1638">key</a>    30 ' <a href="../../blob/master/k.go#L2318">qtc</a> <a href="../../blob/master/k.go#L1638">key</a>    50            130
 11 ~ <a href="../../blob/master/k.go#L900">not</a> <a href="../../blob/master/k.go#L1672">mch</a>    31 / <a href="../../blob/master/k.go#L2319">slc</a> <a href="../../blob/master/k.go#L2316">sla</a>    51            131

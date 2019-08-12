@@ -3428,8 +3428,81 @@ func nrm(x k) (r k) { // norm x
 		panic("type")
 	}
 }
-func qrd(x k) (r k)    { panic("nyi"); return 0 } // solve x (qr decomposition)
+func qrd(x k) (r k) { // solve x (qr decomposition)
+	lt, rows := typ(x)
+	if lt != L {
+		panic("type")
+	} else if rows == 0 || rows == atom {
+		panic("empty")
+	}
+	t, cols := typ(m.k[2+x])
+	if cols == atom || (t != F && t != Z) {
+		panic("type")
+	}
+	h, d := mk(t, cols*rows), mk(t, cols) // h: qr compact storage of Q and R without diag, d: diag R
+	hp, hpr, dp, cp := ptr(h, t), k(0), ptr(d, t), cpx[t]
+	for i := k(0); i < rows; i++ {
+		xp := ptr(m.k[2+i+x], t)
+		for j := k(0); j < cols; j++ {
+			cp(hp+rows*j+i, xp+j) // h: transpose of x
+		}
+	}
+	var s, a f
+	for j := k(0); j < cols; j++ {
+		hpj := hp + j*cols
+		if t == F {
+			s = norm(hpj, rows-j)
+			if m.f[hpj+j] > 0 {
+				m.f[dp+j] = -s
+			} else {
+				m.f[dp+j] = s
+			}
+			a = 1.0 / math.Sqrt(s*(s+math.Abs(m.f[hpj+j])))
+			m.f[hp+cols*j+j] -= m.f[dp+j]
+			for k := j; k < rows; k++ {
+				m.f[hpj+k] *= a
+			}
+			for i := j + 1; i < cols; i++ {
+				var ss f
+				for k := j; k < rows; k++ {
+					ss += m.f[hpj+k] * m.f[hp+rows*i+k]
+				}
+				for k := j; k < rows; k++ {
+					m.f[hp+rows*i+k] -= ss * m.f[hpj+k]
+				}
+			}
+		} else {
+			hpr = hpj << 1
+			re, im := real(m.z[hpj+j]), imag(m.z[hpj+j])
+			si, co := math.Sincos(math.Atan2(im, re))
+			s = norm(hpr+2*(j*rows), 2*(rows-j))
+			m.z[dp+j] = complex(-s*co, -s*si)
+			a = 1.0 / math.Sqrt(s*(s+math.Hypot(re, im)))
+			m.z[hpj+j] -= m.z[dp+j]
+			for k := j; k < rows; k++ {
+				m.f[hpr+k] *= a
+				m.f[hpr+k+1] *= a
+			}
+			for i := j + 1; i < cols; i++ {
+				var ss z
+				for k := j; k < rows; k++ {
+					ss += conj(m.z[hp+rows*j+k]) * m.z[hp+rows*i+k]
+				}
+				for k := j; k < rows; k++ {
+					m.z[hp+rows*i+k] -= ss * m.z[hp+rows*j+k]
+				}
+			}
+		}
+		if s == 0 {
+			panic("singular")
+		}
+	}
+	r = mk(L, 4)
+	m.k[2+r], m.k[3+r], m.k[4+r], m.k[5+r] = mki(rows), mki(cols), h, d
+	return decr(x, r)
+}
 func slv(x, y k) (r k) { panic("nyi"); return 0 } // x solve y
+func conj(x z) z       { return complex(real(x), -imag(x)) }
 
 func isnan(x f) bool { return x != x }
 func atm1(n k) k {
