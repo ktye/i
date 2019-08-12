@@ -351,6 +351,14 @@ func TestK(t *testing.T) {
 		{"norm 3 4", "5f"},
 		{"norm 3i4", "5f"},
 		{"norm 0x0304", "5f"},
+		{"real 1i3 -2i5", "1 -2f"},
+		{"imag 2a270", "-2f"},
+		{"imag (3i 1a90;4i5 0i3)", "(0 1f;5 3f)"},
+		{"conj 0i1 1a30 2a270", "1a270 1a330 2a90"},
+		{"(180%1p)*phase 1a30 2a270", "30 -90f"},
+		{"3i4 5i12 8i15~3 5 8 cmplx 4 12 15", "1"},
+		{"0 cmplx 1 2 3", "1a90 2a90 3a90"},
+		{"1 2 3f cmplx 0", "1a0 2a0 3a0"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

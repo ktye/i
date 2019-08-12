@@ -17,10 +17,10 @@ const ref = `
 08 > dst mor    28 8 nil nil    48 nrm  norm  128           
 09 = grp eql    29 9 nil nil    49 qrd  solve 129 slv solve
 
-10 ! til key    30 ' qtc key    50            130
-11 ~ not mch    31 / slc sla    51            131
-12 , enl cat    32 \ bsc bsl    52            132
-13 ^ srt ept    33 ' ech ecd    53            133
+10 ! til key    30 ' qtc key    50 rel  real  130 mkz  cmplx
+11 ~ not mch    31 / slc sla    51 ima  imag  131
+12 , enl cat    32 \ bsc bsl    52 phi  phase 132
+13 ^ srt ept    33 ' ech ecd    53 cnj  conj  133
 14 # cnt tak    34 / ovr ovi    54            134
 15 _ flr drp    35 \ scn sci    55            135
 16 $ str cst    36 ' ecp epi    56            136
@@ -97,6 +97,10 @@ func ini() { // start function
 	builtin(o+3, "cos")
 	builtin(o+4, "abs")
 	builtin(o+8, "norm")
+	builtin(o+10, "real")
+	builtin(o+11, "imag")
+	builtin(o+12, "phase")
+	builtin(o+13, "conj")
 	o += c(dyad) // dyads
 	builtin(o+0, "in")
 	builtin(o+1, "within")
@@ -107,6 +111,7 @@ func ini() { // start function
 	builtin(o+6, "exp")
 	builtin(o+7, "rand")
 	builtin(o+9, "solve")
+	builtin(o+10, "cmplx")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
@@ -1519,6 +1524,62 @@ func log(x k) (r k) { // log x
 func exp(x k) (r k) { // exp x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Exp(m.f[x]) }, nil})
 }
+func rel(x k) (r k) { return zfn(0, x) } // real x
+func ima(x k) (r k) { return zfn(1, x) } // imag x
+func phi(x k) (r k) { return zfn(2, x) } // phase x
+func zfn(c, x k) (r k) {
+	t, n := typ(x)
+	if t == L {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+r+i] = uf(zfn(c, inc(m.k[2+i+x])))
+		}
+		return decr(x, r)
+	} else if t != Z {
+		panic("type")
+	}
+	r = mk(F, n)
+	rp, xp := ptr(r, F), ptr(x, Z)<<1
+	if c == 1 {
+		xp++
+		c = 0
+	}
+	for i := k(0); i < atm1(n); i++ {
+		switch c {
+		case 0:
+			m.f[rp+i] = m.f[xp+2*i]
+		case 2:
+			m.f[rp+i] = math.Atan2(m.f[xp+2*i+1], m.f[xp+2*i])
+		}
+	}
+	return decr(x, r)
+}
+func cnj(x k) (r k) {
+	t, n := typ(x)
+	if t == L {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+i+n] = uf(cnj(inc(m.k[2+i+x])))
+		}
+		return decr(x, r)
+	} else if t != Z {
+		panic("type")
+	}
+	if m.k[x+1] != 1 {
+		r = mk(Z, n)
+		mv(r, x)
+		dec(x)
+	} else {
+		r = x
+	}
+	rp := 2 + ptr(r, F)
+	for i := k(0); i < atm1(n); i++ {
+		m.f[rp] = -m.f[rp]
+		rp += 2
+	}
+	return r
+}
+
 func putc(rc, rn k, c c) k { // assumes enough space
 	m.c[rc+rn] = c
 	return rn + 1
@@ -3458,38 +3519,38 @@ func qrd(x k) (r k) { // solve x (qr decomposition)
 				m.f[dp+j] = s
 			}
 			a = 1.0 / math.Sqrt(s*(s+math.Abs(m.f[hpj+j])))
-			m.f[hp+cols*j+j] -= m.f[dp+j]
+			m.f[hpj+j] -= m.f[dp+j]
 			for k := j; k < rows; k++ {
 				m.f[hpj+k] *= a
 			}
 			for i := j + 1; i < cols; i++ {
-				var ss f
+				hpi, ss := hp+i*cols, 0.0
 				for k := j; k < rows; k++ {
-					ss += m.f[hpj+k] * m.f[hp+rows*i+k]
+					ss += m.f[hpj+k] * m.f[hpi+k]
 				}
 				for k := j; k < rows; k++ {
-					m.f[hp+rows*i+k] -= ss * m.f[hpj+k]
+					m.f[hpi+k] -= ss * m.f[hpj+k]
 				}
 			}
 		} else {
 			hpr = hpj << 1
-			re, im := real(m.z[hpj+j]), imag(m.z[hpj+j])
+			re, im := m.f[hpr+2*j], m.f[hpr+2*j+1]
 			si, co := math.Sincos(math.Atan2(im, re))
 			s = norm(hpr+2*(j*rows), 2*(rows-j))
 			m.z[dp+j] = complex(-s*co, -s*si)
 			a = 1.0 / math.Sqrt(s*(s+math.Hypot(re, im)))
 			m.z[hpj+j] -= m.z[dp+j]
 			for k := j; k < rows; k++ {
-				m.f[hpr+k] *= a
-				m.f[hpr+k+1] *= a
+				m.f[hpr+2*k] *= a
+				m.f[hpr+2*k+1] *= a
 			}
 			for i := j + 1; i < cols; i++ {
-				var ss z
+				hpi, ss := hp+i*cols, 0i
 				for k := j; k < rows; k++ {
-					ss += conj(m.z[hp+rows*j+k]) * m.z[hp+rows*i+k]
+					ss += conj(m.z[hpj+k]) * m.z[hpi+k]
 				}
 				for k := j; k < rows; k++ {
-					m.z[hp+rows*i+k] -= ss * m.z[hp+rows*j+k]
+					m.z[hpi+k] -= ss * m.z[hpj+k]
 				}
 			}
 		}
@@ -3503,6 +3564,34 @@ func qrd(x k) (r k) { // solve x (qr decomposition)
 }
 func slv(x, y k) (r k) { panic("nyi"); return 0 } // x solve y
 func conj(x z) z       { return complex(real(x), -imag(x)) }
+func mkz(x, y k) (r k) { // x cmplx y
+	xt, yt, xn, yn := typs(x, y)
+	n, dx, dy := atom, k(1), k(1)
+	if xn == atom {
+		dx, n = 0, yn
+	} else if yn == atom {
+		dy, n = 0, xn
+	} else {
+		n = xn
+	}
+	if dx+dy == 2 && xn != yn {
+		panic("size")
+	}
+	if xt != F {
+		x = to(x, F)
+	}
+	if yt != F {
+		y = to(y, F)
+	}
+	r = mk(Z, n)
+	xp, yp, rp := ptr(x, F), ptr(y, F), ptr(r, Z)
+	for i := k(0); i < atm1(n); i++ {
+		m.z[rp+i] = complex(m.f[xp], m.f[yp])
+		xp += dx
+		yp += dy
+	}
+	return decr2(x, y, r)
+}
 
 func isnan(x f) bool { return x != x }
 func atm1(n k) k {
@@ -4562,11 +4651,11 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, qrd, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  40- 59
+		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, qrd, rel, ima, phi, cnj, nil, nil, nil, nil, nil, nil, //  40- 59
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, nil, slv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, nil, slv, mkz, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }
