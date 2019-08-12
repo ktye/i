@@ -6,16 +6,16 @@ import (
 )
 
 const ref = `
-00 : idn asn    10 ! til key    20 0 rdl nil    30 ' qtc key    40 exi  exit  90 ... in    
-01 + flp add    11 ~ not mch    21 1 nil nil    31 / slc sla    41 sqr  sqrt  91 ... within
-02 - neg sub    12 , enl cat    22 2 nil nil    32 \ bsc bsl    42 sin        92 bin       
-03 * fst mul    13 ^ srt ept    23 3 nil nil    33 ' ech ecd    43 cos        93 ... like  
-04 % inv div    14 # cnt tak    24 4 nil nil    34 / ovr ovi    44 abs        94 del       
-05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45 log        95 lgn      
-06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46 exp        96 pow          
-07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47 rnd  rand  97 rol rand          
-08 > dst mor    18 @ tip atx    28 8 nil nil    38 \ spl ecl    48            98           
-09 = grp eql    19 . val cal    29 9 nil nil    39              49            99           
+00 : idn asn    10 ! til key    20 0 rdl nil    30 ' qtc key    40 exi  exit  120 ... in    
+01 + flp add    11 ~ not mch    21 1 nil nil    31 / slc sla    41 sqr  sqrt  121 ... within
+02 - neg sub    12 , enl cat    22 2 nil nil    32 \ bsc bsl    42 sin        122 bin       
+03 * fst mul    13 ^ srt ept    23 3 nil nil    33 ' ech ecd    43 cos        123 ... like  
+04 % inv div    14 # cnt tak    24 4 nil nil    34 / ovr ovi    44 abs        124 del       
+05 & wer min    15 _ flr drp    25 5 nil nil    35 \ scn sci    45 log        125 lgn      
+06 | rev max    16 $ str cst    26 6 nil nil    36 ' ecp epi    46 exp        126 pow          
+07 < asc les    17 ? unq fnd    27 7 nil nil    37 / jon ecr    47 rnd  rand  127 rol rand          
+08 > dst mor    18 @ tip atx    28 8 nil nil    38 \ spl ecl    48            128           
+09 = grp eql    19 . val cal    29 9 nil nil    39              49            129           
 `
 
 type c = byte
@@ -27,7 +27,7 @@ type s = string
 
 const (
 	C, I, F, Z, S, L, A, N k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom, kkey, kval, dyad k = 0x0fffffff, 0x30, 0x31, 50
+	atom, kkey, kval, dyad k = 0x0fffffff, 0x30, 0x31, 80
 	NaI                    i = -2147483648
 )
 
@@ -79,21 +79,21 @@ func ini() { // start function
 	m.k[3] = mk(A, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
-	o := c(39) // monads
-	builtin(o+1, "exit")
-	builtin(o+2, "sqrt")
-	builtin(o+3, "sin")
-	builtin(o+4, "cos")
-	builtin(o+5, "abs")
+	o := c(40) // monads
+	builtin(o+0, "exit")
+	builtin(o+1, "sqrt")
+	builtin(o+2, "sin")
+	builtin(o+3, "cos")
+	builtin(o+4, "abs")
 	o += c(dyad) // dyads
-	builtin(o+1, "in")
-	builtin(o+2, "within")
-	builtin(o+3, "bin")
-	builtin(o+4, "like")
-	builtin(o+5, "del")
-	builtin(o+6, "log")
-	builtin(o+7, "exp")
-	builtin(o+8, "rand")
+	builtin(o+0, "in")
+	builtin(o+1, "within")
+	builtin(o+2, "bin")
+	builtin(o+3, "like")
+	builtin(o+4, "del")
+	builtin(o+5, "log")
+	builtin(o+6, "exp")
+	builtin(o+7, "rand")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
@@ -982,15 +982,15 @@ func str(x k) (r k) { // $x
 				r = inc(m.k[2+x]) // `C
 			} else if n == 3 { // composition
 				r = cat(str(inc(m.k[2+x])), str(inc(m.k[3+x])))
-			} else if (f >= 39 && f < dyad) || (f >= 83 && f < 100) { // built-ins
+			} else if (f >= 39 && f < dyad) || (f >= 39+dyad && f < 2*dyad) { // built-ins
 				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
 			} else if f < 20 || (f >= 30 && f <= 33) { // monad +: /:
 				r = mkb([]c{m.c[136+m.k[2+x]], ':'})
 			} else if f >= 20 && f < 30 { // monadic ioverb
 				r = mkb([]c{'0' + c(f-20), ':', ':'})
-			} else if f >= 70 && f < 80 { // dyadic ioverb 3:
-				r = mkb([]c{'0' + c(f-70), ':'})
-			} else if f > 49 && f < 83 { // dyad * /
+			} else if f >= 20+dyad && f < 30+dyad { // dyadic ioverb 3:
+				r = mkb([]c{'0' + c(f-20-dyad), ':'})
+			} else if f >= dyad && f < 33+dyad { // dyad * /
 				r = mkc(m.c[136+m.k[2+x]-dyad])
 				m.k[r] = C<<28 | 1
 			} else if f > 256 && t == N+1 {
@@ -1001,7 +1001,7 @@ func str(x k) (r k) { // $x
 			// TODO: derived?
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
-				if n == 2 && f < 100 && m.k[m.k[3+a]]>>28 == N {
+				if n == 2 && f < 2*dyad && m.k[m.k[3+a]]>>28 == N {
 					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
 				} else {
 					a = kst(inc(a))   // arg list
@@ -1169,7 +1169,7 @@ func evl(x k) (r k) {
 				}
 			}
 			return decr2(v, x, asn(name, val, f))
-		} else if n > 3 && vt > N && vn == atom && m.k[2+v] == 66 { // $[...] delays evaluation
+		} else if n > 3 && vt > N && vn == atom && m.k[2+v] == 16+dyad { // $[...] delays evaluation
 			return decr(v, cnd(drop(1, x)))
 		}
 		r = mk(L, n-1)
@@ -1183,9 +1183,9 @@ func evl(x k) (r k) {
 		vt, vn := typ(v)
 		if n > 3 && vt > N && vn == atom {
 			switch code := m.k[2+v]; code { // triadics..
-			case 68, 69: // @ .
+			case dyad + 18, dyad + 19: // @ .
 				g := amd
-				if code == 69 {
+				if code == dyad+19 {
 					g = dmd
 				}
 				if n == 4 {
@@ -3375,6 +3375,44 @@ func normal() (f, f) { // marsaglia polar
 	s = math.Sqrt(-2.0 * math.Log(s) / s)
 	return s, v * s
 }
+func norm(xp, n k) (r f) { // vector norm L2
+	s := 0.0
+	for i := xp; i < xp+n; i++ {
+		if x := m.f[i]; x != 0 {
+			if x = math.Abs(x); math.IsNaN(x) || math.IsInf(x, 1) {
+				return x
+			} else if x > s {
+				t := x / s
+				r += t * t
+			} else {
+				t := s / x
+				r, s = 1+r*t*t, x
+			}
+		}
+	}
+	return s * math.Sqrt(r)
+}
+func nrm(x k) (r k) { // norm x
+	t, n := typ(x)
+	if t < F {
+		return nrm(to(x, F))
+	} else if t == L {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+r+i] = nrm(inc(m.k[2+x+i]))
+		}
+		return decr(x, uf(r))
+	} else if t > L {
+		panic("type")
+	}
+	r = mk(F, atom)
+	if t == F {
+		m.f[1+r>>1] = norm(1+x>>1, n)
+	} else if t == Z {
+		m.f[1+r>>1] = norm(2+x>>1, 2*n)
+	}
+	return decr(x, r)
+}
 
 func isnan(x f) bool { return x != x }
 func atm1(n k) k {
@@ -3675,8 +3713,8 @@ func monad(x k) (r k) { // force monad
 	t, _ := typ(x)
 	if t == N+2 {
 		r = mk(N+1, atom)
-		m.k[2+r] = m.k[2+x] - 50
-		if m.k[2+x] > 99 {
+		m.k[2+r] = m.k[2+x] - dyad
+		if m.k[2+x] >= 2*dyad {
 			panic("parse monad")
 		}
 		return decr(x, r)
@@ -3917,9 +3955,11 @@ func pBin(b []byte) (r k) { // builtin
 		panic("parse builtin")
 	}
 	if f := m.c[8+x<<2]; f < c(dyad) {
+		println("builtin monad:", string(b), f)
 		r = mk(N+1, atom)
 		m.k[2+r] = k(f)
 	} else {
+		println("builtin dyad:", string(b), f)
 		r = mk(N+2, atom)
 		m.k[2+r] = k(f)
 	}
@@ -4428,15 +4468,17 @@ var l8t = [256]c{
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 }
 
-var table [100]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
+var table [160]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 func init() {
-	table = [100]interface{}{
+	table = [160]interface{}{
 		//   1                   5                        10                       15
-		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val,
-		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl,
-		nil, nil, sqr, sin, cos, abs, log, exp, rnd, nil, nil,
-		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal,
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl,
-		nil, nil, nil, bin, nil, del, lgn, pow, rol, nil, nil,
+		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
+		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
+		nil, sqr, sin, cos, abs, log, exp, rnd, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  40- 59
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
+		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
+		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 120-139
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }

@@ -42,9 +42,9 @@ Function codes
  20-29 monadic ioverbs 0123456789
  30-32 monadic operator functions '/\
  33-38 monadic derived functions f' f/ f\ f': f/: f\:
- 39-49 monadic builtins
- 50-99 dyadic versions
- 100.. internal functions (wasm only)
+ 39-79 monadic builtins
+ 80-159 dyadic versions
+ 160.. internal functions (wasm only)
  
 
 Functions have type N+1…N+4 (valence)

@@ -735,10 +735,10 @@ func TestKst(t *testing.T) {
 		{nil, ``},
 		{uint16(0), `::`},
 		{uint16(1), `+:`},
-		{uint16(50), `:`},
-		{uint16(69), `.`},
-		{uint16(70), `0:`},
-		{uint16(74), `4:`},
+		{uint16(0 + dyad), `:`},
+		{uint16(19 + dyad), `.`},
+		{uint16(20 + dyad), `0:`},
+		{uint16(24 + dyad), `4:`},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%v ?= %q\n", tc.x, tc.s)
