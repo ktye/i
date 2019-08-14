@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"unsafe"
 )
@@ -3623,41 +3622,84 @@ func cnd(x k) (r k) { // cond x (using max row sum of QR)
 	} // else assume input is qr
 	rows, cols, h, d := m.k[2+m.k[2+x]], m.k[2+m.k[3+x]], m.k[4+x], m.k[5+x]
 	if rows*cols != m.k[h]&atom {
-		println(rows, cols, m.k[h]&atom)
 		panic("type")
 	}
-	t := m.k[h] >> 28
-	mx, mn, dp, hp := 0.0, 0.0, ptr(d, t), ptr(h, t)
+	t, ln := m.k[h]>>28, (cols*(cols+1))/2
+	r = mk(t, ln)
+	dp, hp, rp, cp, n := ptr(d, t), ptr(h, t), ptr(r, t), cpx[t], k(0)
+	for i := k(0); i < cols; i++ { // store triangular matrix r
+		cp(rp+n, dp+i)
+		n++
+		for k := i + 1; k < cols; k++ {
+			cp(rp+n, hp+cols*k+i)
+			n++
+		}
+	}
+	n1 := trn(r, t, cols) // cond: norm(inv R) * n1:norm(R)
 	for i := k(0); i < cols; i++ {
-		hpi := hp + i*cols
-		s := 0.0 // row sum of abs R
+		// TODO: Rsolve I
+	}
+
+	dec(r)
+	r = mk(F, atom)
+	m.f[1+r>>1] = n1
+	return decr(x, r)
+
+	/*
+		mx, mn, dp, hp := 0.0, 0.0, ptr(d, t), ptr(h, t)
+		for i := k(0); i < cols; i++ {
+			//hpi := hp + i*cols
+			s := 0.0 // row sum of abs R
+			if t == F {
+				//hpi := ptr(h, F) + i*rows
+				s = math.Abs(m.f[dp+i])
+				fmt.Printf("%v", m.f[dp+i])
+				for k := i + 1; k < cols; k++ {
+					s += math.Abs(m.f[hp+cols*k+i])
+					fmt.Printf(" %v", m.f[hp+cols*k+i])
+				}
+				fmt.Println()
+			} else {
+				panic("TODO")
+				//hpi := ptr(h, Z) + i*rows
+				for k := i + 1; k < rows; k++ {
+					//	s += math.Hypot(real(m.z[hpi+k]), imag(m.z[hpi+k]))
+				}
+			}
+			if s > mx {
+				mx = s
+			}
+			if i == 0 || s < mn {
+				mn = s
+			}
+		}
+		r = mk(F, atom)
+		m.f[1+r>>1] = mx / mn
+		println("max/min", mx, mn, mx/mn)
+		return decr(x, r)
+	*/
+	return decr(x, r)
+}
+func trn(r, t, n k) f { // inf-norm of triangular matrix
+	mx, rp := 0.0, ptr(r, F)
+	for i := k(0); i < n; i++ {
+		s := 0.0
 		if t == F {
-			//hpi := ptr(h, F) + i*rows
-			s = math.Abs(m.f[dp+i])
-			fmt.Printf("%v", m.f[dp+i])
-			for k := i + 1; k < rows; k++ {
-				s += math.Abs(m.f[hpi+k])
-				fmt.Printf(" %v", m.f[hpi+k])
+			for j := k(0); j < n-i; j++ {
+				s += math.Abs(m.f[rp+j])
 			}
-			fmt.Println()
-		} else {
-			panic("TODO")
-			hpi := ptr(h, Z) + i*rows
-			for k := i + 1; k < rows; k++ {
-				s += math.Hypot(real(m.z[hpi+k]), imag(m.z[hpi+k]))
+			rp += n - i
+		} else if t == Z {
+			for j := k(0); j < 2*(n-i); j++ {
+				s += math.Abs(m.f[1+rp+j])
 			}
+			rp += 2 * (n - i)
 		}
 		if s > mx {
 			mx = s
 		}
-		if i == 0 || s < mn {
-			mn = s
-		}
 	}
-	r = mk(F, atom)
-	m.f[1+r>>1] = mx / mn
-	println("max/min", mx, mn, mx/mn)
-	return decr(x, r)
+	return mx
 }
 func slv(x, y k) (r k) { // x solve y
 	xt, yt, xn, yn := typs(x, y)

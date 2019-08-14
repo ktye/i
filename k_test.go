@@ -34,7 +34,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		// a:(12 -51 4f;6 167 -68f;-4 24 -41f)
+		// cond (12 -51 4f;6 167 -68f;-4 24 -41f)
 		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
