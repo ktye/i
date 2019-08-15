@@ -14,8 +14,8 @@ const ref = `
 05 & wer min    25 5 nil nil    45 log        125 lgn log  
 06 | rev max    26 6 nil nil    46 exp        126 pow exp      
 07 < asc les    27 7 nil nil    47 rnd  rand  127 rol rand          
-08 > dst mor    28 8 nil nil    48 nrm  norm  128 mat          
-09 = grp eql    29 9 nil nil    49 qrd  solve 129 slv solve
+08 > dst mor    28 8 nil nil    48 nrm  norm  128           
+09 = grp eql    29 9 nil nil    49 dia  diag  129 
 
 10 ! til key    30 ' qtc key    50 rel  real  130 mkz  cmplx
 11 ~ not mch    31 / slc sla    51 ima  imag  131
@@ -97,6 +97,7 @@ func ini() { // start function
 	builtin(o+3, "cos")
 	builtin(o+4, "abs")
 	builtin(o+8, "norm")
+	builtin(o+9, "diag")
 	builtin(o+10, "real")
 	builtin(o+11, "imag")
 	builtin(o+12, "phase")
@@ -111,8 +112,6 @@ func ini() { // start function
 	builtin(o+5, "log")
 	builtin(o+6, "exp")
 	builtin(o+7, "rand")
-	builtin(o+8, "mat") // TODO: is there an overload?
-	builtin(o+9, "solve")
 	builtin(o+10, "cmplx")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
@@ -311,6 +310,24 @@ func typ(x k) (k, k) { // type and length at addr
 	return m.k[x] >> 28, m.k[x] & atom
 }
 func typs(x, y k) (xt, yt, xn, yn k) { xt, xn = typ(x); yt, yn = typ(y); return }
+func mtyp(x, n k) (t, cols k, eq bool) { // matrix type
+	eq = true
+	for i := k(0); i < n; i++ {
+		tt, nn := typ(m.k[2+i+x])
+		if tt > Z {
+			println(tt)
+			panic("type")
+		}
+		if i == 0 {
+			t, cols = tt, nn
+		} else if nn != cols {
+			panic("size")
+		} else if tt != t {
+			eq = false
+		}
+	}
+	return t, cols, eq
+}
 func inc(x k) k {
 	t, n := typ(x)
 	switch t {
@@ -630,7 +647,6 @@ func uf(x k) (r k) { // unify lists if possible
 	}
 	return decr(x, r)
 }
-
 func idn(x k) (r k) { return x } // :x
 func flp(x k) (r k) { // +x
 	t, n := typ(x)
@@ -832,7 +848,7 @@ func dsc(x k) (r k) { return rev(asc(x)) } // >x
 func grp(x k) (r k) { // =x
 	t, n := typ(x)
 	if n == atom {
-		panic("value")
+		return eye(x)
 	}
 	eq := eqx[t]
 	r = mk(A, atom)
@@ -873,7 +889,7 @@ func til(x k) (r k) { // !x
 		panic("type")
 	}
 	if nn := idx(x, t); nn < 0 {
-		return decr(x, eye(k(-nn)))
+		return eye(neg(x))
 	} else if nn == 0 {
 		return decr(x, mk(t, 0))
 	} else {
@@ -887,20 +903,41 @@ func jota(n k) (r k) { // !n
 	}
 	return r
 }
-func eye(n k) (r k) { // !-n
-	r = mk(L, n)
-	for j := k(0); j < n; j++ {
-		rj := mk(I, n)
-		m.k[2+r+j] = rj
-		for jj := k(0); jj < n; jj++ {
-			if j == jj {
-				m.k[2+rj+jj] = 1
-			} else {
-				m.k[2+rj+jj] = 0
-			}
-		}
+func eye(x k) (r k) { // !-n =n (ifz)
+	t, n := typ(x)
+	if n != atom {
+		panic("type")
 	}
-	return r
+	ln := idx(x, t)
+	if ln < 0 {
+		panic("value")
+	}
+	return decr(x, dia(take(k(ln), 0, to(mki(1), t))))
+}
+func dia(x k) (r k) { // diag x
+	t, n := typ(x)
+	if n == atom || t > L {
+		panic("type")
+	} else if t == L { // v:diag A
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+i+r] = atx(inc(m.k[2+i+x]), mki(i))
+		}
+		return decr(x, uf(r))
+	}
+	r = mk(L, n) // A:diag v
+	z, cp := to(mki(0), t), cpx[t]
+	xp, zp := ptr(x, t), ptr(z, t)
+	for i := k(0); i < n; i++ {
+		rr := mk(t, n)
+		rp := ptr(rr, t)
+		for j := k(0); j < n; j++ {
+			cp(rp+j, zp)
+		}
+		cp(rp+i, xp+i)
+		m.k[2+i+r] = rr
+	}
+	return decr2(x, z, r)
 }
 func not(x k) (r k) { // ~x
 	t, n := typ(x)
@@ -2516,8 +2553,10 @@ func ecl(f, x, y k) (r k) { // x f\: y
 	return decr2(x, y, r)
 }
 func ovr(f, x k) (r k) { // f/x
-	if t := m.k[f] >> 28; t < N { // x/y (idiv)
-		if t > I {
+	if t, n := typ(f); t < N { // x/y (idiv, dot)
+		if t == L || n != atom {
+			return dot(f, x)
+		} else if t > I {
 			panic("type")
 		}
 		if m.k[x]>>28 > I {
@@ -2575,8 +2614,10 @@ func ovr(f, x k) (r k) { // f/x
 	return ovsc(f, x, false)
 }
 func scn(f, x k) (r k) { // f\x
-	if xt := m.k[f] >> 28; xt < N { // x\y (mod)
-		if xt > I {
+	if xt := m.k[f] >> 28; xt < N { // x\y (mod, solve, qr, inv)
+		if xt == L {
+			return slv(f, x)
+		} else if xt > I {
 			panic("type")
 		}
 		return nd(x, f, 0, []f2{nil, mdC, mdI, nil, nil, nil}, nil)
@@ -3478,7 +3519,7 @@ func nrm(x k) (r k) { // norm x
 	switch {
 	case t < F:
 		return nrm(to(x, F))
-	case t == L:
+	case t == L: // not matrix norm
 		r = mk(L, n)
 		for i := k(0); i < n; i++ {
 			m.k[2+r+i] = nrm(inc(m.k[2+x+i]))
@@ -3496,53 +3537,83 @@ func nrm(x k) (r k) { // norm x
 		panic("type")
 	}
 }
-func mat(x, y k) (r k) { // x mat y (matrix multiplication)
+func dot(x, y k) (r k) { // x/y (matrix multiplication)
+	//    v/  v →  a       n/n   → (atom)
+	// (,v)/  v → ,a     1 n/n   → 1
+	// (,v)/+,v →,,a     1 n/n 1 → 1 1
+	//    v/  m →  v       n/n m → m
+	//    m/  v →  v     m n/n   → m
+	//    m/+,v →+,v     m n/n 1 → m 1
+	//(+,v)/ ,v →  m     n 1/1 n → n n
+	//    m/  m →  m     m n/n r → m r
 	xt, yt, xn, yn := typs(x, y)
-	if xt != L || yt > L {
+	if yt == L {
+		y = flp(y)
+		yn = m.k[y] & atom
+	}
+	switch {
+	case xt > L || yt > L:
 		panic("type")
-	} else if yt == L {
-		r = mk(L, yn)
-		for i := k(0); i < yn; i++ {
-			m.k[2+r+i] = mat(inc(x), inc(m.k[2+y+i]))
+	case xt < L && yt < L: // v/v → a
+		r = mk(xt, atom)
+		rp := ptr(r, xt)
+		vdot(rp, x, y, xt)
+	case xt == L && yt < L: // (,v)/v | m/v
+		r = mk(yt, xn)
+		rp := ptr(r, yt)
+		for i := k(0); i < xn; i++ {
+			vdot(rp+i, m.k[2+x+i], y, yt)
 		}
-		return decr2(x, y, flp(r))
-	}
-	t, n := typ(m.k[2+x])
-	if yt > t || t < I {
-		panic("type")
-	} else if n != yn {
-		panic("size")
-	} else if yt < t {
-		y, yt = to(y, t), t
-	}
-	r = mk(t, xn)
-	rp, yp := ptr(r, t), ptr(y, t)
-	for i := k(0); i < xn; i++ {
-		xp := ptr(m.k[2+i+x], t)
-		switch t {
-		case I:
-			s := k(0)
-			for j := k(0); j < n; j++ {
-				s += m.k[xp+j] * m.k[yp+j]
+	case xt < L && yt == L: // v/m
+		r = mk(xt, yn)
+		rp := ptr(r, xt)
+		for i := k(0); i < yn; i++ {
+			vdot(rp+i, x, m.k[2+y+i], xt)
+		}
+	case xt == L && yt == L:
+		r = mk(L, xn)
+		t := m.k[m.k[2+x]] >> 28
+		for i := k(0); i < xn; i++ {
+			rr := mk(t, yn)
+			rp := ptr(rr, t)
+			for j := k(0); j < yn; j++ {
+				vdot(rp+j, m.k[2+i+x], m.k[2+j+y], t)
 			}
-			m.k[rp+i] = s
-		case F:
-			s := 0.0
-			for j := k(0); j < n; j++ {
-				s += m.f[xp+j] * m.f[yp+j]
-			}
-			m.f[rp+i] = s
-		case Z:
-			s := 0i
-			for j := k(0); j < n; j++ {
-				s += m.z[xp+j] * m.z[yp+j]
-			}
-			m.z[rp+i] = s
+			m.k[2+r+i] = rr
 		}
 	}
 	return decr2(x, y, r)
 }
-func qrd(x k) (r k) { // solve x (qr decomposition)
+func vdot(rp, x, y, t k) { // x+/y for vectors
+	xt, yt, xn, yn := typs(x, y)
+	if xt != t || yt != t || xt > Z {
+		panic("type")
+	} else if xn != yn || xn == atom {
+		panic("size")
+	}
+	xp, yp := ptr(x, t), ptr(y, t)
+	switch t {
+	case I:
+		s := k(0)
+		for i := k(0); i < xn; i++ {
+			s += m.k[xp+i] * m.k[yp+i]
+		}
+		m.k[rp] = s
+	case F:
+		s := 0.0
+		for i := k(0); i < xn; i++ {
+			s += m.f[xp+i] * m.f[yp+i]
+		}
+		m.f[rp] = s
+	case Z:
+		s := 0i
+		for i := k(0); i < xn; i++ {
+			s += m.z[xp+i] * m.z[yp+i]
+		}
+		m.z[rp] = s
+	}
+}
+func qrd(x k) (r k) { // x\0 (qr decomposition)
 	lt, rows := typ(x)
 	if lt != L {
 		panic("type")
@@ -3686,10 +3757,17 @@ func trn(r, t, n k) f { // inf-norm of triangular matrix
 	}
 	return mx
 }
-func slv(x, y k) (r k) { // x solve y
+func slv(x, y k) (r k) { // x\y (solve)
 	xt, yt, xn, yn := typs(x, y)
 	if xt != L {
 		panic("type")
+	} else if yt == I && yn == atom {
+		if n := m.k[2+y]; n == 0 { // qr: x\0
+			return decr(y, qrd(x))
+		} else if n == 1 { // inv: x\1
+			n := m.k[m.k[2+x]] & atom
+			y, yn = eye(n), n
+		}
 	}
 	x0 := m.k[2+x]
 	if m.k[x0]&atom != atom {
@@ -4861,11 +4939,11 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, qrd, rel, ima, phi, cnj, cnd, nil, nil, nil, nil, nil, //  40- 59
+		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, dia, rel, ima, phi, cnj, cnd, nil, nil, nil, nil, nil, //  40- 59
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, mat, slv, mkz, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }

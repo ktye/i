@@ -34,6 +34,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+
 		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
@@ -366,18 +367,30 @@ func TestK(t *testing.T) {
 		{"3i4 5i12 8i15~3 5 8 cmplx 4 12 15", "1"},
 		{"0 cmplx 1 2 3", "1a90 2a90 3a90"},
 		{"1 2 3f cmplx 0", "1 2 3a"},
-		{"(,1 2 3) mat 4 5 6", ",32"},
-		{"(,1 2 3) mat (4 5 6;6 7 8)", ",32 44"},
-		{"(1 2 3;4 5 6) mat 7 8 9", "50 122"},
-		{"(1 2 3f;4 5 6f) mat 7 8 9", "50 122f"},
-		{"(1i 2i 3i;4i 5i 6i) mat 7 8 9", "50 122a"},
-		{"(1 2f;-3 2f;-3 0f) solve 1 2 3", "-0.6470588 0.4264706"},
-		{"a:4 4#rand 16i;b:rand 4i;x:a solve b;1e-14>|/abs b-a mat x", "1"},
+		{"+1 2 3", "1 2 3"},
+		{"+,1 2 3", "(,1;,2;,3)"},
+		{"1 2 3/4 5 6", "32"},
+		{"(,1 2 3f)/4 5 6f", ",32f"},
+		{"1 2 3a/+,4 5 6a", ",32a"},
+		{"(,1 2 3f)/+,4 5 6f", ",,32f"},
+		{"1 2f/(4 5 6f;7 8 9f)", "18 21 24f"},
+		{"(1 2 3;4 5 6)/7 8 9", "50 122"},
+		{"(+,1 2)/,3 4 5", "(3 4 5;6 8 10)"},
+		{"(1 2;3 4;5 6)/(7 8 9 10;11 12 13 14)", "(29 32 35 38;65 72 79 86;101 112 123 134)"},
+		{`(1 2f;-3 2f;-3 0f)\1 2 3`, "-0.6470588 0.4264706"},
+		{`a:4 4#rand 16i;b:rand 4i;x:a\b;1e-14>|/abs b-a/x`, "1"},
+		{"!-3", "(1 0 0;0 1 0;0 0 1)"},
+		{"=3", "(1 0 0;0 1 0;0 0 1)"},
+		{"!-3f", "(1 0 0f;0 1 0f;0 0 1f)"},
+		{"=3a", "(1 0 0a;0 1 0a;0 0 1a)"},
+		{"diag !3f", "(0 0 0f;0 1 0f;0 0 2f)"},
+		{"diag !3i", "(0 0 0a;0 1 0a;0 0 2a)"},
+		{"diag diag 5 3 1", "5 3 1"},
 		{"cond (12 -51 4f;6 167 -68f;-4 24 -41f)", "22.4"},
 		{"cond 2*(12 -51 4f;6 167 -68f;-4 24 -41f)", "22.4"},
 		{"cond (1 0 0f;0 1 0f;0 0 1f)", "1f"},
 		{"cond (1 1f;0 1f)", "4f"},
-		{"A:(2i8 10i2 5i7;9i8 10i9 8i1;3i3 7i4 4i2;3i10 8i4 4i2;5i4 5i10 1i1);B:(8i7 2i6;9i5 7i6;10i2 8i4;9i5 3i6;1i8 6i3);A solve B", "(0.02775684a225.7687 0.591145a15.53089 0.7323478a346.7655;0.4919331a29.44904 0.2971654a306.5227 0.4829134a18.47038)"},
+		{`A:(2i8 10i2 5i7;9i8 10i9 8i1;3i3 7i4 4i2;3i10 8i4 4i2;5i4 5i10 1i1);B:(8i7 2i6;9i5 7i6;10i2 8i4;9i5 3i6;1i8 6i3);A\B`, "(0.02775684a225.7687 0.591145a15.53089 0.7323478a346.7655;0.4919331a29.44904 0.2971654a306.5227 0.4829134a18.47038)"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
@@ -868,7 +881,16 @@ func TestRef(t *testing.T) { // generate readme.md
 			w.Write(r[i : i+1])
 		}
 	}
-	w.Write([]c("\n</pre>\n"))
+	w.Write([]c(`
+
+k7+
+	complex(type z): 1i2, 1a30, cmplx, expi, real, imag, phase, conj, rand 3i(binormal)
+	matrix: x/y(mul), A\B(solve), A\0(qr), A\1(inv), diag A, diag v, norm, cond
+	(nyi) stat: 0.95 med x (percentile), -0.95 med x (percentile normal), std z, x var y(cov), var z(cov), n avg(window), f avg(exp)
+k7-
+	32bit, time/duration, crypto, network, multithread
+
+</pre>`))
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
