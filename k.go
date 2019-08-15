@@ -10,7 +10,7 @@ const ref = `
 01 + flp add    21 1 nil nil    41 sqr  sqrt  121 ... within
 02 - neg sub    22 2 nil nil    42 sin        122 bin       
 03 * fst mul    23 3 nil nil    43 cos        123 ... like  
-04 % inv div    24 4 nil nil    44            124 del       
+04 % inv div    24 4 nil nil    44 dev        124 del       
 05 & wer min    25 5 nil nil    45 log        125 lgn log  
 06 | rev max    26 6 nil nil    46 exp        126 pow exp      
 07 < asc les    27 7 nil nil    47 rnd  rand  127 rol rand          
@@ -24,9 +24,9 @@ const ref = `
 14 # cnt tak    34 / ovr ovi    54 cnd  cond  134
 15 _ flr drp    35 \ scn sci    55 zxp  expi  135 rxp expi
 16 $ str cst    36 ' ecp epi    56 dia  diag  136
-17 ? unq fnd    37 / jon ecr    57 std        137
-18 @ tip atx    38 \ spl ecl    58 var        138
-19 . val cal    39              59            139
+17 ? unq fnd    37 / jon ecr    57 avg        137 mvg avg
+18 @ tip atx    38 \ spl ecl    58 med        138 pct med
+19 . val cal    39              59 vri var    139 cov var
 `
 
 type c = byte
@@ -95,6 +95,7 @@ func ini() { // start function
 	builtin(o+1, "sqrt")
 	builtin(o+2, "sin")
 	builtin(o+3, "cos")
+	builtin(o+4, "dev")
 	builtin(o+10, "real")
 	builtin(o+11, "imag")
 	builtin(o+12, "phase")
@@ -114,6 +115,9 @@ func ini() { // start function
 	builtin(o+9, "norm")
 	builtin(o+10, "cmplx")
 	builtin(o+15, "expi")
+	builtin(o+17, "avg")
+	builtin(o+18, "med")
+	builtin(o+19, "var")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
@@ -3994,6 +3998,13 @@ func zsum(xp, n k) (r z) { // pairwise
 	nn := n >> 1
 	return zsum(xp, nn) + zsum(xp+nn, n-nn)
 }
+func dev(x k) (r k)    { panic("nyi") } // dev x
+func avg(x k) (r k)    { panic("nyi") } // avg x
+func mvg(x, y k) (r k) { panic("nyi") } // x avg y
+func med(x k) (r k)    { panic("nyi") } // med x
+func pct(x, y k) (r k) { panic("nyi") } // x med y
+func vri(x k) (r k)    { panic("nyi") } // var x
+func cov(x, y k) (r k) { panic("nyi") } // x var y
 
 func isnan(x f) bool { return x != x }
 func atm1(n k) k {
@@ -5053,11 +5064,11 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, nil, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, nil, nil, nil, //  40- 59
+		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, nil, nil, nil, nil, rxp, nil, nil, nil, nil, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, nil, nil, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }
