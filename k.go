@@ -24,8 +24,8 @@ const ref = `
 14 # cnt tak    34 / ovr ovi    54 cnd  cond  134
 15 _ flr drp    35 \ scn sci    55 zxp  expi  135 rxp expi
 16 $ str cst    36 ' ecp epi    56 dia  diag  136
-17 ? unq fnd    37 / jon ecr    57            137
-18 @ tip atx    38 \ spl ecl    58            138
+17 ? unq fnd    37 / jon ecr    57 std        137
+18 @ tip atx    38 \ spl ecl    58 var        138
 19 . val cal    39              59            139
 `
 
@@ -2653,8 +2653,9 @@ func ovr(f, x k) (r k) { // f/x
 		n := m.k[x] & atom
 		if n == atom {
 			return x
-		} else if n == 0 {
-
+		}
+		if m.k[f]&atom == atom && m.k[2+f] == 1+dyad { // +/
+			return sum(x)
 		}
 		r := mk(t, atom)
 		rp, xp, cp := ptr(r, t), ptr(x, t), cpx[t]
@@ -3943,6 +3944,55 @@ func mkz(x, y k) (r k) { // x cmplx y
 		yp += dy
 	}
 	return decr2(x, y, r)
+}
+func sum(x k) (r k) {
+	t, n := typ(x)
+	if n == atom && t != A {
+		return x
+	}
+	switch t {
+	case C:
+		s := c(0)
+		for i := ptr(x, C); i < ptr(x, C)+atm1(n); i++ {
+			s += m.c[i]
+		}
+		r = mkc(s)
+	case I:
+		s := k(0)
+		for i := ptr(x, I); i < ptr(x, I)+atm1(n); i++ {
+			s += m.k[i]
+		}
+		r = mki(s)
+	case F:
+		r = mk(F, atom)
+		m.f[ptr(r, F)] = fsum(ptr(x, F), n)
+	case Z:
+		r = mk(Z, atom)
+		m.z[ptr(r, Z)] = zsum(ptr(x, Z), n)
+	default:
+		panic("type")
+	}
+	return decr(x, r)
+}
+func fsum(xp, n k) (r f) { // pairwise
+	if n < 128 {
+		for i := k(0); i < n; i++ {
+			r += m.f[xp+i]
+		}
+		return r
+	}
+	nn := n >> 1
+	return fsum(xp, nn) + fsum(xp+nn, n-nn)
+}
+func zsum(xp, n k) (r z) { // pairwise
+	if n < 128 {
+		for i := k(0); i < n; i++ {
+			r += m.z[xp+i]
+		}
+		return r
+	}
+	nn := n >> 1
+	return zsum(xp, nn) + zsum(xp+nn, n-nn)
 }
 
 func isnan(x f) bool { return x != x }
