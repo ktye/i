@@ -367,6 +367,11 @@ func TestK(t *testing.T) {
 		{"3i4 5i12 8i15~3 5 8 cmplx 4 12 15", "1"},
 		{"0 cmplx 1 2 3", "1a90 2a90 3a90"},
 		{"1 2 3f cmplx 0", "1 2 3a"},
+		{"expi (1p%180)*30 60 90f", "1a30 1a60 1a90"},
+		{"expi ((1p%180)*30 60 90f;0 1p)", "(1a30 1a60 1a90;1 1a180)"},
+		{"1 2 3 expi (1p%180)*30 60 90f", "1a30 2a60 3a90"},
+		{"3.2 expi (1p%180)*30 60 90f", "3.2a30 3.2a60 3.2a90"},
+		{"1 2 3 expi .5p", "1a90 2a90 3a90"},
 		{"+1 2 3", "1 2 3"},
 		{"+,1 2 3", "(,1;,2;,3)"},
 		{"1 2 3/4 5 6", "32"},
@@ -884,11 +889,11 @@ func TestRef(t *testing.T) { // generate readme.md
 	w.Write([]c(`
 
 k7+
-	complex(type z): 1i2, 1a30, cmplx, expi, real, imag, phase, conj, rand 3i(binormal)
-	matrix: x/y(mul), A\B(solve), A\0(qr), A\1(inv), diag A, diag v, norm, cond
-	(nyi) stat: 0.95 med x (percentile), -0.95 med x (percentile normal), std z, x var y(cov), var z(cov), n avg(window), f avg(exp)
+ complex(type z): 1i2, 1a30, cmplx, expi, real, imag, phase, conj, rand 3i(binormal)
+ matrix: x/y(mul), A\B(solve), A\0(qr), A\1(inv), diag A, diag v, norm, cond
+ (nyi) stat: 0.95 med x (percentile), -0.95 med x (percentile normal), std z, x var y(cov), var z(cov), n avg(window), f avg(exp)
 k7-
-	32bit, time/duration, crypto, network, multithread
+ 32bit, time/duration, crypto, network, multithread
 
 </pre>`))
 }

@@ -17,12 +17,12 @@ const ref = `
 08 > dst mor    28 8 nil nil    48 nrm  norm  128           
 09 = grp eql    29 9 nil nil    49 dia  diag  129 
 
-10 ! til key    30 ' qtc key    50 rel  real  130 mkz  cmplx
+10 ! til key    30 ' qtc key    50 rel  real  130 mkz cmplx
 11 ~ not mch    31 / slc sla    51 ima  imag  131
 12 , enl cat    32 \ bsc bsl    52 phi  phase 132
 13 ^ srt ept    33 ' ech ecd    53 cnj  conj  133
 14 # cnt tak    34 / ovr ovi    54 cnd  cond  134
-15 _ flr drp    35 \ scn sci    55            135
+15 _ flr drp    35 \ scn sci    55 zxp  expi  135 rxp expi
 16 $ str cst    36 ' ecp epi    56            136
 17 ? unq fnd    37 / jon ecr    57            137
 18 @ tip atx    38 \ spl ecl    58            138
@@ -113,6 +113,7 @@ func ini() { // start function
 	builtin(o+6, "exp")
 	builtin(o+7, "rand")
 	builtin(o+10, "cmplx")
+	builtin(o+15, "expi")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
@@ -948,16 +949,9 @@ func not(x k) (r k) { // ~x
 	} else if t == S {
 		return eql(mku(0), x)
 	} else if t == L {
-		r = mk(L, n)
-		for i := k(0); i < n; i++ {
-			m.k[2+i+r] = not(inc(m.k[2+x+i]))
-		}
-		return decr(x, uf(r))
+		return lrc(x, n, not)
 	} else if t == A {
-		r = mk(A, atom)
-		m.k[2+r] = inc(m.k[2+x])
-		m.k[3+r] = not(inc(m.k[3+x]))
-		return decr(x, r)
+		return arc(x, n, not)
 	} else if t == N {
 		return decr(x, mki(1))
 	} else if t > N {
@@ -1021,14 +1015,9 @@ func str(x k) (r k) { // $x
 	} else {
 		switch t {
 		case L:
-			r = mk(L, n)
-			for i := k(0); i < n; i++ {
-				m.k[2+i+r] = str(inc(m.k[2+i+x]))
-			}
+			return lrc(x, n, str)
 		case A:
-			r = mk(A, atom)
-			m.k[2+r] = inc(m.k[2+x])
-			m.k[3+r] = str(inc(m.k[3+x]))
+			return arc(x, n, str)
 		case N:
 			r = mk(C, 0)
 		case N + 1, N + 2, N + 3, N + 4:
@@ -1601,11 +1590,7 @@ func zfn(c, x k) (r k) {
 func cnj(x k) (r k) {
 	t, n := typ(x)
 	if t == L {
-		r = mk(L, n)
-		for i := k(0); i < n; i++ {
-			m.k[2+i+n] = uf(cnj(inc(m.k[2+i+x])))
-		}
-		return decr(x, r)
+		return lrc(x, n, cnj)
 	} else if t != Z {
 		panic("type")
 	}
@@ -1622,6 +1607,54 @@ func cnj(x k) (r k) {
 		rp += 2
 	}
 	return r
+}
+func rxp(x, y k) (r k) { // x expi y
+	xt, yt, xn, yn := typs(x, y)
+	if yt > F {
+		panic("type")
+	} else if yt < F {
+		y = to(y, F)
+	}
+	r = mk(Z, yn)
+	rp, yp := ptr(r, Z)<<1, ptr(y, F)
+	for i := k(0); i < atm1(yn); i++ {
+		s, c := math.Sincos(m.f[yp+i])
+		m.f[rp+2*i], m.f[rp+2*i+1] = c, s
+	}
+	if x == 0 {
+		return decr(y, r)
+	}
+	if xt > F {
+		panic("type")
+	} else if xt < F {
+		x = to(x, F)
+	}
+	dx := k(1)
+	if xn == atom {
+		dx = 0
+	}
+	if xn != atom && yn == atom {
+		r = take(xn, 0, r)
+	}
+	rp = ptr(r, Z) << 1
+	xp := ptr(x, F)
+	for i := k(0); i < atm1(m.k[r]&atom); i++ {
+		m.f[rp+2*i] *= m.f[xp]
+		m.f[rp+2*i+1] *= m.f[xp]
+		xp += dx
+	}
+	return decr2(x, y, r)
+}
+func zxp(x k) (r k) { // expi i
+	t, n := typ(x)
+	if t == L {
+		return lrc(x, n, zxp)
+	} else if t == A {
+		return arc(x, n, zxp)
+	} else if t > F {
+		panic("type")
+	}
+	return rxp(0, x)
 }
 
 func putc(rc, rn k, c c) k { // assumes enough space
@@ -1899,6 +1932,19 @@ func lcat(x, y k) (r k) { // append anything to a list; no unify
 		m.k[2+i+r] = inc(m.k[2+i+x])
 	}
 	m.k[2+nl+r] = y
+	return decr(x, r)
+}
+func lrc(x, n k, f func(k) k) (r k) { // list rec
+	r = mk(L, n)
+	for i := k(0); i < n; i++ {
+		m.k[2+i+r] = f(inc(m.k[2+x+i]))
+	}
+	return decr(x, uf(r))
+}
+func arc(x, n k, f func(k) k) (r k) { // dict rec
+	r = mk(A, n)
+	m.k[2+r] = inc(m.k[2+x])
+	m.k[3+r] = f(inc(m.k[3+x]))
 	return decr(x, r)
 }
 func ept(x, y k) (r k) { // x^y
@@ -4939,11 +4985,11 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, dia, rel, ima, phi, cnj, cnd, nil, nil, nil, nil, nil, //  40- 59
+		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, dia, rel, ima, phi, cnj, cnd, zxp, nil, nil, nil, nil, //  40- 59
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, nil, nil, nil, nil, rxp, nil, nil, nil, nil, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }
