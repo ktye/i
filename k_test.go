@@ -34,7 +34,6 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		// cond (12 -51 4f;6 167 -68f;-4 24 -41f)
 		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
@@ -374,6 +373,11 @@ func TestK(t *testing.T) {
 		{"(1i 2i 3i;4i 5i 6i) mat 7 8 9", "50 122a"},
 		{"(1 2f;-3 2f;-3 0f) solve 1 2 3", "-0.6470588 0.4264706"},
 		{"a:4 4#rand 16i;b:rand 4i;x:a solve b;1e-14>|/abs b-a mat x", "1"},
+		{"cond (12 -51 4f;6 167 -68f;-4 24 -41f)", "22.4"},
+		{"cond 2*(12 -51 4f;6 167 -68f;-4 24 -41f)", "22.4"},
+		{"cond (1 0 0f;0 1 0f;0 0 1f)", "1f"},
+		{"cond (1 1f;0 1f)", "4f"},
+		{"A:(2i8 10i2 5i7;9i8 10i9 8i1;3i3 7i4 4i2;3i10 8i4 4i2;5i4 5i10 1i1);B:(8i7 2i6;9i5 7i6;10i2 8i4;9i5 3i6;1i8 6i3);A solve B", "(0.02775684a225.7687 0.591145a15.53089 0.7323478a346.7655;0.4919331a29.44904 0.2971654a306.5227 0.4829134a18.47038)"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

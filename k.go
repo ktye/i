@@ -3615,9 +3615,9 @@ func qrd(x k) (r k) { // solve x (qr decomposition)
 	m.k[2+r], m.k[3+r], m.k[4+r], m.k[5+r] = mki(rows), mki(cols), h, d
 	return decr(x, r)
 }
-func cnd(x k) (r k) { // cond x (using max row sum of QR)
+func cnd(x k) (r k) { // cond x (using max row sum of R from QR)
+	// matlab: for A (rows x cols), cond A should be equal to: [q, r] = qr(A); cond(r(1:rows,1:rows), inf)
 	if m.k[x]&atom != 4 || m.k[m.k[2+x]]&atom != atom {
-		println("qrd")
 		x = qrd(x)
 	} // else assume input is qr
 	rows, cols, h, d := m.k[2+m.k[2+x]], m.k[2+m.k[3+x]], m.k[4+x], m.k[5+x]
@@ -3636,48 +3636,33 @@ func cnd(x k) (r k) { // cond x (using max row sum of QR)
 		}
 	}
 	n1 := trn(r, t, cols) // cond: norm(inv R) * n1:norm(R)
-	for i := k(0); i < cols; i++ {
-		// TODO: Rsolve I
+	z, o := mk(t, atom), mk(t, atom)
+	if t == F {
+		m.f[1+z>>1], m.f[1+o>>1] = 0, 1
+	} else {
+		m.z[1+z>>2], m.z[1+o>>2] = 0, 1
 	}
-
+	e := mk(t, cols)
+	ep, zp, op := ptr(e, t), ptr(z, t), ptr(o, t)
+	for i := k(0); i < cols; i++ { // solve R x = I
+		for j := k(0); j < cols; j++ {
+			cp(ep+j, zp)
+		}
+		cp(ep+i, op)
+		rsv(hp, dp, ep, rows, cols, t)
+		n = i
+		for j := k(0); j < i+1; j++ {
+			cp(rp+n, ep+j)
+			n += cols - j - 1
+		}
+	}
+	dec(e)
+	dec(z)
+	dec(o)
+	n2 := trn(r, t, cols) // cond (inv R)
 	dec(r)
 	r = mk(F, atom)
-	m.f[1+r>>1] = n1
-	return decr(x, r)
-
-	/*
-		mx, mn, dp, hp := 0.0, 0.0, ptr(d, t), ptr(h, t)
-		for i := k(0); i < cols; i++ {
-			//hpi := hp + i*cols
-			s := 0.0 // row sum of abs R
-			if t == F {
-				//hpi := ptr(h, F) + i*rows
-				s = math.Abs(m.f[dp+i])
-				fmt.Printf("%v", m.f[dp+i])
-				for k := i + 1; k < cols; k++ {
-					s += math.Abs(m.f[hp+cols*k+i])
-					fmt.Printf(" %v", m.f[hp+cols*k+i])
-				}
-				fmt.Println()
-			} else {
-				panic("TODO")
-				//hpi := ptr(h, Z) + i*rows
-				for k := i + 1; k < rows; k++ {
-					//	s += math.Hypot(real(m.z[hpi+k]), imag(m.z[hpi+k]))
-				}
-			}
-			if s > mx {
-				mx = s
-			}
-			if i == 0 || s < mn {
-				mn = s
-			}
-		}
-		r = mk(F, atom)
-		m.f[1+r>>1] = mx / mn
-		println("max/min", mx, mn, mx/mn)
-		return decr(x, r)
-	*/
+	m.f[1+r>>1] = n1 * n2
 	return decr(x, r)
 }
 func trn(r, t, n k) f { // inf-norm of triangular matrix
@@ -3717,6 +3702,8 @@ func slv(x, y k) (r k) { // x solve y
 	cols := m.k[2+m.k[3+x]]
 	h, d := m.k[4+x], m.k[5+x]
 	if yt == L {
+		y = flp(y)
+		yn = m.k[y] & atom
 		r = mk(L, yn)
 		for i := k(0); i < atm1(yn); i++ {
 			m.k[2+r+i] = qrs(rows, cols, h, d, inc(m.k[2+y+i]))
@@ -3765,7 +3752,11 @@ func qrs(rows, cols, h, d, y k) (r k) {
 			}
 		}
 	}
-	for i := cols - 1; ; i-- { // solve: R x = Q^T y (back-substitution)
+	rsv(hp, dp, rp, rows, cols, t)
+	return srk(r, t, n, cols)
+}
+func rsv(hp, dp, rp, rows, cols, t k) { // solve R x = y
+	for i := cols - 1; ; i-- { // back-substitution
 		if t == F {
 			for j := i + 1; j < cols; j++ {
 				m.f[rp+i] -= m.f[hp+j*rows+i] * m.f[rp+j]
@@ -3781,7 +3772,6 @@ func qrs(rows, cols, h, d, y k) (r k) {
 			break
 		}
 	}
-	return srk(r, t, n, cols)
 }
 func conj(x z) z { return complex(real(x), -imag(x)) }
 func mkz(x, y k) (r k) { // x cmplx y
