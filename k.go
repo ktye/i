@@ -10,12 +10,12 @@ const ref = `
 01 + flp add    21 1 nil nil    41 sqr  sqrt  121 ... within
 02 - neg sub    22 2 nil nil    42 sin        122 bin       
 03 * fst mul    23 3 nil nil    43 cos        123 ... like  
-04 % inv div    24 4 nil nil    44 abs        124 del       
+04 % inv div    24 4 nil nil    44            124 del       
 05 & wer min    25 5 nil nil    45 log        125 lgn log  
 06 | rev max    26 6 nil nil    46 exp        126 pow exp      
 07 < asc les    27 7 nil nil    47 rnd  rand  127 rol rand          
-08 > dst mor    28 8 nil nil    48 nrm  norm  128           
-09 = grp eql    29 9 nil nil    49 dia  diag  129 
+08 > dst mor    28 8 nil nil    48 abs        128 abq 2 abs          
+09 = grp eql    29 9 nil nil    49 nrm  norm  129 nrq 2 norm
 
 10 ! til key    30 ' qtc key    50 rel  real  130 mkz cmplx
 11 ~ not mch    31 / slc sla    51 ima  imag  131
@@ -23,7 +23,7 @@ const ref = `
 13 ^ srt ept    33 ' ech ecd    53 cnj  conj  133
 14 # cnt tak    34 / ovr ovi    54 cnd  cond  134
 15 _ flr drp    35 \ scn sci    55 zxp  expi  135 rxp expi
-16 $ str cst    36 ' ecp epi    56            136
+16 $ str cst    36 ' ecp epi    56 dia  diag  136
 17 ? unq fnd    37 / jon ecr    57            137
 18 @ tip atx    38 \ spl ecl    58            138
 19 . val cal    39              59            139
@@ -95,14 +95,12 @@ func ini() { // start function
 	builtin(o+1, "sqrt")
 	builtin(o+2, "sin")
 	builtin(o+3, "cos")
-	builtin(o+4, "abs")
-	builtin(o+8, "norm")
-	builtin(o+9, "diag")
 	builtin(o+10, "real")
 	builtin(o+11, "imag")
 	builtin(o+12, "phase")
 	builtin(o+13, "conj")
 	builtin(o+14, "cond")
+	builtin(o+16, "diag")
 	o += c(dyad) // dyads
 	builtin(o+0, "in")
 	builtin(o+1, "within")
@@ -112,6 +110,8 @@ func ini() { // start function
 	builtin(o+5, "log")
 	builtin(o+6, "exp")
 	builtin(o+7, "rand")
+	builtin(o+8, "abs")
+	builtin(o+9, "norm")
 	builtin(o+10, "cmplx")
 	builtin(o+15, "expi")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
@@ -482,7 +482,7 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	default:
 		panic("type")
 	}
-	if rt != 0 && t > rt { // only down-type
+	if rt != 0 && t > rt && t < L { // only down-type
 		r = to(r, rt)
 	}
 	return decr(x, r)
@@ -1550,6 +1550,13 @@ func abs(x k) (r k) { // abs x
 			m.k[r] = k(-i(m.k[r]))
 		}
 	}, func(r, x k) { m.f[r] = math.Abs(m.f[x]) }, func(r, x k) { m.z[r] = complex(math.Hypot(real(m.z[x]), imag(m.z[x])), 0) }})
+}
+func abq(n, x k) (r k) { // 2 abs x
+	if t, ln := typ(n); t != I || ln != atom || m.k[2+n] != 2 {
+		panic("value")
+	}
+	dec(n)
+	return nm(x, F, []f1{nil, nil, func(r, x k) { m.k[r] = m.k[x] * m.k[x] }, func(r, x k) { m.f[r] = m.f[x] * m.f[x] }, func(r, x k) { m.z[r] = complex(real(m.z[x])*real(m.z[x])+imag(m.z[x])*imag(m.z[x]), 0) }})
 }
 func log(x k) (r k) { // log x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Log(m.f[x]) }, nil})
@@ -3543,7 +3550,7 @@ func normal() (f, f) { // marsaglia polar
 	s = math.Sqrt(-2.0 * math.Log(s) / s)
 	return s, v * s
 }
-func norm(xp, n k) (r f) { // vector norm L2
+func norm(xp, n k, sqrt bool) (r f) { // vector norm L2
 	s := 0.0
 	for i := xp; i < xp+n; i++ {
 		if x := m.f[i]; x != 0 {
@@ -3558,26 +3565,37 @@ func norm(xp, n k) (r f) { // vector norm L2
 			}
 		}
 	}
-	return s * math.Sqrt(r)
+	if sqrt {
+		return s * math.Sqrt(r)
+	}
+	return s * s * r
 }
-func nrm(x k) (r k) { // norm x
+func nrm(x k) (r k) { return nrms(x, true) } // norm x
+func nrq(x, y k) (r k) { // 2 norm x
+	if xt, xn := typ(x); xt != I || xn != atom || m.k[2+x] != 2 {
+		panic("value")
+	}
+	dec(x)
+	return nrms(y, false)
+}
+func nrms(x k, sqrt bool) (r k) {
 	t, n := typ(x)
 	switch {
 	case t < F:
-		return nrm(to(x, F))
+		return nrms(to(x, F), sqrt)
 	case t == L: // not matrix norm
 		r = mk(L, n)
 		for i := k(0); i < n; i++ {
-			m.k[2+r+i] = nrm(inc(m.k[2+x+i]))
+			m.k[2+r+i] = nrms(inc(m.k[2+x+i]), sqrt)
 		}
 		return decr(x, uf(r))
 	case t == F:
 		r = mk(F, atom)
-		m.f[1+r>>1] = norm(1+x>>1, atm1(n))
+		m.f[1+r>>1] = norm(1+x>>1, atm1(n), sqrt)
 		return decr(x, r)
 	case t == Z:
 		r = mk(F, atom)
-		m.f[1+r>>1] = norm(2+x>>1, 2*atm1(n))
+		m.f[1+r>>1] = norm(2+x>>1, 2*atm1(n), sqrt)
 		return decr(x, r)
 	default:
 		panic("type")
@@ -3682,7 +3700,7 @@ func qrd(x k) (r k) { // x\0 (qr decomposition)
 	for j := k(0); j < cols; j++ {
 		hpj := hp + j*rows // H size: cols x rows!
 		if t == F {
-			s = norm(hpj+j, rows-j) // H[j][j:]
+			s = norm(hpj+j, rows-j, true) // H[j][j:]
 			if m.f[hpj+j] > 0 {
 				m.f[dp+j] = -s
 			} else {
@@ -3706,7 +3724,7 @@ func qrd(x k) (r k) { // x\0 (qr decomposition)
 			hpr = hpj << 1
 			re, im := m.f[hpr+2*j], m.f[hpr+2*j+1]
 			si, co := math.Sincos(math.Atan2(im, re))
-			s = norm(hpr+2*j, 2*(rows-j))
+			s = norm(hpr+2*j, 2*(rows-j), true)
 			m.z[dp+j] = complex(-s*co, -s*si)
 			a = 1.0 / math.Sqrt(s*(s+math.Hypot(re, im)))
 			m.z[hpj+j] -= m.z[dp+j]
@@ -4985,11 +5003,11 @@ func init() {
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, abs, log, exp, rnd, nrm, dia, rel, ima, phi, cnj, cnd, zxp, nil, nil, nil, nil, //  40- 59
+		nil, sqr, sin, cos, nil, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, nil, nil, nil, //  40- 59
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, nil, nil, nil, nil, rxp, nil, nil, nil, nil, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, nil, nil, nil, nil, rxp, nil, nil, nil, nil, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }
