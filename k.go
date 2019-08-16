@@ -1952,11 +1952,24 @@ func lrc(x, n k, f func(k) k) (r k) { // list rec
 	}
 	return decr(x, uf(r))
 }
+func lrc2(x, y, yn k, f func(k, k) k) (r k) {
+	r = mk(L, yn)
+	for i := k(0); i < yn; i++ {
+		m.k[2+i+r] = f(inc(x), inc(m.k[2+y+i]))
+	}
+	return decr2(x, y, uf(r))
+}
 func arc(x, n k, f func(k) k) (r k) { // dict rec
 	r = mk(A, n)
 	m.k[2+r] = inc(m.k[2+x])
 	m.k[3+r] = f(inc(m.k[3+x]))
 	return decr(x, r)
+}
+func arc2(x, y, yn k, f func(k, k) k) (r k) {
+	r = mk(A, yn)
+	m.k[2+r] = inc(m.k[2+y])
+	m.k[3+r] = f(inc(x), inc(m.k[3+y]))
+	return decr2(x, y, r)
 }
 func ept(x, y k) (r k) { // x^y
 	t, yt, n, yn := typs(x, y)
@@ -3516,7 +3529,7 @@ func rnd(x k) (r k) { // rand
 			r = mk(F, k(n))
 			rp := 1 + r>>1
 			for i := k(0); i < k(n); i++ {
-				m.f[rp+i] = f(rng()) / f(4294967295)
+				m.f[rp+i] = f(rng()) / f(0xFFFFFFFF)
 			}
 		}
 	} else {
@@ -3548,12 +3561,12 @@ func rndn(n k) (r k) { // random [0,n) math/rand/rand.go:int32n (lemire)
 func normal() (f, f) { // marsaglia polar
 	var u, v, s f
 	for s == 0 || s >= 1 {
-		u = f(rng())/f(4294967295)*2.0 - 1.0
-		v = f(rng())/f(4294967295)*2.0 - 1.0
+		u = (f(rng())/f(0xFFFFFFFF))*2.0 - 1.0
+		v = (f(rng())/f(0xFFFFFFFF))*2.0 - 1.0
 		s = u*u + v*v
 	}
 	s = math.Sqrt(-2.0 * math.Log(s) / s)
-	return s, v * s
+	return u * s, v * s
 }
 func norm(xp, n k, sqrt bool) (r f) { // vector norm L2
 	s := 0.0
@@ -3998,13 +4011,333 @@ func zsum(xp, n k) (r z) { // pairwise
 	nn := n >> 1
 	return zsum(xp, nn) + zsum(xp+nn, n-nn)
 }
-func dev(x k) (r k)    { panic("nyi") } // dev x
-func avg(x k) (r k)    { panic("nyi") } // avg x
-func mvg(x, y k) (r k) { panic("nyi") } // x avg y
-func med(x k) (r k)    { panic("nyi") } // med x
-func pct(x, y k) (r k) { panic("nyi") } // x med y
-func vri(x k) (r k)    { panic("nyi") } // var x
-func cov(x, y k) (r k) { panic("nyi") } // x var y
+func dev(x k) (r k) { // dev x
+	t, n := typ(x)
+	if t == L {
+		return lrc(x, n, dev)
+	} else if t == A {
+		return arc(x, n, dev)
+	} else if n == atom || n < 1 {
+		return decr(x, to(mki(0), F))
+	}
+	if t == Z { // dev z: standard deviations in the principal axes
+		c := vri(x)
+		cp := ptr(c, F)
+		vx, vy, vxy := m.f[cp], m.f[cp+1], m.f[cp+2]
+		tr, det := vx+vy, vx*vy-vxy*vxy
+		e1, e2 := tr/2+math.Sqrt(tr*tr/4-det), tr/2-math.Sqrt(tr*tr/4-det)
+		v1, v2 := complex(e1-vy, vxy), complex(e2-vy, vxy)
+		s1, s2 := math.Sqrt(e1), math.Sqrt(e2)
+		r = mk(Z, 2)
+		rp := ptr(r, Z)
+		m.z[rp], m.z[rp+1] = v1*complex(s1/math.Hypot(real(v1), imag(v1)), 0), v2*complex(s2/math.Hypot(real(v2), imag(v2)), 0)
+		return decr(c, r)
+	}
+	r = vri(x)
+	m.f[1+r>>1] = math.Sqrt(m.f[1+r>>1])
+	return r
+}
+func vri(x k) (r k) { // var x
+	t, n := typ(x)
+	if t == L {
+		return lrc(x, n, vri)
+	} else if t == A {
+		return arc(x, n, vri)
+	} else if n == atom || n < 1 {
+		return decr(x, to(mki(0), F))
+	}
+	if t < F {
+		x = to(x, F)
+	} else if t == Z {
+		return cov(rel(inc(x)), ima(x))
+	} else if t > Z {
+		panic("type")
+	}
+	r = mk(F, atom)
+	s2, _ := varf(x, n)
+	m.f[1+r>>1] = s2
+	return r
+}
+func cov(x, y k) (r k) { // x var y
+	xt, yt, xn, yn := typs(x, y)
+	if xt != yt || xn != yn || xn == atom || xn < 2 || xt > F {
+		panic("type")
+	} else if xt < F {
+		x, xt = to(x, F), F
+		y, yt = to(y, F), F
+	}
+	vx, ax := varf(inc(x), xn)
+	vy, ay := varf(inc(y), yn)
+	if m.k[x+1] != 1 {
+		r = mk(F, xn)
+		mv(r, x)
+		dec(x)
+		x = r
+	}
+	xp, yp := ptr(x, F), ptr(y, F)
+	for i := k(0); i < xn; i++ {
+		m.f[xp+i] -= ax
+		m.f[xp+i] *= m.f[yp+i] - ay
+	}
+	x = sum(x)
+	m.f[ptr(x, F)] /= f(xn - 1)
+	r = mk(F, 3)
+	m.f[1+r>>1] = vx
+	m.f[2+r>>1] = vy
+	m.f[3+r>>1] = m.f[1+x>>1]
+	return decr2(x, y, r)
+}
+func varf(x, n k) (f, f) { // var, avg
+	a := avg(inc(x))
+	if m.k[x+1] != 1 {
+		r := mk(F, n)
+		mv(r, x)
+		dec(x)
+		x = r
+	}
+	xp, af, t := ptr(x, F), m.f[ptr(a, F)], 0.0
+	for i := k(0); i < n; i++ {
+		t = m.f[xp+i] - af
+		m.f[xp+i] = t * t
+	}
+	dec(a)
+	a = sum(x)
+	s2 := m.f[ptr(a, F)] / f(n-1)
+	dec(a)
+	return s2, af
+}
+func avg(x k) (r k) { // avg x
+	t, n := typ(x)
+	if t == L {
+		return lrc(x, n, avg)
+	} else if t == A {
+		return arc(x, n, avg)
+	} else if n == atom {
+		return x
+	}
+	x = sum(x)
+	nf := f(n)
+	switch t {
+	case C:
+		r = mk(F, atom)
+		m.f[1+r>>1] = f(m.c[ptr(x, C)]) / nf
+	case I:
+		r = mk(F, atom)
+		m.f[1+r>>1] = f(m.k[2+x]) / nf
+	case F:
+		r = mk(F, atom)
+		m.f[1+r>>1] = f(m.f[1+x>>1]) / nf
+	case Z:
+		r = mk(Z, atom)
+		rp, xp := ptr(r, Z)<<1, ptr(x, Z)<<1
+		m.f[rp] = f(m.f[xp]) / nf
+		m.f[rp+1] = f(m.f[xp+1]) / nf
+	default:
+		panic("type")
+	}
+	return decr(x, r)
+}
+func mvg(x, y k) (r k) { // x avg y
+	xt, yt, xn, yn := typs(x, y)
+	if yt == L {
+		return lrc2(x, y, yn, mvg)
+	} else if yt == A {
+		return arc2(x, y, yn, mvg)
+	} else if yn < 2 || yn == atom {
+		return decr(x, y)
+	}
+	if xn != atom {
+		panic("type")
+	}
+	if yt < F {
+		y, yt = to(y, F), F
+	} else if yt > Z {
+		panic("type")
+	}
+	if m.k[1+y] == 1 {
+		r = y
+	} else {
+		r = mk(yt, yn)
+		mv(r, y)
+		dec(y)
+	}
+	switch xt {
+	case I:
+		n := idx(x, I)
+		if n < 0 {
+			panic("value")
+		} else if n == 0 { // 0 avg y (cummulative moving average)
+			rp := ptr(r, yt)
+			if yt == F {
+				s := 0.0
+				for i := k(0); i < yn; i++ {
+					s += (m.f[rp+i] - s) / f(i+1)
+					m.f[rp+i] = s
+				}
+			} else {
+				s := 0i
+				for i := k(0); i < yn; i++ {
+					s += (m.z[rp+i] - s) / complex(f(i+1), 0)
+					m.z[rp+i] = s
+				}
+			}
+			return decr(x, r)
+		}
+		// n avg y: moving average window size n
+		b, p := mk(yt, k(n)), k(0)
+		bp, rp := ptr(b, yt), ptr(r, yt)
+		if yt == F {
+			s := 0.0
+			for i := k(0); i < yn; i++ {
+				s += m.f[rp+i]
+				if i < k(n) {
+					m.f[bp+p] = m.f[rp+i]
+					m.f[rp+i] = s / f(i+1)
+				} else {
+					s -= m.f[bp+p]
+					m.f[bp+p] = m.f[rp+i]
+					m.f[rp+i] = s / f(n)
+				}
+				p++
+				if p == k(n) {
+					p = 0
+				}
+			}
+		} else {
+			s := 0i
+			for i := k(0); i < yn; i++ {
+				s += m.z[rp+i]
+				if i < k(n) {
+					m.z[bp+p] = m.z[rp+i]
+					m.z[rp+i] = s / complex(f(i+1), 0)
+				} else {
+					s -= m.z[bp+p]
+					m.z[bp+p] = m.z[rp+i]
+					m.z[rp+i] = s / complex(f(n), 0)
+				}
+				p++
+				if p == k(n) {
+					p = 0
+				}
+			}
+		}
+		return decr2(x, b, r)
+	case F: // exponential moving average
+		if yt == F {
+			a := m.f[ptr(x, F)]
+			b, rp := 1-a, ptr(r, F)
+			t := m.f[rp]
+			for i := k(0); i < yn; i++ {
+				m.f[rp+i], t = a*m.f[rp+i]+b*t, m.f[rp+i]
+			}
+		} else {
+			a := complex(m.f[ptr(x, F)], 0)
+			b, rp := 1-a, ptr(r, Z)
+			t := m.z[rp]
+			for i := k(0); i < yn; i++ {
+				m.z[rp+i], t = a*m.z[rp+i]+b*t, m.z[rp+i]
+			}
+		}
+		return decr(x, r)
+	}
+	panic("type")
+}
+func med(x k) (r k) { // med x
+	t, n := typ(x)
+	if t == L {
+		return lrc(x, n, med)
+	} else if t == A {
+		return arc(x, n, med)
+	} else if n == atom {
+		return x
+	}
+	x = srt(x)
+	return atx(x, mki(n/2))
+}
+func pct(x, y k) (r k) { // x med y (0.95 med y, -0.95f med y, 0 med y)
+	xt, yt, xn, yn := typs(x, y)
+	if yt == L {
+		return lrc2(x, y, yn, pct)
+	} else if yt == A {
+		return arc2(x, y, yn, pct)
+	} else if yn < 2 || yn == atom {
+		return decr(x, y)
+	}
+	if xn != atom {
+		panic("type")
+	}
+	switch xt {
+	case F:
+		p := m.f[1+x>>1]
+		if p < 0 { // -p med y (normal distribution)
+			if yt == Z {
+				vx, _ := varf(rel(inc(y)), yn)
+				vy, _ := varf(ima(y), yn)
+				b := 3.2
+				p95 := 1.97 * math.Pow(math.Pow(math.Sqrt(vx), b)+math.Pow(math.Sqrt(vy), b), 1/b)
+				println("p95", p95)
+				fac := math.Sqrt(-2.0*math.Log(1.0+p)) / math.Sqrt(-2.0*math.Log(0.05)) // p<0
+				println("fac", fac)
+				r = mk(F, atom)
+				m.f[1+r>>1] = fac * p95
+				return decr(x, r)
+			}
+			s2, av := varf(y, yn)
+			r := mk(F, atom)
+			m.f[1+r>>1] = av + math.Sqrt(s2)*math.Sqrt2*math.Erfinv(2.0*(-p)-1.0)
+			return decr(x, r)
+		} else if p < 1 { // p med y (percentile)
+			if yt == Z {
+				y = abs(y)
+			}
+			nf := p * f(yn-1)
+			n := k(nf)
+			y = srt(y)
+			if n == yn-1 {
+				return decr(x, to(atx(y, mki(yn-1)), F))
+			}
+			d := mk(I, 2)
+			m.k[2+d] = n
+			m.k[3+d] = n + 1
+			y = to(atx(y, d), F)
+			r = mk(F, atom)
+			m.f[1+r>>1] = (nf-f(n))*m.f[1+y>>1] + (f(n+1)-nf)*m.f[2+y>>1]
+			return decr2(x, y, r)
+		} else {
+			panic("value")
+		}
+	case I:
+		if xi := m.k[2+x]; xi == 0 { // 0 med y (cummulative running median)
+			if yt == Z || yt > S {
+				panic("type")
+			}
+			if m.k[1+y] != 1 {
+				r = mk(F, yn)
+				mv(r, y)
+				dec(y)
+				y = r
+			}
+			dec(x)
+			x = mk(yt, 0)
+			xp, yp, lt, cp := ptr(x, yt), ptr(y, yt), ltx[yt], cpx[yt]
+			for i := k(0); i < yn; i++ {
+				ix := ibin(xp, yt, i, yp+i, lt)
+				if int32(ix) < 0 {
+					ix = 0
+				}
+				x = insert(x, atx(inc(y), mki(i)), ix)
+				xp = ptr(x, yt)
+				cp(yp+i, xp+(i+1)/2)
+			}
+			return decr(x, y)
+		} else { // n med y (running median, window size n)
+			panic("nyi")
+			// e.g. www.stat.cmu.edu/~ryantibs/median/binmedian.c
+		}
+	default:
+		panic("type")
+	}
+}
 
 func isnan(x f) bool { return x != x }
 func atm1(n k) k {
@@ -4427,14 +4760,17 @@ func pNum(b []byte) (r k) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 		m.k[r] = F<<28 | atom
 		return r
 	}
-	f := 0
+	f := 0.0
 	if len(b) > 1 {
 		if c := b[len(b)-1]; c == 'f' || c == '.' {
 			b = b[:len(b)-1]
-			f = 1
+			f = 1.0
 		} else if b[0] == '.' {
 			b = b[1:]
-			f = 2
+			if len(b) > 21 {
+				panic("number")
+			}
+			f = 1.0 / e10[len(b)]
 		}
 	}
 	if x, o := atoi(b); o {
@@ -4442,11 +4778,7 @@ func pNum(b []byte) (r k) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 			r = mki(k(i(x)))
 		} else {
 			r = mk(F, atom)
-			if f == 1 {
-				m.f[1+r>>1] = float64(x)
-			} else {
-				m.f[1+r>>1] = 0.1 * float64(x)
-			}
+			m.f[1+r>>1] = f * float64(x)
 		}
 		return r
 	}
