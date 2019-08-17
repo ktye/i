@@ -2532,11 +2532,14 @@ func hex(x k) (r k) { // `hex@x
 }
 func xeh(x k) (r k) { // `hex?x
 	t, n := typ(x)
+	xp := ptr(x, C)
 	if t != C || n%2 != 0 {
 		panic("type")
+	} else if m.c[xp] == '0' && m.c[xp+1] == 'x' {
+		xp, n = xp+2, n-2
 	}
 	r = mk(C, n/2)
-	xp, rp := ptr(x, C), ptr(r, C)
+	rp := ptr(r, C)
 	for i := k(0); i < n/2; i++ {
 		h := m.c[xp+2*i]
 		l := m.c[xp+2*i+1]
