@@ -6,27 +6,27 @@ import (
 )
 
 const ref = `
-00 : idn asn    20 0 rdl nil    40 exi  exit  120 ... in    
-01 + flp add    21 1 nil nil    41 sqr  sqrt  121 ... within
-02 - neg sub    22 2 nil nil    42 sin        122 bin       
-03 * fst mul    23 3 nil nil    43 cos        123 ... like  
-04 % inv div    24 4 nil nil    44 dev        124 del       
-05 & wer min    25 5 nil nil    45 log        125 lgn log  
-06 | rev max    26 6 nil nil    46 exp        126 pow exp      
-07 < asc les    27 7 nil nil    47 rnd  rand  127 rol rand          
-08 > dst mor    28 8 nil nil    48 abs        128 abq 2 abs          
-09 = grp eql    29 9 nil nil    49 nrm  norm  129 nrq 2 norm
-
-10 ! til key    30 ' qtc key    50 rel  real  130 mkz cmplx
-11 ~ not mch    31 / slc sla    51 ima  imag  131 fns find
-12 , enl cat    32 \ bsc bsl    52 phi  phase 132
-13 ^ srt ept    33 ' ech ecd    53 cnj  conj  133
-14 # cnt tak    34 / ovr ovi    54 cnd  cond  134
-15 _ flr drp    35 \ scn sci    55 zxp  expi  135 rxp expi
-16 $ str cst    36 ' ecp epi    56 dia  diag  136
-17 ? unq fnd    37 / jon ecr    57 avg        137 mvg avg
-18 @ tip atx    38 \ spl ecl    58 med        138 pct med
-19 . val cal    39              59 vri var    139 cov var
+00 : idn asn    20 0 rdl nil    40 exi exit  120 ... in       60   140
+01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61   141
+02 - neg sub    22 2 nil nil    42 sin       122 bin          62   142
+03 * fst mul    23 3 nil nil    43 cos       123 ... like     63   143
+04 % inv div    24 4 nil nil    44 dev       124 del          64   144
+05 & wer min    25 5 nil nil    45 log       125 lgn log      65   145
+06 | rev max    26 6 nil nil    46 exp       126 pow exp      66   146
+07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67   147
+08 > dst mor    28 8 nil nil    48 abs       128 abq 2 abs    68   148
+09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69   149
+                                                                       
+10 ! til key    30 ' qtc key    50 rel real  130 mkz cmplx    70   150
+11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71   151
+12 , enl cat    32 \ bsc bsl    52 phi phase 132              72   152
+13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73   153
+14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74   154
+15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75   155
+16 $ str cst    36 ' ecp epi    56 dia diag  136              76   156
+17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77   157
+18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78   158
+19 . val cal    39              59 vri var   139 cov var      79   159
 `
 
 type c = byte
@@ -691,45 +691,63 @@ func flp(x k) (r k) { // +x
 	} else if t < L {
 		return x
 	}
-	nr, tt := k(0), L
-	for j := k(0); j < n; j++ {
-		tj, nj := typ(m.k[2+x+j])
-		switch {
-		case j == 0:
-			nr, tt = nj, tj
-		case nj != nr:
-			panic("size") // k7 does extends for atoms, and nan-fills short arrays
-		case j > 0 && tt != L && tt != tj:
-			tt = L
+	ut, nc := k(0), k(1)
+	for i := k(0); i < n; i++ {
+		ti, ni := typ(m.k[2+x+i])
+		if i == 0 {
+			ut, nc = ti, atm1(ni)
+		} else if ut != 0 && ti != ut {
+			ut = 0
+		}
+		if atm1(ni) > nc {
+			nc = atm1(ni)
 		}
 	}
-	if tt > L {
-		panic("type")
-	}
-	nr = atm1(nr)
-	cp := cpx[tt]
-	r = mk(L, nr)
-	for i := k(0); i < nr; i++ {
-		rr := mk(tt, n)
-		m.k[2+r+i] = rr
-	}
-	if tt == L {
-		for k := k(0); k < n; k++ {
-			col := explode(inc(m.k[2+x+k]))
-			for i := uint32(0); i < nr; i++ {
-				m.k[2+k+m.k[2+r+i]] = inc(m.k[2+col+i])
-			}
-			dec(col)
-		}
-		for i := k(0); i < nr; i++ {
-			m.k[2+r+i] = uf(m.k[2+r+i])
-		}
-	} else {
-		for i := uint32(0); i < nr; i++ { // Rik = +Xki (cdn.mos.cms.futurecdn.net/XTZkbu7r5c4LZQ5SMzJDbV-970-80.jpg)
-			for k := k(0); k < n; k++ {
-				cp(k+ptr(m.k[2+r+i], tt), i+ptr(m.k[2+x+k], tt))
+	if ut != 0 && ut < L {
+		cp, na := cpx[ut], nax[ut]
+		r = mk(ut, n*nc)
+		rp := ptr(r, ut)
+		for i := k(0); i < n; i++ {
+			mx := m.k[m.k[2+x+i]] & atom
+			xpi := ptr(m.k[2+x+i], ut)
+			if mx == atom {
+				for j := k(0); j < nc; j++ {
+					cp(rp+n*j+i, xpi)
+				}
+			} else {
+				for j := k(0); j < mx; j++ {
+					cp(rp+n*j+i, xpi+j)
+				}
+				for j := mx; j < nc; j++ {
+					na(rp + n*j + i)
+				}
 			}
 		}
+		s := mk(I, 2)
+		m.k[2+s] = nc
+		m.k[3+s] = n
+		return decr(x, tak(s, r))
+	}
+	r = mk(L, n*nc)
+	nan := mkc(' ')
+	for i := k(0); i < n; i++ {
+		xi := explode(inc(m.k[2+x+i]))
+		mx := m.k[xi] & atom
+		for j := k(0); j < mx; j++ {
+			m.k[2+r+n*j+i] = inc(m.k[2+xi+j])
+		}
+		for j := mx; j < nc; j++ {
+			m.k[2+r+n*j+i] = inc(nan)
+		}
+		dec(xi)
+	}
+	dec(nan)
+	s := mk(I, 2)
+	m.k[2+s] = nc
+	m.k[3+s] = n
+	r = tak(s, r)
+	for i := k(0); i < nc; i++ {
+		m.k[2+r+i] = uf(m.k[2+r+i])
 	}
 	return decr(x, r)
 }
@@ -1539,6 +1557,58 @@ func kst(x k) (r k) { // `k@x
 	}
 	return decr(x, r)
 }
+func mat(x k) (r k) { panic("nyi") }
+
+/*
+func mat(x k) (r k) { // `m@x
+	t, n := typ(x)
+	nc, nr := k(0), k(0)
+	if t == L {
+		r = mk(L, n)
+		nc, nr = k(0), n
+		for i := k(0); i < n; i++ {
+			xi := inc(m.k[2+x+i])
+			xxt, xxn := typ(xi)
+			switch {
+			case xxt < L && xxn == atom:
+				m.k[2+r+i] = enl(str(xi))
+			case xxt < L:
+				m.k[2+r+i] = str(xi)
+			default:
+				m.k[2+r+i] = enl(kst(xi))
+			}
+			if n := m.k[m.k[2+r+i]] & atom; n > nc {
+				nc = n
+			}
+		}
+		dec(x)
+	} else if t == A {
+		panic("type")
+	} else {
+		return kst(x)
+	}
+	pr(r, "R")
+	for j := k(0); j < nc; j++ {
+		mx := k(0)
+		for i := k(0); i < nr; i++ {
+			if d := nc - m.k[2+r+i]&atom; d != 0 {
+				m.k[2+r+i] = lcat(m.k[2+r+i], tak(mki(d), mk(L, 0)))
+			}
+			if n := m.k[2+j+m.k[2+r+i]] & atom; n > mx {
+				mx = n
+			}
+		}
+		for i := k(0); i < nr; i++ {
+			m.k[2+j+m.k[2+r+i]] = pad(mki(mx), m.k[2+j+m.k[2+r+i]])
+		}
+	}
+
+	for i := k(0); i < nr; i++ {
+		m.k[2+r+i] = jon(mkc(' '), m.k[2+r+i])
+	}
+	return r
+}
+*/
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
 }
@@ -2171,7 +2241,7 @@ func cut(x, y k) (r k) { // x_y
 }
 func cst(x, y k) (r k) { // x$y
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt == C && yn != atom {
+	if xt == I && xn == atom && yt < L && yn != atom {
 		return decr(x, pad(m.k[2+x], y))
 	} else if xt != S || xn != atom {
 		panic("type")
@@ -2210,7 +2280,11 @@ func cst(x, y k) (r k) { // x$y
 	return decr(x, to(y, t)) // TODO other conversions?
 }
 func pad(n, y k) (r k) { // n$y
-	yn, yp := m.k[y]&atom, 8+y<<2
+	t, yn := typ(y)
+	if t > S || yn == atom { // k7 allows only C
+		panic("type")
+	}
+	yp := ptr(y, t)
 	mi, ma := yp, yp+yn
 	if yn == n {
 		return y
@@ -2218,13 +2292,15 @@ func pad(n, y k) (r k) { // n$y
 		n = k(-i(n))
 		yp += yn - n
 	}
-	r = mk(C, n)
-	rp := 8 + r<<2
+	r = mk(t, n)
+	rp, na, cp := ptr(r, t), nax[t], cpx[t]
 	for i := k(0); i < n; i++ {
 		if yp+i < mi || yp+i >= ma {
-			m.c[rp+i] = ' '
+			na(rp + i)
+			//m.c[rp+i] = ' '
 		} else {
-			m.c[rp+i] = m.c[yp+i]
+			cp(rp+i, yp+i)
+			//m.c[rp+i] = m.c[yp+i]
 		}
 	}
 	return decr(y, r)
@@ -2297,6 +2373,8 @@ func atx(x, y k) (r k) { // x@y
 			return prs(y)
 		case 'k':
 			return kst(y)
+		case 'm':
+			return mat(y)
 		default:
 			panic("class")
 		}
