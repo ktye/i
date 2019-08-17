@@ -18,7 +18,7 @@ const ref = `
 09 = grp eql    29 9 nil nil    49 nrm  norm  129 nrq 2 norm
 
 10 ! til key    30 ' qtc key    50 rel  real  130 mkz cmplx
-11 ~ not mch    31 / slc sla    51 ima  imag  131
+11 ~ not mch    31 / slc sla    51 ima  imag  131 fns find
 12 , enl cat    32 \ bsc bsl    52 phi  phase 132
 13 ^ srt ept    33 ' ech ecd    53 cnj  conj  133
 14 # cnt tak    34 / ovr ovi    54 cnd  cond  134
@@ -114,6 +114,7 @@ func ini() { // start function
 	builtin(o+8, "abs")
 	builtin(o+9, "norm")
 	builtin(o+10, "cmplx")
+	builtin(o+11, "find")
 	builtin(o+15, "expi")
 	builtin(o+17, "avg")
 	builtin(o+18, "med")
@@ -2248,6 +2249,38 @@ func fnd(x, y k) (r k) { // x?y
 			}
 		}
 		m.k[2+j+r] = n
+	}
+	return decr2(x, y, r)
+}
+func fns(x, y k) (r k) { // x find y
+	xt, yt, xn, yn := typs(x, y)
+	if xt != yt || xt != C || xn == atom || yn == atom {
+		panic("type")
+	}
+	xp, yp := 8+x<<2, 8+y<<2
+	r = mk(L, 0)
+	for i := k(0); i < xn; {
+		if m.c[xp+i] == m.c[yp] {
+			n := k(1)
+			for j := k(1); j < yn; j++ {
+				if m.c[xp+i+j] == m.c[yp+j] {
+					n++
+				} else {
+					break
+				}
+			}
+			if n == yn {
+				ri := mk(I, 2)
+				m.k[2+ri] = i
+				m.k[3+ri] = yn
+				r = lcat(r, ri)
+				i += yn
+			} else {
+				i++
+			}
+		} else {
+			i++
+		}
 	}
 	return decr2(x, y, r)
 }
@@ -5422,7 +5455,7 @@ func init() {
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, nil, nil, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, nil, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }
