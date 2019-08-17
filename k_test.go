@@ -447,6 +447,10 @@ func TestK(t *testing.T) {
 		{"`m@+`abc`d!(1 2;3 4)", `("abc d";"--- -";"1   3";"2   4")`},
 		{"`m@+`abc`d!(1 2;3.2 2p)", `("abc d       ";"--- --------";"1   3.2     ";"2   6.283185")`},
 		{"`m@((1.2 3);(4 5f))", `("1.2 3";"4   5")`},
+		{"0+`hex?\"ffFF\"", "255 255"},
+		{"`hex?`hex \"abc\"", `"abc"`},
+		{"`hex \"abc\"", `"616263"`},
+		{"`hex \"a\"", `"61"`},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

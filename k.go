@@ -1557,7 +1557,7 @@ func kst(x k) (r k) { // `k@x
 	}
 	return decr(x, r)
 }
-func mat(x k) (r k) { // `m@x
+func mat(x k) (r k) { // `m@x (should be implemented in k)
 	t, n := typ(x)
 	if t == L {
 		r = mk(L, n)
@@ -2339,6 +2339,14 @@ func pad(n, y k) (r k) { // n$y
 }
 func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
+	if t == S && yt != S {
+		switch sym(8 + x<<2) {
+		case uint64('h')<<56 | uint64('e')<<48 | uint64('x')<<40:
+			return decr(x, xeh(y))
+		default:
+			panic("type")
+		}
+	}
 	if xn == atom || t != yt {
 		panic("type")
 	}
@@ -2396,17 +2404,19 @@ func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
 		x = str(x)
-		if m.k[x]&atom != 1 {
+		xp := 8 + x<<2
+		if m.k[x]&atom == 3 && m.c[xp] == 'h' && m.c[xp+1] == 'e' && m.c[xp+2] == 'x' {
+			return decr(x, hex(y))
+		} else if m.k[x]&atom != 1 {
 			panic("class")
 		}
-		dec(x)
-		switch m.c[8+x<<2] {
+		switch m.c[xp] {
 		case 'p':
-			return prs(y)
+			return decr(x, prs(y))
 		case 'k':
-			return kst(y)
+			return decr(x, kst(y))
 		case 'm':
-			return mat(y)
+			return decr(x, mat(y))
 		default:
 			panic("class")
 		}
@@ -2506,6 +2516,36 @@ func atx(x, y k) (r k) { // x@y
 	default:
 		panic("nyi atx")
 	}
+}
+func hex(x k) (r k) { // `hex@x
+	t, n := typ(x)
+	if t != C {
+		panic("type")
+	}
+	n = atm1(n)
+	r = mk(C, 2*n)
+	rp, xp := ptr(r, C), ptr(x, C)
+	for i := k(0); i < n; i++ {
+		m.c[rp+2*i], m.c[rp+2*i+1] = hxb(m.c[xp+i])
+	}
+	return decr(x, r)
+}
+func xeh(x k) (r k) { // `hex?x
+	t, n := typ(x)
+	if t != C || n%2 != 0 {
+		panic("type")
+	}
+	r = mk(C, n/2)
+	xp, rp := ptr(x, C), ptr(r, C)
+	for i := k(0); i < n/2; i++ {
+		h := m.c[xp+2*i]
+		l := m.c[xp+2*i+1]
+		if !crHx(h) || !(crHx(l)) {
+			panic("value")
+		}
+		m.c[rp+i] = (xtoc(h) << 4) | xtoc(l)
+	}
+	return decr(x, r)
 }
 func cal(x, y k) (r k) { // x.y
 	xt, _, xn, yn := typs(x, y)
