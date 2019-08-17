@@ -2170,7 +2170,9 @@ func cut(x, y k) (r k) { // x_y
 }
 func cst(x, y k) (r k) { // x$y
 	xt, yt, xn, yn := typs(x, y)
-	if xt != S || xn != atom {
+	if xt == I && xn == atom && yt == C && yn != atom {
+		return decr(x, pad(m.k[2+x], y))
+	} else if xt != S || xn != atom {
 		panic("type")
 	}
 	if yt == L && yn > 0 {
@@ -2205,6 +2207,26 @@ func cst(x, y k) (r k) { // x$y
 		panic("type")
 	}
 	return decr(x, to(y, t)) // TODO other conversions?
+}
+func pad(n, y k) (r k) { // n$y
+	yn, yp := m.k[y]&atom, 8+y<<2
+	mi, ma := yp, yp+yn
+	if yn == n {
+		return y
+	} else if i(n) < 0 {
+		n = k(-i(n))
+		yp += yn - n
+	}
+	r = mk(C, n)
+	rp := 8 + r<<2
+	for i := k(0); i < n; i++ {
+		if yp+i < mi || yp+i >= ma {
+			m.c[rp+i] = ' '
+		} else {
+			m.c[rp+i] = m.c[yp+i]
+		}
+	}
+	return decr(y, r)
 }
 func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
