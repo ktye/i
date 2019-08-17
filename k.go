@@ -1557,15 +1557,10 @@ func kst(x k) (r k) { // `k@x
 	}
 	return decr(x, r)
 }
-func mat(x k) (r k) { panic("nyi") }
-
-/*
 func mat(x k) (r k) { // `m@x
 	t, n := typ(x)
-	nc, nr := k(0), k(0)
 	if t == L {
 		r = mk(L, n)
-		nc, nr = k(0), n
 		for i := k(0); i < n; i++ {
 			xi := inc(m.k[2+x+i])
 			xxt, xxn := typ(xi)
@@ -1577,38 +1572,77 @@ func mat(x k) (r k) { // `m@x
 			default:
 				m.k[2+r+i] = enl(kst(xi))
 			}
-			if n := m.k[m.k[2+r+i]] & atom; n > nc {
-				nc = n
+		}
+	} else if t == A && n == atom {
+		r = str(inc(m.k[2+x]))
+		v := m.k[3+x]
+		if t, n := typ(r); t != L {
+			panic("type")
+		} else {
+			mx := k(0)
+			for i := k(0); i < n; i++ {
+				if nn := m.k[m.k[2+r+i]] & atom; nn > mx {
+					mx = nn
+				}
+			}
+			for i := k(0); i < n; i++ {
+				m.k[2+r+i] = cat(cat(pad(mx, m.k[2+r+i]), mkc(':')), kst(atx(inc(v), mki(i))))
 			}
 		}
-		dec(x)
+		return decr(x, r)
 	} else if t == A {
-		panic("type")
-	} else {
-		return kst(x)
-	}
-	pr(r, "R")
-	for j := k(0); j < nc; j++ {
-		mx := k(0)
-		for i := k(0); i < nr; i++ {
-			if d := nc - m.k[2+r+i]&atom; d != 0 {
-				m.k[2+r+i] = lcat(m.k[2+r+i], tak(mki(d), mk(L, 0)))
+		nc := m.k[m.k[2+x]] & atom
+		h := str(inc(m.k[2+x]))
+		a := mk(L, 0)
+		for i := k(0); i < nc; i++ {
+			r = str(atx(inc(m.k[3+x]), mki(i)))
+			r = cat(enl(inc(m.k[2+h+i])), r)
+			mx := k(0)
+			for j := k(0); j < m.k[r]&atom; j++ {
+				if nn := m.k[m.k[2+r+j]] & atom; nn > mx {
+					mx = nn
+				}
 			}
-			if n := m.k[2+j+m.k[2+r+i]] & atom; n > mx {
+			for j := k(0); j < m.k[r]&atom; j++ {
+				m.k[2+r+j] = pad(mx, m.k[2+r+j])
+			}
+			a = lcat(a, r)
+		}
+		dec(h)
+		a = flp(a)
+		b := mk(L, nc)
+		for i := k(0); i < nc; i++ {
+			m.k[2+b+i] = take(m.k[m.k[2+i+m.k[2+a]]]&atom, 0, mkc('-'))
+		}
+		a = insert(a, b, 1)
+		sep := mkc(' ')
+		for i := k(0); i < m.k[a]&atom; i++ {
+			m.k[2+a+i] = jon(inc(sep), m.k[2+a+i])
+		}
+		return decr2(x, sep, a)
+	} else {
+		return enl(kst(x))
+	}
+	r = flp(r) // " "/:+n$+r (join flip pad flip)
+	for i := k(0); i < m.k[r]&atom; i++ {
+		ri := m.k[2+r+i]
+		mx, nc := k(0), m.k[ri]&atom
+		for j := k(0); j < nc; j++ {
+			if n := m.k[m.k[2+j+ri]] & atom; n > mx {
 				mx = n
 			}
 		}
-		for i := k(0); i < nr; i++ {
-			m.k[2+j+m.k[2+r+i]] = pad(mki(mx), m.k[2+j+m.k[2+r+i]])
+		for j := k(0); j < nc; j++ {
+			m.k[2+j+ri] = pad(mx, m.k[2+j+ri])
 		}
 	}
-
-	for i := k(0); i < nr; i++ {
-		m.k[2+r+i] = jon(mkc(' '), m.k[2+r+i])
+	r = flp(r)
+	sep := mkc(' ')
+	for i := k(0); i < m.k[r]&atom; i++ {
+		m.k[2+r+i] = jon(inc(sep), m.k[2+r+i])
 	}
-	return r
+	return decr2(x, sep, r)
 }
-*/
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
 }
@@ -2297,10 +2331,8 @@ func pad(n, y k) (r k) { // n$y
 	for i := k(0); i < n; i++ {
 		if yp+i < mi || yp+i >= ma {
 			na(rp + i)
-			//m.c[rp+i] = ' '
 		} else {
 			cp(rp+i, yp+i)
-			//m.c[rp+i] = m.c[yp+i]
 		}
 	}
 	return decr(y, r)
@@ -3072,6 +3104,10 @@ func cmd(x k) (r k) {
 		return decr(x, hlp())
 	case 'l':
 		return lod(trm(x))
+	case 'm': // \m x (matrix display)
+		w := table[21+dyad].(func(k, k) k)
+		dec(w(mku(0), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
+		return mk(N, atom)
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {

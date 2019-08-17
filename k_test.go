@@ -34,11 +34,6 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-
-		//{"`m@((1.2 3);(4 5f))", `("1.2 3";"4   5")`},
-		{`"aaabaaabaaa" find "aa"`, "(0 2;4 2;8 2)"},
-		{`"aabcde" find "abc"`, ",1 3"},
-		{`"abc" find ,"d"`, "()"},
 		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
@@ -445,6 +440,13 @@ func TestK(t *testing.T) {
 		{".95 med rand -1000", "1.697773"},      // (sqrt 2)*erfinv(-1+2*p) = 1.6448536269514722
 		{"-.95 med 3+2*rand -1000", "6.331052"}, // 6.289707
 		{"-0.95 med rand 1000i", "2.462811"},    // sqrt(-2*log(1-p)) = 2.448 (binormal 95%)
+		{`"aaabaaabaaa" find "aa"`, "(0 2;4 2;8 2)"},
+		{`"aabcde" find "abc"`, ",1 3"},
+		{`"abc" find ,"d"`, "()"},
+		{"`m@`abc`d!(1.23;4)", `("abc:1.23";"d  :4")`},
+		{"`m@+`abc`d!(1 2;3 4)", `("abc d";"--- -";"1   3";"2   4")`},
+		{"`m@+`abc`d!(1 2;3.2 2p)", `("abc d       ";"--- --------";"1   3.2     ";"2   6.283185")`},
+		{"`m@((1.2 3);(4 5f))", `("1.2 3";"4   5")`},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
