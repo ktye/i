@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"unsafe"
 )
@@ -2341,8 +2342,10 @@ func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
 	if t == S && yt != S {
 		switch sym(8 + x<<2) {
-		case uint64('h')<<56 | uint64('e')<<48 | uint64('x')<<40:
+		case 0x6865780000000000: // `hex
 			return decr(x, xeh(y))
+		case 0x6373760000000000: // `csv
+			return decr(x, vsc(0, y))
 		default:
 			panic("type")
 		}
@@ -2403,21 +2406,19 @@ func fns(x, y k) (r k) { // x find y
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
-		x = str(x)
-		xp := 8 + x<<2
-		if m.k[x]&atom == 3 && m.c[xp] == 'h' && m.c[xp+1] == 'e' && m.c[xp+2] == 'x' {
-			return decr(x, hex(y))
-		} else if m.k[x]&atom != 1 {
-			panic("class")
-		}
-		switch m.c[xp] {
-		case 'p':
+		switch sym(8 + x<<2) {
+		case 0x7000000000000000: // `p
 			return decr(x, prs(y))
-		case 'k':
+		case 0x6b00000000000000: // `k
 			return decr(x, kst(y))
-		case 'm':
+		case 0x6d00000000000000: // `m
 			return decr(x, mat(y))
+		case 0x6373760000000000: // `csv
+			return decr(x, csv(y))
+		case 0x6865780000000000: // `hex
+			return decr(x, hex(y))
 		default:
+			fmt.Printf("%x\n", sym(8+x<<2))
 			panic("class")
 		}
 	} else if xt > N {
@@ -2516,6 +2517,49 @@ func atx(x, y k) (r k) { // x@y
 	default:
 		panic("nyi atx")
 	}
+}
+func csv(x k) (r k) { // `csv@x
+	t, n := typ(x)
+	if t == L {
+		r = mk(L, 0)
+		for i := k(0); i < n; i++ {
+			if m.k[m.k[2+x+i]]>>28 == Z { // split complex columns into two: abs and angle (degree)
+				r = lcat(r, abs(inc(m.k[2+i+x])))
+				p := phi(inc(m.k[2+i+x]))
+				pp := ptr(p, F)
+				for j := k(0); j < atm1(m.k[p]&atom); j++ {
+					m.f[pp+j] *= 180.0 / math.Pi
+					if m.f[pp+j] < 0 {
+						m.f[pp+j] += 360.0
+					}
+				}
+				r = lcat(r, p)
+			} else {
+				r = lcat(r, inc(m.k[2+i+x]))
+			}
+		}
+		r = str(flp(r))
+		for i := k(0); i < m.k[r]&atom; i++ {
+			m.k[2+i+r] = jon(mkc(','), m.k[2+i+r])
+		}
+		return decr(x, r)
+	} else if t == A && n != atom {
+		h, nc := mk(L, 0), m.k[m.k[3+x]]&atom
+		for i := k(0); i < nc; i++ { // duplicate headers for complex data
+			h = lcat(h, str(atx(inc(m.k[2+x]), mki(i))))
+			if m.k[m.k[2+i+m.k[3+x]]]>>28 == Z {
+				h = lcat(h, str(atx(inc(m.k[2+x]), mki(i))))
+			}
+		}
+		r = csv(inc(m.k[3+x]))
+		r = insert(r, jon(mkc(','), h), 0)
+		return decr(x, r)
+	}
+	panic("type")
+}
+func vsc(x, y k) (r k) { // `csv y  x 0: y
+	// ("ii";"|")0:("2|3";"3|4";"4|5")
+	panic("nyi")
 }
 func hex(x k) (r k) { // `hex@x
 	t, n := typ(x)
