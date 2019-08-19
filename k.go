@@ -68,7 +68,27 @@ var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
 var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
 var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
-var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) { m.f[r] = f(i(m.k[x])) }, func(r, x k) { m.z[r] = complex(f(i(m.k[x])), 0) }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) { m.k[r] = k(i(f(m.f[x]))) }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) { m.k[r] = k(i(m.f[x<<1])) }, func(r, x k) { m.f[r] = m.f[x<<1] }}
+var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
+	m.f[r] = f(i(m.k[x]))
+	if i(m.k[x]) == NaI {
+		naF(r)
+	}
+}, func(r, x k) {
+	m.z[r] = complex(f(i(m.k[x])), 0)
+	if i(m.k[x]) == NaI {
+		naF(r << 1)
+	}
+}, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) {
+	m.k[r] = k(i(f(m.f[x])))
+	if math.IsNaN(m.f[x]) {
+		naI(r)
+	}
+}, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) {
+	m.k[r] = k(i(m.f[x<<1]))
+	if math.IsNaN(m.f[x<<1]) {
+		naI(r)
+	}
+}, func(r, x k) { m.f[r] = m.f[x<<1] }}
 
 func ini() { // start function
 	m.f = make([]f, 1<<13)
@@ -2301,8 +2321,27 @@ func cst(x, y k) (r k) { // x$y
 		return decr(y, r)
 	}
 	s := c(sym(8+x<<2) >> 56)
-	if (s == 0 || s == 'n') && yt == C { // `$x
-		return decr(x, c2s(y))
+	if yt == C { // strconv
+		if s == 0 || s == 'n' { // `$x `n|x
+			return decr(x, c2s(y))
+		}
+		num, o := aton(m.c[8+y<<2 : atm1(yn)+8+y<<2])
+		if !o {
+			dec(num)
+			num = mk(I, atom)
+			naI(2 + num)
+		}
+		switch s {
+		case 'i': // `i$x
+			r = to(num, I)
+		case 'f':
+			r = to(num, F)
+		case 'z':
+			r = to(num, Z)
+		default:
+			panic("value")
+		}
+		return decr2(x, y, r)
 	}
 	t, o := k(0), k(169)
 	for i := o; i < o+15; i++ {
@@ -2576,7 +2615,6 @@ func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
 }
 */
 func vsc(x, y k) (r k) { return kxy(mks(".vsc"), x, y) } // `csv y  x 0: y, ("ii";"|")0:("2|3";"3|4";"4|5")
-// TODO: .vsc: `i$"12" → 49 50 not 12 (use .)
 // TODO: ignore " " or "-"
 // TODO: complex
 // TODO: autodetect t and s
@@ -5179,91 +5217,12 @@ func xtoc(x c) c {
 		return 10 + x - 'a'
 	}
 }
-func pNum(b []byte) (r k) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
-	if len(b) > 1 && b[len(b)-1] == 'p' { // 2p→2*π
-		r = pNum(b[:len(b)-1])
-		if m.k[r]>>28 == I {
-			m.f[1+r>>1] = f(i(m.k[2+r])) * math.Pi
-			m.k[r] = F<<28 | atom
-		} else {
-			m.f[1+r>>1] *= math.Pi
-		}
-		return r
+func pNum(b []byte) (r k) {
+	r, o := aton(b)
+	if !o {
+		panic("number")
 	}
-	for i, c := range b {
-		if c == 'i' || c == 'a' {
-			r = to(pNum(b[:i]), Z)
-			if i == len(b)-1 {
-				return r
-			}
-			y := to(pNum(b[i+1:]), F)
-			if c == 'i' {
-				m.f[3+r>>1] = m.f[1+y>>1]
-			} else {
-				var s, c f
-				switch a := m.f[1+y>>1]; a { // avoid rounding errors
-				case 0:
-					s, c = 0, 1
-				case 90:
-					s, c = 1, 0
-				case 180:
-					s, c = 0, -1
-				case 270:
-					s, c = -1, 0
-				default:
-					s, c = math.Sincos(math.Pi * a / 180.0)
-				}
-				m.f[2+r>>1], m.f[3+r>>1] = m.f[2+r>>1]*c, m.f[2+r>>1]*s
-			}
-			dec(y)
-			return r
-		}
-	}
-	if len(b) == 2 && b[0] == '0' { // 0N 0n 0w
-		if b[1] == 'N' {
-			return mki(0x80000000)
-		} else if b[1] == 'n' {
-			r = mk(F, atom)
-			naF(1 + r>>1)
-			return r
-		} else if b[1] == 'w' {
-			r = mku(0x7FF0000000000000)
-			m.k[r] = F<<28 | atom
-			return r
-		}
-	} else if len(b) == 3 && b[0] == '-' && b[1] == '0' && b[2] == 'w' {
-		r = mku(0xFFF0000000000000)
-		m.k[r] = F<<28 | atom
-		return r
-	}
-	f := 0.0
-	if len(b) > 1 {
-		if c := b[len(b)-1]; c == 'f' || c == '.' {
-			b = b[:len(b)-1]
-			f = 1.0
-		} else if b[0] == '.' {
-			b = b[1:]
-			if len(b) > 21 {
-				panic("number")
-			}
-			f = 1.0 / e10[len(b)]
-		}
-	}
-	if x, o := atoi(b); o {
-		if f == 0 {
-			r = mki(k(i(x)))
-		} else {
-			r = mk(F, atom)
-			m.f[1+r>>1] = f * float64(x)
-		}
-		return r
-	}
-	if x, o := atof(b); o {
-		r = mk(F, atom)
-		m.f[1+r>>1] = x
-		return r
-	}
-	panic("parse number")
+	return r
 }
 func pStr(b []byte) (r k) { // "a"|"a\nbc": `c|`C
 	r = pQot(b)
@@ -5621,6 +5580,106 @@ func l3(x, y, z k) (r k) {
 	r = mk(L, 3)
 	m.k[2+r], m.k[3+r], m.k[4+r] = x, y, z
 	return r
+}
+func aton(b []byte) (r k, o bool) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
+	if len(b) == 0 {
+		return r, false
+	}
+	if len(b) > 1 && b[len(b)-1] == 'p' { // 2p→2*π
+		r, o = aton(b[:len(b)-1])
+		if !o {
+			return r, false
+		}
+		if m.k[r]>>28 == I {
+			m.f[1+r>>1] = f(i(m.k[2+r])) * math.Pi
+			m.k[r] = F<<28 | atom
+		} else {
+			m.f[1+r>>1] *= math.Pi
+		}
+		return r, true
+	}
+	for i, c := range b {
+		if c == 'i' || c == 'a' {
+			r, o = aton(b[:i])
+			if !o {
+				return r, false
+			}
+			r = to(r, Z)
+			if i == len(b)-1 {
+				return r, true
+			}
+			y, o := aton(b[i+1:])
+			if !o {
+				return y, false
+			}
+			y = to(y, F)
+			if c == 'i' {
+				m.f[3+r>>1] = m.f[1+y>>1]
+			} else {
+				var s, c f
+				switch a := m.f[1+y>>1]; a { // avoid rounding errors
+				case 0:
+					s, c = 0, 1
+				case 90:
+					s, c = 1, 0
+				case 180:
+					s, c = 0, -1
+				case 270:
+					s, c = -1, 0
+				default:
+					s, c = math.Sincos(math.Pi * a / 180.0)
+				}
+				m.f[2+r>>1], m.f[3+r>>1] = m.f[2+r>>1]*c, m.f[2+r>>1]*s
+			}
+			dec(y)
+			return r, true
+		}
+	}
+	if len(b) == 2 && b[0] == '0' { // 0N 0n 0w
+		if b[1] == 'N' {
+			return mki(0x80000000), true
+		} else if b[1] == 'n' {
+			r = mk(F, atom)
+			naF(1 + r>>1)
+			return r, true
+		} else if b[1] == 'w' {
+			r = mku(0x7FF0000000000000)
+			m.k[r] = F<<28 | atom
+			return r, true
+		}
+	} else if len(b) == 3 && b[0] == '-' && b[1] == '0' && b[2] == 'w' {
+		r = mku(0xFFF0000000000000)
+		m.k[r] = F<<28 | atom
+		return r, true
+	}
+	f := 0.0
+	if len(b) > 1 {
+		if c := b[len(b)-1]; c == 'f' || c == '.' {
+			b = b[:len(b)-1]
+			f = 1.0
+		} else if b[0] == '.' {
+			b = b[1:]
+			if len(b) > 21 {
+				return mk(N, atom), false
+			}
+			f = 1.0 / e10[len(b)]
+		}
+	}
+	if x, o := atoi(b); o {
+		if f == 0 {
+			r = mki(k(i(x)))
+		} else {
+			r = mk(F, atom)
+			m.f[1+r>>1] = f * float64(x)
+		}
+		return r, true
+	}
+	if x, o := atof(b); o {
+		r = mk(F, atom)
+		m.f[1+r>>1] = x
+		return r, true
+	}
+	return mk(N, atom), false
 }
 func atoi(b []c) (int, bool) {
 	n, s := 0, 1
