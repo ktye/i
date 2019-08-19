@@ -7,7 +7,7 @@ import (
 )
 
 const ref = `
-00 : idn asn    20 0 rdl nil    40 exi exit  120 ... in       60   140
+00 : idn asn    20 0 rdl wrl    40 exi exit  120 ... in       60   140
 01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61   141
 02 - neg sub    22 2 nil nil    42 sin       122 bin          62   142
 03 * fst mul    23 3 nil nil    43 cos       123 ... like     63   143
@@ -2558,7 +2558,33 @@ func csv(x k) (r k) { // `csv@x
 	panic("type")
 }
 func vsc(x, y k) (r k) { // `csv y  x 0: y
+/*
+	yt, yn := typ(y)
+	if yt != L || yn < 1 {
+		panic("type")
+	}
+	f, s := k(0), k(0)
+	if x != 0 {
+		if xt, xn := typ(x); xt == C {
+			f = x
+		} else if xt == L && xn == 2 {
+			f = m.k[2+x]
+			s = m.k[3+x]
+			if st, sn := typ(m.k[s]); st != C || sn != atom {
+				panic("type")
+			}
+		}
+	}
+	if s == 0 {
+		sx := mk(C, 4)
+		m.c[8+sx<<8] = ','
+		m.c[9+sx<<8] = ';'
+		m.c[10+sx<<8] = '\t'
+		m.c[11+sx<<8] = '|'
+		sum(eql(inc(m.k[2+x])), mkc(','))
+	}
 	// ("ii";"|")0:("2|3";"3|4";"4|5")
+*/
 	panic("nyi")
 }
 func hex(x k) (r k) { // `hex@x
@@ -3168,6 +3194,12 @@ func whls(f, x, y k) (r k) { // g f\y
 func rdl(x k) (r k) { // 0:x
 	rd := table[21].(func(k) k)
 	return spl(mku(0), rd(x))
+}
+func wrl(x, y k) (r k) { // x 0:y
+	if m.k[x]>>28 == L {
+		return vsc(x, y)
+	}
+	panic("nyi")
 }
 func lod(x k) (r k) {
 	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), mk(N, atom)))
@@ -5655,7 +5687,7 @@ func init() {
 		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
+		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
 		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, nil, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
