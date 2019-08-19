@@ -34,6 +34,12 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		//{"(\"ii\";\",\")0:(\"1,2,3\";\"4,5,6\")", "(1 4;2 5;3 6)"},
+		//{"`csv?(\"1,2,3\";\"4,5,6\")", "(1 4;2 5;3 6)"},
+		//{"`csv?(\"abc|def\";\"1.2|3\";\"4.5|6\")", "+`abc`def!(1.2 4.5;3 6)"},
+		//{"`csv?(\"0.7|8\";\"1.2|3\";\"4.5|6\")", "+`abc`def!(0.7 1.2 4.5;8 3 6)"},
+		//{`"fi"0:("abc|def";"1.2|3";"4.5|")`, "+`abc`def!(1.2 4.5;3 0N)"},
+		//{`"fz ns"0:("a,b,c,d,e,f,g";"1,2,30,ign,abc,ABC,ign";"3,4,40,ign,def,DEF,ign")`, "+`a`b`e`f!(1 3f;2a30 4a40;`abc`def;(\"ABC\";\"DEF\"))"},
 		// {"t:+`a`b!(1 2;3 4);t~t[]", "1"},
 		//{"x:3 3#!9;x[1 2;0]", "0 1 2"}, // TODO matrix indexing
 		//{"x:3 3#!9;x[;0 2]", "0 2"},
@@ -86,6 +92,7 @@ func TestK(t *testing.T) {
 		{"`a`b`c^`b", "`a`c"},
 		{"`a`b`c^,`b", "`a`c"},
 		{`"",!0`, `""`},
+		{"!2 3", "(0 1 0 1 0 1;0 1 2 0 1 2)"},
 		{"2#!3", "0 1"},
 		{"2#!30", "0 1"},
 		{"5#!3", "0 1 2 0 1"},
@@ -341,7 +348,7 @@ func TestK(t *testing.T) {
 		{"rand -3", "0.0856132 -1.800962 1.698196"},
 		{"rand 2i", "1.623531a273.0228 2.475345a136.6822"},
 		{"rand \"a\"+`c$!26", `"e"`},
-		{"3 rand 2f", "0.1833065 0.9024364 0.5136416"},
+		{"3 rand 2f", "0.366613 1.804873 1.027283"},
 		{"3 rand 10", "1 9 5"},
 		{"4 rand \"a\"+`c$!26", `"exng"`},
 		{"-5 rand !6", "3 2 4 0 1"},
@@ -453,8 +460,9 @@ func TestK(t *testing.T) {
 		{"`hex \"abc\"", `"616263"`},
 		{"`hex \"a\"", `"61"`},
 		{"`csv@(!3;4+!3f;`a`b`c)", `("0,4,a";"1,5,b";"2,6,c")`},
-		{"`csv@(!3;.1a30 .2a40 .3a50;`a`b`c)", `("0,0.1,30,a";"1,0.2,40,b";"2,0.3,50,c")`},
-		{"`csv@+`I`Z`S!(!3;.1a30 .2a40 .3a50;`a`b`c)", `("I,Z,Z,S";"0,0.1,30,a";"1,0.2,40,b";"2,0.3,50,c")`},
+		{"`csv@+`I`F`S!(!3;.1 .2 .3;`a`b`c)", `("I,F,S";"0,0.1,a";"1,0.2,b";"2,0.3,c")`},
+		//{"`csv@(!3;.1a30 .2a40 .3a50;`a`b`c)", `("0,0.1,30,a";"1,0.2,40,b";"2,0.3,50,c")`},
+		//{"`csv@+`I`Z`S!(!3;.1a30 .2a40 .3a50;`a`b`c)", `("I,Z,Z,S";"0,0.1,30,a";"1,0.2,40,b";"2,0.3,50,c")`},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
@@ -589,6 +597,7 @@ func TestParse(t *testing.T) {
 				if occ {
 					dec(x)
 				}
+				clear()
 				check(t)
 			}
 		}
@@ -635,6 +644,7 @@ func TestNumMonad(t *testing.T) {
 					t.Fatalf("[%d/%d]: expected: %v got %v (@%d)\n", j, i, tc.r[i], r, y)
 				}
 				dec(y)
+				clear()
 				check(t)
 			}
 		}
@@ -739,6 +749,7 @@ func TestMonad(t *testing.T) {
 				t.Fatalf("monad[%d]: expected: %v got %v (@%d)\n", j, tc.r, r, y)
 			}
 			dec(y)
+			clear()
 			check(t)
 		}
 	}
@@ -784,6 +795,7 @@ func TestDyad(t *testing.T) {
 				t.Fatalf("dyad[%d]: expected: %v got %v\n", j, tc.r, r)
 			}
 			dec(z)
+			clear()
 			check(t)
 		}
 	}
@@ -894,6 +906,7 @@ func TestTo(t *testing.T) {
 				t.Fatalf("expected: %v got %v\n", tc.r, r)
 			}
 			dec(y)
+			clear()
 			check(t)
 		}
 	}

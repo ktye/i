@@ -92,38 +92,18 @@ func ini() { // start function
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	o := c(40) // monads
-	builtin(o+0, "exit")
-	builtin(o+1, "sqrt")
-	builtin(o+2, "sin")
-	builtin(o+3, "cos")
-	builtin(o+4, "dev")
-	builtin(o+10, "real")
-	builtin(o+11, "imag")
-	builtin(o+12, "phase")
-	builtin(o+13, "conj")
-	builtin(o+14, "cond")
-	builtin(o+16, "diag")
+	builtins(o, "exit,sqrt,sin,cos,dev")
+	builtins(o+10, "real,imag,phase,conj,cond,nyi15,diag")
 	o += c(dyad) // dyads
-	builtin(o+0, "in")
-	builtin(o+1, "within")
-	builtin(o+2, "bin")
-	builtin(o+3, "like")
-	builtin(o+4, "del")
-	builtin(o+5, "log")
-	builtin(o+6, "exp")
-	builtin(o+7, "rand")
-	builtin(o+8, "abs")
-	builtin(o+9, "norm")
-	builtin(o+10, "cmplx")
-	builtin(o+11, "find")
-	builtin(o+15, "expi")
-	builtin(o+17, "avg")
-	builtin(o+18, "med")
-	builtin(o+19, "var")
+	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,nyi12,nyi13,nyi14,expi,nyi16,avg,med,var")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
+	mkk(".odo", `{+x\'!*/x}`)
+	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
+	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
 }
+
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
 func cpF(dst, src k)  { m.f[dst] = m.f[src] }
@@ -237,12 +217,39 @@ func mv(dst, src k) {
 	m.k[dst] = t<<28 | n // restore header
 	m.k[1+dst] = rc
 }
-func builtin(code c, s string) {
-	key, val := mk(S, atom), mk(C, 1)
-	mys(8+key<<2, btou([]byte(s)))
-	m.c[8+val<<2] = code
-	m.k[2+m.k[3]] = cat(m.k[2+m.k[3]], key)
-	m.k[3+m.k[3]] = cat(m.k[3+m.k[3]], val)
+func builtins(code c, s string) {
+	v := spl(mkc(','), mkb([]byte(s)))
+	for i := c(0); i < c(m.k[v]&atom); i++ {
+		m.k[2+m.k[3]] = cat(m.k[2+m.k[3]], c2s(inc(m.k[2+v+k(i)])))
+		m.k[3+m.k[3]] = cat(m.k[3+m.k[3]], enl(mkc(code+i)))
+	}
+	dec(v)
+}
+func mkk(s s, k s) { dec(asn(mks(s), mkb([]byte(k)), mk(N, atom))) } // store k implementation
+func kx(s, x k) (r k) { // exec monadic k implementation
+	f := lup(inc(s))
+	if m.k[f]>>28 == C { // cache on first call
+		f = asn(inc(s), evl(prs(f)), mk(N, atom))
+	}
+	dec(s)
+	if m.k[f]>>28 != N+1 {
+		println("tf", m.k[f]>>28)
+		panic("type")
+	}
+	return cal(f, enl(x))
+}
+func kxy(s, x, y k) (r k) { // execute dyadic k implementation
+	f := lup(inc(s))
+	if m.k[f]>>28 == C {
+		// f = asn(inc(s), evl(prs(f)), mk(N, atom))
+		f = evl(prs(f))
+	}
+	dec(s)
+	if m.k[f]>>28 != N+2 {
+		println("type", m.k[y]>>28)
+		panic("type")
+	}
+	return cal(f, l2(x, y))
 }
 func msl() { // update slice header after increasing m.f
 	f := *(*slice)(unsafe.Pointer(&m.f))
@@ -906,7 +913,7 @@ func grp(x k) (r k) { // =x
 func til(x k) (r k) { // !x
 	t, n := typ(x)
 	if n != atom {
-		panic("nyi !a")
+		return kx(mks(".odo"), x)
 	} else if t == A {
 		r = inc(m.k[2+x])
 		return decr(x, r)
@@ -2276,7 +2283,7 @@ func cut(x, y k) (r k) { // x_y
 }
 func cst(x, y k) (r k) { // x$y
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt < L && yn != atom {
+	if xt == I && xn == atom && yt < L && yn != atom { // [-]n$y (pad)
 		return decr(x, pad(m.k[2+x], y))
 	} else if xt != S || xn != atom {
 		panic("type")
@@ -2295,10 +2302,7 @@ func cst(x, y k) (r k) { // x$y
 	}
 	s := c(sym(8+x<<2) >> 56)
 	if (s == 0 || s == 'n') && yt == C { // `$x
-		yn = atm1(yn)
-		yc := 8 + y<<2
-		r = mku(btou(m.c[yc : yc+yn]))
-		return decr2(x, y, r)
+		return decr(x, c2s(y))
 	}
 	t, o := k(0), k(169)
 	for i := o; i < o+15; i++ {
@@ -2313,6 +2317,18 @@ func cst(x, y k) (r k) { // x$y
 		panic("type")
 	}
 	return decr(x, to(y, t)) // TODO other conversions?
+}
+func c2s(x k) (r k) { // `$c
+	if t, n := typ(x); t != C {
+		panic("type")
+	} else {
+		n = atm1(n)
+		if n > 8 {
+			n = 8
+		}
+		xp := 8 + x<<2
+		return decr(x, mku(btou(m.c[xp:xp+n])))
+	}
 }
 func pad(n, y k) (r k) { // n$y
 	t, yn := typ(y)
@@ -2345,7 +2361,7 @@ func fnd(x, y k) (r k) { // x?y
 		case 0x6865780000000000: // `hex
 			return decr(x, xeh(y))
 		case 0x6373760000000000: // `csv
-			return decr(x, vsc(0, y))
+			return decr(x, vsc(mk(N, atom), y))
 		default:
 			panic("type")
 		}
@@ -2518,7 +2534,8 @@ func atx(x, y k) (r k) { // x@y
 		panic("nyi atx")
 	}
 }
-func csv(x k) (r k) { // `csv@x
+func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
+/*
 	t, n := typ(x)
 	if t == L {
 		r = mk(L, 0)
@@ -2557,36 +2574,206 @@ func csv(x k) (r k) { // `csv@x
 	}
 	panic("type")
 }
-func vsc(x, y k) (r k) { // `csv y  x 0: y
+*/
+func vsc(x, y k) (r k) { return kxy(mks(".vsc"), x, y) } // `csv y  x 0: y, ("ii";"|")0:("2|3";"3|4";"4|5")
+// TODO: .vsc: `i$"12" → 49 50 not 12 (use .)
+// TODO: ignore " " or "-"
+// TODO: complex
+// TODO: autodetect t and s
 /*
-	yt, yn := typ(y)
-	if yt != L || yn < 1 {
-		panic("type")
-	}
-	f, s := k(0), k(0)
-	if x != 0 {
-		if xt, xn := typ(x); xt == C {
-			f = x
-		} else if xt == L && xn == 2 {
-			f = m.k[2+x]
-			s = m.k[3+x]
-			if st, sn := typ(m.k[s]); st != C || sn != atom {
+		yt, yn := typ(y)
+		if yt != L || yn < 1 {
+			panic("type")
+		}
+		for i := k(0); i < yn; i++ {
+			if t, n := typ(m.k[2+y+i]); t != C || n == atom {
 				panic("type")
 			}
 		}
-	}
-	if s == 0 {
-		sx := mk(C, 4)
-		m.c[8+sx<<8] = ','
-		m.c[9+sx<<8] = ';'
-		m.c[10+sx<<8] = '\t'
-		m.c[11+sx<<8] = '|'
-		sum(eql(inc(m.k[2+x])), mkc(','))
-	}
-	// ("ii";"|")0:("2|3";"3|4";"4|5")
-*/
-	panic("nyi")
+		f, s := k(0), k(0)
+		if x != 0 {
+			if xt, xn := typ(x); xt == C { // "sfn" 0:y
+				f = inc(x)
+			} else if xt == L && xn == 2 { // ("sfn";";") 0:y
+				f = inc(m.k[2+x])
+				if ft, fn := typ(m.k[f]); ft != C || fn == atom {
+					panic("type")
+				}
+				s = inc(m.k[3+x])
+				if st, sn := typ(m.k[s]); st != C || sn != atom {
+					panic("type")
+				}
+			} else {
+				panic("type")
+			}
+			dec(x)
+		}
+		if s == 0 { // autodetect separator
+			s = mkc(',')
+			var s0, s1, s2, s3 k
+			rw := m.k[2+y]
+			rp := ptr(rw, C)
+			for i := k(0); i < m.k[rw]&atom; i++ {
+				switch m.c[rp+i] {
+				case ',':
+					s0++
+				case ';':
+					s1++
+				case '\t':
+					s2++
+				case '|':
+					s3++
+				}
+			}
+			if s1 > s0 {
+				m.c[8+s<<2], s0 = ';', s1
+			}
+			if s2 > s0 {
+				m.c[8+s<<2], s0 = '\t', s2
+			}
+			if s3 > s0 {
+				m.c[8+s<<2] = '|'
+			}
+		}
+		nc := k(0)
+		if f == 0 { // autodetect format (2nd row)
+			pr(m.k[3+y], "2nd row")
+			rw := spl(inc(s), inc(m.k[3+y]))
+			pr(rw, "spl")
+			nc = m.k[rw] & atom
+			f = mk(C, nc)
+			for i := k(0); i < nc; i++ {
+				v := m.k[2+i+rw]
+				b := m.c[8+v<<2 : m.k[v]&atom+8+v<<2]
+				if _, o := atoi(b); o {
+					m.c[8+i+f<<2] = 'i'
+				} else {
+					if _, o := atof(b); o {
+						m.c[8+i+f<<2] = 'f'
+					} else {
+						m.c[8+i+f<<2] = 'c'
+					}
+				}
+			}
+		} else {
+			nc = m.k[f] & atom
+		}
+		pr(s, "sep")
+		pr(f, "f")
+
+		ff, j, nnc := mk(C, 2*nc), k(0), 2*nc // "z"→"ff"
+		for i := k(0); i < nc; i++ {
+			if c := m.c[8+i+f<<2]; c == 'z' {
+				m.c[8+j+ff<<2] = 'f'
+				m.c[9+j+ff<<2] = 'f'
+				j++
+			} else {
+				m.c[8+j+ff<<2] = c
+			}
+			j++
+		}
+		ff, nnc = srk(ff, C, nc, j), j
+		pr(ff, "ff")
+		tab := false
+		rw := spl(inc(s), inc(m.k[2+y]))
+		for i := k(0); i < nc; i++ { // detect table
+			if i > m.k[rw]&atom {
+				panic("size")
+			}
+			v := m.k[2+i+rw]
+			if fi := m.c[8+i+ff<<2]; fi == 'i' || fi == 'f' {
+				b := m.c[8+v<<2 : m.k[v]&atom+8+v<<2]
+				if _, o := atof(b); o == false {
+					tab = true
+					break
+				}
+			}
+		}
+		println("tab", tab)
+		h, o, ffp := k(0), k(0), 8+ff<<2
+		if tab {
+			o = 1
+			rw := spl(inc(s), inc(m.k[2+y]))
+			for i := k(0); i < nnc; i++ {
+				m.k[2+i+rw] = c2s(m.k[2+i+rw])
+			}
+			h = take(nnc, 0, rw)
+			pr(h, "h")
+		}
+		r = mk(L, yn-o)
+		iv, fv := mk(I, atom), mk(F, atom)
+		ip, fp := ptr(iv, I), ptr(fv, F)
+		for i := o; i < yn; i++ {
+			rw := spl(inc(s), inc(m.k[2+i+y]))
+			for k := k(0); k < nnc; k++ {
+				v := m.k[2+k+rw]
+				b := m.c[8+v<<2 : m.k[v]&atom+8+v<<2]
+				switch m.c[ffp+k] {
+				case 'c', ' ', '-':
+				case 's', 'n':
+					m.k[2+k+rw] = c2s(v)
+				case 'i':
+					if vi, ok := atoi(b); ok {
+						m.k[ip] = uint32(vi)
+					} else {
+						naI(ip)
+					}
+					dec(v)
+					m.k[2+k+rw] = mki(0)
+					cpI(ptr(m.k[2+k+rw], I), ip)
+				case 'f':
+					if vf, ok := atof(b); ok {
+						m.f[fp] = vf
+					} else {
+						naF(fp)
+					}
+					dec(v)
+					m.k[2+k+rw] = mk(F, atom)
+					cpF(ptr(m.k[2+k+rw], F), fp)
+				default:
+					panic("value")
+				}
+			}
+			m.k[2+r+i-o] = take(nnc, 0, rw)
+		}
+		dec(iv)
+		dec(fv)
+		pr(r, "R")
+		dec(s)
+		r = flp(r)
+		println("nnc nc", nnc, nc)
+		if nnc != nc { // combine complex columns
+			j := k(0)
+			idx := mk(I, nc)
+			for i := k(0); i < nc; i++ {
+				m.k[2+idx+i] = j
+				if m.c[8+i+f<<2] == 'z' {
+					p := m.k[3+j+j]
+					pp := ptr(p, F)
+					for k := k(0); k < m.k[p]&atom; k++ {
+						m.f[pp+k] *= math.Pi / 180.0
+					}
+					m.k[2+j+r] = rxp(m.k[2+j+r], inc(m.k[3+j+r]))
+					j++
+				}
+				j++
+			}
+			if tab {
+				h = atx(inc(idx), h)
+			}
+			r = atx(idx, r)
+		}
+		dec(f)
+		dec(ff)
+		if tab {
+			d := mk(A, atom)
+			m.k[2+d] = h
+			m.k[3+d] = r
+			r = flp(d)
+		}
+		return decr(y, r)
 }
+*/
 func hex(x k) (r k) { // `hex@x
 	t, n := typ(x)
 	if t != C {
@@ -3282,7 +3469,7 @@ func out(x k) {
 }
 func spl(x, y k) (r k) { // x\:y (split)
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt == I && yn == atom {
+	if xt == I && xn == atom && yt == I && yn == atom { // base\:n (encode)
 		return bnc(x, y)
 	}
 	if yt != C || yn == atom {
@@ -3315,7 +3502,7 @@ func spl(x, y k) (r k) { // x\:y (split)
 }
 func jon(x, y k) (r k) { // x/:y (join)
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt == I {
+	if xt == I && xn == atom && yt == I { // // base/:n (decode)
 		return bdc(x, y)
 	}
 	if yt != L {
@@ -3755,9 +3942,10 @@ func rol(x, y k) (r k) { // roll, deal
 				panic("type")
 			}
 			r = rnd(x)
-			c := m.f[1+y]
+			rp := ptr(r, F)
+			c := m.f[ptr(y, F)]
 			for i := k(0); i < m.k[r]&atom; i++ {
-				m.f[1+r+i] *= c
+				m.f[rp+i] *= c
 			}
 			return decr(y, r)
 		}
