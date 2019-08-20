@@ -119,6 +119,7 @@ func ini() { // start function
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
+	mkk(".flp", `{;t:,/x[;!n:|/#:'x];t@(n*!#x)+/:!n}`)
 	mkk(".odo", `{+x\'!*/x}`)
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
@@ -726,6 +727,7 @@ func flp(x k) (r k) { // +x
 	} else if t < L {
 		return x
 	}
+	// return kx(mks(".trp"), x) // TODO
 	ut, nc := k(0), k(1)
 	for i := k(0); i < n; i++ {
 		ti, ni := typ(m.k[2+x+i])
