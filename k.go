@@ -1,33 +1,32 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"unsafe"
 )
 
 const ref = `
-00 : idn asn    20 0 rdl wrl    40 exi exit  120 ... in       60   140
-01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61   141
-02 - neg sub    22 2 nil nil    42 sin       122 bin          62   142
-03 * fst mul    23 3 nil nil    43 cos       123 ... like     63   143
-04 % inv div    24 4 nil nil    44 dev       124 del          64   144
-05 & wer min    25 5 nil nil    45 log       125 lgn log      65   145
-06 | rev max    26 6 nil nil    46 exp       126 pow exp      66   146
-07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67   147
-08 > dst mor    28 8 nil nil    48 abs       128 abq 2 abs    68   148
-09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69   149
-                                                                       
-10 ! til key    30 ' qtc key    50 rel real  130 mkz cmplx    70   150
-11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71   151
-12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72   152
-13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73   153
-14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74   154
-15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75   155
-16 $ str cst    36 ' ecp epi    56 dia diag  136              76   156
-17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77   157
-18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78   158
-19 . val cal    39              59 vri var   139 cov var      79   159
+00 : idn asn    20 0 rdl wrl    40 exi exit  120 ... in       60 prm  140
+01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61      141
+02 - neg sub    22 2 nil nil    42 sin       122 bin          62      142
+03 * fst mul    23 3 nil nil    43 cos       123 ... like     63      143
+04 % inv div    24 4 nil nil    44 dev       124 del          64      144
+05 & wer min    25 5 nil nil    45 log       125 lgn log      65      145
+06 | rev max    26 6 nil nil    46 exp       126 pow exp      66      146
+07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67      147
+08 > dst mor    28 8 nil nil    48 abs       128 abq 2 abs    68      148
+09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69      149
+                                                                          
+10 ! til key    30 ' qtc key    50 rel real  130 mkz cmplx    70      150
+11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71      151
+12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72      152
+13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73      153
+14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74      154
+15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75      155
+16 $ str cst    36 ' ecp epi    56 dia diag  136              76      156
+17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77      157
+18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78      158
+19 . val cal    39              59 vri var   139 cov var      79      159
 `
 
 type c = byte
@@ -114,6 +113,7 @@ func ini() { // start function
 	o := c(40) // monads
 	builtins(o, "exit,sqrt,sin,cos,dev")
 	builtins(o+10, "real,imag,phase,conj,cond,nyi15,diag")
+	builtins(o+20, "prm")
 	o += c(dyad) // dyads
 	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
@@ -254,7 +254,6 @@ func kx(s, x k) (r k) { // exec monadic k implementation
 	}
 	dec(s)
 	if m.k[f]>>28 != N+1 {
-		println("tf", m.k[f]>>28)
 		panic("type")
 	}
 	return cal(f, enl(x))
@@ -262,12 +261,11 @@ func kx(s, x k) (r k) { // exec monadic k implementation
 func kxy(s, x, y k) (r k) { // execute dyadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C {
-		// f = asn(inc(s), evl(prs(f)), mk(N, atom))
-		f = evl(prs(f))
+		f = asn(inc(s), evl(prs(f)), mk(N, atom))
+		// f = evl(prs(f))
 	}
 	dec(s)
 	if m.k[f]>>28 != N+2 {
-		println("type", m.k[y]>>28)
 		panic("type")
 	}
 	return cal(f, l2(x, y))
@@ -350,7 +348,6 @@ func mtyp(x, n k) (t, cols k, eq bool) { // matrix type
 	for i := k(0); i < n; i++ {
 		tt, nn := typ(m.k[2+i+x])
 		if tt > Z {
-			println(tt)
 			panic("type")
 		}
 		if i == 0 {
@@ -630,7 +627,7 @@ func ns(rp, xp, yp, t, xn, yn, c k, f f2) {
 func idx(x, t k) i { // int from a numeric scalar (trunc, ignore imag)
 	switch t {
 	case C:
-		return i(m.c[8+x])
+		return i(m.c[8+x<<2])
 	case I:
 		return i(m.k[2+x])
 	case F:
@@ -2476,7 +2473,6 @@ func atx(x, y k) (r k) { // x@y
 		case 0x6865780000000000: // `hex
 			return decr(x, hex(y))
 		default:
-			fmt.Printf("%x\n", sym(8+x<<2))
 			panic("class")
 		}
 	} else if xt > N {
@@ -3968,6 +3964,43 @@ func hxk(x k) s {
 	}
 	return s(b)
 }
+func prm(x k) (r k) { // prm x (permutations)
+	t, n := typ(x)
+	if t < L && n == atom {
+		if idx(x, t) < 0 {
+			panic("type")
+		}
+		x = til(x)
+		n = m.k[x] & atom
+	} else if n == atom || t > Z {
+		panic("type")
+	}
+	z := mk(t, n)
+	mv(z, x)
+	return decr2(x, z, heap(z, n, mk(L, 0)))
+}
+func heap(x, n, r k) k {
+	t, xn := typ(x)
+	if n == 1 {
+		ri := mk(t, xn)
+		mv(ri, x)
+		return lcat(r, ri)
+	}
+	y := mk(t, atom)
+	xp, yp, cp := ptr(x, t), ptr(y, t), cpx[t]
+	for i := k(0); i < n; i++ {
+		r = heap(x, n-1, r)
+		xpi := xp + i
+		if n%2 == 1 {
+			xpi = xp
+		}
+		cp(yp, xpi)
+		cp(xpi, xp+n-1)
+		cp(xp+n-1, yp)
+	}
+	dec(y)
+	return r
+}
 func rol(x, y k) (r k) { // roll, deal
 	xt, yt, xn, yn := typs(x, y)
 	if xt != I || xn != atom {
@@ -4792,9 +4825,7 @@ func pct(x, y k) (r k) { // x med y (0.95 med y, -0.95f med y, 0 med y)
 				vy, _ := varf(ima(y), yn)
 				b := 3.2
 				p95 := 1.97 * math.Pow(math.Pow(math.Sqrt(vx), b)+math.Pow(math.Sqrt(vy), b), 1/b)
-				println("p95", p95)
 				fac := math.Sqrt(-2.0*math.Log(1.0+p)) / math.Sqrt(-2.0*math.Log(0.05)) // p<0
-				println("fac", fac)
 				r = mk(F, atom)
 				m.f[1+r>>1] = fac * p95
 				return decr(x, r)
@@ -5935,7 +5966,7 @@ func init() {
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
 		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
+		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
 		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
