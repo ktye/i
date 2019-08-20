@@ -20,7 +20,7 @@ const ref = `
                                                                        
 10 ! til key    30 ' qtc key    50 rel real  130 mkz cmplx    70   150
 11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71   151
-12 , enl cat    32 \ bsc bsl    52 phi phase 132              72   152
+12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72   152
 13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73   153
 14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74   154
 15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75   155
@@ -115,11 +115,12 @@ func ini() { // start function
 	builtins(o, "exit,sqrt,sin,cos,dev")
 	builtins(o+10, "real,imag,phase,conj,cond,nyi15,diag")
 	o += c(dyad) // dyads
-	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,nyi12,nyi13,nyi14,expi,nyi16,avg,med,var")
+	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".n"), mki(0), mk(N, atom))   // line number
 	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
 	mkk(".odo", `{+x\'!*/x}`)
+	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
 }
@@ -1899,7 +1900,8 @@ func diZ(r, x, y k) { m.z[r] = m.z[x] / m.z[y] }
 func baC(r, x, y k) { m.c[r] = m.c[x] * (m.c[y] / m.c[x]) }
 func baI(r, x, y k) { m.k[r] = k(i(m.k[x]) * (i(m.k[y]) / i(m.k[x]))) }
 func mdC(r, x, y k) { m.c[r] = m.c[x] % m.c[y] }
-func mdI(r, x, y k) { m.k[r] = m.k[x] % m.k[y] } // unsigned only? which version for signed?
+func mdI(r, x, y k) { m.k[r] = k(i(m.k[x]) % i(m.k[y])) }
+func mdF(r, x, y k) { m.f[r] = math.Mod(m.f[x], m.f[y]) }
 func miC(r, x, y k) { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
 func miI(r, x, y k) { m.k[r] = m.k[ter(i(m.k[x]) < i(m.k[y]), x, y)] }
 func miF(r, x, y k) { m.f[r] = m.f[ter(m.f[x] < m.f[y], x, y)] }
@@ -2197,6 +2199,7 @@ func take(n, o, y k) (r k) { // integer index and offset
 	}
 	return decr(y, uf(r))
 }
+func rot(x, y k) (r k) { return kxy(mks(".rot"), x, y) } // x rot y (rotate)
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
 	if xt > N {
@@ -3191,10 +3194,10 @@ func scn(f, x k) (r k) { // f\x
 	if xt := m.k[f] >> 28; xt < N { // x\y (mod, solve, qr, inv)
 		if xt == L {
 			return slv(f, x)
-		} else if xt > I {
+		} else if xt > F {
 			panic("type")
 		}
-		return nd(x, f, 0, []f2{nil, mdC, mdI, nil, nil, nil}, nil)
+		return nd(x, f, 0, []f2{nil, mdC, mdI, mdF, nil, nil}, nil)
 	} else if xt == N+1 { // scan fixed
 		l := mk(L, 0)
 		for {
@@ -5935,7 +5938,7 @@ func init() {
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, nil, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 }
