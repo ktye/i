@@ -339,6 +339,15 @@ func mkb(b []c) (r k) {
 	copy(m.c[rp:rp+n], b)
 	return r
 }
+func mkn(t k) (r k) { // nan atom
+	if t > S {
+		panic("type")
+	}
+	r = mk(t, atom)
+	ptr, na := ptr(r, t), nax[t]
+	na(ptr)
+	return r
+}
 func typ(x k) (k, k) { // type and length at addr
 	return m.k[x] >> 28, m.k[x] & atom
 }
@@ -2485,10 +2494,10 @@ func atx(x, y k) (r k) { // x@y
 		cp, xp := cpx[xt], ptr(x, xt)
 		r = mk(xt, yn)
 		yn = atm1(yn)
-		rp, yp := ptr(r, xt), 2+y
+		rp, yp, na := ptr(r, xt), 2+y, nax[xt]
 		for i := k(0); i < yn; i++ {
-			if ix := m.k[yp+i]; ix >= xn {
-				panic("index") // na(rp + i)
+			if ix := m.k[yp+i]; ix < 0 || ix >= xn {
+				na(rp + i)
 			} else {
 				cp(rp+i, xp+ix)
 			}
@@ -2499,9 +2508,13 @@ func atx(x, y k) (r k) { // x@y
 			r = inc(m.k[2+x+m.k[2+y]])
 		} else {
 			r = mk(L, yn)
+			nt := C // nan type is derived from 1st element or char (k7)
+			if t := m.k[m.k[2+x]] >> 28; t < L && xn > 0 {
+				nt = t
+			}
 			for i := k(0); i < yn; i++ {
-				if xi := m.k[2+y+i]; xi >= xn {
-					panic("index")
+				if xi := m.k[2+y+i]; xi < 0 || xi >= xn {
+					m.k[2+r+i] = mkn(nt)
 				} else {
 					m.k[2+r+i] = inc(m.k[2+x+xi])
 				}
