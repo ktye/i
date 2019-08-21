@@ -22,7 +22,9 @@ func main() {
 	table[21+dyad] = wrt
 	if len(os.Args) < 2 {
 		rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
-		rpl()
+		for {
+			try()
+		}
 	} else {
 		defer stk()
 		rd = read
@@ -34,11 +36,6 @@ func main() {
 		asn(mks(".z.x"), inc(zx), mk(N, atom))
 		lod(inc(m.k[2+zx]))
 		dec(zx)
-	}
-}
-func rpl() {
-	for {
-		try()
 	}
 }
 func try() {
@@ -123,14 +120,8 @@ func exi(x k) (r k) { // exit built-in
 func stk() {
 	if r := recover(); r != nil {
 		a, b := stack(r)
-		println(a)
-		s := cat(lup(mks(".f")), mkc(':'))
-		s = cat(s, str(lup(mks(".n"))))
-		s = cat(s, mkb([]c{':', ' '}))
-		s = cat(s, lup(mks(".l")))
-		s = cat(s, mkc('\n'))
-		s = cat(s, mkb([]c(b+"\n")))
-		dec(wrt(mku(0), s)) // file:n: "line"\nerror
+		println(a + "\n")
+		dec(wrt(mku(0), ano(m.k[srcp], mkb([]byte(b)))))
 	}
 }
 func stack(c interface{}) (stk, err string) {
@@ -138,9 +129,11 @@ func stack(c interface{}) (stk, err string) {
 	for _, s := range strings.Split(string(debug.Stack()), "\n") {
 		if h && strings.HasPrefix(s, "\t") {
 			if i := strings.Index(s, "/ktye/i/"); i > 0 {
-				s = s[i+7:]
+				s = strings.TrimSpace(s[i+7:])
 			}
-			stk += "\n" + s
+			if len(s) > 0 {
+				stk += "\n" + s
+			}
 		}
 		if strings.Index(s, "panic.go") > 0 { // skip first lines
 			h = true

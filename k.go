@@ -37,9 +37,9 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, L, A, N k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom, kkey, kval, dyad k = 0x0fffffff, 0x30, 0x31, 80
-	NaI                    i = -2147483648
+	C, I, F, Z, S, L, A, N       k = 1, 2, 3, 4, 5, 6, 7, 8
+	atom, srcp, kkey, kval, dyad k = 0x0fffffff, 0x2f, 0x30, 0x31, 80
+	NaI                          i = -2147483648
 )
 
 type (
@@ -117,8 +117,9 @@ func ini() { // start function
 	o += c(dyad) // dyads
 	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
-	asn(mks(".n"), mki(0), mk(N, atom))   // line number
-	asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
+	asn(mks(".c"), mk(C, 0), mk(N, atom)) // current src
+	//asn(mks(".n"), mki(0), mk(N, atom))   // line number
+	//asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
 	mkk(".flp", `{;t:,/x[;!n:|/#:'x];t@(n*!#x)+/:!n}`)
 	mkk(".odo", `{+x\'!*/x}`)
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
@@ -1189,6 +1190,10 @@ func evl(x k) (r k) {
 		}
 		return x
 	}
+	if m.k[1+x] > 0xFFFF {
+		m.k[srcp] = m.k[1+x] >> 16
+		m.k[1+x] &= 0xFFFF
+	}
 	if n == 0 {
 		panic("evl empty list?") // what TODO?
 	}
@@ -1340,6 +1345,47 @@ func evl(x k) (r k) {
 		return cal(v, r)
 	}
 	return x
+}
+func ano(p, e k) (r k) { // annotate source line with error position
+	r = cat(lup(mks(".f")), mkc(':')) // TODO: .ano(k)
+	if p == 0 {
+		return cat(r, e)
+	}
+	s := lupo(mks(".c"))
+	if s == 0 {
+		return cat(r, e)
+	}
+	t, n := typ(s)
+	if t != C || p >= n {
+		return cat(r, e)
+	}
+	sp, a, b, l := ptr(s, C), k(0), n, k(1)
+	for i := k(0); i < p; i++ {
+		if m.c[sp+i] == '\n' {
+			a = i + 1
+			l++
+		}
+	}
+	for i := p; i < n; i++ {
+		if m.c[sp+i] == '\n' {
+			b = i
+			break
+		}
+	}
+	r = cat(r, str(mki(l))) // file:line:char:error\nsource\n   ^
+	r = cat(r, mkc(':'))
+	r = cat(r, str(mki(1+a)))
+	r = cat(r, mkc(':'))
+	r = cat(r, e)
+	r = cat(r, mkc('\n'))
+	r = cat(r, take(b-a, 0, drop(i(a), s)))
+	r = cat(r, mkc('\n'))
+	if p-a != 0 {
+		r = cat(r, take(p-a-1, 0, mkc(' ')))
+	}
+	r = cat(r, mkc('^'))
+	r = cat(r, mkc('\n'))
+	return r
 }
 func swc(x k) (r k) { // $[...]
 	n := m.k[x] & atom
@@ -2489,7 +2535,6 @@ func atx(x, y k) (r k) { // x@y
 	} else if xt > N {
 		return cal(x, enl(y))
 	} else if xn == atom && xt != A {
-		println("atx", xn, xt)
 		panic("type")
 	}
 	switch {
@@ -3478,14 +3523,18 @@ func wrl(x, y k) (r k) { // x 0:y
 }
 func lod(x k) (r k) {
 	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), mk(N, atom)))
-	r = rdl(x)
-	n := m.k[r] & atom
-	for i := k(0); i < n; i++ {
-		dec(asn(mks(".n"), mki(i), mk(N, atom)))
-		dec(asn(mks(".l"), inc(m.k[2+i+r]), mk(N, atom)))
-		evp(inc(m.k[2+i+r]))
-	}
-	return decr(r, mk(N, atom))
+	/*
+		r = rdl(x)
+		n := m.k[r] & atom
+		for i := k(0); i < n; i++ {
+			// dec(asn(mks(".n"), mki(i), mk(N, atom)))
+			// dec(asn(mks(".l"), inc(m.k[2+i+r]), mk(N, atom)))
+			evp(inc(m.k[2+i+r]))
+		}
+		return decr(r, mk(N, atom))
+	*/
+	evp(red(x))
+	return mk(N, atom)
 }
 func cmd(x k) (r k) {
 	xp := 8 + x<<2
@@ -3524,11 +3573,15 @@ func trm(x k) (r k) { // trim 1st char and additional spaces
 	return drop(p, x)
 }
 func evp(x k) { // parse-eval-print
-	if t, n := typ(x); t == C && n > 1 && m.c[8+x<<2] == '\\' {
+	t, n := typ(x)
+	if t != C {
+		panic("type")
+	}
+	if n > 1 && m.c[8+x<<2] == '\\' {
 		out(cmd(drop(1, x)))
 		return
 	}
-	r, asn := prs(x), false
+	r, asn := par(x, 8+x<<2), false
 	a, s := r, mku(0)
 	if t, n := typ(a); t == L && n > 1 && match(m.k[2+a], s) {
 		dec(s)
@@ -4963,7 +5016,8 @@ func buk(x uint32) (n k) { // from https://golang.org/src/math/bits/bits.go (Len
 }
 
 // E:E;e|e e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
-func prs(x k) (r k) { // `p"…"
+func prs(x k) (r k) { return par(x, 0) } // `p"…"
+func par(x, sto k) (r k) {
 	t, n := typ(x)
 	if t != C || n == atom {
 		if t > N && n == 0 {
@@ -4975,7 +5029,10 @@ func prs(x k) (r k) { // `p"…"
 		dec(x)
 		return mk(N, atom)
 	}
-	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, ln: 1}
+	if sto != 0 {
+		dec(asn(mks(".c"), inc(x), mk(N, atom)))
+	}
+	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: sto}
 	r = mk(L, 1)
 	m.k[2+r] = mku(0) // ;→`
 	for p.p <= p.e {  // ex;ex;…
@@ -4999,11 +5056,11 @@ func prs(x k) (r k) { // `p"…"
 }
 
 type p struct {
-	p  k // current position, m.c[p.p:...]
-	m  k // pos after matched token (token: m.c[p.p:p.m])
-	e  k // pos after last byte available
-	ln k // current line number
-	lp k // m.c index of last newline
+	p   k // current position, m.c[p.p:...]
+	m   k // pos after matched token (token: m.c[p.p:p.m])
+	e   k // pos after last byte available
+	lp  k // m.c index of last newline
+	sto k // ~0: store src pointer in nodes (start index in m.c)
 }
 
 func (p *p) t(f func([]c) int) bool { // test for next token
@@ -5030,7 +5087,6 @@ func (p *p) w() { // remove whitespace and count lines
 		case '\n':
 			if p.p != p.lp+1 {
 				p.lp = p.p - 1
-				p.ln++
 			}
 			p.p--
 			return
@@ -5079,31 +5135,42 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		return x
 	}
 	if r = p.verb(x); r == 0 { // n
+		ps := p.p
 		r = p.noun()
 		if m.k[r]>>28 == N {
 			return decr(r, x) // n
 		}
 		if v := p.verb(r); v == 0 {
-			return compose(l2(x, p.ex(r))) // te
+			return p.store(ps, compose(l2(x, p.ex(r)))) // te
 		} else {
 			if y := p.ex(p.noun()); m.k[y]>>28 == N {
-				return l2(v, decr(y, x)) // e.g. 2+
+				return p.store(ps, l2(v, decr(y, x))) // e.g. 2+
 			} else if m.k[v]>>28 == N+2 && m.k[2+v] == dyad+18 { // @
-				return decr(v, l2(x, y)) // x@y
+				return decr(v, p.store(ps, l2(x, y))) // x@y
 			} else if cmpvrb(y) {
-				return compose(l2(l2(v, x), y)) // 2+ *
+				return p.store(ps, compose(l2(l2(v, x), y))) // 2+ *
 			} else {
-				return l3(v, x, y) // nve
+				return p.store(ps, l3(v, x, y)) // nve
 			}
 		}
 	} else {
+		ps := p.p
 		x = p.ex(p.noun())
 		if m.k[x]>>28 == N {
 			return decr(x, r) // v
 		} else {
-			return compose(l2(monad(r), x)) // ve
+			return p.store(ps, compose(l2(monad(r), x))) // ve
 		}
 	}
+}
+func (p *p) store(ps k, x k) k { // store source position in refcount's high bits
+	if m.k[x]>>28 != L {
+		panic("type")
+	}
+	if p.sto != 0 {
+		m.k[1+x] |= (ps - 1 - p.sto) << 16
+	}
+	return x
 }
 func (p *p) verb(x k) (r k) { // v:tA|V
 	if p.t(sAdv) {
