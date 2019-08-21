@@ -1332,8 +1332,8 @@ func evl(x k) (r k) {
 			return atx(v, fst(r))
 		} else if vt < N && n > 2 {
 			for i := k(0); i < n-2; i++ { // last index may be a vector
-				if m.k[m.k[2+i+r]]&atom != atom {
-					panic("nyi-matrix-indexing")
+				if te, ne := typ(m.k[2+i+r]); te == N || ne != atom {
+					return atm(v, r)
 				}
 			}
 		}
@@ -2489,6 +2489,7 @@ func atx(x, y k) (r k) { // x@y
 	} else if xt > N {
 		return cal(x, enl(y))
 	} else if xn == atom && xt != A {
+		println("atx", xn, xt)
 		panic("type")
 	}
 	switch {
@@ -2583,9 +2584,44 @@ func atx(x, y k) (r k) { // x@y
 		return decr2(x, y, r)
 	// case xt == L:
 	//	missing element for a list is nax[type of first element]
+	case yt == N:
+		return decr(y, x)
 	default:
-		panic("nyi atx")
+		panic("atx")
 	}
+}
+func atm(x, y k) (r k) { // x@y (matrix indexing)
+	xt, yt, xn, yn := typs(x, y)
+	if xt != L || xn == atom || yt != L || yn != 2 {
+		panic("type") // TODO table
+	}
+	a, b := inc(m.k[2+y]), inc(m.k[3+y])
+	dec(y)
+	at, bt, an, _ := typs(a, b)
+	if at == N && bt == N { // x[;]→x? or force a rectangular matrix?
+		return decr2(a, b, x)
+	} else if bt == N { // x[a;]
+		return decr(b, atx(x, a))
+	} else if at == N { // x[;b]
+		dec(a)
+		r, an = mk(L, xn), xn
+		for i := k(0); i < xn; i++ {
+			m.k[2+r+i] = inc(m.k[2+x+i])
+		}
+		dec(x)
+	} else {
+		r = atx(x, a)
+	}
+	if bt != I {
+		panic("type")
+	}
+	for i := k(0); i < an; i++ {
+		if m.k[m.k[2+i+r]]&atom == atom {
+			m.k[2+i+r] = enl(m.k[2+i+r])
+		}
+		m.k[2+r+i] = atx(m.k[2+i+r], inc(b))
+	}
+	return decr(b, uf(r))
 }
 func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
 /*
