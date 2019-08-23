@@ -728,66 +728,7 @@ func flp(x k) (r k) { // +x
 	} else if t < L {
 		return x
 	}
-	// return kx(mks(".flp"), x) // TODO
-	ut, nc := k(0), k(1)
-	for i := k(0); i < n; i++ {
-		ti, ni := typ(m.k[2+x+i])
-		if i == 0 {
-			ut, nc = ti, atm1(ni)
-		} else if ut != 0 && ti != ut {
-			ut = 0
-		}
-		if atm1(ni) > nc {
-			nc = atm1(ni)
-		}
-	}
-	if ut != 0 && ut < L {
-		cp, na := cpx[ut], nax[ut]
-		r = mk(ut, n*nc)
-		rp := ptr(r, ut)
-		for i := k(0); i < n; i++ {
-			mx := m.k[m.k[2+x+i]] & atom
-			xpi := ptr(m.k[2+x+i], ut)
-			if mx == atom {
-				for j := k(0); j < nc; j++ {
-					cp(rp+n*j+i, xpi)
-				}
-			} else {
-				for j := k(0); j < mx; j++ {
-					cp(rp+n*j+i, xpi+j)
-				}
-				for j := mx; j < nc; j++ {
-					na(rp + n*j + i)
-				}
-			}
-		}
-		s := mk(I, 2)
-		m.k[2+s] = nc
-		m.k[3+s] = n
-		return decr(x, tak(s, r))
-	}
-	r = mk(L, n*nc)
-	nan := mkc(' ')
-	for i := k(0); i < n; i++ {
-		xi := explode(inc(m.k[2+x+i]))
-		mx := m.k[xi] & atom
-		for j := k(0); j < mx; j++ {
-			m.k[2+r+n*j+i] = inc(m.k[2+xi+j])
-		}
-		for j := mx; j < nc; j++ {
-			m.k[2+r+n*j+i] = inc(nan)
-		}
-		dec(xi)
-	}
-	dec(nan)
-	s := mk(I, 2)
-	m.k[2+s] = nc
-	m.k[3+s] = n
-	r = tak(s, r)
-	for i := k(0); i < nc; i++ {
-		m.k[2+r+i] = uf(m.k[2+r+i])
-	}
-	return decr(x, r)
+	return kx(mks(".flp"), x) // rows containing atoms are errors. k7 extends them.
 }
 func neg(x k) k { // -x
 	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.z[r] = -m.z[x] }})
@@ -1640,7 +1581,7 @@ func kst(x k) (r k) { // `k@x
 	}
 	return decr(x, r)
 }
-func mat(x k) (r k) { // `m@x (should be implemented in k)
+func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 	t, n := typ(x)
 	if t == L {
 		r = mk(L, n)
