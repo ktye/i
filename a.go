@@ -40,11 +40,7 @@ func main() {
 }
 func try() {
 	defer stk()
-	r := red(wrt(mku(0), enl(mkc(' ')))) // r: 1: ("" 1: ," ")
-	if m.k[r]&atom == 0 {
-		exi(mki(0))
-	}
-	evp(r)
+	evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: ("" 1: ," ")
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)

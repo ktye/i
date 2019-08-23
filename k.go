@@ -118,8 +118,6 @@ func ini() { // start function
 	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
 	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
 	asn(mks(".c"), mk(C, 0), mk(N, atom)) // current src
-	//asn(mks(".n"), mki(0), mk(N, atom))   // line number
-	//asn(mks(".l"), mk(C, 0), mk(N, atom)) // current line
 	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)
 	mkk(".odo", `{+x\'!*/x}`)
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
@@ -3464,16 +3462,6 @@ func wrl(x, y k) (r k) { // x 0:y
 }
 func lod(x k) (r k) {
 	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), mk(N, atom)))
-	/*
-		r = rdl(x)
-		n := m.k[r] & atom
-		for i := k(0); i < n; i++ {
-			// dec(asn(mks(".n"), mki(i), mk(N, atom)))
-			// dec(asn(mks(".l"), inc(m.k[2+i+r]), mk(N, atom)))
-			evp(inc(m.k[2+i+r]))
-		}
-		return decr(r, mk(N, atom))
-	*/
 	evp(red(x))
 	return mk(N, atom)
 }
