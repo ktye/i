@@ -3693,36 +3693,42 @@ func bdc(x, y k) (r k) { // decode y given in base x
 	return decr2(x, y, mki(n))
 }
 func bin(x, y k) (r k) { // x bin y
-	xt, yt, xn, yn := typs(x, y)
-	if xt != yt || xt > S || xn == atom {
+	t, yt, xn, yn := typs(x, y)
+	if yt != t || t > S || xn == atom {
 		panic("type")
 	}
 	r = mk(I, yn)
 	yn = atm1(yn)
-	lt, xp, yp := ltx[yt], ptr(x, xt), ptr(y, yt)
+	gt, xp, yp := gtx[t], ptr(x, t), ptr(y, t)
 	for i := k(0); i < yn; i++ {
-		m.k[2+i+r] = ibin(xp, xt, xn, yp+i, lt)
+		m.k[2+i+r] = ibin(xp, t, xn, yp+i, gt)
 	}
 	return decr2(x, y, r)
 }
-func ibin(xp, t, n, yp k, lt func(x, y k) bool) (r k) {
-	if n == 0 {
-		return 0
-	}
-	if lt(yp, xp) {
-		n := i(-1)
-		return k(n)
-	}
-	i, j, h := k(0), k(n), k(0)
-	for i < j {
-		h = (i + j) >> 1
-		if lt(xp+h, yp) {
-			i = h + 1
+func binarySearch(a []float64, value float64) int { // right-most
+	low := 0
+	high := len(a) - 1
+	for low <= high {
+		mid := (low + high) >> 1
+		if a[mid] > value {
+			high = mid - 1
 		} else {
-			j = h
+			low = mid + 1
 		}
 	}
-	return i
+	return low - 1
+}
+func ibin(xp, t, n, yp k, gt func(x, y k) bool) (r k) {
+	i, j, h := k(0), n-1, k(0)
+	for int32(i) <= int32(j) {
+		h = (i + j) >> 1
+		if gt(xp+h, yp) {
+			j = h - 1
+		} else {
+			i = h + 1
+		}
+	}
+	return i - 1
 }
 func insert(x, y, idx k) (r k) { // insert y into x at k
 	t, yt, n, yn := typs(x, y)
@@ -4028,11 +4034,11 @@ func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
 	kp := ptr(keys, S)
 	kn := m.k[keys] & atom
-	ix := ibin(kp, S, kn, xp, ltS)
-	if i(ix) < 0 {
-		ix = 0
+	ix := ibin(kp, S, kn, xp, gtS)
+	if ix < kn && eqS(kp+ix, xp) {
+		return ix, true
 	}
-	return ix, ix < kn && eqS(kp+ix, xp)
+	return ix + 1, false
 }
 func vars(dummy k) (r k) { dec(dummy); return inc(m.k[kkey]) }
 func del(x k) (r k) { // delete variable
@@ -4971,17 +4977,15 @@ func pct(x, y k) (r k) { // x med y (0.95 med y, -0.95f med y, 0 med y)
 			}
 			dec(x)
 			x = mk(yt, 0)
-			xp, yp, lt, cp := ptr(x, yt), ptr(y, yt), ltx[yt], cpx[yt]
+			xp, yp, gt, cp := ptr(x, yt), ptr(y, yt), gtx[yt], cpx[yt]
 			for i := k(0); i < yn; i++ {
-				ix := ibin(xp, yt, i, yp+i, lt)
-				if int32(ix) < 0 {
-					ix = 0
-				}
+				ix := 1 + ibin(xp, yt, i, yp+i, gt)
 				x = insert(x, atx(inc(y), mki(i)), ix)
 				xp = ptr(x, yt)
 				cp(yp+i, xp+(i+1)/2)
 			}
 			return decr(x, y)
+
 		} else { // n med y (running median, window size n)
 			panic("nyi")
 			// e.g. www.stat.cmu.edu/~ryantibs/median/binmedian.c
