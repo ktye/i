@@ -2396,7 +2396,7 @@ func fnd(x, y k) (r k) { // x?y
 		case 0x6865780000000000: // `hex
 			return decr(x, xeh(y))
 		case 0x6373760000000000: // `csv
-			return decr(x, vsc(mk(N, atom), y))
+			return decr(x, vsc(mk(L, 0), y))
 		default:
 			panic("type")
 		}
@@ -2648,7 +2648,10 @@ func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
 	panic("type")
 }
 */
-func vsc(x, y k) (r k) { return kxy(mks(".vsc"), x, y) } // `csv y  x 0: y, ("ii";"|")0:("2|3";"3|4";"4|5")
+func vsc(x, y k) (r k) { // `csv?y  x 0: y, ("ii";"|")0:("2|3";"3|4";"4|5")
+	return kxy(mks(".vsc"), x, y)
+}
+
 // TODO: ignore " " or "-"
 // TODO: complex
 // TODO: autodetect t and s
@@ -3572,7 +3575,7 @@ func spl(x, y k) (r k) { // x\:y (split)
 }
 func jon(x, y k) (r k) { // x/:y (join)
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt == I { // // base/:n (decode)
+	if xt == I && xn == atom && yt == I { // base/:n (decode)
 		return bdc(x, y)
 	}
 	if yt != L {
@@ -3633,19 +3636,6 @@ func bin(x, y k) (r k) { // x bin y
 		m.k[2+i+r] = ibin(xp, t, xn, yp+i, gt)
 	}
 	return decr2(x, y, r)
-}
-func binarySearch(a []float64, value float64) int { // right-most
-	low := 0
-	high := len(a) - 1
-	for low <= high {
-		mid := (low + high) >> 1
-		if a[mid] > value {
-			high = mid - 1
-		} else {
-			low = mid + 1
-		}
-	}
-	return low - 1
 }
 func ibin(xp, t, n, yp k, gt func(x, y k) bool) (r k) {
 	i, j, h := k(0), n-1, k(0)
