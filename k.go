@@ -14,7 +14,7 @@ const ref = `
 05 & wer min    25 5 nil nil    45 log       125 lgn log      65      145
 06 | rev max    26 6 nil nil    46 exp       126 pow exp      66      146
 07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67      147
-08 > dst mor    28 8 nil nil    48 abs       128 abq 2 abs    68      148
+08 > dst mor    28 8 lun nil    48 abs       128 abq 2 abs    68      148
 09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69      149
                                                                           
 10 ! til key    30 ' qtc key    50 rel real  130 mkz cmplx    70      150
@@ -542,14 +542,14 @@ func ntyps(xt, yt k, fx []f2, fc []fc) (t k) {
 func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
 	if xt == A {
-		r = mk(A, atom)
+		r = mk(A, xn)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = nd(inc(m.k[3+x]), y, rt, fx, fc)
 		return decr(x, r)
 	} else if yt == A {
-		r = mk(A, atom)
+		r = mk(A, yn)
 		m.k[2+r] = inc(m.k[2+y])
-		m.k[3+r] = nd(y, inc(m.k[3+y]), rt, fx, fc)
+		m.k[3+r] = nd(x, inc(m.k[3+y]), rt, fx, fc)
 		return decr(y, r)
 	}
 	n, sc := xn, k(0)
@@ -3463,6 +3463,11 @@ func wrl(x, y k) (r k) { // x 0:y
 	}
 	panic("nyi")
 }
+func lun(x k) (r k) { // 8:x or .. \x (display)
+	wr := table[21+dyad].(func(k, k) k)
+	dec(wr(mku(0), cat(kst(inc(x)), mkc('\n'))))
+	return x
+}
 func lod(x k) (r k) {
 	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), mk(N, atom)))
 	evp(red(x))
@@ -5006,7 +5011,11 @@ func (p *p) w() { // remove whitespace and count lines
 		switch p.get() {
 		case 0:
 			return
-		case ' ', '\t', '\r':
+		case ' ':
+			if p.p != p.e && m.c[p.p] == '\\' { // 1+ \x
+				m.c[p.p] = 0x08 // lunettes
+			}
+		case '\t', '\r':
 		case '\n':
 			if p.p != p.lp+1 {
 				p.lp = p.p - 1
@@ -5366,6 +5375,9 @@ func pVrb(b []byte) (r k) {
 func pIov(b []byte) (r k) {
 	r = mk(N+2, atom)
 	m.k[2+r] = dyad + 20 + k(b[0]-'0') // ioverb parses always as `2
+	if b[0] == 0x08 {
+		m.k[2+r] = dyad + 28
+	}
 	return r
 }
 func pAdv(b []byte) (r k) {
@@ -5538,6 +5550,8 @@ func sSem(b []byte) int {
 func sIov(b []byte) int { // ioverb 0: .. 9:
 	if len(b) > 1 && b[1] == ':' && b[0] >= '0' && b[0] <= '9' {
 		return 2
+	} else if b[0] == 0x08 { // lunettes
+		return 1
 	}
 	return 0
 }
@@ -6005,7 +6019,7 @@ func init() {
 	table = [160]interface{}{
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
-		rdl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
+		rdl, nil, nil, nil, nil, nil, nil, nil, lun, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
 		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
