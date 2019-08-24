@@ -54,6 +54,9 @@ func red(x k) (r k) { // 1:x
 	var b []c
 	if n == 0 {
 		b = rd()
+		if b == nil {
+			exi(mki(0))
+		}
 	} else {
 		xp := 8 + x<<2
 		p, err := ioutil.ReadFile(string(m.c[xp : xp+n]))
@@ -78,7 +81,7 @@ func read() []c { // read all from stdin (non-interactive)
 func readline(sc *bufio.Scanner) func() []c { // read single line (interactive)
 	return func() []c {
 		if sc.Scan() == false {
-			return []c{}
+			return nil
 		}
 		return sc.Bytes()
 	}

@@ -1,0 +1,18 @@
+web frontend (single-client, single-k, localhost)
+
+a.go main(server)
+h.go html+js
+
+files dropped to the browser are stored in-memory and can be read by k.
+k cannot touch files on disk.
+reloading the page resets the k instance.
+
+TODO:
+	write files (from k)
+	\lf (list files)
+	download files?
+	drawing canvas on the right, next to the repl
+	export canvas as an int-array to k, e.g. dpy (for each resize)
+	@[dpy;i;y] should update in-place
+	recover on panic (send error message)
+	
