@@ -1137,9 +1137,18 @@ func evl(x k) (r k) {
 		}
 		return x
 	}
+	sp := k(0)
 	if m.k[1+x] > 0xFFFF {
-		m.k[srcp] = m.k[1+x] >> 16
+		sp = m.k[1+x] >> 16
+		m.k[srcp] = sp
 		m.k[1+x] &= 0xFFFF
+	}
+	R, P := func() k {
+		m.k[srcp] = sp
+		return 0
+	}, func(s string) {
+		m.k[srcp] = sp
+		panic("p")
 	}
 	if n == 0 {
 		panic("evl empty list?") // what TODO?
@@ -1158,7 +1167,7 @@ func evl(x k) (r k) {
 				}
 				r = evl(inc(m.k[2+i+x]))
 			}
-			return decr(x, r)
+			return R() + decr(x, r)
 		}
 	}
 	switch vt {
@@ -1169,7 +1178,7 @@ func evl(x k) (r k) {
 				m.k[2+r+k(i)] = evl(inc(m.k[3+x+k(i)]))
 			}
 		}
-		return decr(x, uf(r))
+		return R() + decr(x, uf(r))
 	default:
 		inc(v)
 		iev := false
@@ -1189,7 +1198,7 @@ func evl(x k) (r k) {
 				vt, af = N+2, dyad // :: → :
 			}
 			if n != 3 {
-				panic("args")
+				P("args")
 			}
 			f := k(0)
 			if af != dyad { // not ::, e.g. *:
@@ -1213,7 +1222,7 @@ func evl(x k) (r k) {
 						name = fst(name)
 					}
 					if m.k[idx]>>28 != L {
-						panic("assert")
+						P("assert")
 					}
 					idx = evl(cat(mk(N, atom), idx))
 					if nn := m.k[idx] & atom; nn == 1 {
@@ -1221,12 +1230,12 @@ func evl(x k) (r k) {
 					} else {
 						dec(dmd(name, idx, f, val))
 					}
-					return decr2(v, x, mk(N, atom))
+					return R() + decr2(v, x, mk(N, atom))
 				}
 			}
 			return decr2(v, x, asn(name, val, f))
 		} else if n > 3 && vt > N && vn == atom && m.k[2+v] == 16+dyad { // $[...] delays evaluation
-			return decr(v, swc(drop(1, x)))
+			return R() + decr(v, swc(drop(1, x)))
 		}
 		r = mk(L, n-1)
 		for i := int(n - 2); i >= 0; i-- {
@@ -1248,27 +1257,27 @@ func evl(x k) (r k) {
 					x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
 					dec(v) // dec early, allow inplace
 					dec(r)
-					return g(x, a, mk(N, atom), y)
+					return R() + g(x, a, mk(N, atom), y)
 				} else if n == 5 {
 					x, a, f, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r]), inc(m.k[5+r])
 					dec(v)
 					dec(r)
-					return g(x, a, f, y)
+					return R() + g(x, a, f, y)
 				} else {
-					panic("args")
+					P("args")
 				}
 			default:
-				panic("args")
+				P("args")
 			}
 		} else if n == 3 && vt == N+2 && m.k[2+v] == 19+dyad && m.k[m.k[3+r]]>>28 > N { // composition
 			dec(v)
 			v = mk(m.k[m.k[3+r]]>>28, 3)
 			m.k[2+v] = inc(m.k[2+r])
 			m.k[3+v] = inc(m.k[3+r])
-			return decr(r, v)
+			return R() + decr(r, v)
 		} else if vt > N && !(vn == atom && vt == N+1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
 			if n-1 > vt-N {
-				panic("args") // too many arguments
+				P("args") // too many arguments
 			}
 			for i := n - 1; i < vt-N; i++ { // fill args, e.g. 2+
 				r = lcat(r, mk(N, atom))
@@ -1276,7 +1285,7 @@ func evl(x k) (r k) {
 			if vt > N+1 { // no projection for monads, allow N argument
 				for i := k(0); i < m.k[r]&atom; i++ {
 					if m.k[m.k[2+i+r]]>>28 == N {
-						return prj(v, r)
+						return R() + prj(v, r)
 					}
 				}
 			}
@@ -1285,11 +1294,11 @@ func evl(x k) (r k) {
 		} else if vt < N && n > 2 {
 			for i := k(0); i < n-2; i++ { // last index may be a vector
 				if te, ne := typ(m.k[2+i+r]); te == N || ne != atom {
-					return atm(v, r)
+					return R() + atm(v, r)
 				}
 			}
 		}
-		return cal(v, r)
+		return R() + cal(v, r)
 	}
 	return x
 }
