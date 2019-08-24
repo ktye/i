@@ -1095,14 +1095,6 @@ func fpck(s s) { // check free pointers
 		}
 	}
 }
-func pr(x k, a ...interface{}) {
-	fmt.Printf(":%x ", x)
-	r := kst(inc(x))
-	_, n := typ(r)
-	s := s(m.c[8+r<<2 : 8+n+r<<2])
-	dec(r)
-	fmt.Println(a, s)
-}
 
 type Bucket struct {
 	Type       uint32

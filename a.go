@@ -26,7 +26,7 @@ func main() {
 			try()
 		}
 	} else {
-		defer stk()
+		defer stk(false)
 		rd = read
 		args := os.Args[1:]
 		zx := mk(L, k(len(args))) // .z.x: args
@@ -39,7 +39,7 @@ func main() {
 	}
 }
 func try() {
-	defer stk()
+	defer stk(true)
 	evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: ("" 1: ," ")
 }
 func red(x k) (r k) { // 1:x
@@ -113,10 +113,14 @@ func exi(x k) (r k) { // exit built-in
 	os.Exit(1)
 	return mk(N, atom)
 }
-func stk() {
+func stk(hide bool) {
 	if r := recover(); r != nil {
 		a, b := stack(r)
-		println(a + "\n")
+		if hide { // interactive
+			dec(asn(mks(".stk"), mkb([]byte(a)), mk(N, atom))) // stack trace: \s
+		} else {
+			println(a + "\n")
+		}
 		dec(wrt(mku(0), ano(m.k[srcp], mkb([]byte(b)))))
 	}
 }
@@ -162,5 +166,13 @@ func inikwac() { // write initial memory as data section
 		}
 	}
 	fmt.Println(")")
+}
+func pr(x k, a ...interface{}) {
+	fmt.Printf(":%x ", x)
+	r := kst(inc(x))
+	_, n := typ(r)
+	s := s(m.c[8+r<<2 : 8+n+r<<2])
+	dec(r)
+	fmt.Println(a, s)
 }
 func fatal(s string) { println(s); os.Exit(1) }

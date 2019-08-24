@@ -1295,17 +1295,19 @@ func evl(x k) (r k) {
 }
 func ano(p, e k) (r k) { // annotate source line with error position
 	r = cat(lup(mks(".f")), mkc(':')) // TODO: .ano(k)
+	re := cat(cat(inc(r), inc(e)), mkc('\n'))
 	if p == 0 {
-		return cat(r, e)
+		return decr2(r, e, re)
 	}
 	s := lupo(mks(".c"))
 	if s == 0 {
-		return cat(r, e)
+		return decr2(r, e, re)
 	}
 	t, n := typ(s)
 	if t != C || p >= n {
-		return cat(r, e)
+		return decr2(r, e, re)
 	}
+	dec(re)
 	sp, a, b, l := ptr(s, C), k(0), n, k(1)
 	for i := k(0); i < p; i++ {
 		if m.c[sp+i] == '\n' {
@@ -1321,14 +1323,14 @@ func ano(p, e k) (r k) { // annotate source line with error position
 	}
 	r = cat(r, str(mki(l))) // file:line:char:error\nsource\n   ^
 	r = cat(r, mkc(':'))
-	r = cat(r, str(mki(1+a)))
+	r = cat(r, str(mki(2+p-a)))
 	r = cat(r, mkc(':'))
 	r = cat(r, e)
 	r = cat(r, mkc('\n'))
 	r = cat(r, take(b-a, 0, drop(i(a), s)))
 	r = cat(r, mkc('\n'))
 	if p-a != 0 {
-		r = cat(r, take(p-a-1, 0, mkc(' ')))
+		r = cat(r, take(1+p-a, 0, mkc(' ')))
 	}
 	r = cat(r, mkc('^'))
 	r = cat(r, mkc('\n'))
@@ -3492,6 +3494,12 @@ func cmd(x k) (r k) {
 		return decr(x, hlp())
 	case 'l':
 		return lod(trm(x))
+	case 's':
+		if r = lupo(mks(".stk")); r != 0 {
+			w := table[21+dyad].(func(k, k) k)
+			dec(w(mku(0), cat(r, mkc('\n'))))
+		}
+		return decr(x, mk(N, atom))
 	case 'm': // \m x (matrix display)
 		w := table[21+dyad].(func(k, k) k)
 		dec(w(mku(0), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
