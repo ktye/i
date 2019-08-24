@@ -541,7 +541,15 @@ func ntyps(xt, yt k, fx []f2, fc []fc) (t k) {
 }
 func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	xt, yt, xn, yn := typs(x, y)
-	if xt == A {
+	if xt == A && yt == A {
+		if match(m.k[2+x], m.k[2+y]) == false {
+			panic("nyi") // (`a`b!..)+`b`c!..
+		}
+		r = mk(A, xn)
+		m.k[2+r] = inc(m.k[2+x])
+		m.k[3+r] = nd(inc(m.k[3+x]), inc(m.k[3+y]), rt, fx, fc)
+		return decr2(x, y, r)
+	} else if xt == A {
 		r = mk(A, xn)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = nd(inc(m.k[3+x]), y, rt, fx, fc)
