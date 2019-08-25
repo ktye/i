@@ -6,35 +6,34 @@ const h = `<html><head><script>
 <meta charset="utf-8">
 <style>
 	body,textarea { font-family: monospace; margin:0pt; }
-	textarea {
-		background-color: black;
-		color: white;
-		border: none;
-		resize: none;
-	}
+	textarea {background-color:black;color:white;border:none;resize: none;}
 	.col { float: left; width:50%; height:100%; }
 	.row:after { content: ""; display: table; clear: both }
 </style>
 </head><body>
 <div id="dropbox">
-<div class="row"><textarea id="term" class="col"></textarea><canvas id="draw" class="col"></canvas></div></div>
+<div class="row"><textarea id="term" class="col"></textarea><image id="dpy" class="col"></image></div></div>
 <script>
 function e(s) {
+	var img = document.getElementById("dpy")
 	var req = new XMLHttpRequest()
-	req.onreadystatechange = function() { if (this.readyState == (this.DONE || 4)) { O(req.response+" ");term.scrollTo(0, term.scrollHeight)  } }
+	req.onreadystatechange = function() { 
+		if (this.readyState == (this.DONE || 4)) { 
+			if (req.getResponseHeader('Content-Type') == "image/png") {
+				img.src = req.response;O(" ")
+			} else {
+				O(req.response+" ");term.scrollTo(0, term.scrollHeight)  
+			}
+		} 
+	}
 	req.open("POST", "")
+	req.setRequestHeader("width", img.width)
+	req.setRequestHeader("height", img.width)
 	req.send(s)
 }
-
-var term = document.getElementById("term")
 var hold = false
-
-term.value = window.location.hash.substr(1)
-if (term.value) {
-	term.value += "\n" + e(term.value) + "\n "
-} else {
-	term.value = "ESC(toggle hold) ENTER(exec selection or current line) \\c(clear console)\n "
-}
+var term = document.getElementById("term")
+term.value = " "
 term.onkeydown = function (evt) {
 	if (evt.which === 27) {
 		evt.preventDefault()
@@ -67,10 +66,9 @@ term.onkeydown = function (evt) {
 		s = s.trim()
 		if (s === "\\c") {
 			term.value = " "
-		} else if (s == "\\m") {
-			term.value += "\n" + xxd() + " "
 		} else if (s.length && s[0] == '/') {
-			ls(s.substring(1))
+			// ls(s.substring(1))
+			O("TODO ls")
 		} else {
 			e(s)
 			return
@@ -81,10 +79,9 @@ term.onkeydown = function (evt) {
 function O(s) { term.value += s }
 function P() { term.value += "\n "; term.scrollTo(0, term.scrollHeight) }
 
-document.getElementById("dropbox").ondragover = function(ev) {
-	ev.preventDefault()
-}
-document.getElementById("dropbox").ondrop = function(ev) {
+var dropbox = document.getElementById("dropbox")
+dropbox.ondragover = function(ev) { ev.preventDefault() }
+dropbox.ondrop = function(ev) {
 	ev.preventDefault()
 	if (ev.dataTransfer.items) {
 		for (var i = 0; i< ev.dataTransfer.items.length; i++) {
@@ -111,26 +108,5 @@ function sendfile(name, buf) {
 	req.setRequestHeader("file", name)
 	req.send(buf)
 }
-/* TODO: some kind of readdir or read "." within k?
-function ls(name) { // list files (empty name), or show
-	if (name.length == 0) {
-		for (var name in files)
-			O("/"+name+"\n")
-		return
-	}
-	var f = files[name]
-	if (f == undefined) {
-		O("?")
-		return
-	}
-	var r = new FileReader()
-	r.onload = function(f) {
-		return function(e) {
-			O(e.target.result)
-			P()
-		}
-	}(f)
-	r.readAsText(f) // readAsArrayBuffer...
-}
-*/
+e("") // first call always responds with an image
 </script></body></html>`

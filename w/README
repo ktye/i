@@ -1,18 +1,23 @@
-web frontend (single-client, single-k, localhost)
+web frontend (single-client, single-k, localhost:2019/k)
 
 a.go main(server)
 h.go html+js
 
 files dropped to the browser are stored in-memory and can be read by k.
 k cannot touch files on disk.
-reloading the page resets the k instance.
+reloading the page resets the k instance on the server.
+
+\c  clear terminal
+\s  print stack trace (after errors)
+ESC toggle hold mode(multiline)
+RET execute current line or marked text
+
+dpy:(w*h)rand 255*255*255
 
 TODO:
-	write files (from k)
-	\lf (list files)
-	download files?
-	drawing canvas on the right, next to the repl
-	export canvas as an int-array to k, e.g. dpy (for each resize)
-	@[dpy;i;y] should update in-place
-	recover on panic (send error message)
+ write files (from k to memfs)
+ \lf (list files)
+ download files? e.g. by url localhost:2019/filename
+ search with mark and right click
+ recover on panic (send error message)
 	
