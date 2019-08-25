@@ -34,6 +34,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		//TODO {"(1 2;3 4)+2 3", "(3 4;6 7)"},
 		// k7: {`1 -3 4\:30`, "0 -2 2"},
 		{"(!0) bin 3", "-1"}, // k7: 0?
 		// parse error: {`{{z+y*x}/[0;x;y]}`, ""},

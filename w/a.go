@@ -16,7 +16,7 @@ import (
 type op struct{ *bytes.Buffer }
 
 var stdout op
-var lastImg []k
+var draw bool
 var files map[s][]c
 
 func main() {
@@ -47,10 +47,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]c("w " + name + "\n"))
 		return
 	}
+	draw = false
 	stdout.Buffer = bytes.NewBuffer(nil)
 	setSize(r.Header.Get("width"), r.Header.Get("height"))
 	try(body)
-	if sendImage(w) {
+	if draw {
+		sendImage(w)
 		println("send image")
 		return
 	}
@@ -60,10 +62,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func kinit() {
 	println("kinit")
 	files = make(map[s][]c)
-	lastImg = nil
 	ini()
 	table[21] = red      // 0:x
 	table[40] = kinit    // \\
+	table[dyad] = trg    // trigger dpy:..
 	table[21+dyad] = wrt // x 0:y
 }
 func red(x k) (r k) { // 1:x
@@ -106,6 +108,12 @@ func wrt(x, y k) (r k) { // x 1:y
 	stdout.Write(m.c[yp : yp+n])
 	return decr(y, x)
 }
+func trg(x, y, f k) (r k) { // trigger assignments to `dpy
+	if match(x, mku(0x6470790000000000)) { // `dpy
+		draw = true
+	}
+	return decr2(y, f, x)
+}
 func try(b []c) {
 	defer stk()
 	evp(mkb(b))
@@ -117,49 +125,27 @@ func setSize(width, height s) {
 	dec(asn(mku(0x6800000000000000), mki(k(hi)), mk(N, atom)))      // `h
 	dec(asn(mku(0x6470790000000000), mk(I, k(wi*hi)), mk(N, atom))) // `dpy
 }
-func sendImage(w http.ResponseWriter) bool {
+func sendImage(w http.ResponseWriter) {
 	wk := lupo(mku(0x7700000000000000)) // `w
 	if t, n := typ(wk); wk == 0 || t != I || n != atom {
-		println("no w")
-		return false
+		w.Write([]c("w is overwritten"))
+		return
 	}
 	defer dec(wk)
 	dpy := lupo(mku(0x6470790000000000)) // `dpy
 	if dpy == 0 {
-		println("no dpy")
-		return false
+		w.Write([]c("no dpy"))
+		return
 	}
 	t, n := typ(dpy)
 	if t != I || n == atom || n == 0 {
-		println("wrong dpy type", t, n)
-		return false
+		w.Write([]c("wrong dpy type"))
+		return
 	}
 	defer dec(dpy)
 
-	p := ptr(dpy, I)
-	if lastImg != nil && n == k(len(lastImg)) {
-		same := true
-		for i := k(0); i < n; i++ {
-			if m.k[p+i] != lastImg[i] {
-				println("image differs at", i, "of", n)
-				same = false
-				break
-			}
-		}
-		if same {
-			println("same as last time")
-			return false
-		}
-	} else {
-		println("new image", n, "last==nil?", lastImg == nil)
-		lastImg = make([]k, n)
-
-	}
-	copy(lastImg, m.k[p:p+n])
-
-	ww, hh := m.k[2+wk], n/m.k[2+wk]
-	println("w/h", ww, hh)
-	im, b, cp, kp := image.NewRGBA(image.Rectangle{Max: image.Point{int(ww), int(hh)}}), bytes.NewBuffer(nil), 0, k(0)
+	p, ww, hh, cp, kp := ptr(dpy, I), m.k[2+wk], n/m.k[2+wk], 0, k(0)
+	im, b := image.NewRGBA(image.Rectangle{Max: image.Point{int(ww), int(hh)}}), bytes.NewBuffer(nil)
 	for i := k(0); i < n; i++ { // see: golang.org/src/image/image.go
 		kp = m.k[p]
 		im.Pix[cp+0] = c(kp & 0xFF0000 >> 16)    // r
@@ -169,19 +155,19 @@ func sendImage(w http.ResponseWriter) bool {
 		cp += 4
 		p++
 	}
-	if png.Encode(b, im) != nil {
-		println("pngEncode")
-		return false
+	if e := png.Encode(b, im); e != nil {
+		w.Write([]c("png:" + e.Error()))
+		return
 	}
 	w.Header().Set("Content-Type", "image/png")
 	w.Write([]c("data:image/png;base64,"))
 	e := base64.NewEncoder(base64.StdEncoding, w)
 	io.Copy(e, b)
 	e.Close()
-	return true
 }
 func stk() {
 	if r := recover(); r != nil {
+		draw = false
 		a, b := stack(r)
 		dec(asn(mks(".stk"), mkb([]c(a)), mk(N, atom))) // stack trace: \s
 		dec(wrt(mku(0), ano(m.k[srcp], mkb([]c(b)))))
@@ -211,7 +197,7 @@ func stack(c interface{}) (stk, err s) {
 	}
 	return stk, err
 }
-func (w op) Write(b []c) (int, error) {
+func (w op) Write(b []c) (int, error) { // debug wrapper
 	println(s(b))
 	return w.Buffer.Write(b)
 }
