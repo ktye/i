@@ -116,10 +116,11 @@ func ini() { // start function
 	builtins(o+20, "prm")
 	o += c(dyad) // dyads
 	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
-	asn(mks(".f"), mk(C, 0), mk(N, atom)) // file name
-	asn(mks(".c"), mk(C, 0), mk(N, atom)) // current src
-	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)
-	mkk(".odo", `{+x\'!*/x}`)
+	asn(mks(".f"), mk(C, 0), mk(N, atom))           // file name
+	asn(mks(".c"), mk(C, 0), mk(N, atom))           // current src
+	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`) // transpose
+	mkk(".odo", `{x\:!*/x}`)                        // odometer
+	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
@@ -262,7 +263,6 @@ func kxy(s, x, y k) (r k) { // execute dyadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C {
 		f = asn(inc(s), evl(prs(f)), mk(N, atom))
-		// f = evl(prs(f))
 	}
 	dec(s)
 	if m.k[f]>>28 != N+2 {
@@ -1912,7 +1912,7 @@ func diZ(r, x, y k) { m.z[r] = m.z[x] / m.z[y] }
 func baC(r, x, y k) { m.c[r] = m.c[x] * (m.c[y] / m.c[x]) }
 func baI(r, x, y k) { m.k[r] = k(i(m.k[x]) * (i(m.k[y]) / i(m.k[x]))) }
 func mdC(r, x, y k) { m.c[r] = m.c[x] % m.c[y] }
-func mdI(r, x, y k) { m.k[r] = k(i(m.k[x]) % i(m.k[y])) }
+func mdI(r, x, y k) { m.k[r] = k(imod(i(m.k[x]), i(m.k[y]))) }
 func mdF(r, x, y k) { m.f[r] = math.Mod(m.f[x], m.f[y]) }
 func miC(r, x, y k) { m.c[r] = m.c[ter(m.c[x] < m.c[y], x, y)] }
 func miI(r, x, y k) { m.k[r] = m.k[ter(i(m.k[x]) < i(m.k[y]), x, y)] }
@@ -3572,8 +3572,8 @@ func out(x k) {
 }
 func spl(x, y k) (r k) { // x\:y (split)
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt == I && yn == atom { // base\:n (encode)
-		return bnc(x, y)
+	if xt == I && yt == I { // encode ⊤
+		return enc(x, y)
 	}
 	if yt != C || yn == atom {
 		panic("type")
@@ -3604,9 +3604,9 @@ func spl(x, y k) (r k) { // x\:y (split)
 	return decr2(idx, y, r)
 }
 func jon(x, y k) (r k) { // x/:y (join)
-	xt, yt, xn, yn := typs(x, y)
-	if xt == I && xn == atom && yt == I { // base/:n (decode)
-		return bdc(x, y)
+	xt, yt, _, yn := typs(x, y)
+	if xt == I && yt == I { // decode ⊥
+		return dcd(x, y)
 	}
 	if yt != L {
 		panic("type")
@@ -3632,27 +3632,67 @@ func jon(x, y k) (r k) { // x/:y (join)
 	}
 	return decr2(x, y, r)
 }
-func bnc(x, y k) (r k) { // encode y in base x
-	b, n := m.k[2+x], m.k[2+y]
-	if i(b) <= 0 || i(n) <= 0 {
+func imod(x, y i) (r i) { // k: y\x go: x%y differs for x<0
+	if y < 0 {
 		panic("domain")
 	}
+	r = x % y
+	if r < 0 {
+		r += y
+	}
+	return r
+}
+func enc(x, y k) (r k) { // x\:y (encode y in base x)
+	if ny := m.k[y] & atom; ny != atom {
+		r = mk(L, ny)
+		for i := k(0); i < ny; i++ {
+			m.k[2+i+r] = enc(inc(x), mki(m.k[2+i+y]))
+		}
+		return decr2(x, y, flp(r))
+	}
+	x = rev(x)
+	xn, a, xp, n, xx := m.k[x]&atom, k(0), 2+x, i(m.k[2+y]), i(0)
+	if n == 0 && xn == atom {
+		return decr2(x, y, mk(I, 0))
+	} else if n == 0 {
+		return decr2(x, y, take(xn, 0, mki(0)))
+	} else if n < 0 {
+		panic("domain")
+	} else if xn != atom {
+		a = 1
+	} else if xn == 0 {
+		panic("type")
+	}
 	r = mk(I, 0)
-	for n > 0 {
-		m := n % b
-		r = cat(r, mki(m))
-		n /= b
+	for j := k(0); ; j++ {
+		if aj := a * j; aj >= xn {
+			xx = i(m.k[xp+xn-1])
+		} else {
+			xx = i(m.k[xp+aj])
+		}
+		m := imod(n, xx)
+		r = cat(r, mki(k(m)))
+		n /= xx
+		if (xn == atom && n <= 0) || (xn != atom && j >= xn-1) {
+			break
+		}
 	}
 	return decr2(x, y, rev(r))
 }
-func bdc(x, y k) (r k) { // decode y given in base x
-	b := m.k[2+x]
-	yn := atm1(m.k[y] & atom)
-	n := k(0)
-	for i := k(0); i < yn; i++ {
-		n = b*n + m.k[2+y+i]
+func dcd(x, y k) (r k) { // x/:y (decode y given in base x) {{z+y*x}/[0;x;y]}
+	xn, yn, a := m.k[x]&atom, m.k[y]&atom, k(1)
+	if yn == atom {
+		panic("class")
+	} else if xn == atom {
+		a = 0
+	} else if xn != yn {
+		panic("length")
 	}
-	return decr2(x, y, mki(n))
+	s, xp, yp := k(0), 2+x, 2+y
+	for i := k(0); i < yn; i++ {
+		s = s*m.k[xp+i*a] + m.k[yp+i]
+	}
+	return decr2(x, y, mki(s))
 }
 func bin(x, y k) (r k) { // x bin y
 	t, yt, xn, yn := typs(x, y)
