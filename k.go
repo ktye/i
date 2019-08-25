@@ -3786,6 +3786,10 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return decr(x, r)
 }
 func asn(x, y, f k) (r k) { // `x:y
+	if table[dyad] != nil { // e.g. trigger
+		g := table[dyad].(func(k, k, k) k)
+		x = g(x, inc(y), inc(f))
+	}
 	_, yt, xn, yn := typs(x, y)
 	if xn != atom {
 		if yn == atom {
