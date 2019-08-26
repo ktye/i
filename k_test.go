@@ -35,6 +35,7 @@ func TestK(t *testing.T) {
 		x, r s
 	}{
 		//TODO {"(1 2;3 4)+2 3", "(3 4;6 7)"},
+		//TODO b64@ b64?
 		// k7: {`1 -3 4\:30`, "0 -2 2"},
 		{"(!0) bin 3", "-1"}, // k7: 0?
 		// parse error: {`{{z+y*x}/[0;x;y]}`, ""},
@@ -1024,7 +1025,57 @@ k7+
  matrix: x/y(mul), A\B(solve), A\0(qr), A\1(inv), diag A, diag v, norm, cond
  stat: x med (pct/erf/cum), dev z (principal axis), x var, var z (cov), x avg (cum/win/exp)
 k7-
- 32bit, time/duration, crypto, network, multithread
+ 32bit, time/duration, :expr, ksql, crypto, network, multithread
+ 
+Type/memory system
+32-bit system, buddy allocater with 8 byte headers
+types (cifzsla01234) byte8, int32, float64, complex128, symbol64, list32, dict64, funcs
+space for 15 types
+8 byte header:
+  4 bits type p>>28
+ 28 bits vector size, atom: p&0x0fffffff == 0x0fffffff
+ free block: type is 0:     p&0xf0000000 == 0
+ bucket type is stored only in free blocks at p (uint32 value)
+ 32 bits (p+1) are refcount for used blocks or pointer to next free
+
+Initial memory (64kB)
+ p[0]        block header
+ p[1]        rng state
+ p[2]        total allocated memory log2 (initial 64k, max 4G) uint32
+ p[3]        points to a dict of built-ins S(name)!L(fcodes)
+ followed by free list:
+ p[4..31]    points to free block of bucket size n = 4..31
+ byte[136…168] symbols :+-*%&|<>=!~,^#_$?@.0123456789'/\
+ byte[169…181] type names _cifzn.a_1234
+ p[47]       0x2f src pointer
+ p[48]       0x30 points to k tree keys (^S)
+ p[49]       0x31 points to k tree values (L)
+ byte[?]     type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
+             A01234 need only a single block but may have length>0
+
+Function codes
+  0-19 monadic primitives :+-*%&|<>=!~,^#_$?@.
+ 20-29 monadic ioverbs 0123456789
+ 30-32 monadic operator functions '/\
+ 33-38 monadic derived functions f' f/ f\ f': f/: f\:
+ 39-79 monadic builtins
+ 80-159 dyadic versions
+
+Functions have type N+1…N+4 (valence)
+ basic functions and builtins: atoms
+  x+2 is the function code
+ lambda functions: marked with length 0
+  x+2 string form C
+  x+3 (arg list;parse tree), variables are always x,y,z
+ projection: length 1(over lambda) 2(over basic/builtins)
+  x+2 function code or pointer to lambda function
+  x+3 full argument list with holes (N)
+ composition: length 3, type N+1 or N+2
+  x+2, x+3: point to verbs
+ derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
+  x+2 derived function code<<8
+  x+3 points to the function operand
+ call will adjust the valence if a derived function has two arguments
 
 </pre>`))
 }

@@ -1,110 +1,11 @@
 kwac - k webassembly compiler
 
-s is a k program that emits webassembly byte code.
-The resulting program is a k interpreter itself (a subset of k7).
+s is a k program (k7;i) that emits webassembly byte code.
+the resulting program is (not yet) a k interpreter itself (a subset of k7).
 
-The goal is for these programs to output the same result 0x006173… for input s:
-k7:           k < s
-⍳:            ⍳ s
-k.go:         go test|sed 1q
-metacircular: k < s|wasm -|wasm -|…
-
-k.go is a reference implementation that uses the same memory layout as the wasm version (only on little endian).
-A repl is hosted on ktye.github.io
-
-Type and memory system
-32-bit system, buddy allocater with 8 byte headers
-types (cifzsld01234) byte8, int32, float64, complex128, symbol64, list32, dict64, func32...
-space for 15 types
-8 byte header:
-  4 bits type p>>28
- 28 bits vector size, atom: p&0x0fffffff == 0x0fffffff
- free block: type is 0:     p&0xf0000000 == 0
- bucket type is stored only in free blocks at p (uint32 value)
- 32 bits (p+1) are refcount for used blocks or pointer to next free
-
-Initial memory (64kB)
- p[0]        block header
- p[1]        rng state
- p[2]        total allocated memory log2 (initial 64k, max 4G) uint32
- p[3]        points to a dict of built-ins `s(name):`c(code)
- followed by free list:
- p[4..31]    points to free block of bucket size n = 4..31
- byte[136…168] symbols :+-*%&|<>=!~,^#_$?@.0123456789'/\
- byte[169…181] type names _cifzn.a_1234
- p[47]       0x2f src pointer
- p[48]       0x30 points to k tree keys (`S, always sorted)
- p[49]       0x31 points to k tree values (`L)
- byte[?]     type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
-
-
-Function codes
-  0-19 monadic primitives :+-*%&|<>=!~,^#_$?@.
- 20-29 monadic ioverbs 0123456789
- 30-32 monadic operator functions '/\
- 33-38 monadic derived functions f' f/ f\ f': f/: f\:
- 39-79 monadic builtins
- 80-159 dyadic versions
- 160.. internal functions (wasm only)
- 
-
-Functions have type N+1…N+4 (valence)
- basic functions and builtins: atoms
-  x+2 is the function code
- lambda functions: marked with length 0
-  x+2 string form `C
-  x+3 (arg list;parse tree), variables are always x,y,z
- projection: length 1(over lambda) 2(over basic/builtins)
-  x+2 function code or pointer to lambda function
-  x+3 full argument list with holes (`N)
- composition: length 3, type N+1 or N+2
-  x+2, x+3: point to verbs
- derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
-  x+2 derived function code<<8
-  x+3 points to the function operand
- call will adjust the valence if a derived function has two arguments
+i(../k.go) is a reference implementation that uses the same memory layout as the wasm version (only on little endian).
 
 Wasm reference
  webassembly.github.io/wabt/demo/wat2wasm (interactive)
  sunfishcode/wasm-reference-manual/blob/master/WebAssembly.md
- 
-Algorithms (to be improved, open for suggestions)
- +x nyi
- -x
- *x
- %x 1/x
- &x quadratic, alt? 
- |x
- <x insertion, (alt: radix for CIFZS?)
- >x |<x (alt: share sort implementation)
- =x (?u)[<?u];boolean(#x);(over?x(over x));(over bools), alt?
- !x
- ~x
- ,x
- ^x
- #x
- _x
- $x recursive, TODO itoa,ftoa
- ?x 
- @x
- .x interp(walk), alt: partial eval, byte-code(on wasm), compile and feed back?
-x+y
-x-y
-x*y
-x%y Z: Smith116, (alt: Baudin, see iv/apl/big/complex.go)
-x&y
-x|y
-x<y
-x>y
-x=y
-x!y
-x~y
-x,y
-x^y quadratic, alt?
-x#y
-x_y
-x$y
-x?y quadratic, alt: sort, bisection?
-x@y
-x.y
  

@@ -2412,6 +2412,8 @@ func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
 	if t == S && yt != S {
 		switch sym(8 + x<<2) {
+		case 0x6236340000000000: // `b64
+			return decr(x, b46(y))
 		case 0x6865780000000000: // `hex
 			return decr(x, xeh(y))
 		case 0x6373760000000000: // `csv
@@ -2485,6 +2487,8 @@ func atx(x, y k) (r k) { // x@y
 			return decr(x, mat(y))
 		case 0x6373760000000000: // `csv
 			return decr(x, csv(y))
+		case 0x6236340000000000: // `b64
+			return decr(x, b64(y))
 		case 0x6865780000000000: // `hex
 			return decr(x, hex(y))
 		default:
@@ -2900,6 +2904,15 @@ func xeh(x k) (r k) { // `hex?x
 		m.c[rp+i] = (xtoc(h) << 4) | xtoc(l)
 	}
 	return decr(x, r)
+}
+func b64(x k) (r k) { // `b64@x
+	if t, n := typ(x); t != C || n == atom {
+		panic("type")
+	}
+	panic("nyi") // {p:(3\x)#"=";x,:(3\#x)#0x00;..}
+}
+func b46(x k) (r k) { // `64?x
+	panic("nyi")
 }
 func cal(x, y k) (r k) { // x.y
 	xt, _, xn, yn := typs(x, y)
