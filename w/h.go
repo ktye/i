@@ -12,8 +12,15 @@ const h = `<html><head><script>
 </style>
 </head><body>
 <div id="dropbox">
-<div class="row"><textarea id="term" class="col"></textarea><image id="dpy" class="col"></image></div></div>
+<div class="row">
+	<textarea id="term" class="col"></textarea> /* left */
+	<textarea id="edit" class="col"></textarea> /* right */
+	<image id="dpy" class="col"></image>        /* alternative(right) */
+</div></div>
 <script>
+var term = document.getElementById("term")
+var edit = document.getElementById("edit")
+var dpy  = document.getElementById("dpy")
 function e(s) {
 	var img = document.getElementById("dpy")
 	var req = new XMLHttpRequest()
@@ -29,10 +36,15 @@ function e(s) {
 	req.open("POST", "")
 	req.setRequestHeader("width", img.width)
 	req.setRequestHeader("height", img.width)
+	req.setRequestHeader("k", s)
+	s = ""
+	if (edit.style.display == "block") {
+		req.setRequestHeader("sel", edit.value.substring(edit.selectionStart, edit.selectionEnd))
+		s = edit.value
+	}
 	req.send(s)
 }
 var hold = false
-var term = document.getElementById("term")
 term.value = " "
 term.onkeydown = function (evt) {
 	if (evt.which === 27) {
@@ -78,6 +90,8 @@ term.onkeydown = function (evt) {
 }
 function O(s) { term.value += s }
 function P() { term.value += "\n "; term.scrollTo(0, term.scrollHeight) }
+func show(e, b) { b?e.style.display="block":e.style.display="none" }
+func edit(b) { if(b){show(edit,true);show(dpy,false)}else{show(edit,false);show(display,true)}}
 
 var dropbox = document.getElementById("dropbox")
 dropbox.ondragover = function(ev) { ev.preventDefault() }
@@ -108,5 +122,6 @@ function sendfile(name, buf) {
 	req.setRequestHeader("file", name)
 	req.send(buf)
 }
-e("") // first call always responds with an image
+edit(true)
+e("+/1+100") // initial gauss test
 </script></body></html>`
