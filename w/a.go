@@ -13,11 +13,8 @@ import (
 	"strings"
 )
 
-type op struct{ *bytes.Buffer }
-
 var stdout op
-var draw bool
-var files map[s][]c
+var ee, ss, dd bool
 
 func main() {
 	http.HandleFunc("/", handler)
@@ -37,20 +34,33 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	e, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		println(err.Error())
 		return
 	}
-	if name := r.Header.Get("file"); name != "" {
+	table[dyad] = nil // unset trigger
+
+	if n := r.Header.Get("n"); n == ".e" {
+		s, a, b := r.Header.Get("s"), strconv.Atoi(r.Header.Get("a")), strconv.Atoi(r.Header.Get("b"))
+		dec(asn(mku(0x2e65000000000000), mkb(e), mk(N, atom)))                                // `.e:"line1\nline2"
+		dec(asn(mku(0x2e73000000000000), cat(cat(mkb([]c(s)), mki(a)), mki(b)), mk(N, atom))) // `.s:("sel";7;10)
+	} else {
+		dec(kxy(mks(".fput"), mkb([]c(n)), mkb(e)))
+	}
+
+	// xxx
+
+	table[dyad] = trg
+	if name := r.Header.Get("file"); name != "" { // upload
 		files[name] = body
 		w.Write([]c("w " + name + "\n"))
 		return
 	}
 	draw = false
 	stdout.Buffer = bytes.NewBuffer(nil)
-	setSize(r.Header.Get("width"), r.Header.Get("height"))
-	try(body)
+	dec(kxy(mks(".rsz"), mki(strconv.Atoi(r.Header.Get("w"))), mki(strconv.Atoi(r.Header.Get("h")))))
+	try(r.Header.Get("k"))
 	if draw {
 		sendImage(w)
 		println("send image")
@@ -59,14 +69,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	println("send response")
 	w.Write(stdout.Bytes())
 }
-func kinit() {
+func kinit() { // each GET /k (e.g. page reload)
 	println("kinit")
-	files = make(map[s][]c)
 	ini()
-	table[21] = red      // 0:x
-	table[40] = kinit    // \\
-	table[dyad] = trg    // trigger dpy:..
-	table[21+dyad] = wrt // x 0:y
+	table[21] = red                                           // 0:x
+	table[40] = kinit                                         // \\
+	table[dyad] = trg                                         // trigger `.e`.s`.d
+	table[21+dyad] = wrt                                      // x 0:y
+	mkk(".rsz", "{$[~(x*y)~+/#:'`.d;`.d:y x#0;0]}")           // resize(w,h)
+	mkk(".fput", "{`.f[`$$[8<#x:8#x:x]]:y}")                  // store file
+	dec(asn(mks(".f"), key(mk(S, 0), mk(L, 0)), mk(N, atom))) // memfs `.f:(0#`)!()
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
@@ -108,22 +120,20 @@ func wrt(x, y k) (r k) { // x 1:y
 	stdout.Write(m.c[yp : yp+n])
 	return decr(y, x)
 }
-func trg(x, y, f k) (r k) { // trigger assignments to `dpy
-	if match(x, mku(0x6470790000000000)) { // `dpy
-		draw = true
+func trg(x, y, f k) (r k) { // trigger assignments
+	switch sym(8 + x<<2) {
+	case 0x2e65000000000000: // `.e
+		ee = true
+	case 0x2e73000000000000: // `.s
+		ss = true
+	case 0x2e64000000000000: // `.d
+		dd = true
 	}
 	return decr2(y, f, x)
 }
 func try(b []c) {
 	defer stk()
 	evp(mkb(b))
-}
-func setSize(width, height s) {
-	wi, _ := strconv.Atoi(width)
-	hi, _ := strconv.Atoi(height)
-	dec(asn(mku(0x7700000000000000), mki(k(wi)), mk(N, atom)))      // `w
-	dec(asn(mku(0x6800000000000000), mki(k(hi)), mk(N, atom)))      // `h
-	dec(asn(mku(0x6470790000000000), mk(I, k(wi*hi)), mk(N, atom))) // `dpy
 }
 func sendImage(w http.ResponseWriter) {
 	wk := lupo(mku(0x7700000000000000)) // `w

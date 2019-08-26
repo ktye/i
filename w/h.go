@@ -15,14 +15,13 @@ const h = `<html><head><script>
 <div class="row">
 	<textarea id="term" class="col"></textarea> /* left */
 	<textarea id="edit" class="col"></textarea> /* right */
-	<image id="dpy" class="col"></image>        /* alternative(right) */
+	<image id="dpy" class="col"></image>        /* right(alt) */
 </div></div>
 <script>
 var term = document.getElementById("term")
 var edit = document.getElementById("edit")
 var dpy  = document.getElementById("dpy")
-function e(s) {
-	var img = document.getElementById("dpy")
+function e(k, n, f) {
 	var req = new XMLHttpRequest()
 	req.onreadystatechange = function() { 
 		if (this.readyState == (this.DONE || 4)) { 
@@ -33,16 +32,18 @@ function e(s) {
 			}
 		} 
 	}
+	var a = edit.selectionStart
+	var b = edit.selectionEnd
+	var s = edit.value.substring(a, b)
 	req.open("POST", "")
-	req.setRequestHeader("width", img.width)
-	req.setRequestHeader("height", img.width)
-	req.setRequestHeader("k", s)
-	s = ""
-	if (edit.style.display == "block") {
-		req.setRequestHeader("sel", edit.value.substring(edit.selectionStart, edit.selectionEnd))
-		s = edit.value
-	}
-	req.send(s)
+	req.setRequestHeader("n", n) // file name
+	req.setRequestHeader("s", s) // selected text   (only .e)
+	req.setRequestHeader("a", a) // selection start (only .e)
+	req.setRequestHeader("b", b) // selection end   (only .e)
+	req.setRequestHeader("w", dpy.width) 
+	req.setRequestHeader("h", dpy.height)
+	req.setRequestHeader("k", k) // term value(current line)
+	req.send(f)
 }
 var hold = false
 term.value = " "
@@ -82,7 +83,7 @@ term.onkeydown = function (evt) {
 			// ls(s.substring(1))
 			O("TODO ls")
 		} else {
-			e(s)
+			e(s, "", edit.value)
 			return
 		}
 		P()
@@ -111,17 +112,10 @@ dropbox.ondrop = function(ev) {
 function addfile(f) {
 	var r = new FileReader()
 	r.onload = function() {
-		sendfile("/"+f.name, r.result)
+		e("", f.name, r.result)
 	}
 	r.readAsArrayBuffer(f)
 }
-function sendfile(name, buf) {
-	var req = new XMLHttpRequest()
-	req.onreadystatechange = function() { if (this.readyState == (this.DONE || 4)) { O(req.response+" ");term.scrollTo(0, term.scrollHeight)  } }
-	req.open("POST", "")
-	req.setRequestHeader("file", name)
-	req.send(buf)
-}
 edit(true)
-e("+/1+100") // initial gauss test
+e("", ".e", "") // receives image response
 </script></body></html>`
