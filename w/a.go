@@ -77,7 +77,7 @@ func kinit() { // each GET /k (e.g. page reload)
 	table[dyad] = trg                                         // trigger `.e`.s`.d
 	table[21+dyad] = wrt                                      // x 0:y
 	mkk(".rsz", "{$[~(x*y)~+/#:'`.d;`.d:y x#0;0]}")           // resize(w,h)
-	mkk(".fput", "{`.f[`$$[8<#x:8#x:x]]:y}")                  // store file
+	mkk(".fput", "{`.f[`$$[8<#x:8#x:x]]:y}")                  // store file (1level fs)
 	dec(asn(mks(".f"), key(mk(S, 0), mk(L, 0)), mk(N, atom))) // memfs `.f:(0#`)!()
 }
 func red(x k) (r k) { // 1:x

@@ -42,6 +42,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		// TODO: {".a:1;.a", "1"},
 		//TODO b64@ b64?
 		// k7: {`1 -3 4\:30`, "0 -2 2"},
 		{"(!0) bin 3", "-1"}, // k7: 0?

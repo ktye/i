@@ -133,11 +133,11 @@ func ini() { // start function
 	}
 	dec(asn(mks(".0"), null, inc(null)))
 	dec(asn(mks(".n"), n, inc(null)))
-	dec(asn(mku(0x2e00000000000000), key(mk(S, 0), mk(L, 0)), inc(null))) // ktree `.
-	dec(asn(mks(".f"), mk(C, 0), inc(null)))                              // file name
-	dec(asn(mks(".c"), mk(C, 0), inc(null)))                              // current src
-	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)                       // transpose
-	mkk(".odo", `{x\:!*/x}`)                                              // odometer
+	dec(asn(mku(0), key(mk(S, 0), mk(L, 0)), inc(null))) // ktree `
+	dec(asn(mks(".f"), mk(C, 0), inc(null)))             // file name
+	dec(asn(mks(".c"), mk(C, 0), inc(null)))             // current src
+	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)      // transpose
+	mkk(".odo", `{x\:!*/x}`)                             // odometer
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
