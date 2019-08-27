@@ -566,23 +566,17 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	} else if yn == atom {
 		n, sc = xn, 2
 	} else if xn != yn {
+		println(xn, yn)
 		panic("size")
 	}
 	if xt == L || yt == L {
 		r = mk(L, n)
-		if xn == atom {
-			for i := k(0); i < n; i++ {
-				m.k[2+r+i] = nd(inc(x), inc(m.k[2+y+i]), rt, fx, fc)
-			}
-		} else if yn == atom {
-			for i := k(0); i < n; i++ {
-				m.k[2+r+i] = nd(inc(m.k[2+x+i]), inc(y), rt, fx, fc)
-			}
-		} else {
-			for i := k(0); i < n; i++ {
-				m.k[2+r+i] = nd(inc(m.k[2+x+i]), inc(m.k[2+y+i]), rt, fx, fc)
-			}
+		a := mk(I, atom)
+		for i := k(0); i < n; i++ {
+			m.k[2+a] = i
+			m.k[2+r+i] = nd(atx(inc(x), inc(a)), atx(inc(y), inc(a)), rt, fx, fc)
 		}
+		dec(a)
 		return decr2(x, y, uf(r))
 	} else if xt > S || yt > S {
 		panic("type")
@@ -1620,12 +1614,7 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 		if t, n := typ(r); t != L {
 			panic("type")
 		} else {
-			mx := k(0)
-			for i := k(0); i < n; i++ {
-				if nn := m.k[m.k[2+r+i]] & atom; nn > mx {
-					mx = nn
-				}
-			}
+			mx := cmc(r, n)
 			for i := k(0); i < n; i++ {
 				m.k[2+r+i] = cat(cat(pad(mx, m.k[2+r+i]), mkc(':')), kst(atx(inc(v), mki(i))))
 			}
@@ -1638,12 +1627,7 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 		for i := k(0); i < nc; i++ {
 			r = str(atx(inc(m.k[3+x]), mki(i)))
 			r = cat(enl(inc(m.k[2+h+i])), r)
-			mx := k(0)
-			for j := k(0); j < m.k[r]&atom; j++ {
-				if nn := m.k[m.k[2+r+j]] & atom; nn > mx {
-					mx = nn
-				}
-			}
+			mx := cmc(r, m.k[r]&atom)
 			for j := k(0); j < m.k[r]&atom; j++ {
 				m.k[2+r+j] = pad(mx, m.k[2+r+j])
 			}
@@ -1667,12 +1651,7 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 	r = flp(r) // " "/:+n$+r (join flip pad flip)
 	for i := k(0); i < m.k[r]&atom; i++ {
 		ri := m.k[2+r+i]
-		mx, nc := k(0), m.k[ri]&atom
-		for j := k(0); j < nc; j++ {
-			if n := m.k[m.k[2+j+ri]] & atom; n > mx {
-				mx = n
-			}
-		}
+		mx, nc := cmc(ri, m.k[ri]&atom), m.k[ri]&atom
 		for j := k(0); j < nc; j++ {
 			m.k[2+j+ri] = pad(mx, m.k[2+j+ri])
 		}
@@ -2496,8 +2475,11 @@ func atx(x, y k) (r k) { // x@y
 		}
 	} else if xt > N {
 		return cal(x, enl(y))
-	} else if xn == atom && xt != A {
-		panic("type")
+	} else if xn == atom && xt < A { // class error in k7
+		if yn == atom {
+			return decr(y, x)
+		}
+		return decr(y, take(yn, 0, x)) // (#y)#x
 	}
 	switch {
 	case xt < L && yt == I:
@@ -2606,7 +2588,8 @@ func atm(x, y k) (r k) { // x@y (matrix indexing)
 	dec(y)
 	at, bt, an, _ := typs(a, b)
 	if at == N && bt == N { // x[;]→x? or force a rectangular matrix?
-		return decr2(a, b, x)
+		r = jota(cmc(x, xn))
+		return decr2(a, b, atm(x, l2(inc(r), r)))
 	} else if bt == N { // x[a;]
 		return decr(b, atx(x, a))
 	} else if at == N { // x[;b]
@@ -2623,12 +2606,21 @@ func atm(x, y k) (r k) { // x@y (matrix indexing)
 		panic("type")
 	}
 	for i := k(0); i < an; i++ {
-		if m.k[m.k[2+i+r]]&atom == atom {
-			m.k[2+i+r] = enl(m.k[2+i+r])
-		}
+		//if m.k[m.k[2+i+r]]&atom == atom {
+		//	m.k[2+i+r] = enl(m.k[2+i+r])
+		//}
 		m.k[2+r+i] = atx(m.k[2+i+r], inc(b))
 	}
 	return decr(b, uf(r))
+}
+func cmc(x, n k) (r k) { // count matrix cols
+	r = 0
+	for i := k(0); i < n; i++ {
+		if c := m.k[m.k[2+i+x]] & atom; c != atom && c > r {
+			r = c
+		}
+	}
+	return r
 }
 func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
 /*
