@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"reflect"
@@ -127,7 +128,7 @@ func TestK(t *testing.T) {
 		{"0#!3", "!0"},
 		{"2#!0", "0N 0N"},
 		{"-3#!0", "0N 0N 0N"},
-		{"3#()", `("";"";"")`},
+		// {"3#()", `("";"";"")`}, // or "   "? TODO check k7
 		{"(!0)#1 2 3", "1"},
 		{"2 3#!5", "(0 1 2;3 4 0)"},
 		{"3 -2#!5", "(3 4;0 1;2 3)"},
@@ -162,12 +163,12 @@ func TestK(t *testing.T) {
 		{"`i$0%0", "0N"},
 		{"`f$0N", "0n"},
 		{"`f$3f", "3f"}, // k7 does not allow *f
-		{"`z$0N", "0na"},
+		{"`z$0N", "0na0n"},
 		{"`i$\"123\"", "123"},
 		{"`i$\"\"", "0N"},
 		{"`f$\"\"", "0n"},
 		{"`f$\"1.23\"", "1.23"},
-		{"`z$\"\"", "0na"},
+		{"`z$\"\"", "0na0n"},
 		{"`z$\"1a30\"", "1a30"},
 		{`0$"abc"`, `""`},
 		{`2$"abc"`, `"ab"`},
@@ -964,6 +965,8 @@ func TestTo(t *testing.T) {
 		{2.3, 2.3 + 0i, Z},
 		{-2.3 + 4.5i, -2.3, F},
 		{2.3 - 4.5i, c(2), C},
+		{complex(math.NaN(), 0), -2147483648, I},
+		{complex(0, math.NaN()), -2147483648, I},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
@@ -978,7 +981,7 @@ func TestTo(t *testing.T) {
 			r := G(y)
 			fmt.Printf("to(%v,%d) = %v\n", tc.x, tc.t, tc.r)
 			if !reflect.DeepEqual(r, tc.r) {
-				t.Fatalf("expected: %v got %v\n", tc.r, r)
+				t.Fatalf("expected: %v got %v %T %T\n", tc.r, r, tc.r, r)
 			}
 			dec(y)
 			clear()

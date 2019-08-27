@@ -61,9 +61,11 @@ var m struct { // linear memory (slices share underlying array)
 	f []f
 	z []z
 }
-var null k                                             // mk(N,atom)
+var null k                          // mk(N,atom)
+var nan = [7]k{0, 0, 0, 0, 0, 0, 0} // nan[t] (missing) mk(t,atom)..
+var unan, inan = uint64(0x7FF8000000000001), k(0x80000000)
+var fnan f = *(*f)(unsafe.Pointer(&unan))
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
-var nax = []func(k){nil, naC, naI, naF, naZ, naS, naL} // set missing/nan
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
 var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
 var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
@@ -71,22 +73,22 @@ var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 b
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
 	m.f[r] = f(i(m.k[x]))
 	if i(m.k[x]) == NaI {
-		naF(r)
+		m.f[r] = fnan
 	}
 }, func(r, x k) {
 	m.z[r] = complex(f(i(m.k[x])), 0)
 	if i(m.k[x]) == NaI {
-		naF(r << 1)
+		m.z[r] = complex(fnan, fnan)
 	}
 }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) {
 	m.k[r] = k(i(f(m.f[x])))
 	if math.IsNaN(m.f[x]) {
-		naI(r)
+		m.k[r] = inan
 	}
 }, nil, func(r, x k) { m.z[r] = complex(m.f[x], 0) }, func(r, x k) { m.c[r] = c(m.f[x<<1]) }, func(r, x k) {
 	m.k[r] = k(i(m.f[x<<1]))
-	if math.IsNaN(m.f[x<<1]) {
-		naI(r)
+	if math.IsNaN(m.f[x<<1]) || math.IsNaN(m.f[1+x<<1]) {
+		m.k[r] = inan
 	}
 }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 
@@ -118,7 +120,19 @@ func ini() { // start function
 	o += c(dyad) // dyads
 	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
 	null = mk(N, atom)
+	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), mk(S, atom)
+	m.c[ptr(nan[C], C)] = 32
+	m.k[ptr(nan[I], I)] = k(inan)
+	m.f[ptr(nan[F], F)] = fnan
+	m.f[1+ptr(nan[Z], F)], m.f[2+ptr(nan[Z], F)] = fnan, fnan
+	mys(8+nan[S]<<2, 0)
+	nan[L] = nan[C] // shared
+	n := mk(L, 5)
+	for i := k(0); i < 5; i++ {
+		m.k[2+n+i] = nan[i+1]
+	}
 	dec(asn(mks(".0"), null, inc(null)))
+	dec(asn(mks(".n"), n, inc(null)))
 	dec(asn(mku(0x2e00000000000000), key(mk(S, 0), mk(L, 0)), inc(null))) // ktree `.
 	dec(asn(mks(".f"), mk(C, 0), inc(null)))                              // file name
 	dec(asn(mks(".c"), mk(C, 0), inc(null)))                              // current src
@@ -136,12 +150,6 @@ func cpF(dst, src k)  { m.f[dst] = m.f[src] }
 func cpZ(dst, src k)  { m.z[dst] = m.z[src] }
 func cpL(dst, src k)  { inc(m.k[src]); cpI(dst, src) }
 func swI(dst, src k)  { m.k[dst], m.k[src] = m.k[src], m.k[dst] }
-func naC(dst k)       { m.c[dst] = 32 }
-func naI(dst k)       { m.k[dst] = 0x80000000 }
-func naF(dst k)       { u := uint64(0x7FF8000000000001); m.f[dst] = *(*f)(unsafe.Pointer(&u)) }
-func naZ(dst k)       { naF(dst << 1); naF(1 + dst<<1) }
-func naS(dst k)       { mys(dst<<3, uint64(0)) }
-func naL(dst k)       { m.k[dst] = mk(C, 0) }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
 func eqF(x, y k) bool { return m.f[x] == m.f[y] || (m.f[x] != m.f[x] && m.f[y] != m.f[y]) }
@@ -341,15 +349,6 @@ func mkb(b []c) (r k) {
 	r, n := mk(C, k(len(b))), k(len(b))
 	rp := 8 + r<<2
 	copy(m.c[rp:rp+n], b)
-	return r
-}
-func mkn(t k) (r k) { // nan atom
-	if t > S {
-		panic("type")
-	}
-	r = mk(t, atom)
-	ptr, na := ptr(r, t), nax[t]
-	na(ptr)
 	return r
 }
 func typ(x k) (k, k) { // type and length at addr
@@ -748,14 +747,11 @@ func fst(x k) (r k) { // *x
 		return x
 	} else if n == 0 {
 		if t < L {
-			r = mk(t, atom)
-			na, rp := nax[t], ptr(r, t)
-			na(rp)
-			return decr(x, r)
+			return decr(x, inc(nan[t]))
 		} else if t == L {
 			return decr(x, mk(C, 0))
 		} else {
-			return decr(x, mk(N, 0))
+			return decr(x, inc(null))
 		}
 	}
 	if t == L {
@@ -1189,7 +1185,7 @@ func evl(x k) (r k) {
 			return decr(x, v)
 		}
 		af := m.k[2+v]
-		if (vt > N && af == dyad) || (vt == N+1 && vn == atom && n == 3) { // : or :: or *: (modified assignemnt)
+		if (vt > N && af == dyad && vn != 0) || (vt == N+1 && vn == atom && n == 3) { // : or :: or *: (modified assignmnt)
 			// in k7 assignment is always monadic :: (`1)
 			// here it is dyadic : (`2) and global assignment is monadic :: (`1)
 			if vt == N+1 && af == 0 { // :: (global assign)
@@ -2178,12 +2174,7 @@ func take(n, o, y k) (r k) { // integer index and offset
 	t, yn := typ(y)
 	cp, yp := cpx[t], ptr(y, t)
 	if yn == 0 {
-		r = mk(t, n)
-		rp, na := ptr(r, t), nax[t]
-		for i := k(0); i < n; i++ {
-			na(rp + i)
-		}
-		return decr(y, r)
+		return decr(y, take(n, o, inc(nan[t])))
 	} else if yn == atom {
 		yn = 1
 	}
@@ -2325,9 +2316,12 @@ func cst(x, y k) (r k) { // x$y
 		}
 		num, o := aton(m.c[8+y<<2 : atm1(yn)+8+y<<2])
 		if !o {
+			/* TODO
 			dec(num)
 			num = mk(I, atom)
 			naI(2 + num)
+			*/
+			num = decr(num, inc(nan[I]))
 		}
 		switch s {
 		case 'i': // `i$x
@@ -2381,10 +2375,10 @@ func pad(n, y k) (r k) { // n$y
 		yp += yn - n
 	}
 	r = mk(t, n)
-	rp, na, cp := ptr(r, t), nax[t], cpx[t]
+	rp, np, cp := ptr(r, t), ptr(nan[t], t), cpx[t]
 	for i := k(0); i < n; i++ {
 		if yp+i < mi || yp+i >= ma {
-			na(rp + i)
+			cp(rp+i, np)
 		} else {
 			cp(rp+i, yp+i)
 		}
@@ -2490,10 +2484,10 @@ func atx(x, y k) (r k) { // x@y
 		cp, xp := cpx[xt], ptr(x, xt)
 		r = mk(xt, yn)
 		yn = atm1(yn)
-		rp, yp, na := ptr(r, xt), 2+y, nax[xt]
+		rp, yp, np := ptr(r, xt), 2+y, ptr(nan[xt], xt)
 		for i := k(0); i < yn; i++ {
 			if ix := m.k[yp+i]; ix < 0 || ix >= xn {
-				na(rp + i)
+				cp(rp+i, np)
 			} else {
 				cp(rp+i, xp+ix)
 			}
@@ -2510,7 +2504,7 @@ func atx(x, y k) (r k) { // x@y
 			}
 			for i := k(0); i < yn; i++ {
 				if xi := m.k[2+y+i]; xi < 0 || xi >= xn {
-					m.k[2+r+i] = mkn(nt)
+					m.k[2+r+i] = inc(nan[nt])
 				} else {
 					m.k[2+r+i] = inc(m.k[2+x+xi])
 				}
@@ -2576,7 +2570,7 @@ func atx(x, y k) (r k) { // x@y
 		}
 		return decr2(x, y, r)
 	// case xt == L:
-	//	missing element for a list is nax[type of first element]
+	//	missing element for a list is nan[type of first element]
 	case yt == N:
 		return decr(y, x)
 	default:
@@ -3227,10 +3221,7 @@ func ovr(f, x k) (r k) { // f/x
 				}
 			}
 		}
-		r = mk(t, atom)
-		na, rp := nax[t], ptr(r, t)
-		na(rp)
-		return decr2(x, f, r)
+		return decr2(x, f, inc(nan[t]))
 	} else if n == atom && t != A {
 		return decr(f, x)
 	}
@@ -5804,13 +5795,11 @@ func aton(b []byte) (r k, o bool) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 	}
 	if len(b) == 2 && b[0] == '0' { // 0N 0n 0w
 		if b[1] == 'N' {
-			return mki(0x80000000), true
+			return inc(nan[I]), true
 		} else if b[1] == 'n' {
-			r = mk(F, atom)
-			naF(1 + r>>1)
-			return r, true
+			return inc(nan[F]), true
 		} else if b[1] == 'w' {
-			r = mku(0x7FF0000000000000)
+			r = mku(0x7FF0000000000000) // inf
 			m.k[r] = F<<28 | atom
 			return r, true
 		}
