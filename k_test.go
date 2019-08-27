@@ -562,12 +562,10 @@ func TestK(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
-	ini()
-	//t.Skip()
+	// t.Skip()
 	testCases := []struct {
 		x, r, t s
 	}{
-		// {". {$[x>3;2;3]}5", "xx", "`."},
 		{"", "", "`"},
 		{"`a", ",`a", "`N"},
 		{"`a`b", ",`a`b", "`."},
@@ -645,11 +643,13 @@ func TestParse(t *testing.T) {
 		{"+-*", "(.;+:;(.;-:;*))", "`."},
 		{"3*+", "(.;(*;3);+)", "`."},
 		{"3+2+", "(.;(+;3);(+;2))", "`."},
+		{". {$[x>3;2;3]}5", "(.:;({$[x>3;2;3]};5))", "`."},
 	}
 	for i, occ := range []bool{true, false} {
 		for j, tc := range testCases {
 			for _, at := range []bool{false, true} {
-				x := K([]byte(tc.x))
+				ini()
+				x := mkb([]c(tc.x))
 				if occ {
 					inc(x)
 				}
@@ -1113,9 +1113,9 @@ func TestRefcard(t *testing.T) { // go test -short (it's the long test, but shor
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
-	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v) + number of variables (`.f)
+	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v)
 	// vars := m.k[m.k[kkey]] & atom
-	if u := Stats().UsedBlocks(); u != 8 {
+	if u := Stats().UsedBlocks(); u != 6 {
 		xxd()
 		t.Fatalf("leak: %d", u)
 	}

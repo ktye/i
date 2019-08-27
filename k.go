@@ -61,6 +61,7 @@ var m struct { // linear memory (slices share underlying array)
 	f []f
 	z []z
 }
+var null k                                             // mk(N,atom)
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var nax = []func(k){nil, naC, naI, naF, naZ, naS, naL} // set missing/nan
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
@@ -116,10 +117,13 @@ func ini() { // start function
 	builtins(o+20, "prm")
 	o += c(dyad) // dyads
 	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
-	asn(mks(".f"), mk(C, 0), mk(N, atom))           // file name
-	asn(mks(".c"), mk(C, 0), mk(N, atom))           // current src
-	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`) // transpose
-	mkk(".odo", `{x\:!*/x}`)                        // odometer
+	null = mk(N, atom)
+	dec(asn(mks(".0"), null, inc(null)))
+	dec(asn(mku(0x2e00000000000000), key(mk(S, 0), mk(L, 0)), inc(null))) // ktree `.
+	dec(asn(mks(".f"), mk(C, 0), inc(null)))                              // file name
+	dec(asn(mks(".c"), mk(C, 0), inc(null)))                              // current src
+	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)                       // transpose
+	mkk(".odo", `{x\:!*/x}`)                                              // odometer
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
@@ -247,11 +251,11 @@ func builtins(code c, s string) {
 	}
 	dec(v)
 }
-func mkk(s s, k s) { dec(asn(mks(s), mkb([]byte(k)), mk(N, atom))) } // store k implementation
+func mkk(s s, k s) { dec(asn(mks(s), mkb([]byte(k)), inc(null))) } // store k implementation
 func kx(s, x k) (r k) { // exec monadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C { // cache on first call
-		f = asn(inc(s), evl(prs(f)), mk(N, atom))
+		f = asn(inc(s), evl(prs(f)), inc(null))
 	}
 	dec(s)
 	if m.k[f]>>28 != N+1 {
@@ -262,7 +266,7 @@ func kx(s, x k) (r k) { // exec monadic k implementation
 func kxy(s, x, y k) (r k) { // execute dyadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C {
-		f = asn(inc(s), evl(prs(f)), mk(N, atom))
+		f = asn(inc(s), evl(prs(f)), inc(null))
 	}
 	dec(s)
 	if m.k[f]>>28 != N+2 {
@@ -1199,7 +1203,7 @@ func evl(x k) (r k) {
 				f = mk(N+2, atom)
 				m.k[2+f] = m.k[2+v] + dyad
 			} else {
-				f = mk(N, atom)
+				f = inc(null)
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
 			if m.k[name]>>28 == S {
@@ -1218,13 +1222,13 @@ func evl(x k) (r k) {
 					if m.k[idx]>>28 != L {
 						P("assert")
 					}
-					idx = evl(cat(mk(N, atom), idx))
+					idx = evl(cat(inc(null), idx))
 					if nn := m.k[idx] & atom; nn == 1 {
 						dec(amd(name, fst(idx), f, val))
 					} else {
 						dec(dmd(name, idx, f, val))
 					}
-					return R() + decr2(v, x, mk(N, atom))
+					return R() + decr2(v, x, inc(null))
 				}
 			}
 			return decr2(v, x, asn(name, val, f))
@@ -1251,7 +1255,7 @@ func evl(x k) (r k) {
 					x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
 					dec(v) // dec early, allow inplace
 					dec(r)
-					return R() + g(x, a, mk(N, atom), y)
+					return R() + g(x, a, inc(null), y)
 				} else if n == 5 {
 					x, a, f, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r]), inc(m.k[5+r])
 					dec(v)
@@ -1274,7 +1278,7 @@ func evl(x k) (r k) {
 				P("args") // too many arguments
 			}
 			for i := n - 1; i < vt-N; i++ { // fill args, e.g. 2+
-				r = lcat(r, mk(N, atom))
+				r = lcat(r, inc(null))
 			}
 			if vt > N+1 { // no projection for monads, allow N argument
 				for i := k(0); i < m.k[r]&atom; i++ {
@@ -1347,7 +1351,7 @@ func swc(x k) (r k) { // $[...]
 		}
 	}
 	if n%2 == 0 {
-		return decr(x, mk(N, atom))
+		return decr(x, inc(null))
 	}
 	return decr(x, evl(inc(m.k[1+n+x])))
 }
@@ -3007,7 +3011,7 @@ func lambda(x, y k) (r k) { // call lambda
 	nv := m.k[loc] & atom
 	lt, nl := typ(l)
 	if nl == 0 {
-		return decr2(x, y, mk(N, atom))
+		return decr2(x, y, inc(null))
 	} else if lt != L {
 		panic("type")
 	}
@@ -3017,9 +3021,9 @@ func lambda(x, y k) (r k) { // call lambda
 		name := atx(inc(loc), mki(i))
 		m.k[2+i+vv] = lupo(inc(name))
 		if i < v {
-			dec(asn(name, inc(m.k[2+y+i]), mk(N, atom)))
+			dec(asn(name, inc(m.k[2+y+i]), inc(null)))
 		} else {
-			dec(asn(name, mk(I, 0), mk(N, atom)))
+			dec(asn(name, mk(I, 0), inc(null)))
 		}
 	}
 	dec(y)
@@ -3029,10 +3033,10 @@ func lambda(x, y k) (r k) { // call lambda
 	for i := k(0); i < nv; i++ { // restore old values
 		name, w := atx(inc(loc), mki(i)), m.k[2+i+vv]
 		if w == 0 {
-			m.k[2+i+vv] = mk(N, atom)
+			m.k[2+i+vv] = inc(null)
 			dec(del(name))
 		} else {
-			dec(asn(name, inc(w), mk(N, atom)))
+			dec(asn(name, inc(w), inc(null)))
 		}
 	}
 	dec(vv)
@@ -3493,9 +3497,9 @@ func lun(x k) (r k) { // 8:x or .. \x (display)
 	return x
 }
 func lod(x k) (r k) {
-	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), mk(N, atom)))
+	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), inc(null)))
 	evp(red(x))
-	return mk(N, atom)
+	return inc(null)
 }
 func cmd(x k) (r k) {
 	xp := 8 + x<<2
@@ -3513,11 +3517,11 @@ func cmd(x k) (r k) {
 			w := table[21+dyad].(func(k, k) k)
 			dec(w(mku(0), cat(r, mkc('\n'))))
 		}
-		return decr(x, mk(N, atom))
+		return decr(x, inc(null))
 	case 'm': // \m x (matrix display)
 		w := table[21+dyad].(func(k, k) k)
 		dec(w(mku(0), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
-		return mk(N, atom)
+		return inc(null)
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
@@ -3807,7 +3811,7 @@ func asn(x, y, f k) (r k) { // `x:y
 			dec(asn(atx(inc(x), mki(i)), atx(inc(y), mki(i)), inc(f)))
 		}
 		dec(f)
-		return decr2(x, y, mk(N, atom))
+		return decr2(x, y, inc(null))
 	}
 	if m.k[f]>>28 != N {
 		y = cal2(f, lup(inc(x)), y)
@@ -3846,7 +3850,7 @@ func amd(x, a, f, y k) (r k) { // @[x;i;f;y]
 		mut(inc(x), amdv(v, a, f, y))
 		return x
 	}
-	dec(asn(inc(x), amdv(v, a, f, y), mk(N, atom)))
+	dec(asn(inc(x), amdv(v, a, f, y), inc(null)))
 	return x
 }
 func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
@@ -3862,7 +3866,7 @@ func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 		mut(inc(x), dmdv(v, a, f, y))
 		return x
 	}
-	dec(asn(inc(x), dmdv(v, a, f, y), mk(N, atom)))
+	dec(asn(inc(x), dmdv(v, a, f, y), inc(null)))
 	return x
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
@@ -4052,7 +4056,7 @@ func del(x k) (r k) { // delete variable
 			m.k[kval] = unsert(m.k[kval], idx)
 		}
 	}
-	return decr(x, mk(N, atom))
+	return decr(x, inc(null))
 }
 func clear() { // clear variables
 	dec(m.k[kkey])
@@ -4061,7 +4065,7 @@ func clear() { // clear variables
 	m.k[kval] = mk(L, 0)
 }
 func lsv() (r k)     { return inc(m.k[kkey]) }                                  // \v (list variables)
-func clv() (r k)     { clear(); return mk(N, atom) }                            // \c (clear variables)
+func clv() (r k)     { clear(); return inc(null) }                              // \c (clear variables)
 func hlp() (r k)     { return cat(mkb(m.c[136:168]), kst(inc(m.k[2+m.k[3]]))) } // \h
 func hxb(x c) (c, c) { h := "0123456780abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
@@ -5029,10 +5033,10 @@ func par(x, sto k) (r k) {
 	}
 	if n == 0 {
 		dec(x)
-		return mk(N, atom)
+		return inc(null)
 	}
 	if sto != 0 {
-		dec(asn(mks(".c"), inc(x), mk(N, atom)))
+		dec(asn(mks(".c"), inc(x), inc(null)))
 	}
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: sto}
 	r = mk(L, 1)
@@ -5268,7 +5272,7 @@ func (p *p) noun() (r k) {
 			// TODO drv
 			return p.idxr(fst(r))
 		}
-		return p.idxr(cat(enlist(mk(N, atom)), r))
+		return p.idxr(cat(enlist(inc(null)), r))
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
 	case p.t(sNam):
@@ -5276,7 +5280,7 @@ func (p *p) noun() (r k) {
 	case p.t(sVrb):
 		return p.idxr(p.a(pVrb))
 	}
-	return mk(N, atom)
+	return inc(null)
 }
 func (p *p) idxr(x k) (r k) { // […]
 	for p.t(sObr) {
@@ -5823,7 +5827,7 @@ func aton(b []byte) (r k, o bool) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 		} else if b[0] == '.' {
 			b = b[1:]
 			if len(b) > 21 {
-				return mk(N, atom), false
+				return inc(null), false
 			}
 			f = 1.0 / e10[len(b)]
 		}
@@ -5842,7 +5846,7 @@ func aton(b []byte) (r k, o bool) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 		m.f[1+r>>1] = x
 		return r, true
 	}
-	return mk(N, atom), false
+	return inc(null), false
 }
 func atoi(b []c) (int, bool) {
 	n, s := 0, 1
