@@ -731,7 +731,7 @@ func flp(x k) (r k) { // +x
 	} else if t < L {
 		return x
 	}
-	return kx(mks(".flp"), x) // rows containing atoms are errors. k7 extends them.
+	return kx(mks(".flp"), x)
 }
 func neg(x k) k { // -x
 	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.z[r] = -m.z[x] }})
@@ -3861,6 +3861,9 @@ func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 	return x
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
+	pr(x, "x")
+	pr(a, "a")
+	pr(y, "y")
 	xt, at, xn, an := typs(x, a)
 	if xt == A {
 		r = mk(A, atom)
@@ -3870,15 +3873,25 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		if m.k[al]&atom == atom {
 			al = enl(a)
 		}
-		idx, n := fnd(inc(m.k[2+x]), inc(a)), m.k[m.k[2+x]]&atom
-		u := unq(atx(al, wer(eql(mki(n), idx))))
+		idx, n := fnd(inc(m.k[2+x]), inc(a)), m.k[m.k[2+x]]&atom // i:(!x)?`a
+		pr(idx, "idx")
+		w := wer(eql(mki(n), idx))
+		pr(w, "w")
+		at := atx(al, w)
+		pr(at, "at")
+		u := unq(at)
+		pr(u, "u")
+		// TODO u := unq(atx(al, wer(eql(mki(n), idx)))) // ?(!x)@&(#!x)=i
+
+		pr(u, "u")
 		if m.k[u]&atom > 0 {
 			e := take(m.k[u]&atom, 0, mk(m.k[m.k[3+r]]>>28, 0))
-			m.k[3+r] = cat(m.k[3+r], e)
 			m.k[2+r] = cat(m.k[2+r], u)
+			m.k[3+r] = cat(m.k[3+r], e)
 		} else {
 			dec(u)
 		}
+		pr(r, "r")
 		m.k[3+r] = amdv(m.k[3+r], fnd(inc(m.k[2+r]), a), f, y)
 		return decr(x, r)
 	}
