@@ -1391,7 +1391,7 @@ func kst(x k) (r k) { // `k@x
 	if atm {
 		n = 1
 	}
-	if n == 0 && t < N {
+	if n == 0 && t < A {
 		r = mk(C, 0)
 		rc, rn := 8+r<<2, k(0)
 		switch t { // these could also be in the k-tree
@@ -1400,9 +1400,9 @@ func kst(x k) (r k) { // `k@x
 		case I:
 			rn = putb(rc, rn, []c("!0"))
 		case F:
-			rn = putb(rc, rn, []c("!0.0"))
+			rn = putb(rc, rn, []c("!0f"))
 		case Z:
-			rn = putb(rc, rn, []c("!0i0"))
+			rn = putb(rc, rn, []c("!0a"))
 		case S:
 			rn = putb(rc, rn, []c("0#`"))
 		case L:
@@ -1569,7 +1569,7 @@ func kst(x k) (r k) { // `k@x
 		}
 		rr, encl := kst(inc(m.k[x+2])), false
 		kt, nk := typ(m.k[x+2])
-		if (kt < L && nk == 1) || (kt == A) || (kt > A) {
+		if (kt < L && nk == 1) || (kt == A) || (kt > A) || (nk == 0) {
 			encl = true
 		}
 		y := mk(C, 1)
