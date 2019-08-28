@@ -139,6 +139,7 @@ func ini() { // start function
 	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)      // transpose
 	mkk(".odo", `{x\:!*/x}`)                             // odometer
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
+	mkk(".grp", `{k!&:'(k:^?x)~/:\:x}`) // =x
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
@@ -852,6 +853,8 @@ func grp(x k) (r k) { // =x
 	t, n := typ(x)
 	if n == atom {
 		return eye(x)
+	} else if t > L {
+		panic("type") // TODO: k7: =table
 	}
 	eq := eqx[t]
 	r = mk(A, atom)
@@ -1126,7 +1129,12 @@ func evl(x k) (r k) {
 			if r, x = spld(x); x != 0 {
 				return lup(x)
 			} else {
-				return evl(r)
+				n = m.k[r] & atom
+				x = lup(inc(m.k[2+r]))
+				for i := k(1); i < n; i++ {
+					x = atx(x, fst(inc(m.k[2+r+i])))
+				}
+				return decr(r, x)
 			}
 		}
 		return x
@@ -1151,8 +1159,7 @@ func evl(x k) (r k) {
 	vt, vn := typ(v)
 	if vt == S {
 		if n == 1 { // ,`a`b → `a`b
-			inc(v)
-			return decr(x, v)
+			return decr(x, inc(v))
 		}
 		if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…) → ex;ex…
 			for i := k(1); i < n; i++ {
@@ -3503,6 +3510,8 @@ func cmd(x k) (r k) {
 		return decr(x, hlp())
 	case 'l':
 		return lod(trm(x))
+	case 'k':
+		return key(inc(m.k[kkey]), inc(m.k[kval])) // dump ktree
 	case 's':
 		if r = lupo(mks(".stk")); r != 0 {
 			w := table[21+dyad].(func(k, k) k)
@@ -3861,11 +3870,11 @@ func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 	return x
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
-	pr(x, "x")
-	pr(a, "a")
-	pr(y, "y")
 	xt, at, xn, an := typs(x, a)
 	if xt == A {
+		if m.k[m.k[2+x]]&atom == 0 {
+			return decr2(x, f, key(a, y))
+		}
 		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
 		m.k[3+r] = inc(m.k[3+x])
@@ -3874,16 +3883,7 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 			al = enl(a)
 		}
 		idx, n := fnd(inc(m.k[2+x]), inc(a)), m.k[m.k[2+x]]&atom // i:(!x)?`a
-		pr(idx, "idx")
-		w := wer(eql(mki(n), idx))
-		pr(w, "w")
-		at := atx(al, w)
-		pr(at, "at")
-		u := unq(at)
-		pr(u, "u")
-		// TODO u := unq(atx(al, wer(eql(mki(n), idx)))) // ?(!x)@&(#!x)=i
-
-		pr(u, "u")
+		u := unq(atx(al, wer(eql(mki(n), idx))))                 // ?(!x)@&(#!x)=i
 		if m.k[u]&atom > 0 {
 			e := take(m.k[u]&atom, 0, mk(m.k[m.k[3+r]]>>28, 0))
 			m.k[2+r] = cat(m.k[2+r], u)
@@ -3891,7 +3891,6 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		} else {
 			dec(u)
 		}
-		pr(r, "r")
 		m.k[3+r] = amdv(m.k[3+r], fnd(inc(m.k[2+r]), a), f, y)
 		return decr(x, r)
 	}

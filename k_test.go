@@ -42,8 +42,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		//{".a:1;.a", "1"},
-		// {`=,""`, ""}, // k7?
+		//{`=,""`, `(,"")!,,0`}, // (!0)!0#,!0
 		//TODO b64@ b64?
 		// k7: {`1 -3 4\:30`, "0 -2 2"},
 		{"(!0) bin 3", "-1"}, // k7: 0?
@@ -941,6 +940,7 @@ func TestKst(t *testing.T) {
 		{uint16(19 + dyad), `.`},
 		{uint16(20 + dyad), `0:`},
 		{uint16(24 + dyad), `4:`},
+		{".a:1;.a", "1"},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%v ?= %q\n", tc.x, tc.s)
