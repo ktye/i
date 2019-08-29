@@ -34,10 +34,8 @@ function e(k, n, f) {
 	}
 	var a = edit.selectionStart
 	var b = edit.selectionEnd
-	var s = edit.value.substring(a, b)
 	req.open("POST", "")
 	req.setRequestHeader("n", n) // file name
-	req.setRequestHeader("s", s) // selected text   (only .e)
 	req.setRequestHeader("a", a) // selection start (only .e)
 	req.setRequestHeader("b", b) // selection end   (only .e)
 	req.setRequestHeader("w", dpy.width) 

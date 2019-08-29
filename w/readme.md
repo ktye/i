@@ -21,7 +21,7 @@ RET execute current line or marked text
 ```
 in sync(trigger)
 .e(dit)      editor content "line1\nline2\ntext"
-.s(election) selected text  ("text";12;15)
+.s(election) selected range 12 15
 .d(isplay)   pixel buffer   h w#0
 ```
 
