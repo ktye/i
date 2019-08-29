@@ -853,36 +853,21 @@ func grp(x k) (r k) { // =x
 	t, n := typ(x)
 	if n == atom {
 		return eye(x)
-	} else if t > L {
-		panic("type") // TODO: k7: =table
+	} else if t > A {
+		panic("type")
+	} else if t >= L {
+		return kx(mks(".grp"), x)
+	} else if n == 0 {
+		return decr(x, key(inc(x), take(0, 0, inc(x))))
 	}
-	eq := eqx[t]
-	r = mk(A, atom)
-	u := unq(inc(x)) // TODO: keys are sorted in k7
-	l, nu := mk(L, m.k[u]&atom), m.k[u]&atom
-	m.k[2+r], m.k[3+r] = u, l
-	up, xp := ptr(u, t), ptr(x, t)
-	b := mk(C, n) // boolean
-	bc := 8 + b<<2
-	for j := k(0); j < nu; j++ { // over ?x
-		nr := k(0)
-		for jj := k(0); jj < n; jj++ { // over x
-			m.c[bc+jj] = 0
-			if eq(up+j, xp+jj) {
-				m.c[bc+jj] = 1
-				nr++
-			}
-		}
-		lj, p := mk(I, nr), k(0)
-		for jj := k(0); jj < n; jj++ { // over x
-			if m.c[bc+jj] == 1 {
-				m.k[2+lj+p] = jj
-				p++
-			}
-		}
-		m.k[2+l+j] = lj
+	kk := srt(unq(inc(x)))
+	kp, kn, xp, gt := ptr(kk, t), m.k[kk]&atom, ptr(x, t), gtx[t]
+	vv := tak(mki(kn), enl(mk(I, 0))) // (#^?x)#,!0
+	for i := k(0); i < n; i++ {
+		ii := ibin(kp, t, kn, xp+i, gt)
+		m.k[2+vv+ii] = ucat(m.k[2+vv+ii], mki(i), I, m.k[m.k[2+vv+ii]]&atom, atom)
 	}
-	return decr2(b, x, r)
+	return decr(x, key(kk, vv))
 }
 func til(x k) (r k) { // !x
 	t, n := typ(x)
@@ -1576,7 +1561,7 @@ func kst(x k) (r k) { // `k@x
 		}
 		rr, encl := kst(inc(m.k[x+2])), false
 		kt, nk := typ(m.k[x+2])
-		if (kt < L && nk == 1) || (kt == A) || (kt > A) || (nk == 0) {
+		if (kt < L && nk == 1) || (kt == A) || (kt > A) || (nk == 0 && kt != C) {
 			encl = true
 		}
 		y := mk(C, 1)
