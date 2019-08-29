@@ -67,7 +67,7 @@ var unan, inan = uint64(0x7FF8000000000001), k(0x80000000)
 var fnan f = *(*f)(unsafe.Pointer(&unan))
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
-var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
+var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS, nil}      // less than (ltL init loop)
 var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
@@ -113,6 +113,7 @@ func ini() { // start function
 	m.k[3] = mk(A, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
+	ltx[L] = ltL
 	o := c(40) // monads
 	builtins(o, "exit,sqrt,sin,cos,dev")
 	builtins(o+10, "real,imag,phase,conj,cond,nyi15,diag")
@@ -139,7 +140,6 @@ func ini() { // start function
 	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)      // transpose
 	mkk(".odo", `{x\:!*/x}`)                             // odometer
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
-	mkk(".grp", `{k!&:'(k:^?x)~/:\:x}`) // =x
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
@@ -179,6 +179,31 @@ func gtZ(x, y k) bool {
 	return false
 }
 func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
+func ltL(x, y k) bool {
+	x, y = m.k[x], m.k[y]
+	xt, yt, xn, yn := typs(x, y)
+	if xt == yt && xt < L {
+		return ltx[xt](ptr(x, xt), ptr(y, yt))
+	} else if xt != yt {
+		return xt < yt
+	} else if xt == L {
+		mn := atm1(xn)
+		if n := atm1(yn); n < xn {
+			mn = n
+		}
+		if mn == 0 {
+			return true
+		}
+		for i := k(0); i < mn; i++ {
+			if xi, yi := 2+x+i, 2+y+i; !match(m.k[xi], m.k[yi]) {
+				return ltL(xi, yi)
+			}
+		}
+		return atm1(xn) < atm1(yn)
+	} else {
+		panic("type")
+	}
+}
 func gtS(x, y k) bool { return sym(x<<3) > sym(y<<3) }
 func stI(dst, x k) k {
 	if m.k[x] == 0x80000000 {
@@ -835,37 +860,48 @@ func rev(x k) (r k) { // |x
 }
 func asc(x k) (r k) { // <x
 	t, n := typ(x)
-	if n == atom || t >= L { // k7 also sorts lists of different numeric types
+	if n == atom || t > L {
 		panic("type")
+	} else if t == A {
+		return arc(x, n, asc)
 	}
 	r = til(mki(n))
-	lt, sw := ltx[t], swI
+	lt := ltx[t]
 	src, ind, dst := ptr(x, t), 2+r, ptr(r, I)
 	for i := k(1); i < n; i++ { // insertion sort, should be replaced
 		for j := k(i); j > 0 && lt(src+m.k[ind+j], src+m.k[ind+j-1]); j-- {
-			sw(dst+j, dst+(j-1))
+			swI(dst+j, dst+(j-1))
 		}
 	}
 	return decr(x, r)
 }
 func dsc(x k) (r k) { return rev(asc(x)) } // >x
-func grp(x k) (r k) { // =x
+func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 	t, n := typ(x)
 	if n == atom {
 		return eye(x)
-	} else if t > A {
+	} else if t > L {
 		panic("type")
-	} else if t >= L {
-		return kx(mks(".grp"), x)
 	} else if n == 0 {
 		return decr(x, key(inc(x), take(0, 0, inc(x))))
 	}
 	kk := srt(unq(inc(x)))
-	kp, kn, xp, gt := ptr(kk, t), m.k[kk]&atom, ptr(x, t), gtx[t]
+	kp, kn, xp := ptr(kk, t), m.k[kk]&atom, ptr(x, t)
 	vv := tak(mki(kn), enl(mk(I, 0))) // (#^?x)#,!0
-	for i := k(0); i < n; i++ {
-		ii := ibin(kp, t, kn, xp+i, gt)
-		m.k[2+vv+ii] = ucat(m.k[2+vv+ii], mki(i), I, m.k[m.k[2+vv+ii]]&atom, atom)
+	if t == L {
+		for i := k(0); i < n; i++ {
+			for j := k(0); j < kn; j++ {
+				if match(m.k[2+kk+j], m.k[xp+i]) {
+					m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, atom)
+					break
+				}
+			}
+		}
+	} else {
+		for i := k(0); i < n; i++ {
+			ii := ibin(kp, t, kn, xp+i, gtx[t])
+			m.k[2+vv+ii] = ucat(m.k[2+vv+ii], mki(i), I, m.k[m.k[2+vv+ii]]&atom, atom)
+		}
 	}
 	return decr(x, key(kk, vv))
 }
@@ -1561,7 +1597,7 @@ func kst(x k) (r k) { // `k@x
 		}
 		rr, encl := kst(inc(m.k[x+2])), false
 		kt, nk := typ(m.k[x+2])
-		if (kt < L && nk == 1) || (kt == A) || (kt > A) || (nk == 0 && kt != C) {
+		if (kt <= L && nk == 1) || (kt == A) || (kt > A) || (nk == 0 && kt != C) {
 			encl = true
 		}
 		y := mk(C, 1)
@@ -3690,7 +3726,9 @@ func dcd(x, y k) (r k) { // x/:y (decode y given in base x) {{z+y*x}/[0;x;y]}
 }
 func bin(x, y k) (r k) { // x bin y
 	t, yt, xn, yn := typs(x, y)
-	if yt != t || t > S || xn == atom {
+	if t == L {
+		return lbin(x, y)
+	} else if yt != t || t > S || xn == atom {
 		panic("type")
 	}
 	r = mk(I, yn)
@@ -3712,6 +3750,37 @@ func ibin(xp, t, n, yp k, gt func(x, y k) bool) (r k) {
 		}
 	}
 	return i - 1
+}
+func lbin(x, y k) (r k) { // l bin y (linear)
+	xn, yn := m.k[x]&atom, m.k[y]&atom
+	r, xn = mk(I, yn), atm1(xn)
+	for j := k(0); j < atm1(yn); j++ {
+		xj := enlist(atx(inc(y), mki(j)))
+		o := true
+		for i := k(0); o && i < xn; i++ {
+			xi := atx(inc(x), mki(i))
+			switch {
+			case ltL(2+xj, 2+x+i):
+				m.k[2+r+j] = i - 1
+				o = false
+			case match(xi, m.k[2+xj]):
+				m.k[2+r+j] = i
+				o = false
+			case i == xn-1:
+				m.k[2+r+j] = atm1(xn - 1)
+				o = false
+			}
+			dec(xi)
+			if !o {
+				break
+			}
+		}
+		if o {
+			m.k[2+r+j] = atm1(yn)
+		}
+		dec(xj)
+	}
+	return decr2(x, y, r)
 }
 func insert(x, y, idx k) (r k) { // insert y into x at k
 	t, yt, n, yn := typs(x, y)
@@ -3816,7 +3885,7 @@ func asn(x, y, f k) (r k) { // `x:y
 }
 func mut(x, y k) { // modify-inplace
 	if ix, exists := varn(ptr(x, S)); !exists {
-		panic("undefined")
+		panic(undef(x))
 	} else {
 		m.k[2+ix+m.k[kval]] = y
 		dec(x)
@@ -3992,10 +4061,10 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 	return amdv(inc(x), inc(a0), mk(N, 0), dmdv(atx(x, a0), drop(1, a), f, y))
 }
 func lup(x k) (r k) { // lookup
-	if r = lupo(x); r == 0 {
-		panic("undefined")
+	if r = lupo(inc(x)); r == 0 {
+		panic(undef(x))
 	}
-	return r
+	return decr(x, r)
 }
 func lupo(x k) (r k) { // lup, 0 on undefined
 	ix, o := varn(ptr(x, S))
@@ -4005,6 +4074,13 @@ func lupo(x k) (r k) { // lup, 0 on undefined
 	vals := m.k[kval]
 	r = inc(m.k[2+vals+ix])
 	return decr(x, r)
+}
+func undef(x k) (r s) {
+	c := mk(C, 8)
+	n, p := stS(8+c<<2, ptr(x, S)), 8+c<<2
+	r = s(m.c[p : p+n])
+	dec(x)
+	return "undefined:" + r
 }
 func spld(x k) (r, v k) { // split `a.b.c to (`a;,`b;,`c)
 	v = spl(mkc('.'), str(inc(x)))
