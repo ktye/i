@@ -3924,6 +3924,10 @@ func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 	return x
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
+	pr(x, "amdvx")
+	pr(a, "amdva")
+	pr(f, "amdvf")
+	pr(y, "amdvy")
 	xt, at, xn, an := typs(x, a)
 	if xt == A {
 		if m.k[m.k[2+x]]&atom == 0 {
@@ -3945,6 +3949,9 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		} else {
 			dec(u)
 		}
+		println("fnd")
+		pr((m.k[2+r]), "keys")
+		pr((a), "a")
 		m.k[3+r] = amdv(m.k[3+r], fnd(inc(m.k[2+r]), a), f, y)
 		return decr(x, r)
 	}
