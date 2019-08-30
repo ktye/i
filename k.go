@@ -1597,7 +1597,7 @@ func kst(x k) (r k) { // `k@x
 		}
 		rr, encl := kst(inc(m.k[x+2])), false
 		kt, nk := typ(m.k[x+2])
-		if (kt <= L && nk == 1) || (kt == A) || (kt > A) || (nk == 0 && kt != C) {
+		if (kt <= L && nk == 1) || (kt == A) || (kt > A) || (nk == 0 && kt != C && kt != L) {
 			encl = true
 		}
 		y := mk(C, 1)
