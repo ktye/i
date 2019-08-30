@@ -11,8 +11,10 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 )
 
+var door sync.Mutex
 var stdout *bytes.Buffer
 var ee, ss, dd bool
 var dpng []byte
@@ -22,19 +24,34 @@ func main() {
 	err := http.ListenAndServe(":2019", nil)
 	println(err.Error())
 }
+func hdr(r *http.Request) string { // TODO rm
+	var s string
+	for _, h := range []string{"n", "a", "b", "w", "h", "k"} {
+		s += " " + h + "=" + r.Header.Get(h)
+	}
+	return s
+}
 func handler(w http.ResponseWriter, r *http.Request) {
+	door.Lock()
+	defer door.Unlock()
+	println("url", r.URL.Path, r.Method, r.URL.RawQuery, hdr(r))
 	defer r.Body.Close()
 	switch r.URL.Path {
 	case "/d.png":
 		sendImage(w)
 		return
 	case "/k":
+		if r.Method == "GET" {
+			kinit()
+			w.Write([]c(h)) // send a new front-end
+			return
+		}
 	case "/ws": // workspace
 		sendFile(w, m.c, "ws")
 	default: // file server
 		name := r.URL.Path
 		if len(name) > 0 && name[0] == '/' {
-			name := name[1:]
+			name = name[1:]
 		}
 		if len(name) == 0 {
 			return
@@ -45,13 +62,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		n, p := m.k[rr]&atom, 8+rr<<2
-		sendFile(w, m.c[rr:rr+n], name)
-	}
-	println("url", r.URL.Path, r.Method)
-	if method := r.Method; method == "GET" { // send a new front-end
-		kinit()
-		w.Write([]c(h))
-		return
+		sendFile(w, m.c[p:p+n], name)
 	}
 	table[dyad] = nil // unset trigger
 	stdout = bytes.NewBuffer(nil)
@@ -66,7 +77,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		m.k[2+i], m.k[3+i] = hi(r, "a"), hi(r, "b")
 		dec(asn(mku(0x2e65000000000000), mkb(e), mk(N, atom))) // `.e:"line1\nline2"
 		dec(asn(mku(0x2e73000000000000), i, mk(N, atom)))      // `.s:7 10
-	} else {
+	} else if n != "" {
 		out(wrt(mkb([]c(n)), mkb(e)))
 		return
 	}
@@ -106,10 +117,9 @@ func kinit() { // each GET /k (e.g. page reload)
 	println("kinit")
 	ini()
 	table[21] = red                                           // 0:x
-	table[40] = kinit                                         // \\
 	table[dyad] = trg                                         // trigger `.e`.s`.d
 	table[21+dyad] = wrt                                      // x 0:y
-	mkk(".rsz", "{$[~(x*y)~+/#:'`.d;`.d:y x#0;0]}")           // resize(w,h)
+	mkk(".rsz", "{$[(x*y)~+/#:'.d;;.d::(y;x)#0]}")            // resize(w,h)
 	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom))) // memfs `.f:("file1","file2")!(0x1234;0x5678..)
 }
 func red(x k) (r k) { // 1:x
@@ -153,13 +163,19 @@ func wrt(x, y k) (r k) { // x 1:y
 	return decr(y, x)
 }
 func lupf(x k) (r, j k) {
+	println("lupf")
 	fs := lup(mks(".f"))
-	n := m.k[fs] & atom
+	kk, vv := m.k[2+fs], m.k[3+fs]
+	println("fs?", fs)
+	n := m.k[kk] & atom
 	for i := k(0); i < n; i++ {
-		if match(m.k[2+fs+i], x) {
-			return decr(fs, atx(fs, x)), i
+		println("var i", i)
+		if match(m.k[2+kk+i], x) {
+			println("match")
+			return decr(fs, inc(m.k[2+vv+i])), i
 		}
 	}
+	println("no match")
 	return decr(fs, 0), n
 }
 func trg(x, y, f k) (r k) { // trigger assignments
@@ -179,35 +195,46 @@ func try(s s) {
 }
 func setImage() s {
 	d := lupo(mku(0x2e64000000000000)) // `.d
+	if d != 0 {
+		defer dec(d)
+	}
 	t, n := typ(d)
-	if d == 0 || t != I || n == atom {
+	if d == 0 || t != L || n == atom {
 		return "bad`.d\n"
 	}
-	defer dec(d)
 
-	// TODO ...
-
-	p, ww, hh, cp, kp := ptr(d, I), m.k[2+wk], n/m.k[2+wk], 0, k(0)
-	im, b := image.NewRGBA(image.Rectangle{Max: image.Point{int(ww), int(hh)}}), bytes.NewBuffer(nil)
-	for i := k(0); i < n; i++ { // see: golang.org/src/image/image.go
-		kp = m.k[p]
-		im.Pix[cp+0] = c(kp & 0xFF0000 >> 16)    // r
-		im.Pix[cp+1] = c(kp & 0x00FF00 >> 8)     // g
-		im.Pix[cp+2] = c(kp & 0xFF)              // b
-		im.Pix[cp+3] = c(^kp & 0xFF000000 >> 24) // a
+	w, h, cp := m.k[m.k[2+d]]&atom, n, 0
+	if w == atom || h == atom || w == 0 || h == 0 {
+		return "bad`.d\n"
+	}
+	kp := 2 + m.k[2+d]
+	im, b, col, row := image.NewRGBA(image.Rectangle{Max: image.Point{int(w), int(h)}}), bytes.NewBuffer(nil), k(0), k(0)
+	for i := k(0); i < w*h; i++ { // see golang.org/src/image/image.go for the format of *RGBA
+		p := m.k[kp+col]
+		im.Pix[cp+0] = c(p & 0xFF0000 >> 16)    // r
+		im.Pix[cp+1] = c(p & 0x00FF00 >> 8)     // g
+		im.Pix[cp+2] = c(p & 0xFF)              // b
+		im.Pix[cp+3] = c(^p & 0xFF000000 >> 24) // a
 		cp += 4
-		p++
+		col++
+		if col == w {
+			col, row = 0, row+1
+			kp = 2 + m.k[2+d+row]
+			if t, n := typ(m.k[kp-2]); t != I || n != w {
+				return "bad`.d\n"
+			}
+		}
 	}
 	if e := png.Encode(b, im); e != nil {
-		w.Write([]c("png:" + e.Error()))
-		return
+		return "png:" + e.Error()
 	}
-	w := bytes.NewBuffer()
-	w.Write([]c("data:image/png;base64,"))
-	e := base64.NewEncoder(base64.StdEncoding, w)
+	buf := bytes.NewBuffer(nil)
+	buf.Write([]c("data:image/png;base64,"))
+	e := base64.NewEncoder(base64.StdEncoding, buf) // TODO `b64@
 	io.Copy(e, b)
 	e.Close()
-	dpng = w.Bytes()
+	dpng = buf.Bytes()
+	return ""
 }
 func hi(r *http.Request, s s) k           { i, _ := strconv.Atoi(r.Header.Get(s)); return k(i) }
 func hs(w http.ResponseWriter, s s, x k)  { w.Header().Set(s, strconv.Itoa(int(m.k[x]))) }
@@ -218,8 +245,8 @@ func sendFile(w http.ResponseWriter, b []c, n s) {
 	w.Write(b)
 }
 func stk() {
-	if r := recover(); r != nil {
-		draw = false
+	if r := recover(); r != nil { // TODO: restore ws
+		ee, ss, dd = false, false, false
 		a, b := stack(r)
 		dec(asn(mks(".stk"), mkb([]c(a)), mk(N, atom))) // stack trace: \s
 		dec(wrt(mku(0), ano(m.k[srcp], mkb([]c(b)))))
