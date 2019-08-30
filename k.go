@@ -3924,10 +3924,6 @@ func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 	return x
 }
 func amdv(x, a, f, y k) (r k) { // amd on value(x)
-	pr(x, "amdvx")
-	pr(a, "amdva")
-	pr(f, "amdvf")
-	pr(y, "amdvy")
 	xt, at, xn, an := typs(x, a)
 	if xt == A {
 		if m.k[m.k[2+x]]&atom == 0 {
@@ -3949,9 +3945,6 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		} else {
 			dec(u)
 		}
-		println("fnd")
-		pr((m.k[2+r]), "keys")
-		pr((a), "a")
 		m.k[3+r] = amdv(m.k[3+r], fnd(inc(m.k[2+r]), a), f, y)
 		return decr(x, r)
 	}
@@ -3965,28 +3958,30 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	}
 	yt, yn := typ(y)
 	if an == atom && yn != atom { // replace, e.g. x[1]:2 3
-		if xt == L {
-			j := m.k[2+a]
-			if int32(j) < 0 || j >= xn {
-				panic("index")
-			}
-			if m.k[x+1] == 1 {
-				dec(m.k[2+j+x])
-				m.k[2+j+x] = y
-				return decr(a, x)
-			}
-			r = mk(L, xn)
-			for i := k(0); i < xn; i++ {
-				if i == j {
-					m.k[2+i+r] = y
-				} else {
-					m.k[2+i+r] = inc(m.k[2+i+x])
-				}
-			}
-			return decr2(x, a, r)
-		} else {
+		if xt < L {
+			x, xt = explode(x), L
+			xn = m.k[x] & atom
+		} else if xt != L {
 			panic("type")
 		}
+		j := m.k[2+a]
+		if int32(j) < 0 || j >= xn {
+			panic("index")
+		}
+		if m.k[x+1] == 1 {
+			dec(m.k[2+j+x])
+			m.k[2+j+x] = y
+			return decr(a, x)
+		}
+		r = mk(L, xn)
+		for i := k(0); i < xn; i++ {
+			if i == j {
+				m.k[2+i+r] = y
+			} else {
+				m.k[2+i+r] = inc(m.k[2+i+x])
+			}
+		}
+		return decr2(x, a, r)
 	}
 	if an != atom && yn == atom {
 		y, yn = ext(y, yt, an), an
