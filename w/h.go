@@ -3,7 +3,8 @@ package main
 const h = `<html><head>
 <meta charset="utf-8">
 <style>
- body,textarea { font-family: monospace; margin:0pt; }
+ body,textarea { font-family: monospace; margin:0pt; spellcheck="false";scrollbar-width:thin;scrollbar-color:#325aa8 black;}
+ body { overflow: hidden; }
  textarea {background-color:black;color:white;border:none;resize: none;}
  .col { float: left; width:50%; height:100%; }
  .row:after { content: ""; display: table; clear: both }
@@ -11,8 +12,8 @@ const h = `<html><head>
 </head><body>
 <div id="dropbox">
 <div class="row">
- <textarea id="term" class="col"></textarea>
- <textarea id="edit" class="col"></textarea>
+ <textarea id="term" class="col" wrap="off" spellcheck="false"></textarea>
+ <textarea id="edit" class="col" wrap="off" spellcheck="false" placeholder=".e"></textarea>
  <image id="dpy" class="col"></image>
 </div></div>
 <script>

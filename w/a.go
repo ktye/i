@@ -75,16 +75,21 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if n := r.Header.Get("n"); n == ".e" {
 		i := mk(I, 2)
 		m.k[2+i], m.k[3+i] = hi(r, "a"), hi(r, "b")
-		dec(asn(mku(0x2e65000000000000), mkb(e), mk(N, atom))) // `.e:"line1\nline2"
-		dec(asn(mku(0x2e73000000000000), i, mk(N, atom)))      // `.s:7 10
+		as := mk(N+2, atom) // (:)
+		m.k[2+as] = dyad
+		dec(evl(cat(l2(inc(as), mks(".e")), mkb(e)))) // .(:;`.e;"line1\nline2")
+		dec(evl(cat(l2(inc(as), mks(".s")), i)))      // .(:;`.s:7 10)
+		dec(as)
 	} else if n != "" {
+		println("write to n:", n)
 		out(wrt(mkb([]c(n)), mkb(e)))
 		return
 	}
-	dec(kxy(mks(".rsz"), mki(hi(r, "w")), mki(hi(r, "h"))))
+	asn(mks(".d"), kxy(mks(".rsz"), lup(mks(".d")), cat(mki(hi(r, "h")), mki(hi(r, "w")))), inc(null)) // d:rsz[d;(h;w)]
 	table[dyad] = trg
-	try(r.Header.Get("k"))
+	try(r.Header.Get("k")) // eval
 	if ss {
+		println("update .s")
 		s := lup(mku(0x2e73000000000000))
 		if st, sn := typ(s); st == I {
 			if sn == atom || sn < 2 {
@@ -98,12 +103,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		dec(s)
 	}
 	if ee {
+		println("update .e")
 		w.Header().Set("n", ".e")
 	}
 	if dd {
+		println("update .d")
 		w.Write([]c(setImage()))
 	}
-	w.Write(stdout.Bytes())
+	b := stdout.Bytes()
+	println("write ", len(b), "bytes")
+	w.Write(b)
 }
 func sendImage(w http.ResponseWriter) {
 	if dpng == nil {
@@ -116,11 +125,12 @@ func sendImage(w http.ResponseWriter) {
 func kinit() { // each GET /k (e.g. page reload)
 	println("kinit")
 	ini()
-	table[21] = red                                           // 0:x
-	table[dyad] = trg                                         // trigger `.e`.s`.d
-	table[21+dyad] = wrt                                      // x 0:y
-	mkk(".rsz", "{$[(x*y)~+/#:'.d;;.d::(y;x)#0]}")            // resize(w,h)
-	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom))) // memfs `.f:("file1","file2")!(0x1234;0x5678..)
+	table[21] = red                                                  // 0:x
+	table[dyad] = trg                                                // trigger `.e`.s`.d
+	table[21+dyad] = wrt                                             // x 0:y
+	mkk(".rsz", "{$[(*/y)~+/#:'x;x;y#0]}")                           // resize[.d;h w]
+	dec(asn(mks(".d"), tak(tak(mki(2), mki(1)), mki(0)), inc(null))) // dpy
+	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom)))        // memfs `.f:("file1","file2")!(0x1234;0x5678..)
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
@@ -144,11 +154,12 @@ func red(x k) (r k) { // 1:x
 }
 func wrt(x, y k) (r k) { // x 1:y
 	xt, yt, xn, yn := typs(x, y)
-	if xt != C || xn == atom {
-		panic("type")
-	} else if xt == S {
+	if xt == S {
 		x = str(x)
 		xt, xn = typ(x)
+	}
+	if xt != C || xn == atom {
+		panic("type")
 	}
 	if yt != C || yn == atom {
 		panic("type")
@@ -163,28 +174,31 @@ func wrt(x, y k) (r k) { // x 1:y
 	return decr(y, x)
 }
 func lupf(x k) (r, j k) {
-	println("lupf")
 	fs := lup(mks(".f"))
 	kk, vv := m.k[2+fs], m.k[3+fs]
-	println("fs?", fs)
 	n := m.k[kk] & atom
 	for i := k(0); i < n; i++ {
-		println("var i", i)
 		if match(m.k[2+kk+i], x) {
-			println("match")
 			return decr(fs, inc(m.k[2+vv+i])), i
 		}
 	}
-	println("no match")
 	return decr(fs, 0), n
 }
 func trg(x, y, f k) (r k) { // trigger assignments
+	xt, yt, xn, yn := typs(x, y)
+	println("trg", xt, yt, xn, yn)
+	if match(x, mku(0)) {
+		println("asn .")
+	}
 	switch sym(8 + x<<2) {
 	case 0x2e65000000000000: // `.e
+		println(".e!")
 		ee = true
 	case 0x2e73000000000000: // `.s
+		println(".s!")
 		ss = true
 	case 0x2e64000000000000: // `.d
+		println(".d!")
 		dd = true
 	}
 	return decr2(y, f, x)
@@ -247,9 +261,9 @@ func sendFile(w http.ResponseWriter, b []c, n s) {
 func stk() {
 	if r := recover(); r != nil { // TODO: restore ws
 		ee, ss, dd = false, false, false
-		a, b := stack(r)
-		dec(asn(mks(".stk"), mkb([]c(a)), mk(N, atom))) // stack trace: \s
-		dec(wrt(mku(0), ano(m.k[srcp], mkb([]c(b)))))
+		//a, b := stack(r)
+		//dec(asn(mks(".stk"), mkb([]c(a)), mk(N, atom))) // stack trace: \s
+		//dec(wrt(mku(0), ano(m.k[srcp], mkb([]c(b)))))
 	}
 }
 func stack(c interface{}) (stk, err s) {
