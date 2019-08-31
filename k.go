@@ -1131,7 +1131,7 @@ func tip(x k) (r k) { // @x
 }
 func val(x k) (r k) { // . x
 	switch m.k[x] >> 28 {
-	case L:
+	case L, S:
 		return evl(x)
 	case C:
 		return evl(prs(x))
