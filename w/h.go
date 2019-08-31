@@ -20,16 +20,16 @@ const h = `<html><head>
 var term = document.getElementById("term")
 var edit = document.getElementById("edit")
 var dpy  = document.getElementById("dpy")
+function hdr(r,h) { return r.getResponseHeader(h) }
 function e(k, n, f) {
  console.log("e k",k)
  var req = new XMLHttpRequest()
  req.onreadystatechange = function() { 
   if (this.readyState == (this.DONE || 4)) { 
-   if (req.getResponseHeader('Content-Type') == "image/png") {
-    img.src = req.response;O(" ")
-   } else {
-    O(req.response+" ");term.scrollTo(0, term.scrollHeight)  
-   }
+   // if req.getResponseHeader('Content-Type') == "image/png") {
+   if (hdr(req, "n") == ".e")
+    edg("/.e", hdr(req, "a"), hdr(req, "b"))
+   O(req.response+" ");term.scrollTo(0, term.scrollHeight)
   } 
  }
  var a = edit.selectionStart
@@ -42,6 +42,22 @@ function e(k, n, f) {
  req.setRequestHeader("h", dpy.height)
  req.setRequestHeader("k", k) // term value(current line)
  req.send(f)
+}
+function edg(u,a,b) {
+ var req = new XMLHttpRequest()
+ req.onreadystatechange = function() { 
+  if (this.readyState == (this.DONE || 4)) { 
+   if (hdr(req,"Content-Type") == "image/png") {
+    dpy.src = req.response
+   } else {
+    edit.value = req.response
+    edit.setSelectionRange(a, b)
+    edit.focus()
+   }
+  }
+ }
+ req.open("GET", u)
+ req.send()
 }
 var hold = false
 term.value = " "
@@ -81,7 +97,7 @@ term.onkeydown = function (evt) {
    // ls(s.substring(1))
    O("TODO ls")
   } else {
-   e(s, "", edit.value)
+   e(s, ".e", edit.value)
    return
   }
   P()

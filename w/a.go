@@ -16,8 +16,8 @@ import (
 
 var door sync.Mutex
 var stdout *bytes.Buffer
-var ee, ss, dd bool
 var dpng []byte
+var ee, ss, dd k
 
 func main() {
 	http.HandleFunc("/", handler)
@@ -37,8 +37,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	println("url", r.URL.Path, r.Method, r.URL.RawQuery, hdr(r))
 	defer r.Body.Close()
 	switch r.URL.Path {
-	case "/d.png":
+	case "/.d":
 		sendImage(w)
+		return
+	case "/.e":
+		e := atx(lup(mku(0)), mks("e"))
+		n, p := m.k[e]&atom, 8+e<<2
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write(m.c[p : p+n])
+		dec(e)
 		return
 	case "/k":
 		if r.Method == "GET" {
@@ -48,6 +55,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	case "/ws": // workspace
 		sendFile(w, m.c, "ws")
+		return
 	default: // file server
 		name := r.URL.Path
 		if len(name) > 0 && name[0] == '/' {
@@ -63,56 +71,75 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		n, p := m.k[rr]&atom, 8+rr<<2
 		sendFile(w, m.c[p:p+n], name)
-	}
-	table[dyad] = nil // unset trigger
+		return
+	} // POST /k:
 	stdout = bytes.NewBuffer(nil)
-	e, err := ioutil.ReadAll(r.Body)
+	t, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		println(err.Error())
 		return
 	}
-	ee, ss, dd = false, false, false
-	if n := r.Header.Get("n"); n == ".e" {
-		i := mk(I, 2)
-		m.k[2+i], m.k[3+i] = hi(r, "a"), hi(r, "b")
-		as := mk(N+2, atom) // (:)
-		m.k[2+as] = dyad
-		dec(evl(cat(l2(inc(as), mks(".e")), mkb(e)))) // .(:;`.e;"line1\nline2")
-		dec(evl(cat(l2(inc(as), mks(".s")), i)))      // .(:;`.s:7 10)
-		dec(as)
-	} else if n != "" {
+	if n := r.Header.Get("n"); n == ".e" { // store editor state
+		dec(amd(mku(0), mks("e"), inc(null), mkb(t)))                      // @[`;`e;;"line1\nline2"]
+		dec(amd(mku(0), mks("s"), inc(null), cat(hi(r, "a"), hi(r, "b")))) // @[`;`s;;7 10]
+	} else if n != "" { // file upload
 		println("write to n:", n)
-		out(wrt(mkb([]c(n)), mkb(e)))
+		out(wrt(mkb([]c(n)), mkb(t)))
 		return
 	}
-	asn(mks(".d"), kxy(mks(".rsz"), lup(mks(".d")), cat(mki(hi(r, "h")), mki(hi(r, "w")))), inc(null)) // d:rsz[d;(h;w)]
-	table[dyad] = trg
-	try(r.Header.Get("k")) // eval
-	if ss {
-		println("update .s")
-		s := lup(mku(0x2e73000000000000))
+	ee = decr(ee, atx(lup(mku(0)), mks("e")))
+	ss = decr(ss, atx(lup(mku(0)), mks("s")))
+	dd = decr(dd, kxy(mks(".rsz"), hi(r, "h"), hi(r, "w")))
+	if !try(r.Header.Get("k")) { // eval k expr
+		w.Write(stdout.Bytes())
+		return
+	}
+	e := atx(lup(mku(0)), mks("e"))
+	if ee != null && !match(e, ee) {
+		println(".e`update")
+		w.Header().Set("n", ".e")
+	}
+	dec(e)
+	s := atx(lup(mku(0)), mks("s"))
+	if ss != null && !match(s, ss) {
+		st, sst, sn, ssn := typs(s, ss)
+		println(".s`update", st, sst == A, sn, ssn)
 		if st, sn := typ(s); st == I {
-			if sn == atom || sn < 2 {
+			w.Header().Set("n", ".e")
+			if sn == atom || sn == 1 {
 				hs(w, "a", 2+s)
 				hs(w, "b", 2+s)
-			} else if sn > 1 {
+			} else if sn == 2 {
 				hs(w, "a", 2+s)
 				hs(w, "b", 3+s)
 			}
 		}
-		dec(s)
 	}
-	if ee {
-		println("update .e")
-		w.Header().Set("n", ".e")
-	}
-	if dd {
+	dec(s)
+	d := atx(lup(mku(0)), mks("d"))
+	if dd != null && !match(d, dd) {
 		println("update .d")
-		w.Write([]c(setImage()))
+		w.Write([]c(setImage(d)))
 	}
+	dec(d)
+
 	b := stdout.Bytes()
 	println("write ", len(b), "bytes")
 	w.Write(b)
+}
+func printk(x k, a s) {
+	if m.k[x]>>28 == N {
+		println(a, "NULL")
+	}
+	c := kst(inc(x))
+	defer dec(c)
+	t, n := typ(c)
+	if t != C {
+		println(a, "type:", t, n)
+		return
+	}
+	p := 8 + c<<2
+	println(a, s(m.c[p:p+n]))
 }
 func sendImage(w http.ResponseWriter) {
 	if dpng == nil {
@@ -125,12 +152,12 @@ func sendImage(w http.ResponseWriter) {
 func kinit() { // each GET /k (e.g. page reload)
 	println("kinit")
 	ini()
-	table[21] = red                                                  // 0:x
-	table[dyad] = trg                                                // trigger `.e`.s`.d
-	table[21+dyad] = wrt                                             // x 0:y
-	mkk(".rsz", "{$[(*/y)~+/#:'x;x;y#0]}")                           // resize[.d;h w]
-	dec(asn(mks(".d"), tak(tak(mki(2), mki(1)), mki(0)), inc(null))) // dpy
-	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom)))        // memfs `.f:("file1","file2")!(0x1234;0x5678..)
+	table[21] = red      // 0:x
+	table[21+dyad] = wrt // x 0:y
+	ee, ss, dd = inc(null), inc(null), inc(null)
+	dec(evl(prs(mkb([]c(`.e:"";.s:0 0;.d:,,0`)))))
+	mkk(".rsz", "{$[(x*y)~+/#:'.d;.d;.d::(y;x)#0]}")          // resize[.d;h w]
+	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom))) // (memfs) `.f:("file1","file2")!(0x1234;0x5678..)
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
@@ -184,39 +211,24 @@ func lupf(x k) (r, j k) {
 	}
 	return decr(fs, 0), n
 }
-func trg(x, y, f k) (r k) { // trigger assignments
-	xt, yt, xn, yn := typs(x, y)
-	println("trg", xt, yt, xn, yn)
-	if match(x, mku(0)) {
-		println("asn .")
-	}
-	switch sym(8 + x<<2) {
-	case 0x2e65000000000000: // `.e
-		println(".e!")
-		ee = true
-	case 0x2e73000000000000: // `.s
-		println(".s!")
-		ss = true
-	case 0x2e64000000000000: // `.d
-		println(".d!")
-		dd = true
-	}
-	return decr2(y, f, x)
-}
-func try(s s) {
-	defer stk()
+func try(s s) (o bool) {
+	defer func() {
+		if r := recover(); r != nil { // TODO: restore ws
+			// TODO print error
+			//a, b := stack(r)
+			//dec(asn(mks(".stk"), mkb([]c(a)), mk(N, atom))) // print with: \s
+			//dec(wrt(mku(0), ano(m.k[srcp], mkb([]c(b)))))
+		}
+	}()
 	evp(mkb([]c(s)))
+	return true
 }
-func setImage() s {
-	d := lupo(mku(0x2e64000000000000)) // `.d
-	if d != 0 {
-		defer dec(d)
-	}
+func setImage(d k) s {
+	defer dec(d)
 	t, n := typ(d)
 	if d == 0 || t != L || n == atom {
 		return "bad`.d\n"
 	}
-
 	w, h, cp := m.k[m.k[2+d]]&atom, n, 0
 	if w == atom || h == atom || w == 0 || h == 0 {
 		return "bad`.d\n"
@@ -250,7 +262,7 @@ func setImage() s {
 	dpng = buf.Bytes()
 	return ""
 }
-func hi(r *http.Request, s s) k           { i, _ := strconv.Atoi(r.Header.Get(s)); return k(i) }
+func hi(r *http.Request, s s) k           { i, _ := strconv.Atoi(r.Header.Get(s)); return mki(k(i)) }
 func hs(w http.ResponseWriter, s s, x k)  { w.Header().Set(s, strconv.Itoa(int(m.k[x]))) }
 func hss(w http.ResponseWriter, s s, x s) { w.Header().Set(s, s) }
 func sendFile(w http.ResponseWriter, b []c, n s) {
@@ -258,15 +270,7 @@ func sendFile(w http.ResponseWriter, b []c, n s) {
 	hss(w, "Content-Disposition", "attachment;filename=\""+n+"\"")
 	w.Write(b)
 }
-func stk() {
-	if r := recover(); r != nil { // TODO: restore ws
-		ee, ss, dd = false, false, false
-		//a, b := stack(r)
-		//dec(asn(mks(".stk"), mkb([]c(a)), mk(N, atom))) // stack trace: \s
-		//dec(wrt(mku(0), ano(m.k[srcp], mkb([]c(b)))))
-	}
-}
-func stack(c interface{}) (stk, err s) {
+func stack(c interface{}) (stk, err s) { // compact stack trace (go runtime)
 	println(s(debug.Stack()))
 	h := false
 	for _, s := range strings.Split(s(debug.Stack()), "\n") {

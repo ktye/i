@@ -19,7 +19,7 @@ RET execute current line or marked text
 <img align="left" width="100" height="100" src="esd.png"/>
 
 ```
-in sync(trigger)
+synchronized
 .e(dit)      editor content "line1\nline2\ntext"
 .s(election) selected range 12 15
 .d(isplay)   pixel buffer   h w#0
