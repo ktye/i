@@ -1946,7 +1946,7 @@ func key(x, y k) (r k) { // x!y
 	if yn == atom {
 		y, yn = ext(y, yt, xn), xn
 	}
-	if xn == 1 && yn > 1 {
+	if xn == 1 && yn != 1 {
 		y, yn = enl(y), 1
 	}
 	if xn != yn {
@@ -3849,10 +3849,6 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return decr(x, r)
 }
 func asn(x, y, f k) (r k) { // `x:y
-	if table[dyad] != nil { // e.g. trigger
-		g := table[dyad].(func(k, k, k) k)
-		x = g(x, inc(y), inc(f))
-	}
 	_, yt, xn, yn := typs(x, y)
 	if xn != atom {
 		if yn == atom {
