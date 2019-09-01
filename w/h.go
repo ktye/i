@@ -93,9 +93,6 @@ term.onkeydown = function (evt) {
   s = s.trim()
   if (s === "\\c") {
    term.value = " "
-  } else if (s.length && s[0] == '/') {
-   // ls(s.substring(1))
-   O("TODO ls")
   } else {
    e(s, ".e", edit.value)
    return
@@ -107,6 +104,21 @@ function O(s) { term.value += s }
 function P() { term.value += "\n "; term.scrollTo(0, term.scrollHeight) }
 function show(e, b) { b?e.style.display="block":e.style.display="none" }
 function edit(b) { if(b){show(edit,true);show(dpy,false)}else{show(edit,false);show(display,true)}}
+
+function search3(s) { // search on button 3
+ s.addEventListener("contextmenu", function(e) {
+  var l = s.selectionEnd-s.selectionStart
+  if (e.button==2&&l>0) {
+   e.preventDefault()
+   var t = s.value.substring(s.selectionStart, s.selectionEnd)
+   var f = function(a) { return s.value.indexOf(t, a) }
+   var n = f(s.selectionEnd)
+   if (n < 0) { n = f(0) }
+   term.setSelectionRange(n,n+l)
+  }
+ })
+}
+search3(term);search3(edit)
 
 var dropbox = document.getElementById("dropbox")
 dropbox.ondragover = function(ev) { ev.preventDefault() }
