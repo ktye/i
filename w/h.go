@@ -92,7 +92,9 @@ term.onkeydown = function (evt) {
   O("\n")
   s = s.trim()
   if (s === "\\c") {
-   term.value = " "
+   term.value = " ";return
+  } else if (s === "\\e") { // toggle edit/dpy
+   edit.style.display=="block"?showed(false):showed(true)
   } else {
    e(s, ".e", edit.value)
    return
@@ -103,7 +105,7 @@ term.onkeydown = function (evt) {
 function O(s) { term.value += s }
 function P() { term.value += "\n "; term.scrollTo(0, term.scrollHeight) }
 function show(e, b) { b?e.style.display="block":e.style.display="none" }
-function edit(b) { if(b){show(edit,true);show(dpy,false)}else{show(edit,false);show(display,true)}}
+function showed(b) { if(b){show(edit,true);show(dpy,false)}else{show(edit,false);show(dpy,true)}}
 
 function search3(s) { // search on button 3
  s.addEventListener("contextmenu", function(e) {
@@ -114,11 +116,21 @@ function search3(s) { // search on button 3
    var f = function(a) { return s.value.indexOf(t, a) }
    var n = f(s.selectionEnd)
    if (n < 0) { n = f(0) }
-   term.setSelectionRange(n,n+l)
+   s.setSelectionRange(n,n+l)
   }
  })
 }
 search3(term);search3(edit)
+
+
+edit.addEventListener("mousedown", function(ev) { // editor: button-2(execute selection)
+ console.log("which",ev.which,"button",ev.button)
+ if (ev.button==1) { 
+  ev.preventDefault()
+  var t = edit.value.substring(edit.selectionStart, edit.selectionEnd)
+  O("\n "+t+"\n");e(t,".e",edit.value)
+ }
+})
 
 var dropbox = document.getElementById("dropbox")
 dropbox.ondragover = function(ev) { ev.preventDefault() }

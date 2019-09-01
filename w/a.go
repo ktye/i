@@ -24,6 +24,16 @@ func main() {
 	err := http.ListenAndServe(":2019", nil)
 	println(err.Error())
 }
+func kinit() { // each GET /k (e.g. page reload)
+	println("kinit")
+	ini()
+	table[21] = red      // 0:x
+	table[21+dyad] = wrt // x 0:y
+	ee, ss, dd = inc(null), inc(null), inc(null)
+	dec(evl(prs(mkb([]c(`.e:"";.s:0 0;.d:,,0`)))))
+	mkk(".rsz", "{$[(x*y)~+/#:'.d;.d;.d::(y;x)#0]}")          // resize[.d;h w]
+	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom))) // (memfs) `.f:("file1","file2")!(0x1234;0x5678..)
+}
 func hdr(r *http.Request) string { // TODO rm
 	var s string
 	for _, h := range []string{"n", "a", "b", "w", "h", "k"} {
@@ -56,21 +66,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	case "/ws": // workspace
 		sendFile(w, m.c, "ws")
 		return
-	default: // file server
-		name := r.URL.Path
-		if len(name) > 0 && name[0] == '/' {
-			name = name[1:]
-		}
-		if len(name) == 0 {
+	default:
+		if strings.HasPrefix(r.URL.Path, "/f/") { // file server
+			name := r.URL.Path[3:]
+			if len(name) == 0 {
+				return
+			}
+			rr, _ := lupf(mkb([]c(name)))
+			if rr == 0 {
+				http.Error(w, "∄"+name, 404)
+				return
+			}
+			n, p := m.k[rr]&atom, 8+rr<<2
+			sendFile(w, m.c[p:p+n], name)
 			return
 		}
-		rr, _ := lupf(mkb([]c(name)))
-		if rr == 0 {
-			http.Error(w, "∄"+r.URL.Path, 404)
-			return
-		}
-		n, p := m.k[rr]&atom, 8+rr<<2
-		sendFile(w, m.c[p:p+n], name)
+		http.Error(w, "bad`request", 400)
 		return
 	} // POST /k:
 	stdout = bytes.NewBuffer(nil)
@@ -83,8 +94,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		dec(amd(mku(0), mks("e"), inc(null), mkb(t)))                      // @[`;`e;;"line1\nline2"]
 		dec(amd(mku(0), mks("s"), inc(null), cat(hi(r, "a"), hi(r, "b")))) // @[`;`s;;7 10]
 	} else if n != "" { // file upload
-		println("write to n:", n)
-		out(wrt(mkb([]c(n)), mkb(t)))
+		println("upload", n)
+		f := mk(N+2, atom) // x 1:y
+		m.k[2+f] = 21 + dyad
+		dec(cal2(f, mkb([]c(n)), mkb(t)))
+		w.Write([]c("1:" + n + "\n"))
 		return
 	}
 	ee = decr(ee, atx(lup(mku(0)), mks("e")))
@@ -148,16 +162,6 @@ func sendImage(w http.ResponseWriter) {
 	}
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(dpng)
-}
-func kinit() { // each GET /k (e.g. page reload)
-	println("kinit")
-	ini()
-	table[21] = red      // 0:x
-	table[21+dyad] = wrt // x 0:y
-	ee, ss, dd = inc(null), inc(null), inc(null)
-	dec(evl(prs(mkb([]c(`.e:"";.s:0 0;.d:,,0`)))))
-	mkk(".rsz", "{$[(x*y)~+/#:'.d;.d;.d::(y;x)#0]}")          // resize[.d;h w]
-	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom))) // (memfs) `.f:("file1","file2")!(0x1234;0x5678..)
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
