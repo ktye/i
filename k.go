@@ -2040,12 +2040,15 @@ func cat(x, y k) (r k) { // x,y
 			m.k[3+r] = cat(inc(m.k[3+x]), inc(m.k[3+y]))
 			return decr2(x, y, r)
 		}
-	case xt != L:
-		x = explode(x)
-		xt, xn = typ(x)
-	case yt != L:
-		y = explode(y)
-		xt, yn = typ(y)
+	default:
+		if xt != L {
+			x = explode(x)
+			xt, xn = typ(x)
+		}
+		if yt != L {
+			y = explode(y)
+			yt, yn = typ(y)
+		}
 	}
 	if m.k[x+1] == 1 && bk(L, xn+yn) == bk(L, xn) {
 		r = x
@@ -3136,12 +3139,12 @@ func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	return decr2(x, y, uf(r))
 }
 func ecp(f, x k) (r k) { // f':x (each prior)
-	t, n := typ(x)
+	ft, t, fn, n := typs(f, x)
+	if ft == I && fn == atom { // n':y (window)
+		return decr(f, win(m.k[2+f], n, x))
+	}
 	if t == A {
-		r = mk(A, atom)
-		m.k[2+r] = inc(m.k[2+x])
-		m.k[3+r] = ecp(f, inc(m.k[3+x]))
-		return decr(x, r)
+		return arc2(f, x, n, ecp)
 	} else if t > L || n == atom {
 		panic("class")
 	} else if n == 1 {
@@ -3163,6 +3166,23 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), atx(inc(x), mki(i-1)))
 	}
 	return decr2(f, x, uf(r))
+}
+func win(n, ny, y k) (r k) { // n':y (window)
+	if ny == atom || i(n) < 0 || n > ny {
+		panic("length")
+	} else if n == 0 { // 0':y → 3':0,y,0
+		return win(3, ny+2, cat(cat(mki(0), y), mki(0)))
+	}
+	a := jota(n)
+	r = mk(L, 1+ny-n)
+	m.k[2+r] = atx(inc(y), inc(a))
+	for i := k(0); i < ny-n; i++ {
+		for j := k(0); j < n; j++ {
+			m.k[2+a+j]++
+		}
+		m.k[3+i+r] = atx(inc(y), inc(a))
+	}
+	return decr2(a, y, r)
 }
 func epi(f, x, y k) (r k) { // x f':y (each prior initial)
 	n := m.k[y] & atom
