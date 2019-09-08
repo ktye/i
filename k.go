@@ -595,7 +595,6 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	} else if yn == atom {
 		n, sc = xn, 2
 	} else if xn != yn {
-		println(xn, yn)
 		panic("size")
 	}
 	if xt == L || yt == L {
@@ -2196,7 +2195,9 @@ func rsh(xp, xn, n, o, y, yn k) (r, oo k) { // reshape (with offset): (x,n)#y
 			m.k[2+i+r], o = rsh(xp+1, xn-1, n, o, y, yn)
 		} else {
 			m.k[2+i+r] = take(n, o, inc(y))
-			o = (o + n) % yn
+			if yn != 0 {
+				o = (o + n) % yn
+			}
 		}
 	}
 	return r, o
@@ -2205,6 +2206,9 @@ func take(n, o, y k) (r k) { // integer index and offset
 	t, yn := typ(y)
 	cp, yp := cpx[t], ptr(y, t)
 	if yn == 0 {
+		if t == L {
+			return decr(y, take(n, o, enlist(mk(C, 0))))
+		}
 		return decr(y, take(n, o, inc(nan[t])))
 	} else if yn == atom {
 		yn = 1
@@ -2526,16 +2530,16 @@ func atx(x, y k) (r k) { // x@y
 		return decr2(x, y, r)
 	case xt == L && yt == I:
 		if yn == atom {
-			r = inc(m.k[2+x+m.k[2+y]])
+			if xi := m.k[2+y]; int32(xi) < 0 || xi >= xn {
+				r = lnan(inc(x))
+			} else {
+				r = inc(m.k[2+x+m.k[2+y]])
+			}
 		} else {
 			r = mk(L, yn)
-			nt := C // nan type is derived from 1st element or char (k7)
-			if t := m.k[m.k[2+x]] >> 28; t < L && xn > 0 {
-				nt = t
-			}
 			for i := k(0); i < yn; i++ {
-				if xi := m.k[2+y+i]; xi < 0 || xi >= xn {
-					m.k[2+r+i] = inc(nan[nt])
+				if xi := m.k[2+y+i]; int32(xi) < 0 || xi >= xn {
+					m.k[2+r+i] = lnan(inc(x))
 				} else {
 					m.k[2+r+i] = inc(m.k[2+x+xi])
 				}
@@ -2575,25 +2579,36 @@ func atx(x, y k) (r k) { // x@y
 		vt, _ := typ(m.k[3+x])
 		if kt != yt {
 			panic("type")
+		} else if nk == 0 {
+			if yn == atom {
+				return decr2(x, y, fst(take(1, 0, inc(m.k[3+x]))))
+			} else {
+				return decr2(x, y, take(yn, 0, inc(m.k[3+x])))
+			}
 		}
 		r = mk(vt, atm1(yn))
 		cp, eq, kp, vp, rp, yp := cpx[vt], eqx[kt], ptr(keys, kt), ptr(m.k[3+x], vt), ptr(r, vt), ptr(y, yt)
 		for i := k(0); i < atm1(yn); i++ {
-			// na(rp + i)
 			for j := k(0); j < nk; j++ {
 				if eq(kp+j, yp+i) {
 					cp(rp+i, vp+j)
 					break
 				}
 				if j == nk-1 {
-					panic("index")
+					if vt < L {
+						cp(rp+i, ptr(nan[vt], vt))
+					} else if vt == L {
+						m.k[2+i+r] = lnan(inc(m.k[3+x]))
+					} else {
+						panic("index")
+					}
 				}
 			}
 		}
 		if yn == atom {
 			r = fst(r)
 		}
-		return decr2(x, y, r)
+		return decr2(x, y, uf(r))
 	case yt == L:
 		r = mk(L, yn)
 		for i := k(0); i < yn; i++ {
@@ -5076,6 +5091,35 @@ func pct(x, y k) (r k) { // x med y (0.95 med y, -0.95f med y, 0 med y)
 		}
 	default:
 		panic("type")
+	}
+}
+func lnan(x k) (r k) { // nan value of a list
+	t, n := typ(x)
+	if t == L {
+		if n == 0 {
+			return decr(x, mk(C, 0))
+		} else {
+			x = fst(x)
+			t, n = typ(x)
+		}
+	}
+	return lrna(x)
+	// TODO: for functions e.g. "(-;1)@3" k7 returns mk(N+2, 0), which conflicts with lambda.
+}
+func lrna(x k) (r k) {
+	t, n := typ(x)
+	if t < L {
+		r = decr(x, inc(nan[t]))
+		if n != atom {
+			r = take(n, 0, r)
+		}
+		return r
+	} else if t == L {
+		return lrc(x, n, lrna)
+	} else if t == A {
+		return arc(x, n, lrna)
+	} else {
+		return decr(x, mk(C, 0))
 	}
 }
 
