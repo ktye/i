@@ -2,33 +2,42 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"runtime/debug"
 	"strings"
+	"sync"
 )
 
 var rd func() []c
+var dr sync.Mutex
 
 func main() {
 	ini()
-	if len(os.Args) == 2 && os.Args[1] == "-kwac" {
-		inikwac()
-		return
-	}
 	table[21] = red
 	table[40] = exi
 	table[21+dyad] = wrt
-	if len(os.Args) < 2 {
-		rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
-		for {
-			try()
+	args, addr := os.Args[1:], ""
+	if len(args) == 1 && args[0] == "-kwac" {
+		inikwac()
+		return
+	} else if len(args) > 1 && args[0] == "-p" {
+		addr = args[1]
+		if _, o := atoi([]c(args[1])); o {
+			addr = ":" + args[1]
 		}
-	} else {
+		args = args[2:]
+	} else if len(args) > 0 && args[0] == "-u" {
+		addr = ":2019"
+		dec(evl(prs(mkb([]c(ui)))))
+		args = args[1:]
+	}
+	if len(args) > 0 {
 		defer stk(false)
 		rd = read
-		args := os.Args[1:]
 		zx := mk(L, k(len(args))) // .z.x: args
 		for i, a := range args {
 			m.k[2+k(i)+zx] = mkb([]c(a))
@@ -36,6 +45,15 @@ func main() {
 		asn(mks(".z.x"), inc(zx), mk(N, atom))
 		lod(inc(m.k[2+zx]))
 		dec(zx)
+	}
+	if addr != "" {
+		go http.ListenAndServe(addr, http.HandlerFunc(srv))
+	}
+	rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
+	for {
+		dr.Lock()
+		try()
+		dr.Unlock()
 	}
 }
 func try() {
@@ -150,6 +168,84 @@ func stack(c interface{}) (stk, err string) {
 	}
 	return stk, err
 }
+func srv(w http.ResponseWriter, r *http.Request) {
+	dr.Lock()
+	defer dr.Unlock()
+	buf := bytes.NewBuffer(nil)
+	defer func() {
+		w.Write(buf.Bytes())
+		r.Body.Close()
+	}()
+	defer func() {
+		if rec := recover(); rec != nil {
+			a, b := stack(rec)
+			println(a)
+			buf = bytes.NewBuffer(nil)
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(500)
+			dec(wrt(mku(0), mkb([]byte(b))))
+		}
+	}()
+
+	z, f := lupo(mku(0)), k(0)
+	if z == 0 {
+		return
+	}
+	z = atx(z, mks("Z"))
+	if r.Method == "GET" { // .Z.G
+		f = atx(z, mks("G"))
+	} else if r.Method == "POST" { // .Z.P
+		f = atx(z, mks("P"))
+	} else {
+		dec(z)
+		return
+	}
+	if m.k[f]>>28 != N+1 {
+		dec(f)
+		return
+	}
+	hdr := mk(S, k(len(r.Header)))
+	hp := 8 + hdr<<2
+	for key := range r.Header {
+		v := r.Header.Get(key)
+		if len(v) > 8 {
+			v = v[:8]
+		}
+		mys(hp, btou([]c(v)))
+		hp += 8
+	}
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		dec(hdr)
+		panic(err)
+	}
+	l := mk(L, 3)                   // TODO? Query(dict)?
+	m.k[2+l] = mkb([]c(r.URL.Path)) // ?
+	m.k[3+l] = hdr                  // ?
+	m.k[4+l] = mkb(b)               // ?
+	y := cal(f, enlist(l))          // ? assume ( hdr(`a); body(`c) )
+	t, n := typ(y)
+	if t == L && n == 2 && m.k[m.k[2+y]]>>28 == A { // (hdr;"body") or "body"
+		hdr = fst(inc(y))
+		keys, vals := str(inc(m.k[2+hdr])), m.k[3+hdr]
+		for i := k(0); i < atm1(m.k[keys]&atom); i++ {
+			v := str(atx(inc(vals), mki(i)))
+			kp, vp := ptr(m.k[2+i+keys], C), ptr(v, C)
+			kn, vn := m.k[2+i+keys]&atom, m.k[v]&atom
+			w.Header().Set(string(m.c[kp:kp+kn]), string(m.c[vp:vp+vn]))
+		}
+		y = drop(1, y)
+		y, n = typ(y)
+	}
+	if t != C || n == atom {
+		panic("type")
+	} else if n > 0 {
+		bp := ptr(m.k[3+y], C)
+		n = atm1(m.k[m.k[3+y]] & atom)
+		buf.Write(m.c[bp : bp+n])
+	}
+	dec(y)
+}
 func inikwac() { // write initial memory as data section
 	skip := 0
 	fmt.Printf("(0;0x")
@@ -179,3 +275,8 @@ func pr(x k, a ...interface{}) {
 	fmt.Println(a, s)
 }
 func fatal(s string) { println(s); os.Exit(1) }
+
+const ui = ` \"ui:localhost:2019"
+g:{x}
+.Z.G:{x}
+/ .Z.G:{x}`

@@ -1231,6 +1231,13 @@ func evl(x k) (r k) {
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
 			if m.k[name]>>28 == S {
 				name, r = spld(name)
+				if r == 0 && match(f, null) { // extend a.b.c:..
+					if r = lupo(fst(inc(name))); r == 0 {
+						r = key(mk(S, 0), mk(L, 0))
+					}
+					r = dxt(r, drop(1, inc(name)))
+					dec(asn(fst(inc(name)), r, inc(null)))
+				}
 			}
 			if nt, nn := typ(name); nt == L && nn > 1 {
 				if m.k[m.k[2+name]]>>28 == N { // (;`a;`b) vector assignment
@@ -4092,6 +4099,24 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 	}
 	a0 := fst(inc(a))
 	return amdv(inc(x), inc(a0), mk(N, 0), dmdv(atx(x, a0), drop(1, a), f, y))
+}
+func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
+	if m.k[x]>>28 != A || m.k[m.k[2+x]]>>28 != S || m.k[m.k[3+x]]>>28 != L {
+		panic("type")
+	}
+	yt, yn := typ(y)
+	if yt != L { // (,`b;`c)
+		panic("assert")
+	}
+	if yn == 0 {
+		return decr(y, x)
+	}
+	a := fst(fst(inc(y)))
+	j := fnd(inc(m.k[2+a]), inc(a))
+	if j == m.k[m.k[2+a]]&atom {
+		x = amdv(x, inc(a), inc(null), key(mk(S, 0), mk(L, 0)))
+	}
+	return decr(j, amdv(x, a, inc(null), dxt(atx(x, inc(a)), drop(1, y))))
 }
 func lup(x k) (r k) { // lookup
 	if r = lupo(inc(x)); r == 0 {
