@@ -1235,8 +1235,7 @@ func evl(x k) (r k) {
 					if r = lupo(fst(inc(name))); r == 0 {
 						r = key(mk(S, 0), mk(L, 0))
 					}
-					r = dxt(r, drop(1, inc(name)))
-					dec(asn(fst(inc(name)), r, inc(null)))
+					dec(asn(fst(inc(name)), dxt(r, drop(1, inc(name))), inc(null)))
 				}
 			}
 			if nt, nn := typ(name); nt == L && nn > 1 {
@@ -4101,22 +4100,23 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 	return amdv(inc(x), inc(a0), mk(N, 0), dmdv(atx(x, a0), drop(1, a), f, y))
 }
 func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
-	if m.k[x]>>28 != A || m.k[m.k[2+x]]>>28 != S || m.k[m.k[3+x]]>>28 != L {
+	yt, yn := typ(y)
+	if yn > 1 && (m.k[x]>>28 != A || m.k[m.k[2+x]]>>28 != S || m.k[m.k[3+x]]>>28 != L) {
 		panic("type")
 	}
-	yt, yn := typ(y)
 	if yt != L { // (,`b;`c)
 		panic("assert")
 	}
 	if yn == 0 {
-		return decr(y, x)
+		return decr2(x, y, mk(L, 0))
 	}
 	a := fst(fst(inc(y)))
-	j := fnd(inc(m.k[2+a]), inc(a))
-	if j == m.k[m.k[2+a]]&atom {
+	j := fnd(inc(m.k[2+x]), inc(a))
+	if m.k[2+j] == m.k[m.k[2+x]]&atom {
 		x = amdv(x, inc(a), inc(null), key(mk(S, 0), mk(L, 0)))
 	}
-	return decr(j, amdv(x, a, inc(null), dxt(atx(x, inc(a)), drop(1, y))))
+	r = decr(j, amdv(x, a, inc(null), dxt(atx(inc(x), inc(a)), drop(1, y))))
+	return r
 }
 func lup(x k) (r k) { // lookup
 	if r = lupo(inc(x)); r == 0 {
