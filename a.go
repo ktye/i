@@ -51,9 +51,7 @@ func main() {
 	}
 	rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
 	for {
-		dr.Lock()
 		try()
-		dr.Unlock()
 	}
 }
 func try() {
@@ -193,8 +191,10 @@ func srv(w http.ResponseWriter, r *http.Request) {
 	}
 	z = atx(z, mks("Z"))
 	if r.Method == "GET" { // .Z.G
+		println("GET", r.URL.Path)
 		f = atx(z, mks("G"))
 	} else if r.Method == "POST" { // .Z.P
+		println("POST", r.URL.Path)
 		f = atx(z, mks("P"))
 	} else {
 		dec(z)
@@ -204,29 +204,30 @@ func srv(w http.ResponseWriter, r *http.Request) {
 		dec(f)
 		return
 	}
-	hdr := mk(S, k(len(r.Header)))
-	hp := 8 + hdr<<2
+	hk, hv := mk(S, k(len(r.Header))), mk(L, k(len(r.Header)))
+	kp, j := 8+hk<<2, k(0)
 	for key := range r.Header {
-		v := r.Header.Get(key)
-		if len(v) > 8 {
-			v = v[:8]
+		kv := key
+		if len(kv) > 8 {
+			kv = kv[:8]
 		}
-		mys(hp, btou([]c(v)))
-		hp += 8
+		mys(kp, btou([]c(kv)))
+		m.k[2+j+hv] = mkb([]c(r.Header.Get(key)))
+		kp, j = kp+8, j+1
 	}
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		dec(hdr)
 		panic(err)
 	}
 	l := mk(L, 3)                   // TODO? Query(dict)?
 	m.k[2+l] = mkb([]c(r.URL.Path)) // ?
-	m.k[3+l] = hdr                  // ?
+	m.k[3+l] = key(hk, hv)          // ?
 	m.k[4+l] = mkb(b)               // ?
-	y := cal(f, enlist(l))          // ? assume ( hdr(`a); body(`c) )
+	println("call .Z.GP")
+	y := cal(f, enlist(l)) // ? assume ( hdr(`a); body(`c) )
 	t, n := typ(y)
 	if t == L && n == 2 && m.k[m.k[2+y]]>>28 == A { // (hdr;"body") or "body"
-		hdr = fst(inc(y))
+		hdr := fst(inc(y))
 		keys, vals := str(inc(m.k[2+hdr])), m.k[3+hdr]
 		for i := k(0); i < atm1(m.k[keys]&atom); i++ {
 			v := str(atx(inc(vals), mki(i)))
@@ -277,6 +278,4 @@ func pr(x k, a ...interface{}) {
 func fatal(s string) { println(s); os.Exit(1) }
 
 const ui = ` \"ui:localhost:2019"
-g:{x}
-.Z.G:{x}
-/ .Z.G:{x}`
+.Z.G:{ \x;"welcome"}`
