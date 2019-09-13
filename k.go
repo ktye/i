@@ -804,7 +804,9 @@ func inv(x k) k { // %x
 }
 func wer(x k) (r k) { // &x
 	t, n := typ(x)
-	if t != I {
+	if t == A {
+		return decr(x, atx(inc(m.k[2+x]), wer(inc(m.k[3+x]))))
+	} else if t != I {
 		panic("type")
 	}
 	n = atm1(n)
