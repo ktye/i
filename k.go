@@ -1631,9 +1631,13 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 	t, n := typ(x)
 	if t == L {
 		r = mk(L, n)
+		isc := true
 		for i := k(0); i < n; i++ {
 			xi := inc(m.k[2+x+i])
 			xxt, xxn := typ(xi)
+			if xxt != C || xxn == atom {
+				isc = false
+			}
 			switch {
 			case xxt < L && xxn == atom:
 				m.k[2+r+i] = enl(str(xi))
@@ -1642,6 +1646,9 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 			default:
 				m.k[2+r+i] = enl(kst(xi))
 			}
+		}
+		if isc {
+			return decr(r, x)
 		}
 	} else if t == A && n == atom {
 		r = str(inc(m.k[2+x]))
