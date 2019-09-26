@@ -1148,16 +1148,12 @@ func evl(x k) (r k) {
 		if t == S && n == 1 {
 			return fst(x)
 		} else if t == S && n == atom {
-			if r, x = spld(x); x != 0 {
-				return lup(x)
-			} else {
-				n = m.k[r] & atom
-				x = lup(inc(m.k[2+r]))
-				for i := k(1); i < n; i++ {
-					x = atx(x, fst(inc(m.k[2+r+i])))
-				}
-				return decr(r, x)
+			if u := sym(8 + x<<2); u == 0x2e00000000000000 {
+				return decr(x, lup(mku(0)))
+			} else if u>>56 == uint64('.') { // remove dot
+				return decr(x, atx(lup(mku(0)), mku(u<<8)))
 			}
+			return lup(x)
 		}
 		return x
 	}
@@ -1231,9 +1227,19 @@ func evl(x k) (r k) {
 				f = inc(null)
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
-			if m.k[name]>>28 == S {
-				name, r = spld(name)
-				if r == 0 && match(f, null) { // extend a.b.c:..
+			if nt, nl := typ(name); match(f, null) && nt == L && m.k[m.k[2+name]]>>28 == S { // a.b:.. name:(`a;,`b)
+				dots := true
+				for i := k(1); i < nl; i++ { // only for (`s;,`a;,`b;..)
+					if et, en := typ(m.k[2+name+i]); et != S || en != 1 {
+						dots = false
+						break
+					}
+				}
+				if dots {
+					if s := m.k[2+name]; sym(8+s<<2) == 0x2e00000000000000 { // `.
+						name = cat(mku(0), drop(1, name))
+					}
+
 					if r = lupo(fst(inc(name))); r == 0 {
 						r = key(mk(S, 0), mk(L, 0))
 					}
@@ -1245,11 +1251,7 @@ func evl(x k) (r k) {
 					name = drp(mki(1), name)
 				} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 					idx := drop(1, inc(name)) // inc(m.k[3+name])
-					name, _ = spld(fst(name))
-					if m.k[name]>>28 == L { // (`a.b;3) → (`a;,`b;3)
-						idx = cat(drop(1, inc(name)), idx)
-						name = fst(name)
-					}
+					name = fst(name)
 					if m.k[idx]>>28 != L {
 						P("assert")
 					}
@@ -1534,7 +1536,7 @@ func kst(x k) (r k) { // `k@x
 			sn, rrc, rn, q := stS(8+rr<<2, ptr(x, S)), 8+rr<<2, k(1), false
 			for i := k(0); i < sn; i++ {
 				c := m.c[rrc+i]
-				if !(cr09(c) || craZ(c) || c == '.') {
+				if !(cr0Z(c) || c == '.') {
 					q = true
 				}
 				if _, o := qt(c); o {
@@ -4122,7 +4124,9 @@ func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
 	a := fst(fst(inc(y)))
 	j := fnd(inc(m.k[2+x]), inc(a))
 	if m.k[2+j] == m.k[m.k[2+x]]&atom {
-		x = amdv(x, inc(a), inc(null), key(mk(S, 0), mk(L, 0)))
+		if m.k[x]>>28 == A && m.k[m.k[2+x]]>>28 == S && m.k[m.k[3+x]]>>28 == L {
+			x = amdv(x, inc(a), inc(null), key(mk(S, 0), mk(L, 0)))
+		}
 	}
 	r = decr(j, amdv(x, a, inc(null), dxt(atx(inc(x), inc(a)), drop(1, y))))
 	return r
@@ -4148,20 +4152,6 @@ func undef(x k) (r s) {
 	r = s(m.c[p : p+n])
 	dec(x)
 	return "undefined:" + r
-}
-func spld(x k) (r, v k) { // split `a.b.c to (`a;,`b;,`c)
-	v = spl(mkc('.'), str(inc(x)))
-	n := m.k[v] & atom
-	if n <= 1 {
-		dec(v)
-		return x, x // no dot
-	}
-	r = mk(L, n)
-	m.k[2+r] = cst(mku(0), inc(m.k[2+v]))
-	for i := k(1); i < n; i++ {
-		m.k[2+i+r] = enl(cst(mku(0), inc(m.k[2+i+v])))
-	}
-	return decr2(x, v, r), 0
 }
 func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
@@ -5291,7 +5281,7 @@ func (p *p) nNum() bool { // minus part of a number
 	if m.c[p.p] != '-' || p.p == p.lp+1 {
 		return true
 	}
-	if c := m.c[p.p-1]; cr09(c) || craZ(c) || c == ')' || c == ']' {
+	if c := m.c[p.p-1]; cr0Z(c) || c == ')' || c == ']' {
 		p.m = p.p
 		return false // verb: exceptions (kref p28)
 	}
@@ -5436,7 +5426,29 @@ func (p *p) noun() (r k) {
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
 	case p.t(sNam):
-		return p.idxr(p.a(pNam))
+		n := p.a(pNam)
+		// TODO: dot must follow immediately
+		for m.c[p.p] == '.' && p.t(sDot) { // a.b.c -> (`a;,`b;,`c)
+			if m.k[n]>>28 != L {
+				n = enlist(n)
+			}
+			n = lcat(n, enl(p.a(pDot)))
+		}
+		if m.k[n]>>28 == L {
+			return p.idxa(n)
+		}
+		return p.idxr(n)
+	case m.c[p.p] == '.' && p.t(sDot): // .a.b
+		n := enlist(mku(0x2e00000000000000)) // (`.;..) instead of (`;...)
+		for {
+			n = lcat(n, enl(p.a(pDot)))
+			// TODO: dot must follow immediately
+			if !p.t(sDot) {
+				return p.idxa(n)
+				break
+			}
+		}
+		return p.idxr(n)
 	case p.t(sVrb):
 		return p.idxr(p.a(pVrb))
 	}
@@ -5448,6 +5460,13 @@ func (p *p) idxr(x k) (r k) { // […]
 		r = mk(L, 1)
 		m.k[2+r] = x
 		x = p.lst(r, sCbr)
+	}
+	return x
+}
+func (p *p) idxa(x k) (r k) { // a.b[..]
+	if p.t(sObr) {
+		p.p = p.m
+		x = p.lst(x, sCbr)
 	}
 	return x
 }
@@ -5555,6 +5574,9 @@ func pStr(b []byte) (r k) { // "a"|"a\nbc": `c|`C
 }
 func pNam(b []byte) (r k) { // name: `n
 	return mku(btou(b))
+}
+func pDot(b []byte) (r k) { // .name: `n
+	return mku(btou(b[1:]))
 }
 func pSym(b []byte) (r k) { // `name|`"name": `n
 	if len(b) == 1 {
@@ -5728,6 +5750,8 @@ func sExp(b []byte) (r int) {
 	}
 	return r
 }
+
+/*
 func sNam(b []byte) (r int) {
 	o := false
 	for i, c := range b {
@@ -5745,6 +5769,33 @@ func sNam(b []byte) (r int) {
 	}
 	if o {
 		return len(b)
+	}
+	return 0
+}
+*/
+func sNam(b []byte) (r int) {
+	for i, c := range b {
+		if cr0Z(c) {
+			if i == 0 && cr09(c) {
+				return 0
+			}
+			r++
+		} else {
+			break
+		}
+	}
+	if r > 0 && r <= 8 {
+		return r
+	}
+	return 0
+}
+func sDot(b []byte) (r int) { // .name
+	if b[0] != '.' || len(b) < 2 {
+		return 0
+	}
+	r = 1 + sNam(b[1:])
+	if r > 1 {
+		return r
 	}
 	return 0
 }
@@ -5773,7 +5824,7 @@ func sSym(b []byte) (r int) { // `alp012|`"any\"thing"|`a.b.c
 		return 1 + sStr(b[1:])
 	}
 	for i, c := range b[1:] {
-		if !(cr09(c) || craZ(c) || c == '.') {
+		if !(cr0Z(c) || c == '.') {
 			return 1 + i
 		}
 	}
@@ -5833,6 +5884,7 @@ func sCpa(b []byte) int { return ib(b[0] == ')') }
 func sCcb(b []byte) int { return ib(b[0] == '}') }
 func cr09(c c) bool     { return c >= '0' && c <= '9' }
 func craZ(c c) bool     { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') }
+func cr0Z(c c) bool     { return cr09(c) || craZ(c) }
 func crHx(c c) bool     { return cr09(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') }
 func cOps(c c) bool {
 	for _, b := range m.c[136 : 136+20] { // :+-*%&|<>=!~,^#_$?@.
