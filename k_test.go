@@ -1025,7 +1025,21 @@ func TestRef(t *testing.T) { // generate readme.md
 	}
 	defer w.Close()
 	r := []c(ref)
-	w.Write([]c("<pre>\n"))
+	w.Write([]c(`
+# Building
+<pre>
+ [install go]
+ $ git clone https://github.com/ktye/i && cd i
+ $ go mod init # creates a dummy (empty) go.mod file
+ $ go build    # writes i(.exe)
+ $ ./i -u      # starts a webserver on localhost:2019
+ load localhost:2019 in a browser
+ the webpage sends key, click, and size events to k and updates the screen(canvas) with the result
+</pre>
+
+# Reference
+`))
+	w.Write([]c(`<pre>`))
 	for i := 1; i < len(r)-2; i++ {
 		if !craZ(r[i-1]) && craZ(r[i]) && craZ(r[i+1]) && craZ(r[i+2]) {
 			key := r[i : i+3]
