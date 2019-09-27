@@ -1176,6 +1176,9 @@ func evl(x k) (r k) {
 	v := m.k[2+x]
 	vt, vn := typ(v)
 	if vt == S {
+		if n == 2 && vn == 1 && m.f[ptr(v, S)] == m.f[ptr(nan[S], S)] { // (,`;..) <- `@y
+			return R() + decr(x, ser(evl(inc(m.k[3+x]))))
+		}
 		if n == 1 { // ,`a`b → `a`b
 			return decr(x, inc(v))
 		}
@@ -1706,6 +1709,24 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 		m.k[2+r+i] = jon(inc(sep), m.k[2+r+i])
 	}
 	return decr2(x, sep, r)
+}
+func ser(x k) (r k) { // `@ (k7 compat)
+	t, n := typ(x)
+	switch t {
+	case I:
+		if n == atom {
+			panic("nyi") // 0x07data
+		}
+		r = mk(C, 8+4*n) // 8 byte header: type, length
+		m.k[2+r] = 0
+		m.c[11+r<<2] = 7
+		m.k[3+r] = n
+		copy(m.k[4+r:], m.k[2+x:2+n+x])
+		return decr(x, r)
+	default:
+		println(t, n)
+		panic("nyi")
+	}
 }
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
@@ -4188,7 +4209,7 @@ func clear() { // clear variables
 func lsv() (r k)     { return inc(m.k[kkey]) }                                  // \v (list variables)
 func clv() (r k)     { clear(); return inc(null) }                              // \c (clear variables)
 func hlp() (r k)     { return cat(mkb(m.c[136:168]), kst(inc(m.k[2+m.k[3]]))) } // \h
-func hxb(x c) (c, c) { h := "0123456780abcdef"; return h[x>>4], h[x&0x0F] }
+func hxb(x c) (c, c) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
 	b := []c{'0', 'x', '0', '0', '0', '0', '0', '0', '0', '0'}
 	for j := k(0); j < 4; j++ {
