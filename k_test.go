@@ -609,6 +609,8 @@ func TestK(t *testing.T) {
 		{`prm "abc"`, `("abc";"bac";"cab";"acb";"bca";"cba")`},
 		{"2 5 7 bin 3", "0"},
 		{"2 5 7 bin !9", "-1 -1 0 0 0 1 1 2 2"},
+		{"` 1 2 3", "0x0000000703000000010000000200000003000000"},
+		{"x:1 2 3;`@1+x", "0x0000000703000000020000000300000004000000"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

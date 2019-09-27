@@ -184,17 +184,14 @@ func srv(w http.ResponseWriter, r *http.Request) {
 			dec(wrt(mku(0), mkb([]byte(b))))
 		}
 	}()
-
 	z, f := lupo(mku(0)), k(0)
 	if z == 0 {
 		return
 	}
 	z = atx(z, mks("Z"))
 	if r.Method == "GET" { // .Z.G
-		println("GET", r.URL.Path)
 		f = atx(z, mks("G"))
 	} else if r.Method == "POST" { // .Z.P
-		println("POST", r.URL.Path)
 		f = atx(z, mks("P"))
 	} else {
 		dec(z)
@@ -223,9 +220,12 @@ func srv(w http.ResponseWriter, r *http.Request) {
 	m.k[2+l] = mkb([]c(r.URL.Path)) // ?
 	m.k[3+l] = key(hk, hv)          // ?
 	m.k[4+l] = mkb(b)               // ?
-	println("call .Z.GP")
-	y := cal(f, enlist(l)) // ? assume ( hdr(`a); body(`c) )
+	y := cal(f, enlist(l))          // ? assume ( hdr(`a); body(`c) )
 	t, n := typ(y)
+	if t == I && n == atom { // error status code
+		http.Error(w, "", int(decr(y, m.k[2+y])))
+		return
+	}
 	if t == L && n == 2 && m.k[m.k[2+y]]>>28 == A { // (hdr;"body") or "body"
 		hdr := fst(inc(y))
 		keys, vals := str(inc(m.k[2+hdr])), m.k[3+hdr]
@@ -235,15 +235,14 @@ func srv(w http.ResponseWriter, r *http.Request) {
 			kn, vn := m.k[2+i+keys]&atom, m.k[v]&atom
 			w.Header().Set(string(m.c[kp:kp+kn]), string(m.c[vp:vp+vn]))
 		}
-		y = drop(1, y)
-		y, n = typ(y)
+		y = fst(drop(1, y))
+		t, n = typ(y)
 	}
 	if t != C || n == atom {
 		panic("type")
 	} else if n > 0 {
-		bp := ptr(m.k[3+y], C)
-		n = atm1(m.k[m.k[3+y]] & atom)
-		buf.Write(m.c[bp : bp+n])
+		p := ptr(y, C)
+		buf.Write(m.c[p : p+n])
 	}
 	dec(y)
 }
@@ -277,5 +276,41 @@ func pr(x k, a ...interface{}) {
 }
 func fatal(s string) { println(s); os.Exit(1) }
 
+// ui webserver
+// j: (js client program) sends requests to k for each event(mouse, key, size) and draws result to canvas
+// handlers:
+//  "/"                                     p(main page)
+//  "/k.png"                                ico(favicon)
+//  "/m,button,x0,y0,x1,y1,shift,alt,ctrl"  m(mouse event, buttons 0..4)
+//  "/k,key,shift,alt,ctrl"                 k(key event)
+//  "/s,width,height"                       s(size event)
 const ui = ` \"ui:localhost:2019"
-.Z.G:{ \x;"welcome"}`
+ico:0x89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce90000000467414d410000b18f0bfc6105000000097048597300000ec400000ec401952b0e1b0000006349444154384fad93e10a8020108377bdff3b9793a428dc16f681723fdcc71d6aed0d902ae02c2db7b35bdf177809aad9b952feefe02b91408d650523382eeb8914b830990a9230911db8308946504c05d70bd7926804259102e22456409464f13b03070b7f28230cf1c9ad0000000049454e44ae426082
+j:"w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.style.overflow='hidden';N=Number;function pd(e){if(e)e.preventDefault()};"
+j,:"c=d.createElement('canvas');b.appendChild(c);ctx=c.getContext('2d');"
+j,:"function draw(s){ctx.putImageData(new ImageData(new Uint8ClampedArray(s), w.innerWidth),0,0)};" /TODO: send w in header
+j,:"function debounce(f,w,i){var t;return function e(){var c=this;var a=arguments;var l=function(){t=null;if(!i)f.apply(c,a);};var n=i&&!t;clearTimeout(t);t=setTimeout(l,w);if(n)f.apply(c,a);}}"
+j,:"function get(p,f){var r = new XMLHttpRequest();r.responseType='arraybuffer';r.onreadystatechange=function(){if(this.readyState==4&&this.status == 200){if(f)f(this.response,this);}};r.open('GET',p);r.send()};"
+j,:"function mod(e){return ','+[N(e.shiftKey),N(e.altKey),N(e.ctrlKey)]};"
+j,:"xd=0;yd=0;down=function(e){xd=e.clientX;yd=e.clientY;pd(e)};"
+j,:"up=function(e){get('m,'+[e.button,xd,yd,e.clientX,e.clientY]+mod(e),draw);pd(e)};" /bs tab ret esc   delete     page;end;home;arrows->14-21
+j,:"keycode=function(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};"
+j,:"key=function(e){var k=keycode(e);if(!k)return;get('k,'+k+mod(e),draw);pd(e);};"
+j,:"wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)get('m,'+m+[x,y,x,y]+mod(e),draw)};"
+j,:"size=function(e){c.width=w.innerWidth;c.height=w.innerHeight;get('s,'+[c.width,c.height],draw);pd(e)};"
+j,:"function ae(x,y,z){x.addEventListener(y,z)};ae(c,'mousedown',down);ae(c,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100));size()"
+p:"<!DOCTYPE html>\n<html><head><link rel='icon' type='image/png' href='k.png'></head><body><script>",j,"</script></body></html>"
+(w;h;d):(0;0;!0) /d pixel buffer w*h
+size:{d::(x*y) rand 255;w::x;h::y;d}
+opaque:255*256*256*256
+flush:{8_` + "`" + `@opaque+x} /send pixel buffer(uint32 array) as binary data
+key:{(w*h)#255*256*x}
+mouse:{(w*h)#x+y}
+.Z.G:{ \x
+ x:","\:*x;u:*x;a:` + "`" + `i$'1_x
+ $[(,"/")  ~u;p
+   "/k.png"~u;((,"Content-type")!,"image/png";ico)
+   "/s"~u;flush size[a 0;a 1]
+   "/k"~u;flush key[a 0]
+   "/m"~u;flush mouse[a 1;a 2]
+  404]}`
