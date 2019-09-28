@@ -27,7 +27,7 @@ func main() {
 	p(err)
 	ww, hh := 41+42*w, 3+4*h
 	if m.Bounds() != image.Rect(0, 0, ww, hh) {
-		p(fmt.Errorf("wrong image size: expected %d x %d\n", ww, hh))
+		p(fmt.Errorf("wrong image size: expected %d x %d, got %s\n", ww, hh, m.Bounds()))
 	}
 
 	chars := []string{"0123456789ABCDE", ":+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]", "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
@@ -75,7 +75,7 @@ func hxb(x byte) (byte, byte) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0
 func char(b []bool) (c byte) {
 	for i := 0; i < 8; i++ {
 		if b[i] {
-			c |= 1 << i
+			c |= 1 << uint(i)
 		}
 	}
 	return c
