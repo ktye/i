@@ -11,7 +11,7 @@ for 10x20, width: 461 (41+42*10), height: 3+4*20 (83)
 k font files are generated with:
  go run gen.go lucx11_6x11.png > luc11.k
  go run gen.go lucx13_7x13.png > luc13.k
- go run gen.go zeev8x16.png 8 16 > f1.k
+ go run gen.go zevv8x16.png 8 16 > f1.k
  go run gen.go 10x20.png 10 20 > f2.k
  go run gen.go 16x32.png 16 32 > f3.k
 
@@ -30,11 +30,11 @@ from plan9 (lstr.10, lstr.12) (lucidasans?)
 ```
 
 # 8x16
-![8x16](zeev_8x16.png)
+![8x16](zevv_8x16.png)
 ```
-from zeev, 1px line with
- http://zevv.nl/play/code/zevv-peep/zevv-peep-iso8859-1-08x16.bdf > zeev.bdf
- go run png.go zeev.bdf
+from zevv, 1px line with
+ http://zevv.nl/play/code/zevv-peep/zevv-peep-iso8859-1-08x16.bdf > zevv.bdf
+ go run png.go zevv.bdf
 ```
 
 # 10x20
