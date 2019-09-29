@@ -22,7 +22,7 @@ font:{&,/+(8#2)\:'0+x}'font
 
 # 6x11, 7x13
 ![6x11](lucx11_6x11.png)
-![7x13](lucx11_7x13.png)
+![7x13](lucx13_7x13.png)
 ```
 from plan9 (lstr.10, lstr.12) (lucidasans?)
  go run png.go lucx11.font
@@ -30,7 +30,7 @@ from plan9 (lstr.10, lstr.12) (lucidasans?)
 ```
 
 # 8x16
-![8x16](zeev8x16.png)
+![8x16](zeev_8x16.png)
 ```
 from zeev, 1px line with
  http://zevv.nl/play/code/zevv-peep/zevv-peep-iso8859-1-08x16.bdf > zeev.bdf
