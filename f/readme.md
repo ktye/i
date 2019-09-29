@@ -21,8 +21,8 @@ font:{&,/+(8#2)\:'0+x}'font
 ```
 
 # 6x11, 7x13
-[6x11](lucx11_6x11.png)
-[7x13](lucx11_7x13.png)
+![6x11](lucx11_6x11.png)
+![7x13](lucx11_7x13.png)
 ```
 from plan9 (lstr.10, lstr.12) (lucidasans?)
  go run png.go lucx11.font
