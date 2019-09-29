@@ -13,6 +13,7 @@ font:(0x0003fffffffffffffff800 /00
  0x0003fffffffffffffff800 /CC
  0x0003fffffffffffffff800 /DD
  0x0003fffffffffffffff800 /EE
+ 0x0003fffffffffffffff800 /FF
  0x0000000ffffffffffff800 /:
  0x000007fffffffffffc0000 /+
  0x00000000003f8000000000 /-

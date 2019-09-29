@@ -30,7 +30,7 @@ func main() {
 		p(fmt.Errorf("wrong image size: expected %d x %d, got %s\n", ww, hh, m.Bounds()))
 	}
 
-	chars := []string{"0123456789ABCDE", ":+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]", "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
+	chars := []string{"0123456789ABCDEF", ":+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]", "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
 	y := 0
 	fmt.Printf("font:(")
 	cls, nl := "", ""

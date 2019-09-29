@@ -286,19 +286,19 @@ func fatal(s string) { println(s); os.Exit(1) }
 //  "/s,width,height"                       s(size event)
 const ui = ` \"ui:localhost:2019"
 ico:0x89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce90000000467414d410000b18f0bfc6105000000097048597300000ec400000ec401952b0e1b0000006349444154384fad93e10a8020108377bdff3b9793a428dc16f681723fdcc71d6aed0d902ae02c2db7b35bdf177809aad9b952feefe02b91408d650523382eeb8914b830990a9230911db8308946504c05d70bd7926804259102e22456409464f13b03070b7f28230cf1c9ad0000000049454e44ae426082
-j:"w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.style.overflow='hidden';N=Number;function pd(e){if(e)e.preventDefault()};"
+j:"w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.style.overflow='hidden';N=Number;function pd(e){if(e)e.preventDefault();e.stopPropagation()};"
 j,:"c=d.createElement('canvas');b.appendChild(c);ctx=c.getContext('2d');"
 j,:"function draw(s){ctx.putImageData(new ImageData(new Uint8ClampedArray(s), w.innerWidth),0,0)};" /TODO: send w in header
 j,:"function debounce(f,w,i){var t;return function e(){var c=this;var a=arguments;var l=function(){t=null;if(!i)f.apply(c,a);};var n=i&&!t;clearTimeout(t);t=setTimeout(l,w);if(n)f.apply(c,a);}}"
 j,:"function get(p,f){var r = new XMLHttpRequest();r.responseType='arraybuffer';r.onreadystatechange=function(){if(this.readyState==4&&this.status == 200){if(f)f(this.response,this);}};r.open('GET',p);r.send()};"
 j,:"function mod(e){return ','+[N(e.shiftKey),N(e.altKey),N(e.ctrlKey)]};"
-j,:"xd=0;yd=0;down=function(e){xd=e.clientX;yd=e.clientY;pd(e)};"
-j,:"up=function(e){get('m,'+[e.button,xd,yd,e.clientX,e.clientY]+mod(e),draw);pd(e)};" /bs tab ret esc   delete     page;end;home;arrows->14-21
+j,:"xd=0;yd=0;down=function(e){xd=e.clientX;yd=e.clientY;pd(e)};nomenu=function(e){pd(e)};"
+j,:"up=function(e){pd(e);get('m,'+[e.button,xd,yd,e.clientX,e.clientY]+mod(e),draw)};" /bs tab ret esc   delete     page;end;home;arrows->14-21
 j,:"keycode=function(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};"
 j,:"key=function(e){var k=keycode(e);if(!k)return;get('k,'+k+mod(e),draw);pd(e);};"
-j,:"wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)get('m,'+m+[x,y,x,y]+mod(e),draw)};"
+j,:"wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)get('m,'+m+','+[x,y,x,y]+mod(e),draw)};"
 j,:"size=function(e){c.width=w.innerWidth;c.height=w.innerHeight;get('s,'+[c.width,c.height],draw);pd(e)};"
-j,:"function ae(x,y,z){x.addEventListener(y,z)};ae(c,'mousedown',down);ae(c,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100));size()"
+j,:"function ae(x,y,z){x.addEventListener(y,z)};ae(w,'contextmenu',nomenu);ae(w,'mousedown',down);ae(w,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100));size()"
 p:"<!DOCTYPE html>\n<html><head><link rel='icon' type='image/png' href='k.png'></head><body><script>",j,"</script></body></html>"
 (w;h;d):(0;0;!0) /d pixel buffer w*h
 size:{d::(x*y) #0;w::x;h::y;d}
@@ -318,7 +318,7 @@ mouse:{(w*h)#x+y}
   404]}
 . 1:"f/f3.k"               /load font(works only when running in this directory)
 font:{&,/(8#2)\:'0+x}'font /unpack
-x:"0123456789ABCDE:+-*%&|<>=!~,^#_$?@.0123456789'\\;` + "`" + `\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+x:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;` + "`" + `\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 chars:256#,!0
 chars[x+0]:font[!#x]
 dst:{o:(x+y*w); \(x;y;w;o);o+(16\z)+w*16/z}
