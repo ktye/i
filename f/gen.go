@@ -75,7 +75,7 @@ func hxb(x byte) (byte, byte) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0
 func char(b []bool) (c byte) {
 	for i := 0; i < 8; i++ {
 		if b[i] {
-			c |= 1 << uint(i)
+			c |= 1 << uint(7-i)
 		}
 	}
 	return c

@@ -9,11 +9,11 @@ for 10x20, width: 461 (41+42*10), height: 3+4*20 (83)
 26 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 k font files are generated with:
- go run gen.go lucx11_6x11.png > luc11.k
- go run gen.go lucx13_7x13.png > luc13.k
- go run gen.go zevv8x16.png 8 16 > f1.k
- go run gen.go 10x20.png 10 20 > f2.k
- go run gen.go 16x32.png 16 32 > f3.k
+ go run gen.go lucx11_6x11.png 6  11 > luc11.k
+ go run gen.go lucx13_7x13.png 7  13 > luc13.k
+ go run gen.go zevv_8x16.png   8  16 > f1.k
+ go run gen.go 10x20.png       10 20 > f2.k
+ go run gen.go 16x32.png       16 32 > f3.k
 
 /unpack (linear black-pixel indexes)
 \l f2.k

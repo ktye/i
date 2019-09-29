@@ -304,9 +304,9 @@ p:"<!DOCTYPE html>\n<html><head><link rel='icon' type='image/png' href='k.png'><
 size:{d::(x*y) #0;w::x;h::y;d}
 opaque:255*256*256*256
 flush:{8_` + "`" + `@opaque+x} /send pixel buffer(uint32 array) as binary data
-(fw;fh):10 20 /fontsize
+(fw;fh):16 32 /fontsize
 (dx;dy):0 0   / cursor offset(pixels)
-key:{d[!(fw*fh)]::0;d[dst[dx;dy;chars[x]]]::255*256;dx+::10;$[x=13;(dx;dy)::(0;dy+20);];d}
+key:{d[!(fw*fh)]::0;d[dst[dx;dy;chars[x]]]::255*256;dx+::16;$[x=13;(dx;dy)::(0;dy+32);];d}
 mouse:{(w*h)#x+y}
 .Z.G:{ \x
  x:","\:*x;u:*x;a:` + "`" + `i$'1_x
@@ -316,10 +316,10 @@ mouse:{(w*h)#x+y}
    "/k"~u;flush key[a 0]
    "/m"~u;flush mouse[a 1;a 2]
   404]}
-. 1:"f/f2.k"               /load font(works only when running in this directory)
+. 1:"f/f3.k"               /load font(works only when running in this directory)
 font:{&,/(8#2)\:'0+x}'font /unpack
 x:"0123456789ABCDE:+-*%&|<>=!~,^#_$?@.0123456789'\\;` + "`" + `\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 chars:256#,!0
 chars[x+0]:font[!#x]
-dst:{o:(x+y*w); \(x;y;w;o);o+(10\z)+w*10/z}
+dst:{o:(x+y*w); \(x;y;w;o);o+(16\z)+w*16/z}
 `

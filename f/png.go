@@ -7,6 +7,7 @@ package main
 //  go run png.go fontname.bdf  # creates fontname.png
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -15,7 +16,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"fmt"
 
 	"github.com/zachomedia/go-bdf"
 	"golang.org/x/image/font"
