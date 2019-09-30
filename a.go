@@ -306,14 +306,14 @@ opaque:255*256*256*256
 flush:{8_` + "`" + `@opaque+x} /send pixel buffer(uint32 array) as binary data
 (fw;fh):16 32 /fontsize
 (dx;dy):0 0   / cursor offset(pixels)
-key:{d[!(fw*fh)]::0;d[dst[dx;dy;chars[x]]]::255*256;dx+::16;$[x=13;(dx;dy)::(0;dy+32);];d}
+key:{y;d[!(fw*fh)]::0;d[dst[dx;dy;chars[x]]]::255*256;dx+::16;$[x=13;(dx;dy)::(0;dy+32);];d}
 mouse:{(w*h)#x+y}
 .Z.G:{ \x
  x:","\:*x;u:*x;a:` + "`" + `i$'1_x
  $[(,"/")  ~u;p
    "/k.png"~u;((,"Content-type")!,"image/png";ico)
    "/s"~u;flush size[a 0;a 1]
-   "/k"~u;flush key[a 0]
+   "/k"~u;flush key[a 0;a 1 2 3]
    "/m"~u;flush mouse[a 1;a 2]
   404]}
 . 1:"f/f3.k"               /load font(works only when running in this directory)
