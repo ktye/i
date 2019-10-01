@@ -1,16 +1,3 @@
-
-# Building
-<pre>
- [install go]
- $ git clone https://github.com/ktye/i && cd i
- $ go mod init # creates a dummy (empty) go.mod file
- $ go build    # writes i(.exe)
- $ ./i -u      # starts a webserver on localhost:2019
- load localhost:2019 in a browser
- the webpage sends key, click, and size events to k and updates the screen(canvas) with the result
-</pre>
-
-# Reference
 <pre>00 : <a href="../../blob/master/k.go#L721">idn</a> <a href="../../blob/master/k.go#L3924">asn</a>    20 0 <a href="../../blob/master/k.go#L3576">rdl</a> <a href="../../blob/master/k.go#L3580">wrl</a>    40 exi exit  120 ... in       60 <a href="../../blob/master/k.go#L4221">prm</a>  140
 01 + <a href="../../blob/master/k.go#L722">flp</a> <a href="../../blob/master/k.go#L1925">add</a>    21 1 nil nil    41 <a href="../../blob/master/k.go#L1731">sqr</a> <a href="../../blob/master/k.go#L1731">sqr</a>t  121 ... within   61      141
 02 - <a href="../../blob/master/k.go#L761">neg</a> <a href="../../blob/master/k.go#L1926">sub</a>    22 2 nil nil    42 <a href="../../blob/master/k.go#L1734">sin</a>       122 <a href="../../blob/master/k.go#L3800">bin</a>          62      142
@@ -89,5 +76,15 @@ Functions have type N+1…N+4 (valence)
   x+2 derived function code<<8
   x+3 points to the function operand
  call will adjust the valence if a derived function has two arguments
+</pre>
 
+# Building
+<pre>
+ [install go go-1.13]
+ $ git clone https://github.com/ktye/i && cd i
+ $ GO111MODULE=on go mod init # creates a dummy (empty) go.mod file
+ $ go build    # writes i(.exe)
+ $ ./i -u      # starts a webserver on localhost:2019
+ load localhost:2019 in a browser
+ the webpage sends key, click, and size events to k and updates the screen(canvas) with the result
 </pre>

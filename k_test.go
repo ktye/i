@@ -1025,20 +1025,6 @@ func TestRef(t *testing.T) { // generate readme.md
 	}
 	defer w.Close()
 	r := []c(ref)
-	w.Write([]c(`
-# Building
-<pre>
- [install go]
- $ git clone https://github.com/ktye/i && cd i
- $ go mod init # creates a dummy (empty) go.mod file
- $ go build    # writes i(.exe)
- $ ./i -u      # starts a webserver on localhost:2019
- load localhost:2019 in a browser
- the webpage sends key, click, and size events to k and updates the screen(canvas) with the result
-</pre>
-
-# Reference
-`))
 	w.Write([]c(`<pre>`))
 	for i := 1; i < len(r)-2; i++ {
 		if !craZ(r[i-1]) && craZ(r[i]) && craZ(r[i+1]) && craZ(r[i+2]) {
@@ -1111,8 +1097,19 @@ Functions have type N+1…N+4 (valence)
   x+2 derived function code<<8
   x+3 points to the function operand
  call will adjust the valence if a derived function has two arguments
+</pre>
 
-</pre>`))
+# Building
+<pre>
+ [install go go-1.13]
+ $ git clone https://github.com/ktye/i && cd i
+ $ GO111MODULE=on go mod init # creates a dummy (empty) go.mod file
+ $ go build    # writes i(.exe)
+ $ ./i -u      # starts a webserver on localhost:2019
+ load localhost:2019 in a browser
+ the webpage sends key, click, and size events to k and updates the screen(canvas) with the result
+</pre>
+`))
 }
 func TestRefcard(t *testing.T) { // go test -short (it's the long test, but short=false is the default)
 	if !testing.Short() {
