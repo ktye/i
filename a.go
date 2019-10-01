@@ -293,7 +293,7 @@ j,:"function debounce(f,w,i){var t;return function e(){var c=this;var a=argument
 j,:"function get(p,f){var r = new XMLHttpRequest();r.responseType='arraybuffer';r.onreadystatechange=function(){if(this.readyState==4&&this.status == 200){if(f)f(this.response,this);}};r.open('GET',p);r.send()};"
 j,:"function mod(e){return ','+[N(e.shiftKey),N(e.altKey),N(e.ctrlKey)]};"
 j,:"xd=0;yd=0;down=function(e){xd=e.clientX;yd=e.clientY;pd(e)};nomenu=function(e){pd(e)};"
-j,:"up=function(e){pd(e);get('m,'+[e.button,xd,yd,e.clientX,e.clientY]+mod(e),draw)};" /bs tab ret esc   delete     page;end;home;arrows->14-21
+j,:"up=function(e){pd(e);get('m,'+[e.button,xd,e.clientX,yd,e.clientY]+mod(e),draw)};" /bs tab ret esc   delete     page;end;home;arrows->14-21
 j,:"keycode=function(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};"
 j,:"key=function(e){var k=keycode(e);if(!k)return;get('k,'+k+mod(e),draw);pd(e);};"
 j,:"wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)get('m,'+m+','+[x,y,x,y]+mod(e),draw)};"
@@ -306,7 +306,7 @@ opaque:255*256*256*256
 flush:{8_` + "`" + `@opaque+x} /send pixel buffer(uint32 array) as binary data
 (fw;fh):16 32 /fontsize
 (dx;dy):0 0   / cursor offset(pixels)
-key:{y;d[!(fw*fh)]::0;d[dst[dx;dy;chars[x]]]::255*256;dx+::16;$[x=13;(dx;dy)::(0;dy+32);];d}
+key:{y;d[ \dst[dx;dy;chars[x]]]::255*256;dx+::16;$[x=13;(dx;dy)::(0;dy+32);];d}
 mouse:{(w*h)#x+y}
 .Z.G:{ \x
  x:","\:*x;u:*x;a:` + "`" + `i$'1_x
@@ -316,10 +316,10 @@ mouse:{(w*h)#x+y}
    "/k"~u;flush key[a 0;a 1 2 3]
    "/m"~u;flush mouse[a 1;a 2]
   404]}
-. 1:"f/f3.k"               /load font(works only when running in this directory)
+. 1:"u/f/f3.k"             /load font(works only when running in this directory)
 font:{&,/(8#2)\:'0+x}'font /unpack
 x:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;` + "`" + `\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 chars:256#,!0
 chars[x+0]:font[!#x]
-dst:{o:(x+y*w); \(x;y;w;o);o+(16\z)+w*16/z}
+dst:{o:(x+y*w);o+(16\z)+w*16/z}
 `

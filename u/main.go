@@ -5,26 +5,27 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"net/http"
 	"os"
 	"strconv"
 
-	"gioui.org/ui/app"
-	"gioui.org/ui/f32"
-	gkey "gioui.org/ui/key"
-	"gioui.org/ui/layout"
-	"gioui.org/ui/paint"
-	"gioui.org/ui/pointer"
+	"gioui.org/app"
+	"gioui.org/f32"
+	gkey "gioui.org/io/key"
+	"gioui.org/io/pointer"
+	"gioui.org/layout"
+	"gioui.org/op/paint"
 )
 
 var screen *image.RGBA
-var netescape bool // pretend to be a webbrowser and connect to k at addr, otherwise use built-in k
+var addr string // pretend to be a webbrowser and connect to k at addr, if empty use built-in k
+var window *app.Window
 
 func main() {
-	args, addr := os.Args[1:], ""
+	args := os.Args[1:]
 	if len(args) > 0 {
 		if args[0] == "-p" {
 			args = args[1:]
-			netescape = true
 			addr = ":2019"
 			if len(args) > 0 {
 				addr = args[0]
@@ -32,34 +33,44 @@ func main() {
 			}
 		}
 	}
-	if netescape {
-		connect(addr)
-	} else {
+	if addr == "" {
 		kinit()
 	}
 	// TODO: evl files given at remaining args
 	go func() {
-		w := app.NewWindow(app.WithTitle("u"))
-		if err := loop(w); err != nil {
+		screen = image.NewRGBA(image.Rectangle{})
+		window = app.NewWindow(app.WithTitle("u"))
+		if err := loop(window); err != nil {
 			panic(err)
 		}
 	}()
 	app.Main()
 }
 
-func flush() {
-	println("paint")
+func hk(c c, shift, alt, cntrl int) {
+	fmt.Println("key", int(c), shift, alt, cntrl)
+	if addr == "" {
+		// kxy(mks("key"), ...
+	} else {
+		get('k', int(c), shift, alt, cntrl)
+	}
+}
+func hm(b, x0, x1, y0, y1, shift, alt, cntrl int) {
+	fmt.Println("mouse", b, x0, x1, y0, y1, shift, alt, cntrl)
+	if addr == "" {
+	} else {
+		get('m', b, x0, x1, y0, y1, shift, alt, cntrl)
+	}
+}
+func hs(w, h int) {
+	fmt.Println("screen", w, h)
 	r := screen.Bounds()
 	r.Max.X /= 2
 	r.Max.Y /= 2
 	draw.Draw(screen, r, &image.Uniform{color.RGBA{255, 0, 0, 255}}, image.ZP, draw.Src)
-}
-
-func hkey(c c, shift, alt, cntrl int) {
-	if netescape {
-		get(c, shift, alt, cntrl)
+	if addr == "" {
 	} else {
-		// kxy(mks("key"), ...
+		get('s', w, h)
 	}
 }
 
@@ -67,17 +78,20 @@ func loop(w *app.Window) error {
 	c := &layout.Context{
 		Queue: w.Queue(),
 	}
+	x, y := 0, 0
 	for {
 		e := <-w.Events()
 		switch e := e.(type) {
 		case app.DestroyEvent:
 			return e.Err
 		case app.UpdateEvent:
-			fmt.Printf("update %+v\n", e)
-			if screen == nil || screen.Bounds().Max != e.Size {
+			if screen.Bounds().Max != e.Size {
+				println("update size")
 				screen = image.NewRGBA(image.Rectangle{Max: e.Size})
-				flush()
+				hs(e.Size.X, e.Size.Y)
+				break
 			}
+			println("update onscreen")
 			c.Reset(&e.Config, layout.RigidConstraints(e.Size))
 			paint.ImageOp{screen, screen.Bounds()}.Add(c.Ops)
 			paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{float32(e.Size.X), float32(e.Size.Y)}}}.Add(c.Ops)
@@ -89,7 +103,7 @@ func loop(w *app.Window) error {
 			// EditEvent is needed, because key.Event does not fire for +-*/..
 			// But it does not know about modifiers, so we prefer key.Event for letters to track Cntrl-a etc
 			if len(e.Text) == 1 && !craZ(e.Text[0]) {
-				hkey(e.Text[0], 0, 0, 0)
+				hk(e.Text[0], 0, 0, 0)
 			}
 		case gkey.Event:
 			shift, cntrl := int(e.Modifiers&2>>1), int(e.Modifiers&1) // uint32 (cntrl|shift<<1)
@@ -104,19 +118,29 @@ func loop(w *app.Window) error {
 					break
 				}
 			}
-			hkey(c, shift, 0, cntrl)
+			hk(c, shift, 0, cntrl)
 		case pointer.Event:
-			fmt.Printf("mouse: %+v\n", e)
-
+			xxx := 0 // TODO: track modifiers
+			if e.Scroll.Y != 0 {
+				if e.Scroll.Y < 0 {
+					hm(3, 0, 0, 0, 0, xxx, xxx, xxx)
+				} else {
+					hm(4, 0, 0, 0, 0, xxx, xxx, xxx)
+				}
+				break
+			}
+			if e.Type == pointer.Press {
+				x, y = int(e.Position.X), int(e.Position.Y)
+			} else if e.Type == pointer.Release {
+				hm(0, x, int(e.Position.X), y, int(e.Position.Y), xxx, xxx, xxx)
+			}
 		}
 	}
 }
 
-// keys map godoc.org/gioui.org/ui/key#pkg-constants to ../a.go:/^j,:"keycode/
+// specialKeys map godoc.org/gioui.org/ui/key#pkg-constants to ../a.go:/^j,:"keycode/
 var specialKeys = map[rune]byte{'⌫': 8, '⏎': 13, '⌤': 13, '⎋': 27, '⌦': 46, '⇞': 14, '⇟': 15, '⇱': 16, '⇲': 17, '←': 18, '↑': 19, '↓': 20, '→': 21}
 
-func connect(addr string) {
-}
 func get(c c, a ...int) {
 	b := make([]byte, 2, 32)
 	b[0], b[1] = '/', c
@@ -124,6 +148,21 @@ func get(c c, a ...int) {
 		b = append(b, ',')
 		b = append(b, []byte(strconv.Itoa(a[i]))...)
 	}
-	addr := string(b)         // e.g. "/k,49,1,0,0"
-	fmt.Println("get ", addr) // TODO
+	u := addr + string(b) // e.g. "http://localhost/k,49,1,0,0"
+	fmt.Println("get ", u)
+	if r, err := http.Get(u); err != nil {
+		fmt.Println(err)
+	} else {
+		defer r.Body.Close()
+		if n, err := r.Body.Read(screen.Pix); n != len(screen.Pix) {
+			fmt.Printf("got screen bytes: %d expected %d\n", n, len(screen.Pix))
+		} else if err != nil {
+			fmt.Println(err)
+		} else {
+			if n > 10 {
+				fmt.Printf("updated %d pixels %v\n", n, screen.Pix[:10])
+			}
+			window.Invalidate()
+		}
+	}
 }
