@@ -17,16 +17,28 @@ import (
 	"gioui.org/op/paint"
 )
 
+/*
+func writePng() {
+	println("w screen.png")
+	w, err := os.Create("screen.png")
+	if err != nil {
+		panic(err)
+	}
+	defer w.Close()
+	png.Encode(w, screen)
+}
+*/
+
 var screen *image.RGBA
-var addr string // pretend to be a webbrowser and connect to k at addr, if empty use built-in k
+var addr string // pretend to be a webbrowser and connect to k at addr, if empty use built-in k ([ak].go)
 var window *app.Window
 
 func main() {
 	args := os.Args[1:]
 	if len(args) > 0 {
-		if args[0] == "-p" {
+		if args[0] == "-i" {
 			args = args[1:]
-			addr = ":2019"
+			addr = "http://localhost:2019"
 			if len(args) > 0 {
 				addr = args[0]
 				args = args[1:]
@@ -75,7 +87,7 @@ func hs(w, h int) {
 }
 
 func loop(w *app.Window) error {
-	c := &layout.Context{
+	ctx := &layout.Context{
 		Queue: w.Queue(),
 	}
 	x, y := 0, 0
@@ -91,11 +103,12 @@ func loop(w *app.Window) error {
 				hs(e.Size.X, e.Size.Y)
 				break
 			}
-			println("update onscreen")
-			c.Reset(&e.Config, layout.RigidConstraints(e.Size))
-			paint.ImageOp{screen, screen.Bounds()}.Add(c.Ops)
-			paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{float32(e.Size.X), float32(e.Size.Y)}}}.Add(c.Ops)
-			w.Update(c.Ops)
+			fmt.Printf("update onscreen: e=%+v\n", e)
+			// writePng()
+			ctx.Reset(&e.Config, layout.RigidConstraints(e.Size))
+			paint.ImageOp{screen, screen.Bounds()}.Add(ctx.Ops)
+			paint.PaintOp{Rect: f32.Rectangle{Max: f32.Point{float32(e.Size.X), float32(e.Size.Y)}}}.Add(ctx.Ops)
+			w.Update(ctx.Ops)
 
 		// minor incompatibility: gio works with Cntrl and Shift only (no alt/meta)
 		// It also cannot track Ctrl-[ etc, so don't rely on them.
@@ -109,9 +122,10 @@ func loop(w *app.Window) error {
 			shift, cntrl := int(e.Modifiers&2>>1), int(e.Modifiers&1) // uint32 (cntrl|shift<<1)
 			c := specialKeys[e.Name]
 			if c == 0 {
+				fmt.Println("key e.Name", e.Name, e.Modifiers, shift)
 				if e.Name >= 'A' && e.Name <= 'Z' {
 					c = byte(e.Name)
-					if shift != 0 {
+					if shift == 0 {
 						c += 32
 					}
 				} else {
@@ -159,9 +173,6 @@ func get(c c, a ...int) {
 		} else if err != nil {
 			fmt.Println(err)
 		} else {
-			if n > 10 {
-				fmt.Printf("updated %d pixels %v\n", n, screen.Pix[:10])
-			}
 			window.Invalidate()
 		}
 	}
