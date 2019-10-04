@@ -18,6 +18,8 @@ import (
 	"testing"
 )
 
+func red(x k) (r k) { panic("fs") } // 1:x (needs to be provided for k.go)
+
 type (
 	l  = []interface{}
 	d  = [2]interface{}
@@ -1101,13 +1103,8 @@ Functions have type N+1…N+4 (valence)
 
 # Building
 <pre>
- [install go go-1.13]
- $ git clone https://github.com/ktye/i && cd i
- $ GO111MODULE=on go mod init # creates a dummy (empty) go.mod file
- $ go build    # writes i(.exe)
- $ ./i -u      # starts a webserver on localhost:2019
- load localhost:2019 in a browser
- the webpage sends key, click, and size events to k and updates the screen(canvas) with the result
+This is not a complete program. It can only be run with go test.
+See directories _ or u instead.
 </pre>
 `))
 }
