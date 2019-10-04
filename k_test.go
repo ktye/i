@@ -26,6 +26,8 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"a.b:3;{a.b+::x}[1];a", "(,`b)!,4"},
+		//{".a.b:3;{.a.b+::x}[1];.a","(,`b)!,4"}, // undefined.
 		//{".a.b:0;.a[`b`c]:1 2;a", "`a`b`c!0 1 2"}, // panic
 		//{"4 rand\"A\", "PDPK"},
 		//{"(-\"b\";@-\"b\")", "(-98;`i)"},
