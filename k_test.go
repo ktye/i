@@ -2,16 +2,12 @@ package main
 
 // go test
 //  lots of output, last line should be ok
-// go test -short
-//  tests also https://raw.githubusercontent.com/kparc/ref/master/src/md/index.md
-//  short:~short but it's go's non-default option
 
 import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math"
-	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -1107,23 +1103,6 @@ This is not a complete program. It can only be run with go test.
 See directories _ or u instead.
 </pre>
 `))
-}
-func TestRefcard(t *testing.T) { // go test -short (it's the long test, but short=false is the default)
-	if !testing.Short() {
-		return
-	}
-	var b []byte
-	if req, e := http.Get(`https://raw.githubusercontent.com/kparc/ref/master/src/md/index.md`); e != nil {
-		t.Fatal(e)
-	} else {
-		defer req.Body.Close()
-		if b, e = ioutil.ReadAll(req.Body); e != nil {
-			t.Fatal(e)
-		}
-	}
-	ini()
-	x := spl(mkb(b), mkc('\n'))
-	kx(mks(".tref"), x) // TODO: implementation that works for k7 and i
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
