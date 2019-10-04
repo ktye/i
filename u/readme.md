@@ -2,17 +2,15 @@
 k\ui
 
 the ui is written in k:
-.u.k /key   handler
-.u.m /mouse handler
-.u.s /(re)size handler
+uk /key handler
+um /mouse handler
+us /(re)size handler
 
 k receives an event, thinks and returns an updated screen.
 
 many possible backends. only requirements:
 - provide a screen (pixel array)
-- send resize event
-- send key event
-- send mouse event
+- send resize, key and mouse events to k
 optionally
 - clipboard (paste)
 - drop files
@@ -21,38 +19,38 @@ optionally
 # backend
 ```
 possible backend implementations
-pure k:
- - web (via .Z.G or websocket?) built-in to ../a.go
+pure k:                          file
+ - web (via .Z.G or websocket?)  s.k
  - /dev/fb0.. (linux)
  - /dev/draw.. (plan9)
  - sixel (DEC, xterm..)
-native application:
+native application:              e.g. ./*.go
  - embed k in main or
  - connect to unmodified k binary
  
-This directory implements a backend based on gioui.org which should cover
-- windows, wayland (maybe X), mobile(android;apple)
+The go progam in this directory implements a backend based on gioui.org which should cover
+- windows, X, wayland, mobile(android;apple)
 
-The executable will do both: provide a built-in k, or connect to a server.
+The executable will do both: provide a built-in k, or connect to a server (k s.k t.k)
 ```
 
-# demo application term.k
+# demo application t.k (TODO)
 ```
-The demo application (which is built into ../a.go) provides a k terminal with a custom font (f/f3.k).
+The demo application provides a k terminal with a custom font (f/f3.k).
 planned: plot built-in (x plot y) or (plot x) or (`bar plot y) with pure-k rasterizers.
 ```
 
 # k interface
 ```
 k\ui                                                      web(.Z.G)
-.u.k[key;(shift;alt;cntrl)]                               /k,97,0,0,0
+uk[key;(shift;alt;cntrl)]                                /k,97,0,0,0
  key:printable ascii
      bs(8),tab(9),ret(13),esc(27)del(46),
      pageUp,pageDown,end,home,left,up,right,down(14..21)
-.u.m[button;(x0 x1);(y0;y1);(shift;alt;cntrl))]           /m,0,50,50,60,60,0,0,0
+um[button;(x0 x1);(y0;y1);(shift;alt;cntrl))]            /m,0,50,50,60,60,0,0,0
  button: left,middle,right,wheelUp,wheelDown 0..4
  x0 y0 x1 y1: press and release positions (no motion)
-.u.s[w;h]                                                 /s,1440,1080
+us[w;h]                                                  /s,1440,1080
  resize/layout..
  
 events respond with nothing or a frame (row-major):

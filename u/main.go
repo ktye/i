@@ -15,6 +15,8 @@ import (
 	"gioui.org/op/paint"
 )
 
+//go:generate go run gen.go
+
 var addr string // pretend to be a webbrowser and connect to k at addr, if empty use built-in k ([ak].go)
 var Img, Im0, Im1 *image.RGBA
 var Win *app.Window
@@ -32,9 +34,8 @@ func main() {
 		}
 	}
 	if addr == "" {
-		kinit()
+		kinit(args)
 	}
-	// TODO: evl files given at remaining args
 	go func() {
 		Img = image.NewRGBA(image.Rectangle{})
 		Win = app.NewWindow(app.WithTitle("u"))
@@ -62,7 +63,7 @@ func main() {
 				// But it does not know about modifiers, so we prefer key.Event for letters to track Cntrl-a etc
 				if len(e.Text) == 1 && !craZ(e.Text[0]) {
 					flip()
-					hk(e.Text[0], 0, 0, 0)
+					hk(int(e.Text[0]), 0, 0, 0)
 				}
 			case gkey.Event:
 				shift, cntrl := int(e.Modifiers&2>>1), int(e.Modifiers&1) // uint32 (cntrl|shift<<1)
@@ -79,7 +80,7 @@ func main() {
 					}
 				}
 				flip()
-				hk(c, shift, 0, cntrl)
+				hk(int(c), shift, 0, cntrl)
 			case pointer.Event:
 				xxx := 0 // TODO: track modifiers
 				if e.Scroll.Y != 0 {
@@ -108,17 +109,18 @@ func flip() {
 	Img = Im0
 }
 
-func hk(c c, shift, alt, cntrl int) {
-	fmt.Println("key", int(c), shift, alt, cntrl)
+func hk(c, shift, alt, cntrl int) {
+	fmt.Println("key", c, shift, alt, cntrl)
 	if addr == "" {
-		// kxy(mks("key"), ...
+		set(call("k", mki(k(c)), kmod(shift, alt, cntrl)))
 	} else {
-		get('k', int(c), shift, alt, cntrl)
+		get('k', c, shift, alt, cntrl)
 	}
 }
 func hm(b, x0, x1, y0, y1, shift, alt, cntrl int) {
 	fmt.Println("mouse", b, x0, x1, y0, y1, shift, alt, cntrl)
 	if addr == "" {
+		set(call("m", l2(i2(x0, x1), i2(y0, y1)), kmod(shift, alt, cntrl)))
 	} else {
 		get('m', b, x0, x1, y0, y1, shift, alt, cntrl)
 	}
@@ -126,9 +128,20 @@ func hm(b, x0, x1, y0, y1, shift, alt, cntrl int) {
 func hs(w, h int) {
 	fmt.Println("screen", w, h)
 	if addr == "" {
+		set(call("s", mki(k(w)), mki(k(h))))
 	} else {
 		get('s', w, h)
 	}
+}
+func kmod(shift, alt, cntrl int) (r k) {
+	r = mk(L, 3)
+	m.k[2+r], m.k[3+r], m.k[4+r] = mki(k(shift)), mki(k(alt)), mki(k(cntrl))
+	return r
+}
+func i2(x, y int) (r k) {
+	r = mk(I, 2)
+	m.k[2+r], m.k[3+r] = mki(k(x)), mki(k(y))
+	return r
 }
 
 // specialKeys map godoc.org/gioui.org/ui/key#pkg-constants to ../a.go:/^j,:"keycode/
@@ -155,4 +168,18 @@ func get(c c, a ...int) {
 			Win.Invalidate()
 		}
 	}
+}
+func set(d k) {
+	t, n := typ(d)
+	if t == I && int(4*n) == len(Img.Pix) { // k(Img.Bounds().Dx()*Img.Bounds().Dy()) {
+		p := int(8 + d<<2)
+		copy(Img.Pix, m.c[p:p+int(4*n)])
+		for i := 3; i < len(Img.Pix); i += 4 {
+			Img.Pix[i] = 255 // opaque
+		}
+		Win.Invalidate()
+	} else {
+		println("set: ignore frame", t, n)
+	}
+	dec(d)
 }
