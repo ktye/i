@@ -26,6 +26,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		//{".a.b:0;.a[`b`c]:1 2;a", "`a`b`c!0 1 2"}, // panic
 		//{"4 rand\"A\", "PDPK"},
 		//{"(-\"b\";@-\"b\")", "(-98;`i)"},
 		//{"(,1)!,2 3", "1!2 3"},
@@ -801,7 +802,6 @@ func fpck(s s) { // check free pointers
 		}
 	}
 }
-
 
 type Bucket struct {
 	Type, Used uint32
