@@ -6,7 +6,6 @@ func main() {
 	ini()
 	var buf [1024]c // don't write longer lines than this
 	p := buf[:]
-	print(" ")
 	for {
 		n, err := syscall.Read(syscall.Stdin, p)
 		if err != nil {
@@ -23,6 +22,5 @@ func do(c []c) {
 	x = kst(evl(prs(x)))
 	p, n := 8+x<<2, m.k[x]&atom
 	println(s(m.c[p : p+n]))
-	print(" ")
 }
 func red(x k) (r k) { panic("fs") } // 1:x
