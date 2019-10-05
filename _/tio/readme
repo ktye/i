@@ -1,0 +1,14 @@
+# k non-interactive, no filesystem, no argv, panics
+# uses packages unsafe, math, syscall (for stdin)
+# no os, fmt, strconv..
+
+build:
+	# install go-1.13
+	cp ../../k.go .
+	echo -e "module github.com/ktye/i/_/k\n\ngo 1.13" > go.mod
+	GOPATH="" GO111MODULE=on go build -ldflags="-s -w"
+	# there should now be an 10x executable k(.exe)
+
+tio: build
+	GOPATH="" GO111MODULE=on GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.V=$(shell git rev-parse --short HEAD)"
+	# tio executable: k

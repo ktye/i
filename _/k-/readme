@@ -1,5 +1,5 @@
-# k executable, no filesystem, no argv, panics
-# uses packages unsafe,math,syscall(for stdin)
+# k. interactive, no filesystem, no argv, panics
+# uses packages unsafe, math, syscall(for stdin)
 # no os, fmt, strconv..
 
 all:

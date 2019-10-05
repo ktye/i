@@ -1,4 +1,5 @@
 k-  :minimal interactive interpreter (no filesystem, no argv, but stdin/stdout)
+tio :like k-, but noninteractive
 k   :same core, with io, webserver
 i1  :the second interpreter (IO0), successor to iv, predecessor the current version
 kwac:builds webassembly modules with k
