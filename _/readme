@@ -1,0 +1,6 @@
+k-  :minimal interactive interpreter (no filesystem, no argv, but stdin/stdout)
+k   :same core, with io, webserver
+i1  :the second interpreter (IO0), successor to iv, predecessor the current version
+kwac:builds webassembly modules with k
+w   :example of a web frontend, abandoned in favor of k\ui
+.k  :nothing yet
