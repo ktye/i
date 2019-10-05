@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -13,7 +14,9 @@ func kinit(args []s) {
 	ini()
 	table[21] = red
 	table[21+dyad] = wrt
-	evl(prs(mkb([]c(tk)))) // load built-in t.k
+	if len(args) == 0 {
+		evl(prs(mkb(tk))) // load bundled application, e.g. t.k
+	}
 	for _, a := range args {
 		evp(red(mkb([]c(a))))
 	}
@@ -107,3 +110,36 @@ func stack(c interface{}) (stk, err string) {
 	}
 	return stk, err
 }
+func readAttachment(a0 s) []c {
+	f, err := os.Open(a0)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	_, err = f.Seek(-4, io.SeekEnd)
+	P(err)
+	kui := make([]byte, 4)
+	_, err = f.Read(kui)
+	P(err)
+	if string(kui) != "k\\ui" {
+		return []byte{}
+	}
+	_, err = f.Seek(-15-4, io.SeekEnd)
+	P(err)
+	var ln int64
+	_, err = fmt.Fscanf(f, "%15d", &ln)
+	P(err)
+	_, err = f.Seek(-15-4-ln, io.SeekEnd)
+	P(err)
+	b := make([]byte, int(ln))
+	_, err = f.Read(b)
+	P(err)
+	return b
+}
+func P(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+var tk []byte

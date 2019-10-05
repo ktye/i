@@ -19,12 +19,12 @@ optionally
 # backend
 ```
 possible backend implementations
-pure k:                          file
+pure k:                          e.g.
  - web (via .Z.G or websocket?)  s.k
  - /dev/fb0.. (linux)
  - /dev/draw.. (plan9)
  - sixel (DEC, xterm..)
-native application:              e.g. ./*.go
+native application:              *.go
  - embed k in main or
  - connect to unmodified k binary
  

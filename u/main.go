@@ -22,6 +22,7 @@ var Img, Im0, Im1 *image.RGBA
 var Win *app.Window
 
 func main() {
+	tk = readAttachment(os.Args[0])
 	args := os.Args[1:]
 	if len(args) > 0 {
 		if args[0] == "-i" {
