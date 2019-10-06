@@ -495,6 +495,12 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	t, n := typ(x)
 	if rt == t {
 		return x
+	} else if t == L {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+i+r] = to(inc(m.k[2+x+i]), rt)
+		}
+		return decr(x, uf(r))
 	}
 	var g func(k, k)
 	if t == S && rt == I { // for symbol comparison to bool
