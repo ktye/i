@@ -1728,6 +1728,19 @@ func ser(x k) (r k) { // `@ (k7 compat)
 		panic("nyi")
 	}
 }
+func res(x k) (r k) { // `?x
+	t, n := typ(x)
+	if t != C || n == atom || n == 0 {
+		panic("type")
+	}
+	p := ptr(x, C)
+	if m.c[p] != 7 || n != 5 {
+		panic("nyi")
+	}
+	r = mk(I, atom)
+	copy(m.c[8+r<<2:], m.c[p+1:p+5])
+	return decr(x, r)
+}
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
 }
@@ -2462,11 +2475,13 @@ func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
 	if t == S && yt != S {
 		switch sym(8 + x<<2) {
-		case 0x6236340000000000: // `b64
+		case 0: // `?
+			return decr(x, res(y))
+		case 0x6236340000000000: // `b64?
 			return decr(x, b46(y))
-		case 0x6865780000000000: // `hex
+		case 0x6865780000000000: // `hex?
 			return decr(x, xeh(y))
-		case 0x6373760000000000: // `csv
+		case 0x6373760000000000: // `csv?
 			return decr(x, vsc(mk(L, 0), y))
 		default:
 			panic("type")
