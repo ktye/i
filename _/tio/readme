@@ -21,5 +21,6 @@ set -e
 set -x
 cp ../../k.go .
 rev=$(git rev-parse --short HEAD)
+printf "module github.com/ktye/i/_/k\n\ngo 1.13" > go.mod
 GOPATH="" GO111MODULE=on GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X main.V=$rev"
 echo "tio executable: k"
