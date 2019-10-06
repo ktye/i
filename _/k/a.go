@@ -81,7 +81,7 @@ func red(x k) (r k) { // 1:x
 	r = mk(C, n)
 	rp := 8 + r<<2
 	copy(m.c[rp:rp+n], b)
-	return r
+	return decr(x, r)
 }
 func read() []c { // read all from stdin (non-interactive)
 	b, err := ioutil.ReadAll(os.Stdin)

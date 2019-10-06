@@ -4,23 +4,34 @@ import "syscall"
 
 func main() {
 	ini()
-	var buf [1024]c // don't write longer lines than this
-	p := buf[:]
+	table[21] = red
+	table[40] = exi
+	table[21+dyad] = wrt
 	for {
-		n, err := syscall.Read(syscall.Stdin, p)
-		if err != nil {
-			panic(err)
-		}
-		if n > 1 {
-			do(p[:n-1])
-		}
+		evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: (` 1: ," ")
 	}
 }
-func do(c []c) {
-	x := mk(C, k(len(c)))
-	copy(m.c[8+x<<2:], c)
-	x = kst(evl(prs(x)))
-	p, n := 8+x<<2, m.k[x]&atom
-	println(s(m.c[p : p+n]))
+func red(x k) (r k) { // 1:x
+	var a [1024]c // don't write longer lines than this
+	b := a[:]
+	if n, err := syscall.Read(syscall.Stdin, b); err != nil {
+		panic(err)
+	} else if n > 1 {
+		return decr(x, mkb(b[:n-1]))
+	} else if n == 1 {
+		return decr(x, mk(C, 0))
+	} else {
+		exi(0)
+	}
+	return 0
 }
-func red(x k) (r k) { panic("fs") } // 1:x
+func wrt(x, y k) (r k) { // x 1:y
+	t, n := typ(y)
+	if t != C || n == atom {
+		panic("type")
+	}
+	p := 8 + y<<2
+	print(s(m.c[p : p+n])) // stderr only
+	return decr(y, x)
+}
+func exi(x k) (r k) { panic("ciao") }
