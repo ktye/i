@@ -1,21 +1,19 @@
 /k\ui terminal
 
-ufw:10;ufh:20 /TODO rm
-ut: ," "                                          /text
-uw:uh:100 /display size
-ucx:1;ucy:0                                       /cursor coords(line/col)
-utx:uty:0                                         /top-left text offset
-uvw:{{((ufw/uw)&#l)#l:utx_x}'((ufh/uh)&#x)#uty_x} /cut to viewport
-ufg:{16777215*1-x};ubg:{x*15400959};utm:0         /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
-ufu:{(ufw\uf)+x*ufw/uf}                           /update font to uw 
-up: {@[(uw*uh)#ubg utm;,/,/utf uvw x;ufg utm]}    /paint
+udw:udh:0                                           /display size
+ut: ," "                                            /text
+utx:uty:0                                           /top-left text offset(line/col)
+uvw:{{((ufw/udw)&#l)#l:utx_x}'((ufh/udh)&#x)#uty_x} /cut to viewport
+ufg:{16777215*1-x};ubg:{x*15400959};utm:0           /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
+ufu:{(ufw\uf)+x*ufw/uf}                             /update font to udw 
+up: {@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm]} /paint
 
 /handlers
-uk: {y;$[x=13;(ut;ucx;ucy)::(ut,(`k@. ut[ucy];" ");1;-1+#ut)
+uk: {y;$[x=13;ut,::(`k@. ut[-1+#ut];" ")
          x=27;utm::~utm
-	 (ut[ucy],::x;utx+::1)];up ut}
+	 ut[-1+#ut],::`c$x];up ut}                  /nyi cursor/navigation, currently append only
 um: {x;y;!0} /nyi select..
-us: {(uw;uh;utf)::(x;y;ufu x);up ut} /(re)size	
+us: {(udw;udh;utf)::(x;y;ufu x);up ut}              /(re)size	
 
 /font f2.k nyi:create replacements from 00..FF
 (ufw;ufh;utf):(10;20;,!0)
