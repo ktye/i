@@ -1,22 +1,24 @@
 /k\ui terminal
 
+ufw:10;ufh:20 /TODO rm
 ut: ," "                                          /text
+uw:uh:100 /display size
 ucx:1;ucy:0                                       /cursor coords(line/col)
 utx:uty:0                                         /top-left text offset
-uvw:{{((ufw/uw)&#x)#x:utx_x}'((ufh/uh)&#x)#uty_x} /cut to viewport
+uvw:{{((ufw/uw)&#l)#l:utx_x}'((ufh/uh)&#x)#uty_x} /cut to viewport
 ufg:{16777215*1-x};ubg:{x*15400959};utm:0         /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
 ufu:{(ufw\uf)+x*ufw/uf}                           /update font to uw 
 up: {@[(uw*uh)#ubg utm;,/,/utf uvw x;ufg utm]}    /paint
 
 /handlers
-uk :{y;$[x=13;(ut;ucx;ucy)::(ut,(`k@. ut[ucy];" ");1;-1+#ut)
+uk: {y;$[x=13;(ut;ucx;ucy)::(ut,(`k@. ut[ucy];" ");1;-1+#ut)
          x=27;utm::~utm
 	 (ut[ucy],::x;utx+::1)];up ut}
-um :{x;y;!0}/nyi select..
-us :{(uw;uh;utf)::(x;y;ufu x);up ut}/(re)size	
+um: {x;y;!0} /nyi select..
+us: {(uw;uh;utf)::(x;y;ufu x);up ut} /(re)size	
 
 /font f2.k nyi:create replacements from 00..FF
-(ufw;ufh):(10;20)
+(ufw;ufh;utf):(10;20;,!0)
 uf:{c:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
  r:256#,!0;r[c+0]:x[!#c];r}({&,/(8#2)\:'0+x}'(0x00000180f066198660f018000000180f066198660f01800000 /00
  0x00000301c0300c0300c0780000000c0700c0300c0301e00000 /11
