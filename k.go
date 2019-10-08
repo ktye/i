@@ -2292,7 +2292,11 @@ func drp(x, y k) (r k) { // x_y
 	} else if xt != I {
 		panic("type")
 	} else if yn == atom {
-		panic("rank")
+		if m.k[2+x] == 0 { // 0_atom
+			return decr(x, enl(y))
+		} else { // i_atom
+			return decr2(x, y, mk(t, 0))
+		}
 	} else if xn != atom {
 		return cut(x, y)
 	}
