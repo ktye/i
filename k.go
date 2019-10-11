@@ -344,7 +344,7 @@ func bk(t, n k) k {
 func mk(t, n k) k { // make type t of len n (-1:atom)
 	bt := bk(t, n)
 	fb, a := k(0), k(0)
-	for i := bt; i < 31; i++ { // find next free bucket >= bt
+	for i := bt; i < 32; i++ { // find next free bucket >= bt
 		for k(i) >= m.k[2] {
 			grw() // TODO: run a gc cycle (merge blocks) before growing?
 		}
