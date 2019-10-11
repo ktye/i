@@ -16,6 +16,9 @@
 #  git (for compiling the revision into the binary)
 # Then run
 #  sh readme
+#
+# Precompiled binary
+#  https://github.com/ktye/i/releases/download/20191006/k
 
 set -e
 set -x
