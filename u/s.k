@@ -14,15 +14,15 @@ j:"\n"/:("w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.styl
  "wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)get('m,'+m+','+[x,y,x,y]+mod(e),draw)};"
  "size=function(e){c.width=w.innerWidth;c.height=w.innerHeight;get('s,'+[c.width,c.height],draw);pd(e)};"
  "function ae(x,y,z){x.addEventListener(y,z)};ae(w,'contextmenu',nomenu);ae(w,'mousedown',down);ae(w,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100));size()")
-p:"<!DOCTYPE html>\n<html><head><link rel='icon' type='image/png' href='k.png'></head><body><script>",j,"</script></body></html>"
+p:"<!DOCTYPE html>\n<html><head><meta charset='UTF-8'/><link rel='icon' type='image/png' href='k.png'></head><body><script>",j,"</script></body></html>"
 
-.Z.G:{ \x
- x:","\:*x;u:*x;a:`i$'1_x
- $[(,"/")  ~u;p
-   "/k.png"~u;((,"Content-type")!,"image/png";icon)
-   "/k"~u;flush uk[a 0;a 1 2 3]
-   "/m"~u;flush um[a 1;a 2]
-   "/s"~u;flush us[a 0;a 1]
-  404]}
+G:{x
+ y:","\:y;u:*y;a:`i$'1_y
+ $[u~ ""     ;p
+   u~ "k.png";icon /((,"Content-type")!,"image/png";icon)
+   u~,"k"    ;flush uk[a 0;a 1 2 3]
+   u~,"m"    ;flush um[a 1;a 2]
+   u~,"s"    ;flush us[a 0;a 1]
+   ""]}
 flush:{8_`@x+255*256*256*256}
 icon:0x89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce90000000467414d410000b18f0bfc6105000000097048597300000ec400000ec401952b0e1b0000006349444154384fad93e10a8020108377bdff3b9793a428dc16f681723fdcc71d6aed0d902ae02c2db7b35bdf177809aad9b952feefe02b91408d650523382eeb8914b830990a9230911db8308946504c05d70bd7926804259102e22456409464f13b03070b7f28230cf1c9ad0000000049454e44ae426082

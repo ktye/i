@@ -172,13 +172,13 @@ func stack(c interface{}) (stk, err string) {
 	}
 	return stk, err
 }
-func srv(w http.ResponseWriter, r *http.Request) {
+func srv(w http.ResponseWriter, rq *http.Request) {
 	dr.Lock()
 	defer dr.Unlock()
 	buf := bytes.NewBuffer(nil)
 	defer func() {
 		w.Write(buf.Bytes())
-		r.Body.Close()
+		rq.Body.Close()
 	}()
 	defer func() {
 		if rec := recover(); rec != nil {
@@ -190,67 +190,54 @@ func srv(w http.ResponseWriter, r *http.Request) {
 			dec(wrt(mku(0), mkb([]byte(b))))
 		}
 	}()
-	z, f := lupo(mku(0)), k(0)
-	if z == 0 {
+	f, get := k(0), false
+	if rq.Method == "GET" {
+		f, get = lupo(mks("G")), true
+	} else if rq.Method == "POST" {
+		f = lupo(mks("P"))
+	}
+	if f == 0 {
 		return
 	}
-	z = atx(z, mks("Z"))
-	if r.Method == "GET" { // .Z.G
-		f = atx(z, mks("G"))
-	} else if r.Method == "POST" { // .Z.P
-		f = atx(z, mks("P"))
-	} else {
-		dec(z)
-		return
-	}
-	if m.k[f]>>28 != N+1 {
+	if (get && m.k[f]>>28 != N+2) || (!get && m.k[f]>>28 != N+3) {
 		dec(f)
-		return
+		panic("class")
 	}
-	hk, hv := mk(S, k(len(r.Header))), mk(L, k(len(r.Header)))
+
+	hk, hv := mk(S, k(len(rq.Header))), mk(L, k(len(rq.Header)))
 	kp, j := 8+hk<<2, k(0)
-	for key := range r.Header {
+	for key := range rq.Header {
 		kv := key
 		if len(kv) > 8 {
 			kv = kv[:8]
 		}
 		mys(kp, btou([]c(kv)))
-		m.k[2+j+hv] = mkb([]c(r.Header.Get(key)))
+		m.k[2+j+hv] = mkb([]c(rq.Header.Get(key)))
 		kp, j = kp+8, j+1
 	}
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := ioutil.ReadAll(rq.Body)
 	if err != nil {
 		panic(err)
 	}
-	l := mk(L, 3)                   // TODO? Query(dict)?
-	m.k[2+l] = mkb([]c(r.URL.Path)) // ?
-	m.k[3+l] = key(hk, hv)          // ?
-	m.k[4+l] = mkb(b)               // ?
-	y := cal(f, enlist(l))          // ? assume ( hdr(`a); body(`c) )
-	t, n := typ(y)
-	if t == I && n == atom { // error status code
-		http.Error(w, "", int(decr(y, m.k[2+y])))
-		return
+	p := rq.URL.Path
+	if len(p) > 0 && p[0] == '/' {
+		p = p[1:]
 	}
-	if t == L && n == 2 && m.k[m.k[2+y]]>>28 == A { // (hdr;"body") or "body"
-		hdr := fst(inc(y))
-		keys, vals := str(inc(m.k[2+hdr])), m.k[3+hdr]
-		for i := k(0); i < atm1(m.k[keys]&atom); i++ {
-			v := str(atx(inc(vals), mki(i)))
-			kp, vp := ptr(m.k[2+i+keys], C), ptr(v, C)
-			kn, vn := m.k[2+i+keys]&atom, m.k[v]&atom
-			w.Header().Set(string(m.c[kp:kp+kn]), string(m.c[vp:vp+vn]))
-		}
-		y = fst(drop(1, y))
-		t, n = typ(y)
+	x, y := key(hk, hv), mkb([]c(p))
+	l := l2(x, y)
+	if !get {
+		l = lcat(l, mkb(b))
 	}
+	r := cal(f, l)
+	t, n := typ(r)
 	if t != C || n == atom {
 		panic("type")
 	} else if n > 0 {
-		p := ptr(y, C)
+		p := ptr(r, C)
 		buf.Write(m.c[p : p+n])
 	}
-	dec(y)
+	dec(r)
+	// TODO: response headers?
 }
 func inikwac() { // write initial memory as data section
 	skip := 0
