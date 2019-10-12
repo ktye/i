@@ -14,6 +14,7 @@ func kinit(args []s) {
 	ini()
 	table[21] = red
 	table[21+dyad] = wrt
+	table[39] = trp
 	if len(args) == 0 {
 		evl(prs(mkb(tk))) // load bundled application, e.g. t.k
 	}
@@ -75,6 +76,15 @@ func wrt(x, y k) k { // x 1:y
 	w.Write(m.c[yp : yp+n])
 	w.Flush()
 	return decr(y, x)
+}
+func trp(x, y k) (r k) {
+	defer func() {
+		if rc := recover(); rc != nil {
+			_, b := stack(rc)
+			r = mkb([]c(b))
+		}
+	}()
+	return cal(x, enlist(y))
 }
 func stk(hide bool) {
 	if r := recover(); r != nil {

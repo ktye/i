@@ -19,6 +19,7 @@ func main() {
 	ini()
 	table[21] = red
 	table[40] = exi
+	table[39] = trp
 	table[21+dyad] = wrt
 	args, addr := os.Args[1:], ""
 	if len(args) == 1 && args[0] == "-kwac" {
@@ -53,6 +54,15 @@ func main() {
 func try() {
 	defer stk(true)
 	evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: ("" 1: ," ")
+}
+func trp(x, y k) (r k) {
+	defer func() {
+		if rc := recover(); rc != nil {
+			_, b := stack(rc)
+			r = mkb([]c(b))
+		}
+	}()
+	return cal(x, enlist(y))
 }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)

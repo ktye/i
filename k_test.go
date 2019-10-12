@@ -26,7 +26,8 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		//{"+/0.+!100000000", "5e15"}, // long
+		//{`.:/:"1+2"`, "3"}, // defined externally
+		//{"+/0.+!100000000", "5e15"}, // long(too much memory)
 		{"a.b:3;{a.b+::x}[1];a", "(,`b)!,4"},
 		//{".a.b:3;{.a.b+::x}[1];.a","(,`b)!,4"}, // undefined.
 		//{".a.b:0;.a[`b`c]:1 2;a", "`a`b`c!0 1 2"}, // panic

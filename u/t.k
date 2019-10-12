@@ -9,7 +9,7 @@ ufu:{(ufw\uf)+x*ufw/uf}                             /update font to udw
 up: {@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm]} /paint
 
 /handlers
-uk: {y;$[x=13;ut,::(`k@. ut[-1+#ut];" ")
+uk: {y;$[x=13;ut,::(`k@.:/:ut[-1+#ut];" ")
          x=27;utm::~utm
 	 ut[-1+#ut],::`c$x];up ut}                  /nyi cursor/navigation, currently append only
 um: {x;y;!0} /nyi select..

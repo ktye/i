@@ -26,7 +26,7 @@ const ref = `
 16 $ str cst    36 ' ecp epi    56 dia diag  136              76      156
 17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77      157
 18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78      158
-19 . val cal    39              59 vri var   139 cov var      79      159
+19 . val cal    39 /     trp    59 vri var   139 cov var      79      159
 `
 
 type c = byte
@@ -3735,6 +3735,9 @@ func jon(x, y k) (r k) { // x/:y (join)
 	xt, yt, _, yn := typs(x, y)
 	if xt == I && yt == I { // decode ⊥
 		return dcd(x, y)
+	} else if xt == N+1 {
+		f := table[39].(func(k, k) k)
+		return f(x, y)
 	}
 	if yt != L {
 		panic("type")
