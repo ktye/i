@@ -3776,8 +3776,20 @@ func imod(x, y i) (r i) { // k: y\x go: x%y differs for x<0
 func enc(x, y k) (r k) { // x\:y (encode y in base x)
 	if ny := m.k[y] & atom; ny != atom {
 		r = mk(L, ny)
+		mx := k(0)
 		for i := k(0); i < ny; i++ {
 			m.k[2+i+r] = enc(inc(x), mki(m.k[2+i+y]))
+			if n := m.k[m.k[2+i+r]] & atom; n > mx {
+				mx = n
+			}
+		}
+		for i := k(0); i < ny; i++ {
+			if n := m.k[m.k[2+i+r]] & atom; n == 0 {
+				dec(m.k[2+i+r])
+				m.k[2+i+r] = take(mx, 0, mki(0))
+			} else if n < mx {
+				m.k[2+i+r] = amd(take(mx, 0, mki(0)), tak(mki(n-mx), jota(mx)), inc(null), m.k[2+i+r])
+			}
 		}
 		return decr2(x, y, flp(r))
 	}
