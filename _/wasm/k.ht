@@ -1,0 +1,19 @@
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<input id="a" value="1+!10" onchange="k.exports.run()"/>
+<input id="b" value=""/>
+<script>
+{{wasm_exec.js}}
+var r = "{{k.b64}}"
+var s = atob(r)
+var b = new Uint8Array(new ArrayBuffer(s.length))
+for (var i=0; i<s.length; i++)
+ b[i] = s.charCodeAt(i)
+const go = new Go()
+var k = new WebAssembly.Instance(new WebAssembly.Module(b), go.importObject)
+go.run(k)
+//console.log(k.exports.run("1+!10"))
+</script>
+<body>
+</html>

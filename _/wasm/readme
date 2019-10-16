@@ -1,0 +1,14 @@
+# wasm build (256KB) with tinygo
+#
+# install tinygo-0.8.0 to /usr/local/tinygo
+# install go-1.12 (1.13 is not supported by tinygo 0.8)
+#
+# complex negation is not supported
+set -e
+set -x
+sed -e 's/-m.z/m.z/' < ../../k.go > k.go
+tinygo build -o k.w -target wasm -no-debug 
+base64 -w 0 k.w > k.b64
+cp /usr/local/tinygo/targets/wasm_exec.js .
+# TODO: replace {{file}} in k.ht
+
