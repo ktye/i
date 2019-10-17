@@ -16,7 +16,7 @@ var rd func() []c
 var dr sync.Mutex
 
 func main() {
-	ini()
+	ini(make([]f, 1<<13))
 	table[21] = red
 	table[40] = exi
 	table[39] = trp
@@ -64,6 +64,7 @@ func trp(x, y k) (r k) {
 	}()
 	return cal(x, enlist(y))
 }
+func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
 	if t == S {

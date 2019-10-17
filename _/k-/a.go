@@ -3,7 +3,7 @@ package main
 import "syscall"
 
 func main() {
-	ini()
+	ini(make([]f, 1<<13))
 	table[21] = red
 	table[40] = exi
 	table[21+dyad] = wrt
@@ -11,6 +11,7 @@ func main() {
 		evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: (` 1: ," ")
 	}
 }
+func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
 func red(x k) (r k) { // 1:x
 	var a [1024]c // don't write longer lines than this
 	b := a[:]

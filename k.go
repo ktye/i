@@ -93,7 +93,7 @@ var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r
 }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 var table [160]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 
-func ini() { // start function
+func ini(mem []f) { // start function
 	table = [160]interface{}{
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
@@ -105,7 +105,11 @@ func ini() { // start function
 		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
-	m.f = make([]f, 1<<13)
+	// m.f = make([]f, 1<<13)
+	if len(mem) != 1<<13 {
+		panic("ini")
+	}
+	m.f = mem
 	msl()
 	m.k[2] = 16
 	p := k(64)
@@ -332,17 +336,6 @@ func msl() { // update slice header after increasing m.f
 	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
 	m.z = *(*[]z)(unsafe.Pointer(&zz))
 }
-func grw() { // double memory
-	s := m.k[2]
-	if 1<<k(s) != len(m.c) {
-		panic("grow")
-	}
-	m.k[s] = k(len(m.c)) >> 2
-	m.f = append(m.f, make([]f, len(m.f))...)
-	msl()
-	m.k[2] = s + 1
-	m.k[1<<(s-2)] = s // bucket type of new upper half
-}
 func bk(t, n k) k {
 	sz := lns[t]
 	if n != atom {
@@ -358,7 +351,15 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	fb, a := k(0), k(0)
 	for i := bt; i < 32; i++ { // find next free bucket >= bt
 		for k(i) >= m.k[2] {
+			s := m.k[2]
+			m.k[s] = k(len(m.c)) >> 2
 			grw() // TODO: run a gc cycle (merge blocks) before growing?
+			msl()
+			if 1<<(1+s) != len(m.c) {
+				panic("grow")
+			}
+			m.k[2] = s + 1
+			m.k[1<<(s-2)] = s // bucket type of new upper half
 		}
 		if m.k[i] != 0 {
 			fb, a = i, m.k[i]

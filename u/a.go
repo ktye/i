@@ -11,7 +11,7 @@ import (
 )
 
 func kinit(args []s) {
-	ini()
+	ini(make([]f, 1<<13))
 	table[21] = red
 	table[21+dyad] = wrt
 	table[39] = trp
@@ -28,6 +28,7 @@ func exi(x k) { os.Exit(0) } // \\
 
 var stdin io.Reader
 
+func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
 	if t == S {

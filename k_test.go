@@ -12,7 +12,8 @@ import (
 	"testing"
 )
 
-func red(x k) (r k) { panic("fs") } // 1:x (needs to be provided for k.go)
+func red(x k) (r k) { panic("fs") }                               // 1:x (needs to be provided for k.go)
+func grw()          { m.f = append(m.f, make([]f, len(m.f))...) } // double memory
 
 type (
 	l  = []interface{}
@@ -612,7 +613,7 @@ func TestK(t *testing.T) {
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
-			ini()
+			ini(make([]f, 1<<13))
 			fmt.Printf("%s → %s\n", tc.x, tc.r)
 			x := prs(K([]byte(tc.x)))
 			if occ {

@@ -1,11 +1,13 @@
 <html>
 <head><meta charset="utf-8"></head>
+<link rel='icon' type'image/png' href="k.png">
 <body>
-<input id="a" value="1+!10" onchange="k.exports.run()"/>
-<input id="b" value=""/>
 <script>
 {{wasm_exec.js}}
-var r = "{{k.b64}}"
+{{k.b64}}
+{{rev}}
+{{tk.b64}}
+var f = new Object() // memfs
 var s = atob(r)
 var b = new Uint8Array(new ArrayBuffer(s.length))
 for (var i=0; i<s.length; i++)
@@ -13,7 +15,29 @@ for (var i=0; i<s.length; i++)
 const go = new Go()
 var k = new WebAssembly.Instance(new WebAssembly.Module(b), go.importObject)
 go.run(k)
-//console.log(k.exports.run("1+!10"))
+var input; function ex(x) { input=x;k.exports.ex() }
+
+f["t.k"] = atob(tk)
+ex('. 1:"t.k"')
+ex('1+2')
+
+// k\ui (similar to ../../u/s.k, but without http)
+// function get(p,f){var r = new XMLHttpRequest();r.responseType='arraybuffer';r.onreadystatechange=function(){if(this.readyState==4&&this.status == 200){if(f)f(this.response,this);}};r.open('GET',p);r.send()};
+var screen = new Uint8Array(0)
+function ui(a,b,c,e,f,g,h){try{k.exports.ui(a,b,c,d,e,f,g,h)}catch(e){console.error(e)}}
+function draw(){ctx.putImageData(new ImageData(screen, w.innerWidth),0,0)};
+w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.style.overflow='hidden';N=Number;function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+c=d.createElement('canvas');b.appendChild(c);ctx=c.getContext('2d');
+function debounce(f,w,i){var t;return function e(){var c=this;var a=arguments;var l=function(){t=null;if(!i)f.apply(c,a);};var n=i&&!t;clearTimeout(t);t=setTimeout(l,w);if(n)f.apply(c,a);}}
+function mod(e){return [N(e.shiftKey),N(e.altKey),N(e.ctrlKey)]};
+xd=0;yd=0;down=function(e){xd=e.clientX;yd=e.clientY;pd(e)};nomenu=function(e){pd(e)};
+up=function(e){pd(e);ui(1,e.button,xd,e.clientX,yd,e.clientY,...mod(e))};
+keycode=function(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};
+key=function(e){var k=keycode(e);if(!k)return;ui(0,k,...mod(e));pd(e);};
+wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,...mod(e))};
+size=function(e){c.width=w.innerWidth;c.height=w.innerHeight;screen=new Uint8Array(4*c.width*c.height);ui(2,c.width,c.height);pd(e)};
+function ae(x,y,z){x.addEventListener(y,z)};ae(w,'contextmenu',nomenu);ae(w,'mousedown',down);ae(w,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100));size()
+
 </script>
 <body>
 </html>
