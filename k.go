@@ -1187,7 +1187,7 @@ func evl(x k) (r k) {
 		return 0
 	}, func(s string) {
 		m.k[srcp] = sp
-		panic("p")
+		panic(s)
 	}
 	if n == 0 {
 		panic("evl empty list?") // what TODO?
@@ -1301,9 +1301,11 @@ func evl(x k) (r k) {
 		vt, vn := typ(v)
 		if n > 3 && vt > N && vn == atom {
 			switch code := m.k[2+v]; code { // triadics..
-			case dyad + 18, dyad + 19: // @ .
+			case dyad + 17, dyad + 18, dyad + 19: // ? @ .
 				g := amd
-				if code == dyad+19 {
+				if code == dyad+17 {
+					g = ins
+				} else if code == dyad+19 {
 					g = dmd
 				}
 				if n == 4 {
@@ -3907,6 +3909,37 @@ func lbin(x, y k) (r k) { // l bin y (linear)
 		dec(xj)
 	}
 	return decr2(x, y, r)
+}
+func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
+	if !match(f, null) {
+		panic("nyi")
+	}
+	dec(f)
+	if t, n := typ(y); t != I || n != atom {
+		panic("type")
+	}
+	idx := m.k[2+y]
+	dec(y)
+	xt, zt, xn, yn := typs(x, z)
+	if xt != zt || xt >= L || xn == atom {
+		panic("type")
+	}
+	if idx > xn {
+		panic("length")
+	}
+	n, cp := atm1(yn), cpx[xt]
+	r = mk(xt, xn+n)
+	xp, zp, rp := ptr(x, xt), ptr(z, zt), ptr(r, xt)
+	for i := k(0); i < idx; i++ {
+		cp(rp+i, xp+i)
+	}
+	for i := k(0); i < n; i++ {
+		cp(rp+idx+i, zp+i)
+	}
+	for i := k(0); i < xn-idx; i++ {
+		cp(rp+idx+n+i, xp+idx+i)
+	}
+	return decr2(x, z, r)
 }
 func insert(x, y, idx k) (r k) { // insert y into x at k
 	t, yt, n, yn := typs(x, y)
