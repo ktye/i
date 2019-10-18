@@ -21,7 +21,7 @@ optionally
 possible backend implementations
 pure k:                          e.g.
  - web (via .Z.G or websocket?)  s.k
- - /dev/fb0.. (linux)
+ - /dev/fb0 (linux)              fb.k
  - /dev/draw.. (plan9)
  - sixel (DEC, xterm..)
 native application:              *.go
