@@ -3920,14 +3920,18 @@ func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 	}
 	idx := m.k[2+y]
 	dec(y)
-	xt, zt, xn, yn := typs(x, z)
-	if xt != zt || xt >= L || xn == atom {
+	xt, zt, xn, zn := typs(x, z)
+	if xt == L && zt < L {
+		z = explode(z)
+		zt, zn = typ(z)
+	}
+	if xt != zt || xt > L || xn == atom {
 		panic("type")
 	}
 	if idx > xn {
 		panic("length")
 	}
-	n, cp := atm1(yn), cpx[xt]
+	n, cp := atm1(zn), cpx[xt]
 	r = mk(xt, xn+n)
 	xp, zp, rp := ptr(x, xt), ptr(z, zt), ptr(r, xt)
 	for i := k(0); i < idx; i++ {
