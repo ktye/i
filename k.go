@@ -1312,7 +1312,11 @@ func evl(x k) (r k) {
 					x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
 					dec(v) // dec early, allow inplace
 					dec(r)
-					return R() + g(x, a, inc(null), y)
+					if m.k[y]>>28 >= N {
+						return R() + g(x, a, y, inc(null))
+					} else {
+						return R() + g(x, a, inc(null), y)
+					}
 				} else if n == 5 {
 					x, a, f, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r]), inc(m.k[5+r])
 					dec(v)
@@ -4111,7 +4115,16 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		panic("type")
 	}
 	if m.k[f]>>28 != N {
-		y = cal2(f, atx(inc(x), inc(a)), y)
+		if match(y, null) {
+			dec(y)
+			pr(f, "f")
+			pr(x, "x")
+			pr(a, "a")
+			y = cal(f, enl(atx(inc(x), inc(a))))
+			pr(y, "y")
+		} else {
+			y = cal2(f, atx(inc(x), inc(a)), y)
+		}
 	} else {
 		dec(f)
 	}
