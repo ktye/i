@@ -1,19 +1,20 @@
 /k\ui terminal
 
-udw:udh:0                                           /display size
-ut: ," "                                            /text
-utx:uty:0                                           /top-left text offset(line/col)
+ut:," "                                             /text
+(udw;udh;utx;uty;ucx;ucy):0 0 0 0 1 0               /display size, top-left text offset(line/col), cursor(line/col)
 uvw:{{((ufw/udw)&#l)#l:utx_x}'((ufh/udh)&#x)#uty_x} /cut to viewport
 ufg:{16777215*1-x};ubg:{x*15400959};utm:0           /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
-ufu:{(ufw\uf)+x*ufw/uf}                             /update font to udw 
-up: {@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm]} /paint
+ufu:{(ufw\y)+x*ufw/y}                               /update font to udw 
+up: {d:@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm] /paint text
+     c:ufu[udw;!(ufw*ufh)]+(ufw*ucx)+ufh*ucy*udw;@[d;c;16777215-]}              /paint cursor
 
 /handlers
-uk: {y;$[x=13;ut,::(`k@.:/:ut[-1+#ut];" ")
-         x=27;utm::~utm
-	 ut[-1+#ut],::`c$x];up ut}                  /nyi cursor/navigation, currently append only
+uk: {y;ll:-1+#ut;$[x=13;(ucx::1;ucy+::2;ut,::(`k@.:/:ut[-1+#ut];" ")) /execute
+         x=8;(ucx::0|ucx-1;ut[ll]::-1_ut[ll])                         /delete
+         x=27;utm::~utm                                               /toggle utm
+	 (ut[-1+#ut],::`c$x;ucx+::1)];up ut}                          /insert char
 um: {x;y;!0} /nyi select..
-us: {(udw;udh;utf)::(x;y;ufu x);up ut}              /(re)size	
+us: {(udw;udh;utf)::(x;y;ufu[x;uf]);up ut}              /(re)size	
 
 /font f2.k nyi:create replacements from 00..FF
 (ufw;ufh;utf):(10;20;,!0)

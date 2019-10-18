@@ -4117,11 +4117,7 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	if m.k[f]>>28 != N {
 		if match(y, null) {
 			dec(y)
-			pr(f, "f")
-			pr(x, "x")
-			pr(a, "a")
 			y = cal(f, enl(atx(inc(x), inc(a))))
-			pr(y, "y")
 		} else {
 			y = cal2(f, atx(inc(x), inc(a)), y)
 		}
