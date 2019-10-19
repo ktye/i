@@ -1,6 +1,6 @@
 /k\ui terminal
 
-ut:," "                                             /text
+ut:,," "                                            /text
 (udw;udh;utx;uty;ucx;ucy):0 0 0 0 1 0               /display size, top-left text offset(line/col), cursor(line/col)
 uvw:{{((ufw/udw)&#l)#l:utx_x}'((ufh/udh)&#x)#uty_x} /cut to viewport
 ufg:{16777215*1-x};ubg:{x*15400959};utm:0           /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
@@ -9,16 +9,17 @@ up: {d:@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm] 
      c:ufu[udw;!(ufw*ufh)]+(ufw*ucx-utx)+ufh*udw*ucy-uty;@[d;c;16777215-]}      /paint cursor
 
 /handlers
-uk: {y;ll:-1+#ut
-     $[x=13;$[utm;(ucx::0;ucy+::1;ut::?[ut;1+ucy;,""]);(ucx::1;ucy+::2;ut,::(`k@.:/:ut[ucy];" "))] /execute
-         x=8;(ucx::0|ucx-1;ut[ll]::-1_ut[ll])          /delete
-	 x=16;ucx::0;x=17;ucx::#ut[ucy]                /home, end
-	 x=18;(ucx::0|ucx-1)                           /left
-	 x=19;(ucx::ucx&#ut[ucy];ucy-::1)              /up
-	 x=20;(ucx::ucx&#ut[ucy];ucy+::1&ll-ucy)       /down
-	 x=21;(ucx::(ucx+1)&#ut[ucy])                  /right
-         x=27;utm::~utm                                /toggle utm
-	 (ut[ll],::`c$x;ucx+::1)];up ut}               /insert char
+uk:{y;ll:-1+#ut;l:ut[ucy]
+ $[x=13;$[utm;(ucx::0;ucy+::1;ut::?[ut;1+ucy;,""]);(ucx::1;ucy+::2;ut,::(`k@.:/:ut[ucy];" "))] /execute
+   x=8;(ucx::0|ucx-1;ut[ucy]::l[(#l)^ucx])  /delete
+   x=16;ucx::0;x=17;ucx::#l                 /home, end
+   x=18;(ucx::0|ucx-1)                      /left
+   x=19;(ucx::ucx&#l;ucy-::1)               /up
+   x=20;(ucx::(ucx+1)&#l)                   /right
+   x=21;(ucx::ucx&#l;ucy+::1&ll-ucy)        /down
+   x=27;utm::~utm                           /toggle utm
+   (ucx+::1;ut[ucy]::?[l;ucx;`c$x])]        /insert
+ up ut}
 um: {x;y;!0}                                           /nyi select..
 us: {(udw;udh;utf)::(x;y;ufu[x;uf]);up ut}             /(re)size	
 
