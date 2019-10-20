@@ -4133,7 +4133,10 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		m.k[3+r] = amdv(m.k[3+r], fnd(inc(m.k[2+r]), a), f, y)
 		return decr(x, r)
 	}
-	if at != I {
+	if an == 0 {
+		dec(f)
+		return decr2(a, y, x)
+	} else if at != I {
 		panic("type")
 	}
 	if m.k[f]>>28 != N {
