@@ -8,7 +8,7 @@ ufu:{(ufw\y)+x*ufw/y}                               /update font to udw
 ui:!0                                               /image(overlay)
 up: {ucy::0|ucy;ucy::ucy&-1+#ut;ucx::0|ucx;ucx::ucx&#ut[ucy]                    /cursor text constraints
      uty::uty&ucy;uty::uty|1+ucy-ufh/udh;utx::utx&ucx;utx::utx|1+ucx-ufw/udw    /scroll to view
-     d:@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t: \uvw 0+x;ufg utm] /paint text
+     d:@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm] /paint text
      c:ufu[udw;!(ufw*ufh)]+(ufw*ucx-utx)+ufh*udw*ucy-uty;d:@[d;c;16777215-]     /paint cursor
      $[#ui;@[d;!#ui;ui];d]}                                                     /overlay to top right corner
 
