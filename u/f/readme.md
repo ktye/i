@@ -14,6 +14,7 @@ k font files are generated with:
  go run gen.go zevv_8x16.png   k 8  16 > f1.k
  go run gen.go 10x20.png       k 10 20 > f2.k
  go run gen.go 16x32.png       k 16 32 > f3.k
+ go run gen.go vt220.png       k 10 20 > vt220.k
 
 /unpack (linear black-pixel indexes)
 \l f2.k
@@ -41,6 +42,11 @@ from zevv, 1px line with
 ![10x20](10x20.png)
 ```
 manual work, 2px line width, modified misc-10x20, taller thicker characters
+```
+
+![vt220](vt220.png)
+```
+from https://vt100.net/dec/vt220/glyphs
 ```
 
 # 16x32
