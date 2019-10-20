@@ -146,7 +146,7 @@ func i2(x, y int) (r k) {
 }
 
 // specialKeys map godoc.org/gioui.org/ui/key#pkg-constants to ../a.go:/^j,:"keycode/
-var specialKeys = map[rune]byte{'⌫': 8, '⏎': 13, '⌤': 13, '⎋': 27, '⌦': 46, '⇞': 14, '⇟': 15, '⇱': 16, '⇲': 17, '←': 18, '↑': 19, '↓': 20, '→': 21}
+var specialKeys = map[rune]byte{'⌫': 8, '⏎': 13, '⌤': 13, '⎋': 27, '⌦': 46, '⇞': 14, '⇟': 15, '⇱': 16, '⇲': 17, '←': 18, '↑': 19, '↓': 21, '→': 20}
 
 func get(c c, a ...int) {
 	b := make([]byte, 2, 32)
