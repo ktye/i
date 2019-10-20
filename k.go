@@ -2205,6 +2205,10 @@ func arc2(x, y, yn k, f func(k, k) k) (r k) {
 }
 func ept(x, y k) (r k) { // x^y
 	t, yt, n, yn := typs(x, y)
+	if t == I && n == atom {
+		x = til(x)
+		t, n = typ(x)
+	}
 	if t != yt || t > L || n == atom {
 		panic("type")
 	} else if yn == atom {
@@ -3919,11 +3923,13 @@ func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 		panic("nyi")
 	}
 	dec(f)
-	if t, n := typ(y); t != I || n != atom {
+	if t, n := typ(y); t == I && n == atom {
+		y = enl(cat(y, mki(0)))
+	} else if t == I && n == 2 {
+		y = enl(y)
+	} else if t != L {
 		panic("type")
 	}
-	idx := m.k[2+y]
-	dec(y)
 	xt, zt, xn, zn := typs(x, z)
 	if xt == L && zt < L {
 		z = explode(z)
@@ -3932,21 +3938,37 @@ func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 	if xt != zt || xt > L || xn == atom {
 		panic("type")
 	}
-	if idx > xn {
-		panic("length")
+	yn, zn := m.k[y]&atom, atm1(zn)
+	rn := xn + yn*zn
+	for i := k(0); i < yn; i++ {
+		yi := m.k[2+y+i]
+		t, n := typ(yi)
+		if t != I || n != 2 {
+			panic("type")
+		}
+		if m.k[2+yi] > xn || m.k[3+yi] > xn+1 {
+			panic("length")
+		}
+		rn -= m.k[3+yi]
 	}
-	n, cp := atm1(zn), cpx[xt]
-	r = mk(xt, xn+n)
-	xp, zp, rp := ptr(x, xt), ptr(z, zt), ptr(r, xt)
-	for i := k(0); i < idx; i++ {
-		cp(rp+i, xp+i)
+	r = mk(xt, rn)
+	cp, xp, zp, rp, x0 := cpx[xt], ptr(x, xt), ptr(z, zt), ptr(r, xt), k(0)
+	for i := k(0); i < yn; i++ {
+		yi := m.k[2+y+i]
+		y0, dy := m.k[2+yi]-x0, m.k[3+yi]
+		for j := k(0); j < y0; j++ {
+			cp(rp+j, xp+j)
+		}
+		rp, xp, x0 = rp+y0, xp+y0+dy, y0+dy
+		for j := k(0); j < zn; j++ {
+			cp(rp+j, zp+j)
+		}
+		rp, xn = rp+zn, xn-y0-dy
 	}
-	for i := k(0); i < n; i++ {
-		cp(rp+idx+i, zp+i)
+	for j := k(0); j < xn; j++ {
+		cp(rp+j, xp+j)
 	}
-	for i := k(0); i < xn-idx; i++ {
-		cp(rp+idx+n+i, xp+idx+i)
-	}
+	dec(y)
 	return decr2(x, z, r)
 }
 func insert(x, y, idx k) (r k) { // insert y into x at k
