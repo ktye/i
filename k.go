@@ -97,7 +97,7 @@ func ini(mem []f) { // start function
 	table = [160]interface{}{
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
-		rdl, nil, nil, nil, nil, nil, nil, nil, lun, nil, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
+		rdl, nil, nil, nil, nil, nil, nil, nil, lun, deb, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
 		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		nil, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
@@ -2332,6 +2332,8 @@ func drop(x i, y k) (r k) { // integer index; does not unify
 		panic("type")
 	} else if yn == 0 {
 		return y
+	} else if x >= i(yn) {
+		return decr(y, mk(t, 0))
 	}
 	n, neg, o := k(x), false, k(x)
 	if x < 0 {
@@ -3635,6 +3637,16 @@ func lun(x k) (r k) { // 8:x or .. \x (display)
 	wr := table[21+dyad].(func(k, k) k)
 	dec(wr(mku(0), cat(kst(inc(x)), mkc('\n'))))
 	return x
+}
+func deb(x k) (r k) { // 9:x (println)
+	r = kst(inc(x))
+	t, n := typ(r)
+	if t != C {
+		return decr(r, x)
+	}
+	p := ptr(r, C)
+	println(string(m.c[p : p+n]))
+	return decr(r, x)
 }
 func lod(x k) (r k) {
 	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), inc(null)))

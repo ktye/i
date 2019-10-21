@@ -70,7 +70,7 @@ func main() {
 				shift, cntrl := int(e.Modifiers&2>>1), int(e.Modifiers&1) // uint32 (cntrl|shift<<1)
 				c := specialKeys[e.Name]
 				if c == 0 {
-					fmt.Println("key e.Name", e.Name, e.Modifiers, shift)
+					// fmt.Println("key e.Name", e.Name, e.Modifiers, shift)
 					if e.Name >= 'A' && e.Name <= 'Z' {
 						c = byte(e.Name)
 						if shift == 0 {
@@ -111,7 +111,6 @@ func flip() {
 }
 
 func hk(c, shift, alt, cntrl int) {
-	fmt.Println("key", c, shift, alt, cntrl)
 	if addr == "" {
 		set(call("k", mki(k(c)), kmod(shift, alt, cntrl)))
 	} else {
@@ -119,7 +118,6 @@ func hk(c, shift, alt, cntrl int) {
 	}
 }
 func hm(b, x0, x1, y0, y1, shift, alt, cntrl int) {
-	fmt.Println("mouse", b, x0, x1, y0, y1, shift, alt, cntrl)
 	if addr == "" {
 		set(call("m", l2(i2(x0, x1), i2(y0, y1)), kmod(shift, alt, cntrl)))
 	} else {
@@ -127,7 +125,6 @@ func hm(b, x0, x1, y0, y1, shift, alt, cntrl int) {
 	}
 }
 func hs(w, h int) {
-	fmt.Println("screen", w, h)
 	if addr == "" {
 		set(call("s", mki(k(w)), mki(k(h))))
 	} else {
@@ -156,7 +153,6 @@ func get(c c, a ...int) {
 		b = append(b, []byte(strconv.Itoa(a[i]))...)
 	}
 	u := addr + string(b) // e.g. "http://localhost/k,49,1,0,0"
-	fmt.Println("get ", u)
 	if r, err := http.Get(u); err != nil {
 		fmt.Println(err)
 	} else {
