@@ -1034,6 +1034,10 @@ func cnt(x k) (r k) { // #x
 }
 func flr(x k) k { // _x
 	return nm(x, I, []f1{nil, func(r, x k) { m.c[r] = m.c[x] }, func(r, x k) { m.k[r] = m.k[x] }, func(r, x k) {
+		if isnan(m.f[x]) { // go issue 35034 on wasm
+			m.f[r] = m.f[x]
+			return
+		}
 		y := f(i(m.f[x]))
 		if m.f[x] < y {
 			y -= 1.0
