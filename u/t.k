@@ -2,32 +2,35 @@
 
 ut:,," "                                            /text
 (udw;udh;utx;uty;ucx;ucy):0 0 0 0 1 0               /display size, top-left text offset(line/col), cursor(line/col)
-uvw:{{((ufw/udw)&#l)#l:utx_x}'((ufh/udh)&#x)#uty_x} /cut to viewport
+uvw:{{((ufw/udw)&#l)#l:utx_x}'((ufh/y)&#x)#uty_x}   /cut to viewport
 ufg:{16777215*1-x};ubg:{x*15400959};utm:0           /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
 ufu:{(ufw\y)+x*ufw/y}                               /update font to udw 
 ui:!0                                               /image(overlay)
-up: {ucy::0|ucy;ucy::ucy&-1+#ut;ucx::0|ucx;ucx::ucx&#ut[ucy]                    /cursor text constraints
-     uty::uty&ucy;uty::uty|1+ucy-ufh/udh;utx::utx&ucx;utx::utx|1+ucx-ufw/udw    /scroll to view
-     d:@[(udw*udh)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw 0+x;ufg utm] /paint text
-     c:ufu[udw;!(ufw*ufh)]+(ufw*ucx-utx)+ufh*udw*ucy-uty;d:@[d;c;16777215-]     /paint cursor
-     $[#ui;@[d;!#ui;ui];d]}                                                     /overlay to top right corner
+up: {ucy::0|ucy;ucy::ucy&-1+#ut;ucx::0|ucx;ucx::ucx&#ut[ucy]                              /cursor text constraints
+     h:udh-udw/#ui;uty::uty&ucy;uty::uty|1+ucy-ufh/h;utx::utx&ucx;utx::utx|1+ucx-ufw/udw  /scroll to view
+     d:@[(udw*h)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw[0+x;h];ufg utm]          /paint text
+     c:ufu[udw;!(ufw*ufh)]+(ufw*ucx-utx)+ufh*udw*ucy-uty;d:@[d;c;16777215-]               /paint cursor
+     ui,d}                                                                                /paint ui(top image) and terminal
 
 /handlers
-uk:{y;l:ut[ucy]
+uk:{y;l:ut[ucy];
  $[x=13;$[utm;(ucx::0;ucy+::1;ut::?[ut;1+ucy;,""]);(ucx::1;ucy::-1+#ut;ut,::(`k@.:/:ut[ucy];," "))] /execute
    x=8;(ucx-::1;ut[ucy]::l[(#l)^0|-1+ucx])             /delete
-   x=16;ucx::0;x=17;ucx::-1+_1%0                       /home, end
+   x=16;ucx::-1+_0%0;x=17;ucx::0                       /end,home
    x=18;ucx-::1;x=19;ucy-::1;x=20;ucx+::1;x=21;ucy+::1 /left,up,right,down
-   x=27;utm::~utm                                      /toggle utm
+   x=27;$[#ui;ui::!0;utm::~utm]                        /close ui, toggle utm
    (ucx+::1;ut[ucy]::?[l;ucx;`c$x])]                   /insert
  up ut}
 um: {x;y;!0}                                           /nyi select..
-us: {(udw;udh;utf)::(x;y;ufu[x;uf]);up ut}             /(re)size	
+us: {(ui;udw;udh;utf)::(!0;x;y;ufu[x;uf]);up ut}       /(re)size	
+
+ucm:{(65536*x)+(256*256-x)+64/(x-127)*x-128}[!256]     / colormap
+umd:{d:1.5 2.5;c:|d-2*d*(!n)%0.+n:x;s:{(-/x*x;2*/x)};m:{+/x*x};ui::,/udw#'ucm@16*(!16)@+/(*\15#4)<\:n#m 10(c+s@)/0 0;} /e.g. umd 50 100
 
 /font f2.k nyi:create replacements from 00..FF
-(ufw;ufh;utf):(10;20;,!0)
-uf:{c:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
- r:256#,!0;r[c+0]:x[!#c];r}({&,/(8#2)\:'0+x}'(0x00000180f066198660f018000000180f066198660f01800000 /00
+ufs:{x:$[x=0;(`f0.k;10 20);x=1;(`f1.k;8 16);x=2;(`f2.k;10 20);x=3;(`f3.k;16 32)];. 1:*x; \font;ufset[font;*|x];us[udw;udh];}
+uf:!0;ufw:ufh:0;ufset:{(ufw;ufh)::y;fn:{&,/(8#2)\:'0+x}'x;c:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";uf::256#,!0;uf[c+0]::fn[!#c];}
+font:(0x00000180f066198660f018000000180f066198660f01800000 /00
  0x00000301c0300c0300c0780000000c0700c0300c0301e00000 /11
  0x00000381b00c060301807c0000001c0d806030180c03e00000 /22
  0x00000381b00c0600c1b0380000001c0d806030060d81c00000 /33
@@ -136,4 +139,5 @@ uf:{c:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklm
  0x00000001860018600186001b6001b6001fe000cc0000000000 /W
  0x0000000186000cc000780003000078000cc001860000000000 /X
  0x0000000186000cc00078000300003000030000300000000000 /Y
- 0x00000001fe0000c000180003000060000c0001fe0000000000)) /Z
+ 0x00000001fe0000c000180003000060000c0001fe0000000000) /Z
+ufset[font;10 20]
