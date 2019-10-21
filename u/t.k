@@ -28,7 +28,7 @@ ucm:{(65536*x)+(256*256-x)+64/(x-127)*x-128}[!256]     / colormap
 umd:{d:1.5 2.5;c:|d-2*d*(!n)%0.+n:x;s:{(-/x*x;2*/x)};m:{+/x*x};ui::,/udw#'ucm@16*(!16)@+/(*\15#4)<\:n#m 10(c+s@)/0 0;} /e.g. umd 50 100
 
 /font f2.k nyi:create replacements from 00..FF
-ufs:{x:$[x=0;(`f0.k;10 20);x=1;(`f1.k;8 16);x=2;(`f2.k;10 20);x=3;(`f3.k;16 32)];. 1:*x; \font;ufset[font;*|x];us[udw;udh];}
+ufs:{x:$[x=0;(`f0.k;10 20);x=1;(`f1.k;8 16);x=2;(`f2.k;10 20);x=3;(`f3.k;16 32)];. 1:*x;font;ufset[font;*|x];us[udw;udh];}
 uf:!0;ufw:ufh:0;ufset:{(ufw;ufh)::y;fn:{&,/(8#2)\:'0+x}'x;c:"0123456789ABCDEF:+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";uf::256#,!0;uf[c+0]::fn[!#c];}
 font:(0x00000180f066198660f018000000180f066198660f01800000 /00
  0x00000301c0300c0300c0780000000c0700c0300c0301e00000 /11

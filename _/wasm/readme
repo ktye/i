@@ -22,6 +22,10 @@ awk '/^{{/{
  next
 }{print}' k.ht > index.html
 
-# run local file:///path/to/index.html or ktye.github.io (TODO deploy)
+if [ $1 = "deploy" ]; then
+	cp index.html ../../../ktye.github.io/index.html
+fi
+
+# run local file:///path/to/index.html or ktye.github.io
 # example:
 # ktye.github.io/#f%3A%7Bt%2Fx%2Ft%3A%25n%251-2*2%5Ct%2F%2Bt%3A%2B2%5C%3A!n%3A%23x%7D%3Bf%200.%2B(1%200%200%200%3B1%201%200%200%3B1%201%201%200%3B1%201%201%201)
