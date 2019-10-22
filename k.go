@@ -154,7 +154,7 @@ func ini(mem []f) { // start function
 	dec(asn(mks(".f"), mk(C, 0), inc(null)))             // file name
 	dec(asn(mks(".c"), mk(C, 0), inc(null)))             // current src
 	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)      // transpose
-	mkk(".odo", `{x\:!*/x}`)                             // odometer
+	// mkk(".odo", `{x\:!*/x}`)                             // odometer (replaced by native, \: is very slow)
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
@@ -928,7 +928,7 @@ func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 func til(x k) (r k) { // !x
 	t, n := typ(x)
 	if n != atom {
-		return kx(mks(".odo"), x)
+		return odo(x) // return kx(mks(".odo"), x)
 	} else if t == A {
 		r = inc(m.k[2+x])
 		return decr(x, r)
@@ -949,6 +949,39 @@ func jota(n k) (r k) { // !n
 		m.k[2+r+j] = j
 	}
 	return r
+}
+func odo(x k) (r k) { // !x
+	n := m.k[x] & atom
+	q := k(1) // */x
+	for i := k(0); i < n; i++ {
+		ki := m.k[2+i+x]
+		if ki == 0 || int32(ki) < 0 {
+			panic("domain")
+		}
+		q *= ki
+	}
+	r = mk(L, n)
+	for i := k(0); i < n; i++ {
+		m.k[2+r+i] = mk(I, q)
+	}
+	rep := k(1)
+	for i := k(0); i < n; i++ {
+		ri := m.k[1+r+n-i]
+		p, kk := k(0), k(0)
+		for j := k(0); j < q; j++ {
+			m.k[2+ri+j] = p
+			kk++
+			if kk == rep {
+				kk = 0
+				p++
+				if p == m.k[1+x+n-i] {
+					p = 0
+				}
+			}
+		}
+		rep *= m.k[1+x+n-i]
+	}
+	return decr(x, r)
 }
 func eye(x k) (r k) { // !-n =n (ifz)
 	t, n := typ(x)
