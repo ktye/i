@@ -6,15 +6,17 @@ uvw:{{((ufw/udw)&#l)#l:utx_x}'((ufh/y)&#x)#uty_x}   /cut to viewport
 ufg:{16777215*1-x};ubg:{x*15400959};utm:0           /colors(`?0x07rrggbb00), esc toggles utm(hold mode)
 ufu:{(ufw\y)+x*ufw/y}                               /update font to udw 
 ui:!0                                               /image(overlay)
+upt:{d:@[(udw*y)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw[0+x;y];ufg utm]          /paint text
+     c:ufu[udw;!(ufw*ufh)]+(ufw*ucx-utx)+ufh*udw*ucy-uty;d:@[d;c;16777215-]}              /paint cursor
 up: {ucy::0|ucy;ucy::ucy&-1+#ut;ucx::0|ucx;ucx::ucx&#ut[ucy]                              /cursor text constraints
      h:udh-udw/#ui;uty::uty&ucy;uty::uty|1+ucy-ufh/h;utx::utx&ucx;utx::utx|1+ucx-ufw/udw  /scroll to view
-     d:@[(udw*h)#ubg utm;,/,/{x+ufw*!#x}'(ufh*udw*!#t)+utf t:uvw[0+x;h];ufg utm]          /paint text
-     c:ufu[udw;!(ufw*ufh)]+(ufw*ucx-utx)+ufh*udw*ucy-uty;d:@[d;c;16777215-]               /paint cursor
-     ui,d}                                                                                /paint ui(top image) and terminal
+     ui,$[h>0;upt[x;h];!0]}                                                               /paint ui(top image) and terminal                                                                 
 
 /handlers
 uk:{y;l:ut[ucy];
- $[x=13;$[utm;(ucx::0;ucy+::1;ut::?[ut;1+ucy;,""]);(ucx::1;ucy::-1+#ut;ut,::(`k@.:/:ut[ucy];," "))] /execute
+ $[x=13;$[utm;(ucx::0;ucy+::1;ut::?[ut;1+ucy;,""])     /nl
+      ((ucx::1;ucy::-1+#ut;ut,::(`k@.:/:ut[ucy];," ")) /execute
+        $[ucy=l:-1+#ut;;ut::@[ut;l;ut[ucy]];])]        /repeat input
    x=8;(ucx-::1;ut[ucy]::l[(#l)^0|-1+ucx])             /delete
    x=16;ucx::-1+_0%0;x=17;ucx::0                       /end,home
    x=18;ucx-::1;x=19;ucy-::1;x=20;ucx+::1;x=21;ucy+::1 /left,up,right,down
