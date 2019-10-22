@@ -5721,6 +5721,13 @@ func cmpvrb(x k) bool { // is allowed in composition
 		return true // 1+
 	} else if n == 3 && m.k[u]>>28 == N+2 && m.k[2+u] == 19+dyad && cmpvrb(v) {
 		return true // (.;v;w)
+	} else if n == 2 && t == L {
+		/* TODO
+		tt, nn := typ(x)
+		t1, t2, n1, n2 := typs(m.k[2+x], m.k[3+x])
+		println("tt/nn", tt, nn, "t1t2", t1, t2, "n1n2", n1, n2)
+		pr(x, "no cmpvrb")
+		*/
 	}
 	return false
 }
