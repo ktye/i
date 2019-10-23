@@ -5502,6 +5502,9 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			} else if m.k[v]>>28 == N+2 && m.k[2+v] == dyad+18 { // @
 				return decr(v, p.store(ps, l2(x, y))) // x@y
 			} else if cmpvrb(y) {
+				if tv, nv := typ(v); tv == N+2 && nv == atom && m.k[2+v] == dyad {
+					return p.store(ps, l3(v, x, y)) // n:y (not a composition)
+				}
 				return p.store(ps, compose(l2(l2(v, x), y))) // 2+ *
 			} else {
 				return p.store(ps, l3(v, x, y)) // nve
@@ -5718,16 +5721,21 @@ func cmpvrb(x k) bool { // is allowed in composition
 	}
 	u, v := m.k[2+x], m.k[3+x]
 	if n == 2 && m.k[u]>>28 == N+2 {
+		if code := m.k[2+m.k[2+x]]; code == 0 || code == 80 { // (:;..)
+			panic("assignment in composition")
+			return false // assignment, not composition
+		}
 		return true // 1+
 	} else if n == 3 && m.k[u]>>28 == N+2 && m.k[2+u] == 19+dyad && cmpvrb(v) {
 		return true // (.;v;w)
 	} else if n == 2 && t == L {
-		/* TODO
-		tt, nn := typ(x)
-		t1, t2, n1, n2 := typs(m.k[2+x], m.k[3+x])
-		println("tt/nn", tt, nn, "t1t2", t1, t2, "n1n2", n1, n2)
-		pr(x, "no cmpvrb")
-		*/
+		code := m.k[2+m.k[2+x]]
+		if code > dyad {
+			code -= dyad
+		}
+		if m.k[m.k[2+x]]&atom == atom && code >= 30 && code <= 32 {
+			return true
+		}
 	}
 	return false
 }
