@@ -8,12 +8,16 @@ import (
 	"os"
 	"runtime/debug"
 	"strings"
+	"time"
 )
+
+var timer time.Time
 
 func kinit(args []s) {
 	ini(make([]f, 1<<13))
 	table[21] = red
 	table[21+dyad] = wrt
+	table[27+dyad] = tim
 	table[39] = trp
 	if len(args) == 0 {
 		evl(prs(mkb(tk))) // load bundled application, e.g. t.k
@@ -77,6 +81,19 @@ func wrt(x, y k) k { // x 1:y
 	w.Write(m.c[yp : yp+n])
 	w.Flush()
 	return decr(y, x)
+}
+func tim(x, y k) (r k) { // 0 7:.. (reset timer), "alpha"7:.. print duration
+	t := m.k[x] >> 28
+	if t == I && m.k[2+x] == 0 {
+		timer = time.Now()
+		return decr(x, y)
+	}
+	if timer.IsZero() {
+		timer = time.Now()
+	}
+	x = cat(kst(x), mkb([]c(": "+time.Since(timer).String())))
+	out(x)
+	return y
 }
 func trp(x, y k) (r k) {
 	defer func() {
