@@ -1,0 +1,111 @@
+`@ `?
+
+atoms: type(1 byte),value(size,little-endian), e.g. `@"a" 0x0161
+ type   size   examples
+ c 01   1      "a"     0x0161 (not 0-terminated)
+ i 07   4      1+2*256 0x0701020000
+ j 08   8      1j      0x080100000000000000
+ f 0e   8      nan     0x0e000000000000f8ff, +inf 0x0e000000000000f07f, -inf 0x0e000000000000f0ff
+ n 0f   n+1    `abc    0x0f61626300 (0-terminated)
+ y 11   4      years
+ m 12   4      months
+ d 13   4      days
+ h 14   4      hours
+ r 15   4      minutes
+ s 16   4      seconds       01:02:03           0x168b0e0000
+ t 17   8      milliseconds  01:02:03.001       0x17f9ce380000000000
+ u 18   8      microseconds  00:00:00.000001    0x180100000000000000
+ v 19   8      nanoseconds
+ Y 1b   4      year         2019Y               0x1bfbffffff
+ M 1c   4      month        12M                 0x1c00000080
+ D 1d   4      day(date)    2024-01-01          0x1d00000000
+ H 1e   4      hour         2014-01-01T01       0x1e01000000
+ R 1f   4      minute
+ S 20   4      second       2014-01-01T00:00:01 0x200100000
+ T 21   8      millisecond
+ U 22   8      microsecond
+ V 23   8      nanosecond   2014-01-01T00:00:00.000000001 0x230100000000000000 (max 2316-04-08T23:47:16.854775807)
+ 
+arrays type(4 bytes),length(4 bytes),values (type is the same as atom but following 0x000000)
+ "abc"   0x00000001 03000000 616263
+ `a`b`c  0x0000000f 03000000 610062006300 (0-terminated)
+ 1 2 3   0x00000007 03000000 010000000200000003000000
+ 0#1 2   0x00000007 00000000 (empty array, !0 differs, see below)
+ 
+flags(attributes) sort/unique (2nd byte)
+ ^1 2    0x00010007 02000000 10000000 20000000
+ ^1 2    0x00020007 02000000 10000000 20000000
+ ^&1 2   0x00030007 02000000 10000000 20000000
+ 
+list 0x00000000 length values...
+ ("a";`b) 0x00000000 02000000 0161 0f6200
+          list-type  length    "a"   `b
+	  
+prototypes are appended to an empty list
+ 0#(1 2;`a) 0x00000000 00000000 00000007 02000000 00000080 00000080
+            list       zero-len int-array len-2   0N       0N
+	 
+progression arrays type 0x000300010,(offset value 4bytes),(limit 4 bytes)
+ 2+!4     0x00030010 04000000 02000000
+ !0       0x00030010 00000000 00000000
+ !2f is a normal float array
+ 
+dicts type 0x0000001502000000 followed by key and value arrays
+ `a`b!1 2  0x0000001502000000 0000000f 02000000 61006200 00000007 02000000 02000000 03000000
+           dict type          symbol array len2 `a`b     int-arr. len 2
+
+table 0x00000014 01000000 followed by the dict
+
+primitive functions type(1 byte),value(1 byte function code)
+ codes: 00..18 :+-*%&|<>=!~,^#_$?@.01234
+ 0 25          +: 0x2501   4:: 0x2518   monadic
+ 1 26          :  0x2600   4:  0x2618   dyadic
+ 
+adverbs (alone)
+   27          ' / \ ': /: \" 0x2700..0x2705
+
+null (e.g. missing argument, null result)
+   2800
+   2801 +:  ?? not equal to +: (2501)
+
+derived functions 0x000000(1a..1f),01000000,(function code)
+ +'  0x0000001a 01000000 2601
+ +/  0x0000001b 01000000 2601
+ +\  0x0000001c 01000000 2601
+ +': 0x0000001d 01000000 2601
+ +/: 0x0000001e 01000000 2601
+ +\" 0x0000001f 01000000 2601
+   
+projections 0x00000018 02000000,(function code),arguments
+ 2+    0x00000018 02000000 2601 0702000000 (only left argument)
+ +[2;] 0x00000018 03000000 2601 0702000000 2800
+ +[;2] 0x00000018 03000000 2601 2800 0702000000
+   
+composition all but the last verb is prefixed with 0x00000019 02000000
+ +-*   0x00000019 02000000 2501 00000019 02000000 2502 2603
+ +/-   0x00000019 02000000 0000001b 01000000 2601 2602
+ 
+functions (lambdas) 0x0000001705000000,(parse tree),(string form),(?),(arg symbols),(locals)
+{x}    0x00000017 05000000 0f7800 00000001 03000000 7b787d 0f00 0000000f 01000000 0000000f 00000000
+                           `x                       "{x}"  `    ,`x               0#`
+			   tree   string . . . . . . .form ?    arguments         locals
+{x+y}  00000017 05000000                     type
+       00000000 03000000 2601 0f7800 0f7900  parse tree  (+;`x;`y)
+       00000001 05000000 7b782b797d          string form "{x+y}"
+       0f00000000                            `                   
+       0000000f 02000000 78007900            arguments    `x`y
+       0000000f 00000000                     0#`
+{a:1}  00000017 05000000                     type
+       00000000 30000000 2500 066100 0701000000 parse tree (:;`a;1)
+       00000001 05000000 7b613a317d          string form "{a:1}"
+       0f00                                  `
+       0000000f 01000000 7800                arguments ,`x
+       0000000f 01000000 6100                locals ,`a
+       
+both assignments a:1(local) and a::1(global) use the same verb 2501
+
+/f and g print the same |:\\ but are not equal: f~g is 0
+f:|(\)\
+g:|:\\
+f:0x 00000019 02000000 2506 0000001c 01000000 2702 (composition of |: and derived (\)\)
+g:0x 0000001c 01000000 0000001c 01000000 2506 derived of derived (|\)\
