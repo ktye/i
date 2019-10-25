@@ -27,6 +27,24 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+
+		// TODO rework function codes for adverbs:
+		// currently '/\ with N+1/N+2 is used
+		// ' and ': should be different codes, both with type N+1
+		// k7 uses 2700..2705
+		/*
+			{"2/4", "2"},
+			{"+/1 2 3", "6"},
+			{"(/)[+]1 2 3", "6"},
+			{",/", ",/"},
+			{`,\:`, `,\:`},
+			//{"(/)[+]", "+/"},
+			{".(/),(+)", "+/"},
+			{"@[/;+]", "+/"},
+			{"+/1 2 3", "4"},
+			{`@\(';#:;2 3 4#!24)`, `(';#:';3 3)`},
+		*/
+
 		//{`.:/:"1+2"`, "3"}, // defined externally
 		//{"+/0.+!100000000", "5e15"}, // long(too much memory)
 		{"a.b:3;{a.b+::x}[1];a", "(,`b)!,4"},

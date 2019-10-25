@@ -5838,7 +5838,7 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 func pVrb(b []byte) (r k) {
 	for i := k(0); i < 34; i++ { // :+-*%&|<>=!~,^#_$?@.0123456789'/\
 		if b[0] == m.c[i+136] {
-			if len(b) == 1 || i > 49 {
+			if len(b) == 1 {
 				r = mk(N+2, atom)
 				m.k[2+r] = k(i) + dyad
 			} else {
