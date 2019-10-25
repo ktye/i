@@ -33,9 +33,9 @@ arrays type(4 bytes),length(4 bytes),values (type is the same as atom but follow
  0#1 2   0x00000007 00000000 (empty array, !0 differs, see below)
  
 flags(attributes) sort/unique (2nd byte)
- ^1 2    0x00010007 02000000 10000000 20000000
- ^1 2    0x00020007 02000000 10000000 20000000
- ^&1 2   0x00030007 02000000 10000000 20000000
+ ^1 2    0x00010007 02000000 01000000 02000000
+ ^1 2    0x00020007 02000000 01000000 02000000
+ ^&1 2   0x00030007 02000000 01000000 02000000
  
 list 0x00000000 length values...
  ("a";`b) 0x00000000 02000000 0161 0f6200
@@ -102,7 +102,7 @@ functions (lambdas) 0x0000001705000000,(parse tree),(string form),(?),(arg symbo
        0000000f 01000000 7800                arguments ,`x
        0000000f 01000000 6100                locals ,`a
        
-both assignments a:1(local) and a::1(global) use the same verb 2501
+both assignments a:1(local) and a::1(global) use the same verb 2500
 
 /f and g print the same |:\\ but are not equal: f~g is 0
 f:|(\)\
