@@ -1120,12 +1120,22 @@ func str(x k) (r k) { // $x
 			} else if f >= dyad && f < 33+dyad { // dyad * /
 				r = mkc(m.c[136+m.k[2+x]-dyad])
 				m.k[r] = C<<28 | 1
-			} else if f > 256 && t == N+1 {
-				panic("todo derived")
+			} else if f > 256 && t == N+1 { // derived verb (see func drv)
+				if op := f >> 8; op >= 33 && op <= 38 {
+					if op < 36 { // ' / \ ': /: \: (33-38 -> 30..32,dyad+30..32)
+						op += dyad - 3
+					} else {
+						op -= 6
+					}
+					opv := mk(N+1, atom)
+					m.k[2+opv] = op
+					r = cat(str(inc(m.k[3+x])), str(opv))
+				} else {
+					panic("type") // unknown verb
+				}
 			} else {
 				panic("assert")
 			}
-			// TODO: derived?
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
 				if n == 2 && f < 2*dyad && m.k[m.k[3+a]]>>28 == N {
@@ -1137,7 +1147,6 @@ func str(x k) (r k) { // $x
 					r = cat(r, a)
 				}
 			}
-
 		default:
 			panic("nyi")
 		}
