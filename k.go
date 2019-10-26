@@ -17,7 +17,7 @@ const ref = `
 08 > dst mor    28 8 lun nil    48 abs       128 abq 2 abs    68      148
 09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69      149
                                                                           
-10 ! til key    30 ' qtc key    50 rel real  130 mkz cmplx    70      150
+10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70      150
 11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71      151
 12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72      152
 13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73      153
@@ -1122,9 +1122,9 @@ func str(x k) (r k) { // $x
 				m.k[r] = C<<28 | 1
 			} else if f > 256 && t == N+1 { // derived verb (see func drv)
 				if op := f >> 8; op >= 33 && op <= 38 {
-					if op < 36 { // ' / \ ': /: \: (33-38 -> 30..32,dyad+30..32)
+					if op < 36 { // 33-35 ' / \
 						op += dyad - 3
-					} else {
+					} else { // 36-38 ': /: \:
 						op -= 6
 					}
 					opv := mk(N+1, atom)
@@ -5840,6 +5840,9 @@ func pVrb(b []byte) (r k) {
 		if b[0] == m.c[i+136] {
 			if len(b) == 1 {
 				r = mk(N+2, atom)
+				if i >= 30 {
+					m.k[r] = atom | (N+1)<<28
+				}
 				m.k[2+r] = k(i) + dyad
 			} else {
 				r = mk(N+1, atom)
