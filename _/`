@@ -75,6 +75,11 @@ derived functions 0x000000(1a..1f),01000000,(function code)
  +': 0x0000001d 01000000 2601
  +/: 0x0000001e 01000000 2601
  +\" 0x0000001f 01000000 2601
+ 
+expressions 0x00000016 02000000,(parse tree),(string form)
+ :x+y  00000016 02000000
+       00000000 03000000 26010 f7800 0f7900  parse tree (+;`x;`y)
+       00000001 04000000 3a782b79            string form ":x+y"
    
 projections 0x00000018 02000000,(function code),arguments
  2+    0x00000018 02000000 2601 0702000000 (only left argument)
@@ -103,6 +108,9 @@ functions (lambdas) 0x0000001705000000,(parse tree),(string form),(?),(arg symbo
        0000000f 01000000 6100                locals ,`a
        
 both assignments a:1(local) and a::1(global) use the same verb 2500
+
+recover parse tree from functions or expressions: `?8_f
+ `?8_`{x+y}    (+;`x;`y)
 
 /f and g print the same |:\\ but are not equal: f~g is 0
 f:|(\)\
