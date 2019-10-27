@@ -5596,6 +5596,8 @@ func (p *p) noun() (r k) {
 	case p.t(sOcb):
 		p.p = p.m
 		st := p.m - 1
+		args := uf(p.idxa(mk(L,0)))
+		ln := m.k[args]&atom
 		r = mk(N+1, 0) // lambda is indicated with length 0 but uses 2 fields:
 		tree := p.lst(mk(C, 0), sCcb)
 		if m.k[tree]&atom == 1 {
@@ -5608,10 +5610,13 @@ func (p *p) noun() (r k) {
 		m.k[3+r] = tree // #2: parse tree
 		dst = 8 + dst<<2
 		copy(m.c[dst:dst+n], m.c[st:p.p])
-		args := argn(m.k[3+r], mk(L, 0))
-		ln := m.k[args] & atom
 		if ln == 0 {
-			panic("valence(lambda)")
+			dec(args)
+			args = argn(m.k[3+r], mk(L, 0))
+			ln = m.k[args] & atom
+			if ln == 0 {
+				panic("valence(lambda)")
+			}
 		}
 		args = locl(m.k[3+r], args)
 		args = unq(cat(args, mku(uint64('f')<<56)))
