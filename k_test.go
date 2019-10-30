@@ -27,6 +27,13 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"a:1;b:2;a+{a:2;a+x}5", "8"},
+		// {"1","fail"},
+		{"{[a;b;c;d]a+b+c+d}[1;2;3;4]", "10"},
+		{"{[a;b;c;d;e]a+b+c+d+e}[1;2;3;4;5]", "15"},
+		{"{[a;b;c;d;e;F]a+b+c+d+e+F}[1;2;3;4;5;6]", "21"},
+		{"{[a;b;c;d;e;F;g]a+b+c+d+e+F+g}[1;2;3;4;5;6;7]", "28"},
+		//{"`p{a:2;b::3;x}", "((`;(::;`a;2);(::;`b;3);`x);\"{a:2;b::3;x}\";,`x;`a`f)"},
 		//{`.:/:"1+2"`, "3"}, // defined externally
 		//{"+/0.+!100000000", "5e15"}, // long(too much memory)
 		{"a.b:3;{a.b+::x}[1];a", "(,`b)!,4"},
@@ -486,7 +493,7 @@ func TestK(t *testing.T) {
 		{`{x+1}3 4 5`, "4 5 6"},
 		{`{x-1}3 4 5`, "2 3 4"},
 		{`{x[0]-1}3 4 5`, "2"},
-		{"x:1;x+{[a;b]a+x::b}[2;3]","8"},
+		{"x:1;x+{[a;b]a+x::b}[2;3]", "8"},
 		{`h:{(y+(-/(*x)**x;2f**/*x);1+*|x)};g:{{{(4f>+/(*x)**x)&255>*|x}h[;y]/x}[(x;0);x]};*|g 0 0.65`, "22"},
 		{"++", "+:+"}, // compositions
 		{"2*+", "2*+"},
@@ -746,7 +753,7 @@ Functions have type N+1…N+4 (valence)
   x+2 is the function code
  lambda functions: marked with length 0
   x+2 string form C
-  x+3 (arg list;parse tree), variables are always x,y,z
+  x+3 (arg list;parse tree)
  projection: length 1(over lambda) 2(over basic/builtins)
   x+2 function code or pointer to lambda function
   x+3 full argument list with holes (N)

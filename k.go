@@ -53,8 +53,8 @@ type slice struct {
 	c int
 }
 
-//                 C  I  F   Z  S  L  A  0  1  2  3  4
-var lns = [13]k{0, 1, 4, 8, 16, 8, 4, 0, 0, 0, 0, 0, 0}
+//                C  I  F   Z  S  L  A  0+
+var lns = [9]k{0, 1, 4, 8, 16, 8, 4, 0, 0}
 var m struct { // linear memory (slices share underlying array)
 	c []c
 	k []k
@@ -337,7 +337,10 @@ func msl() { // update slice header after increasing m.f
 	m.z = *(*[]z)(unsafe.Pointer(&zz))
 }
 func bk(t, n k) k {
-	sz := lns[t]
+	sz := k(0)
+	if t < N {
+		sz = lns[t]
+	}
 	if n != atom {
 		sz *= n
 	}
@@ -413,18 +416,18 @@ func mtyp(x, n k) (t, cols k, eq bool) { // matrix type
 }
 func inc(x k) k {
 	t, n := typ(x)
-	switch t {
-	case L:
+	switch {
+	case t == L:
 		if n == atom {
 			panic("type")
 		}
 		for i := k(0); i < n; i++ {
 			inc(m.k[2+x+i])
 		}
-	case A:
+	case t == A:
 		inc(m.k[2+x])
 		inc(m.k[3+x])
-	case N + 1, N + 2, N + 3, N + 4:
+	case t > N:
 		if n == atom && m.k[2+x] > 255 { // derived
 			inc(m.k[3+x])
 		} else if n == 0 { // lambda
@@ -448,18 +451,18 @@ func dec(x k) {
 		panic("unref " + hxk(x))
 	}
 	t, n := typ(x)
-	switch t {
-	case L:
+	switch {
+	case t == L:
 		if n == atom {
 			panic("type")
 		}
 		for i := k(0); i < n; i++ {
 			dec(m.k[2+x+i])
 		}
-	case A:
+	case t == A:
 		dec(m.k[2+x])
 		dec(m.k[3+x])
-	case N + 1, N + 2, N + 3, N + 4:
+	case t > N:
 		if n == atom && m.k[2+x] > 255 { // derived
 			dec(m.k[3+x])
 		} else if n == 0 { // lambda
@@ -490,7 +493,10 @@ func srk(x, t, n, nn k) (r k) { // shrink bucket
 	}
 	if bk(t, nn) < bk(t, n) { // alloc not split: prevent small object accumulation
 		r = mk(t, nn)
-		ln := nn * lns[t]
+		ln := k(0)
+		if t < N {
+			ln = nn * lns[t]
+		}
 		if t == Z {
 			ln += 8
 		}
@@ -1096,14 +1102,14 @@ func str(x k) (r k) { // $x
 			}
 		}
 	} else {
-		switch t {
-		case L:
+		switch {
+		case t == L:
 			return lrc(x, n, str)
-		case A:
+		case t == A:
 			return arc(x, n, str)
-		case N:
+		case t == N:
 			r = mk(C, 0)
-		case N + 1, N + 2, N + 3, N + 4:
+		case t > N:
 			f := m.k[2+x]
 			if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
 				r = inc(m.k[2+x]) // `C
@@ -1696,10 +1702,12 @@ func kst(x k) (r k) { // `k@x
 		m.c[8+y<<2] = '!'
 		r = cat(r, y)
 		r = cat(r, kst(inc(m.k[x+3])))
-	case N, N + 1, N + 2, N + 3, N + 4:
-		r = str(inc(x))
 	default:
-		panic("nyi")
+		if t >= N {
+			r = str(inc(x))
+		} else {
+			panic("nyi")
+		}
 	}
 	return decr(x, r)
 }
@@ -1795,7 +1803,6 @@ func ser(x k) (r k) { // `@ (k7 compat)
 		copy(m.k[4+r:], m.k[2+x:2+n+x])
 		return decr(x, r)
 	default:
-		println(t, n)
 		panic("nyi")
 	}
 }
@@ -2210,7 +2217,10 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	return decr(y, r)
 }
 func lcat(x, y k) (r k) { // append anything to a list; no unify
-	_, nl := typ(x)
+	t, nl := typ(x)
+	if t != L {
+		panic("assert lcat")
+	}
 	if m.k[x+1] == 1 && bk(L, nl) == bk(L, nl+1) {
 		m.k[2+x+nl] = y
 		m.k[x] = L<<28 | (nl + 1)
@@ -3175,7 +3185,7 @@ func cal(x, y k) (r k) { // x.y
 func cal2(f, x, y k) (r k) { return cal(f, l2(x, y)) }
 func lambda(x, y k) (r k) { // call lambda
 	v := (m.k[x] >> 28) - N
-	if v < 1 || v > 3 {
+	if v < 1 || v > 9 {
 		panic("valence")
 	}
 	if yt, yn := typ(y); yt != L || yn != v {
@@ -5516,6 +5526,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 				}
 				return p.store(ps, compose(l2(l2(v, x), y))) // 2+ *
 			} else {
+				// pr(v, "verb")
 				return p.store(ps, l3(v, x, y)) // nve
 			}
 		}
@@ -5596,10 +5607,10 @@ func (p *p) noun() (r k) {
 	case p.t(sOcb):
 		p.p = p.m
 		st := p.m - 1
-		args := uf(p.idxa(mk(L,0)))
-		ln := m.k[args]&atom
+		args := uf(p.idxa(mk(L, 0)))
+		ln := m.k[args] & atom
 		r = mk(N+1, 0) // lambda is indicated with length 0 but uses 2 fields:
-		tree := p.lst(mk(C, 0), sCcb)
+		tree := p.lst(mk(L, 0), sCcb)
 		if m.k[tree]&atom == 1 {
 			tree = fst(tree)
 		} else {
@@ -5618,14 +5629,24 @@ func (p *p) noun() (r k) {
 				panic("valence(lambda)")
 			}
 		}
+		if N+ln > 15 { // type overflow (4bits)
+			panic("args")
+		}
 		args = locl(m.k[3+r], args)
 		args = unq(cat(args, mku(uint64('f')<<56)))
 		m.k[3+r] = l2(args, m.k[3+r])
 		m.k[r] = (N+ln)<<28 | 0
-		return p.idxr(r)
+		//return p.idxr(r)
+
+		r = p.idxr(r)
+		t, n := typ(r)
+		println("t/n", t, n)
+		pr(r, "lambda")
+		return r
+
 	case p.t(sOpa):
 		p.p = p.m
-		r = p.lst(mk(C, 0), sCpa)
+		r = p.lst(mk(L, 0), sCpa)
 		if m.k[r]&atom == 1 {
 			if m.k[m.k[2+r]]>>28 > N { // verb
 				return p.idxr(r)
@@ -5675,6 +5696,9 @@ func (p *p) idxr(x k) (r k) { // […]
 	return x
 }
 func (p *p) idxa(x k) (r k) { // a.b[..]
+	if t := m.k[x] >> 28; t != L {
+		panic("assert idxa")
+	}
 	if p.t(sObr) {
 		p.p = p.m
 		x = p.lst(x, sCbr)
@@ -5688,6 +5712,9 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 		return r
 	}
 	for {
+		if t := m.k[r] >> 28; t != L {
+			panic("assert lst not L")
+		}
 		r = lcat(r, p.ex(p.noun()))
 		if !p.t(sSem) {
 			break
