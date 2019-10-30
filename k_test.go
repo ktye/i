@@ -27,8 +27,10 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"`p\"()0:1 2 3\"","??"},
 		{"a:1;b:2;a+{a:2;a+x}5", "8"},
-		// {"1","fail"},
+		{"a:1;b::2;a+b", "3"},
+		//{":[1;2]","fail"},
 		{"{[a;b;c;d]a+b+c+d}[1;2;3;4]", "10"},
 		{"{[a;b;c;d;e]a+b+c+d+e}[1;2;3;4;5]", "15"},
 		{"{[a;b;c;d;e;F]a+b+c+d+e+F}[1;2;3;4;5;6]", "21"},
@@ -458,7 +460,7 @@ func TestK(t *testing.T) {
 		{"a:1;b:{;a:3;x+a}4;a+b", "8"},
 		{"a:1;b:{;a::3;x+a}4;a+b", "10"},
 		{"`p{x+y}", "((+;`x;`y);\"{x+y}\";`x`y;,`f)"},
-		{"`p{1+x;a:y}", "((`;(+;1;`x);(:;`a;`y));\"{1+x;a:y}\";`x`y;`a`f)"}, // k7: .{...}
+		{"`p{1+x;a:y}", "((`;(+;1;`x);(::;`a;`y));\"{1+x;a:y}\";`x`y;`a`f)"}, // k7: .{...}
 		{"{$[x<3;2+x;x]}1", "3"},
 		{"{$[x<3;f x+1;x]}1", "3"},
 		{"f:{2*x};n:3;f n+1", "8"},
@@ -499,7 +501,7 @@ func TestK(t *testing.T) {
 		{"2*+", "2*+"},
 		{"(.5*+).(2 4)", "3f"},
 		{"(-*:)2 3", "-2"},
-		{"`" + `p"e:+-"`, "(:;`e;(.;+:;-))"},
+		{"`" + `p"e:+-"`, "(::;`e;(.;+:;-))"},
 		{"e:+-;e", "+:-"},
 		{"`" + `p"|{x\\y}\\"`, `(.;|:;(\;{x\y}))`},
 		{`e:|{x\y}\;3 e\24 40`, "(24 40;16 24;8 16;0 8)"},
@@ -751,6 +753,7 @@ Function codes
 Functions have type N+1…N+4 (valence)
  basic functions and builtins: atoms
   x+2 is the function code
+  x+3 != 0 marks infix assignment
  lambda functions: marked with length 0
   x+2 string form C
   x+3 (arg list;parse tree)

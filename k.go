@@ -1284,17 +1284,13 @@ func evl(x k) (r k) {
 			return decr(x, v)
 		}
 		af := m.k[2+v]
-		if (vt > N && af == dyad && vn != 0) || (vt == N+1 && vn == atom && n == 3) { // : or :: or *: (modified assignmnt)
-			// in k7 assignment is always monadic :: (`1)
-			// here it is dyadic : (`2) and global assignment is monadic :: (`1)
-			if vt == N+1 && af == 0 { // :: (global assign)
-				vt, af = N+2, dyad // :: → :
-			}
+		//if (vt > N && af == dyad && vn != 0) || (vt == N+1 && vn == atom && n == 3) { // : or :: or *: (modified assignmnt)
+		if vt == N+1 && vn == atom && n == 3 { // : or :: or *: (modified assignmnt)
 			if n != 3 {
 				P("args")
 			}
 			f := k(0)
-			if af != dyad { // not ::, e.g. *:
+			if af != 0 { // not ::, e.g. *:
 				f = mk(N+2, atom)
 				m.k[2+f] = m.k[2+v] + dyad
 			} else {
@@ -5522,12 +5518,12 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 				return decr(v, p.store(ps, l2(x, y))) // x@y
 			} else if cmpvrb(y) {
 				if tv, nv := typ(v); tv == N+2 && nv == atom && m.k[2+v] == dyad {
-					return p.store(ps, l3(v, x, y)) // n:y (not a composition)
+					// TODO: also for global assign?
+					return p.store(ps, l3(iasn(v), x, y)) // n:y (not a composition)
 				}
 				return p.store(ps, compose(l2(l2(v, x), y))) // 2+ *
 			} else {
-				// pr(v, "verb")
-				return p.store(ps, l3(v, x, y)) // nve
+				return p.store(ps, l3(iasn(v), x, y)) // nve
 			}
 		}
 	} else {
@@ -5539,6 +5535,14 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			return p.store(ps, compose(l2(monad(r), x))) // ve
 		}
 	}
+}
+func iasn(v k) k { // mark (local) infix assignment
+	if t, n := typ(v); t == N+2 && n == atom && m.k[v+2] == dyad {
+		m.k[v] = (N+1) << 28 | atom
+		m.k[v+2] = 0
+		m.k[v+3] = 1 // marker
+	}
+	return v
 }
 func (p *p) store(ps k, x k) k { // store source position in refcount's high bits
 	if m.k[x]>>28 != L {
@@ -5636,14 +5640,7 @@ func (p *p) noun() (r k) {
 		args = unq(cat(args, mku(uint64('f')<<56)))
 		m.k[3+r] = l2(args, m.k[3+r])
 		m.k[r] = (N+ln)<<28 | 0
-		//return p.idxr(r)
-
-		r = p.idxr(r)
-		t, n := typ(r)
-		println("t/n", t, n)
-		pr(r, "lambda")
-		return r
-
+		return p.idxr(r)
 	case p.t(sOpa):
 		p.p = p.m
 		r = p.lst(mk(L, 0), sCpa)
@@ -5880,6 +5877,7 @@ func pVrb(b []byte) (r k) {
 				r = mk(N+1, atom)
 				m.k[2+r] = k(i)
 			}
+			m.k[3+r] = 0 // clear infix assignment
 			return r
 		}
 	}
@@ -6194,9 +6192,9 @@ func locl(x, l k) k { // local list of lambda parse tree
 		for i := k(0); i < n; i++ {
 			l = locl(m.k[2+i+x], l)
 		}
-		if n > 2 {
+		if n == 3 {
 			v := m.k[3+x]
-			if f := m.k[2+x]; m.k[v]>>28 == S && m.k[f]>>28 == N+2 && m.k[2+f] == dyad { // a:
+			if f := m.k[2+x]; m.k[f]>>28 == N + 1 && m.k[2+f] == 0 && m.k[3+f] == 1 { // infix local assignment
 				l = unq(cat(l, inc(v)))
 			}
 		}
