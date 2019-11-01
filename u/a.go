@@ -80,13 +80,13 @@ func wrt(x, y k) k { // x 1:y
 	w := bufio.NewWriter(os.Stdout)
 	w.Write(m.c[yp : yp+n])
 	w.Flush()
-	return decr(y, x)
+	return dex(y, x)
 }
 func tim(x, y k) (r k) { // 0 7:.. (reset timer), "alpha"7:.. print duration
 	t := m.k[x] >> 28
 	if t == I && m.k[2+x] == 0 {
 		timer = time.Now()
-		return decr(x, y)
+		return dex(x, y)
 	}
 	if timer.IsZero() {
 		timer = time.Now()

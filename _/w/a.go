@@ -25,8 +25,7 @@ func main() {
 	println(err.Error())
 }
 func kinit() { // each GET /k (e.g. page reload)
-	println("kinit")
-	ini()
+	ini(make([]f, 1<<13))
 	table[21] = red      // 0:x
 	table[21+dyad] = wrt // x 0:y
 	ee, ss, dd = inc(null), inc(null), inc(null)
@@ -34,6 +33,7 @@ func kinit() { // each GET /k (e.g. page reload)
 	mkk(".rsz", "{$[(x*y)~+/#:'.d;.d;.d::(y;x)#0]}")          // resize[.d;h w]
 	dec(asn(mks(".f"), key(mk(L, 0), mk(L, 0)), mk(N, atom))) // (memfs) `.f:("file1","file2")!(0x1234;0x5678..)
 }
+func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
 func hdr(r *http.Request) string { // TODO rm
 	var s string
 	for _, h := range []string{"n", "a", "b", "w", "h", "k"} {
@@ -101,9 +101,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]c("1:" + n + "\n"))
 		return
 	}
-	ee = decr(ee, atx(lup(mku(0)), mks("e")))
-	ss = decr(ss, atx(lup(mku(0)), mks("s")))
-	dd = decr(dd, kxy(mks(".rsz"), hi(r, "h"), hi(r, "w")))
+	ee = dex(ee, atx(lup(mku(0)), mks("e")))
+	ss = dex(ss, atx(lup(mku(0)), mks("s")))
+	dd = dex(dd, kxy(mks(".rsz"), hi(r, "h"), hi(r, "w")))
 	if !try(r.Header.Get("k")) { // eval k expr
 		w.Write(stdout.Bytes())
 		return
@@ -198,11 +198,11 @@ func wrt(x, y k) (r k) { // x 1:y
 	if xn != 0 {
 		b, ii := lupf(inc(x))
 		dec(amd(mks(".f"), mki(ii), y, mk(N, atom)))
-		return decr(b, x)
+		return dex(b, x)
 	}
 	yp := 8 + y<<2
 	stdout.Write(m.c[yp : yp+yn])
-	return decr(y, x)
+	return dex(y, x)
 }
 func lupf(x k) (r, j k) {
 	fs := lup(mks(".f"))
@@ -210,10 +210,10 @@ func lupf(x k) (r, j k) {
 	n := m.k[kk] & atom
 	for i := k(0); i < n; i++ {
 		if match(m.k[2+kk+i], x) {
-			return decr(fs, inc(m.k[2+vv+i])), i
+			return dex(fs, inc(m.k[2+vv+i])), i
 		}
 	}
-	return decr(fs, 0), n
+	return dex(fs, 0), n
 }
 func try(s s) (o bool) {
 	defer func() {

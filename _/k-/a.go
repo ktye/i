@@ -18,9 +18,9 @@ func red(x k) (r k) { // 1:x
 	if n, err := syscall.Read(syscall.Stdin, b); err != nil {
 		panic(err)
 	} else if n > 1 {
-		return decr(x, mkb(b[:n-1]))
+		return dex(x, mkb(b[:n-1]))
 	} else if n == 1 {
-		return decr(x, mk(C, 0))
+		return dex(x, mk(C, 0))
 	} else {
 		exi(0)
 	}
@@ -33,6 +33,6 @@ func wrt(x, y k) (r k) { // x 1:y
 	}
 	p := 8 + y<<2
 	print(s(m.c[p : p+n])) // stderr only
-	return decr(y, x)
+	return dex(y, x)
 }
 func exi(x k) (r k) { panic("ciao") }

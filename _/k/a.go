@@ -92,7 +92,7 @@ func red(x k) (r k) { // 1:x
 	r = mk(C, n)
 	rp := 8 + r<<2
 	copy(m.c[rp:rp+n], b)
-	return decr(x, r)
+	return dex(x, r)
 }
 func read() []c { // read all from stdin (non-interactive)
 	b, err := ioutil.ReadAll(os.Stdin)
@@ -129,7 +129,7 @@ func wrt(x, y k) k { // x 1:y
 	w := bufio.NewWriter(os.Stdout)
 	w.Write(m.c[yp : yp+n])
 	w.Flush()
-	return decr(y, x)
+	return dex(y, x)
 }
 func exi(x k) (r k) { // exit built-in
 	t, n := typ(x)
