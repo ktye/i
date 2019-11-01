@@ -1242,7 +1242,7 @@ func evl(x k) (r k) {
 		panic(s)
 	}
 	if n == 0 {
-		panic("evl empty list?") // what TODO?
+		return x
 	}
 	v := m.k[2+x]
 	vt, vn := typ(v)
@@ -5538,7 +5538,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 }
 func iasn(v k) k { // mark (local) infix assignment
 	if t, n := typ(v); t == N+2 && n == atom && m.k[v+2] == dyad {
-		m.k[v] = (N+1) << 28 | atom
+		m.k[v] = (N+1)<<28 | atom
 		m.k[v+2] = 0
 		m.k[v+3] = 1 // marker
 	}
@@ -5644,7 +5644,9 @@ func (p *p) noun() (r k) {
 	case p.t(sOpa):
 		p.p = p.m
 		r = p.lst(mk(L, 0), sCpa)
-		if m.k[r]&atom == 1 {
+		if n := m.k[r] & atom; n == 0 {
+			return p.idxr(r)
+		} else if n == 1 {
 			if m.k[m.k[2+r]]>>28 > N { // verb
 				return p.idxr(r)
 			}
@@ -6194,7 +6196,7 @@ func locl(x, l k) k { // local list of lambda parse tree
 		}
 		if n == 3 {
 			v := m.k[3+x]
-			if f := m.k[2+x]; m.k[f]>>28 == N + 1 && m.k[2+f] == 0 && m.k[3+f] == 1 { // infix local assignment
+			if f := m.k[2+x]; m.k[f]>>28 == N+1 && m.k[2+f] == 0 && m.k[3+f] == 1 { // infix local assignment
 				l = unq(cat(l, inc(v)))
 			}
 		}
