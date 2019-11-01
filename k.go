@@ -6200,7 +6200,11 @@ func locl(x, l k) k { // local list of lambda parse tree
 		if n == 3 {
 			v := m.k[3+x]
 			if f := m.k[2+x]; m.k[f]>>28 == N+1 && m.k[2+f] == 0 && m.k[3+f] == 1 { // infix local assignment
-				l = unq(cat(l, inc(v)))
+				inc(v)
+				if m.k[v]>>28 == L { // (a;b):..
+					v = drop(1, v)
+				}
+				l = unq(cat(l, v))
 			}
 		}
 	}
