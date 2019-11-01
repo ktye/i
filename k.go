@@ -5810,6 +5810,9 @@ func xtoc(x c) c {
 func pNum(b []byte) (r k) {
 	r, o := aton(b)
 	if !o {
+		if len(b) > 0 && b[len(b)-1] == 'e' {
+			return decr(r, inc(nan[F]))
+		}
 		panic("number")
 	}
 	return r
