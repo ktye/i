@@ -67,8 +67,8 @@ var unan, inan = uint64(0x7FF8000000000001), k(0x80000000)
 var fnan f = *(*f)(unsafe.Pointer(&unan))
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
-var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS, nil}      // less than (ltL causes init loop)
-var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
+var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
+var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS, nil}      // greater than (gtL causes init loop)
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
 	m.f[r] = f(i(m.k[x]))
@@ -129,7 +129,7 @@ func ini(mem []f) { // start function
 	m.k[3] = mk(A, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
-	ltx[L] = ltL
+	gtx[L] = gtL
 	o := c(40) // monads
 	builtins(o, "exit,sqrt,sin,cos,dev")
 	builtins(o+10, "real,imag,phase,conj,cond,nyi15,diag")
@@ -194,13 +194,13 @@ func gtZ(x, y k) bool {
 	return false
 }
 func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
-func ltL(x, y k) bool {
+func gtL(x, y k) bool {
 	x, y = m.k[x], m.k[y]
 	xt, yt, xn, yn := typs(x, y)
 	if xt == yt && xt < L {
-		return ltx[xt](ptr(x, xt), ptr(y, yt))
+		return gtx[xt](ptr(x, xt), ptr(y, yt))
 	} else if xt != yt {
-		return xt < yt
+		return xt > yt
 	} else if xt == L {
 		mn := atm1(xn)
 		if n := atm1(yn); n < xn {
@@ -211,10 +211,10 @@ func ltL(x, y k) bool {
 		}
 		for i := k(0); i < mn; i++ {
 			if xi, yi := 2+x+i, 2+y+i; !match(m.k[xi], m.k[yi]) {
-				return ltL(xi, yi)
+				return gtL(xi, yi)
 			}
 		}
-		return atm1(xn) < atm1(yn)
+		return atm1(xn) > atm1(yn)
 	} else {
 		panic("type")
 	}
@@ -949,7 +949,7 @@ func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 		}
 	} else {
 		for i := k(0); i < n; i++ {
-			ii := ibin(kp, t, kn, xp+i, gtx[t])
+			ii := ibin(kp, kn, xp+i, gtx[t])
 			m.k[2+vv+ii] = ucat(m.k[2+vv+ii], mki(i), I, m.k[m.k[2+vv+ii]]&atom, atom)
 		}
 	}
@@ -3951,7 +3951,7 @@ func dcd(x, y k) (r k) { // x/:y (decode y given in base x) {{z+y*x}/[0;x;y]}
 func bin(x, y k) (r k) { // x bin y
 	t, yt, xn, yn := typs(x, y)
 	if t == L {
-		return lbin(x, y)
+		y = explode(y)
 	} else if yt != t || t > S || xn == atom {
 		panic("type")
 	}
@@ -3959,11 +3959,11 @@ func bin(x, y k) (r k) { // x bin y
 	yn = atm1(yn)
 	gt, xp, yp := gtx[t], ptr(x, t), ptr(y, t)
 	for i := k(0); i < yn; i++ {
-		m.k[2+i+r] = ibin(xp, t, xn, yp+i, gt)
+		m.k[2+i+r] = ibin(xp, xn, yp+i, gt)
 	}
 	return decr(x, y, r)
 }
-func ibin(xp, t, n, yp k, gt func(x, y k) bool) (r k) {
+func ibin(xp, n, yp k, gt func(x, y k) bool) (r k) {
 	i, j, h := k(0), n-1, k(0)
 	for int32(i) <= int32(j) {
 		h = (i + j) >> 1
@@ -3974,37 +3974,6 @@ func ibin(xp, t, n, yp k, gt func(x, y k) bool) (r k) {
 		}
 	}
 	return i - 1
-}
-func lbin(x, y k) (r k) { // l bin y (linear)
-	xn, yn := m.k[x]&atom, m.k[y]&atom
-	r, xn = mk(I, yn), atm1(xn)
-	for j := k(0); j < atm1(yn); j++ {
-		xj := enlist(atx(inc(y), mki(j)))
-		o := true
-		for i := k(0); o && i < xn; i++ {
-			xi := atx(inc(x), mki(i))
-			switch {
-			case ltL(2+xj, 2+x+i):
-				m.k[2+r+j] = i - 1
-				o = false
-			case match(xi, m.k[2+xj]):
-				m.k[2+r+j] = i
-				o = false
-			case i == xn-1:
-				m.k[2+r+j] = atm1(xn - 1)
-				o = false
-			}
-			dec(xi)
-			if !o {
-				break
-			}
-		}
-		if o {
-			m.k[2+r+j] = atm1(yn)
-		}
-		dec(xj)
-	}
-	return decr(x, y, r)
 }
 func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 	if !match(f, null) {
@@ -4390,7 +4359,7 @@ func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
 	kp := ptr(keys, S)
 	kn := m.k[keys] & atom
-	ix := ibin(kp, S, kn, xp, gtS)
+	ix := ibin(kp, kn, xp, gtS)
 	if ix < kn && eqS(kp+ix, xp) {
 		return ix, true
 	}
@@ -5335,7 +5304,7 @@ func pct(x, y k) (r k) { // x med y (0.95 med y, -0.95f med y, 0 med y)
 			x = mk(yt, 0)
 			xp, yp, gt, cp := ptr(x, yt), ptr(y, yt), gtx[yt], cpx[yt]
 			for i := k(0); i < yn; i++ {
-				ix := 1 + ibin(xp, yt, i, yp+i, gt)
+				ix := 1 + ibin(xp, i, yp+i, gt)
 				x = insert(x, atx(inc(y), mki(i)), ix)
 				xp = ptr(x, yt)
 				cp(yp+i, xp+(i+1)/2)
