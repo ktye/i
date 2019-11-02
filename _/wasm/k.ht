@@ -16,7 +16,7 @@ function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.l
 var kwasm = sa(atob(r))
 const go = new Go()
 
-f["rev"] = rev
+f["rev"] = sa(rev)
 f["t.k"] = sa(atob(tk))
 f["f0.k"] = sa(atob(f0))
 f["f1.k"] = sa(atob(f1))
