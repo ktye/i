@@ -67,7 +67,7 @@ var unan, inan = uint64(0x7FF8000000000001), k(0x80000000)
 var fnan f = *(*f)(unsafe.Pointer(&unan))
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
-var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS, nil}      // less than (ltL init loop)
+var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS, nil}      // less than (ltL causes init loop)
 var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS}           // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
@@ -891,14 +891,39 @@ func asc(x k) (r k) { // <x
 		return arc(x, n, asc)
 	}
 	r = til(mki(n))
-	lt := ltx[t]
-	src, ind, dst := ptr(x, t), 2+r, ptr(r, I)
-	for i := k(1); i < n; i++ { // insertion sort, should be replaced
-		for j := k(i); j > 0 && lt(src+m.k[ind+j], src+m.k[ind+j-1]); j-- {
-			swI(dst+j, dst+(j-1))
+	w := mk(I, n)
+	mv(w, r)
+	msrt(2+w, 2+r, k(0), n, ptr(x, t), gtx[t])
+	return decr(x, w, r)
+}
+func msrt(x, r, a, b, p k, gt fc) { // merge sort
+	if b-a < 2 {
+		return
+	}
+	c := (a + b) / 2
+	msrt(r, x, a, c, p, gt)
+	msrt(r, x, c, b, p, gt)
+	mrge(x, r, a, b, c, p, gt)
+}
+func mrge(x, r, a, b, c, p k, gt fc) {
+	i, j := a, c
+	for k := a; k < b; k++ {
+		if i >= c || (j < b && gt(p+m.k[x+i], p+m.k[x+j])) {
+			m.k[r+k] = m.k[x+j]
+			j++
+		} else {
+			m.k[r+k] = m.k[x+i]
+			i++
 		}
 	}
-	return dex(x, r)
+}
+func isrt(x, r, n k, lt fc) { // insertion sort (can be removed)
+	v := r
+	for i := k(1); i < n; i++ {
+		for j := k(i); j > 0 && lt(x+m.k[v+j], x+m.k[v+j-1]); j-- {
+			swI(r+j, r+(j-1))
+		}
+	}
 }
 func dsc(x k) (r k) { return rev(asc(x)) } // >x
 func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
