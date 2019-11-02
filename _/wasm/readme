@@ -22,7 +22,7 @@ awk '/^{{/{
  next
 }{print}' k.ht > index.html
 
-if [ $1 = "deploy" ]; then
+if [ "$1" = "deploy" ]; then
 	cp index.html ../../../ktye.github.io/index.html
 fi
 

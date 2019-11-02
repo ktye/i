@@ -33,22 +33,22 @@ func ui(_ js.Value, args []js.Value) interface{} {
 		}
 		r = cal2(lup(mks("us")), mki(w), mki(h))
 	case 339:
-		return decr(asn(mks("ut"), enlist(mkb([]c(" "+args[1].String()))), inc(null)), 0)
+		return dex(asn(mks("ut"), enlist(mkb([]c(" "+args[1].String()))), inc(null)), 0)
 	case 416:
-		return decr(evl(prs(red(mkb([]c(args[1].String()))))), 0)
+		return dex(evl(prs(red(mkb([]c(args[1].String()))))), 0)
 	case 7088:
 		r = kst(evl(prs(mkb([]c(args[1].String())))))
 		t, n := typ(r)
 		if t != C || n == atom {
-			return decr(r, 0)
+			return dex(r, 0)
 		}
 		p := ptr(r, C)
 		println(string(m.c[p : p+n]))
-		return decr(r, 0)
+		return dex(r, 0)
 	default:
 		return nil
 	}
-	return decr(draw(r), 0)
+	return dex(draw(r), 0)
 }
 func modifiers(a, b, c k) (r k) {
 	r = mk(I, 3)
@@ -85,7 +85,7 @@ func red(x k) (r k) { // 1:x read from js f[file]
 	ln := a.Get("length")
 	r = mk(C, k(ln.Int()))
 	js.CopyBytesToGo(m.c[8+r<<2:], a)
-	return decr(x, r)
+	return dex(x, r)
 }
 func wrt(x, y k) (r k) { // x 1:y
 	xt, yt, xn, yn := typs(x, y)
@@ -105,11 +105,11 @@ func wrt(x, y k) (r k) { // x 1:y
 		u := js.Global().Get("Uint8Array").New(int(yn))
 		js.CopyBytesToJS(u, m.c[yp:yp+yn])
 		js.Global().Get("f").Set(s, u)
-		return decr(y, x)
+		return dex(y, x)
 	}
 	cat := mk(N+2, atom)
 	m.k[cat+2] = 12 + dyad
-	return decr(asn(mks("ut"), spl(mkc('\n'), y), cat), x)
+	return dex(asn(mks("ut"), spl(mkc('\n'), y), cat), x)
 }
 func trp(x, y k) (r k) {
 	if t, n := typ(y); t == C && n != atom && n < 512 {
