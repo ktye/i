@@ -61,7 +61,7 @@ var m struct { // linear memory (slices share underlying array)
 	f []f
 	z []z
 }
-var null k                          // mk(N,atom)
+var null, nans k                    // mk(N,atom), mk(S,nil)
 var nan = [7]k{0, 0, 0, 0, 0, 0, 0} // nan[t] (missing) mk(t,atom)..
 var unan, inan = uint64(0x7FF8000000000001), k(0x80000000)
 var fnan f = *(*f)(unsafe.Pointer(&unan))
@@ -105,7 +105,6 @@ func ini(mem []f) { // start function
 		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
-	// m.f = make([]f, 1<<13)
 	if len(mem) != 1<<13 {
 		panic("ini")
 	}
@@ -124,9 +123,9 @@ func ini(mem []f) { // start function
 	m.k[1] = 0x70881342
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-	m.k[stab] = lcat(mk(L, 0), mkb(nil)) // symbol table
-	m.k[kkey] = mk(S, 0)                 // k-tree keys
-	m.k[kval] = mk(L, 0)                 // k-tree values
+	m.k[stab] = lcat(mk(L, 0), inc(nans)) // symbol table
+	m.k[kkey] = mk(S, 0)                  // k-tree keys
+	m.k[kval] = mk(L, 0)                  // k-tree values
 	m.k[3] = mk(A, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
@@ -143,18 +142,18 @@ func ini(mem []f) { // start function
 	m.k[ptr(nan[I], I)] = k(inan)
 	m.f[ptr(nan[F], F)] = fnan
 	m.f[1+ptr(nan[Z], F)], m.f[2+ptr(nan[Z], F)] = fnan, fnan
-	mys(8+nan[S]<<2, 0)
+	nan[S] = inc(nans)
 	nan[L] = nan[C] // shared
 	n := mk(L, 5)
 	for i := k(0); i < 5; i++ {
 		m.k[2+n+i] = nan[i+1]
 	}
-	dec(asn(mks(".0"), null, inc(null)))
-	dec(asn(mks(".n"), n, inc(null)))
-	dec(asn(mku(0), key(mk(S, 0), mk(L, 0)), inc(null))) // ktree `
-	dec(asn(mks(".f"), mk(C, 0), inc(null)))             // file name
-	dec(asn(mks(".c"), mk(C, 0), inc(null)))             // current src
-	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)      // transpose
+	dec(asn(mks([]c(".0")), null, inc(null)))
+	dec(asn(mks([]c(".n")), n, inc(null)))
+	dec(asn(inc(nans), key(mk(S, 0), mk(L, 0)), inc(null))) // ktree `
+	dec(asn(mks([]c(".f")), mk(C, 0), inc(null)))           // file name
+	dec(asn(mks([]c(".c")), mk(C, 0), inc(null)))           // current src
+	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)         // transpose
 	// mkk(".odo", `{x\:!*/x}`)                             // odometer (replaced by native, \: is very slow)
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
@@ -194,7 +193,38 @@ func gtZ(x, y k) bool {
 	}
 	return false
 }
-func ltS(x, y k) bool { return sym(x<<3) < sym(y<<3) }
+func gtS(x, y k) bool {
+	xp, xn := sc(x)
+	yp, yn := sc(y)
+	mn := xn
+	if yn > mn {
+		mn = yn
+	}
+	for i := k(0); i < mn; i++ {
+		if m.c[xp+i] > m.c[yp+i] {
+			return true
+		}
+	}
+	return xn > yn
+}
+func ltS(x, y k) bool {
+	xp, xn := sc(x)
+	yp, yn := sc(y)
+	mn := xn
+	if yn < mn {
+		mn = yn
+	}
+	for i := k(0); i < mn; i++ {
+		if m.c[xp+i] < m.c[yp+i] {
+			return true
+		}
+	}
+	return xn < yn
+}
+func sc(x k) (r, n k) {
+	r = m.k[stab+2+m.k[x]]
+	return 8 + r<<2, r & atom
+}
 func gtL(x, y k) bool {
 	x, y = m.k[x], m.k[y]
 	xt, yt, xn, yn := typs(x, y)
@@ -220,7 +250,6 @@ func gtL(x, y k) bool {
 		panic("type")
 	}
 }
-func gtS(x, y k) bool { return sym(x<<3) > sym(y<<3) }
 func stI(dst, x k) k {
 	if m.k[x] == 0x80000000 {
 		m.c[dst] = '0'
@@ -260,15 +289,9 @@ func stZ(dst, x k) k {
 	return 1 + n + ftoa(dst+1+n, re)
 }
 func stS(dst, x k) k {
-	u := sym(x << 3)
-	for i := k(0); i < 8; i++ {
-		if c := c(u >> (8 * (7 - i))); c == 0 {
-			return i
-		} else {
-			m.c[dst+i] = c
-		}
-	}
-	return 8
+	c, n := sc(x)
+	copy(m.c[dst:n], m.c[c:n])
+	return n
 }
 func ptr(x, t k) k { // convert k address to type dependend index of data section
 	switch t {
@@ -301,7 +324,7 @@ func builtins(code c, s string) {
 	}
 	dec(v)
 }
-func mkk(s s, k s) { dec(asn(mks(s), mkb([]byte(k)), inc(null))) } // store k implementation
+func mkk(s s, k s) { dec(asn(mks([]c(s)), mkb([]c(k)), inc(null))) } // store k implementation
 func kx(s, x k) (r k) { // exec monadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C { // cache on first call
@@ -383,14 +406,30 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 	m.k[a+1] = 1       // refcount
 	return a
 }
-func mki(i k) (r k)      { r = mk(I, atom); m.k[2+r] = i; return r }
-func mkc(c c) (r k)      { r = mk(C, atom); m.c[8+r<<2] = c; return r }
-func mks(s s) (r k)      { return mku(btou([]c(s))) }
-func mku(u uint64) (r k) { r = mk(S, atom); mys(8+r<<2, u); return r }
+
+func mki(i k) (r k) { r = mk(I, atom); m.k[2+r] = i; return r }
+func mkc(c c) (r k) { r = mk(C, atom); m.c[8+r<<2] = c; return r }
+
+//func mks(s s) (r k)      { return mku(btou([]c(s))) }
+//func mku(u uint64) (r k) { r = mk(S, atom); mys(8+r<<2, u); return r }
 func mkb(b []c) (r k) {
 	r, n := mk(C, k(len(b))), k(len(b))
 	rp := 8 + r<<2
 	copy(m.c[rp:rp+n], b)
+	return r
+}
+func mks(b []c) (r k) {
+	r = mk(S, atom)
+	s := m.k[stab]
+	sp, n, c := 2+s, s&atom, mkb(b)
+	for i := k(0); i < n; i++ {
+		if match(m.k[sp+i], c) {
+			m.k[2+r] = i
+			return dex(c, r)
+		}
+	}
+	m.k[2+r] = n
+	m.k[stab] = lcat(s, c)
 	return r
 }
 func typ(x k) (k, k) { // type and length at addr
@@ -781,7 +820,7 @@ func flp(x k) (r k) { // +x
 	} else if t < L {
 		return x
 	}
-	return kx(mks(".flp"), x)
+	return kx(mks([]c(".flp")), x)
 }
 func neg(x k) k { // -x
 	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.z[r] = -m.z[x] }})
@@ -1057,7 +1096,7 @@ func not(x k) (r k) { // ~x
 	} else if t < S {
 		return to(eql(mki(0), x), I)
 	} else if t == S {
-		return eql(mku(0), x)
+		return eql(inc(nans), x)
 	} else if t == L {
 		return lrc(x, n, not)
 	} else if t == A {
@@ -1217,14 +1256,12 @@ func unq(x k) (r k) { // ?x
 	return dex(x, srk(r, t, n, nn))
 }
 func tip(x k) (r k) { // @x
-	r = mku(0)
 	t, n := typ(x)
 	s := m.c[169+t]
 	if n != atom && (t < L || t == A) && s != 0 {
 		s -= 32
 	}
-	mys(8+r<<2, uint64(s)<<56)
-	return dex(x, r)
+	return dex(x, mks(m.c[s:s+1]))
 }
 func val(x k) (r k) { // . x
 	switch m.k[x] >> 28 {
@@ -1244,10 +1281,10 @@ func evl(x k) (r k) {
 		if t == S && n == 1 {
 			return fst(x)
 		} else if t == S && n == atom {
-			if u := sym(8 + x<<2); u == 0x2e00000000000000 {
-				return dex(x, lup(mku(0)))
-			} else if u>>56 == uint64('.') { // remove dot
-				return dex(x, atx(lup(mku(0)), mku(u<<8)))
+			if c, n := sc(2 + x); matc(c, n, ".") {
+				return dex(x, lup(inc(nans)))
+			} else if n > 0 && m.c[c] == '.' { // remove dot
+				return dex(x, atx(lup(inc(nans)), mks(m.c[c+1:c+n])))
 			}
 			return lup(x)
 		}
@@ -1331,10 +1368,9 @@ func evl(x k) (r k) {
 					}
 				}
 				if dots {
-					if s := m.k[2+name]; sym(8+s<<2) == 0x2e00000000000000 { // `.
-						name = cat(mku(0), drop(1, name))
+					if c, n := sc(2 + name); matc(c, n, ".") {
+						name = cat(inc(nans), drop(1, name))
 					}
-
 					if r = lupo(fst(inc(name))); r == 0 {
 						r = key(mk(S, 0), mk(L, 0))
 					}
@@ -1435,12 +1471,12 @@ func evl(x k) (r k) {
 	return x
 }
 func ano(p, e k) (r k) { // annotate source line with error position
-	r = cat(lup(mks(".f")), mkc(':')) // TODO: .ano(k)
+	r = cat(lup(mks([]c(".f"))), mkc(':')) // TODO: .ano(k)
 	re := cat(cat(inc(r), inc(e)), mkc('\n'))
 	if p == 0 {
 		return decr(r, e, re)
 	}
-	s := lupo(mks(".c"))
+	s := lupo(mks([]c(".c")))
 	if s == 0 {
 		return decr(r, e, re)
 	}
@@ -1993,6 +2029,8 @@ func qt(c c) (c, bool) { // quote
 		return c, false
 	}
 }
+
+/*
 func sym(x k) uint64 { return *(*uint64)(unsafe.Pointer(&m.c[x])) }
 func mys(x k, u uint64) k {
 	var b [8]c
@@ -2010,6 +2048,7 @@ func btou(b []c) uint64 {
 	}
 	return u
 }
+*/
 func op2(code k) ([]f2, []fc) {
 	switch code - dyad {
 	case 1: // +
@@ -2165,6 +2204,17 @@ func match(x, y k) (rv bool) { // recursive match
 		return true
 	}
 	return false
+}
+func matc(x, n k, s s) bool { // symbol match
+	if n != k(len(s)) {
+		return false
+	}
+	for i := k(0); i < n; i++ {
+		if m.c[x+i] != s[i] {
+			return false
+		}
+	}
+	return true
 }
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
@@ -2377,7 +2427,7 @@ func take(n, o, y k) (r k) { // integer index and offset
 	}
 	return dex(y, uf(r))
 }
-func rot(x, y k) (r k) { return kxy(mks(".rot"), x, y) } // x rot y (rotate)
+func rot(x, y k) (r k) { return kxy(mks([]c(".rot")), x, y) } // x rot y (rotate)
 func drp(x, y k) (r k) { // x_y
 	xt, t, xn, yn := typs(x, y)
 	if xt > N {
@@ -2507,9 +2557,10 @@ func cst(x, y k) (r k) { // x$y
 		m.k[3+r] = cst(x, inc(m.k[3+y]))
 		return dex(y, r)
 	}
-	s := c(sym(8+x<<2) >> 56)
+	ss, sn := sc(2 + x)
+	s := m.c[ss]
 	if yt == C { // strconv
-		if s == 0 || s == 'n' { // `$x `n|x
+		if sn == 0 || s == 'n' { // `$x `n|x
 			return dex(x, c2s(y))
 		}
 		num, o := aton(m.c[8+y<<2 : atm1(yn)+8+y<<2])
@@ -3702,7 +3753,7 @@ func whls(f, x, y k) (r k) { // g f\y
 }
 func rdl(x k) (r k) { // 0:x
 	rd := table[21].(func(k) k)
-	return spl(mku(0), rd(x))
+	return spl(inc(nans), rd(x))
 }
 func wrl(x, y k) (r k) { // x 0:y
 	if m.k[x]>>28 == L {
@@ -3712,7 +3763,7 @@ func wrl(x, y k) (r k) { // x 0:y
 }
 func lun(x k) (r k) { // 8:x or .. \x (display)
 	wr := table[21+dyad].(func(k, k) k)
-	dec(wr(mku(0), cat(kst(inc(x)), mkc('\n'))))
+	dec(wr(inc(nans), cat(kst(inc(x)), mkc('\n'))))
 	return x
 }
 func deb(x k) (r k) { // 9:x (println)
@@ -3746,12 +3797,12 @@ func cmd(x k) (r k) {
 	case 's':
 		if r = lupo(mks(".stk")); r != 0 {
 			w := table[21+dyad].(func(k, k) k)
-			dec(w(mku(0), cat(r, mkc('\n'))))
+			dec(w(inc(nans), cat(r, mkc('\n'))))
 		}
 		return dex(x, inc(null))
 	case 'm': // \m x (matrix display)
 		w := table[21+dyad].(func(k, k) k)
-		dec(w(mku(0), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
+		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return inc(null)
 	case '\\':
 		exi := table[40].(func(k) k)
@@ -3784,7 +3835,7 @@ func evp(x k) { // parse-eval-print
 		return
 	}
 	r, asn := par(x, 8+x<<2), false
-	a, s := r, mku(0)
+	a, s := r, inc(nans)
 	if t, n := typ(a); t == L && n > 1 && match(m.k[2+a], s) {
 		dec(s)
 		a = m.k[1+n+a] // last of multiple statements
@@ -3808,7 +3859,7 @@ func out(x k) {
 		return
 	}
 	w := table[21+dyad].(func(k, k) k)
-	dec(w(mku(0), cat(kst(x), mkc('\n'))))
+	dec(w(inc(nans), cat(kst(x), mkc('\n'))))
 }
 func spl(x, y k) (r k) { // x\:y (split)
 	xt, yt, xn, yn := typs(x, y)
@@ -5393,8 +5444,8 @@ func par(x, sto k) (r k) {
 	}
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: sto}
 	r = mk(L, 1)
-	m.k[2+r] = mku(0) // ;→`
-	for p.p <= p.e {  // ex;ex;…
+	m.k[2+r] = inc(nans) // ;→`
+	for p.p <= p.e {     // ex;ex;…
 		r = lcat(r, p.ex(p.noun()))
 		if !p.t(sSem) {
 			break
@@ -5612,7 +5663,7 @@ func (p *p) noun() (r k) {
 		if m.k[tree]&atom == 1 {
 			tree = fst(tree)
 		} else {
-			tree = cat(mku(0), tree)
+			tree = cat(inc(nans), tree)
 		}
 		dst, n := mk(C, p.p-st), p.p-st
 		m.k[2+r] = dst  // #1: string representation
@@ -5826,7 +5877,7 @@ func pDot(b []byte) (r k) { // .name: `n
 }
 func pSym(b []byte) (r k) { // `name|`"name": `n
 	if len(b) == 1 {
-		r = mku(0)
+		r = inc(nans)
 	} else if len(b) > 1 || b[1] != '"' {
 		r = mku(btou(b[1:]))
 	} else {
