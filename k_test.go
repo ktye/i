@@ -755,7 +755,8 @@ Initial memory (64kB)
  p[47]       0x2f src pointer
  p[48]       0x30 points to k tree keys (^S)
  p[49]       0x31 points to k tree values (L)
- byte[?]     type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
+ p[50]       0x32 points to stab(symbol table, L of C)
+ maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
              A01234 need only a single block but may have length>0
 
 Function codes
@@ -793,9 +794,9 @@ See directories _ or u instead.
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
-	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v)
+	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v) +1+#stab(symbols)
 	// vars := m.k[m.k[kkey]] & atom
-	if u := Stats().UsedBlocks(); u != 6 {
+	if u := Stats().UsedBlocks(); u != 7+m.k[m.k[stab]]&atom {
 		xxd()
 		t.Fatalf("leak: %d", u)
 	}

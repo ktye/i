@@ -37,9 +37,9 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, L, A, N       k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom, srcp, kkey, kval, dyad k = 0x0fffffff, 0x2f, 0x30, 0x31, 80
-	NaI                          i = -2147483648
+	C, I, F, Z, S, L, A, N             k = 1, 2, 3, 4, 5, 6, 7, 8
+	atom, srcp, kkey, kval, stab, dyad k = 0x0fffffff, 0x2f, 0x30, 0x31, 0x32, 80
+	NaI                                i = -2147483648
 )
 
 type (
@@ -124,8 +124,9 @@ func ini(mem []f) { // start function
 	m.k[1] = 0x70881342
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
-	m.k[kkey] = mk(S, 0) // k-tree keys
-	m.k[kval] = mk(L, 0) // k-tree values
+	m.k[stab] = lcat(mk(L, 0), mkb(nil)) // symbol table
+	m.k[kkey] = mk(S, 0)                 // k-tree keys
+	m.k[kval] = mk(L, 0)                 // k-tree values
 	m.k[3] = mk(A, atom)
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
