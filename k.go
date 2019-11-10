@@ -2599,16 +2599,12 @@ func cst(x, y k) (r k) { // x$y
 	return dex(x, to(y, t)) // TODO other conversions?
 }
 func c2s(x k) (r k) { // `$c
-	if t, n := typ(x); t != C {
+	t, n := typ(x)
+	if t != C {
 		panic("type")
-	} else {
-		n = atm1(n)
-		if n > 8 {
-			n = 8
-		}
-		xp := 8 + x<<2
-		return dex(x, mku(btou(m.c[xp:xp+n])))
 	}
+	p := 8 + x<<2
+	return dex(x, mks(m.c[p:p+atm1(n)]))
 }
 func pad(n, y k) (r k) { // n$y
 	t, yn := typ(y)
@@ -2637,14 +2633,15 @@ func pad(n, y k) (r k) { // n$y
 func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
 	if t == S && yt != S {
-		switch sym(8 + x<<2) {
-		case 0: // `?
+		c, n := sc(2 + x)
+		switch {
+		case matc(c, n, ""):
 			return dex(x, res(y))
-		case 0x6236340000000000: // `b64?
+		case matc(c, n, "b64"):
 			return dex(x, b46(y))
-		case 0x6865780000000000: // `hex?
+		case matc(c, n, "hex"):
 			return dex(x, xeh(y))
-		case 0x6373760000000000: // `csv?
+		case matc(c, n, "csv"):
 			return dex(x, vsc(mk(L, 0), y))
 		default:
 			panic("type")
@@ -2706,18 +2703,19 @@ func fns(x, y k) (r k) { // x find y
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
-		switch sym(8 + x<<2) {
-		case 0x7000000000000000: // `p
+		c, n := sc(2 + x)
+		switch {
+		case matc(c, n, "p"):
 			return dex(x, prs(y))
-		case 0x6b00000000000000: // `k
+		case matc(c, n, "k"):
 			return dex(x, kst(y))
-		case 0x6d00000000000000: // `m
+		case matc(c, n, "m"):
 			return dex(x, mat(y))
-		case 0x6373760000000000: // `csv
+		case matc(c, n, "csv"):
 			return dex(x, csv(y))
-		case 0x6236340000000000: // `b64
+		case matc(c, n, "b64"):
 			return dex(x, b64(y))
-		case 0x6865780000000000: // `hex
+		case matc(c, n, "hex"):
 			return dex(x, hex(y))
 		default:
 			panic("class")
@@ -2882,7 +2880,7 @@ func cmc(x, n k) (r k) { // count matrix cols
 	}
 	return r
 }
-func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
+func csv(x k) (r k) { return kx(mks([]c(".csv")), x) } // `csv@x
 /*
 	t, n := typ(x)
 	if t == L {
@@ -2924,7 +2922,7 @@ func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
 }
 */
 func vsc(x, y k) (r k) { // `csv?y  x 0: y, ("ii";"|")0:("2|3";"3|4";"4|5")
-	return kxy(mks(".vsc"), x, y)
+	return kxy(mks([]c(".vsc")), x, y)
 }
 
 // TODO: ignore " " or "-"
@@ -3272,7 +3270,6 @@ func lambda(x, y k) (r k) { // call lambda
 		panic("type")
 	}
 	vv := mk(L, nv) // save old values
-	f := mku(uint64('f') << 56)
 	for i := k(0); i < nv; i++ {
 		name := atx(inc(loc), mki(i))
 		m.k[2+i+vv] = lupo(inc(name))
@@ -3283,9 +3280,7 @@ func lambda(x, y k) (r k) { // call lambda
 		}
 	}
 	dec(y)
-	dec(asn(inc(f), inc(x), mk(N, 0)))
 	r = evl(inc(l))
-	dec(del(f))
 	for i := k(0); i < nv; i++ { // restore old values
 		name, w := atx(inc(loc), mki(i)), m.k[2+i+vv]
 		if w == 0 {
@@ -3777,7 +3772,7 @@ func deb(x k) (r k) { // 9:x (println)
 	return dex(r, x)
 }
 func lod(x k) (r k) {
-	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), inc(null)))
+	dec(asn(mks([]c(".f")), tak(min(mki(8), cnt(inc(x))), inc(x)), inc(null)))
 	evp(red(x))
 	return inc(null)
 }
@@ -3795,7 +3790,7 @@ func cmd(x k) (r k) {
 	case 'k':
 		return key(inc(m.k[kkey]), inc(m.k[kval])) // dump ktree
 	case 's':
-		if r = lupo(mks(".stk")); r != 0 {
+		if r = lupo(mks([]c(".stk"))); r != 0 {
 			w := table[21+dyad].(func(k, k) k)
 			dec(w(inc(nans), cat(r, mkc('\n'))))
 		}
@@ -3873,7 +3868,7 @@ func spl(x, y k) (r k) { // x\:y (split)
 		return decr(x, y, mk(L, 0)) // k7 returns () instead of ,""
 	}
 	yp := ptr(y, C)
-	if xt == S && sym(8+x<<2) == 0 {
+	if xt == S && match(x, nan[S]) {
 		if yn > 0 && m.c[yp+yn-1] == '\n' { // `\:y ignores trailing newline
 			y, yn = drop(-1, y), yn-1
 			yp = ptr(y, C)
@@ -5440,7 +5435,7 @@ func par(x, sto k) (r k) {
 		return inc(null)
 	}
 	if sto != 0 {
-		dec(asn(mks(".c"), inc(x), inc(null)))
+		dec(asn(mks([]c(".c")), inc(x), inc(null)))
 	}
 	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: sto}
 	r = mk(L, 1)
@@ -5681,9 +5676,7 @@ func (p *p) noun() (r k) {
 		if N+ln > 15 { // type overflow (4bits)
 			panic("args")
 		}
-		args = locl(m.k[3+r], args)
-		args = unq(cat(args, mku(uint64('f')<<56)))
-		m.k[3+r] = l2(args, m.k[3+r])
+		m.k[3+r] = l2(unq(locl(m.k[3+r], args)), m.k[3+r])
 		m.k[r] = (N+ln)<<28 | 0
 		return p.idxr(r)
 	case p.t(sOpa):
@@ -5702,7 +5695,7 @@ func (p *p) noun() (r k) {
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
 	case p.t(sNam):
-		n := p.a(pNam)
+		n := p.a(mks)
 		// TODO: dot must follow immediately
 		for m.c[p.p] == '.' && p.t(sDot) { // a.b.c -> (`a;,`b;,`c)
 			if m.k[n]>>28 != L {
@@ -5715,7 +5708,7 @@ func (p *p) noun() (r k) {
 		}
 		return p.idxr(n)
 	case m.c[p.p] == '.' && p.t(sDot): // .a.b
-		n := enlist(mku(0x2e00000000000000)) // (`.;..) instead of (`;...)
+		n := enlist(mks([]c("."))) // (`.;..) instead of (`;...)
 		for {
 			n = lcat(n, enl(p.a(pDot)))
 			// TODO: dot must follow immediately
@@ -5869,23 +5862,16 @@ func pStr(b []byte) (r k) { // "a"|"a\nbc": `c|`C
 	}
 	return r
 }
-func pNam(b []byte) (r k) { // name: `n
-	return mku(btou(b))
-}
 func pDot(b []byte) (r k) { // .name: `n
-	return mku(btou(b[1:]))
+	return mks(b[1:])
 }
 func pSym(b []byte) (r k) { // `name|`"name": `n
 	if len(b) == 1 {
 		r = inc(nans)
 	} else if len(b) > 1 || b[1] != '"' {
-		r = mku(btou(b[1:]))
+		r = mks(b[1:])
 	} else {
-		r = pQot(b[1:])
-		_, n := typ(r)
-		m.k[r] = C<<28 | atom
-		rc := 8 + r<<2
-		mys(rc, btou(m.c[rc:rc+n]))
+		r = c2s(pQot(b[1:]))
 	}
 	return r
 }
