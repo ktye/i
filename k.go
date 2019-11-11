@@ -63,8 +63,8 @@ var m struct { // linear memory (slices share underlying array)
 }
 var null, nans k                    // mk(N,atom), mk(S,nil)
 var nan = [7]k{0, 0, 0, 0, 0, 0, 0} // nan[t] (missing) mk(t,atom)..
-var unan, inan = uint64(0x7FF8000000000001), k(0x80000000)
-var fnan f = *(*f)(unsafe.Pointer(&unan))
+var unan, inan, uinf = uint64(0x7FF8000000000001), k(0x80000000), uint64(0x7FF0000000000000)
+var fnan, finf f = *(*f)(unsafe.Pointer(&unan)), *(*f)(unsafe.Pointer(&uinf))
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpF, cpL}      // copy
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
 var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
@@ -5667,10 +5667,14 @@ func (p *p) noun() (r k) {
 		copy(m.c[dst:dst+n], m.c[st:p.p])
 		if ln == 0 {
 			dec(args)
-			args = argn(m.k[3+r], mk(L, 0))
-			ln = m.k[args] & atom
-			if ln == 0 {
+			args := mk(S, 0)
+			ln = argn(m.k[3+r], 0)
+			if ln == 0 || ln > 3 {
 				panic("valence(lambda)")
+			}
+			for i := k(0); i < ln; i++ {
+				c := 'x' + byte(i)
+				args = cat(args, mks([]byte{c}))
 			}
 		}
 		if N+ln > 15 { // type overflow (4bits)
@@ -5942,8 +5946,7 @@ func pAdv(b []byte) (r k) {
 	return r
 }
 func pBin(b []byte) (r k) { // builtin
-	x := mku(btou(b))
-	x = atx(inc(m.k[3]), x)
+	x := atx(inc(m.k[3]), mks(b))
 	if xt, xn := typ(x); xt != C && xn != atom {
 		panic("parse builtin")
 	}
@@ -6155,7 +6158,7 @@ func sBin(b []byte) int { // builtin
 		return 0
 	}
 	names := m.k[2+m.k[3]]
-	a, max := fnd(inc(names), mku(btou(b[:n]))), cnt(inc(names))
+	a, max := fnd(inc(names), mks(b[:n])), cnt(inc(names))
 	if match(a, max) {
 		n = 0
 	}
@@ -6193,34 +6196,24 @@ func ib(b bool) (r int) {
 	}
 	return r
 }
-func argn(x, l k) k { // count args of lambda parse tree
+func argn(x, ln k) k { // count args of lambda parse tree
 	t, n := typ(x)
-	ln := m.k[l] & atom
-	ux, uy, uz := uint64('x')<<56, uint64('y')<<56, uint64('z')<<56
+	ux, uy, uz := mks([]c("x")), mks([]c("y")), mks([]c("z"))
 	switch t {
-	case S:
-		if n == atom {
-			n = 1
-		}
-		for i := k(0); i < n; i++ {
-			if u := sym((2 + 2*i + x) << 2); u == ux && ln < 1 {
-				l, ln = cat(l, mku(ux)), 1
-			} else if u == uy && ln < 2 {
-				dec(l)
-				l, ln = mk(L, 2), 2
-				m.k[2+l], m.k[3+l] = mku(ux), mku(uy)
-			} else if u == uz && ln < 3 {
-				dec(l)
-				l, ln = mk(L, 3), 3
-				m.k[2+l], m.k[3+l], m.k[4+l] = mku(ux), mku(uy), mku(uz)
-			}
+	case S: // TODO: is it enough to check only atoms?
+		if match(x, ux) && ln < 1 {
+			ln = 1
+		} else if match(x, uy) && ln < 2 {
+			ln = 2
+		} else if match(x, uz) && ln < 3 {
+			ln = 3
 		}
 	case L:
 		for i := k(0); i < n; i++ {
-			l = argn(m.k[2+i+x], l)
+			ln = argn(m.k[2+i+x], ln)
 		}
 	}
-	return l
+	return ln
 }
 func locl(x, l k) k { // local list of lambda parse tree
 	t, n := typ(x)
@@ -6311,13 +6304,13 @@ func aton(b []byte) (r k, o bool) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 		} else if b[1] == 'n' {
 			return inc(nan[F]), true
 		} else if b[1] == 'w' {
-			r = mku(0x7FF0000000000000) // inf
-			m.k[r] = F<<28 | atom
+			r = mk(F, atom)
+			m.f[1+r>>1] = finf
 			return r, true
 		}
 	} else if len(b) == 3 && b[0] == '-' && b[1] == '0' && b[2] == 'w' {
-		r = mku(0xFFF0000000000000)
-		m.k[r] = F<<28 | atom
+		r = mk(F, atom)
+		m.f[1+r>>1] = -finf
 		return r, true
 	}
 	f := 0.0

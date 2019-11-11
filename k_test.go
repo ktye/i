@@ -932,9 +932,6 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	if x == nil {
 		return mk(N, atom)
 	}
-	kstr := func(dst k, s string) {
-		mys(dst, btou([]c(s)))
-	}
 	var r k
 	switch a := x.(type) {
 	case bool:
@@ -960,7 +957,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		r = mk(Z, atom)
 		m.z[1+r>>2] = a
 	case string:
-		r = mks(a)
+		r = mks([]c(a))
 	case []bool:
 		buf := make([]byte, len(a))
 		for i, v := range a {
@@ -992,7 +989,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	case []string:
 		r = mk(S, k(len(a)))
 		for i := range a {
-			kstr(8+8*k(i)+r<<2, a[i])
+			m.k[2+r] = mks([]c(a[i]))
 		}
 	case []interface{}:
 		if len(a) == 1 { // collapse list of atom to single element vector
