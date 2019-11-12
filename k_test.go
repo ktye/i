@@ -957,7 +957,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 		r = mk(Z, atom)
 		m.z[1+r>>2] = a
 	case string:
-		r = mks([]c(a))
+		r = mks(a)
 	case []bool:
 		buf := make([]byte, len(a))
 		for i, v := range a {
@@ -989,7 +989,7 @@ func K(x interface{}) k { // convert go value to k type, returns 0 on error
 	case []string:
 		r = mk(S, k(len(a)))
 		for i := range a {
-			m.k[2+r] = mks([]c(a[i]))
+			m.k[2+r] = mks(a[i])
 		}
 	case []interface{}:
 		if len(a) == 1 { // collapse list of atom to single element vector
