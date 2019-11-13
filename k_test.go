@@ -797,9 +797,9 @@ func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
 	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v) +1+#stab(symbols)
 	// vars := m.k[m.k[kkey]] & atom
-	if u := Stats().UsedBlocks(); u != 7+m.k[m.k[stab]]&atom {
+	if u, e := Stats().UsedBlocks(), 7+m.k[m.k[stab]]&atom; u != e {
 		xxd()
-		t.Fatalf("leak: %d", u)
+		t.Fatalf("leak: %d != %d", u, e)
 	}
 	fpck("")
 }

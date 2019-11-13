@@ -213,15 +213,12 @@ func ltS(x, y k) bool {
 	return xn < yn
 }
 func sc(x k) (r, n k) {
-	tt, nn := typ(m.k[stab])
-	fmt.Printf("sc typ mk stab: %d/%d\n", tt, nn)
-	if mx := m.k[m.k[stab]] & atom; x > mx { // TODO rm
-		fmt.Printf("sc x=%x (%d>%d) stab=%x->%x\n", x, x, mx, stab, m.k[stab])
+	if mx := m.k[m.k[stab]] & atom; m.k[x] > mx { // TODO rm
+		fmt.Printf("sc x=%x (%d>%d) stab=%x->%x\n", x, m.k[x], mx, stab, m.k[stab])
 		xxd()
 		panic("sc")
 	}
-	r = m.k[m.k[stab]+2+x]
-	fmt.Printf("sc x=%x m.k[stab]=%x r=%x rn=%d\n", x, m.k[stab], r, m.k[r]&atom)
+	r = m.k[m.k[stab]+2+m.k[x]]
 	return 8 + r<<2, m.k[r] & atom
 }
 func gtL(x, y k) bool {
@@ -288,10 +285,7 @@ func stZ(dst, x k) k {
 	return 1 + n + ftoa(dst+1+n, re)
 }
 func stS(dst, x k) k {
-	c, n := sc(m.k[x])
-	fmt.Printf("stS x=%d\n", x)
-	xxd()
-	fmt.Printf("stS c=%d n=%d s=%s\n", c, n, string(m.c[c:c+n]))
+	c, n := sc(x)
 	copy(m.c[dst:], m.c[c:c+n])
 	return n
 }
@@ -2693,11 +2687,6 @@ func fns(x, y k) (r k) { // x find y
 	return decr(x, y, r)
 }
 func atx(x, y k) (r k) { // x@y
-	fmt.Printf("atx %x %x\n", x, y)
-	pr(m.k[stab], "mk[stab]")
-	xxd()
-	pr(x, "x")
-	pr(y, "y")
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
 		c, n := sc(2 + x)
@@ -4139,11 +4128,6 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return dex(x, r)
 }
 func asn(x, y, f k) (r k) { // `x:y
-	fmt.Printf("asn x=%x, y=%x, f=%x\n", x, y, f)
-	pr(x, "x")
-	pr(y, "y")
-	pr(f, "f")
-
 	_, yt, xn, yn := typs(x, y)
 	if xn != atom {
 		if yn == atom {
