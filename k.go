@@ -127,6 +127,9 @@ func ini(mem []f) { // start function
 
 	m.k[stab] = mk(L, 0) // symbol table
 	nans = c2s(mkb(nil))
+	dec(mks("x"))
+	dec(mks("y"))
+	dec(mks("z"))
 	null = mk(N, atom)
 	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), nans
 	m.c[ptr(nan[C], C)] = 32
@@ -208,6 +211,8 @@ func ltS(x, y k) bool {
 	for i := k(0); i < mn; i++ {
 		if m.c[xp+i] < m.c[yp+i] {
 			return true
+		} else if m.c[xp+i] > m.c[yp+i] {
+			return false
 		}
 	}
 	return xn < yn
@@ -539,9 +544,9 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 		return dex(x, uf(r))
 	}
 	var g func(k, k)
-	if t == S && rt == I { // for symbol comparison to bool
+	if t == S && rt == I { // for symbol conversion to bool
 		g = func(r, x k) {
-			if m.f[x] == 0 {
+			if m.k[x] == 0 {
 				m.k[r] = 0
 			} else {
 				m.k[r] = 1
@@ -2632,6 +2637,8 @@ func fnd(x, y k) (r k) { // x?y
 		default:
 			panic("type")
 		}
+	} else if t == A {
+		return dex(x, atx(inc(m.k[2+x]), fnd(inc(m.k[3+x]), y)))
 	}
 	if xn == atom || t != yt {
 		panic("type")
@@ -6183,15 +6190,10 @@ func ib(b bool) (r int) {
 }
 func argn(x, ln k) k { // count args of lambda parse tree
 	t, n := typ(x)
-	ux, uy, uz := mks("x"), mks("y"), mks("z")
 	switch t {
 	case S: // TODO: is it enough to check only atoms?
-		if match(x, ux) && ln < 1 {
-			ln = 1
-		} else if match(x, uy) && ln < 2 {
-			ln = 2
-		} else if match(x, uz) && ln < 3 {
-			ln = 3
+		if u := m.k[2+x]; u > 0 && u < 3 && ln < u { // `x..`z are symbol 1..3
+			ln = u
 		}
 	case L:
 		for i := k(0); i < n; i++ {
