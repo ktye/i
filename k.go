@@ -2825,7 +2825,12 @@ func atx(x, y k) (r k) { // x@y
 			r = fst(r)
 		}
 		return decr(x, y, uf(r))
+	case yt == F || yt == Z:
+		return dot(x, y)
 	case yt == L:
+		if t := m.k[m.k[2+y]] >> 28; t == F || t == Z {
+			return dot(x, y)
+		}
 		r = mk(L, yn)
 		for i := k(0); i < yn; i++ {
 			m.k[2+r+i] = atx(inc(x), inc(m.k[2+y+i]))
@@ -4659,7 +4664,7 @@ func nrms(x k, sqrt bool) (r k) {
 		panic("type")
 	}
 }
-func dot(x, y k) (r k) { // x/y (matrix multiplication)
+func dot(x, y k) (r k) { // x@y x/y (matrix multiplication)
 	//    v/  v →  a       n/n   → (atom)
 	// (,v)/  v → ,a     1 n/n   → 1
 	// (,v)/+,v →,,a     1 n/n 1 → 1 1
