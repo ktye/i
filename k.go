@@ -6075,7 +6075,7 @@ func sNam(b []byte) (r int) {
 			break
 		}
 	}
-	if r > 0 && r <= 8 {
+	if r > 0 {
 		return r
 	}
 	return 0
