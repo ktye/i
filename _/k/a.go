@@ -53,7 +53,7 @@ func main() {
 }
 func try() {
 	defer stk(true)
-	evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: ("" 1: ," ")
+	evp(red(wrt(inc(nans), enl(mkc(' '))))) // r: 1: ("" 1: ," ")
 }
 func trp(x, y k) (r k) {
 	defer func() {
@@ -147,7 +147,7 @@ func stk(hide bool) {
 		} else {
 			println(a + "\n")
 		}
-		dec(wrt(mku(0), ano(m.k[srcp], mkb([]byte(b)))))
+		dec(wrt(inc(nans), ano(m.k[srcp], mkb([]byte(b)))))
 	}
 }
 func stack(c interface{}) (stk, err string) {
@@ -188,7 +188,7 @@ func srv(w http.ResponseWriter, rq *http.Request) {
 			buf = bytes.NewBuffer(nil)
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(500)
-			dec(wrt(mku(0), mkb([]byte(b))))
+			dec(wrt(inc(nans), mkb([]byte(b))))
 		}
 	}()
 	f, get := k(0), false
@@ -206,15 +206,13 @@ func srv(w http.ResponseWriter, rq *http.Request) {
 	}
 
 	hk, hv := mk(S, k(len(rq.Header))), mk(L, k(len(rq.Header)))
-	kp, j := 8+hk<<2, k(0)
+	j := k(0)
 	for key := range rq.Header {
-		kv := key
-		if len(kv) > 8 {
-			kv = kv[:8]
-		}
-		mys(kp, btou([]c(kv)))
+		kv := mks(key)
+		m.k[2+j+hk] = m.k[2+kv]
+		dec(kv)
 		m.k[2+j+hv] = mkb([]c(rq.Header.Get(key)))
-		kp, j = kp+8, j+1
+		j++
 	}
 	b, err := ioutil.ReadAll(rq.Body)
 	if err != nil {

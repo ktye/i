@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"unsafe"
 )
@@ -123,7 +122,7 @@ func ini(mem []f) { // start function
 	m.k[0] = (I << 28) | 31
 	m.k[1] = 0x70881342
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
-	copy(m.c[169:181], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a', 0, '1', '2', '3', '4'})
+	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 
 	m.k[stab] = mk(L, 0) // symbol table
 	nans = c2s(mkb(nil))
@@ -219,8 +218,6 @@ func ltS(x, y k) bool {
 }
 func sc(x k) (r, n k) {
 	if mx := m.k[m.k[stab]] & atom; m.k[x] > mx { // TODO rm
-		fmt.Printf("sc x=%x (%d>%d) stab=%x->%x\n", x, m.k[x], mx, stab, m.k[stab])
-		xxd()
 		panic("sc")
 	}
 	r = m.k[m.k[stab]+2+m.k[x]]
@@ -298,14 +295,13 @@ func ptr(x, t k) k { // convert k address to type dependend index of data sectio
 	switch t {
 	case C:
 		return (2 + x) << 2
-	case I, L, S:
-		return 2 + x
 	case F:
 		return (2 + x) >> 1
 	case Z:
 		return (4 + x) >> 2
+	default:
+		return 2 + x
 	}
-	panic("type")
 }
 func mv(dst, src k) {
 	t, n := typ(src)
@@ -1242,11 +1238,16 @@ func unq(x k) (r k) { // ?x
 }
 func tip(x k) (r k) { // @x
 	t, n := typ(x)
+	if t == N {
+		return dex(x, c2s(mkb(nil)))
+	} else if t > N {
+		return dex(x, c2s(mkc(byte('0'+t-N))))
+	}
 	s := m.c[169+t]
 	if n != atom && (t < L || t == A) && s != 0 {
 		s -= 32
 	}
-	return dex(x, c2s(mkb(m.c[s:s+1])))
+	return dex(x, c2s(mkc(s)))
 }
 func val(x k) (r k) { // . x
 	switch m.k[x] >> 28 {
@@ -1294,7 +1295,7 @@ func evl(x k) (r k) {
 	v := m.k[2+x]
 	vt, vn := typ(v)
 	if vt == S {
-		if n == 2 && vn == 1 && m.f[ptr(v, S)] == m.f[ptr(nan[S], S)] { // (,`;..) <- `@y
+		if n == 2 && vn == 1 && m.k[2+v] == 0 { // (,`;..) <- `@y
 			return R() + dex(x, ser(evl(inc(m.k[3+x]))))
 		}
 		if n == 1 { // ,`a`b → `a`b
@@ -1353,7 +1354,7 @@ func evl(x k) (r k) {
 					}
 				}
 				if dots {
-					if c, n := sc(2 + name); matc(c, n, ".") {
+					if c, n := sc(2 + m.k[2+name]); matc(c, n, ".") {
 						name = cat(inc(nans), drop(1, name))
 					}
 					if r = lupo(fst(inc(name))); r == 0 {
@@ -2175,7 +2176,12 @@ func match(x, y k) (rv bool) { // recursive match
 			return false
 		}
 		return true
+	case N:
+		return true
 	default:
+		if t > N {
+			return match(m.k[x+2], m.k[y+2]) && match(m.k[x+3], m.k[y+3])
+		}
 		eq := eqx[t]
 		if eq == nil {
 			panic("type")
@@ -2584,6 +2590,9 @@ func cst(x, y k) (r k) { // x$y
 	return dex(x, to(y, t)) // TODO other conversions?
 }
 func c2s(x k) (r k) { // `$c
+	if m.k[x]&atom == atom {
+		x = enl(x)
+	}
 	r = mk(S, atom)
 	s := m.k[stab]
 	sp, n := 2+s, m.k[s]&atom
@@ -5660,14 +5669,14 @@ func (p *p) noun() (r k) {
 		copy(m.c[dst:dst+n], m.c[st:p.p])
 		if ln == 0 {
 			dec(args)
-			args := mk(S, 0)
 			ln = argn(m.k[3+r], 0)
 			if ln == 0 || ln > 3 {
 				panic("valence(lambda)")
 			}
+			args = mk(S, ln)
+			ln = argn(m.k[3+r], 0)
 			for i := k(0); i < ln; i++ {
-				c := 'x' + byte(i)
-				args = cat(args, c2s(mkb([]byte{c})))
+				m.k[2+args+i] = i + 1 // `x..`z
 			}
 		}
 		if N+ln > 15 { // type overflow (4bits)
@@ -6192,7 +6201,7 @@ func argn(x, ln k) k { // count args of lambda parse tree
 	t, n := typ(x)
 	switch t {
 	case S: // TODO: is it enough to check only atoms?
-		if u := m.k[2+x]; u > 0 && u < 3 && ln < u { // `x..`z are symbol 1..3
+		if u := m.k[2+x]; u > 0 && u < 4 && ln < u { // `x..`z are symbol 1..3
 			ln = u
 		}
 	case L:

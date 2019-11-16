@@ -112,7 +112,7 @@ func stk(hide bool) {
 		} else {
 			println(a + "\n")
 		}
-		dec(wrt(mku(0), ano(m.k[srcp], mkb([]byte(b)))))
+		dec(wrt(inc(nans), ano(m.k[srcp], mkb([]byte(b)))))
 	}
 }
 func stack(c interface{}) (stk, err string) {

@@ -8,7 +8,7 @@ func main() {
 	table[40] = exi
 	table[21+dyad] = wrt
 	for {
-		evp(red(wrt(mku(0), enl(mkc(' '))))) // r: 1: (` 1: ," ")
+		evp(red(wrt(inc(nans), enl(mkc(' '))))) // r: 1: (` 1: ," ")
 	}
 }
 func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
