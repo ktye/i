@@ -42,7 +42,6 @@ func TestK(t *testing.T) {
 		// ??? {"a.b:3;{a.b+::x}[1];a", "(,`b)!,4"},
 		//{".a.b:3;{.a.b+::x}[1];.a","(,`b)!,4"}, // undefined.
 		//{".a.b:0;.a[`b`c]:1 2;a", "`a`b`c!0 1 2"}, // panic
-		//{"4 rand\"A\", "PDPK"},
 		//{"(-\"b\";@-\"b\")", "(-98;`i)"},
 		//{"(,1)!,2 3", "1!2 3"},
 		//{"1,()", ",1"},
@@ -560,6 +559,7 @@ func TestK(t *testing.T) {
 		{"3 rand 10", "1 9 5"},
 		{"4 rand \"a\"+`c$!26", `"exng"`},
 		{"-5 rand !6", "3 2 4 0 1"},
+		{"4 rand\"A\"", `"EXNG"`},
 		{"2p", "6.283185"},
 		{".1p", "0.3141593"},
 		{"0i1 1a90", "1a90 1a90"},
@@ -750,7 +750,7 @@ k7-
  
 Type/memory system
 32-bit system, buddy allocater with 8 byte headers
-types (cifzsla012..) byte8, int32, float64, complex128, symbol32, list32, dict64, funcs
+types (cifzsla01234) byte8, int32, float64, complex128, symbol64, list32, dict64, funcs
 space for 15 types
 8 byte header:
   4 bits type p>>28

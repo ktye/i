@@ -4485,17 +4485,17 @@ func heap(x, n, r k) k {
 	dec(y)
 	return r
 }
-func rol(x, y k) (r k) { // roll, deal
+func rol(x, y k) (r k) { // x rand y (roll, deal)
 	xt, yt, xn, yn := typs(x, y)
 	if xt != I || xn != atom {
 		panic("type")
 	}
 	n := i(m.k[2+x])
 	if yn == atom {
-		if yt == I { // n roll m → n roll !m
+		if yt == I { // n rand m → n rand !m
 			yn = m.k[2+y]
 			y = til(y)
-		} else if yt == F { // n roll yf uniform [0,y] #n
+		} else if yt == F { // n rand yf uniform [0,y] #n
 			if n < 0 {
 				panic("type")
 			}
@@ -4506,9 +4506,15 @@ func rol(x, y k) (r k) { // roll, deal
 				m.f[rp+i] *= c
 			}
 			return dex(y, r)
+		} else if yt == C { // n rand "A"
+			dec(y)
+			y, yt, yn = mk(C, 26), C, 26
+			for i := k(0); i < yn; i++ {
+				m.c[8+i+y<<2] = c('A' + i)
+			}
 		}
 	}
-	if n < 0 { // -n roll y (draw -n, no repetitions)
+	if n < 0 { // -n rand y (draw -n, no repetitions)
 		n = -n
 		if k(n) > yn {
 			panic("type")
@@ -4525,7 +4531,7 @@ func rol(x, y k) (r k) { // roll, deal
 			m.k[2+r+j] = i
 		}
 		return dex(x, atx(y, r))
-	} else { // n roll y (draw n with repetitions)
+	} else { // n rand y (draw n with repetitions)
 		r = mk(I, k(n))
 		for i := k(0); i < k(n); i++ {
 			m.k[2+r+i] = rndn(yn)
@@ -4534,7 +4540,7 @@ func rol(x, y k) (r k) { // roll, deal
 	}
 	return decr(x, y, r)
 }
-func rnd(x k) (r k) { // rand
+func rnd(x k) (r k) { // rand x
 	t, xn := typ(x)
 	if xn != atom { // draw a random element from x
 		return atx(x, mki(rndn(xn)))
