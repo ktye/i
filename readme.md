@@ -29,7 +29,7 @@ k7-
  
 Type/memory system
 32-bit system, buddy allocater with 8 byte headers
-types (cifzsla01234) byte8, int32, float64, complex128, symbol64, list32, dict64, funcs
+types (cifzsla012..) byte8, int32, float64, complex128, symbol32, list32, dict64, funcs
 space for 15 types
 8 byte header:
   4 bits type p>>28

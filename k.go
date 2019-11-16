@@ -5545,7 +5545,12 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 	if m.k[x]>>28 == N {
 		return x
 	}
-	if r = p.verb(x); r == 0 { // n
+	r = p.verb(x)
+	if r != 0 && p.t(sObr) {
+		x = p.idxr(r)
+		r = 0
+	}
+	if r == 0 { // n
 		ps := p.p
 		r = p.noun()
 		if m.k[r]>>28 == N {

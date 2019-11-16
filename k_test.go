@@ -27,7 +27,6 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		//{"{(x;y)}/[1;2 3 4]", "((1 2;3);4)"},              // parse
 		//{"{(x;y;z)}/[1;2 3 4;5 6 7]", "(1 2 5;3;6);4;7)"}, // triadic..
 		{"`p\"()+1\"", "(+;();1)"},
 		{"`p\"()0:1 2 3\"", "(0:;();1 2 3)"},
@@ -323,6 +322,10 @@ func TestK(t *testing.T) {
 		{"~!0", "!0"},
 		{"~`a`b!(2 0;1)", "`a`b!(0 1;0)"},
 		{"`p\"1+2 3\"", "(+;1;2 3)"},
+		{"`p\"+/[2;3 4]\"", "((/;+);2;3 4)"},
+		{"+/[2;3 4]", "9"},
+		{"`p\"{(x;y)}/[1;2 3 4]\"", "((/;{(x;y)});1;2 3 4)"},
+		{"{(x;y)}/[1;2 3 4]", "((1 2;3);4)"},
 		{",/", ",/"},
 		{`,\:`, `,\:`},
 		{"(/)[+]1 2 3", "6"},
@@ -747,7 +750,7 @@ k7-
  
 Type/memory system
 32-bit system, buddy allocater with 8 byte headers
-types (cifzsla01234) byte8, int32, float64, complex128, symbol64, list32, dict64, funcs
+types (cifzsla012..) byte8, int32, float64, complex128, symbol32, list32, dict64, funcs
 space for 15 types
 8 byte header:
   4 bits type p>>28
