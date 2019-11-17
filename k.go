@@ -174,7 +174,7 @@ func cpL(dst, src k)  { inc(m.k[src]); cpI(dst, src) }
 func swI(dst, src k)  { m.k[dst], m.k[src] = m.k[src], m.k[dst] }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
-func eqF(x, y k) bool { return m.f[x] == m.f[y] || (m.f[x] != m.f[x] && m.f[y] != m.f[y]) }
+func eqF(x, y k) bool { return m.k[x<<1] == m.k[y<<1] && m.k[1+x<<1] == m.k[1+y<<1] } // return m.f[x] == m.f[y] || (m.f[x] != m.f[x] && m.f[y] != m.f[y]) }
 func eqZ(x, y k) bool { return eqF(x<<1, y<<1) && eqF(1+x<<1, 1+y<<1) }
 func eqS(x, y k) bool { return m.k[x] == m.k[y] }
 func ltC(x, y k) bool { return m.c[x] < m.c[y] }
@@ -1130,7 +1130,19 @@ func cnt(x k) (r k) { // #x
 	n = atm1(n)
 	return dex(x, mki(k(i(n))))
 }
-func flr(x k) k { // _x
+func flr(x k) (r k) { // _x
+	if t, n := typ(x); t == C { // _c (tolower)
+		r = mk(C, n)
+		xp, rp := ptr(x, C), ptr(r, C)
+		for i := k(0); i < atm1(n); i++ {
+			if c := m.c[xp+i]; c >= 'A' && c <= 'Z' {
+				m.c[rp+i] = c + 32
+			} else {
+				m.c[rp+i] = c
+			}
+		}
+		return dex(x, r)
+	}
 	return nm(x, I, []f1{nil, func(r, x k) { m.c[r] = m.c[x] }, func(r, x k) { m.k[r] = m.k[x] }, func(r, x k) {
 		if isnan(m.f[x]) { // go issue 35034 on wasm
 			m.f[r] = m.f[x]
@@ -6365,6 +6377,9 @@ func aton(b []byte) (r k, o bool) { // 0|1f|2p|-2.3e+4|1i2|1a90: `i|`f|`z
 			r = mki(k(i(x)))
 		} else {
 			r = mk(F, atom)
+			if x == 0 && b[0] == '-' { // -0f
+				f = -f
+			}
 			m.f[1+r>>1] = f * float64(x)
 		}
 		return r, true
@@ -6424,6 +6439,11 @@ func atof(b []c) (f, bool) {
 func ftoa(dst k, v f) k {
 	switch {
 	case v == 0:
+		if 0 != (1<<63)&*(*uint64)(unsafe.Pointer(&v)) {
+			m.c[dst] = '-'
+			m.c[dst+1] = '0'
+			return 2
+		}
 		m.c[dst] = '0'
 		return 1
 	case v != v:
