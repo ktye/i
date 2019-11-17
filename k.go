@@ -2208,7 +2208,9 @@ func matc(x, n k, s s) bool { // symbol match
 */
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
-	if yn == 0 {
+	if xn == atom && yn == 0 {
+		return dex(y, enl(x))
+	} else if yn == 0 {
 		return dex(y, x)
 	}
 	if xt > A {
