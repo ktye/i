@@ -2225,12 +2225,32 @@ func cat(x, y k) (r k) { // x,y
 	case xt == A:
 		if yt != A {
 			panic("type")
-		} else {
-			r = mk(A, atom)
-			m.k[2+r] = cat(inc(m.k[2+x]), inc(m.k[2+y]))
-			m.k[3+r] = cat(inc(m.k[3+x]), inc(m.k[3+y]))
-			return decr(x, y, r)
 		}
+		if xn == atom && yn == atom { // d,d
+			return dex(y, amdv(x, inc(m.k[2+y]), inc(null), inc(m.k[3+y])))
+		}
+		if match(m.k[2+x], m.k[2+y]) == false {
+			panic("nyi") // downtype to dict
+		}
+		nk, rn := m.k[m.k[2+x]]&atom, atm1(xn)+atm1(yn)
+		r = mk(A, rn)
+		m.k[2+r] = inc(m.k[2+x])
+		m.k[3+r] = mk(L, nk)
+		ik := mki(0)
+		for i := k(0); i < nk; i++ {
+			a := atx(inc(m.k[3+x]), inc(ik))
+			if xn == atom {
+				a = enl(a)
+			}
+			b := atx(inc(m.k[3+y]), inc(ik))
+			if yn == atom {
+				b = enl(b)
+			}
+			m.k[2+i+m.k[3+r]] = cat(a, b)
+			m.k[2+ik]++
+		}
+		dec(ik)
+		return decr(x, y, r)
 	default:
 		if xt != L {
 			x = explode(x)
