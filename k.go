@@ -40,6 +40,7 @@ const (
 	C, I, F, Z, S, L, A, N             k = 1, 2, 3, 4, 5, 6, 7, 8
 	atom, srcp, kkey, kval, stab, dyad k = 0x0fffffff, 0x2f, 0x30, 0x31, 0x32, 80
 	NaI                                i = -2147483648
+	ydot, yp, yk, ym, yb64, yhex, ycsv k = 4, 5, 6, 7, 8, 9, 10
 )
 
 type (
@@ -124,11 +125,9 @@ func ini(mem []f) { // start function
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 
-	m.k[stab] = mk(L, 0) // symbol table
-	nans = c2s(mkb(nil))
-	dec(mks("x"))
-	dec(mks("y"))
-	dec(mks("z"))
+	m.k[stab] = spl(mkc(','), mkb([]byte(",x,y,z,.,p,k,m,b64,hex,csv"))) // symbol table
+	nans = mk(S, atom)
+	m.k[2+nans] = 0
 	null = mk(N, atom)
 	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), nans
 	m.c[ptr(nan[C], C)] = 32
@@ -215,6 +214,10 @@ func ltS(x, y k) bool {
 		}
 	}
 	return xn < yn
+}
+func sym(s s) (r k) {
+	r = mks(s)
+	return dex(r, m.k[2+r])
 }
 func sc(x k) (r, n k) {
 	if mx := m.k[m.k[stab]] & atom; m.k[x] > mx { // TODO rm
@@ -465,7 +468,7 @@ func dex(x, r k) k     { dec(x); return r }
 func decr(x, y, r k) k { dec(x); dec(y); return r }
 func dec(x k) {
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
-		// xxd()
+		xxd()
 		panic("unref " + hxk(x))
 	}
 	t, n := typ(x)
@@ -1267,9 +1270,9 @@ func evl(x k) (r k) {
 		if t == S && n == 1 {
 			return fst(x)
 		} else if t == S && n == atom {
-			if c, n := sc(2 + x); matc(c, n, ".") {
+			if m.k[2+x] == ydot {
 				return dex(x, lup(inc(nans)))
-			} else if n > 0 && m.c[c] == '.' { // remove dot
+			} else if c, n := sc(2 + x); m.c[c] == '.' { // remove dot
 				return dex(x, atx(lup(inc(nans)), c2s(mkb(m.c[c+1:c+n]))))
 			}
 			return lup(x)
@@ -1301,7 +1304,7 @@ func evl(x k) (r k) {
 		if n == 1 { // ,`a`b → `a`b
 			return dex(x, inc(v))
 		}
-		if m.k[2+v] == 0 && m.k[3+v] == 0 { // (`;…) → ex;ex…
+		if m.k[2+v] == 0 { // (`;…) → ex;ex…
 			for i := k(1); i < n; i++ {
 				if i > 1 {
 					dec(r)
@@ -1354,7 +1357,7 @@ func evl(x k) (r k) {
 					}
 				}
 				if dots {
-					if c, n := sc(2 + m.k[2+name]); matc(c, n, ".") {
+					if m.k[2+m.k[2+name]] == ydot {
 						name = cat(inc(nans), drop(1, name))
 					}
 					if r = lupo(fst(inc(name))); r == 0 {
@@ -2196,6 +2199,8 @@ func match(x, y k) (rv bool) { // recursive match
 	}
 	return false
 }
+
+/*
 func matc(x, n k, s s) bool { // symbol match
 	if n != k(len(s)) {
 		return false
@@ -2207,6 +2212,7 @@ func matc(x, n k, s s) bool { // symbol match
 	}
 	return true
 }
+*/
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
 	if yn == 0 {
@@ -2633,15 +2639,15 @@ func pad(n, y k) (r k) { // n$y
 func fnd(x, y k) (r k) { // x?y
 	t, yt, xn, yn := typs(x, y)
 	if t == S && yt != S {
-		c, n := sc(2 + x)
-		switch {
-		case matc(c, n, ""):
+		// c, n := sc(2 + x)
+		switch m.k[2+x] {
+		case 0: // `?
 			return dex(x, res(y))
-		case matc(c, n, "b64"):
+		case yb64: // matc(c, n, "b64"):
 			return dex(x, b46(y))
-		case matc(c, n, "hex"):
+		case yhex: // matc(c, n, "hex"):
 			return dex(x, xeh(y))
-		case matc(c, n, "csv"):
+		case ycsv: // matc(c, n, "csv"):
 			return dex(x, vsc(mk(L, 0), y))
 		default:
 			panic("type")
@@ -2705,19 +2711,18 @@ func fns(x, y k) (r k) { // x find y
 func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
-		c, n := sc(2 + x)
-		switch {
-		case matc(c, n, "p"):
+		switch m.k[2+x] {
+		case yp:
 			return dex(x, prs(y))
-		case matc(c, n, "k"):
+		case yk:
 			return dex(x, kst(y))
-		case matc(c, n, "m"):
+		case ym:
 			return dex(x, mat(y))
-		case matc(c, n, "csv"):
+		case ycsv:
 			return dex(x, csv(y))
-		case matc(c, n, "b64"):
+		case yb64:
 			return dex(x, b64(y))
-		case matc(c, n, "hex"):
+		case yhex:
 			return dex(x, hex(y))
 		default:
 			panic("class")
@@ -4403,11 +4408,9 @@ func lupo(x k) (r k) { // lup, 0 on undefined
 	return dex(x, r)
 }
 func undef(x k) (r s) {
-	c := mk(C, 8)
-	n, p := stS(8+c<<2, ptr(x, S)), 8+c<<2
-	r = s(m.c[p : p+n])
+	c, n := sc(2 + x)
 	dec(x)
-	return "undefined:" + r
+	return "undefined:" + s(m.c[c:c+n])
 }
 func varn(xp k) (idx k, exists bool) {
 	keys := m.k[kkey]
