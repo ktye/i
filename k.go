@@ -2578,6 +2578,8 @@ func cst(x, y k) (r k) { // x$y
 	xt, yt, xn, yn := typs(x, y)
 	if xt == I && xn == atom && yt < L && yn != atom { // [-]n$y (pad)
 		return dex(x, pad(m.k[2+x], y))
+	} else if xt == I && yt == C {
+		return tak(x, y) // i#"c"
 	} else if xt != S || xn != atom {
 		panic("type")
 	}
@@ -3422,21 +3424,32 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		return arc2(f, x, n, ecp)
 	} else if t > L || n == atom {
 		panic("class")
-	} else if n == 1 {
-		dec(f)
-		return x
+	}
+	x0 := k(0)
+	if code := m.k[2+f]; m.k[f]&atom == atom && code < 256 {
+		switch code - dyad {
+		//case 12: // ,
+		//return decr(x, f, mk(t, 0))
+		case 1, 2, 6: // +-|
+			x0 = to(mki(0), t)
+		case 3, 5: // *&
+			x0 = to(mki(1), t)
+		}
+	}
+	if x0 == 0 {
+		x0 = inc(nan[t])
 	}
 	if x, t, op := scop1(f, x); op != nil {
 		r = mk(t, n)
 		rp, xp := ptr(r, t), ptr(x, t)
-		cpx[t](rp, xp)
+		op(rp, xp, ptr(x0, t))
 		for i := k(1); i < n; i++ {
 			op(rp+i, xp+i, xp+i-1)
 		}
-		return dex(x, r)
+		return decr(x0, x, r)
 	}
 	r = mk(L, n)
-	m.k[2+r] = atx(inc(x), mki(0))
+	m.k[2+r] = cal2(inc(f), atx(inc(x), mki(0)), x0)
 	for i := k(1); i < n; i++ {
 		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), atx(inc(x), mki(i-1)))
 	}
