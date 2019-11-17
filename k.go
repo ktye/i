@@ -2528,8 +2528,14 @@ func fil(x, y k, drop bool) (r k) { // f#x f_x filter
 	z := mki(0)
 	for i := k(0); i < yn; i++ {
 		r = cal(inc(x), enl(atx(inc(v), mki(i))))
+		if m.k[r]>>28 != I {
+			panic("type")
+		}
 		if match(r, z) == drop {
-			m.k[2+idx+i] = 1
+			m.k[2+idx+i] = m.k[2+r]
+			if drop {
+				m.k[2+idx+i] = 1
+			}
 		} else {
 			m.k[2+idx+i] = 0
 		}
