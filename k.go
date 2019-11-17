@@ -2378,6 +2378,12 @@ func tak(x, y k) (r k) { // x#y
 		return fil(x, y, false)
 	}
 	if yt == A {
+		if xt == I {
+			r = mk(A, yn)
+			m.k[2+r] = tak(inc(x), inc(m.k[2+y]))
+			m.k[3+r] = tak(inc(x), inc(m.k[3+y]))
+			return decr(x, y, r)
+		}
 		return key(x, atx(y, inc(x)))
 	}
 	if xt != I {
