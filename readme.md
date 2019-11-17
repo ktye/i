@@ -1,24 +1,24 @@
-<pre>00 : <a href="../../blob/master/k.go#L764">idn</a> <a href="../../blob/master/k.go#L464">dex</a>    20 0 <a href="../../blob/master/k.go#L3756">rdl</a> <a href="../../blob/master/k.go#L3760">wrl</a>    40 exi exit  120 ... in       60 <a href="../../blob/master/k.go#L4456">prm</a>  140
-01 + <a href="../../blob/master/k.go#L765">flp</a> <a href="../../blob/master/k.go#L2062">add</a>    21 1 nil nil    41 <a href="../../blob/master/k.go#L1865">sqr</a> <a href="../../blob/master/k.go#L1865">sqr</a>t  121 ... within   61      141
-02 - <a href="../../blob/master/k.go#L804">neg</a> <a href="../../blob/master/k.go#L2063">sub</a>    22 2 nil nil    42 <a href="../../blob/master/k.go#L1868">sin</a>       122 <a href="../../blob/master/k.go#L4005">bin</a>          62      142
-03 * <a href="../../blob/master/k.go#L807">fst</a> <a href="../../blob/master/k.go#L2064">mul</a>    23 3 nil nil    43 <a href="../../blob/master/k.go#L1871">cos</a>       123 ... like     63      143
-04 % <a href="../../blob/master/k.go#L845">inv</a> <a href="../../blob/master/k.go#L2065">div</a>    24 4 nil nil    44 <a href="../../blob/master/k.go#L5059">dev</a>       124 <a href="../../blob/master/k.go#L4423">del</a>          64      144
-05 & <a href="../../blob/master/k.go#L848">wer</a> <a href="../../blob/master/k.go#L2066">min</a>    25 5 nil nil    45 <a href="../../blob/master/k.go#L1889">log</a>       125 <a href="../../blob/master/k.go#L2071">lgn</a> <a href="../../blob/master/k.go#L1889">log</a>      65      145
-06 | <a href="../../blob/master/k.go#L874">rev</a> <a href="../../blob/master/k.go#L2067">max</a>    26 6 nil nil    46 <a href="../../blob/master/k.go#L1892">exp</a>       126 <a href="../../blob/master/k.go#L2074">pow</a> <a href="../../blob/master/k.go#L1892">exp</a>      66      146
-07 < <a href="../../blob/master/k.go#L905">asc</a> <a href="../../blob/master/k.go#L2068">les</a>    27 7 nil nil    47 <a href="../../blob/master/k.go#L4548">rnd</a> rand  127 <a href="../../blob/master/k.go#L4493">rol</a> rand     67      147
-08 > dst <a href="../../blob/master/k.go#L2069">mor</a>    28 8 <a href="../../blob/master/k.go#L3766">lun</a> nil    48 <a href="../../blob/master/k.go#L1874">abs</a>       128 <a href="../../blob/master/k.go#L1882">abq</a> 2 <a href="../../blob/master/k.go#L1874">abs</a>    68      148
-09 = <a href="../../blob/master/k.go#L948">grp</a> <a href="../../blob/master/k.go#L2070">eql</a>    29 9 nil nil    49 <a href="../../blob/master/k.go#L4636">nrm</a> norm  129 <a href="../../blob/master/k.go#L4637">nrq</a> 2 norm   69      149
+<pre>00 : <a href="../../blob/master/k.go#L780">idn</a> <a href="../../blob/master/k.go#L481">dex</a>    20 0 <a href="../../blob/master/k.go#L3752">rdl</a> <a href="../../blob/master/k.go#L3756">wrl</a>    40 exi exit  120 ... in       60 <a href="../../blob/master/k.go#L4450">prm</a>  140
+01 + <a href="../../blob/master/k.go#L781">flp</a> <a href="../../blob/master/k.go#L2058">add</a>    21 1 nil nil    41 <a href="../../blob/master/k.go#L1881">sqr</a> <a href="../../blob/master/k.go#L1881">sqr</a>t  121 ... within   61      141
+02 - <a href="../../blob/master/k.go#L820">neg</a> <a href="../../blob/master/k.go#L2059">sub</a>    22 2 nil nil    42 <a href="../../blob/master/k.go#L1884">sin</a>       122 <a href="../../blob/master/k.go#L4001">bin</a>          62      142
+03 * <a href="../../blob/master/k.go#L823">fst</a> <a href="../../blob/master/k.go#L2060">mul</a>    23 3 nil nil    43 <a href="../../blob/master/k.go#L1887">cos</a>       123 ... like     63      143
+04 % <a href="../../blob/master/k.go#L861">inv</a> <a href="../../blob/master/k.go#L2061">div</a>    24 4 nil nil    44 <a href="../../blob/master/k.go#L5053">dev</a>       124 <a href="../../blob/master/k.go#L4417">del</a>          64      144
+05 & <a href="../../blob/master/k.go#L864">wer</a> <a href="../../blob/master/k.go#L2062">min</a>    25 5 nil nil    45 <a href="../../blob/master/k.go#L1905">log</a>       125 <a href="../../blob/master/k.go#L2067">lgn</a> <a href="../../blob/master/k.go#L1905">log</a>      65      145
+06 | <a href="../../blob/master/k.go#L890">rev</a> <a href="../../blob/master/k.go#L2063">max</a>    26 6 nil nil    46 <a href="../../blob/master/k.go#L1908">exp</a>       126 <a href="../../blob/master/k.go#L2070">pow</a> <a href="../../blob/master/k.go#L1908">exp</a>      66      146
+07 < <a href="../../blob/master/k.go#L921">asc</a> <a href="../../blob/master/k.go#L2064">les</a>    27 7 nil nil    47 <a href="../../blob/master/k.go#L4542">rnd</a> rand  127 <a href="../../blob/master/k.go#L4487">rol</a> rand     67      147
+08 > dst <a href="../../blob/master/k.go#L2065">mor</a>    28 8 <a href="../../blob/master/k.go#L3762">lun</a> nil    48 <a href="../../blob/master/k.go#L1890">abs</a>       128 <a href="../../blob/master/k.go#L1898">abq</a> 2 <a href="../../blob/master/k.go#L1890">abs</a>    68      148
+09 = <a href="../../blob/master/k.go#L964">grp</a> <a href="../../blob/master/k.go#L2066">eql</a>    29 9 nil nil    49 <a href="../../blob/master/k.go#L4630">nrm</a> norm  129 <a href="../../blob/master/k.go#L4631">nrq</a> 2 norm   69      149
                                                                           
-10 ! <a href="../../blob/master/k.go#L977">til</a> <a href="../../blob/master/k.go#L2115">key</a>    30 ' <a href="../../blob/master/k.go#L3319">qtc</a> <a href="../../blob/master/k.go#L3316">qot</a>    50 <a href="../../blob/master/k.go#L1895">rel</a> real  130 <a href="../../blob/master/k.go#L4982">mkz</a> cmplx    70      150
-11 ~ <a href="../../blob/master/k.go#L1071">not</a> <a href="../../blob/master/k.go#L2149">mch</a>    31 / <a href="../../blob/master/k.go#L3320">slc</a> <a href="../../blob/master/k.go#L3317">sla</a>    51 <a href="../../blob/master/k.go#L1896">ima</a> <a href="../../blob/master/k.go#L1896">ima</a>g  131 <a href="../../blob/master/k.go#L2673">fns</a> find     71      151
-12 , <a href="../../blob/master/k.go#L1090">enl</a> <a href="../../blob/master/k.go#L2210">cat</a>    32 \ <a href="../../blob/master/k.go#L3321">bsc</a> <a href="../../blob/master/k.go#L3318">bsl</a>    52 <a href="../../blob/master/k.go#L1897">phi</a> phase 132 <a href="../../blob/master/k.go#L2421">rot</a>          72      152
-13 ^ <a href="../../blob/master/k.go#L1108">srt</a> <a href="../../blob/master/k.go#L2324">ept</a>    33 ' <a href="../../blob/master/k.go#L3328">ech</a> <a href="../../blob/master/k.go#L3354">ecd</a>    53 <a href="../../blob/master/k.go#L1925">cnj</a> conj  133              73      153
-14 # <a href="../../blob/master/k.go#L1109">cnt</a> <a href="../../blob/master/k.go#L2354">tak</a>    34 / <a href="../../blob/master/k.go#L3468">ovr</a> <a href="../../blob/master/k.go#L3606">ovi</a>    54 <a href="../../blob/master/k.go#L4816">cnd</a> cond  134              74      154
-15 _ <a href="../../blob/master/k.go#L1117">flr</a> <a href="../../blob/master/k.go#L2422">drp</a>    35 \ <a href="../../blob/master/k.go#L3527">scn</a> <a href="../../blob/master/k.go#L3639">sci</a>    55 <a href="../../blob/master/k.go#L1983">zxp</a> <a href="../../blob/master/k.go#L1892">exp</a>i  135 <a href="../../blob/master/k.go#L1946">rxp</a> <a href="../../blob/master/k.go#L1892">exp</a>i     75      155
-16 $ <a href="../../blob/master/k.go#L1130">str</a> <a href="../../blob/master/k.go#L2532">cst</a>    36 ' <a href="../../blob/master/k.go#L3374">ecp</a> <a href="../../blob/master/k.go#L3420">epi</a>    56 <a href="../../blob/master/k.go#L1046">dia</a> <a href="../../blob/master/k.go#L1046">dia</a>g  136              76      156
-17 ? <a href="../../blob/master/k.go#L1207">unq</a> <a href="../../blob/master/k.go#L2633">fnd</a>    37 / <a href="../../blob/master/k.go#L3899">jon</a> <a href="../../blob/master/k.go#L3440">ecr</a>    57 <a href="../../blob/master/k.go#L5154">avg</a>       137 <a href="../../blob/master/k.go#L5185">mvg</a> <a href="../../blob/master/k.go#L5154">avg</a>      77      157
-18 @ <a href="../../blob/master/k.go#L1239">tip</a> <a href="../../blob/master/k.go#L2705">atx</a>    38 \ <a href="../../blob/master/k.go#L3866">spl</a> <a href="../../blob/master/k.go#L3454">ecl</a>    58 <a href="../../blob/master/k.go#L5290">med</a>       138 <a href="../../blob/master/k.go#L5302">pct</a> <a href="../../blob/master/k.go#L5290">med</a>      78      158
-19 . <a href="../../blob/master/k.go#L1252">val</a> <a href="../../blob/master/k.go#L3174">cal</a>    39 /     trp    59 <a href="../../blob/master/k.go#L5085">vri</a> var   139 <a href="../../blob/master/k.go#L5106">cov</a> var      79      15
+10 ! <a href="../../blob/master/k.go#L993">til</a> <a href="../../blob/master/k.go#L2111">key</a>    30 ' <a href="../../blob/master/k.go#L3315">qtc</a> <a href="../../blob/master/k.go#L3312">qot</a>    50 <a href="../../blob/master/k.go#L1911">rel</a> real  130 <a href="../../blob/master/k.go#L4976">mkz</a> cmplx    70      150
+11 ~ <a href="../../blob/master/k.go#L1087">not</a> <a href="../../blob/master/k.go#L2145">mch</a>    31 / <a href="../../blob/master/k.go#L3316">slc</a> <a href="../../blob/master/k.go#L3313">sla</a>    51 <a href="../../blob/master/k.go#L1912">ima</a> <a href="../../blob/master/k.go#L1912">ima</a>g  131 <a href="../../blob/master/k.go#L2670">fns</a> find     71      151
+12 , <a href="../../blob/master/k.go#L1106">enl</a> <a href="../../blob/master/k.go#L2209">cat</a>    32 \ <a href="../../blob/master/k.go#L3317">bsc</a> <a href="../../blob/master/k.go#L3314">bsl</a>    52 <a href="../../blob/master/k.go#L1913">phi</a> phase 132 <a href="../../blob/master/k.go#L2420">rot</a>          72      152
+13 ^ <a href="../../blob/master/k.go#L1124">srt</a> <a href="../../blob/master/k.go#L2323">ept</a>    33 ' <a href="../../blob/master/k.go#L3324">ech</a> <a href="../../blob/master/k.go#L3350">ecd</a>    53 <a href="../../blob/master/k.go#L1941">cnj</a> conj  133              73      153
+14 # <a href="../../blob/master/k.go#L1125">cnt</a> <a href="../../blob/master/k.go#L2353">tak</a>    34 / <a href="../../blob/master/k.go#L3464">ovr</a> <a href="../../blob/master/k.go#L3602">ovi</a>    54 <a href="../../blob/master/k.go#L4810">cnd</a> cond  134              74      154
+15 _ <a href="../../blob/master/k.go#L1133">flr</a> <a href="../../blob/master/k.go#L2421">drp</a>    35 \ <a href="../../blob/master/k.go#L3523">scn</a> <a href="../../blob/master/k.go#L3635">sci</a>    55 <a href="../../blob/master/k.go#L1999">zxp</a> <a href="../../blob/master/k.go#L1908">exp</a>i  135 <a href="../../blob/master/k.go#L1962">rxp</a> <a href="../../blob/master/k.go#L1908">exp</a>i     75      155
+16 $ <a href="../../blob/master/k.go#L1146">str</a> <a href="../../blob/master/k.go#L2531">cst</a>    36 ' <a href="../../blob/master/k.go#L3370">ecp</a> <a href="../../blob/master/k.go#L3416">epi</a>    56 <a href="../../blob/master/k.go#L1062">dia</a> <a href="../../blob/master/k.go#L1062">dia</a>g  136              76      156
+17 ? <a href="../../blob/master/k.go#L1223">unq</a> <a href="../../blob/master/k.go#L2631">fnd</a>    37 / <a href="../../blob/master/k.go#L3895">jon</a> <a href="../../blob/master/k.go#L3436">ecr</a>    57 <a href="../../blob/master/k.go#L5148">avg</a>       137 <a href="../../blob/master/k.go#L5179">mvg</a> <a href="../../blob/master/k.go#L5148">avg</a>      77      157
+18 @ <a href="../../blob/master/k.go#L1255">tip</a> <a href="../../blob/master/k.go#L2702">atx</a>    38 \ <a href="../../blob/master/k.go#L3862">spl</a> <a href="../../blob/master/k.go#L3450">ecl</a>    58 <a href="../../blob/master/k.go#L5284">med</a>       138 <a href="../../blob/master/k.go#L5296">pct</a> <a href="../../blob/master/k.go#L5284">med</a>      78      158
+19 . <a href="../../blob/master/k.go#L1268">val</a> <a href="../../blob/master/k.go#L3170">cal</a>    39 /     trp    59 <a href="../../blob/master/k.go#L5079">vri</a> var   139 <a href="../../blob/master/k.go#L5100">cov</a> var      79      15
 
 k7+
  complex(type z): 1i2, 1a30, cmplx, expi, real, imag, phase, conj, rand 3i(binormal)
@@ -51,6 +51,7 @@ Initial memory (64kB)
  p[48]       0x30 points to k tree keys (^S)
  p[49]       0x31 points to k tree values (L)
  p[50]       0x32 points to stab(symbol table, L of C)
+ p[51]       0x33 points to asci chars (#256)
  maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
              A01234 need only a single block but may have length>0
 
@@ -79,6 +80,11 @@ Functions have type N+1…N+4 (valence)
   x+3 points to the function operand
  call will adjust the valence if a derived function has two arguments
 </pre>
+
+Symbols are interned in the char array at m.k[stab]
+ symbol values are 256+index into this array (which is append only)
+ values < 256 are single char symbols and represent their ascii value
+ the 0 value is the empty symbol
 
 # Building
 <pre>

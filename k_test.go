@@ -27,7 +27,6 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-
 		//{"{(x;y;z)}/[1;2 3 4;5 6 7]", "(1 2 5;3;6);4;7)"}, // triadic..
 		{"`p\"()+1\"", "(+;();1)"},
 		{"`p\"()0:1 2 3\"", "(0:;();1 2 3)"},
@@ -777,6 +776,7 @@ Initial memory (64kB)
  p[48]       0x30 points to k tree keys (^S)
  p[49]       0x31 points to k tree values (L)
  p[50]       0x32 points to stab(symbol table, L of C)
+ p[51]       0x33 points to asci chars (#256)
  maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
              A01234 need only a single block but may have length>0
 
@@ -805,6 +805,11 @@ Functions have type N+1…N+4 (valence)
   x+3 points to the function operand
  call will adjust the valence if a derived function has two arguments
 </pre>
+
+Symbols are interned in the char array at m.k[stab]
+ symbol values are 256+index into this array (which is append only)
+ values < 256 are single char symbols and represent their ascii value
+ the 0 value is the empty symbol
 
 # Building
 <pre>
