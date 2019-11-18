@@ -1693,7 +1693,8 @@ func kst(x k) (r k) { // `k@x
 		}
 	case S:
 		if atm || n == 1 {
-			rr := mk(C, 0)
+			_, n := sc(2 + x)
+			rr := mk(C, n)
 			sn, rrc, rn, q := stS(8+rr<<2, ptr(x, S)), 8+rr<<2, k(1), false
 			for i := k(0); i < sn; i++ {
 				c := m.c[rrc+i]
@@ -1873,32 +1874,147 @@ func mat(x k) (r k) { // `m@x (matrix display; should be implemented in k)
 func ser(x k) (r k) { // `@ (k7 compat)
 	t, n := typ(x)
 	switch t {
-	case I:
-		if n == atom {
-			panic("nyi") // 0x07data
+	case C, I, F, Z:
+		ln, o := lns[t]*atm1(n), k(0)
+		if t == I {
+			t = 7
+		} else if t == F {
+			t = 0x0e
+		} else if t == Z {
+			t, o = 9, 8 // not k7
 		}
-		r = mk(C, 8+4*n) // 8 byte header: type, length
-		m.k[2+r] = 0
-		m.c[11+r<<2] = 7
+		if n == atom {
+			r = mk(C, 1+ln)
+			rp, xp := ptr(r, C), ptr(x, C)
+			m.c[rp] = c(t)
+			copy(m.c[1+rp:1+ln+rp], m.c[xp+o:xp+o+ln])
+			return dex(x, r)
+		}
+		r = mk(C, 8+ln) // 8 byte header: type, length
+		m.k[2+r] = t << 24
 		m.k[3+r] = n
-		copy(m.k[4+r:], m.k[2+x:2+n+x])
+		rp, xp := ptr(2+r, C), ptr(x, C)
+		copy(m.c[rp:rp+ln], m.c[xp+o:xp+o+ln])
+		return dex(x, r)
+	case S:
+		if n == atom {
+			r = mk(C, 1)
+			m.c[8+r<<2] = 0x0f
+		} else {
+			r = mk(C, 8)
+			m.k[2+r] = 0x0f << 24
+			m.k[3+r] = n
+		}
+		for i := k(0); i < atm1(n); i++ {
+			c, n := sc(2 + i + x)
+			s := mk(C, n+1)
+			sp := 8 + s<<2
+			copy(m.c[sp:sp+n], m.c[c:c+n])
+			m.c[sp+n] = 0
+			r = cat(r, s)
+		}
+		return dex(x, r)
+	case L:
+		r = mk(C, 8)
+		m.k[2+r] = 0
+		m.k[3+r] = n
+		if n == 0 {
+			return dex(x, cat(r, ser(mk(C, 0)))) // prototype
+		}
+		for i := k(0); i < n; i++ {
+			r = cat(r, ser(inc(m.k[2+x+i])))
+		}
+		return dex(x, r)
+	case A:
+		p := k(0)
+		if n != atom {
+			r = mk(C, 16)
+			m.k[2+r] = 0x14 << 24
+			m.k[3+r] = 1
+			p = 2
+		} else {
+			r = mk(C, 8)
+		}
+		m.k[2+p+r] = 0x15 << 24
+		m.k[3+p+r] = 2
+		r = cat(r, ser(inc(m.k[2+x])))
+		r = cat(r, ser(inc(m.k[3+x])))
 		return dex(x, r)
 	default:
 		panic("nyi")
 	}
 }
 func res(x k) (r k) { // `?x
+	r, x = resn(x)
+	return dex(x, r)
+}
+func resn(x k) (r, xe k) {
 	t, n := typ(x)
-	if t != C || n == atom || n == 0 {
+	if t != C || n < 2 || (m.c[8+x<<2] == 0 && n < 8) {
 		panic("type")
 	}
-	p := ptr(x, C)
-	if m.c[p] != 7 || n != 5 {
+	rt, rn, o := k(m.c[8+x<<2]), atom, k(0)
+	if rt == 0 {
+		rt, rn = m.k[2+x]>>24, m.k[3+x]
+		x = drop(8, x)
+	} else {
+		x = drop(1, x)
+	}
+	switch rt {
+	case 0:
+		if rn == atom {
+			panic("length")
+		}
+		r = mk(L, rn)
+		for i := k(0); i < rn; i++ {
+			m.k[2+r+i], x = resn(x)
+		}
+		return r, x
+	case 1:
+		rt = C
+	case 7:
+		rt = I
+	case 0x0e:
+		rt = F
+	case 9:
+		rt, o = Z, 8
+	case 0x10: // k7 progression arrays
+		r, o = mk(I, rn), m.k[2+x]
+		for i := k(0); i < atm1(rn); i++ {
+			m.k[2+r+i] = i + o
+		}
+		return r, drop(4, x)
+	case 0x0f:
+		r = mk(S, rn)
+		p, xn, nn := 8+x<<2, atm1(m.k[x]&atom), k(0)
+		for i := k(0); i < atm1(rn); i++ {
+			ni := k(0)
+			for j := p; j < p+xn; j++ {
+				if m.c[j] == 0 {
+					break
+				}
+				ni++
+			}
+			ds := c2s(mkb(m.c[p : p+ni]))
+			m.k[2+r+i] = dex(ds, m.k[2+ds])
+			p, xn, nn = p+ni+1, xn-ni-1, nn+1+ni
+		}
+		return r, drop(i(nn), x)
+	case 0x14:
+		r, x = resn(x)
+		return flp(r), x
+	case 0x15:
+		r = mk(A, atom)
+		m.k[2+r], x = resn(x)
+		m.k[3+r], x = resn(x)
+		return r, x
+	default:
 		panic("nyi")
 	}
-	r = mk(I, atom)
-	copy(m.c[8+r<<2:], m.c[p+1:p+5])
-	return dex(x, r)
+	r = mk(rt, rn) // C,I,F,Z
+	p, rp, ln := 8+x<<2, 8+r<<2, atm1(rn)*lns[rt]
+	copy(m.c[rp+o:rp+o+ln], m.c[p:p+ln])
+	return r, drop(i(ln), x)
 }
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
@@ -4435,7 +4551,7 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 		panic("domain")
 	}
 	a0 := fst(inc(a))
-	return amdv(inc(x), inc(a0), mk(N, 0), dmdv(atx(x, a0), drop(1, a), f, y))
+	return amdv(inc(x), inc(a0), inc(null), dmdv(atx(x, a0), drop(1, a), f, y))
 }
 func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
 	yt, yn := typ(y)
