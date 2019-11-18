@@ -590,7 +590,11 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	if t == Z && fx[Z] == nil { // e.g. real functions
 		x, t = to(x, F), F
 	}
-	r = mk(t, n)
+	if m.k[1+x] == 1 && t < L {
+		r = inc(x)
+	} else {
+		r = mk(t, n)
+	}
 	n = atm1(n)
 	switch t {
 	case L:
@@ -676,7 +680,13 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 		y, yt = to(y, t), t
 	}
 	if fc == nil {
-		r = mk(t, n)
+		if m.k[1+x] == 1 && xn != atom {
+			r = inc(x)
+		} else if m.k[1+y] == 1 && yn != atom {
+			r = inc(y)
+		} else {
+			r = mk(t, n)
+		}
 	} else if t < L {
 		r = mk(I, n)
 	} else {
@@ -804,7 +814,7 @@ func flp(x k) (r k) { // +x
 			m.k[3+r] = inc(m.k[3+x])
 			return dex(x, r)
 		} else if m.k[1+x] == 1 {
-			m.k[x] = A << 28 & atom
+			m.k[x] = A<<28 | atom
 			return x
 		} else {
 			r = mk(A, atom)
@@ -3275,33 +3285,35 @@ func cal(x, y k) (r k) { // x.y
 		case 1:
 			f := table[code].(func(k, k) k)
 			a, b := inc(m.k[3+x]), inc(m.k[2+y])
-			r = f(a, b)
+			dec(y)
+			return dex(x, f(a, b))
 		case 2:
 			f := table[code+dyad].(func(k, k, k) k)
 			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
-			r = f(a, b, c)
+			dec(y)
+			return dex(x, f(a, b, c))
 		default:
 			panic("valence")
 		}
-		return decr(x, y, r)
 	}
 	switch xt {
 	case N + 1:
 		if yn != 1 {
 			panic("valence")
 		}
-		f := table[code].(func(k) k)
-		r = f(inc(m.k[2+y]))
+		f, a := table[code].(func(k) k), inc(m.k[2+y])
+		dec(y)
+		return dex(x, f(a))
 	case N + 2:
 		if yn != 2 {
 			panic("valence")
 		}
-		f := table[code].(func(k, k) k)
-		r = f(inc(m.k[2+y]), inc(m.k[3+y]))
+		f, a, b := table[code].(func(k, k) k), inc(m.k[2+y]), inc(m.k[3+y])
+		dec(y)
+		return dex(x, f(a, b))
 	default:
 		panic("nyi")
 	}
-	return decr(x, y, r)
 }
 func cal2(f, x, y k) (r k) { return cal(f, l2(x, y)) }
 func lambda(x, y k) (r k) { // call lambda
