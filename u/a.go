@@ -32,7 +32,15 @@ func exi(x k) { os.Exit(0) } // \\
 
 var stdin io.Reader
 
-func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
+func grw(c k) {
+	if 2*len(m.f) <= cap(m.f) {
+		m.f = m.f[:2*len(m.f)]
+	} else {
+		x := make([]f, 2*len(m.f), c/4)
+		copy(x, m.f)
+		m.f = x
+	}
+}
 func red(x k) (r k) { // 1:x
 	t, n := typ(x)
 	if t == S {

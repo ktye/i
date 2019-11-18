@@ -12,8 +12,16 @@ import (
 	"testing"
 )
 
-func red(x k) (r k) { panic("fs") }                               // 1:x (needs to be provided for k.go)
-func grw()          { m.f = append(m.f, make([]f, len(m.f))...) } // double memory
+func red(x k) (r k) { panic("fs") } // 1:x (needs to be provided for k.go)
+func grw(c k) { // double memory
+	if 2*len(m.f) <= cap(m.f) {
+		m.f = m.f[:2*len(m.f)]
+	} else {
+		x := make([]f, 2*len(m.f), c/4)
+		copy(x, m.f)
+		m.f = x
+	}
+}
 
 type (
 	l  = []interface{}

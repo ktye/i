@@ -19,7 +19,15 @@ func main() {
 	copy(m.c[8+x<<2:], p)
 	evp(x)
 }
-func grw()          { m.f = append(m.f, make([]f, len(m.f))...) }
+func grw(c k) {
+	if 2*len(m.f) <= cap(m.f) {
+		m.f = m.f[:2*len(m.f)]
+	} else {
+		x := make([]f, 2*len(m.f), c/4)
+		copy(x, m.f)
+		m.f = x
+	}
+}
 func red(x k) (r k) { return 0 }
 func wrt(x, y k) (r k) { // x 1:y
 	t, n := typ(y)

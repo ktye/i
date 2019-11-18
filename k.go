@@ -393,7 +393,7 @@ func mk(t, n k) k { // make type t of len n (-1:atom)
 		for k(i) >= m.k[2] {
 			s := m.k[2]
 			m.k[s] = k(len(m.c)) >> 2
-			grw() // TODO: run a gc cycle (merge blocks) before growing?
+			grw(1 << k(i)) // TODO: run a gc cycle (merge blocks) before growing?
 			msl()
 			if 1<<(1+s) != len(m.c) {
 				panic("grow")
