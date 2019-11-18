@@ -3486,8 +3486,8 @@ func win(n, ny, y k) (r k) { // n':y (window)
 }
 func epi(f, x, y k) (r k) { // x f':y (each prior initial)
 	n := m.k[y] & atom
-	if m.k[x]&atom == atom {
-		if x, t, op := scop1(f, x); op != nil {
+	if m.k[x]&atom == atom && m.k[f]&atom == atom {
+		if x, y, t, op := scop2(f, x, y); op != nil {
 			r = mk(t, n)
 			rp, xp, yp := ptr(r, t), ptr(x, t), ptr(y, t)
 			op(rp, yp, xp)
@@ -3498,11 +3498,11 @@ func epi(f, x, y k) (r k) { // x f':y (each prior initial)
 		}
 	}
 	r = mk(L, n)
-	m.k[2+r] = cal2(inc(f), x, atx(inc(x), mki(0)))
+	m.k[2+r] = cal2(inc(f), atx(inc(y), mki(0)), x)
 	for i := k(1); i < n; i++ {
-		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), atx(inc(x), mki(i-1)))
+		m.k[2+r+i] = cal2(inc(f), atx(inc(y), mki(i)), atx(inc(y), mki(i-1)))
 	}
-	return decr(f, x, uf(r))
+	return decr(f, y, uf(r))
 }
 func ecr(f, x, y k) (r k) { // x f/: y
 	xt, yt, _, yn := typs(x, y)
