@@ -3544,14 +3544,16 @@ func ovr(f, x k) (r k) { // f/x
 		}
 		return nd(f, x, 0, []f2{nil, diC, diI, nil, nil, nil}, nil)
 	} else if t == N+1 { // fixed
+		x0 := inc(x)
 		for {
 			r = x
 			x = atx(inc(f), inc(r))
-			if match(x, r) {
+			if match(x, r) || match(x, x0) {
 				break
 			}
 			dec(r)
 		}
+		dec(x0)
 		return decr(f, r, x)
 	}
 	if t, n := typ(x); n == 0 { // verb depended values for empty y
@@ -3601,12 +3603,14 @@ func scn(f, x k) (r k) { // f\x
 		return nd(x, f, 0, []f2{nil, mdC, mdI, mdF, nil, nil}, nil)
 	} else if xt == N+1 { // scan fixed
 		l := mk(L, 0)
+		x0 := inc(x)
 		for {
 			r = x
 			l = lcat(l, inc(r))
 			x = atx(inc(f), inc(r))
-			if match(x, r) {
+			if match(x, r) || match(x, x0) {
 				dec(x)
+				dec(x0)
 				break
 			}
 			dec(r)
