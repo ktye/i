@@ -164,6 +164,7 @@ func ini(mem []f) { // start function
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
+	//mkk(".csv", "{r:$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -1280,12 +1281,10 @@ func tip(x k) (r k) { // @x
 		return dex(x, c2s(mkb(nil)))
 	} else if t > N {
 		return dex(x, c2s(mkc(byte('0'+t-N))))
+	} else if t == A && n != atom {
+		return dex(x, c2s(mkc('A')))
 	}
-	s := m.c[169+t]
-	if n != atom && (t < L || t == A) && s != 0 {
-		s -= 32
-	}
-	return dex(x, c2s(mkc(s)))
+	return dex(x, c2s(mkc(m.c[169+t])))
 }
 func val(x k) (r k) { // . x
 	switch m.k[x] >> 28 {
