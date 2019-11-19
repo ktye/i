@@ -159,7 +159,7 @@ func ini(mem []f) { // start function
 	// mkk(".odo", `{x\:!*/x}`)                             // odometer (replaced by native, \: is very slow)
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
-	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
+	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;?[,/'(`$'t)$'(#t)#y;(&\" \"=t),'1;()]]}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
@@ -2714,6 +2714,12 @@ func cst(x, y k) (r k) { // x$y
 	if yt == C { // strconv
 		if sn == 0 || s == 'n' { // `$x `n|x
 			return dex(x, c2s(y))
+		} else if s == 'c' { // `c$x
+			return dex(x, y)
+		} else if s == '*' { // `"*"$ for `csv?
+			return dex(x, enlist(y))
+		} else if s == ' ' { // `" "$ for `csv?
+			return decr(x, y, inc(null))
 		}
 		num, o := aton(m.c[8+y<<2 : atm1(yn)+8+y<<2])
 		if !o {
@@ -2796,11 +2802,11 @@ func fnd(x, y k) (r k) { // x?y
 		switch m.k[2+x] {
 		case 0: // `?
 			return dex(x, res(y))
-		case yb64: // matc(c, n, "b64"):
+		case yb64: // `b64?
 			return dex(x, b46(y))
-		case yhex: // matc(c, n, "hex"):
+		case yhex: // `hex?
 			return dex(x, xeh(y))
-		case ycsv: // matc(c, n, "csv"):
+		case ycsv: // `csv?
 			return dex(x, vsc(mk(L, 0), y))
 		default:
 			panic("type")
@@ -3046,46 +3052,6 @@ func cmc(x, n k) (r k) { // count matrix cols
 	return r
 }
 func csv(x k) (r k) { return kx(mks(".csv"), x) } // `csv@x
-/*
-	t, n := typ(x)
-	if t == L {
-		r = mk(L, 0)
-		for i := k(0); i < n; i++ {
-			if m.k[m.k[2+x+i]]>>28 == Z { // split complex columns into two: abs and angle (degree)
-				r = lcat(r, abs(inc(m.k[2+i+x])))
-				p := phi(inc(m.k[2+i+x]))
-				pp := ptr(p, F)
-				for j := k(0); j < atm1(m.k[p]&atom); j++ {
-					m.f[pp+j] *= 180.0 / math.Pi
-					if m.f[pp+j] < 0 {
-						m.f[pp+j] += 360.0
-					}
-				}
-				r = lcat(r, p)
-			} else {
-				r = lcat(r, inc(m.k[2+i+x]))
-			}
-		}
-		r = str(flp(r))
-		for i := k(0); i < m.k[r]&atom; i++ {
-			m.k[2+i+r] = jon(mkc(','), m.k[2+i+r])
-		}
-		return dex(x, r)
-	} else if t == A && n != atom {
-		h, nc := mk(L, 0), m.k[m.k[3+x]]&atom
-		for i := k(0); i < nc; i++ { // duplicate headers for complex data
-			h = lcat(h, str(atx(inc(m.k[2+x]), mki(i))))
-			if m.k[m.k[2+i+m.k[3+x]]]>>28 == Z {
-				h = lcat(h, str(atx(inc(m.k[2+x]), mki(i))))
-			}
-		}
-		r = csv(inc(m.k[3+x]))
-		r = insert(r, jon(mkc(','), h), 0)
-		return dex(x, r)
-	}
-	panic("type")
-}
-*/
 func vsc(x, y k) (r k) { // `csv?y  x 0: y, ("ii";"|")0:("2|3";"3|4";"4|5")
 	return kxy(mks(".vsc"), x, y)
 }
@@ -6062,7 +6028,7 @@ func pNam(b []byte) (r k) { return c2s(mkb(b)) }
 func pSym(b []byte) (r k) { // `name|`"name": `n
 	if len(b) == 1 {
 		r = inc(nans)
-	} else if len(b) > 1 || b[1] != '"' {
+	} else if len(b) > 1 && b[1] != '"' {
 		r = c2s(mkb(b[1:]))
 	} else {
 		r = c2s(pQot(b[1:]))
