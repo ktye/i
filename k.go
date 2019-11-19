@@ -157,21 +157,8 @@ func ini(mem []f) { // start function
 	dec(asn(mks(".c"), mk(C, 0), inc(null)))                // current src
 	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`)         // transpose
 	// mkk(".odo", `{x\:!*/x}`)                             // odometer (replaced by native, \: is very slow)
-	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
-	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
-	/*
-			mkk(".csv", "{
-			    a:`A~@x;
-			    (h;d):$[a;(!+x;.+x);(0#`;x)];
-			    r:`z=@:'d;
-			    h:h@&1+r;
-			    d:d@&1+r;
-			    @[d;&r
-			    $[a; ((,\",\"/:$h),\",\"/:'+$:'d);  \",\"/:'+$:'x]}")
-
-		//	    $[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
-	*/
+	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -4527,7 +4514,6 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		}
 		r = uf(r)
 	} else if xt >= L || xt != yt {
-		println("xt/yt/xn/yn", xt, yt, xn, yn)
 		panic("type")
 	} else {
 		mv(r, x)
@@ -6403,8 +6389,8 @@ func ib(b bool) (r int) {
 func argn(x, ln k) k { // count args of lambda parse tree
 	t, n := typ(x)
 	switch t {
-	case S: // TODO: is it enough to check only atoms?
-		if u := m.k[2+x]; u >= 'x' && u <= 'z' && ln < 1+u-'x' {
+	case S:
+		if u := m.k[2+x]; n == atom && u >= 'x' && u <= 'z' && ln < 1+u-'x' {
 			ln = 1 + u - 'x'
 		}
 	case L:
