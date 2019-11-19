@@ -14,7 +14,7 @@ const ref = `
 05 & wer min    25 5 nil nil    45 log       125 lgn log      65      145
 06 | rev max    26 6 nil nil    46 exp       126 pow exp      66      146
 07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67      147
-08 > dst mor    28 8 lun nil    48 abs       128 abq 2 abs    68      148
+08 > dst mor    28 8 lun nil    48 abs       128              68      148
 09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69      149
                                                                           
 10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70      150
@@ -103,7 +103,7 @@ func ini(mem []f) { // start function
 		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, abq, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, nil, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 	if len(mem) != 1<<13 {
@@ -146,12 +146,8 @@ func ini(mem []f) { // start function
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	gtx[L] = gtL
-	o := c(40) // monads
-	builtins(o, "exit,sqrt,sin,cos,dev")
-	builtins(o+10, "real,imag,phase,conj,cond,nyi15,diag")
-	builtins(o+20, "prm")
-	o += c(dyad) // dyads
-	builtins(o, "in,within,bin,like,del,log,exp,rand,abs,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var")
+	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                           // monads
+	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
 
 	dec(asn(mks(".a"), m.k[asci], inc(null)))
 	dec(asn(mks(".0"), null, inc(null)))
@@ -164,7 +160,18 @@ func ini(mem []f) { // start function
 	// mkk(".dcd", `{{z+y*x}/[0;x;y]}`)             // decode
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
-	//mkk(".csv", "{r:$[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
+	/*
+			mkk(".csv", "{
+			    a:`A~@x;
+			    (h;d):$[a;(!+x;.+x);(0#`;x)];
+			    r:`z=@:'d;
+			    h:h@&1+r;
+			    d:d@&1+r;
+			    @[d;&r
+			    $[a; ((,\",\"/:$h),\",\"/:'+$:'d);  \",\"/:'+$:'x]}")
+
+		//	    $[`A~@x;((,\",\"/:$!+x),\",\"/:'+$:'. x);\",\"/:'+$:'x]}")
+	*/
 	mkk(".vsc", "{(t;s):$[`.=@x;(*x;*|x);`c=@x;(x;\",\");(\"\";\",\")];y:+s\\:'y;$[0=#t;y;,/'(`$'t)$'(#t)#y]}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -334,8 +341,10 @@ func mv(dst, src k) {
 func builtins(code c, s string) {
 	v := spl(mkc(','), mkb([]byte(s)))
 	for i := c(0); i < c(m.k[v]&atom); i++ {
-		m.k[2+m.k[3]] = cat(m.k[2+m.k[3]], c2s(inc(m.k[2+v+k(i)])))
-		m.k[3+m.k[3]] = cat(m.k[3+m.k[3]], enl(mkc(code+i)))
+		if ln := m.k[m.k[2+v+k(i)]] & atom; ln > 0 {
+			m.k[2+m.k[3]] = cat(m.k[2+m.k[3]], c2s(inc(m.k[2+v+k(i)])))
+			m.k[3+m.k[3]] = cat(m.k[3+m.k[3]], enl(mkc(code+i)))
+		}
 	}
 	dec(v)
 }
@@ -2031,13 +2040,6 @@ func abs(x k) (r k) { // abs x
 			m.k[r] = k(-i(m.k[r]))
 		}
 	}, func(r, x k) { m.f[r] = math.Abs(m.f[x]) }, func(r, x k) { m.z[r] = complex(math.Hypot(real(m.z[x]), imag(m.z[x])), 0) }})
-}
-func abq(n, x k) (r k) { // 2 abs x
-	if t, ln := typ(n); t != I || ln != atom || m.k[2+n] != 2 {
-		panic("value")
-	}
-	dec(n)
-	return nm(x, F, []f1{nil, nil, func(r, x k) { m.k[r] = m.k[x] * m.k[x] }, func(r, x k) { m.f[r] = m.f[x] * m.f[x] }, func(r, x k) { m.z[r] = complex(real(m.z[x])*real(m.z[x])+imag(m.z[x])*imag(m.z[x]), 0) }})
 }
 func log(x k) (r k) { // log x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Log(m.f[x]) }, nil})
@@ -4525,6 +4527,7 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 		}
 		r = uf(r)
 	} else if xt >= L || xt != yt {
+		println("xt/yt/xn/yn", xt, yt, xn, yn)
 		panic("type")
 	} else {
 		mv(r, x)
