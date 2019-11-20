@@ -1365,7 +1365,6 @@ func evl(x k) (r k) {
 			return dex(x, v)
 		}
 		af := m.k[2+v]
-		//if (vt > N && af == dyad && vn != 0) || (vt == N+1 && vn == atom && n == 3) { // : or :: or *: (modified assignmnt)
 		if vt == N+1 && vn == atom && n == 3 { // : or :: or *: (modified assignmnt)
 			if n != 3 {
 				P("args")
@@ -2318,20 +2317,6 @@ func match(x, y k) (rv bool) { // recursive match
 	}
 	return false
 }
-
-/*
-func matc(x, n k, s s) bool { // symbol match
-	if n != k(len(s)) {
-		return false
-	}
-	for i := k(0); i < n; i++ {
-		if m.c[x+i] != s[i] {
-			return false
-		}
-	}
-	return true
-}
-*/
 func cat(x, y k) (r k) { // x,y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && yn == 0 {
@@ -4346,12 +4331,27 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	return decr(x, y, r)
 }
 func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
-	if n := m.k[a] & atom; n == atom {
+	if t, n := typ(a); n == atom {
 		return amdv(x, a, f, y)
 	} else if n == 1 {
 		return amdv(x, fst(a), f, y)
 	} else if n == 0 {
 		panic("domain")
+	} else if n == 2 && t == L && (m.k[m.k[2+a]]&atom != atom || m.k[m.k[2+a]]>>28 == N) { // matrix assign
+		a0, a1, yi := inc(m.k[2+a]), inc(m.k[3+a]), k(0)
+		dec(a)
+		if match(a0, null) {
+			a0 = dex(a0, jota(m.k[x]&atom))
+		}
+		for i := k(0); i < m.k[a0]&atom; i++ {
+			ai := atx(inc(a0), mki(i))
+			yi = inc(null)
+			if m.k[y]>>28 != N {
+				yi = dex(null, atx(inc(y), mki(i)))
+			}
+			x = amdv(inc(x), inc(ai), inc(null), amdv(atx(x, ai), inc(a1), inc(f), yi))
+		}
+		return decr(f, decr(a0, a1, y), x)
 	}
 	a0 := fst(inc(a))
 	return amdv(inc(x), inc(a0), inc(null), dmdv(atx(x, a0), drop(1, a), f, y))
