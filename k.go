@@ -15,7 +15,7 @@ const ref = `
 06 | rev max    26 6 nil nil    46 exp       126 pow exp      66      146
 07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67      147
 08 > dst mor    28 8 lun nil    48 abs       128              68      148
-09 = grp eql    29 9 nil nil    49 nrm norm  129 nrq 2 norm   69      149
+09 = grp eql    29 9 nil nil    49           129             69      149
                                                                           
 10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70      150
 11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71      151
@@ -99,11 +99,11 @@ func ini(mem []f) { // start function
 		//   1                   5                        10                       15
 		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
 		rdl, nil, nil, nil, nil, nil, nil, nil, lun, deb, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nrm, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
+		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
 		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, nil, nrq, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
+		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
 	if len(mem) != 1<<13 {
@@ -146,8 +146,8 @@ func ini(mem []f) { // start function
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	gtx[L] = gtL
-	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                           // monads
-	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,norm,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
+	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                       // monads
+	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
 
 	dec(asn(mks(".a"), m.k[asci], inc(null)))
 	dec(asn(mks(".0"), null, inc(null)))
@@ -4620,37 +4620,6 @@ func norm(xp, n k, sqrt bool) (r f) { // vector norm L2
 		return s * math.Sqrt(r)
 	}
 	return s * s * r
-}
-func nrm(x k) (r k) { return nrms(x, true) } // norm x
-func nrq(x, y k) (r k) { // 2 norm x
-	if xt, xn := typ(x); xt != I || xn != atom || m.k[2+x] != 2 {
-		panic("value")
-	}
-	dec(x)
-	return nrms(y, false)
-}
-func nrms(x k, sqrt bool) (r k) {
-	t, n := typ(x)
-	switch {
-	case t < F:
-		return nrms(to(x, F), sqrt)
-	case t == L: // not matrix norm
-		r = mk(L, n)
-		for i := k(0); i < n; i++ {
-			m.k[2+r+i] = nrms(inc(m.k[2+x+i]), sqrt)
-		}
-		return dex(x, uf(r))
-	case t == F:
-		r = mk(F, atom)
-		m.f[1+r>>1] = norm(1+x>>1, atm1(n), sqrt)
-		return dex(x, r)
-	case t == Z:
-		r = mk(F, atom)
-		m.f[1+r>>1] = norm(2+x>>1, 2*atm1(n), sqrt)
-		return dex(x, r)
-	default:
-		panic("type")
-	}
 }
 func dot(x, y k) (r k) { // x@y x/y (matrix multiplication)
 	//    v/  v →  a       n/n   → (atom)
