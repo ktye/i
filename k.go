@@ -2993,8 +2993,17 @@ func atx(x, y k) (r k) { // x@y
 }
 func atm(x, y k) (r k) { // x@y (matrix indexing)
 	xt, yt, xn, yn := typs(x, y)
-	if xt != L || xn == atom || yt != L || yn != 2 {
-		panic("type") // TODO table
+	if xt == A && yt == L && yn == 2 { // d[`n;I] t[I;`n]
+		a := mk(L, 2)
+		if xn != atom {
+			y = rev(y)
+		}
+		m.k[2+a] = fnd(inc(m.k[2+x]), inc(m.k[2+y]))
+		m.k[3+a] = inc(m.k[3+y])
+		y = dex(y, a)
+		x = dex(x, inc(m.k[3+x]))
+	} else if xt != L || xn == atom || yt != L || yn != 2 {
+		panic("type")
 	}
 	a, b := inc(m.k[2+y]), inc(m.k[3+y])
 	dec(y)
@@ -4199,6 +4208,20 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	if xt == A {
 		if m.k[m.k[2+x]]&atom == 0 {
 			return decr(x, f, key(a, y))
+		}
+		if xn != atom && at == I { // t[I]:d t[I]:t
+			yt, _ := typ(y)
+			if yt != A || !match(m.k[2+x], m.k[2+y]) {
+				panic("type")
+			}
+			r = mk(A, xn)
+			nk := m.k[m.k[2+x]]&atom
+			m.k[2+r] = inc(m.k[2+x])
+			m.k[3+r] = mk(L, nk)
+			for i := k(0); i<nk; i++ {
+				m.k[2+i+m.k[3+r]] = amdv(inc(m.k[2+i+m.k[3+x]]), inc(a), inc(f), atx(inc(m.k[3+y]), mki(i)))
+			}
+			return decr(x, decr(a, f, y), r)
 		}
 		r = mk(A, atom)
 		m.k[2+r] = inc(m.k[2+x])
