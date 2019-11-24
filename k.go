@@ -15,7 +15,7 @@ const ref = `
 06 | rev max    26 6 nil nil    46 exp       126 pow exp      66      146
 07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67      147
 08 > dst mor    28 8 lun nil    48 abs       128              68      148
-09 = grp eql    29 9 nil nil    49           129             69      149
+09 = grp eql    29 9 nil nil    49           129              69      149
                                                                           
 10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70      150
 11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71      151
@@ -456,7 +456,7 @@ func inc(x k) k {
 		for i := k(0); i < n; i++ {
 			inc(m.k[2+x+i])
 		}
-	case t == A:
+	case t == A || (t == N && n == 2):
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	case t > N:
@@ -490,7 +490,7 @@ func dec(x k) {
 		for i := k(0); i < n; i++ {
 			dec(m.k[2+x+i])
 		}
-	case t == A:
+	case t == A || (t == N && n == 2):
 		dec(m.k[2+x])
 		dec(m.k[3+x])
 	case t > N:
@@ -1188,7 +1188,11 @@ func str(x k) (r k) { // $x
 		case t == A:
 			return arc(x, n, str)
 		case t == N:
-			r = mk(C, 0)
+			if n == 2 {
+				r = inc(m.k[3+x]) // :expr
+			} else {
+				r = mk(C, 0)
+			}
 		case t > N:
 			f := m.k[2+x]
 			if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
@@ -1290,9 +1294,12 @@ func val(x k) (r k) { // . x
 		return evl(prs(x))
 	case A:
 		return dex(x, inc(m.k[3+x]))
-	default:
-		panic("type")
+	case N:
+		if m.k[x]&atom == 2 { // :expr
+			return dex(x, inc(m.k[2+x]))
+		}
 	}
+	panic("type")
 }
 func evl(x k) (r k) {
 	t, n := typ(x)
@@ -2926,6 +2933,8 @@ func atx(x, y k) (r k) { // x@y
 				idx = inc(m.k[2+y])
 				x = flp(tak(inc(m.k[3+y]), flp(x)))
 				dec(y)
+			} else if yt == N && yn == 2 { // t :expr
+				return decr(x, y, env(m.k[2+x], m.k[2+y], inc(m.k[3+x]), m.k[m.k[2+x]]&atom))
 			} else {
 				panic("table-index")
 			}
@@ -3238,16 +3247,45 @@ func lambda(x, y k) (r k) { // call lambda
 		panic("args")
 	}
 	loc, l := m.k[2+m.k[3+x]], m.k[3+m.k[3+x]] // arguments and parse tree
-	nv := m.k[loc] & atom
+	//nv := m.k[loc] & atom
 	lt, nl := typ(l)
 	if nl == 0 {
 		return decr(x, y, inc(null))
 	} else if lt != L {
 		panic("type")
 	}
-	vv := mk(L, nv) // save old values
-	for i := k(0); i < nv; i++ {
-		name := atx(inc(loc), mki(i))
+	/*
+		vv := mk(L, nv) // save old values
+		for i := k(0); i < nv; i++ {
+			name := atx(inc(loc), mki(i))
+			m.k[2+i+vv] = lupo(inc(name))
+			if i < v {
+				dec(asn(name, inc(m.k[2+y+i]), inc(null)))
+			} else {
+				dec(asn(name, mk(I, 0), inc(null)))
+			}
+		}
+		dec(y)
+		r = evl(inc(l))
+		for i := k(0); i < nv; i++ { // restore old values
+			name, w := atx(inc(loc), mki(i)), m.k[2+i+vv]
+			if w == 0 {
+				m.k[2+i+vv] = inc(null)
+				dec(del(name))
+			} else {
+				dec(asn(name, inc(w), inc(null)))
+			}
+		}
+		dec(vv)
+		return dex(x, r)
+	*/
+	return dex(x, env(loc, l, y, v))
+}
+func env(e, l, y, v k) (r k) { // call-with-env
+	n := m.k[e] & atom
+	vv := mk(L, n) // save old values
+	for i := k(0); i < n; i++ {
+		name := atx(inc(e), mki(i))
 		m.k[2+i+vv] = lupo(inc(name))
 		if i < v {
 			dec(asn(name, inc(m.k[2+y+i]), inc(null)))
@@ -3257,8 +3295,8 @@ func lambda(x, y k) (r k) { // call lambda
 	}
 	dec(y)
 	r = evl(inc(l))
-	for i := k(0); i < nv; i++ { // restore old values
-		name, w := atx(inc(loc), mki(i)), m.k[2+i+vv]
+	for i := k(0); i < n; i++ { // restore old values
+		name, w := atx(inc(e), mki(i)), m.k[2+i+vv]
 		if w == 0 {
 			m.k[2+i+vv] = inc(null)
 			dec(del(name))
@@ -3266,8 +3304,7 @@ func lambda(x, y k) (r k) { // call lambda
 			dec(asn(name, inc(w), inc(null)))
 		}
 	}
-	dec(vv)
-	return dex(x, r)
+	return dex(vv, r)
 }
 func ltr(x k) (r k) { // `p@{..} (lambda tree, k7: .{...})
 	t, n := typ(x)
@@ -4215,10 +4252,10 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 				panic("type")
 			}
 			r = mk(A, xn)
-			nk := m.k[m.k[2+x]]&atom
+			nk := m.k[m.k[2+x]] & atom
 			m.k[2+r] = inc(m.k[2+x])
 			m.k[3+r] = mk(L, nk)
-			for i := k(0); i<nk; i++ {
+			for i := k(0); i < nk; i++ {
 				m.k[2+i+m.k[3+r]] = amdv(inc(m.k[2+i+m.k[3+x]]), inc(a), inc(f), atx(inc(m.k[3+y]), mki(i)))
 			}
 			return decr(x, decr(a, f, y), r)
@@ -5533,7 +5570,7 @@ func (p *p) xx() {
 	panic("parse: " + string(m.c[p.lp+1:p.p+1]) + " <-")
 }
 func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
-	if m.k[x]>>28 == N {
+	if match(x, null) {
 		return x
 	}
 	r = p.verb(x)
@@ -5544,13 +5581,18 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 	if r == 0 { // n
 		ps := p.p
 		r = p.noun()
-		if m.k[r]>>28 == N {
+		if match(r, null) {
 			return dex(r, x) // n
 		}
-		if v := p.verb(r); v == 0 {
+		if m.k[x]>>28 == N {
+			r = p.ex(r)
+			m.k[2+x] = r
+			m.k[3+x] = mkb(m.c[ps-1 : p.p])
+			return x
+		} else if v := p.verb(r); v == 0 {
 			return p.store(ps, compose(l2(x, p.ex(r)))) // te
 		} else {
-			if y := p.ex(p.noun()); m.k[y]>>28 == N {
+			if y := p.ex(p.noun()); match(y, null) {
 				return p.store(ps, l2(v, dex(y, x))) // e.g. 2+
 			} else if m.k[v]>>28 == N+2 && m.k[2+v] == dyad+18 { // @
 				return dex(v, p.store(ps, l2(x, y))) // x@y
@@ -5567,7 +5609,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 	} else {
 		ps := p.p
 		x = p.ex(p.noun())
-		if m.k[x]>>28 == N {
+		if match(x, null) {
 			return dex(x, r) // v
 		} else {
 			return p.store(ps, compose(l2(monad(r), x))) // ve
@@ -5721,7 +5763,13 @@ func (p *p) noun() (r k) {
 		}
 		return p.idxr(n)
 	case p.t(sVrb):
-		return p.idxr(p.a(pVrb))
+		r = p.a(pVrb)
+		if m.k[r]>>28 == N+2 && m.k[2+r] == dyad {
+			if c := m.c[p.p-2]; m.c[p.p] != '[' && (p.p == p.lp+2 || c == ' ' || c == '[' || c == '(') {
+				return dex(r, mk(N, 2)) // :expr
+			}
+		}
+		return p.idxr(r)
 	}
 	return inc(null)
 }
