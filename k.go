@@ -1104,6 +1104,9 @@ func not(x k) (r k) { // ~x
 	} else if t == A {
 		return arc(x, n, not)
 	} else if t == N {
+		if n == 2 { // ~ :e
+			return dex(x, mki(0))
+		}
 		return dex(x, mki(1))
 	} else if t > N {
 		return dex(x, mki(0))
@@ -1228,7 +1231,7 @@ func str(x k) (r k) { // $x
 			}
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
-				if n == 2 && f < 2*dyad && m.k[m.k[3+a]]>>28 == N {
+				if n == 2 && f < 2*dyad && match(m.k[3+a], null) {
 					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
 				} else {
 					a = kst(inc(a))   // arg list
@@ -1277,9 +1280,9 @@ func unq(x k) (r k) { // ?x
 }
 func tip(x k) (r k) { // @x
 	t, n := typ(x)
-	if t == N {
+	if match(x, null) {
 		return dex(x, c2s(mkb(nil)))
-	} else if t > N {
+	} else if t >= N {
 		return dex(x, c2s(mkc(byte('0'+t-N))))
 	} else if t == A && n != atom {
 		return dex(x, c2s(mkc('A')))
@@ -1403,7 +1406,7 @@ func evl(x k) (r k) {
 				}
 			}
 			if nt, nn := typ(name); nt == L && nn > 1 {
-				if m.k[m.k[2+name]]>>28 == N { // (;`a;`b) vector assignment
+				if match(m.k[2+name], null) { // (;`a;`b) vector assignment
 					name = drp(mki(1), name)
 				} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 					idx := drop(1, inc(name)) // inc(m.k[3+name])
@@ -1477,7 +1480,7 @@ func evl(x k) (r k) {
 			}
 			if vt > N+1 { // no projection for monads, allow N argument
 				for i := k(0); i < m.k[r]&atom; i++ {
-					if m.k[m.k[2+i+r]]>>28 == N {
+					if match(m.k[2+i+r], null) {
 						return R() + prj(v, r)
 					}
 				}
@@ -1486,7 +1489,7 @@ func evl(x k) (r k) {
 			return atx(v, fst(r))
 		} else if vt < N && n > 2 {
 			for i := k(0); i < n-2; i++ { // last index may be a vector
-				if te, ne := typ(m.k[2+i+r]); te == N || ne != atom {
+				if match(m.k[2+i+r], null) || m.k[m.k[2+i+r]]&atom != atom {
 					return R() + atm(v, r)
 				}
 			}
@@ -1577,7 +1580,7 @@ func prj(x, y k) (r k) { // convert x to a projection
 	m.k[3+r] = y // #2: argument list with holes
 	n := k(0)
 	for i := k(0); i < m.k[y]&atom; i++ {
-		if m.k[m.k[2+y+i]]>>28 == N {
+		if match(m.k[2+y+i], null) {
 			n++
 		}
 	}
@@ -2501,6 +2504,8 @@ func tak(x, y k) (r k) { // x#y
 			m.k[2+r] = tak(inc(x), inc(m.k[2+y]))
 			m.k[3+r] = tak(inc(x), inc(m.k[3+y]))
 			return decr(x, y, r)
+		} else if xt == N && xn == 2 { // (:e)#t
+			return sel(y, x, inc(null), inc(null))
 		}
 		return key(x, atx(y, inc(x)))
 	}
@@ -2994,7 +2999,7 @@ func atx(x, y k) (r k) { // x@y
 		return decr(x, y, r)
 	// case xt == L:
 	//	missing element for a list is nan[type of first element]
-	case yt == N:
+	case match(y, null):
 		return dex(y, x)
 	default:
 		panic("atx")
@@ -3016,13 +3021,14 @@ func atm(x, y k) (r k) { // x@y (matrix indexing)
 	}
 	a, b := inc(m.k[2+y]), inc(m.k[3+y])
 	dec(y)
-	at, bt, an, _ := typs(a, b)
-	if at == N && bt == N { // x[;]→x? or force a rectangular matrix?
+	//at, bt, an, _ := typs(a, b)
+	a0, b0, an := match(a, null), match(b, null), m.k[a]&atom
+	if a0 && b0 { // x[;]→x? or force a rectangular matrix?
 		r = jota(cmc(x, xn))
 		return decr(a, b, atm(x, l2(inc(r), r)))
-	} else if bt == N { // x[a;]
+	} else if b0 { // x[a;]
 		return dex(b, atx(x, a))
-	} else if at == N { // x[;b]
+	} else if a0 { // x[;b]
 		dec(a)
 		r, an = mk(L, xn), xn
 		for i := k(0); i < xn; i++ {
@@ -3032,7 +3038,7 @@ func atm(x, y k) (r k) { // x@y (matrix indexing)
 	} else {
 		r = atx(x, a)
 	}
-	if bt != I {
+	if m.k[b]>>28 != I {
 		panic("type")
 	}
 	for i := k(0); i < an; i++ {
@@ -3169,7 +3175,7 @@ func cal(x, y k) (r k) { // x.y
 		}
 		a, l, yi := mk(L, n), m.k[x+3], k(0) // a: full arg vector
 		for i := k(0); i < n; i++ {
-			if v := m.k[2+l+i]; m.k[v]>>28 == N {
+			if v := m.k[2+l+i]; match(v, null) {
 				m.k[2+a+i] = inc(m.k[2+y+yi])
 				yi++
 			} else {
@@ -3247,38 +3253,12 @@ func lambda(x, y k) (r k) { // call lambda
 		panic("args")
 	}
 	loc, l := m.k[2+m.k[3+x]], m.k[3+m.k[3+x]] // arguments and parse tree
-	//nv := m.k[loc] & atom
 	lt, nl := typ(l)
 	if nl == 0 {
 		return decr(x, y, inc(null))
 	} else if lt != L {
 		panic("type")
 	}
-	/*
-		vv := mk(L, nv) // save old values
-		for i := k(0); i < nv; i++ {
-			name := atx(inc(loc), mki(i))
-			m.k[2+i+vv] = lupo(inc(name))
-			if i < v {
-				dec(asn(name, inc(m.k[2+y+i]), inc(null)))
-			} else {
-				dec(asn(name, mk(I, 0), inc(null)))
-			}
-		}
-		dec(y)
-		r = evl(inc(l))
-		for i := k(0); i < nv; i++ { // restore old values
-			name, w := atx(inc(loc), mki(i)), m.k[2+i+vv]
-			if w == 0 {
-				m.k[2+i+vv] = inc(null)
-				dec(del(name))
-			} else {
-				dec(asn(name, inc(w), inc(null)))
-			}
-		}
-		dec(vv)
-		return dex(x, r)
-	*/
 	return dex(x, env(loc, l, y, v))
 }
 func env(e, l, y, v k) (r k) { // call-with-env
@@ -3878,7 +3858,7 @@ func evp(x k) { // parse-eval-print
 	out(r)
 }
 func out(x k) {
-	if m.k[x]>>28 == N {
+	if match(x, null) {
 		return
 	}
 	w := table[21+dyad].(func(k, k) k)
@@ -4049,6 +4029,16 @@ func ibin(xp, n, yp k, gt func(x, y k) bool) (r k) {
 		}
 	}
 	return i - 1
+}
+func sel(t, c, b, a k) (r k) { // #[t;c;b;a] select
+	if tt, n := typ(t); tt != A || n == atom || m.k[c]>>28 != N || m.k[c]&atom != 2 {
+		panic("type")
+	}
+	t = atx(t, wer(atx(inc(t), c)))
+	if match(b, null) == false || match(a, null) == false {
+		panic("nyi")
+	}
+	return decr(b, a, t)
 }
 func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 	if !match(f, null) {
@@ -4397,7 +4387,7 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 		return amdv(x, fst(a), f, y)
 	} else if n == 0 {
 		panic("domain")
-	} else if n == 2 && t == L && (m.k[m.k[2+a]]&atom != atom || m.k[m.k[2+a]]>>28 == N) { // matrix assign
+	} else if n == 2 && t == L && (m.k[m.k[2+a]]&atom != atom || match(m.k[2+a], null)) { // matrix assign
 		a0, a1, yi := inc(m.k[2+a]), inc(m.k[3+a]), k(0)
 		dec(a)
 		if match(a0, null) {
@@ -5584,7 +5574,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		if match(r, null) {
 			return dex(r, x) // n
 		}
-		if m.k[x]>>28 == N {
+		if m.k[x]>>28 == N && m.k[2+x] == 0 {
 			r = p.ex(r)
 			m.k[2+x] = r
 			m.k[3+x] = mkb(m.c[ps-1 : p.p])
@@ -5766,7 +5756,10 @@ func (p *p) noun() (r k) {
 		r = p.a(pVrb)
 		if m.k[r]>>28 == N+2 && m.k[2+r] == dyad {
 			if c := m.c[p.p-2]; m.c[p.p] != '[' && (p.p == p.lp+2 || c == ' ' || c == '[' || c == '(') {
-				return dex(r, mk(N, 2)) // :expr
+				r = dex(r, mk(N, 2)) // :expr
+				m.k[2+r] = 0
+				m.k[3+r] = 0
+				return r
 			}
 		}
 		return p.idxr(r)
