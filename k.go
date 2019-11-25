@@ -146,6 +146,7 @@ func ini(mem []f) { // start function
 	m.k[2+m.k[3]] = mk(S, 0)
 	m.k[3+m.k[3]] = mk(C, 0)
 	gtx[L] = gtL
+	eqx[L] = eqL
 	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                       // monads
 	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
 
@@ -165,13 +166,14 @@ func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
 func cpF(dst, src k)  { m.f[dst] = m.f[src] }
 func cpZ(dst, src k)  { m.z[dst] = m.z[src] }
-func cpL(dst, src k)  { inc(m.k[src]); cpI(dst, src) }
+func cpL(dst, src k)  { m.k[dst] = inc(m.k[src]) }
 func swI(dst, src k)  { m.k[dst], m.k[src] = m.k[src], m.k[dst] }
 func eqC(x, y k) bool { return m.c[x] == m.c[y] }
 func eqI(x, y k) bool { return i(m.k[x]) == i(m.k[y]) }
 func eqF(x, y k) bool { return m.k[x<<1] == m.k[y<<1] && m.k[1+x<<1] == m.k[1+y<<1] } // return m.f[x] == m.f[y] || (m.f[x] != m.f[x] && m.f[y] != m.f[y]) }
 func eqZ(x, y k) bool { return eqF(x<<1, y<<1) && eqF(1+x<<1, 1+y<<1) }
 func eqS(x, y k) bool { return m.k[x] == m.k[y] }
+func eqL(x, y k) bool { return match(m.k[x], m.k[y]) }
 func ltC(x, y k) bool { return m.c[x] < m.c[y] }
 func gtC(x, y k) bool { return m.c[x] > m.c[y] }
 func ltI(x, y k) bool { return i(m.k[x]) < i(m.k[y]) }
@@ -519,7 +521,7 @@ func free(x k) {
 	m.k[bt] = x
 }
 func srk(x, t, n, nn k) (r k) { // shrink bucket
-	if m.k[x]>>28 != t {
+	if m.k[x]>>28 != t || t == L {
 		panic("type")
 	}
 	if bk(t, nn) < bk(t, n) { // alloc not split: prevent small object accumulation
@@ -972,6 +974,10 @@ func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 	t, n := typ(x)
 	if n == atom {
 		return eye(x)
+	} else if t == A && n != atom { // =t
+		g := grp(flp(inc(m.k[3+x])))
+		r = key(flp(key(inc(m.k[2+x]), flp(inc(m.k[2+g])))), inc(m.k[3+g]))
+		return decr(g, x, r)
 	} else if t > L {
 		panic("type")
 	} else if n == 0 {
@@ -983,7 +989,7 @@ func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 	if t == L {
 		for i := k(0); i < n; i++ {
 			for j := k(0); j < kn; j++ {
-				if match(m.k[2+kk+j], m.k[xp+i]) {
+				if match(m.k[kp+j], m.k[xp+i]) {
 					m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, atom)
 					break
 				}
@@ -1256,12 +1262,7 @@ func unq(x k) (r k) { // ?x
 		return x
 	}
 	r = mk(t, n)
-	eq, cp := eqx[t], cpx[t]
-	if t == L {
-		eq = func(x, y k) bool { return match(m.k[x], m.k[y]) }
-	}
-	src, dst := ptr(x, t), ptr(r, t)
-	nn := k(0)
+	eq, cp, src, dst, nn := eqx[t], cpx[t], ptr(x, t), ptr(r, t), k(0)
 	for i := k(0); i < n; i++ { // quadratic, should be improved
 		u := true
 		srci := src + i
@@ -1276,7 +1277,13 @@ func unq(x k) (r k) { // ?x
 			nn++
 		}
 	}
-	return dex(x, srk(r, t, n, nn))
+	if t != L {
+		return dex(x, srk(r, t, n, nn))
+	}
+	for i := nn; i < n; i++ {
+		m.k[dst+i] = inc(null)
+	}
+	return dex(x, take(nn, 0, r))
 }
 func tip(x k) (r k) { // @x
 	t, n := typ(x)
@@ -1437,32 +1444,36 @@ func evl(x k) (r k) {
 		}
 		vt, vn := typ(v)
 		if n > 3 && vt > N && vn == atom {
+			g := amd
 			switch code := m.k[2+v]; code { // triadics..
-			case dyad + 17, dyad + 18, dyad + 19: // ? @ .
-				g := amd
-				if code == dyad+17 {
-					g = ins
-				} else if code == dyad+19 {
-					g = dmd
-				}
-				if n == 4 {
-					x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
-					dec(v) // dec early, allow inplace
-					dec(r)
-					if m.k[y]>>28 >= N {
-						return R() + g(x, a, y, inc(null))
-					} else {
-						return R() + g(x, a, inc(null), y)
-					}
-				} else if n == 5 {
-					x, a, f, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r]), inc(m.k[5+r])
-					dec(v)
-					dec(r)
-					return R() + g(x, a, f, y)
-				} else {
-					P("args")
-				}
+			case dyad + 14: // #
+				g = sel
+			case dyad + 15: // _
+				g = udt
+			case dyad + 17: // ?
+				g = ins
+			case dyad + 18: // @
+				g = amd
+			case dyad + 19: // .
+				g = dmd
 			default:
+				P("args")
+			}
+			if n == 4 {
+				x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
+				dec(v) // dec early, allow inplace
+				dec(r)
+				if m.k[y]>>28 >= N {
+					return R() + g(x, a, y, inc(null))
+				} else {
+					return R() + g(x, a, inc(null), y)
+				}
+			} else if n == 5 {
+				x, a, f, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r]), inc(m.k[5+r])
+				dec(v)
+				dec(r)
+				return R() + g(x, a, f, y)
+			} else {
 				P("args")
 			}
 		} else if n == 3 && vt == N+2 && m.k[2+v] == 19+dyad && m.k[m.k[3+r]]>>28 > N { // composition
@@ -2246,7 +2257,7 @@ func ter(b bool, x, y k) k {
 func key(x, y k) (r k) { // x!y
 	_, yt, xn, yn := typs(x, y)
 	if xn == atom {
-		x, xn = enl(x), 1
+		x, xn, y, yn = enl(x), 1, enl(y), 1
 	}
 	if yn == atom {
 		y, yn = ext(y, yt, xn), xn
@@ -2295,13 +2306,15 @@ func match(x, y k) (rv bool) { // recursive match
 	}
 	n = atm1(n)
 	switch t {
-	case L:
-		for j := k(0); j < n; j++ {
-			if match(m.k[2+x+j], m.k[2+y+j]) == false {
-				return false
+	/*
+		case L:
+			for j := k(0); j < n; j++ {
+				if match(m.k[2+x+j], m.k[2+y+j]) == false {
+					return false
+				}
 			}
-		}
-		return true
+			return true
+	*/
 	case A:
 		if match(m.k[2+x], m.k[2+y]) == false || match(m.k[3+x], m.k[3+y]) == false {
 			return false
@@ -2475,9 +2488,11 @@ func ept(x, y k) (r k) { // x^y
 		y, yn = enl(y), 1
 	}
 	eq, b, xp, yp := eqx[t], mk(I, n), ptr(x, t), ptr(y, t)
-	if t == L {
-		eq = match
-	}
+	/*
+		if t == L {
+			eq = match
+		}
+	*/
 	all := true
 	for i := k(0); i < n; i++ { // TODO: quadratic
 		m.k[2+i+b] = 1
@@ -2504,8 +2519,13 @@ func tak(x, y k) (r k) { // x#y
 			m.k[2+r] = tak(inc(x), inc(m.k[2+y]))
 			m.k[3+r] = tak(inc(x), inc(m.k[3+y]))
 			return decr(x, y, r)
+		} else if xt == L {
+			for i := k(0); i < xn; i++ { // (:e1;:e2)#t
+				y = tak(inc(m.k[2+x+i]), y)
+			}
+			return dex(x, y)
 		} else if xt == N && xn == 2 { // (:e)#t
-			return sel(y, x, inc(null), inc(null))
+			return atx(y, wer(atx(inc(y), x)))
 		}
 		return key(x, atx(y, inc(x)))
 	}
@@ -2579,7 +2599,11 @@ func drp(x, y k) (r k) { // x_y
 		if r == m.k[y+2] {
 			return y
 		}
-		return key(u, atx(y, inc(u)))
+		r = mk(A, yn)
+		m.k[2+r] = inc(u)
+		m.k[3+r] = atx(y, u)
+		return r
+		//return key(u, atx(y, inc(u)))
 	} else if xt != I {
 		panic("type")
 	} else if yn == atom {
@@ -2815,9 +2839,11 @@ func fnd(x, y k) (r k) { // x?y
 	r = mk(I, yn)
 	yn = atm1(yn)
 	eq, xp, yp := eqx[t], ptr(x, t), ptr(y, t)
-	if t == L {
-		eq = match
-	}
+	/*
+		if t == L {
+			eq = match
+		}
+	*/
 	for j := k(0); j < yn; j++ {
 		n := xn // TODO: or 0N?
 		for i := k(0); i < xn; i++ {
@@ -2927,8 +2953,35 @@ func atx(x, y k) (r k) { // x@y
 		if y == keys { // x[!x]
 			r = inc(m.k[3+x])
 			return decr(x, y, r)
-		}
-		if xn != atom { // t[I;S]
+		} else if yt == A && yn == atom { // d@d (expr)
+			nk := m.k[m.k[2+y]] & atom
+			if nk == 0 {
+				return dex(y, x)
+			}
+			r = mk(A, atom)
+			yk, yv := m.k[2+y], m.k[3+y]
+			m.k[2+r] = inc(yk)
+			m.k[3+r] = mk(L, nk)
+			nv := k(0)
+			for i := k(0); i < nk; i++ {
+				ri := atx(inc(x), atx(inc(yv), mki(i)))
+				m.k[2+i+m.k[3+r]] = ri
+				if n := m.k[ri] & atom; i == 0 {
+					nv = n
+				} else if n != nv {
+					nv = atom
+				}
+			}
+			if xn != atom { // preserve table if possible
+				m.k[r] = A<<28 | nv
+			}
+			if m.k[r]&atom == atom {
+				m.k[3+r] = uf(m.k[3+r])
+			}
+			return decr(x, y, r)
+		} else if yt == N && yn == 2 { // (d|t)@:expr
+			return decr(x, y, env(m.k[2+x], m.k[2+y], inc(m.k[3+x]), m.k[m.k[2+x]]&atom))
+		} else if xn != atom { // t[I;S]
 			idx := k(0)
 			if yt == I {
 				idx = y
@@ -2938,8 +2991,6 @@ func atx(x, y k) (r k) { // x@y
 				idx = inc(m.k[2+y])
 				x = flp(tak(inc(m.k[3+y]), flp(x)))
 				dec(y)
-			} else if yt == N && yn == 2 { // t :expr
-				return decr(x, y, env(m.k[2+x], m.k[2+y], inc(m.k[3+x]), m.k[m.k[2+x]]&atom))
 			} else {
 				panic("table-index")
 			}
@@ -4031,14 +4082,76 @@ func ibin(xp, n, yp k, gt func(x, y k) bool) (r k) {
 	return i - 1
 }
 func sel(t, c, b, a k) (r k) { // #[t;c;b;a] select
-	if tt, n := typ(t); tt != A || n == atom || m.k[c]>>28 != N || m.k[c]&atom != 2 {
+	if tt, n := typ(t); tt != A || n == atom {
 		panic("type")
 	}
-	t = atx(t, wer(atx(inc(t), c)))
-	if match(b, null) == false || match(a, null) == false {
-		panic("nyi")
+	if cn := m.k[c] & atom; cn != 0 {
+		t = tak(c, t) // t where c
+	} else {
+		dec(c)
 	}
-	return decr(b, a, t)
+	if match(b, null) == false {
+		t = gby(t, b)
+	} else {
+		dec(b)
+	}
+	if match(a, null) == false {
+		t = atx(t, a)
+	} else {
+		dec(a)
+	}
+	return t
+}
+func gby(t, b k) (r k) { // select by b from t
+	if bt := m.k[b] >> 28; bt == S { // #[t;();`b;(0#`)!()]  (`b_t)@=t`b
+		return decr(b, t, atx(drp(inc(b), inc(t)), grp(atx(inc(t), inc(b)))))
+	} else if bt == A { // select a:b from t  (`a_t)@=t@`a!b
+		a := inc(m.k[2+b])
+		pr(t, "t")
+		pr(b, "b")
+		tab := atx(inc(t), inc(b))
+		pr(tab, "tab")
+		g := grp(tab)
+		pr(g, "g")
+		return decr(t, b, atx(drp(a, inc(t)), grp(atx(inc(t), inc(b)))))
+	} else {
+		panic("type")
+	}
+
+	/*
+		bt, bn := typ(b)
+		if bt == S && bn == atom {
+
+		} else if bt == A && bn == atom {
+			a := inc(m.k[2+b])
+			atx(drp(a, inc(t))
+
+			if kt, kn := typ(m.k[2+b]); kt != S || kn != 1 {
+				panic("nyi")
+			}
+			if bt, bn := typ(m.k[3+b]); bt != L || bn != 1 {
+				panic("type")
+			}
+			e := fst(inc(m.k[3+b]))
+			if et, en := typ(e); et != N || en != 2 {
+				panic("type")
+			}
+			if st, sn := typ(m.k[2+e]); st != S || sn != atom {
+				panic("type") // todo: by a,b
+			}
+			d := dex(e, gby(t, inc(m.k[2+e])))
+			return decr(b, d, key(flp(key(inc(m.k[2+b]), inc(m.k[2+d]))), inc(m.k[3+d])))
+
+			//return decr(b, t, atx(drp(inc(b), inc(t)), grp(atx(inc(t), inc(b)))))
+		} else if bt != A || bn != atom {
+			println("bt/bn", bt, bn)
+			panic("type")
+		}
+		panic("nyi")
+	*/
+}
+func udt(t, c, b, a k) (r k) { // _[t;c;b;a] update
+	panic("nyi")
 }
 func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 	if !match(f, null) {
@@ -5755,7 +5868,7 @@ func (p *p) noun() (r k) {
 	case p.t(sVrb):
 		r = p.a(pVrb)
 		if m.k[r]>>28 == N+2 && m.k[2+r] == dyad {
-			if c := m.c[p.p-2]; m.c[p.p] != '[' && (p.p == p.lp+2 || c == ' ' || c == '[' || c == '(') {
+			if c := m.c[p.p-2]; m.c[p.p] != '[' && (p.p == p.lp+2 || c == ';' || c == ' ' || c == '[' || c == '(') {
 				r = dex(r, mk(N, 2)) // :expr
 				m.k[2+r] = 0
 				m.k[3+r] = 0
