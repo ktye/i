@@ -1,0 +1,11 @@
+ksql # _
+     #[table;where;by;aggregate]
+select from t                ()#t   
+select from t where a>2      (:b>1)#t                  /dyadic take
+select from t where a>2,b<3  #[(:a>2;:b<3);t]          /multiple where clauses as a list
+select c:a*b from t          #[t;();`c!(:a*b)]         /triadic, empty where clause is ()
+select a*b from t            #[t;();`b!(:a*b)]         /default result column name is last symbol in expr
+select c:a*b,a from t        #[t;();`c`a!(:a*b;:a)]    /multiple result columns are comma separated
+                             t@`c`a!(:a*b;:a)          /same as t@d
+select by a from t           #[t;();`a!(:a);(0#`)!()]  
+select +/b by a from t       #[t;();`a!(:a);`b!(:+/b)] 
