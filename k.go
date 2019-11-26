@@ -767,6 +767,25 @@ func uf(x k) (r k) { // unify lists if possible
 	if xt != L || xn == 0 {
 		return x
 	}
+	if m.k[m.k[2+x]]>>28 == A { // unify list of dicts to table
+		rk := m.k[2+m.k[2+x]]
+		for i := k(1); i < xn; i++ {
+			if ti, ni := typ(m.k[2+i+x]); ti != A || ni != atom {
+				return x
+			}
+			if match(m.k[2+m.k[2+i+x]], rk) == false {
+				return x
+			}
+		}
+		r = mk(A, xn)
+		m.k[2+r] = inc(rk)
+		l := mk(L, xn)
+		for i := k(0); i < xn; i++ {
+			m.k[2+i+l] = inc(m.k[3+m.k[2+i+x]])
+		}
+		m.k[3+r] = flp(l)
+		return dex(x, r)
+	}
 	ut := k(0)
 	for j := k(0); j < xn; j++ {
 		t, n := typ(m.k[2+x+j])
@@ -1126,6 +1145,13 @@ func enl(x k) (r k) { // ,x (collaps uniform)
 		cp := cpx[t]
 		src, dst := ptr(x, t), ptr(r, t)
 		cp(dst, src)
+		return dex(x, r)
+	} else if t == A && n == atom {
+		r = mk(A, 1)
+		m.k[2+r] = inc(m.k[2+x])
+		f := mk(N+1, atom)
+		m.k[2+f] = 12 // ,:
+		m.k[3+r] = ech(f, inc(m.k[3+x]))
 		return dex(x, r)
 	}
 	r = mk(L, 1)
@@ -2908,7 +2934,7 @@ func atx(x, y k) (r k) { // x@y
 			panic("class")
 		}
 	} else if xt > N {
-		return cal(x, enl(y))
+		return cal(x, enlist(y))
 	} else if xn == atom && xt < A { // class error in k7
 		if yn == atom {
 			return dex(y, x)
@@ -4090,65 +4116,38 @@ func sel(t, c, b, a k) (r k) { // #[t;c;b;a] select
 	} else {
 		dec(c)
 	}
-	if match(b, null) == false {
-		t = gby(t, b)
-	} else {
+	g := false
+	if match(b, null) || (m.k[b]>>28 == A && m.k[m.k[2+b]]&atom == 0) {
 		dec(b)
+	} else {
+		t, g = gby(t, b), true
 	}
 	if match(a, null) == false {
-		t = atx(t, a)
-	} else {
-		dec(a)
+		if g {
+			l, n := m.k[3+t], m.k[m.k[3+t]]&atom
+			for i := k(0); i < n; i++ {
+				m.k[2+i+l] = atx(m.k[2+i+l], inc(a))
+			}
+			m.k[3+t] = uf(m.k[3+t])
+		} else {
+			t = atx(t, inc(a))
+			if tt, nn := typ(t); tt == A && nn == atom {
+				t = enl(t)
+			}
+		}
 	}
-	return t
+	return dex(a, t)
 }
 func gby(t, b k) (r k) { // select by b from t
+	var a k
 	if bt := m.k[b] >> 28; bt == S { // #[t;();`b;(0#`)!()]  (`b_t)@=t`b
-		return decr(b, t, atx(drp(inc(b), inc(t)), grp(atx(inc(t), inc(b)))))
+		a = inc(b)
 	} else if bt == A { // select a:b from t  (`a_t)@=t@`a!b
-		a := inc(m.k[2+b])
-		pr(t, "t")
-		pr(b, "b")
-		tab := atx(inc(t), inc(b))
-		pr(tab, "tab")
-		g := grp(tab)
-		pr(g, "g")
-		return decr(t, b, atx(drp(a, inc(t)), grp(atx(inc(t), inc(b)))))
+		a = inc(m.k[2+b])
 	} else {
 		panic("type")
 	}
-
-	/*
-		bt, bn := typ(b)
-		if bt == S && bn == atom {
-
-		} else if bt == A && bn == atom {
-			a := inc(m.k[2+b])
-			atx(drp(a, inc(t))
-
-			if kt, kn := typ(m.k[2+b]); kt != S || kn != 1 {
-				panic("nyi")
-			}
-			if bt, bn := typ(m.k[3+b]); bt != L || bn != 1 {
-				panic("type")
-			}
-			e := fst(inc(m.k[3+b]))
-			if et, en := typ(e); et != N || en != 2 {
-				panic("type")
-			}
-			if st, sn := typ(m.k[2+e]); st != S || sn != atom {
-				panic("type") // todo: by a,b
-			}
-			d := dex(e, gby(t, inc(m.k[2+e])))
-			return decr(b, d, key(flp(key(inc(m.k[2+b]), inc(m.k[2+d]))), inc(m.k[3+d])))
-
-			//return decr(b, t, atx(drp(inc(b), inc(t)), grp(atx(inc(t), inc(b)))))
-		} else if bt != A || bn != atom {
-			println("bt/bn", bt, bn)
-			panic("type")
-		}
-		panic("nyi")
-	*/
+	return decr(b, t, atx(drp(a, inc(t)), grp(atx(inc(t), inc(b)))))
 }
 func udt(t, c, b, a k) (r k) { // _[t;c;b;a] update
 	panic("nyi")
