@@ -21,6 +21,7 @@ func main() {
 	table[40] = exi
 	table[39] = trp
 	table[21+dyad] = wrt
+	table[29+dyad] = drw
 	args, addr := os.Args[1:], ""
 	if len(args) == 1 && args[0] == "-kwac" {
 		inikwac()

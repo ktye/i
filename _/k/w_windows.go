@@ -1,21 +1,24 @@
 package main
 
 import (
-	"image"
-	"image/color"
-	"image/draw"
 	"syscall"
 	"unsafe"
 )
 
-/*
-func main() {
-	m := image.NewRGBA(image.Rectangle{Max: image.Point{800, 600}})
-	draw.Draw(m, m.Bounds(), &image.Uniform{color.White}, image.ZP, draw.Src)
-	bm := NewBitmapFromImage(m)
-	bm.draw()
+func drw(x, y k) (r k) { // x 9:y  x(width `i) y(pixel-data `I)
+	xt, yt, xn, yn := typs(x, y)
+	if xt != I || yt != I || xn != atom || yn == atom {
+		panic("type")
+	}
+	w := m.k[2+x]
+	h := (m.k[y] & atom) / w
+	if w > 8192 || h > 8192 || h < 1 {
+		panic("size")
+	}
+	p := 8 + y<<2
+	bitmap(w, h, m.c[p:p+4*w*h]).draw()
+	return decr(x, y, inc(null))
 }
-*/
 
 type winHANDLE uintptr
 type winHDC winHANDLE
@@ -149,8 +152,8 @@ type Bitmap struct {
 	w, h       int32
 }
 
-func NewBitmapFromImage(im image.Image) *Bitmap {
-	return newBitmapFromHBITMAP(hBitmapFromImage(im))
+func bitmap(w, h k, b []c) *Bitmap {
+	return newBitmapFromHBITMAP(hBitmapFromImage(w, h, b))
 }
 func (bmp *Bitmap) draw() {
 	hdc := winCreateCompatibleDC(0)
@@ -166,11 +169,11 @@ func (bmp *Bitmap) draw() {
 	bmp.hPackedDIB = 0
 	bmp.hBmp = 0
 }
-func hBitmapFromImage(im image.Image) winHBITMAP {
+func hBitmapFromImage(w, h k, b []c) winHBITMAP {
 	var bi winBITMAPV5HEADER
 	bi.BiSize = uint32(unsafe.Sizeof(bi))
-	bi.BiWidth = int32(im.Bounds().Dx())
-	bi.BiHeight = -int32(im.Bounds().Dy())
+	bi.BiWidth = int32(w)
+	bi.BiHeight = -int32(h)
 	bi.BiPlanes = 1
 	bi.BiBitCount = 32
 	bi.BiCompression = 3
@@ -189,6 +192,8 @@ func hBitmapFromImage(im image.Image) winHBITMAP {
 		panic("CreateDIBSection failed")
 	}
 	bitmap_array := (*[1 << 30]byte)(unsafe.Pointer(lpBits))
+	copy(bitmap_array[:], b)
+	/* TODO: bits must be swapped and a set to 255
 	i := 0
 	for y := im.Bounds().Min.Y; y != im.Bounds().Max.Y; y++ {
 		for x := im.Bounds().Min.X; x != im.Bounds().Max.X; x++ {
@@ -200,6 +205,7 @@ func hBitmapFromImage(im image.Image) winHBITMAP {
 			i += 4
 		}
 	}
+	*/
 	return hBitmap
 }
 func newBitmapFromHBITMAP(hBmp winHBITMAP) (bmp *Bitmap) {
