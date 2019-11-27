@@ -1203,7 +1203,9 @@ func str(x k) (r k) { // $x
 		return x
 	} else if t == S && n == atom {
 		p := m.k[2+x]
-		if p < 256 {
+		if p == 0 {
+			return dex(x, mk(C, 0))
+		} else if p < 256 {
 			r = mk(C, 1)
 			m.c[8+r<<2] = c(p)
 			return dex(x, r)
