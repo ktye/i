@@ -6,27 +6,27 @@ import (
 )
 
 const ref = `
-00 : idn dex    20 0 rdl wrl    40 exi exit  120 ... in       60 prm  140
-01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61      141
-02 - neg sub    22 2 nil nil    42 sin       122 bin          62      142
-03 * fst mul    23 3 nil nil    43 cos       123 ... like     63      143
-04 % inv div    24 4 nil nil    44 dev       124 del          64      144
-05 & wer min    25 5 nil nil    45 log       125 lgn log      65      145
-06 | rev max    26 6 nil nil    46 exp       126 pow exp      66      146
-07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67      147
-08 > dst mor    28 8 lun nil    48 abs       128              68      148
-09 = grp eql    29 9 nil nil    49           129              69      149
+00 : idn dex    20 0 rdl wrl    40 exi exit  120 ... in       60 prm   140
+01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61       141
+02 - neg sub    22 2 nil nil    42 sin       122 bin          62       142
+03 * fst mul    23 3 nil nil    43 cos       123 ... like     63       143
+04 % inv div    24 4 nil nil    44 dev       124 del          64       144
+05 & wer min    25 5 nil nil    45 log       125 lgn log      65       145
+06 | rev max    26 6 nil nil    46 exp       126 pow exp      66       146
+07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67       147
+08 > dst mor    28 8 lun nil    48 abs       128              68       148
+09 = grp eql    29 9 nil nil    49 plo plot  129 plt plot     69       149
                                                                           
-10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70      150
-11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71      151
-12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72      152
-13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73      153
-14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74      154
-15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75      155
-16 $ str cst    36 ' ecp epi    56 dia diag  136              76      156
-17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77      157
-18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78      158
-19 . val cal    39 /     trp    59 vri var   139 cov var      79      159
+10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70       150
+11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71       151
+12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72       152
+13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73       153
+14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74       154
+15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75       155
+16 $ str cst    36 ' ecp epi    56 dia diag  136              76       156
+17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77       157
+18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78       158
+19 . val cal    39 /     trp    59 vri var   139 cov var      79       159
 `
 
 type c = byte
@@ -40,7 +40,7 @@ const (
 	C, I, F, Z, S, L, A, N                   k = 1, 2, 3, 4, 5, 6, 7, 8
 	atom, srcp, kkey, kval, stab, asci, dyad k = 0x0fffffff, 0x2f, 0x30, 0x31, 0x32, 0x33, 80
 	NaI                                      i = -2147483648
-	yb64, yhex, ycsv                         k = 257, 258, 259
+	yb64, yhex, ycsv, ypng                   k = 257, 258, 259, 260
 )
 
 type (
@@ -125,7 +125,7 @@ func ini(mem []f) { // start function
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 
-	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv"))) // symbol table
+	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png"))) // symbol table
 	nans = mk(S, atom)
 	m.k[2+nans] = 0
 	null = mk(N, atom)
@@ -147,8 +147,8 @@ func ini(mem []f) { // start function
 	m.k[3+m.k[3]] = mk(C, 0)
 	gtx[L] = gtL
 	eqx[L] = eqL
-	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                       // monads
-	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
+	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                           // monads
+	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,plot,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
 
 	dec(asn(mks(".a"), m.k[asci], inc(null)))
 	dec(asn(mks(".0"), null, inc(null)))
@@ -1202,7 +1202,14 @@ func str(x k) (r k) { // $x
 	if t == C {
 		return x
 	} else if t == S && n == atom {
-		return dex(x, inc(m.k[m.k[stab]+2+m.k[2+x]]))
+		p := m.k[2+x]
+		if p < 256 {
+			r = mk(C, 1)
+			m.c[8+r<<2] = c(p)
+			return dex(x, r)
+		}
+		p -= 256
+		return dex(x, inc(m.k[2+p+m.k[stab]]))
 	}
 	if t < L {
 		st, xp := stx[t], ptr(x, t)
