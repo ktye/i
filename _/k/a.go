@@ -20,8 +20,10 @@ func main() {
 	table[21] = red
 	table[40] = exi
 	table[39] = trp
+	table[49] = plo
 	table[21+dyad] = wrt
 	table[29+dyad] = drw
+	table[49+dyad] = plt
 	args, addr := os.Args[1:], ""
 	if len(args) == 1 && args[0] == "-kwac" {
 		inikwac()
@@ -163,8 +165,8 @@ func stack(c interface{}) (stk, err string) {
 	h := false
 	for _, s := range strings.Split(string(debug.Stack()), "\n") {
 		if h && strings.HasPrefix(s, "\t") {
-			if i := strings.Index(s, "/ktye/i/"); i > 0 {
-				s = strings.TrimSpace(s[i+7:])
+			if i := strings.Index(s, "/i/"); i > 0 {
+				s = strings.TrimSpace(s[i:])
 			}
 			if len(s) > 0 {
 				stk += "\n" + s
