@@ -2629,7 +2629,9 @@ func drp(x, y k) (r k) { // x_y
 	if xt > N {
 		return fil(x, y, true)
 	}
-	if t == A { // x_d: del
+	if xt == N && xn == 2 && t == A && yn != atom { // (:e)_t  delete from t where e
+		return dex(x, atx(y, wer(not(env(m.k[2+y], m.k[2+x], inc(m.k[3+y]), m.k[m.k[2+y]]&atom))))) // t@&~t@(:e)
+	} else if t == A { // x_d  x_t  delete x from t
 		u := ept(inc(m.k[y+2]), x)
 		if r == m.k[y+2] {
 			return y
@@ -2638,7 +2640,6 @@ func drp(x, y k) (r k) { // x_y
 		m.k[2+r] = inc(u)
 		m.k[3+r] = atx(y, u)
 		return r
-		//return key(u, atx(y, inc(u)))
 	} else if xt != I {
 		panic("type")
 	} else if yn == atom {
@@ -2874,11 +2875,6 @@ func fnd(x, y k) (r k) { // x?y
 	r = mk(I, yn)
 	yn = atm1(yn)
 	eq, xp, yp := eqx[t], ptr(x, t), ptr(y, t)
-	/*
-		if t == L {
-			eq = match
-		}
-	*/
 	for j := k(0); j < yn; j++ {
 		n := xn // TODO: or 0N?
 		for i := k(0); i < xn; i++ {
@@ -2890,6 +2886,18 @@ func fnd(x, y k) (r k) { // x?y
 		m.k[2+j+r] = n
 	}
 	return decr(x, y, r)
+}
+func fnk(sv, sp k) k { // find key, nk on undefined
+	t, n := typ(sv)
+	if t != S || n == atom {
+		panic("type")
+	}
+	for i := k(0); i < n; i++ {
+		if m.k[2+sv+i] == sp {
+			return i
+		}
+	}
+	return n
 }
 func fns(x, y k) (r k) { // x find y
 	xt, yt, xn, yn := typs(x, y)
@@ -4121,15 +4129,17 @@ func sel(t, c, b, a k) (r k) { // #[t;c;b;a] select
 		panic("type")
 	}
 	if cn := m.k[c] & atom; cn != 0 {
-		t = tak(c, t) // t where c
-	} else {
-		dec(c)
+		t = tak(inc(c), t) // t where c
 	}
+	dec(c)
 	g := false
 	if match(b, null) || (m.k[b]>>28 == A && m.k[m.k[2+b]]&atom == 0) {
 		dec(b)
 	} else {
-		t, g = gby(t, b), true
+		d := k(0)
+		t, d = gby(t, b)
+		dec(d)
+		g = true
 	}
 	if match(a, null) == false {
 		if g {
@@ -4147,7 +4157,7 @@ func sel(t, c, b, a k) (r k) { // #[t;c;b;a] select
 	}
 	return dex(a, t)
 }
-func gby(t, b k) (r k) { // select by b from t
+func gby(t, b k) (k, k) { // select by b from t
 	var a k
 	if bt := m.k[b] >> 28; bt == S { // #[t;();`b;(0#`)!()]  (`b_t)@=t`b
 		a = inc(b)
@@ -4156,10 +4166,79 @@ func gby(t, b k) (r k) { // select by b from t
 	} else {
 		panic("type")
 	}
-	return decr(b, t, atx(drp(a, inc(t)), grp(atx(inc(t), inc(b)))))
+	g := grp(atx(inc(t), inc(b)))
+	return decr(b, t, atx(drp(a, inc(t)), inc(g))), g
 }
 func udt(t, c, b, a k) (r k) { // _[t;c;b;a] update
-	panic("nyi")
+	if t, n := typ(t); t == S {
+		panic("nyi") // inplace
+	} else if t != A || n == atom {
+		panic("type")
+	}
+	if !match(b, null) { // update-by
+		q := inc(t)
+		if cn := m.k[c] & atom; cn != 0 {
+			q = tak(inc(c), q) // t where c
+		}
+		dec(c)
+		g, q := gby(q, b)
+
+		l, n := m.k[3+g], m.k[m.k[3+g]]&atom
+		for i := k(0); i < n; i++ {
+			m.k[2+i+l] = atx(m.k[2+i+l], inc(a))
+		}
+		dec(a)
+
+		if m.k[q]&atom == atom { // _[t;c;`b;a]
+			g, q = val(g), val(q)
+		} else { // _[t;c;`b!(:e);a]
+			g, q = dex(g, val(inc(m.k[3+g]))), dex(q, val(inc(m.k[3+q])))
+		}
+		for i := k(0); i < n; i++ {
+			ri := inc(m.k[2+i+q])
+			ki := inc(m.k[2+m.k[2+g+i]])
+			vi := inc(m.k[3+m.k[2+g+i]])
+			t = dmdv(t, l2(ri, ki), inc(null), vi)
+		}
+		return decr(g, q, t)
+	}
+	dec(b)
+	if m.k[c]&atom != 0 {
+		c = wer(atx(inc(t), c))
+	} else {
+		c = dex(c, jota(m.k[t]&atom))
+	}
+
+	v := atx(inc(t), a)
+	vt, _ := typ(v)
+	if vt != A {
+		panic("type")
+	}
+
+	rn := m.k[t] & atom
+	r = mk(A, m.k[t]&atom)
+	m.k[2+r] = inc(m.k[2+t])
+	m.k[3+r] = mk(L, m.k[m.k[3+t]]&atom)
+	for i := k(0); i < m.k[m.k[3+t]]&atom; i++ {
+		m.k[2+i+m.k[3+r]] = inc(m.k[2+i+m.k[3+t]])
+	}
+
+	kv := m.k[2+v]
+	nk := m.k[kv] & atom
+	cols, u := m.k[3+r], k(0)
+	for i := k(0); i < nk; i++ {
+		j := fnk(m.k[2+r], m.k[2+i+kv])
+		u = atx(inc(m.k[3+v]), mki(i))
+		if j == nk {
+			m.k[2+r] = cat(m.k[2+r], atx(inc(kv), mki(i)))
+			m.k[3+r] = lcat(m.k[3+r], take(rn, 0, mk(m.k[u]>>28, 0))) // nulls
+			nk++
+		}
+		m.k[2+j+cols] = amdv(m.k[2+j+cols], inc(c), inc(null), u)
+	}
+	dec(v)
+	m.k[3+r] = cols
+	return decr(t, c, r)
 }
 func ins(x, y, f, z k) (r k) { // ?[x;y;f;z] splice
 	if !match(f, null) {
@@ -4502,12 +4581,23 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 	return decr(x, y, r)
 }
 func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
-	if t, n := typ(a); n == atom {
+	t, xt, n, xn := typs(a, x)
+	if n == atom {
 		return amdv(x, a, f, y)
 	} else if n == 1 {
 		return amdv(x, fst(a), f, y)
 	} else if n == 0 {
 		panic("domain")
+	} else if n == 2 && t == L && xt == A && xn != atom { // t[I;S]..
+		idx := l2(fnd(inc(m.k[2+x]), inc(m.k[3+a])), inc(m.k[2+a]))
+		if match(m.k[2+a], null) {
+			dec(m.k[3+idx])
+			m.k[3+idx] = jota(xn)
+		}
+		r = mk(A, xn)
+		m.k[2+r] = inc(m.k[2+x])
+		m.k[3+r] = dmdv(inc(m.k[3+x]), idx, f, y)
+		return decr(x, a, r)
 	} else if n == 2 && t == L && (m.k[m.k[2+a]]&atom != atom || match(m.k[2+a], null)) { // matrix assign
 		a0, a1, yi := inc(m.k[2+a]), inc(m.k[3+a]), k(0)
 		dec(a)
