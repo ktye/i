@@ -37,10 +37,10 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, L, A, N                   k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom, srcp, kkey, kval, stab, asci, dyad k = 0x0fffffff, 0x2f, 0x30, 0x31, 0x32, 0x33, 80
-	NaI                                      i = -2147483648
-	yb64, yhex, ycsv, ypng                   k = 257, 258, 259, 260
+	C, I, F, Z, S, L, A, N                                    k = 1, 2, 3, 4, 5, 6, 7, 8
+	atom, srcp, kkey, kval, stab, asci, dyad                  k = 0x0fffffff, 0x2f, 0x30, 0x31, 0x32, 0x33, 80
+	NaI                                                       i = -2147483648
+	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 257, 258, 259, 260, 261, 262, 263, 264, 265, 266
 )
 
 type (
@@ -125,7 +125,7 @@ func ini(mem []f) { // start function
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 
-	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png"))) // symbol table
+	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png,select,update,delete,by,from,where"))) // symbol table
 	nans = mk(S, atom)
 	m.k[2+nans] = 0
 	null = mk(N, atom)
@@ -5939,6 +5939,10 @@ func (p *p) noun() (r k) {
 		return p.idxr(cat(enlist(inc(null)), r))
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
+	case p.t(sQlq):
+		return p.sql(p.a(pSql))
+	case p.t(sQlv):
+		return inc(null)
 	case p.t(sNam):
 		n := p.a(pNam)
 		// TODO: dot must follow immediately
@@ -6016,6 +6020,113 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 		panic("parse: unclosed list")
 	}
 	p.p = p.m
+	return r
+}
+func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [where ex]
+	var t, c, b, a k // t(table), c(where), b(group-by), a(aggregate)
+	if !p.t(sQlv) {
+		a = p.mustex()
+	} else if m.k[2+x] == yudt {
+		panic("parse")
+	}
+	if !p.t(sQlv) {
+		panic("parse")
+	}
+	s := p.a(pSql)
+	if m.k[2+s] == yby {
+		b = p.mustex()
+		if !p.t(sQlv) {
+			panic("parse")
+		}
+		s = dex(s, p.a(pSql))
+	}
+	if m.k[2+s] == yfrm {
+		t = dex(s, p.mustex())
+	} else {
+		panic("parse")
+	}
+	if p.t(sQlv) {
+		s = p.a(pSql)
+		if m.k[2+s] != ywer {
+			panic("parse")
+		}
+		c = dex(s, p.mustex())
+	} else {
+		c = mk(L, 0)
+	}
+	f := mk(N+2, atom)
+	m.k[2+f] = 14 + dyad // #
+	if m.k[2+x] == yudt || m.k[2+x] == ydel {
+		m.k[2+f]++ // _
+	}
+	r = mk(L, 3)
+	m.k[2+r] = f
+	switch m.k[2+x] {
+	case ysel, yudt:
+		if a == 0 && b == 0 {
+			m.k[3+r] = c // select from t where c | select from t
+			m.k[4+r] = t
+			if m.k[c]&atom != 0 {
+				m.k[3+r] = sqle(c)
+			}
+			break
+		}
+		m.k[3+r] = t
+		m.k[4+r] = c
+		if b == 0 { // select a from t
+			r = lcat(r, sqle(a)) // TODO: `a!(:a)
+			break
+		} else {
+			r = lcat(r, sqle(b)) // TODO: `b!:b
+			r = lcat(r, sqle(a)) // TODO: empty (0#`)!()
+		}
+	case ydel:
+		m.k[4+r] = t
+		if c == 0 && b == 0 && a != 0 {
+			m.k[3+r] = a
+		} else if c != 0 && b == 0 && a == 0 {
+			m.k[4+r] = scat(c)
+		} else {
+			panic("parse")
+		}
+	default:
+		panic("parse")
+	}
+	return dex(x, r)
+}
+func scat(x k) (r k) { // a → ,`a | a,b,.. → ,`a`b`..
+	t, n := typ(x)
+	if t == S {
+		return x
+	} else if t != L || n != 3 || m.k[3+x] != 12+dyad || m.k[4+x]>>28 != S {
+		panic("parse")
+	}
+	return dex(x, cat(inc(m.k[2+x]), scat(inc(m.k[3+x]))))
+}
+func sqle(x k) (r k) { // ksql a → `a!(:e)
+	println("sqle")
+	if x == 0 {
+		panic("???")
+	}
+	r = fst(inc(x))
+	t1, n1 := typ(r)
+	dec(r)
+	if t, n := typ(x); t == L && n == 3 && t1 == N+1 && n1 == atom && m.k[2+m.k[2+x]] == dyad {
+		panic("nyi: to dict")
+	}
+	println("111")
+	r = mk(N, 2)
+	m.k[2+r] = inc(x)
+	m.k[3+r] = cat(cat(mkc(':'), mkc('.')), kst(inc(x))) // TODO: unparse (from stored src?)
+	println("222")
+	pr(r, "r")
+	return dex(x, r)
+}
+func (p *p) mustex() (r k) {
+	r = p.ex(p.noun())
+	if match(r, null) {
+		panic("parse")
+	}
 	return r
 }
 func monad(x k) (r k) { // force monad
@@ -6208,6 +6319,16 @@ func pBin(b []byte) (r k) { // builtin
 	}
 	dec(x)
 	return r
+}
+func pSql(b []byte) (r k) { // ksql
+	s := [6]k{ysel, yudt, ydel, yby, yfrm, ywer}
+	q := c2s(mkb(b))
+	for i := k(0); i < 6; i++ {
+		if s[i] == m.k[2+q] {
+			return q
+		}
+	}
+	panic("pSql")
 }
 
 // Scanners return the length of the matched input or 0
@@ -6414,6 +6535,37 @@ func sBin(b []byte) int { // builtin
 	dec(a)
 	dec(max)
 	return n
+}
+
+func sQlq(b []byte) int { // ksql select|update|delete
+	if r := sQls(b); r > 5 {
+		return r
+	}
+	return 0
+}
+func sQlv(b []byte) int { // ksql from|by|where
+	if r := sQls(b); r > 0 && r < 6 {
+		return r
+	}
+	return 0
+}
+func sQls(b []byte) int {
+	s := [6]k{ysel, yudt, ydel, yby, yfrm, ywer}
+	for i := k(0); i < 6; i++ {
+		c := m.k[2+s[i]+m.k[stab]-256]
+		p, n := 8+c<<2, m.k[c]&atom
+		if k(len(b)) >= n {
+			for j := k(0); j < n; j++ {
+				if b[j] != m.c[p+j] {
+					break
+				}
+				if j == n-1 {
+					return int(n)
+				}
+			}
+		}
+	}
+	return 0
 }
 func sObr(b []byte) int { return ib(b[0] == '[') }
 func sOpa(b []byte) int { return ib(b[0] == '(') }

@@ -35,6 +35,9 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"`p\"select from t\"", "(#;();`t)"},
+		//{"`p\"select from t where a>2\"", "(#;(:a>2);`t)"},
+		{"()#+`a`b!(1 2;3 4)", "+`a`b!(1 2;3 4)"},
 
 		// {"`p\"udpate b:+/b by a from t\"", "_[`t;();`a!(:a);`b!(:+/b)]"},
 		{"_[+`a`b!(`x`y`z`x`y`z;1 2 3 4 5 6);();`a!(:a);`b!(:+/b)]", "+`a`b!(`x`y`z`x`y`z;5 7 9 5 7 9)"},
