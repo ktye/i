@@ -5788,7 +5788,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		if m.k[x]>>28 == N && m.k[2+x] == 0 {
 			r = p.ex(r)
 			m.k[2+x] = r
-			m.k[3+x] = mkb(m.c[ps-1 : p.p])
+			m.k[3+x] = cat(mkc(' '), mkb(m.c[ps-1:p.p]))
 			return x
 		} else if v := p.verb(r); v == 0 {
 			return p.store(ps, compose(l2(x, p.ex(r)))) // te
@@ -5940,7 +5940,11 @@ func (p *p) noun() (r k) {
 	case p.t(sBin):
 		return p.idxr(p.a(pBin))
 	case p.t(sQlq):
-		return p.sql(p.a(pSql))
+		sto := p.sto
+		p.sto = 0
+		r = p.sql(p.a(pSql))
+		p.sto = sto
+		return r
 	case p.t(sQlv):
 		return inc(null)
 	case p.t(sNam):
@@ -6023,9 +6027,10 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 	return r
 }
 func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [where ex]
-	var t, c, b, a k // t(table), c(where), b(group-by), a(aggregate)
-	if !p.t(sQlv) {
-		a = p.mustex()
+	var t, tc, c, cc, b, bc, a, ac k // t(table), c(where), b(group-by), a(aggregate)
+	if !p.t(sQlv) {                  // select
+		a, ac = p.mustex()
+		a = sqle(a, ac)
 	} else if m.k[2+x] == yudt {
 		panic("parse")
 	}
@@ -6033,24 +6038,27 @@ func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [wher
 		panic("parse")
 	}
 	s := p.a(pSql)
-	if m.k[2+s] == yby {
-		b = p.mustex()
+	if m.k[2+s] == yby { // by
+		b, bc = p.mustex()
+		b = sqle(b, bc)
 		if !p.t(sQlv) {
 			panic("parse")
 		}
 		s = dex(s, p.a(pSql))
 	}
-	if m.k[2+s] == yfrm {
-		t = dex(s, p.mustex())
+	if m.k[2+s] == yfrm { // from
+		t, tc = p.mustex()
+		decr(s, tc, 0)
 	} else {
 		panic("parse")
 	}
-	if p.t(sQlv) {
+	if p.t(sQlv) { // where
 		s = p.a(pSql)
 		if m.k[2+s] != ywer {
 			panic("parse")
 		}
-		c = dex(s, p.mustex())
+		c, cc = p.mustex()
+		c = dex(s, toex(c, cc))
 	} else {
 		c = mk(L, 0)
 	}
@@ -6066,28 +6074,33 @@ func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [wher
 		if a == 0 && b == 0 {
 			m.k[3+r] = c // select from t where c | select from t
 			m.k[4+r] = t
-			if m.k[c]&atom != 0 {
-				m.k[3+r] = sqle(c)
-			}
 			break
 		}
 		m.k[3+r] = t
 		m.k[4+r] = c
 		if b == 0 { // select a from t
-			r = lcat(r, sqle(a)) // TODO: `a!(:a)
+			r = lcat(r, a)
 			break
 		} else {
-			r = lcat(r, sqle(b)) // TODO: `b!:b
-			r = lcat(r, sqle(a)) // TODO: empty (0#`)!()
+			r = lcat(r, b)
+			if a == 0 {
+				r = lcat(r, key(mk(S, 0), mk(L, 0)))
+			} else {
+				r = lcat(r, a)
+			}
 		}
 	case ydel:
-		m.k[4+r] = t
-		if c == 0 && b == 0 && a != 0 {
-			m.k[3+r] = a
-		} else if c != 0 && b == 0 && a == 0 {
-			m.k[4+r] = scat(c)
-		} else {
+		if m.k[c]&atom == 0 {
+			c = dex(c, 0)
+		}
+		if b != 0 || (c != 0 && a != 0) || (a == 0 && b == 0 && c == 0) {
 			panic("parse")
+		}
+		m.k[4+r] = t
+		if a != 0 {
+			m.k[3+r] = til(a) // delete a from t
+		} else {
+			m.k[3+r] = c // delete from t where c
 		}
 	default:
 		panic("parse")
@@ -6103,31 +6116,88 @@ func scat(x k) (r k) { // a → ,`a | a,b,.. → ,`a`b`..
 	}
 	return dex(x, cat(inc(m.k[2+x]), scat(inc(m.k[3+x]))))
 }
-func sqle(x k) (r k) { // ksql a → `a!(:e)
-	println("sqle")
-	if x == 0 {
-		panic("???")
+func sqle(x, xc k) (r k) { // parse sql subphrase
+	n := m.k[xc] & atom
+	d, b, p, c, a := key(mk(S, 0), mk(L, 0)), k(0), 8+xc<<2, c(0), k(0)
+	for i := k(0); i < n; i++ { // split at , not within (,) and parse each subphrase as ex
+		c = m.c[p+i]
+		if c == '"' {
+			i += k(sStr(m.c[p+i : p+n-i]))
+			continue
+		} else if c == '(' {
+			b++
+		} else if c == ')' {
+			if b == 0 {
+				panic("parse")
+			}
+			b--
+		}
+		if c == ',' && b == 0 {
+			d = cat(d, sqlp(mkb(m.c[p+a:p+i])))
+			a = i + 1
+		} else if i == n-1 {
+			if m.c[p+n-1] == ' ' {
+				n--
+			}
+			d = cat(d, sqlp(mkb(m.c[p+a:p+n])))
+		}
 	}
-	r = fst(inc(x))
-	t1, n1 := typ(r)
-	dec(r)
-	if t, n := typ(x); t == L && n == 3 && t1 == N+1 && n1 == atom && m.k[2+m.k[2+x]] == dyad {
-		panic("nyi: to dict")
-	}
-	println("111")
-	r = mk(N, 2)
-	m.k[2+r] = inc(x)
-	m.k[3+r] = cat(cat(mkc(':'), mkc('.')), kst(inc(x))) // TODO: unparse (from stored src?)
-	println("222")
-	pr(r, "r")
-	return dex(x, r)
+	return decr(x, xc, d)
 }
-func (p *p) mustex() (r k) {
+func sqlp(x k) (r k) {
+	n := m.k[x] & atom
+	if n == 0 {
+		return dex(x, key(mk(S, 0), mk(L, 0)))
+	}
+	p, s := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: 0}, k(0)
+	if p.t(sNam) {
+		s = p.a(pNam)
+		if !p.t(sVrb) {
+			if p.p == p.e {
+				return key(inc(s), toex(s, x))
+			}
+			panic("parse")
+		}
+		v := p.a(pVrb)
+		if t, n := typ(v); t == N+2 && n == atom && m.k[2+v] == dyad {
+			x = decr(x, v, mkb(m.c[p.p:p.e]))
+			return key(s, toex(prs(inc(x)), x))
+		}
+		decr(s, v, 0)
+	}
+	e := toex(prs(inc(x)), x)
+	s = mk(S, atom)
+	m.k[2+x] = k('x')
+	s = lsym(inc(m.k[2+e]), s)
+	return key(s, e)
+}
+func lsym(x, s k) (r k) { // last symbol in tree
+	t, n := typ(x)
+	if t == S {
+		return dex(s, x)
+	} else if t != L {
+		return dex(x, s)
+	}
+	for i := k(0); i < n; i++ {
+		s = lsym(inc(m.k[2+i+x]), s)
+	}
+	return dex(x, s)
+}
+func toex(x, c k) (r k) {
+	if m.c[8+c<<2] == ' ' {
+		c = drop(1, c)
+	}
+	r = l2(x, cat(mkc(' '), cat(mkc(':'), c)))
+	m.k[r] = N<<28 | 2
+	return r
+}
+func (p *p) mustex() (r, c k) {
+	s := p.p
 	r = p.ex(p.noun())
 	if match(r, null) {
 		panic("parse")
 	}
-	return r
+	return r, mkb(m.c[s:p.p])
 }
 func monad(x k) (r k) { // force monad
 	t, _ := typ(x)

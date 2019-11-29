@@ -78,13 +78,16 @@ Functions have type N+1…N+4 (valence)
  derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
   x+2 derived function code<<8
   x+3 points to the function operand
+ expressions (:e) have type N with length 2
+  x+2 parse tree
+  x+3 string form C
  call will adjust the valence if a derived function has two arguments
-</pre>
-
+ 
 Symbols are interned in the char array at m.k[stab]
  symbol values are 256+index into this array (which is append only)
  values < 256 are single char symbols and represent their ascii value
  the 0 value is the empty symbol
+</pre>
 
 # Building
 <pre>

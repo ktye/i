@@ -1,11 +1,32 @@
 ksql # _
      #[table;where;by;aggregate]
+
 select from t                ()#t   
-select from t where a>2      (:b>1)#t                  /dyadic take
-select from t where a>2,b<3  #[(:a>2;:b<3);t]          /multiple where clauses as a list
-select c:a*b from t          #[t;();`c!(:a*b)]         /triadic, empty where clause is ()
-select a*b from t            #[t;();`b!(:a*b)]         /default result column name is last symbol in expr
-select c:a*b,a from t        #[t;();`c`a!(:a*b;:a)]    /multiple result columns are comma separated
-                             t@`c`a!(:a*b;:a)          /same as t@d
-select by a from t           #[t;();`a!(:a);(0#`)!()]  
-select +/b by a from t       #[t;();`a!(:a);`b!(:+/b)] 
+select from t where a>2      (:b>1)#t                    /dyadic take
+select from t where a>2,b<3  #[(:a>2;:b<3);t]            /multiple where clauses as a list
+select c:a*b from t          #[t;();`c!( :a*b)]          /triadic, empty where clause is ()
+select a*b from t            #[t;();`b!( :a*b)]          /default result column name is last symbol in expr
+select c:a*b,a from t        #[t;();`c`a!( :a*b; :a)]    /multiple result columns are comma separated
+                             t@`c`a!( :a*b; :a)          /same as t@d
+select by a from t           #[t;();`a!( :a);(0#`)!()]  
+select +/b by a from t       #[t;();`a!( :a);`b!( :+/b)] 
+
+update a (by b) from t (where c)   _[t; :c;`a!( :a);`b!( :b)]     /same parsing rules as select 
+
+delete from t where c>2      (:c>2)_t
+delete a from t              (,`a)_t
+delete a,b from t            `a`b_t
+
+ksql phrase starts with select|update|delete 
+ 1. update must, delete and select may be followed by an aggregate subphrase
+ 2. select and update may have a by subphrase
+ 3. all 3 must have a from subphrase
+ 4. all may have a where phrase (delete only one of aggregate or where)
+
+by and aggregate subphrases
+ separated by comma, if not encoded in braces, e.g. a,b,(c+1,d)
+ if the subphrase starts with an assignment (name:..) it is used as a dict key
+ with the rest of the subphrase stored as an :expression
+ otherwise the default key name is the last symbol in the expression tree or 'x' if there is none
+ return value is a dict s!l with en entry for each subphrase. catenation of ((0#`)!()) , (,key)!,(:expr)
+where subphrase is parsed as a simple :expression or an empty list

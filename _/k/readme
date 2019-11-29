@@ -6,4 +6,4 @@ cp ../../k.go .
 printf "module github.com/ktye/i/_/k\n\ngo 1.13\n\nrequire github.com/ktye/plot v0.0.0-20190730163230-f3b68a4d84f8" > go.mod
 
 GOPATH="" GO111MODULE=on go build -ldflags="-s -w"
-# there should now be an executable k(.exe) ~5MB
+# there should now be an executable k(.exe)

@@ -35,11 +35,20 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		{"`p\"select from t\"", "(#;();`t)"},
-		//{"`p\"select from t where a>2\"", "(#;(:a>2);`t)"},
-		{"()#+`a`b!(1 2;3 4)", "+`a`b!(1 2;3 4)"},
+		{"`p\"select by a from t\"", "(#;`t;();(,`a)!, :a;(0#`)!())"},
+		{"select by a from +`a`b!(1 2;3 4)", "+(+(,`a)!,1 2)!(+(,`b)!,,3;+(,`b)!,,4)"},
+		{"#[+`a`b!(1 2;3 4);();`a! :a;(0#`)!()]", "+(+(,`a)!,1 2)!(+(,`b)!,,3;+(,`b)!,,4)"},
 
-		// {"`p\"udpate b:+/b by a from t\"", "_[`t;();`a!(:a);`b!(:+/b)]"},
+		{"$ :1+2", "\" :1+2\""},
+		{"`p\"select from t\"", "(#;();`t)"},
+		{"`p\"select from t where a>2\"", "(#; :a>2;`t)"},
+		{"`p\"select a from t\"", "(#;`t;();(,`a)!, :a)"},
+		{"`p\"select a:b from t\"", "(#;`t;();(,`a)!, :b)"},
+		{"`p\"select a:1+2,b:(3,c) from t\"", "(#;`t;();`a`b!( :1+2; :(3,c)))"},
+		{"`p\"select a+b from t\"", "(#;`t;();(,`b)!, :a+b)"},
+		{"`p\"select a by b from t\"", "(#;`t;();(,`b)!, :b;(,`a)!, :a)"},
+		{"()#+`a`b!(1 2;3 4)", "+`a`b!(1 2;3 4)"},
+		{"`p\"update b:+/b by a from t\"", "(_;`t;();(,`a)!, :a;(,`b)!, :+/b)"},
 		{"_[+`a`b!(`x`y`z`x`y`z;1 2 3 4 5 6);();`a!(:a);`b!(:+/b)]", "+`a`b!(`x`y`z`x`y`z;5 7 9 5 7 9)"},
 		{"_[+`a`b!(`x`y`z`x`y`z;1 2 3 4 5 6);();`a;`b!(:+/b)]", "+`a`b!(`x`y`z`x`y`z;5 7 9 5 7 9)"},
 		{"_[+`a`b!(`x`y`z`x`y`z;1 2 3 4 5 6);();`a!(:a);`b!(:+\\b)]", "+`a`b!(`x`y`z`x`y`z;1 2 3 5 7 9)"},
@@ -60,11 +69,12 @@ func TestK(t *testing.T) {
 		{"t:+`a`b!(`x`y`z;3 4 5);t[,0;,`b]:(,,9);t", "+`a`b!(`x`y`z;9 4 5)"},
 		{"t:+`a`b!(`x`y`z;3 4 5);t[0 2;,`b]:(,9);t", "+`a`b!(`x`y`z;9 4 9)"},
 
-		//{"t:+`a`b!(1 2;3 4);delete from t where b>3","+`a`b!(,1;,3)"},
-		//{"`p\"delete from t where b>3\"","(_;:x>3;`t)"},
+		{"`p\"delete from t where b>3\"", "(_; :b>3;`t)"},
+		{"t:+`a`b!(1 2;3 4);delete from t where b>3", "+`a`b!(,1;,3)"},
+
 		{"(:b>3)_+`a`b!(1 2;3 4)", "+`a`b!(,1;,3)"},
-		//{"`p\"delete a from t\"","(_;,`a;`t)"}, // k7: parse error
-		//{"`p\"delete a,b from t\"","(_;,`a`b;`t)"},
+		{"`p\"delete a from t\"", "(_;,`a;`t)"}, // k7: parse error
+		{"`p\"delete a,b from t\"", "(_;`a`b;`t)"},
 		{"(`a`c)_+`a`b`c!(1 2;3 4;5 6)", "+(,`b)!,3 4"},
 		{",`a`b!(3;4 5)", "+`a`b!(,3;,4 5)"},
 		{"(`a`b!1 2;`a`b!2 3;`a`b!3 4)", "+`a`b!(1 2 3;2 3 4)"},
@@ -863,17 +873,17 @@ func TestK(t *testing.T) {
 		{"`?0x000300100200000000000000", "0 1"},   // k7
 		{"`?0x000300100300000002000000", "2 3 4"}, // k7
 		{"?(+;-;+;+:)", "(+;-;+:)"},
-		{":3", ":3"},
+		{":3", " :3"},
 		{". :3", "3"},
-		{":1+a", ":1+a"},
-		{"e: :1+2", ":1+2"},
-		{"`p\"e: :1+2\"", "(::;`e;:1+2)"},
-		{"`p\"e:(:1+2)\"", "(::;`e;:1+2)"},
+		{":1+a", " :1+a"},
+		{"e: :1+2", " :1+2"},
+		{"`p\"e: :1+2\"", "(::;`e; :1+2)"},
+		{"`p\"e:(:1+2)\"", "(::;`e; :1+2)"},
 		{":[3;4]", "4"},
 		{"(+`a`b!(1 2;3 4)) :a+b", "4 6"},
 		{"a:3;a+::4;a", "7"},
 		{"`p\"x: 3\"", "(::;`x;3)"},
-		{"`p\"e: :1+2\"", "(::;`e;:1+2)"},
+		{"`p\"e: :1+2\"", "(::;`e; :1+2)"},
 		{"`p@" + `"x+::3"`, "(+:;`x;(::;3))"},
 		{"~ :0", "0"},
 		{"@ :a", "`0"},
@@ -991,13 +1001,16 @@ Functions have type N+1…N+4 (valence)
  derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
   x+2 derived function code<<8
   x+3 points to the function operand
+ expressions (:e) have type N with length 2
+  x+2 parse tree
+  x+3 string form C
  call will adjust the valence if a derived function has two arguments
-</pre>
-
+ 
 Symbols are interned in the char array at m.k[stab]
  symbol values are 256+index into this array (which is append only)
  values < 256 are single char symbols and represent their ascii value
  the 0 value is the empty symbol
+</pre>
 
 # Building
 <pre>

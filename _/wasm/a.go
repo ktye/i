@@ -13,7 +13,15 @@ func main() {
 	js.Global().Set("ui", js.FuncOf(ui))
 	select {}
 }
-func grw() { m.f = append(m.f, make([]f, len(m.f))...) }
+func grw(c k) {
+	if 2*len(m.f) <= cap(m.f) {
+		m.f = m.f[:2*len(m.f)]
+	} else {
+		x := make([]f, 2*len(m.f), c/4)
+		copy(x, m.f)
+		m.f = x
+	}
+}
 func ui(_ js.Value, args []js.Value) interface{} {
 	var r k
 	a := func(n int) k { return k(args[n].Int()) }
