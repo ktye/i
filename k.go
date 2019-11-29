@@ -1816,8 +1816,13 @@ func kst(x k) (r k) { // `k@x
 		if !atm {
 			r = cat(r, mkc('+'))
 		}
-		rr, encl := kst(inc(m.k[x+2])), false
-		kt, nk := typ(m.k[x+2])
+		kv, vv := inc(m.k[2+x]), inc(m.k[3+x])
+		kt, nk := typ(kv)
+		if nk == 1 {
+			kv, vv = fst(kv), fst(vv)
+			kt, nk = typ(kv)
+		}
+		rr, encl := kst(kv), false
 		if (kt <= L && nk == 1) || (kt == A) || (kt > A) || (nk == 0 && kt != C && kt != L) {
 			encl = true
 		}
@@ -1833,7 +1838,7 @@ func kst(x k) (r k) { // `k@x
 		}
 		m.c[8+y<<2] = '!'
 		r = cat(r, y)
-		r = cat(r, kst(inc(m.k[x+3])))
+		r = cat(r, kst(vv))
 	default:
 		if t >= N {
 			r = str(inc(x))
