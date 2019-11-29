@@ -948,7 +948,7 @@ k7+
  matrix: x/y(mul), A\B(solve), A\0(qr), A\1(inv), diag A, diag v, norm, cond
  stat: x med (pct/erf/cum), dev z (principal axis), x var, var z (cov), x avg (cum/win/exp)
 k7-
- 32bit, time/duration, ksql, crypto, network, multithread
+ 32bit, time/duration, crypto, network, multithread
  
 Type/memory system
 32-bit system, buddy allocater with 8 byte headers
