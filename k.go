@@ -6613,14 +6613,14 @@ func sBin(b []byte) int { // builtin
 }
 
 func sQlq(b []byte) int { // ksql select|update|delete
-	if r := sQls(b); r > 5 {
-		return r
+	if r := sQls(b); r == 7 { // "select " (including space)
+		return r - 1
 	}
 	return 0
 }
 func sQlv(b []byte) int { // ksql from|by|where
-	if r := sQls(b); r > 0 && r < 6 {
-		return r
+	if r := sQls(b); r > 0 && r < 7 {
+		return r - 1
 	}
 	return 0
 }
@@ -6629,13 +6629,13 @@ func sQls(b []byte) int {
 	for i := k(0); i < 6; i++ {
 		c := m.k[2+s[i]+m.k[stab]-256]
 		p, n := 8+c<<2, m.k[c]&atom
-		if k(len(b)) >= n {
+		if k(len(b)) > n {
 			for j := k(0); j < n; j++ {
 				if b[j] != m.c[p+j] {
 					break
 				}
-				if j == n-1 {
-					return int(n)
+				if j == n-1 && b[n] == ' ' {
+					return int(n + 1)
 				}
 			}
 		}

@@ -855,6 +855,7 @@ func TestK(t *testing.T) {
 		{"`p\"select a+b from t\"", "(#;`t;();`b! :a+b)"},
 		{"`p\"select a by b from t\"", "(#;`t;();`b! :b;`a! :a)"},
 		{"`p\"select by a from t\"", "(#;`t;();`a! :a;(0#`)!())"},
+		{"`p\"select from R where selected\"", "(#; :selected;`R)"},
 		{"select by a from +`a`b!(1 2;3 4)", "+(+`a!1 2)!(+`b!,3;+`b!,4)"},
 		{"#[+`a`b!(1 2;3 4);();`a! :a;(0#`)!()]", "+(+`a!1 2)!(+`b!,3;+`b!,4)"},
 		{"()#+`a`b!(1 2;3 4)", "+`a`b!(1 2;3 4)"},
