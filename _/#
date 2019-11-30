@@ -2,7 +2,7 @@ ksql # _
      #[table;where;by;aggregate]
 
 select from t                ()#t   
-select from t where a>2      (:b>1)#t                    /dyadic take
+select from t where a>2      (:a>1)#t                    /dyadic take
 select from t where a>2,b<3  #[(:a>2;:b<3);t]            /multiple where clauses as a list
 select c:a*b from t          #[t;();`c!( :a*b)]          /triadic, empty where clause is ()
 select a*b from t            #[t;();`b!( :a*b)]          /default result column name is last symbol in expr
@@ -29,4 +29,4 @@ by and aggregate subphrases
  with the rest of the subphrase stored as an :expression
  otherwise the default key name is the last symbol in the expression tree or 'x' if there is none
  return value is a dict s!l with en entry for each subphrase. catenation of ((0#`)!()) , (,key)!,(:expr)
-where subphrase is parsed as a simple :expression or an empty list
+where subphrase is parsed as a simple :expression, an empty list or a list of expressions

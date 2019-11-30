@@ -884,6 +884,9 @@ func TestK(t *testing.T) {
 		{"(`a`c)_+`a`b`c!(1 2;3 4;5 6)", "+`b!3 4"},
 		{",`a`b!(3;4 5)", "+`a`b!(,3;,4 5)"},
 		{"(`a`b!1 2;`a`b!2 3;`a`b!3 4)", "+`a`b!(1 2 3;2 3 4)"},
+		{"`p\"select from t where b>3,a<6\"", "(#;,( :b>3; :a<6);`t)"},
+		{"t:+`a`b!(!10;1+!10);select from t where b>3,a<6", "+`a`b!(3 4 5;4 5 6)"},
+		{"t:+`a`b!(!10;1+!10);select a+b from t where b>3,a<6", "+`b!7 9 11"},
 	}
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {

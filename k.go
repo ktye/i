@@ -1360,6 +1360,8 @@ func evl(x k) (r k) {
 			return lup(x)
 		}
 		return x
+	} else if n == 1 {
+		return fst(x)
 	}
 	sp := k(0)
 	if m.k[1+x] > 0xFFFF {
@@ -1396,8 +1398,7 @@ func evl(x k) (r k) {
 			return R() + dex(x, r)
 		}
 	}
-	switch vt {
-	case N: // (;…) → list
+	if match(v, null) { // (;…) → list
 		r = mk(L, n-1)
 		if n > 1 {
 			for i := int(n - 2); i >= 0; i-- {
@@ -1405,7 +1406,7 @@ func evl(x k) (r k) {
 			}
 		}
 		return R() + dex(x, uf(r))
-	default:
+	} else {
 		inc(v)
 		iev := false
 		if vt == S && vn == atom {
@@ -2528,11 +2529,6 @@ func ept(x, y k) (r k) { // x^y
 		y, yn = enl(y), 1
 	}
 	eq, b, xp, yp := eqx[t], mk(I, n), ptr(x, t), ptr(y, t)
-	/*
-		if t == L {
-			eq = match
-		}
-	*/
 	all := true
 	for i := k(0); i < n; i++ { // TODO: quadratic
 		m.k[2+i+b] = 1
@@ -6063,7 +6059,12 @@ func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [wher
 			panic("parse")
 		}
 		c, cc = p.mustex()
-		c = dex(s, toex(c, cc))
+		c = dex(s, val(sqle(c, cc)))
+		if m.k[c]&atom == 1 {
+			c = fst(c)
+		} else {
+			c = enlist(c)
+		}
 	} else {
 		c = mk(L, 0)
 	}
