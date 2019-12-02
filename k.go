@@ -846,7 +846,7 @@ func flp(x k) (r k) { // +x
 	return kx(mks(".flp"), x)
 }
 func neg(x k) k { // -x
-	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.z[r] = -m.z[x] }})
+	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.f[r<<1] = -m.f[x<<1]; m.f[1+r<<1] = -m.f[1+x<<1] }})
 }
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
@@ -4837,7 +4837,14 @@ func rol(x, y k) (r k) { // x rand y (roll, deal)
 	}
 	n := i(m.k[2+x])
 	if yn == atom {
-		if yt == I { // n rand m → n rand !m
+		if xt == atom && yt == I && m.k[2+x] > 0 && m.k[2+y] > 0 {
+			r = mk(I, xn)
+			n := 1 + m.k[2+y]
+			for i := k(0); i < xn; i++ {
+				m.k[2+r+i] = rndn(n)
+			}
+			return decr(x, y, r)
+		} else if yt == I { // n rand m → n rand !m
 			yn = m.k[2+y]
 			y = til(y)
 		} else if yt == F { // n rand yf uniform [0,y] #n
