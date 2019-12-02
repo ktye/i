@@ -1,17 +1,16 @@
-# wasm build (256KB) with tinygo
+# wasm build (300KB) with tinygo
 #
 # install tinygo-0.9.0 to /usr/local/tinygo
 # install go-1.13 
 set -e
-#tgo=/usr/local/tinygo
-tgo=/c/tinygo
+tgo=/usr/local/tinygo
+#tgo=/c/tinygo
 
 # complex negation is currently not supported in tinygo
 sed -e 's/-m.z/m.z/' < ../../k.go > k.go
 
 $tgo/bin/tinygo build -o k.w -target wasm -no-debug -heap-size 20M
 base64 -w 0 k.w | sed -e 's/^/var r = "/' -e 's/$/"/' > k.b64
-base64 -w 0 ../../u/t.k | sed -e 's/^/var tk = "/' -e 's/$/"/' > tk.b64
 
 ## TODO: copyBytesToJS is missing (tinygo issue 631)
 cp $tgo/targets/wasm_exec.js .
@@ -22,5 +21,5 @@ awk '/^{{/{
  f=substr($0, 3, length($0)-4)
  while((getline l<f)>0) print l
  next
-}{print}' k.ht > index.html
+}{print}' k2.ht > index.html
 

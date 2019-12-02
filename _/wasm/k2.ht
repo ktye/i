@@ -1,0 +1,88 @@
+<html>
+<head><meta charset="utf-8"></head>
+<link rel='icon' type'image/png' href="k32.png">
+<style>
+ html,body{height:100%;margin:0;padding:0;overflow:hidden;}
+ #kons{top:0;left:0;width:100%;height:100%;position:absolute;background:black;color:white;border:0pt;resize:none;}
+</style>
+<body>
+<textarea id="kons"></textarea>
+<script>
+
+{{wasm_exec.js}}
+{{k.b64}}
+{{rev}}
+var f = new Object() // memfs
+function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
+var kwasm = sa(atob(r))
+const go = new Go()
+f["rev"] = sa(rev)
+
+function initKons() {
+ var hold = false
+ kons.onkeydown = function(evt) {
+  if(evt.which === 27) {
+   evt.preventDefault()
+   hold = !hold
+   kons.style.background = hold ? "#78909C" : "black"
+  } else if (evt.which === 13) {
+   if (hold) return
+   evt.preventDefault()
+   var a = kons.selectionStart
+   var b = kons.selectionEnd
+   var s = kons.value.substring(a, b)
+   if (b == a) {
+    if (kons.value[a] == "\n") a -= 1
+    a = kons.value.lastIndexOf("\n", a)
+    if (a == -1) a = 0
+    b = kons.value.indexOf("\n", b)
+    if (b == -1) b = kons.selectionEnd
+    s = kons.value.substring(a, b)
+   }
+   if (kons.selectionEnd != kons.value.length) O(s)
+   O("\n")
+   s = s.trim()
+   if (s === "\\c") { kons.value = " "; return }
+   E(s)
+  }
+ }
+}
+function O(s) { kons.value += s }
+function P() { kons.value += " "; kons.scrollTo(0, kons.scrollHeight) }
+function E(s) { 
+ hash(s)
+ kio = s
+ try { wasm.exports.K() } catch(e) { kio = "?\n" }
+ O(kio);P()
+}
+
+//c.ondragover=function(e){pd(e)}
+//c.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){var r=new FileReader();r.onload=function(){
+  console.log("w ", x.name)
+  f[x.name]=new Uint8Array(r.result)};r.readAsArrayBuffer(x)}
+
+function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+//function e(x){ui(7088,x)} // eval(js console)
+
+var kio = 0
+var mat = ""
+var img = ""
+var wasm
+(async () => {
+  initKons()
+  const module = await WebAssembly.compile(kwasm.buffer);
+  const k = await WebAssembly.instantiate(module, go.importObject);
+  go.run(k)
+  kio = String(kio) //in main()
+  wasm = k
+  kons.value = "ktye@" + rev + " " + kio + "MB\n "
+  if(window.location.hash.length>1)
+   kons.value += decodeURIComponent(window.location.hash.substr(1))
+  // start function
+  kons.focus()
+})();
+
+</script>
+</body>
+</html>
