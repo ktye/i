@@ -4837,10 +4837,10 @@ func rol(x, y k) (r k) { // x rand y (roll, deal)
 	}
 	n := i(m.k[2+x])
 	if yn == atom {
-		if xt == atom && yt == I && m.k[2+x] > 0 && m.k[2+y] > 0 {
-			r = mk(I, xn)
-			n := 1 + m.k[2+y]
-			for i := k(0); i < xn; i++ {
+		if yt == I && m.k[2+x] > 0 && m.k[2+y] > 0 {
+			rn, n := m.k[2+x], 1+m.k[2+y]
+			r = mk(I, rn)
+			for i := k(0); i < rn; i++ {
 				m.k[2+r+i] = rndn(n)
 			}
 			return decr(x, y, r)

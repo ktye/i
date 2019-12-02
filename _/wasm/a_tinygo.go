@@ -3,9 +3,10 @@ package main
 import "syscall/js"
 
 var obuf k
+var imgp k
 
 // max memory, heap size must be set explicitly when compiling with tinygo
-const maxmem = 1 << 21 // number of floats (16 MB)
+const maxmem = 1 << 23 // number of floats (64 MB)
 var mem []f
 
 func main() {
@@ -41,18 +42,27 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 	if xt != I || yt != I || xn != atom || yn == atom {
 		panic("type")
 	}
+	for i := k(0); i < yn; i++ { // opaque
+		m.k[2+i+y] |= 0xFF000000
+	}
 	w := m.k[2+x]
 	h := yn / w
 	if w*h != yn {
 		panic("length")
 	}
 	p := ptr(y, C)
-	js.Global().Set("img", m.c[p:p+4*yn]) // TODO: invalid value (CopyBytesToJS is missing from tinygo)
+	imgp = p
+	js.Global().Set("imgw", w)
+	js.Global().Set("imgh", h)
 	return decr(x, y, inc(null))
 }
 
 //go:export K
 func K() {
+	if obuf != 0 {
+		dec(obuf)
+		obuf = 0
+	}
 	x := mkb([]c(js.Global().Get("kio").String()))
 	js.Global().Set("kio", "")
 	evp(x)
@@ -61,8 +71,12 @@ func K() {
 		if t != C {
 			panic("type")
 		}
-		p := 8 + obuf << 2
+		p := 8 + obuf<<2
 		js.Global().Set("kio", s(m.c[p:p+n]))
 	}
 }
 
+//go:export Img
+func Img() *byte {
+	return &m.c[imgp]
+}

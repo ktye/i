@@ -4,9 +4,11 @@
 <style>
  html,body{height:100%;margin:0;padding:0;overflow:hidden;}
  #kons{top:0;left:0;width:100%;height:100%;position:absolute;background:black;color:white;border:0pt;resize:none;}
+ #cnv{width:100;height:100;top:0;right:0;position:absolute;}
 </style>
 <body>
 <textarea id="kons"></textarea>
+<canvas id="cnv"></canvas>
 <script>
 
 {{wasm_exec.js}}
@@ -18,6 +20,7 @@ var kwasm = sa(atob(r))
 const go = new Go()
 f["rev"] = sa(rev)
 
+var ctx
 function initKons() {
  var hold = false
  kons.onkeydown = function(evt) {
@@ -42,17 +45,29 @@ function initKons() {
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
-   if (s === "\\c") { kons.value = " "; return }
+   if (s === "\\c") { kons.value=" "; cnv.width=0; return }
    E(s)
   }
  }
+ ctx = cnv.getContext('2d')
 }
 function O(s) { kons.value += s }
 function P() { kons.value += " "; kons.scrollTo(0, kons.scrollHeight) }
+var u8
 function E(s) { 
  hash(s)
  kio = s
  try { wasm.exports.K() } catch(e) { kio = "?\n" }
+ var n = imgw*imgh
+ if (n > 0) {
+  cnv.style.width = imgw
+  cnv.style.height = imgh
+  cnv.width = imgw
+  cnv.height = imgh
+  u8 = new Uint8ClampedArray(wasm.exports.memory.buffer, wasm.exports.Img(), 4*n)
+  ctx.putImageData(new ImageData(u8, imgw, imgh), 0, 0)
+  imgw = 0; imgh = 0
+ }
  O(kio);P()
 }
 
@@ -67,7 +82,8 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
 var kio = 0
 var mat = ""
-var img = ""
+var imgw = 0
+var imgh = 0
 var wasm
 (async () => {
   initKons()

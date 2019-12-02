@@ -7,9 +7,9 @@ tgo=/usr/local/tinygo
 #tgo=/c/tinygo
 
 # complex negation is currently not supported in tinygo
-sed -e 's/-m.z/m.z/' < ../../k.go > k.go
+cp ../../k.go .
 
-$tgo/bin/tinygo build -o k.w -target wasm -no-debug -heap-size 20M
+$tgo/bin/tinygo build -o k.w -target wasm -no-debug -heap-size 70M
 base64 -w 0 k.w | sed -e 's/^/var r = "/' -e 's/$/"/' > k.b64
 
 ## TODO: copyBytesToJS is missing (tinygo issue 631)
