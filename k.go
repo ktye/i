@@ -2276,7 +2276,12 @@ func ter(b bool, x, y k) k {
 func key(x, y k) (r k) { // x!y
 	_, yt, xn, yn := typs(x, y)
 	if xn == atom {
-		x, xn, y, yn = enl(x), 1, enl(y), 1
+		x, xn = enl(x), 1
+		if yt == A && yn == atom {
+			y, yn = enlist(y), 1 // dont uf to table
+		} else {
+			y, yn = enl(y), 1
+		}
 	}
 	if yn == atom {
 		y, yn = ext(y, yt, xn), xn
@@ -4618,7 +4623,9 @@ func amdv(x, a, f, y k) (r k) { // amd on value(x)
 			dec(m.k[2+j+r])
 			m.k[2+j+r] = atx(inc(y), mki(i))
 		}
-		r = uf(r)
+		if xn != 1 || m.k[m.k[2+r]]>>28 != A || m.k[m.k[2+r]]&atom != atom {
+			r = uf(r) // don't unify (d)
+		}
 	} else if xt >= L || xt != yt {
 		panic("type")
 	} else {
@@ -4673,6 +4680,8 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 	a0 := fst(inc(a))
 	return amdv(inc(x), inc(a0), inc(null), dmdv(atx(x, a0), drop(1, a), f, y))
 }
+
+/*
 func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
 	yt, yn := typ(y)
 	if yn > 1 && (m.k[x]>>28 != A || m.k[m.k[2+x]]>>28 != S || m.k[m.k[3+x]]>>28 != L) {
@@ -4694,6 +4703,7 @@ func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
 	r = dex(j, amdv(x, a, inc(null), dxt(atx(inc(x), inc(a)), drop(1, y))))
 	return r
 }
+*/
 func lup(x k) (r k) { // lookup
 	if r = lupo(inc(x)); r == 0 {
 		panic(undef(x))
