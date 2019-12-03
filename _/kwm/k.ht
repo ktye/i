@@ -2,7 +2,7 @@
 <head><meta charset="utf-8"></head>
 <link rel='icon' type'image/png' href="k32.png">
 <style>
- html,body{height:100%;margin:0;padding:0;overflow:hidden;}
+ html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
  #kons{top:0;left:0;width:100%;height:100%;position:absolute;background:black;color:white;border:0pt;resize:none;}
  #cnv{width:100;height:100;top:0;right:0;position:absolute;}
 </style>
@@ -13,6 +13,7 @@
 
 {{wx.js}}
 {{k.b64}}
+{{h.b64}}
 {{rev}}
 var f = new Object() // memfs
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
@@ -20,6 +21,8 @@ var kwasm = sa(atob(r))
 const go = new Go()
 f["rev"] = sa(rev)
 
+// kons (k console)
+var hit = kons
 var ctx
 function initKons() {
  var hold = false
@@ -28,6 +31,7 @@ function initKons() {
    evt.preventDefault()
    hold = !hold
    kons.style.background = hold ? "#78909C" : "black"
+   cnv.width = 0
   } else if (evt.which === 13) {
    if (hold) return
    evt.preventDefault()
@@ -46,9 +50,11 @@ function initKons() {
    O("\n")
    s = s.trim()
    if (s === "\\c") { kons.value=" "; cnv.width=0; return }
+   if (s === "\\h") { O(atob(h));P(); return }
    E(s)
   }
  }
+ kons.onmousedown = function(e) { hit=kons;kons.style.color="white" }
  ctx = cnv.getContext('2d')
 }
 function O(s) { kons.value += s }
@@ -63,7 +69,11 @@ function E(s) {
   var p = K.Srcp()
   pnk = (pnk.substr(0,7) === "panic: ") ? pnk.substr(7) : pnk
   kio = (p > 0 && p < 64) ? " ".repeat(p) + "^" + pnk + "\n" : pnk+"\n"
+  pnk = ""
  }
+ Out()
+}
+function Out() { // update kons and canvas
  var n = imgw*imgh
  if (n > 0) {
   cnv.style.width = imgw
@@ -74,7 +84,7 @@ function E(s) {
   ctx.putImageData(new ImageData(u8, imgw, imgh), 0, 0)
   imgw = 0; imgh = 0
  }
- O(kio);P()
+ O(kio);P();kio="";
 }
 
 //c.ondragover=function(e){pd(e)}
@@ -84,24 +94,28 @@ function addfile(x){var r=new FileReader();r.onload=function(){
   f[x.name]=new Uint8Array(r.result)};r.readAsArrayBuffer(x)}
 
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
-//function e(x){ui(7088,x)} // eval(js console)
 
-
-/*
-// k\ui (similar to ../../u/s.k, but without http)
-w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.style.overflow='hidden';N=Number;function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
-c=d.createElement('canvas');b.appendChild(c);ctx=c.getContext('2d');
-function debounce(f,w,i){var t;return function e(){var c=this;var a=arguments;var l=function(){t=null;if(!i)f.apply(c,a);};var n=i&&!t;clearTimeout(t);t=setTimeout(l,w);if(n)f.apply(c,a);}}
-function mod(e){return [N(e.shiftKey),N(e.altKey),N(e.ctrlKey)]};
-xd=0;yd=0;down=function(e){xd=e.clientX;yd=e.clientY;pd(e)};nomenu=function(e){pd(e)};
-up=function(e){pd(e);ui(1,e.button,xd,e.clientX,yd,e.clientY,...mod(e))};
-keycode=function(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};
-key=function(e){var k=keycode(e);if(!k)return;ui(0,k,...mod(e));pd(e);};
-wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,...mod(e))};
-size=function(e){c.width=w.innerWidth;c.height=w.innerHeight;ui(2,c.width,c.height);pd(e)};
-function ae(x,y,z){x.addEventListener(y,z)};ae(w,'contextmenu',nomenu);ae(w,'mousedown',down);ae(w,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100)); //size()
-*/
-
+// interactive callbacks on canvas
+function ui(a,b,c,d,e,f,g){
+	try{
+		K.Ui(a,b,c,d,e,f,g)
+	} catch {
+		kio = pnk + "\n"
+		pnk = ""
+	}
+	if (kio.length > 0) Out()
+};
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function mod(e){return Number(e.shiftKey)+2*Number(e.altKey)+4*Number(e.ctrlKey)};
+function down(e){hit=cnv;kons.style.color="grey";xd=e.clientX;yd=e.clientY;pd(e)};
+function up(e){pd(e);ui(1,e.button,xd,e.clientX,yd,e.clientY,mod(e))};
+function wheel(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,mod(e))};
+function keycode(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};
+function key(e){var k=keycode(e);if(!k)return;pd(e);ui(0,k,0,0,0,0,mod(e));};
+function nomenu(e){pd(e)};
+function ae(x,y,z){x.addEventListener(y,z)};
+ae(cnv,'mouseup',up);ae(cnv,'mousedown',down);ae(cnv,'wheel',wheel);ae(cnv,'contextmenu',nomenu);
+ae(window,'keydown',function(e){if(hit==cnv){key(e);return}})
 
 var kio = 0
 var mat = ""
@@ -118,7 +132,7 @@ var K
   kons.value = "ktye@" + rev + " " + kio + "MB\n "
   if(window.location.hash.length>1)
    kons.value += decodeURIComponent(window.location.hash.substr(1))
-  // start function
+  K.Us(cnv.width, cnv.height)
   kons.focus()
 })();
 

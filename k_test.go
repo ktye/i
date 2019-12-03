@@ -942,7 +942,7 @@ func TestRef(t *testing.T) { // generate readme.md
 	}
 	defer w.Close()
 	r := []c(ref)
-	w.Write([]c(`<pre>`))
+	w.Write([]c("![k](https://ktye.github.io/k32.png) [try](https://ktye.github.io)\n<pre>"))
 	for i := 1; i < len(r)-2; i++ {
 		if !craZ(r[i-1]) && craZ(r[i]) && craZ(r[i+1]) && craZ(r[i+2]) {
 			key := r[i : i+3]
@@ -1032,7 +1032,6 @@ Symbols are interned in the char array at m.k[stab]
 This is not a complete program. It can only be run with go test.
 See directory _/ instead.
 </pre>
-[try online](https://ktye.github.io)
 `))
 }
 func check(t *testing.T) {
