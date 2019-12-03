@@ -8,13 +8,14 @@ stats  : (x)med y(pct/erf/cum)  dev z(principal) x var y  var z(cov)  x avg y(cu
 \v list vars
 \k k-tree dump
 \m expr matrix display
+\b memory buckets                  /nyi format table
 
 memory filesystem (.fs) <- drop files into the window
 \lf list files, access with io verbs
 \l load file (k source)
-\w file (download file)
-\w (download workspace k.ws)
-drop "*.ws" exchanges k memory
+\w file (download file)            /nyi
+\w (download workspace k.ws)       /nyi
+drop "*.ws" exchanges k memory     /nyi
 
 terminal
  return executes current line (anywhere) or selected text(e.g. multiline)

@@ -1,5 +1,5 @@
 <html>
-<head><meta charset="utf-8"></head>
+<head><meta charset="utf-8"><title>ktye</title></head>
 <link rel='icon' type'image/png' href="k32.png">
 <style>
  html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
@@ -31,7 +31,8 @@ function initKons() {
    evt.preventDefault()
    hold = !hold
    kons.style.background = hold ? "#78909C" : "black"
-   cnv.width = 0
+   cnv.width = 0; cnv.style.width = 0
+   hit = kons
   } else if (evt.which === 13) {
    if (hold) return
    evt.preventDefault()
@@ -49,9 +50,10 @@ function initKons() {
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
-   if (s === "\\c") { kons.value=" "; cnv.width=0; return }
+   if (s === "\\c") { kons.value=" "; cnv.width=0; cnv.stylewidth=0; return }
    if (s === "\\h") { O(atob(h));P(); return }
    if (s === "\\lf") { s = "\\m #:'.fs" }
+   if (s === "\\b") { K.Stats(); s = "\\m.stats"; console.log(s) }
    E(s)
   }
  }
@@ -90,8 +92,12 @@ function Out() { // update kons and canvas
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
 
+
 // interactive callbacks on canvas
 function ui(a,b,c,d,e,f,g){
+	var p = K.P()
+	var m = new Uint8Array(K.memory.buffer)
+	console.log(p)
 	try{
 		K.Ui(a,b,c,d,e,f,g)
 	} catch {
@@ -136,10 +142,10 @@ var K
   go.run(k)
   kio = String(kio) //in main()
   K = k.exports
-  kons.value = "ktye@" + rev + " " + kio + "MB\n "
+  kons.value = "i@" + rev + " " + kio + "MB\n "
   if(window.location.hash.length>1)
    kons.value += decodeURIComponent(window.location.hash.substr(1))
-  K.Us(cnv.width, cnv.height)
+  K.Us(window.innerWidth, window.innerHeight)
   kons.focus()
 })();
 

@@ -80,15 +80,12 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 	js.Global().Set("imgh", h)
 	return decr(x, y, inc(null))
 }
-
-//go:export K
-func K() { // execute k string via js variable kio
+func jr() { // js reset(init) output
 	if m.k[obuf]&atom != 0 {
 		obuf = take(0, 0, obuf)
 	}
-	x := mkb([]c(js.Global().Get("kio").String()))
-	js.Global().Set("kio", "")
-	evp(x)
+}
+func jo() { // js output
 	if t, n := typ(obuf); n != 0 {
 		if t != C || n == atom {
 			panic("type")
@@ -96,6 +93,20 @@ func K() { // execute k string via js variable kio
 		p := 8 + obuf<<2
 		js.Global().Set("kio", s(m.c[p:p+n]))
 	}
+}
+func ji() k { // read k input from js
+	x := mkb([]c(js.Global().Get("kio").String()))
+	js.Global().Set("kio", "")
+	return x
+}
+
+//go:export K
+func K() { // execute k string via js variable kio
+	jr()
+	x := ji()
+	js.Global().Set("kio", "")
+	evp(x)
+	jo()
 }
 
 //go:export P
@@ -115,8 +126,8 @@ func Us(w, h int) { // store canvas size
 
 //go:export Ui
 func Ui(t, b, x0, x1, y0, y1, mod int) { // mouse event
-	obuf = take(0, 0, obuf)
-	js.Global().Set("kio", "")
+	jr()
+	dec(ji())
 	var r k
 	if t == 0 { // key
 		r = mk(I, 2)
@@ -142,13 +153,7 @@ func Ui(t, b, x0, x1, y0, y1, mod int) { // mouse event
 		return
 	}
 	out(r)
-	if t, n := typ(obuf); n != 0 {
-		if t != C || n == atom {
-			panic("type")
-		}
-		p := 8 + obuf<<2
-		js.Global().Set("kio", s(m.c[p:p+n]))
-	}
+	jo()
 }
 
 //go:export Store
@@ -164,4 +169,39 @@ func Store(n int) *byte { // create entry and allocate memory for dropped file
 	m.k[2+f] = 12 + dyad // ,
 	dec(asn(mks(".fs"), r, f))
 	return &m.c[p]
+}
+
+//go:export Stats
+func Stats() {
+	u, f := mk(I, 32), mk(I, 32)
+	for i := k(0); i < 32; i++ {
+		m.k[2+i+u], m.k[2+i+f] = 0, 0
+	}
+	x, o := k(0), k(0)
+	for x < 1<<(m.k[2]-2) {
+		if xt := m.k[x] >> 28; xt == 0 {
+			p := m.k[x]
+			if p < 4 || p > 31 {
+				panic("free block type")
+			}
+			m.k[2+f+p]++
+			o = 1 << (p - 2)
+		} else {
+			t, n := typ(x)
+			p := bk(t, n)
+			if p < 4 || p > 31 {
+				panic("used block type")
+			}
+			m.k[2+u+p]++
+			n = atm1(n)
+			o = 1 << (p - 2)
+		}
+		x += o
+	}
+	h := spl(mkc(','), mkb([]c("block,used,free")))
+	d := mk(L, 3)
+	m.k[2+d] = til(mki(32))
+	m.k[3+d] = u
+	m.k[4+d] = f
+	dec(asn(mks(".stats"), flp(key(h,d)), inc(null)))
 }
