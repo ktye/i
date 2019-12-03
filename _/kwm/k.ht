@@ -51,6 +51,7 @@ function initKons() {
    s = s.trim()
    if (s === "\\c") { kons.value=" "; cnv.width=0; return }
    if (s === "\\h") { O(atob(h));P(); return }
+   if (s === "\\lf") { s = "\\m #:'.fs" }
    E(s)
   }
  }
@@ -86,14 +87,8 @@ function Out() { // update kons and canvas
  }
  O(kio);P();kio="";
 }
-
-//c.ondragover=function(e){pd(e)}
-//c.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
-function addfile(x){var r=new FileReader();r.onload=function(){
-  console.log("w ", x.name)
-  f[x.name]=new Uint8Array(r.result)};r.readAsArrayBuffer(x)}
-
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+
 
 // interactive callbacks on canvas
 function ui(a,b,c,d,e,f,g){
@@ -116,6 +111,18 @@ function nomenu(e){pd(e)};
 function ae(x,y,z){x.addEventListener(y,z)};
 ae(cnv,'mouseup',up);ae(cnv,'mousedown',down);ae(cnv,'wheel',wheel);ae(cnv,'contextmenu',nomenu);
 ae(window,'keydown',function(e){if(hit==cnv){key(e);return}})
+
+
+// drop files (store in k-tree .fs)
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){var r=new FileReader();r.onload=function(){
+  var u = new Uint8Array(r.result)};r.readAsArrayBuffer(x)
+  kio = x.name
+  var p = K.Store(x.length)
+  var d = new Uint8Array(K.memory.buffer)
+  for (var i=0; i<x.length; i++) d[p+i] = u[i] // is there a memmove?
+}
 
 var kio = 0
 var mat = ""

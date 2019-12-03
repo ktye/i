@@ -18,6 +18,7 @@ func main() {
 	mkk(".k", "{(`key;x)}")
 	mkk(".m", "{(`mouse;x)}")
 	obuf = mk(C, 0)
+	asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), inc(null))
 	js.Global().Set("kio", maxmem>>17)
 	select {}
 }
@@ -27,12 +28,36 @@ func grw(c k) {
 	}
 	m.f = mem[:2*len(m.f)]
 }
-func red(x k) (r k) { panic("nyi") } // 1:x read from js f[file]
-func wrt(x, y k) (r k) { // x 1:y
-	if m.k[y]>>28 != C {
+func red(x k) (r k) { // 1:x (from .fs)
+	t, n := typ(x)
+	if t == C {
+		x, t, n = c2s(x), S, atom
+	} else if t != S || n != atom {
 		panic("type")
 	}
-	obuf = cat(obuf, y)
+	return atx(lup(mks(".fs")), x)
+}
+func wrt(x, y k) (r k) { // x 1:y
+	xt, yt, xn, yn := typs(x, y)
+	if yt != C {
+		panic("type")
+	} else if yn == atom {
+		y, yn = enl(y), 1
+	}
+
+	if xt == C {
+		x, xt, xn = c2s(x), S, atom
+	}
+	if xt != S || xn != atom {
+		panic("type")
+	}
+	if m.k[2+x] == 0 {
+		obuf = cat(obuf, y)
+		return x
+	}
+	f := mk(N+2, atom)
+	m.k[2+f] = 12 + dyad // ,
+	dec(asn(mks(".fs"), key(inc(x), y), f))
 	return x
 }
 func trp(x, y k) (r k) { panic("nyi") }
@@ -80,7 +105,7 @@ func P() *byte { return &m.c[0] } // k-memory offset in wasm memory buffer
 func Img() *byte { return &m.c[imgp] } // pointer to current image data
 
 //go:export Srcp
-func Srcp() int { return 2 + int(m.k[srcp]) } // source pointer (error indicator)
+func Srcp() int { return int(m.k[srcp]) } // source pointer (error indicator)
 
 //go:export Us
 func Us(w, h int) { // store canvas size
@@ -124,4 +149,19 @@ func Ui(t, b, x0, x1, y0, y1, mod int) { // mouse event
 		p := 8 + obuf<<2
 		js.Global().Set("kio", s(m.c[p:p+n]))
 	}
+}
+
+//go:export Store
+func Store(n int) *byte { // create entry and allocate memory for dropped file
+	if n <= 0 || n > maxmem/4 {
+		panic("size")
+	}
+	s := c2s(mkb([]c(js.Global().Get("kio").String())))
+	c := mk(C, k(n))
+	p := 8 + c<<2
+	r := key(s, c)
+	f := mk(N+2, atom)
+	m.k[2+f] = 12 + dyad // ,
+	dec(asn(mks(".fs"), r, f))
+	return &m.c[p]
 }

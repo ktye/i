@@ -3832,7 +3832,8 @@ func wrl(x, y k) (r k) { // x 0:y
 	if m.k[x]>>28 == L {
 		return vsc(x, y)
 	}
-	panic("nyi")
+	w := table[21+dyad].(func(k, k) k)
+	return w(x, jon(mkc('\n'), y))
 }
 func lun(x k) (r k) { // 8:x or .. \x (display)
 	wr := table[21+dyad].(func(k, k) k)
