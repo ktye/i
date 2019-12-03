@@ -1,7 +1,7 @@
 # ktye.github.io  wasm build (300KB) with tinygo 
 #
 # install go-1.13 
-# install tinygo-0.9.0 to /usr/local/tinygo
+# install tinygo-0.10.0 to /usr/local/tinygo
 set -e
 tgo=/usr/local/tinygo
 
@@ -9,7 +9,7 @@ tgo=/usr/local/tinygo
 $tgo/bin/tinygo build -o k.w -target wasm -no-debug -heap-size 70M
 base64 -w 0 k.w | sed -e 's/^/var r = "/' -e 's/$/"/' > k.b64
 
-cp $tgo/targets/wasm_exec.js .
+#cp $tgo/targets/wasm_exec.js .
 git rev-parse --short HEAD | sed -e 's/^/var rev = "/' -e 's/$/"/' > rev
 
 # replace {{file}} in k.ht
@@ -17,6 +17,6 @@ awk '/^{{/{
  f=substr($0, 3, length($0)-4)
  while((getline l<f)>0) print l
  next
-}{print}' k2.ht > index.html
+}{print}' k.ht > index.html
 
 # deploy: commit, cp index.html to ../../../ktye.github.io/, commit there

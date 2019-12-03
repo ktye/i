@@ -57,7 +57,7 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 }
 
 //go:export K
-func K() {
+func K() { // execute k string via js variable kio
 	if obuf != 0 {
 		dec(obuf)
 		obuf = 0
@@ -75,7 +75,11 @@ func K() {
 	}
 }
 
+//go:export P
+func P() *byte { return &m.c[0] } // k-memory offset in wasm memory buffer
+
 //go:export Img
-func Img() *byte {
-	return &m.c[imgp]
-}
+func Img() *byte { return &m.c[imgp] } // pointer to current image data
+
+//go:export Srcp
+func Srcp() int { return 2+int(m.k[srcp]) } // source pointer (error indicator) 

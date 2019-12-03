@@ -1,28 +1,93 @@
 <html>
 <head><meta charset="utf-8"></head>
-<link rel='icon' type'image/png' href="k.png">
+<link rel='icon' type'image/png' href="k32.png">
+<style>
+ html,body{height:100%;margin:0;padding:0;overflow:hidden;}
+ #kons{top:0;left:0;width:100%;height:100%;position:absolute;background:black;color:white;border:0pt;resize:none;}
+ #cnv{width:100;height:100;top:0;right:0;position:absolute;}
+</style>
 <body>
+<textarea id="kons"></textarea>
+<canvas id="cnv"></canvas>
 <script>
-{{wasm_exec.js}}
+
+{{wx.js}}
 {{k.b64}}
 {{rev}}
-{{f0.b64}}
-{{f1.b64}}
-{{f2.b64}}
-{{f3.b64}}
-{{tk.b64}}
 var f = new Object() // memfs
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 var kwasm = sa(atob(r))
 const go = new Go()
-
 f["rev"] = sa(rev)
-f["t.k"] = sa(atob(tk))
-f["f0.k"] = sa(atob(f0))
-f["f1.k"] = sa(atob(f1))
-f["f2.k"] = sa(atob(f2))
-f["f3.k"] = sa(atob(f3))
 
+var ctx
+function initKons() {
+ var hold = false
+ kons.onkeydown = function(evt) {
+  if(evt.which === 27) {
+   evt.preventDefault()
+   hold = !hold
+   kons.style.background = hold ? "#78909C" : "black"
+  } else if (evt.which === 13) {
+   if (hold) return
+   evt.preventDefault()
+   var a = kons.selectionStart
+   var b = kons.selectionEnd
+   var s = kons.value.substring(a, b)
+   if (b == a) {
+    if (kons.value[a] == "\n") a -= 1
+    a = kons.value.lastIndexOf("\n", a)
+    if (a == -1) a = 0
+    b = kons.value.indexOf("\n", b)
+    if (b == -1) b = kons.selectionEnd
+    s = kons.value.substring(a, b)
+   }
+   if (kons.selectionEnd != kons.value.length) O(s)
+   O("\n")
+   s = s.trim()
+   if (s === "\\c") { kons.value=" "; cnv.width=0; return }
+   E(s)
+  }
+ }
+ ctx = cnv.getContext('2d')
+}
+function O(s) { kons.value += s }
+function P() { kons.value += " "; kons.scrollTo(0, kons.scrollHeight) }
+var u8
+function E(s) { 
+ hash(s)
+ kio = s
+ try { 
+  K.K() 
+ } catch(e) { // panic message is stored to pnk
+  var p = K.Srcp()
+  pnk = (pnk.substr(0,7) === "panic: ") ? pnk.substr(7) : pnk
+  kio = (p > 0 && p < 64) ? " ".repeat(p) + "^" + pnk + "\n" : pnk+"\n"
+ }
+ var n = imgw*imgh
+ if (n > 0) {
+  cnv.style.width = imgw
+  cnv.style.height = imgh
+  cnv.width = imgw
+  cnv.height = imgh
+  u8 = new Uint8ClampedArray(K.memory.buffer, K.Img(), 4*n)
+  ctx.putImageData(new ImageData(u8, imgw, imgh), 0, 0)
+  imgw = 0; imgh = 0
+ }
+ O(kio);P()
+}
+
+//c.ondragover=function(e){pd(e)}
+//c.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){var r=new FileReader();r.onload=function(){
+  console.log("w ", x.name)
+  f[x.name]=new Uint8Array(r.result)};r.readAsArrayBuffer(x)}
+
+function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+//function e(x){ui(7088,x)} // eval(js console)
+
+
+/*
 // k\ui (similar to ../../u/s.k, but without http)
 w=window;d=document;b=d.body;b.style.margin=0;b.style.padding=0;b.style.overflow='hidden';N=Number;function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 c=d.createElement('canvas');b.appendChild(c);ctx=c.getContext('2d');
@@ -35,25 +100,28 @@ key=function(e){var k=keycode(e);if(!k)return;ui(0,k,...mod(e));pd(e);};
 wheel=function(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,...mod(e))};
 size=function(e){c.width=w.innerWidth;c.height=w.innerHeight;ui(2,c.width,c.height);pd(e)};
 function ae(x,y,z){x.addEventListener(y,z)};ae(w,'contextmenu',nomenu);ae(w,'mousedown',down);ae(w,'mouseup',up);ae(w,'wheel',wheel);ae(w,'keydown',key);ae(w,'resize',debounce(size,100)); //size()
+*/
 
-c.ondragover=function(e){pd(e)}
-c.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
-function addfile(x){var r=new FileReader();r.onload=function(){
-  console.log("w ", x.name)
-  f[x.name]=new Uint8Array(r.result)};r.readAsArrayBuffer(x)}
 
-function hash(s){window.location.hash=encodeURIComponent(s.trim())}
-function e(x){ui(7088,x)} // eval(js console)
-
+var kio = 0
+var mat = ""
+var imgw = 0
+var imgh = 0
+var K
 (async () => {
+  initKons()
   const module = await WebAssembly.compile(kwasm.buffer);
   const k = await WebAssembly.instantiate(module, go.importObject);
   go.run(k)
-  ui(416, "t.k") // load
-  if(window.location.hash.length>1)ui(339,decodeURIComponent(window.location.hash.substr(1)))
-  size()
+  kio = String(kio) //in main()
+  K = k.exports
+  kons.value = "ktye@" + rev + " " + kio + "MB\n "
+  if(window.location.hash.length>1)
+   kons.value += decodeURIComponent(window.location.hash.substr(1))
+  // start function
+  kons.focus()
 })();
 
 </script>
-<body>
+</body>
 </html>
