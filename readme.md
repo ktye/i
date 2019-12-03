@@ -92,5 +92,6 @@ Symbols are interned in the char array at m.k[stab]
 # Building
 <pre>
 This is not a complete program. It can only be run with go test.
-See directories _ or u instead.
+See directory _/ instead.
 </pre>
+[try online](https://ktye.github.io)
