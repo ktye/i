@@ -3544,7 +3544,7 @@ func ecr(f, x, y k) (r k) { // x f/: y
 		m.k[2+r+i] = cal2(inc(f), inc(x), atx(inc(y), mki(i)))
 	}
 	dec(f)
-	return decr(x, y, r)
+	return decr(x, y, uf(r))
 }
 func ecl(f, x, y k) (r k) { // x f\: y
 	xt, yt, xn, _ := typs(x, y)
@@ -3558,7 +3558,7 @@ func ecl(f, x, y k) (r k) { // x f\: y
 		m.k[2+r+i] = cal2(inc(f), atx(inc(x), mki(i)), inc(y))
 	}
 	dec(f)
-	return decr(x, y, r)
+	return decr(x, y, uf(r))
 }
 func ovr(f, x k) (r k) { // f/x
 	if t, n := typ(f); t < N { // x/y (idiv, dot)
