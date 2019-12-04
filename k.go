@@ -3401,11 +3401,39 @@ func ech(f, x k) (r k) { // f'x
 	if n == atom {
 		return atx(f, x)
 	}
-	r = mk(L, n)
+
+	// simple version:
+	//  r = mk(L, n)
+	//  for i := k(0); i < n; i++ {
+	//  	m.k[2+r+i] = atx(inc(f), atx(inc(x), mki(i)))
+	//  }
+	//  return decr(f, x, uf(r))
+	// this is optimized for unitype result vectors and in-place:
+	uni, r, rp, rt, ri, cp := true, k(0), k(0), k(0), k(0), f1(nil)
 	for i := k(0); i < n; i++ {
-		m.k[2+r+i] = atx(inc(f), atx(inc(x), mki(i)))
+		ri = atx(inc(f), atx(inc(x), mki(i)))
+		if tt, nn := typ(ri); i == 0 {
+			if tt < L && nn == atom { // uni
+				if m.k[1+x] == 1 && tt == t { // inplace
+					r, rt, m.k[1+x] = x, tt, 2
+				} else {
+					r, rt = mk(tt, n), tt
+				}
+				rp, cp = ptr(r, tt), cpx[rt]
+			} else {
+				r, uni = mk(L, 0), false
+			}
+		} else if uni && tt != rt || nn != atom { // upgrade
+			r, uni = explode(take(i, 0, r)), false
+		}
+		if uni {
+			cp(rp+i, ptr(ri, rt))
+			dec(ri)
+		} else {
+			r = lcat(r, ri)
+		}
 	}
-	return decr(f, x, uf(r))
+	return decr(f, x, r)
 }
 func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	xt, yt, xn, yn := typs(x, y)
