@@ -5,10 +5,12 @@
  html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
  #kons{top:0;left:0;width:100%;height:100%;position:absolute;background:black;color:white;border:0pt;resize:none;}
  #cnv{width:100;height:100;top:0;right:0;position:absolute;}
+ #dl{display:none;}
 </style>
 <body>
 <textarea id="kons"></textarea>
 <canvas id="cnv"></canvas>
+<a id="dl"></a>
 <script>
 
 {{wx.js}}
@@ -52,8 +54,8 @@ function initKons() {
    s = s.trim()
    if (s === "\\c") { kons.value=" "; cnv.width=0; cnv.stylewidth=0; return }
    if (s === "\\h") { O(atob(h));P(); return }
+   if (s.substr(0,2) === "\\w") { download(s.substr(2)); return }
    if (s === "\\lf") { s = "\\m #:'.fs" }
-   if (s === "\\b") { K.Stats(); s = "\\m.stats"; console.log(s) }
    E(s)
   }
  }
@@ -67,14 +69,14 @@ function E(s) {
  hash(s)
  kio = s
  try { 
-  K.K() 
+  K.K();Out();K.Save()
  } catch(e) { // panic message is stored to pnk
   var p = K.Srcp()
   pnk = (pnk.substr(0,7) === "panic: ") ? pnk.substr(7) : pnk
   kio = (p > 0 && p < 64) ? " ".repeat(p) + "^" + pnk + "\n" : pnk+"\n"
   pnk = ""
+  Out();K.Rest()
  }
- Out()
 }
 function Out() { // update kons and canvas
  var n = imgw*imgh
@@ -91,7 +93,20 @@ function Out() { // update kons and canvas
 }
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
-
+function download(file) {
+ file = (file === "s") ? "k.ws" : file.trim()
+ kio = file
+ var p = K.Get()
+ var o = K.P()
+ var n = Number(kio);kio=""; n = isNaN(n) ? 0 : n;
+ if (n > 0) {
+  var u = new Uint8Array(K.memory.buffer, p, n)
+  var b = new Blob([u], {type:"application/octet-stream"})
+  dl.href = URL.createObjectURL(b)
+  dl.download = file
+  dl.click()
+ }
+}
 
 // interactive callbacks on canvas
 function ui(a,b,c,d,e,f,g){
@@ -122,12 +137,19 @@ ae(window,'keydown',function(e){if(hit==cnv){key(e);return}})
 // drop files (store in k-tree .fs)
 window.ondragover=function(e){pd(e)}
 window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
-function addfile(x){var r=new FileReader();r.onload=function(){
-  var u = new Uint8Array(r.result)};r.readAsArrayBuffer(x)
-  kio = x.name
-  var p = K.Store(x.length)
-  var d = new Uint8Array(K.memory.buffer)
-  for (var i=0; i<x.length; i++) d[p+i] = u[i] // is there a memmove?
+function addfile(x){
+  var r = new FileReader()
+  r.onload = function(){
+   var u = new Uint8Array(r.result)
+   var p = K.P()
+   if x.name.endsWidth(".ws") == false {
+    kio = x.name
+    p = K.Store(x.length)
+   }
+   var d = new Uint8Array(K.memory.buffer, p, x.length)
+   d.set(u)
+  }
+  r.readAsArrayBuffer(x)
 }
 
 var kio = 0

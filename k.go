@@ -373,10 +373,9 @@ func msl() { // update slice header after increasing m.f
 	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
 	m.z = *(*[]z)(unsafe.Pointer(&zz))
 }
-func swap(ws []f) []f {
+func swap(ws []f) {
 	m.f, ws = ws, m.f
 	msl()
-	return ws
 }
 func save(ws []f) { copy(ws, m.f) }
 func bk(t, n k) k {

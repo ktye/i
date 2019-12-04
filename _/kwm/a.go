@@ -4,13 +4,15 @@ import "syscall/js"
 
 // max memory, heap size must be set explicitly when compiling with tinygo
 const maxmem = 1 << 23 // number of floats (64 MB)
-var mem []f
+var mem, bak []f
 var obuf k
 var imgp k
 
 func main() {
-	mem = make([]f, maxmem)
+	mem = make([]f, maxmem>>1)
+	bak = make([]f, maxmem>>1)
 	ini(mem[:1<<13])
+	save(bak)
 	table[21] = red
 	table[21+dyad] = wrt
 	table[39] = trp
@@ -171,37 +173,35 @@ func Store(n int) *byte { // create entry and allocate memory for dropped file
 	return &m.c[p]
 }
 
-//go:export Stats
-func Stats() {
-	u, f := mk(I, 32), mk(I, 32)
-	for i := k(0); i < 32; i++ {
-		m.k[2+i+u], m.k[2+i+f] = 0, 0
+//go:export Get
+func Get() *byte { // get file (addr, kio=len)
+	jr()
+	s := c2s(ji())
+	kws := mks("k.ws")
+	if m.k[2+s] == m.k[2+kws] {
+		decr(s, kws, 0)
+		obuf = cat(obuf, str(mki(8*maxmem>>1)))
+		jo()
+		return &m.c[0]
 	}
-	x, o := k(0), k(0)
-	for x < 1<<(m.k[2]-2) {
-		if xt := m.k[x] >> 28; xt == 0 {
-			p := m.k[x]
-			if p < 4 || p > 31 {
-				panic("free block type")
-			}
-			m.k[2+f+p]++
-			o = 1 << (p - 2)
-		} else {
-			t, n := typ(x)
-			p := bk(t, n)
-			if p < 4 || p > 31 {
-				panic("used block type")
-			}
-			m.k[2+u+p]++
-			n = atm1(n)
-			o = 1 << (p - 2)
-		}
-		x += o
+	c := red(s)
+	t, n := typ(c)
+	if t != C || n == 0 || n == atom  {
+		obuf = cat(obuf, str(mki(t)))
+		obuf = cat(obuf, mkc(' '))
+		obuf = cat(obuf, str(mki(n)))
+		jo()
+		panic("???")
+		return &m.c[0]
 	}
-	h := spl(mkc(','), mkb([]c("block,used,free")))
-	d := mk(L, 3)
-	m.k[2+d] = til(mki(32))
-	m.k[3+d] = u
-	m.k[4+d] = f
-	dec(asn(mks(".stats"), flp(key(h,d)), inc(null)))
+	obuf = cat(obuf, str(mki(n)))
+	jo()
+	dec(c)
+	return &m.c[8+c<<2]
 }
+
+//go:export Save
+func Save() { save(bak) }
+
+//go:export Rest
+func Rest() { swap(bak) }

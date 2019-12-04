@@ -14,7 +14,7 @@ memory filesystem (.fs) <- drop files into the window
 \lf list files, access with io verbs
 \l load file (k source)
 \w file (download file)            /nyi
-\w (download workspace k.ws)       /nyi
+\ws (download workspace k.ws)      /nyi
 drop "*.ws" exchanges k memory     /nyi
 
 terminal
