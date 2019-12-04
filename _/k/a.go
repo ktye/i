@@ -2,10 +2,8 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -14,29 +12,26 @@ import (
 
 var rd func() []c
 var dr sync.Mutex
+var ws []f
 
 func main() {
 	ini(make([]f, 1<<13))
+	ws := make([]f, 1<<13)
+	save(ws)
 	table[21] = red
 	table[40] = exi
-	table[39] = trp
+	// table[39] = trp
 	table[49] = plo
 	table[21+dyad] = wrt
 	table[29+dyad] = drw
 	table[49+dyad] = plt
-	args, addr := os.Args[1:], ""
+	args := os.Args[1:]
 	if len(args) == 1 && args[0] == "-kwac" {
 		inikwac()
 		return
-	} else if len(args) > 1 && args[0] == "-p" {
-		addr = args[1]
-		if _, o := atoi([]c(args[1])); o {
-			addr = ":" + args[1]
-		}
-		args = args[2:]
 	}
 	if len(args) > 0 {
-		defer stk(false)
+		defer rest(nil)
 		rd = read
 		zx := mk(L, k(len(args))) // .z.x: args
 		for i, a := range args {
@@ -46,18 +41,21 @@ func main() {
 		lod(inc(m.k[2+zx]))
 		dec(zx)
 	}
-	if addr != "" {
-		go http.ListenAndServe(addr, http.HandlerFunc(srv))
-	}
 	rd = readline(bufio.NewScanner(os.Stdin)) // 0:` or 1:` read a single line in interactive mode
 	for {
 		try()
 	}
 }
 func try() {
-	defer stk(true)
+	defer rest(ws)
 	evp(red(wrt(inc(nans), enl(mkc(' '))))) // r: 1: ("" 1: ," ")
+	if len(ws) < len(m.f) {
+		ws = make([]f, len(m.f))
+	}
+	save(ws)
 }
+
+/* todo
 func trp(x, y k) (r k) {
 	defer func() {
 		if rc := recover(); rc != nil {
@@ -67,6 +65,7 @@ func trp(x, y k) (r k) {
 	}()
 	return cal(x, enlist(y))
 }
+*/
 func grw(c k) {
 	if 2*len(m.f) <= cap(m.f) {
 		m.f = m.f[:2*len(m.f)]
@@ -150,10 +149,11 @@ func exi(x k) (r k) { // exit built-in
 	os.Exit(1)
 	return mk(N, atom)
 }
-func stk(hide bool) {
+func rest(mem []f) {
 	if r := recover(); r != nil {
 		a, b := stack(r)
-		if hide { // interactive
+		if mem != nil { // interactive
+			swap(mem)
 			dec(asn(mks(".stk"), mkb([]byte(a)), mk(N, atom))) // stack trace: \s
 		} else {
 			println(a + "\n")
@@ -183,71 +183,6 @@ func stack(c interface{}) (stk, err string) {
 		err = e.Error()
 	}
 	return stk, err
-}
-func srv(w http.ResponseWriter, rq *http.Request) {
-	dr.Lock()
-	defer dr.Unlock()
-	buf := bytes.NewBuffer(nil)
-	defer func() {
-		w.Write(buf.Bytes())
-		rq.Body.Close()
-	}()
-	defer func() {
-		if rec := recover(); rec != nil {
-			a, b := stack(rec)
-			println(a)
-			buf = bytes.NewBuffer(nil)
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(500)
-			dec(wrt(inc(nans), mkb([]byte(b))))
-		}
-	}()
-	f, get := k(0), false
-	if rq.Method == "GET" {
-		f, get = lupo(mks("G")), true
-	} else if rq.Method == "POST" {
-		f = lupo(mks("P"))
-	}
-	if f == 0 {
-		return
-	}
-	if (get && m.k[f]>>28 != N+2) || (!get && m.k[f]>>28 != N+3) {
-		dec(f)
-		panic("class")
-	}
-
-	hk, hv := mk(S, k(len(rq.Header))), mk(L, k(len(rq.Header)))
-	j := k(0)
-	for key := range rq.Header {
-		kv := mks(key)
-		m.k[2+j+hk] = m.k[2+kv]
-		dec(kv)
-		m.k[2+j+hv] = mkb([]c(rq.Header.Get(key)))
-		j++
-	}
-	b, err := ioutil.ReadAll(rq.Body)
-	if err != nil {
-		panic(err)
-	}
-	p := rq.URL.Path
-	if len(p) > 0 && p[0] == '/' {
-		p = p[1:]
-	}
-	x, y := key(hk, hv), mkb([]c(p))
-	l := l2(x, y)
-	if !get {
-		l = lcat(l, mkb(b))
-	}
-	r := cal(f, l)
-	t, n := typ(r)
-	if t != C || n == atom {
-		panic("type")
-	} else if n > 0 {
-		p := ptr(r, C)
-		buf.Write(m.c[p : p+n])
-	}
-	dec(r)
-	// TODO: response headers?
 }
 func inikwac() { // write initial memory as data section
 	skip := 0

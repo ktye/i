@@ -161,6 +161,7 @@ func ini(mem []f) { // start function
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
 	mkk(".vsc", "{(t;s):(x[0];x[1]);y:+s\\:'y;$[0=#t;y;?[,/'(`$'t)$'(#t)#y;(&\" \"=t),'1;()]]}")
+	mkk(".stats", "{s:_2 exp !#x;l:(!#x;x;y;s*x;s*y);t:+`b`used`free`uB`fB!l,'+/+l;` 1:(\"\n\"/:`m@t),\"\n\";}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
 func cpI(dst, src k)  { m.k[dst] = m.k[src] }
@@ -372,6 +373,12 @@ func msl() { // update slice header after increasing m.f
 	zz.l, zz.c, zz.p = f.l/2, f.l/2, f.p
 	m.z = *(*[]z)(unsafe.Pointer(&zz))
 }
+func swap(ws []f) []f {
+	m.f, ws = ws, m.f
+	msl()
+	return ws
+}
+func save(ws []f) { copy(ws, m.f) }
 func bk(t, n k) k {
 	sz := k(0)
 	if t < N {
@@ -3886,6 +3893,10 @@ func lod(x k) (r k) {
 func cmd(x k) (r k) {
 	xp := 8 + x<<2
 	switch m.c[xp] {
+	case 'a':
+		return dex(x, adler())
+	case 'b':
+		return dex(x, stats())
 	case 'v':
 		return dex(x, lsv())
 	case 'c':
@@ -4709,30 +4720,6 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 	a0 := fst(inc(a))
 	return amdv(inc(x), inc(a0), inc(null), dmdv(atx(x, a0), drop(1, a), f, y))
 }
-
-/*
-func dxt(x, y k) (r k) { // dict extend (a.b.c:..)
-	yt, yn := typ(y)
-	if yn > 1 && (m.k[x]>>28 != A || m.k[m.k[2+x]]>>28 != S || m.k[m.k[3+x]]>>28 != L) {
-		panic("type")
-	}
-	if yt != L { // (,`b;`c)
-		panic("assert")
-	}
-	if yn == 0 {
-		return decr(x, y, mk(L, 0))
-	}
-	a := fst(fst(inc(y)))
-	j := fnd(inc(m.k[2+x]), inc(a))
-	if m.k[2+j] == m.k[m.k[2+x]]&atom {
-		if m.k[x]>>28 == A && m.k[m.k[2+x]]>>28 == S && m.k[m.k[3+x]]>>28 == L {
-			x = amdv(x, inc(a), inc(null), key(mk(S, 0), mk(L, 0)))
-		}
-	}
-	r = dex(j, amdv(x, a, inc(null), dxt(atx(inc(x), inc(a)), drop(1, y))))
-	return r
-}
-*/
 func lup(x k) (r k) { // lookup
 	if r = lupo(inc(x)); r == 0 {
 		panic(undef(x))
@@ -7145,6 +7132,42 @@ func flt(s []c) (man uint64, exp int, neg, ok bool) {
 	}
 	ok = true
 	return
+}
+func adler() (r k) {
+	a, b := k(1), k(0)
+	for i := k(0); i < k(len(m.c)); i++ {
+		a = (a + k(m.c[i])) % 65521
+		b = (b + a) % 65521
+	}
+	return mki(a | b<<16)
+}
+func stats() (r k) { // \b (memory stats used/free buckets)
+	u, f := mk(I, 32), mk(I, 32)
+	for i := k(0); i < 32; i++ {
+		m.k[2+i+u], m.k[2+i+f] = 0, 0
+	}
+	x, o := k(0), k(0)
+	for x < 1<<(m.k[2]-2) {
+		if xt := m.k[x] >> 28; xt == 0 {
+			p := m.k[x]
+			if p < 4 || p > 31 {
+				panic("free block type")
+			}
+			m.k[2+f+p]++
+			o = 1 << (p - 2)
+		} else {
+			t, n := typ(x)
+			p := bk(t, n)
+			if p < 4 || p > 31 {
+				panic("used block type")
+			}
+			m.k[2+u+p]++
+			n = atm1(n)
+			o = 1 << (p - 2)
+		}
+		x += o
+	}
+	return kxy(mks(".stats"), u, f)
 }
 
 var e10 = [22]f{1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21}
