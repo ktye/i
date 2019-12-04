@@ -35,6 +35,7 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"0N+0f", "0n"}, // kwm 0f
 		//{"@{1+2}", "`1"},
 		//{"#`p\"x[]\"", "2"},
 		//{"(+`a`b!(1 2;3 4)),+`c`b!(4 5;6 7)", "(`a`b!1 3;`a`b!2 4;`c`b!4 6;`c`b!5 7)"}, // explode

@@ -3893,7 +3893,7 @@ func cmd(x k) (r k) {
 	xp := 8 + x<<2
 	switch m.c[xp] {
 	case 'a':
-		return dex(x, adler())
+		return dex(x, adler(0, k(len(m.c))))
 	case 'b':
 		return dex(x, stats())
 	case 'v':
@@ -7132,14 +7132,41 @@ func flt(s []c) (man uint64, exp int, neg, ok bool) {
 	ok = true
 	return
 }
-func adler() (r k) {
+func adler(p, n k) (r k) {
 	a, b := k(1), k(0)
-	for i := k(0); i < k(len(m.c)); i++ {
-		a = (a + k(m.c[i])) % 65521
+	for i := k(p); i < n; i++ {
+		a = (a + k(m.c[p+i])) % 65521
 		b = (b + a) % 65521
 	}
 	return mki(a | b<<16)
 }
+func djb2(p, n k) (r k) {
+	r = k(5381)
+	for i := k(0); i < n; i++ {
+		r = (33 * r) ^ k(m.c[p+i])
+	}
+	return r
+}
+func xd(x k) (r k) { // \x x (dump bucket memory)
+	/*
+		t, n := typ(x)
+		bt := bk(t, n)
+		c := take(5*8+4, 0, mk(C, 0))
+		rp := 8 + c<<2
+		for p := x << 2; p < x+1<<bt; p += 16 {
+			o := 0
+			for j := k(0); j < 16; j++ {
+				m.c[rp+j+o], m.c[rp+j+1+o] = hxd(p + j)
+				if j%4 == 0 {
+					o++
+				}
+			}
+		}
+	*/
+	panic("nyi")
+	return dex(x, inc(null))
+}
+
 func stats() (r k) { // \b (memory stats used/free buckets)
 	u, f := mk(I, 32), mk(I, 32)
 	for i := k(0); i < 32; i++ {
