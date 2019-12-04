@@ -8,7 +8,7 @@
  #dl{display:none;}
 </style>
 <body>
-<textarea id="kons"></textarea>
+<textarea id="kons" spellcheck="false"></textarea>
 <canvas id="cnv"></canvas>
 <a id="dl"></a>
 <script>
@@ -25,18 +25,23 @@ f["rev"] = sa(rev)
 
 // kons (k console)
 var hit = kons
+var konstore = ""
+var edname = ""
+var ed = false
 var ctx
 function initKons() {
  var hold = false
  kons.onkeydown = function(evt) {
   if(evt.which === 27) {
    evt.preventDefault()
+   if (ed) { qed(); hold=true }
    hold = !hold
    kons.style.background = hold ? "#78909C" : "black"
+   kons.style.color = "white"
    cnv.width = 0; cnv.style.width = 0
    hit = kons
   } else if (evt.which === 13) {
-   if (hold) return
+   if (hold || ed) return
    evt.preventDefault()
    var a = kons.selectionStart
    var b = kons.selectionEnd
@@ -54,7 +59,8 @@ function initKons() {
    s = s.trim()
    if (s === "\\c") { kons.value=" "; cnv.width=0; cnv.stylewidth=0; return }
    if (s === "\\h") { O(atob(h));P(); return }
-   if (s.substr(0,2) === "\\w") { download(s.substr(2)); return }
+   if (s.substr(0,2) === "\\e") { P(); edit(s.substr(2)); return }
+   if (s.substr(0,2) === "\\w") { download(s.substr(2)); P(); return }
    if (s === "\\lf") { s = "\\m #:'.fs" }
    E(s)
   }
@@ -91,21 +97,46 @@ function Out() { // update kons and canvas
  }
  O(kio);P();kio="";
 }
+function edit(name) { 
+ edname = name; ed = true; konstore = kons.value; 
+ var u = getfile(name.trim())
+ if (u === false) {
+  kons.value = ""
+ } else {
+  kons.value = new TextDecoder("utf-8").decode(u)
+ }
+ kons.style.background = "#FFFFEA"
+ kons.style.color = "black"
+ kons.scrollTo(0,0);
+}
+function qed() {
+ var u = new TextEncoder("utf-8").encode(kons.value)
+ putfile(edname, u)
+ kons.value = konstore; kons.scrollTo(0, kons.scrollHeight)
+ ed = false
+}
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
-function download(file) {
- file = (file === "s") ? "k.ws" : file.trim()
- kio = file
- var p = K.Get()
- var o = K.P()
- var n = Number(kio);kio=""; n = isNaN(n) ? 0 : n;
- if (n > 0) {
-  var u = new Uint8Array(K.memory.buffer, p, n)
+function download(name) {
+ name = (name === "s") ? "k.ws" : name.trim()
+ var u = getfile(name)
+ if (u !== false) {
   var b = new Blob([u], {type:"application/octet-stream"})
   dl.href = URL.createObjectURL(b)
-  dl.download = file
+  dl.download = name
   dl.click()
  }
+}
+function getfile(name) { // as Uint8Array
+ console.log("getfile", name)
+ kio = name
+ var p = K.Get()
+ var n = Number(kio);kio=""; n = isNaN(n) ? 0 : n;
+ console.log("P", p, "n", n)
+ if (n > 0) {
+  return new Uint8Array(K.memory.buffer, p, n)
+ }
+ return false
 }
 
 // interactive callbacks on canvas
@@ -141,15 +172,18 @@ function addfile(x){
   var r = new FileReader()
   r.onload = function(){
    var u = new Uint8Array(r.result)
-   var p = K.P()
-   if x.name.endsWidth(".ws") == false {
-    kio = x.name
-    p = K.Store(x.length)
-   }
-   var d = new Uint8Array(K.memory.buffer, p, x.length)
-   d.set(u)
+   putfile(x.name, u)
   }
   r.readAsArrayBuffer(x)
+}
+function putfile(name, u) { // from Uint8Array
+  var p = K.P()
+  if (name.endsWith(".ws") == false) {
+   kio = name
+   p = K.Store(u.length)
+  }
+  var d = new Uint8Array(K.memory.buffer, p, u.length)
+  d.set(u)
 }
 
 var kio = 0

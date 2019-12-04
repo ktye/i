@@ -187,12 +187,7 @@ func Get() *byte { // get file (addr, kio=len)
 	c := red(s)
 	t, n := typ(c)
 	if t != C || n == 0 || n == atom  {
-		obuf = cat(obuf, str(mki(t)))
-		obuf = cat(obuf, mkc(' '))
-		obuf = cat(obuf, str(mki(n)))
-		jo()
-		panic("???")
-		return &m.c[0]
+		c, t, n = dex(c, mk(C, 0)), C, 0
 	}
 	obuf = cat(obuf, str(mki(n)))
 	jo()

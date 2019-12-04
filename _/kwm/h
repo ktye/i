@@ -1,30 +1,38 @@
-k wasm build (github.com/ktye/i/_/kwm)
+k/wasm (github.com/ktye/i/_/kwm)
+
+terminal, editor, memfs, draw, animate
 
 complex: 1i2  2a30  1 2 3a  cmplx expi real imag phase conj rand 3i(binormal)
 matrix : A\B(solve) A\0(qr) A\1(inv) diag cond 
 stats  : (x)med y(pct/erf/cum)  dev z(principal) x var y  var z(cov)  x avg y(cum/win/exp)
 
-\h
-\v list vars
-\k k-tree dump
-\m expr matrix display
-\b memory buckets                  /nyi format table
+ \h
+ \v  (list vars)
+ \k  (k-tree dump)
+ \m  (expr matrix display)
+ \b  (k memory stats)
 
 memory filesystem (.fs) <- drop files into the window
-\lf list files, access with io verbs
-\l load file (k source)
-\w file (download file)            /nyi
-\ws (download workspace k.ws)      /nyi
-drop "*.ws" exchanges k memory     /nyi
+ \lf     (list files, access with io verbs)
+ \l file (load file k source)
+ \w file (download file)
+ \ws     (download workspace k.ws)
+ \e file (edit ESC to write)
+ drop "*.ws" exchanges k memory
 
 terminal
  return executes current line (anywhere) or selected text(e.g. multiline)
  esc    toggles hold mode (disable execution) and remove canvas
-\c (clear) reset textarea
+ \c (clear) reset textarea
 
-draw with io verb 9: to top right corner
+draw  (w 9:x)
  (2/w) 9:(4/w*h) rand 255*256
  w and h are predefined with window size at page load
 interactive ui (canvas)
  .m mouse callback
  .k key callback (click to focus)
+
+animate 
+ \L 500   (ms delay)                             /nyi
+ \L expr  Loop k executing until ESC is pressed  /nyi
+
