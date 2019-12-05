@@ -1,56 +1,19 @@
-types (4bit available)
-0 free bucket
-1 C
-2 I
-3 F
-4 Z
-5 S
-6 L
-7 A
-8 N null? or use m.k[0] (zero-pointer)
-9 E expression :expr
-a U monad      +:
-b V dyad       +
-c D derived    +/
-d P projection 2+ 2[;+]
-e O composition 2+-
-f M lambda
+k memory access
 
-E #2      (parse tree),(string form)
-U atom    function code in m.k[2]
-V atom    function code in m.k[2]
-D #2      (pointer to operator type U|V),(function)
-          k7 has 6 unique types for each operator i can't afford
-P #1+args (function pointer), args... (short for missing, or 0-filled?)
-O #2      nested or #functions?
-M #4      (parse tree),(string form),(arg symbols),(locals)
-          i still don't know what is the unused argument in k7
+inspect
 
-Currently function arity is part of the type.
-This would have to change.
+ a:`a@123    / `a@x address of x (uint32)
+248
+ `v@248      / `v@a k value at address
+1 2 3
+ `a?248      / `a@x uint32 value at addr
+536870915    / block header
+ `a?248+!5
+536870915 3 1 2 3 / block header, ref-count, data
 
-Null
-could be a distinct type (8) or just the 0 value which would
-have to be special cased not to refcount.
+modify (nyi)
 
-
-Flags
-2 additional bits are available in the pointers (32bit index) itself.
-As max memory is 4GB, the highest 2 bits are illegal in an address.
-These bits could be used for (sort|uniq).
-Drawback: they would have to be removed everywhere:
- m.k[x|0x3fffffff] instead of m.k[x]
-
-
-Symbols
-currently: uint64 (8 chars max)
-maybe: pointer(index) to a symbol-dict
-e.g. `c`a`b would be similar to a list:
- header(S<<28|3) refcount idx0 idx1 idx2
-The global symbol-dict would be a dict from char-arrays to ints:
- (,"a";,"b";,"c")!2 0 1
-Keys and values are always unique.
-The integers would indicate the sort order.
-When a new symbol is required, first look if it exists, then append
-the char array to the end of the keys and update the sort order.
-
+ (80):5     / assign value at addr 80 to 5
+ (80+!3):0  / block assignment
+ 
+ 

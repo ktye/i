@@ -161,6 +161,8 @@ func ini(mem []f) { // start function
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
 	mkk(".vsc", "{(t;s):(x[0];x[1]);y:+s\\:'y;$[0=#t;y;?[,/'(`$'t)$'(#t)#y;(&\" \"=t),'1;()]]}")
+	//mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\";b:`x@`?0x07,`hex?s;` 0:{s:\"\\\\x\";s,(\" \",s)/:2 8#x}'(16/#h;16)#h:`hex@(#b|256)#b;}")
+	mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\"; d:`?0x07,v:`hex?s; (s;v;d)}")
 	mkk(".stats", "{s:_2 exp !#x;l:(!#x;x;y;s*x;s*y);t:+`b`used`free`uB`fB!l,'+/+l;` 1:(\"\n\"/:`m@t),\"\n\";}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -2056,6 +2058,41 @@ func resn(x k) (r, xe k) {
 	copy(m.c[rp+o:rp+o+ln], m.c[p:p+ln])
 	return r, drop(i(ln), x)
 }
+func u32(x k) (r k) { return cat(mkc('\\'), cat(mkc('x'), hex(drop(1, ser(x))))) } // `u@i (`u@82 → "\\x52000000")
+func xst(x k) (r k) { // `x@ (bucket bytes)
+	t, n := typ(x)
+	rn := k(1) << bk(t, n)
+	r = mk(C, rn)
+	copy(m.c[8+r<<2:], m.c[x<<2:x<<2+rn])
+	return dex(x, r)
+}
+func adr(x k) (r k) { return dex(x, mki(x)) } // `a@ (addr)
+func rda(x k) (r k) { // `a? (value of addr)
+	if t, n := typ(x); t != I { // TODO: L for nvec
+		panic("type")
+	} else if n == atom {
+		return dex(x, mki(m.k[m.k[2+x]]))
+	} else {
+		r = mk(I, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+r+i] = m.k[m.k[2+x+i]]
+		}
+		return dex(x, uf(r))
+	}
+}
+func rdv(x k) (r k) { // `v?a (value at addr)
+	if t, n := typ(x); t != I { // TODO: L for nvec
+		panic("type")
+	} else if n == atom {
+		return dex(x, inc(m.k[2+x]))
+	} else {
+		r = mk(L, n)
+		for i := k(0); i < n; i++ {
+			m.k[2+r+i] = inc(m.k[2+x+i])
+		}
+		return dex(x, uf(r))
+	}
+}
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
 }
@@ -2839,6 +2876,8 @@ func fnd(x, y k) (r k) { // x?y
 		switch m.k[2+x] {
 		case 0: // `?
 			return dex(x, res(y))
+		case k('a'):
+			return dex(x, rda(y)) // `a?x → m.k[x] (value of addr)
 		case yb64: // `b64?
 			return dex(x, b46(y))
 		case yhex: // `hex?
@@ -2917,12 +2956,20 @@ func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
 		switch m.k[2+x] {
+		case k('a'):
+			return dex(x, adr(y))
 		case k('p'):
 			return dex(x, prs(y))
 		case k('k'):
 			return dex(x, kst(y))
 		case k('m'):
 			return dex(x, mat(y))
+		case k('u'):
+			return dex(x, u32(y))
+		case k('x'):
+			return dex(x, xst(y))
+		case k('v'):
+			return dex(x, rdv(y)) // `v@a (value at addr)
 		case ycsv:
 			return dex(x, csv(y))
 		case yb64:
@@ -3333,7 +3380,10 @@ func lambda(x, y k) (r k) { // call lambda
 	if nl == 0 {
 		return decr(x, y, inc(null))
 	} else if lt != L {
-		panic("type")
+		//panic("type")
+	}
+	if m.k[loc]>>28 != S {
+		panic("locl")
 	}
 	return dex(x, env(loc, l, y, v))
 }
@@ -3916,6 +3966,10 @@ func cmd(x k) (r k) {
 		w := table[21+dyad].(func(k, k) k)
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return inc(null)
+	case 'x':
+		return kx(mks(".xxd"), x) // \x80
+	case 'y':
+		return kx(mks(".xxd"), drop(1, u32(adr(evl(prs(drop(1, x))))))) // \y v
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
@@ -4375,7 +4429,28 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return dex(x, r)
 }
 func asn(x, y, f k) (r k) { // `x:y
-	_, yt, xn, yn := typs(x, y)
+	xt, yt, xn, yn := typs(x, y)
+	if xt == I { // direct memory assignment (a):..
+		if yt != I {
+			panic("type")
+		}
+		if match(f, null) == false {
+			panic("nyi: modified direct assignment")
+		}
+		dec(f)
+		n := xn
+		if xn == atom {
+			n = yn
+		} else if yn == atom {
+			n = xn
+		} else if xn != yn {
+			panic("length")
+		}
+		for i := k(0); i < atm1(n); i++ {
+			m.k[x+i] = m.k[2+y+i]
+		}
+		return dex(x, y)
+	}
 	if xn != atom {
 		if yn == atom {
 			y, yn = ext(y, yt, xn), xn
@@ -6022,7 +6097,8 @@ func (p *p) noun() (r k) {
 		if ln == 0 {
 			dec(args)
 			ln = argn(m.k[3+r], 0)
-			if ln == 0 || ln > 3 {
+			//if ln == 0 || ln > 3 {
+			if ln > 3 {
 				panic("valence(lambda)")
 			}
 			args = mk(S, ln)
@@ -6034,7 +6110,7 @@ func (p *p) noun() (r k) {
 		if N+ln > 15 { // type overflow (4bits)
 			panic("args")
 		}
-		m.k[3+r] = l2(unq(locl(m.k[3+r], args)), m.k[3+r])
+		m.k[3+r] = l2(unq(locl(m.k[3+r], args)), m.k[3+r]) // locl no ref
 		m.k[r] = (N+ln)<<28 | 0
 		return p.idxr(r)
 	case p.t(sOpa):
@@ -6762,7 +6838,7 @@ func argn(x, ln k) k { // count args of lambda parse tree
 	}
 	return ln
 }
-func locl(x, l k) k { // local list of lambda parse tree
+func locl(x, l k) (r k) { // local list of lambda parse tree (not ref-counting)
 	t, n := typ(x)
 	if t == L {
 		for i := k(0); i < n; i++ {
@@ -6771,11 +6847,13 @@ func locl(x, l k) k { // local list of lambda parse tree
 		if n == 3 {
 			v := m.k[3+x]
 			if f := m.k[2+x]; m.k[f]>>28 == N+1 && m.k[2+f] == 0 && m.k[3+f] == 1 { // infix local assignment
-				inc(v)
-				if m.k[v]>>28 == L { // (a;b):..
-					v = drop(1, v)
+				if tt := m.k[v] >> 28; tt == S || (tt == L && match(m.k[2+v], null)) { // single or multiple assignment
+					inc(v)
+					if tt == L {
+						v = drop(1, v) // ?
+					}
+					l = unq(cat(l, v))
 				}
-				l = unq(cat(l, v))
 			}
 		}
 	}
@@ -7147,26 +7225,6 @@ func djb2(p, n k) (r k) {
 	}
 	return r
 }
-func xd(x k) (r k) { // \x x (dump bucket memory)
-	/*
-		t, n := typ(x)
-		bt := bk(t, n)
-		c := take(5*8+4, 0, mk(C, 0))
-		rp := 8 + c<<2
-		for p := x << 2; p < x+1<<bt; p += 16 {
-			o := 0
-			for j := k(0); j < 16; j++ {
-				m.c[rp+j+o], m.c[rp+j+1+o] = hxd(p + j)
-				if j%4 == 0 {
-					o++
-				}
-			}
-		}
-	*/
-	panic("nyi")
-	return dex(x, inc(null))
-}
-
 func stats() (r k) { // \b (memory stats used/free buckets)
 	u, f := mk(I, 32), mk(I, 32)
 	for i := k(0); i < 32; i++ {
