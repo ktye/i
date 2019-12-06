@@ -6,14 +6,18 @@ inspect
 248
  `v@248      / `v@a k value at address
 1 2 3
- `a?248      / `a@x uint32 value at addr
+ `i?248      / `i@x int32 value at addr
 536870915    / block header
- `a?248+!5
+ `i?248+!5
 536870915 3 1 2 3 / block header, ref-count, data
+
+ x:1 -1f
+ `z?2+`a x   / any `c`i`f`z`s?a
+1.414214a270
 
 modify (nyi)
 
  (80):5     / assign value at addr 80 to 5
  (80+!3):0  / block assignment
- 
+ (+a):1     / var names need to eval to int
  
