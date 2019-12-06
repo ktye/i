@@ -35,10 +35,20 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		//{"`x 8:1 2 3", ""},
+		{"`x$128", `"80000000"`},
+		{"`x$\"80000000\"", "128"},
+		{"`x$\"80\"", "128"},
+		{"`x$\"f8\"", "248"},
+		{"2_`b 1 2", "1 2"},
+		{"*`b@!3", "536870915"},
+		{"`t 1 2 3", "2 3"},
+		{"`t 3a90", "4 -1"},
 		//{"\\x80", ""},
 		{"`a@*(;)", "80"}, // may change
-		//{"`u@`a?80", ""},
-		{"`u@80", `"\\x50000000"`},
+		{"`x$\"50000000\"", `80`},
+		{"`x$80", `"50000000"`},
+		{"`x$80+!3", `("50000000";"51000000";"52000000")`},
 		{"0x00000000ffffffff0000000000000000|`x@1 2", "0x02000020ffffffff0100000002000000"},
 		{"0N+0f", "0n"}, // kwm 0f
 		//{"@{1+2}", "`1"},
@@ -946,6 +956,7 @@ func TestK(t *testing.T) {
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
 			ini(make([]f, 1<<13))
+			table[21+dyad] = wrt
 			fmt.Printf("%s → %s\n", tc.x, tc.r)
 			x := prs(K([]byte(tc.x)))
 			if occ {
@@ -964,6 +975,11 @@ func TestK(t *testing.T) {
 			check(t)
 		}
 	}
+}
+func wrt(x, y k) (r k) {
+	pr(x, "wrt x")
+	pr(y, "wrt y")
+	return decr(x, y, inc(null))
 }
 func TestRef(t *testing.T) { // generate readme.md
 	k, e := ioutil.ReadFile("k.go")

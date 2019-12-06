@@ -14,7 +14,7 @@ const ref = `
 05 & wer min    25 5 nil nil    45 log       125 lgn log      65       145
 06 | rev max    26 6 nil nil    46 exp       126 pow exp      66       146
 07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67       147
-08 > dst mor    28 8 lun nil    48 abs       128              68       148
+08 > dst mor    28 8 lun lnd    48 abs       128              68       148
 09 = grp eql    29 9 nil nil    49 plo plot  129 plt plot     69       149
                                                                           
 10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70       150
@@ -38,8 +38,7 @@ type s = string
 
 const (
 	C, I, F, Z, S, L, A, N                                    k = 1, 2, 3, 4, 5, 6, 7, 8
-	atom, srcp, kkey, kval, stab, asci, dyad                  k = 0x0fffffff, 0x2f, 0x30, 0x31, 0x32, 0x33, 80
-	NaI                                                       i = -2147483648
+	atom, NaI, srcp, kkey, kval, stab, asci, dyad             k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 80
 	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 257, 258, 259, 260, 261, 262, 263, 264, 265, 266
 )
 
@@ -73,12 +72,12 @@ var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS, nil}      // greater than (gtL caus
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
 	m.f[r] = f(i(m.k[x]))
-	if i(m.k[x]) == NaI {
+	if m.k[x] == NaI {
 		m.f[r] = fnan
 	}
 }, func(r, x k) {
 	m.z[r] = complex(f(i(m.k[x])), 0)
-	if i(m.k[x]) == NaI {
+	if m.k[x] == NaI {
 		m.z[r] = complex(fnan, fnan)
 	}
 }, func(r, x k) { m.c[r] = c(m.f[x]) }, func(r, x k) {
@@ -102,7 +101,7 @@ func ini(mem []f) { // start function
 		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
-		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
+		wrl, nil, nil, nil, nil, nil, nil, nil, lnd, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
 		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
@@ -162,7 +161,8 @@ func ini(mem []f) { // start function
 	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
 	mkk(".vsc", "{(t;s):(x[0];x[1]);y:+s\\:'y;$[0=#t;y;?[,/'(`$'t)$'(#t)#y;(&\" \"=t),'1;()]]}")
 	//mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\";b:`x@`?0x07,`hex?s;` 0:{s:\"\\\\x\";s,(\" \",s)/:2 8#x}'(16/#h;16)#h:`hex@(#b|256)#b;}")
-	mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\"; d:`?0x07,v:`hex?s; (s;v;d)}")
+	//mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\"; d:`?0x07,v:`hex?s; (s;v;d)}")
+	mkk(".xxd", "{x;`wip}")
 	mkk(".stats", "{s:_2 exp !#x;l:(!#x;x;y;s*x;s*y);t:+`b`used`free`uB`fB!l,'+/+l;` 1:(\"\n\"/:`m@t),\"\n\";}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -2063,13 +2063,14 @@ func resn(x k) (r, xe k) {
 	copy(m.c[rp+o:rp+o+ln], m.c[p:p+ln])
 	return r, drop(i(ln), x)
 }
-func u32(x k) (r k) { return cat(mkc('\\'), cat(mkc('x'), hex(drop(1, ser(x))))) } // `u@i (`u@82 → "\\x52000000")
-func xst(x k) (r k) { // `x@ (bucket bytes)
+func xst(x k) (r k) { // `u@I (`u$82 → "52000000")
 	t, n := typ(x)
-	rn := k(1) << bk(t, n)
-	r = mk(C, rn)
-	copy(m.c[8+r<<2:], m.c[x<<2:x<<2+rn])
-	return dex(x, r)
+	if t != I {
+		panic("type")
+	} else if n != atom {
+		return lrc(explode(x), n, xst)
+	}
+	return hex(drop(1, ser(x)))
 }
 func adr(x k) (r k) { return dex(x, mki(x)) } // `a@ (addr)
 func rda(x, rt k, s i, shift bool) (r k) { // `cifzsCIFZS?x
@@ -2105,6 +2106,28 @@ func rdv(x k) (r k) { // `v?a (value at addr)
 		}
 		return dex(x, uf(r))
 	}
+}
+func bdr(x k) (r k) { // `b@ (full bucket content as I)
+	t, n := typ(x)
+	rn := k(1) << bk(t, n) >> 2
+	r = mk(I, rn)
+	copy(m.k[2+r:], m.k[x:x+rn])
+	return dex(x, r)
+}
+func hdr(x k) (r k) { // `t@ (numeric type code; length (atom -1))
+	r = mk(I, 2)
+	m.k[2+r], m.k[3+r] = typ(x)
+	if m.k[3+r] == atom {
+		m.k[3+r] = 4294967295
+	}
+	return dex(x, r)
+}
+func xbb(x k) (r k) { // `x@ (bucket bytes)
+	t, n := typ(x)
+	rn := k(1) << bk(t, n)
+	r = mk(C, rn)
+	copy(m.c[8+r<<2:], m.c[x<<2:x<<2+rn])
+	return dex(x, r)
 }
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
@@ -2807,6 +2830,8 @@ func cst(x, y k) (r k) { // x$y
 			return dex(x, y)
 		} else if s == '*' { // `"*"$ for `csv?
 			return dex(x, enlist(y))
+		} else if s == 'x' { // `x$"ff001122" → i
+			return dex(x, atox(y))
 		}
 		num, o := aton(m.c[8+y<<2 : atm1(yn)+8+y<<2])
 		if !o {
@@ -2823,6 +2848,8 @@ func cst(x, y k) (r k) { // x$y
 			panic("value")
 		}
 		return decr(x, y, r)
+	} else if s == 'x' && yt == I { // `x$I → ("11223344";"88990088")
+		return dex(x, xst(y))
 	}
 	t, o := k(0), k(169)
 	for i := o; i < o+15; i++ {
@@ -2977,19 +3004,21 @@ func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
 		switch m.k[2+x] {
-		case k('a'):
-			return dex(x, adr(y))
-		case k('p'):
+		case 'a':
+			return dex(x, adr(y)) // addr of
+		case 'b':
+			return dex(x, bdr(y)) // bucket bytes (as I)
+		case 'p':
 			return dex(x, prs(y))
-		case k('k'):
+		case 'k':
 			return dex(x, kst(y))
-		case k('m'):
+		case 'm':
 			return dex(x, mat(y))
-		case k('u'):
-			return dex(x, u32(y))
-		case k('x'):
-			return dex(x, xst(y))
-		case k('v'):
+		case 't':
+			return dex(x, hdr(y)) // type-number;length (-1:atom)
+		case 'x':
+			return dex(x, xbb(y))
+		case 'v':
 			return dex(x, rdv(y)) // `v@a (value at addr)
 		case ycsv:
 			return dex(x, csv(y))
@@ -3945,6 +3974,19 @@ func lun(x k) (r k) { // 8:x or .. \x (display)
 	dec(wr(inc(nans), cat(kst(inc(x)), mkc('\n'))))
 	return x
 }
+func lnd(x, y k) (r k) { // x 8:y (inspect)
+	wr := table[21+dyad].(func(k, k) k)
+	t, _ := typ(x)
+	var o k
+	if t == C { // annotate
+		o = cat(x, cat(kst(inc(y)), mkc('\n')))
+	} else if t == S && m.k[2+x] == 'x' { // `x 8:y (hex dump)
+		dec(kx(mks(".xxd"), inc(y)))
+		return dex(x, y)
+	}
+	dec(wr(inc(nans), o))
+	return dex(x, y)
+}
 func deb(x k) (r k) { // 9:x (println)
 	r = kst(inc(x))
 	t, n := typ(r)
@@ -3988,9 +4030,9 @@ func cmd(x k) (r k) {
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return inc(null)
 	case 'x':
-		return kx(mks(".xxd"), x) // \x80
+		return dex(x, kx(mks(".xxd"), atox(drop(1, x)))) // \x3a8 (hexdump addr)
 	case 'y':
-		return kx(mks(".xxd"), drop(1, u32(adr(evl(prs(drop(1, x))))))) // \y v
+		return dex(x, kx(mks(".xxd"), adr(evl(prs(x))))) // hexdump expr result
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
@@ -7005,6 +7047,18 @@ func atoi(b []c) (int, bool) {
 		}
 	}
 	return s * n, true
+}
+func atox(x k) (r k) {
+	t, n := typ(x)
+	if t != C || n == atom {
+		panic("type")
+	} else if n > 8 {
+		panic("length")
+	}
+	x = xeh(take(8, 0, cat(x, take(8-n, 0, mkc('0')))))
+	r = mk(I, atom)
+	m.k[2+r] = m.k[2+x]
+	return dex(x, r)
 }
 func atof(b []c) (f, bool) {
 	man, exp, neg, o := flt(b)
