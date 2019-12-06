@@ -1436,6 +1436,11 @@ func evl(x k) (r k) {
 			if nt, nn := typ(name); nt == L && nn > 1 {
 				if match(m.k[2+name], null) { // (;`a;`b) vector assignment
 					name = drp(mki(1), name)
+				} else if nn > 1 && m.k[m.k[2+name]]>>28 != S { // (+;`a;2 3 4) kma expr
+					name = evl(name)
+					if m.k[name]>>28 != I {
+						panic("type") // kma assignment
+					}
 				} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 					idx := drop(1, inc(name)) // inc(m.k[3+name])
 					name = fst(name)
@@ -2067,18 +2072,26 @@ func xst(x k) (r k) { // `x@ (bucket bytes)
 	return dex(x, r)
 }
 func adr(x k) (r k) { return dex(x, mki(x)) } // `a@ (addr)
-func rda(x k) (r k) { // `a? (value of addr)
-	if t, n := typ(x); t != I { // TODO: L for nvec
-		panic("type")
-	} else if n == atom {
-		return dex(x, mki(m.k[m.k[2+x]]))
-	} else {
-		r = mk(I, n)
-		for i := k(0); i < n; i++ {
-			m.k[2+r+i] = m.k[m.k[2+x+i]]
-		}
-		return dex(x, uf(r))
+func rda(x, rt k, s i, shift bool) (r k) { // `cifzsCIFZS?x
+	if shift == false {
+		s = 0
 	}
+	t, n := typ(x)
+	if t != I {
+		panic("type")
+	}
+	r = mk(rt, n)
+	rp, cp := ptr(r, rt), cpx[rt]
+	if s >= 0 {
+		for i := k(0); i < atm1(n); i++ {
+			cp(rp+i, m.k[2+x+i]<<s)
+		}
+	} else {
+		for i := k(0); i < atm1(n); i++ {
+			cp(rp+i, m.k[2+x+i]>>-s)
+		}
+	}
+	return dex(x, r)
 }
 func rdv(x k) (r k) { // `v?a (value at addr)
 	if t, n := typ(x); t != I { // TODO: L for nvec
@@ -2876,8 +2889,16 @@ func fnd(x, y k) (r k) { // x?y
 		switch m.k[2+x] {
 		case 0: // `?
 			return dex(x, res(y))
-		case k('a'):
-			return dex(x, rda(y)) // `a?x → m.k[x] (value of addr)
+		case 'c', 'C': // kma type conversions (at addr)
+			return dex(x, rda(y, C, 2, m.k[2+x] == 'c'))
+		case 'i', 'I':
+			return dex(x, rda(y, I, 0, false))
+		case 'f', 'F':
+			return dex(x, rda(y, F, -1, m.k[2+x] == 'f'))
+		case 'z', 'Z':
+			return dex(x, rda(y, Z, -2, m.k[2+x] == 'z'))
+		case 's', 'S':
+			return dex(x, rda(y, S, 0, false))
 		case yb64: // `b64?
 			return dex(x, b46(y))
 		case yhex: // `hex?
@@ -4430,24 +4451,26 @@ func unsert(x, idx k) (r k) { // delete index from x
 }
 func asn(x, y, f k) (r k) { // `x:y
 	xt, yt, xn, yn := typs(x, y)
-	if xt == I { // direct memory assignment (a):..
-		if yt != I {
-			panic("type")
-		}
+	if xt == I && match(f, null) == false { // modified kma
+		y = cal2(f, rda(inc(x), I, 0, false), y)
+		yt, yn = typ(y)
+		f = inc(null)
+	}
+	if xt == I && yt == I { // kma assign (a):..
 		if match(f, null) == false {
 			panic("nyi: modified direct assignment")
 		}
 		dec(f)
-		n := xn
-		if xn == atom {
-			n = yn
-		} else if yn == atom {
-			n = xn
+		dy := k(1)
+		if xn != atom && yn == atom {
+			dy = k(0)
 		} else if xn != yn {
 			panic("length")
 		}
-		for i := k(0); i < atm1(n); i++ {
-			m.k[x+i] = m.k[2+y+i]
+		p := k(2)
+		for i := k(0); i < atm1(xn); i++ {
+			m.k[m.k[2+x+i]] = m.k[y+p]
+			p += dy
 		}
 		return dex(x, y)
 	}

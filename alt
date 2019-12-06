@@ -1,23 +1,29 @@
 k memory access
 
 inspect
-
- a:`a@123    / `a@x address of x (uint32)
+ x:1 2 3
+ a:`a@x      / `a@x address of x
+ a    
 248
- `v@248      / `v@a k value at address
+ `v@a        / `v@a k value at address
 1 2 3
- `i?248      / `i@x int32 value at addr
+ `i?a        / `i@x value at addr as int
 536870915    / block header
- `i?248+!5
-536870915 3 1 2 3 / block header, ref-count, data
+ `i?a+!5
+536870915 1 1 2 3 / block header, ref-count, data
 
  x:1 -1f
- `z?2+`a x   / any `c`i`f`z`s?a
-1.414214a270
+ `z?4+`a x   / any `c`i`f`z`s?a  (`z is 128bit aligned)
+1.414214a315
 
-modify (nyi)
+modify
 
- (80):5     / assign value at addr 80 to 5
+ 300:5      / assign value at addr 300 to 5 (handle with care)
+ `i?300
+5
  (80+!3):0  / block assignment
  (+a):1     / var names need to eval to int
+ x:1 2 3;a:`a x
+ (a+1)-:1   / decrement refcount (modified kma)
+ 
  
