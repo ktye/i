@@ -6120,12 +6120,12 @@ func (p *p) noun() (r k) {
 		if ln == 0 {
 			dec(args)
 			ln = argn(m.k[3+r], 0)
-			//if ln == 0 || ln > 3 {
-			if ln > 3 {
+			if ln == 0 {
+				ln = 1
+			} else if ln > 3 {
 				panic("valence(lambda)")
 			}
 			args = mk(S, ln)
-			ln = argn(m.k[3+r], 0)
 			for i := k(0); i < ln; i++ {
 				m.k[2+args+i] = 'x' + i // `x..`z
 			}
