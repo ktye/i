@@ -1,5 +1,7 @@
 package main
 
+// removal of syscall/js -23k (disabling math would -7.7k)
+
 // max memory, heap size must be set explicitly when compiling with tinygo
 const maxmem = 1 << 23 // number of floats (64 MB)
 var mem, bak []f
