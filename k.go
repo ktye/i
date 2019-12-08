@@ -14,7 +14,7 @@ const ref = `
 05 & wer min    25 5 nil nil    45 log       125 lgn log      65       145
 06 | rev max    26 6 nil nil    46 exp       126 pow exp      66       146
 07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67       147
-08 > dst mor    28 8 lun lnd    48 abs       128              68       148
+08 > dst mor    28 8 lun lud    48 abs       128              68       148
 09 = grp eql    29 9 nil nil    49 plo plot  129 plt plot     69       149
                                                                           
 10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70       150
@@ -101,7 +101,7 @@ func ini(mem []f) { // start function
 		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
 		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
 		dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
-		wrl, nil, nil, nil, nil, nil, nil, nil, lnd, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
+		wrl, nil, nil, nil, nil, nil, nil, nil, lud, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
 		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
 	}
@@ -160,9 +160,7 @@ func ini(mem []f) { // start function
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
 	mkk(".vsc", "{(t;s):(x[0];x[1]);y:+s\\:'y;$[0=#t;y;?[,/'(`$'t)$'(#t)#y;(&\" \"=t),'1;()]]}")
-	//mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\";b:`x@`?0x07,`hex?s;` 0:{s:\"\\\\x\";s,(\" \",s)/:2 8#x}'(16/#h;16)#h:`hex@(#b|256)#b;}")
-	//mkk(".xxd", "{s:8$1_x;s[&\" \"=s]:\"0\"; d:`?0x07,v:`hex?s; (s;v;d)}")
-	mkk(".xxd", "{x;`wip}")
+	mkk(".xxd", "{x:`v x;` 0:(,`T x),\" \"/:'0N 4#\"\\\\x\",/:`x$(16&#b)#b:`b x}")
 	mkk(".stats", "{s:_2 exp !#x;l:(!#x;x;y;s*x;s*y);t:+`b`used`free`uB`fB!l,'+/+l;` 1:(\"\n\"/:`m@t),\"\n\";}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -2095,7 +2093,7 @@ func rda(x, rt k, s i, shift bool) (r k) { // `cifzsCIFZS?x
 	return dex(x, r)
 }
 func rdv(x k) (r k) { // `v?a (value at addr)
-	if t, n := typ(x); t != I { // TODO: L for nvec
+	if t, n := typ(x); t != I {
 		panic("type")
 	} else if n == atom {
 		return dex(x, inc(m.k[2+x]))
@@ -2121,6 +2119,18 @@ func hdr(x k) (r k) { // `t@ (numeric type code; length (atom -1))
 		m.k[3+r] = 4294967295
 	}
 	return dex(x, r)
+}
+func tdr(x k) (r k) { // `T@x  "i100 +1 8+400/512"
+	t, n := typ(x)
+	ts, bn, ln := str(tip(inc(x))), k(1)<<bk(t, n), lns[t]
+	if n != atom {
+		ts, ln = cat(ts, str(mki(n))), ln*n
+	}
+	r = mk(L, 3)
+	m.k[2+r] = ts
+	m.k[3+r] = cat(mkc('+'), str(mki(m.k[1+x])))
+	m.k[4+r] = cat(cat(cat(mkc('8'), mkc('+')), cat(str(mki(ln)), mkc('/'))), str(mki(bn)))
+	return dex(x, jon(mkc(' '), r))
 }
 func xbb(x k) (r k) { // `x@ (bucket bytes)
 	t, n := typ(x)
@@ -2639,7 +2649,27 @@ func tak(x, y k) (r k) { // x#y
 	if xn == 1 {
 		return dex(x, take(n, o, y))
 	}
-	r, o = rsh(2+x, xn-1, n, o, y, yn)
+	p, a, neg := k(1), k(0xffffffff), false // a 0N c#y → (a;(a*c)/#y;c)#y
+	for i := k(0); i < xn; i++ {
+		if m.k[2+x+i] >= inan { // 0N or negative
+			if neg { // only one in x
+				panic("domain")
+			}
+			r, a, neg = mk(I, xn), i, true
+			mv(r, x)
+			x = dex(x, r)
+			m.k[2+x+i] = 1
+		}
+		p *= m.k[2+x+i]
+	}
+	if neg {
+		m.k[2+x+a] = yn / p
+		if p*(yn/p) != yn {
+			panic("domain") // k7 fills last
+		}
+	}
+	n, o = yn, 0
+	r, o = rsh(2+x, xn-1, m.k[2+x+xn-1], 0, y, yn)
 	return decr(x, y, r)
 }
 func rsh(xp, xn, n, o, y, yn k) (r, oo k) { // reshape (with offset): (x,n)#y
@@ -3016,6 +3046,8 @@ func atx(x, y k) (r k) { // x@y
 			return dex(x, mat(y))
 		case 't':
 			return dex(x, hdr(y)) // type-number;length (-1:atom)
+		case 'T':
+			return dex(x, tdr(y)) // type header string
 		case 'x':
 			return dex(x, xbb(y))
 		case 'v':
@@ -3974,20 +4006,20 @@ func lun(x k) (r k) { // 8:x or .. \x (display)
 	dec(wr(inc(nans), cat(kst(inc(x)), mkc('\n'))))
 	return x
 }
-func lnd(x, y k) (r k) { // x 8:y (inspect)
+func lud(x, y k) (r k) { // x 8:y (inspect)
 	wr := table[21+dyad].(func(k, k) k)
 	t, _ := typ(x)
 	var o k
 	if t == C { // annotate
 		o = cat(x, cat(kst(inc(y)), mkc('\n')))
 	} else if t == S && m.k[2+x] == 'x' { // `x 8:y (hex dump)
-		dec(kx(mks(".xxd"), inc(y)))
+		dec(kx(mks(".xxd"), adr(inc(y))))
 		return dex(x, y)
 	}
 	dec(wr(inc(nans), o))
 	return dex(x, y)
 }
-func deb(x k) (r k) { // 9:x (println)
+func deb(x k) (r k) { // 9:x (println) (also drw)
 	r = kst(inc(x))
 	t, n := typ(r)
 	if t != C {
@@ -4030,9 +4062,9 @@ func cmd(x k) (r k) {
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return inc(null)
 	case 'x':
-		return dex(x, kx(mks(".xxd"), atox(drop(1, x)))) // \x3a8 (hexdump addr)
+		return dex(x, kx(mks(".xxd"), atox(drop(1, x)))) // \x3a8 (hexdump bucket at addr)
 	case 'y':
-		return dex(x, kx(mks(".xxd"), adr(evl(prs(x))))) // hexdump expr result
+		return dex(x, kx(mks(".xxd"), adr(evl(prs(drop(1, x)))))) // hexdump expr result
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
