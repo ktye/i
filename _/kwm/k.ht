@@ -17,7 +17,6 @@
 {{k.b64}}
 {{h.b64}}
 {{rev}}
-var f = new Object() // memfs
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 var kwasm = sa(atob(r))
 const go = new Go()

@@ -1,4 +1,5 @@
 # ktye.github.io  wasm build (300KB) with tinygo 
+# (k wasl stripe)
 #
 # install go-1.13 
 # install tinygo-0.10.0 to /usr/local/tinygo
@@ -22,3 +23,47 @@ awk '/^{{/{
 }{print}' k.ht > index.html
 
 # deploy: commit, cp index.html to ../../../ktye.github.io/, commit there
+
+
+# communication k.ht(js) <-> a.go(k)
+# eval string from js
+#  js requests input memory calling Kin(size)
+#  js writes data to returned input buffer (ibuf) within k memory
+#  js calls a K()
+#  k decrements kin, evaluates and writes to obuf
+#  js calls Kout which returns obuf addr
+#  js reads data in k memory with length returned by K()
+#  obuf stays alive until next request
+#  js checks if an image has been written with a call to Imgsize()
+#   if>0 it asks for the addr by calling Img()
+#
+# ui events
+#  js sends ui events on the image canvas with a call to Ui()
+#  which returns the size of the possible output text
+#  js reads text and image as above
+#
+# file upload
+#  js writes the file name to the input buffer after calling Kin()
+#  js requests a file buffer with Store(size) which creates space
+#  k stores a new dict with the name and a dirty data in .fs
+#  js writes the file content to the returned addr
+#
+# file download
+#  js writes the file name to the input buffer after calling Kin()
+#  js calls Get which returns the output array addr and writes the
+#   file size as a string to the output buffer
+#  js reads the output text as above and copies the file data
+#
+# ws store/exchange
+#  a file download with the name k.ws returns the complete k memory
+#  js exchanges k memory when dropping a *.ws file by calling P()
+#   which returns the start of k memory
+#  js overwrites k's complete memory calls Swap and does it again
+#
+# try/catch/trap
+#  k divides it's total memory by two copies mem and bak
+#  k.go panics on every error which sends a wasm trap and may 
+#   leave k memory corrupted
+#  js calls wasm within try/catch
+#  js calls Save() after every successful call and Rest() after errors
+#   Save copies mem over bak and Rest flips both

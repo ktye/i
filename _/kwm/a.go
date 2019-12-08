@@ -1,12 +1,12 @@
 package main
 
-import "syscall/js"
-
 // max memory, heap size must be set explicitly when compiling with tinygo
 const maxmem = 1 << 23 // number of floats (64 MB)
 var mem, bak []f
-var obuf k
-var imgp k
+var ibuf k      // js to k (input char buffer)
+var obuf k      // k to js 
+var imgp k      // pointer to image data (k index)
+var imgs uint32 // uint16(width)<<16|uint16(height)
 
 func main() {
 	mem = make([]f, maxmem>>1)
@@ -19,9 +19,9 @@ func main() {
 	table[29+dyad] = drw
 	mkk(".k", "{(`key;x)}")
 	mkk(".m", "{(`mouse;x)}")
-	obuf = mk(C, 0)
-	asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), inc(null))
-	js.Global().Set("kio", maxmem>>17)
+	dec(asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), inc(null)))
+	//js.Global().Set("kio", maxmem>>17)
+	obuf = str(mki(maxmem>>17)) // banner MB
 	select {}
 }
 func grw(c k) {
@@ -78,37 +78,33 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 	}
 	p := ptr(y, C)
 	imgp = p
-	js.Global().Set("imgw", w)
-	js.Global().Set("imgh", h)
+	imgs = uint32(uint16(w)<<16)|h
 	return decr(x, y, inc(null))
 }
-func jr() { // js reset(init) output
+func jr() { // js reset output
 	if m.k[obuf]&atom != 0 {
 		obuf = take(0, 0, obuf)
 	}
-}
-func jo() { // js output
-	if t, n := typ(obuf); n != 0 {
-		if t != C || n == atom {
-			panic("type")
-		}
-		p := 8 + obuf<<2
-		js.Global().Set("kio", s(m.c[p:p+n]))
-	}
-}
-func ji() k { // read k input from js
-	x := mkb([]c(js.Global().Get("kio").String()))
-	js.Global().Set("kio", "")
-	return x
+	imgs = 0
 }
 
 //go:export K
-func K() { // execute k string via js variable kio
+func K() int { // execute k string via js variable kio
 	jr()
-	x := ji()
-	js.Global().Set("kio", "")
-	evp(x)
-	jo()
+	evp(ibuf)
+	r := m.k[obuf]&atom
+	return int(r)
+}
+
+//go:export Kin
+func Kin(n int) *byte { // request new input buffer
+	ibuf = mk(C, k(n))
+	return &m.c[8+ibuf<<2]
+}
+
+//go:export Kout
+func Kout() *byte {
+	return &m.c[8+obuf<<2]
 }
 
 //go:export P
@@ -116,6 +112,9 @@ func P() *byte { return &m.c[0] } // k-memory offset in wasm memory buffer
 
 //go:export Img
 func Img() *byte { return &m.c[imgp] } // pointer to current image data
+
+//go:export Imgsize
+func Imgsize() uint32 { return imgs } // w<<16|h
 
 //go:export Srcp
 func Srcp() int { return int(m.k[srcp]) } // source pointer (error indicator)
@@ -127,9 +126,8 @@ func Us(w, h int) { // store canvas size
 }
 
 //go:export Ui
-func Ui(t, b, x0, x1, y0, y1, mod int) { // mouse event
+func Ui(t, b, x0, x1, y0, y1, mod int) int { // mouse event
 	jr()
-	dec(ji())
 	var r k
 	if t == 0 { // key
 		r = mk(I, 2)
@@ -152,18 +150,20 @@ func Ui(t, b, x0, x1, y0, y1, mod int) { // mouse event
 	}
 	if match(r, null) {
 		dec(r)
-		return
+		return 0
 	}
 	out(r)
-	jo()
+	r = m.k[obuf]&atom
+	return int(r)
 }
 
 //go:export Store
 func Store(n int) *byte { // create entry and allocate memory for dropped file
+	jr()
 	if n <= 0 || n > maxmem/4 {
 		panic("size")
 	}
-	s := c2s(mkb([]c(js.Global().Get("kio").String())))
+	s := c2s(ibuf) // file name
 	c := mk(C, k(n))
 	p := 8 + c<<2
 	r := key(s, c)
@@ -176,12 +176,11 @@ func Store(n int) *byte { // create entry and allocate memory for dropped file
 //go:export Get
 func Get() *byte { // get file (addr, kio=len)
 	jr()
-	s := c2s(ji())
+	s := c2s(ibuf)
 	kws := mks("k.ws")
 	if m.k[2+s] == m.k[2+kws] {
 		decr(s, kws, 0)
 		obuf = cat(obuf, str(mki(8*maxmem>>1)))
-		jo()
 		return &m.c[0]
 	}
 	c := red(s)
@@ -190,7 +189,6 @@ func Get() *byte { // get file (addr, kio=len)
 		c, t, n = dex(c, mk(C, 0)), C, 0
 	}
 	obuf = cat(obuf, str(mki(n)))
-	jo()
 	dec(c)
 	return &m.c[8+c<<2]
 }
@@ -200,3 +198,4 @@ func Save() { save(bak) }
 
 //go:export Rest
 func Rest() { swap(bak) }
+
