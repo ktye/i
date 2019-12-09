@@ -27,12 +27,12 @@ awk '/^{{/{
 
 # communication k.ht(js) <-> a.go(k)
 # eval string from js
-#  js requests input memory calling Kin(size)
-#  js writes data to returned input buffer (ibuf) within k memory
-#  js calls a K()
-#  k decrements kin, evaluates and writes to obuf
-#  js calls Kout which returns obuf addr
-#  js reads data in k memory with length returned by K()
+#  js requests input memory calling In(size) which returns an address
+#  js writes data to returned input buffer (ibuf) within k memory (kwrite)
+#  js calls a E()
+#  k decrements ibuf, evaluates and writes to obuf
+#  js calls Out() which returns obuf addr
+#  js reads data in k memory with length returned by E()
 #  obuf stays alive until next request
 #  js checks if an image has been written with a call to Imgsize()
 #   if>0 it asks for the addr by calling Img()
@@ -43,16 +43,15 @@ awk '/^{{/{
 #  js reads text and image as above
 #
 # file upload
-#  js writes the file name to the input buffer after calling Kin()
+#  js writes the file name to the input buffer after calling In()
 #  js requests a file buffer with Store(size) which creates space
 #  k stores a new dict with the name and a dirty data in .fs
 #  js writes the file content to the returned addr
 #
 # file download
-#  js writes the file name to the input buffer after calling Kin()
-#  js calls Get which returns the output array addr and writes the
-#   file size as a string to the output buffer
-#  js reads the output text as above and copies the file data
+#  js writes the file name to the input buffer after calling In()
+#  js calls Get() which returns the file size
+#  js calls File() to receive the file addr and copies the file data
 #
 # ws store/exchange
 #  a file download with the name k.ws returns the complete k memory
@@ -65,5 +64,6 @@ awk '/^{{/{
 #  k.go panics on every error which sends a wasm trap and may 
 #   leave k memory corrupted
 #  js calls wasm within try/catch
-#  js calls Save() after every successful call and Rest() after errors
-#   Save copies mem over bak and Rest flips both
+#  js calls Save() after every successful call and Swap() after errors
+#   Save copies mem over bak and Swap flips both
+#  k stores the byte offset in the input of the error pos, which can be read with Srcp()

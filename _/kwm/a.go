@@ -6,9 +6,10 @@ package main
 const maxmem = 1 << 23 // number of floats (64 MB)
 var mem, bak []f
 var ibuf k      // js to k (input char buffer)
-var obuf k      // k to js 
+var obuf k      // k to js
 var imgp k      // pointer to image data (k index)
 var imgs uint32 // uint16(width)<<16|uint16(height)
+var file k      // file pointer for Get
 
 func main() {
 	mem = make([]f, maxmem>>1)
@@ -22,8 +23,8 @@ func main() {
 	mkk(".k", "{(`key;x)}")
 	mkk(".m", "{(`mouse;x)}")
 	dec(asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), inc(null)))
-	//js.Global().Set("kio", maxmem>>17)
-	obuf = str(mki(maxmem>>17)) // banner MB
+	dec(asn(mks(".size"), mki(maxmem>>17), inc(null))) // banner MB
+	obuf = mk(S, 0)
 	select {}
 }
 func grw(c k) {
@@ -80,32 +81,29 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 	}
 	p := ptr(y, C)
 	imgp = p
-	imgs = uint32(uint16(w)<<16)|h
+	imgs = uint32(uint16(w)<<16) | h
 	return decr(x, y, inc(null))
 }
 func jr() { // js reset output
-	if m.k[obuf]&atom != 0 {
-		obuf = take(0, 0, obuf)
-	}
 	imgs = 0
 }
 
-//go:export K
-func K() int { // execute k string via js variable kio
-	jr()
+//go:export E
+func E() int { // execute k string via js variable kio
+	imgs = 0
 	evp(ibuf)
-	r := m.k[obuf]&atom
-	return int(r)
+	n := m.k[obuf] & atom
+	return int(n)
 }
 
-//go:export Kin
-func Kin(n int) *byte { // request new input buffer
+//go:export In
+func In(n int) *byte { // request new input buffer
 	ibuf = mk(C, k(n))
 	return &m.c[8+ibuf<<2]
 }
 
-//go:export Kout
-func Kout() *byte {
+//go:export Out
+func Out() *byte {
 	return &m.c[8+obuf<<2]
 }
 
@@ -121,15 +119,9 @@ func Imgsize() uint32 { return imgs } // w<<16|h
 //go:export Srcp
 func Srcp() int { return int(m.k[srcp]) } // source pointer (error indicator)
 
-//go:export Us
-func Us(w, h int) { // store canvas size
-	dec(asn(mks("w"), mki(k(w)), inc(null)))
-	dec(asn(mks("h"), mki(k(h)), inc(null)))
-}
-
 //go:export Ui
 func Ui(t, b, x0, x1, y0, y1, mod int) int { // mouse event
-	jr()
+	imgs = 0
 	var r k
 	if t == 0 { // key
 		r = mk(I, 2)
@@ -155,13 +147,13 @@ func Ui(t, b, x0, x1, y0, y1, mod int) int { // mouse event
 		return 0
 	}
 	out(r)
-	r = m.k[obuf]&atom
+	r = m.k[obuf] & atom
 	return int(r)
 }
 
 //go:export Store
 func Store(n int) *byte { // create entry and allocate memory for dropped file
-	jr()
+	imgs = 0
 	if n <= 0 || n > maxmem/4 {
 		panic("size")
 	}
@@ -176,28 +168,39 @@ func Store(n int) *byte { // create entry and allocate memory for dropped file
 }
 
 //go:export Get
-func Get() *byte { // get file (addr, kio=len)
-	jr()
+func Get() int { // get file (length)
+	imgs = 0
 	s := c2s(ibuf)
 	kws := mks("k.ws")
 	if m.k[2+s] == m.k[2+kws] {
 		decr(s, kws, 0)
-		obuf = cat(obuf, str(mki(8*maxmem>>1)))
-		return &m.c[0]
+		file = 0
+		return 8 * maxmem >> 1
 	}
-	c := red(s)
-	t, n := typ(c)
-	if t != C || n == 0 || n == atom  {
-		c, t, n = dex(c, mk(C, 0)), C, 0
+	file = red(s)
+	t, n := typ(file)
+	if t != C || n == 0 || n == atom {
+		dec(file)
+		return 0
 	}
-	obuf = cat(obuf, str(mki(n)))
-	dec(c)
-	return &m.c[8+c<<2]
+	return int(m.k[file] & atom)
+}
+
+//go:export File
+func File() *byte {
+	if file != 0 {
+		dec(file)
+	}
+	return &m.c[8+file<<2]
 }
 
 //go:export Save
-func Save() { save(bak) }
+func Save() { 
+	if m.k[obuf]&atom != 0 {
+		obuf = take(0, 0, obuf)
+	}
+	save(bak) 
+}
 
-//go:export Rest
-func Rest() { swap(bak) }
-
+//go:export Swap
+func Swap() { swap(bak) }

@@ -3,12 +3,15 @@
 <link rel='icon' type'image/png' href="k32.png">
 <style>
  html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
- #kons{top:0;left:0;width:100%;height:100%;position:absolute;background:black;color:white;border:0pt;resize:none;}
+ #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;}
+ .term{background:black;color:white}
+ .hold{background:#78909C;color:"black"}
+ .edit{background:#FFFFEA;color:"black"}
  #cnv{width:100;height:100;top:0;right:0;position:absolute;}
  #dl{display:none;}
 </style>
 <body>
-<textarea id="kons" spellcheck="false"></textarea>
+<textarea id="kons" class="term" wrap="off" autofocus spellcheck="false"></textarea>
 <canvas id="cnv"></canvas>
 <a id="dl"></a>
 <script>
@@ -20,7 +23,6 @@
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 var kwasm = sa(atob(r))
 const go = new Go()
-f["rev"] = sa(rev)
 
 // kons (k console)
 var hit = kons
@@ -29,18 +31,17 @@ var edname = ""
 var ed = false
 var ctx
 function initKons() {
+ kons.value = ""
  var hold = false
  kons.onkeydown = function(evt) {
-  if(evt.which === 27) {
+  if(evt.which === 27) { // quit edit / toggle hold / close image
    evt.preventDefault()
    if (ed) { qed(); hold=true }
    hold = !hold
-   kons.style.background = hold ? "#78909C" : "black"
-   kons.style.color = "white"
-   cnv.width = 0; cnv.style.width = 0
+   kons.className = (hold) ? "hold" : "term"
+   imgSize(0, 0)
    hit = kons
-  } else if (evt.which === 13) {
-   if (hold || ed) return
+  } else if (evt.which === 13 && !hold && !ed) { // execute
    evt.preventDefault()
    var a = kons.selectionStart
    var b = kons.selectionEnd
@@ -56,7 +57,7 @@ function initKons() {
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
-   if (s === "\\c") { kons.value=" "; cnv.width=0; cnv.stylewidth=0; return }
+   if (s === "\\c") { kons.value=" "; imgSize(0, 0); return }
    if (s === "\\h") { O(atob(h));P(); return }
    if (s.substr(0,2) === "\\e") { P(); edit(s.substr(2)); return }
    if (s.substr(0,2) === "\\w") { download(s.substr(2)); P(); return }
@@ -65,52 +66,46 @@ function initKons() {
   }
  }
  kons.onmousedown = function(e) { hit=kons;kons.style.color="white" }
+ kons.onblur  = function(e) { kons.style.filter = "brightness(50%)" }
+ kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
  ctx = cnv.getContext('2d')
 }
 function O(s) { kons.value += s }
-function P() { kons.value += " "; kons.scrollTo(0, kons.scrollHeight) }
-var u8
+function P()  { kons.value += " "; kons.scrollTo(0, kons.scrollHeight) }
 function E(s) { 
  hash(s)
- kio = s
- try { 
-  K.K();Out();K.Save()
- } catch(e) { // panic message is stored to pnk
+ kwritestr(s)
+ try { var n = K.E();KO(n);K.Save() }
+ catch(e) { // panic message is stored to pnk in wx.js
   var p = K.Srcp()
+  pnk = pnk.trim()
   pnk = (pnk.substr(0,7) === "panic: ") ? pnk.substr(7) : pnk
-  kio = (p > 0 && p < 64) ? " ".repeat(p) + "^" + pnk + "\n" : pnk+"\n"
-  pnk = ""
-  Out();K.Rest()
+  pnk = (p > 0 && p < 64) ? " ".repeat(p) + "^" + pnk + "\n" : pnk+"\n"
+  O(pnk); pnk=""; K.Swap(); P()
  }
 }
-function Out() { // update kons and canvas
- var n = imgw*imgh
- if (n > 0) {
-  cnv.style.width = imgw
-  cnv.style.height = imgh
-  cnv.width = imgw
-  cnv.height = imgh
-  u8 = new Uint8ClampedArray(K.memory.buffer, K.Img(), 4*n)
-  ctx.putImageData(new ImageData(u8, imgw, imgh), 0, 0)
-  imgw = 0; imgh = 0
+var u8
+function KO(n) { // update kons and canvas
+ O(su(kread(K.Out(), n)));P()
+ n = K.Imgsize()
+ if (n>0) {
+  var w = n>>16; var h = n&65536; n = w*h
+  imgSize(w, h)
+  var u = new Uint8ClampedArray(K.memory.buffer, K.Img(), 4*n)
+  ctx.putImageData(new ImageData(u, w, h), 0, 0)
  }
- O(kio);P();kio="";
 }
+function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function edit(name) { 
+ console.log("edit", name)
  edname = name; ed = true; konstore = kons.value; 
  var u = getfile(name.trim())
- if (u === false) {
-  kons.value = ""
- } else {
-  kons.value = new TextDecoder("utf-8").decode(u)
- }
- kons.style.background = "#FFFFEA"
- kons.style.color = "black"
+ kons.value = (u.length>0) ? su(u) : ""
+ kons.className = "edit"
  kons.scrollTo(0,0);
 }
-function qed() {
- var u = new TextEncoder("utf-8").encode(kons.value)
- putfile(edname, u)
+function qed() { // quit edit
+ putfile(edname, us(kons.value))
  kons.value = konstore; kons.scrollTo(0, kons.scrollHeight)
  ed = false
 }
@@ -126,31 +121,14 @@ function download(name) {
   dl.click()
  }
 }
-function getfile(name) { // as Uint8Array
- console.log("getfile", name)
- kio = name
- var p = K.Get()
- var n = Number(kio);kio=""; n = isNaN(n) ? 0 : n;
- console.log("P", p, "n", n)
- if (n > 0) {
-  return new Uint8Array(K.memory.buffer, p, n)
- }
- return false
-}
 
 // interactive callbacks on canvas
-function ui(a,b,c,d,e,f,g){
-	var p = K.P()
-	var m = new Uint8Array(K.memory.buffer)
-	console.log(p)
-	try{
-		K.Ui(a,b,c,d,e,f,g)
-	} catch {
-		kio = pnk + "\n"
-		pnk = ""
-	}
-	if (kio.length > 0) Out()
-};
+function ui(a,b,c,d,e,f,g) {
+ try{ var n = K.Ui(a,b,c,d,e,f,g);KO(n);K.Save() }
+ catch {
+  O(pnk); pnk=""; K.Swap()
+ }
+}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function mod(e){return Number(e.shiftKey)+2*Number(e.altKey)+4*Number(e.ctrlKey)};
 function down(e){hit=cnv;kons.style.color="grey";xd=e.clientX;yd=e.clientY;pd(e)};
@@ -168,41 +146,55 @@ ae(window,'keydown',function(e){if(hit==cnv){key(e);return}})
 window.ondragover=function(e){pd(e)}
 window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
 function addfile(x){
-  var r = new FileReader()
-  r.onload = function(){
-   var u = new Uint8Array(r.result)
-   putfile(x.name, u)
-  }
-  r.readAsArrayBuffer(x)
+ var r = new FileReader()
+ r.onload = function(){
+  var u = new Uint8Array(r.result)
+  putfile(x.name, u)
+ }
+ r.readAsArrayBuffer(x)
 }
 function putfile(name, u) { // from Uint8Array
-  var p = K.P()
-  if (name.endsWith(".ws") == false) {
-   kio = name
-   p = K.Store(u.length)
-  }
-  var d = new Uint8Array(K.memory.buffer, p, u.length)
-  d.set(u)
+ if (name.endsWith(".ws")) { kwrite(K.P(), u); K.Swap(); kwrite(K.P(), u); return }
+ var p = K.In(name.length)
+ kwritestr(name)
+ kwrite(K.Store(u.length), u)
+}
+function getfile(name) { // as Uint8Array
+ kwritestr(name)
+ var n = K.Get()
+ if (n<=0) { return false }
+ return kread(P.File(), n)
 }
 
-var kio = 0
+
 var mat = ""
 var imgw = 0
 var imgh = 0
 var K
-(async () => {
-  initKons()
-  const module = await WebAssembly.compile(kwasm.buffer);
-  const k = await WebAssembly.instantiate(module, go.importObject);
-  go.run(k)
-  kio = String(kio) //in main()
-  K = k.exports
-  kons.value = "i@" + rev + " " + kio + "MB\n "
-  if(window.location.hash.length>1)
-   kons.value += decodeURIComponent(window.location.hash.substr(1))
-  K.Us(window.innerWidth, window.innerHeight)
-  kons.focus()
+(async () => { // wasm can only be loaded asynchronously
+ initKons()
+ const module = await WebAssembly.compile(kwasm.buffer);
+ const k = await WebAssembly.instantiate(module, go.importObject);
+ go.run(k)
+ K = k.exports
+ var h = decodeURIComponent(window.location.hash.substr(1))
+ console.log("hash", h)
+ var s = String(window.innerWidth) + " " + String(window.innerHeight)
+ E('(w;h):' + s + ';` 1:"i@' + rev + " " + '",($.size),"MB\n";') // (banner) overwrites hash
+ window.location.hash = h
+ if (h.length > 0) {
+  var p = kons.value.length
+  kons.value += h
+  kons.setSelectionRange(p, kons.value.length)
+ }
+ imgSize(0, 0); kons.focus()
 })();
+
+function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
+function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
+function kwritestr(s) { var u = us(s); kwrite(K.In(u.length), u) }
+function kwrite(p, u) { new Uint8Array(K.memory.buffer, p, u.length).set(u) }
+function kread (p, n) { return new Uint8Array(K.memory.buffer, p, n) }
 
 </script>
 </body>
