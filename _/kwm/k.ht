@@ -3,10 +3,10 @@
 <link rel='icon' type'image/png' href="k32.png">
 <style>
  html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
- #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;}
+ #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;font-family:monospace;overflow:auto;}
  .term{background:black;color:white}
- .hold{background:#78909C;color:"black"}
- .edit{background:#FFFFEA;color:"black"}
+ .hold{background:#78909C;color:black}
+ .edit{background:#FFFFEA;color:black}
  #cnv{width:100;height:100;top:0;right:0;position:absolute;}
  #dl{display:none;}
 </style>
@@ -23,6 +23,7 @@
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 var kwasm = sa(atob(r))
 const go = new Go()
+var K // k wasm exports
 
 // kons (k console)
 var hit = kons
@@ -65,8 +66,8 @@ function initKons() {
    E(s)
   }
  }
- kons.onmousedown = function(e) { hit=kons;kons.style.color="white" }
- kons.onblur  = function(e) { kons.style.filter = "brightness(50%)" }
+ kons.onmousedown = function(e) { hit=kons }
+ kons.onblur  = function(e) { kons.style.filter = "brightness(70%)" }
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
  ctx = cnv.getContext('2d')
 }
@@ -97,7 +98,6 @@ function KO(n) { // update kons and canvas
 }
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function edit(name) { 
- console.log("edit", name)
  edname = name; ed = true; konstore = kons.value; 
  var u = getfile(name.trim())
  kons.value = (u.length>0) ? su(u) : ""
@@ -109,6 +109,12 @@ function qed() { // quit edit
  kons.value = konstore; kons.scrollTo(0, kons.scrollHeight)
  ed = false
 }
+kons.addEventListener("contextmenu", function(e) { // button-3 search
+ var l = kons.selectionEnd-kons.selectionStart; if(e.button==2&l>0) {
+  e.preventDefault(); var t = kons.value.substring(kons.selectionStart,kons.selectionEnd)
+  var f = function(a){ return kons.value.indexOf(t,a) }; var n = f(kons.selectionEnd)
+  if (n<0){n=f(0)}; kons.setSelectionRange(n,n+l); }
+})
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
 function download(name) {
@@ -163,14 +169,10 @@ function getfile(name) { // as Uint8Array
  kwritestr(name)
  var n = K.Get()
  if (n<=0) { return false }
- return kread(P.File(), n)
+ return kread(K.File(), n)
 }
 
 
-var mat = ""
-var imgw = 0
-var imgh = 0
-var K
 (async () => { // wasm can only be loaded asynchronously
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
@@ -178,7 +180,6 @@ var K
  go.run(k)
  K = k.exports
  var h = decodeURIComponent(window.location.hash.substr(1))
- console.log("hash", h)
  var s = String(window.innerWidth) + " " + String(window.innerHeight)
  E('(w;h):' + s + ';` 1:"i@' + rev + " " + '",($.size),"MB\n";') // (banner) overwrites hash
  window.location.hash = h
