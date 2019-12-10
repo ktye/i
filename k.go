@@ -852,7 +852,7 @@ func flp(x k) (r k) { // +x
 	return kx(mks(".flp"), x)
 }
 func neg(x k) k { // -x
-	return nm(x, 0, []f1{nil, func(r, x k) { m.c[r] = -m.c[x] }, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.f[r<<1] = -m.f[x<<1]; m.f[1+r<<1] = -m.f[1+x<<1] }})
+	return nm(x, 0, []f1{nil, nil, func(r, x k) { m.k[r] = k(-i(m.k[x])) }, func(r, x k) { m.f[r] = -m.f[x] }, func(r, x k) { m.f[r<<1] = -m.f[x<<1]; m.f[1+r<<1] = -m.f[1+x<<1] }})
 }
 func fst(x k) (r k) { // *x
 	t, n := typ(x)
@@ -2289,8 +2289,8 @@ func op2(code k) ([]f2, []fc) {
 	switch code - dyad {
 	case 1: // +
 		return []f2{nil, adC, adI, adF, adZ, nil}, nil
-	case 2: // -
-		return []f2{nil, sbC, sbI, sbF, sbZ, nil}, nil
+	case 2: // -             sbC (TODO remove)
+		return []f2{nil, nil, sbI, sbF, sbZ, nil}, nil
 	case 3: // *
 		return []f2{nil, muC, muI, muF, muZ, nil}, nil
 	case 4: // %

@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -30,8 +31,74 @@ type (
 	sv = []string
 )
 
-func TestK(t *testing.T) {
+func TestT(t *testing.T) {
 	// t.Skip()
+	var lines [][]c
+	if b, err := ioutil.ReadFile("t"); err != nil {
+		t.Fatal(err)
+	} else {
+		lines = bytes.Split(b, []c{'\n'})
+		if len(lines[len(lines)-1]) == 0 {
+			lines = lines[:len(lines)-1]
+		}
+	}
+	for _, occ := range []bool{true, false} {
+		for i, l := range lines {
+			tc := strings.Split(s(l), " / ") // in / ktye / ngn / k7
+			for i := 1; i < len(tc); i++ {
+				if tc[i] == "=" {
+					tc[i] = tc[i-1]
+				}
+			}
+			skip := Skip(tc[1] == "~")
+			fmt.Printf("%s / %s%s\n", tc[0], tc[1], skip.String())
+			if skip {
+				continue
+			}
+			g, p := try([]c(tc[0]), occ)
+			if e := tc[1]; e != g {
+				t.Fatalf("t:%d expected %s got %s", i+1, e, g)
+			}
+			if !p {
+				clear()
+				check(t)
+			}
+		}
+	}
+}
+func try(c []c, occ bool) (g s, pnk bool) {
+	defer func() {
+		if e := recover(); e != nil {
+			g, pnk = e.(s), true
+		}
+	}()
+	ini(make([]f, 1<<13))
+	table[21+dyad] = wrt
+	l := prs(mkb(c))
+	if occ {
+		inc(l)
+	}
+	r := kst(evl(l))
+	if occ {
+		dec(l)
+	}
+	p, n := 8+r<<2, m.k[r]&atom
+	g = s(m.c[p : p+n])
+	dec(r)
+	return g, false
+}
+
+type Skip bool
+
+func (s Skip) String() (r string) {
+	if s {
+		r = " skipped"
+	}
+	return r
+}
+
+func TestK(t *testing.T) {
+	t.Skip()
 	testCases := []struct {
 		x, r s
 	}{
