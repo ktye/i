@@ -6046,7 +6046,7 @@ func (p *p) nNum() bool { // minus part of a number
 	if m.c[p.p] != '-' || p.p == p.lp+1 {
 		return true
 	}
-	if c := m.c[p.p-1]; cr0Z(c) || c == ')' || c == ']' {
+	if c := m.c[p.p-1]; cr0Z(c) || c == ')' || c == ']' || c == '"' {
 		p.m = p.p
 		return false // verb: exceptions (kref p28)
 	}

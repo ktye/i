@@ -43,35 +43,29 @@ func TestT(t *testing.T) {
 		}
 	}
 	for _, occ := range []bool{true, false} {
-		for i, l := range lines {
-			tc := strings.Split(s(l), " / ") // in / ktye / ngn / k7
-			for i := 1; i < len(tc); i++ {
-				if tc[i] == "=" {
-					tc[i] = tc[i-1]
-				}
+		for j, l := range lines {
+			tc := strings.Split(s(l), " / ") // in / k7 / ktye / ngn / notes
+			if len(tc) == 1 {
+				return
 			}
-			skip := Skip(tc[1] == "~")
-			fmt.Printf("%s / %s%s\n", tc[0], tc[1], skip.String())
-			if skip {
+			i, x := tc[0], tc[2]
+			if x == "=" {
+				x = tc[1]
+			} else if x == "~" {
 				continue
 			}
-			g, p := try([]c(tc[0]), occ)
-			if e := tc[1]; e != g {
-				t.Fatalf("t:%d expected %s got %s", i+1, e, g)
+			fmt.Printf("%s / %s\n", i, x)
+
+			r := try([]c(i), occ)
+			if r != x {
+				t.Fatalf("t:%d expected %s got %s", j+1, x, r)
 			}
-			if !p {
-				clear()
-				check(t)
-			}
+			clear()
+			check(t)
 		}
 	}
 }
-func try(c []c, occ bool) (g s, pnk bool) {
-	defer func() {
-		if e := recover(); e != nil {
-			g, pnk = e.(s), true
-		}
-	}()
+func try(c []c, occ bool) s {
 	ini(make([]f, 1<<13))
 	table[21+dyad] = wrt
 	l := prs(mkb(c))
@@ -83,18 +77,8 @@ func try(c []c, occ bool) (g s, pnk bool) {
 		dec(l)
 	}
 	p, n := 8+r<<2, m.k[r]&atom
-	g = s(m.c[p : p+n])
 	dec(r)
-	return g, false
-}
-
-type Skip bool
-
-func (s Skip) String() (r string) {
-	if s {
-		r = " skipped"
-	}
-	return r
+	return s(m.c[p : p+n])
 }
 
 func TestK(t *testing.T) {
