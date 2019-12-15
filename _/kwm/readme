@@ -9,8 +9,9 @@ tgo=/usr/local/tinygo
 # change both heap-size and maxmem in a.go for more memory
 cp ../../k.go .
 $tgo/bin/tinygo build -o k.w -target wasm -no-debug -heap-size 70M
-base64 -w 0 k.w | sed -e 's/^/var r = "/' -e 's/$/"/' > k.b64
-base64 -w 0 h   | sed -e 's/^/var h = "/' -e 's/$/"/' > h.b64
+base64 -w 0 k.w     | sed -e 's/^/var r = "/' -e 's/$/"/' > k.b64
+base64 -w 0 h       | sed -e 's/^/var h = "/' -e 's/$/"/' > h.b64
+base64 -w 0 ../../t | sed -e 's/^/var t = "/' -e 's/$/"/' > t.b64
 
 #cp $tgo/targets/wasm_exec.js .
 git rev-parse --short HEAD | sed -e 's/^/var rev = "/' -e 's/$/"/' > rev
@@ -34,7 +35,7 @@ awk '/^{{/{
 #  js calls Out() which returns obuf addr
 #  js reads data in k memory with length returned by E()
 #  obuf stays alive until next request
-#  js checks if an image has been written with a call to Imgsize()
+#  js checks if an image has been written with a call to Isz()
 #   if>0 it asks for the addr by calling Img()
 #
 # ui events

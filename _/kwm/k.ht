@@ -19,8 +19,12 @@
 {{wx.js}}
 {{k.b64}}
 {{h.b64}}
+{{t.b64}}
 {{rev}}
+XX=console.log
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function ae(x,y,z){x.addEventListener(y,z)};
 var kwasm = sa(atob(r))
 const go = new Go()
 var K // k wasm exports
@@ -34,16 +38,16 @@ var ctx
 function initKons() {
  kons.value = ""
  var hold = false
- kons.onkeydown = function(evt) {
-  if(evt.which === 27) { // quit edit / toggle hold / close image
-   evt.preventDefault()
+ kons.onkeydown = function(e) {
+  if(e.which === 27) { // quit edit / toggle hold / close image
+   pd(e)
    if (ed) { qed(); hold=true }
    hold = !hold
    kons.className = (hold) ? "hold" : "term"
    imgSize(0, 0)
    hit = kons
-  } else if (evt.which === 13 && !hold && !ed) { // execute
-   evt.preventDefault()
+  } else if (e.which === 13 && !hold && !ed) { // execute
+   pd(e)
    var a = kons.selectionStart
    var b = kons.selectionEnd
    var s = kons.value.substring(a, b)
@@ -66,7 +70,7 @@ function initKons() {
    E(s)
   }
  }
- kons.onmousedown = function(e) { hit=kons }
+ kons.onmousedown = function(e) { hit=kons; if(e.button==2)pd(e); }
  kons.onblur  = function(e) { kons.style.filter = "brightness(70%)" }
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
  ctx = cnv.getContext('2d')
@@ -87,8 +91,8 @@ function E(s) {
 }
 var u8
 function KO(n) { // update kons and canvas
- O(su(kread(K.Out(), n)));P()
- n = K.Imgsize()
+ O(sl(su(kread(K.Out(), n))));P()
+ n = K.Isz()
  if (n>0) {
   var w = n>>16; var h = n&65536; n = w*h
   imgSize(w, h)
@@ -96,6 +100,7 @@ function KO(n) { // update kons and canvas
   ctx.putImageData(new ImageData(u, w, h), 0, 0)
  }
 }
+function sl(s) { return s=s.split("\n").map(s => s.length<314?s:s.substr(0,312)+"..").join("\n") } // short line (what is the console size? kons.cols is always 20)
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function edit(name) { 
  edname = name; ed = true; konstore = kons.value; 
@@ -109,9 +114,9 @@ function qed() { // quit edit
  kons.value = konstore; kons.scrollTo(0, kons.scrollHeight)
  ed = false
 }
-kons.addEventListener("contextmenu", function(e) { // button-3 search
+ae(kons,"contextmenu", function(e) { // button-3 search
  var l = kons.selectionEnd-kons.selectionStart; if(e.button==2&l>0) {
-  e.preventDefault(); var t = kons.value.substring(kons.selectionStart,kons.selectionEnd)
+  pd(e); var t = kons.value.substring(kons.selectionStart,kons.selectionEnd)
   var f = function(a){ return kons.value.indexOf(t,a) }; var n = f(kons.selectionEnd)
   if (n<0){n=f(0)}; kons.setSelectionRange(n,n+l); }
 })
@@ -135,7 +140,6 @@ function ui(a,b,c,d,e,f,g) {
   O(pnk); pnk=""; K.Swap()
  }
 }
-function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function mod(e){return Number(e.shiftKey)+2*Number(e.altKey)+4*Number(e.ctrlKey)};
 function down(e){hit=cnv;kons.style.color="grey";xd=e.clientX;yd=e.clientY;pd(e)};
 function up(e){pd(e);ui(1,e.button,xd,e.clientX,yd,e.clientY,mod(e))};
@@ -143,7 +147,6 @@ function wheel(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY
 function keycode(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};
 function key(e){var k=keycode(e);if(!k)return;pd(e);ui(0,k,0,0,0,0,mod(e));};
 function nomenu(e){pd(e)};
-function ae(x,y,z){x.addEventListener(y,z)};
 ae(cnv,'mouseup',up);ae(cnv,'mousedown',down);ae(cnv,'wheel',wheel);ae(cnv,'contextmenu',nomenu);
 ae(window,'keydown',function(e){if(hit==cnv){key(e);return}})
 
@@ -172,7 +175,6 @@ function getfile(name) { // as Uint8Array
  return kread(K.File(), n)
 }
 
-
 (async () => { // wasm can only be loaded asynchronously
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
@@ -188,6 +190,7 @@ function getfile(name) { // as Uint8Array
   kons.value += h
   kons.setSelectionRange(p, kons.value.length)
  }
+ putfile("t",sa(atob(t)))
  imgSize(0, 0); kons.focus()
 })();
 

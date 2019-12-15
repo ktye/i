@@ -8,7 +8,7 @@ var mem, bak []f
 var ibuf k      // js to k (input char buffer)
 var obuf k      // k to js
 var imgp k      // pointer to image data (k index)
-var imgs uint32 // uint16(width)<<16|uint16(height)
+var imgs uint32 // image size uint16(width)<<16|uint16(height)
 var file k      // file pointer for Get
 
 func main() {
@@ -113,8 +113,8 @@ func P() *byte { return &m.c[0] } // k-memory offset in wasm memory buffer
 //go:export Img
 func Img() *byte { return &m.c[imgp] } // pointer to current image data
 
-//go:export Imgsize
-func Imgsize() uint32 { return imgs } // w<<16|h
+//go:export Isz
+func Isz() uint32 { return imgs } // w<<16|h
 
 //go:export Srcp
 func Srcp() int { return int(m.k[srcp]) } // source pointer (error indicator)
@@ -195,11 +195,11 @@ func File() *byte {
 }
 
 //go:export Save
-func Save() { 
+func Save() {
 	if m.k[obuf]&atom != 0 {
 		obuf = take(0, 0, obuf)
 	}
-	save(bak) 
+	save(bak)
 }
 
 //go:export Swap
