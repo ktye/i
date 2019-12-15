@@ -1008,7 +1008,7 @@ func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 	} else if n == 0 {
 		return dex(x, key(inc(x), take(0, 0, inc(x))))
 	}
-	kk := srt(unq(inc(x)))
+	kk := unq(srt(inc(x))) // TODO: unqs
 	kp, kn, xp := ptr(kk, t), m.k[kk]&atom, ptr(x, t)
 	vv := tak(mki(kn), enl(mk(I, 0))) // (#^?x)#,!0
 	if t == L {
@@ -1325,6 +1325,27 @@ func unq(x k) (r k) { // ?x
 		m.k[dst+i] = inc(null)
 	}
 	return dex(x, take(nn, 0, r))
+}
+func unqs(x k) (r k) { // ?x (sorted)
+	t, n := typ(x)
+	if t > L || n == atom {
+		panic("type")
+	}
+	eq, cp, xp, rn, j := eqx[t], cpx[t], ptr(x, t), k(1), k(0)
+	for i := k(1); i < n; i++ {
+		if !eq(xp+i, xp+i-1) {
+			rn++
+		}
+	}
+	r = mk(t, rn)
+	cp(r, xp)
+	for i := k(1); i < n; i++ {
+		if !eq(xp+i, xp+i-1) {
+			cp(r+j, x+i)
+			j++
+		}
+	}
+	return dex(x, r)
 }
 func tip(x k) (r k) { // @x
 	t, n := typ(x)

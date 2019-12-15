@@ -82,7 +82,7 @@ func try(c []c, occ bool) s {
 }
 
 func TestK(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testCases := []struct {
 		x, r s
 	}{
