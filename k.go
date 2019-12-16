@@ -995,7 +995,7 @@ func isrt(x, r, n k, lt fc) { // insertion sort (can be removed)
 	}
 }
 func dsc(x k) (r k) { return rev(asc(x)) } // >x
-func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
+func grp(x k) (r k) { // =x
 	t, n := typ(x)
 	if n == atom {
 		return eye(x)
@@ -1008,22 +1008,17 @@ func grp(x k) (r k) { // =x {k!&:'(k:^?x)~/:\:x}
 	} else if n == 0 {
 		return dex(x, key(inc(x), take(0, 0, inc(x))))
 	}
-	kk := unq(srt(inc(x))) // TODO: unqs
-	kp, kn, xp := ptr(kk, t), m.k[kk]&atom, ptr(x, t)
-	vv := tak(mki(kn), enl(mk(I, 0))) // (#^?x)#,!0
-	if t == L {
-		for i := k(0); i < n; i++ {
-			for j := k(0); j < kn; j++ {
-				if match(m.k[kp+j], m.k[xp+i]) {
-					m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, atom)
-					break
-				}
-			}
-		}
-	} else {
-		for i := k(0); i < n; i++ {
-			ii := ibin(kp, kn, xp+i, gtx[t])
-			m.k[2+vv+ii] = ucat(m.k[2+vv+ii], mki(i), I, m.k[m.k[2+vv+ii]]&atom, atom)
+	kk, vv, rn := mk(t, 0), mk(L, 0), k(0)
+	gt, eq, xp, kp, j := gtx[t], eqx[t], ptr(x, t), ptr(kk, t), k(0)
+	for i := k(0); i < n; i++ {
+		j = ibin(kp, rn, xp+i, gt)
+		if j < rn && eq(kp+j, xp+i) {
+			m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, 1)
+		} else {
+			kk = insert(kk, atx(inc(x), mki(i)), 1+j)
+			kp = ptr(kk, t)
+			vv = insert(vv, enl(mki(i)), 1+j)
+			rn++
 		}
 	}
 	return dex(x, key(kk, vv))
