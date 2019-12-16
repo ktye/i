@@ -253,6 +253,10 @@ func gtL(x, y k) bool {
 			}
 		}
 		return atm1(xn) > atm1(yn)
+	} else if xt == N {
+		return false
+	} else if xt > N && xn == atom && yn == atom { // basic functions
+		return m.k[2+x] > m.k[2+y] // k7 differs (for unq)
 	} else {
 		panic("type")
 	}
@@ -1008,20 +1012,35 @@ func grp(x k) (r k) { // =x
 	} else if n == 0 {
 		return dex(x, key(inc(x), take(0, 0, inc(x))))
 	}
-	kk, vv, rn := mk(t, 0), mk(L, 0), k(0)
-	gt, eq, xp, kp, j := gtx[t], eqx[t], ptr(x, t), ptr(kk, t), k(0)
-	for i := k(0); i < n; i++ {
-		j = ibin(kp, rn, xp+i, gt)
-		if j < rn && eq(kp+j, xp+i) {
-			m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, 1)
-		} else {
-			kk = insert(kk, atx(inc(x), mki(i)), 1+j)
-			kp = ptr(kk, t)
-			vv = insert(vv, enl(mki(i)), 1+j)
-			rn++
+	/*
+		kk, vv, rn := mk(t, 0), mk(L, 0), k(0)
+		gt, eq, xp, kp, j := gtx[t], eqx[t], ptr(x, t), ptr(kk, t), k(0)
+		for i := k(0); i < n; i++ {
+			j = ibin(kp, rn, xp+i, gt)
+			if j < rn && eq(kp+j, xp+i) {
+				m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, 1)
+			} else {
+				kk = insert(kk, atx(inc(x), mki(i)), 1+j)
+				kp = ptr(kk, t)
+				vv = insert(vv, enl(mki(i)), 1+j)
+				rn++
+			}
 		}
+		return dex(x, key(kk, vv))
+	*/
+	a, ai, u, xp, eq, v, j := asc(inc(x)), k(0), mk(I, 1), ptr(x, t), eqx[t], mk(L, 1), k(0)
+	m.k[2+u] = m.k[2+a]
+	m.k[2+v] = enl(fst(inc(a)))
+	for i := k(1); i < n; i++ {
+		ai = m.k[2+a+i]
+		if !eq(xp+m.k[1+a+i], xp+ai) {
+			u = ucat(u, mki(ai), I, m.k[u]&atom, 1)
+			v = lcat(v, mk(I, 0))
+			j++
+		}
+		m.k[2+v+j] = ucat(m.k[2+v+j], mki(ai), I, m.k[m.k[2+v+j]]&atom, 1)
 	}
-	return dex(x, key(kk, vv))
+	return dex(a, key(atx(x, u), v))
 }
 func til(x k) (r k) { // !x
 	t, n := typ(x)
@@ -1292,55 +1311,20 @@ func unq(x k) (r k) { // ?x
 	t, n := typ(x)
 	if n == atom {
 		panic("nyi") // overloads, random numbers?
-	} else if t == A { // what does ?d do?
+	} else if t > L { // what does ?d do?
 		panic("type")
 	} else if n < 2 {
 		return x
 	}
-	r = mk(t, n)
-	eq, cp, src, dst, nn := eqx[t], cpx[t], ptr(x, t), ptr(r, t), k(0)
-	for i := k(0); i < n; i++ { // quadratic, should be improved
-		u := true
-		srci := src + i
-		for j := k(0); j < nn; j++ {
-			if eq(srci, dst+j) {
-				u = false
-				break
-			}
-		}
-		if u {
-			cp(dst+nn, srci)
-			nn++
-		}
-	}
-	if t != L {
-		return dex(x, srk(r, t, n, nn))
-	}
-	for i := nn; i < n; i++ {
-		m.k[dst+i] = inc(null)
-	}
-	return dex(x, take(nn, 0, r))
-}
-func unqs(x k) (r k) { // ?x (sorted)
-	t, n := typ(x)
-	if t > L || n == atom {
-		panic("type")
-	}
-	eq, cp, xp, rn, j := eqx[t], cpx[t], ptr(x, t), k(1), k(0)
+	a, ai, u, xp, eq := asc(inc(x)), k(0), mk(I, 1), ptr(x, t), eqx[t]
+	m.k[2+u] = m.k[2+a]
 	for i := k(1); i < n; i++ {
-		if !eq(xp+i, xp+i-1) {
-			rn++
+		ai = m.k[2+a+i]
+		if !eq(xp+m.k[1+a+i], xp+ai) {
+			u = ucat(u, mki(ai), I, m.k[u]&atom, 1)
 		}
 	}
-	r = mk(t, rn)
-	cp(r, xp)
-	for i := k(1); i < n; i++ {
-		if !eq(xp+i, xp+i-1) {
-			cp(r+j, x+i)
-			j++
-		}
-	}
-	return dex(x, r)
+	return dex(a, atx(x, srt(u)))
 }
 func tip(x k) (r k) { // @x
 	t, n := typ(x)
