@@ -964,6 +964,10 @@ func asc(x k) (r k) { // <x
 		return arc(x, n, asc)
 	}
 	r = til(mki(n))
+	if n < 16 && t < L {
+		isrt(ptr(x, t), 2+r, n, ltx[t])
+		return dex(x, r)
+	}
 	w := mk(I, n)
 	mv(w, r)
 	msrt(2+w, 2+r, k(0), n, ptr(x, t), gtx[t])
@@ -990,12 +994,65 @@ func mrge(x, r, a, b, c, p k, gt fc) {
 		}
 	}
 }
-func isrt(x, r, n k, lt fc) { // insertion sort (can be removed)
+func isrt(x, r, n k, lt fc) { // insertion sort (indirect)
 	v := r
 	for i := k(1); i < n; i++ {
 		for j := k(i); j > 0 && lt(x+m.k[v+j], x+m.k[v+j-1]); j-- {
 			swI(r+j, r+(j-1))
 		}
+	}
+}
+func isi(x, n k) { // insertion sort (int32 inplace)
+	for a := k(1); a < n; a++ {
+		for j := k(a); j > 0 && i(m.k[x+j]) < i(m.k[x+j-1]); j-- {
+			swI(x+j, x+(j-1))
+		}
+	}
+}
+func rdxi(x, b []k) { // int32-inplace radix sort, see github.com/shawnsmithdev/zermelo (MIT)
+	fr := x
+	to := b[:len(x)]
+	var ky c
+	var of [256]k
+	for ko := k(0); ko < 32; ko += 8 {
+		km, so, pv := k(0xFF<<ko), true, NaI
+		var cs [256]k
+		for _, e := range fr {
+			ky = c((e & km) >> ko)
+			cs[ky]++
+			if so {
+				so = e >= pv
+				pv = e
+			}
+		}
+		if so {
+			if (ko/8)%2 == 1 {
+				copy(to, fr)
+			}
+			return
+		}
+		if ko == 24 {
+			nc := k(0)
+			for i := k(128); i < 256; i++ {
+				nc += cs[i]
+			}
+			of[0], of[128] = nc, 0
+			for i := 1; i < 128; i++ {
+				of[i] = of[i-1] + cs[i-1]
+				of[i+128] = of[i+127] + cs[i+127]
+			}
+		} else {
+			of[0] = 0
+			for i := 1; i < 256; i++ {
+				of[i] = of[i-1] + cs[i-1]
+			}
+		}
+		for _, e := range fr {
+			ky = c((e & km) >> ko)
+			to[of[ky]] = e
+			of[ky]++
+		}
+		to, fr = fr, to
 	}
 }
 func dsc(x k) (r k) { return rev(asc(x)) } // >x
@@ -1012,22 +1069,6 @@ func grp(x k) (r k) { // =x
 	} else if n == 0 {
 		return dex(x, key(inc(x), take(0, 0, inc(x))))
 	}
-	/*
-		kk, vv, rn := mk(t, 0), mk(L, 0), k(0)
-		gt, eq, xp, kp, j := gtx[t], eqx[t], ptr(x, t), ptr(kk, t), k(0)
-		for i := k(0); i < n; i++ {
-			j = ibin(kp, rn, xp+i, gt)
-			if j < rn && eq(kp+j, xp+i) {
-				m.k[2+vv+j] = ucat(m.k[2+vv+j], mki(i), I, m.k[m.k[2+vv+j]]&atom, 1)
-			} else {
-				kk = insert(kk, atx(inc(x), mki(i)), 1+j)
-				kp = ptr(kk, t)
-				vv = insert(vv, enl(mki(i)), 1+j)
-				rn++
-			}
-		}
-		return dex(x, key(kk, vv))
-	*/
 	a, ai, u, xp, eq, v, j := asc(inc(x)), k(0), mk(I, 1), ptr(x, t), eqx[t], mk(L, 1), k(0)
 	m.k[2+u] = m.k[2+a]
 	m.k[2+v] = enl(fst(inc(a)))
@@ -1183,7 +1224,24 @@ func enlist(x k) (r k) { // dont unify
 	m.k[2+r] = x
 	return r
 }
-func srt(x k) (r k) { return atx(x, asc(inc(x))) } // ^x  TODO: replace with a sort implementation
+func srt(x k) (r k) { // ^x
+	if t, n := typ(x); t == I && n != atom && n > 1 {
+		if m.k[1+x] > 1 {
+			y := mk(t, n)
+			mv(y, x)
+			return dex(x, srt(y))
+		} else {
+			if n < 16 {
+				isi(2+x, n)
+				return x
+			}
+			b := mk(I, n)
+			rdxi(m.k[2+x:2+x+n], m.k[2+b:2+b+n])
+			return dex(b, x)
+		}
+	}
+	return atx(x, asc(inc(x)))
+}
 func cnt(x k) (r k) { // #x
 	t, n := typ(x)
 	if t == A {
