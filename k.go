@@ -3006,7 +3006,7 @@ func fnk(sv, sp k) k { // find key, nk on undefined
 	}
 	return n
 }
-func fns(x, y k) (r k) { // x find y
+func fns(x, y k) (r k) { // x find y (TODO: rabin-karb, knuth-morris, boyes-moore is it worth it?)
 	xt, yt, xn, yn := typs(x, y)
 	if xt != yt || xt != C || xn == atom || yn == atom {
 		panic("type")
@@ -5032,7 +5032,7 @@ func rol(x, y k) (r k) { // x rand y (roll, deal)
 	}
 	n := i(m.k[2+x])
 	if yn == atom {
-		if yt == I && m.k[2+x] > 0 && m.k[2+y] > 0 {
+		if yt == I && m.k[2+x] > 0 && m.k[2+y] > 0 && n > 0 {
 			rn, n := m.k[2+x], 1+m.k[2+y]
 			r = mk(I, rn)
 			for i := k(0); i < rn; i++ {
