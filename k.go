@@ -2591,22 +2591,30 @@ func ept(x, y k) (r k) { // x^y
 		panic("type")
 	} else if yn == atom {
 		y, yn = enl(y), 1
+	} else if yn == 0 {
+		return dex(y, x)
+	} else {
+		y = srt(y)
 	}
-	eq, b, xp, yp := eqx[t], mk(I, n), ptr(x, t), ptr(y, t)
-	all := true
-	for i := k(0); i < n; i++ { // TODO: quadratic
-		m.k[2+i+b] = 1
-		for j := k(0); j < yn; j++ {
-			if eq(xp+i, yp+j) {
-				m.k[2+i+b], all = 0, false
-				break
-			}
+	a, b, i, j, xp, yp, gt, eq := asc(inc(x)), mk(I, 0), k(0), k(0), ptr(x, t), ptr(y, t), gtx[t], eqx[t]
+	for {
+		if xi, yj := xp+m.k[2+a+i], yp+j; eq(xi, yj) {
+			i, j = i+1, j+1
+		} else if gt(xi, yj) {
+			j++
+		} else {
+			b = ucat(b, mki(m.k[2+a+i]), I, m.k[b]&atom, 1)
+			i++
+		}
+		if j == yn {
+			b = ucat(b, drop(int32(i), a), I, m.k[b]&atom, n-i)
+			break
+		} else if i == n {
+			dec(a)
+			break
 		}
 	}
-	if all {
-		return decr(b, y, x)
-	}
-	return dex(y, atx(x, wer(b)))
+	return dex(y, atx(x, srt(b)))
 }
 func tak(x, y k) (r k) { // x#y
 	xt, yt, xn, yn := typs(x, y)
