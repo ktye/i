@@ -16,7 +16,7 @@ memory filesystem (.fs) <- drop files into the window
  \lf     (list files, access with io verbs)
  \l file (load file k source)
  \w file (download file)
- \ws     (download workspace k.ws)
+ \w      (download workspace k.ws)
  \e file (edit ESC to write)
  drop "*.ws" exchanges k memory
 
@@ -33,6 +33,7 @@ interactive ui (canvas)
  .k key callback (click to focus)
 
 animate 
- \L 500   (ms delay)                             /nyi
- \L expr  Loop k executing until ESC is pressed  /nyi
+ \L 500     (ms delay)
+ \L expr    Loop k executing until ESC is pressed
+ \L 500:expr
 

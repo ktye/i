@@ -5,8 +5,8 @@
  html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
  #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;font-family:monospace;overflow:auto;}
  .term{background:black;color:white}
- .hold{background:#78909C;color:black}
- .edit{background:#FFFFEA;color:black}
+ .hold{background:white;color:black}
+ .edit{background:#ffffea;color:black}
  #cnv{width:100;height:100;top:0;right:0;position:absolute;}
  #dl{display:none;}
 </style>
@@ -28,6 +28,7 @@ function ae(x,y,z){x.addEventListener(y,z)};
 var kwasm = sa(atob(r))
 const go = new Go()
 var K // k wasm exports
+var delay = 0 // milliseconds
 
 // kons (k console)
 var hit = kons
@@ -40,6 +41,7 @@ function initKons() {
  var hold = false
  kons.onkeydown = function(e) {
   if(e.which === 27) { // quit edit / toggle hold / close image
+   delay = 0
    pd(e)
    if (ed) { qed(); hold=true }
    hold = !hold
@@ -56,18 +58,19 @@ function initKons() {
     a = kons.value.lastIndexOf("\n", a)
     if (a == -1) a = 0
     b = kons.value.indexOf("\n", b)
-    if (b == -1) b = kons.selectionEnd
+    if (b == -1) b = kons.value.length
     s = kons.value.substring(a, b)
    }
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
-   if (s === "\\c") { kons.value=" "; imgSize(0, 0); return }
-   if (s === "\\h") { O(atob(h));P(); return }
-   if (s.substr(0,2) === "\\e") { P(); edit(s.substr(2)); return }
-   if (s.substr(0,2) === "\\w") { download(s.substr(2)); P(); return }
-   if (s === "\\lf") { s = "\\m #:'.fs" }
-   E(s)
+   if (s === "\\c")             { kons.value=" ";imgSize(0, 0);return }
+   if (s === "\\h")             { O(atob(h));P();              return }
+   if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));       return }
+   if (s.substr(0,2) === "\\w") { download(s.substr(2));P();   return }
+   if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());return }
+   if (s === "\\lf")            { s = "\\m #:'.fs"                    }
+   hash(s);E(s);P()
   }
  }
  kons.onmousedown = function(e) { hit=kons; if(e.button==2)pd(e); }
@@ -75,10 +78,9 @@ function initKons() {
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
  ctx = cnv.getContext('2d')
 }
-function O(s) { kons.value += s }
-function P()  { kons.value += " "; kons.scrollTo(0, kons.scrollHeight) }
+function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
+function P()  { kons.value += " " }
 function E(s) { 
- hash(s)
  kwritestr(s)
  try { var n = K.E();KO(n);K.Save() }
  catch(e) { // panic message is stored to pnk in wx.js
@@ -86,20 +88,23 @@ function E(s) {
   pnk = pnk.trim()
   pnk = (pnk.substr(0,7) === "panic: ") ? pnk.substr(7) : pnk
   pnk = (p > 0 && p < 64) ? " ".repeat(p) + "^" + pnk + "\n" : pnk+"\n"
-  O(pnk); pnk=""; K.Swap(); P()
+  O(pnk); pnk=""; K.Swap()
  }
 }
+function EE(s) { kwritestr(s);var n=K.E();KO(n) } // without recover
 var u8
 function KO(n) { // update kons and canvas
- O(sl(su(kread(K.Out(), n))));P()
+ O(sl(su(kread(K.Out(), n))))
  n = K.Isz()
  if (n>0) {
-  var w = n>>16; var h = n&65536; n = w*h
+  var w = n>>16; var h = n&65535; n = w*h
   imgSize(w, h)
   var u = new Uint8ClampedArray(K.memory.buffer, K.Img(), 4*n)
   ctx.putImageData(new ImageData(u, w, h), 0, 0)
  }
 }
+function loop(s) { var n=s.indexOf(":");var d=(n>0)?Number(s.substr(0,n)):Number(s); if (n>0&&isFinite(d)){ delay=d;s=s.substr(n+1) }else if(isFinite(d)){ delay=d;return }else if(delay==0){ delay=500 };hash("\\L"+String(delay)+":"+s);anim(s)}
+function anim(s) { XX("anim",s);if(delay==0)return;E(s);setTimeout(anim,delay,s) }
 function sl(s) { return s=s.split("\n").map(s => s.length<314?s:s.substr(0,312)+"..").join("\n") } // short line (what is the console size? kons.cols is always 20)
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function edit(name) { 
@@ -123,7 +128,7 @@ ae(kons,"contextmenu", function(e) { // button-3 search
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
 function download(name) {
- name = (name === "s") ? "k.ws" : name.trim()
+ name = (name.trim() == "") ? "k.ws" : name.trim()
  var u = getfile(name)
  if (u !== false) {
   var b = new Blob([u], {type:"application/octet-stream"})
@@ -134,22 +139,16 @@ function download(name) {
 }
 
 // interactive callbacks on canvas
-function ui(a,b,c,d,e,f,g) {
- try{ var n = K.Ui(a,b,c,d,e,f,g);KO(n);K.Save() }
- catch {
-  O(pnk); pnk=""; K.Swap()
- }
-}
+function ui(a,b,c,d,e,f,g) { try {var n=K.Ui(a,b,c,d,e,f,g);KO(n);P();K.Save()} catch {O(pnk); pnk=""; K.Swap()} }
 function mod(e){return Number(e.shiftKey)+2*Number(e.altKey)+4*Number(e.ctrlKey)};
-function down(e){hit=cnv;kons.style.color="grey";xd=e.clientX;yd=e.clientY;pd(e)};
+function down(e){hit=cnv;kons.blur();xd=e.clientX;yd=e.clientY;pd(e)};
 function up(e){pd(e);ui(1,e.button,xd,e.clientX,yd,e.clientY,mod(e))};
 function wheel(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,mod(e))};
 function keycode(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};
-function key(e){var k=keycode(e);if(!k)return;pd(e);ui(0,k,0,0,0,0,mod(e));};
+function key(e){if(e.which==27){imgSize(0,0);hit=kons;kons.focus();delay=0;return};var k=keycode(e);if(!k)return;pd(e);ui(0,k,0,0,0,0,mod(e));};
 function nomenu(e){pd(e)};
 ae(cnv,'mouseup',up);ae(cnv,'mousedown',down);ae(cnv,'wheel',wheel);ae(cnv,'contextmenu',nomenu);
 ae(window,'keydown',function(e){if(hit==cnv){key(e);return}})
-
 
 // drop files (store in k-tree .fs)
 window.ondragover=function(e){pd(e)}
@@ -158,7 +157,7 @@ function addfile(x){
  var r = new FileReader()
  r.onload = function(){
   var u = new Uint8Array(r.result)
-  putfile(x.name, u)
+  putfile(x.name, u); O("1:`"+x.name+" /"+String(u.length)+"\n");P()
  }
  r.readAsArrayBuffer(x)
 }
@@ -183,7 +182,7 @@ function getfile(name) { // as Uint8Array
  K = k.exports
  var h = decodeURIComponent(window.location.hash.substr(1))
  var s = String(window.innerWidth) + " " + String(window.innerHeight)
- E('(w;h):' + s + ';` 1:"i@' + rev + " " + '",($.size),"MB\n";') // (banner) overwrites hash
+ E('(w;h):' + s + ';` 1:"i@' + rev + " " + '",($.size),"MB\n";');P() // (banner) overwrites hash
  window.location.hash = h
  if (h.length > 0) {
   var p = kons.value.length
@@ -197,7 +196,8 @@ function getfile(name) { // as Uint8Array
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kwritestr(s) { var u = us(s); kwrite(K.In(u.length), u) }
-function kwrite(p, u) { new Uint8Array(K.memory.buffer, p, u.length).set(u) }
+function kwrite(p, u) { 
+new Uint8Array(K.memory.buffer, p, u.length).set(u) }
 function kread (p, n) { return new Uint8Array(K.memory.buffer, p, n) }
 
 </script>

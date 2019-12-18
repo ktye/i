@@ -5,11 +5,11 @@ package main
 // max memory, heap size must be set explicitly when compiling with tinygo
 const maxmem = 1 << 23 // number of floats (64 MB)
 var mem, bak []f
-var ibuf k      // js to k (input char buffer)
-var obuf k      // k to js
-var imgp k      // pointer to image data (k index)
-var imgs uint32 // image size uint16(width)<<16|uint16(height)
-var file k      // file pointer for Get
+var ibuf k // js to k (input char buffer)
+var obuf k // k to js
+var imgp k // pointer to image data (k index)
+var imgs k // image size width<<16|height
+var file k // file pointer for Get
 
 func main() {
 	mem = make([]f, maxmem>>1)
@@ -40,7 +40,13 @@ func red(x k) (r k) { // 1:x (from .fs)
 	} else if t != S || n != atom {
 		panic("type")
 	}
-	return atx(lup(mks(".fs")), x)
+	fs := lup(mks(".fs"))
+	ky := m.k[2+fs]
+	ix := fnd(inc(ky), x)
+	if i := m.k[2+ix]; i < m.k[ky]&atom {
+		return decr(ix, fs, inc(m.k[2+i+m.k[3+fs]]))
+	}
+	return decr(ix, fs, mk(C, 0))
 }
 func wrt(x, y k) (r k) { // x 1:y
 	xt, yt, xn, yn := typs(x, y)
@@ -81,7 +87,7 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 	}
 	p := ptr(y, C)
 	imgp = p
-	imgs = uint32(uint16(w)<<16) | h
+	imgs = w<<16 | h
 	return decr(x, y, inc(null))
 }
 func jr() { // js reset output
@@ -172,8 +178,9 @@ func Get() int { // get file (length)
 	imgs = 0
 	s := c2s(ibuf)
 	kws := mks("k.ws")
+	dec(kws)
 	if m.k[2+s] == m.k[2+kws] {
-		decr(s, kws, 0)
+		dec(s)
 		file = 0
 		return 8 * maxmem >> 1
 	}
@@ -188,9 +195,10 @@ func Get() int { // get file (length)
 
 //go:export File
 func File() *byte {
-	if file != 0 {
-		dec(file)
+	if file == 0 {
+		return &m.c[0]
 	}
+	dec(file)
 	return &m.c[8+file<<2]
 }
 
