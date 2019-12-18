@@ -1009,15 +1009,14 @@ func isi(x, n k) { // insertion sort (int32 inplace)
 		}
 	}
 }
-func rdxi(x, b []k) { // int32-inplace radix sort, see github.com/shawnsmithdev/zermelo (MIT)
-	fr := x
-	to := b[:len(x)]
-	var ky c
-	var of [256]k
+func rdxi(x, b, n k) { // int32-inplace radix sort, see github.com/shawnsmithdev/zermelo (MIT)
+	var of [256]k // n
+	ky, e := c(0), k(0)
 	for ko := k(0); ko < 32; ko += 8 {
 		km, so, pv := k(0xFF<<ko), true, NaI
 		var cs [256]k
-		for _, e := range fr {
+		for i := k(0); i < n; i++ {
+			e = m.k[x+i]
 			ky = c((e & km) >> ko)
 			cs[ky]++
 			if so {
@@ -1027,7 +1026,7 @@ func rdxi(x, b []k) { // int32-inplace radix sort, see github.com/shawnsmithdev/
 		}
 		if so {
 			if (ko/8)%2 == 1 {
-				copy(to, fr)
+				copy(m.k[b:b+n], m.k[x:x+n])
 			}
 			return
 		}
@@ -1047,12 +1046,13 @@ func rdxi(x, b []k) { // int32-inplace radix sort, see github.com/shawnsmithdev/
 				of[i] = of[i-1] + cs[i-1]
 			}
 		}
-		for _, e := range fr {
+		for i := k(0); i < n; i++ {
+			e = m.k[x+i]
 			ky = c((e & km) >> ko)
-			to[of[ky]] = e
+			m.k[b+of[ky]] = e
 			of[ky]++
 		}
-		to, fr = fr, to
+		x, b = b, x
 	}
 }
 func dsc(x k) (r k) { return rev(asc(x)) } // >x
@@ -1236,7 +1236,7 @@ func srt(x k) (r k) { // ^x
 				return x
 			}
 			b := mk(I, n)
-			rdxi(m.k[2+x:2+x+n], m.k[2+b:2+b+n])
+			rdxi(2+x, 2+b, n)
 			return dex(b, x)
 		}
 	}
