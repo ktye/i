@@ -64,12 +64,12 @@ function initKons() {
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
-   if (s === "\\c")             { kons.value=" ";imgSize(0, 0);return }
-   if (s === "\\h")             { O(atob(h));P();              return }
-   if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));       return }
-   if (s.substr(0,2) === "\\w") { download(s.substr(2));P();   return }
-   if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());return }
-   if (s === "\\lf")            { s = "\\m #:'.fs"                    }
+   if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
+   if (s === "\\h")             { O(atob(h));P();                  return }
+   if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
+   if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
+   if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());    return }
+   if (s === "\\lf")            { s = "\\m #:'.fs"                        }
    hash(s);E(s);P()
   }
  }
@@ -128,7 +128,6 @@ ae(kons,"contextmenu", function(e) { // button-3 search
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
 function download(name) {
- name = (name.trim() == "") ? "k.ws" : name.trim()
  var u = getfile(name)
  if (u !== false) {
   var b = new Blob([u], {type:"application/octet-stream"})
@@ -162,7 +161,6 @@ function addfile(x){
  r.readAsArrayBuffer(x)
 }
 function putfile(name, u) { // from Uint8Array
- if (name.endsWith(".ws")) { kwrite(K.P(), u); K.Swap(); kwrite(K.P(), u); return }
  var p = K.In(name.length)
  kwritestr(name)
  kwrite(K.Store(u.length), u)

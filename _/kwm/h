@@ -16,9 +16,7 @@ memory filesystem (.fs) <- drop files into the window
  \lf     (list files, access with io verbs)
  \l file (load file k source)
  \w file (download file)
- \w      (download workspace k.ws)
  \e file (edit ESC to write)
- drop "*.ws" exchanges k memory
 
 terminal
  return executes current line (anywhere) or selected text(e.g. multiline)
@@ -36,4 +34,3 @@ animate
  \L 500     (ms delay)
  \L expr    Loop k executing until ESC is pressed
  \L 500:expr
-

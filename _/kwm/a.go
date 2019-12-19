@@ -177,13 +177,6 @@ func Store(n int) *byte { // create entry and allocate memory for dropped file
 func Get() int { // get file (length)
 	imgs = 0
 	s := c2s(ibuf)
-	kws := mks("k.ws")
-	dec(kws)
-	if m.k[2+s] == m.k[2+kws] {
-		dec(s)
-		file = 0
-		return 8 * maxmem >> 1
-	}
 	file = red(s)
 	t, n := typ(file)
 	if t != C || n == 0 || n == atom {
