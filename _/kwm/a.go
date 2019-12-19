@@ -10,6 +10,7 @@ var obuf k // k to js
 var imgp k // pointer to image data (k index)
 var imgs k // image size width<<16|height
 var file k // file pointer for Get
+var flow k // pointer to fluid image
 
 func main() {
 	mem = make([]f, maxmem>>1)
@@ -20,6 +21,9 @@ func main() {
 	table[21+dyad] = wrt
 	table[39] = trp
 	table[29+dyad] = drw
+	table[78+dyad] = flw
+	builtins(c(78+dyad), "flow")
+	flow = mk(I, NN*NN)
 	mkk(".k", "{(`key;x)}")
 	mkk(".m", "{(`mouse;x)}")
 	dec(asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), inc(null)))

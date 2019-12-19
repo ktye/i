@@ -140,9 +140,9 @@ function download(name) {
 // interactive callbacks on canvas
 function ui(a,b,c,d,e,f,g) { try {var n=K.Ui(a,b,c,d,e,f,g);KO(n);P();K.Save()} catch {O(pnk); pnk=""; K.Swap()} }
 function mod(e){return Number(e.shiftKey)+2*Number(e.altKey)+4*Number(e.ctrlKey)};
-function down(e){hit=cnv;kons.blur();xd=e.clientX;yd=e.clientY;pd(e)};
-function up(e){pd(e);ui(1,e.button,xd,e.clientX,yd,e.clientY,mod(e))};
-function wheel(e){var x=e.clientX;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,mod(e))};
+function down(e){hit=cnv;kons.blur();xd=e.clientX-cnv.offsetLeft;yd=e.clientY;pd(e)};
+function up(e){pd(e);ui(1,e.button,xd,e.clientX-cnv.offsetLeft,yd,e.clientY,mod(e))};
+function wheel(e){var x=e.clientX-cnv.offsetLeft;var y=e.clientY;var m=(e.deltaY>0)?4:(e.deltaY<0)?5:null;if(m)ui(1, m,x,y,x,y,mod(e))};
 function keycode(e){var k=e.keyCode;return (e.key.length==1)?e.key.charCodeAt():(k==8)?8:(k==9)?9:(k==13)?13:(k==27)?27:(k==46)?127:(k>32&&k<41)?k-19:null};
 function key(e){if(e.which==27){imgSize(0,0);hit=kons;kons.focus();delay=0;return};var k=keycode(e);if(!k)return;pd(e);ui(0,k,0,0,0,0,mod(e));};
 function nomenu(e){pd(e)};
