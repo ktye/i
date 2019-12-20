@@ -32,7 +32,7 @@ type (
 )
 
 func TestT(t *testing.T) {
-	t.Skip()
+	// t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -86,6 +86,9 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"@3", "`i"},
+		//{"@(;)[0]", "?"},
+		//{`("alpha";"aa";"berta")`, `("aa";"alpha";"berta")`},
 		{"(!100000)~^-100000 rand 100000", "1"},
 		{"^5 2 -5 -2 0 4", "-5 -2 0 2 4 5"},
 		{"=1 2 2 3 2", "1 2 3!(,0;1 2 4;,3)"},
@@ -609,6 +612,7 @@ func TestK(t *testing.T) {
 		{"@{x+y}", "`2"},
 		{"@{x+y+z}", "`3"},
 		{"@{1+2+3}", "`1"},
+		{"@(:3+a)", "`0"},
 		{"{1+2+3}", "{1+2+3}"},
 		{"{1+2+3}[9]", "6"},
 		{"@{`z;1+x}", "`1"},
@@ -1024,12 +1028,12 @@ func TestK(t *testing.T) {
 			ini(make([]f, 1<<13))
 			table[21+dyad] = wrt
 			fmt.Printf("%s → %s\n", tc.x, tc.r)
-			x := prs(K([]byte(tc.x)))
+			x := prs(mkb([]c(tc.x)))
 			if occ {
 				inc(x)
 			}
 			y := kst(evl(x))
-			r := string(G(y).([]c))
+			r := gstr(y)
 			if r != tc.r {
 				t.Fatalf("expected %s got %s\n", tc.r, r)
 			}
@@ -1042,10 +1046,18 @@ func TestK(t *testing.T) {
 		}
 	}
 }
+func gstr(x k) s {
+	t, n := typ(x)
+	if t != C || n == atom {
+		panic("gstr")
+	}
+	p := 8 + x<<2
+	return string(m.c[p : p+n])
+}
 func wrt(x, y k) (r k) {
 	pr(x, "wrt x")
 	pr(y, "wrt y")
-	return decr(x, y, inc(null))
+	return decr(x, y, 0)
 }
 func TestRef(t *testing.T) { // generate readme.md
 	k, e := ioutil.ReadFile("k.go")
@@ -1114,6 +1126,10 @@ Initial memory (64kB)
  p[51]       0x33 points to asci chars (#256)
  maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
              A01234 need only a single block but may have length>0
+	     
+Function codes
+ ascii values for :+-*%&|<>=!~,^#_$?@. (+128 dyadic)
+ 0(null) '0'..'9'(io verbs) 
 
 Function codes
   0-19 monadic primitives :+-*%&|<>=!~,^#_$?@.
@@ -1158,9 +1174,9 @@ See directory _/ instead.
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
-	// 1(block 0) + 3(built-in dict,k,v) + 2(k-tree k,v) +1+#stab(symbols)
+	// 3(built-in dict,k,v) + 2(k-tree k,v) +1+#stab(symbols)
 	// vars := m.k[m.k[kkey]] & atom
-	if u, e := Stats().UsedBlocks(), 7+m.k[m.k[stab]]&atom; u != e {
+	if u, e := Stats().UsedBlocks(), 6+m.k[m.k[stab]]&atom; u != e {
 		xxd()
 		t.Fatalf("leak: %d != %d", u, e)
 	}
@@ -1180,8 +1196,8 @@ func pr(x k, a ...interface{}) {
 	fmt.Println(a, s)
 }
 func xxd() { // memory dump
-	h := k(0)
-	for i := k(0); i < k(len(m.k)); i += 4 {
+	h := k(64)
+	for i := k(64); i < k(len(m.k)); i += 4 {
 		a, b, c, d := m.k[i+0], m.k[i+1], m.k[i+2], m.k[i+3]
 		if a == 0 && b == 0 && c == 0 && d == 0 {
 			continue
@@ -1222,8 +1238,8 @@ func fpck(s s) { // check free pointers
 			panic("fpck " + s + " bad pointer in free-list: @" + strconv.Itoa(int(i)))
 		}
 	}
-	h := k(0)
-	for i := k(0); i < k(len(m.k)); i += 4 {
+	h := k(64)
+	for i := k(64); i < k(len(m.k)); i += 4 {
 		if i == h {
 			tp := m.k[i] >> 28
 			if tp == 0 {
@@ -1255,7 +1271,7 @@ func (s MemStats) UsedBlocks() (t uint32) {
 }
 func Stats() MemStats {
 	st := make(MemStats)
-	a := uint32(0)
+	a := uint32(64)
 	o := uint32(0)
 	for a < 1<<(m.k[2]-2) {
 		tp := m.k[a] >> 28
@@ -1289,170 +1305,4 @@ func Stats() MemStats {
 		a += o
 	}
 	return st
-}
-
-// type conversions between go and k
-func K(x interface{}) k { // convert go value to k type, returns 0 on error
-	if x == nil {
-		return mk(N, atom)
-	}
-	var r k
-	switch a := x.(type) {
-	case bool:
-		r = mkc(0)
-		if a {
-			m.c[8+r<<2] = 1
-		}
-	case byte:
-		r = mkc(a)
-	case int:
-		r = mki(k(a))
-	case uint16: // function index
-		if a < 20 {
-			r = mk(N+1, atom)
-		} else {
-			r = mk(N+2, atom)
-		}
-		m.k[2+r] = k(a)
-	case float64:
-		r = mk(F, atom)
-		m.f[1+r>>1] = a
-	case complex128:
-		r = mk(Z, atom)
-		m.z[1+r>>2] = a
-	case string:
-		r = mks(a)
-	case []bool:
-		buf := make([]byte, len(a))
-		for i, v := range a {
-			if v {
-				buf[i] = 1
-			}
-		}
-		return K(buf)
-	case []byte:
-		r = mk(C, k(len(a)))
-		for i, v := range a {
-			m.c[8+i+int(r<<2)] = v
-		}
-	case []int:
-		r = mk(I, k(len(a)))
-		for i, v := range a {
-			m.k[2+i+int(r)] = k(v)
-		}
-	case []float64:
-		r = mk(F, k(len(a)))
-		for i, v := range a {
-			m.f[1+i+int(r>>1)] = v
-		}
-	case []complex128:
-		r = mk(Z, k(len(a)))
-		for i, v := range a {
-			m.z[1+i+int(r>>2)] = v
-		}
-	case []string:
-		r = mk(S, k(len(a)))
-		for i := range a {
-			m.k[2+r] = mks(a[i])
-		}
-	case []interface{}:
-		if len(a) == 1 { // collapse list of atom to single element vector
-			rr := K(a[0])
-			t, n := typ(rr)
-			if n == atom { // TODO: allow ,d?
-				r = rr
-				m.k[r] = t<<28 | 1
-				return r
-			} else {
-				dec(rr)
-			}
-		}
-		r = mk(L, k(len(a)))
-		for i, v := range a {
-			u := K(v)
-			m.k[2+i+int(r)] = u
-		}
-	case [2]interface{}:
-		key := K(a[0])
-		val := K(a[1])
-		_, nk := typ(key)
-		_, nv := typ(val)
-		if nk != nv {
-			return 0
-		}
-		r = mk(A, atom)
-		m.k[2+r] = key
-		m.k[3+r] = val
-	}
-	return r
-}
-func G(x k) interface{} { // convert k value to go type (returns nil on error)
-	t, n := typ(x)
-	str := func(xp k) s {
-		r := mk(C, 0)
-		rc := 8 + r<<2
-		n := stS(rc, xp)
-		dec(r)
-		return string(m.c[rc : rc+n])
-	}
-	if n == atom {
-		switch t {
-		case C:
-			return c(m.c[8+x<<2])
-		case I:
-			return int(i(m.k[2+x]))
-		case F:
-			return m.f[1+x>>1]
-		case Z:
-			return m.z[1+x>>2]
-		case S:
-			return str(1 + x>>1)
-		case A:
-			return [2]interface{}{G(m.k[2+x]), G(m.k[3+x])}
-		case N:
-			return nil
-		case N + 1, N + 2:
-			return uint16(m.k[2+x])
-		}
-	} else {
-		switch t {
-		case C:
-			r := make([]byte, n)
-			for i := range r {
-				r[i] = c(m.c[8+i+int(x<<2)])
-			}
-			return r
-		case I:
-			r := make([]int, n)
-			for i := range r {
-				r[i] = int(int32(m.k[2+i+int(x)]))
-			}
-			return r
-		case F:
-			r := make([]f, n)
-			for i := range r {
-				r[i] = m.f[1+i+int(x>>1)]
-			}
-			return r
-		case Z:
-			r := make([]complex128, n)
-			for i := range r {
-				r[i] = m.z[1+i+int(x>>2)]
-			}
-			return r
-		case S:
-			r := make([]string, n)
-			for i := range r {
-				r[i] = str(1 + k(i) + x>>1)
-			}
-			return r
-		case L:
-			r := make([]interface{}, n)
-			for i := range r {
-				r[i] = G(m.k[2+i+int(x)])
-			}
-			return r
-		}
-	}
-	return nil
 }
