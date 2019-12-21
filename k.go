@@ -103,6 +103,7 @@ var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r
 	}
 }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 var table [160]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
+var nm func(k, k, []f1) k
 
 func ini(mem []f) { // start function
 	table = [160]interface{}{
@@ -134,6 +135,7 @@ func ini(mem []f) { // start function
 	m.k[1] = 0x70881342
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
+	nm = snm
 
 	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png,select,update,delete,by,from,where"))) // symbol table
 	nans = mk(S, atom)
@@ -603,7 +605,7 @@ func to(x, rt k) (r k) { // numeric conversions for types CIFZ
 	}
 	return dex(x, r)
 }
-func nm(x, rt k, fx []f1) (r k) { // numeric monad
+func snm(x, rt k, fx []f1) (r k) { // numeric monad
 	t, n := typ(x)
 	min := C
 	if fx[C] == nil {
@@ -627,13 +629,13 @@ func nm(x, rt k, fx []f1) (r k) { // numeric monad
 	switch t {
 	case L:
 		for j := k(0); j < k(n); j++ {
-			m.k[r+2+j] = nm(inc(m.k[j+2+x]), rt, fx)
+			m.k[r+2+j] = snm(inc(m.k[j+2+x]), rt, fx)
 		}
 	case A:
 		if r != x {
 			m.k[2+r] = inc(m.k[2+x])
 		}
-		m.k[3+r] = nm(m.k[3+x], rt, fx)
+		m.k[3+r] = snm(m.k[3+x], rt, fx)
 	case C, I, F, Z:
 		rp, xp, f := ptr(r, t), ptr(x, t), fx[t]
 		for i := k(0); i < k(n); i++ {
