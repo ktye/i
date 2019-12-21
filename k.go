@@ -450,7 +450,7 @@ func mkb(b []c) (r k) {
 func mks(s s) (r k) { return c2s(mkb([]c(s))) }
 func typ(x k) (k, k) { // type and length at addr
 	if x == 0 { // todo x < 256
-		return V0, atom
+		return V1, atom
 	}
 	return m.k[x] >> 28, m.k[x] & atom
 }
@@ -1572,7 +1572,7 @@ func evl(x k) (r k) {
 				x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
 				dec(v) // dec early, allow inplace
 				dec(r)
-				if m.k[y]>>28 > L {
+				if m.k[y]>>28 >= V0 {
 					return R() + g(x, a, y, 0)
 				} else {
 					return R() + g(x, a, 0, y)
@@ -4404,15 +4404,16 @@ func sel(t, c, b, a k) (r k) { // #[t;c;b;a] select
 			for i := k(0); i < n; i++ {
 				m.k[2+i+l] = atx(m.k[2+i+l], inc(a))
 			}
+			dec(a)
 			m.k[3+t] = uf(m.k[3+t])
 		} else {
-			t = atx(t, inc(a))
+			t = atx(t, a)
 			if tt, nn := typ(t); tt == A && nn == atom {
 				t = enl(t)
 			}
 		}
 	}
-	return dex(a, t)
+	return t
 }
 func gby(t, b k) (k, k) { // select by b from t
 	var a k
