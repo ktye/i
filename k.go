@@ -104,6 +104,7 @@ var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r
 }, func(r, x k) { m.f[r] = m.f[x<<1] }}
 var table [160]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 var nm func(k, k, []f1) k
+var ns func(k, k, k, k, k, k, k, f2)
 
 func ini(mem []f) { // start function
 	table = [160]interface{}{
@@ -136,6 +137,7 @@ func ini(mem []f) { // start function
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 	nm = snm
+	ns = sns
 
 	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png,select,update,delete,by,from,where"))) // symbol table
 	nans = mk(S, atom)
@@ -744,7 +746,7 @@ func nd(x, y, rt k, fx []f2, fc []fc) (r k) { // numeric dyad
 	}
 	return decr(x, y, r)
 }
-func ns(rp, xp, yp, t, xn, yn, c k, f f2) {
+func sns(rp, xp, yp, t, xn, yn, c k, f f2) {
 	switch c {
 	case 0: // v f v
 		for i := k(0); i < xn; i++ {

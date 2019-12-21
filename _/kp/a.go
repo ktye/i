@@ -5,6 +5,8 @@ import "syscall"
 func main() {
 	ini(make([]f, 1<<13))
 	nm = pnm
+	ns = pns
+	table[10] = ptil
 	table[21] = red
 	table[40] = exi
 	table[21+dyad] = wrt

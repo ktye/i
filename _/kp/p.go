@@ -4,7 +4,38 @@ import "sync"
 
 const np = k(1024)
 
-func pfkk(xp, yp, n k, f func(x, y k)) {
+func ptil(x k) (r k) { // !x
+	t, n := typ(x)
+	if n != atom || t > Z || n < np {
+		return til(x)
+	}
+	nn := idx(x, t)
+	if nn <= 0 {
+		return til(x)
+	}
+	return dex(x, pto(pjota(k(nn)), t))
+}
+func pjota(n k) (r k) {
+	var wg sync.WaitGroup
+	r = mk(I, n)
+	for i := k(0); i < n; i += np {
+		wg.Add(1)
+		j := np
+		if i+j > n {
+			j = n - i
+		}
+		go func(x, o, n k) {
+			for i := k(0); i < n; i++ {
+				m.k[x+i] = o + i
+			}
+			wg.Done()
+		}(2+r+i, i, j)
+	}
+	wg.Wait()
+	return r
+}
+
+func pfkk(xp, yp, n k, f f1) {
 	var wg sync.WaitGroup
 	for i := k(0); i < n; i += np {
 		wg.Add(1)
@@ -13,11 +44,30 @@ func pfkk(xp, yp, n k, f func(x, y k)) {
 			j = n - i
 		}
 		go func(x, y, n k) {
-			defer wg.Done()
 			for i := k(0); i < n; i++ {
 				f(x+i, y+i)
 			}
+			wg.Done()
 		}(xp+i, yp+i, j)
+	}
+	wg.Wait()
+}
+func pfkkk(rp, xp, yp, dx, dy, n k, f f2) {
+	var wg sync.WaitGroup
+	for i := k(0); i < n; i += np {
+		wg.Add(1)
+		j := np
+		if i+j > n {
+			j = n - i
+		}
+		go func(r, x, y, dx, dy, n k) {
+			for i := k(0); i < n; i++ {
+				f(r+i, x, y)
+				x += dx
+				y += dy
+			}
+			wg.Done()
+		}(rp+i, xp+i, yp+i, dx, dy, j)
 	}
 	wg.Wait()
 }
@@ -99,4 +149,22 @@ func pnm(x, rt k, fx []f1) (r k) { // numeric monad (parallel)
 		r = pto(r, rt)
 	}
 	return dex(x, r)
+}
+func pns(rp, xp, yp, t, xn, yn, c k, f f2) { // parallel numeric scalar dyads
+	var dx, dy, n k
+	switch c {
+	case 0: // v f v
+		dx, dy, n = 1, 1, xn
+	case 1: // a f v
+		dx, dy, n = 0, 1, yn
+	case 2: // v f a
+		dx, dy, n = 1, 0, xn
+	default:
+		panic("assert")
+	}
+	if n < np {
+		sns(rp, xp, yp, t, xn, yn, c, f)
+		return
+	}
+	pfkkk(rp, xp, yp, dx, dy, n, f)
 }
