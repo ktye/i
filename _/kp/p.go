@@ -90,14 +90,12 @@ func pnm(x, rt k, fx []f1) (r k) { // numeric monad (parallel)
 		m.k[3+r] = snm(m.k[3+x], rt, fx)
 	case C, I, F, Z:
 		rp, xp, f := ptr(r, t), ptr(x, t), fx[t]
-		for i := k(0); i < k(n); i++ {
-			f(rp+i, xp+i)
-		}
+		pfkk(rp, xp, n, f)
 	default:
 		panic("type")
 	}
 	if rt != 0 && t > rt && t < L { // only down-type
-		r = to(r, rt)
+		r = pto(r, rt)
 	}
 	return dex(x, r)
 }
