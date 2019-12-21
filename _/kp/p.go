@@ -34,6 +34,19 @@ func pjota(n k) (r k) {
 	wg.Wait()
 	return r
 }
+func pmsrt(x, r, a, b, p k, gt fc) { // parallel merge sort
+	if b-a < np {
+		smsrt(x, r, a, b, p, gt)
+		return
+	}
+	c := (a + b) / 2
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() { pmsrt(r, x, a, c, p, gt); wg.Done() }()
+	go func() { pmsrt(r, x, c, b, p, gt); wg.Done() }()
+	wg.Wait()
+	mrge(x, r, a, b, c, p, gt)
+}
 
 func pfkk(xp, yp, n k, f f1) {
 	var wg sync.WaitGroup

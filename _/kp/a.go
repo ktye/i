@@ -6,6 +6,7 @@ func main() {
 	ini(make([]f, 1<<13))
 	nm = pnm
 	ns = pns
+	msrt = pmsrt
 	table[10] = ptil
 	table[21] = red
 	table[40] = exi

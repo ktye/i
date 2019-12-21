@@ -105,6 +105,7 @@ var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r
 var table [160]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
 var nm func(k, k, []f1) k
 var ns func(k, k, k, k, k, k, k, f2)
+var msrt func(k, k, k, k, k, fc)
 
 func ini(mem []f) { // start function
 	table = [160]interface{}{
@@ -138,6 +139,7 @@ func ini(mem []f) { // start function
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 	nm = snm
 	ns = sns
+	msrt = smsrt
 
 	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png,select,update,delete,by,from,where"))) // symbol table
 	nans = mk(S, atom)
@@ -996,7 +998,7 @@ func asc(x k) (r k) { // <x
 	msrt(2+w, 2+r, k(0), n, ptr(x, t), gtx[t])
 	return decr(x, w, r)
 }
-func msrt(x, r, a, b, p k, gt fc) { // merge sort
+func smsrt(x, r, a, b, p k, gt fc) { // merge sort
 	if b-a < 2 {
 		return
 	}
