@@ -169,7 +169,6 @@ func ini(mem []f) { // start function
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
 	mkk(".csv", "{a:`A~@x;(h;d):$[a;(!+x;.+x);(0#`;x)];r:`z=@:'d;h:h@&1+r;d:d@&1+r;d:@[d;&r;abs];d:@[d;1+&r;(180%1p)*phase];$[a;((,\",\"/:$h),\",\"/:'+$:'d);\",\"/:'+$:'d]}")
 	mkk(".vsc", "{(t;s):(x[0];x[1]);y:+s\\:'y;$[0=#t;y;?[,/'(`$'t)$'(#t)#y;(&\" \"=t),'1;()]]}")
-	mkk(".xxd", "{x:`v x;` 0:(,`T x),\" \"/:'0N 4#\"\\\\x\",/:`x$(16&#b)#b:`b x}")
 	mkk(".stats", "{s:_2 exp !#x;l:(!#x;x;y;s*x;s*y);t:+`b`used`free`uB`fB!l,'+/+l;` 1:(\"\n\"/:`m@t),\"\n\";}")
 }
 func cpC(dst, src k)  { m.c[dst] = m.c[src] }
@@ -1518,11 +1517,6 @@ func evl(x k) (r k) {
 			if nt, nn := typ(name); nt == L && nn > 1 {
 				if m.k[2+name] == 0 { // (;`a;`b) vector assignment
 					name = drp(mki(1), name)
-				} else if nn > 1 && m.k[m.k[2+name]]>>28 != S { // (+;`a;2 3 4) kma expr
-					name = evl(name)
-					if m.k[name]>>28 != I {
-						panic("type") // kma assignment
-					}
 				} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 					idx := drop(1, inc(name)) // inc(m.k[3+name])
 					name = fst(name)
@@ -2147,84 +2141,6 @@ func resn(x k) (r, xe k) {
 	p, rp, ln := 8+x<<2, 8+r<<2, atm1(rn)*lns[rt]
 	copy(m.c[rp+o:rp+o+ln], m.c[p:p+ln])
 	return r, drop(i(ln), x)
-}
-func xst(x k) (r k) { // `u@I (`u$82 → "52000000")
-	t, n := typ(x)
-	if t != I {
-		panic("type")
-	} else if n != atom {
-		return lrc(explode(x), n, xst)
-	}
-	return hex(drop(1, ser(x)))
-}
-func adr(x k) (r k) { return dex(x, mki(x)) } // `a@ (addr)
-func rda(x, rt k, s i, shift bool) (r k) { // `cifzsCIFZS?x
-	if shift == false {
-		s = 0
-	}
-	t, n := typ(x)
-	if t != I {
-		panic("type")
-	}
-	r = mk(rt, n)
-	rp, cp := ptr(r, rt), cpx[rt]
-	if s >= 0 {
-		for i := k(0); i < atm1(n); i++ {
-			cp(rp+i, m.k[2+x+i]<<s)
-		}
-	} else {
-		for i := k(0); i < atm1(n); i++ {
-			cp(rp+i, m.k[2+x+i]>>-s)
-		}
-	}
-	return dex(x, r)
-}
-func rdv(x k) (r k) { // `v?a (value at addr)
-	if t, n := typ(x); t != I {
-		panic("type")
-	} else if n == atom {
-		return dex(x, inc(m.k[2+x]))
-	} else {
-		r = mk(L, n)
-		for i := k(0); i < n; i++ {
-			m.k[2+r+i] = inc(m.k[2+x+i])
-		}
-		return dex(x, uf(r))
-	}
-}
-func bdr(x k) (r k) { // `b@ (full bucket content as I)
-	t, n := typ(x)
-	rn := k(1) << bk(t, n) >> 2
-	r = mk(I, rn)
-	copy(m.k[2+r:], m.k[x:x+rn])
-	return dex(x, r)
-}
-func hdr(x k) (r k) { // `t@ (numeric type code; length (atom -1))
-	r = mk(I, 2)
-	m.k[2+r], m.k[3+r] = typ(x)
-	if m.k[3+r] == atom {
-		m.k[3+r] = 4294967295
-	}
-	return dex(x, r)
-}
-func tdr(x k) (r k) { // `T@x  "i100 +1 8+400/512"
-	t, n := typ(x)
-	ts, bn, ln := str(tip(inc(x))), k(1)<<bk(t, n), lns[t]
-	if n != atom {
-		ts, ln = cat(ts, str(mki(n))), ln*n
-	}
-	r = mk(L, 3)
-	m.k[2+r] = ts
-	m.k[3+r] = cat(mkc('+'), str(mki(m.k[1+x])))
-	m.k[4+r] = cat(cat(cat(mkc('8'), mkc('+')), cat(str(mki(ln)), mkc('/'))), str(mki(bn)))
-	return dex(x, jon(mkc(' '), r))
-}
-func xbb(x k) (r k) { // `x@ (bucket bytes)
-	t, n := typ(x)
-	rn := k(1) << bk(t, n)
-	r = mk(C, rn)
-	copy(m.c[8+r<<2:], m.c[x<<2:x<<2+rn])
-	return dex(x, r)
 }
 func sqr(x k) (r k) { // sqrt x
 	return nm(x, 0, []f1{nil, nil, nil, func(r, x k) { m.f[r] = math.Sqrt(m.f[x]) }, nil})
@@ -2971,8 +2887,6 @@ func cst(x, y k) (r k) { // x$y
 			panic("value")
 		}
 		return decr(x, y, r)
-	} else if s == 'x' && yt == I { // `x$I → ("11223344";"88990088")
-		return dex(x, xst(y))
 	}
 	t, o := k(0), k(169)
 	for i := o; i < o+15; i++ {
@@ -3039,16 +2953,6 @@ func fnd(x, y k) (r k) { // x?y
 		switch m.k[2+x] {
 		case 0: // `?
 			return dex(x, res(y))
-		case 'c', 'C': // kma type conversions (at addr)
-			return dex(x, rda(y, C, 2, m.k[2+x] == 'c'))
-		case 'i', 'I':
-			return dex(x, rda(y, I, 0, false))
-		case 'f', 'F':
-			return dex(x, rda(y, F, -1, m.k[2+x] == 'f'))
-		case 'z', 'Z':
-			return dex(x, rda(y, Z, -2, m.k[2+x] == 'z'))
-		case 's', 'S':
-			return dex(x, rda(y, S, 0, false))
 		case yb64: // `b64?
 			return dex(x, b46(y))
 		case yhex: // `hex?
@@ -3127,24 +3031,12 @@ func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
 		switch m.k[2+x] {
-		case 'a':
-			return dex(x, adr(y)) // addr of
-		case 'b':
-			return dex(x, bdr(y)) // bucket bytes (as I)
 		case 'p':
 			return dex(x, prs(y))
 		case 'k':
 			return dex(x, kst(y))
 		case 'm':
 			return dex(x, mat(y))
-		case 't':
-			return dex(x, hdr(y)) // type-number;length (-1:atom)
-		case 'T':
-			return dex(x, tdr(y)) // type header string
-		case 'x':
-			return dex(x, xbb(y))
-		case 'v':
-			return dex(x, rdv(y)) // `v@a (value at addr)
 		case ycsv:
 			return dex(x, csv(y))
 		case yb64:
@@ -4105,9 +3997,6 @@ func lud(x, y k) (r k) { // x 8:y (inspect)
 	var o k
 	if t == C { // annotate
 		o = cat(x, cat(kst(inc(y)), mkc('\n')))
-	} else if t == S && m.k[2+x] == 'x' { // `x 8:y (hex dump)
-		dec(kx(mks(".xxd"), adr(inc(y))))
-		return dex(x, y)
 	}
 	dec(wr(inc(nans), o))
 	return dex(x, y)
@@ -4154,10 +4043,6 @@ func cmd(x k) (r k) {
 		w := table[21+dyad].(func(k, k) k)
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return 0
-	case 'x':
-		return dex(x, kx(mks(".xxd"), atox(drop(1, x)))) // \x3a8 (hexdump bucket at addr)
-	case 'y':
-		return dex(x, kx(mks(".xxd"), adr(evl(prs(drop(1, x)))))) // hexdump expr result
 	case '\\':
 		exi := table[40].(func(k) k)
 		if m.k[x]&atom > 1 {
@@ -4618,30 +4503,7 @@ func unsert(x, idx k) (r k) { // delete index from x
 	return dex(x, r)
 }
 func asn(x, y, f k) (r k) { // `x:y
-	xt, yt, xn, yn := typs(x, y)
-	if xt == I && f != 0 { // modified kma
-		y = cal2(f, rda(inc(x), I, 0, false), y)
-		yt, yn = typ(y)
-		f = 0
-	}
-	if xt == I && yt == I { // kma assign (a):..
-		if f != 0 {
-			panic("nyi: modified direct assignment")
-		}
-		dec(f)
-		dy := k(1)
-		if xn != atom && yn == atom {
-			dy = k(0)
-		} else if xn != yn {
-			panic("length")
-		}
-		p := k(2)
-		for i := k(0); i < atm1(xn); i++ {
-			m.k[m.k[2+x+i]] = m.k[y+p]
-			p += dy
-		}
-		return dex(x, y)
-	}
+	_, yt, xn, yn := typs(x, y)
 	if xn != atom {
 		if yn == atom {
 			y, yn = ext(y, yt, xn), xn
