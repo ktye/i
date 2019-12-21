@@ -108,7 +108,7 @@ func pto(x, rt k) (r k) {
 func pnm(x, rt k, fx []f1) (r k) { // numeric monad (parallel)
 	t, n := typ(x)
 	if n < np {
-		return nm(x, rt, fx)
+		return snm(x, rt, fx)
 	}
 	min := C
 	if fx[C] == nil {
