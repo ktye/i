@@ -2,17 +2,18 @@ package main
 
 import "sync"
 
-const np = 1024
+const np = k(1024)
 
 func pfkk(xp, yp, n k, f func(x, y k)) {
 	var wg sync.WaitGroup
 	for i := k(0); i < n; i += np {
 		wg.Add(1)
-		j := i + np
-		if j > n {
-			j = n
+		j := np
+		if i+j > n {
+			j = n - i
 		}
 		go func(x, y, n k) {
+			defer wg.Done()
 			for i := k(0); i < n; i++ {
 				f(x+i, y+i)
 			}
