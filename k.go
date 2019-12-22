@@ -6,38 +6,16 @@ import (
 )
 
 const ref = `
-: idn dex  ! til key  0: rdl wrl    ' qtc qot  0 null      10 rel real   128 ... in      138 mvg avg
-+ flp add  ~ not mch  1: nil nil    / slc sla  1 exi exit  11 ima imag   129 ... within  139 pct med
-- neg sub  , enl cat  2: nil nil    \ bsc bsl  2 sin       12 phi phase  130 bin         140 cov var
-* fst mul  ^ srt ept  3: nil nil  ( ' ech ecd  3 cos       13 cnj conj   131 ... like    141 prm
-% inv div  # cnt tak  4: nil nil  [ / ovr ovi  4 dev       14 cnd cond   132 del
-& wer min  _ flr drp  5: nil nil  { \ scn sci  5 log       15 zxp expi   133 lgn log
-| rev max  $ str cst  6: nil nil  )': ecp epi  6 exp       16 dia diag   134 pow exp
-< asc les  ? unq fnd  7: nil nil  ]/: jon ecr  7 rnd rand  17 avg        135 rol rand
-> dst mor  @ tip atx  8: lun lud  }\: spl ecl  8 abs       18 med        136 mkz cmplx
-= grp eql  . val cal  9: nil drw    \     trp  9 plo plot  19 vri var    137 fns find
-
-00 : idn dex    20 0 rdl wrl    40 exi exit  120 ... in       60 prm   140
-01 + flp add    21 1 nil nil    41 sqr sqrt  121 ... within   61       141
-02 - neg sub    22 2 nil nil    42 sin       122 bin          62       142
-03 * fst mul    23 3 nil nil    43 cos       123 ... like     63       143
-04 % inv div    24 4 nil nil    44 dev       124 del          64       144
-05 & wer min    25 5 nil nil    45 log       125 lgn log      65       145
-06 | rev max    26 6 nil nil    46 exp       126 pow exp      66       146
-07 < asc les    27 7 nil nil    47 rnd rand  127 rol rand     67       147
-08 > dst mor    28 8 lun lud    48 abs       128              68       148
-09 = grp eql    29 9 nil nil    49 plo plot  129 plt plot     69       149
-                                                                          
-10 ! til key    30 ' qtc qot    50 rel real  130 mkz cmplx    70       150
-11 ~ not mch    31 / slc sla    51 ima imag  131 fns find     71       151
-12 , enl cat    32 \ bsc bsl    52 phi phase 132 rot          72       152
-13 ^ srt ept    33 ' ech ecd    53 cnj conj  133              73       153
-14 # cnt tak    34 / ovr ovi    54 cnd cond  134              74       154
-15 _ flr drp    35 \ scn sci    55 zxp expi  135 rxp expi     75       155
-16 $ str cst    36 ' ecp epi    56 dia diag  136              76       156
-17 ? unq fnd    37 / jon ecr    57 avg       137 mvg avg      77       157
-18 @ tip atx    38 \ spl ecl    58 med       138 pct med      78       158
-19 . val cal    39 /     trp    59 vri var   139 cov var      79       159
+: idn dex  ! til key  0: rdl wrl  '  ( ech ecd  0 null      10 rel real   20 prm  128 ... in      138 mvg avg
++ flp add  ~ not mch  1: nil nil  /  [ ovr ovi  1 exi exit  11 ima imag           129 ... within  139 pct med
+- neg sub  , enl cat  2: nil nil  \  { scn sci  2 sin       12 phi phase          130 bin         140 cov var
+* fst mul  ^ srt ept  3: nil nil  ': ) ecp epi  3 cos       13 cnj conj           131 ... like
+% inv div  # cnt tak  4: nil nil  /: ] jon ecr  4 dev       14 cnd cond           132 del
+& wer min  _ flr drp  5: nil nil  \: } spl ecl  5 log       15 zxp expi           133 lgn log
+| rev max  $ str cst  6: nil nil   \       trp  6 exp       16 dia diag           134 pow exp
+< asc les  ? unq fnd  7: nil nil                7 rnd rand  17 avg                135 rol rand
+> dst mor  @ tip atx  8: lun lud                8 abs       18 med                136 mkz cmplx
+= grp eql  . val cal  9: nil drw                9 plo plot  19 vri var            137 fns find
 `
 
 type c = byte
@@ -49,8 +27,9 @@ type s = string
 
 const (
 	C, I, F, Z, S, L, A, V0, V1, V2                           k = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-	atom, NaI, srcp, kkey, kval, stab, asci, dyad             k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 80
-	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 257, 258, 259, 260, 261, 262, 263, 264, 265, 266
+	atom, NaI, srcp, kkey, kval, stab, asci, dy               k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 128
+	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 321, 322, 323, 324, 325, 326, 327, 328, 329, 330
+	ver                                                       k = 20191222
 )
 
 type (
@@ -102,22 +81,42 @@ var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r
 		m.k[r] = inan
 	}
 }, func(r, x k) { m.f[r] = m.f[x<<1] }}
-var table [160]interface{} // function table :+-*%&|<>=!~,^#_$?@.0123456789'/\
+var table [256]interface{}
 var nm func(k, k, []f1) k
 var ns func(k, k, k, k, k, k, k, f2)
 var msrt func(k, k, k, k, k, fc)
 
 func ini(mem []f) { // start function
-	table = [160]interface{}{
-		//   1                   5                        10                       15
-		idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
-		rdl, nil, nil, nil, nil, nil, nil, nil, lun, deb, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-		nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
-		prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
-		dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
-		wrl, nil, nil, nil, nil, nil, nil, nil, lud, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-		nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
+	/*
+		table = [160]interface{}{
+			//   1                   5                        10                       15
+			idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
+			rdl, nil, nil, nil, nil, nil, nil, nil, lun, deb, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
+			nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
+			prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
+			dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
+			wrl, nil, nil, nil, nil, nil, nil, nil, lud, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
+			nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
+			nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
+		}
+	*/
+	table = [256]interface{}{
+		nil, nil, nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15 monads..
+		cnd, zxp, dia, avg, med, vri, prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
+		nil, til, nil, cnt, str, inv, wer, nil, ech, ecp, fst, flp, enl, neg, val, nil, //  32- 47
+		rdl, nil, nil, nil, nil, nil, lun, deb, nil, nil, idn, nil, asc, grp, mor, unq, //  48- 63
+		tip, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  64- 79
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, nil, jon, srt, flr, //  80- 95
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  96-111
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, rev, spl, not, nil, // 112-127
+		nil, nil, nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, // 128-143 dyads..
+		rxp, nil, mvg, pct, cov, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 144-159
+		nil, key, nil, tak, cst, div, min, nil, ecd, epi, mul, add, cat, sub, cal, nil, // 160-175
+		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 176-191
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192-207
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovi, nil, ecr, ept, drp, // 208-223
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224-239
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, sci, max, ecl, mch, nil, // 240-255
 	}
 	if len(mem) != 1<<13 {
 		panic("ini")
@@ -125,23 +124,25 @@ func ini(mem []f) { // start function
 	m.f = mem
 	msl()
 	m.k[2] = 16
-	p := k(64)
-	m.k[8] = p
-	m.k[p] = 8
-	for i := 9; i < 16; i++ {
+	p := k(256)
+	m.k[10] = p
+	m.k[p] = 10
+	for i := 11; i < 16; i++ {
 		p *= 2
 		m.k[i] = p
 		m.k[p] = k(i)
 	}
 	m.k[0] = (I << 28) | 31
 	m.k[1] = 0x70881342
+	m.k[3] = ver
 	copy(m.c[136:169], []c(`:+-*%&|<>=!~,^#_$?@.0123456789'/\`))
 	copy(m.c[169:177], []c{0, 'c', 'i', 'f', 'z', 'n', '.', 'a'})
 	nm = snm
 	ns = sns
 	msrt = smsrt
 
-	m.k[stab] = spl(mkc(','), mkb([]byte(",b64,hex,csv,png,select,update,delete,by,from,where"))) // symbol table
+	// symbol table, `(0), monadic builtins(1..32), dyadic builtins(33..64), predefined..
+	m.k[stab] = spl(mkc(','), mkb([]c(",exit,sqrt,sin,cos,dev,006,007,008,abs,010,real,imag,phase,conj,cond,016,diag,018,019,020,prm,022,023,024,025,026,027,028,029,030,031,032,in,within,bin,like,del,log,exp,rand,137,plot,cmplx,find,rot,142,143,expi,145,avg,med,var,149,150,151,152,153,154,155,156,157,158,159,b64,hex,csv,png,select,update,delete,by,from,where")))
 	nans = mk(S, atom)
 	m.k[2+nans] = 0
 	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), nans
@@ -157,13 +158,8 @@ func ini(mem []f) { // start function
 	m.k[asci] = to(jota(256), C)
 	m.k[kkey] = mk(S, 0) // k-tree keys
 	m.k[kval] = mk(L, 0) // k-tree values
-	m.k[3] = mk(A, atom)
-	m.k[2+m.k[3]] = mk(S, 0)
-	m.k[3+m.k[3]] = mk(C, 0)
 	gtx[L] = gtL
 	eqx[L] = eqL
-	builtins(40, "exit,sqrt,sin,cos,dev,,,,abs,,real,imag,phase,conj,cond,nyi15,diag,,,,prm")                           // monads
-	builtins(c(40+dyad), "in,within,bin,like,del,log,exp,rand,,plot,cmplx,find,rot,nyi13,nyi14,expi,nyi16,avg,med,var") // dyads
 
 	dec(asn(mks(".a"), m.k[asci], 0))
 	dec(asn(mks(".n"), n, 0))
@@ -346,16 +342,6 @@ func mv(dst, src k) {
 	m.k[dst] = t<<28 | n // restore header
 	m.k[1+dst] = rc
 }
-func builtins(code c, s string) {
-	v := spl(mkc(','), mkb([]byte(s)))
-	for i := c(0); i < c(m.k[v]&atom); i++ {
-		if ln := m.k[m.k[2+v+k(i)]] & atom; ln > 0 {
-			m.k[2+m.k[3]] = cat(m.k[2+m.k[3]], c2s(inc(m.k[2+v+k(i)])))
-			m.k[3+m.k[3]] = cat(m.k[3+m.k[3]], enl(mkc(code+i)))
-		}
-	}
-	dec(v)
-}
 func mkk(s s, k s) { dec(asn(mks(s), mkb([]c(k)), 0)) } // store k implementation
 func kx(s, x k) (r k) { // exec monadic k implementation
 	f := lup(inc(s))
@@ -410,6 +396,9 @@ func bk(t, n k) k {
 	return buk(sz + 8) // complex values have an additional 8 byte padding after the header (does not change bucket type)
 }
 func mk(t, n k) k { // make type t of len n (-1:atom)
+	if t > V0 {
+		panic("mk verb?")
+	}
 	bt := bk(t, n)
 	fb, a := k(0), k(0)
 	for i := bt; i < 32; i++ { // find next free bucket >= bt
@@ -454,8 +443,11 @@ func mkb(b []c) (r k) {
 }
 func mks(s s) (r k) { return c2s(mkb([]c(s))) }
 func typ(x k) (k, k) { // type and length at addr
-	if x == 0 { // todo x < 256
-		return V1, atom
+	if x < 256 {
+		if x < 128 {
+			return V1, atom
+		}
+		return V2, atom
 	}
 	return m.k[x] >> 28, m.k[x] & atom
 }
@@ -478,7 +470,7 @@ func mtyp(x, n k) (t, cols k, eq bool) { // matrix type
 	return t, cols, eq
 }
 func inc(x k) k {
-	if x == 0 { // todo x < 256
+	if x < 256 {
 		return x
 	}
 	t, n := typ(x)
@@ -512,7 +504,7 @@ func inc(x k) k {
 func dex(x, r k) k     { dec(x); return r }
 func decr(x, y, r k) k { dec(x); dec(y); return r }
 func dec(x k) {
-	if x == 0 { // todo x < 256
+	if x < 256 {
 		return
 	}
 	if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
@@ -1304,9 +1296,6 @@ func flr(x k) (r k) { // _x
 	}, nil}) // TODO: k7 does not convert c to i
 }
 func str(x k) (r k) { // $x
-	if x == 0 {
-		return mk(C, 0)
-	}
 	t, n := typ(x)
 	if t == C {
 		return x
@@ -1348,25 +1337,40 @@ func str(x k) (r k) { // $x
 			}
 		case t > V0:
 			f := m.k[2+x]
-			if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
+			if x == 0 {
+				return mk(C, 0)
+			} else if x < 256 {
+				c := c(x)
+				if x > 127 {
+					c -= 128
+				}
+				r = mkc(c)
+				if c >= '0' && c <= '9' {
+					r = ucat(r, mkc(':'), C, 1, 1)
+				}
+				if x < 128 {
+					r = cat(r, mkc(':'))
+				}
+				return r
+			} else if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
 				r = inc(m.k[2+x]) // `C
 			} else if n == 3 { // composition
 				r = cat(str(inc(m.k[2+x])), str(inc(m.k[3+x])))
-			} else if (f >= 39 && f < dyad) || (f >= 39+dyad && f < 2*dyad) { // built-ins
+			} else if (f >= 39 && f < dy) || (f >= 39+dy && f < 2*dy) { // built-ins
 				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
 			} else if f < 20 || (f >= 30 && f <= 33) { // monad +: /:
 				r = mkb([]c{m.c[136+m.k[2+x]], ':'})
 			} else if f >= 20 && f < 30 { // monadic ioverb
 				r = mkb([]c{'0' + c(f-20), ':', ':'})
-			} else if f >= 20+dyad && f < 30+dyad { // dyadic ioverb 3:
-				r = mkb([]c{'0' + c(f-20-dyad), ':'})
-			} else if f >= dyad && f < 33+dyad { // dyad * /
-				r = mkc(m.c[136+m.k[2+x]-dyad])
+			} else if f >= 20+dy && f < 30+dy { // dyadic ioverb 3:
+				r = mkb([]c{'0' + c(f-20-dy), ':'})
+			} else if f >= dy && f < 33+dy { // dyad * /
+				r = mkc(m.c[136+m.k[2+x]-dy])
 				m.k[r] = C<<28 | 1
 			} else if f > 256 && t == V1 { // derived verb (see func drv)
 				if op := f >> 8; op >= 33 && op <= 38 {
 					if op < 36 { // 33-35 ' / \
-						op += dyad - 3
+						op += dy - 3
 					} else { // 36-38 ': /: \:
 						op -= 6
 					}
@@ -1381,7 +1385,7 @@ func str(x k) (r k) { // $x
 			}
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
-				if n == 2 && f < 2*dyad && m.k[3+a] == 0 {
+				if n == 2 && f < 2*dy && m.k[3+a] == 0 {
 					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
 				} else {
 					a = kst(inc(a))   // arg list
@@ -1507,17 +1511,11 @@ func evl(x k) (r k) {
 		if n == 1 && vt >= V1 { // e.g. (-)
 			return dex(x, v)
 		}
-		af := m.k[2+v]
-		if vt == V1 && vn == atom && n == 3 { // : or :: or *: (modified assignmnt)
-			if n != 3 {
-				P("args")
-			}
-			f := k(0)
-			if af != 0 { // not ::, e.g. *:
-				f = mk(V2, atom)
-				m.k[2+f] = m.k[2+v] + dyad
+		if v < 128 && n == 3 { // : or :: or *: (modified assignmnt)
+			if v != 1 { // not ::, e.g. *:
+				v += 128
 			} else {
-				f = 0
+				v = 0
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
 			if nt, nn := typ(name); nt == L && nn > 1 {
@@ -1532,15 +1530,15 @@ func evl(x k) (r k) {
 					idx = evl(cat(0, idx))
 					name, idx = dxn(name, idx)
 					if nn := m.k[idx] & atom; nn == 1 {
-						dec(amd(name, fst(idx), f, val))
+						dec(amd(name, fst(idx), v, val))
 					} else {
-						dec(dmd(name, idx, f, val))
+						dec(dmd(name, idx, v, val))
 					}
-					return R() + decr(v, x, 0)
+					return R() + dex(x, 0)
 				}
 			}
-			return decr(v, x, asn(name, val, f))
-		} else if n > 3 && vt >= V1 && vn == atom && m.k[2+v] == 16+dyad { // $[...] delays evaluation
+			return dex(x, asn(name, val, v))
+		} else if n > 3 && vt >= V1 && vn == atom && m.k[2+v] == 16+dy { // $[...] delays evaluation
 			return R() + dex(v, swc(drop(1, x)))
 		}
 		r = mk(L, n-1)
@@ -1555,15 +1553,15 @@ func evl(x k) (r k) {
 		if n > 3 && vt >= V1 && vn == atom {
 			g := amd
 			switch code := m.k[2+v]; code { // triadics..
-			case dyad + 14: // #
+			case dy + 14: // #
 				g = sel
-			case dyad + 15: // _
+			case dy + 15: // _
 				g = udt
-			case dyad + 17: // ?
+			case dy + 17: // ?
 				g = ins
-			case dyad + 18: // @
+			case dy + 18: // @
 				g = amd
-			case dyad + 19: // .
+			case dy + 19: // .
 				g = dmd
 			default:
 				P("args")
@@ -1585,13 +1583,14 @@ func evl(x k) (r k) {
 			} else {
 				P("args")
 			}
-		} else if n == 3 && vt == V2 && m.k[2+v] == 19+dyad && m.k[m.k[3+r]]>>28 >= V1 { // composition
+		} else if n == 3 && vt == V2 && m.k[2+v] == 19+dy && m.k[m.k[3+r]]>>28 >= V1 { // composition
 			dec(v)
 			v = mk(m.k[m.k[3+r]]>>28, 3)
 			m.k[2+v] = inc(m.k[2+r])
 			m.k[3+v] = inc(m.k[3+r])
 			return R() + dex(r, v)
-		} else if vt >= V1 && !(vn == atom && vt == V1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
+			//} else if vt >= V1 && !(vn == atom && vt == V1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
+		} else if v > 255 && vt >= V1 && vn == atom { // allow dyadic derived
 			if n-1 > vt-V0 {
 				P("args") // too many arguments
 			}
@@ -2295,7 +2294,7 @@ func qt(c c) (c, bool) { // quote
 	}
 }
 func op2(code k) ([]f2, []fc) {
-	switch code - dyad {
+	switch code - dy {
 	case 1: // +
 		return []f2{nil, adC, adI, adF, adZ, nil}, nil
 	case 2: // -             sbC (TODO remove)
@@ -2318,15 +2317,15 @@ func op2(code k) ([]f2, []fc) {
 		return nil, nil
 	}
 }
-func add(x, y k) (r k) { f, g := op2(1 + dyad); return nd(x, y, 0, f, g) } // x+y
-func sub(x, y k) (r k) { f, g := op2(2 + dyad); return nd(x, y, 0, f, g) } // x-y
-func mul(x, y k) (r k) { f, g := op2(3 + dyad); return nd(x, y, 0, f, g) } // x*y
-func div(x, y k) (r k) { f, g := op2(4 + dyad); return nd(x, y, 0, f, g) } // x%y
-func min(x, y k) (r k) { f, g := op2(5 + dyad); return nd(x, y, 0, f, g) } // x&y
-func max(x, y k) (r k) { f, g := op2(6 + dyad); return nd(x, y, 0, f, g) } // x|y
-func les(x, y k) (r k) { return nd(x, y, I, nil, ltx) }                    // x<y
-func mor(x, y k) (r k) { return nd(x, y, I, nil, gtx) }                    // x>y
-func eql(x, y k) (r k) { return nd(x, y, I, nil, eqx) }                    // x=y
+func add(x, y k) (r k) { f, g := op2(1 + dy); return nd(x, y, 0, f, g) } // x+y
+func sub(x, y k) (r k) { f, g := op2(2 + dy); return nd(x, y, 0, f, g) } // x-y
+func mul(x, y k) (r k) { f, g := op2(3 + dy); return nd(x, y, 0, f, g) } // x*y
+func div(x, y k) (r k) { f, g := op2(4 + dy); return nd(x, y, 0, f, g) } // x%y
+func min(x, y k) (r k) { f, g := op2(5 + dy); return nd(x, y, 0, f, g) } // x&y
+func max(x, y k) (r k) { f, g := op2(6 + dy); return nd(x, y, 0, f, g) } // x|y
+func les(x, y k) (r k) { return nd(x, y, I, nil, ltx) }                  // x<y
+func mor(x, y k) (r k) { return nd(x, y, I, nil, gtx) }                  // x>y
+func eql(x, y k) (r k) { return nd(x, y, I, nil, eqx) }                  // x=y
 func lgn(x, y k) (r k) { // x log y
 	return nd(x, y, 0, []f2{nil, nil, nil, func(r, x, y k) { m.f[r] = math.Log(m.f[y]) / math.Log(m.f[x]) }, nil, nil}, nil)
 }
@@ -3388,7 +3387,7 @@ func cal(x, y k) (r k) { // x.y
 			if f > 255 {
 				panic("assert proj")
 			}
-			if f >= dyad {
+			if f >= dy {
 				m.k[r] = (V2)<<28 | atom
 			}
 		}
@@ -3402,9 +3401,23 @@ func cal(x, y k) (r k) { // x.y
 		dec(x)
 		return cal(u, enl(cal(v, y)))
 	}
-	code := m.k[2+x]
-	if code > 255 { // derived
-		code >>= 8
+
+	switch x {
+	case 0x27:
+		return dex(y, drv(')', inc(m.k[2+y])))
+	case 0x2f:
+		return dex(y, drv(']', inc(m.k[2+y])))
+	case 0x5c:
+		return dex(y, drv('}', inc(m.k[2+y])))
+	case 0xa7:
+		return dex(y, drv('(', inc(m.k[2+y])))
+	case 0xaf:
+		return dex(y, drv('[', inc(m.k[2+y])))
+	case 0xdc:
+		return dex(y, drv('{', inc(m.k[2+y])))
+	}
+	if x > 255 && xn == atom { // derived
+		code := m.k[2+x]
 		switch yn {
 		case 1:
 			f := table[code].(func(k, k) k)
@@ -3412,32 +3425,29 @@ func cal(x, y k) (r k) { // x.y
 			dec(y)
 			return dex(x, f(a, b))
 		case 2:
-			f := table[code+dyad].(func(k, k, k) k)
+			f := table[code+dy].(func(k, k, k) k)
 			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
 			dec(y)
 			return dex(x, f(a, b, c))
 		default:
 			panic("valence")
 		}
-	}
-	switch xt {
-	case V1:
+	} else if x < 128 {
 		if yn != 1 {
 			panic("valence")
 		}
-		f, a := table[code].(func(k) k), inc(m.k[2+y])
+		f, a := table[x].(func(k) k), inc(m.k[2+y])
 		dec(y)
-		return dex(x, f(a))
-	case V2:
+		return f(a)
+	} else if x < 256 {
 		if yn != 2 {
 			panic("valence")
 		}
-		f, a, b := table[code].(func(k, k) k), inc(m.k[2+y]), inc(m.k[3+y])
+		f, a, b := table[x].(func(k, k) k), inc(m.k[2+y]), inc(m.k[3+y])
 		dec(y)
-		return dex(x, f(a, b))
-	default:
-		panic("nyi")
+		return f(a, b)
 	}
+	panic("cal(code)")
 }
 func cal2(f, x, y k) (r k) { return cal(f, l2(x, y)) }
 func lambda(x, y k) (r k) { // call lambda
@@ -3498,15 +3508,11 @@ func ltr(x k) (r k) { // `p@{..} (lambda tree, k7: .{...})
 	m.k[5+r] = drop(i(v), inc(args)) // locals
 	return dex(x, r)
 }
-func qot(x k) (r k) { return drv(0, x) } // '
-func sla(x k) (r k) { return drv(1, x) } // /
-func bsl(x k) (r k) { return drv(2, x) } // \
-func qtc(x k) (r k) { return drv(3, x) } // ':
-func slc(x k) (r k) { return drv(4, x) } // /:
-func bsc(x k) (r k) { return drv(5, x) } // \:
 func drv(op k, x k) (r k) { // derived function
-	r = mk(V1, atom)
-	m.k[2+r] = (33 + op) << 8 // op: 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
+	r = mk(I, atom)            // todo: mk(V1, atom)
+	m.k[r] = (V1 << 28) | atom // todo
+	// m.k[2+r] = (33 + op) << 8 // op: 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
+	m.k[2+r] = op
 	m.k[3+r] = x
 	return r
 }
@@ -3596,7 +3602,7 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 	}
 	x0 := k(0)
 	if code := m.k[2+f]; m.k[f]&atom == atom && code < 256 {
-		switch code - dyad {
+		switch code - dy {
 		//case 12: // ,
 		//return decr(x, f, mk(t, 0))
 		case 1, 2, 6: // +-|
@@ -3715,7 +3721,7 @@ func ovr(f, x k) (r k) { // f/x
 	}
 	if t, n := typ(x); n == 0 { // verb depended values for empty y
 		if code := m.k[2+f]; m.k[f]&atom == atom && code < 256 {
-			switch code - dyad {
+			switch code - dy {
 			case 12: // ,
 				return decr(x, f, mk(t, 0))
 			case 1, 2, 6: // +-|
@@ -3737,7 +3743,7 @@ func ovr(f, x k) (r k) { // f/x
 		if n == atom {
 			return x
 		}
-		if m.k[f]&atom == atom && m.k[2+f] == 1+dyad { // +/
+		if m.k[f]&atom == atom && m.k[2+f] == 1+dy { // +/
 			return sum(x)
 		}
 		r := mk(t, atom)
@@ -3989,16 +3995,16 @@ func wrl(x, y k) (r k) { // x 0:y
 	if m.k[x]>>28 == L {
 		return vsc(x, y)
 	}
-	w := table[21+dyad].(func(k, k) k)
+	w := table[21+dy].(func(k, k) k)
 	return w(x, jon(mkc('\n'), y))
 }
 func lun(x k) (r k) { // 8:x or .. \x (display)
-	wr := table[21+dyad].(func(k, k) k)
+	wr := table[dy+'1'].(func(k, k) k)
 	dec(wr(inc(nans), cat(kst(inc(x)), mkc('\n'))))
 	return x
 }
 func lud(x, y k) (r k) { // x 8:y (inspect)
-	wr := table[21+dyad].(func(k, k) k)
+	wr := table[21+dy].(func(k, k) k)
 	t, _ := typ(x)
 	var o k
 	if t == C { // annotate
@@ -4041,12 +4047,12 @@ func cmd(x k) (r k) {
 		return key(inc(m.k[kkey]), inc(m.k[kval])) // dump ktree
 	case 's':
 		if r = lupo(mks(".stk")); r != 0 {
-			w := table[21+dyad].(func(k, k) k)
+			w := table[21+dy].(func(k, k) k)
 			dec(w(inc(nans), cat(r, mkc('\n'))))
 		}
 		return dex(x, 0)
 	case 'm': // \m x (matrix display)
-		w := table[21+dyad].(func(k, k) k)
+		w := table[21+dy].(func(k, k) k)
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return 0
 	case '\\':
@@ -4086,7 +4092,7 @@ func evp(x k) { // parse-eval-print
 		a = m.k[1+n+a] // last of multiple statements
 	}
 	if t, n := typ(a); t == L && n > 1 {
-		if f := m.k[2+a]; m.k[f]>>28 == V2 && m.k[2+f] == dyad { // (::;`x;v)
+		if f := m.k[2+a]; m.k[f]>>28 == V2 && m.k[2+f] == dy { // (::;`x;v)
 			asn = true
 		} else if m.k[f]>>28 == V1 && m.k[f]&atom == atom && n == 3 { // (*:;`x;v) modified assignment
 			asn = true
@@ -4103,7 +4109,7 @@ func out(x k) {
 	if x == 0 {
 		return
 	}
-	w := table[21+dyad].(func(k, k) k)
+	w := table[21+dy].(func(k, k) k)
 	dec(w(inc(nans), cat(kst(x), mkc('\n'))))
 }
 func spl(x, y k) (r k) { // x\:y (split)
@@ -6039,10 +6045,10 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		} else {
 			if y := p.ex(p.noun()); y == 0 {
 				return p.store(ps, l2(v, dex(y, x))) // e.g. 2+
-			} else if m.k[v]>>28 == V2 && m.k[2+v] == dyad+18 { // @
+			} else if v == dy+'@' { // strip @
 				return dex(v, p.store(ps, l2(x, y))) // x@y
 			} else if cmpvrb(y) {
-				if tv, nv := typ(v); tv == V2 && nv == atom && m.k[2+v] == dyad {
+				if tv, nv := typ(v); tv == V2 && nv == atom && m.k[2+v] == dy {
 					// TODO: also for global assign?
 					return p.store(ps, l3(iasn(v), x, y)) // n:y (not a composition)
 				}
@@ -6062,10 +6068,8 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 	}
 }
 func iasn(v k) k { // mark (local) infix assignment
-	if t, n := typ(v); t == V2 && n == atom && m.k[v+2] == dyad {
-		m.k[v] = (V1)<<28 | atom
-		m.k[v+2] = 0
-		m.k[v+3] = 1 // marker
+	if v == dy+':' {
+		return 1
 	}
 	return v
 }
@@ -6200,7 +6204,7 @@ func (p *p) noun() (r k) {
 		return p.idxr(n)
 	case p.t(sVrb):
 		r = p.a(pVrb)
-		if m.k[r]>>28 == V2 && m.k[2+r] == dyad {
+		if m.k[r]>>28 == V2 && m.k[2+r] == dy {
 			if c := m.c[p.p-2]; m.c[p.p] != '[' && (p.p == p.lp+2 || c == ';' || c == ' ' || c == '[' || c == '(') {
 				r = dex(r, mk(V0, 2)) // :expr
 				m.k[2+r] = 0
@@ -6295,7 +6299,7 @@ func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [wher
 		c = mk(L, 0)
 	}
 	f := mk(V2, atom)
-	m.k[2+f] = 14 + dyad // #
+	m.k[2+f] = 14 + dy // #
 	if m.k[2+x] == yudt || m.k[2+x] == ydel {
 		m.k[2+f]++ // _
 	}
@@ -6343,7 +6347,7 @@ func scat(x k) (r k) { // a → ,`a | a,b,.. → ,`a`b`..
 	t, n := typ(x)
 	if t == S {
 		return x
-	} else if t != L || n != 3 || m.k[3+x] != 12+dyad || m.k[4+x]>>28 != S {
+	} else if t != L || n != 3 || m.k[3+x] != 12+dy || m.k[4+x]>>28 != S {
 		panic("parse")
 	}
 	return dex(x, cat(inc(m.k[2+x]), scat(inc(m.k[3+x]))))
@@ -6391,7 +6395,7 @@ func sqlp(x k) (r k) {
 			panic("parse")
 		}
 		v := p.a(pVrb)
-		if t, n := typ(v); t == V2 && n == atom && m.k[2+v] == dyad {
+		if t, n := typ(v); t == V2 && n == atom && m.k[2+v] == dy {
 			x = decr(x, v, mkb(m.c[p.p:p.e]))
 			return key(s, toex(prs(inc(x)), x))
 		}
@@ -6432,16 +6436,27 @@ func (p *p) mustex() (r, c k) {
 	return r, mkb(m.c[s:p.p])
 }
 func monad(x k) (r k) { // force monad
-	t, _ := typ(x)
-	if t == V2 {
-		r = mk(V1, atom)
-		m.k[2+r] = m.k[2+x] - dyad
-		if m.k[2+x] >= 2*dyad {
-			panic("parse monad")
-		}
-		return dex(x, r)
+	if x < 128 {
+		return x
+	} else if x < 256 {
+		return x - 128
+	} else if m.k[x]>>28 != L {
+		println(x)
+		panic("force monad?")
 	}
 	return x
+	/*
+		t, _ := typ(x)
+		if t == V2 {
+			r = mk(V1, atom)
+			m.k[2+r] = m.k[2+x] - dy
+			if m.k[2+x] >= 2*dy {
+				panic("parse monad")
+			}
+			return dex(x, r)
+		}
+		return x
+	*/
 }
 func compose(x k) (r k) { // composition
 	t, n := typ(x)
@@ -6452,7 +6467,7 @@ func compose(x k) (r k) { // composition
 	}
 	if cmpvrb(m.k[2+x]) && cmpvrb(m.k[3+x]) {
 		r = mk(V2, atom)
-		m.k[2+r] = 19 + dyad // cal
+		m.k[2+r] = 19 + dy // cal
 		return cat(r, x)
 	}
 	return x
@@ -6471,12 +6486,12 @@ func cmpvrb(x k) bool { // is allowed in composition
 			return false // assignment, not composition
 		}
 		return true // 1+
-	} else if n == 3 && m.k[u]>>28 == V2 && m.k[2+u] == 19+dyad && cmpvrb(v) {
+	} else if n == 3 && m.k[u]>>28 == V2 && m.k[2+u] == 19+dy && cmpvrb(v) {
 		return true // (.;v;w)
 	} else if n == 2 && t == L {
 		code := m.k[2+m.k[2+x]]
-		if code > dyad {
-			code -= dyad
+		if code > dy {
+			code -= dy
 		}
 		if m.k[m.k[2+x]]&atom == atom && code >= 30 && code <= 32 {
 			return true
@@ -6569,58 +6584,72 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 func pVrb(b []byte) (r k) {
 	for i := k(0); i < 34; i++ { // :+-*%&|<>=!~,^#_$?@.0123456789'/\
 		if b[0] == m.c[i+136] {
-			if len(b) == 1 {
-				r = mk(V2, atom)
-				if i >= 30 {
-					m.k[r] = atom | (V1)<<28
+			/*
+				if len(b) == 1 {
+					r = mk(V2, atom)
+					if i >= 30 {
+						m.k[r] = atom | (V1)<<28
+					}
+					m.k[2+r] = k(i) + dy
+				} else {
+					r = mk(V1, atom)
+					m.k[2+r] = k(i)
 				}
-				m.k[2+r] = k(i) + dyad
+				m.k[3+r] = 0 // clear infix assignment
+				return r
+			*/
+			if len(b) == 1 {
+				return k(b[0]) + dy
 			} else {
-				r = mk(V1, atom)
-				m.k[2+r] = k(i)
+				return k(b[0])
 			}
-			m.k[3+r] = 0 // clear infix assignment
-			return r
 		}
 	}
 	panic("pVrb")
 }
 func pIov(b []byte) (r k) {
-	r = mk(V2, atom)
-	m.k[2+r] = dyad + 20 + k(b[0]-'0') // ioverb parses always as `2
 	if b[0] == 0x08 {
-		m.k[2+r] = dyad + 28
+		return dy + '8'
 	}
-	return r
+	return dy + k(b[0])
+	/*
+		r = mk(V2, atom)
+		m.k[2+r] = dy + 20 + k(b[0]-'0') // ioverb parses always as `2
+		if b[0] == 0x08 {
+			m.k[2+r] = dy + 28
+		}
+		return r
+	*/
 }
 func pAdv(b []byte) (r k) {
-	f := k(dyad + 30)
+	/*
+		f := k(dy + 30)
+		if len(b) > 1 {
+			f -= dy
+		}
+		if b[0] == '/' {
+			f++
+		} else if b[0] == '\\' {
+			f += 2
+		}
+		r = mk(V1, atom)
+		m.k[2+r] = f
+		return r
+	*/
 	if len(b) > 1 {
-		f -= dyad
+		return k(b[0])
 	}
-	if b[0] == '/' {
-		f++
-	} else if b[0] == '\\' {
-		f += 2
-	}
-	r = mk(V1, atom)
-	m.k[2+r] = f
-	return r
+	return dy + k(b[0])
 }
 func pBin(b []byte) (r k) { // builtin
-	x := atx(inc(m.k[3]), c2s(mkb(b)))
-	if xt, xn := typ(x); xt != C && xn != atom {
-		panic("parse builtin")
+	x := c2s(mkb(b))
+	r = m.k[2+x] - 255
+	if r < 2 || r > 64 {
+		panic("pbin")
+	} else if r > 32 {
+		r += 128 - 32
 	}
-	if f := m.c[8+x<<2]; f < c(dyad) {
-		r = mk(V1, atom)
-		m.k[2+r] = k(f)
-	} else {
-		r = mk(V2, atom)
-		m.k[2+r] = k(f)
-	}
-	dec(x)
-	return r
+	return dex(x, r)
 }
 func pSql(b []byte) (r k) { // ksql
 	s := [6]k{ysel, yudt, ydel, yby, yfrm, ywer}
@@ -6805,19 +6834,22 @@ func sAdv(b []byte) int {
 	}
 	return 0
 }
-func sBin(b []byte) int { // builtin
-	n := sNam(b)
-	if n == 0 {
-		return 0
+func sBin(b []byte) int { // builtin (stab 1..64)
+	s := m.k[stab]
+	for i := k(1); i < 64; i++ {
+		n := m.k[m.k[2+s+i]] & atom
+		if k(len(b)) >= n {
+			cp := 8 + m.k[2+s+i]<<2
+			for j := k(0); j < n; j++ {
+				if b[j] != m.c[cp+j] {
+					break
+				} else if j == n-1 {
+					return int(n)
+				}
+			}
+		}
 	}
-	names := m.k[2+m.k[3]]
-	a, max := fnd(inc(names), c2s(mkb(b[:n]))), cnt(inc(names))
-	if match(a, max) {
-		n = 0
-	}
-	dec(a)
-	dec(max)
-	return n
+	return 0
 }
 
 func sQlq(b []byte) int { // ksql select|update|delete

@@ -32,7 +32,7 @@ type (
 )
 
 func TestT(t *testing.T) {
-	// t.Skip()
+	t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestT(t *testing.T) {
 }
 func try(c []c, occ bool) s {
 	ini(make([]f, 1<<13))
-	table[21+dyad] = wrt
+	table[21+dy] = wrt
 	l := prs(mkb(c))
 	if occ {
 		inc(l)
@@ -86,13 +86,15 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"+/1 2 3", "6"},
 		{"@3", "`i"},
+		//{`(!2 3 4)~{x\:!*/x}[2 3 4]`, "1"},
 		//{"@(;)[0]", "?"},
 		//{`("alpha";"aa";"berta")`, `("aa";"alpha";"berta")`},
 		{"(!100000)~^-100000 rand 100000", "1"},
 		{"^5 2 -5 -2 0 4", "-5 -2 0 2 4 5"},
 		{"=1 2 2 3 2", "1 2 3!(,0;1 2 4;,3)"},
-		{"<(+;-;+;+:;-:)", "3 4 0 2 1"}, // k7: 4 3 1 0 2 / k7: >(...) class error
+		{"<(+;-;+;+:;-:)", "3 4 0 1 2"}, // k7: 4 3 1 0 2 / k7: >(...) class error
 		{"?9 3 8 7 8 7 2", "9 3 8 7 2"},
 		{"0N+0f", "0n"}, // kwm 0f
 		//{"@{1+2}", "`1"},
@@ -217,7 +219,6 @@ func TestK(t *testing.T) {
 		{`"",!0`, `""`},
 		{"!0x03", "0x000102"},
 		{"!2 3", "(0 0 0 1 1 1;0 1 2 0 1 2)"},
-		{`(!2 3 4)~{x\:!*/x}[2 3 4]`, "1"},
 		{"2#!3", "0 1"},
 		{"2#!30", "0 1"},
 		{"5#!3", "0 1 2 0 1"},
@@ -992,7 +993,7 @@ func TestK(t *testing.T) {
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
 			ini(make([]f, 1<<13))
-			table[21+dyad] = wrt
+			table[21+dy] = wrt
 			fmt.Printf("%s → %s\n", tc.x, tc.r)
 			x := prs(mkb([]c(tc.x)))
 			if occ {
@@ -1080,7 +1081,7 @@ Initial memory (64kB)
  p[0]        block header
  p[1]        rng state
  p[2]        total allocated memory log2 (initial 64k, max 4G) uint32
- p[3]        points to a dict of built-ins S(name)!L(fcodes)
+ p[3]        version(date)
  followed by free list:
  p[4..31]    points to free block of bucket size n = 4..31
  byte[136…168] symbols :+-*%&|<>=!~,^#_$?@.0123456789'/\
@@ -1094,9 +1095,31 @@ Initial memory (64kB)
              A01234 need only a single block but may have length>0
 	     
 Function codes
- ascii values for :+-*%&|<>=!~,^#_$?@. (+128 dyadic)
- 0(null) '0'..'9'(io verbs) 
+ primitives :+-*%&|<>=!~,^#_$?@. (their ascii value, dyadic +128)
+ ioverbs 0123456789 ('0'..'9', dyadic +128)
+ operators '/\ (ascii+128) ': /: \: (ascii '/\)
+ derived functions each/over/scan/each-prior/each-right/each-left: ascii ([{)]}, +128
+ builtins 2-30 130-158 
 
+Functions have type V0,V1,V2,..V0+7
+ basic functions and builtins have values < 256 and are not stored in the memory system
+ lambda functions: marked with length 0
+  x+2 string form C
+  x+3 (arg list;parse tree)
+ projection: length 1(over lambda) 2(over basic/builtins)
+  x+2 function code or pointer to lambda function
+  x+3 full argument list with holes (N)
+ composition: length 3, type N+1 or N+2
+  x+2, x+3: point to verbs
+ derived verbs, e.g. evaluating (/;+) are atoms
+  x+2 derived function code
+  x+3 points to the function operand
+ expressions (:e) have type N with length 2
+  x+2 parse tree
+  x+3 string form C
+ call will adjust the valence if a derived function has two arguments
+
+/* old version
 Function codes
   0-19 monadic primitives :+-*%&|<>=!~,^#_$?@.
  20-29 monadic ioverbs 0123456789
@@ -1124,6 +1147,7 @@ Functions have type N+1…N+4 (valence)
   x+2 parse tree
   x+3 string form C
  call will adjust the valence if a derived function has two arguments
+*/
  
 Symbols are interned in the char array at m.k[stab]
  symbol values are 256+index into this array (which is append only)
@@ -1140,9 +1164,9 @@ See directory _/ instead.
 }
 func check(t *testing.T) {
 	// Number of used blocks after an expression should be:
-	// 3(built-in dict,k,v) + 2(k-tree k,v) +1+#stab(symbols)
+	// 2(k-tree k,v) +1+#stab(symbols)
 	// vars := m.k[m.k[kkey]] & atom
-	if u, e := Stats().UsedBlocks(), 6+m.k[m.k[stab]]&atom; u != e {
+	if u, e := Stats().UsedBlocks(), 3+m.k[m.k[stab]]&atom; u != e {
 		xxd()
 		t.Fatalf("leak: %d != %d", u, e)
 	}
@@ -1162,8 +1186,8 @@ func pr(x k, a ...interface{}) {
 	fmt.Println(a, s)
 }
 func xxd() { // memory dump
-	h := k(64)
-	for i := k(64); i < k(len(m.k)); i += 4 {
+	h := k(256)
+	for i := k(256); i < k(len(m.k)); i += 4 {
 		a, b, c, d := m.k[i+0], m.k[i+1], m.k[i+2], m.k[i+3]
 		if a == 0 && b == 0 && c == 0 && d == 0 {
 			continue
@@ -1204,8 +1228,8 @@ func fpck(s s) { // check free pointers
 			panic("fpck " + s + " bad pointer in free-list: @" + strconv.Itoa(int(i)))
 		}
 	}
-	h := k(64)
-	for i := k(64); i < k(len(m.k)); i += 4 {
+	h := k(256)
+	for i := k(256); i < k(len(m.k)); i += 4 {
 		if i == h {
 			tp := m.k[i] >> 28
 			if tp == 0 {
@@ -1237,7 +1261,7 @@ func (s MemStats) UsedBlocks() (t uint32) {
 }
 func Stats() MemStats {
 	st := make(MemStats)
-	a := uint32(64)
+	a := uint32(256)
 	o := uint32(0)
 	for a < 1<<(m.k[2]-2) {
 		tp := m.k[a] >> 28
