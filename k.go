@@ -396,7 +396,7 @@ func bk(t, n k) k {
 	return buk(sz + 8) // complex values have an additional 8 byte padding after the header (does not change bucket type)
 }
 func mk(t, n k) k { // make type t of len n (-1:atom)
-	if t > V0 {
+	if t > V0 && n == atom {
 		panic("mk verb?")
 	}
 	bt := bk(t, n)
@@ -452,6 +452,7 @@ func typ(x k) (k, k) { // type and length at addr
 	return m.k[x] >> 28, m.k[x] & atom
 }
 func typs(x, y k) (xt, yt, xn, yn k) { xt, xn = typ(x); yt, yn = typ(y); return }
+func vrb(x k) bool                   { return x < 256 || m.k[x]>>28 > V0 }
 func mtyp(x, n k) (t, cols k, eq bool) { // matrix type
 	eq = true
 	for i := k(0); i < n; i++ {
@@ -486,12 +487,12 @@ func inc(x k) k {
 		inc(m.k[2+x])
 		inc(m.k[3+x])
 	case t >= V1:
-		if n == atom && m.k[2+x] > 255 { // derived
+		if n == atom { // derived
 			inc(m.k[3+x])
 		} else if n == 0 { // lambda
 			inc(m.k[2+x])
 			inc(m.k[3+x])
-		} else if n != atom { // projection, composition
+		} else { // projection, composition
 			if n == 1 || n == 3 { // lambda-projection, composition
 				inc(m.k[2+x])
 			}
@@ -523,12 +524,12 @@ func dec(x k) {
 		dec(m.k[2+x])
 		dec(m.k[3+x])
 	case t >= V1:
-		if n == atom && m.k[2+x] > 255 { // derived
+		if n == atom { // derived
 			dec(m.k[3+x])
 		} else if n == 0 { // lambda
 			dec(m.k[2+x])
 			dec(m.k[3+x])
-		} else if n != atom { // n: 1, 2 (projection), 3(composition)
+		} else { // n: 1, 2 (projection), 3(composition)
 			if n == 1 || n == 3 { // lambda-projection, or composition
 				dec(m.k[2+x])
 			}
@@ -1230,9 +1231,7 @@ func enl(x k) (r k) { // ,x (collaps uniform)
 	} else if t == A && n == atom {
 		r = mk(A, 1)
 		m.k[2+r] = inc(m.k[2+x])
-		f := mk(V1, atom)
-		m.k[2+f] = 12 // ,:
-		m.k[3+r] = ech(f, inc(m.k[3+x]))
+		m.k[3+r] = ech(',', inc(m.k[3+x]))
 		return dex(x, r)
 	}
 	r = mk(L, 1)
@@ -1339,12 +1338,19 @@ func str(x k) (r k) { // $x
 			f := m.k[2+x]
 			if x == 0 {
 				return mk(C, 0)
+			} else if x > 1 && x < 32 {
+				return inc(m.k[1+x+m.k[stab]])
+			} else if x > 128 && x < 160 {
+				return inc(m.k[x-95+m.k[stab]])
 			} else if x < 256 {
 				c := c(x)
+				//if x == 1 {
+				//	c = ':'
+				//}
 				if x > 127 {
 					c -= 128
 				}
-				r = mkc(c)
+				r = enl(mkc(c))
 				if c >= '0' && c <= '9' {
 					r = ucat(r, mkc(':'), C, 1, 1)
 				}
@@ -1352,40 +1358,32 @@ func str(x k) (r k) { // $x
 					r = cat(r, mkc(':'))
 				}
 				return r
+			} else if n == atom { // derived
+				u1, u2, v := k(0x7b5b28), k(0x7d5d29), k(0x5c2f27) // ([{ )]} '/\
+				for i := k(0); i <= 16; i += 8 {
+					if u1>>i&0xff == m.k[2+x] {
+						r = mkc(c(v >> i & 0xff))
+						break
+					} else if u2>>i&0xff == m.k[2+x] {
+						r = ucat(mkc(c(v>>i&0xff)), mkc(':'), C, 1, 1)
+						break
+					} else if i == 16 {
+						panic("value") // op-verb
+					}
+				}
+				r = cat(str(inc(m.k[3+x])), r)
 			} else if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
-				r = inc(m.k[2+x]) // `C
+				r = inc(f) // `C
+			} else if n == 2 { // basic projection
+				r = str(f)
 			} else if n == 3 { // composition
 				r = cat(str(inc(m.k[2+x])), str(inc(m.k[3+x])))
-			} else if (f >= 39 && f < dy) || (f >= 39+dy && f < 2*dy) { // built-ins
-				r = str(atx(inc(m.k[2+m.k[3]]), fst(wer(eql(mki(f), inc(m.k[3+m.k[3]]))))))
-			} else if f < 20 || (f >= 30 && f <= 33) { // monad +: /:
-				r = mkb([]c{m.c[136+m.k[2+x]], ':'})
-			} else if f >= 20 && f < 30 { // monadic ioverb
-				r = mkb([]c{'0' + c(f-20), ':', ':'})
-			} else if f >= 20+dy && f < 30+dy { // dyadic ioverb 3:
-				r = mkb([]c{'0' + c(f-20-dy), ':'})
-			} else if f >= dy && f < 33+dy { // dyad * /
-				r = mkc(m.c[136+m.k[2+x]-dy])
-				m.k[r] = C<<28 | 1
-			} else if f > 256 && t == V1 { // derived verb (see func drv)
-				if op := f >> 8; op >= 33 && op <= 38 {
-					if op < 36 { // 33-35 ' / \
-						op += dy - 3
-					} else { // 36-38 ': /: \:
-						op -= 6
-					}
-					opv := mk(V1, atom)
-					m.k[2+opv] = op
-					r = cat(str(inc(m.k[3+x])), str(opv))
-				} else {
-					panic("type") // unknown verb
-				}
 			} else {
 				panic("assert")
 			}
 			if n == 1 || n == 2 { // projection
 				a := m.k[3+x]
-				if n == 2 && f < 2*dy && m.k[3+a] == 0 {
+				if n == 2 && m.k[3+a] == 0 {
 					r = cat(kst(inc(m.k[2+a])), r) // short form: 2+
 				} else {
 					a = kst(inc(a))   // arg list
@@ -1512,10 +1510,10 @@ func evl(x k) (r k) {
 			return dex(x, v)
 		}
 		if v < 128 && n == 3 { // : or :: or *: (modified assignmnt)
-			if v != 1 { // not ::, e.g. *:
-				v += 128
-			} else {
+			if v == ':' || v == dy+':' {
 				v = 0
+			} else { // e.g. *:
+				v += 128
 			}
 			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
 			if nt, nn := typ(name); nt == L && nn > 1 {
@@ -1538,7 +1536,7 @@ func evl(x k) (r k) {
 				}
 			}
 			return dex(x, asn(name, val, v))
-		} else if n > 3 && vt >= V1 && vn == atom && m.k[2+v] == 16+dy { // $[...] delays evaluation
+		} else if n > 3 && v == dy+'$' { // $[...] delays evaluation
 			return R() + dex(v, swc(drop(1, x)))
 		}
 		r = mk(L, n-1)
@@ -1550,18 +1548,18 @@ func evl(x k) (r k) {
 			v = evl(v)
 		}
 		vt, vn := typ(v)
-		if n > 3 && vt >= V1 && vn == atom {
+		if n > 3 && v < 256 {
 			g := amd
-			switch code := m.k[2+v]; code { // triadics..
-			case dy + 14: // #
+			switch v { // triadics..
+			case dy + '#':
 				g = sel
-			case dy + 15: // _
+			case dy + '_':
 				g = udt
-			case dy + 17: // ?
+			case dy + '?':
 				g = ins
-			case dy + 18: // @
+			case dy + '@':
 				g = amd
-			case dy + 19: // .
+			case dy + '.':
 				g = dmd
 			default:
 				P("args")
@@ -1570,7 +1568,7 @@ func evl(x k) (r k) {
 				x, a, y := inc(m.k[2+r]), inc(m.k[3+r]), inc(m.k[4+r])
 				dec(v) // dec early, allow inplace
 				dec(r)
-				if m.k[y]>>28 >= V0 {
+				if y < 256 || m.k[y]>>28 >= V0 {
 					return R() + g(x, a, y, 0)
 				} else {
 					return R() + g(x, a, 0, y)
@@ -1583,21 +1581,22 @@ func evl(x k) (r k) {
 			} else {
 				P("args")
 			}
-		} else if n == 3 && vt == V2 && m.k[2+v] == 19+dy && m.k[m.k[3+r]]>>28 >= V1 { // composition
-			dec(v)
-			v = mk(m.k[m.k[3+r]]>>28, 3)
+		} else if n == 3 && v == dy+'.' && vrb(m.k[2+r]) && vrb(m.k[3+r]) { // composition
+			t2, _ := typ(m.k[3+r])
+			v = mk(t2, 3)
 			m.k[2+v] = inc(m.k[2+r])
 			m.k[3+v] = inc(m.k[3+r])
 			return R() + dex(r, v)
-			//} else if vt >= V1 && !(vn == atom && vt == V1 && n-1 == 2 && m.k[2+v] > 255) { // allow dyadic derived
-		} else if v > 255 && vt >= V1 && vn == atom { // allow dyadic derived
-			if n-1 > vt-V0 {
+		} else if vt >= V1 {
+			if vn == atom && vt == V1 && n == 3 { // dyadic derived
+				return R() + cal(v, r)
+			} else if n-1 > vt-V0 {
 				P("args") // too many arguments
 			}
 			for i := n - 1; i < vt-V0; i++ { // fill args, e.g. 2+
 				r = lcat(r, 0)
 			}
-			if vt > V1 { // no projection for monads, allow null argument
+			if vt > V1 && v != 0xa7 && v != 0xaf && v != 0xdc { // no prj for monads and '/\
 				for i := k(0); i < m.k[r]&atom; i++ {
 					if m.k[2+i+r] == 0 {
 						return R() + prj(v, r)
@@ -1689,9 +1688,8 @@ func prj(x, y k) (r k) { // convert x to a projection
 	t := m.k[x] >> 28
 	r = mk(t, 2)
 	ln := k(2)
-	if f := m.k[2+x]; f < 256 {
-		m.k[2+r] = f // #1: function code if < 256
-		dec(x)
+	if x < 256 {
+		m.k[2+r] = x // #1: function code if < 256
 	} else {
 		m.k[2+r] = x // #1: pointer to lambda function if code >= 256
 		ln = 1
@@ -3382,14 +3380,10 @@ func cal(x, y k) (r k) { // x.y
 		if f := m.k[x+2]; xn == 1 { // lambda projection
 			r, xn = inc(f), 0
 		} else {
-			r = mk(V1, atom)
-			m.k[2+r] = f
 			if f > 255 {
 				panic("assert proj")
 			}
-			if f >= dy {
-				m.k[r] = (V2)<<28 | atom
-			}
+			r = f
 		}
 		dec(x)
 		x, y, xt, yn = r, a, V0+n, n
@@ -3466,7 +3460,7 @@ func lambda(x, y k) (r k) { // call lambda
 		//panic("type")
 	}
 	if m.k[loc]>>28 != S {
-		panic("locl")
+		panic("locals")
 	}
 	return dex(x, env(loc, l, y, v))
 }
@@ -3517,7 +3511,7 @@ func drv(op k, x k) (r k) { // derived function
 	return r
 }
 func ech(f, x k) (r k) { // f'x
-	if t := m.k[f] >> 28; t < V0 { // x'y (bar: x*x/y)
+	if t := m.k[f] >> 28; f > 255 && t < V0 { // x'y (bar: x*x/y)
 		if t > I {
 			panic("type")
 		}
@@ -3601,13 +3595,13 @@ func ecp(f, x k) (r k) { // f':x (each prior)
 		panic("class")
 	}
 	x0 := k(0)
-	if code := m.k[2+f]; m.k[f]&atom == atom && code < 256 {
-		switch code - dy {
-		//case 12: // ,
+	if f < 256 {
+		switch f - dy {
+		//case ',': // ,
 		//return decr(x, f, mk(t, 0))
-		case 1, 2, 6: // +-|
+		case '+', '-', '|': // 1, 2, 6: // +-|
 			x0 = to(mki(0), t)
-		case 3, 5: // *&
+		case '*', '&': // 3, 5: // *&
 			x0 = to(mki(1), t)
 		}
 	}
@@ -3757,7 +3751,7 @@ func ovr(f, x k) (r k) { // f/x
 	return ovsc(f, x, false)
 }
 func scn(f, x k) (r k) { // f\x
-	if xt := m.k[f] >> 28; xt < V0 { // x\y (mod, solve, qr, inv)
+	if xt, _ := typ(f); xt < V0 { // x\y (mod, solve, qr, inv)
 		if xt == L {
 			return slv(f, x)
 		} else if xt > F {
@@ -3841,7 +3835,7 @@ func ovi(f, x, y k) (r k) { // x f/y
 	xt, _, xn, yn := typs(x, y)
 	if xt > V0 {
 		return whl(f, x, y)
-	} else if m.k[f]>>28 == V1 && xt == I { // for
+	} else if (f < 128 || m.k[f]>>28 == V1) && xt == I { // for
 		n := m.k[2+x]
 		r = y
 		for i := k(0); i < n; i++ {
@@ -3874,7 +3868,7 @@ func sci(f, x, y k) (r k) { // x f\y
 	xt, _, xn, yn := typs(x, y)
 	if xt > V0 {
 		return whls(f, x, y)
-	} else if m.k[f]>>28 == V1 && xt == I { // scan-for
+	} else if (f < 128 || m.k[f]>>28 == V1) && xt == I { // scan-for
 		n := m.k[2+x]
 		r = y
 		l := lcat(mk(L, 0), inc(r))
@@ -3933,7 +3927,7 @@ func scop2(f, x, y k) (k, k, k, f2) {
 	if m.k[f]&atom != atom || m.k[2+f] > 255 {
 		return x, y, 0, nil
 	}
-	xt, yt := m.k[x]>>28, m.k[y]>>28
+	xt, yt, _, _ := typs(x, y)
 	if xt >= L || yt >= L {
 		return x, y, 0, nil
 	}
@@ -4092,9 +4086,9 @@ func evp(x k) { // parse-eval-print
 		a = m.k[1+n+a] // last of multiple statements
 	}
 	if t, n := typ(a); t == L && n > 1 {
-		if f := m.k[2+a]; m.k[f]>>28 == V2 && m.k[2+f] == dy { // (::;`x;v)
+		if f := m.k[2+a]; f == dy+':' { // (::;`x;v)
 			asn = true
-		} else if m.k[f]>>28 == V1 && m.k[f]&atom == atom && n == 3 { // (*:;`x;v) modified assignment
+		} else if f < 128 && n == 3 { // (*:;`x;v) modified assignment
 			asn = true
 		}
 	}
@@ -5923,6 +5917,7 @@ func par(x, sto k) (r k) {
 	m.k[2+r] = inc(nans) // ;→`
 	for p.p <= p.e {     // ex;ex;…
 		r = lcat(r, p.ex(p.noun()))
+		locl(r, 0) // correct local infix assign outside lambda
 		if !p.t(sSem) {
 			break
 		}
@@ -6179,10 +6174,9 @@ func (p *p) noun() (r k) {
 		if n := m.k[r] & atom; n == 0 {
 			return p.idxr(r)
 		} else if n == 1 {
-			if m.k[m.k[2+r]]>>28 > V0 { // verb
+			if vrb(m.k[2+r]) { // verb
 				return p.idxr(r)
 			}
-			// TODO drv
 			return p.idxr(fst(r))
 		}
 		return p.idxr(cat(enlist(0), r))
@@ -6204,13 +6198,11 @@ func (p *p) noun() (r k) {
 		return p.idxr(n)
 	case p.t(sVrb):
 		r = p.a(pVrb)
-		if m.k[r]>>28 == V2 && m.k[2+r] == dy {
-			if c := m.c[p.p-2]; m.c[p.p] != '[' && (p.p == p.lp+2 || c == ';' || c == ' ' || c == '[' || c == '(') {
-				r = dex(r, mk(V0, 2)) // :expr
-				m.k[2+r] = 0
-				m.k[3+r] = 0
-				return r
-			}
+		if c := m.c[p.p-2]; r == dy+':' && m.c[p.p] != '[' && (p.p == p.lp+2 || c == ';' || c == ' ' || c == '[' || c == '(') {
+			r = dex(r, mk(V0, 2)) // :expr
+			m.k[2+r] = 0
+			m.k[3+r] = 0
+			return r
 		}
 		return p.idxr(r)
 	}
@@ -6347,7 +6339,7 @@ func scat(x k) (r k) { // a → ,`a | a,b,.. → ,`a`b`..
 	t, n := typ(x)
 	if t == S {
 		return x
-	} else if t != L || n != 3 || m.k[3+x] != 12+dy || m.k[4+x]>>28 != S {
+	} else if t != L || n != 3 || m.k[3+x] != dy+',' || m.k[4+x]>>28 != S {
 		panic("parse")
 	}
 	return dex(x, cat(inc(m.k[2+x]), scat(inc(m.k[3+x]))))
@@ -6445,18 +6437,6 @@ func monad(x k) (r k) { // force monad
 		panic("force monad?")
 	}
 	return x
-	/*
-		t, _ := typ(x)
-		if t == V2 {
-			r = mk(V1, atom)
-			m.k[2+r] = m.k[2+x] - dy
-			if m.k[2+x] >= 2*dy {
-				panic("parse monad")
-			}
-			return dex(x, r)
-		}
-		return x
-	*/
 }
 func compose(x k) (r k) { // composition
 	t, n := typ(x)
@@ -6466,34 +6446,24 @@ func compose(x k) (r k) { // composition
 		return x
 	}
 	if cmpvrb(m.k[2+x]) && cmpvrb(m.k[3+x]) {
-		r = mk(V2, atom)
-		m.k[2+r] = 19 + dy // cal
-		return cat(r, x)
+		return cat(dy+'.', x)
 	}
 	return x
 }
 func cmpvrb(x k) bool { // is allowed in composition
 	t, n := typ(x)
-	if n == atom && (t == V1 || t == V2) {
+	if x < 256 || (n == atom && t == V1) {
 		return true
 	} else if t != L {
 		return false
 	}
 	u, v := m.k[2+x], m.k[3+x]
-	if n == 2 && m.k[u]>>28 == V2 {
-		if code := m.k[2+m.k[2+x]]; code == 0 || code == 80 { // (:;..)
-			panic("assignment in composition")
-			return false // assignment, not composition
-		}
+	if n == 2 && u > 128 && u < 256 {
 		return true // 1+
-	} else if n == 3 && m.k[u]>>28 == V2 && m.k[2+u] == 19+dy && cmpvrb(v) {
+	} else if n == 3 && u == dy+'.' && cmpvrb(v) {
 		return true // (.;v;w)
-	} else if n == 2 && t == L {
-		code := m.k[2+m.k[2+x]]
-		if code > dy {
-			code -= dy
-		}
-		if m.k[m.k[2+x]]&atom == atom && code >= 30 && code <= 32 {
+	} else if n == 2 && t == L { // (/;+)
+		if op := m.k[2+x]; op == 0xa7 || op == 0xaf || x == 0xdc {
 			return true
 		}
 	}
@@ -6584,20 +6554,6 @@ func pQot(b []byte) (r k) { // "a\nb": `C
 func pVrb(b []byte) (r k) {
 	for i := k(0); i < 34; i++ { // :+-*%&|<>=!~,^#_$?@.0123456789'/\
 		if b[0] == m.c[i+136] {
-			/*
-				if len(b) == 1 {
-					r = mk(V2, atom)
-					if i >= 30 {
-						m.k[r] = atom | (V1)<<28
-					}
-					m.k[2+r] = k(i) + dy
-				} else {
-					r = mk(V1, atom)
-					m.k[2+r] = k(i)
-				}
-				m.k[3+r] = 0 // clear infix assignment
-				return r
-			*/
 			if len(b) == 1 {
 				return k(b[0]) + dy
 			} else {
@@ -6612,30 +6568,8 @@ func pIov(b []byte) (r k) {
 		return dy + '8'
 	}
 	return dy + k(b[0])
-	/*
-		r = mk(V2, atom)
-		m.k[2+r] = dy + 20 + k(b[0]-'0') // ioverb parses always as `2
-		if b[0] == 0x08 {
-			m.k[2+r] = dy + 28
-		}
-		return r
-	*/
 }
 func pAdv(b []byte) (r k) {
-	/*
-		f := k(dy + 30)
-		if len(b) > 1 {
-			f -= dy
-		}
-		if b[0] == '/' {
-			f++
-		} else if b[0] == '\\' {
-			f += 2
-		}
-		r = mk(V1, atom)
-		m.k[2+r] = f
-		return r
-	*/
 	if len(b) > 1 {
 		return k(b[0])
 	}
@@ -6932,9 +6866,10 @@ func locl(x, l k) (r k) { // local list of lambda parse tree (not ref-counting)
 		for i := k(0); i < n; i++ {
 			l = locl(m.k[2+i+x], l)
 		}
-		if n == 3 {
+		if n == 3 && m.k[2+x] == 1 { // infix local assignment
+			m.k[2+x] = ':'
 			v := m.k[3+x]
-			if f := m.k[2+x]; m.k[f]>>28 == V1 && m.k[2+f] == 0 && m.k[3+f] == 1 { // infix local assignment
+			if l != 0 {
 				if tt := m.k[v] >> 28; tt == S || (tt == L && m.k[2+v] == 0) { // single or multiple assignment
 					inc(v)
 					if tt == L {
