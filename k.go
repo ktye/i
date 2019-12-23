@@ -3396,19 +3396,8 @@ func cal(x, y k) (r k) { // x.y
 		return cal(u, enl(cal(v, y)))
 	}
 
-	switch x {
-	case 0x27:
-		return dex(y, drv(')', inc(m.k[2+y])))
-	case 0x2f:
-		return dex(y, drv(']', inc(m.k[2+y])))
-	case 0x5c:
-		return dex(y, drv('}', inc(m.k[2+y])))
-	case 0xa7:
-		return dex(y, drv('(', inc(m.k[2+y])))
-	case 0xaf:
-		return dex(y, drv('[', inc(m.k[2+y])))
-	case 0xdc:
-		return dex(y, drv('{', inc(m.k[2+y])))
+	if c := cadv(x); c != 0 {
+		return dex(y, drv(c, inc(m.k[2+y])))
 	}
 	if x > 255 && xn == atom { // derived
 		code := m.k[2+x]
@@ -6043,7 +6032,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			} else if v == dy+'@' { // strip @
 				return dex(v, p.store(ps, l2(x, y))) // x@y
 			} else if cmpvrb(y) {
-				if tv, nv := typ(v); tv == V2 && nv == atom && m.k[2+v] == dy {
+				if v == dy+':' {
 					// TODO: also for global assign?
 					return p.store(ps, l3(iasn(v), x, y)) // n:y (not a composition)
 				}
@@ -6463,7 +6452,7 @@ func cmpvrb(x k) bool { // is allowed in composition
 	} else if n == 3 && u == dy+'.' && cmpvrb(v) {
 		return true // (.;v;w)
 	} else if n == 2 && t == L { // (/;+)
-		if op := m.k[2+x]; op == 0xa7 || op == 0xaf || x == 0xdc {
+		if op := m.k[2+x]; cadv(op) != 0 {
 			return true
 		}
 	}
@@ -6769,10 +6758,14 @@ func sAdv(b []byte) int {
 	return 0
 }
 func sBin(b []byte) int { // builtin (stab 1..64)
+	n := k(sNam(b))
+	if n == 0 {
+		return 0
+	}
 	s := m.k[stab]
 	for i := k(1); i < 64; i++ {
-		n := m.k[m.k[2+s+i]] & atom
-		if k(len(b)) >= n {
+		nn := m.k[m.k[2+s+i]] & atom
+		if n == nn {
 			cp := 8 + m.k[2+s+i]<<2
 			for j := k(0); j < n; j++ {
 				if b[j] != m.c[cp+j] {
@@ -6839,6 +6832,23 @@ func cAdv(c c) bool {
 		return true
 	}
 	return false
+}
+func cadv(x k) (r k) {
+	switch x {
+	case 0x27:
+		return ')'
+	case 0x2f:
+		return ']'
+	case 0x5c:
+		return '}'
+	case 0xa7:
+		return '('
+	case 0xaf:
+		return '['
+	case 0xdc:
+		return '{'
+	}
+	return 0
 }
 func ib(b bool) (r int) {
 	if b {
