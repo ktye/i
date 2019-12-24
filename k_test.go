@@ -67,7 +67,7 @@ func TestT(t *testing.T) {
 }
 func try(c []c, occ bool) s {
 	ini(make([]f, 1<<13))
-	table[21+dy] = wrt
+	table[dy+'1'] = wrt
 	l := prs(mkb(c))
 	if occ {
 		inc(l)
@@ -86,6 +86,15 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"?(+;-;+;+:)", "(+;-;+:)"},
+		{"sqrt 4", "2f"},
+		{"3-/5 6 7", "-15"},
+		{"5-':3 5 7", "-2 2 2"},
+		{"|/3 2 1 2 3", "3"},
+		{"&/3 2 1 2 3", "1"},
+		{"+/\"\"", `" "`},
+		{"+/!0f", "0f"},
+		{"+/!0", "0"},
 		{"e:+-;e", "+:-"},
 		{"`p\"e:+-\"", "(::;`e;(.;+:;-))"},
 		{"`p\"a:1;b::2;a+b\"", "(`;(::;`a;1);(::;`b;2);(+;`a;`b))"},
@@ -98,7 +107,7 @@ func TestK(t *testing.T) {
 		{"(!100000)~^-100000 rand 100000", "1"},
 		{"^5 2 -5 -2 0 4", "-5 -2 0 2 4 5"},
 		{"=1 2 2 3 2", "1 2 3!(,0;1 2 4;,3)"},
-		{"<(+;-;+;+:;-:)", "3 4 0 1 2"}, // k7: 4 3 1 0 2 / k7: >(...) class error
+		{"<(+;-;+;+:;-:)", "3 4 0 2 1"}, // k7: 4 3 1 0 2 / k7: >(...) class error
 		{"?9 3 8 7 8 7 2", "9 3 8 7 2"},
 		{"0N+0f", "0n"}, // kwm 0f
 		//{"@{1+2}", "`1"},
@@ -1011,7 +1020,7 @@ func TestK(t *testing.T) {
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
 			ini(make([]f, 1<<13))
-			table[21+dy] = wrt
+			table[dy+'1'] = wrt
 			fmt.Printf("%s → %s\n", tc.x, tc.r)
 			x := prs(mkb([]c(tc.x)))
 			if occ {
