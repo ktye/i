@@ -32,7 +32,7 @@ type (
 )
 
 func TestT(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -101,8 +101,7 @@ func TestK(t *testing.T) {
 		{"a::1;a", "1"},
 		{"a:1;a", "1"},
 
-		//{`(!2 3 4)~{x\:!*/x}[2 3 4]`, "1"},
-		//{"@(;)[0]", "?"},
+		{`(!2 3 4)~{x\:!*/x}[2 3 4]`, "1"},
 		//{`("alpha";"aa";"berta")`, `("aa";"alpha";"berta")`},
 		{"(!100000)~^-100000 rand 100000", "1"},
 		{"^5 2 -5 -2 0 4", "-5 -2 0 2 4 5"},
@@ -110,7 +109,7 @@ func TestK(t *testing.T) {
 		{"<(+;-;+;+:;-:)", "3 4 0 2 1"}, // k7: 4 3 1 0 2 / k7: >(...) class error
 		{"?9 3 8 7 8 7 2", "9 3 8 7 2"},
 		{"0N+0f", "0n"}, // kwm 0f
-		//{"@{1+2}", "`1"},
+		{"@{1+2}", "`1"},
 		//{"#`p\"x[]\"", "2"},
 		//{"(+`a`b!(1 2;3 4)),+`c`b!(4 5;6 7)", "(`a`b!1 3;`a`b!2 4;`c`b!4 6;`c`b!5 7)"}, // explode
 		//{"0#(1 2 3;1 2 3f)", "0#,0N 0N 0N"},
@@ -1105,7 +1104,7 @@ space for 15 types
  bucket type is stored only in free blocks at p (uint32 value)
  32 bits (p+1) are refcount for used blocks or pointer to next free
 
-Initial memory (64kB)
+Initial memory (64kB, 1kB reserved)
  p[0]        block header
  p[1]        rng state
  p[2]        total allocated memory log2 (initial 64k, max 4G) uint32
@@ -1146,36 +1145,6 @@ Functions have type V0,V1,V2,..V0+7
   x+2 parse tree
   x+3 string form C
  call will adjust the valence if a derived function has two arguments
-
-/* old version
-Function codes
-  0-19 monadic primitives :+-*%&|<>=!~,^#_$?@.
- 20-29 monadic ioverbs 0123456789
- 30-32 monadic operator functions '/\
- 33-38 monadic derived functions f' f/ f\ f': f/: f\:
- 39-79 monadic builtins
- 80-159 dyadic versions
-
-Functions have type N+1…N+4 (valence)
- basic functions and builtins: atoms
-  x+2 is the function code
-  x+3 != 0 marks infix assignment
- lambda functions: marked with length 0
-  x+2 string form C
-  x+3 (arg list;parse tree)
- projection: length 1(over lambda) 2(over basic/builtins)
-  x+2 function code or pointer to lambda function
-  x+3 full argument list with holes (N)
- composition: length 3, type N+1 or N+2
-  x+2, x+3: point to verbs
- derived verbs, e.g. evaluating (/;+) have type N+1 with code > 256
-  x+2 derived function code<<8
-  x+3 points to the function operand
- expressions (:e) have type N with length 2
-  x+2 parse tree
-  x+3 string form C
- call will adjust the valence if a derived function has two arguments
-*/
  
 Symbols are interned in the char array at m.k[stab]
  symbol values are 256+index into this array (which is append only)

@@ -18,13 +18,13 @@ func main() {
 	ini(make([]f, 1<<13))
 	ws := make([]f, 1<<13)
 	save(ws)
-	table[21] = red
-	table[40] = exi
+	table['1'] = red
+	table['q'] = exi
 	// table[39] = trp
-	table[49] = plo
-	table[21+dyad] = wrt
-	table[29+dyad] = drw
-	table[49+dyad] = plt
+	table[139-dy] = plo
+	table[dy+'1'] = wrt
+	table[dy+'9'] = drw
+	table[139] = plt
 	args := os.Args[1:]
 	if len(args) == 1 && args[0] == "-kwac" {
 		inikwac()
@@ -37,7 +37,7 @@ func main() {
 		for i, a := range args {
 			m.k[2+k(i)+zx] = mkb([]c(a))
 		}
-		asn(mks(".z.x"), inc(zx), mk(N, atom))
+		asn(mks(".z.x"), inc(zx), 0)
 		lod(inc(m.k[2+zx]))
 		dec(zx)
 	}
@@ -147,14 +147,14 @@ func exi(x k) (r k) { // exit built-in
 		os.Exit(int(m.k[2+x]))
 	}
 	os.Exit(1)
-	return mk(N, atom)
+	return 0
 }
 func rest(mem []f) {
 	if r := recover(); r != nil {
 		a, b := stack(r)
 		if mem != nil { // interactive
 			swap(mem)
-			dec(asn(mks(".stk"), mkb([]byte(a)), mk(N, atom))) // stack trace: \s
+			dec(asn(mks(".stk"), mkb([]byte(a)), 0)) // stack trace: \s
 		} else {
 			println(a + "\n")
 		}

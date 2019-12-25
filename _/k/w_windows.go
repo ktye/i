@@ -17,7 +17,7 @@ func drw(x, y k) (r k) { // x 9:y  x(width `i) y(pixel-data `I)
 	}
 	p := 8 + y<<2
 	draw(w, h, m.c[p:p+4*w*h])
-	return decr(x, y, inc(null))
+	return decr(x, y, 0)
 }
 
 type wBM struct { // bitmap

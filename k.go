@@ -87,19 +87,6 @@ var ns func(k, k, k, k, k, k, k, f2)
 var msrt func(k, k, k, k, k, fc)
 
 func ini(mem []f) { // start function
-	/*
-		table = [160]interface{}{
-			//   1                   5                        10                       15
-			idn, flp, neg, fst, inv, wer, rev, asc, dsc, grp, til, not, enl, srt, cnt, flr, str, unq, tip, val, //  00- 19
-			rdl, nil, nil, nil, nil, nil, nil, nil, lun, deb, qtc, slc, bsc, ech, ovr, scn, ecp, jon, spl, nil, //  20- 39
-			nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, cnd, zxp, dia, avg, med, vri, //  40- 59
-			prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  60- 79
-			dex, add, sub, mul, div, min, max, les, mor, eql, key, mch, cat, ept, tak, drp, cst, fnd, atx, cal, //  80- 99
-			wrl, nil, nil, nil, nil, nil, nil, nil, lud, nil, qot, sla, bsl, ecd, ovi, sci, epi, ecr, ecl, nil, // 100-119
-			nil, nil, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, nil, rxp, nil, mvg, pct, cov, // 120-139
-			nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 140-159
-		}
-	*/
 	table = [256]interface{}{
 		nil, nil, nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15 monads..
 		cnd, zxp, dia, avg, med, vri, prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
@@ -3972,14 +3959,14 @@ func whls(f, x, y k) (r k) { // g f\y
 	return decr(f, x, uf(l))
 }
 func rdl(x k) (r k) { // 0:x
-	rd := table[21].(func(k) k)
+	rd := table['1'].(func(k) k)
 	return spl(inc(nans), rd(x))
 }
 func wrl(x, y k) (r k) { // x 0:y
 	if m.k[x]>>28 == L {
 		return vsc(x, y)
 	}
-	w := table[21+dy].(func(k, k) k)
+	w := table[dy+'1'].(func(k, k) k)
 	return w(x, jon(mkc('\n'), y))
 }
 func lun(x k) (r k) { // 8:x or .. \x (display)
@@ -3988,7 +3975,7 @@ func lun(x k) (r k) { // 8:x or .. \x (display)
 	return x
 }
 func lud(x, y k) (r k) { // x 8:y (inspect)
-	wr := table[21+dy].(func(k, k) k)
+	wr := table[dy+'1'].(func(k, k) k)
 	t, _ := typ(x)
 	var o k
 	if t == C { // annotate
@@ -4031,16 +4018,16 @@ func cmd(x k) (r k) {
 		return key(inc(m.k[kkey]), inc(m.k[kval])) // dump ktree
 	case 's':
 		if r = lupo(mks(".stk")); r != 0 {
-			w := table[21+dy].(func(k, k) k)
+			w := table[dy+'1'].(func(k, k) k)
 			dec(w(inc(nans), cat(r, mkc('\n'))))
 		}
 		return dex(x, 0)
 	case 'm': // \m x (matrix display)
-		w := table[21+dy].(func(k, k) k)
+		w := table[dy+'1'].(func(k, k) k)
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return 0
 	case '\\':
-		exi := table[40].(func(k) k)
+		exi := table['q'].(func(k) k)
 		if m.k[x]&atom > 1 {
 			return dex(x, exi(mki(1)))
 		}
@@ -4093,7 +4080,7 @@ func out(x k) {
 	if x == 0 {
 		return
 	}
-	w := table[21+dy].(func(k, k) k)
+	w := table[dy+'1'].(func(k, k) k)
 	dec(w(inc(nans), cat(kst(x), mkc('\n'))))
 }
 func spl(x, y k) (r k) { // x\:y (split)
@@ -6282,10 +6269,9 @@ func (p *p) sql(x k) (r k) { // select|update|delete [ex] [by expr] from t [wher
 	} else {
 		c = mk(L, 0)
 	}
-	f := mk(V2, atom)
-	m.k[2+f] = 14 + dy // #
+	f := dy + '#'
 	if m.k[2+x] == yudt || m.k[2+x] == ydel {
-		m.k[2+f]++ // _
+		f = dy + '_'
 	}
 	r = mk(L, 3)
 	m.k[2+r] = f
@@ -6379,8 +6365,8 @@ func sqlp(x k) (r k) {
 			panic("parse")
 		}
 		v := p.a(pVrb)
-		if t, n := typ(v); t == V2 && n == atom && m.k[2+v] == dy {
-			x = decr(x, v, mkb(m.c[p.p:p.e]))
+		if v == dy+':' {
+			x = dex(x, mkb(m.c[p.p:p.e]))
 			return key(s, toex(prs(inc(x)), x))
 		}
 		decr(s, v, 0)

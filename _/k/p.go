@@ -43,7 +43,7 @@ import (
 //  plot rand 1000a
 //  (.1*!10)plot 10 10#100 rand 5
 
-func plo(x k) (r k) { return plt(inc(null), x) }
+func plo(x k) (r k) { return plt(0, x) }
 func plt(x, y k) (r k) {
 	xt, yt, _, yn := typs(x, y)
 	xs, ys := k(0), k(0)
@@ -53,7 +53,7 @@ func plt(x, y k) (r k) {
 	if yt == A && yn == atom {
 		xk := m.k[2+y]
 		if m.k[xk]&atom != 1 { // plot d | ` plot d
-			toImg = !match(x, null)
+			toImg = x != 0
 			return dex(x, pld(y, toImg))
 		} else if m.k[xk]>>28 == S { // plot `!x  x plot `!y
 			toDict = true
@@ -94,7 +94,7 @@ func plt(x, y k) (r k) {
 	}
 	dk := enl(mks("type"))
 	dv := mk(L, 0)
-	if match(x, null) && z {
+	if x == 0 && z {
 		dv = lcat(dv, mks("polar"))
 	} else if z {
 		dv = lcat(dv, mks("ampang"))
@@ -114,8 +114,8 @@ func plt(x, y k) (r k) {
 	l := mk(L, yn)
 	for i := k(0); i < yn; i++ {
 		var xi k
-		if xt == N {
-			xi = inc(null)
+		if x == 0 {
+			xi = 0
 		} else if xt == F {
 			xi = inc(x)
 		} else if xt == L {
@@ -156,7 +156,7 @@ func line(i, x, y k) (r k) {
 	lk := enl(mks("id"))
 	lv := mk(L, 1)
 	m.k[2+lv] = mki(i)
-	if !match(x, null) {
+	if x != 0 {
 		lk = cat(lk, mks("x"))
 		lv = lcat(lv, x)
 	} else {
