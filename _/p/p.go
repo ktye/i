@@ -2,8 +2,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 type I = int64
@@ -14,10 +16,25 @@ func main() {
 	parallel := parseBool(os.Args[3]) // true/false
 	a := make([]I, ns*np)             // array slice(view), only the header is passed, array is shared
 
+	// warmup
 	if parallel {
-		println(psum(ns, np, ptil(ns, np, a)))
+		psum(ns, np, ptil(ns, np, a))
 	} else {
-		println(sum(til(a, 0)))
+		sum(til(a, 0))
+	}
+
+	for i := 0; i < 8; i++ {
+		if parallel {
+			t := time.Now()
+			a = ptil(ns, np, a)
+			d := time.Since(t)
+			fmt.Printf("%v %v\n", d, psum(ns, np, a))
+		} else {
+			t := time.Now()
+			a = til(a, 0)
+			d := time.Since(t)
+			fmt.Printf("%v %v\n", d, sum(a))
+		}
 	}
 }
 
