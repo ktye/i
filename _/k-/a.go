@@ -4,9 +4,9 @@ import "syscall"
 
 func main() {
 	ini(make([]f, 1<<13))
-	table['1'] = red
-	table['q'] = exi
-	table[dy+'1'] = wrt
+	tab1['1'] = red
+	tab1['q'] = exi
+	tab2['1'] = wrt
 	for {
 		evp(red(wrt(inc(nans), enl(mkc(' '))))) // r: 1: (` 1: ," ")
 	}

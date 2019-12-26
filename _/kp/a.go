@@ -7,10 +7,10 @@ func main() {
 	nm = pnm
 	ns = pns
 	msrt = pmsrt
-	table['!'] = ptil
-	table['1'] = red
-	table['q'] = exi
-	table[dy+'1'] = wrt
+	tab1['!'] = ptil
+	tab1['1'] = red
+	tab1['q'] = exi
+	tab2['1'] = wrt
 	for {
 		evp(red(wrt(inc(nans), enl(mkc(' '))))) // r: 1: (` 1: ," ")
 	}

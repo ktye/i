@@ -6,16 +6,16 @@ import (
 )
 
 const ref = `
-: idn dex  ! til key  0: rdl wrl  '  ( ech ecd  0 null      10 rel real   20 prm  128 ... in      138 mvg avg
-+ flp add  ~ not mch  1: nil nil  /  [ ovr ovi  1 exi exit  11 ima imag           129 ... within  139 pct med
-- neg sub  , enl cat  2: nil nil  \  { scn sci  2 sin       12 phi phase          130 bin         140 cov var
-* fst mul  ^ srt ept  3: nil nil  ': ) ecp epi  3 cos       13 cnj conj           131 ... like
-% inv div  # cnt tak  4: nil nil  /: ] jon ecr  4 dev       14 cnd cond           132 del
-& wer min  _ flr drp  5: nil nil  \: } spl ecl  5 log       15 zxp expi           133 lgn log
-| rev max  $ str cst  6: nil nil   \       trp  6 exp       16 dia diag           134 pow exp
-< asc les  ? unq fnd  7: nil nil                7 rnd rand  17 avg                135 rol rand
-> dst mor  @ tip atx  8: lun lud                8 abs       18 med                136 mkz cmplx
-= grp eql  . val cal  9: nil drw                9 plo plot  19 vri var            137 fns find
+: idn dex  ! til key  0: rdl wrl  0 null      10 rel real   20 prm  130 ... in      140 mvg avg
++ flp add  ~ not mch  1: nil nil  1 exi exit  11 ima imag           131 ... within  141 pct med
+- neg sub  , enl cat  2: nil nil  2 sin       12 phi phase          132 bin         142 cov var
+* fst mul  ^ srt ept  3: nil nil  3 cos       13 cnj conj           133 ... like
+% inv div  # cnt tak  4: nil nil  4 dev       14 cnd cond           134              '  ech ecd
+& wer min  _ flr drp  5: nil nil  5 log       15 zxp expi           135 lgn log      /  ovr ovi
+| rev max  $ str cst  6: nil nil  6 exp       16 dia diag           136 pow exp      \  scn sci
+< asc les  ? unq fnd  7: nil nil  7 rnd rand  17 avg                137 rol rand     ': ecp epi
+> dst mor  @ tip atx  8: lun lud  8 abs       18 med                138 mkz cmplx    /: jon ecr
+= grp eql  . val cal  9: nil drw  9 plo plot  19 vri var            139 fns find     \: spl ecl
 `
 
 type c = byte
@@ -57,8 +57,8 @@ var unan, inan, uinf = uint64(0x7FF8000000000001), k(0x80000000), uint64(0x7FF00
 var fnan, finf f = *(*f)(unsafe.Pointer(&unan)), *(*f)(unsafe.Pointer(&uinf))
 var cpx = []f1{nil, cpC, cpI, cpF, cpZ, cpI, cpL}      // copy
 var eqx = []fc{nil, eqC, eqI, eqF, eqZ, eqS, nil}      // equal
-var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS}           // less than
-var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS, nil}      // greater than (gtL causes init loop)
+var ltx = []fc{nil, ltC, ltI, ltF, ltZ, ltS, nil}      // less than (ltL causes init loop)
+var gtx = []fc{nil, gtC, gtI, gtF, gtZ, gtS, nil}      // greater than
 var stx = []func(k, k) k{nil, nil, stI, stF, stZ, stS} // tostring (assumes 56 bytes space at dst)
 var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r] = f(m.c[x]) }, func(r, x k) { m.z[r] = complex(f(m.c[x]), 0) }, func(r, x k) { m.c[r] = c(m.k[x]) }, nil, func(r, x k) {
 	m.f[r] = f(i(m.k[x]))
@@ -81,30 +81,38 @@ var tox = []f1{nil, func(r, x k) { m.k[r] = k(i(m.c[x])) }, func(r, x k) { m.f[r
 		m.k[r] = inan
 	}
 }, func(r, x k) { m.f[r] = m.f[x<<1] }}
-var table [256]interface{}
+
+var tab1 [128]func(k) k
+var tab2 [128]func(k, k) k
+var ops1 [6]func(k, k) k
+var ops2 [6]func(k, k, k) k
 var nm func(k, k, []f1) k
 var ns func(k, k, k, k, k, k, k, f2)
 var msrt func(k, k, k, k, k, fc)
 
 func ini(mem []f) { // start function
-	table = [256]interface{}{
-		nil, nil, nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15 monads..
+	tab1 = [128]func(k) k{ // monads
+		nil, nil, nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15
 		cnd, zxp, dia, avg, med, vri, prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
-		nil, til, nil, cnt, str, inv, wer, nil, ech, ecp, fst, flp, enl, neg, val, nil, //  32- 47
-		rdl, nil, nil, nil, nil, nil, lun, deb, nil, nil, idn, nil, asc, grp, mor, unq, //  48- 63
+		nil, til, nil, cnt, str, inv, wer, nil, nil, nil, fst, flp, enl, neg, val, nil, //  32- 47
+		rdl, nil, nil, nil, nil, nil, lun, deb, nil, nil, idn, nil, asc, grp, dsc, unq, //  48- 63
 		tip, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  64- 79
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, nil, jon, srt, flr, //  80- 95
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, srt, flr, //  80- 95
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  96-111
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, rev, spl, not, nil, // 112-127
-		nil, nil, inn, wtn, bin, nil, del, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, // 128-143 dyads..
-		nil, rxp, nil, mvg, pct, cov, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 144-159
-		nil, key, nil, tak, cst, div, min, nil, ecd, epi, mul, add, cat, sub, cal, nil, // 160-175
-		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 176-191
-		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192-207
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovi, nil, ecr, ept, drp, // 208-223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224-239
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, sci, max, ecl, mch, nil, // 240-255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, rev, nil, not, nil, // 112-127
 	}
+	tab2 = [128]func(k, k) k{ // dyads
+		nil, nil, inn, wtn, bin, nil, nil, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, //  00- 15
+		nil, rxp, nil, mvg, pct, cov, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
+		nil, key, nil, tak, cst, div, min, nil, nil, nil, mul, add, cat, sub, cal, nil, //  32- 47
+		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, //  48- 63
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  64- 79
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ept, drp, //  80- 95
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  96-111
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, max, nil, mch, nil, // 112-127
+	}
+	ops1 = [6]func(k, k) k{ech, ovr, scn, ecp, jon, spl}
+	ops2 = [6]func(k, k, k) k{ecd, ovi, sci, epi, ecr, ecl}
 	if len(mem) != 1<<13 {
 		panic("ini")
 	}
@@ -129,7 +137,7 @@ func ini(mem []f) { // start function
 	msrt = smsrt
 
 	// symbol table, `(0), monadic builtins(1..32), dyadic builtins(33..64), predefined..
-	m.k[stab] = spl(mkc(','), mkb([]c(",001,002,sqrt,sin,cos,dev,007,008,009,abs,011,real,imag,phase,conj,cond,017,diag,019,020,021,prm,023,024,025,026,027,028,029,030,031,032,128,129,in,within,bin,like,del,log,exp,rand,138,plot,cmplx,find,rot,143,144,expi,146,avg,med,var,150,151,152,153,154,155,156,157,158,159,160,b64,hex,csv,png,select,update,delete,by,from,where")))
+	m.k[stab] = spl(mkc(','), mkb([]c(",001,002,sqrt,sin,cos,dev,007,008,009,abs,011,real,imag,phase,conj,cond,017,diag,019,020,021,prm,023,024,025,026,027,028,029,030,031,032,128,129,in,within,bin,like,134,log,exp,rand,138,plot,cmplx,find,rot,143,144,expi,146,avg,med,var,150,151,152,153,154,155,156,157,158,159,160,b64,hex,csv,png,select,update,delete,by,from,where")))
 	nans = mk(S, atom)
 	m.k[2+nans] = 0
 	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), nans
@@ -145,6 +153,7 @@ func ini(mem []f) { // start function
 	m.k[asci] = to(jota(256), C)
 	m.k[kkey] = mk(S, 0) // k-tree keys
 	m.k[kval] = mk(L, 0) // k-tree values
+	ltx[L] = ltL
 	gtx[L] = gtL
 	eqx[L] = eqL
 
@@ -229,11 +238,24 @@ func sc(x k) (r, n k) {
 	r = m.k[m.k[stab]+2+p]
 	return 8 + r<<2, m.k[r] & atom
 }
+func ltL(x, y k) bool { return gtL(y, x) }
 func gtL(x, y k) bool {
 	x, y = m.k[x], m.k[y]
 	xt, yt, xn, yn := typs(x, y)
 	if xt == yt && xt < L {
-		return gtx[xt](ptr(x, xt), ptr(y, yt))
+		mn := atm1(xn)
+		if yn < xn {
+			mn = atm1(yn)
+		}
+		gt, eq, xp, yp := gtx[xt], eqx[xt], ptr(x, xt), ptr(y, yt)
+		for i := k(0); i < mn; i++ {
+			if gt(xp+i, yp+i) {
+				return true
+			} else if !eq(xp+i, yp+i) {
+				return false
+			}
+		}
+		return xn > yn // atoms after vectors?
 	} else if xt != yt {
 		return xt > yt
 	} else if x < 256 && y < 256 {
@@ -383,9 +405,6 @@ func bk(t, n k) k {
 	return buk(sz + 8) // complex values have an additional 8 byte padding after the header (does not change bucket type)
 }
 func mk(t, n k) k { // make type t of len n (-1:atom)
-	if t > V0 && n == atom {
-		panic("mk verb?")
-	}
 	bt := bk(t, n)
 	fb, a := k(0), k(0)
 	for i := bt; i < 32; i++ { // find next free bucket >= bt
@@ -969,13 +988,30 @@ func asc(x k) (r k) { // <x
 		return arc(x, n, asc)
 	}
 	r = til(mki(n))
-	if n < 16 && t < L {
+	if n < 16 && t <= L {
 		isrt(ptr(x, t), 2+r, n, ltx[t])
 		return dex(x, r)
 	}
 	w := mk(I, n)
 	mv(w, r)
 	msrt(2+w, 2+r, k(0), n, ptr(x, t), gtx[t])
+	return decr(x, w, r)
+}
+func dsc(x k) (r k) { // >x
+	t, n := typ(x)
+	if n == atom || t > L {
+		panic("type")
+	} else if t == A {
+		return arc(x, n, dsc)
+	}
+	r = til(mki(n))
+	if n < 16 && t <= L {
+		isrt(ptr(x, t), 2+r, n, gtx[t])
+		return dex(x, r)
+	}
+	w := mk(I, n)
+	mv(w, r)
+	msrt(2+w, 2+r, k(0), n, ptr(x, t), ltx[t])
 	return decr(x, w, r)
 }
 func smsrt(x, r, a, b, p k, gt fc) { // merge sort
@@ -1060,7 +1096,6 @@ func rdxi(x, b, n k) { // int32-inplace radix sort, see github.com/shawnsmithdev
 		x, b = b, x
 	}
 }
-func dsc(x k) (r k) { return rev(asc(x)) } // >x
 func grp(x k) (r k) { // =x
 	t, n := typ(x)
 	if n == atom {
@@ -1346,17 +1381,13 @@ func str(x k) (r k) { // $x
 				}
 				return r
 			} else if n == atom { // derived
-				u1, u2, v := k(0x7b5b28), k(0x7d5d29), k(0x5c2f27) // ([{ )]} '/\
-				for i := k(0); i <= 16; i += 8 {
-					if u1>>i&0xff == m.k[2+x] {
-						r = mkc(c(v >> i & 0xff))
-						break
-					} else if u2>>i&0xff == m.k[2+x] {
-						r = ucat(mkc(c(v>>i&0xff)), mkc(':'), C, 1, 1)
-						break
-					} else if i == 16 {
-						panic("value") // op-verb
-					}
+				v := k(0x5c2f27)
+				if u := m.k[2+x]; u < 3 {
+					r = mkc(c(v>>(8*u)) & 0xff)
+				} else if u < 6 {
+					r = ucat(mkc(c(v>>(8*(u-3)))&0xff), mkc(':'), C, 1, 1)
+				} else {
+					panic("value") // op-verb
 				}
 				r = cat(str(inc(m.k[3+x])), r)
 			} else if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
@@ -3386,19 +3417,19 @@ func cal(x, y k) (r k) { // x.y
 		return cal(u, enl(cal(v, y)))
 	}
 
-	if c := cadv(x); c != 0 {
+	if c := cadv(x); c != atom {
 		return dex(y, drv(c, inc(m.k[2+y])))
 	}
 	if x > 255 && xn == atom { // derived
 		code := m.k[2+x]
 		switch yn {
 		case 1:
-			f := table[code].(func(k, k) k)
+			f := ops1[code]
 			a, b := inc(m.k[3+x]), inc(m.k[2+y])
 			dec(y)
 			return dex(x, f(a, b))
 		case 2:
-			f := table[code+dy].(func(k, k, k) k)
+			f := ops2[code]
 			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
 			dec(y)
 			return dex(x, f(a, b, c))
@@ -3409,14 +3440,14 @@ func cal(x, y k) (r k) { // x.y
 		if yn != 1 {
 			panic("valence")
 		}
-		f, a := table[x].(func(k) k), inc(m.k[2+y])
+		f, a := tab1[x], inc(m.k[2+y])
 		dec(y)
 		return f(a)
 	} else if x < 256 {
 		if yn != 2 {
 			panic("valence")
 		}
-		f, a, b := table[x].(func(k, k) k), inc(m.k[2+y]), inc(m.k[3+y])
+		f, a, b := tab2[x-dy], inc(m.k[2+y]), inc(m.k[3+y])
 		dec(y)
 		return f(a, b)
 	}
@@ -3482,10 +3513,8 @@ func ltr(x k) (r k) { // `p@{..} (lambda tree, k7: .{...})
 	return dex(x, r)
 }
 func drv(op k, x k) (r k) { // derived function
-	r = mk(I, atom)            // todo: mk(V1, atom)
-	m.k[r] = (V1 << 28) | atom // todo
-	// m.k[2+r] = (33 + op) << 8 // op: 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
-	m.k[2+r] = op
+	r = mk(V1, atom)
+	m.k[2+r] = op // 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
 	m.k[3+r] = x
 	return r
 }
@@ -3959,23 +3988,23 @@ func whls(f, x, y k) (r k) { // g f\y
 	return decr(f, x, uf(l))
 }
 func rdl(x k) (r k) { // 0:x
-	rd := table['1'].(func(k) k)
+	rd := tab1['1']
 	return spl(inc(nans), rd(x))
 }
 func wrl(x, y k) (r k) { // x 0:y
 	if m.k[x]>>28 == L {
 		return vsc(x, y)
 	}
-	w := table[dy+'1'].(func(k, k) k)
+	w := tab2['1']
 	return w(x, jon(mkc('\n'), y))
 }
 func lun(x k) (r k) { // 8:x or .. \x (display)
-	wr := table[dy+'1'].(func(k, k) k)
+	wr := tab2['1']
 	dec(wr(inc(nans), cat(kst(inc(x)), mkc('\n'))))
 	return x
 }
 func lud(x, y k) (r k) { // x 8:y (inspect)
-	wr := table[dy+'1'].(func(k, k) k)
+	wr := tab2['1']
 	t, _ := typ(x)
 	var o k
 	if t == C { // annotate
@@ -4018,16 +4047,16 @@ func cmd(x k) (r k) {
 		return key(inc(m.k[kkey]), inc(m.k[kval])) // dump ktree
 	case 's':
 		if r = lupo(mks(".stk")); r != 0 {
-			w := table[dy+'1'].(func(k, k) k)
+			w := tab2['1']
 			dec(w(inc(nans), cat(r, mkc('\n'))))
 		}
 		return dex(x, 0)
 	case 'm': // \m x (matrix display)
-		w := table[dy+'1'].(func(k, k) k)
+		w := tab2['1']
 		dec(w(inc(nans), cat(jon(mkc('\n'), mat(val(trm(x)))), mkc('\n'))))
 		return 0
 	case '\\':
-		exi := table['q'].(func(k) k)
+		exi := tab1['q']
 		if m.k[x]&atom > 1 {
 			return dex(x, exi(mki(1)))
 		}
@@ -4080,7 +4109,7 @@ func out(x k) {
 	if x == 0 {
 		return
 	}
-	w := table[dy+'1'].(func(k, k) k)
+	w := tab2['1']
 	dec(w(inc(nans), cat(kst(x), mkc('\n'))))
 }
 func spl(x, y k) (r k) { // x\:y (split)
@@ -4121,8 +4150,9 @@ func jon(x, y k) (r k) { // x/:y (join)
 	if xt == I && yt == I { // decode ⊥
 		return dcd(x, y)
 	} else if xt == V1 {
-		f := table[39].(func(k, k) k)
-		return f(x, y)
+		//f := table[39].(func(k, k) k)
+		//return f(x, y)
+		panic("ech from jon?")
 	}
 	if yt != L {
 		panic("type")
@@ -6441,7 +6471,7 @@ func cmpvrb(x k) bool { // is allowed in composition
 	} else if n == 3 && u == dy+'.' && cmpvrb(v) {
 		return true // (.;v;w)
 	} else if n == 2 && t == L { // (/;+)
-		if op := m.k[2+x]; cadv(op) != 0 {
+		if op := m.k[2+x]; cadv(op) != atom {
 			return true
 		}
 	}
@@ -6824,20 +6854,20 @@ func cAdv(c c) bool {
 }
 func cadv(x k) (r k) {
 	switch x {
-	case 0x27:
-		return ')'
-	case 0x2f:
-		return ']'
-	case 0x5c:
-		return '}'
-	case 0xa7:
-		return '('
-	case 0xaf:
-		return '['
-	case 0xdc:
-		return '{'
+	case '\'':
+		return 3
+	case '/':
+		return 4
+	case '\\':
+		return 5
+	case dy + '\'':
+		return 0
+	case dy + '/':
+		return 1
+	case dy + '\\':
+		return 2
 	}
-	return 0
+	return atom
 }
 func ib(b bool) (r int) {
 	if b {

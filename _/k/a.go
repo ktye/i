@@ -18,13 +18,13 @@ func main() {
 	ini(make([]f, 1<<13))
 	ws := make([]f, 1<<13)
 	save(ws)
-	table['1'] = red
-	table['q'] = exi
+	tab1['1'] = red
+	tab1['q'] = exi
 	// table[39] = trp
-	table[139-dy] = plo
-	table[dy+'1'] = wrt
-	table[dy+'9'] = drw
-	table[139] = plt
+	tab1[11] = plo
+	tab2['1'] = wrt
+	tab2['9'] = drw
+	tab2[11] = plt
 	args := os.Args[1:]
 	if len(args) == 1 && args[0] == "-kwac" {
 		inikwac()

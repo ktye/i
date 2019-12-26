@@ -32,7 +32,7 @@ type (
 )
 
 func TestT(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestT(t *testing.T) {
 }
 func try(c []c, occ bool) s {
 	ini(make([]f, 1<<13))
-	table[dy+'1'] = wrt
+	tab2['1'] = wrt
 	l := prs(mkb(c))
 	if occ {
 		inc(l)
@@ -82,7 +82,7 @@ func try(c []c, occ bool) s {
 }
 
 func TestK(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	testCases := []struct {
 		x, r s
 	}{
@@ -100,9 +100,12 @@ func TestK(t *testing.T) {
 		{"`p\"a:1;b::2;a+b\"", "(`;(::;`a;1);(::;`b;2);(+;`a;`b))"},
 		{"a::1;a", "1"},
 		{"a:1;a", "1"},
+		{`^("alpha";"aa";"berta")`, `("aa";"alpha";"berta")`},
+		{"<(\"alpha\";3;\"aa\")", "2 0 1"},
+		{">3 2 1 2 3", "0 4 1 3 2"},
+		{">(\"alpha\";3;\"aa\")", "1 0 2"}, // k7: 2 0 1 (same as <) bug?
 
 		{`(!2 3 4)~{x\:!*/x}[2 3 4]`, "1"},
-		//{`("alpha";"aa";"berta")`, `("aa";"alpha";"berta")`},
 		{"(!100000)~^-100000 rand 100000", "1"},
 		{"^5 2 -5 -2 0 4", "-5 -2 0 2 4 5"},
 		{"=1 2 2 3 2", "1 2 3!(,0;1 2 4;,3)"},
@@ -281,7 +284,7 @@ func TestK(t *testing.T) {
 		{"&`a`b`c!1 0 2", "`a`c`c"},
 		{`<(2f;1)`, "1 0"},
 		{`<((1;2f;3f);(1;2f))`, "1 0"},
-		{`<((1;2f;(2;"alpha"));(1;2f;(2;"alph")))`, "0 1"},
+		{`<((1;2f;(2;"alpha"));(1;2f;(2;"alph")))`, "1 0"},
 		{`<,""`, ",0"},
 		{"`b<`aa", "0"},
 		{"`aa<`b", "1"},
@@ -1019,7 +1022,7 @@ func TestK(t *testing.T) {
 	for _, occ := range []bool{true, false} {
 		for _, tc := range testCases {
 			ini(make([]f, 1<<13))
-			table[dy+'1'] = wrt
+			tab2['1'] = wrt
 			fmt.Printf("%s → %s\n", tc.x, tc.r)
 			x := prs(mkb([]c(tc.x)))
 			if occ {
