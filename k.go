@@ -6,16 +6,16 @@ import (
 )
 
 const ref = `
-: idn dex  ! til key  0: rdl wrl  0 null      10 rel real   20 prm  130 ... in      140 mvg avg
-+ flp add  ~ not mch  1: nil nil  1 exi exit  11 ima imag           131 ... within  141 pct med
-- neg sub  , enl cat  2: nil nil  2 sin       12 phi phase          132 bin         142 cov var
-* fst mul  ^ srt ept  3: nil nil  3 cos       13 cnj conj           133 ... like
-% inv div  # cnt tak  4: nil nil  4 dev       14 cnd cond           134              '  ech ecd
-& wer min  _ flr drp  5: nil nil  5 log       15 zxp expi           135 lgn log      /  ovr ovi
-| rev max  $ str cst  6: nil nil  6 exp       16 dia diag           136 pow exp      \  scn sci
-< asc les  ? unq fnd  7: nil nil  7 rnd rand  17 avg                137 rol rand     ': ecp epi
-> dst mor  @ tip atx  8: lun lud  8 abs       18 med                138 mkz cmplx    /: jon ecr
-= grp eql  . val cal  9: nil drw  9 plo plot  19 vri var            139 fns find     \: spl ecl
+: idn dex  ! til key  0: rdl wrl  0 null      10 abs        20 med  130 ... in      140 mvg avg
++ flp add  ~ not mch  1: nil nil  1           11 plo plot   21 vri  131 ... within  141 pct med
+- neg sub  , enl cat  2: nil nil  2 las last  12 ima imag   22 prm  132 bin         142 cov var
+* fst mul  ^ srt ept  3: nil nil  3 sqr sqrt  13 phi phase          133 ... like
+% inv div  # cnt tak  4: nil nil  4 sin       14 cnj conj           134              '  ech ecd
+& wer min  _ flr drp  5: nil nil  5 cos       15 cnd cond           135 lgn log      /  ovr ovi
+| rev max  $ str cst  6: nil nil  6 dev       16 zxp expi           136 pow exp      \  scn sci
+< asc les  ? unq fnd  7: nil nil  7 log       17 dia diag           137 rol rand     ': ecp epi
+> dst mor  @ tip atx  8: lun lud  8 exp       18 avg                138 mkz cmplx    /: jon ecr
+= grp eql  . val cal  9: nil drw  9 rnd rand  19 med                139 fns find     \: spl ecl
 `
 
 type c = byte
@@ -92,7 +92,7 @@ var msrt func(k, k, k, k, k, fc)
 
 func ini(mem []f) { // start function
 	tab1 = [128]func(k) k{ // monads
-		nil, nil, nil, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15
+		nil, nil, las, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15
 		cnd, zxp, dia, avg, med, vri, prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
 		nil, til, nil, cnt, str, inv, wer, nil, nil, nil, fst, flp, enl, neg, val, nil, //  32- 47
 		rdl, nil, nil, nil, nil, nil, lun, deb, nil, nil, idn, nil, asc, grp, dsc, unq, //  48- 63
@@ -137,7 +137,7 @@ func ini(mem []f) { // start function
 	msrt = smsrt
 
 	// symbol table, `(0), monadic builtins(1..32), dyadic builtins(33..64), predefined..
-	m.k[stab] = spl(mkc(','), mkb([]c(",001,002,sqrt,sin,cos,dev,007,008,009,abs,011,real,imag,phase,conj,cond,017,diag,019,020,021,prm,023,024,025,026,027,028,029,030,031,032,128,129,in,within,bin,like,134,log,exp,rand,138,plot,cmplx,find,rot,143,144,expi,146,avg,med,var,150,151,152,153,154,155,156,157,158,159,160,b64,hex,csv,png,select,update,delete,by,from,where")))
+	m.k[stab] = spl(mkc(','), mkb([]c(",001,last,sqrt,sin,cos,dev,007,008,009,abs,011,real,imag,phase,conj,cond,017,diag,019,020,021,prm,023,024,025,026,027,028,029,030,031,032,128,129,in,within,bin,like,134,log,exp,rand,138,plot,cmplx,find,rot,143,144,expi,146,avg,med,var,150,151,152,153,154,155,156,157,158,159,160,b64,hex,csv,png,select,update,delete,by,from,where")))
 	nans = mk(S, atom)
 	m.k[2+nans] = 0
 	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), nans
@@ -888,8 +888,7 @@ func fst(x k) (r k) { // *x
 		inc(m.k[3+x])
 		r = fst(m.k[3+x])
 		return dex(x, r)
-	}
-	if n == atom {
+	} else if n == atom {
 		return x
 	} else if n == 0 {
 		if t < L {
@@ -899,8 +898,7 @@ func fst(x k) (r k) { // *x
 		} else {
 			return dex(x, 0)
 		}
-	}
-	if t == L {
+	} else if t == L {
 		r = m.k[2+x]
 		inc(r)
 		return dex(x, r)
@@ -915,6 +913,36 @@ func fst(x k) (r k) { // *x
 		m.f[1+r>>1] = m.f[1+x>>1]
 	case Z:
 		m.z[1+r>>2] = m.z[1+x>>2]
+	default:
+		panic("nyi")
+	}
+	return dex(x, r)
+}
+func las(x k) (r k) { // *|x  last x
+	t, n := typ(x)
+	if t == A {
+		inc(m.k[3+x])
+		r = las(m.k[3+x])
+		return dex(x, r)
+	} else if n == atom {
+		return x
+	} else if n == 0 {
+		return fst(x)
+	} else if t == L {
+		r = m.k[1+n+x]
+		inc(r)
+		return dex(x, r)
+	}
+	r = mk(t, atom)
+	switch t {
+	case C:
+		m.c[8+r<<2] = m.c[7+n+x<<2]
+	case I:
+		m.k[2+r] = m.k[1+n+x]
+	case F, S:
+		m.f[1+r>>1] = m.f[n+x>>1]
+	case Z:
+		m.z[1+r>>2] = m.z[n+x>>2]
 	default:
 		panic("nyi")
 	}
@@ -1634,6 +1662,214 @@ func evl(x k) (r k) {
 	}
 	return x
 }
+func com(x k, l k) (r k) { // compile
+	t, n := typ(x)
+	if t != L {
+		if t == S && n == 1 {
+			return lcat(lcat(l, 'c'), fst(x))
+		} else if t == S && n == atom {
+			return lcat(lcat(l, 'g'), x) // todo glob
+		}
+		return lcat(lcat(l, 'c'), x)
+	} else if n == 1 {
+		return lcat(lcat(l, 'c'), fst(x))
+	} else if n == 0 {
+		return lcat(lcat(l, 'c'), x)
+	}
+	v := m.k[2+x]
+	vt, vn := typ(v)
+	if vt == S {
+		if n == 2 && vn == 1 && m.k[2+v] == 0 { // (,`;..) <- `@y
+			return dex(x, lcat(lcat(lcat(com(inc(m.k[3+x]), l), 'c'), inc(nans)), dy+'@'))
+		}
+		if n == 1 { // ,`a`b → `a`b
+			return lcat(lcat(l, 'c'), fst(x))
+		}
+		if m.k[2+v] == 0 { // (`;…) → ex;ex…
+			for i := k(1); i < n; i++ {
+				l = com(inc(m.k[2+i+x]), l)
+				if i < n-1 {
+					l = lcat(l, ';')
+				}
+			}
+			return dex(x, l)
+		}
+	}
+	if c := cadv(m.k[2+x]); c != atom && n == 2 && m.k[3+x] < 256 {
+		return dex(x, lcat(lcat(l, 'c'), drv(c, m.k[3+x])))
+	}
+	if n == 2 && m.k[2+x] == '*' && m.k[m.k[3+x]]&atom == 2 && m.k[2+m.k[3+x]] == '|' { // *|..
+		x = lcat(lcat(mk(L, 0), 2), las(las(x)))
+	}
+	if m.k[2+x] == dy+'$' && n > 3 { // $[x;y;..]
+		r = mk(L, n-1)
+		for i := k(0); i < n-1; i++ {
+			m.k[2+r+i] = com(inc(m.k[3+x+i]), mk(L, 0))
+		}
+		if n%2 == 1 {
+			r = lcat(r, l2('c', 0))
+		}
+		rn := m.k[r] & atom
+		for i := k(0); i < rn; i += 2 {
+			l = cat2(l, inc(m.k[2+r+i]))
+			if i < rn-2 {
+				ni := 2 + m.k[m.k[3+r+i]]&atom
+				if ni > 256 {
+					ni = mki(ni)
+				}
+				l = cat2(lcat(lcat(l, 'i'), ni), inc(m.k[3+r+i]))
+				nj := k(0)
+				for j := k(i + 2); j < rn; j++ {
+					nj += 2 + m.k[m.k[2+r+j]]&atom
+				}
+				nj -= 2
+				if nj > 255 {
+					nj = mki(nj)
+				}
+				l = lcat(lcat(l, 'j'), nj)
+			}
+		}
+		return decr(x, r, l)
+	}
+	for i := k(0); i < n; i++ {
+		l = com(inc(m.k[1+x+n-i]), l)
+	}
+	if n > 256 {
+		n = mki(n - 1)
+	} else {
+		n--
+	}
+	return dex(x, lcat(lcat(l, 'x'), n))
+	/*
+		v := m.k[2+x]
+		vt, vn := typ(v)
+
+		if v == 0 { // (;…) → list
+			r = mk(L, n-1)
+			if n > 1 {
+				for i := int(n - 2); i >= 0; i-- {
+					l = com(inc(m.k[3+x+k(i)]), l)
+				}
+			}
+			if n > 256 {
+				n = mki(n - 1)
+			} else {
+				n--
+			}
+			return dex(x, lcat(lcat(l, 'l'), n))
+		} else {
+			inc(v)
+			iev := false
+			if vt == S && vn == atom {
+				v = evl(v)
+				vt, vn = typ(v)
+				iev = true
+			}
+			if n == 1 && vt >= V1 { // (?..&&vt>=V1) e.g. (-)
+				return dex(x, lcat(lcat(l, 'c'), v))
+			}
+			_ = iev
+			panic("todo")
+		}
+	*/
+}
+func exe(x, env k) (r k) { // execute
+	sn, top := k(30), k(0)
+	sp, top := 2+mk(I, sn), top-1
+	push := func(u k) {
+		if top == sn-1 {
+			sp = ucat(sp-2, mki(0), I, sn, 1)
+			sn = m.k[x] & atom
+		}
+		top++
+		m.k[sp+top] = u
+	}
+	xn, xp := m.k[x]&atom, 2+x
+	num := func(i k) (r k) {
+		r = m.k[xp+i]
+		if r > 256 {
+			r = m.k[2+r]
+		}
+		return r
+	}
+	/*
+		for i := k(0); i < xn; i++ {
+			c := ""
+			p := m.k[2+x+i]
+			if p < 128 {
+				c = string(p)
+			} else if p < 256 {
+				c = string(p-128) + "+dy"
+			}
+			fmt.Println("%", i, p, c)
+		}
+	*/
+	for i := k(0); i < xn; i++ {
+		//println("[", i, "]")
+		xi := m.k[xp+i]
+		switch {
+		case xi == 'c':
+			i++
+			push(inc(m.k[xp+i]))
+		case xi == 'g':
+			i++
+			push(lup(m.k[xp+i]))
+		case xi == ';':
+			dec(m.k[sp+top])
+			top--
+		case xi == 'i':
+			if is0(m.k[sp+top]) {
+				i += 1 + num(i+1)
+			} else {
+				i++
+			}
+			top--
+		case xi == 'j':
+			i += 1 + num(i+1)
+		case xi == 'x':
+			i++
+			ln := num(i)
+			if c := m.k[sp+top]; c == 0 { // list
+				r = mk(L, ln)
+				for j := k(0); j < ln; j++ {
+					m.k[1+r+ln-j] = m.k[sp+j]
+				}
+				top -= 1 + ln
+				push(uf(r))
+			} else if ln == 1 && cadv(c) != atom { // (/;x)
+				top -= 2
+				push(drv(cadv(c), m.k[sp+top+1]))
+			} else if c < 128 && ln == 1 {
+				top -= 2
+				push(tab1[c](m.k[sp+top+1]))
+			} else if c < 256 && ln == 2 {
+				top -= 3
+				push(tab2[c-dy](m.k[sp+top+2], m.k[sp+top+1]))
+			} else {
+				ct, cn := typ(c)
+				if ct > V0 && cn == atom { // derived
+					if v := m.k[2+c]; ln == 1 {
+						top -= 2
+						push(ops1[v](inc(m.k[3+c]), m.k[sp+top+1]))
+					} else if ln == 2 {
+						top -= 3
+						push(ops2[v](inc(m.k[3+c]), m.k[sp+top+2], m.k[sp+top+1]))
+					}
+					dec(c)
+				} else {
+					panic("else")
+				}
+			}
+		default:
+			println(x)
+			panic("???")
+		}
+	}
+	if top != 0 {
+		println("unbalanced", top)
+	}
+	return decr(x, sp-2, m.k[sp])
+}
 func ano(p, e k) (r k) { // annotate source line with error position
 	r = cat(lup(mks(".f")), mkc(':')) // TODO: .ano(k)
 	re := cat(cat(inc(r), inc(e)), mkc('\n'))
@@ -1690,6 +1926,9 @@ func swc(x k) (r k) { // $[...]
 	return dex(x, evl(inc(m.k[1+n+x])))
 }
 func is0(x k) bool { // for swc
+	if x < 256 {
+		return x == 0
+	}
 	n := m.k[x] & atom
 	if n == atom {
 		x = not(x)
@@ -2518,28 +2757,12 @@ func cat(x, y k) (r k) { // x,y
 	default:
 		if xt != L {
 			x = explode(x)
-			xt, xn = typ(x)
 		}
 		if yt != L {
 			y = explode(y)
-			yt, yn = typ(y)
 		}
 	}
-	if m.k[x+1] == 1 && bk(L, xn+yn) == bk(L, xn) {
-		r = x
-		m.k[r] = L<<28 | (xn + yn)
-	} else {
-		r = mk(L, xn+yn)
-		for j := k(0); j < xn; j++ {
-			m.k[2+r+j] = inc(m.k[2+x+j])
-		}
-		dec(x)
-	}
-
-	for j := k(0); j < yn; j++ {
-		m.k[2+r+xn+j] = inc(m.k[2+y+j])
-	}
-	return dex(y, uf(r))
+	return uf(cat2(x, y))
 }
 func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	xn, yn = atm1(xn), atm1(yn)
@@ -2560,6 +2783,23 @@ func ucat(x, y, t, xn, yn k) (r k) { // x, y same type < L
 	}
 	if r != x {
 		dec(x)
+	}
+	return dex(y, r)
+}
+func cat2(x, y k) (r k) { // cat 2 lists; no unify
+	xn, yn := m.k[x]&atom, m.k[y]&atom
+	if m.k[x+1] == 1 && bk(L, xn+yn) == bk(L, xn) {
+		r = x
+		m.k[r] = L<<28 | (xn + yn)
+	} else {
+		r = mk(L, xn+yn)
+		for j := k(0); j < xn; j++ {
+			m.k[2+r+j] = inc(m.k[2+x+j])
+		}
+		dec(x)
+	}
+	for j := k(0); j < yn; j++ {
+		m.k[2+r+xn+j] = inc(m.k[2+y+j])
 	}
 	return dex(y, r)
 }

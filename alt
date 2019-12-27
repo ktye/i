@@ -1,29 +1,9 @@
-k memory access
+com/exe
 
-inspect
- x:1 2 3
- a:`a@x      / `a@x address of x
- a    
-248
- `v@a        / `v@a k value at address
-1 2 3
- `i?a        / `i@x value at addr as int
-536870915    / block header
- `i?a+!5
-536870915 1 1 2 3 / block header, ref-count, data
-
- x:1 -1f
- `z?4+`a x   / any `c`i`f`z`s?a  (`z is 128bit aligned)
-1.414214a315
-
-modify
-
- 300:5      / assign value at addr 300 to 5 (handle with care)
- `i?300
-5
- (80+!3):0  / block assignment
- (+a):1     / var names need to eval to int
- x:1 2 3;a:`a x
- (a+1)-:1   / decrement refcount (modified kma)
- 
- 
+'c' x  /const, push on stack
+'g' n  /get global, push on stack (nyi by-index)
+';'    /dec top
+'i' n  /jump +n if is0(top)
+'j' n  /jump +n
+'x' n  /create list from n args if top==0
+'x' n  /call top with n args (on stack before top)

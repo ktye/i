@@ -31,8 +31,49 @@ type (
 	sv = []string
 )
 
+func TestCom(t *testing.T) {
+	//t.Skip()
+	testCases := []struct {
+		x, r s
+	}{
+		{"+/1 2 3", "6"},
+		{"1", "1"},
+		{"1 2 3", "1 2 3"},
+		{"1;2;3", "3"},
+		{"1-2", "-1"},
+		{"(1;`a;2)", "(1;`a;2)"},
+		{"$[0;1;1-1;2;3-3;4;5]", "5"},
+		{"$[0;1;0;3]", ""},
+		{"$[0;2;0;4]", ""},
+		{"$[0;2;3;4]", "4"},
+		{"$[1;2;3;4]", "2"},
+		{"$[0;2;3]", "3"},
+		{"$[1;2;0]", "2"},
+		{"$[1-1;2+3;3+4]", "7"},
+		//{"f:+;(f/4 5 6)+$[f:*;f/1 2 3;0]", "126"},
+		{"*|1 2 3", "3"},
+		{"|1+2*3 4 5", "11 9 7"},
+		{"-(1 2 3)", "-1 -2 -3"},
+		{"1+2", "3"},
+	}
+	for _, tc := range testCases {
+		ini(make([]f, 1<<13))
+		tab2['1'] = wrt
+		fmt.Printf("%s → %s\n", tc.x, tc.r)
+		x := prs(mkb([]c(tc.x)))
+		y := kst(exe(com(x, mk(L, 0)), 0))
+		r := gstr(y)
+		if r != tc.r {
+			t.Fatalf("expected %s got %s\n", tc.r, r)
+		}
+		dec(y)
+		clear()
+		check(t)
+	}
+}
+
 func TestT(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -56,7 +97,7 @@ func TestT(t *testing.T) {
 			}
 			fmt.Printf("%s / %s\n", i, x)
 
-			r := try([]c(i), occ)
+			r := try(i, occ)
 			if r != x {
 				t.Fatalf("t:%d expected %s got %s", j+1, x, r)
 			}
@@ -65,10 +106,10 @@ func TestT(t *testing.T) {
 		}
 	}
 }
-func try(c []c, occ bool) s {
+func try(in s, occ bool) s {
 	ini(make([]f, 1<<13))
 	tab2['1'] = wrt
-	l := prs(mkb(c))
+	l := prs(mkb([]c(in)))
 	if occ {
 		inc(l)
 	}
@@ -82,10 +123,12 @@ func try(c []c, occ bool) s {
 }
 
 func TestK(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testCases := []struct {
 		x, r s
 	}{
+		{"f:+;(f/4 5 6)+$[f:*;f/1 2 3;0]", "126"},
+		{"last 1 2 3", "3"},
 		{"?(+;-;+;+:)", "(+;-;+:)"},
 		{"sqrt 4", "2f"},
 		{"3-/5 6 7", "-15"},
