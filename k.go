@@ -1712,7 +1712,7 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 		for i := k(0); i < n-1; i++ {
 			xi := m.k[3+x+i]
 			if v := evc(inc(xi)); v == 0 {
-				return dex(r, 0)
+				return decr(xi, r, 0)
 			} else {
 				m.k[2+r+i] = v
 			}
@@ -1722,11 +1722,15 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 	return 0
 }
 func com(x k, l k) (r k) { // compile
+	pr(x, "com")
 	if v := evc(x); v != 0 {
 		return lcat(lcat(l, 'c'), v)
+	} else if x == 0 {
+		return lcat(lcat(l, 'c'), 0)
 	}
 	t, n := typ(x)
 	if t != L {
+		println(t, n)
 		panic("assert")
 	}
 
