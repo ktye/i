@@ -1,9 +1,11 @@
 com/exe
 
-'c' x  /const, push on stack
-'g' n  /get global, push on stack (nyi by-index)
-';'    /dec top
-'i' n  /jump +n if is0(top)
-'j' n  /jump +n
-'x' n  /create list from n args if top==0
-'x' n  /call top with n args (on stack before top)
+'c' x   /const, push x on stack
+'g' n   /get global, push on stack (nyi by-index)
+';'     /dec top
+'i' n   /jump +n if is0(top)
+'j' n   /jump +n
+'x' n   /create list from n args if top==0
+'x' n   /call top with n args (on stack before top)
+'a' sf  /assign top to s(symbol), modify with f if ~0
+'A' sif /amend 'a' at i(indexed)

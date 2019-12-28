@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"unsafe"
 )
@@ -1662,20 +1663,73 @@ func evl(x k) (r k) {
 	}
 	return x
 }
-func com(x k, l k) (r k) { // compile
+func evrb(x k) (r k) { // statically evaluate verb or 0
+	if x < 256 {
+		return x
+	}
+	t, n := typ(x)
+	if t != L {
+		return 0
+	}
+	if c := cadv(m.k[2+x]); c != atom && n == 2 {
+		if v := evrb(inc(m.k[3+x])); v != 0 {
+			return dex(x, drv(c, v))
+		}
+	}
+	if n == 3 && m.k[2+x] == dy+'.' {
+		u, v := evrb(inc(m.k[3+x])), evrb(inc(m.k[4+x]))
+		if u != 0 && v != 0 {
+			t2, _ := typ(v)
+			r = mk(t2, 3)
+			m.k[2+r] = u
+			m.k[3+r] = v
+			return dex(x, r)
+		}
+	}
+	return 0
+}
+func evc(x k) (r k) { // static/const evaluation (or 0)
+	if v := evrb(x); v != 0 {
+		return v
+	}
 	t, n := typ(x)
 	if t != L {
 		if t == S && n == 1 {
-			return lcat(lcat(l, 'c'), fst(x))
-		} else if t == S && n == atom {
-			return lcat(lcat(l, 'g'), x) // todo glob
+			return fst(x)
+		} else if t == S {
+			return 0
 		}
-		return lcat(lcat(l, 'c'), x)
+		return x
 	} else if n == 1 {
-		return lcat(lcat(l, 'c'), fst(x))
+		return fst(x)
 	} else if n == 0 {
-		return lcat(lcat(l, 'c'), x)
+		return x
+	} else if m.k[2+x] == 0 {
+		r = mk(L, n-1)
+		for i := k(0); i < n-1; i++ {
+			m.k[2+r+i] = 0
+		}
+		for i := k(0); i < n-1; i++ {
+			xi := m.k[3+x+i]
+			if v := evc(inc(xi)); v == 0 {
+				return dex(r, 0)
+			} else {
+				m.k[2+r+i] = v
+			}
+		}
+		return dex(x, r)
 	}
+	return 0
+}
+func com(x k, l k) (r k) { // compile
+	if v := evc(x); v != 0 {
+		return lcat(lcat(l, 'c'), v)
+	}
+	t, n := typ(x)
+	if t != L {
+		panic("assert")
+	}
+
 	v := m.k[2+x]
 	vt, vn := typ(v)
 	if vt == S {
@@ -1695,13 +1749,49 @@ func com(x k, l k) (r k) { // compile
 			return dex(x, l)
 		}
 	}
-	if c := cadv(m.k[2+x]); c != atom && n == 2 && m.k[3+x] < 256 {
-		return dex(x, lcat(lcat(l, 'c'), drv(c, m.k[3+x])))
-	}
+
+	//if c := cadv(m.k[2+x]); c != atom && n == 2 && m.k[3+x] < 256 {
+	//	return dex(x, lcat(lcat(l, 'c'), drv(c, m.k[3+x])))
+	//}
+	//if f := evrb(inc(x)); f != 0 { // verb/derived/composition
+	//	return dex(x, lcat(lcat(l, 'c'), f))
+	//}
 	if n == 2 && m.k[2+x] == '*' && m.k[m.k[3+x]]&atom == 2 && m.k[2+m.k[3+x]] == '|' { // *|..
 		x = lcat(lcat(mk(L, 0), 2), las(las(x)))
 	}
-	if m.k[2+x] == dy+'$' && n > 3 { // $[x;y;..]
+	if v < 128 && v != 0 && n == 3 { // assign(::;`x;v) modified(+:;`x;v)
+		pr(x, "assign?")
+		l = com(inc(m.k[4+x]), l)
+		if v == ':' {
+			v = 0
+		} else { // e.g. *:
+			v += 128
+		}
+		/*
+			name, val := inc(m.k[3+x]), evl(inc(m.k[4+x]))
+			if nt, nn := typ(name); nt == L && nn > 1 {
+				if m.k[2+name] == 0 { // (;`a;`b) vector assignment
+					name = drp(mki(1), name)
+				} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
+					idx := drop(1, inc(name)) // inc(m.k[3+name])
+					name = fst(name)
+					if m.k[idx]>>28 != L {
+						P("assert")
+					}
+					idx = evl(cat(0, idx))
+					name, idx = dxn(name, idx)
+					if nn := m.k[idx] & atom; nn == 1 {
+						dec(amd(name, fst(idx), v, val))
+					} else {
+						dec(dmd(name, idx, v, val))
+					}
+					return R() + dex(x, 0)
+				}
+			}
+			return dex(x, asn(name, val, v))
+		*/
+		return dex(x, lcat(lcat(lcat(l, 'a'), inc(m.k[3+x])), v))
+	} else if m.k[2+x] == dy+'$' && n > 3 { // $[x;y;..]
 		r = mk(L, n-1)
 		for i := k(0); i < n-1; i++ {
 			m.k[2+r+i] = com(inc(m.k[3+x+i]), mk(L, 0))
@@ -1731,6 +1821,7 @@ func com(x k, l k) (r k) { // compile
 		}
 		return decr(x, r, l)
 	}
+
 	for i := k(0); i < n; i++ {
 		l = com(inc(m.k[1+x+n-i]), l)
 	}
@@ -1792,28 +1883,39 @@ func exe(x, env k) (r k) { // execute
 		}
 		return r
 	}
-	/*
-		for i := k(0); i < xn; i++ {
-			c := ""
-			p := m.k[2+x+i]
-			if p < 128 {
-				c = string(p)
-			} else if p < 256 {
-				c = string(p-128) + "+dy"
-			}
-			fmt.Println("%", i, p, c)
+
+	for i := k(0); i < xn; i++ {
+		c := ""
+		p := m.k[2+x+i]
+		if p < 128 {
+			c = "'" + string(p)
+		} else if p < 256 {
+			c = `"` + string(p-128)
+		} else {
+			r = kst(inc(p))
+			c = "(" + gstr(r)
+			dec(r)
 		}
-	*/
+		fmt.Printf("%%%2d %4d %s\n", i, p, c)
+	}
+
 	for i := k(0); i < xn; i++ {
 		//println("[", i, "]")
 		xi := m.k[xp+i]
 		switch {
+		case xi == 'a':
+			i += 2
+			top--
+			push(asn(inc(m.k[xp+i-1]), m.k[sp+top+1], inc(m.k[xp+i])))
+		case xi == 'A':
+			i += 3
+			push(amd(inc(m.k[xp+i-2]), inc(m.k[xp+i-1]), inc(m.k[xp+i]), m.k[sp+top]))
 		case xi == 'c':
 			i++
 			push(inc(m.k[xp+i]))
 		case xi == 'g':
 			i++
-			push(lup(m.k[xp+i]))
+			push(lup(inc(m.k[xp+i])))
 		case xi == ';':
 			dec(m.k[sp+top])
 			top--
@@ -1832,7 +1934,7 @@ func exe(x, env k) (r k) { // execute
 			if c := m.k[sp+top]; c == 0 { // list
 				r = mk(L, ln)
 				for j := k(0); j < ln; j++ {
-					m.k[1+r+ln-j] = m.k[sp+j]
+					m.k[2+r+j] = m.k[sp+top-1-j]
 				}
 				top -= 1 + ln
 				push(uf(r))
@@ -4277,8 +4379,6 @@ func cmd(x k) (r k) {
 		return dex(x, stats())
 	case 'v':
 		return dex(x, lsv())
-	case 'c':
-		return dex(x, clv())
 	case 'h':
 		return dex(x, hlp())
 	case 'l':
@@ -5170,14 +5270,7 @@ func del(x k) (r k) { // delete variable
 	}
 	return dex(x, 0)
 }
-func clear() { // clear variables
-	dec(m.k[kkey])
-	dec(m.k[kval]) // m.k[kkey] and m.k[kval] should not be free blocks
-	m.k[kkey] = mk(S, 0)
-	m.k[kval] = mk(L, 0)
-}
 func lsv() (r k)     { return inc(m.k[kkey]) }                                  // \v (list variables)
-func clv() (r k)     { clear(); return 0 }                                      // \c (clear variables)
 func hlp() (r k)     { return cat(mkb(m.c[136:168]), kst(inc(m.k[2+m.k[3]]))) } // \h
 func hxb(x c) (c, c) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0F] }
 func hxk(x k) s {
