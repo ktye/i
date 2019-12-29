@@ -1,11 +1,18 @@
 com/exe
 
-'c' x   /const, push x on stack
-'g' n   /get global, push on stack (nyi by-index)
-';'     /dec top
-'i' n   /jump +n if is0(top)
-'j' n   /jump +n
-'x' n   /create list from n args if top==0
-'x' n   /call top with n args (on stack before top)
-'a' sf  /assign top to s(symbol), modify with f if ~0
-'A' sif /amend 'a' at i(indexed)
+0 n      /create list from n args if top==0
+'a' sf   /assign top to s(symbol), modify with f if ~0
+'A' sf   /amend top+1 to s at index(top)
+'B' sf   /dmend top+1 to s at depth-index(top)
+'c' x    /push x on stack
+'g' n    /get global, push on stack (nyi by-index)
+';'      /dec top
+'i' n    /jump +n if is0(top)
+'j' n    /jump +n
+'D' op   /create derived from func on top with op
+'d' f    /call(derived) f with 1 arg from top
+'d'+dy f /call(derived) f with 2 args from top
+'x' n    /call top with n args (on stack before top)
+u        /call(monadic) u if u<128 with arg from top
+v        /call(dyadic)  v if v<256 with 2 args from top
+
