@@ -1644,6 +1644,8 @@ func evrb(x k) (r k) { // statically evaluate verb or 0
 	if c := cadv(m.k[2+x]); c != atom && n == 2 {
 		if v := evrb(inc(m.k[3+x])); v != 0 {
 			return dex(x, drv(c, v))
+		} else {
+			dec(m.k[3+x])
 		}
 	} else if n == 2 || (n == 3 && (m.k[3+x] == 0 || m.k[4+x] == 0)) { // projection
 		u := evrb(inc(m.k[2+x]))
@@ -1779,7 +1781,6 @@ func com(x k, l k) (r k) { // compile
 		if nt, nn := typ(name); nt == L && nn > 1 {
 			if m.k[2+name] == 0 { // (;`a;`b) vector assignment
 				name = drop(1, name)
-				panic("vectorassign")
 			} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 				idx := drop(1, inc(name))
 				name = fst(name)
@@ -1844,6 +1845,12 @@ func com(x k, l k) (r k) { // compile
 			}
 		}
 		return decr(x, r, l)
+	} else if n > 3 && n < 6 && v < 256 && cTri(c(v-dy)) {
+		if n == 4 { // triadic
+			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), l))), 'c'), v), 'x'), 3))
+		} else if n == 5 { // tetradic
+			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), com(inc(m.k[x+6]), l)))), 'c'), v), 'x'), 4))
+		}
 	}
 
 	z := false
@@ -1867,11 +1874,12 @@ func com(x k, l k) (r k) { // compile
 	if v == 0 {
 		return lcat(lcat(l, 0), n) // list
 	} else if !z {
+		pr(v, "v")
 		if (v < 128 && n == 1) || (v < 256 && n == 2) {
 			return lcat(l, v) // basic monad/dyadic
-		} else if vt > V0 && vn == atom && n == 1 {
+		} else if v > 255 && vt > V0 && vn == atom && n == 1 {
 			return lcat(lcat(l, 'd'), v)
-		} else if vt > V0 && vn == atom && n == 2 {
+		} else if v > 255 && vt > V0 && vn == atom && n == 2 {
 			return lcat(lcat(l, dy+'d'), v)
 		}
 	}
@@ -3843,20 +3851,34 @@ func cal(x, y k) (r k) { // x.y
 		default:
 			panic("valence")
 		}
-	} else if x < 128 {
-		if yn != 1 {
-			panic("valence")
-		}
+	} else if x < 128 && yn == 1 {
 		f, a := tab1[x], inc(m.k[2+y])
 		dec(y)
 		return f(a)
-	} else if x < 256 {
-		if yn != 2 {
-			panic("valence")
-		}
+	} else if x < 256 && yn == 2 {
 		f, a, b := tab2[x-dy], inc(m.k[2+y]), inc(m.k[3+y])
 		dec(y)
 		return f(a, b)
+	} else if x < 256 && cTri(c(x-dy)) && yn > 2 && yn < 5 { // triadics/tetradics
+		g := amd
+		switch x - dy {
+		case '#':
+			g = sel
+		case '_':
+			g = udt
+		case '?':
+			g = ins
+		case '.':
+			g = dmd
+		}
+		x, a, f, u := inc(m.k[2+y]), inc(m.k[3+y]), inc(m.k[4+y]), k(0)
+		if yn == 4 {
+			u = inc(m.k[5+y])
+		} else if f != 0 {
+			u, f = f, u
+		}
+		dec(y)
+		return g(x, a, f, u)
 	}
 	panic("cal(code)")
 }
@@ -5047,10 +5069,6 @@ func mut(x, y k) { // modify-inplace
 	}
 }
 func amd(x, a, f, y k) (r k) { // @[x;i;f;y]
-	pr(x, "x")
-	pr(a, "a")
-	pr(f, "f")
-	pr(y, "y")
 	t, n := typ(x)
 	if t != S {
 		return amdv(x, a, f, y)
@@ -7248,6 +7266,7 @@ func cOps(c c) bool {
 	}
 	return cAdv(c)
 }
+func cTri(c c) bool { return c == '#' || c == '_' || c == '?' || c == '@' || c == '.' }
 func cAdv(c c) bool {
 	if c == '\'' || c == '/' || c == '\\' {
 		return true
