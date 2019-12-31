@@ -1651,7 +1651,9 @@ func evrb(x k) (r k) { // statically evaluate verb or 0
 		u := evrb(inc(m.k[2+x]))
 		if ut, un := typ(u); u > 255 && un == atom {
 			return dex(u, 0)
-		} else if u != 0 && ut == V2 {
+		} else if u == 0 {
+			dec(m.k[2+x])
+		} else if ut == V2 {
 			if n == 3 && m.k[3+x] == 0 && m.k[4+x] == 0 {
 				return dex(x, u) // +[;] → +
 			}
@@ -1673,18 +1675,15 @@ func evrb(x k) (r k) { // statically evaluate verb or 0
 				dec(u)
 			}
 		} else {
-			dec(m.k[2+x])
+			dec(u)
 		}
 	} else if n == 3 && m.k[2+x] == dy+'.' { // composition
 		if u := evrb(inc(m.k[3+x])); u != 0 {
-			if v := evrb(m.k[4+x]); v != 0 {
-				t2, _ := typ(v)
-				r = mk(t2, 3)
-				m.k[2+r] = u
-				m.k[3+r] = v
-				return dex(x, r)
+			if v := evrb(inc(m.k[4+x])); v != 0 {
+				return dex(x, comp(u, v))
 			} else {
 				dec(u)
+				dec(m.k[4+x])
 			}
 		} else {
 			dec(m.k[3+x])
@@ -1726,7 +1725,6 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 	return 0
 }
 func com(x k, l k) (r k) { // compile
-	pr(x, "com")
 	if v := evc(x); v != 0 {
 		return lcat(lcat(l, 'c'), v)
 	} else if x == 0 {
@@ -1736,10 +1734,8 @@ func com(x k, l k) (r k) { // compile
 	if t == S && n == atom {
 		return lcat(lcat(l, 'g'), x)
 	} else if t != L {
-		println(t, n)
 		panic("assert")
 	}
-
 	v := m.k[2+x]
 	vt, vn := typ(v)
 	if vt == S {
@@ -1759,14 +1755,10 @@ func com(x k, l k) (r k) { // compile
 			return dex(x, l)
 		}
 	}
-
 	if c := cadv(m.k[2+x]); c != atom && n == 2 {
 		l = com(inc(m.k[3+x]), l)
 		return dex(x, lcat(lcat(l, 'D'), c))
 	}
-	//if f := evrb(inc(x)); f != 0 { // verb/derived/composition
-	//	return dex(x, lcat(lcat(l, 'c'), f))
-	//}
 	if n == 2 && m.k[2+x] == '*' && m.k[m.k[3+x]]&atom == 2 && m.k[2+m.k[3+x]] == '|' { // *|..
 		x = lcat(lcat(mk(L, 0), 2), las(las(x)))
 	}
@@ -1783,36 +1775,12 @@ func com(x k, l k) (r k) { // compile
 				name = drop(1, name)
 			} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 				idx := drop(1, inc(name))
-				name = fst(name)
-				if m.k[idx]>>28 != L {
-					panic("assert")
-				}
-				//idx = evl(cat(0, idx))
+				name, idx = dxn2(fst(name), idx)
 				if nn := m.k[idx] & atom; nn == 1 {
-					idx = fst(idx)
-					if a := evc(idx); a != 0 {
-						l = lcat(lcat(l, 'c'), a)
-					} else {
-						l = com(idx, l)
-					}
-					return dex(x, lcat(lcat(lcat(l, 'A'), name), v))
+					return dex(x, lcat(lcat(lcat(com(fst(idx), l), 'A'), name), v))
 				} else {
-					idx = cat(0, idx)
-					if d := evc(idx); d != 0 {
-						l = lcat(lcat(l, 'c'), d)
-					} else {
-						l = com(idx, l)
-					}
-					return dex(x, lcat(lcat(lcat(l, 'B'), name), v))
+					return dex(x, lcat(lcat(lcat(com(cat(0, idx), l), 'B'), name), v))
 				}
-
-				//name, idx = dxn(name, idx) // todo
-				//if nn := m.k[idx] & atom; nn == 1 {
-				//	dec(amd(name, fst(idx), v, val))
-				//} else {
-				//	dec(dmd(name, idx, v, val))
-				//}
-				//return R() + dex(x, 0)
 			}
 		}
 		return dex(x, lcat(lcat(lcat(l, 'a'), name), v))
@@ -1852,7 +1820,6 @@ func com(x k, l k) (r k) { // compile
 			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), com(inc(m.k[x+6]), l)))), 'c'), v), 'x'), 4))
 		}
 	}
-
 	z := false
 	for i := k(0); i < n-1; i++ {
 		if m.k[1+x+n-1] == 0 {
@@ -1874,7 +1841,6 @@ func com(x k, l k) (r k) { // compile
 	if v == 0 {
 		return lcat(lcat(l, 0), n) // list
 	} else if !z {
-		pr(v, "v")
 		if (v < 128 && n == 1) || (v < 256 && n == 2) {
 			return lcat(l, v) // basic monad/dyadic
 		} else if v > 255 && vt > V0 && vn == atom && n == 1 {
@@ -1890,9 +1856,6 @@ func com(x k, l k) (r k) { // compile
 	}
 	if n == 1 { // juxtaposition
 		return lcat(l, dy+'@')
-	}
-	if z {
-		return lcat(lcat(l, 'p'), n)
 	}
 	return lcat(lcat(l, 'x'), n)
 }
@@ -1931,6 +1894,7 @@ func exe(x, env k) (r k) { // execute
 		fmt.Printf("%%%2d %4d %s\n", i, p, c)
 	}
 
+next:
 	for i := k(0); i < xn; i++ {
 		//println("[", i, "]")
 		xi := m.k[xp+i]
@@ -1959,7 +1923,9 @@ func exe(x, env k) (r k) { // execute
 		case xi == 'D':
 			i++
 			top--
-			push(drv(m.k[xp+i], m.k[sp+top+1]))
+			ddd := drv(m.k[xp+i], m.k[sp+top+1])
+			pr(ddd, "ddd")
+			push(ddd)
 		case xi == 'c':
 			i++
 			push(inc(m.k[xp+i]))
@@ -1998,6 +1964,14 @@ func exe(x, env k) (r k) { // execute
 				m.k[2+r+j] = m.k[sp+top-j]
 			}
 			top -= ln
+			if f > 255 && m.k[f]>>28 < V0 && ln > 1 { // matrix index
+				for i := k(0); i < ln-1; i++ { // last index may be a vector
+					if m.k[2+i+r] == 0 || m.k[m.k[2+i+r]]&atom != atom {
+						push(atm(f, r))
+						continue next
+					}
+				}
+			}
 			push(cal(f, uf(r)))
 		case xi < 128:
 			top--
@@ -3470,6 +3444,8 @@ func atx(x, y k) (r k) { // x@y
 	xt, yt, xn, yn := typs(x, y)
 	if xn == atom && xt == S {
 		switch m.k[2+x] {
+		case 0:
+			return dex(x, ser(y))
 		case 'p':
 			return dex(x, prs(y))
 		case 'k':
@@ -3783,7 +3759,7 @@ func b46(x k) (r k) { // `64?x
 	panic("nyi")
 }
 func cal(x, y k) (r k) { // x.y
-	xt, _, xn, yn := typs(x, y)
+	xt, yt, xn, yn := typs(x, y)
 	if xt <= A { // TODO dict
 		if yn != atom {
 			if yn == 0 {
@@ -3794,8 +3770,18 @@ func cal(x, y k) (r k) { // x.y
 			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
 		}
 		return atx(x, y)
+	} else if xt > V0 && yt > V0 {
+		return comp(x, y)
+	}
+	if c := cadv(x); c != atom {
+		return dex(y, drv(c, inc(m.k[2+y])))
 	}
 	y = explode(y)
+	for i := k(0); i < yn; i++ {
+		if m.k[2+i+y] == 0 {
+			return prj(x, y)
+		}
+	}
 	if xn == 1 || xn == 2 { // convert projected to full call
 		l := m.k[x+3] // arg list with holes
 		n := m.k[l] & atom
@@ -3830,10 +3816,6 @@ func cal(x, y k) (r k) { // x.y
 		u, v := inc(m.k[2+x]), inc(m.k[3+x])
 		dec(x)
 		return cal(u, enl(cal(v, y)))
-	}
-
-	if c := cadv(x); c != atom {
-		return dex(y, drv(c, inc(m.k[2+y])))
 	}
 	if x > 255 && xn == atom { // derived
 		code := m.k[2+x]
@@ -3874,11 +3856,17 @@ func cal(x, y k) (r k) { // x.y
 		x, a, f, u := inc(m.k[2+y]), inc(m.k[3+y]), inc(m.k[4+y]), k(0)
 		if yn == 4 {
 			u = inc(m.k[5+y])
-		} else if f != 0 {
+		} else if f > 255 && m.k[f]>>28 < V1 {
 			u, f = f, u
 		}
 		dec(y)
+		println(x, a, f, u)
 		return g(x, a, f, u)
+	} else if n := xt - V0; n > yn {
+		for i := yn; i < n; i++ {
+			y = lcat(y, 0)
+		}
+		return prj(x, y)
 	}
 	panic("cal(code)")
 }
@@ -5057,6 +5045,24 @@ func dxn(name, idx k) (k, k) { // `a.b[`c] → `a `b`c
 	for i := k(0); i < m.k[x]&atom; i++ {
 		s := c2s(inc(m.k[2+i+x]))
 		m.k[2+r+i] = dex(s, m.k[2+s])
+	}
+	return dex(x, name), cat(r, idx)
+}
+func dxn2(name, idx k) (k, k) { // `a.b[`c] → `a `b`c (todo: dnx2→dxn)
+	c, n := sc(2 + name)
+	for i := k(0); i < n; i++ {
+		if m.c[c+i] == '.' {
+			break
+		} else if i == n-1 {
+			return name, idx
+		}
+	}
+	x := spl(mkc('.'), str(name))
+	name = c2s(fst(inc(x)))
+	x = drop(1, x)
+	r := mk(L, m.k[x]&atom)
+	for i := k(0); i < m.k[x]&atom; i++ {
+		m.k[2+r+i] = enl(c2s(inc(m.k[2+i+x])))
 	}
 	return dex(x, name), cat(r, idx)
 }
@@ -6865,6 +6871,16 @@ func monad(x k) (r k) { // force monad
 		panic("force monad?")
 	}
 	return x
+}
+func comp(x, y k) (r k) {
+	t, _ := typ(y)
+	r = mk(t, 3)
+	if x > 127 && x < 256 {
+		x -= dy
+	}
+	m.k[2+r] = x
+	m.k[3+r] = y
+	return r
 }
 func compose(x k) (r k) { // composition
 	t, n := typ(x)
