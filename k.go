@@ -1388,7 +1388,7 @@ func str(x k) (r k) { // $x
 				} else {
 					panic("value") // op-verb
 				}
-				r = cat(str(inc(m.k[3+x])), r)
+				r = cat(kst(inc(m.k[3+x])), r)
 			} else if n == 0 || n == 1 { // 0(lambda), 1(lambda projection)
 				r = inc(f) // `C
 			} else if n == 2 { // basic projection
@@ -1707,20 +1707,31 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 		return fst(x)
 	} else if n == 0 {
 		return x
-	} else if m.k[2+x] == 0 {
+	} else { // if m.k[2+x] == 0 {
 		r = mk(L, n-1)
 		for i := k(0); i < n-1; i++ {
 			m.k[2+r+i] = 0
 		}
-		for i := k(0); i < n-1; i++ {
-			xi := m.k[3+x+i]
-			if v := evc(inc(xi)); v == 0 {
-				return decr(xi, r, 0)
+		for i := k(1); i < n; i++ {
+			xi := m.k[2+x+n-i]
+			if v := evc(inc(xi)); v != 0 {
+				m.k[1+r+n-i] = v
 			} else {
-				m.k[2+r+i] = v
+				return decr(xi, r, 0)
 			}
 		}
-		return dex(x, uf(r))
+		if m.k[2+x] == 0 {
+			return dex(x, uf(r))
+		}
+		// todo: check for more side-effects of early eval, e.g. within adverbs
+		if v := evrb(inc(m.k[2+x])); v == 0 || cTri(c(v)) || cTri(c(v-dy)) || v == dy+'$' || (v >= '0' && v <= '9') || (v >= dy+'0' && v <= dy+'9') {
+			if v == 0 {
+				v = m.k[2+x]
+			}
+			return decr(v, r, 0)
+		} else { // fold const
+			return dex(x, cal(v, r))
+		}
 	}
 	return 0
 }
@@ -1923,9 +1934,7 @@ next:
 		case xi == 'D':
 			i++
 			top--
-			ddd := drv(m.k[xp+i], m.k[sp+top+1])
-			pr(ddd, "ddd")
-			push(ddd)
+			push(drv(m.k[xp+i], m.k[sp+top+1]))
 		case xi == 'c':
 			i++
 			push(inc(m.k[xp+i]))
@@ -3770,11 +3779,11 @@ func cal(x, y k) (r k) { // x.y
 			return cal(cal(x, fst(inc(y))), drop(1, y)) // at depth
 		}
 		return atx(x, y)
-	} else if xt > V0 && yt > V0 {
-		return comp(x, y)
 	}
 	if c := cadv(x); c != atom {
-		return dex(y, drv(c, inc(m.k[2+y])))
+		return drv(c, fst(y))
+	} else if xt > V0 && yt > V0 {
+		return comp(x, y)
 	}
 	y = explode(y)
 	for i := k(0); i < yn; i++ {
@@ -3860,7 +3869,6 @@ func cal(x, y k) (r k) { // x.y
 			u, f = f, u
 		}
 		dec(y)
-		println(x, a, f, u)
 		return g(x, a, f, u)
 	} else if n := xt - V0; n > yn {
 		for i := yn; i < n; i++ {
