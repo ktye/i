@@ -17,7 +17,7 @@ func Evl(x k) (r k) {
 	if false {
 		return evl(x)
 	} else {
-		return exe(com(x, mk(L, 0)), 0)
+		return exe(com(x, mk(L, 0), 0), 0)
 	}
 }
 
@@ -33,6 +33,7 @@ func TestCom(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"{x+y}[1;2]", "3"},
 		{"1+2", "3"},
 		{`e:|{x\y}\;3 e\24 40`, "(24 40;16 24;8 16;0 8)"},
 		{"(-*:)2 3", "-2"},
@@ -48,7 +49,6 @@ func TestCom(t *testing.T) {
 		{"(+)/1 2 3", "6"},
 		{"+/1 2 3", "6"},
 		{"f:+;f/1 2 3", "6"},
-		{"{x+y}[1;2]", "3"},
 		{"{(x;y)}/[1;2 3 4]", "((1 2;3);4)"},
 		{"x:!5;a:2;x[a,3]:5 6;x", "0 1 5 6 4"},
 		{"x:1 2;x[0]:3 4;x", "(3 4;2)"},
@@ -101,7 +101,7 @@ func TestCom(t *testing.T) {
 	}
 }
 func TestT(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -134,7 +134,7 @@ func TestT(t *testing.T) {
 	}
 }
 func TestK(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	testCases := []struct {
 		x, r s
 	}{
@@ -1203,7 +1203,7 @@ Functions have type V0,V1,V2,..V0+7
  basic functions and builtins have values < 256 and are not stored in the memory system
  lambda functions: marked with length 0
   x+2 string form C
-  x+3 (arg list;parse tree)
+  x+3 (arg list;parse tree;compiled code)
  projection: length 1(over lambda) 2(over basic/builtins)
   x+2 function code or pointer to lambda function
   x+3 full argument list with holes (N)
