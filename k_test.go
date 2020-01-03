@@ -33,6 +33,8 @@ func TestCom(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"`p\"select from t where a>2\"", "(#; :a>2;`t)"},
+		{":1+2", " :1+2"},
 		{"(+`a`b!(1 2;3 4)) :a+b", "4 6"},
 		{"b:10*!5;{a:x;@[;2 3;+;1]'`a`b;a,b}[!5]", "0 1 3 4 4 0 10 21 31 40"},
 		{"+(1 2 3;4 5 6)", "(1 4;2 5;3 6)"},
@@ -107,7 +109,7 @@ func TestCom(t *testing.T) {
 	}
 }
 func TestT(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	var lines [][]c
 	if b, err := ioutil.ReadFile("t"); err != nil {
 		t.Fatal(err)
@@ -140,7 +142,7 @@ func TestT(t *testing.T) {
 	}
 }
 func TestK(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	testCases := []struct {
 		x, r s
 	}{

@@ -3016,7 +3016,7 @@ func tak(x, y k) (r k) { // x#y
 			}
 			return dex(x, y)
 		} else if xt == V0 && xn == 2 { // (:e)#t
-			return atx(y, wer(atx(inc(y), x)))
+			return atx(y, wer(expr(x, inc(y))))
 		}
 		return key(x, atx(y, inc(x)))
 	}
@@ -3106,7 +3106,7 @@ func drp(x, y k) (r k) { // x_y
 		return fil(x, y, true)
 	}
 	if xt == V0 && xn == 2 && t == A && yn != atom { // (:e)_t  delete from t where e
-		return dex(x, atx(y, wer(not(expr(x, y))))) // t@&~t@(:e)
+		return atx(y, wer(not(expr(x, inc(y))))) // t@&~t@(:e)
 	} else if t == A { // x_d  x_t  delete x from t
 		u := ept(inc(m.k[y+2]), x)
 		if r == m.k[y+2] {
@@ -3831,7 +3831,6 @@ func cal(x, y k) (r k) { // x.y
 }
 func cal2(f, x, y k) (r k) { return cal(f, l2(x, y)) }
 func lambda(x, y k) (r k) { // call lambda
-	pr(m.k[2+x], "lambda")
 	n := (m.k[x] >> 28) - V0
 	if n != m.k[y]&atom || m.k[y]>>28 != L {
 		panic("valence")
@@ -6481,10 +6480,7 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			return x // n
 		}
 		if m.k[x]>>28 == V0 && m.k[2+x] == 0 {
-			r = p.ex(r)
-			m.k[2+x] = r
-			m.k[3+x] = cat(mkc(' '), mkb(m.c[ps-1:p.p]))
-			return x
+			return dex(x, toex(p.ex(r), mkb(m.c[ps:p.p])))
 		} else if v := p.verb(r); v == 0 {
 			return p.store(ps, compose(l2(x, p.ex(r)))) // te
 		} else {
@@ -6848,8 +6844,8 @@ func sqlp(x k) (r k) {
 	}
 	e := toex(prs(inc(x)), x)
 	s = mk(S, atom)
-	m.k[2+x] = k('x')
-	s = lsym(inc(m.k[2+e]), s)
+	m.k[2+s] = k('x')
+	s = lsym(inc(m.k[2+m.k[3+e]]), s)
 	return key(s, e)
 }
 func lsym(x, s k) (r k) { // last symbol in tree
