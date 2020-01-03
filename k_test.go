@@ -17,7 +17,7 @@ func Evl(x k) (r k) {
 	if false {
 		return evl(x)
 	} else {
-		return exe(com(x, mk(L, 0), 0), 0)
+		return exe(com(x, mk(L, 0), 0))
 	}
 }
 
@@ -33,10 +33,26 @@ func TestCom(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		{"{x+y}[1;2]", "3"},
+		{"(+`a`b!(1 2;3 4)) :a+b", "4 6"},
+		{"b:10*!5;{a:x;@[;2 3;+;1]'`a`b;a,b}[!5]", "0 1 3 4 4 0 10 21 31 40"},
+		{"+(1 2 3;4 5 6)", "(1 4;2 5;3 6)"},
 		{"1+2", "3"},
-		{`e:|{x\y}\;3 e\24 40`, "(24 40;16 24;8 16;0 8)"},
+		{"{x}9", "9"},
+		{"{x+y}[1;2]", "3"},
+		{"*|1 2 3", "3"},
+		{"|1+2*3 4 5", "11 9 7"},
+		{"1+2", "3"},
+		{"(/)[+]1 2 3", "6"},
+		{"(+)/1 2 3", "6"},
+		{"+/1 2 3", "6"},
+		{"f:+;f/1 2 3", "6"},
 		{"(-*:)2 3", "-2"},
+		{"(2+).,3", "5"},
+		{"+[;]", "+"},
+		{"+[3;]", "3+"},
+		{"+[;3]", "+[;3]"},
+		{"2+", "2+"},
+		{"3 3 17 0!'10 -1 23 1", "(3!10;3!-1;17!23;0!1)"},
 		{"x:`a`b!(1;`c`d!1 2);x.b[`c]:4;x", "`a`b!(1;`c`d!4 2)"},
 		{"b:`b;x:`a`b!(1;2 3);x[b;0]:4;x", "`a`b!(1;4 3)"},
 		{"a:!5;a[0 1]:3 4;a", "3 4 2 3 4"},
@@ -45,19 +61,11 @@ func TestCom(t *testing.T) {
 		{"(4 3#1+!12)[1;2]", "6"},
 		{"x:!4;@[`x;1 2;*;10];x", "0 10 20 3"},
 		{"(a;b):3 4;a+b", "7"},
-		{"(/)[+]1 2 3", "6"},
-		{"(+)/1 2 3", "6"},
-		{"+/1 2 3", "6"},
-		{"f:+;f/1 2 3", "6"},
+
 		{"{(x;y)}/[1;2 3 4]", "((1 2;3);4)"},
 		{"x:!5;a:2;x[a,3]:5 6;x", "0 1 5 6 4"},
 		{"x:1 2;x[0]:3 4;x", "(3 4;2)"},
-		{"(2+).,3", "5"},
-		{"+[;]", "+"},
-		{"+[3;]", "3+"},
-		{"+[;3]", "+[;3]"},
-		{"2+", "2+"},
-		{"3 3 17 0!'10 -1 23 1", "(3!10;3!-1;17!23;0!1)"},
+
 		{"(1 2 3)1", "2"},
 		{"`p\"-1\"", "-1"},
 		{"f:+;(f/4 5 6)+$[f:*;f/1 2 3;0]", "126"},
@@ -88,9 +96,7 @@ func TestCom(t *testing.T) {
 		{"$[0;2;3]", "3"},
 		{"$[1;2;0]", "2"},
 		{"$[1-1;2+3;3+4]", "7"},
-		{"*|1 2 3", "3"},
-		{"|1+2*3 4 5", "11 9 7"},
-		{"1+2", "3"},
+		{`e:|{x\y}\;3 e\24 40`, "(24 40;16 24;8 16;0 8)"},
 	}
 	for _, tc := range testCases {
 		fmt.Printf("%s → %s\n", tc.x, tc.r)
@@ -138,6 +144,9 @@ func TestK(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"x:3;.`x", "3"},
+		{`{a:3;x+.("x+a")}3`, "9"},
+		{"b:10*!5;{a:x;@[;2 3;+;1]'`a`b;a,b}[!5]", "0 1 3 4 4 0 10 21 31 40"},
 		//{"f:+;(f/4 5 6)+$[f:*;f/1 2 3;0]", "126"},
 		// {"`p\"e:+-\"", "(::;`e;(.;+:;-))"},
 		// {"`p\"a:1;b::2;a+b\"", "(`;(::;`a;1);(::;`b;2);(+;`a;`b))"},
@@ -999,6 +1008,7 @@ func TestK(t *testing.T) {
 		{"?(,1;,2;,1)", "(,1;,2)"},
 		{":3", " :3"},
 		{". :3", "3"},
+		{". :1+2", "3"},
 		{":1+a", " :1+a"},
 		{"e: :1+2", " :1+2"},
 		{"~ :0", "0"},
@@ -1185,10 +1195,12 @@ Initial memory (64kB, 1kB reserved)
  byte[136…168] symbols :+-*%&|<>=!~,^#_$?@.0123456789'/\
  byte[169…177] type names _cifzn.a
  p[47]       0x2f src pointer
- p[48]       0x30 points to k tree keys (^S)
- p[49]       0x31 points to k tree values (L)
- p[50]       0x32 points to stab(symbol table, L of C)
- p[51]       0x33 points to asci chars (#256)
+ p[48]       0x30 points to global(ktree) keys (S)
+ p[49]       0x31 points to global(ktree) values (L)
+ p[50]       0x32 points to local keys (S)
+ p[51]       0x33 points to local values (L)
+ p[52]       0x34 points to stab(symbol table, L of C)
+ p[53]       0x35 points to asci chars (#256)
  maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
              A01234 need only a single block but may have length>0
 	     
@@ -1204,17 +1216,17 @@ Functions have type V0,V1,V2,..V0+7
  lambda functions: marked with length 0
   x+2 string form C
   x+3 (arg list;parse tree;compiled code)
- projection: length 1(over lambda) 2(over basic/builtins)
-  x+2 function code or pointer to lambda function
+ projection: length 2
+  x+2 function
   x+3 full argument list with holes (N)
- composition: length 3, type N+1 or N+2
+ composition: length 3, type V1 or V2
   x+2, x+3: point to verbs
  derived verbs, e.g. evaluating (/;+) are atoms
   x+2 derived function code
   x+3 points to the function operand
- expressions (:e) have type N with length 2
-  x+2 parse tree
-  x+3 string form C
+ expressions (:e) have type V0 with length 2
+  x+2 string form C
+  x+3 (parse tree;compiled code)
  call will adjust the valence if a derived function has two arguments
  
 Symbols are interned in the char array at m.k[stab]
@@ -1241,6 +1253,8 @@ func check(t *testing.T) {
 func clear() { // clear variables
 	dec(m.k[kkey])
 	dec(m.k[kval])
+	dec(m.k[lkey])
+	dec(m.k[lval])
 	dec(m.k[stab])
 }
 func pfl() {
