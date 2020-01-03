@@ -34,39 +34,38 @@ arrays type(4 bytes),length(4 bytes),values (type is the same as atom but follow
  
 flags(attributes) sort/unique (2nd byte)
  ^1 2    0x00010007 02000000 01000000 02000000
- ^1 2    0x00020007 02000000 01000000 02000000
- ^&1 2   0x00030007 02000000 01000000 02000000
+ ?1 2    0x00020007 02000000 01000000 02000000
+ ^?1 2   0x00030007 02000000 01000000 02000000
  
 list 0x00000000 length values...
  ("a";`b) 0x00000000 02000000 0161 0f6200
           list-type  length    "a"   `b
 	  
 prototypes are appended to an empty list
- 0#(1 2;`a) 0x00000000 00000000 00000007 02000000 00000080 00000080
-            list       zero-len int-array len-2   0N       0N
+ 0#,0N 0N 0x00000000 00000000 00000007 02000000 00000080 00000080
+          list       zero-len int-array len-2   0N       0N
 	 
 progression arrays type 0x000300010,(offset value 4bytes),(limit 4 bytes)
  2+!4     0x00030010 04000000 02000000
  !0       0x00030010 00000000 00000000
- !2f is a normal float array
+ !2f is encoded as a normal float array
  
 dicts type 0x0000001502000000 followed by key and value arrays
- `a`b!1 2  0x0000001502000000 0000000f 02000000 61006200 00000007 02000000 02000000 03000000
+ `a`b!1 2  0x0000001502000000 0000000f 02000000 61006200 00000007 02000000 01000000 02000000
            dict type          symbol array len2 `a`b     int-arr. len 2
 
 table 0x00000014 01000000 followed by the dict
 
 primitive functions type(1 byte),value(1 byte function code)
  codes: 00..18 :+-*%&|<>=!~,^#_$?@.01234
- 0 25          +: 0x2501   4:: 0x2518   monadic
- 1 26          :  0x2600   4:  0x2618   dyadic
+ 0x25nn monadic    +: 0x2501   4:: 0x2518
+ 0x25nn dyadic     :  0x2600   4:  0x2618
  
 adverbs (alone)
    27          ' / \ ': /: \" 0x2700..0x2705
 
 null (e.g. missing argument, null result)
    2800
-   2801 +:  ?? not equal to +: (2501)
 
 derived functions 0x000000(1a..1f),01000000,(function code)
  +'  0x0000001a 01000000 2601
