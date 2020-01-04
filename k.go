@@ -1765,7 +1765,7 @@ func com(x, l k) (r k) { // compile
 		return dex(x, lcat(lcat(l, 'D'), c))
 	}
 	if n == 2 && m.k[2+x] == '*' && m.k[m.k[3+x]]&atom == 2 && m.k[2+m.k[3+x]] == '|' { // *|..
-		x = lcat(lcat(mk(L, 0), 2), las(las(x)))
+		return lcat(com(las(las(x)), l), 2)
 	}
 	if v < 128 && v != 0 && n == 3 { // assign(::;`x;v) modified(+:;`x;v)
 		l = com(inc(m.k[4+x]), l)
@@ -1865,6 +1865,13 @@ func com(x, l k) (r k) { // compile
 	return lcat(lcat(l, 'x'), n)
 }
 func exe(x k) (r k) { // execute
+	r, c := exec(x)
+	if c != 0 {
+		return lambda(c, enlist(r))
+	}
+	return r
+}
+func exec(x k) (r, cont k) { // execute with continuation(tail call)
 	sn, top := k(30), k(0)
 	sp, top := 2+mk(I, sn), top-1
 	push := func(u k) {
@@ -1982,7 +1989,21 @@ next:
 			push(tab1[xi](m.k[sp+top+1]))
 		case xi < 256:
 			top -= 2
-			push(tab2[xi-dy](m.k[sp+top+2], m.k[sp+top+1]))
+			f := m.k[sp+top+2]
+			if xi-dy == '@' && f > 256 && m.k[f]>>28 > V0 && m.k[f]&atom == 0 { // tco
+				j := i + 1
+				for {
+					if j == xn {
+						decr(x, sp-2, 0)
+						return m.k[sp+top+1], f
+					} else if m.k[2+x+j] == 'j' {
+						j += 2 + num(j+1)
+					} else {
+						break
+					}
+				}
+			}
+			push(tab2[xi-dy](f, m.k[sp+top+1]))
 		default:
 			panic("exe")
 		}
@@ -1990,7 +2011,7 @@ next:
 	if top != 0 {
 		panic("exe") // unbalanced
 	}
-	return decr(x, sp-2, m.k[sp])
+	return decr(x, sp-2, m.k[sp]), 0
 }
 func ano(p, e k) (r k) { // annotate source line with error position
 	r = cat(lup(mks(".f")), mkc(':')) // TODO: .ano(k)
@@ -3836,25 +3857,37 @@ func lambda(x, y k) (r k) { // call lambda
 	if n != m.k[y]&atom || m.k[y]>>28 != L {
 		panic("valence")
 	}
-	lk := m.k[2+m.k[3+x]]
-	ln := m.k[lk] & atom
-	lv := mk(L, ln)
-	for i := k(0); i < ln; i++ {
-		if i < n {
+	lk, lv := largv(x, y)
+	rk, rl := m.k[lkey], m.k[lval]
+	m.k[lkey], m.k[lval] = lk, lv
+	for {
+		r, y = exec(inc(m.k[4+m.k[3+x]]))
+		x = decr(x, m.k[lval], y)
+		if x == 0 {
+			break
+		}
+		m.k[lkey], m.k[lval] = largv(x, enlist(r))
+	}
+	m.k[lkey] = rk
+	m.k[lval] = rl
+	return r
+}
+func largv(x, y k) (lk, lv k) {
+	ny := m.k[y] & atom
+	lk = m.k[2+m.k[3+x]]
+	n := m.k[lk] & atom
+	lv = mk(L, n)
+	for i := k(0); i < n; i++ {
+		if i < ny {
 			m.k[2+lv+i] = inc(m.k[2+y+i])
 		} else {
 			m.k[2+lv+i] = 0
 		}
 	}
 	dec(y)
-	rk, rl := m.k[lkey], m.k[lval]
-	m.k[lkey], m.k[lval] = lk, lv
-	r = exe(inc(m.k[4+m.k[3+x]]))
-	dec(lv)
-	m.k[lkey] = rk
-	m.k[lval] = rl
-	return dex(x, r)
+	return lk, lv
 }
+func tail(x, y k) (r k) { return lambda(x, enlist(y)) }
 func expr(ex, env k) (r k) {
 	rk, rl := m.k[lkey], m.k[lval]
 	if env != 0 {
