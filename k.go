@@ -1867,7 +1867,7 @@ func com(x, l k) (r k) { // compile
 func exe(x k) (r k) { // execute
 	r, c := exec(x)
 	if c != 0 {
-		return lambda(c, enlist(r))
+		return lambda(c, r)
 	}
 	return r
 }
@@ -1889,6 +1889,21 @@ func exec(x k) (r, cont k) { // execute with continuation(tail call)
 			r = m.k[2+r]
 		}
 		return r
+	}
+	tco := func(f, i k) bool {
+		if f > 256 && m.k[f]>>28 > V0 && m.k[f]&atom == 0 {
+			i++
+			for {
+				if i == xn {
+					return true
+				} else if m.k[2+x+i] == 'j' {
+					i += 2 + num(i+1)
+				} else {
+					return false
+				}
+			}
+		}
+		return false
 	}
 
 	/*
@@ -1967,12 +1982,15 @@ next:
 			push(ops2[m.k[2+xi]](inc(m.k[3+xi]), m.k[sp+top+2], m.k[sp+top+1]))
 		case xi == 'x':
 			i++
-			ln := num(i)
+			ln, z := num(i), false
 			f := m.k[sp+top]
 			top--
 			r = mk(L, ln)
 			for j := k(0); j < ln; j++ {
 				m.k[2+r+j] = m.k[sp+top-j]
+				if m.k[2+r+j] == 0 {
+					z = true
+				}
 			}
 			top -= ln
 			if f > 255 && m.k[f]>>28 < V0 && ln > 1 { // matrix index
@@ -1982,6 +2000,9 @@ next:
 						continue next
 					}
 				}
+			} else if tco(f, i) && !z && ln+V0 == m.k[f]>>28 {
+				decr(x, sp-2, 0)
+				return r, f
 			}
 			push(cal(f, uf(r)))
 		case xi < 128:
@@ -1990,18 +2011,9 @@ next:
 		case xi < 256:
 			top -= 2
 			f := m.k[sp+top+2]
-			if xi-dy == '@' && f > 256 && m.k[f]>>28 > V0 && m.k[f]&atom == 0 { // tco
-				j := i + 1
-				for {
-					if j == xn {
-						decr(x, sp-2, 0)
-						return m.k[sp+top+1], f
-					} else if m.k[2+x+j] == 'j' {
-						j += 2 + num(j+1)
-					} else {
-						break
-					}
-				}
+			if xi-dy == '@' && tco(f, i) {
+				decr(x, sp-2, 0)
+				return enlist(m.k[sp+top+1]), f
 			}
 			push(tab2[xi-dy](f, m.k[sp+top+1]))
 		default:
@@ -3866,7 +3878,7 @@ func lambda(x, y k) (r k) { // call lambda
 		if x == 0 {
 			break
 		}
-		m.k[lkey], m.k[lval] = largv(x, enlist(r))
+		m.k[lkey], m.k[lval] = largv(x, r)
 	}
 	m.k[lkey] = rk
 	m.k[lval] = rl
