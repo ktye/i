@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"unsafe"
 )
@@ -27,10 +26,10 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, L, A, V0, V1, V2                           k = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-	atom, NaI, srcp, kkey, kval, lkey, lval, stab, asci, dy   k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 128
+	C, I, F, Z, S, L, A, V0, V1, V2, dy                       k = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 128
+	atom, NaI, srcp, kkey, kval, lkey, lval, stab, asci, symb k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x75
 	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 322, 323, 324, 325, 326, 327, 328, 329, 330, 331
-	ver                                                       k = 20191222
+	ver                                                       k = 20200104
 )
 
 type (
@@ -152,6 +151,7 @@ func ini(mem []f) { // start function
 		m.k[2+n+i] = nan[i+1]
 	}
 	m.k[asci] = to(jota(256), C)
+	m.k[symb] = 0
 	m.k[kkey] = mk(S, 1)
 	m.k[kval] = mk(L, 1)
 	m.k[lkey] = mk(S, 0)
@@ -451,7 +451,7 @@ func mkb(b []c) (r k) {
 }
 func mks(s s) (r k) { return c2s(mkb([]c(s))) }
 func typ(x k) (k, k) { // type and length at addr
-	if x < 256 {
+	if x < 256 || x == 0xffffffff {
 		if x < 128 {
 			return V1, atom
 		}
@@ -479,15 +479,16 @@ func mtyp(x, n k) (t, cols k, eq bool) { // matrix type
 	return t, cols, eq
 }
 func inc(x k) k {
-	if x > 255 {
-		m.k[1+x]++
+	if x < 256 || x == 0xffffffff {
+		return x
 	}
+	m.k[1+x]++
 	return x
 }
 func dex(x, r k) k     { dec(x); return r }
 func decr(x, y, r k) k { dec(x); dec(y); return r }
 func dec(x k) {
-	if x < 256 {
+	if x < 256 || x == 0xffffffff {
 		return
 	} else if m.k[x]>>28 == 0 || m.k[1+x] == 0 {
 		panic("unref " + hxk(x))
@@ -1345,7 +1346,7 @@ func str(x k) (r k) { // $x
 			}
 		case t > V0:
 			f := m.k[2+x]
-			if x == 0 {
+			if x == 0 || x == 0xffffffff {
 				return mk(C, 0)
 			} else if x > 1 && x < 32 {
 				return inc(m.k[2+x+m.k[stab]])
@@ -1448,7 +1449,7 @@ func val(x k) (r k) { // . x
 	}
 	panic("type")
 }
-func evl(x k) (r k) { return exe(com(x, mk(L, 0), 0)) }
+func evl(x k) (r k) { return exe(com(x, mk(L, 0))) }
 
 /*
 func evl(x k) (r k) {
@@ -1728,7 +1729,7 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 	}
 	return 0
 }
-func com(x, l, e k) (r k) { // compile
+func com(x, l k) (r k) { // compile
 	if v := evc(x); v != 0 {
 		return lcat(lcat(l, 'c'), v)
 	} else if x == 0 {
@@ -1736,7 +1737,7 @@ func com(x, l, e k) (r k) { // compile
 	}
 	t, n := typ(x)
 	if t == S && n == atom {
-		return lcat(lcat(l, 'g'), x)
+		return lcat(lcat(l, 'g'), nvar(x))
 	} else if t != L {
 		panic("assert")
 	}
@@ -1744,14 +1745,14 @@ func com(x, l, e k) (r k) { // compile
 	vt, vn := typ(v)
 	if vt == S {
 		if n == 2 && vn == 1 && m.k[2+v] == 0 { // (,`;..) <- `@y
-			return dex(x, lcat(lcat(lcat(com(inc(m.k[3+x]), l, e), 'c'), inc(nans)), dy+'@'))
+			return dex(x, lcat(lcat(lcat(com(inc(m.k[3+x]), l), 'c'), inc(nans)), dy+'@'))
 		}
 		if n == 1 { // ,`a`b → `a`b
 			return lcat(lcat(l, 'c'), fst(x))
 		}
 		if m.k[2+v] == 0 { // (`;…) → ex;ex…
 			for i := k(1); i < n; i++ {
-				l = com(inc(m.k[2+i+x]), l, e)
+				l = com(inc(m.k[2+i+x]), l)
 				if i < n-1 {
 					l = lcat(l, ';')
 				}
@@ -1760,14 +1761,14 @@ func com(x, l, e k) (r k) { // compile
 		}
 	}
 	if c := cadv(m.k[2+x]); c != atom && n == 2 {
-		l = com(inc(m.k[3+x]), l, e)
+		l = com(inc(m.k[3+x]), l)
 		return dex(x, lcat(lcat(l, 'D'), c))
 	}
 	if n == 2 && m.k[2+x] == '*' && m.k[m.k[3+x]]&atom == 2 && m.k[2+m.k[3+x]] == '|' { // *|..
 		x = lcat(lcat(mk(L, 0), 2), las(las(x)))
 	}
 	if v < 128 && v != 0 && n == 3 { // assign(::;`x;v) modified(+:;`x;v)
-		l = com(inc(m.k[4+x]), l, e)
+		l = com(inc(m.k[4+x]), l)
 		if v == ':' {
 			v = 0
 		} else { // e.g. *:
@@ -1776,22 +1777,22 @@ func com(x, l, e k) (r k) { // compile
 		name := inc(m.k[3+x])
 		if nt, nn := typ(name); nt == L && nn > 1 {
 			if m.k[2+name] == 0 { // (;`a;`b) vector assignment
-				name = drop(1, name)
+				name = uf(drop(1, name))
 			} else if nn > 1 { // (`a;i) amd | (`a;i;j..) dmd
 				idx := drop(1, inc(name))
 				name, idx = dxn2(fst(name), idx)
 				if nn := m.k[idx] & atom; nn == 1 {
-					return dex(x, lcat(lcat(lcat(com(fst(idx), l, e), 'A'), name), v))
+					return dex(x, lcat(lcat(lcat(com(fst(idx), l), 'A'), nvar(name)), v))
 				} else {
-					return dex(x, lcat(lcat(lcat(com(cat(0, idx), l, e), 'B'), name), v))
+					return dex(x, lcat(lcat(lcat(com(cat(0, idx), l), 'B'), nvar(name)), v))
 				}
 			}
 		}
-		return dex(x, lcat(lcat(lcat(l, 'a'), name), v))
+		return dex(x, lcat(lcat(lcat(l, 'a'), nvar(name)), v))
 	} else if m.k[2+x] == dy+'$' && n > 3 { // $[x;y;..]
 		r = mk(L, n-1)
 		for i := k(0); i < n-1; i++ {
-			m.k[2+r+i] = com(inc(m.k[3+x+i]), mk(L, 0), e)
+			m.k[2+r+i] = com(inc(m.k[3+x+i]), mk(L, 0))
 		}
 		if n%2 == 1 {
 			r = lcat(r, l2('c', 0))
@@ -1819,9 +1820,9 @@ func com(x, l, e k) (r k) { // compile
 		return decr(x, r, l)
 	} else if n > 3 && n < 6 && v < 256 && cTri(c(v-dy)) {
 		if n == 4 { // triadic
-			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), l, e), e), e), 'c'), v), 'x'), 3))
+			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), l))), 'c'), v), 'x'), 3))
 		} else if n == 5 { // tetradic
-			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), com(inc(m.k[x+6]), l, e), e), e), e), 'c'), v), 'x'), 4))
+			return dex(x, lcat(lcat(lcat(lcat(com(inc(m.k[x+3]), com(inc(m.k[x+4]), com(inc(m.k[x+5]), com(inc(m.k[x+6]), l)))), 'c'), v), 'x'), 4))
 		}
 	}
 	z := false
@@ -1829,7 +1830,7 @@ func com(x, l, e k) (r k) { // compile
 		if m.k[1+x+n-1] == 0 {
 			z = true
 		}
-		l = com(inc(m.k[1+x+n-i]), l, e)
+		l = com(inc(m.k[1+x+n-i]), l)
 	}
 	if n > 256 {
 		n = mki(n - 1)
@@ -1856,7 +1857,7 @@ func com(x, l, e k) (r k) { // compile
 	if iev {
 		l = lcat(lcat(l, 'c'), v)
 	} else {
-		l = com(v, l, e)
+		l = com(v, l)
 	}
 	if n == 1 { // juxtaposition
 		return lcat(l, dy+'@')
@@ -1883,24 +1884,25 @@ func exe(x k) (r k) { // execute
 		return r
 	}
 
-	for i := k(0); i < xn; i++ {
-		c := ""
-		p := m.k[2+x+i]
-		if p < 128 {
-			c = "'" + string(p)
-		} else if p < 256 {
-			c = `"` + string(p-128)
-		} else {
-			r = kst(inc(p))
-			c = "(" + gstr(r)
-			dec(r)
+	/*
+		for i := k(0); i < xn; i++ {
+			c := ""
+			p := m.k[2+x+i]
+			if p < 128 {
+				c = "'" + string(p)
+			} else if p < 256 {
+				c = `"` + string(p-128)
+			} else {
+				r = kst(inc(p))
+				c = "(" + gstr(r)
+				dec(r)
+			}
+			fmt.Printf("%%%2d %4d %s\n", i, p, c)
 		}
-		fmt.Printf("%%%2d %4d %s\n", i, p, c)
-	}
+	*/
 
 next:
 	for i := k(0); i < xn; i++ {
-		//println("[", i, "]")
 		xi := m.k[xp+i]
 		switch {
 		case xi == 0:
@@ -1982,12 +1984,11 @@ next:
 			top -= 2
 			push(tab2[xi-dy](m.k[sp+top+2], m.k[sp+top+1]))
 		default:
-			println(x)
-			panic("???")
+			panic("exe")
 		}
 	}
 	if top != 0 {
-		println("unbalanced", top)
+		panic("exe") // unbalanced
 	}
 	return decr(x, sp-2, m.k[sp])
 }
@@ -4992,6 +4993,9 @@ func asn(x, y, f k) (r k) { // `x:y
 	}
 }
 func das(d, p, y k) (r k) { // dot assign y to dict at path
+	if d == 0xffffffff {
+		d = key(mk(S, 0), mk(L, 0))
+	}
 	dt, dn := typ(d)
 	if dt != A || dn != atom {
 		panic("value")
@@ -5076,9 +5080,9 @@ func mut(x, y k) { // modify-inplace
 }
 func amd(x, a, f, y k) (r k) { // @[x;i;f;y]
 	t, n := typ(x)
-	if t != S {
+	if n != atom || t == A {
 		return amdv(x, a, f, y)
-	} else if n != atom {
+	} else if t != S && t != I {
 		panic("type")
 	}
 	v := lup(inc(x))
@@ -5092,9 +5096,9 @@ func amd(x, a, f, y k) (r k) { // @[x;i;f;y]
 }
 func dmd(x, a, f, y k) (r k) { // .[x;i;f;y]
 	t, n := typ(x)
-	if t != S {
+	if n != atom || t == A {
 		return dmdv(x, a, f, y)
-	} else if n != atom {
+	} else if t != S && t != I {
 		panic("type")
 	}
 	v := lup(inc(x))
@@ -5293,7 +5297,7 @@ func dmdv(x, a, f, y k) (r k) { // dmd on value(x)
 	return amdv(inc(x), inc(a0), 0, dmdv(atx(x, a0), drop(1, a), f, y))
 }
 func lup(x k) (r k) { // lookup
-	if r = lupo(inc(x)); r == 0 {
+	if r = lupo(inc(x)); r == 0 || r == 0xffffffff {
 		panic(undef(x))
 	}
 	return dex(x, r)
@@ -5359,8 +5363,39 @@ func varn(x k) (idx i, exists bool) {
 	}
 	return 0, false
 }
+func nvar(x k) (r k) {
+	if m.k[symb] != 0 {
+		return x
+	}
+	if t, n := typ(x); t == S && n != atom {
+		r = mk(I, n)
+		for i := k(0); i < n; i++ {
+			ix := nvar(atx(inc(x), mki(i)))
+			m.k[2+r+i] = m.k[2+ix]
+			dec(ix)
+		}
+		return dex(x, r)
+	} else if t != S {
+		panic("type")
+	}
+	c, n := sc(2 + x)
+	for i := k(0); i < n; i++ {
+		if m.c[c+i] == '.' {
+			return x
+		}
+	}
+	if i, o := varn(x); o {
+		return dex(x, mki(k(i)))
+	}
+	m.k[kkey] = cat(m.k[kkey], x)
+	m.k[kval] = lcat(m.k[kval], 0)
+	n = m.k[m.k[kval]] & atom
+	m.k[1+n+m.k[kval]] = 0xffffffff // (undef)
+	return mki(n - 1)
+}
 
 //func vars(dummy k) (r k) { dec(dummy); return inc(m.k[kkey]) }
+/*
 func del(x k) (r k) { // delete variable
 	panic("del")
 	t, n := typ(x)
@@ -5377,6 +5412,7 @@ func del(x k) (r k) { // delete variable
 	}
 	return dex(x, 0)
 }
+*/
 func lsv() (r k)     { return inc(m.k[kkey]) }                                  // \v (list variables)
 func hlp() (r k)     { return cat(mkb(m.c[136:168]), kst(inc(m.k[2+m.k[3]]))) } // \h
 func hxb(x c) (c, c) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0F] }
@@ -6614,7 +6650,10 @@ func (p *p) noun() (r k) {
 		l := mk(L, 3)
 		m.k[2+l] = unq(locl(m.k[3+r], args)) // locl no ref
 		m.k[3+l] = m.k[3+r]
-		m.k[4+l] = com(inc(m.k[3+r]), mk(L, 0), m.k[2+l])
+		lk := m.k[lkey]
+		m.k[lkey] = m.k[2+l]
+		m.k[4+l] = com(inc(m.k[3+r]), mk(L, 0))
+		m.k[lkey] = lk
 		m.k[3+r] = l
 		m.k[r] = (V0+ln)<<28 | 0
 		return p.idxr(r)
@@ -6864,7 +6903,10 @@ func toex(x, c k) (r k) {
 	if m.c[8+c<<2] == ' ' {
 		c = drop(1, c)
 	}
-	cx := com(inc(x), mk(L, 0), 1)
+	s := m.k[symb]
+	m.k[symb] = 1
+	cx := com(inc(x), mk(L, 0))
+	m.k[symb] = s
 	r = l2(cat(mkc(' '), cat(mkc(':'), c)), l2(x, cx))
 	m.k[r] = V0<<28 | 2
 	return r
@@ -6883,7 +6925,6 @@ func monad(x k) (r k) { // force monad
 	} else if x < 256 {
 		return x - 128
 	} else if m.k[x]>>28 != L {
-		println(x)
 		panic("force monad?")
 	}
 	return x

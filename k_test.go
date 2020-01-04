@@ -17,7 +17,7 @@ func Evl(x k) (r k) {
 	if false {
 		return evl(x)
 	} else {
-		return exe(com(x, mk(L, 0), 0))
+		return exe(com(x, mk(L, 0)))
 	}
 }
 
@@ -33,11 +33,13 @@ func TestCom(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
-		{"`p\"select from t where a>2\"", "(#; :a>2;`t)"},
-		{":1+2", " :1+2"},
+		{"@[`a`b!1 2;`a;3]", "`a`b!3 2"},
+		{"x:`a`b!(1;2 3);x.b", "2 3"},
 		{"(+`a`b!(1 2;3 4)) :a+b", "4 6"},
-		{"b:10*!5;{a:x;@[;2 3;+;1]'`a`b;a,b}[!5]", "0 1 3 4 4 0 10 21 31 40"},
-		{"+(1 2 3;4 5 6)", "(1 4;2 5;3 6)"},
+		{"x:`a`b!(1;`c`d!1 2);x.b[`c]:4;x", "`a`b!(1;`c`d!4 2)"},
+		{"a:333", "333"},
+		{"a:1;(3;a)", "3 1"},
+		{"(a;b):3 4;a+b", "7"},
 		{"1+2", "3"},
 		{"{x}9", "9"},
 		{"{x+y}[1;2]", "3"},
@@ -55,19 +57,21 @@ func TestCom(t *testing.T) {
 		{"+[;3]", "+[;3]"},
 		{"2+", "2+"},
 		{"3 3 17 0!'10 -1 23 1", "(3!10;3!-1;17!23;0!1)"},
-		{"x:`a`b!(1;`c`d!1 2);x.b[`c]:4;x", "`a`b!(1;`c`d!4 2)"},
+
 		{"b:`b;x:`a`b!(1;2 3);x[b;0]:4;x", "`a`b!(1;4 3)"},
 		{"a:!5;a[0 1]:3 4;a", "3 4 2 3 4"},
-		{"a:333", "333"},
+
 		{"(4 3#1+!12)[;,1]", "(,2;,5;,8;,11)"},
 		{"(4 3#1+!12)[1;2]", "6"},
 		{"x:!4;@[`x;1 2;*;10];x", "0 10 20 3"},
-		{"(a;b):3 4;a+b", "7"},
 
+		{":1+2", " :1+2"},
+
+		{"b:10*!5;{a:x;@[;2 3;+;1]'`a`b;a,b}[!5]", "0 1 3 4 4 0 10 21 31 40"},
+		{"+(1 2 3;4 5 6)", "(1 4;2 5;3 6)"},
 		{"{(x;y)}/[1;2 3 4]", "((1 2;3);4)"},
 		{"x:!5;a:2;x[a,3]:5 6;x", "0 1 5 6 4"},
 		{"x:1 2;x[0]:3 4;x", "(3 4;2)"},
-
 		{"(1 2 3)1", "2"},
 		{"`p\"-1\"", "-1"},
 		{"f:+;(f/4 5 6)+$[f:*;f/1 2 3;0]", "126"},
@@ -75,7 +79,6 @@ func TestCom(t *testing.T) {
 		{"-(1 2 3)", "-1 -2 -3"},
 		{"a:1;a", "1"},
 		{"(1;- 1)", "1 -1"},
-		{"a:1;(3;a)", "3 1"},
 		{"(1-2;1--2;- 1)", "-1 3 -1"},
 		{"e:+-;e", "+:-"},
 		{"1", "1"},
@@ -99,13 +102,10 @@ func TestCom(t *testing.T) {
 		{"$[1;2;0]", "2"},
 		{"$[1-1;2+3;3+4]", "7"},
 		{`e:|{x\y}\;3 e\24 40`, "(24 40;16 24;8 16;0 8)"},
+		{"`p\"select from t where a>2\"", "(#; :a>2;`t)"},
 	}
-	for _, tc := range testCases {
-		fmt.Printf("%s → %s\n", tc.x, tc.r)
-		if r := try(tc.x, false); r != tc.r {
-			t.Fatalf("expected %s got %s\n", tc.r, r)
-		}
-		check(t)
+	for j, tc := range testCases {
+		try4(t, j, tc.x, tc.r)
 	}
 }
 func TestT(t *testing.T) {
@@ -119,26 +119,18 @@ func TestT(t *testing.T) {
 			lines = lines[:len(lines)-1]
 		}
 	}
-	for _, occ := range []bool{true, false} {
-		for j, l := range lines {
-			tc := strings.Split(s(l), " / ") // in / k7 / ktye / ngn / notes
-			if len(tc) == 1 {
-				return
-			}
-			i, x := tc[0], tc[2]
-			if x == "=" {
-				x = tc[1]
-			} else if x == "~" {
-				continue
-			}
-			fmt.Printf("%s / %s\n", i, x)
-
-			r := try(i, occ)
-			if r != x {
-				t.Fatalf("t:%d expected %s got %s", j+1, x, r)
-			}
-			check(t)
+	for j, l := range lines {
+		tc := strings.Split(s(l), " / ") // in / k7 / ktye / ngn / notes
+		if len(tc) == 1 {
+			return
 		}
+		i, x := tc[0], tc[2]
+		if x == "=" {
+			x = tc[1]
+		} else if x == "~" {
+			continue
+		}
+		try4(t, j, i, x)
 	}
 }
 func TestK(t *testing.T) {
@@ -1086,19 +1078,25 @@ func TestK(t *testing.T) {
 		{"t:+`a`b!(!10;1+!10);select from t where b>3,a<6", "+`a`b!(3 4 5;4 5 6)"},
 		{"t:+`a`b!(!10;1+!10);select a+b from t where b>3,a<6", "+`b!7 9 11"},
 	}
-	for _, occ := range []bool{true, false} {
-		for j, tc := range testCases {
-			fmt.Printf("%s → %s\n", tc.x, tc.r)
-			r := try(tc.x, occ)
-			if r != tc.r {
-				t.Fatalf("t:%d expected %s got %s", j+1, tc.r, r)
-			}
-			check(t)
-		}
+	for j, tc := range testCases {
+		try4(t, j, tc.x, tc.r)
 	}
 }
-func try(in s, occ bool) s {
+func try4(t *testing.T, n int, in, ex s) {
+	fmt.Printf("%s → %s\n", in, ex)
+	for j := k(0); j < 4; j++ {
+		r := try(in, j&1 != 0, j&2 != 0)
+		if r != ex {
+			t.Fatalf("[%d] expected %s got %s", n, ex, r)
+		}
+	}
+	check(t)
+}
+func try(in s, occ, sym bool) s {
 	ini(make([]f, 1<<13))
+	if sym {
+		m.k[symb] = 1
+	}
 	tab2['1'] = wrt
 	l := prs(mkb([]c(in)))
 	if occ {
@@ -1203,8 +1201,10 @@ Initial memory (64kB, 1kB reserved)
  p[51]       0x33 points to local values (L)
  p[52]       0x34 points to stab(symbol table, L of C)
  p[53]       0x35 points to asci chars (#256)
+ p[117]      0x75 symbolic compilation
  maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
              A01234 need only a single block but may have length>0
+	     
 	     
 Function codes
  primitives :+-*%&|<>=!~,^#_$?@. (their ascii value, dyadic +128)
