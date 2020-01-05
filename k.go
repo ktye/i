@@ -4001,6 +4001,9 @@ func ech(f, x k) (r k) { // f'x
 		}
 		return nd(f, x, 0, []f2{nil, baC, baI, nil, nil, nil}, nil)
 	}
+	if f < 256 && f > 127 {
+		f -= 128
+	}
 	t, n := typ(x)
 	if t == A {
 		r = mk(A, atom)
