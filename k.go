@@ -1848,9 +1848,9 @@ func com(x, l k) (r k) { // compile
 	} else if !z {
 		if (v < 128 && n == 1) || (v < 256 && n == 2) {
 			return lcat(l, v) // basic monad/dyadic
-		} else if v > 255 && vt > V0 && vn == atom && n == 1 {
+		} else if v > 255 && vt > V0 && vt <= V2 && vn == atom && n == 1 {
 			return lcat(lcat(l, 'd'), v)
-		} else if v > 255 && vt > V0 && vn == atom && n == 2 {
+		} else if v > 255 && vt > V0 && vt <= V2 && vn == atom && n == 2 {
 			return lcat(lcat(l, dy+'d'), v)
 		}
 	}
@@ -3812,19 +3812,36 @@ func cal(x, y k) (r k) { // x.y
 		return cal(u, enl(cal(v, y)))
 	}
 	if x > 255 && xn == atom { // derived
-		code := m.k[2+x]
+		op := m.k[2+x]
 		switch yn {
 		case 1:
-			f := ops1[code]
+			f := ops1[op]
 			a, b := inc(m.k[3+x]), inc(m.k[2+y])
 			dec(y)
 			return dex(x, f(a, b))
 		case 2:
-			f := ops2[code]
+			f := ops2[op]
 			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
 			dec(y)
 			return dex(x, f(a, b, c))
 		default:
+			if f := m.k[3+x]; f > 255 {
+				if n := m.k[f]>>28 - V0; n == yn {
+					switch op {
+					case 0:
+						return dex(x, ecn(inc(f), y))
+					case 1:
+						return dex(x, ovn(inc(f), y))
+					case 2:
+						return dex(x, scx(inc(f), y))
+					}
+				} else if n < yn {
+					for i := yn; i < n; i++ {
+						y = lcat(y, 0)
+					}
+					return prj(x, y)
+				}
+			}
 			panic("valence")
 		}
 	} else if x < 128 && yn == 1 {
@@ -4050,6 +4067,21 @@ func ecd(f, x, y k) (r k) { // x f'y (each pair)
 	}
 	dec(f)
 	return decr(x, y, uf(r))
+}
+func ecn(f, x k) (r k) { // each (nadic)
+	xn, n := nopn(x)
+	r = mk(L, atm1(n))
+	for i := k(0); i < atm1(n); i++ {
+		a, ii := mk(L, xn), mki(i)
+		for j := k(0); j < xn; j++ {
+			m.k[2+a+j] = atx(inc(m.k[2+x+j]), inc(ii))
+		}
+		m.k[2+r+i] = dex(ii, cal(inc(f), a))
+	}
+	if n == atom {
+		return decr(f, x, fst(r))
+	}
+	return decr(f, x, uf(r))
 }
 func ecp(f, x k) (r k) { // f':x (each prior)
 	ft, t, fn, n := typs(f, x)
@@ -4331,6 +4363,19 @@ func ovi(f, x, y k) (r k) { // x f/y
 	}
 	return decr(y, f, r)
 }
+func ovn(f, x k) (r k) { // over(nadic)
+	xn, n := nopn(x)
+	r = inc(m.k[2+x])
+	for i := k(0); i < atm1(n); i++ {
+		a, ii := mk(L, xn), mki(i)
+		m.k[2+a] = r
+		for j := k(1); j < xn; j++ {
+			m.k[2+a+j] = atx(inc(m.k[2+x+j]), inc(ii))
+		}
+		r = dex(ii, cal(inc(f), a))
+	}
+	return decr(f, x, r)
+}
 func sci(f, x, y k) (r k) { // x f\y
 	xt, _, xn, yn := typs(x, y)
 	if xt > V0 {
@@ -4366,6 +4411,33 @@ func sci(f, x, y k) (r k) { // x f\y
 	}
 	dec(f)
 	return decr(x, y, uf(r))
+}
+func scx(f, x k) (r k) { // scan(nadic)
+	xn, n := nopn(x)
+	r = mk(L, atm1(n))
+	rr := inc(m.k[2+x])
+	for i := k(0); i < atm1(n); i++ {
+		a, ii := mk(L, xn), mki(i)
+		m.k[2+a] = rr
+		for j := k(1); j < xn; j++ {
+			m.k[2+a+j] = atx(inc(m.k[2+x+j]), inc(ii))
+		}
+		rr = dex(ii, cal(inc(f), a))
+		m.k[2+r+i] = inc(rr)
+	}
+	dec(rr)
+	return decr(f, x, uf(r))
+}
+func nopn(x k) (xn, n k) {
+	xn, n = m.k[x]&atom, atom
+	for i := k(0); i < xn; i++ {
+		if nn := m.k[m.k[2+i+x]] & atom; n == atom {
+			n = nn
+		} else if nn != atom && nn != n {
+			panic("length")
+		}
+	}
+	return xn, n
 }
 func scop1(f, x k) (k, k, f2) {
 	if f > 255 {
@@ -6446,7 +6518,7 @@ func par(x, sto k) (r k) {
 	r = mk(L, 1)
 	m.k[2+r] = inc(nans) // ;→`
 	for p.p <= p.e {     // ex;ex;…
-		r = lcat(r, p.ex(p.noun()))
+		r = lcat(r, fsl(p.ex(p.noun())))
 		locl(r, 0) // correct local infix assign outside lambda
 		if !p.t(sSem) {
 			break
@@ -6563,20 +6635,23 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		if m.k[x]>>28 == V0 && m.k[2+x] == 0 {
 			return dex(x, toex(p.ex(r), mkb(m.c[ps:p.p])))
 		} else if v := p.verb(r); v == 0 {
-			return p.store(ps, compose(l2(x, p.ex(r)))) // te
+			if cmpvrb(x) {
+				return p.store(ps, compose(l2(x, p.ex(r)))) // te
+			}
+			return p.store(ps, l2(fsl(x), p.ex(fsl(r)))) // te
 		} else {
 			if y := p.ex(p.noun()); y == 0 {
-				return p.store(ps, l2(v, dex(y, x))) // e.g. 2+
+				return p.store(ps, l2(v, dex(y, fsl(x)))) // e.g. 2+
 			} else if v == dy+'@' { // strip @
-				return dex(v, p.store(ps, l2(x, y))) // x@y
+				return dex(v, p.store(ps, l2(fsl(x), fsl(y)))) // x@y
 			} else if cmpvrb(y) {
 				if v == dy+':' {
 					// TODO: also for global assign?
 					return p.store(ps, l3(iasn(v), x, y)) // n:y (not a composition)
 				}
-				return p.store(ps, compose(l2(l2(v, x), y))) // 2+ *
+				return p.store(ps, compose(l2(l2(v, fsl(x)), y))) // 2+ *
 			} else {
-				return p.store(ps, l3(iasn(v), x, y)) // nve
+				return p.store(ps, l3(iasn(v), fsl(x), fsl(y))) // nve
 			}
 		}
 	} else {
@@ -6584,10 +6659,28 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 		x = p.ex(p.noun())
 		if x == 0 {
 			return r // v
-		} else {
-			return p.store(ps, compose(l2(monad(r), x))) // ve
+		} else { // ve
+			if cmpvrb(x) {
+				return p.store(ps, compose(l2(monad(r), x)))
+			}
+			return p.store(ps, l2(monad(r), fsl(x)))
 		}
 	}
+}
+func fsl(x k) (r k) {
+	if t, n := typ(x); t != L || n != 1 {
+		return x
+	}
+	if t, _ := typ(m.k[2+x]); m.k[2+x] < 256 || t == S {
+		return x
+	}
+	return fst(x)
+	/*
+		if t, _ := typ(m.k[2+x]); m.k[2+x] > 255 && t != S {
+			return fst(x)
+		}
+		return x
+	*/
 }
 func iasn(v k) k { // mark (local) infix assignment
 	if v == dy+':' {
@@ -6609,7 +6702,7 @@ func (p *p) verb(x k) (r k) { // v:tA|V
 		for {
 			r = mk(L, 2)
 			m.k[2+r] = p.a(pAdv)
-			m.k[3+r] = x
+			m.k[3+r] = fsl(x)
 			x = r
 			if p.t(sAdv) == false {
 				break
@@ -6708,9 +6801,12 @@ func (p *p) noun() (r k) {
 		if n := m.k[r] & atom; n == 0 {
 			return p.idxr(r)
 		} else if n == 1 {
-			if vrb(m.k[2+r]) { // verb
-				return p.idxr(r)
+			//if vrb(m.k[2+r]) { // verb
+			if p.t(sObr) {
+				return p.idxr(fst(r))
 			}
+			return r
+			//}
 			return p.idxr(fst(r))
 		}
 		return p.idxr(cat(enlist(0), r))
@@ -6771,7 +6867,7 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 		if t := m.k[r] >> 28; t != L {
 			panic("assert lst not L")
 		}
-		r = lcat(r, p.ex(p.noun()))
+		r = lcat(r, fsl(p.ex(p.noun())))
 		if !p.t(sSem) {
 			break
 		}
