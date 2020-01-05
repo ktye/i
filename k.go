@@ -1354,9 +1354,6 @@ func str(x k) (r k) { // $x
 				return inc(m.k[x-93+m.k[stab]])
 			} else if x < 256 {
 				c := c(x)
-				//if x == 1 {
-				//	c = ':'
-				//}
 				if x > 127 {
 					c -= 128
 				}
@@ -1378,10 +1375,10 @@ func str(x k) (r k) { // $x
 					panic("value") // op-verb
 				}
 				r = cat(kst(inc(m.k[3+x])), r)
-			} else if n == 0 || (n == 2 && x > 255 && m.k[2+x]&atom == 0) { // lambda(-projection)
-				r = inc(f) // `C
-			} else if n == 2 { // basic projection
-				r = str(f)
+			} else if n == 0 { // lambda
+				r = inc(f)
+			} else if n == 2 { // projection
+				r = str(inc(f))
 			} else if n == 3 { // composition
 				r = cat(str(inc(m.k[2+x])), str(inc(m.k[3+x])))
 			} else {
@@ -3813,37 +3810,34 @@ func cal(x, y k) (r k) { // x.y
 	}
 	if x > 255 && xn == atom { // derived
 		op := m.k[2+x]
-		switch yn {
-		case 1:
+		if xt == V1 && yn == 1 {
 			f := ops1[op]
 			a, b := inc(m.k[3+x]), inc(m.k[2+y])
 			dec(y)
 			return dex(x, f(a, b))
-		case 2:
+		} else if xt == V1 && yn == 2 {
 			f := ops2[op]
 			a, b, c := inc(m.k[3+x]), inc(m.k[2+y]), inc(m.k[3+y])
 			dec(y)
 			return dex(x, f(a, b, c))
-		default:
-			if f := m.k[3+x]; f > 255 {
-				if n := m.k[f]>>28 - V0; n == yn {
-					switch op {
-					case 0:
-						return dex(x, ecn(inc(f), y))
-					case 1:
-						return dex(x, ovn(inc(f), y))
-					case 2:
-						return dex(x, scx(inc(f), y))
-					}
-				} else if n < yn {
-					for i := yn; i < n; i++ {
-						y = lcat(y, 0)
-					}
-					return prj(x, y)
-				}
+		} else if xt-V0 == yn {
+			switch op {
+			case 0:
+				return dex(x, ecn(inc(m.k[3+x]), y))
+			case 1:
+				return dex(x, ovn(inc(m.k[3+x]), y))
+			case 2:
+				return dex(x, scx(inc(m.k[3+x]), y))
+			default:
+				panic("type")
 			}
-			panic("valence")
+		} else if xt-V0 > yn {
+			for i := yn; i < xt-V0; i++ {
+				y = lcat(y, 0)
+			}
+			return prj(x, y)
 		}
+		panic("valence")
 	} else if x < 128 && yn == 1 {
 		f, a := tab1[x], inc(m.k[2+y])
 		dec(y)
@@ -3992,6 +3986,9 @@ func drv(op k, x k) (r k) { // derived function
 	r = mk(V1, atom)
 	m.k[2+r] = op // 0(') 1(/) 2(\) 3(':) 4(/:) 5(\:)
 	m.k[3+r] = x
+	if t := m.k[x] >> 28; x > 255 && t > V2 {
+		m.k[r] = t<<28 | atom
+	}
 	return r
 }
 func ech(f, x k) (r k) { // f'x
@@ -6646,7 +6643,6 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 				return dex(v, p.store(ps, l2(fsl(x), fsl(y)))) // x@y
 			} else if cmpvrb(y) {
 				if v == dy+':' {
-					// TODO: also for global assign?
 					return p.store(ps, l3(iasn(v), x, y)) // n:y (not a composition)
 				}
 				return p.store(ps, compose(l2(l2(v, fsl(x)), y))) // 2+ *
@@ -6675,12 +6671,6 @@ func fsl(x k) (r k) {
 		return x
 	}
 	return fst(x)
-	/*
-		if t, _ := typ(m.k[2+x]); m.k[2+x] > 255 && t != S {
-			return fst(x)
-		}
-		return x
-	*/
 }
 func iasn(v k) k { // mark (local) infix assignment
 	if v == dy+':' {
@@ -6801,13 +6791,10 @@ func (p *p) noun() (r k) {
 		if n := m.k[r] & atom; n == 0 {
 			return p.idxr(r)
 		} else if n == 1 {
-			//if vrb(m.k[2+r]) { // verb
 			if p.t(sObr) {
 				return p.idxr(fst(r))
 			}
 			return r
-			//}
-			return p.idxr(fst(r))
 		}
 		return p.idxr(cat(enlist(0), r))
 	case p.t(sBin):
