@@ -1687,6 +1687,14 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 		return v
 	}
 	t, n := typ(x)
+	if t == L && m.k[1+x] > 0xFFFF {
+		panic("rc")
+		/*
+			sp = m.k[1+x] >> 16
+			m.k[srcp] = sp
+			m.k[1+x] &= 0xFFFF
+		*/
+	}
 	if t != L {
 		if t == S && n == 1 {
 			return fst(x)
@@ -1727,16 +1735,23 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 	return 0
 }
 func com(x, l k) (r k) { // compile
-	if v := evc(x); v != 0 {
-		return lcat(lcat(l, 'c'), v)
-	} else if x == 0 {
-		return lcat(lcat(l, 'c'), 0)
-	}
+	/*
+		if v := evc(x); v != 0 {
+			return lcat(lcat(l, 'c'), v)
+		} else if x == 0 {
+			return lcat(lcat(l, 'c'), 0)
+		}
+	*/
 	t, n := typ(x)
 	if t == S && n == atom {
 		return lcat(lcat(l, 'g'), nvar(x))
-	} else if t != L {
-		panic("assert")
+	} else if t != L || n == 0 {
+		if t == S && n == 1 {
+			x = fst(x)
+		}
+		return lcat(lcat(l, 'c'), x)
+	} else if n == 1 {
+		return lcat(lcat(l, 'c'), fst(x))
 	}
 	v := m.k[2+x]
 	vt, vn := typ(v)
@@ -1824,7 +1839,7 @@ func com(x, l k) (r k) { // compile
 	}
 	z := false
 	for i := k(0); i < n-1; i++ {
-		if m.k[1+x+n-1] == 0 {
+		if m.k[1+x+n-i] == 0 {
 			z = true
 		}
 		l = com(inc(m.k[1+x+n-i]), l)
@@ -1834,11 +1849,16 @@ func com(x, l k) (r k) { // compile
 	} else {
 		n--
 	}
+
 	iev := false
-	if h := evc(inc(m.k[2+x])); h != 0 {
-		v, iev = h, true
-		vt, vn = typ(v)
-	}
+	/*
+		if h := evc(inc(m.k[2+x])); h != 0 {
+			v, iev = h, true
+			vt, vn = typ(v)
+		}
+	*/
+	inc(v)
+
 	dec(x)
 	if v == 0 {
 		return lcat(lcat(l, 0), n) // list
