@@ -17,17 +17,18 @@ func main() {
 	bak = make([]f, maxmem>>1)
 	ini(mem[:1<<13])
 	save(bak)
-	table[21] = red
-	table[21+dyad] = wrt
-	table[39] = trp
-	table[29+dyad] = drw
-	table[78+dyad] = flw
-	builtins(c(78+dyad), "flow")
+	tab1['1'] = red
+	tab2['1'] = wrt
+	//table[39] = trp
+	tab2['9'] = drw
+	tab2[158-128] = flw
+	dec(m.k[2+158-95+m.k[stab]])
+	m.k[2+158-95+m.k[stab]] = mkb([]c("flow"))
 	flow = mk(I, NN*NN)
 	mkk(".k", "{(`key;x)}")
 	mkk(".m", "{(`mouse;x)}")
-	dec(asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), inc(null)))
-	dec(asn(mks(".size"), mki(maxmem>>17), inc(null))) // banner MB
+	dec(asn(mks(".fs"), key(mk(S, 0), mk(L, 0)), 0))
+	dec(asn(mks(".size"), mki(maxmem>>17), 0)) // banner MB
 	obuf = mk(S, 0)
 	select {}
 }
@@ -70,9 +71,7 @@ func wrt(x, y k) (r k) { // x 1:y
 		obuf = cat(obuf, y)
 		return x
 	}
-	f := mk(N+2, atom)
-	m.k[2+f] = 12 + dyad // ,
-	dec(asn(mks(".fs"), key(inc(x), y), f))
+	dec(asn(mks(".fs"), key(inc(x), y), dy+','))
 	return x
 }
 func trp(x, y k) (r k) { panic("nyi") }
@@ -92,7 +91,7 @@ func drw(x, y k) (r k) { // x 9:y (draw)
 	p := ptr(y, C)
 	imgp = p
 	imgs = w<<16 | h
-	return decr(x, y, inc(null))
+	return decr(x, y, 0)
 }
 func jr() { // js reset output
 	imgs = 0
@@ -152,7 +151,7 @@ func Ui(t, b, x0, x1, y0, y1, mod int) int { // mouse event
 		m.k[5+r] = mki(k(mod))
 		r = kx(mks(".m"), r)
 	}
-	if match(r, null) {
+	if r == 0 {
 		dec(r)
 		return 0
 	}
@@ -171,9 +170,7 @@ func Store(n int) *byte { // create entry and allocate memory for dropped file
 	c := mk(C, k(n))
 	p := 8 + c<<2
 	r := key(s, c)
-	f := mk(N+2, atom)
-	m.k[2+f] = 12 + dyad // ,
-	dec(asn(mks(".fs"), r, f))
+	dec(asn(mks(".fs"), r, dy+','))
 	return &m.c[p]
 }
 
