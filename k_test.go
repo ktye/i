@@ -13,14 +13,6 @@ import (
 	"testing"
 )
 
-func Evl(x k) (r k) {
-	if false {
-		return evl(x)
-	} else {
-		return exe(com(x, mk(L, 0)))
-	}
-}
-
 type (
 	l  = []interface{}
 	d  = [2]interface{}
@@ -109,7 +101,7 @@ func TestCom(t *testing.T) {
 		{"`p\"select from t where a>2\"", "(#; :a>2;`t)"},
 	}
 	for j, tc := range testCases {
-		try4(t, j, tc.x, tc.r)
+		try8(t, j, tc.x, tc.r)
 	}
 }
 func TestT(t *testing.T) {
@@ -134,7 +126,7 @@ func TestT(t *testing.T) {
 		} else if x == "~" {
 			continue
 		}
-		try4(t, j, i, x)
+		try8(t, j, i, x)
 	}
 }
 func TestK(t *testing.T) {
@@ -1119,20 +1111,20 @@ func TestK(t *testing.T) {
 		{"t:+`a`b!(!10;1+!10);select a+b from t where b>3,a<6", "+`b!7 9 11"},
 	}
 	for j, tc := range testCases {
-		try4(t, j, tc.x, tc.r)
+		try8(t, j, tc.x, tc.r)
 	}
 }
-func try4(t *testing.T, n int, in, ex s) {
+func try8(t *testing.T, n int, in, ex s) {
 	fmt.Printf("%s → %s\n", in, ex)
-	for j := k(0); j < 4; j++ {
-		r := try(in, j&1 != 0, j&2 != 0)
+	for j := k(0); j < 8; j++ {
+		r := try(in, j&1 != 0, j&2 != 0, j&4 != 0)
 		if r != ex {
 			t.Fatalf("[%d] expected %s got %s", n, ex, r)
 		}
 	}
 	check(t)
 }
-func try(in s, occ, sym bool) s {
+func try(in s, occ, sym, fol bool) s {
 	ini(make([]f, 1<<13))
 	if sym {
 		m.k[symb] = 1
@@ -1142,7 +1134,10 @@ func try(in s, occ, sym bool) s {
 	if occ {
 		inc(l)
 	}
-	r := kst(Evl(l))
+	if fol {
+		l = fld(l)
+	}
+	r := kst(exe(com(l, mk(L, 0))))
 	if occ {
 		dec(l)
 	}

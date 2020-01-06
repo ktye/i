@@ -1446,7 +1446,7 @@ func val(x k) (r k) { // . x
 	}
 	panic("type")
 }
-func evl(x k) (r k) { return exe(com(x, mk(L, 0))) }
+func evl(x k) (r k) { return exe(com(fld(x), mk(L, 0))) }
 
 /*
 func evl(x k) (r k) {
@@ -1733,6 +1733,14 @@ func evc(x k) (r k) { // static/const evaluation (or 0)
 		}
 	}
 	return 0
+}
+func fld(x k) (r k) { // constant-folding
+	t, n := typ(x)
+	if t != L {
+		return x
+	}
+	_ = n
+	return x // todo
 }
 func com(x, l k) (r k) { // compile
 	/*
