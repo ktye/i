@@ -25,6 +25,13 @@ func TestCom(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"a:1 2 3;+/a", "6"},
+		{"1+2", "3"},
+		{"{x}9", "9"},
+		{"{x+y}[1;2]", "3"},
+		{"*|1 2 3", "3"},
+		{"|1+2*3 4 5", "11 9 7"},
+		{"1+2", "3"},
 		{"g:{(3;x)};*|g 1 2", "1 2"},
 		{"h:{(y+(-/(*x)**x;2f**/*x);1+*|x)};g:{{{(4f>+/(*x)**x)&255>*|x}h[;y]/x}[(x;0);x]};*|g 0 0.65", "22"},
 		{"x:3 4;*|x", "4"},
@@ -36,15 +43,9 @@ func TestCom(t *testing.T) {
 		{"a:333", "333"},
 		{"a:1;(3;a)", "3 1"},
 		{"(a;b):3 4;a+b", "7"},
-		{"1+2", "3"},
-		{"{x}9", "9"},
-		{"{x+y}[1;2]", "3"},
-		{"*|1 2 3", "3"},
-		{"|1+2*3 4 5", "11 9 7"},
-		{"1+2", "3"},
+
 		{"(/)[+]1 2 3", "6"},
 		{"(+)/1 2 3", "6"},
-		{"+/1 2 3", "6"},
 		{"f:+;f/1 2 3", "6"},
 		{"(-*:)2 3", "-2"},
 		{"(2+).,3", "5"},
@@ -1117,6 +1118,7 @@ func TestK(t *testing.T) {
 func try8(t *testing.T, n int, in, ex s) {
 	fmt.Printf("%s → %s\n", in, ex)
 	for j := k(0); j < 8; j++ {
+		//fmt.Println("try", j, in)
 		r := try(in, j&1 != 0, j&2 != 0, j&4 != 0)
 		if r != ex {
 			t.Fatalf("[%d] expected %s got %s", n, ex, r)
@@ -1131,15 +1133,16 @@ func try(in s, occ, sym, fol bool) s {
 	}
 	tab2['1'] = wrt
 	l := prs(mkb([]c(in)))
+	l1 := l
 	if occ {
-		inc(l)
+		l1 = inc(l)
 	}
 	if fol {
 		l = fld(l)
 	}
 	r := kst(exe(com(l, mk(L, 0))))
 	if occ {
-		dec(l)
+		dec(l1)
 	}
 	p, n := 8+r<<2, m.k[r]&atom
 	dec(r)

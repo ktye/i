@@ -6,16 +6,16 @@ import (
 )
 
 const ref = `
-: idn dex  ! til key  0: rdl wrl  0 null      10 abs        20 med  130 ... in      140 mvg avg
-+ flp add  ~ not mch  1: nil nil  1           11 plo plot   21 vri  131 ... within  141 pct med
-- neg sub  , enl cat  2: nil nil  2 las last  12 ima imag   22 prm  132 bin         142 cov var
-* fst mul  ^ srt ept  3: nil nil  3 sqr sqrt  13 phi phase          133 ... like
-% inv div  # cnt tak  4: nil nil  4 sin       14 cnj conj           134              '  ech ecd
-& wer min  _ flr drp  5: nil nil  5 cos       15 cnd cond           135 lgn log      /  ovr ovi
-| rev max  $ str cst  6: nil nil  6 dev       16 zxp expi           136 pow exp      \  scn sci
-< asc les  ? unq fnd  7: nil nil  7 log       17 dia diag           137 rol rand     ': ecp epi
-> dst mor  @ tip atx  8: lun lud  8 exp       18 avg                138 mkz cmplx    /: jon ecr
-= grp eql  . val cal  9: nil drw  9 rnd rand  19 med                139 fns find     \: spl ecl
+: idn dex  ! til key  0: rdl wrl  0 null      10 abs        20 med       130 ... in      140 mvg avg
++ flp add  ~ not mch  1: nil nil  1           11 plo plot   21 vri       131 ... within  141 pct med
+- neg sub  , enl cat  2: nil nil  2 las last  12 ima imag   22 prm       132 bin         142 cov var
+* fst mul  ^ srt ept  3: nil nil  3 sqr sqrt  13 phi phase  23 rnd rand  133 ... like    144 rol rand
+% inv div  # cnt tak  4: nil nil  4 sin       14 cnj conj                134              '  ech ecd
+& wer min  _ flr drp  5: nil nil  5 cos       15 cnd cond                135 lgn log      /  ovr ovi
+| rev max  $ str cst  6: nil nil  6 dev       16 zxp expi                136 pow exp      \  scn sci
+< asc les  ? unq fnd  7: nil nil  7 log       17 dia diag                137             ': ecp epi
+> dst mor  @ tip atx  8: lun lud  8 exp       18 avg                     138 mkz cmplx    /: jon ecr
+= grp eql  . val cal  9: nil drw  9           19 med                     139 fns find     \: spl ecl
 `
 
 type c = byte
@@ -92,8 +92,8 @@ var msrt func(k, k, k, k, k, fc)
 
 func ini(mem []f) { // start function
 	tab1 = [128]func(k) k{ // monads
-		nil, nil, las, sqr, sin, cos, dev, log, exp, rnd, abs, nil, rel, ima, phi, cnj, //  00- 15
-		cnd, zxp, dia, avg, med, vri, prm, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
+		nil, nil, las, sqr, sin, cos, dev, log, exp, nil, abs, nil, rel, ima, phi, cnj, //  00- 15
+		cnd, zxp, dia, avg, med, vri, prm, rnd, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
 		nil, til, nil, cnt, str, inv, wer, nil, nil, nil, fst, flp, enl, neg, val, nil, //  32- 47
 		rdl, nil, nil, nil, nil, nil, lun, deb, nil, nil, idn, nil, asc, grp, dsc, unq, //  48- 63
 		tip, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  64- 79
@@ -102,8 +102,8 @@ func ini(mem []f) { // start function
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, rev, nil, not, nil, // 112-127
 	}
 	tab2 = [128]func(k, k) k{ // dyads
-		nil, nil, inn, wtn, bin, nil, nil, lgn, pow, rol, nil, nil, mkz, fns, rot, nil, //  00- 15
-		nil, rxp, nil, mvg, pct, cov, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
+		nil, nil, inn, wtn, bin, nil, nil, lgn, pow, nil, nil, nil, mkz, fns, rot, nil, //  00- 15
+		nil, rxp, nil, mvg, pct, cov, nil, rol, nil, nil, nil, nil, nil, nil, nil, nil, //  16- 31
 		nil, key, nil, tak, cst, div, min, nil, nil, nil, mul, add, cat, sub, cal, nil, //  32- 47
 		wrl, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, //  48- 63
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, //  64- 79
@@ -137,7 +137,7 @@ func ini(mem []f) { // start function
 	msrt = smsrt
 
 	// symbol table, `(0), monadic builtins(1..32), dyadic builtins(33..64), predefined..
-	m.k[stab] = spl(mkc(','), mkb([]c(",001,last,sqrt,sin,cos,dev,007,008,009,abs,011,real,imag,phase,conj,cond,017,diag,019,020,021,prm,023,024,025,026,027,028,029,030,031,032,128,129,in,within,bin,like,134,log,exp,rand,138,plot,cmplx,find,rot,143,144,expi,146,avg,med,var,150,151,152,153,154,155,156,157,158,159,160,b64,hex,csv,png,select,update,delete,by,from,where")))
+	m.k[stab] = spl(mkc(','), mkb([]c(",001,last,sqrt,sin,cos,dev,007,008,009,abs,011,real,imag,phase,conj,cond,017,diag,019,020,021,prm,023,024,025,026,027,028,029,030,031,032,128,129,in,within,bin,like,134,log,exp,137,138,plot,cmplx,find,rot,143,144,expi,146,avg,med,var,150,rand,152,153,154,155,156,157,158,159,160,b64,hex,csv,png,select,update,delete,by,from,where")))
 	nans = mk(S, atom)
 	m.k[2+nans] = 0
 	nan[C], nan[I], nan[F], nan[Z], nan[S] = mk(C, atom), mk(I, atom), mk(F, atom), mk(Z, atom), nans
@@ -357,7 +357,7 @@ func mkk(s s, k s) { dec(asn(mks(s), mkb([]c(k)), 0)) } // store k implementatio
 func kx(s, x k) (r k) { // exec monadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C { // cache on first call
-		f = asn(inc(s), prs(f), 0)
+		f = asn(inc(s), val(f), 0)
 	}
 	dec(s)
 	if m.k[f]>>28 != V1 {
@@ -368,7 +368,7 @@ func kx(s, x k) (r k) { // exec monadic k implementation
 func kxy(s, x, y k) (r k) { // execute dyadic k implementation
 	f := lup(inc(s))
 	if m.k[f]>>28 == C {
-		f = asn(inc(s), prs(f), 0)
+		f = asn(inc(s), val(f), 0)
 	}
 	dec(s)
 	if m.k[f]>>28 != V2 {
@@ -1624,132 +1624,86 @@ func evl(x k) (r k) {
 	return x
 }
 */
-func evrb(x k) (r k) { // statically evaluate verb or 0
+func strong(x k) bool {
 	if x < 256 {
-		return x
-	}
-	t, n := typ(x)
-	if t != L {
-		return 0
-	}
-	if c := cadv(m.k[2+x]); c != atom && n == 2 {
-		if v := evrb(inc(m.k[3+x])); v != 0 {
-			return dex(x, drv(c, v))
-		} else {
-			dec(m.k[3+x])
+		if x > 127 {
+			x -= 128
 		}
-	} else if n == 2 || (n == 3 && (m.k[3+x] == 0 || m.k[4+x] == 0)) { // projection
-		u := evrb(inc(m.k[2+x]))
-		if ut, un := typ(u); u > 255 && un == atom {
-			return dex(u, 0)
-		} else if u == 0 {
-			dec(m.k[2+x])
-		} else if ut == V2 {
-			if n == 3 && m.k[3+x] == 0 && m.k[4+x] == 0 {
-				return dex(x, u) // +[;] → +
-			}
-			a, b := m.k[3+x], false
-			if a == 0 && n == 3 {
-				a, b = m.k[4+x], true
-			}
-			if v := evc(inc(a)); v != 0 {
-				r = mk(V1, 2)
-				m.k[2+r] = u
-				if b {
-					m.k[3+r] = l2(0, v) // +[;1]
-				} else {
-					m.k[3+r] = l2(v, 0) // 1+
-				}
-				return dex(x, r)
-			} else {
-				dec(a)
-				dec(u)
-			}
-		} else {
-			dec(u)
+		if (x >= '0' && x <= '9') || (x > 22 && x < 31) || (x > 32+22 && x < 64) {
+			return false // io-verbs and built-ins >= rand
 		}
-	} else if n == 3 && m.k[2+x] == dy+'.' { // composition
-		if u := evrb(inc(m.k[3+x])); u != 0 {
-			if v := evrb(inc(m.k[4+x])); v != 0 {
-				return dex(x, comp(u, v))
-			} else {
-				dec(u)
-				dec(m.k[4+x])
-			}
-		} else {
-			dec(m.k[3+x])
-		}
+		return true
 	}
-	return 0
+	if t, n := typ(x); t < V1 {
+		return false
+	} else if n == atom { // derived
+		return strong(m.k[3+x])
+	} else if n == 2 { // projection
+		return strong(m.k[2+x])
+	} else if n == 3 { // composition
+		return strong(m.k[2+x]) && strong(m.k[2+x])
+	}
+	return false
 }
-func evc(x k) (r k) { // static/const evaluation (or 0)
-	if v := evrb(x); v != 0 {
-		return v
+func idm(x k) (r k) { // idiom-replacement
+	cdr := m.k[3+x]
+	ct, cn := typ(cdr)
+	if ct == L && cn == 2 && m.k[2+x] == '*' && m.k[2+cdr] == '|' { // *|.. → last
+		return l2(2, las(las(x)))
 	}
+	return x
+}
+func uneval(x k) (r k) { // uneval
+	if t, n := typ(x); t == L && n > 0 {
+		return cat(0, x)
+	}
+	return x
+}
+func evc(x k) (r k, full bool) { // partially evaluate
 	t, n := typ(x)
-	if t == L && m.k[1+x] > 0xFFFF {
-		panic("rc")
-		/*
-			sp = m.k[1+x] >> 16
-			m.k[srcp] = sp
-			m.k[1+x] &= 0xFFFF
-		*/
-	}
-	if t != L {
-		if t == S && n == 1 {
-			return fst(x)
-		} else if t == S {
-			return 0
-		}
-		return x
+	if t == S && n == atom {
+		return x, false
+	} else if t != V0 {
+		return x, false // defer expr
+	} else if t != L || n == 0 {
+		return x, true
 	} else if n == 1 {
-		return fst(x)
-	} else if n == 0 {
-		return x
-	} else { // if m.k[2+x] == 0 {
-		r = mk(L, n-1)
-		for i := k(0); i < n-1; i++ {
-			m.k[2+r+i] = 0
-		}
-		for i := k(1); i < n; i++ {
-			xi := m.k[2+x+n-i]
-			if v := evc(inc(xi)); v != 0 {
-				m.k[1+r+n-i] = v
-			} else {
-				return decr(xi, r, 0)
+		return fst(x), true
+	} else if n == 2 {
+		x = idm(x)
+	}
+	r, full = mk(L, n), true
+	var f bool
+	for i := k(0); i < n; i++ { // left-to-right is ok
+		m.k[2+r+i], f = evc(inc(m.k[2+x+i]))
+		if full && !f {
+			full = false
+			for j := k(0); j < i; j++ {
+				m.k[2+r+j] = uneval(m.k[2+r+j])
 			}
 		}
-		if m.k[2+x] == 0 {
-			return dex(x, uf(r))
-		}
-		// todo: check for more side-effects of early eval, e.g. within adverbs
-		if v := evrb(inc(m.k[2+x])); v == 0 || cTri(c(v)) || cTri(c(v-dy)) || v == dy+'$' || (v >= '0' && v <= '9') || (v >= dy+'0' && v <= dy+'9') {
-			if v == 0 {
-				v = m.k[2+x]
-			}
-			return decr(v, r, 0)
-		} else { // fold const
-			return dex(x, cal(v, r))
+		if !full && f {
+			m.k[2+r+i] = uneval(m.k[2+r+i])
 		}
 	}
-	return 0
+	dec(x)
+	if v := m.k[2+r]; full && strong(v) && !(v == dy+'$' && n > 3) {
+		if v == 0 {
+			return uf(drop(1, r)), true // list
+		}
+		return cal(inc(v), uf(drop(1, r))), true
+	}
+	return r, false
 }
 func fld(x k) (r k) { // constant-folding
-	t, n := typ(x)
-	if t != L {
+	if x, full := evc(x); full {
+		return uneval(x)
+	} else {
 		return x
 	}
-	_ = n
-	return x // todo
 }
 func com(x, l k) (r k) { // compile
-	/*
-		if v := evc(x); v != 0 {
-			return lcat(lcat(l, 'c'), v)
-		} else if x == 0 {
-			return lcat(lcat(l, 'c'), 0)
-		}
-	*/
+	//pr(x, "com")
 	t, n := typ(x)
 	if t == S && n == atom {
 		return lcat(lcat(l, 'g'), nvar(x))
@@ -1783,9 +1737,6 @@ func com(x, l k) (r k) { // compile
 	if c := cadv(m.k[2+x]); c != atom && n == 2 {
 		l = com(inc(m.k[3+x]), l)
 		return dex(x, lcat(lcat(l, 'D'), c))
-	}
-	if n == 2 && m.k[2+x] == '*' && m.k[m.k[3+x]]&atom == 2 && m.k[2+m.k[3+x]] == '|' { // *|..
-		return lcat(com(las(las(x)), l), 2)
 	}
 	if v < 128 && v != 0 && n == 3 { // assign(::;`x;v) modified(+:;`x;v)
 		l = com(inc(m.k[4+x]), l)
@@ -1857,17 +1808,7 @@ func com(x, l k) (r k) { // compile
 	} else {
 		n--
 	}
-
-	iev := false
-	/*
-		if h := evc(inc(m.k[2+x])); h != 0 {
-			v, iev = h, true
-			vt, vn = typ(v)
-		}
-	*/
-	inc(v)
-
-	dec(x)
+	dex(x, inc(v))
 	if v == 0 {
 		return lcat(lcat(l, 0), n) // list
 	} else if !z {
@@ -1879,11 +1820,7 @@ func com(x, l k) (r k) { // compile
 			return lcat(lcat(l, dy+'d'), v)
 		}
 	}
-	if iev {
-		l = lcat(lcat(l, 'c'), v)
-	} else {
-		l = com(v, l)
-	}
+	l = com(v, l)
 	if n == 1 { // juxtaposition
 		return lcat(l, dy+'@')
 	}
@@ -6811,7 +6748,7 @@ func (p *p) noun() (r k) {
 		m.k[3+l] = m.k[3+r]
 		lk := m.k[lkey]
 		m.k[lkey] = m.k[2+l]
-		m.k[4+l] = com(inc(m.k[3+r]), mk(L, 0))
+		m.k[4+l] = com(fld(inc(m.k[3+r])), mk(L, 0))
 		m.k[lkey] = lk
 		m.k[3+r] = l
 		m.k[r] = (V0+ln)<<28 | 0
@@ -7064,7 +7001,7 @@ func toex(x, c k) (r k) {
 	}
 	s := m.k[symb]
 	m.k[symb] = 1
-	cx := com(inc(x), mk(L, 0))
+	cx := com(fld(inc(x)), mk(L, 0))
 	m.k[symb] = s
 	r = l2(cat(mkc(' '), cat(mkc(':'), c)), l2(x, cx))
 	m.k[r] = V0<<28 | 2
