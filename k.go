@@ -29,7 +29,7 @@ const (
 	C, I, F, Z, S, L, A, V0, V1, V2, dy                       k = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 128
 	atom, NaI, srcp, kkey, kval, lkey, lval, stab, asci, symb k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x75
 	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 322, 323, 324, 325, 326, 327, 328, 329, 330, 331
-	ver                                                       k = 20200106
+	ver                                                       k = 20200107
 )
 
 type (
@@ -806,20 +806,17 @@ func flp(x k) (r k) { // +x
 		panic("type")
 	} else if t == A {
 		if n == atom {
-			ln := k(0)
-			v := m.k[3+x]
+			v, ln := m.k[3+x], k(0)
+			if m.k[v]>>28 != L {
+				panic("type")
+			}
 			for i := k(0); i < m.k[v]&atom; i++ {
-				vk := atx(inc(v), mki(i))
-				vn := m.k[vk] & atom
-				if i == 0 {
-					ln = vn
-					if vn == atom {
-						panic("class")
-					}
-				} else if vn != ln {
-					panic("size") // rows have different lengths
+				if nn := m.k[m.k[2+i+v]] & atom; i == 0 {
+					ln = nn
+				} else if nn != ln || nn == atom {
+					println(nn, ln)
+					panic("size")
 				}
-				dec(vk)
 			}
 			r = mk(A, ln)
 			m.k[2+r] = inc(m.k[2+x])
