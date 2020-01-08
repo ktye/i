@@ -26,10 +26,10 @@ type z = complex128
 type s = string
 
 const (
-	C, I, F, Z, S, L, A, V0, V1, V2, dy                       k = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 128
-	atom, NaI, srcp, kkey, kval, lkey, lval, stab, asci, symb k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x75
-	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer k = 322, 323, 324, 325, 326, 327, 328, 329, 330, 331
-	ver                                                       k = 20200107
+	C, I, F, Z, S, L, A, V0, V1, V2, dy                             k = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 128
+	atom, NaI, srcp, kkey, kval, lkey, lval, stab, asci, symb, srcc k = 0x0fffffff, 2147483648, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37
+	yb64, yhex, ycsv, ypng, ysel, yudt, ydel, yby, yfrm, ywer       k = 322, 323, 324, 325, 326, 327, 328, 329, 330, 331
+	ver                                                             k = 20200107
 )
 
 type (
@@ -152,18 +152,16 @@ func ini(mem []f) { // start function
 	}
 	m.k[asci] = to(jota(256), C)
 	m.k[symb] = 0
-	m.k[kkey] = mk(S, 1)
-	m.k[kval] = mk(L, 1)
-	m.k[lkey] = mk(S, 0)
-	m.k[lval] = mk(L, 0)
+	m.k[kkey], m.k[kval] = mk(S, 1), mk(L, 1)
+	m.k[lkey], m.k[lval] = mk(S, 0), mk(L, 0)
 	m.k[2+m.k[kkey]], m.k[2+m.k[kval]] = 0, key(mk(S, 0), mk(L, 0))
+	m.k[srcp], m.k[srcc] = 0, 0
 	ltx[L], gtx[L], eqx[L] = ltL, gtL, eqL
 
 	dec(asn(mks(".a"), m.k[asci], 0))
 	dec(asn(mks(".n"), n, 0))
 	//dec(asn(inc(nans), key(mk(S, 0), mk(L, 0)), 0)) // ktree `
 	dec(asn(mks(".f"), mk(C, 0), 0))                // file name
-	dec(asn(mks(".c"), mk(C, 0), 0))                // current src
 	mkk(".flp", `{(,/x[;!n])@(n*!#x)+/:!n:|/#:'x}`) // transpose
 	// mkk(".odo", `{x\:!*/x}`)                             // odometer (replaced by native, \: is very slow)
 	mkk(".rot", `{$[x~0;y;0~#y;y];x:(#y)\x;$[0<x;(x_y),x#y;(x#y),x_y]}`)
@@ -1990,7 +1988,7 @@ func ano(p, e k) (r k) { // annotate source line with error position
 	if p == 0 {
 		return decr(r, e, re)
 	}
-	s := lupo(mks(".c"))
+	s := inc(m.k[srcc])
 	if s == 0 {
 		return decr(r, e, re)
 	}
@@ -3845,7 +3843,9 @@ func lambda(x, y k) (r k) { // call lambda
 	lk, lv := largv(x, y)
 	rk, rl := m.k[lkey], m.k[lval]
 	m.k[lkey], m.k[lval] = lk, lv
+	s := m.k[srcc]
 	for {
+		m.k[srcc] = m.k[2+x]
 		r, y = exec(inc(m.k[4+m.k[3+x]]))
 		x = decr(x, m.k[lval], y)
 		if x == 0 {
@@ -3855,6 +3855,7 @@ func lambda(x, y k) (r k) { // call lambda
 	}
 	m.k[lkey] = rk
 	m.k[lval] = rl
+	m.k[srcc] = s
 	return r
 }
 func largv(x, y k) (lk, lv k) {
@@ -3878,7 +3879,10 @@ func expr(ex, env k) (r k) {
 	if env != 0 {
 		m.k[lkey], m.k[lval] = m.k[2+env], m.k[3+env]
 	}
+	s := m.k[srcc]
+	m.k[srcc] = m.k[2+ex]
 	r = exe(inc(m.k[3+m.k[3+ex]]))
+	m.k[srcc] = s
 	m.k[lkey], m.k[lval] = rk, rl
 	return decr(ex, env, r)
 }
@@ -4517,7 +4521,7 @@ func deb(x k) (r k) { // 9:x (println) (also drw)
 	return dex(r, x)
 }
 func lod(x k) (r k) {
-	dec(asn(mks(".f"), tak(min(mki(8), cnt(inc(x))), inc(x)), 0))
+	dec(asn(mks(".f"), inc(x), 0))
 	evp(red(x))
 	return 0
 }
@@ -4576,7 +4580,8 @@ func evp(x k) { // parse-eval-print
 		out(cmd(drop(1, x)))
 		return
 	}
-	r, asn := par(x, 8+x<<2), false
+	m.k[srcc] = x
+	r, asn := par(inc(x), 8+x<<2), false
 	a, s := r, inc(nans)
 	if t, n := typ(a); t == L && n > 1 && match(m.k[2+a], s) {
 		dec(s)
@@ -4594,7 +4599,7 @@ func evp(x k) { // parse-eval-print
 		dec(r)
 		return
 	}
-	out(r)
+	out(dex(x, r))
 }
 func out(x k) {
 	if x == 0 {
@@ -6473,10 +6478,7 @@ func par(x, sto k) (r k) {
 		dec(x)
 		return 0
 	}
-	if sto != 0 {
-		dec(asn(mks(".c"), inc(x), 0))
-	}
-	p := p{p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: sto}
+	p := p{src: 8 + x<<2, p: 8 + x<<2, e: n + 8 + x<<2, lp: 7 + x<<2, sto: sto}
 	r = mk(L, 1)
 	m.k[2+r] = inc(nans) // ;→`
 	for p.p <= p.e {     // ex;ex;…
@@ -6488,7 +6490,7 @@ func par(x, sto k) (r k) {
 		p.p++
 	}
 	if p.p < p.e {
-		p.xx() // unprocessed input
+		panic("parse") // unprocessed input
 	}
 	_, n = typ(r)
 	if n == 2 {
@@ -6501,6 +6503,7 @@ func par(x, sto k) (r k) {
 }
 
 type p struct {
+	src k
 	p   k // current position, m.c[p.p:...]
 	m   k // pos after matched token (token: m.c[p.p:p.m])
 	e   k // pos after last byte available
@@ -6521,6 +6524,7 @@ func (p *p) t(f func([]c) int) bool { // test for next token
 func (p *p) a(f func([]c) k) (r k) { // accept, parse and advance
 	n := p.m - p.p
 	p.p = p.m
+	m.k[srcp] = p.p - p.src
 	return f(m.c[p.p-n : p.p])
 }
 func (p *p) w() { // remove whitespace and count lines
@@ -6576,9 +6580,6 @@ func (p *p) nNum() bool { // minus part of a number
 	}
 	return true
 }
-func (p *p) xx() {
-	panic("parse: " + string(m.c[p.lp+1:p.p+1]) + " <-")
-}
 func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 	if x == 0 {
 		return x
@@ -6598,21 +6599,21 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			return dex(x, toex(p.ex(r), mkb(m.c[ps:p.p])))
 		} else if v := p.verb(r); v == 0 {
 			if cmpvrb(x) {
-				return p.store(ps, compose(l2(x, p.ex(r)))) // te
+				return p.st(ps, compose(l2(x, p.ex(r)))) // te
 			}
-			return p.store(ps, l2(fsl(x), p.ex(fsl(r)))) // te
+			return p.st(ps, l2(fsl(x), p.ex(fsl(r)))) // te
 		} else {
 			if y := p.ex(p.noun()); y == 0 {
-				return p.store(ps, l2(v, dex(y, fsl(x)))) // e.g. 2+
+				return p.st(ps, l2(v, dex(y, fsl(x)))) // e.g. 2+
 			} else if v == dy+'@' { // strip @
-				return dex(v, p.store(ps, l2(fsl(x), fsl(y)))) // x@y
+				return dex(v, p.st(ps, l2(fsl(x), fsl(y)))) // x@y
 			} else if cmpvrb(y) {
 				if v == dy+':' {
-					return p.store(ps, l3(iasn(v), x, y)) // n:y (not a composition)
+					return p.st(ps, l3(iasn(v), x, y)) // n:y (not a composition)
 				}
-				return p.store(ps, compose(l2(l2(v, fsl(x)), y))) // 2+ *
+				return p.st(ps, compose(l2(l2(v, fsl(x)), y))) // 2+ *
 			} else {
-				return p.store(ps, l3(iasn(v), fsl(x), fsl(y))) // nve
+				return p.st(ps, l3(iasn(v), fsl(x), fsl(y))) // nve
 			}
 		}
 	} else {
@@ -6622,9 +6623,9 @@ func (p *p) ex(x k) (r k) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 			return r // v
 		} else { // ve
 			if cmpvrb(x) {
-				return p.store(ps, compose(l2(monad(r), x)))
+				return p.st(ps, compose(l2(monad(r), x)))
 			}
-			return p.store(ps, l2(monad(r), fsl(x)))
+			return p.st(ps, l2(monad(r), fsl(x)))
 		}
 	}
 }
@@ -6643,7 +6644,7 @@ func iasn(v k) k { // mark (local) infix assignment
 	}
 	return v
 }
-func (p *p) store(ps k, x k) k { // store source position in refcount's high bits
+func (p *p) st(ps k, x k) k { // store source position in refcount's high bits
 	if m.k[x]>>28 != L {
 		panic("type")
 	}
@@ -6801,7 +6802,7 @@ func (p *p) idxr(x k) (r k) { // […]
 }
 func (p *p) idxa(x k) (r k) { // a.b[..]
 	if t := m.k[x] >> 28; t != L {
-		panic("assert idxa")
+		panic("assert")
 	}
 	if p.t(sObr) {
 		p.p = p.m
@@ -6817,7 +6818,7 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 	}
 	for {
 		if t := m.k[r] >> 28; t != L {
-			panic("assert lst not L")
+			panic("assert")
 		}
 		r = lcat(r, fsl(p.ex(p.noun())))
 		if !p.t(sSem) {
@@ -6826,7 +6827,7 @@ func (p *p) lst(l k, term func([]c) int) (r k) { // append to l
 		p.p = p.m
 	}
 	if p.t(term) == false {
-		panic("parse: unclosed list")
+		panic("parse(unclosed list)")
 	}
 	p.p = p.m
 	return r

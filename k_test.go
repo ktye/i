@@ -25,6 +25,7 @@ func TestCom(t *testing.T) {
 	testCases := []struct {
 		x, r s
 	}{
+		{"f:{a:1;x+.\"a+x\"};f 2", "5"},
 		{"a:1 2 3;+/a", "6"},
 		{"1+2", "3"},
 		{"{x}9", "9"},
@@ -1232,17 +1233,15 @@ Initial memory (64kB, 1kB reserved)
  p[4..31]    points to free block of bucket size n = 4..31
  byte[136…168] symbols :+-*%&|<>=!~,^#_$?@.0123456789'/\
  byte[169…177] type names _cifzn.a
- p[47]       0x2f src pointer
+ p[47]       0x2f srcp(position within srcc)
  p[48]       0x30 points to global(ktree) keys (S)
  p[49]       0x31 points to global(ktree) values (L)
  p[50]       0x32 points to local keys (S)
  p[51]       0x33 points to local values (L)
  p[52]       0x34 points to stab(symbol table, L of C)
  p[53]       0x35 points to asci chars (#256)
- p[117]      0x75 symbolic compilation
- maybe:      type size vector: 0,1,4,8,16,8,4,0,0,0,0,0,0
-             A01234 need only a single block but may have length>0
-	     
+ p[54]       0x36 symbolic compilation
+ p[55]       0x37 srcc(points to src chars)
 	     
 Function codes
  primitives :+-*%&|<>=!~,^#_$?@. (their ascii value, dyadic +128)
