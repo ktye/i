@@ -1,0 +1,18 @@
+<html>
+<head><meta charset="utf-8"><title>ngn/k</title></head><body><script>
+
+var us = function(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r};
+{{k.b64}}
+var u = us(atob(s));
+
+(async() => {
+var r=await WebAssembly.instantiate(u)
+window.k=r.instance.exports
+})()
+
+
+// browse to file://../index.html
+// in js console
+//    k.add(1,2)
+
+</script></body></html>

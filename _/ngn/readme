@@ -1,2 +1,19 @@
 # ngn/k, (c) 2019-2020 ngn, GNU AGPLv3 - http://bitbucket.org/ngn/k/raw/master/LICENSE
-cc a.c
+
+# e.g. on windows with msys2 where cc is gcc:
+# cc a.c
+
+
+
+# ngn/k2 (wip)
+ c=/c/local/LLVM/bin/clang
+ o="--target=wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export=add"
+$c $o -o k b.c
+
+base64 -w 0 k | sed -e 's/^/var s = "/' -e 's/$/"/' > k.b64
+
+awk '/^{{/{
+ f=substr($0, 3, length($0)-4)
+ while((getline l<f)>0) print l
+ next
+}{print}' i > index.html
