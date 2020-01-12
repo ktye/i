@@ -7,7 +7,7 @@
 
 # ngn/k2 (wip)
  c=/c/local/LLVM/bin/clang
- o="--target=wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export=add"
+ o="--target=wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export=__heap_base -Wl,--export=grw"
 $c $o -o k b.c
 
 base64 -w 0 k | sed -e 's/^/var s = "/' -e 's/$/"/' > k.b64
