@@ -1,0 +1,26 @@
+webassembly compiler(draft)
+
+write wasm by hand, but more compact than wat
+
+the source language is very close to wasm binary representation
+the compiler does mostly macro substitution and emits the sections
+
+x41016b22         /inline wasm(anywhere)
+123               /constant leb128 encoded
+"alpha"           /character constant(data section?)
+x:x2000 y:y2001   /macro assignment
+`x`y              /substitution, same as x20002001
++-*               /integer operators x6a6b6c (for wasm32) and ... for wasm64
++'-'*'            /floating point operators
+I F ..            /predefined types x07 x7c (different I for wasm64)
+`x`y+             /in wat: get_local $lhs get_local $rhs i32.mul
+x2000`y +         /ignore whitespace, auto-catenate
+x?y;              /conditional if x then y
+L`x;              /loop x. x may contain the following a break statement
+b                 /x0d01
+f:{`r;`a;`l;`b}   /function return-type;arguments-types;local-types;body
+g:{I;IIF;I3F;..}  /repeated types
+Add:{..}          /capital letter exports
+
+can we use apl operator precedence, instead of wasm's binary postfix?
+x*y+L[`b]
