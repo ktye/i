@@ -5,7 +5,7 @@ write wasm by hand, but more compact than wat
 the source language is very close to wasm binary representation
 the compiler does mostly macro substitution and emits the sections
 
-x41016b22         /inline wasm(anywhere)
+.41016b22         /inline wasm(anywhere)
 123               /constant leb128 encoded
 "alpha"           /character constant(data section?)
 x:x2000 y:y2001   /macro assignment
