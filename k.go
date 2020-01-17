@@ -13,7 +13,7 @@ const ref = `
 % inv div  # cnt tak  4: nil nil  4 sin       14 cnj conj                134              '  ech ecd
 & wer min  _ flr drp  5: nil nil  5 cos       15 cnd cond                135 lgn log      /  ovr ovi
 | rev max  $ str cst  6: nil nil  6 dev       16 zxp expi                136 pow exp      \  scn sci
-< asc les  ? unq fnd  7: nil nil  7 log       17 dia diag                137             ': ecp epi
+< asc les  ? unq fnd  7: nil nil  7 log       17 dia diag                137              ': ecp epi
 > dst mor  @ tip atx  8: lun lud  8 exp       18 avg                     138 mkz cmplx    /: jon ecr
 = grp eql  . val cal  9: nil drw  9           19 med                     139 fns find     \: spl ecl
 `
