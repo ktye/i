@@ -2,25 +2,69 @@ webassembly compiler(draft)
 
 write wasm by hand, but more compact than wat
 
-the source language is very close to wasm binary representation
-the compiler does mostly macro substitution and emits the sections
+blocks are nested, opened by assign(x:..) loop(L..) if(?..) func(f():..)
+and closed with semicolon
+whitespace: space, tab, newline is ignored /comment
 
 .41016b22         /inline wasm(anywhere)
-123               /constant leb128 encoded
-"alpha"           /character constant(data section?)
-x:x2000 y:y2001   /macro assignment
-`x`y              /substitution, same as x20002001
+123               /leb128 encoded integer/index
+123i -1.2 123.    /constants i32/i64(wasm64) f64 const
+"alpha"           /character constant
+I F ..            /types 07 7c (different I for wasm64)
+a:.2000;b:.2001;  /macro assignment
+a b               /substitution, same as .20002001
 +-*               /integer operators x6a6b6c (for wasm32) and ... for wasm64
 +'-'*'            /floating point operators
-I F ..            /predefined types x07 x7c (different I for wasm64)
-`x`y+             /in wat: get_local $lhs get_local $rhs i32.mul
-x2000`y +         /ignore whitespace, auto-catenate
-x?y;              /conditional if x then y
-L`x;              /loop x. x may contain the following a break statement
-b                 /x0d01
-f:{`r;`a;`l;`b}   /function return-type;arguments-types;local-types;body
-g:{I;IIF;I3F;..}  /repeated types
-Add:{..}          /capital letter exports
+E  R  B  ?B       /trap  return   break   ifbr
+?Fy;    ?Fy:z;    /conditional if(result type) then y     if then y else z
+L..;              /loop. body contains B or ?B
+Nj..;             /loop (n on top, j loop var), e.g. 23iN..  or xN  
+f(r;a;l):b;       /function (return type, argument types, local types, body)
+f(I;II;F):..;     /unnamed args/locals: x y z x3 x4 are predefined parameter, a b c a3.. locals
+g(F;IabIcd):..;   /named arguments: ab:local.get 0, cd:local.get 1
+Add(I;II)..;      /exported function (captialized)
+f g Add           /function calls (share namespace with macros)
 
-can we use apl operator precedence, instead of wasm's binary postfix?
-x*y+L[`b]
+/example
+add(I;II)x y+;
+       w        wat             wasm
+       x        get.local 0     2000
+       y        get.local 1     2001
+       +        i32.add         6a
+fac1(F;F)x 1.<'?F1.:x x 1.-'fac1*'     /recursive   (k) f:{$[x<1;1;x*f x-1]}
+       x        get.local 0     2000
+       1.       f64.const 1     44 0000 0000 0000 f03f
+       <'       f64.lt          63
+       ?F       if              04
+                f64             7c (if needs a result type)
+       1.       f64.const 1     44 0000 0000 0000 f03f
+       :        else
+       x x      get.local 0     2000
+                get.local 0     2000
+       1.       f64.const 1     44 0000 0000 0000 f03f
+       -'       f64.sub
+       fac1     call index      10 00
+       *'       f64.mul         a2
+fac2(F;I;IFr)r:1.; xN r:x.r*';         /loop  (x. "get.local 0 f64.convert_i64_s")
+       r:1.;    f64.const 1.0
+                set.local 1
+       xN       get.local 0
+                loop            03
+		f64             7c
+                i32.const 0     07 00
+	        i32.lt
+	        i32.if_br
+       r:x.r*'; get.local 0
+                f64.convert_i64_s
+	        get.local 1
+	        f64.mul
+	        set.local 1
+		end             0B
+
+???
+memory set/get ↓↑?
+syntax for macro, local, memory assignments?
+can this be transformed into k/APL form?
+ fac1(F;F){ $[x<1;1;x*f x-1] }
+ x N .. (loop as dyadic "N")
+ 
