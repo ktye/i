@@ -23,5 +23,13 @@
 # sumf:F:II:r:0.;yN(r:r+x↓F;x+:8) /sum float vector at memory location x with y elements
 # sumi:I:II:r:0.;yN(r:r+x↓F;x+:4)
 
-printf "add:I:II::2000 2001 6a\n" | go run w.go -html > index.html
+# install go-1.13
+set -xe
+go run w.go        < a.w > a.wasm
+go run w.go -html  < a.w > a.html
 # open file://.../index.html in a browser, in js console: k.add(1,2)
+
+# install wabt (webassembly binary toolkit github.com/WebAssembly/wabt)
+wabt=/c/local/wabt
+$wabt/wasm2wat       a.wasm > a.wat    # webassembly text format
+$wabt/wasm-validate  a.wasm && echo a.wasm ok

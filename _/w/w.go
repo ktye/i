@@ -26,13 +26,13 @@ const (
 	F = T(0x7c)
 )
 const (
-	sFnam = iota
+	sNewl = iota
+	sFnam
 	sRety
 	sArgs
 	sLocl
 	sBody
 	sCmnt
-	sNewl
 )
 
 var typs = map[c]T{'I': I, 'F': F}
@@ -51,7 +51,7 @@ func main() {
 }
 func run(r io.Reader) []c {
 	rd := bufio.NewReader(r)
-	state := sFnam
+	state := sNewl
 	line, char, hi := 1, 0, true
 	err := func(s string) { fatal(fmt.Errorf("%d:%d: %s", line, char, s)) }
 	var m module
@@ -71,8 +71,21 @@ func run(r io.Reader) []c {
 		}
 		fatal(e)
 		switch state {
+		case sNewl:
+			if b == '/' {
+				state = sCmnt
+			} else if b == ' ' || b == '\n' || b == '\n' {
+				if f.name == "" {
+					err("parse name")
+				}
+				state = sBody
+			} else {
+				m = append(m, f)
+				f = fn{name: string(b)}
+				state = sFnam
+			}
 		case sFnam:
-			if craZ(b) {
+			if craZ(b) || (len(f.name) > 0 && cr09(b)) {
 				f.name += string(b)
 			} else if b == ':' {
 				state = sRety
@@ -130,19 +143,6 @@ func run(r io.Reader) []c {
 			if b == '\n' {
 				state = sNewl
 			}
-		case sNewl:
-			if b == '\n' {
-				state = sCmnt
-			} else if b == ' ' || b == '\t' {
-				if f.name == "" {
-					err("parse name")
-				}
-				state = sBody
-			} else {
-				m = append(m, f)
-				f = fn{}
-				state = sFnam
-			}
 		default:
 			err("internal parse state")
 		}
@@ -191,8 +191,8 @@ func (m module) emit() []c {
 	// no import section(2)
 	// function section(3: function signature indexes)
 	sec = NewSection(3)
+	sec.cat(lebu(len(m)))
 	for _, f := range m {
-		sec.cat(lebu(len(m)))
 		sec.cat(lebu(sigs[string(f.sig())]))
 	}
 	sec.out(o)
@@ -296,6 +296,8 @@ func lebs(b []b, v int64) []b { // encode signed leb128
 }
 */
 
+func log(a ...interface{})            { fmt.Fprintln(os.Stderr, a...) }
+func logf(f string, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
 func page(wasm []c) []c {
 	var b bytes.Buffer
 	b.Write([]c(head))
