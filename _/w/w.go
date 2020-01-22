@@ -14,6 +14,7 @@ type c = byte
 type T c
 type fn struct { // name:I:IIF::body..
 	name string
+	src  [2]int // line, col
 	rety T
 	args []T
 	locl []T
@@ -31,6 +32,7 @@ const (
 	sRety
 	sArgs
 	sLocl
+	sByte
 	sBody
 	sCmnt
 )
@@ -68,6 +70,7 @@ func run(r io.Reader) []c {
 		char++
 		if b == '\n' {
 			line++
+			char = 1
 		}
 		fatal(e)
 		switch state {
@@ -78,7 +81,7 @@ func run(r io.Reader) []c {
 				if f.name == "" {
 					err("parse name")
 				}
-				state = sBody
+				state = sByte
 			} else {
 				if f.name != "" {
 					m = append(m, f)
@@ -116,14 +119,25 @@ func run(r io.Reader) []c {
 				err("parse args")
 			}
 		case sLocl:
-			if t := typs[b]; t != 0 {
+			if t := typs[b]; t == 0 && len(f.locl) == 0 && b == '{' {
+				f.src = [2]int{line, char}
+				state = sBody
+				space = false
+			} else if t != 0 {
 				f.locl = append(f.locl, t)
 			} else if b == ':' {
-				state = sBody
+				state = sByte
 			} else {
 				err("parse locals")
 			}
 		case sBody:
+			if b == '}' {
+				state = sCmnt
+				f.parse()
+			} else {
+				f.WriteByte(b)
+			}
+		case sByte:
 			if b == '/' && hi {
 				state = sCmnt
 			} else if (b == ' ' || b == '\t') && hi {
@@ -170,6 +184,36 @@ func fatal(e error) {
 		panic(e)
 	}
 }
+
+type parser struct {
+	name       string
+	line, char int
+	b          []byte
+}
+type expr struct {
+	t T
+	v []string
+}
+
+func (f fn) parse() { // parse function body
+	p := parser{name: f.name, line: f.src[0], char: f.src[1], b: strip(f.Bytes())}
+}
+func strip(b []c) []c { // strip comments
+	lines := bytes.Split(b, []c{'\n'})
+	for i, l := range lines {
+		space := false
+		for k, c := range l {
+			if c == ' ' {
+				space = true
+			} else if c == '/' && space {
+				lines[i] = l[:k]
+				break
+			}
+		}
+	}
+	b = bytes.Join(lines, []c{'\n'})
+}
+func (p *parser) ex()
 
 func (m module) emit() []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
