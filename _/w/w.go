@@ -80,7 +80,9 @@ func run(r io.Reader) []c {
 				}
 				state = sBody
 			} else {
-				m = append(m, f)
+				if f.name != "" {
+					m = append(m, f)
+				}
 				f = fn{name: string(b)}
 				state = sFnam
 			}
@@ -115,7 +117,7 @@ func run(r io.Reader) []c {
 			}
 		case sLocl:
 			if t := typs[b]; t != 0 {
-				f.args = append(f.locl, t)
+				f.locl = append(f.locl, t)
 			} else if b == ':' {
 				state = sBody
 			} else {
@@ -218,7 +220,9 @@ func (m module) emit() []c {
 	sec = NewSection(10)
 	sec.cat(lebu(len(m))) // number of functions
 	for _, f := range m {
-		sec.cat(f.code())
+		b := f.code()
+		sec.cat(lebu(len(b)))
+		sec.cat(b)
 	}
 	sec.out(o)
 	// no data section(11)
@@ -233,13 +237,10 @@ type section struct {
 func NewSection(t c) section { return section{t: t} }
 func (s *section) cat(b []c) { s.b = append(s.b, b...) }
 func (s *section) cat1(b c)  { s.b = append(s.b, b) }
-func (s *section) out(wt *bytes.Buffer) {
-	var w bytes.Buffer
+func (s *section) out(w *bytes.Buffer) {
 	w.WriteByte(s.t)
 	w.Write(lebu(len(s.b)))
 	w.Write(s.b)
-	b := w.Bytes()
-	wt.Write(b)
 }
 
 func (f fn) sig() (r []c) {
@@ -253,13 +254,27 @@ func (f fn) sig() (r []c) {
 	return r
 }
 func (f fn) code() (r []c) {
-	r = append(r, lebu(len(f.locl))...)
-	for _, t := range f.locl {
+	logf("locl %d: %v\n", len(f.locl), f.locl)
+	r = append(r, f.locs()...)
+	r = append(r, f.Bytes()...)
+	return append(r, 0x0b)
+}
+func (f fn) locs() (r []c) {
+	var u []T
+	var n []int
+	for i, t := range f.locl {
+		if i > 0 && t == f.locl[i-1] {
+			n[len(n)-1]++
+		} else {
+			u, n = append(u, t), append(n, 1)
+		}
+	}
+	r = lebu(len(u))
+	for i, t := range u {
+		r = append(r, lebu(n[i])...)
 		r = append(r, c(t))
 	}
-	r = append(r, f.Bytes()...)
-	r = append(r, 0x0b)
-	return append(lebu(len(r)), r...)
+	return r
 }
 
 func lebu(v int) []c { // encode unsigned leb128
