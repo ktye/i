@@ -24,6 +24,8 @@ type fn struct { // name:I:IIF::body..
 
 const (
 	I = T(0x7f)
+	J = T(0x7e)
+	E = T(0x7d)
 	F = T(0x7c)
 )
 const (
@@ -38,6 +40,7 @@ const (
 )
 
 var typs = map[c]T{'I': I, 'F': F}
+var P = I // I(wasm32) J(wasm64)
 
 type module []fn
 
@@ -190,10 +193,6 @@ type parser struct {
 	line, char int
 	b          []byte
 }
-type expr struct {
-	t T
-	v []string
-}
 
 func (f fn) parse() { // parse function body
 	p := parser{name: f.name, line: f.src[0], char: f.src[1], b: strip(f.Bytes())}
@@ -215,6 +214,79 @@ func strip(b []c) []c { // strip comments
 }
 func (p *parser) ex()
 
+// intermediate representation for function bodies (typed expression tree)
+type expr interface {
+	rt() T // result type, maybe 0
+	valid() bool
+	bytes() []c
+}
+type sequence []expr // a;b;..
+type v2 struct {     // x+y unitype
+	s           string
+	left, right expr
+}
+type v1 struct { // -y
+	s   string
+	arg expr
+}
+
+func (s sequence) rt() T { return s[len(s)-1].rt() }
+func (s sequence) valid() bool { // all but the last expressions in a sequence must have no return type
+	for i, e := range s {
+		if i == len(s)-1 {
+			return e.rt() != 0
+		} else if e.rt() != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (s sequence) bytes() (r []c) {
+	for _, e := range s {
+		r = append(r, e.bytes())
+	}
+	return r
+}
+func (v v2) rt() T { return v.right.rt() }
+func (v v2) valid() bool {
+	t := v.left.rt()
+	return t == v.right.rt() && t != 0
+}
+func (v v2) bytes() []c {
+	op := map[s][4]c{
+		"+": [4]c{0x6a, 0x7c, 0x92, 0xa0}, // add
+		"-": [4]c{0x6b, 0x7d, 0x93, 0xa1}, // sub
+	}
+	ops, ok := op[v.s]
+	if ok == false {
+		panic("type")
+	}
+	b := ops[typidx[v.rt()]]
+	if b == 0 {
+		panic("type")
+	}
+	typidx := map[T]int{I: 0, J: 1, E: 2, F: 3}
+	return append(append(v.left.bytes(), v.right.bytes()...), b)
+}
+func (v v1) rt() T       { return v.arg.rt() }
+func (v v1) valid() bool { return v.arg.rt() != 0 }
+func (v v1) bytes() []c {
+	op := map[s][4]c{
+		"-": [4]c{0, 0, 0x8c, 0x9a}, // neg
+	}
+	ops, ok := op[v.s]
+	if ok == false {
+		panic("type")
+	}
+	b := ops[typidx[v.rt()]]
+	if b == 0 {
+		panic("type")
+	}
+	typidx := map[T]int{I: 0, J: 1, E: 2, F: 3}
+	return append(v.arg.bytes(), v)
+}
+
+// emit byte code
 func (m module) emit() []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
 	// type section(1: function signatures)
