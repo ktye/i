@@ -4,10 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
+	"strconv"
 )
 
 type c = byte
@@ -15,7 +18,7 @@ type T c
 type fn struct { // name:I:IIF::body..
 	name string
 	src  [2]int // line, col
-	rety T
+	t    T      // return type
 	args []T
 	locl []T
 	sign int
@@ -23,10 +26,9 @@ type fn struct { // name:I:IIF::body..
 }
 
 const (
-	I = T(0x7f)
-	J = T(0x7e)
-	E = T(0x7d)
-	F = T(0x7c)
+	I = T(0x7f) // i32
+	J = T(0x7e) // i64
+	F = T(0x7c) // f64
 )
 const (
 	sNewl = iota
@@ -39,7 +41,8 @@ const (
 	sCmnt
 )
 
-var typs = map[c]T{'I': I, 'F': F}
+var typs = map[c]T{'I': I, 'J': J, 'F': F}
+var tnum = map[T]int{I: 0, J: 1, F: 2}
 var P = I // I(wasm32) J(wasm64)
 
 type module []fn
@@ -80,7 +83,7 @@ func run(r io.Reader) []c {
 		case sNewl:
 			if b == '/' {
 				state = sCmnt
-			} else if b == ' ' || b == '\n' || b == '\n' {
+			} else if b == ' ' || b == '\t' || b == '\n' {
 				if f.name == "" {
 					err("parse name")
 				}
@@ -101,9 +104,9 @@ func run(r io.Reader) []c {
 				err("parse function name")
 			}
 		case sRety:
-			if f.rety == 0 {
-				f.rety = typs[b]
-				if f.rety == 0 {
+			if f.t == 0 {
+				f.t = typs[b]
+				if f.t == 0 {
 					panic("parse return type")
 				}
 			} else if b == ':' {
@@ -125,7 +128,6 @@ func run(r io.Reader) []c {
 			if t := typs[b]; t == 0 && len(f.locl) == 0 && b == '{' {
 				f.src = [2]int{line, char}
 				state = sBody
-				space = false
 			} else if t != 0 {
 				f.locl = append(f.locl, t)
 			} else if b == ':' {
@@ -182,6 +184,12 @@ func xtoc(x c) c {
 		return 10 + x - 'a'
 	}
 }
+func boolvar(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
 func fatal(e error) {
 	if e != nil {
 		panic(e)
@@ -192,10 +200,14 @@ type parser struct {
 	name       string
 	line, char int
 	b          []byte
+	tok        []byte
 }
 
-func (f fn) parse() { // parse function body
+func (f fn) parse() expr { // parse function body
 	p := parser{name: f.name, line: f.src[0], char: f.src[1], b: strip(f.Bytes())}
+	e := p.seq('}')
+	// todo build locals, validate, bytes
+	return e
 }
 func strip(b []c) []c { // strip comments
 	lines := bytes.Split(b, []c{'\n'})
@@ -210,28 +222,220 @@ func strip(b []c) []c { // strip comments
 			}
 		}
 	}
-	b = bytes.Join(lines, []c{'\n'})
+	return bytes.Join(lines, []c{'\n'})
 }
-func (p *parser) ex()
+func (p *parser) err(s string) { panic(fmt.Errorf("%d:%d(%s) %s", p.line, p.char, p.name, s)) }
+func (p *parser) w() {
+	for len(p.b) > 0 {
+		if c := p.b[0]; c == ' ' || c == '\t' || c == '\n' {
+			p.char++
+			if c == '\n' {
+				p.line++
+				p.char = 0
+			}
+			p.b = p.b[1:]
+		}
+	}
+}
+func (p *parser) t(f func([]c) int) bool { // test
+	p.tok = nil
+	if len(p.b) < 1 {
+		return false
+	}
+	if n := f(p.b); n > 0 {
+		p.tok = p.b[:n]
+		p.b = p.b[n:]
+		p.char += n
+		return true
+	}
+	return false
+}
+func (p *parser) seq(term c) expr {
+	var seq seq
+	for {
+		e := p.ex(p.noun())
+		if e != nil {
+			seq = append(seq, e)
+		} else {
+			p.w()
+			if len(p.b) == 0 {
+				p.err("missing " + string(term))
+			}
+			if p.b[0] == term {
+				p.b = p.b[1:]
+				break
+			} else if p.b[0] != ';' {
+				p.err("expected ;")
+			} else {
+				p.b = p.b[1:]
+			}
+		}
+	}
+	if seq == nil {
+		return nil // empty?
+	} else if len(seq) == 1 {
+		return seq[0]
+	}
+	return seq
+}
+func (p *parser) ex(v expr) expr {
+	panic("nyi")
+	return nil
+}
+func (p *parser) noun() expr {
+	p.w()
+	if len(p.b) == 0 {
+		return nil
+	}
+	switch {
+	case p.t(sArg):
+		return pArg(p.tok)
+	case p.t(sSym):
+		return pSym(p.tok)
+	case p.t(sCon):
+		return pCon(p.tok)
+	case p.t(sOp):
+		return pOp(p.tok)
+	case p.t(sC('(')):
+		return p.seq(')')
+	default:
+		return nil
+	}
+}
+
+func sArg(b []c) int { // x y z x3 x4 x5 ..
+	c := b[0]
+	if c != 'x' && c != 'y' && c != 'z' {
+		return 0
+	}
+	if len(b) < 2 || b[0] != 'x' || cr09(b[1]) == false {
+		return 1 // x y z
+	}
+	return 2 // x1..x9
+}
+func pArg(b []c) expr {
+	if len(b) == 1 {
+		return arg{n: int(b[0] - 'x')}
+	}
+	return arg{n: (int(b[1] - '0'))}
+}
+func sSym(b []c) int { // [aZ][a9]*
+	c := b[0]
+	if craZ(c) == false {
+		return 0
+	}
+	for i, c := range b {
+		if craZ(c) == false || cr09(c) == false {
+			return i
+		}
+	}
+	return len(b)
+}
+func pSym(b []c) expr { return loc{s: string(b)} }
+func sCon(b []c) int { // 123 123i 123j .123 123. -..
+	dot, neg := false, 0
+	if len(b) > 1 && b[0] == '-' {
+		neg, b = 1, b[1:]
+	}
+	for i, c := range b {
+		if cr09(c) {
+			continue
+		} else if dot == false && (c == 'i' || c == 'j') {
+			return neg + i + 1
+		} else if dot == false && c == '.' {
+			dot = true
+		} else {
+			return neg + i
+		}
+	}
+	return neg + len(b)
+}
+func pCon(b []c) expr {
+	var r con
+	if bytes.IndexByte(b, '.') != -1 {
+		if f, err := strconv.ParseFloat(string(b), 64); err != nil {
+			panic(err)
+		} else {
+			r.t = F
+			r.f = f
+		}
+	}
+	r.t = I
+	if c := b[len(b)-1]; c == 'i' || c == 'j' {
+		b = b[:len(b)-1]
+		if c == 'j' {
+			r.t = J
+		}
+	}
+	if i, err := strconv.ParseInt(string(b), 10, 64); err != nil {
+		panic(err)
+	} else {
+		r.i = i
+	}
+	return r
+}
+func sOp(b []c) int {
+	for _, n := range []int{3, 2, 1} { // longest match first
+		if len(b) >= n && allops[string(b[:n])] {
+			return n
+		}
+	}
+	return 0
+}
+func pOp(b []c) expr         { return opx(string(b)) }
+func sC(x c) func(b []c) int { return func(b []c) int { return boolvar(b[0] == x) } }
 
 // intermediate representation for function bodies (typed expression tree)
 type expr interface {
 	rt() T // result type, maybe 0
+	args() []expr
 	valid() bool
 	bytes() []c
 }
-type sequence []expr // a;b;..
-type v2 struct {     // x+y unitype
-	s           string
-	left, right expr
+type seq []expr  // a;b;..
+type v2 struct { // x+y unitype
+	s    string // +-*%
+	l, r expr
 }
 type v1 struct { // -y
-	s   string
-	arg expr
+	s string
+	a expr
+}
+type cmp struct { // x<y..
+	s    string
+	l, r expr
+}
+type arg struct { // x y ..
+	t T
+	n int
+}
+type loc struct { // abc
+	arg
+	s string
+}
+type con struct { // numeric constant
+	t T
+	i int64
+	f float64
+}
+type opx string // operator
+
+func getop(tab map[string][3]c, op string, t T) (r c) {
+	ops, ok := tab[op]
+	if !ok {
+		panic("type")
+	}
+	i, ok := tnum[t]
+	r = ops[i]
+	if !ok || r == 0 {
+		panic("type")
+	}
+	return r
 }
 
-func (s sequence) rt() T { return s[len(s)-1].rt() }
-func (s sequence) valid() bool { // all but the last expressions in a sequence must have no return type
+func (s seq) rt() T        { return s[len(s)-1].rt() }
+func (s seq) args() []expr { return s }
+func (s seq) valid() bool { // all but the last expressions in a sequence must have no return type
 	for i, e := range s {
 		if i == len(s)-1 {
 			return e.rt() != 0
@@ -241,49 +445,95 @@ func (s sequence) valid() bool { // all but the last expressions in a sequence m
 	}
 	return true
 }
-func (s sequence) bytes() (r []c) {
+func (s seq) bytes() (r []c) {
 	for _, e := range s {
-		r = append(r, e.bytes())
+		r = append(r, e.bytes()...)
 	}
 	return r
 }
-func (v v2) rt() T { return v.right.rt() }
-func (v v2) valid() bool {
-	t := v.left.rt()
-	return t == v.right.rt() && t != 0
+func (v v2) rt() T         { return v.r.rt() }
+func (v v2) args() []expr  { return []expr{v.l, v.r} }
+func (v v2) valid() bool   { return v.r.rt() == v.l.rt() && v.r.rt() != 0 }
+func (v v2) bytes() []c    { return append(append(v.l.bytes(), v.r.bytes()...), getop(v2Tab, v.s, v.rt())) }
+func (v v1) rt() T         { return v.a.rt() }
+func (v v1) args() []expr  { return []expr{v.a} }
+func (v v1) valid() bool   { return v.a.rt() != 0 }
+func (v v1) bytes() []c    { return append(v.a.bytes(), getop(v1Tab, v.s, v.rt())) }
+func (v cmp) rt() T        { return I }
+func (v cmp) args() []expr { return []expr{v.l, v.r} }
+func (v cmp) valid() bool  { return v.r.rt() == v.l.rt() && v.r.rt() != 0 }
+func (v cmp) bytes() []c   { return append(append(v.l.bytes(), v.r.bytes()...), getop(cTab, v.s, v.rt())) }
+func (v arg) rt() T        { return v.t }
+func (v arg) args() []expr { return nil }
+func (v arg) valid() bool  { return v.n >= 0 && v.t != 0 }
+func (v arg) bytes() []c   { return append([]c{0x20}, lebu(int(v.n))...) }
+func (v con) rt() T        { return v.t }
+func (v con) valid() bool  { return v.t != 0 }
+func (v con) args() []expr { return nil }
+func (v con) bytes() (r []c) {
+	r = append([]c{0x41}, lebu(int(v.i))...)
+	if v.t == J {
+		r[0]++
+	} else if v.t == F {
+		b := make([]byte, 9)
+		b[0] = 0x44
+		binary.LittleEndian.PutUint64(b[1:], math.Float64bits(v.f))
+		return b
+	}
+	return r
 }
-func (v v2) bytes() []c {
-	op := map[s][4]c{
-		"+": [4]c{0x6a, 0x7c, 0x92, 0xa0}, // add
-		"-": [4]c{0x6b, 0x7d, 0x93, 0xa1}, // sub
-	}
-	ops, ok := op[v.s]
-	if ok == false {
-		panic("type")
-	}
-	b := ops[typidx[v.rt()]]
-	if b == 0 {
-		panic("type")
-	}
-	typidx := map[T]int{I: 0, J: 1, E: 2, F: 3}
-	return append(append(v.left.bytes(), v.right.bytes()...), b)
+func (v opx) rt() T        { return 0 }
+func (v opx) args() []expr { return nil }
+func (v opx) valid() bool  { return false }
+func (v opx) bytes() []c   { return nil }
+
+var v1Tab = map[string][3]c{
+	"-": [3]c{0, 0, 0x9a},    // neg (no neg for ints)
+	"+": [3]c{0, 0, 0x99},    // abs
+	"_": [3]c{1, 1, 0x9c},    // floor (ceil, trunc, nearest?)
+	"*": [3]c{0x67, 0x79, 0}, // clz
+	"|": [3]c{0x68, 0x79, 0}, // ctz
+	"%": [3]c{0, 0, 0x9f},    // sqr
+	// TODO min/max
 }
-func (v v1) rt() T       { return v.arg.rt() }
-func (v v1) valid() bool { return v.arg.rt() != 0 }
-func (v v1) bytes() []c {
-	op := map[s][4]c{
-		"-": [4]c{0, 0, 0x8c, 0x9a}, // neg
+var v2Tab = map[string][3]c{
+	`+`:   [3]c{0x6a, 0x7c, 0xa0}, // add
+	`-`:   [3]c{0x6b, 0x7d, 0xa1}, // sub
+	`*`:   [3]c{0x6c, 0x7e, 0x94}, // mul
+	`%`:   [3]c{0x6e, 0x80, 0xa3}, // div/div_u
+	`%'`:  [3]c{0x6d, 0x7f, 0xa3}, // div_s
+	`\`:   [3]c{0x70, 0x82, 0},    // rem_u
+	`\'`:  [3]c{0x6f, 0x81, 0},    // rem_s
+	`&`:   [3]c{0x71, 0x83, 0},    // and
+	`|`:   [3]c{0x72, 0x84, 0},    // or
+	`^`:   [3]c{0x73, 0x85, 0},    // xor
+	`<<`:  [3]c{0x74, 0x86, 0},    // shl
+	`>>`:  [3]c{0x76, 0x88, 0},    // shr_u
+	`>>'`: [3]c{0x75, 0x87, 0},    // shl_s
+	`<|'`: [3]c{0x77, 0x89, 0},    // rotl
+	`>|'`: [3]c{0x78, 0x8a, 0},    // rotr
+}
+var cTab = map[string][3]c{
+	"<":   [3]c{0x49, 0x54, 0x63}, // lt/lt_u
+	"<'":  [3]c{0x48, 0x53, 0x63}, // lt_s
+	">":   [3]c{0x4b, 0x56, 0x64}, // gt/gt_u
+	">'":  [3]c{0x4a, 0x55, 0x64}, // gt_s
+	"<=":  [3]c{0x4d, 0x58, 0x65}, // le/le_u
+	"<='": [3]c{0x4c, 0x57, 0x65}, // le_s
+	">=":  [3]c{0x4f, 0x5a, 0x66}, // ge/ge_u
+	">='": [3]c{0x4e, 0x59, 0x66}, // ge/ge_u
+	"~":   [3]c{0x46, 0x51, 0x61}, // eq
+	"!":   [3]c{0x47, 0x52, 0x62}, // ne
+}
+var allops map[string]bool
+
+func init() {
+	allops = make(map[string]bool)
+	for _, t := range []map[string][3]c{v1Tab, v2Tab, cTab} {
+		for s := range t {
+			allops[s] = true
+		}
 	}
-	ops, ok := op[v.s]
-	if ok == false {
-		panic("type")
-	}
-	b := ops[typidx[v.rt()]]
-	if b == 0 {
-		panic("type")
-	}
-	typidx := map[T]int{I: 0, J: 1, E: 2, F: 3}
-	return append(v.arg.bytes(), v)
 }
 
 // emit byte code
@@ -366,11 +616,10 @@ func (f fn) sig() (r []c) {
 		r = append(r, c(t))
 	}
 	r = append(r, 1)
-	r = append(r, c(f.rety))
+	r = append(r, c(f.t))
 	return r
 }
 func (f fn) code() (r []c) {
-	logf("locl %d: %v\n", len(f.locl), f.locl)
 	r = append(r, f.locs()...)
 	r = append(r, f.Bytes()...)
 	return append(r, 0x0b)

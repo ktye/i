@@ -5,6 +5,22 @@ import (
 	"testing"
 )
 
+func TestB(t *testing.T) {
+	testCases := []struct {
+		t T
+		a []T
+		b string
+		e string
+	}{
+		{I, []T{I, I}, "x+y", "200020016a"},
+	}
+	for _, tc := range testCases {
+		var buf bytes.Buffer
+		buf.WriteString(tc.b)
+		f := fn{t: tc.t, args: tc.a, Buffer: buf}
+		f.parse()
+	}
+}
 func TestW(t *testing.T) {
 	testCases := [][2]string{
 		{"add:I:II::2000 2001 6a\n", "0061736d0100000001070160027f7f017f0302010005030100010707010361646400000a09010700200020016a0b"},
