@@ -25,11 +25,16 @@
 
 # install go-1.13
 set -xe
-go run w.go        < a.w > a.wasm
-go run w.go -html  < a.w > a.html
+go run w.go        < a.w > a.wasm    # wasm binary
+go run w.go -html  < a.w > a.html    # embed wasm in html
+go run w.go -cout  < a.w > a.c       # write c source
+go run w.go -gout  < a.w > a.go      # write go source
 # open file://.../index.html in a browser, in js console: k.add(1,2)
 
 # install wabt (webassembly binary toolkit github.com/WebAssembly/wabt)
 wabt=/c/local/wabt
 $wabt/wasm2wat       a.wasm > a.wat    # webassembly text format
 $wabt/wasm-validate  a.wasm && echo a.wasm ok
+
+# interactive: webassembly.github.io/wabt/demo/wat2wasm
+# wasi: github.com/bytecodealliance/wasmtime/blob/master/docs/WASI-tutorial.md#web-assembly-text-example

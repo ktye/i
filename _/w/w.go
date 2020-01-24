@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type c = byte
@@ -21,7 +22,9 @@ type fn struct { // name:I:IIF::body..
 	t    T      // return type
 	args []T
 	locl []T
+	lmap map[string]int
 	sign int
+	ast  expr
 	bytes.Buffer
 }
 
@@ -43,25 +46,47 @@ const (
 
 var typs = map[c]T{'I': I, 'J': J, 'F': F}
 var tnum = map[T]int{I: 0, J: 1, F: 2}
+var ctyp = map[T]string{I: "int32_t", J: "int64_t", F: "double"}
+var gtyp = map[T]string{I: "int32", J: "int64", F: "float64"}
 var P = I // I(wasm32) J(wasm64)
 
 type module []fn
 
+//func main() {
+//	f := fn{t: F, args: []T{F, F}, Buffer: *bytes.NewBuffer([]c("3*x+y}"))}
+//	e := f.parse()
+//	fmt.Printf("%#+v\n", e)
+//}
+
 func main() {
-	var html bool
+	var html, cout, gout bool
 	flag.BoolVar(&html, "html", false, "html output")
+	flag.BoolVar(&cout, "cout", false, "c output")
+	flag.BoolVar(&gout, "gout", false, "go output")
 	flag.Parse()
-	b := run(os.Stdin)
+	m := run(os.Stdin)
 	if html {
-		b = page(b)
+		os.Stdout.Write(page(m.wasm()))
+	} else if cout {
+		os.Stdout.Write(m.cout())
+	} else if gout {
+		os.Stdout.Write(m.gout())
+	} else {
+		os.Stdout.Write(m.wasm())
 	}
-	os.Stdout.Write(b)
 }
-func run(r io.Reader) []c {
+func (t T) String() string {
+	if c := map[T]c{I: 'I', J: 'J', F: 'F'}[t]; c == 0 {
+		return "0"
+	} else {
+		return string(c)
+	}
+}
+func run(r io.Reader) module {
 	rd := bufio.NewReader(r)
 	state := sNewl
 	line, char, hi := 1, 0, true
-	err := func(s string) { fatal(fmt.Errorf("%d:%d: %s", line, char, s)) }
+	err := func(s string) { panic(fmt.Sprintf("%d:%d: %s", line, char, s)) }
 	var m module
 	var f fn
 	var p c
@@ -71,14 +96,15 @@ func run(r io.Reader) []c {
 			if f.name != "" {
 				m = append(m, f)
 			}
-			return m.emit()
+			return m
+		} else if e != nil {
+			panic(e)
 		}
 		char++
 		if b == '\n' {
 			line++
 			char = 1
 		}
-		fatal(e)
 		switch state {
 		case sNewl:
 			if b == '/' {
@@ -107,7 +133,7 @@ func run(r io.Reader) []c {
 			if f.t == 0 {
 				f.t = typs[b]
 				if f.t == 0 {
-					panic("parse return type")
+					err("parse return type")
 				}
 			} else if b == ':' {
 				state = sArgs
@@ -136,11 +162,10 @@ func run(r io.Reader) []c {
 				err("parse locals")
 			}
 		case sBody:
+			f.WriteByte(b)
 			if b == '}' {
 				state = sCmnt
 				f.parse()
-			} else {
-				f.WriteByte(b)
 			}
 		case sByte:
 			if b == '/' && hi {
@@ -190,24 +215,21 @@ func boolvar(v bool) int {
 	}
 	return 0
 }
-func fatal(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
 
 type parser struct {
-	name       string
-	line, char int
-	b          []byte
-	tok        []byte
+	*fn
+	p   int
+	b   []byte
+	tok []byte
 }
 
-func (f fn) parse() expr { // parse function body
-	p := parser{name: f.name, line: f.src[0], char: f.src[1], b: strip(f.Bytes())}
+func (f *fn) parse() expr { // parse function body
+	f.lmap = make(map[string]int)
+	p := parser{fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
-	// todo build locals, validate, bytes
-	return e
+	e = p.locals(e, 0)
+	f.ast = p.validate(e)
+	return f.ast
 }
 func strip(b []c) []c { // strip comments
 	lines := bytes.Split(b, []c{'\n'})
@@ -224,16 +246,17 @@ func strip(b []c) []c { // strip comments
 	}
 	return bytes.Join(lines, []c{'\n'})
 }
-func (p *parser) err(s string) { panic(fmt.Errorf("%d:%d(%s) %s", p.line, p.char, p.name, s)) }
+func (p *parser) err(s string) expr {
+	panic(s)
+	return nil
+}
 func (p *parser) w() {
 	for len(p.b) > 0 {
 		if c := p.b[0]; c == ' ' || c == '\t' || c == '\n' {
-			p.char++
-			if c == '\n' {
-				p.line++
-				p.char = 0
-			}
+			p.p++
 			p.b = p.b[1:]
+		} else {
+			return
 		}
 	}
 }
@@ -245,7 +268,7 @@ func (p *parser) t(f func([]c) int) bool { // test
 	if n := f(p.b); n > 0 {
 		p.tok = p.b[:n]
 		p.b = p.b[n:]
-		p.char += n
+		p.p += n
 		return true
 	}
 	return false
@@ -278,9 +301,60 @@ func (p *parser) seq(term c) expr {
 	}
 	return seq
 }
-func (p *parser) ex(v expr) expr {
-	panic("nyi")
-	return nil
+func (p *parser) ex(x expr) expr {
+	if x == nil {
+		return x
+	}
+	h := p.p
+	if p.verb(x) {
+		if y := p.ex(p.noun()); y == nil {
+			return x // verb ?
+		} else {
+			return p.monadic(x, y, pos(h))
+		}
+	} else {
+		v := p.noun()
+		if v == nil {
+			return x // noun
+		} else if p.verb(v) {
+			h = p.p
+			if y := p.ex(p.noun()); y == nil {
+				return p.err("verb-verb (missing noun)")
+			} else {
+				return p.dyadic(v, x, y, pos(h))
+			}
+		} else {
+			return p.err("noun-noun (missing verb)")
+		}
+	}
+}
+func (p *parser) monadic(f, x expr, h pos) expr {
+	switch v := f.(type) {
+	case opx:
+		return v1{s: string(v), argv: argv{x}, pos: h}
+	default:
+		panic("nyi")
+	}
+}
+func (p *parser) dyadic(f, x, y expr, h pos) expr {
+	switch v := f.(type) {
+	case nlp:
+		return nlp{pos: h, argv: argv{x, y}}
+	case opx:
+		if _, o := v2Tab[string(v)]; o {
+			return v2{s: string(v), argv: argv{x, y}, pos: h}
+		}
+		return cmp{s: string(v), argv: argv{x, y}, pos: h}
+	default:
+		panic("nyi")
+	}
+}
+func (p *parser) verb(v expr) bool {
+	switch v.(type) {
+	case opx, nlp: // todo: others
+		return true
+	}
+	return false
 }
 func (p *parser) noun() expr {
 	p.w()
@@ -289,18 +363,78 @@ func (p *parser) noun() expr {
 	}
 	switch {
 	case p.t(sArg):
-		return pArg(p.tok)
+		a := p.pArg(p.tok).(arg)
+		if a.n >= len(p.args) {
+			return p.err("arg %s does not exist")
+		}
+		a.t = p.args[a.n]
+		return a
 	case p.t(sSym):
-		return pSym(p.tok)
+		return p.pSym(p.tok)
+	case p.t(sC('/')):
+		return nlp{}
 	case p.t(sCon):
-		return pCon(p.tok)
+		return p.pCon(p.tok)
 	case p.t(sOp):
-		return pOp(p.tok)
+		return p.pOp(p.tok)
 	case p.t(sC('(')):
 		return p.seq(')')
 	default:
 		return nil
 	}
+}
+
+func (p *parser) locals(e expr, lv int) expr {
+	if av, o := e.(argvec); o == false {
+		return e
+	} else {
+		v := av.args()
+		for i, a := range v {
+			if f, o := a.(nlp); o {
+				c := string('i' + lv)
+				n, o := p.fn.lmap[c]
+				if o == false {
+					n = len(p.fn.lmap)
+					p.fn.lmap[c] = n
+				}
+				f.c = n // set loop counter
+				f.argv[0] = p.locals(f.argv[0], lv+1)
+				f.argv[1] = p.locals(f.argv[1], lv+1)
+				v[i] = f
+			} else {
+				// TODO: detect locals from assignments
+				v[i] = p.locals(v[i], lv)
+			}
+		}
+		return e
+	}
+}
+func (p *parser) validate(e expr) expr {
+	if e.valid() == false {
+		if i, o := e.(indicator); o {
+			return p.indicate(i.indicate(), "invalid")
+		} else {
+			return p.err("invalid")
+		}
+	}
+	if t := e.rt(); t != p.fn.t {
+		return p.err(fmt.Sprintf("return type is %s not %s", t, p.fn.t))
+	}
+	return e
+}
+func (p *parser) indicate(pos int, e string) expr {
+	s := string(p.fn.Bytes())
+	lines := strings.Split(s, "\n")
+	for _, l := range lines {
+		if pos < len(l) {
+			if pos > 0 {
+				pos--
+			}
+			return p.err("\n" + l + "\n" + strings.Repeat(" ", pos) + "^" + e)
+		}
+		pos -= len(l) + 1
+	}
+	return p.err(e)
 }
 
 func sArg(b []c) int { // x y z x3 x4 x5 ..
@@ -313,7 +447,7 @@ func sArg(b []c) int { // x y z x3 x4 x5 ..
 	}
 	return 2 // x1..x9
 }
-func pArg(b []c) expr {
+func (p *parser) pArg(b []c) expr {
 	if len(b) == 1 {
 		return arg{n: int(b[0] - 'x')}
 	}
@@ -331,7 +465,7 @@ func sSym(b []c) int { // [aZ][a9]*
 	}
 	return len(b)
 }
-func pSym(b []c) expr { return loc{s: string(b)} }
+func (p *parser) pSym(b []c) expr { return loc{s: string(b)} }
 func sCon(b []c) int { // 123 123i 123j .123 123. -..
 	dot, neg := false, 0
 	if len(b) > 1 && b[0] == '-' {
@@ -345,19 +479,20 @@ func sCon(b []c) int { // 123 123i 123j .123 123. -..
 		} else if dot == false && c == '.' {
 			dot = true
 		} else {
-			return neg + i
+			return neg*boolvar(i > 0) + i
 		}
 	}
-	return neg + len(b)
+	return neg*boolvar(len(b) > 0) + len(b)
 }
-func pCon(b []c) expr {
+func (p *parser) pCon(b []c) expr {
 	var r con
 	if bytes.IndexByte(b, '.') != -1 {
-		if f, err := strconv.ParseFloat(string(b), 64); err != nil {
-			panic(err)
+		if f, e := strconv.ParseFloat(string(b), 64); e != nil {
+			return p.err(e.Error())
 		} else {
 			r.t = F
 			r.f = f
+			return r
 		}
 	}
 	r.t = I
@@ -367,8 +502,8 @@ func pCon(b []c) expr {
 			r.t = J
 		}
 	}
-	if i, err := strconv.ParseInt(string(b), 10, 64); err != nil {
-		panic(err)
+	if i, e := strconv.ParseInt(string(b), 10, 64); e != nil {
+		return p.err(e.Error())
 	} else {
 		r.i = i
 	}
@@ -382,59 +517,126 @@ func sOp(b []c) int {
 	}
 	return 0
 }
-func pOp(b []c) expr         { return opx(string(b)) }
-func sC(x c) func(b []c) int { return func(b []c) int { return boolvar(b[0] == x) } }
+func (p *parser) pOp(b []c) expr { return opx(string(b)) }
+func sC(x c) func(b []c) int     { return func(b []c) int { return boolvar(b[0] == x) } }
 
 // intermediate representation for function bodies (typed expression tree)
 type expr interface {
 	rt() T // result type, maybe 0
-	args() []expr
 	valid() bool
 	bytes() []c
 }
-type seq []expr  // a;b;..
+type argvec interface{ args() []expr }
+type argv []expr
+type cstringer interface{ cstr() string }
+type gstringer interface{ gstr() string }
+type seq argv    // a;b;..
 type v2 struct { // x+y unitype
-	s    string // +-*%
-	l, r expr
+	pos
+	argv
+	s string // +-*%
 }
 type v1 struct { // -y
+	pos
+	argv
 	s string
-	a expr
+	p int
 }
 type cmp struct { // x<y..
-	s    string
-	l, r expr
+	pos
+	argv
+	s string
 }
 type arg struct { // x y ..
+	pos
 	t T
 	n int
 }
 type loc struct { // abc
+	pos
 	arg
 	s string
 }
 type con struct { // numeric constant
+	pos
 	t T
 	i int64
 	f float64
 }
+type nlp struct { // x/y loop
+	pos
+	argv
+	x, y expr
+	c    int
+}
 type opx string // operator
+type pos int    // src position
+type indicator interface{ indicate() int }
 
-func getop(tab map[string][3]c, op string, t T) (r c) {
+func (p pos) indicate() int { return int(p) }
+
+func getop(tab map[string]code, op string, t T) (r c) {
 	ops, ok := tab[op]
 	if !ok {
 		panic("type")
 	}
-	i, ok := tnum[t]
-	r = ops[i]
-	if !ok || r == 0 {
+	switch t {
+	case I:
+		r = ops.I
+	case J:
+		r = ops.J
+	case F:
+		r = ops.F
+	default:
+		panic("type")
+	}
+	if r == 0 {
 		panic("type")
 	}
 	return r
 }
+func cop(tab map[string]code, op string, t T) (o, u string) {
+	ops, ok := tab[op]
+	if !ok {
+		panic("type")
+	}
+	o = ops.c
+	if strings.Index(o, ";") != -1 {
+		v := strings.Split(o, ";")
+		o = v[tnum[t]]
+	}
+	if o[0] == 'U' {
+		if t != F {
+			u = "(u" + ctyp[t] + ")"
+		}
+		o = o[1:]
+	}
+	return o, u
+}
+func gop(tab map[string]code, op string, t T) (o, u string) {
+	ops, ok := tab[op]
+	if !ok {
+		panic("type")
+	}
+	o = ops.g
+	if strings.Index(o, ";") != -1 {
+		v := strings.Split(o, ";")
+		o = v[tnum[t]]
+	}
+	if o[0] == 'U' {
+		if t != F {
+			u = "u" + gtyp[t]
+		}
+		o = o[1:]
+	}
+	return o, u
+}
 
-func (s seq) rt() T        { return s[len(s)-1].rt() }
-func (s seq) args() []expr { return s }
+func (a argv) args() []expr { return a }
+func (a argv) x() expr      { return a[0] }
+func (a argv) y() expr      { return a[1] }
+func (s seq) rt() T         { return s[len(s)-1].rt() }
+func (s seq) args() []expr  { return s }
 func (s seq) valid() bool { // all but the last expressions in a sequence must have no return type
 	for i, e := range s {
 		if i == len(s)-1 {
@@ -451,25 +653,35 @@ func (s seq) bytes() (r []c) {
 	}
 	return r
 }
-func (v v2) rt() T         { return v.r.rt() }
-func (v v2) args() []expr  { return []expr{v.l, v.r} }
-func (v v2) valid() bool   { return v.r.rt() == v.l.rt() && v.r.rt() != 0 }
-func (v v2) bytes() []c    { return append(append(v.l.bytes(), v.r.bytes()...), getop(v2Tab, v.s, v.rt())) }
-func (v v1) rt() T         { return v.a.rt() }
-func (v v1) args() []expr  { return []expr{v.a} }
-func (v v1) valid() bool   { return v.a.rt() != 0 }
-func (v v1) bytes() []c    { return append(v.a.bytes(), getop(v1Tab, v.s, v.rt())) }
-func (v cmp) rt() T        { return I }
-func (v cmp) args() []expr { return []expr{v.l, v.r} }
-func (v cmp) valid() bool  { return v.r.rt() == v.l.rt() && v.r.rt() != 0 }
-func (v cmp) bytes() []c   { return append(append(v.l.bytes(), v.r.bytes()...), getop(cTab, v.s, v.rt())) }
+func (v v2) rt() T       { return v.x().rt() }
+func (v v2) valid() bool { return v.x().rt() == v.y().rt() && v.x().rt() != 0 }
+func (v v2) bytes() []c {
+	return append(append(v.x().bytes(), v.y().bytes()...), getop(v2Tab, v.s, v.rt()))
+}
+func (v v2) cstr() string { return c2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
+func (v v2) gstr() string { return g2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
+func (v v1) rt() T        { return v.x().rt() }
+func (v v1) valid() bool  { return v.x().rt() != 0 }
+func (v v1) bytes() []c   { return append(v.x().bytes(), getop(v1Tab, v.s, v.rt())) }
+func (v v1) cstr() string { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, "(", u, cstring(v.x()), ")") }
+func (v v1) gstr() string {
+	o, u := gop(v1Tab, v.s, v.rt())
+	return jn(o, u, "((", gstring(v.x()), "))")
+}
+func (v cmp) rt() T       { return I }
+func (v cmp) valid() bool { return v.x().rt() == v.y().rt() && v.x().rt() != 0 }
+func (v cmp) bytes() []c {
+	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.rt()))
+}
+func (v cmp) cstr() string { return c2str(cTab, v.s, v.rt(), v.x(), v.y()) }
+func (v cmp) gstr() string { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
 func (v arg) rt() T        { return v.t }
-func (v arg) args() []expr { return nil }
 func (v arg) valid() bool  { return v.n >= 0 && v.t != 0 }
 func (v arg) bytes() []c   { return append([]c{0x20}, lebu(int(v.n))...) }
+func (v arg) cstr() string { return string("x") + string(c('0')+c(v.n)) }
+func (v arg) gstr() string { return v.cstr() }
 func (v con) rt() T        { return v.t }
 func (v con) valid() bool  { return v.t != 0 }
-func (v con) args() []expr { return nil }
 func (v con) bytes() (r []c) {
 	r = append([]c{0x41}, lebu(int(v.i))...)
 	if v.t == J {
@@ -482,62 +694,107 @@ func (v con) bytes() (r []c) {
 	}
 	return r
 }
-func (v opx) rt() T        { return 0 }
-func (v opx) args() []expr { return nil }
-func (v opx) valid() bool  { return false }
-func (v opx) bytes() []c   { return nil }
+func (v con) cstr() string {
+	if v.t == F {
+		s := fmt.Sprintf("%v", v.f)
+		if strings.Index(s, ".") == -1 {
+			s += ".0"
+		}
+		return s
+	}
+	return fmt.Sprintf("%d", v.i)
+}
+func (v con) gstr() string { return v.cstr() }
+func (v nlp) rt() T        { return 0 }
+func (v nlp) valid() bool  { return v.x.rt() == I && v.y.rt() == 0 }
+func (v nlp) bytes() []c   { return []byte{} } // TODO
+func (v nlp) cstr() string {
+	return fmt.Sprintf("for(x%d=0;x%d<(%s);x%d++){%s}", v.c, v.c, cstring(v.x), v.c, cstring(v.y))
+}
+func (v nlp) gstr() string {
+	return fmt.Sprintf("for x%d=0;x%d<(%s);x%d++{%s}", v.c, v.c, gstring(v.x), v.c, gstring(v.y))
+}
+func (v opx) rt() T       { return 0 }
+func (v opx) valid() bool { return false }
+func (v opx) bytes() []c  { return nil }
 
-var v1Tab = map[string][3]c{
-	"-": [3]c{0, 0, 0x9a},    // neg (no neg for ints)
-	"+": [3]c{0, 0, 0x99},    // abs
-	"_": [3]c{1, 1, 0x9c},    // floor (ceil, trunc, nearest?)
-	"*": [3]c{0x67, 0x79, 0}, // clz
-	"|": [3]c{0x68, 0x79, 0}, // ctz
-	"%": [3]c{0, 0, 0x9f},    // sqr
-	// TODO min/max
+type code struct {
+	I, J, F c
+	c, g    string
 }
-var v2Tab = map[string][3]c{
-	`+`:   [3]c{0x6a, 0x7c, 0xa0}, // add
-	`-`:   [3]c{0x6b, 0x7d, 0xa1}, // sub
-	`*`:   [3]c{0x6c, 0x7e, 0x94}, // mul
-	`%`:   [3]c{0x6e, 0x80, 0xa3}, // div/div_u
-	`%'`:  [3]c{0x6d, 0x7f, 0xa3}, // div_s
-	`\`:   [3]c{0x70, 0x82, 0},    // rem_u
-	`\'`:  [3]c{0x6f, 0x81, 0},    // rem_s
-	`&`:   [3]c{0x71, 0x83, 0},    // and
-	`|`:   [3]c{0x72, 0x84, 0},    // or
-	`^`:   [3]c{0x73, 0x85, 0},    // xor
-	`<<`:  [3]c{0x74, 0x86, 0},    // shl
-	`>>`:  [3]c{0x76, 0x88, 0},    // shr_u
-	`>>'`: [3]c{0x75, 0x87, 0},    // shl_s
-	`<|'`: [3]c{0x77, 0x89, 0},    // rotl
-	`>|'`: [3]c{0x78, 0x8a, 0},    // rotr
+
+func c2str(tab map[string]code, op string, t T, x, y expr) string {
+	o, u := cop(tab, op, t)
+	if len(o) > 2 {
+		return jn(u, o, "(", cstring(x), ",", cstring(y), ")")
+	} else {
+		return jn("((", u, cstring(x), ")", o, "(", u, cstring(y), "))")
+	}
 }
-var cTab = map[string][3]c{
-	"<":   [3]c{0x49, 0x54, 0x63}, // lt/lt_u
-	"<'":  [3]c{0x48, 0x53, 0x63}, // lt_s
-	">":   [3]c{0x4b, 0x56, 0x64}, // gt/gt_u
-	">'":  [3]c{0x4a, 0x55, 0x64}, // gt_s
-	"<=":  [3]c{0x4d, 0x58, 0x65}, // le/le_u
-	"<='": [3]c{0x4c, 0x57, 0x65}, // le_s
-	">=":  [3]c{0x4f, 0x5a, 0x66}, // ge/ge_u
-	">='": [3]c{0x4e, 0x59, 0x66}, // ge/ge_u
-	"~":   [3]c{0x46, 0x51, 0x61}, // eq
-	"!":   [3]c{0x47, 0x52, 0x62}, // ne
+func g2str(tab map[string]code, op string, t T, x, y expr) string {
+	o, u := cop(tab, op, t)
+	u += "("
+	if len(o) > 2 {
+		return jn(u, o, "(", cstring(x), ",", cstring(y), "))")
+	} else {
+		return jn("((", u, cstring(x), "))", o, "(", u, cstring(y), ")))")
+	}
+}
+func cstring(x expr) string { xs := x.(cstringer); return xs.cstr() }
+func gstring(x expr) string { xs := x.(gstringer); return xs.gstr() }
+
+var v1Tab = map[string]code{
+	"-": code{0, 0, 0x9a, "-", "-"},                                                                            // neg (no neg for ints)
+	"+": code{0, 0, 0x99, "__builtin_fabs", "math.Abs"},                                                        // abs
+	"_": code{1, 1, 0x9c, ";;__builtin_floor", "math.Floor"},                                                   // floor (ceil, trunc, nearest?)
+	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "Ubits.LeadingZeros32;Ubits.LeadingZeros64;"},   // clz
+	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", "Ubits.TrailingZeros32;Ubits;TrailingZeros64;"}, // ctz
+	"%": code{0, 0, 0x9f, "__builtin_sqrt", "math.Sqrt"},                                                       // sqr
+}
+var v2Tab = map[string]code{
+	`+`:   code{0x6a, 0x7c, 0xa0, "+", "+"},               // add
+	`-`:   code{0x6b, 0x7d, 0xa1, "-", "-"},               // sub
+	`*`:   code{0x6c, 0x7e, 0xa2, "*", "*"},               // mul
+	`%`:   code{0x6e, 0x80, 0xa3, "U/", "U/"},             // div/div_u
+	`%'`:  code{0x6d, 0x7f, 0xa3, "/", "/"},               // div_s
+	`\`:   code{0x70, 0x82, 0, "U%", "%U"},                // rem_u
+	`\'`:  code{0x6f, 0x81, 0, "%", "%"},                  // rem_s
+	`&`:   code{0x71, 0x83, 0, "&", "&"},                  // and
+	`|`:   code{0x72, 0x84, 0, "|", "|"},                  // or
+	`^`:   code{0x73, 0x85, 0, "^", "^"},                  // xor
+	`<<`:  code{0x74, 0x86, 0, "<<", "<<"},                // shl
+	`>>`:  code{0x76, 0x88, 0, "U>>", "U>>"},              // shr_u
+	`>>'`: code{0x75, 0x87, 0, ">>", ">>"},                // shl_s
+	`<|'`: code{0x77, 0x89, 0, "", ""},                    // rotl
+	`>|'`: code{0x78, 0x8a, 0, "", ""},                    // rotr
+	`&'`:  code{0, 0, 0xa4, "__builtin_fmin", "math.Max"}, // min
+	`|'`:  code{0, 0, 0xa5, "__builtin_fmax", "math.Min"}, // max
+}
+var cTab = map[string]code{
+	"<":   code{0x49, 0x54, 0x63, "U<", "U<"},   // lt/lt_u
+	"<'":  code{0x48, 0x53, 0x63, "<", "<"},     // lt_s
+	">":   code{0x4b, 0x56, 0x64, "U>", "U>"},   // gt/gt_u
+	">'":  code{0x4a, 0x55, 0x64, ">", ">"},     // gt_s
+	"<=":  code{0x4d, 0x58, 0x65, "U<=", "U<="}, // le/le_u
+	"<='": code{0x4c, 0x57, 0x65, "<=", "<="},   // le_s
+	">=":  code{0x4f, 0x5a, 0x66, "U>=", "U>="}, // ge/ge_u
+	">='": code{0x4e, 0x59, 0x66, ">=", ">="},   // ge/ge_s
+	"~":   code{0x46, 0x51, 0x61, "==", "=="},   // eq
+	"!":   code{0x47, 0x52, 0x62, "!=", "!="},   // ne
 }
 var allops map[string]bool
 
 func init() {
 	allops = make(map[string]bool)
-	for _, t := range []map[string][3]c{v1Tab, v2Tab, cTab} {
+	for _, t := range []map[string]code{v1Tab, v2Tab, cTab} {
 		for s := range t {
 			allops[s] = true
 		}
 	}
 }
 
-// emit byte code
-func (m module) emit() []c {
+// emit wasm byte code
+func (m module) wasm() []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
 	// type section(1: function signatures)
 	sec := NewSection(1)
@@ -676,13 +933,71 @@ func lebs(b []b, v int64) []b { // encode signed leb128
 }
 */
 
+func jn(a ...string) string           { return strings.Join(a, "") }
 func log(a ...interface{})            { fmt.Fprintln(os.Stderr, a...) }
 func logf(f string, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
 func page(wasm []c) []c {
 	var b bytes.Buffer
-	b.Write([]c(head))
+	b.WriteString(head)
 	b.WriteString(base64.StdEncoding.EncodeToString(wasm))
-	b.Write([]c(tail))
+	b.WriteString(tail)
+	return b.Bytes()
+}
+
+func (m module) cout() []c {
+	var b bytes.Buffer
+	b.WriteString(chead)
+	for _, f := range m {
+		sig := ""
+		for i, a := range f.args {
+			if i > 0 {
+				sig += ","
+			}
+			sig += ctyp[a] + " " + "x" + string('0'+byte(i))
+		}
+		fmt.Fprintf(&b, "%s %s(%s){", ctyp[f.t], f.name, sig)
+		if sq, o := f.ast.(seq); o {
+			for i, e := range sq {
+				if i < len(sq)-1 {
+					b.WriteString("return ")
+				}
+				b.WriteString(cstring(e))
+				b.WriteString(";}")
+			}
+		} else {
+			b.WriteString("return ")
+			b.WriteString(cstring(f.ast))
+			b.WriteString(";}\n")
+		}
+	}
+	return b.Bytes()
+}
+func (m module) gout() []c {
+	var b bytes.Buffer
+	b.WriteString(ghead)
+	for _, f := range m {
+		sig := ""
+		for i, a := range f.args {
+			if i > 0 {
+				sig += ","
+			}
+			sig += "x" + string('0'+byte(i)) + " " + gtyp[a]
+		}
+		fmt.Fprintf(&b, "func %s(%s) %s {", f.name, sig, gtyp[f.t])
+		if sq, o := f.ast.(seq); o {
+			for i, e := range sq {
+				if i < len(sq)-1 {
+					b.WriteString("return ")
+				}
+				b.WriteString(gstring(e))
+				b.WriteString("}")
+			}
+		} else {
+			b.WriteString("return ")
+			b.WriteString(gstring(f.ast))
+			b.WriteString("}\n")
+		}
+	}
 	return b.Bytes()
 }
 
@@ -704,3 +1019,7 @@ run wasm from js console, e.g:
 </pre>
 </body></html>
 `
+
+var chead = `#include<stdint.h>
+`
+var ghead = ``
