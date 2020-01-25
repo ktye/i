@@ -4,36 +4,36 @@
 # 
 # the input file compiles to a wasm module.
 # it contains a collection of functions.
+#
+# add:I:II{x+y}
+# sum:I:I {x/r:+i;r}
+#
+# types are I(i32) J(i64) F(f64)
+# no preference    apl style x*a+b, but lhs is evaluted first: x a b + *
+# sequence a;b;c   c(last) returns a typed value all others must return null
+# loop     x/y     execute y x times    x evaluates to I, y must be null
+#                  loops have implicit locals with names i(j,k... if nested) type I
+# arguments        x,y,z,x3,x4,.. are typed in the function declaration f:R:XYZ..
+# locals           are detected at evaluation order (type is derived) r:x+y
+#                  x+a:x+y  a:assigns and returns (tee_local), not within a sequence (a:x+y;..)
 # 
-# add:I:II::2000 2001 6a
-#     function with name "add"
-#     1 return argument (int)
-#     2 input arguments (both int)
-#     no local variables
-#     function body
-#         get local 0 (arguments and locals are catenated)
-#         get local 1
-#         int32.add
-#     end is implicit
-# 
-# todo: k/apl style, type inference (for operators), control flow (loop, if), memory access, detect locals
-# e.g.
-# addi:I:II:x+y                   /local.get 0; local.get 1; i32.add
-# addf:F:FF:x+y                   /local.get 0; local.get 1; f64.add (needs to be inferred)
-# sumf:F:II:r:0.;yN(r:r+x↓F;x+:8) /sum float vector at memory location x with y elements
-# sumi:I:II:r:0.;yN(r:r+x↓F;x+:4)
+# see ops for all wasm opcodes and their w operators
+# todo: memory
 
 # install go-1.13
 set -xe
 go run w.go        < a.w > a.wasm    # wasm binary
 go run w.go -html  < a.w > a.html    # embed wasm in html
-go run w.go -cout  < a.w > a.c       # write c source
-go run w.go -gout  < a.w > a.go      # write go source
 # open file://.../index.html in a browser, in js console: k.add(1,2)
+
+# transpile to go or c
+go run w.go -gout  < a.w > a.go      # write go source
+go run w.go -cout  < a.w > k.h       # write c source
+/c/local/tcc/tcc  -o k.exe k_c
 
 # install wabt (webassembly binary toolkit github.com/WebAssembly/wabt)
 wabt=/c/local/wabt
-$wabt/wasm2wat       a.wasm > a.wat    # webassembly text format
+$wabt/wasm2wat       a.wasm > a.wat  # webassembly text format
 $wabt/wasm-validate  a.wasm && echo a.wasm ok
 
 # interactive: webassembly.github.io/wabt/demo/wat2wasm

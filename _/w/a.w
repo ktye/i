@@ -1,9 +1,8 @@
-/           x    y    +
-/add:I:II::  2000 2001 6a                                                                       /add two integers
+add:I:II{x+y}
 /
-/sum:I:I:{x/r+:i;r}
+/sum:I:I{x/r+:i;r}
 /           loop r    i    +  →r   i    1    +  →i;i x    <  repeat end r    / w:  x/r+:i;r
-sum:I:I:II: 0340 2001 2002 6a 2101 2002 4101 6a 2202 2000 49 0d00   0b  2001 / k:  +/!x
+/sum:I:I:II: 0340 2001 2002 6a 2101 2002 4101 6a 2202 2000 49 0d00   0b  2001 / k:  +/!x
 / 0340  loop void
 /  2001  local.get r  /r:r+i
 /  2002  local.get i

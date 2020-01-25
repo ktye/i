@@ -13,10 +13,12 @@ func TestB(t *testing.T) {
 		b   string
 		e   string
 	}{
+		{"I:I", "1+x", "410120006a"},
 		{"I:II", "x+y", "20002001 6a"},
 		{"F:FF", "(x*y)", "20002001 a2"},
 		{"F:FF", "x-y", "20002001 a1"},
 		{"F:FF", "3.*x+y", "44 0000000000000840 20002001 a0 a2"},
+		{"I:I", "x:1+x;x*2", "4101 2000 6a 2100 2000 4102 6c"},
 	}
 	for n, tc := range testCases {
 		f := newfn(tc.sig, tc.b)
@@ -64,8 +66,9 @@ func newfn(sig string, body string) fn {
 	f := fn{src: [2]int{1, 0}, Buffer: buf}
 	f.t = typs[v[0][0]]
 	for _, c := range v[1] {
-		f.args = append(f.args, typs[byte(c)])
+		f.locl = append(f.locl, typs[byte(c)])
 	}
+	f.args = len(v[1])
 	return f
 }
 func trim(s string) string { return strings.Replace(s, " ", "", -1) }

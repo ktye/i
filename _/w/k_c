@@ -1,0 +1,9 @@
+// tcc
+#include<stddef.h>
+#include<malloc.h>
+#include<math.h>
+#define R return
+typedef int32_t I;typedef int64_t J;typedef double F;
+I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
+#include "k.h"
+I main(){}
