@@ -33,8 +33,10 @@ go run w.go -cout  < a.w > k.h       # write c source
 
 # install wabt (webassembly binary toolkit github.com/WebAssembly/wabt)
 wabt=/c/local/wabt
-$wabt/wasm2wat       a.wasm > a.wat  # webassembly text format
-$wabt/wasm-validate  a.wasm && echo a.wasm ok
+$wabt/wasm-validate  a.wasm
 
 # interactive: webassembly.github.io/wabt/demo/wat2wasm
 # wasi: github.com/bytecodealliance/wasmtime/blob/master/docs/WASI-tutorial.md#web-assembly-text-example
+if [ "$1" = "clean" ]; then
+	rm a.wasm a.html a.go k.h k.exe
+fi
