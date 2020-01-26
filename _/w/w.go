@@ -358,6 +358,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			if v.opx != ":" { // modified
 				y = p.dyadic(opx(v.opx[:len(v.opx)-1]), x, y, h)
 			}
+
 			a := las{tee: 1}
 			xv, o := x.(loc)
 			if o == false {
@@ -430,15 +431,19 @@ func (p *parser) locals(e expr, lv int) expr {
 	case las:
 		l.argv[1] = p.locals(l.argv[1], lv)
 		x := l.argv[0].(loc)
-		xt, yt := p.locl[x.i], l.argv[1].rt()
+		if x.t == 0 {
+			x.t = p.locl[x.i]
+			l.argv[0] = x
+		}
+		yt := l.argv[1].rt()
 		if yt == 0 {
 			return p.xerr(e, "cannot assign zero type")
-		} else if xt == 0 {
+		} else if x.t == 0 {
 			p.locl[x.i] = yt
 			x.t = yt
 			l.argv[0] = x
-		} else if xt != yt {
-			return p.xerr(e, sf("local reassignment of type %s with %s", xt, yt))
+		} else if x.t != yt {
+			return p.xerr(e, sf("local reassignment of type %s with %s", x.t, yt))
 		}
 		return l
 	case loc:
@@ -450,15 +455,16 @@ func (p *parser) locals(e expr, lv int) expr {
 		}
 		return l
 	case nlp:
-		s := s('i' + lv)
-		n, o := p.fn.lmap[s]
-		if o == false {
-			n = len(p.fn.lmap)
-			p.fn.lmap[s] = n
-			p.fn.locl = append(p.fn.locl, I)
-		}
-		l.c = n // set loop counter
 		l.argv[0] = p.locals(l.argv[0], lv+1)
+		switch x := l.argv[0].(type) {
+		case las:
+			l.n = x.argv[0].(loc).i
+		case loc:
+			l.n = x.i
+		default:
+			l.n = p.nloc(s('i'+lv)+"n", I) // create limit in jn ..
+		}
+		l.c = p.nloc(s('i'+lv), I) // set/create loop counter
 		l.argv[1] = p.locals(l.argv[1], lv+1)
 		return l
 	default:
@@ -484,6 +490,19 @@ func (p *parser) validate(e expr) (expr, s) {
 		return e, s
 	}
 	return nil, ""
+}
+func (p *parser) nloc(s s, t T) int { // local index by name, may create new
+	n, o := p.fn.lmap[s]
+	if o {
+		if p.fn.locl[n] != t {
+			p.err(s + " exists with different type")
+		}
+	} else {
+		n = len(p.fn.lmap)
+		p.fn.lmap[s] = n
+		p.fn.locl = append(p.fn.locl, t)
+	}
+	return n
 }
 func sSym(b []c) int { // [aZ][a9]*
 	c := b[0]
@@ -608,7 +627,8 @@ type las struct { // local set
 type nlp struct { // x/y loop
 	pos
 	argv
-	c int
+	n int // index in locl for loop limit
+	c int // index in locl for loop counter
 }
 type opx s             // operator
 type asn struct{ opx } // assignments :(local) ::(memory) +:(modified local)
@@ -782,7 +802,13 @@ func (v nlp) valid() s {
 	}
 	return ""
 }
-func (v nlp) bytes() []c { panic("nyi") } // TODO
+func (v nlp) bytes() (r []c) {
+	i, n := s(lebu(v.c)), s(lebu(v.n))
+	//         x                           0  !=  if           0   →i   loop
+	r = catb(v.x().bytes(), []c(sf("\x41\x00\x47\x04\x40\x41\x00\x21%s\x03\x40", i)))
+	//                                        i       1  +  tee→i    n   <  continue
+	return catb(r, v.y().bytes(), []c(sf("\x20%s\x41\x01\x6a\x21%s\x20%s\x49\x0d\x00\x0b", i, i, n)))
+} // TODO
 func (v nlp) cstr() s {
 	return sf("for(x%d=0;x%d<(%s);x%d++){%s}", v.c, v.c, cstring(v.x()), v.c, cstring(v.y()))
 }
@@ -1015,6 +1041,12 @@ func lebs(b []b, v int64) []b { // encode signed leb128
 }
 */
 
+func catb(x ...[]c) (r []c) {
+	for _, b := range x {
+		r = append(r, b...)
+	}
+	return r
+}
 func jn(a ...s) s                { return strings.Join(a, "") }
 func log(a ...interface{})       { fmt.Fprintln(os.Stderr, a...) }
 func logf(f s, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
