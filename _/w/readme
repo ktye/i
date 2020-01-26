@@ -22,6 +22,8 @@
 
 # install go-1.13
 set -xe
+if [ "$1" = "clean" ]; then rm a.wasm a.html a.go k.h k.exe; exit; fi
+
 go run w.go        < a.w > a.wasm    # wasm binary
 go run w.go -html  < a.w > a.html    # embed wasm in html
 # open file://.../index.html in a browser, in js console: k.add(1,2)
@@ -37,6 +39,5 @@ $wabt/wasm-validate  a.wasm
 
 # interactive: webassembly.github.io/wabt/demo/wat2wasm
 # wasi: github.com/bytecodealliance/wasmtime/blob/master/docs/WASI-tutorial.md#web-assembly-text-example
-if [ "$1" = "clean" ]; then
-	rm a.wasm a.html a.go k.h k.exe
-fi
+
+ls -ln a.w a.wasm k.exe w.go 

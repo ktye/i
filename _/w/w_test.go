@@ -22,7 +22,7 @@ func TestB(t *testing.T) {
 	}
 	for n, tc := range testCases {
 		f := newfn(tc.sig, tc.b)
-		e := f.parse()
+		e := f.parse(nil, nil)
 		b := string(hex(e.bytes()))
 		s := trim(tc.e)
 		if b != s {
@@ -31,21 +31,14 @@ func TestB(t *testing.T) {
 		fmt.Println(b)
 	}
 }
-
-/*
-func TestW(t *testing.T) {
-	testCases := [][2]string{
-		{"add:I:II::2000 2001 6a\n", "0061736d0100000001070160027f7f017f0302010005030100010707010361646400000a09010700200020016a0b"},
-	}
-	for n, tc := range testCases {
-		i, e := tc[0], tc[1]
-		o := string(hex(run(bytes.NewReader([]c(i))).wasm()))
-		if o != e {
-			t.Fatalf("%d: expected/got:\n%q\n%q\n", n+1, e, o)
-		}
+func TestRun(t *testing.T) {
+	g := s(hex(run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/")).wasm()))
+	e := "0061736d0100000001070160027f7f017f0302010005030100010707010361646400000a0b010901027f200020016a0b"
+	if e != g {
+		t.Fatalf("expected/got\n%s\n%s\n", e, g)
 	}
 }
-*/
+
 func hex(a []c) []c {
 	var r bytes.Buffer
 	for _, b := range a {

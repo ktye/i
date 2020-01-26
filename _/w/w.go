@@ -35,11 +35,9 @@ const (
 	F = T(0x7c) // f64
 )
 const (
-	sNewl = iota
-	sFnam
+	sFnam = iota
 	sRety
 	sArgs
-	sByte
 	sBody
 	sCmnt
 )
@@ -83,19 +81,15 @@ func (t T) String() s {
 }
 func run(r io.Reader) module {
 	rd := bufio.NewReader(r)
-	state := sNewl
-	line, char, hi := 1, 0, true
+	state := sFnam
+	line, char := 1, 0
 	err := func(s string) { panic(sf("%d:%d: %s", line, char, s)) }
 	var m module
 	var f fn
-	var p c
 	for {
 		b, e := rd.ReadByte()
 		if e == io.EOF {
-			if f.name != "" {
-				m = append(m, f)
-			}
-			return m
+			return m.compile()
 		} else if e != nil {
 			panic(e)
 		}
@@ -105,23 +99,12 @@ func run(r io.Reader) module {
 			char = 1
 		}
 		switch state {
-		case sNewl:
-			if b == '/' {
-				state = sCmnt
-			} else if b == ' ' || b == '\t' || b == '\n' {
-				if f.name == "" {
-					err("parse name")
-				}
-				state = sByte
-			} else {
-				if f.name != "" {
-					m = append(m, f)
-				}
-				f = fn{name: s(b)}
-				state = sFnam
-			}
 		case sFnam:
-			if craZ(b) || (len(f.name) > 0 && cr09(b)) {
+			if len(f.name) == 0 && b == ' ' || b == '\t' || b == '\n' {
+				continue
+			} else if len(f.name) == 0 && b == '/' {
+				state = sCmnt
+			} else if craZ(b) || (len(f.name) > 0 && cr09(b)) {
 				f.name += s(b)
 			} else if b == ':' {
 				state = sRety
@@ -130,6 +113,9 @@ func run(r io.Reader) module {
 			}
 		case sRety:
 			if f.t == 0 {
+				if b == '{' {
+					state = sBody // macro
+				}
 				f.t = typs[b]
 				if f.t == 0 {
 					err("parse return type")
@@ -156,30 +142,13 @@ func run(r io.Reader) module {
 		case sBody:
 			f.WriteByte(b)
 			if b == '}' {
-				state = sCmnt
-				f.parse()
-			}
-		case sByte:
-			if b == '/' && hi {
-				state = sCmnt
-			} else if (b == ' ' || b == '\t') && hi {
-				continue
-			} else if (b == '\n') && hi {
-				state = sNewl
-			} else if crHx(b) {
-				if hi {
-					p, hi = xtoc(b)<<4, false
-				} else {
-					p, hi = p|xtoc(b), true
-					f.WriteByte(p)
-					p = 0
-				}
-			} else {
-				err("parse body")
+				state = sFnam
+				m = append(m, f)
+				f = fn{}
 			}
 		case sCmnt:
 			if b == '\n' {
-				state = sNewl
+				state = sFnam
 			}
 		default:
 			err("internal parse state")
@@ -208,14 +177,38 @@ func boolvar(v bool) int {
 	return 0
 }
 
+func (m module) compile() (r module) {
+	mac := make(map[s][]c)
+	fns := make(map[s]int)
+	for _, f := range m {
+		_, x := mac[f.name]
+		_, y := fns[f.name]
+		if x || y {
+			panic(f.name + " already defined")
+		}
+		if f.t == 0 {
+			mac[f.name] = f.Bytes()
+		} else {
+			r = append(r, f)
+			fns[f.name] = len(r) - 1
+		}
+	}
+	for i, f := range r {
+		r[i].ast = f.parse(mac, fns)
+	}
+	return r
+}
+
 type parser struct {
+	mac map[s][]c
+	fns map[s]int
 	*fn
 	p   int
 	b   []byte
 	tok []byte
 }
 
-func (f *fn) parse() expr { // parse function body
+func (f *fn) parse(mac map[s][]c, fns map[s]int) expr { // parse function body
 	f.lmap = make(map[string]int)
 	for i := 0; i < f.args; i++ {
 		s := s('x' + c(i))
@@ -224,11 +217,10 @@ func (f *fn) parse() expr { // parse function body
 		}
 		f.lmap[s] = i
 	}
-	p := parser{fn: f, b: strip(f.Bytes())}
+	p := parser{mac: mac, fns: fns, fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
 	e = p.locals(e, 0)
-	f.ast = p.validate(e)
-	return f.ast
+	return p.validate(e)
 }
 func strip(b []c) []c { // strip comments
 	lines := bytes.Split(b, []c{'\n'})
@@ -941,7 +933,7 @@ func (f fn) sig() (r []c) {
 }
 func (f fn) code() (r []c) {
 	r = append(r, f.locs()...)
-	r = append(r, f.Bytes()...)
+	r = append(r, f.ast.bytes()...)
 	return append(r, 0x0b)
 }
 func (f fn) locs() (r []c) {
