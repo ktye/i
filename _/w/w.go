@@ -17,43 +17,29 @@ import (
 type c = byte
 type s = string
 type T c
-type fn struct { // name:I:IIF::body..
+type fn struct { // name:I:IIF{body}
 	name s
 	src  [2]int // line, col
 	t    T      // return type
 	args int
 	locl []T
-	lmap map[s]int // local index: args+locl
-	sign int
+	lmap map[s]int // local index: args+locals
+	sign int       // function signature index
 	ast  expr
 	bytes.Buffer
 }
+type module []fn
 
 const (
 	I = T(0x7f) // i32
 	J = T(0x7e) // i64
 	F = T(0x7c) // f64
 )
-const (
-	sFnam = iota
-	sRety
-	sArgs
-	sBody
-	sCmnt
-)
 
 var typs = map[c]T{'I': I, 'J': J, 'F': F}
 var tnum = map[T]int{I: 0, J: 1, F: 2}
 var styp = map[T]s{I: "I", J: "J", F: "F"}
 var P = I // I(wasm32) J(wasm64)
-
-type module []fn
-
-//func main() {
-//	f := fn{t: F, args: []T{F, F}, Buffer: *bytes.NewBuffer([]c("3*x+y}"))}
-//	e := f.parse()
-//	fmt.Printf("%#+v\n", e)
-//}
 
 func main() {
 	var html, cout, gout bool
@@ -80,6 +66,7 @@ func (t T) String() s {
 	}
 }
 func run(r io.Reader) module {
+	sFnam, sRety, sArgs, sBody, sCmnt := 0, 1, 2, 3, 4
 	rd := bufio.NewReader(r)
 	state := sFnam
 	line, char := 1, 0
@@ -220,7 +207,13 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int) expr { // parse function body
 	p := parser{mac: mac, fns: fns, fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
 	e = p.locals(e, 0)
-	return p.validate(e)
+	if x, s := p.validate(e); x != nil {
+		return p.xerr(x, s)
+	}
+	if t := e.rt(); t != p.fn.t {
+		return p.err(sf("return type is %s not %s", t, p.fn.t))
+	}
+	return e
 }
 func strip(b []c) []c { // strip comments
 	lines := bytes.Split(b, []c{'\n'})
@@ -368,7 +361,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			a := las{tee: 1}
 			xv, o := x.(loc)
 			if o == false {
-				return p.err("lhs type (local assignment)")
+				return p.xerr(x, "assignment expects a symbol on the left")
 			}
 			if n, o := p.fn.lmap[xv.s]; o == false {
 				xv.i = len(p.fn.lmap)
@@ -381,12 +374,19 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			return a
 		}
 	case nlp:
+		if a, o := y.(las); o { // loop over single assignment
+			a.tee = 0
+			y = a
+		}
 		return nlp{pos: h, argv: argv{x, y}}
 	case opx:
 		if _, o := v2Tab[s(v)]; o {
 			return v2{s: s(v), argv: argv{x, y}, pos: h}
 		}
-		return cmp{s: s(v), argv: argv{x, y}, pos: h}
+		if _, o := cTab[s(v)]; o {
+			return cmp{s: s(v), argv: argv{x, y}, pos: h}
+		}
+		return p.err("unknown operator")
 	default:
 		panic("nyi")
 	}
@@ -426,47 +426,64 @@ func (p *parser) noun() expr {
 	}
 }
 func (p *parser) locals(e expr, lv int) expr {
-	if av, o := e.(argvec); o == false {
-		return e
-	} else {
-		v := av.args()
-		for i, a := range v {
-			switch f := a.(type) {
-			case nlp:
-				s := s('i' + lv)
-				n, o := p.fn.lmap[s]
-				if o == false {
-					n = len(p.fn.lmap)
-					p.fn.lmap[s] = n
-				}
-				f.c = n // set loop counter
-				f.argv[0] = p.locals(f.argv[0], lv+1)
-				f.argv[1] = p.locals(f.argv[1], lv+1)
-				v[i] = f
-			case loc:
-				if n, o := p.fn.lmap[f.s]; o {
-					f.i = n
-					f.t = p.locl[n]
-				} else {
-					return p.xerr(f, "undeclared("+f.s+")")
-				}
-				v[i] = f
-			default:
-				// TODO: detect locals from assignments
-				v[i] = p.locals(v[i], lv)
+	switch l := e.(type) {
+	case las:
+		l.argv[1] = p.locals(l.argv[1], lv)
+		x := l.argv[0].(loc)
+		xt, yt := p.locl[x.i], l.argv[1].rt()
+		if yt == 0 {
+			return p.xerr(e, "cannot assign zero type")
+		} else if xt == 0 {
+			p.locl[x.i] = yt
+			x.t = yt
+			l.argv[0] = x
+		} else if xt != yt {
+			return p.xerr(e, sf("local reassignment of type %s with %s", xt, yt))
+		}
+		return l
+	case loc:
+		if n, o := p.fn.lmap[l.s]; o {
+			l.i = n
+			l.t = p.locl[n]
+		} else {
+			return p.xerr(l, "undeclared("+l.s+")")
+		}
+		return l
+	case nlp:
+		s := s('i' + lv)
+		n, o := p.fn.lmap[s]
+		if o == false {
+			n = len(p.fn.lmap)
+			p.fn.lmap[s] = n
+			p.fn.locl = append(p.fn.locl, I)
+		}
+		l.c = n // set loop counter
+		l.argv[0] = p.locals(l.argv[0], lv+1)
+		l.argv[1] = p.locals(l.argv[1], lv+1)
+		return l
+	default:
+		if av, o := e.(argvec); o {
+			v := av.args()
+			for i, a := range v {
+				v[i] = p.locals(a, lv)
 			}
 		}
 		return e
 	}
 }
-func (p *parser) validate(e expr) expr {
-	if x := e.valid(); x != nil {
-		return p.xerr(x, "invalid")
+func (p *parser) validate(e expr) (expr, s) {
+	if av, o := e.(argvec); o {
+		for _, e := range av.args() {
+			if r, s := p.validate(e); r != nil {
+				return r, s
+			}
+		}
 	}
-	if t := e.rt(); t != p.fn.t {
-		return p.err(sf("return type is %s not %s", t, p.fn.t))
+	s := e.valid()
+	if s != "" {
+		return e, s
 	}
-	return e
+	return nil, ""
 }
 func sSym(b []c) int { // [aZ][a9]*
 	c := b[0]
@@ -540,8 +557,8 @@ func sC(x c) func(b []c) int     { return func(b []c) int { return boolvar(b[0] 
 
 // intermediate representation for function bodies (typed expression tree)
 type expr interface {
-	rt() T       // result type, maybe 0
-	valid() expr // nil(ok) or invalid sub-expr
+	rt() T    // result type, maybe 0
+	valid() s // ok("") or err
 	bytes() []c
 }
 type argvec interface {
@@ -664,15 +681,15 @@ func (a argv) x() expr      { return a[0] }
 func (a argv) y() expr      { return a[1] }
 func (s seq) rt() T         { return s[len(s)-1].rt() }
 func (s seq) args() []expr  { return s }
-func (s seq) valid() expr { // all but the last expressions in a sequence must have no return type
+func (s seq) valid() s { // all but the last expressions in a sequence must have no return type
 	for i, e := range s {
-		if i == len(s)-1 && e.rt() == 0 {
-			return e
-		} else if i < len(s)-1 && e.rt() != 0 {
-			return e
+		if t := e.rt(); i < len(s)-1 && t != 0 {
+			return sf("statement %d/%d has nonzero type %s", i+1, len(s), t)
+		} else if i == len(s)-1 && t == 0 {
+			return sf("last statement of %d has zero type", i+1)
 		}
 	}
-	return nil
+	return ""
 }
 func (s seq) bytes() (r []c) {
 	for _, e := range s {
@@ -681,38 +698,38 @@ func (s seq) bytes() (r []c) {
 	return r
 }
 func (v v2) rt() T { return v.x().rt() }
-func (v v2) valid() expr {
+func (v v2) valid() s {
 	if tx, ty := v.x().rt(), v.y().rt(); tx == 0 {
-		return v.x()
+		return sf("left argument has zero type")
 	} else if ty == 0 {
-		return v.y()
+		return sf("right argument has zero type")
 	} else if tx != ty {
-		return v
+		return sf("types mismatch %s %s", tx, ty)
 	}
-	return nil
+	return ""
 }
 func (v v2) bytes() []c {
 	return append(append(v.x().bytes(), v.y().bytes()...), getop(v2Tab, v.s, v.rt()))
 }
-func (v v2) cstr() s     { return c2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
-func (v v2) gstr() s     { return g2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
-func (v v1) rt() T       { return v.x().rt() }
-func (v v1) valid() expr { return ifex(v.x().rt() == 0, v.x()) }
-func (v v1) bytes() []c  { return append(v.x().bytes(), getop(v1Tab, v.s, v.rt())) }
-func (v v1) cstr() s     { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, "(", u, cstring(v.x()), ")") }
+func (v v2) cstr() s    { return c2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
+func (v v2) gstr() s    { return g2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
+func (v v1) rt() T      { return v.x().rt() }
+func (v v1) valid() s   { return ifex(v.x().rt() == 0, "argument has zero type") }
+func (v v1) bytes() []c { return append(v.x().bytes(), getop(v1Tab, v.s, v.rt())) }
+func (v v1) cstr() s    { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, "(", u, cstring(v.x()), ")") }
 func (v v1) gstr() s {
 	o, u := gop(v1Tab, v.s, v.rt())
 	return jn(o, u, "((", gstring(v.x()), "))")
 }
-func (v cmp) rt() T       { return I }
-func (v cmp) valid() expr { return v2(v).valid() }
+func (v cmp) rt() T    { return I }
+func (v cmp) valid() s { return v2(v).valid() }
 func (v cmp) bytes() []c {
 	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.rt()))
 }
-func (v cmp) cstr() s     { return c2str(cTab, v.s, v.rt(), v.x(), v.y()) }
-func (v cmp) gstr() s     { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
-func (v con) rt() T       { return v.t }
-func (v con) valid() expr { return ifex(v.t == 0, v) }
+func (v cmp) cstr() s  { return c2str(cTab, v.s, v.rt(), v.x(), v.y()) }
+func (v cmp) gstr() s  { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
+func (v con) rt() T    { return v.t }
+func (v con) valid() s { return ifex(v.t == 0, "constant has zero type") }
 func (v con) bytes() (r []c) {
 	r = append([]c{0x41}, lebu(int(v.i))...)
 	if v.t == J {
@@ -735,14 +752,17 @@ func (v con) cstr() s {
 	}
 	return sf("%d", v.i)
 }
-func (v con) gstr() s     { return v.cstr() }
-func (v loc) rt() T       { return v.t }
-func (v loc) valid() expr { return ifex(v.t == 0, v) }
-func (v loc) bytes() []c  { return append([]c{0x20}, lebu(v.i)...) }
-func (v loc) cstr() s     { return locstr(v) }
-func (v loc) gstr() s     { return locstr(v) }
-func (v las) rt() T       { return T(v.tee) * v.y().rt() }
-func (v las) valid() expr { return ifex(v.x().rt() == 0 || v.x().rt() != v.y().rt(), v) }
+func (v con) gstr() s    { return v.cstr() }
+func (v loc) rt() T      { return v.t }
+func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
+func (v loc) bytes() []c { return append([]c{0x20}, lebu(v.i)...) }
+func (v loc) cstr() s    { return locstr(v) }
+func (v loc) gstr() s    { return locstr(v) }
+func (v las) rt() T      { return T(v.tee) * v.y().rt() }
+func (v las) valid() s {
+	tx, ty := v.x().rt(), v.y().rt()
+	return ifex(tx == 0 || tx != ty, sf("assignment with mismatched types %s %s", tx, ty))
+}
 func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21 + v.tee}, lebu(v.x().(loc).i)...)...)
 }
@@ -753,24 +773,31 @@ func (v las) gstr() s {
 	}
 	return jn(locstr(v.x()), "=", s(v.y().bytes()), ";")
 }
-func (v nlp) rt() T       { return 0 }
-func (v nlp) valid() expr { return ifex(v.x().rt() != I || v.y().rt() != 0, v) }
-func (v nlp) bytes() []c  { panic("nyi") } // TODO
+func (v nlp) rt() T { return 0 }
+func (v nlp) valid() s {
+	if xt, yt := v.x().rt(), v.y().rt(); xt != I {
+		return sf("loop range is not I: %s", xt)
+	} else if yt != 0 {
+		return sf("loop body has nonzero type %s", yt)
+	}
+	return ""
+}
+func (v nlp) bytes() []c { panic("nyi") } // TODO
 func (v nlp) cstr() s {
 	return sf("for(x%d=0;x%d<(%s);x%d++){%s}", v.c, v.c, cstring(v.x()), v.c, cstring(v.y()))
 }
 func (v nlp) gstr() s {
 	return sf("for x%d=0;x%d<(%s);x%d++{%s}", v.c, v.c, gstring(v.x()), v.c, gstring(v.y()))
 }
-func (v opx) rt() T       { return 0 }
-func (v opx) valid() expr { return v }
-func (v opx) bytes() []c  { return nil }
-func locstr(v expr) s     { return sf("x%d", v.(loc).i) }
-func ifex(c bool, x expr) expr {
+func (v opx) rt() T      { return 0 }
+func (v opx) valid() s   { return "nonapplied operator" }
+func (v opx) bytes() []c { return nil }
+func locstr(v expr) s    { return sf("x%d", v.(loc).i) }
+func ifex(c bool, s s) s {
 	if c {
-		return x
+		return s
 	}
-	return nil
+	return ""
 }
 
 type code struct {
