@@ -25,13 +25,6 @@ type wBM struct { // bitmap
 	e, f       uint16
 	h          unsafe.Pointer
 }
-type wDS struct { // dibsection
-	b wBM
-	h wBI
-	f [3]k
-	s uintptr
-	o k
-}
 type wcxyz struct{ x, y, z i }   // ciexyz
 type wc3 struct{ r, g, b wcxyz } // ciexyztriple
 type wBI struct {                // bitmapinfoheader
@@ -52,24 +45,17 @@ type wBM5 struct { // bitmapv5header
 	wBM4
 	a5, b5, c5, d5 k
 }
-type bitmap struct {
-	m, p uintptr
-	w, h i
-}
 
 func draw(w, h k, c []c) {
-	b := mkBM(toBM(w, h, c))
+	hbm := toBM(w, h, c)
 	d := winCreateCompatibleDC(0)
 	xif(d == 0, "create compatible dc")
 	defer winDeleteDC(d)
-	o := winSelectObject(d, b.m)
+	o := winSelectObject(d, hbm)
 	xif(o == 0, "select object")
 	defer winSelectObject(d, o)
-	xif(!winBitBlt(winGetDC(0), 0, 0, b.w, b.h, d, 0, 0, 0x00CC0020), "bitblt")
-	winDeleteObject(b.m)
-	winGlobalUnlock(b.p)
-	winGlobalFree(b.p)
-	b.p, b.m = 0, 0
+	xif(!winBitBlt(winGetDC(0), 0, 0, int32(w), int32(h), d, 0, 0, 0x00CC0020), "bitblt")
+	winDeleteObject(hbm) // ?
 }
 func toBM(w, h k, c []c) (r uintptr) {
 	var bi wBM5
@@ -88,21 +74,6 @@ func toBM(w, h k, c []c) (r uintptr) {
 	copy(a[:], c)
 	return r
 }
-func mkBM(h uintptr) *bitmap {
-	var d wDS
-	xif(winGetObject(h, unsafe.Sizeof(d), unsafe.Pointer(&d)) == 0, "getobject")
-	b := &d.h
-	s, p := uintptr(unsafe.Sizeof(*b)), uintptr(i(b.c)*b.w*b.h)/8
-	c := winGlobalAlloc(0x0042, uintptr(s+p))
-	dest := winGlobalLock(c)
-	defer winGlobalUnlock(c)
-	src := unsafe.Pointer(&d.h)
-	winMoveMemory(dest, src, s)
-	dest = unsafe.Pointer(uintptr(dest) + s)
-	src = d.b.h
-	winMoveMemory(dest, src, p)
-	return &bitmap{m: h, p: c, w: b.w, h: b.h}
-}
 func xif(c bool, e string) {
 	if c {
 		panic(e)
@@ -113,11 +84,6 @@ var (
 	libuser32          = syscall.NewLazyDLL("user32.dll")
 	libgdi32           = syscall.NewLazyDLL("gdi32.dll")
 	libkernel32        = syscall.NewLazyDLL("kernel32.dll")
-	globalAlloc        = libkernel32.NewProc("GlobalAlloc")
-	globalFree         = libkernel32.NewProc("GlobalFree")
-	globalLock         = libkernel32.NewProc("GlobalLock")
-	globalUnlock       = libkernel32.NewProc("GlobalUnlock")
-	moveMemory         = libkernel32.NewProc("RtlMoveMemory")
 	getDC              = libuser32.NewProc("GetDC")
 	releaseDC          = libuser32.NewProc("ReleaseDC")
 	deleteDC           = libgdi32.NewProc("DeleteDC")
@@ -125,29 +91,9 @@ var (
 	createDIBSection   = libgdi32.NewProc("CreateDIBSection")
 	selectObject       = libgdi32.NewProc("SelectObject")
 	deleteObject       = libgdi32.NewProc("DeleteObject")
-	getObject          = libgdi32.NewProc("GetObjectW")
 	bitBlt             = libgdi32.NewProc("BitBlt")
 )
 
-func winGlobalAlloc(u uint32, d uintptr) (r uintptr) {
-	r, _, _ = syscall.Syscall(globalAlloc.Addr(), 2, uintptr(u), d, 0)
-	return
-}
-func winGlobalFree(h uintptr) (r uintptr) {
-	r, _, _ = syscall.Syscall(globalFree.Addr(), 1, h, 0, 0)
-	return
-}
-func winGlobalLock(h uintptr) unsafe.Pointer {
-	r, _, _ := syscall.Syscall(globalLock.Addr(), 1, h, 0, 0)
-	return unsafe.Pointer(r)
-}
-func winGlobalUnlock(h uintptr) bool {
-	r, _, _ := syscall.Syscall(globalUnlock.Addr(), 1, h, 0, 0)
-	return r != 0
-}
-func winMoveMemory(d, s unsafe.Pointer, l uintptr) {
-	syscall.Syscall(moveMemory.Addr(), 3, uintptr(unsafe.Pointer(d)), uintptr(s), l)
-}
 func winGetDC(h uintptr) (r uintptr) {
 	r, _, _ = syscall.Syscall(getDC.Addr(), 1, h, 0, 0)
 	return
@@ -175,10 +121,6 @@ func winSelectObject(h uintptr, o uintptr) (r uintptr) {
 func winDeleteObject(o uintptr) bool {
 	r, _, _ := syscall.Syscall(deleteObject.Addr(), 1, o, 0, 0)
 	return r != 0
-}
-func winGetObject(g uintptr, b uintptr, o unsafe.Pointer) int32 {
-	r, _, _ := syscall.Syscall(getObject.Addr(), 3, g, b, uintptr(o))
-	return int32(r)
 }
 func winBitBlt(d uintptr, x, y, w, h int32, s uintptr, xs, ys int32, o uint32) bool {
 	r, _, _ := syscall.Syscall9(bitBlt.Addr(), 9, d, uintptr(x), uintptr(y), uintptr(w), uintptr(h), s, uintptr(xs), uintptr(ys), uintptr(o))
