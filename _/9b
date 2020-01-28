@@ -1,0 +1,31 @@
+k9/`f@
+
+monadic application 0x01XX20+f  XX arg
+ - 0    0x018022
+        80       80+constant #0   0    5    a    f0    5
+              22 20+verb          :+-*%&|<>=~!,^#_$?@.012
+
+operator application 0x01vv10+op  vv arg as const
+ +'    0x01801a     012  3  4  5
+             1a+op  '/\ ': /: \:
+ +'/\  0x01801a1b1c
+
+dyadic application 0x02YYXXvv
+ 1+2   0x02818041 right arg first
+               40+verb (as above)
+ 1-+2  0x0281218042
+
+projection
+ 1+    0x038180820502  (2;+;')
+            + 1 ' ???
+
+variables  60+var(index)
+ x+y   0x02616041
+{x+y}  0x020b0a41  0a+arg(index)
+
+assign    01yy00xxvv  vv(modify)
+ x:3    0x0180006000    
+             3 : x 
+ x+:3   0x0180006001  (modified)
+ x[i]:y 0x026261016000 (indexed)
+             y i ? x   01(indexed) vs 00(normal) assign?
