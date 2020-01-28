@@ -181,7 +181,8 @@ func (m module) compile() (r module) {
 		}
 	}
 	for i, f := range r {
-		r[i].ast = f.parse(mac, fns)
+		f.ast = f.parse(mac, fns)
+		r[i] = f
 	}
 	return r
 }
@@ -652,10 +653,10 @@ func getop(tab map[s]code, op s, t T) (r c) {
 	case F:
 		r = ops.F
 	default:
-		panic("type")
+		panic("type(" + op + ")")
 	}
 	if r == 0 {
-		panic("type")
+		panic("type(" + op + ")")
 	}
 	return r
 }
@@ -804,11 +805,11 @@ func (v nlp) valid() s {
 }
 func (v nlp) bytes() (r []c) {
 	i, n := s(lebu(v.c)), s(lebu(v.n))
-	//         x                           0  !=  if           0   →i   loop
-	r = catb(v.x().bytes(), []c(sf("\x41\x00\x47\x04\x40\x41\x00\x21%s\x03\x40", i)))
-	//                                        i       1  +  tee→i    n   <  continue
-	return catb(r, v.y().bytes(), []c(sf("\x20%s\x41\x01\x6a\x21%s\x20%s\x49\x0d\x00\x0b", i, i, n)))
-} // TODO
+	//         x                     tee→n  if           0   →i   loop
+	r = catb(v.x().bytes(), []c(sf("\x22%s\x04\x40\x41\x00\x21%s\x03\x40", n, i)))
+	//                                        i       1   +  tee→i    n   <  continue
+	return catb(r, v.y().bytes(), []c(sf("\x20%s\x41\x01\x6a\x22%s\x20%s\x49\x0d\x00\x0b\x0b", i, i, n)))
+}
 func (v nlp) cstr() s {
 	return sf("for(x%d=0;x%d<(%s);x%d++){%s}", v.c, v.c, cstring(v.x()), v.c, cstring(v.y()))
 }
