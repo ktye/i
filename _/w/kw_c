@@ -1,29 +1,118 @@
 // k/ui (win32)
-// tcc -o kw.exe kw_c
+// tcc -o kw.exe kw_c -luser32 -lgdi32
 #include <windows.h>
-#include "k.h"
+// #include "k.h"
+
+#include<stdio.h>
+#include<stdlib.h>
+
+// screen, width, height should be handled by k.
+int width; int height;
+char *screen;
+
+int size(int w, int h) { 
+	int i;
+	printf("size %d %d\n", w, h); fflush(stdout);
+	width = w; height = h;
+	if (screen != NULL) free(screen);
+	screen = malloc(4*w*h);
+	if (screen == NULL) return 0;
+	printf("allocated %d x %d\n", w, h);
+	for (i=0; i<4*w*h;i++) screen[i] = 0;
+	return 1;
+}
+int key(int c) {
+	int i;
+	int r = 255*(c=='r');
+	int g = 255*(c=='g');
+	int b = 255*(c=='b');
+	printf("key %d\n", c);fflush(stdout);
+	printf("r=%d g=%d b=%d [%dx%d]\n", r, g, b, width, height);
+	for (i=0; i<4*width*height;i++) {
+		switch (i%4) {
+		case 0: screen[i] = r; break;
+		case 1: screen[i] = g; break;
+		case 2: screen[i] = b; break;
+		}
+	}
+	return 1;
+}
+int mouse(int but, int x0, int y0, int x1, int y1, int shift, int cntrl) {
+	printf("mouse%d (%d %d)->(%d %d) shift=%d cntrl=%d\n", but, x0, y0, x1, y1, shift, cntrl);
+	fflush(stdout);
+	return 0;
+}
+void redraw(HWND hwnd, int screen) {
+	if (!screen) return;
+	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE); 
+}
 
 char szAppName[] = "k"; // The name of this application
 char szTitle[]   = "k"; // The title bar text
 
+LPARAM mouseLeft = 0, mouseMiddle = 0, mouseRight = 0;
+
+HBITMAP screenBitmap(HDC hdc, int w, int h, char *p) {
+	BITMAPV5HEADER   bi;
+	HBITMAP          hbm;
+	char            *dst;
+	ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
+	bi.bV5Size = sizeof(bi);
+	bi.bV5Height = h; bi.bV5Width = w; bi.bV5Planes = 1; bi.bV5BitCount = 32; bi.bV5Compression = 3; 
+	bi.bV5XPelsPerMeter = 3780; bi.bV5YPelsPerMeter = 3780;
+	bi.bV5RedMask = 0x000000FF; bi.bV5GreenMask = 0x0000FF00; bi.bV5BlueMask = 0x00FF0000, bi.bV5AlphaMask = 0xFF000000;
+	hbm = CreateDIBSection(hdc, &bi, 0, &dst, 0, 0);
+	if (hbm == NULL) {
+        	// free(pbmi);
+        	return NULL;
+	}
+	memcpy(dst, p, 4*w*h);
+	return hbm;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
-        case WM_CREATE: // startup
+        case WM_CREATE:
 		break;
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
 
-        case WM_RBUTTONUP:
-		DestroyWindow(hwnd);
+	case WM_LBUTTONDOWN:
+		mouseLeft = lParam;
+		break;
+	case WM_MBUTTONDOWN:
+		mouseMiddle = lParam;
+		break;
+	case WM_RBUTTONDOWN:
+		mouseRight = lParam;
+		break;
+	case WM_LBUTTONUP:
+		redraw(hwnd, mouse(0, LOWORD(mouseLeft), HIWORD(mouseLeft), LOWORD(lParam), HIWORD(lParam), wParam==MK_SHIFT, wParam==MK_CONTROL));
+		break;
+	case WM_MBUTTONUP:
+		redraw(hwnd, mouse(1, LOWORD(mouseMiddle), HIWORD(mouseMiddle), LOWORD(lParam), HIWORD(lParam), wParam==MK_SHIFT, wParam==MK_CONTROL));
+		break;
+	case WM_RBUTTONUP:
+		redraw(hwnd, mouse(2, LOWORD(mouseRight), HIWORD(mouseRight), LOWORD(lParam), HIWORD(lParam), wParam==MK_SHIFT, wParam==MK_CONTROL));
 		break;
 
-        case WM_KEYDOWN:
-		if (VK_ESCAPE == wParam) DestroyWindow(hwnd);
+	case WM_MOUSEWHEEL:
+		if ((int)wParam>0) redraw(hwnd, mouse(3, 0, 0, 0, 0, 0, 0));
+		else               redraw(hwnd, mouse(4, 0, 0, 0, 0, 0, 0));
 		break;
+		
+	case WM_CHAR:
+		if (wParam > 1) redraw(hwnd, key((int)wParam));
+		break;
+	
+	case WM_SIZE:
+		if (wParam != SIZE_MINIMIZED) size(LOWORD(lParam), HIWORD(lParam));
 
         case WM_PAINT: {
+		printf("paint\n"); fflush(stdout);
+		/*
 		PAINTSTRUCT ps;
 		HDC         hdc;
 		RECT        rc;
@@ -34,6 +123,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		DrawText(hdc, "+/1 2 3", -1, &rc, DT_CENTER|DT_SINGLELINE|DT_VCENTER);
 		EndPaint(hwnd, &ps);
 		break;
+		*/
+		
+		HDC      hdc, hdcmem;
+		HBITMAP  hbm;
+		HGDIOBJ  o;
+		hdc = GetDC(hwnd);
+		hdcmem = CreateCompatibleDC(hdc);
+		hbm = screenBitmap(hdc, width, height, screen);
+		if (hbm == NULL) return;
+		o = SelectObject(hdcmem, hbm);
+		if (o == 0) return;
+		BitBlt(hdc, 0, 0, width, height, hdcmem, 0, 0, 0x00CC0020);
+		SelectObject(hdcmem, o);
+		DeleteDC(hdcmem);
+		DeleteObject(hbm);
 	}
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
@@ -41,10 +145,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return 0;
 }
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int winMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	MSG msg;
 	WNDCLASS wc;
 	HWND hwnd;
+	
+	screen = NULL;
+	printf("%d %d\n", sizeof(WPARAM), sizeof(LPARAM));
 
 	ZeroMemory(&wc, sizeof wc);
 	wc.hInstance     = hInstance;
@@ -63,4 +170,29 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		DispatchMessage(&msg);
 	}
 	return msg.wParam;
+}
+
+void draw0() { // draw on dc0
+	HDC      hdc = GetDC(0);
+	HDC      hdcmem = CreateCompatibleDC(hdc);
+	HGDIOBJ  o;
+	HBITMAP  hbm = screenBitmap(hdc, width, height, screen);
+	if (hbm == NULL) return;
+	o = SelectObject(hdcmem, hbm);
+	if (o == 0) return;
+	BitBlt(hdc, 0, 0, width, height, hdcmem, 0, 0, 0x00CC0020);
+	SelectObject(hdcmem, o);
+	DeleteDC(hdcmem);
+	DeleteObject(hbm);
+}
+
+// main supports both: a console or a gui application. the console application can still draw on dc0.
+int main(int args, char **argv) {
+	if (args > 1) { // create a gui application
+		winMain(GetModuleHandle(NULL), 0, 0, 1);
+	} else {        // draw on dc0
+		size(400, 300);
+		key('g');
+		draw0();
+	}
 }
