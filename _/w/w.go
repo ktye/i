@@ -804,17 +804,36 @@ func (v nlp) valid() s {
 	return ""
 }
 func (v nlp) bytes() (r []c) {
+	r = v.x().bytes()
+	if v.xexpr() {
+		r = append(append(r, 0x22), lebu(v.n)...) // tee.n for general expressions
+	}
 	i, n := s(lebu(v.c)), s(lebu(v.n))
-	//         x                     tee→n  if           0   →i   loop
-	r = catb(v.x().bytes(), []c(sf("\x22%s\x04\x40\x41\x00\x21%s\x03\x40", n, i)))
+	//                    if           0   →i   loop
+	r = catb(r, []c(sf("\x04\x40\x41\x00\x21%s\x03\x40", i)))
 	//                                        i       1   +  tee→i    n   <  continue
 	return catb(r, v.y().bytes(), []c(sf("\x20%s\x41\x01\x6a\x22%s\x20%s\x49\x0d\x00\x0b\x0b", i, i, n)))
 }
-func (v nlp) cstr() s {
-	return sf("for(x%d=0;x%d<(%s);x%d++){%s}", v.c, v.c, cstring(v.x()), v.c, cstring(v.y()))
+func (v nlp) cstr() (r s) {
+	if v.xexpr() {
+		r = sf("x%d=%s;", v.n, cstring(v.x()))
+	}
+	return r + sf("for(x%d=0;x%d<x%d;x%d++){%s}", v.c, v.c, v.n, v.c, cstring(v.y()))
 }
-func (v nlp) gstr() s {
-	return sf("for x%d=0;x%d<(%s);x%d++{%s}", v.c, v.c, gstring(v.x()), v.c, gstring(v.y()))
+func (v nlp) gstr() (r s) {
+	if v.xexpr() {
+		r = sf("x%d=%s;", v.n, gstring(v.x()))
+	}
+	return r + sf("for x%d=0;x%d<x%d;x%d++{%s}", v.c, v.c, v.n, v.c, gstring(v.y()))
+}
+func (v nlp) xexpr() bool { // general expr that needs an explicit assignment
+	switch v.x().(type) {
+	case las:
+	case loc:
+	default:
+		return true
+	}
+	return false
 }
 func (v opx) rt() T      { return 0 }
 func (v opx) valid() s   { return "nonapplied operator" }
