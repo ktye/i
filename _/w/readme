@@ -29,8 +29,8 @@ go run w.go -html  < a.w > a.html    # embed wasm in html
 # open file://.../index.html in a browser, in js console: k.add(1,2)
 
 # transpile to go or c
-go run w.go -gout  < a.w > a.go      # write go source
-go run w.go -cout  < a.w > k.h       # write c source
+go run w.go -go    < a.w > a.go      # write go source
+go run w.go -c     < a.w > k.h       # write c source
 /c/local/tcc/tcc  -o k.exe k_c
 
 # install wabt (webassembly binary toolkit github.com/WebAssembly/wabt)
@@ -39,5 +39,6 @@ $wabt/wasm-validate  a.wasm
 
 # interactive: webassembly.github.io/wabt/demo/wat2wasm
 # wasi: github.com/bytecodealliance/wasmtime/blob/master/docs/WASI-tutorial.md#web-assembly-text-example
+# memory: rsms.me/wasm-intro
 
 ls -ln a.w a.wasm k.exe w.go 

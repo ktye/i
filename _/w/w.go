@@ -31,21 +31,23 @@ type fn struct { // name:I:IIF{body}
 type module []fn
 
 const (
+	C = T(0x01) // i8
 	I = T(0x7f) // i32
 	J = T(0x7e) // i64
 	F = T(0x7c) // f64
 )
 
-var typs = map[c]T{'I': I, 'J': J, 'F': F}
-var tnum = map[T]int{I: 0, J: 1, F: 2}
-var styp = map[T]s{I: "I", J: "J", F: "F"}
+var typs = map[c]T{'C': C, 'I': I, 'J': J, 'F': F}
+var tnum = map[T]int{I: 0, J: 1, F: 2} // no C
+var styp = map[T]s{C: "C", I: "I", J: "J", F: "F"}
+var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 var P = I // I(wasm32) J(wasm64)
 
 func main() {
 	var html, cout, gout bool
 	flag.BoolVar(&html, "html", false, "html output")
-	flag.BoolVar(&cout, "cout", false, "c output")
-	flag.BoolVar(&gout, "gout", false, "go output")
+	flag.BoolVar(&cout, "c", false, "c output")
+	flag.BoolVar(&gout, "go", false, "go output")
 	flag.Parse()
 	m := run(os.Stdin)
 	if html {
@@ -337,6 +339,8 @@ func (p *parser) ex(x expr) expr {
 			} else {
 				return p.dyadic(v, x, y, pos(h))
 			}
+		} else if t, o := x.(typ); o {
+			return lod{t: t.t, argv: argv{v}, pos: pos(h)} // I x
 		} else {
 			return p.err(sf("noun-noun (missing verb) %T %T", x, v))
 		}
@@ -406,6 +410,8 @@ func (p *parser) noun() expr {
 		return nil
 	}
 	switch {
+	case p.t(sTyp):
+		return p.pTyp(p.tok)
 	case p.t(sSym):
 		return p.pSym(p.tok)
 	case p.t(sC('/')):
@@ -522,6 +528,16 @@ func (p *parser) nloc(s s, t T) int { // local index by name, may create new
 	}
 	return n
 }
+func sTyp(b []c) int { // C I J F
+	if _, o := typs[b[0]]; o == false {
+		return 0
+	}
+	if len(b) > 0 && (craZ(b[1]) || cr09(b[1])) {
+		return 0
+	}
+	return 1
+}
+func (p *parser) pTyp(b []c) expr { return typ{t: typs[b[0]]} }
 func sSym(b []c) int { // [aZ][a9]*
 	c := b[0]
 	if craZ(c) == false {
@@ -625,6 +641,10 @@ type cmp struct { // x<y..
 	argv
 	s s
 }
+type typ struct { // type C I J F
+	pos
+	t T
+}
 type con struct { // numeric constant
 	pos
 	t T
@@ -641,6 +661,16 @@ type las struct { // local set
 	// loc
 	argv
 	tee c // 01
+}
+type sto struct {
+	pos
+	argv
+	t T
+}
+type lod struct { // I x  (I'x unsigned)
+	pos
+	argv
+	t T
 }
 type nlp struct { // x/y loop
 	pos
@@ -797,6 +827,9 @@ func (v con) cstr() s {
 	return sf("%d", v.i)
 }
 func (v con) gstr() s    { return v.cstr() }
+func (v typ) rt() T      { return 0 }
+func (v typ) valid() s   { return "illegal type" }
+func (v typ) bytes() []c { return nil }
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, lebu(v.i)...) }
@@ -810,12 +843,41 @@ func (v las) valid() s {
 func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21 + v.tee}, lebu(v.x().(loc).i)...)...)
 }
-func (v las) cstr() s { return jn("(", locstr(v.x()), "=", s(v.y().bytes()), ")", s(59-27*v.tee)) }
+func (v las) cstr() s { return jn("(", locstr(v.x()), "=", cstring(v.y()), ")", s(59-27*v.tee)) }
 func (v las) gstr() s {
 	if v.tee > 0 {
-		return jn("as", styp[v.rt()], "(&", locstr(v.x()), ",", s(v.y().bytes()), ")")
+		return jn("as", styp[v.rt()], "(&", locstr(v.x()), ",", gstring(v.y()), ")")
 	}
 	return jn(locstr(v.x()), "=", s(v.y().bytes()), ";")
+}
+func (v lod) rt() T {
+	if v.t == C {
+		return I
+	}
+	return v.t
+}
+func (v lod) valid() s {
+	if t := v.x().rt(); t != I {
+		return sf("load has wrong addr type %s", t)
+	} else if v.t == 0 {
+		return sf("load has wrong store type")
+	}
+	return ""
+}
+func (v lod) bytes() (r []c) {
+	op := map[T]c{'C': 0x2d, 'I': 0x28, 'J': 0x29, 'F': 0x2b}[v.t]
+	al := alin[v.t]
+	return append(v.x().bytes(), []c{op, al, 0}...)
+}
+func (v lod) cstr() s { return jn("*(*", styp[v.t], ")M[", cstring(v.x()), "]") }
+func (v lod) gstr() s {
+	shift := ""
+	if v.t == I || v.t == J {
+		shift = "<<2"
+	} else if v.t == J || v.t == F {
+		shift = "<<3"
+	}
+	return jn("M.", styp[v.t], "[", cstring(v.x()), shift, "]")
 }
 func (v nlp) rt() T { return 0 }
 func (v nlp) valid() s {
@@ -1106,21 +1168,31 @@ func (m module) cout() []c {
 	var b bytes.Buffer
 	b.WriteString(chead)
 	for _, f := range m {
-		sig := ""
+		sig, loc := "", ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {
 				sig += ","
 			}
 			sig += styp[f.locl[i]] + " " + "x" + s('0'+byte(i))
 		}
-		fmt.Fprintf(&b, "%s %s(%s){", styp[f.t], f.name, sig)
+		for i := f.args; i < len(f.locl); i++ {
+			t := f.locl[i]
+			if t == F {
+				loc += sf("%s x%d=.0;", styp[t], i)
+			} else {
+				loc += sf("%s x%d=0;", styp[t], i)
+			}
+		}
+		fmt.Fprintf(&b, "%s %s(%s){%s", styp[f.t], f.name, sig, loc)
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq {
-				if i < len(sq)-1 {
+				nl := ""
+				if i == len(sq)-1 {
 					b.WriteString("R ")
+					nl = "}\n"
 				}
 				b.WriteString(cstring(e))
-				b.WriteString(";}")
+				b.WriteString(";" + nl)
 			}
 		} else {
 			b.WriteString("R ")
