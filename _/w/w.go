@@ -357,7 +357,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			panic("nyi memory asn")
 		} else { // local
 			if v.opx != ":" { // modified
-				y = p.dyadic(opx(v.opx[:len(v.opx)-1]), x, y, h)
+				y = p.dyadic(opx(v.opx), x, y, h)
 			}
 
 			a := las{tee: 1}
@@ -388,7 +388,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 		if _, o := cTab[s(v)]; o {
 			return cmp{s: s(v), argv: argv{x, y}, pos: h}
 		}
-		return p.err("unknown operator")
+		return p.err("unknown operator(" + s(v) + ")")
 	default:
 		panic("nyi")
 	}
@@ -439,7 +439,8 @@ func (p *parser) locals(e expr, lv int) expr {
 		yt := l.argv[1].rt()
 		if yt == 0 {
 			return p.xerr(e, "cannot assign zero type")
-		} else if x.t == 0 {
+		}
+		if x.t == 0 {
 			p.locl[x.i] = yt
 			x.t = yt
 			l.argv[0] = x
@@ -454,6 +455,9 @@ func (p *parser) locals(e expr, lv int) expr {
 		} else {
 			return p.xerr(l, "undeclared("+l.s+")")
 		}
+		if l.t == 0 {
+			l.t = p.locl[l.i]
+		}
 		return l
 	case nlp:
 		l.argv[0] = p.locals(l.argv[0], lv+1)
@@ -467,6 +471,19 @@ func (p *parser) locals(e expr, lv int) expr {
 		}
 		l.c = p.nloc(s('i'+lv), I) // set/create loop counter
 		l.argv[1] = p.locals(l.argv[1], lv+1)
+		return l
+	case v2:
+		l.argv[0] = p.locals(l.argv[0], lv)
+		l.argv[1] = p.locals(l.argv[1], lv)
+		t := l.rt()
+		for i := 0; i < 2; i++ {
+			if x, o := l.argv[i].(loc); o {
+				if x.t == 0 {
+					x.t = t // uninitialized local
+					l.argv[i] = x
+				}
+			}
+		}
 		return l
 	default:
 		if av, o := e.(argvec); o {
@@ -718,7 +735,13 @@ func (s seq) bytes() (r []c) {
 	}
 	return r
 }
-func (v v2) rt() T { return v.x().rt() }
+func (v v2) rt() T {
+	t := v.x().rt()
+	if t == 0 { // e.g. uninitialized local (r+:x)
+		return v.y().rt()
+	}
+	return t
+}
 func (v v2) valid() s {
 	if tx, ty := v.x().rt(), v.y().rt(); tx == 0 {
 		return sf("left argument has zero type")

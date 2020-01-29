@@ -104,6 +104,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		break;
 		
 	case WM_CHAR:
+		printf("WM_CHAR %d %d\n", lParam, wParam);
 		if (wParam > 1) redraw(hwnd, key((int)wParam));
 		break;
 	
