@@ -41,7 +41,6 @@ var typs = map[c]T{'C': C, 'I': I, 'J': J, 'F': F}
 var tnum = map[T]int{I: 0, J: 1, F: 2} // no C
 var styp = map[T]s{C: "C", I: "I", J: "J", F: "F"}
 var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
-var P = I // I(wasm32) J(wasm64)
 
 func main() {
 	var html, cout, gout bool
@@ -357,10 +356,10 @@ func (p *parser) monadic(f, x expr, h pos) expr {
 func (p *parser) dyadic(f, x, y expr, h pos) expr {
 	switch v := f.(type) {
 	case asn:
-		if v.opx == "::" { // memory
-			panic("nyi memory asn")
+		if v.opx == ":" { // memory
+			return sto{argv: argv{x, y}, t: v.t, pos: h}
 		} else { // local
-			if v.opx != ":" { // modified
+			if v.opx != "" { // modified
 				y = p.dyadic(opx(v.opx), x, y, h)
 			}
 
@@ -422,9 +421,14 @@ func (p *parser) noun() expr {
 		e := p.pOp(p.tok)
 		if len(p.b) > 0 && p.b[0] == ':' { // w/o space
 			p.t(sC(':'))
-			return asn{e.(opx)}
+			t := T(0)
+			if len(p.b) > 0 && p.b[0] == '\'' { // ::' (i32.store_8)
+				p.t(sC('\''))
+				t = C
+			}
+			return asn{e.(opx), t}
 		} else if s(e.(opx)) == ":" {
-			return asn{e.(opx)}
+			return asn{opx(""), 0}
 		}
 		return p.pOp(p.tok)
 	case p.t(sC('(')):
@@ -489,6 +493,13 @@ func (p *parser) locals(e expr, lv int) expr {
 					l.argv[i] = x
 				}
 			}
+		}
+		return l
+	case sto:
+		l.argv[0] = p.locals(l.argv[0], lv)
+		l.argv[1] = p.locals(l.argv[1], lv)
+		if l.t == 0 {
+			l.t = l.argv[1].rt()
 		}
 		return l
 	default:
@@ -662,7 +673,7 @@ type las struct { // local set
 	argv
 	tee c // 01
 }
-type sto struct {
+type sto struct { // x::y x::'y (C)
 	pos
 	argv
 	t T
@@ -678,9 +689,12 @@ type nlp struct { // x/y loop
 	n int // index in locl for loop limit
 	c int // index in locl for loop counter
 }
-type opx s             // operator
-type asn struct{ opx } // assignments :(local) ::(memory) +:(modified local)
-type pos int           // src position
+type opx s        // operator
+type asn struct { // assignments :(local) ::(memory) +:(modified local)
+	opx
+	t T // C(::')
+}
+type pos int // src position
 type indicator interface {
 	indicate() int
 }
@@ -870,14 +884,26 @@ func (v lod) bytes() (r []c) {
 	return append(v.x().bytes(), []c{op, al, 0}...)
 }
 func (v lod) cstr() s { return jn("*(*", styp[v.t], ")M[", cstring(v.x()), "]") }
-func (v lod) gstr() s {
-	shift := ""
-	if v.t == I || v.t == J {
-		shift = "<<2"
-	} else if v.t == J || v.t == F {
-		shift = "<<3"
+func (v lod) gstr() s { return jn("M.", styp[v.t], "[", cstring(v.x()), gmemshift(v.t), "]") }
+func (v sto) rt() T   { return 0 }
+func (v sto) valid() s {
+	if yt := v.y().rt(); yt == 0 || (v.t == C && yt != I) {
+		return "store: y is has wrong type"
+	} else if v.x().rt() != I {
+		return "store addr has wrong type"
 	}
-	return jn("M.", styp[v.t], "[", cstring(v.x()), shift, "]")
+	return ""
+}
+func (v sto) bytes() (r []c) {
+	op := map[T]c{'C': 0x3a, 'I': 0x36, 'J': 0x29, 'F': 0x39}[v.t]
+	al := alin[v.t]
+	return catb(v.x().bytes(), v.y().bytes(), []c{op, al, 0})
+}
+func (v sto) cstr() s {
+	return jn("(", styp[v.t], "*)(M[", cstring(v.y()), "]))=(", styp[v.t], ")", cstring(v.y()))
+}
+func (v sto) gstr() s {
+	return jn("M.", styp[v.t], "[", gstring(v.y()), gmemshift(v.t), "]=", styp[v.t], "(", gstring(v.y()), ")")
 }
 func (v nlp) rt() T { return 0 }
 func (v nlp) valid() s {
@@ -929,6 +955,15 @@ func ifex(c bool, s s) s {
 		return s
 	}
 	return ""
+}
+func gmemshift(t T) s {
+	shift := ""
+	if t == I || t == J {
+		shift = "<<2"
+	} else if t == J || t == F {
+		shift = "<<3"
+	}
+	return shift
 }
 
 type code struct {
