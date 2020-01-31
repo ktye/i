@@ -4,7 +4,7 @@
 
 # install go-1.13
 # sh readme
-cp ../../k.go .
+cp ../k.go .
 printf "module github.com/ktye/i/_/k\n\ngo 1.13" > go.mod
 GOPATH="" GO111MODULE=on go build -ldflags="-s -w"
 # there should now be native binary k(.exe) ~1MB
