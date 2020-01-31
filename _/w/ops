@@ -3,9 +3,9 @@ WASM  W    INSTRUCTION          TYPE
 0x01  ---  nop                  []→[]
 0x02  ???  block [t?]           []→[t∗]
 0x03  L    loop [t?]            []→[t∗]
-0x04  $(   if [t?]              []→[t∗]
-0x05  ;    else                    
-0x0B  )    end                  
+0x04  x?y  if [t?]              []→[t∗]
+0x05  $..  else                    
+0x0B  ---  end                  
 0x0C  B    br l                 [t∗1 t?]→[t∗2]
 0x0D  B?   br_if l              [t? i32]→[t?]
 0x0E  ???  br_table l∗ l        [t∗1 t? i32]→[t∗2]
