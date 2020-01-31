@@ -27,17 +27,11 @@ pure k:                          e.g.
 native application:              *.go
  - embed k in main or
  - connect to unmodified k binary
- 
-The go progam in this directory implements a backend based on gioui.org which should cover
-- windows, X, wayland, mobile(android;apple)
-
-The executable will do both: provide a built-in k, or connect to a server (k s.k t.k)
 ```
 
 # demo application t.k
 ```
 The demo application provides a k terminal with a custom font (f/f2.k).
-planned: plot built-in (x plot y) or (plot x) or (`bar plot y) with pure-k rasterizers.
 ```
 
 # k interface
