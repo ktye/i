@@ -3,12 +3,12 @@
 #
 # install go-1.13 
 # install tinygo-0.10.0 to /usr/local/tinygo
-# k.ht is the source for index.html, a.go+../../k.go the source for the wasm module
+# k.ht is the source for index.html, a.go+../k.go the source for the wasm module
 set -e
 tgo=/usr/local/tinygo
 
 # change both heap-size and maxmem in a.go for more memory
-cp ../../k.go .
+cp ../k.go .
 $tgo/bin/tinygo build -o k.w -target wasm -no-debug -heap-size 70M
 base64 -w 0 k.w     | sed -e 's/^/var r = "/' -e 's/$/"/' > k.b64
 base64 -w 0 h       | sed -e 's/^/var h = "/' -e 's/$/"/' > h.b64
