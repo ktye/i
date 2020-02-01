@@ -3,8 +3,5 @@
 #include<unistd.h>
 #include<math.h>
 #include<sys/mman.h>
+#include<sys/time.h>
 #include"k.h"
-int main(int args, char **argv) {
-	repl(args, argv);
-	return 0;
-}
