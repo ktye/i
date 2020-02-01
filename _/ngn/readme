@@ -1,10 +1,4 @@
 # ngn/k, (c) 2019-2020 ngn, GNU AGPLv3 - http://bitbucket.org/ngn/k/raw/master/LICENSE
 
 # e.g. on windows with msys2 where cc is gcc:
-cc a.c
-
-# ngn=/path/to/ngn
-# for file in g.h k.h a.c b.c c.c e.c f.c h.c i.c j.c k.c m.c o.c p.c s.c v.c w.c; do
-#         echo "//$file"
-#         cat $ngn/$file
-# done | grep -v "#include"
+cc k.c
