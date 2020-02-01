@@ -295,7 +295,7 @@ TD void V;TD L A;TD A A0(),A1(A),A2(A,A),A3(A,A,A),AA(O A*,I),AX(A,O A*,I);
 #define AA(f,b...) A f(O A*a,I n)    _(b)
 #define AX(f,b...) A f(A x,O A*a,I n)_(b)
 
-/*
+/* ktye
 #define sc(f,a...  ) ({L r;asm volatile("syscall":"=a"(r):"0"(SYS_##f)a:"cc","rcx","r11","memory");r;})
 #define sc1(f,x    ) sc(f,,"D"(x)              )
 #define sc2(f,x,y  ) sc(f,,"D"(x),"S"(y)       )
@@ -321,7 +321,7 @@ TD void V;TD L A;TD A A0(),A1(A),A2(A,A),A3(A,A,A),AA(O A*,I),AX(A,O A*,I);
 #define extr(x,y,c)({__typeof__(x) x1=(x),y1=(y);x1 c y1?x1:y1;})
 #define min(x,y)extr(x,y,<)
 #define max(x,y)extr(x,y,>)
-SI L d2l(D v)_(*(L*)(V*)&v)/*SI L llabs(L x)_(x<0?-x:x)*/SI I C3(UC x,UC y,UC z)_(x<=y&&y<=z)
+SI L d2l(D v)_(*(L*)(V*)&v)/*ktye SI L llabs(L x)_(x<0?-x:x)*/SI I C3(UC x,UC y,UC z)_(x<=y&&y<=z)
 SI D l2d(L v)_(*(D*)(V*)&v)SI C hex(I x)_(x+(x>9?'a'-10:'0'))SI I dgt(C c)_(C3('0',c,'9'))
 
 //   () "" ,i ,0 ,d ,` +! ! "a" 0i 0  0. `  {} 1+ ++ +/ +: +  /
@@ -447,6 +447,7 @@ S A pen2(A x,A y,I f)_(P(xta&&yta,A u=gkv(&y);am1(A_(x,y,av(f),u),4))P(xtaAX||yt
 S A1(s2l,xts?al(gs(x)):AT(tL,x))A2(eql,$(xtsS&&ytsS,x=s2l(x);y=s2l(y))pen2(x,y,vi('=')))
 A2(mod,P(xtl,xtl&&*xl==_0N?xr,out(y):pen2(x,y,vi('!')))$(xtt||xta,$(xta,x=enl(x))x=rsh(al(len_(y)),x))
                                                        $(ytt||yta,$(yta,y=enl(y))y=rsh(al(len_(x)),y))len_(x)-len_(y)?el(x,y):aa(x,y))
+//ktye h->h2
 #define h2(c,s) A2(s,pen2(x,y,vi(c)))
 h2('+',add)h2('-',sub)h2('*',mul)h2('%',dvd)h2('&',mnm)h2('|',mxm)h2('<',ltn)h2('>',gtn)
 //b.c
@@ -488,22 +489,21 @@ AX(run,asrt(xto);asrt(n==Ak(x));A f=xR;I m=An(fl);P(sp<sp0+m+3,errn("stk",n,a))*
  F(n,*--sp=a[i])F(m-n,*--sp=au0)A u=vm_(f);$(!u,eso(mR(fs),C(fm)[ip-1-C(fb)]);W(sp<loc-m,$(*sp,mr(*sp))sp++))
  asrt(sp==loc-m);A*p=loc+1;W(p>sp,mr(*p--))sp=loc+4;ip=(C*)sp[-1];loc=(V*)sp[-2];u)
 //c.c
-// L now()_(struct timeval t;gtod(&t,0);1000000ll*t.tv_sec+t.tv_usec)
-L now()_(struct timeval t;;1000000ll*t.tv_sec+t.tv_usec)
+// ktye
+L now()_(struct timeval t;;1000000ll*t.tv_sec+t.tv_usec) // L now()_(struct timeval t;gtod(&t,0);1000000ll*t.tv_sec+t.tv_usec)
 S A1(cmdw,asrt(xtC);L n=mu;P(!xn,xr;al(n))A y=Nx(val(xR));mr(out(y));n=mu-n;xr;n?enl(cat(as(0),al(n))):au0)
-S A1(cmdt,en(x))
-// S A1(cmdt,asrt(xtC);C*s=xc;L n=*s==':'?++s,pl(&s):1;L t=now();x=N(cpl(N(prs(N(cut(al(s-xc),x))))));F(n,mr(Nx(app(x,0,0))))xr;al((now()-t+500)/1000))
+// ktye
+S A1(cmdt,en(x)) //S A1(cmdt,asrt(xtC);C*s=xc;L n=*s==':'?++s,pl(&s):1;L t=now();x=N(cpl(N(prs(N(cut(al(s-xc),x))))));F(n,mr(Nx(app(x,0,0))))xr;al((now()-t+500)/1000))
 A1(cmd,P(!xtC,et(x))$(!xn||xn==1&&*xc=='\\',exit(0))C c=*xc;
  $(C3('a',c,'z')&&(xn==1||xc[1]==32||xc[1]==':'),I i=0;W(i<xn&&xci-32&&xci-':',i++)I j=i;W(j<xn&&xcj==32,j++)x=N(cut(al(j),x));
   P(c=='l',ldf(x))P(c=='w',cmdw(x))P(c=='t',cmdt(x)))
  K("{0x0a\\`x(,\"/bin/sh\";x)}",x))
-/*
+A1(frk,en(x)) /*ktye
 A1(frk,P(!xtX||xn-2,ed(x))A y=gkv(&x);P(!xtX||!ytC,ed(x,y))x=mut(x);C*a[xn+1];F(xn,A z=xai;$(!ztC,ed(x,y))a[i]=C(xai=str0(z))) //`x((exe;a1;a2;..);in)
  a[xn]=0;xr;I p[4];pipe2(p,0);pipe2(p+2,0);P(!fork(),dup2(*p,0);dup2(p[3],1);F(4,close(p[i]))exit(execve(*a,a,0));0)close(*p);close(p[3]);
  mr2(y,write(p[1],yc,yn));close(p[1]);A u=aC(256-ZA);L m=0,k;W((k=read(p[2],uc+m,un-m))>0,m+=k;$(m+1000000>un&&2*m>un,A z=aC(2*un+ZA);mc(zc,uc,m);ur;u=z))
  close(p[2]);AN(m,u))
 */
-A1(frk,en(x))
 //e.c
 S C em[32];S UC en;S A es;S UH eo;S O C*eM[]={"nyi","len","typ","dom","rnk","idx","prs"};
 cold A err0(O C*m)_($((UL)m<128,m=eM[(L)m])en=min(strlen(m),Z(em)-1);mc(em,m,en);em[en]=0;0)
@@ -515,9 +515,9 @@ cold I epr()_(I h=64;C s0[3*h+Z(em)+6],*s=s0;*s++='\'';mc(s,em,en);s+=en;*s++=10
  ecl();write(1,s0,s-s0);0)
 A3(try,x=ap2(x,y);P(x,zr;x)$(fun(z),UC k=Ak(z);z=k==1?ap1(z,aCn(em,en)):k==2?ap2(z,a2(aCn(em,en),a2(es?mR(es):ac(0),al(eo)))):z)ecl();z)
 //f.c
-//prng: xoshiro256+ (public domain) http://vigna.di.unimi.it/xorshift/
-//seeded with the central column of rule30, little-endian: 2/|+4 64#(n{(|(8#2)\30)@2/'3'0,x,0}\n=!2*n)@'n:256
-S A rndn(L n,L m)_(S UL a=-3050759188708220101,b=1159352424775454479,c=-9080974122485750305,d=-388592090067015233;
+//prng: xoshiro256+ (public domain) http://vigna.di.unimi.it/xorshift/ seeded with the central column of rule30, little-endian:
+// ","/"abcd",'"=0x",/:+"0123456789abcdef"@(16#16)\2/|+4 64#(n{(|(8#2)\30)@2/'3'0,x,0}\n=!2*n)@'n:256
+S A rndn(L n,L m)_(S UL a=0xd5a986ae75c9a33b,b=0x1016d8e3483a8f0f,c=0x81f9e6260eb8e5df,d=0xfa9b718d8d0769bf;
  $(n==_0N,n=-m)A x=aL(llabs(n));F(n,xli=a+d;O UL t=b<<17;c^=a;d^=b;b^=c;a^=d;c^=t;d=d<<45|d>>19)$(m&(m-1),F(xn,xli=(UL)xli%m))E$(m,F(xn,xli&=m-1))
  $(n<0,n=-n;P(n>m,el(x))F(n,L k=m-n+i;L v=((UL*)xl)[i]%=k+1;Fj(i,$(xlj==v,xli=k;B)))A y=rndn(n,0);F(n,L j=(UL)yli%(i+1);swp(xli,xlj))yr)x)
 S A2(rnd,L n=gl(x);P(ytl,rndn(n,gl(y)))P(ytc,C c=gc(y);P('a'-(32|c),ed())A z=rndn(n,26),u=aC(n);F(n,uci=c+zli)zr;u)P(ytT,idx(y,Ny(rndn(n,yn))))et(y))
@@ -525,10 +525,21 @@ S L fnda(A x,A y/*0*/)_(asrt(xtX); F(xn,P(mtc_(xai,y),i))_0N)L fpa(A*p,A v)_(A x
 S L fndc(A x,C v)_(asrt(tz(xt)==0);F(xn,P(xci==v,i))_0N)     L fpc(A*p,C v)_(A x=*p;L n=xn;F(n,P(xci==v,i))*p=apv(x,&v);n)
   L fndi(A x,I v)_(asrt(tz(xt)==2);F(xn,P(xii==v,i))_0N)     L fpi(A*p,I v)_(A x=*p;L n=xn;F(n,P(xii==v,i))*p=apv(x,&v);n)
   L fndl(A x,L v)_(asrt(tz(xt)==3);F(xn,P(xli==v,i))_0N)     L fpl(A*p,L v)_(A x=*p;L n=xn;F(n,P(xli==v,i))*p=apv(x,&v);n)
-A2(fnd,P(xtt,P(xtl,rnd(x,y))P(xts,C*s=symptr(gs(x));*s=='j'&&!s[1]?json(y):ed(y))et(x,y))P(xta,A z=gkv(&x);idx(x,fnd(z,y)))P(xtA,en(x,y))
- P(ytt,fir(fnd(x,enl(y))))P(!xtX&&ytX,ear(cv('?'),A_(x,y),2))P(!xtX&&yt-xt,xr;rsh(len(y),mR(cn[tl])))
+S A1(uns,P(!xtC||xn-9||*xc-'d',ed(x))mr2(x,ad(*(D*)(xc+1))))
+A2(fnd,
+ P(xts,C*s=symptr(gs(x)),c=*s;P(s[1],ed(y))c=='j'?json(y):!c?uns(y):ed(y))
+ P(xtl,rnd(x,y))
+ P(xtt,et(x,y))
+ P(xta,A z=gkv(&x);idx(x,fnd(z,y)))
+ P(xtA,en(x,y))
+ P(ytt,fir(fnd(x,enl(y))))
+ P(!xtX&&ytX,ear(cv('?'),A_(x,y),2))
+ P(!xtX&&yt-xt,xr;rsh(len(y),mR(cn[tl])))
  A u=aL(yn);I w=tz(xt);P(ref(x),F(un,A z=get(y,i);uli=fnda(x,z);zr)xr;yr;u)
- P(w==0,F(un,uli=fndc(x,yci))xr;yr;u)P(w==2,F(un,uli=fndi(x,yii))xr;yr;u)P(w==3,F(un,uli=fndl(x,yli))xr;yr;u)en(x,y,u))
+ P(w==0,F(un,uli=fndc(x,yci))xr;yr;u)
+ P(w==2,F(un,uli=fndi(x,yii))xr;yr;u)
+ P(w==3,F(un,uli=fndl(x,yli))xr;yr;u)
+ en(x,y,u))
 //h.c
 A rsh_(A x/*0*/,L m,L*pj,L*s,L r)_(L n=llabs(*s);P(r>1,A y=aX(n);F(n,yai=rsh_(x,m,pj,s+1,r-1))y)
  UC t=t_lst(xt);$(t&&!xn,x=cn[t])L j=*s>=0?*pj:(m-n%m)%m,w=tZ(t),q=min(m-j,n);*pj=(j+n)%m;A y=atn(t,n);mc(yc,xc+j*w,q*w);mc(yc+q*w,xc,min(j,n-q)*w);
@@ -555,6 +566,7 @@ A apc(A x,C c)_(asrt(xtC);x=room(x,1);xc[xn]=c;AN(xn+1,x))A catc(A x,O C*s,L l)_
 #ifndef MAP_NORESERVE
  #define MAP_NORESERVE 0
 #endif
+//ktye
 //S O UI lh=0x0100007f;SI UH htons_(UH x)_(x>>8|x<<8)S UC octet(C**p)_(UL r=pu(p);r>255?err("addr"),0:r)
 //S UI inet_addr_(C**p)_(C*s=*p;P(!*s,lh)UC r[4];F(4,$(i,P(*s-'.',err("addr");0)s++)r[i]=octet(&s))*p=s;*(UI*)r)
 //S L hskt(UI h,UH p)_(L f=skt(AF_INET,SOCK_STREAM,0);P(f<0,err("skt"),0)
@@ -562,18 +574,17 @@ A apc(A x,C c)_(asrt(xtC);x=room(x,1);xc[xn]=c;AN(xn+1,x))A catc(A x,O C*s,L l)_
 //S L hops(C*s,L fl)_(C*t=s;W(*t&&*t-':',t++)P(!*t,L f=open(s,fl,0666);f<0?err("open"),0:f)
 // UI h=inet_addr_(&s);P(*s-':',err("addr"),0)s++;UL p=pu(&s);*s?err("addr"),0:hskt(h,p))
 //S I hop_(A x/*1*/,I fl)_(P(xtil,hskt(lh,gi(x)))P(xts,C*s=symptr(gs(x));!*s?1:*s-':'?et(),0:hops(s+1,fl))P(xtC,x=str0(x);dex(x,hops(xc,fl)))et(x))
-A1(hop,en(x))
 //A1(hop,ai(N(hop_(x,O_RDWR|O_CREAT))))
 A1(hcl,asrt(xti);close(gi(x));au0)
+A1(hop,en(x))
 A1(u0c,P(x==as(0)||(xtC&&!xn),xr;C b[1024];aCn(b,max(0,read(0,b,Z(b)))))x=N(u1c(x));x=N(scn(ac(10),&x,1));xn&&!An(xa[xn-1])?cut(al(-1),x):x)
+//ktye
 //A u1c_(I f)_(struct stat s;P(fstat(f,&s),err("stat"))L n=s.st_size;I pr=PROT_READ|PROT_WRITE,fl=MAP_NORESERVE|MAP_PRIVATE;
 // V*p=mmap_(0,ZP+n,pr,fl|MAP_ANON,-1,0);P(((L)p>>4)==-1,err("mmap0"))A u=(A)(p+ZP);ul[-2]=0;u=AT(tC,AN(n,u));uR;
 // V*q=mmap_(p+ZP,n,pr,fl|MAP_FIXED,f,0);P(q-(V*)uc,err("mmap1"))u)
-//A1(u1c,I f=N(hop_(x,O_RDONLY));A u=u1c_(f);close(f);u)
-A1(u1c,en(x))
+A1(u1c,en(x))//ktye6 A1(u1c,I f=N(hop_(x,O_RDONLY));A u=u1c_(f);close(f);u)
 A2(v0c,$(ytX,y=N(rdc(ac(10),&y,1)))ytC?v1c(x,N(apv(y,"\n"))):et(x,y))
-A2(v1c,en(x,y))
-//A2(v1c,I f=N(hop_(x,O_RDWR|O_CREAT|O_TRUNC));L n=yn;C*s=yc;mr2(y,A u=au0;W(n>0,L k=write(f,s,n);$(k<=0,u=err("write");B)s+=k;n-=k)$(f>2,close(f))u))
+A2(v1c,en(x,y))//A2(v1c,I f=N(hop_(x,O_RDWR|O_CREAT|O_TRUNC));L n=yn;C*s=yc;mr2(y,A u=au0;W(n>0,L k=write(f,s,n);$(k<=0,u=err("write");B)s+=k;n-=k)$(f>2,close(f))u))
 //j.c
 S C*s;S A0 jv;S C jw()_(W(Ci(" \n\t\r",*s)<4,++s)*s)
 S A0(jd,I m=*s=='-';s+=m;C c=*s++;P(!dgt(c),0)D v=c-'0';W(dgt(*s),v*=10;v+=*s++-'0')$(*s=='.',s++;D t=1;W(dgt(*s),t/=10;v+=(*s++-'0')*t))
@@ -644,6 +655,7 @@ AA(dm1,A x=*a,y=a[1],z=a[2];L m=len_(y);P(!m||y==au0,yr;A b[8];*b=x;mc(b+1,a+3,(
 AA(dmd,A x=*a,y=a[1],z=a[2];n==3&&fun(x)?try(x,y,z):n==3&&!fun(z)?dmd(A_(x,y,av0,z),4):xtsS?mend(a,n,dm1):dm1(a,n))
 //m.c
 #define nxt(x) A(x)[-2]
+// ktye em->em2 (3x)
 L mt,mu;S A mx[48];A syml,glb,cn[tn],ci[5][3];dbg(S I ml;/*prevent allocations*/)S cold A em2()_(write(1,"oom\n",4);exit(1);0)
 S A ma(I b)_(dbg(asrt(!ml));asrt(4<b);P(b>47,em2())mu+=1ll<<b;A x=mx[b];P(x,mx[b]=nxt(x);AB(b,x))L i=b+1;W(i<ZZ(mx)&&!mx[i],i++)
  $(i<ZZ(mx),x=mx[i];mx[i]=nxt(x))
@@ -663,7 +675,7 @@ A aCn(O C*s,L n)_(atnv(tC,n,s))V*mc(V*x,O V*y,L n)_(C*p=x;O C*q=y;F(n,p[i]=q[i])
 A aCz(O C*s)_(aCn(s,strlen(s)))I memcmp(O V*x,O V*y,L n)_(O C*p=x,*q=y;F(n,I d=*p++-*q++;P(d,d))0)L strlen(O C*x)_(O C*p=x;W(*p,p++)p-x)
 S I line(C*p,C*q)_(A x=val(aCm(p,q));P(x,mr(out(x));1)epr();0)S C*skp(C*p)_(W(*p=='/'&&p[1]==10,p+=3;W(*p&&(p[-1]-10||p[-2]-'\\'||p[-3]-10),p++))p)
 A1(ldf,x=str0(N(u1c(x)));C*p=xc;W(*p,C*q=p=skp(p);W(*q&&(*q-10||q[1]==32||q[1]=='}'),q++)Nx(line(p,q));p=q+!!*q)xr;au0)
-// V main... repl
+//ktye main->repl
 V repl(L n,C**a)_(A x=syml=aX(5);F(xn,xai=aCn(&"_xyzo"[i],!!i))glb=aa0();cn[tX]=aX(0);cn[tC]=cn[tc]=ac(32);cn[tL]=cn[tl]=al(_0N);
  cn[tI]=cn[ti]=ai(_0Ni);cn[tD]=cn[td]=ad(_0n);cn[tS]=cn[ts]=as(0);cn[to]=cn[tp]=cn[tq]=cn[tr]=cn[tu]=cn[tv]=cn[tw]=au0;
  S O struct{D d;L i,l;}t[]={{0,0,0},{1,1,1},{_0w,_0Wi,_0W},{-_0w,-_0Wi,-_0W},{_0n,_0Ni,_0N}};
@@ -672,7 +684,7 @@ V repl(L n,C**a)_(A x=syml=aX(5);F(xn,xai=aCn(&"_xyzo"[i],!!i))glb=aa0();cn[tX]=
 #if __FreeBSD__
  V _start(C**p)_(main(*(L*)(V*)p,p+1);UR)
 #else
-// asm(".globl _start\n_start:pop %rdi\nmov %rsp,%rsi\njmp main");
+ asm(".globl _start\n_start:pop %rdi\nmov %rsp,%rsi\njmp main");
 #endif
 //o.c
 I mtc_(A x,A y/*x0y0*/)_(P(x==y,1)P(xt-yt||pkd(x)||xn-yn||(xtr&&Av(x)-Av(y)),0)P(!ref(x),!memcmp(xc,yc,xn*tZ(xt)))F(xn,P(!mtc_(xai,yai),0))1)
@@ -734,11 +746,40 @@ S C*SX(C*s,UL x)_(S8(S8(s,x/T8),x%T8))S C*sX(C*s,UL x)_(x<T8?s8(s,x):S8(s8(s,x/T
                                       S C*su(C*s,UL x)_(x<TX?sX(s,x):SX(s4(s,x/TX),x%TX))
 #define MC(x,y)(mc(x,y,Z(y)-1)+Z(y)-1)
 S C*sl_(C*s,L x)_($(x<0,P(x==_0N,MC(s,"0N"))x=-x;*s++='-')su(s,x))S A sl(L v)_(C s[20];aCm(s,sl_(s,v))) 
-S C*sd_(D x,C*s)_(UL v=*(UL*)&x;I e=v<<1>>53;UL m=v<<12>>12;P(e==2047&&m,MC(s,"0n"))$(v>>63,*s++='-')P(e==2047,MC(s,"0w"))P(!e&&!m,MC(s,"0.0"))
- $(e,m|=1ll<<52)e-=1023+52;I t=0;$(e>0,F(e,$(m>=1ull<<62,t++;m=(m+2)/5)E(m*=2)))E(F(-e,$(m>=1ull<<60,m=(m+1)/2)E(t--;m*=5)))
- W(!(m%10),m/=10;t++)C*r=su(s+1,m);I l=r-s-1;t+=l-1;I d=1;$(0<=t&&t<7,d=t+1;t=0)F(d,$(s==r-1,*s++='0';r++)E(*s=s[1];s++))
- *s++='.';$(s==r,*s++='0')E(s=r)$(t,*s++='e';s=sl_(s,t))s)
-S A sd(D v)_(C s[32];aCm(s,sd_(v,s)))
+
+// github.com/ulfjack/ryu (apache2|boost license)
+#if defined(__SIZEOF_INT128__)
+ S UL msh(UL m,O UL*a,I j)_(__uint128_t g=m;((g**a>>64)+g*a[1])>>(j-64))
+ S UL msha(UL m,O UL*a,I j,UL*v,UL*w,UI sh)_(*v=msh(m+2,a,j);*w=msh(m-1-sh,a,j);msh(m,a,j))
+#else
+ S UL shr(UL l,UL h,UI d)_(h<<(64-d)|l>>d)
+ S UL mult(UL a,UL b,UL*rh)_(UI al=a,ah=a>>32,bl=b,bh=b>>32;UL b00=(UL)al*bl,b01=(UL)al*bh,b10=(UL)ah*bl,b11=(UL)ah*bh;
+  UI b00l=b00,b00h=b00>>32;UL m1=b10+b00h;UI m1l=m1,m1h=m1>>32;UL m2=b01+m1l;UI m2l=m2,m2h=m2>>32;*rh=b11+m1h+m2h;(UL)m2l<<32|b00l)
+ S UL msha(UL m,O UL*a,I j,UL*v,UL*w,UI sh)_(m>>=1;UL t;UL l=mult(m,*a,&t);UL h;UL m0=t+mult(m,a[1],&h);h+=m0<t;
+  UL l2=l+*a,m2=m0+a[1]+(l2<l),h2=h+(m2<m0);*v=shr(m2,h2,j-64-1);
+  $(sh==1,UL l3=l-*a,m3=m0-a[1]-(l3>l),h3=h-(m3>m0);*w=shr(m3,h3,j-64-1))
+  E(UL l3=l+l,m3=m0+m0+(l3<l),h3=h+h+(m3<m0),l4=l3-*a,m4=m3-a[1]-(l4>l3),h4=h3-(m4>m3);*w=shr(m4,h4,j-64))
+  shr(m0,h,j-64-1))
+#endif
+S UL addcll(UL x,UL y,UL c,UL*p)_(UL u=x+y+c;*p=u<x||u<y;u) // or __builtin_addcll
+S UL POW5[326][2],INV5[342][2];S V set3(UL*x,O UL*y){mc(x,y,24);}S V shr3(UL*x,I d){F(2,x[i]=x[i]>>d|x[i+1]<<(64-d))x[2]>>=d;}
+S V add3(UL*x,O UL*y){UL c=0;F(3,x[i]=addcll(x[i],y[i],c,&c));}S V ash3(UL*x,I d){UL y[3];set3(y,x);shr3(y,d);add3(x,y);}
+V init(){UL x[]={[2]=1ll<<60};F(ZZ(POW5),mc(POW5+i,x+1,16);ash3(x,2);$(x[2]>>61&1,shr3(x,1)))
+ *x=0;x[1]=1;x[2]=1ll<<61;F(ZZ(INV5),mc(INV5+i,x+1,16);ash3(x,1);Fj(4,ash3(x,4<<j))UL y[3]={x[1],x[2]};add3(x,y);
+                                     *y=x[2];y[1]=0;add3(x,y);W(x[2]>>61,shr3(x,1)))}
+S V INIT(){$(!INV5[1][0],init())}
+S UI dm(UL*p)_(UL x=*p,q=x/10;*p=q;(UI)x-10*(UI)q)S UI l10p2(I x)_(x*78913>>18)S UI l10p5(I x)_(x*732923>>20)S I p5b(I x)_(x*1217359>>19)
+S I mp5(UL x,UI p)_(F(p,UL q=x/5;P((UI)x-5*(UI)q,0)x=q)1)S I mp2(UL x,UI p)_(!(x&((1ll<<p)-1)))
+S C*sd_(C*s,D x)_(UL b;mc(&b,&x,8);UL m=b<<12>>12;I e=b<<1>>53;P(m&&e==2047,MC(s,"0n"))$(b>>63,*s++='-')P(e==2047,MC(s,"0w"))
+ m|=(UL)!!e<<52;e+=!e-1075;P(!m||(e<1&&e>-53&&mp2(m,-e)),MC(sX(s,m>>-e),".0")) // m*2^e = u*10^t
+ UL u;I t;I ev=!(m&1);UI h=m<<12||e<-1073;UL v,w;I u0=0,w0=0;m<<=2;INIT();
+ $(e>1,t=l10p2(e-2)-(e>5);u=msha(m,INV5[ t],t-e+p5b( t)+127,&v,&w,h);$(t<22,!(m%5)?u0=mp5(m,t):ev?w0=mp5(m-1-h,t):(v-=mp5(m+2,t))))
+ E(t=e-2+l10p5(2-e)-(e<1);u=msha(m,POW5[-t],t-e-p5b(-t)+126,&v,&w,h);$(t<e,u0=1;ev?w0=h:--v)E$(t<e+61,u0=mp2(m,t-e+2)))
+ $(w0||u0,UC d=0;W((v/=10)>w/10,w0&=!dm(&w);u0&=!d;d=dm(&u);t++)$(w0,W(!dm(&w),u0&=!d;d=dm(&u);t++))$(u0&&d==5&&!(u&1),d=4)u+=d>=5||(u==w&&!(ev||w0)))
+ E(UC d=0;W((v/=10)>(w/=10),d=dm(&u);t++)u+=u==w||d>=5)
+ s++;UI l=su(s,u)-s;s[-1]=*s;$(l>1,*s='.';s+=l)t+=l-1;P(!t,s)*s++='e';$(t<0,*s++='-';t=-t)s4(s,t))
+
+S A sd(D v)_(C s[32];aCm(s,sd_(s,v)))
 A1(str0,asrt(xtC);x=room(x,1);xc[xn]=0;x)
 A1(str,xtc?enl(x):xts?mR(symstr(gs(x))):xtl?sl(gl(x)):xtd?sd(gd(x)):xto?fir(AT(tX,x)):
  xtu||xtv?atnv(tC,1+(Av(x)>19)+xtu,(C[]){vc[Av(x)],':',':'}):xtw?atnv(tC,1+(Av(x)>2),(C[]){"'/\\'/\\"[Av(x)],':'}):xtt?kst(x):ea1(str,x))
