@@ -1,0 +1,17 @@
+ngn=/c/k/ngn/k
+cat << EOF > k.c
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<math.h>
+#include<sys/mman.h>
+#include<sys/time.h>
+#define mmap_ mmap
+#define gtod gettimeofday
+EOF
+for file in g.h k.h a.c b.c c.c e.c f.c h.c i.c j.c k.c m.c o.c p.c s.c v.c w.c; do
+        echo "//$file"
+        cat $ngn/$file
+done | grep -v "#include" >> k.c
+
+echo "edit k.c (3 places: syscalls, frk, io)"
