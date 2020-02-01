@@ -385,14 +385,10 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			return a
 		}
 	case nlp:
-		if a, o := y.(las); o { // loop over single assignment
-			a.tee = 0
-			y = a
-		}
 		if a, o := x.(con); o && a.t == I && a.i == 1 { // 1/
-			return whl{pos: h, argv: argv{x, y}}
+			return whl{pos: h, argv: argv{x, untee(y)}}
 		}
-		return nlp{pos: h, argv: argv{x, y}}
+		return nlp{pos: h, argv: argv{x, untee(y)}}
 	case opx:
 		if _, o := v2Tab[s(v)]; o {
 			return v2{s: s(v), argv: argv{x, y}, pos: h}
@@ -401,20 +397,27 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			return cmp{s: s(v), argv: argv{x, y}, pos: h}
 		}
 		if s(v) == "?" || s(v) == "?/" {
-			if a, o := y.(las); o {
-				a.tee = 0
-				y = a
-			}
 			if s(v) == "?" {
-				return iff{argv: argv{x, y}, pos: h}
+				return iff{argv: argv{x, untee(y)}, pos: h}
 			} else {
-				return whl{argv: argv{x, y}, pos: h}
+				return whl{argv: argv{x, untee(y)}, pos: h}
 			}
 		}
 		return p.err("unknown operator(" + s(v) + ")")
 	default:
 		panic("nyi")
 	}
+}
+func untee(x expr) expr {
+	switch v := x.(type) {
+	case las:
+		v.tee = 0
+		return v
+	case seq:
+		v.argv[len(v.argv)-1] = untee(v.argv[len(v.argv)-1])
+		return v
+	}
+	return x
 }
 func (p *parser) verb(v expr) bool {
 	switch v.(type) {
