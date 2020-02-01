@@ -282,10 +282,11 @@ func (p *parser) t(f func([]c) int) bool { // test
 }
 func (p *parser) seq(term c) expr {
 	var seq seq
+	seq.pos = pos(p.p)
 	for {
 		e := p.ex(p.noun())
 		if e != nil {
-			seq = append(seq, e)
+			seq.argv = append(seq.argv, e)
 		} else {
 			p.w()
 			if len(p.b) == 0 {
@@ -301,18 +302,18 @@ func (p *parser) seq(term c) expr {
 			}
 		}
 	}
-	if len(seq) > 1 { // suppress assignment expressions
-		for i, e := range seq[:len(seq)-1] {
+	if len(seq.argv) > 1 { // suppress assignment expressions
+		for i, e := range seq.argv[:len(seq.argv)-1] {
 			if v, o := e.(las); o {
 				v.tee = 0
-				seq[i] = v
+				seq.argv[i] = v
 			}
 		}
 	}
-	if seq == nil {
+	if seq.argv == nil {
 		return nil // empty?
-	} else if len(seq) == 1 {
-		return seq[0]
+	} else if len(seq.argv) == 1 {
+		return seq.argv[0]
 	}
 	return seq
 }
@@ -348,6 +349,9 @@ func (p *parser) ex(x expr) expr {
 func (p *parser) monadic(f, x expr, h pos) expr {
 	switch v := f.(type) {
 	case opx:
+		if s(v) == "?" { // ?x
+			return brif{argv: argv{x}, pos: h}
+		}
 		return v1{s: s(v), argv: argv{x}, pos: h}
 	case asn:
 		return ret{argv: argv{x}, pos: h}
@@ -385,6 +389,9 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			a.tee = 0
 			y = a
 		}
+		if a, o := x.(con); o && a.t == I && a.i == 1 { // 1/
+			return whl{pos: h, argv: argv{x, y}}
+		}
 		return nlp{pos: h, argv: argv{x, y}}
 	case opx:
 		if _, o := v2Tab[s(v)]; o {
@@ -393,12 +400,16 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 		if _, o := cTab[s(v)]; o {
 			return cmp{s: s(v), argv: argv{x, y}, pos: h}
 		}
-		if s(v) == "?" {
+		if s(v) == "?" || s(v) == "?/" {
 			if a, o := y.(las); o {
 				a.tee = 0
 				y = a
 			}
-			return iff{argv: argv{x, y}, pos: h}
+			if s(v) == "?" {
+				return iff{argv: argv{x, y}, pos: h}
+			} else {
+				return whl{argv: argv{x, y}, pos: h}
+			}
 		}
 		return p.err("unknown operator(" + s(v) + ")")
 	default:
@@ -514,11 +525,6 @@ func (p *parser) locals(e expr, lv int) expr {
 			l.t = l.argv[1].rt()
 		}
 		return l
-	case cnd:
-		for i := range l {
-			l[i] = p.locals(l[i], lv)
-		}
-		return l
 	default:
 		if av, o := e.(argvec); o {
 			v := av.args()
@@ -623,7 +629,9 @@ func (p *parser) pCon(b []c) expr {
 	return r
 }
 func sOp(b []c) int {
-	if b[0] == ':' || b[0] == '?' {
+	if b[0] == '?' && len(b) > 1 && b[1] == '/' { // ?/ while
+		return 2
+	} else if b[0] == ':' || b[0] == '?' {
 		return 1
 	}
 	for _, n := range []int{3, 2, 1} { // longest match first
@@ -658,8 +666,14 @@ type cstringer interface {
 type gstringer interface {
 	gstr() s
 }
-type seq argv    // a;b;..
-type cnd argv    // $[a;b;..]
+type seq struct { // a;b;..
+	pos
+	argv
+}
+type cnd struct { // $[a;b;..]
+	pos
+	argv
+}
 type v2 struct { // x+y unitype
 	pos
 	argv
@@ -720,6 +734,14 @@ type nlp struct { // x/y loop
 	argv
 	n int // index in locl for loop limit
 	c int // index in locl for loop counter
+}
+type whl struct { // x?/y while  1/ while(1)
+	pos
+	argv
+}
+type brif struct { // ?x
+	pos
+	argv
 }
 type opx s        // operator
 type asn struct { // assignments :(local) ::(memory) +:(modified local)
@@ -793,37 +815,35 @@ func gop(tab map[s]code, op s, t T) (o, u s) {
 func (a argv) args() []expr { return a }
 func (a argv) x() expr      { return a[0] }
 func (a argv) y() expr      { return a[1] }
-func (s seq) rt() T         { return s[len(s)-1].rt() }
-func (s seq) args() []expr  { return s }
+func (s seq) rt() T         { return s.argv[len(s.argv)-1].rt() }
 func (s seq) valid() s { // all but the last expressions in a sequence must have no return type
-	for i, e := range s {
-		if t := e.rt(); i < len(s)-1 && t != 0 {
-			return sf("statement %d/%d has nonzero type %s", i+1, len(s), t)
-		} else if i == len(s)-1 && t == 0 {
-			return sf("last statement of %d has zero type", i+1)
+	for i, e := range s.argv {
+		if t := e.rt(); i < len(s.argv)-1 && t != 0 {
+			return sf("statement %d/%d has nonzero type %s", i+1, len(s.argv), t)
 		}
 	}
 	return ""
 }
 func (s seq) bytes() (r []c) {
-	for _, e := range s {
+	for _, e := range s.argv {
 		r = append(r, e.bytes()...)
 	}
 	return r
 }
-func (v cnd) rt() T { return v[len(v)-1].rt() }
+func (v cnd) rt() T { return v.argv[len(v.argv)-1].rt() }
 func (v cnd) valid() s {
-	if len(v) < 3 || len(v)%2 == 0 { // only odd are allowed (with else statement)
-		return sf("conditional $[..] has wrong number of cases: %d", len(v))
+	n := len(v.argv)
+	if n < 3 || n%2 == 0 { // only odd are allowed (with else statement)
+		return sf("conditional $[..] has wrong number of cases: %d", n)
 	}
 	rt := v.rt()
-	for i := 0; i < len(v)-1; i += 2 {
-		if t := v[i].rt(); t != I {
+	for i := 0; i < n-1; i += 2 {
+		if t := v.argv[i].rt(); t != I {
 			return sf("conditional must be I (%s)", t)
 		}
 	}
-	for i := 1; i < len(v); i += 2 {
-		if v[i].rt() != rt {
+	for i := 1; i < n; i += 2 {
+		if v.argv[i].rt() != rt {
 			return sf("conditional has mixed types")
 		}
 	}
@@ -831,32 +851,33 @@ func (v cnd) valid() s {
 }
 func (v cnd) bytes() (r []c) {
 	t := v.rt()
-	for i := 0; i < len(v)-1; i += 2 {
-		r = catb(r, v[i].bytes(), []c{0x04, c(t)}, v[i+1].bytes(), []c{0x05})
+	a := v.argv
+	for i := 0; i < len(a)-1; i += 2 {
+		r = catb(r, a[i].bytes(), []c{0x04, c(t)}, a[i+1].bytes(), []c{0x05})
 	}
-	return catb(r, v[len(v)-1].bytes(), bytes.Repeat([]c{0x0b}, len(v)/2))
+	return catb(r, a[len(a)-1].bytes(), bytes.Repeat([]c{0x0b}, len(a)/2))
 }
 func (v cnd) cstr() (r s) {
-	// x = (args == 1) ? 1 : (args == 2) ? 2 : (args == 3) ? 3 : 4;
 	s := ""
-	for i := 0; i < len(v)-1; i += 2 {
+	a := v.argv
+	for i := 0; i < len(a)-1; i += 2 {
 		if i > 0 {
 			s = ":"
 		}
-		r += s + cstring(v[i]) + "?" + cstring(v[i+1])
+		r += s + cstring(a[i]) + "?" + cstring(a[i+1])
 	}
-	return r + ":" + cstring(v[len(v)-1])
+	return r + ":" + cstring(a[len(a)-1])
 }
 func (v cnd) gstr() (r s) {
 	r = "func()" + styp[v.rt()] + "{"
-	s := ""
-	for i := 0; i < len(v)-1; i += 2 {
+	s, a := "", v.argv
+	for i := 0; i < len(a)-1; i += 2 {
 		if i > 0 {
 			s = "else"
 		}
-		r += s + " if " + gstring(v[i]) + "{return " + gstring(v[i+1]) + ";}"
+		r += s + " if " + gstring(a[i]) + "{return " + gstring(a[i+1]) + ";}"
 	}
-	return "else{" + gstring(v[len(v)-1]) + "}}()"
+	return "else{" + gstring(a[len(a)-1]) + "}}()"
 }
 func (v v2) rt() T {
 	t := v.x().rt()
@@ -1020,7 +1041,7 @@ func (v nlp) valid() s {
 }
 func (v nlp) bytes() (r []c) {
 	r = v.x().bytes()
-	if v.xexpr() {
+	if isexpr(v.x()) {
 		r = append(append(r, 0x22), lebu(v.n)...) // tee.n for general expressions
 	}
 	i, n := s(lebu(v.c)), s(lebu(v.n))
@@ -1030,19 +1051,53 @@ func (v nlp) bytes() (r []c) {
 	return catb(r, v.y().bytes(), []c(sf("\x20%s\x41\x01\x6a\x22%s\x20%s\x49\x0d\x00\x0b\x0b", i, i, n)))
 }
 func (v nlp) cstr() (r s) {
-	if v.xexpr() {
+	if isexpr(v.x()) {
 		r = sf("x%d=%s;", v.n, cstring(v.x()))
 	}
 	return r + sf("for(x%d=0;x%d<x%d;x%d++){%s}", v.c, v.c, v.n, v.c, cstring(v.y()))
 }
 func (v nlp) gstr() (r s) {
-	if v.xexpr() {
+	if isexpr(v.x()) {
 		r = sf("x%d=%s;", v.n, gstring(v.x()))
 	}
 	return r + sf("for x%d=0;x%d<x%d;x%d++{%s}", v.c, v.c, v.n, v.c, gstring(v.y()))
 }
-func (v nlp) xexpr() bool { // general expr that needs an explicit assignment
-	switch v.x().(type) {
+func (v whl) rt() T { return 0 }
+func (v whl) valid() s {
+	if t := v.x().rt(); t != I {
+		return sf("while conditional has wrong type %d", t)
+	} else if v.y().rt() != 0 {
+		return sf("while body must have no type")
+	}
+	return ""
+}
+func (v whl) bytes() (r []c) {
+	cnd := sf("%s\x45\x0d\x01", s(v.x().bytes()))
+	if _, o := v.x().(con); o {
+		cnd = "" // 1/
+	}
+	//             block   loop     ? y  continue
+	return []c(sf("\x02\x40\x03\x40%s%s\x0c\x00\x0b\x0b", cnd, s(v.y().bytes())))
+}
+func (v whl) cstr() s { return jn("while(", cstring(v.x()), "){", cstring(v.y()), "}") }
+func (v whl) gstr() s {
+	x := gstring(v.x())
+	if x == "1" {
+		x = ""
+	}
+	return jn("for ", x, "{", gstring(v.y()), "}")
+}
+func (v brif) rt() T      { return 0 }
+func (v brif) valid() s   { return ifex(v.x().rt() != I, "brif has wrong conditional type") }
+func (v brif) bytes() []c { return append(v.x().bytes(), 0x0d, 0x01) } // break outer block
+func (v brif) cstr() s    { return jn("if(", cstring(v.x()), ")break;") }
+func (v brif) gstr() s    { return jn("if ", gstring(v.x()), "{break}") }
+func (v opx) rt() T       { return 0 }
+func (v opx) valid() s    { return "nonapplied operator" }
+func (v opx) bytes() []c  { return nil }
+func locstr(v expr) s     { return sf("x%d", v.(loc).i) }
+func isexpr(x expr) bool { // general expr that needs an explicit assignment
+	switch x.(type) {
 	case las:
 	case loc:
 	default:
@@ -1050,10 +1105,6 @@ func (v nlp) xexpr() bool { // general expr that needs an explicit assignment
 	}
 	return false
 }
-func (v opx) rt() T      { return 0 }
-func (v opx) valid() s   { return "nonapplied operator" }
-func (v opx) bytes() []c { return nil }
-func locstr(v expr) s    { return sf("x%d", v.(loc).i) }
 func ifex(c bool, s s) s {
 	if c {
 		return s
@@ -1324,9 +1375,9 @@ func (m module) cout() []c {
 		}
 		fmt.Fprintf(&b, "%s %s(%s){%s", styp[f.t], f.name, sig, loc)
 		if sq, o := f.ast.(seq); o {
-			for i, e := range sq {
+			for i, e := range sq.argv {
 				nl := ""
-				if i == len(sq)-1 {
+				if i == len(sq.argv)-1 {
 					b.WriteString("R ")
 					nl = "}\n"
 				}
@@ -1354,8 +1405,8 @@ func (m module) gout() []c {
 		}
 		fmt.Fprintf(&b, "func %s(%s) %s {", f.name, sig, styp[f.t])
 		if sq, o := f.ast.(seq); o {
-			for i, e := range sq {
-				if i < len(sq)-1 {
+			for i, e := range sq.argv {
+				if i < len(sq.argv)-1 {
 					b.WriteString("return ")
 				}
 				b.WriteString(gstring(e))

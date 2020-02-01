@@ -14,3 +14,5 @@ iff:I:I{(x>3)?x+:1;x}
 ret:I:I{(x>3)?(:0-x);x}
 cond3:I:III{$[x;y;z]}
 cond5:I:IIIII{$[x;y;z;x3;x4]}
+whl1:I:I{1/(x+:1;?x>5);x}
+whl2:I:I{(x<3)?/x+:1;x}
