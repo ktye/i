@@ -16,3 +16,6 @@ cond3:I:III{$[x;y;z]}
 cond5:I:IIIII{$[x;y;z;x3;x4]}
 whl1:I:I{1/(x+:1;?x>5);x}
 whl2:I:I{(x<3)?/x+:1;x}
+st:I:I{I?255j&1130366807310592j>>J?8*x}
+cal1:I:I{1 add x}
+cal2:I:II{x add y}

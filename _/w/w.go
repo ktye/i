@@ -28,6 +28,10 @@ type fn struct { // name:I:IIF{body}
 	ast  expr
 	bytes.Buffer
 }
+type sig struct {
+	t T
+	a []T
+}
 type module []fn
 
 const (
@@ -76,7 +80,7 @@ func run(r io.Reader) module {
 	var f fn
 	for {
 		b, e := rd.ReadByte()
-		if e == io.EOF {
+		if e == io.EOF || (state == sFnam && b == '\\') {
 			return m.compile()
 		} else if e != nil {
 			panic(e)
@@ -168,6 +172,7 @@ func boolvar(v bool) int {
 func (m module) compile() (r module) {
 	mac := make(map[s][]c)
 	fns := make(map[s]int)
+	var fsg []sig
 	for _, f := range m {
 		_, x := mac[f.name]
 		_, y := fns[f.name]
@@ -178,11 +183,15 @@ func (m module) compile() (r module) {
 			mac[f.name] = f.Bytes()
 		} else {
 			r = append(r, f)
-			fns[f.name] = len(r) - 1
+			n := len(r) - 1
+			fns[f.name] = n
+			sg := make([]T, f.args)
+			copy(sg, f.locl)
+			fsg = append(fsg, sig{t: f.t, a: sg})
 		}
 	}
 	for i, f := range r {
-		f.ast = f.parse(mac, fns)
+		f.ast = f.parse(mac, fns, fsg)
 		r[i] = f
 	}
 	return r
@@ -191,13 +200,14 @@ func (m module) compile() (r module) {
 type parser struct {
 	mac map[s][]c
 	fns map[s]int
+	fsg []sig
 	*fn
 	p   int
 	b   []byte
 	tok []byte
 }
 
-func (f *fn) parse(mac map[s][]c, fns map[s]int) expr { // parse function body
+func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse function body
 	f.lmap = make(map[string]int)
 	for i := 0; i < f.args; i++ {
 		s := s('x' + c(i))
@@ -206,7 +216,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int) expr { // parse function body
 		}
 		f.lmap[s] = i
 	}
-	p := parser{mac: mac, fns: fns, fn: f, b: strip(f.Bytes())}
+	p := parser{mac: mac, fns: fns, fsg: fsg, fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
 	e = p.locals(e, 0)
 	if x, s := p.validate(e); x != nil {
@@ -353,6 +363,9 @@ func (p *parser) monadic(f, x expr, h pos) expr {
 			return brif{argv: argv{x}, pos: h}
 		}
 		return v1{s: s(v), argv: argv{x}, pos: h}
+	case cal:
+		v.argv = argv{x}
+		return v
 	case asn:
 		return ret{argv: argv{x}, pos: h}
 	default:
@@ -396,7 +409,14 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 		if _, o := cTab[s(v)]; o {
 			return cmp{s: s(v), argv: argv{x, y}, pos: h}
 		}
-		if s(v) == "?" || s(v) == "?/" {
+		if s(v) == "?" || s(v) == "?/" || s(v) == "?'" {
+			if xt, o := x.(typ); o {
+				sn := 0
+				if s(v) == "?'" {
+					sn = 1
+				}
+				return cvt{t: xt.t, argv: argv{y}, pos: h, sign: sn}
+			}
 			if s(v) == "?" {
 				return iff{argv: argv{x, untee(y)}, pos: h}
 			} else {
@@ -404,6 +424,9 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			}
 		}
 		return p.err("unknown operator(" + s(v) + ")")
+	case cal:
+		v.argv = argv{x, y}
+		return v
 	default:
 		panic("nyi")
 	}
@@ -421,7 +444,7 @@ func untee(x expr) expr {
 }
 func (p *parser) verb(v expr) bool {
 	switch v.(type) {
-	case opx, nlp, asn: // todo: others
+	case opx, nlp, asn, cal: // todo: others
 		return true
 	}
 	return false
@@ -587,7 +610,12 @@ func sSym(b []c) int { // [aZ][a9]*
 	}
 	return len(b)
 }
-func (p *parser) pSym(b []c) expr { return loc{pos: pos(p.p), s: s(b), i: -1} }
+func (p *parser) pSym(b []c) expr {
+	if n, o := p.fns[s(b)]; o {
+		return cal{s: s(b), n: n, sig: p.fsg[n], pos: pos(p.p)}
+	}
+	return loc{pos: pos(p.p), s: s(b), i: -1}
+}
 func sCon(b []c) int { // 123 123i 123j .123 123. -..
 	dot, neg := false, 0
 	if len(b) > 1 && b[0] == '-' {
@@ -702,6 +730,20 @@ type con struct { // numeric constant
 	t T
 	i int64
 	f float64
+}
+type cvt struct { // J? convert
+	pos
+	argv
+	t    T
+	sign int
+}
+type cal struct { // f x (call)
+	pos
+	argv
+	s     s
+	n     int
+	sig   sig
+	indir bool
 }
 type loc struct { // local get
 	pos
@@ -950,10 +992,54 @@ func (v con) cstr() s {
 	}
 	return sf("%d", v.i)
 }
-func (v con) gstr() s    { return v.cstr() }
+func (v con) gstr() s  { return v.cstr() }
+func (v cvt) rt() T    { return v.t }
+func (v cvt) valid() s { return ifex(v.t == 0, "convert: illegal target type") }
+func (v cvt) bytes() []c {
+	tab := map[T]s{
+		I: "\x00\x00\xa7\xa7\xab\xaa",
+		J: "\xad\xac\x00\x00\xb1\xb0",
+		F: "\xb8\xb7\xba\xb9\x00\x00",
+	}
+	return append(v.x().bytes(), c(tab[v.t][2*tnum[v.x().rt()]+v.sign]))
+}
+func (v cvt) cstr() s    { return jn("(", styp[v.t], ")", cstring(v.x())) } // todo: signed?
+func (v cvt) gstr() s    { return jn(styp[v.t], "(", gstring(v.x()), ")") } // todo signed
 func (v typ) rt() T      { return 0 }
 func (v typ) valid() s   { return "illegal type" }
 func (v typ) bytes() []c { return nil }
+func (v cal) rt() T      { return v.sig.t }
+func (v cal) valid() s {
+	if len(v.sig.a) != len(v.argv) {
+		return sf("func has wrong argn: %d", len(v.argv))
+	}
+	for i, a := range v.argv {
+		if a.rt() != v.sig.a[i] {
+			return sf("func arg %d has wrong type", i+1)
+		}
+	}
+	return ""
+}
+func (v cal) bytes() (r []c) {
+	for _, a := range v.argv {
+		r = append(r, a.bytes()...)
+	}
+	return append(append(r, 0x10), lebu(v.n)...)
+}
+func (v cal) cstr() s {
+	av := make([]s, len(v.argv))
+	for i, a := range v.argv {
+		av[i] = cstring(a)
+	}
+	return jn(v.s, "(", strings.Join(av, ","), ")")
+}
+func (v cal) gstr() s {
+	av := make([]s, len(v.argv))
+	for i, a := range v.argv {
+		av[i] = gstring(a)
+	}
+	return jn(v.s, "(", strings.Join(av, ","), ")")
+}
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, lebu(v.i)...) }

@@ -13,6 +13,7 @@ func TestB(t *testing.T) {
 		b   string
 		e   string
 	}{
+		{"I:I", "I?255j&1130366807310592j>>J?8*x", "42ff0142808290c080828102410820006cad8883a7"},
 		{"I:I", "(x<6)?/x+:1;x", "0240 0340 2000 4106 49 45 0d01 20004101 6a 2100 0c00 0b0b2000"},
 		{"I:I", "(x<6)?/(x+:1;x+:1);x", "0240 0340 2000 4106 49 45 0d01 200041016a2100 200041016a2100 0c00 0b0b2000"},
 		{"I:I", "1/(x+:1;?x>5);x", "0240 0340 2000 4101 6a 2100 2000 4105 4b  0d01 0c00 0b0b2000"},
@@ -34,7 +35,7 @@ func TestB(t *testing.T) {
 	}
 	for n, tc := range testCases {
 		f := newfn(tc.sig, tc.b)
-		e := f.parse(nil, nil)
+		e := f.parse(nil, nil, nil)
 		b := string(hex(e.bytes()))
 		s := trim(tc.e)
 		if b != s {
