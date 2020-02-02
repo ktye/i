@@ -351,6 +351,10 @@ func (p *parser) ex(x expr) expr {
 			}
 		} else if t, o := x.(typ); o {
 			return lod{t: t.t, argv: argv{v}, pos: pos(h)} // I x
+		} else if s, o := v.(swc); o {
+			s.argv = append(argv{x}, s.argv...)
+			s.pos = pos(h)
+			return s
 		} else {
 			return p.err(sf("noun-noun (missing verb) %T %T", x, v))
 		}
@@ -475,6 +479,10 @@ func (p *parser) noun() expr {
 			return asn{e.(opx), t}
 		} else if s(e.(opx)) == ":" {
 			return asn{opx(""), 0}
+		} else if s(e.(opx)) == "?" && len(p.b) > 0 && p.b[0] == '[' {
+			p.t(sC('['))
+			s := untee(p.seq(']').(seq)).(seq)
+			return swc{argv: s.argv} // ?[a;b;..] (jump)
 		}
 		return p.pOp(p.tok)
 	case p.t(sCnd):
@@ -774,6 +782,11 @@ type iff struct { // x?y
 	pos
 	argv
 }
+type swc struct { // x?[a;b;..] jump table
+	pos
+	argv
+	// t T todo as expression with return value (how to do in c/go?)
+}
 type nlp struct { // x/y loop
 	pos
 	argv
@@ -971,7 +984,7 @@ func (v cmp) gstr() s  { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
 func (v con) rt() T    { return v.t }
 func (v con) valid() s { return ifex(v.t == 0, "constant has zero type") }
 func (v con) bytes() (r []c) {
-	r = append([]c{0x41}, lebu(int(v.i))...)
+	r = append([]c{0x41}, leb(int(v.i))...)
 	if v.t == J {
 		r[0]++
 	} else if v.t == F {
@@ -1024,7 +1037,7 @@ func (v cal) bytes() (r []c) {
 	for _, a := range v.argv {
 		r = append(r, a.bytes()...)
 	}
-	return append(append(r, 0x10), lebu(v.n)...)
+	return append(append(r, 0x10), leb(v.n)...)
 }
 func (v cal) cstr() s {
 	av := make([]s, len(v.argv))
@@ -1042,7 +1055,7 @@ func (v cal) gstr() s {
 }
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
-func (v loc) bytes() []c { return append([]c{0x20}, lebu(v.i)...) }
+func (v loc) bytes() []c { return append([]c{0x20}, leb(v.i)...) }
 func (v loc) cstr() s    { return locstr(v) }
 func (v loc) gstr() s    { return locstr(v) }
 func (v las) rt() T      { return T(v.tee) * v.y().rt() }
@@ -1051,7 +1064,7 @@ func (v las) valid() s {
 	return ifex(tx == 0 || tx != ty, sf("assignment with mismatched types %s %s", tx, ty))
 }
 func (v las) bytes() []c {
-	return append(v.y().bytes(), append([]c{0x21 + v.tee}, lebu(v.x().(loc).i)...)...)
+	return append(v.y().bytes(), append([]c{0x21 + v.tee}, leb(v.x().(loc).i)...)...)
 }
 func (v las) cstr() s { return jn("(", locstr(v.x()), "=", cstring(v.y()), ")", s(59-27*v.tee)) }
 func (v las) gstr() s {
@@ -1119,7 +1132,45 @@ func (v iff) valid() s {
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
 func (v iff) cstr() s        { return jn("if(", cstring(v.x()), ")", cstring(v.y())) }
 func (v iff) gstr() s        { return jn("if ", gstring(v.x()), "{", gstring(v.y()), "}") }
-func (v nlp) rt() T          { return 0 }
+func (v swc) rt() T          { return 0 }
+func (v swc) valid() s {
+	if v.x().rt() != I {
+		return "swc wrong type for x"
+	}
+	for i, a := range v.argv[1:] {
+		if a.rt() != 0 {
+			return sf("swc arg %d must have zero type", i+1)
+		}
+	}
+	return ""
+}
+func (v swc) bytes() (r []c) { // (block(block(... x br_table 0..n) argv[i];break)...)
+	n := len(v.argv) - 1
+	r = catb(bytes.Repeat([]c{0x02, 0x40}, n+1), v.x().bytes(), []c{0x0e}, leb(n-1))
+	for i := 0; i < n; i++ {
+		r = append(r, leb(i)...)
+	}
+	r = append(r, 0x0b)
+	for i, a := range v.argv[1:] {
+		r = catb(r, a.bytes(), []c{0x0c}, leb(n-1-i), []c{0x0b})
+	}
+	return r
+}
+func (v swc) cstr() (r s) {
+	r = jn("switch(", cstring(v.x()), "){")
+	for i, a := range v.argv[1 : len(v.argv)-1] {
+		r += sf("case %d:%s;break;", i, cstring(a))
+	}
+	return r + sf("default:%s;}", cstring(v.argv[len(v.argv)-1]))
+}
+func (v swc) gstr() (r s) {
+	r = jn("switch ", gstring(v.x()), "{")
+	for i, a := range v.argv[1 : len(v.argv)-1] {
+		r += sf("case %d:%s;", i, gstring(a))
+	}
+	return r + sf("default:%s;}", gstring(v.argv[len(v.argv)-1]))
+}
+func (v nlp) rt() T { return 0 }
 func (v nlp) valid() s {
 	if xt, yt := v.x().rt(), v.y().rt(); xt != I {
 		return sf("loop range is not I: %s", xt)
@@ -1131,9 +1182,9 @@ func (v nlp) valid() s {
 func (v nlp) bytes() (r []c) {
 	r = v.x().bytes()
 	if isexpr(v.x()) {
-		r = append(append(r, 0x22), lebu(v.n)...) // tee.n for general expressions
+		r = append(append(r, 0x22), leb(v.n)...) // tee.n for general expressions
 	}
-	i, n := s(lebu(v.c)), s(lebu(v.n))
+	i, n := s(leb(v.c)), s(leb(v.n))
 	//                    if           0   →i   loop
 	r = catb(r, []c(sf("\x04\x40\x41\x00\x21%s\x03\x40", i)))
 	//                                        i       1   +  tee→i    n   <  continue
@@ -1300,7 +1351,7 @@ func (m module) wasm() []c {
 			m[i].sign = n
 		}
 	}
-	sec.cat(lebu(len(sigv)))
+	sec.cat(leb(len(sigv)))
 	for _, s := range sigv {
 		sec.cat([]c(s))
 	}
@@ -1308,9 +1359,9 @@ func (m module) wasm() []c {
 	// no import section(2)
 	// function section(3: function signature indexes)
 	sec = NewSection(3)
-	sec.cat(lebu(len(m)))
+	sec.cat(leb(len(m)))
 	for _, f := range m {
-		sec.cat(lebu(sigs[s(f.sig())]))
+		sec.cat(leb(sigs[s(f.sig())]))
 	}
 	sec.out(o)
 	// no table section(4)
@@ -1321,22 +1372,22 @@ func (m module) wasm() []c {
 	// no global section(6)
 	// export section(7)
 	sec = NewSection(7)
-	sec.cat(lebu(len(m))) // number of exports (all)
+	sec.cat(leb(len(m))) // number of exports (all)
 	for i, f := range m {
-		sec.cat(lebu(len(f.name)))
+		sec.cat(leb(len(f.name)))
 		sec.cat([]c(f.name))
 		sec.cat1(0) // function-export
-		sec.cat(lebu(i))
+		sec.cat(leb(i))
 	}
 	sec.out(o)
 	// no start section(8)
 	// no element section(9)
 	// code section(10)
 	sec = NewSection(10)
-	sec.cat(lebu(len(m))) // number of functions
+	sec.cat(leb(len(m))) // number of functions
 	for _, f := range m {
 		b := f.code()
-		sec.cat(lebu(len(b)))
+		sec.cat(leb(len(b)))
 		sec.cat(b)
 	}
 	sec.out(o)
@@ -1354,13 +1405,13 @@ func (s *section) cat(b []c) { s.b = append(s.b, b...) }
 func (s *section) cat1(b c)  { s.b = append(s.b, b) }
 func (s *section) out(w *bytes.Buffer) {
 	w.WriteByte(s.t)
-	w.Write(lebu(len(s.b)))
+	w.Write(leb(len(s.b)))
 	w.Write(s.b)
 }
 
 func (f fn) sig() (r []c) {
 	r = append(r, 0x60)
-	r = append(r, lebu(f.args)...)
+	r = append(r, leb(f.args)...)
 	for i := 0; i < f.args; i++ {
 		r = append(r, c(f.locl[i]))
 	}
@@ -1383,15 +1434,23 @@ func (f fn) locs() (r []c) {
 			u, n = append(u, t), append(n, 1)
 		}
 	}
-	r = lebu(len(u))
+	r = leb(len(u))
 	for i, t := range u {
-		r = append(r, lebu(n[i])...)
+		r = append(r, leb(n[i])...)
 		r = append(r, c(t))
 	}
 	return r
 }
-
+func leb(v int) []c {
+	if v < 0 {
+		return lebs(v)
+	}
+	return lebu(v)
+}
 func lebu(v int) []c { // encode unsigned leb128
+	if v < 0 {
+		panic("lebu")
+	}
 	var b []c
 	for {
 		c := uint8(v & 0x7f)
@@ -1406,9 +1465,8 @@ func lebu(v int) []c { // encode unsigned leb128
 	}
 	return b
 }
-
-/*
-func lebs(b []b, v int64) []b { // encode signed leb128
+func lebs(v int) []c { // encode signed leb128
+	var b []c
 	for {
 		c := uint8(v & 0x7f)
 		s := uint8(v & 0x40)
@@ -1423,8 +1481,6 @@ func lebs(b []b, v int64) []b { // encode signed leb128
 	}
 	return b
 }
-*/
-
 func catb(x ...[]c) (r []c) {
 	for _, b := range x {
 		r = append(r, b...)
