@@ -52,15 +52,15 @@ func main() {
 	flag.BoolVar(&cout, "c", false, "c output")
 	flag.BoolVar(&gout, "go", false, "go output")
 	flag.Parse()
-	m := run(os.Stdin)
+	m, data := run(os.Stdin)
 	if html {
-		os.Stdout.Write(page(m.wasm()))
+		os.Stdout.Write(page(m.wasm(data)))
 	} else if cout {
-		os.Stdout.Write(m.cout())
+		os.Stdout.Write(m.cout(data))
 	} else if gout {
-		os.Stdout.Write(m.gout())
+		os.Stdout.Write(m.gout(data))
 	} else {
-		os.Stdout.Write(m.wasm())
+		os.Stdout.Write(m.wasm(data))
 	}
 }
 func (t T) String() s {
@@ -70,18 +70,19 @@ func (t T) String() s {
 		return s(c)
 	}
 }
-func run(r io.Reader) module {
-	sFnam, sRety, sArgs, sBody, sCmnt := 0, 1, 2, 3, 4
+func run(r io.Reader) (module, []c) {
+	sFnam, sRety, sArgs, sBody, sData, sCmnt := 0, 1, 2, 3, 4, 5
 	rd := bufio.NewReader(r)
 	state := sFnam
 	line, char := 1, 0
 	err := func(s string) { panic(sf("%d:%d: %s", line, char, s)) }
 	var m module
 	var f fn
+	var data []c
 	for {
 		b, e := rd.ReadByte()
 		if e == io.EOF || (state == sFnam && b == '\\') {
-			return m.compile()
+			return m.compile(), decode(data)
 		} else if e != nil {
 			panic(e)
 		}
@@ -106,6 +107,9 @@ func run(r io.Reader) module {
 		case sRety:
 			if f.t == 0 {
 				if b == '{' {
+					if f.name == "M" {
+						state = sData
+					}
 					state = sBody // macro
 				}
 				f.t = typs[b]
@@ -138,6 +142,12 @@ func run(r io.Reader) module {
 				m = append(m, f)
 				f = fn{}
 			}
+		case sData:
+			if b == '}' {
+				state = sFnam
+			} else {
+				data = append(data, b)
+			}
 		case sCmnt:
 			if b == '\n' {
 				state = sFnam
@@ -146,6 +156,12 @@ func run(r io.Reader) module {
 			err("internal parse state")
 		}
 	}
+}
+func decode(data []c) []c {
+	if data != nil {
+		panic("nyi")
+	}
+	return nil
 }
 func hxb(x c) (c, c) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0F] }
 func cr09(c c) bool  { return c >= '0' && c <= '9' }
@@ -230,11 +246,8 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse func
 func strip(b []c) []c { // strip comments
 	lines := bytes.Split(b, []c{'\n'})
 	for i, l := range lines {
-		space := false
 		for k, c := range l {
-			if c == ' ' {
-				space = true
-			} else if c == '/' && space {
+			if c == '/' && (k == 0 || l[k-1] == ' ') {
 				lines[i] = l[:k]
 				break
 			}
@@ -259,7 +272,7 @@ func (p *parser) indicate(pos int, e s) expr {
 	for _, l := range lines {
 		if pos < len(l) {
 			if pos > 0 {
-				pos--
+				//pos--
 			}
 			return p.err("\n" + l + "\n" + strings.Repeat(" ", pos) + "^" + e)
 		}
@@ -345,18 +358,22 @@ func (p *parser) ex(x expr) expr {
 		} else if p.verb(v) {
 			h = p.p
 			if y := p.ex(p.noun()); y == nil {
-				return p.err(sf("verb-verb (missing noun) %T %T", x, v))
+				return p.xerr(pos(h), sf("verb-verb (missing noun) x=%#v v=%#v", x, v))
 			} else {
 				return p.dyadic(v, x, y, pos(h))
 			}
 		} else if t, o := x.(typ); o {
-			return lod{t: t.t, argv: argv{v}, pos: pos(h)} // I x
+			y := p.ex(v)
+			if y == nil {
+				y = v
+			}
+			return lod{t: t.t, argv: argv{y}, pos: pos(h)} // I x
 		} else if s, o := v.(swc); o {
 			s.argv = append(argv{x}, s.argv...)
 			s.pos = pos(h)
 			return s
 		} else {
-			return p.err(sf("noun-noun (missing verb) %T %T", x, v))
+			return p.xerr(pos(h), sf("noun-noun (missing verb) %T %T", x, v))
 		}
 	}
 }
@@ -459,6 +476,8 @@ func (p *parser) noun() expr {
 		return nil
 	}
 	switch {
+	case p.t(sC('(')):
+		return p.seq(')')
 	case p.t(sTyp):
 		return p.pTyp(p.tok)
 	case p.t(sSym):
@@ -484,12 +503,10 @@ func (p *parser) noun() expr {
 			s := untee(p.seq(']').(seq)).(seq)
 			return swc{argv: s.argv} // ?[a;b;..] (jump)
 		}
-		return p.pOp(p.tok)
+		return e
 	case p.t(sCnd):
 		s := p.seq(']').(seq)
 		return cnd(s)
-	case p.t(sC('(')):
-		return p.seq(')')
 	default:
 		return nil
 	}
@@ -628,6 +645,9 @@ func sCon(b []c) int { // 123 123i 123j .123 123. -..
 	dot, neg := false, 0
 	if len(b) > 1 && b[0] == '-' {
 		neg, b = 1, b[1:]
+	}
+	if !cr09(b[0]) {
+		return 0
 	}
 	for i, c := range b {
 		if cr09(c) {
@@ -816,7 +836,7 @@ func (p pos) indicate() int { return int(p) }
 func getop(tab map[s]code, op s, t T) (r c) {
 	ops, ok := tab[op]
 	if !ok {
-		panic("type")
+		panic("unknown operator: " + op)
 	}
 	switch t {
 	case I:
@@ -877,7 +897,8 @@ func (s seq) rt() T         { return s.argv[len(s.argv)-1].rt() }
 func (s seq) valid() s { // all but the last expressions in a sequence must have no return type
 	for i, e := range s.argv {
 		if t := e.rt(); i < len(s.argv)-1 && t != 0 {
-			return sf("statement %d/%d has nonzero type %s", i+1, len(s.argv), t)
+			fmt.Printf("seq:(%d) %#v\n", len(s.argv), s.argv)
+			return sf("statement %d/%d has nonzero type %s: %#v", i+1, len(s.argv), t, e)
 		}
 	}
 	return ""
@@ -1235,6 +1256,9 @@ func (v brif) gstr() s    { return jn("if ", gstring(v.x()), "{break}") }
 func (v opx) rt() T       { return 0 }
 func (v opx) valid() s    { return "nonapplied operator" }
 func (v opx) bytes() []c  { return nil }
+func (v pos) rt() T       { return 0 }
+func (v pos) valid() s    { return "position(dummy expr)" }
+func (v pos) bytes() []c  { return nil }
 func locstr(v expr) s     { return sf("x%d", v.(loc).i) }
 func isexpr(x expr) bool { // general expr that needs an explicit assignment
 	switch x.(type) {
@@ -1289,6 +1313,7 @@ func gstring(x expr) s { xs := x.(gstringer); return xs.gstr() }
 var v1Tab = map[s]code{
 	"-": code{0, 0, 0x9a, "-", "-"},                                                                            // neg (-I -J is replaced)
 	"+": code{0, 0, 0x99, "fabs", "math.Abs"},                                                                  // abs (+I +J is not allowed)
+	"~": code{0x45, 0x50, 0, "!", "!"},                                                                         // eqz
 	"_": code{1, 1, 0x9c, ";;floor", "math.Floor"},                                                             // floor (ceil, trunc, nearest?)
 	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "Ubits.LeadingZeros32;Ubits.LeadingZeros64;"},   // clz
 	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", "Ubits.TrailingZeros32;Ubits;TrailingZeros64;"}, // ctz
@@ -1337,7 +1362,7 @@ func init() {
 }
 
 // emit wasm byte code
-func (m module) wasm() []c {
+func (m module) wasm(data []c) []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
 	// type section(1: function signatures)
 	sec := NewSection(1)
@@ -1499,7 +1524,7 @@ func page(wasm []c) []c {
 	return b.Bytes()
 }
 
-func (m module) cout() []c {
+func (m module) cout(data []c) []c {
 	var b bytes.Buffer
 	b.WriteString(chead)
 	for _, f := range m {
@@ -1537,7 +1562,7 @@ func (m module) cout() []c {
 	}
 	return b.Bytes()
 }
-func (m module) gout() []c {
+func (m module) gout(data []c) []c {
 	var b bytes.Buffer
 	b.WriteString(ghead)
 	for _, f := range m {

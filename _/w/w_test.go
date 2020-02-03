@@ -13,6 +13,7 @@ func TestB(t *testing.T) {
 		b   string
 		e   string
 	}{
+		{"I:II", "x:I 4+x", "4104 2000 6a 28 0200 2200"},
 		{"I:I", "x?[x:4;x:5;x:6];x", "024002400240024020000e020001020b410421000c020b410521000c010b410621000c000b2000"},
 		{"I:I", "I?255j&1130366807310592j>>J?8*x", "42ff0142808290c080828102410820006cad8883a7"},
 		{"I:I", "(x<6)?/x+:1;x", "0240 0340 2000 4106 49 45 0d01 20004101 6a 2100 0c00 0b0b2000"},
@@ -46,7 +47,8 @@ func TestB(t *testing.T) {
 	}
 }
 func TestRun(t *testing.T) {
-	g := s(hex(run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/")).wasm()))
+	m, data := run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/"))
+	g := s(hex(m.wasm(data)))
 	e := "0061736d0100000001070160027f7f017f0302010005030100010707010361646400000a0b010901027f200020016a0b"
 	if e != g {
 		t.Fatalf("expected/got\n%s\n%s\n", e, g)
