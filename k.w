@@ -1,8 +1,9 @@
-ini:I:I{8::x;p:256;i:11;(i<16)?/(p*:2;(4*i)::p;(4*p)::i;i+:1);x}      /x:16(64k)
-st:I:I {I?255j&1130366807310592j>>J?8*x}                              /element size for type
-sz:I:II{8+y*st x}                                                     /storage size for vector of t,n
-bk:I:II{*-1+x sz y}                                                   /bucket type for vector t,n
-mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;i::a:I 4+i;a::n|x<<29;(a+4)::1;a} /todo grow, split
+ini:I:I{0::1130366807310592j;8::x;p:512;i:9;(i<x)?/((4*i)::p;p::i;p*:2;i+:1);x} /x:16(64k)
+bk:I:II{32-*7+y*C x}                                                            /bucket type for vector t,n sz:I:II{8+y*C x}  
+mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;i::I 4+a:I i;a::y|x<<29;(a+4)::1;a}         /todo grow, split
+gi:I:I{I x}gj:J:I{J x}gf:F:I{F x}gc:I:I{C x}
+/til:I:I{v1;xt?[e;;;;e;e;I xd];xt tox jota I xd}
+/jota:I:I{r:2 mk x;x/(8+r+i)::i;r}
 
 \
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
