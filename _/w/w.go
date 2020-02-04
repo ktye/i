@@ -111,6 +111,7 @@ func run(r io.Reader) (module, []c) {
 						state = sData
 					}
 					state = sBody // macro
+					continue
 				}
 				f.t = typs[b]
 				if f.t == 0 {
@@ -489,6 +490,11 @@ func (p *parser) noun() expr {
 	case p.t(sTyp):
 		return p.pTyp(p.tok)
 	case p.t(sSym):
+		if mc, o := p.mac[s(p.tok)]; o { // macro-expansion
+			p.b = catb(p.b[:p.p-len(p.tok)], mc, p.b[p.p:])
+			p.p -= len(p.tok)
+			return p.noun()
+		}
 		return p.pSym(p.tok)
 	case p.t(sC('/')):
 		return nlp{}

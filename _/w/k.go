@@ -22,10 +22,10 @@ func main() {
 	M = make([]c, 64*1024)
 	ini(16)
 	for _, a := range os.Args[1:] {
-		r := mk(2, atoi(a))
+		r := til(mki(atoi(a)))
 		fmt.Printf("r=%x\n", r)
 	}
-	dump(0, 4100)
+	dump(0, 800)
 }
 func ini(x i) {
 	sJ(0, 1130366807310592)
@@ -45,13 +45,13 @@ func mk(x, y i) i {
 	for I(i) == 0 {
 		i += 4
 	}
-	if i == 32 {
+	if i == 128 {
 		panic("oom")
 	}
 	a := I(i)
 	sI(i, I(4+a))
 	for j := i - 4; j >= 4*t; j -= 4 {
-		u := a + 1<<(j-2)
+		u := a + 1<<(j/4)
 		sI(u, I(j))
 		sI(j, u)
 	}
@@ -59,7 +59,29 @@ func mk(x, y i) i {
 	sI(a+4, 1)
 	return a
 }
-
+func mki(i i) i {
+	r := mk(2, 1)
+	xt, xn, xp := v1(r)
+	println("mki", xt, xn, xp)
+	sI(r+4, 1)
+	sI(r+8, i)
+	return r
+}
+func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
+func til(x i) (r i) {
+	xt, _, xp := v1(x)
+	if xt != 2 {
+		trap()
+	}
+	r = mk(xt, I(xp))
+	_, rn, rp := v1(r)
+	for i := i(0); i < rn; i++ {
+		sI(rp, i)
+		rp += 4
+	}
+	return r
+}
+func trap() { panic("trap") }
 func dump(a, n i) {
 	fmt.Printf("%.8x  ", 0)
 	for i, b := range M[a : a+n] {

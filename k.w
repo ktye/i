@@ -1,6 +1,10 @@
 ini:I:I{0::1130366807310592j;128::x;p:512;i:9;(i<x)?/((4*i)::p;p::i;p*:2;i+:1);x} /x:16(64k)
-mk:I:II{t:32-*7+y*C x;i:4*t;(~I i)?/i+:4;(128~i)?!;i::I 4+a:I i;j:i-4;(j>=4*t)?/(j-:4;u:a+1<<j-2;u::I j;j::u);a::y|x<<29;(a+4)::1;a}  /make vector(t,n) (todo grow)
+mk:I:II{t:32-*7+y*C x;i:4*t;(~I i)?/i+:4;(128~i)?!;i::I 4+a:I i;j:i-4;(j>=4*t)?/(j-:4;u:a+1<<j%4;u::I j;j::u);a::y|x<<29;(a+4)::1;a}  /make vector(t,n) (todo grow)
 gi:I:I{I x}gj:J:I{J x}gf:F:I{F x}gc:I:I{C x}
+mki:I:I{r:2 mk 1;(r+4)::1;(r+8)::x;r}
+v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}
+vr:{rt:(I r)>>29;rn:(I r)&536870911;rp:8+x}
+til:I:I{v1;(~2~xt)?!;r:xt mk I xp;vr;rn/(rp::i;rp+:4);r} // todo dec
 /til:I:I{v1;xt?[e;;;;e;e;I xd];xt tox jota I xd}
 /jota:I:I{r:2 mk x;x/(8+r+i)::i;r}
 
