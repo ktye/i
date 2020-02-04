@@ -848,7 +848,9 @@ func getop(tab map[s]code, op s, t T) (r c) {
 	default:
 		panic("type(" + op + ")")
 	}
-	if r == 0 {
+	if r == 0xff {
+		r = 0
+	} else if r == 0 {
 		panic("type(" + op + ")")
 	}
 	return r
@@ -1318,6 +1320,7 @@ var v1Tab = map[s]code{
 	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "Ubits.LeadingZeros32;Ubits.LeadingZeros64;"},   // clz
 	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", "Ubits.TrailingZeros32;Ubits;TrailingZeros64;"}, // ctz
 	"%": code{0, 0, 0x9f, "sqrt", "math.Sqrt"},                                                                 // sqr
+	"!": code{0xff, 0xff, 0xff, "trap", "panic"},                                                               // 0xff → 0x00 in getop
 }
 var v2Tab = map[s]code{
 	`+`:   code{0x6a, 0x7c, 0xa0, "+", "+"},     // add
