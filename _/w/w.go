@@ -345,14 +345,22 @@ func (p *parser) ex(x expr) expr {
 		return x
 	}
 	h := p.p
+	v := p.noun()
+	if op, o := x.(opx); o && s(op) == "-" { // fix neg. numbers
+		if c, o := v.(con); o {
+			c.i = -c.i
+			c.f = -c.f
+			x = c
+			v = p.noun()
+		}
+	}
 	if p.verb(x) {
-		if y := p.ex(p.noun()); y == nil {
+		if y := p.ex(v); y == nil {
 			return x // verb ?
 		} else {
 			return p.monadic(x, y, pos(h))
 		}
 	} else {
-		v := p.noun()
 		if v == nil {
 			return x // noun
 		} else if p.verb(v) {
@@ -373,7 +381,7 @@ func (p *parser) ex(x expr) expr {
 			s.pos = pos(h)
 			return s
 		} else {
-			return p.xerr(pos(h), sf("noun-noun (missing verb) %T %T", x, v))
+			return p.xerr(pos(h), sf("noun-noun (missing verb) %#v %#v", x, v))
 		}
 	}
 }
@@ -642,10 +650,7 @@ func (p *parser) pSym(b []c) expr {
 	return loc{pos: pos(p.p), s: s(b), i: -1}
 }
 func sCon(b []c) int { // 123 123i 123j .123 123. -..
-	dot, neg := false, 0
-	if len(b) > 1 && b[0] == '-' {
-		neg, b = 1, b[1:]
-	}
+	dot := false
 	if !cr09(b[0]) {
 		return 0
 	}
@@ -653,14 +658,14 @@ func sCon(b []c) int { // 123 123i 123j .123 123. -..
 		if cr09(c) {
 			continue
 		} else if dot == false && (c == 'i' || c == 'j') {
-			return neg + i + 1
+			return i + 1
 		} else if dot == false && c == '.' {
 			dot = true
 		} else {
-			return neg*boolvar(i > 0) + i
+			return i
 		}
 	}
-	return neg*boolvar(len(b) > 0) + len(b)
+	return len(b)
 }
 func (p *parser) pCon(b []c) expr {
 	var r con
