@@ -1,5 +1,5 @@
 WASM  W    INSTRUCTION          TYPE
-0x00  E    unreachable          [t∗1]→[t∗2]
+0x00  !    unreachable          [t∗1]→[t∗2]
 0x01  ---  nop                  []→[]
 0x02  ???  block [t?]           []→[t∗]
 0x03  L    loop [t?]            []→[t∗]
