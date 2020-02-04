@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
+	"os"
+	"strconv"
 )
 
 type c = byte
@@ -19,11 +21,14 @@ var M []c
 func main() {
 	M = make([]c, 64*1024)
 	ini(16)
-	dump(0, 2100)
+	for _, a := range os.Args[1:] {
+		r := mk(2, atoi(a))
+		fmt.Printf("r=%x\n", r)
+	}
+	dump(0, 4100)
 }
 func ini(x i) {
 	sJ(0, 1130366807310592)
-	sI(8, x)
 	p := i(512)
 	for i := i(9); i < x; i++ {
 		sI(4*i, p)
@@ -31,20 +36,25 @@ func ini(x i) {
 		p *= 2
 		fmt.Printf("i=%d p=%d [%d]=%d [%d]=%d\n", i, p, 4*i, p, p, i)
 	}
-	r := mk(2, 500) // 2008 bytes, bt 11
-	println(r)
+	sI(128, x)
 }
 func bk(t, n i) i { return i(32 - bits.LeadingZeros32(7+n*C(t))) }
 func mk(x, y i) i {
 	t := bk(x, y)
-	fmt.Printf("mk %d %d t=%d\n", x, y, t)
 	i := 4 * t
 	for I(i) == 0 {
 		i += 4
 	}
+	if i == 32 {
+		panic("oom")
+	}
 	a := I(i)
-	fmt.Printf("free i=%d a=%d\n", i, a)
 	sI(i, I(4+a))
+	for j := i - 4; j >= 4*t; j -= 4 {
+		u := a + 1<<(j-2)
+		sI(u, I(j))
+		sI(j, u)
+	}
 	sI(a, y|x<<29)
 	sI(a+4, 1)
 	return a
@@ -73,3 +83,9 @@ func F(a i) f        { return math.Float64frombits(J(a)) }
 func sI(a i, v i)    { binary.LittleEndian.PutUint32(M[a:a+4], v) }
 func sJ(a i, v j)    { binary.LittleEndian.PutUint64(M[a:a+8], v) }
 func sF(a i, v f)    { binary.LittleEndian.PutUint64(M[a:a+8], math.Float64bits(v)) }
+func atoi(s string) i {
+	if x, e := strconv.Atoi(s); e == nil {
+		return i(x)
+	}
+	panic("atoi")
+}
