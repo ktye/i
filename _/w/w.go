@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 	"strconv"
@@ -47,18 +48,30 @@ var styp = map[T]s{C: "C", I: "I", J: "J", F: "F"}
 var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 
 func main() {
+	var stdin io.Reader = os.Stdin
 	var html, cout, gout bool
+	var runfile string
 	flag.BoolVar(&html, "html", false, "html output")
 	flag.BoolVar(&cout, "c", false, "c output")
 	flag.BoolVar(&gout, "go", false, "go output")
+	flag.StringVar(&runfile, "r", "", "run file")
 	flag.Parse()
-	m, data := run(os.Stdin)
+	if runfile != "" {
+		if f, e := ioutil.ReadFile(runfile); e != nil {
+			panic(e)
+		} else {
+			stdin = bytes.NewReader(f)
+		}
+	}
+	m, data := run(stdin)
 	if html {
 		os.Stdout.Write(page(m.wasm(data)))
 	} else if cout {
 		os.Stdout.Write(m.cout(data))
 	} else if gout {
 		os.Stdout.Write(m.gout(data))
+	} else if runfile != "" {
+		runWagon(m.wasm(data), flag.Args())
 	} else {
 		os.Stdout.Write(m.wasm(data))
 	}
@@ -105,21 +118,21 @@ func run(r io.Reader) (module, []c) {
 				err("parse function name")
 			}
 		case sRety:
-			if f.t == 0 {
-				if b == '{' {
-					if f.name == "M" {
-						state = sData
-					}
-					state = sBody // macro
-					continue
-				}
-				f.t = typs[b]
-				if f.t == 0 {
-					err("parse return type")
-				}
-			} else if b == ':' {
+			if b == ':' {
 				state = sArgs
-			} else {
+				continue
+			} else if f.t != 0 {
+				err("parse return type")
+			}
+			if b == '{' && f.t == 0 {
+				if f.name == "M" {
+					state = sData
+				}
+				state = sBody // macro
+				continue
+			}
+			f.t = typs[b]
+			if f.t == 0 && b != '0' {
 				err("parse return type")
 			}
 		case sArgs:
@@ -196,8 +209,9 @@ func (m module) compile() (r module) {
 		if x || y {
 			panic(f.name + " already defined")
 		}
-		if f.t == 0 {
-			mac[f.name] = f.Bytes()
+		if f.args == 0 {
+			b := f.Bytes()
+			mac[f.name] = b[:len(b)-1] // strip '}'
 		} else {
 			r = append(r, f)
 			n := len(r) - 1
@@ -240,7 +254,9 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse func
 		return p.xerr(x, s)
 	}
 	if t := e.rt(); t != p.fn.t {
-		return p.err(sf("return type is %s not %s", t, p.fn.t))
+		if !(t == 0 && p.fn.t == 255) {
+			return p.err(sf("return type is %s not %s", t, p.fn.t))
+		}
 	}
 	return e
 }
@@ -491,8 +507,7 @@ func (p *parser) noun() expr {
 		return p.pTyp(p.tok)
 	case p.t(sSym):
 		if mc, o := p.mac[s(p.tok)]; o { // macro-expansion
-			p.b = catb(p.b[:p.p-len(p.tok)], mc, p.b[p.p:])
-			p.p -= len(p.tok)
+			p.b = append(mc, p.b...)
 			return p.noun()
 		}
 		return p.pSym(p.tok)
@@ -908,7 +923,6 @@ func (s seq) rt() T         { return s.argv[len(s.argv)-1].rt() }
 func (s seq) valid() s { // all but the last expressions in a sequence must have no return type
 	for i, e := range s.argv {
 		if t := e.rt(); i < len(s.argv)-1 && t != 0 {
-			fmt.Printf("seq:(%d) %#v\n", len(s.argv), s.argv)
 			return sf("statement %d/%d has nonzero type %s: %#v", i+1, len(s.argv), t, e)
 		}
 	}
@@ -959,7 +973,11 @@ func (v cnd) cstr() (r s) {
 	return r + ":" + cstring(a[len(a)-1])
 }
 func (v cnd) gstr() (r s) {
-	r = "func()" + styp[v.rt()] + "{"
+	if t := v.rt(); t == 0 {
+		r = "func(){"
+	} else {
+		r = "func()" + styp[t] + "{"
+	}
 	s, a := "", v.argv
 	for i := 0; i < len(a)-1; i += 2 {
 		if i > 0 {
@@ -1453,6 +1471,9 @@ func (f fn) sig() (r []c) {
 	for i := 0; i < f.args; i++ {
 		r = append(r, c(f.locl[i]))
 	}
+	if f.t == 0 {
+		return append(r, 0)
+	}
 	r = append(r, 1)
 	r = append(r, c(f.t))
 	return r
@@ -1556,7 +1577,11 @@ func (m module) cout(data []c) []c {
 				loc += sf("%s x%d=0;", styp[t], i)
 			}
 		}
-		fmt.Fprintf(&b, "%s %s(%s){%s", styp[f.t], f.name, sig, loc)
+		st := styp[f.t]
+		if f.t == 0 {
+			st = "void "
+		}
+		fmt.Fprintf(&b, "%s %s(%s){%s", st, f.name, sig, loc)
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq.argv {
 				nl := ""
