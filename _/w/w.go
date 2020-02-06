@@ -323,7 +323,7 @@ func (p *parser) t(f func([]c) int) bool { // test
 func (p *parser) seq(term c) expr {
 	var seq seq
 	seq.pos = pos(p.p)
-	sempos := -1
+	sempos := p.p
 	for {
 		e := p.ex(p.noun())
 		if e != nil {
@@ -340,6 +340,7 @@ func (p *parser) seq(term c) expr {
 				p.err("expected ;")
 			} else {
 				if p.p == sempos { // empty statement (for jump table)
+
 					seq.argv = append(seq.argv, nop{})
 				}
 				sempos = p.p
@@ -1040,7 +1041,7 @@ func (v cmp) gstr() s  { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
 func (v con) rt() T    { return v.t }
 func (v con) valid() s { return ifex(v.t == 0, "constant has zero type") }
 func (v con) bytes() (r []c) {
-	r = append([]c{0x41}, leb(int(v.i))...)
+	r = append([]c{0x41}, lebs(int(v.i))...)
 	if v.t == J {
 		r[0]++
 	} else if v.t == F {
@@ -1200,35 +1201,20 @@ func (v swc) valid() s {
 	}
 	return ""
 }
-func (v swc) count() (r int) {
-	for _, e := range v.argv[1:] {
-		if _, o := e.(nop); !o {
-			r++
-		}
-	}
-	return r
-}
-func (v swc) short() (r argv) {
-	for _, e := range v.argv[1:] {
-		if _, o := e.(nop); !o {
-			r = append(r, e)
-		}
-	}
-	return r
-}
 func (v swc) bytes() (r []c) { // (block(block(... x br_table 0..n) argv[i];break)...)
-	// fmt.Fprintf(os.Stderr, "%#v\n", v)
-	n := v.count()
-	short := v.short()
+	//fmt.Fprintf(os.Stderr, "%#v\n", v)
+	n := len(v.argv) - 1
 	r = catb(bytes.Repeat([]c{0x02, 0x40}, n+1), v.x().bytes(), []c{0x0e}, leb(n-1))
-	for i := 0; i < len(v.argv)-1; i++ {
-		if _, o := v.argv[1+i].(nop); !o {
-			r = append(r, leb(i)...)
-		}
+	for i := 0; i < n; i++ {
+		r = append(r, leb(i)...)
 	}
 	r = append(r, 0x0b)
-	for i, a := range short {
-		r = catb(r, a.bytes(), []c{0x0c}, leb(n-1-i), []c{0x0b})
+	for i, a := range v.argv[1:] {
+		if _, o := a.(nop); o {
+			r = catb(r, []c{0x0c}, leb(n-2-i), []c{0x0b})
+		} else {
+			r = catb(r, a.bytes(), []c{0x0c}, leb(n-1-i), []c{0x0b})
+		}
 	}
 	return r
 }
@@ -1536,12 +1522,7 @@ func (f fn) locs() (r []c) {
 	}
 	return r
 }
-func leb(v int) []c {
-	if v < 0 {
-		return lebs(v)
-	}
-	return lebu(v)
-}
+func leb(v int) []c { return lebu(v) }
 func lebu(v int) []c { // encode unsigned leb128
 	if v < 0 {
 		panic("lebu")
