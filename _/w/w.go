@@ -323,6 +323,7 @@ func (p *parser) t(f func([]c) int) bool { // test
 func (p *parser) seq(term c) expr {
 	var seq seq
 	seq.pos = pos(p.p)
+	sempos := -1
 	for {
 		e := p.ex(p.noun())
 		if e != nil {
@@ -338,6 +339,10 @@ func (p *parser) seq(term c) expr {
 			} else if p.b[0] != ';' {
 				p.err("expected ;")
 			} else {
+				if p.p == sempos { // empty statement (for jump table)
+					seq.argv = append(seq.argv, nop{})
+				}
+				sempos = p.p
 				p.b = p.b[1:]
 			}
 		}
@@ -852,6 +857,7 @@ type asn struct { // assignments :(local) ::(memory) +:(modified local)
 	opx
 	t T // C(::')
 }
+type nop struct{}
 type pos int // src position
 type indicator interface {
 	indicate() int
@@ -1194,14 +1200,34 @@ func (v swc) valid() s {
 	}
 	return ""
 }
+func (v swc) count() (r int) {
+	for _, e := range v.argv[1:] {
+		if _, o := e.(nop); !o {
+			r++
+		}
+	}
+	return r
+}
+func (v swc) short() (r argv) {
+	for _, e := range v.argv[1:] {
+		if _, o := e.(nop); !o {
+			r = append(r, e)
+		}
+	}
+	return r
+}
 func (v swc) bytes() (r []c) { // (block(block(... x br_table 0..n) argv[i];break)...)
-	n := len(v.argv) - 1
+	// fmt.Fprintf(os.Stderr, "%#v\n", v)
+	n := v.count()
+	short := v.short()
 	r = catb(bytes.Repeat([]c{0x02, 0x40}, n+1), v.x().bytes(), []c{0x0e}, leb(n-1))
-	for i := 0; i < n; i++ {
-		r = append(r, leb(i)...)
+	for i := 0; i < len(v.argv)-1; i++ {
+		if _, o := v.argv[1+i].(nop); !o {
+			r = append(r, leb(i)...)
+		}
 	}
 	r = append(r, 0x0b)
-	for i, a := range v.argv[1:] {
+	for i, a := range short {
 		r = catb(r, a.bytes(), []c{0x0c}, leb(n-1-i), []c{0x0b})
 	}
 	return r
@@ -1209,14 +1235,18 @@ func (v swc) bytes() (r []c) { // (block(block(... x br_table 0..n) argv[i];brea
 func (v swc) cstr() (r s) {
 	r = jn("switch(", cstring(v.x()), "){")
 	for i, a := range v.argv[1 : len(v.argv)-1] {
-		r += sf("case %d:%s;break;", i, cstring(a))
+		if _, o := a.(nop); !o {
+			r += sf("case %d:%s;break;", i, cstring(a))
+		}
 	}
 	return r + sf("default:%s;}", cstring(v.argv[len(v.argv)-1]))
 }
 func (v swc) gstr() (r s) {
 	r = jn("switch ", gstring(v.x()), "{")
 	for i, a := range v.argv[1 : len(v.argv)-1] {
-		r += sf("case %d:%s;", i, gstring(a))
+		if _, o := a.(nop); !o {
+			r += sf("case %d:%s;", i, gstring(a))
+		}
 	}
 	return r + sf("default:%s;}", gstring(v.argv[len(v.argv)-1]))
 }
@@ -1290,7 +1320,13 @@ func (v opx) gstr() s     { return `panic("trap")` }
 func (v pos) rt() T       { return 0 }
 func (v pos) valid() s    { return "position(dummy expr)" }
 func (v pos) bytes() []c  { return nil }
-func locstr(v expr) s     { return sf("x%d", v.(loc).i) }
+func (v nop) rt() T       { return 0 }
+func (v nop) valid() s    { return "" }
+func (v nop) bytes() []c  { return nil }
+func (v nop) cstr() s     { return "()" }
+func (v nop) gstr() s     { return "()" }
+
+func locstr(v expr) s { return sf("x%d", v.(loc).i) }
 func isexpr(x expr) bool { // general expr that needs an explicit assignment
 	switch x.(type) {
 	case las:
