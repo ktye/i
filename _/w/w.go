@@ -941,6 +941,42 @@ func (s seq) bytes() (r []c) {
 	}
 	return r
 }
+func (s seq) cstr() (r s) {
+	t := s.rt()
+	if t != 0 {
+		r = "("
+		for i, a := range s.argv {
+			r += cstring(a)
+			if i < len(s.argv)-1 {
+				r += ","
+			}
+		}
+		return r + ")"
+	}
+	for _, a := range s.argv {
+		r += cstring(a) + ";"
+	}
+	return r
+}
+func (s seq) gstr() (r s) {
+	t := s.rt()
+	if t != 0 {
+		r = "func()" + styp[t] + "{"
+	}
+	for i, a := range s.argv {
+		if i == len(s.argv) && t != 0 {
+			r += "return "
+		}
+		r += gstring(a)
+		if i < len(s.argv)-1 {
+			r += ";"
+		}
+	}
+	if t != 0 {
+		r += "}()"
+	}
+	return r
+}
 func (v cnd) rt() T { return v.argv[len(v.argv)-1].rt() }
 func (v cnd) valid() s {
 	n := len(v.argv)
@@ -1149,8 +1185,8 @@ func (v lod) bytes() (r []c) {
 	al := alin[v.t]
 	return append(v.x().bytes(), []c{op, al, 0}...)
 }
-func (v lod) cstr() s { return jn("*(*", styp[v.t], ")M[", cstring(v.x()), "]") }
-func (v lod) gstr() s { return jn("M.", styp[v.t], "[", cstring(v.x()), gmemshift(v.t), "]") }
+func (v lod) cstr() s { return jn("M", styp[v.t], "[", cstring(v.x()), gmemshift(v.t), "]") }
+func (v lod) gstr() s { return jn("M.", styp[v.t], "[", gstring(v.x()), gmemshift(v.t), "]") }
 func (v sto) rt() T   { return 0 }
 func (v sto) valid() s {
 	if yt := v.y().rt(); yt == 0 || (v.t == C && yt != I) {
@@ -1166,10 +1202,10 @@ func (v sto) bytes() (r []c) {
 	return catb(v.x().bytes(), v.y().bytes(), []c{op, al, 0})
 }
 func (v sto) cstr() s {
-	return jn("(", styp[v.t], "*)(M[", cstring(v.y()), "]))=(", styp[v.t], ")", cstring(v.y()))
+	return jn("M", styp[v.t], "[", cstring(v.x()), gmemshift(v.t), "]=(", styp[v.t], ")", cstring(v.y()), ";")
 }
 func (v sto) gstr() s {
-	return jn("M.", styp[v.t], "[", gstring(v.y()), gmemshift(v.t), "]=", styp[v.t], "(", gstring(v.y()), ")")
+	return jn("M.", styp[v.t], "[", gstring(v.x()), gmemshift(v.t), "]=", styp[v.t], "(", gstring(v.y()), ")")
 }
 func (v ret) rt() T      { return 0 /*v.x().rt()*/ }
 func (v ret) valid() s   { return ifex(v.x().rt() == 0, "return zero type") }
@@ -1330,10 +1366,10 @@ func ifex(c bool, s s) s {
 }
 func gmemshift(t T) s {
 	shift := ""
-	if t == I || t == J {
-		shift = "<<2"
+	if t == I {
+		shift = ">>2"
 	} else if t == J || t == F {
-		shift = "<<3"
+		shift = ">>3"
 	}
 	return shift
 }
@@ -1579,6 +1615,21 @@ func (m module) cout(data []c) []c {
 	var b bytes.Buffer
 	b.WriteString(chead)
 	for _, f := range m {
+		st := styp[f.t]
+		if f.t == 0 {
+			st = "void "
+		}
+		sig := ""
+		for i := 0; i < f.args; i++ {
+			if i > 0 {
+				sig += ","
+			}
+			sig += styp[f.locl[i]]
+		}
+		fmt.Fprintf(&b, "%s %s(%s);", st, f.name, sig)
+	}
+	fmt.Fprintf(&b, "\n")
+	for _, f := range m {
 		sig, loc := "", ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {
@@ -1603,14 +1654,18 @@ func (m module) cout(data []c) []c {
 			for i, e := range sq.argv {
 				nl := ""
 				if i == len(sq.argv)-1 {
-					b.WriteString("R ")
+					if f.t != 0 {
+						b.WriteString("R ")
+					}
 					nl = "}\n"
 				}
 				b.WriteString(cstring(e))
 				b.WriteString(";" + nl)
 			}
 		} else {
-			b.WriteString("R ")
+			if f.t != 0 {
+				b.WriteString("R ")
+			}
 			b.WriteString(cstring(f.ast))
 			b.WriteString(";}\n")
 		}

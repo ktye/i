@@ -50,6 +50,7 @@ func TestB(t *testing.T) {
 			t.Fatalf("%d: expected/got:\n%s\n%s", n+1, s, b)
 		}
 		fmt.Println(b)
+		ctest(t, tc.sig, tc.b)
 	}
 }
 func TestRun(t *testing.T) {
@@ -60,7 +61,15 @@ func TestRun(t *testing.T) {
 		t.Fatalf("expected/got\n%s\n%s\n", e, g)
 	}
 }
-
+func ctest(t *testing.T, sig, b s) {
+	b = jn("f:", sig, "{", b, "}")
+	m, data := run(strings.NewReader(b))
+	out := m.cout(data)
+	if len(out) == 0 {
+		t.Fatal("no output")
+	}
+	//fmt.Println(string(out))
+}
 func hex(a []c) []c {
 	var r bytes.Buffer
 	for _, b := range a {

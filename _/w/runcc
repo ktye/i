@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ "$1" = "fmt" ]; then
+	(cat k_c; w.exe -c < ../../k.w; cat k_t) > xx.c
+	/c/local/LLVM/bin/clang-format.exe xx.c > xxx.c
+else
+	(cat k_c; w.exe -c < ../../k.w; cat k_t) | /c/local/tcc/tcc -run - $*
+fi

@@ -1,0 +1,71 @@
+I pop1(I *s, I n, I *x) {
+	*x = s[n-1];
+	return n-1;
+}
+I pop2(I *s, I n, I *x, I *y) {
+	*x = s[n-2];
+	*y = s[n-1];
+	return n-2;
+}
+I push(I *s, I n, I x) {
+	s[n] = x;
+	return n+1;
+}
+I f1(I (*f)(I), I *s, I n) {
+	printf("%d: ", s[n-1]);
+	s[n-1] = f(s[n-1]);
+	printf("%d\n", s[n-1]);
+	return n;
+}
+I Number(char *s) {
+	R strtol(s, (char **)NULL, 10);
+}
+I Match(char *a, char *b) {
+	for (I i=0; ;i++) {
+		if (a[i] != b[i]) return 0;
+		if (a[i] == 0)    return 1;
+	}
+}
+I Dump(I *s, I n) {
+	I x = s[n-2];
+	I y = s[n-1];
+	I p = 0;
+	printf("\n%08x  ", x);
+	for (I i=x; i<x+y; i++) {
+		printf("%02x", (uint8_t)MC[i]);
+		p++;
+		if ((i > x) && (p%32 == 0)) {
+			printf("\n%08x  ", i+1);
+		} else if ((i > x) && (p%4 == 0)) {
+			printf(" ");
+		}
+	}
+	return n-2;
+}
+I main(int args, char **argv){
+	MC=malloc(64*1024);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
+	I stack[32];
+	I i, n = 0;
+	I x, y, r;
+	char *a;
+	ini(16);
+	
+	for (i=1; i<args; i++) {
+		a = argv[i];
+		if (a[0] >= '0' && a[0] <= '9') {
+			n = push(stack, n, Number(a));
+			continue;
+		}
+		printf("%s ", argv[i]);
+		if (Match("mki", a)) {
+			n = f1(mki, stack, n);
+		} else if (Match("til", a)) {
+			n = f1(til, stack, n);
+		} else if (Match("dump", a)) {
+			n = Dump(stack, n);
+		} else {
+			printf("arg!");
+			trap();
+		}
+	}
+}

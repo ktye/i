@@ -5,7 +5,7 @@ mki:I:I{r:2 mk 1;(r+4)::1;(r+8)::x;r}
 decr:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{decr x;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x;(4~xt)?xp:16+x}
 til:I:I{v1;(~2~xt)?!;r:xt mk n:I xp;rp:8+r;n/(rp::i;rp+:4);dxr}
-fst:I:I{v1;(~xt)?:x;(7~xt)?:x;r:xt mk 1;xt?[!;(r+8)::C xp;;(r+8)::J xp;((r+8)::J xp;(r+16)::J xp+8);;;!;(r+8)::I xp];dxr}
+/fst:I:I{v1;(~xt)?:x;(7~xt)?:x;r:xt mk 1;xt?[!;(r+8)::C xp;;(r+8)::J xp;((r+8)::J xp;(r+16)::J xp+8);;;!;(r+8)::I xp];dxr}
 
 \
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)

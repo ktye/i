@@ -1,9 +1,11 @@
 // tcc
+#include<stdlib.h>
+#include<stdio.h>
 #include<stddef.h>
 #include<malloc.h>
 #include<math.h>
 #define R return
-typedef int32_t I;typedef int64_t J;typedef double F;
+typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t uI;typedef uint64_t uJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
-#include "k.h"
-I main(){}
+void trap() { exit(1); }
+char *MC;I* MI;J* MJ;F *MF;
