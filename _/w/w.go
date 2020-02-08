@@ -1043,6 +1043,7 @@ func (v v2) valid() s {
 	if tx, ty := v.x().rt(), v.y().rt(); tx == 0 {
 		return sf("left argument has zero type")
 	} else if ty == 0 {
+		fmt.Fprintf(os.Stderr, "%#v\n", v)
 		return sf("right argument has zero type")
 	} else if tx != ty {
 		return sf("types mismatch %s %s", tx, ty)
