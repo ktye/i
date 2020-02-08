@@ -251,6 +251,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse func
 	e := p.seq('}')
 	e = p.locals(e, 0)
 	if x, s := p.validate(e); x != nil {
+		println(f.name)
 		return p.xerr(x, s)
 	}
 	if t := e.rt(); t != p.fn.t {
@@ -331,16 +332,15 @@ func (p *parser) seq(term c) expr {
 		} else {
 			p.w()
 			if len(p.b) == 0 {
-				p.err("missing " + s(term))
+				p.xerr(seq, "missing "+s(term))
 			}
 			if p.b[0] == term {
 				p.b = p.b[1:]
 				break
 			} else if p.b[0] != ';' {
-				p.err("expected ;")
+				p.xerr(seq, "expected ;")
 			} else {
 				if p.p == sempos { // empty statement (for jump table)
-
 					seq.argv = append(seq.argv, nop{})
 				}
 				sempos = p.p
@@ -415,9 +415,8 @@ func (p *parser) monadic(f, x expr, h pos) expr {
 			return brif{argv: argv{x}, pos: h}
 		}
 		return v1{s: s(v), argv: argv{x}, pos: h}
-	case cal:
-		v.argv = argv{x}
-		return v
+	case fun:
+		return cal{fun: v, argv: argv{x}}
 	case asn:
 		return ret{argv: argv{x}, pos: h}
 	default:
@@ -434,10 +433,10 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 				y = p.dyadic(opx(v.opx), x, y, h)
 			}
 
-			a := las{tee: 1}
+			a := las{tee: 1, pos: h}
 			xv, o := x.(loc)
 			if o == false {
-				return p.xerr(x, "assignment expects a symbol on the left")
+				return p.xerr(a, "assignment expects a symbol on the left")
 			}
 			if n, o := p.fn.lmap[xv.s]; o == false {
 				xv.i = len(p.fn.lmap)
@@ -476,9 +475,8 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			}
 		}
 		return p.err("unknown operator(" + s(v) + ")")
-	case cal:
-		v.argv = argv{x, y}
-		return v
+	case fun:
+		return cal{fun: v, argv: argv{x, y}}
 	default:
 		panic("nyi")
 	}
@@ -496,7 +494,7 @@ func untee(x expr) expr {
 }
 func (p *parser) verb(v expr) bool {
 	switch v.(type) {
-	case opx, nlp, asn, cal: // todo: others
+	case opx, nlp, asn, fun: // todo: others
 		return true
 	}
 	return false
@@ -557,6 +555,7 @@ func (p *parser) locals(e expr, lv int) expr {
 		}
 		yt := l.argv[1].rt()
 		if yt == 0 {
+			fmt.Fprintf(os.Stderr, "%#v\n", l)
 			return p.xerr(e, "cannot assign zero type")
 		}
 		if x.t == 0 {
@@ -672,7 +671,7 @@ func sSym(b []c) int { // [aZ][a9]*
 }
 func (p *parser) pSym(b []c) expr {
 	if n, o := p.fns[s(b)]; o {
-		return cal{s: s(b), n: n, sig: p.fsg[n], pos: pos(p.p)}
+		return fun{s: s(b), n: n, sig: p.fsg[n], pos: pos(p.p)}
 	}
 	return loc{pos: pos(p.p), s: s(b), i: -1}
 }
@@ -797,13 +796,16 @@ type cvt struct { // J? convert
 	t    T
 	sign int
 }
-type cal struct { // f x (call)
+type fun struct { // f
 	pos
-	argv
 	s     s
 	n     int
 	sig   sig
 	indir bool
+}
+type cal struct { // f x
+	fun
+	argv
 }
 type loc struct { // local get
 	pos
@@ -812,7 +814,7 @@ type loc struct { // local get
 	i int
 }
 type las struct { // local set
-	// loc
+	pos
 	argv
 	tee c // 01
 }
@@ -954,7 +956,7 @@ func (s seq) cstr() (r s) {
 		return r + ")"
 	}
 	for _, a := range s.argv {
-		r += cstring(a) + ";"
+		r += cstring(a)
 	}
 	return r
 }
@@ -1114,14 +1116,17 @@ func (v cvt) gstr() s    { return jn(styp[v.t], "(", gstring(v.x()), ")") } // t
 func (v typ) rt() T      { return 0 }
 func (v typ) valid() s   { return "illegal type" }
 func (v typ) bytes() []c { return nil }
+func (v fun) rt() T      { return 0 }
+func (v fun) valid() s   { return "unapplied func " + v.s }
+func (v fun) bytes() []c { return nil }
 func (v cal) rt() T      { return v.sig.t }
 func (v cal) valid() s {
 	if len(v.sig.a) != len(v.argv) {
-		return sf("func has wrong argn: %d", len(v.argv))
+		return sf("func %s has wrong argn: %d", v.s, len(v.argv))
 	}
 	for i, a := range v.argv {
 		if a.rt() != v.sig.a[i] {
-			return sf("func arg %d has wrong type", i+1)
+			return sf("func %s arg %d has wrong type", v.s, i+1)
 		}
 	}
 	return ""
@@ -1133,11 +1138,14 @@ func (v cal) bytes() (r []c) {
 	return append(append(r, 0x10), leb(v.n)...)
 }
 func (v cal) cstr() s {
-	av := make([]s, len(v.argv))
+	av, s := make([]s, len(v.argv)), ""
 	for i, a := range v.argv {
 		av[i] = cstring(a)
 	}
-	return jn(v.s, "(", strings.Join(av, ","), ")")
+	if v.sig.t == 0 {
+		s = ";"
+	}
+	return jn(v.s, "(", strings.Join(av, ","), ")", s)
 }
 func (v cal) gstr() s {
 	av := make([]s, len(v.argv))
@@ -1159,7 +1167,14 @@ func (v las) valid() s {
 func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21 + v.tee}, leb(v.x().(loc).i)...)...)
 }
-func (v las) cstr() s { return jn("(", locstr(v.x()), "=", cstring(v.y()), ")", s(59-27*v.tee)) }
+func (v las) cstr() (r s) {
+	r = jn(locstr(v.x()), "=", cstring(v.y()))
+	if v.tee != 0 {
+		return "(" + r + ")"
+	} else {
+		return r + ";"
+	}
+}
 func (v las) gstr() s {
 	if v.tee > 0 {
 		return jn("as", styp[v.rt()], "(&", locstr(v.x()), ",", gstring(v.y()), ")")
@@ -1258,10 +1273,10 @@ func (v swc) cstr() (r s) {
 	r = jn("switch(", cstring(v.x()), "){")
 	for i, a := range v.argv[1 : len(v.argv)-1] {
 		if _, o := a.(nop); !o {
-			r += sf("case %d:%s;break;", i, cstring(a))
+			r += sf("case %d:%sbreak;", i, cstring(a))
 		}
 	}
-	return r + sf("default:%s;}", cstring(v.argv[len(v.argv)-1]))
+	return r + sf("default:%s}", cstring(v.argv[len(v.argv)-1]))
 }
 func (v swc) gstr() (r s) {
 	r = jn("switch ", gstring(v.x()), "{")
@@ -1657,10 +1672,10 @@ func (m module) cout(data []c) []c {
 					if f.t != 0 {
 						b.WriteString("R ")
 					}
-					nl = "}\n"
+					nl = ";}\n"
 				}
 				b.WriteString(cstring(e))
-				b.WriteString(";" + nl)
+				b.WriteString(nl)
 			}
 		} else {
 			if f.t != 0 {
