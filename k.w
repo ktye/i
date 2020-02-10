@@ -13,6 +13,9 @@ sumi:I:II{y/r+:I x+1;r}
 wer:I:I{v1;(~2~xt)?!;xn/(0>'I xp+i)?!;r:2 mk xn sumi 8+xp;rp:8+r;xn/(I xp)/(rp::i;rp+:4);dxr}
 enl:I:I{v1;r:1 mk 6;(8+r)::x;r}
 neg:I:I{v1;xt?[!;!;;;;!; :45 lrc x; :45 drc x;r:xt mk xn];decr x;(2~xt)?(rp:r+8;xn/(rp::0-I xp;rp+:4;xp+:4); :r);(4~xt)?(xt:3;xn*:2);rp:8+r;xn/(rp::-F xp;rp+:4;xp+:4);r}
+unq:I:I{v1;xt?[!;;;;;;;!;r:xt mk 0];rn:0;xn/(~rn~fnd xi:i ati x)?(rn+:1;r:r cat xi);(xt~6)?lnc r;dxr}
+ati:I:I{v1;r:xt mk 1;rp:8+r;xt?[!;rp::C xp;;rp::J xp;(rp::J xp;(8+rp):J xp+8);;!;rp::I xp];(6~xt)?(rp::inc rp);r}
+fnd:I:I{v2;xt?[!;;;;;;;!;r:2 mk yn...
 
 \
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
