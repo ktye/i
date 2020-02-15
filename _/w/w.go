@@ -18,8 +18,9 @@ import (
 type c = byte
 type s = string
 type T c
-type fn struct { // name:I:IIF{body}
+type fn struct { // name:I:IIF{body} or name.I:IIF{..} (unexported)
 	name s
+	ex   bool
 	src  [2]int // line, col
 	t    T      // return type
 	args int
@@ -112,8 +113,11 @@ func run(r io.Reader) (module, []c) {
 				state = sCmnt
 			} else if craZ(b) || (len(f.name) > 0 && cr09(b)) {
 				f.name += s(b)
+			} else if b == '.' {
+				state = sRety
 			} else if b == ':' {
 				state = sRety
+				f.ex = true
 			} else {
 				err("parse function name")
 			}
@@ -1502,12 +1506,13 @@ func (m module) wasm(data []c) []c {
 	// no global section(6)
 	// export section(7)
 	sec = NewSection(7)
-	sec.cat(leb(len(m))) // number of exports (all)
-	for i, f := range m {
+	idx, exp := m.exports()
+	sec.cat(leb(len(exp))) // number of exports
+	for i, f := range exp {
 		sec.cat(leb(len(f.name)))
 		sec.cat([]c(f.name))
 		sec.cat1(0) // function-export
-		sec.cat(leb(i))
+		sec.cat(leb(idx[i]))
 	}
 	sec.out(o)
 	// no start section(8)
@@ -1523,6 +1528,15 @@ func (m module) wasm(data []c) []c {
 	sec.out(o)
 	// no data section(11)
 	return o.Bytes()
+}
+func (m module) exports() (idx []int, fns []fn) {
+	for i, f := range m {
+		if f.ex {
+			idx = append(idx, i)
+			fns = append(fns, f)
+		}
+	}
+	return idx, fns
 }
 
 type section struct {
