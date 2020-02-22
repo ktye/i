@@ -15,7 +15,6 @@
 # no preference    apl style x*a+b, but lhs is evaluted first: x a b + *
 # arguments        x,y,z,x3,x4,.. are typed in the function declaration f:R:XYZ..
 # locals           are detected at evaluation order (type is derived) r:x+y
-# x+a:x+y          a:assigns and returns (tee_local), not within a sequence (a:x+y;..)
 # memory/heap      C x;I x;J x;F x (get from addr x)  x::y (set addr x to y)
 # a;b;c            sequence c(last) returns a typed value all others must return null
 # x?y              if x then y

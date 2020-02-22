@@ -352,14 +352,6 @@ func (p *parser) seq(term c) expr {
 			}
 		}
 	}
-	if len(seq.argv) > 1 { // suppress assignment expressions
-		for i, e := range seq.argv[:len(seq.argv)-1] {
-			if v, o := e.(las); o {
-				v.tee = 0
-				seq.argv[i] = v
-			}
-		}
-	}
 	if seq.argv == nil {
 		return nil // empty?
 	} else if len(seq.argv) == 1 {
@@ -437,7 +429,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 				y = p.dyadic(opx(v.opx), x, y, h)
 			}
 
-			a := las{tee: 1, pos: h}
+			a := las{pos: h}
 			xv, o := x.(loc)
 			if o == false {
 				return p.xerr(a, "assignment expects a symbol on the left")
@@ -454,9 +446,9 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 		}
 	case nlp:
 		if a, o := x.(con); o && a.t == I && a.i == 1 { // 1/
-			return whl{pos: h, argv: argv{x, untee(y)}}
+			return whl{pos: h, argv: argv{x, y}}
 		}
-		return nlp{pos: h, argv: argv{x, untee(y)}}
+		return nlp{pos: h, argv: argv{x, y}}
 	case opx:
 		if _, o := v2Tab[s(v)]; o {
 			return v2{s: s(v), argv: argv{x, y}, pos: h}
@@ -473,9 +465,9 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 				return cvt{t: xt.t, argv: argv{y}, pos: h, sign: sn}
 			}
 			if s(v) == "?" {
-				return iff{argv: argv{x, untee(y)}, pos: h}
+				return iff{argv: argv{x, y}, pos: h}
 			} else {
-				return whl{argv: argv{x, untee(y)}, pos: h}
+				return whl{argv: argv{x, y}, pos: h}
 			}
 		}
 		return p.err("unknown operator(" + s(v) + ")")
@@ -484,17 +476,6 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 	default:
 		panic("nyi")
 	}
-}
-func untee(x expr) expr {
-	switch v := x.(type) {
-	case las:
-		v.tee = 0
-		return v
-	case seq:
-		v.argv[len(v.argv)-1] = untee(v.argv[len(v.argv)-1])
-		return v
-	}
-	return x
 }
 func (p *parser) verb(v expr) bool {
 	switch v.(type) {
@@ -537,7 +518,7 @@ func (p *parser) noun() expr {
 			return asn{opx(""), 0}
 		} else if s(e.(opx)) == "?" && len(p.b) > 0 && p.b[0] == '[' {
 			p.t(sC('['))
-			s := untee(p.seq(']').(seq)).(seq)
+			s := p.seq(']').(seq)
 			return swc{argv: s.argv} // ?[a;b;..] (jump)
 		}
 		return e
@@ -820,7 +801,6 @@ type loc struct { // local get
 type las struct { // local set
 	pos
 	argv
-	tee c // 01
 }
 type sto struct { // x::y x::'y (C)
 	pos
@@ -1164,28 +1144,16 @@ func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, leb(v.i)...) }
 func (v loc) cstr() s    { return locstr(v) }
 func (v loc) gstr() s    { return locstr(v) }
-func (v las) rt() T      { return T(v.tee) * v.y().rt() }
+func (v las) rt() T      { return 0 }
 func (v las) valid() s {
 	tx, ty := v.x().rt(), v.y().rt()
 	return ifex(tx == 0 || tx != ty, sf("assignment with mismatched types %s %s", tx, ty))
 }
 func (v las) bytes() []c {
-	return append(v.y().bytes(), append([]c{0x21 + v.tee}, leb(v.x().(loc).i)...)...)
+	return append(v.y().bytes(), append([]c{0x21}, leb(v.x().(loc).i)...)...)
 }
-func (v las) cstr() (r s) {
-	r = jn(locstr(v.x()), "=", cstring(v.y()))
-	if v.tee != 0 {
-		return "(" + r + ")"
-	} else {
-		return r + ";"
-	}
-}
-func (v las) gstr() s {
-	if v.tee > 0 {
-		return jn("as", styp[v.rt()], "(&", locstr(v.x()), ",", gstring(v.y()), ")")
-	}
-	return jn(locstr(v.x()), "=", s(v.y().bytes()), ";")
-}
+func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
+func (v las) gstr() s     { return jn(locstr(v.x()), "=", s(v.y().bytes()), ";") }
 func (v lod) rt() T {
 	if v.t == C {
 		return I
