@@ -1200,25 +1200,37 @@ func (v adr) bytes() (r []c) {
 	}
 	return r
 }
-func (v adr) cstr() s {
-	p := cstring(v.x())
-	if v.t != C {
-		p = jn(p+">>", string('0'+alin[v.t]))
+func (v adr) cstr() (r s) {
+	x := v.x()
+	if v.t == C {
+		r = cstring(x)
+	} else {
+		if c, o := x.(con); o {
+			r = strconv.Itoa(int(c.i >> alin[v.t]))
+		} else {
+			r = jn("(", cstring(x), ">>", string('0'+alin[v.t]), ")")
+		}
 	}
 	if len(v.argv) == 2 {
-		return jn("M", styp[v.t], "[(", p, ")+", cstring(v.y()), "]")
+		r += "+" + cstring(v.y())
 	}
-	return jn("M", styp[v.t], "[", p, "]")
+	return jn("M", styp[v.t], "[", r, "]")
 }
-func (v adr) gstr() s {
-	p := cstring(v.x())
-	if v.t != C {
-		p = jn(p+">>", string('0'+alin[v.t]))
+func (v adr) gstr() (r s) {
+	x := v.x()
+	if v.t == C {
+		r = gstring(x)
+	} else {
+		if c, o := x.(con); o {
+			r = strconv.Itoa(int(c.i >> alin[v.t]))
+		} else {
+			r = jn("(", gstring(x), ">>", string('0'+alin[v.t]), ")")
+		}
 	}
 	if len(v.argv) == 2 {
-		return jn("M", styp[v.t], "[", p, gstring(v.y()), "]")
+		r += "+" + gstring(v.y())
 	}
-	return jn("M", styp[v.t], "[", p, "+", gstring(v.y()), "]")
+	return jn("M", styp[v.t], "[", r, "]")
 }
 func (v lod) rt() T {
 	if v.t == C {

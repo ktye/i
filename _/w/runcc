@@ -1,7 +1,7 @@
 #!/bin/sh
 if [ "$1" = "fmt" ]; then
-	/c/local/LLVM/bin/clang-format.exe k_c > xx_c
+	/local/LLVM/bin/clang-format.exe k_c > xx_c
 else
 	# go test (generate k_c)
-	/c/local/tcc/tcc -run k_c $*
+	/local/tcc/tcc -run k_c $*
 fi
