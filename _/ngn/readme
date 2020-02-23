@@ -2,3 +2,7 @@
 
 # e.g. on windows with msys2 where cc is gcc:
 cc k.c
+
+# or with tcc (wip)
+# sed 's/\$/IF/g' k.c | tcc -
+# <stdin>:749: error division by zero in constant
