@@ -3,13 +3,32 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"strconv"
+	"testing"
 
 	"github.com/go-interpreter/wagon/exec"
 	"github.com/go-interpreter/wagon/validate"
 	"github.com/go-interpreter/wagon/wasm"
 )
+
+func TestWagon(t *testing.T) {
+	if broken {
+		t.Skip()
+	}
+	args := []string{
+		"0", "200", "dump",
+		"5", "mki",
+		"0", "500", "dump",
+	}
+	b, e := ioutil.ReadFile("../../k.w")
+	if e != nil {
+		t.Fatal(e)
+	}
+	m, data := run(bytes.NewReader(b))
+	runWagon(m.wasm(data), args)
+}
 
 func runWagon(b []byte, args []string) {
 	h := []string{"16", "ini"}

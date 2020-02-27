@@ -7,8 +7,11 @@
 typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t uI;typedef uint64_t uJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 void trap() { exit(1); }
-char *MC;I* MI;J* MJ;F *MF;I ini(I);
-I ini(I x0){I x1=0;I x2=0;MJ[0]=(J)1130366807310592;MI[8]=(I)x0;x1=64;x2=8;while((((uI)x2)<((uI)x0))){MI[(x2>>2)]=(I)x1;MI[(x1>>2)]=(I)x2;x1=((x1)*(2));x2=((x2)+(1));}R x0;}
+char *MC;I* MI;J* MJ;F *MF;I ini(I);I bk(I,I);I mk(I,I);I mki(I);
+I ini(I x0){I x1=0;I x2=0;MJ[0<<3]=(J)1130366807310592;MI[128<<2]=(I)x0;x1=256;x2=8;while((x2<(uI)x0)){MI[(4*x2)<<2]=(I)x1;MI[x1<<2]=(I)x2;x1=(x1*2);x2=(x2+1);}R x0;}
+I bk(I x0,I x1){R (32-(__builtin_clz((7+((x1*((I)MC[x0])))))));}
+I mk(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;x2=bk(x0,x1);x3=(4*x2);while(!(MI[x3<<2])){x3=(x3+4);}if((128==x3))trap();x4=MI[x3<<2];MI[x3<<2]=(I)MI[(4+x4)<<2];x5=(x3-4);while((x5>=(uI)((4*x2)))){x5=(x5-4);x6=(x4+((1<<((x5/(uI)4)))));MI[x6<<2]=(I)MI[x5<<2];MI[x5<<2]=(I)x6;}MI[x4<<2]=(I)(x1|((x0<<29)));MI[(x4+4)<<2]=(I)1;R x4;}
+I mki(I x0){I x1=0;x1=mk(2,1);MI[(x1+4)<<2]=(I)1;MI[(x1+8)<<2]=(I)x0;R x1;}
 // Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
 I pop1(I *s, I n, I *x) {
 	*x = s[n-1];
@@ -76,6 +79,8 @@ I main(int args, char **argv){
 		printf("%s ", argv[i]);
 		if (Match("mki", a)) {
 			n = f1(mki, stack, n);
+		} else if (Match("bk", a)) { n = f2(bk, stack, n);
+		} else if (Match("mk", a)) { n = f2(mk, stack, n);
 		} else if (Match("dump", a)) {
 			n = Dump(stack, n);
 		} else {

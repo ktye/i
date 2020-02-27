@@ -1,8 +1,14 @@
 ini:I:I{0::1130366807310592j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p::i;p*:2;i+:1);x} /x:16(64k)
-mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;i::I 4+a:I i;j:i-4;(j>=4*t)?/(j-:4;u:a+1<<j%4;u::I j;j::u);a::y|x<<29;(a+4)::1;a}
-mki:I:I{r:2 mk 1;(r+4)::1;(r+8)::x;r}mkd:I:II{r:6 mk 1;(8+r)::x;(12+r)::y;decr x;decr y;r}
-fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}bk:I:II{32-*7+y*C x}decr:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{decr x;r}inc:I:I{(x+4)::1+I x+4;x}lnc:0:II{x+:8;y/(x:inc x;x+:4)}
+bk:I:II{32-*7+y*I?C x}
+mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I 4+a;j:i-4;(j>=4*t)?/(j-:4;u:a+1<<j%4;u::I j;j::u);a::y|x<<29;(a+4)::1;a}
+mki:I:I{r:2 mk 1;(r+4)::1;(r+8)::x;r}
+\
+
+mkd:I:II{r:6 mk 1;(8+r)::x;(12+r)::y;decr x;decr y;r}
+fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}decr:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{decr x;r}inc:I:I{(x+4)::1+I x+4;x}lnc:0:II{x+:8;y/(x:inc x;x+:4)}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:d(I y)&536870911;yp:8+y}
+
+\
 lrc:I:II{!;1}drc:I:II{!;1} /nyi
 til:I:I{v1;(~2~xt)?!;r:xt mk n:I xp;rp:8+r;n/(rp::i;rp+:4);dxr}
 fst:I:I{v1;(~xt)? :x;(7~xt)? :x;r:xt mk 1;xt?[;(r+8)::C xp;;(r+8)::J xp;((r+8)::J xp;(r+16)::J xp+8);;;!;(r+8)::I xp];(xt~6)?xn lnc x+8;dxr}
@@ -27,7 +33,6 @@ nd1:{vx:xn>1;vy:yn>1; xn/(rp,i)::(T xp,i*vx) }nd2:{ T yp,i*vy; dxyr }  /vx vy: 0
 p,i → (addr,offset,width)
 e.g. (p,i)::I 144,0
 
-\
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
 Fcifzsld   xt~0(function) x<256(basic) 
 0148x440   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?

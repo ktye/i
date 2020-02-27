@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"os"
 	"strconv"
@@ -51,19 +50,10 @@ var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 func main() {
 	var stdin io.Reader = os.Stdin
 	var html, cout, gout bool
-	var runfile string
 	flag.BoolVar(&html, "html", false, "html output")
 	flag.BoolVar(&cout, "c", false, "c output")
 	flag.BoolVar(&gout, "go", false, "go output")
-	flag.StringVar(&runfile, "r", "", "run file")
 	flag.Parse()
-	if runfile != "" {
-		if f, e := ioutil.ReadFile(runfile); e != nil {
-			panic(e)
-		} else {
-			stdin = bytes.NewReader(f)
-		}
-	}
 	m, data := run(stdin)
 	if html {
 		os.Stdout.Write(page(m.wasm(data)))
@@ -71,8 +61,6 @@ func main() {
 		os.Stdout.Write(m.cout(data))
 	} else if gout {
 		os.Stdout.Write(m.gout(data))
-	} else if runfile != "" {
-		runWagon(m.wasm(data), flag.Args())
 	} else {
 		os.Stdout.Write(m.wasm(data))
 	}
@@ -1049,11 +1037,8 @@ func (v v1) bytes() []c {
 	}
 	return append(v.x().bytes(), getop(v1Tab, v.s, v.rt()))
 }
-func (v v1) cstr() s { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, "(", u, cstring(v.x()), ")") }
-func (v v1) gstr() s {
-	o, u := gop(v1Tab, v.s, v.rt())
-	return jn(o, u, "((", gstring(v.x()), "))")
-}
+func (v v1) cstr() s   { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, u, embrace(cstring, v.x())) }
+func (v v1) gstr() s   { o, u := gop(v1Tab, v.s, v.rt()); return jn(o, u, "(", gstring(v.x()), ")") }
 func (v cmp) rt() T    { return I }
 func (v cmp) valid() s { return v2(v).valid() }
 func (v cmp) bytes() []c {
@@ -1089,6 +1074,10 @@ func (v con) gstr() s  { return v.cstr() }
 func (v cvt) rt() T    { return v.t }
 func (v cvt) valid() s { return ifex(v.t == 0, "convert: illegal target type") }
 func (v cvt) bytes() []c {
+	x := v.x()
+	if xt := x.rt(); xt == v.t || xt == C && v.t == I || xt == I && v.t == C {
+		return x.bytes()
+	}
 	tab := map[T]s{
 		I: "\x00\x00\xa7\xa7\xab\xaa",
 		J: "\xad\xac\x00\x00\xb1\xb0",
@@ -1190,7 +1179,7 @@ func (v sto) cstr() s {
 	return jn(cgadr(cstring(v.x()), v.t), "=(", styp[v.t], ")", cstring(v.y()), ";")
 }
 func (v sto) gstr() s {
-	return jn(cgadr(gstring(v.x()), v.t), "=", styp[v.t], "(", cstring(v.y()), ");")
+	return jn(cgadr(gstring(v.x()), v.t), "=", styp[v.t], embrace(gstring, v.y()), ";")
 }
 func (v ret) rt() T      { return 0 /*v.x().rt()*/ }
 func (v ret) valid() s   { return ifex(v.x().rt() == 0, "return zero type") }
@@ -1360,20 +1349,32 @@ func c2str(tab map[s]code, op s, t T, x, y expr) s {
 	if len(o) > 2 {
 		return jn(u, o, "(", cstring(x), ",", cstring(y), ")")
 	} else {
-		return jn("((", u, cstring(x), ")", o, "(", u, cstring(y), "))")
+		return jn("(", embrace(cstring, x), o, u, embrace(cstring, y), ")")
 	}
 }
 func g2str(tab map[s]code, op s, t T, x, y expr) s {
-	o, u := cop(tab, op, t)
-	u += "("
+	o, u := gop(tab, op, t)
+	uc := ""
+	if u != "" {
+		u, uc = u+"(", ")"
+	}
 	if len(o) > 2 {
-		return jn(u, o, "(", cstring(x), ",", cstring(y), "))")
+		return jn(u, o, "(", cstring(x), ",", cstring(y), ")")
 	} else {
-		return jn("((", u, cstring(x), "))", o, "(", u, cstring(y), ")))")
+		return jn("(", u, cstring(x), uc, o, u, cstring(y), uc, ")")
 	}
 }
 func cstring(x expr) s { xs := x.(cstringer); return xs.cstr() }
 func gstring(x expr) s { xs := x.(gstringer); return xs.gstr() }
+func embrace(sf func(expr) s, x expr) s {
+	_, icon := x.(con)
+	_, iloc := x.(loc)
+	if icon || iloc {
+		return sf(x)
+	} else {
+		return jn("(", sf(x), ")")
+	}
+}
 
 var v1Tab = map[s]code{
 	"-": code{0, 0, 0x9a, "-", "-"},                                                                            // neg (-I -J is replaced)
