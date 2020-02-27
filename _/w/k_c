@@ -7,27 +7,8 @@
 typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t uI;typedef uint64_t uJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 void trap() { exit(1); }
-char *MC;I* MI;J* MJ;F *MF;I ini(I);I mk(I,I);I mki(I);I mkd(I,I);void  fr(I);I bk(I,I);void  decr(I);I inc(I);void  lnc(I,I);I lrc(I,I);I drc(I,I);I til(I);I fst(I);I rev(I);I cnt(I);I tip(I);I sumi(I,I);I wer(I);I enl(I);I neg(I);
-I ini(I x0){I x1=0;I x2=0;MJ[0>>3]=(J)1130366807310592;MI[128>>2]=(I)x0;x1=256;x2=8;while((((uI)x2)<((uI)x0))){MI[((4)*(x2))>>2]=(I)x1;MI[x1>>2]=(I)x2;x1=((x1)*(2));x2=((x2)+(1));}R x0;}
-I mk(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;x2=bk(x0,x1);x3=((4)*(x2));while(!(MI[x3>>2])){x3=((x3)+(4));}if(((128)==(x3)))trap();MI[x3>>2]=(I)MI[((4)+((x4=MI[x3>>2])))>>2];x5=((x3)-(4));while((((uI)x5)>=((uI)((4)*(x2))))){x5=((x5)-(4));x6=((x4)+(((1)<<((((uI)x5)/((uI)4))))));MI[x6>>2]=(I)MI[x5>>2];MI[x5>>2]=(I)x6;}MI[x4>>2]=(I)((x1)|(((x0)<<(29))));MI[((x4)+(4))>>2]=(I)1;R x4;}
-I mki(I x0){I x1=0;x1=mk(2,1);MI[((x1)+(4))>>2]=(I)1;MI[((x1)+(8))>>2]=(I)x0;R x1;}
-I mkd(I x0,I x1){I x2=0;x2=mk(6,1);MI[((8)+(x2))>>2]=(I)x0;MI[((12)+(x2))>>2]=(I)x1;decr(x0);decr(x1);R x2;}
-void  fr(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));x4=((4)*(bk(x1,x2)));MI[x0>>2]=(I)MI[x4>>2];MI[x4>>2]=(I)x0;;}
-I bk(I x0,I x1){R ((32)-(__builtin_clz(((7)+(((x1)*(MC[x0])))))));}
-void  decr(I x0){I x1=0;if((((uI)x0)>((uI)255)))x1=MI[((x0)+(4))>>2];MI[((x0)+(4))>>2]=(I)((x1)-(1));if(((1)==(x1)))fr(x0);;}
-I inc(I x0){MI[((x0)+(4))>>2]=(I)((1)+(MI[((x0)+(4))>>2]));R x0;}
-void  lnc(I x0,I x1){I x2=0;x0=((x0)+(8));for(x2=0;x2<x1;x2++){x0=inc(x0);x0=((x0)+(4));};}
-I lrc(I x0,I x1){trap();R 1;}
-I drc(I x0,I x1){trap();R 1;}
-I til(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));if(!(((2)==(x1))))trap();x5=mk(x1,(x4=MI[x3>>2]));x6=((8)+(x5));for(x7=0;x7<x4;x7++){MI[x6>>2]=(I)x7;x6=((x6)+(4));}decr(x0);R x5;}
-I fst(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));if(!(x1))return x0;if(((7)==(x1)))return x0;x4=mk(x1,1);switch(x1){case 1:MI[((x4)+(8))>>2]=(I)MC[x3];break;case 3:MJ[((x4)+(8))>>3]=(J)MJ[x3>>3];break;case 4:MJ[((x4)+(8))>>3]=(J)MJ[x3>>3];MJ[((x4)+(16))>>3]=(J)MJ[((x3)+(8))>>3];break;case 7:trap();break;default:MI[((x4)+(8))>>2]=(I)MI[x3>>2];}if(((x1)==(6)))lnc(x2,((x0)+(8)));decr(x0);R x4;}
-I rev(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));switch(x1){case 0:trap();break;case 6:x4=mkd(inc(x3),inc(((x3)+(4))));break;default:x4=mk(x1,x2);}switch(x1){case 0:trap();break;case 1:x5=((x4)+(((7)+(x2))));for(x6=0;x6<x2;x6++){MI[((x5)-(x6))>>2]=(I)MC[((x3)+(x6))];}break;case 3:x5=((x4)+(((8)*(x2))));for(x6=0;x6<x2;x6++){MJ[x5>>3]=(J)MJ[x3>>3];x5=((x5)-(8));x3=((x3)+(8));}break;case 4:x5=((x4)-(((8)+(((16)*(x2))))));for(x6=0;x6<x2;x6++){MJ[x5>>3]=(J)MJ[x3>>3];MJ[((8)+(x5))>>3]=(J)MJ[((1)+(x3))>>3];x5=((x5)-(16));x3=((x3)+(16));}break;case 6:MI[((x4)+(8))>>2]=(I)rev(((x4)+(8)));MI[((x4)+(12))>>2]=(I)rev(((x4)+(12)));break;default:x5=((x4)+(((4)+(((4)*(x2))))));for(x6=0;x6<x2;x6++){MI[x5>>2]=(I)MI[x3>>2];x3=((x3)+(4));x5=((x5)-(4));}}decr(x0);R x4;}
-I cnt(I x0){I x1=0;I x2=0;I x3=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));decr(x0);R mki(x2);}
-I tip(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));x4=mk(2,2);MI[((8)+(x4))>>2]=(I)x1;MI[((12)+(x4))>>2]=(I)x2;decr(x0);R x4;}
-I sumi(I x0,I x1){I x2=0;I x3=0;for(x3=0;x3<x1;x3++){x2=((x2)+(MI[((x0)+(1))>>2]));}R x2;}
-I wer(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));if(!(((2)==(x1))))trap();for(x6=0;x6<x2;x6++){if(((0)>(MI[((x3)+(x6))>>2])))trap();}x4=mk(2,sumi(x2,((8)+(x3))));x5=((8)+(x4));for(x6=0;x6<x2;x6++){x7=MI[x3>>2];for(x8=0;x8<x7;x8++){MI[x5>>2]=(I)x6;x5=((x5)+(4));}}decr(x0);R x4;}
-I enl(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));x4=mk(1,6);MI[((8)+(x4))>>2]=(I)x0;R x4;}
-I neg(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;x1=(((uI)MI[x0>>2])>>((uI)29));x2=((MI[x0>>2])&(536870911));x3=((8)+(x0));switch(x1){case 0:trap();break;case 1:trap();break;case 5:trap();break;case 6:return lrc(45,x0);break;case 7:return drc(45,x0);break;default:x4=mk(x1,x2);}decr(x0);if(((2)==(x1)))x5=((x4)+(8));for(x6=0;x6<x2;x6++){MI[x5>>2]=(I)((0)-(MI[x3>>2]));x5=((x5)+(4));x3=((x3)+(4));}return x4;if(((4)==(x1)))x1=3;x2=((x2)*(2));x5=((8)+(x4));for(x6=0;x6<x2;x6++){MF[x5>>3]=(F)-(MF[x3>>3]);x5=((x5)+(4));x3=((x3)+(4));}R x4;}
+char *MC;I* MI;J* MJ;F *MF;I ini(I);
+I ini(I x0){I x1=0;I x2=0;MJ[0]=(J)1130366807310592;MI[8]=(I)x0;x1=64;x2=8;while((((uI)x2)<((uI)x0))){MI[(x2>>2)]=(I)x1;MI[(x1>>2)]=(I)x2;x1=((x1)*(2));x2=((x2)+(1));}R x0;}
 // Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
 I pop1(I *s, I n, I *x) {
 	*x = s[n-1];
@@ -95,21 +76,6 @@ I main(int args, char **argv){
 		printf("%s ", argv[i]);
 		if (Match("mki", a)) {
 			n = f1(mki, stack, n);
-		} else if (Match("mk", a)) { n = f2(mk, stack, n);
-		} else if (Match("mkd", a)) { n = f2(mkd, stack, n);
-		} else if (Match("bk", a)) { n = f2(bk, stack, n);
-		} else if (Match("inc", a)) { n = f1(inc, stack, n);
-		} else if (Match("lrc", a)) { n = f2(lrc, stack, n);
-		} else if (Match("drc", a)) { n = f2(drc, stack, n);
-		} else if (Match("til", a)) { n = f1(til, stack, n);
-		} else if (Match("fst", a)) { n = f1(fst, stack, n);
-		} else if (Match("rev", a)) { n = f1(rev, stack, n);
-		} else if (Match("cnt", a)) { n = f1(cnt, stack, n);
-		} else if (Match("tip", a)) { n = f1(tip, stack, n);
-		} else if (Match("sumi", a)) { n = f2(sumi, stack, n);
-		} else if (Match("wer", a)) { n = f1(wer, stack, n);
-		} else if (Match("enl", a)) { n = f1(enl, stack, n);
-		} else if (Match("neg", a)) { n = f1(neg, stack, n);
 		} else if (Match("dump", a)) {
 			n = Dump(stack, n);
 		} else {

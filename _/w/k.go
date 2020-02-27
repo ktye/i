@@ -3,12 +3,11 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
-	"math"
 	"math/bits"
 	"os"
 	"strconv"
+	"unsafe"
 )
 
 type c = byte
@@ -16,15 +15,24 @@ type i = uint32
 type j = uint64
 type f = float64
 
-var M []c
+var MC []c // MC, MI, MJ, MF share array (see msl)
+var MI []i
+var MJ []j
+var MF []f
 
 type vt1 func(i) i
 type vt2 func(i, i) i
+type slice struct {
+	p uintptr
+	l int
+	c int
+}
 
 func main() {
 	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til}
 	fn2 := map[string]vt2{"mk": mk, "dump": dump}
-	M = make([]c, 64*1024)
+	MC = make([]c, 64*1024)
+	msl()
 	stack := make([]i, 0)
 	args := []string{"16", "ini"}
 	for _, a := range append(args, os.Args[1:]...) {
@@ -55,14 +63,28 @@ func main() {
 }
 func ini(x i) i {
 	sJ(0, 1130366807310592)
-	p := i(512)
-	for i := i(9); i < x; i++ {
+	p := i(64)
+	for i := i(8); i < x; i++ {
+		MI
 		sI(4*i, p)
 		sI(p, i)
 		p *= 2
 	}
 	sI(128, x)
 	return x
+}
+func msl() { // update slice header after increasing MC
+	c := *(*slice)(unsafe.Pointer(&MC))
+	i := *(*slice)(unsafe.Pointer(&MI))
+	j := *(*slice)(unsafe.Pointer(&MJ))
+	f := *(*slice)(unsafe.Pointer(&MF))
+	i.l, i.c, i.p = c.l/2, c.c/2, c.p
+	j.l, j.c, j.p = i.l/2, i.c/2, i.p
+	f.l, f.c, f.p = j.l, j.c, j.p
+	MI = *(*[]I)(unsafe.Pointer(&i))
+	MJ = *(*[]J)(unsafe.Pointer(&j))
+	MF = *(*[]F)(unsafe.Pointer(&f))
+	// todo Z
 }
 func bk(t, n i) i { return i(32 - bits.LeadingZeros32(7+n*C(t))) }
 func mk(x, y i) i {
@@ -140,13 +162,14 @@ func dump(a, n i) i {
 	return 0
 }
 func hxb(x c) (c, c) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0F] }
-func C(a i) i        { return i(M[a]) }
-func I(a i) i        { return binary.LittleEndian.Uint32(M[a : a+4]) }
-func J(a i) j        { return binary.LittleEndian.Uint64(M[a : a+8]) }
-func F(a i) f        { return math.Float64frombits(J(a)) }
-func sI(a i, v i)    { binary.LittleEndian.PutUint32(M[a:a+4], v) }
-func sJ(a i, v j)    { binary.LittleEndian.PutUint64(M[a:a+8], v) }
-func sF(a i, v f)    { binary.LittleEndian.PutUint64(M[a:a+8], math.Float64bits(v)) }
+func C(o, i i) i     { return i(MC[o+i]) } // global get, e.g. I o,i
+func I(o, i i) i     { return MI[o>>2+i] }
+func J(o, i i) j     { return MJ[o>>3+i] }
+func F(o, i i) f     { return MF[o>>3+i] }
+func sC(o, i i, v c) { MC[o+i] = v } // global set, e.g. (o,i)::v
+func sI(o, i i, v i) { MI[o<<2+i] = v }
+func sJ(o, i i, v j) { MJ[o<<3+i] = v }
+func sF(o, i i, v f) { MF[o<<3+i] = v }
 func atoi(s string) i {
 	if x, e := strconv.Atoi(s); e == nil {
 		return i(x)

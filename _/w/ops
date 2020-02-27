@@ -37,7 +37,7 @@ WASM  W    INSTRUCTION          TYPE
 0x37  x::  i64.store memarg     [i32 i64]→[]
 0x38  ---  f32.store memarg     [i32 f32]→[]
 0x39  x::  f64.store memarg     [i32 f64]→[]
-0x3A  x::' i32.store8 memarg    [i32 i32]→[]
+0x3A  x::  i32.store8 memarg    [i32 i32]→[]
 0x3B  ---  i32.store16 memarg   [i32 i32]→[]
 0x3C  ---  i64.store8 memarg    [i32 i64]→[]
 0x3D  ---  i64.store16 memarg   [i32 i64]→[]
