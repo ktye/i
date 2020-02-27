@@ -394,7 +394,7 @@ func (p *parser) ex(x expr) expr {
 			if y == nil {
 				y = v
 			}
-			return lod{t: t.t, argv: argv{addr(y, t.t)}, pos: pos(h)} // I x
+			return lod{t: t.t, argv: argv{y}, pos: pos(h)} // I x
 		} else if s, o := v.(swc); o {
 			s.argv = append(argv{x}, s.argv...)
 			s.pos = pos(h)
@@ -423,7 +423,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 	switch v := f.(type) {
 	case asn:
 		if v.opx == ":" { // memory
-			return sto{argv: argv{addr(x, y.rt()), y}, t: v.t, pos: h}
+			return sto{argv: argv{x, y}, t: y.rt(), pos: h}
 		} else { // local
 			if v.opx != "" { // modified
 				y = p.dyadic(opx(v.opx), x, y, h)
@@ -469,8 +469,6 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			} else {
 				return whl{argv: argv{x, y}, pos: h}
 			}
-		} else if s(v) == "," {
-			return adr{argv: argv{x, y}, pos: h}
 		}
 		return p.err("unknown operator(" + s(v) + ")")
 	case fun:
@@ -590,21 +588,13 @@ func (p *parser) locals(e expr, lv int) expr {
 			}
 		}
 		return l
-		/* todo rm
-		case sto:
-			l.argv[0] = p.locals(l.argv[0], lv)
-			l.argv[1] = p.locals(l.argv[1], lv)
-
-			if l.t == 0 {
-				l.t = l.argv[1].rt()
-			}
-			if a, o := l.argv[0].(adr); o && a.t == 0 {
-				a.t = l.t
-				l.argv[0] = a
-			}
-
-			return l
-		*/
+	case sto:
+		l.argv[0] = p.locals(l.argv[0], lv)
+		l.argv[1] = p.locals(l.argv[1], lv)
+		if l.t == 0 {
+			l.t = l.argv[1].rt()
+		}
+		return l
 	default:
 		if av, o := e.(argvec); o {
 			v := av.args()
@@ -716,7 +706,7 @@ func (p *parser) pCon(b []c) expr {
 func sOp(b []c) int {
 	if b[0] == '?' && len(b) > 1 && b[1] == '/' { // ?/ while
 		return 2
-	} else if b[0] == ':' || b[0] == '?' || b[0] == ',' {
+	} else if b[0] == ':' || b[0] == '?' {
 		return 1
 	}
 	for _, n := range []int{3, 2, 1} { // longest match first
@@ -734,18 +724,6 @@ func sCnd(b []c) int {
 	return 0
 }
 func sC(x c) func(b []c) int { return func(b []c) int { return boolvar(b[0] == x) } }
-func addr(x expr, t T) adr {
-	if a, o := x.(adr); o {
-		a.t = t
-		return a
-	} else {
-		p := 0
-		if i, o := x.(indicator); o {
-			p = i.indicate()
-		}
-		return adr{argv: argv{x}, t: t, pos: pos(p)}
-	}
-}
 
 // intermediate representation for function bodies (typed expression tree)
 type expr interface {
@@ -824,12 +802,7 @@ type las struct { // local set
 	pos
 	argv
 }
-type adr struct { // p,i (byte offset + index with undefined width)
-	pos
-	argv
-	t T
-}
-type sto struct { // x::y x::'y (C)
+type sto struct { // x::y
 	pos
 	argv
 	t T
@@ -1181,113 +1154,43 @@ func (v las) bytes() []c {
 }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
 func (v las) gstr() s     { return jn(locstr(v.x()), "=", s(v.y().bytes()), ";") }
-func (v adr) rt() T       { return I }
-func (v adr) valid() s {
-	if len(v.argv) == 1 && v.x().rt() == I && v.t != 0 {
-		return ""
-	} else if len(v.argv) == 2 && v.x().rt() == I && v.y().rt() == I && v.t != 0 {
-		return ""
-	}
-	fmt.Printf("%#v\n", v)
-	return "illegal address"
-}
-func adrt(x expr, t T) adr {
-	if t == 0 {
-		panic("adr-type")
-	}
-	a, o := x.(adr)
-	a.t = t
-	if !o {
-		a.argv = argv{x}
-	}
-	return a
-}
-func (v adr) bytes() (r []c) {
-	x, wo := v.x(), false
-	xc, isc := x.(con)
-	if isc {
-		if xc.i != 0 || len(v.argv) == 1 {
-			shift := 2 - int(alin[v.t])
-			xc.i <<= shift
-			r, wo = xc.bytes(), true
-		}
-	} else {
-		r, wo = v.x().bytes(), true
-		r = append(r, 0x41, 0x02, 0x74) // <<2
-	}
-	if len(v.argv) == 2 {
-		r = append(r, v.y().bytes()...) // y
-		if mul := c(1 << alin[v.t]); mul != 1 {
-			r = append(r, 0x41, mul, 0x6c) // *w
-		}
-		if wo == true {
-			r = append(r, 0x6a) // +
-		}
-	}
-	return r
-}
-func (v adr) cgstr(sf func(expr) s) (r s) {
-	x := v.x()
-	xc, isc := x.(con)
-	zero := isc && xc.i == 0
-	if isc && xc.i != 0 {
-		r = strconv.Itoa(int(xc.i >> (alin[v.t] - 2)))
-	} else if !isc {
-		if a := alin[v.t] - 2; a > 0 {
-			r = jn("(", sf(x), ">>"+string('0'+a), ")")
-		} else if a < 0 {
-			r = jn("(", sf(x), "<<"+string('0'-a), ")")
-		} else {
-			r = sf(x)
-		}
-	}
-	if len(v.argv) == 2 {
-		if !zero {
-			r += "+"
-		}
-		r += sf(v.y())
-	}
-	return jn("M", styp[v.t], "[", r, "]")
-}
-func (v adr) cstr() (r s) { return v.cgstr(cstring) }
-func (v adr) gstr() (r s) { return v.cgstr(gstring) }
 func (v lod) rt() T       { return v.t }
-func (v lod) valid() s {
-	x := v.x()
-	if _, o := x.(adr); o == false && x.rt() != I {
-		return sf("load argument is no valid address")
-	}
-	return ""
-}
+func (v lod) valid() s    { return ifex(v.x().rt() != I, "lod type must be I") }
 func (v lod) bytes() (r []c) {
 	op := map[T]c{C: 0x2d, I: 0x28, J: 0x29, F: 0x2b}[v.t]
 	al := alin[v.t]
 	return append(v.x().bytes(), []c{op, al, 0}...)
 }
-func (v lod) cstr() s { return cstring(v.x()) }
-func (v lod) gstr() s { return gstring(v.x()) }
+func cgadr(xs string, t T) (r string) { // e.g. "MF[(x)<<3]"
+	r = jn("M", styp[t], "[", xs)
+	if t != C {
+		r = jn(r, "<<", string('0'+alin[t]))
+	}
+	return r + "]"
+}
+func (v lod) cstr() s { return cgadr(cstring(v.x()), v.t) }
+func (v lod) gstr() s { return cgadr(gstring(v.x()), v.t) }
 func (v sto) rt() T   { return 0 }
 func (v sto) valid() s {
-	_, o := v.x().(adr)
-	if yt := v.y().rt(); yt == 0 || (v.t == C && yt != I) {
-		return "store: y is has wrong type"
-	} else if !o {
-		return "store: x is no address"
+	if v.x().rt() != I {
+		return "store addr has wrong type"
+	}
+	if v.t == 0 {
+		return "store has no type"
 	}
 	return ""
 }
 func (v sto) bytes() (r []c) {
 	y := v.y()
-	t := y.rt()
-	op := map[T]c{C: 0x3a, I: 0x36, J: 0x37, F: 0x39}[t]
-	al := alin[t]
-	return catb(adrt(v.x(), t).bytes(), y.bytes(), []c{op, al, 0})
+	op := map[T]c{C: 0x3a, I: 0x36, J: 0x37, F: 0x39}[v.t]
+	al := alin[v.t]
+	return catb(v.x().bytes(), y.bytes(), []c{op, al, 0})
 }
 func (v sto) cstr() s {
-	return jn(cstring(adrt(v.x(), v.y().rt())), "=(", styp[v.t], ")", cstring(v.y()), ";")
+	return jn(cgadr(cstring(v.x()), v.t), "=(", styp[v.t], ")", cstring(v.y()), ";")
 }
 func (v sto) gstr() s {
-	return jn(gstring(adrt(v.x(), v.y().rt())), "=", styp[v.t], "(", gstring(v.y()), ");")
+	return jn(cgadr(gstring(v.x()), v.t), "=", styp[v.t], "(", cstring(v.y()), ");")
 }
 func (v ret) rt() T      { return 0 /*v.x().rt()*/ }
 func (v ret) valid() s   { return ifex(v.x().rt() == 0, "return zero type") }
