@@ -140,6 +140,7 @@ const kh = `#include<stdlib.h>
 #include<stdio.h>
 #include<stddef.h>
 #include<malloc.h>
+#include<string.h>
 #include<math.h>
 #define R return
 typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t uI;typedef uint64_t uJ;
@@ -198,13 +199,15 @@ I Dump(I *s, I n) {
 	}
 	return n-2;
 }
+#define M0 16
 I main(int args, char **argv){
-	MC=malloc(64*1024);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
+	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
+	memset(MC, 0, 1<<M0);
 	I stack[32];
 	I i, n = 0;
 	I x, y, r;
 	char *a;
-	ini(16);
+	ini(M0);
 	for (i=1; i<args; i++) {
 		a = argv[i];
 		if (a[0] >= '0' && a[0] <= '9') {

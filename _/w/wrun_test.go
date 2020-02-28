@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/go-interpreter/wagon/exec"
@@ -13,65 +15,104 @@ import (
 	"github.com/go-interpreter/wagon/wasm"
 )
 
+const trace = true
+
 func TestWagon(t *testing.T) {
 	if broken {
 		t.Skip()
 	}
-	args := []string{
-		"0", "200", "dump",
-		"5", "mki",
-		"0", "500", "dump",
+	tc := []string{
+		//"0 200 dump→",
+		"5 mki→5",
+		"5 mki til→0 1 2 3 4",
 	}
 	b, e := ioutil.ReadFile("../../k.w")
 	if e != nil {
 		t.Fatal(e)
 	}
-	m, data := run(bytes.NewReader(b))
-	runWagon(m.wasm(data), args)
+	for i, a := range tc {
+		io := strings.Split(a, "→")
+		args := strings.Fields(io[0])
+		exp := io[1]
+		m, data := run(bytes.NewReader(b))
+		if e = runWagon(m.wasm(data), args, exp); e != nil {
+			t.Fatalf("%d: %s", i+1, e)
+		}
+	}
 }
 
-func runWagon(b []byte, args []string) {
+func runWagon(b []byte, args []string, exp string) error {
 	h := []string{"16", "ini"}
 	args = append(h, args...)
 	m, e := wasm.ReadModule(bytes.NewReader(b), nil)
 	if e != nil {
-		panic(e)
+		return e
 	}
 	if e := validate.VerifyModule(m); e != nil {
-		panic(e)
+		return e
 	}
 	vm, e := exec.NewVM(m)
 	if e != nil {
-		panic(e)
+		return e
 	}
-	fmt.Println("memory", len(vm.Memory()))
+	if trace {
+		fmt.Println("memory", len(vm.Memory()))
+	}
 
 	var stack []uint64
+	call := func(s string) error {
+		x, ok := m.Export.Entries[s]
+		if !ok {
+			return fmt.Errorf("unknown func: " + s)
+		}
+		fidx := m.Function.Types[x.Index]
+		ftyp := m.Types.Entries[fidx]
+		n := len(ftyp.ParamTypes)
+		pop := make([]uint64, n)
+		copy(pop, stack[len(stack)-n:])
+		stack = stack[:len(stack)-n]
+		res, e := vm.ExecCode(int64(x.Index), pop...)
+		if e != nil {
+			return e
+		}
+		if res != nil {
+			stack = append(stack, u64(res))
+			if trace {
+				fmt.Printf("%s %v: %v(%x)\n", s, pop, res, res)
+			}
+		} else if trace {
+			fmt.Printf("%s %v: nil\n", s, pop)
+		}
+		return nil
+	}
 	for i := range args {
 		if u, e := strconv.ParseUint(args[i], 10, 64); e == nil {
 			stack = append(stack, u)
 		} else if args[i] == "dump" {
-			dump(vm.Memory(), stack[len(stack)-2], stack[len(stack)-1])
+			dump(vm.Memory(), k(stack[len(stack)-2]), k(stack[len(stack)-1]))
 			stack = stack[:len(stack)-2]
 		} else {
-			x, ok := m.Export.Entries[args[i]]
-			if !ok {
-				panic("unknown func: " + args[i])
+			if e := call(args[i]); e != nil {
+				return e
 			}
-			fidx := m.Function.Types[x.Index]
-			ftyp := m.Types.Entries[fidx]
-			n := len(ftyp.ParamTypes)
-			pop := make([]uint64, n)
-			copy(pop, stack[len(stack)-n:])
-			stack = stack[:len(stack)-n]
-			res, e := vm.ExecCode(int64(x.Index), pop...)
-			if e != nil {
-				panic(e)
-			}
-			stack = append(stack, u64(res))
-			fmt.Printf("%s %v: %v(%x)\n", args[i], pop, res, res)
 		}
 	}
+	if len(stack) != 2 { // [16, result]
+		return fmt.Errorf("stack size")
+	}
+	// compare result
+	got := kst(k(stack[1]), vm.Memory())
+	if got != exp {
+		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
+	}
+	// free result and check for memory leaks
+	if e := call("decr"); e != nil {
+		return e
+	}
+	if e := leak(vm.Memory()); e != nil {
+		return e
+	}
+	return nil
 }
 func u64(v interface{}) uint64 {
 	switch x := v.(type) {
@@ -85,20 +126,81 @@ func u64(v interface{}) uint64 {
 		panic(x)
 	}
 }
-func dump(M []byte, a, n uint64) {
-	fmt.Printf("%.8x  ", 0)
-	for i, b := range M[a : a+n] {
-		hi, lo := hxb(b)
-		fmt.Printf("%c%c", hi, lo)
-		if i > 0 && (i+1)%32 == 0 {
-			fmt.Printf("\n%.8x  ", i+1)
-		} else if i > 0 && (i+1)%16 == 0 {
-			fmt.Printf("  ")
+func dump(M []byte, a, n k) {
+	fmt.Printf("%.8x ", a)
+	for i := k(0); i < n; i++ {
+		p := a + 4*i
+		x := get(M, p)
+		fmt.Printf(" %.8x", x)
+		if i > 0 && (i+1)%8 == 0 {
+			fmt.Printf("\n%.8x ", p+4)
 		} else if i > 0 && (i+1)%4 == 0 {
 			fmt.Printf(" ")
 		}
 	}
+	/*
+		for i, b := range M[a : a+4*n] {
+			hi, lo := hxb(b)
+			fmt.Printf("%c%c", hi, lo)
+			if i > 0 && (i+1)%32 == 0 {
+				fmt.Printf("\n%.8x  ", i+1)
+			} else if i > 0 && (i+1)%16 == 0 {
+				fmt.Printf("  ")
+			} else if i > 0 && (i+1)%4 == 0 {
+				fmt.Printf(" ")
+			}
+		}
+	*/
 	fmt.Println()
+}
+
+type k = uint32
+
+func kst(a k, m []byte) s {
+	x := get(m, a)
+	t, n := x>>29, x&536870911
+	if t != 2 {
+		panic("nyi: ~I")
+	}
+	r := make([]s, n)
+	for i := range r {
+		r[i] = strconv.Itoa(int(get(m, 8+4*k(i)+a)))
+	}
+	return strings.Join(r, " ")
+}
+func get(m []byte, a k) k { return binary.LittleEndian.Uint32(m[a:]) }
+func mark(m []byte) { // mark bucket type within free blocks
+	dump(m, 0, 200)
+	for t := k(4); t < 32; t++ {
+		p := get(m, 4*t) // free pointer of type t
+		for p != 0 {
+			fmt.Printf("t=%d p=%x→%x\n", t, p, get(m, p))
+			m[8+p] = c(t)
+			p = get(m, p) // pointer to next free
+		}
+	}
+}
+func leak(m []byte) error {
+	mark(m)
+	fmt.Println("mark")
+	dump(m, 0, 200)
+	p := k(256) // first data block
+	for p < k(len(m)) {
+		// a free block has refcount==0 at p+4 and bucket type at p+8 (after marking)
+		if get(m, p+4) != 0 {
+			return fmt.Errorf("non-free block at %d(%x)", p, p)
+		}
+		t := get(m, p+8)
+		if t < 4 || t > 31 {
+			return fmt.Errorf("illegal bucket type %d at %d(%x)", t, p, p)
+		} else {
+			fmt.Printf("p=%x t=%x\n", p, t)
+		}
+		dp := 1 << t
+		fmt.Printf("dp %d %d\n", dp, t)
+		p += k(dp)
+	}
+	return nil
 }
 
 /*

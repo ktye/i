@@ -1150,10 +1150,10 @@ func (v lod) bytes() (r []c) {
 	al := alin[v.t]
 	return append(v.x().bytes(), []c{op, al, 0}...)
 }
-func cgadr(xs string, t T) (r string) { // e.g. "MF[(x)<<3]"
+func cgadr(xs string, t T) (r string) { // e.g. "MF[x>>3]"
 	r = jn("M", styp[t], "[", xs)
 	if t != C {
-		r = jn(r, "<<", string('0'+alin[t]))
+		r = jn(r, ">>", string('0'+alin[t]))
 	}
 	return r + "]"
 }
