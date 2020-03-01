@@ -138,19 +138,6 @@ func dump(M []byte, a, n k) {
 			fmt.Printf(" ")
 		}
 	}
-	/*
-		for i, b := range M[a : a+4*n] {
-			hi, lo := hxb(b)
-			fmt.Printf("%c%c", hi, lo)
-			if i > 0 && (i+1)%32 == 0 {
-				fmt.Printf("\n%.8x  ", i+1)
-			} else if i > 0 && (i+1)%16 == 0 {
-				fmt.Printf("  ")
-			} else if i > 0 && (i+1)%4 == 0 {
-				fmt.Printf(" ")
-			}
-		}
-	*/
 	fmt.Println()
 }
 
