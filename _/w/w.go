@@ -203,7 +203,18 @@ func (m module) compile() (r module) {
 		}
 		if f.args == 0 {
 			b := f.Bytes()
-			mac[f.name] = b[:len(b)-1] // strip '}'
+			if strings.HasSuffix(f.name, "T") { // type-generic-macro fnT→fnC|fnI|... W:..
+				for c, v := range typs {
+					name := f.name[:len(f.name)-1] + string(c) // fnC fnI ..
+					widt := 1 << alin[v]
+					body := string(b[:len(b)-1]) // strip '}'
+					body = strings.Replace(body, "T", string(c), -1)
+					body = strings.Replace(body, "W", strconv.Itoa(widt), -1) // W→1 4 8 ..
+					mac[name] = []byte(body)
+				}
+			} else {
+				mac[f.name] = b[:len(b)-1] // strip '}'
+			}
 		} else {
 			r = append(r, f)
 			n := len(r) - 1
@@ -414,13 +425,17 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			return sto{argv: argv{x, y}, t: y.rt(), pos: h}
 		} else { // local
 			if v.opx != "" { // modified
+				if v.opx == "?" {
+					return p.xerr(v, "?: illegal modified assignment (missing space?)")
+				}
 				y = p.dyadic(opx(v.opx), x, y, h)
 			}
-
 			a := las{pos: h}
 			xv, o := x.(loc)
 			if o == false {
-				return p.xerr(a, "assignment expects a symbol on the left")
+				fmt.Printf("%s\n", string(p.b))
+				fmt.Printf("f=%#v\nx=%#v\ny=%#v\n", f, x, y)
+				return p.xerr(a, fmt.Sprintf("assignment expects a symbol on the left: not %T", x))
 			}
 			if n, o := p.fn.lmap[xv.s]; o == false {
 				xv.i = len(p.fn.lmap)

@@ -5,11 +5,11 @@
 # the input file compiles to a wasm module.
 # it contains a collection of functions.
 #
-# add:I:II{x+y}               /exported function
-# sum.I:I {x/r:+i;r}          /private function
-# mac:    {a:3;b:5}           /flat macro
-# neg:T   {10/(x+i)::-T x+i}  /type generic macro
-# f:0:I   {negI x}            /triggers code generation for negI:0:I
+# add:I:II{x+y}                  /exported function
+# sum.I:I {x/r:+i;r}             /private function
+# mac:    {a:3;b:5}              /flat macro
+# negT:   {10/(x+W*i)::-T x+W*i} /type generic macro
+# negC:   {10/(x+4*i)::-I x+4*i} /negC negI negJ negF (expanded by negT)
 #
 # types are I(i32) J(i64) F(f64)
 # no preference    apl style x*a+b, but lhs is evaluted first: x a b + *

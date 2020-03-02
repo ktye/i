@@ -15,33 +15,40 @@ import (
 	"github.com/go-interpreter/wagon/wasm"
 )
 
-const trace = true
+const trace = false
 
 func TestWagon(t *testing.T) {
 	if broken {
 		t.Skip()
 	}
-	tc := []string{
-		//"0 200 dump→",
-		"5 mki→5",
-		"5 mki til→0 1 2 3 4",
-	}
-	b, e := ioutil.ReadFile("../../k.w")
+	b, e := ioutil.ReadFile("t")
 	if e != nil {
 		t.Fatal(e)
 	}
-	for i, a := range tc {
-		io := strings.Split(a, "→")
-		args := strings.Fields(io[0])
-		exp := io[1]
-		m, data := run(bytes.NewReader(b))
-		if e = runWagon(m.wasm(data), args, exp); e != nil {
+	mb, e := ioutil.ReadFile("../../k.w")
+	if e != nil {
+		t.Fatal(e)
+	}
+	v := strings.Split(strings.TrimSpace(string(b)), "\n")
+	for i := range v {
+		if len(v[i]) == 0 || v[i][0] == '/' {
+			continue
+		}
+		vv := strings.Split(v[i], " /")
+		if len(vv) != 2 {
+			panic("test file")
+		}
+		in := strings.TrimSpace(vv[0])
+		exp := strings.TrimSpace(vv[1])
+		m, data := run(bytes.NewReader(mb))
+		if e = runWagon(m.wasm(data), strings.Fields(in), exp); e != nil {
 			t.Fatalf("%d: %s", i+1, e)
 		}
 	}
 }
 
 func runWagon(b []byte, args []string, exp string) error {
+	fmt.Println(args, exp)
 	h := []string{"16", "ini"}
 	args = append(h, args...)
 	m, e := wasm.ReadModule(bytes.NewReader(b), nil)
@@ -106,7 +113,7 @@ func runWagon(b []byte, args []string, exp string) error {
 		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
 	}
 	// free result and check for memory leaks
-	if e := call("decr"); e != nil {
+	if e := call("dx"); e != nil {
 		return e
 	}
 	if e := leak(vm.Memory()); e != nil {
@@ -157,11 +164,9 @@ func kst(a k, m []byte) s {
 }
 func get(m []byte, a k) k { return binary.LittleEndian.Uint32(m[a:]) }
 func mark(m []byte) { // mark bucket type within free blocks
-	dump(m, 0, 200)
 	for t := k(4); t < 32; t++ {
 		p := get(m, 4*t) // free pointer of type t
 		for p != 0 {
-			fmt.Printf("t=%d p=%x→%x\n", t, p, get(m, p))
 			m[8+p] = c(t)
 			p = get(m, p) // pointer to next free
 		}
@@ -169,8 +174,6 @@ func mark(m []byte) { // mark bucket type within free blocks
 }
 func leak(m []byte) error {
 	mark(m)
-	fmt.Println("mark")
-	dump(m, 0, 200)
 	p := k(256) // first data block
 	for p < k(len(m)) {
 		// a free block has refcount==0 at p+4 and bucket type at p+8 (after marking)
@@ -180,42 +183,9 @@ func leak(m []byte) error {
 		t := get(m, p+8)
 		if t < 4 || t > 31 {
 			return fmt.Errorf("illegal bucket type %d at %d(%x)", t, p, p)
-		} else {
-			fmt.Printf("p=%x t=%x\n", p, t)
 		}
 		dp := 1 << t
-		fmt.Printf("dp %d %d\n", dp, t)
 		p += k(dp)
 	}
 	return nil
 }
-
-/*
-
-	for name, e := range m.Export.Entries {
-		i := int64(e.Index)
-		fidx := m.Function.Types[int(i)]
-		ftype := m.Types.Entries[int(fidx)]
-		switch len(ftype.ReturnTypes) {
-		case 1:
-			fmt.Fprintf(w, "%s() %s => ", name, ftype.ReturnTypes[0])
-		case 0:
-			fmt.Fprintf(w, "%s() => ", name)
-		default:
-			log.Printf("running exported functions with more than one return value is not supported")
-			continue
-		}
-
-
-
-	for name, e := range m.Export.Entries {
-		if name == "ini" {
-			if o, e := vm.ExecCode(int64(e.Index), 16); e != nil {
-				panic(e)
-			} else {
-				fmt.Println("ini 16:", o)
-			}
-		}
-	}
-}
-*/

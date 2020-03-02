@@ -1,9 +1,14 @@
 // +build ignore
 
+// reference implementation for k.w
+// go run k.go t
+// go run k.go 5 mki til rev
+
 package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/bits"
 	"os"
 	"strconv"
@@ -31,29 +36,63 @@ type slice struct {
 	c int
 }
 
-const m0 = 16
-
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "t" {
+		runtest()
+	} else {
+		fmt.Println(run(os.Args[1:]))
+	}
+}
+func runtest() {
+	b, e := ioutil.ReadFile("t")
+	if e != nil {
+		panic(e)
+	}
+	v := strings.Split(strings.TrimSpace(string(b)), "\n")
+	for i := range v {
+		if len(v[i]) == 0 || v[i][0] == '/' {
+			continue
+		}
+		vv := strings.Split(v[i], " /")
+		if len(vv) != 2 {
+			panic("test file")
+		}
+		in := strings.TrimSpace(vv[0])
+		exp := strings.TrimSpace(vv[1])
+		got := run(strings.Fields(in))
+		fmt.Println(in, "/", got)
+		if exp != got {
+			fmt.Printf("!")
+			os.Exit(1)
+		}
+	}
+}
+func run(args []string) string {
+	trace := false
+	m0 := 16
 	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev}
 	fn2 := map[string]vt2{"mk": mk, "dump": dump}
-	MC = make([]c, 1<<m0)
-	msl()
 	stack := make([]i, 0)
-	args := []string{strconv.Itoa(m0), "ini"}
-	for _, a := range append(args, os.Args[1:]...) {
+	MJ = make([]j, (1<<m0)>>3)
+	msl()
+	for _, a := range append([]string{strconv.Itoa(m0), "ini"}, args...) {
 		if n, e := strconv.ParseUint(a, 10, 32); e == nil {
 			stack = append(stack, i(n))
 		} else {
 			if f1, o := fn1[a]; o {
 				r := f1(stack[len(stack)-1])
-				fmt.Printf("%s %d: x%x\n", a, stack[len(stack)-1], r)
+				if trace {
+					fmt.Printf("%s %d: x%x\n", a, stack[len(stack)-1], r)
+				}
 				stack[len(stack)-1] = r
 				continue
 			}
 			if f2, o := fn2[a]; o {
 				x, y := stack[len(stack)-2], stack[len(stack)-1]
 				r := f2(x, y)
-				fmt.Printf("%s %d %d: x%x\n", a, x, y, r)
+				if trace {
+					fmt.Printf("%s %d %d: x%x\n", a, x, y, r)
+				}
 				if a == "dump" {
 					stack = stack[:len(stack)-2]
 				} else {
@@ -68,9 +107,10 @@ func main() {
 	if len(stack) != 2 {
 		panic("stack")
 	}
-	fmt.Println(kst(stack[len(stack)-1]))
+	r := kst(stack[len(stack)-1])
 	dx(stack[len(stack)-1])
 	leak()
+	return r
 }
 func ini(x i) i {
 	sJ(0, 1130366807310592)
@@ -83,17 +123,17 @@ func ini(x i) i {
 	}
 	return x
 }
-func msl() { // update slice headers after set/inc MC
+func msl() { // update slice headers after set/inc MJ
 	cp := *(*slice)(unsafe.Pointer(&MC))
 	ip := *(*slice)(unsafe.Pointer(&MI))
 	jp := *(*slice)(unsafe.Pointer(&MJ))
 	fp := *(*slice)(unsafe.Pointer(&MF))
-	ip.l, ip.c, ip.p = cp.l/2, cp.c/2, cp.p
-	jp.l, jp.c, jp.p = ip.l/2, ip.c/2, ip.p
 	fp.l, fp.c, fp.p = jp.l, jp.c, jp.p
-	MI = *(*[]i)(unsafe.Pointer(&ip))
-	MJ = *(*[]j)(unsafe.Pointer(&jp))
+	ip.l, ip.c, ip.p = jp.l*2, jp.c*2, jp.p
+	cp.l, cp.c, cp.p = ip.l*4, ip.c*4, ip.p
 	MF = *(*[]f)(unsafe.Pointer(&fp))
+	MI = *(*[]i)(unsafe.Pointer(&ip))
+	MC = *(*[]c)(unsafe.Pointer(&cp))
 	// todo Z
 }
 func bk(t, n i) i { return i(32 - bits.LeadingZeros32(7+n*i(C(t)))) }
