@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/base64"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -49,15 +48,12 @@ var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 
 func main() {
 	var stdin io.Reader = os.Stdin
-	var html, cout, gout bool
-	flag.BoolVar(&html, "html", false, "html output")
+	var cout, gout bool
 	flag.BoolVar(&cout, "c", false, "c output")
 	flag.BoolVar(&gout, "go", false, "go output")
 	flag.Parse()
 	m, data := run(stdin)
-	if html {
-		os.Stdout.Write(page(m.wasm(data)))
-	} else if cout {
+	if cout {
 		os.Stdout.Write(m.cout(data))
 	} else if gout {
 		os.Stdout.Write(m.gout(data))
@@ -1212,7 +1208,7 @@ func (v iff) valid() s {
 	return ""
 }
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
-func (v iff) cstr() s        { return jn("if(", cstring(v.x()), ")", cstring(v.y())) }
+func (v iff) cstr() s        { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
 func (v iff) gstr() s        { return jn("if ", gstring(v.x()), "{", gstring(v.y()), "}") }
 func (v swc) rt() T          { return 0 }
 func (v swc) valid() s {
@@ -1479,7 +1475,11 @@ func (m module) wasm(data []c) []c {
 	// export section(7)
 	sec = NewSection(7)
 	idx, exp := m.exports()
-	sec.cat(leb(len(exp))) // number of exports
+	sec.cat(leb(1 + len(exp))) // number of exports (funcs + memory)
+	sec.cat(leb(len("mem")))
+	sec.cat([]c("mem"))
+	sec.cat1(2) // export kind memory
+	sec.cat1(0) // memory index
 	for i, f := range exp {
 		sec.cat(leb(len(f.name)))
 		sec.cat([]c(f.name))
@@ -1605,13 +1605,6 @@ func jn(a ...s) s                { return strings.Join(a, "") }
 func log(a ...interface{})       { fmt.Fprintln(os.Stderr, a...) }
 func logf(f s, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
 func sf(f s, a ...interface{}) s { return fmt.Sprintf(f, a...) }
-func page(wasm []c) []c {
-	var b bytes.Buffer
-	b.WriteString(head)
-	b.WriteString(base64.StdEncoding.EncodeToString(wasm))
-	b.WriteString(tail)
-	return b.Bytes()
-}
 
 func (m module) cout(data []c) []c {
 	var b bytes.Buffer
@@ -1702,25 +1695,6 @@ func (m module) gout(data []c) []c {
 	}
 	return b.Bytes()
 }
-
-const head = `<html>
-<head><meta charset="utf-8"><title>w</title></head><body><script>
-var us = function(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r};
-var s = "`
-const tail = `"
-var u = us(atob(s));
-(async() => {
-var r=await WebAssembly.instantiate(u)
-window.k=r.instance.exports
-})()
-// browse to file://../index.html
-</script>
-<pre>
-run wasm from js console, e.g:
- k.add(1,2)
-</pre>
-</body></html>
-`
 
 var chead = ``
 var ghead = `

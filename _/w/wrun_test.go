@@ -92,14 +92,26 @@ func runWagon(b []byte, args []string, exp string) error {
 		}
 		return nil
 	}
-	for i := range args {
-		if u, e := strconv.ParseUint(args[i], 10, 64); e == nil {
+	for _, s := range args {
+		if u, e := strconv.ParseUint(s, 10, 64); e == nil {
 			stack = append(stack, u)
-		} else if args[i] == "dump" {
+		} else if s == "dump" {
 			dump(vm.Memory(), k(stack[len(stack)-2]), k(stack[len(stack)-1]))
 			stack = stack[:len(stack)-2]
+		} else if strings.HasPrefix(s, `"`) {
+			s = strings.Trim(s, `"`)
+			b := []c(s)
+			stack = append(stack, 1, uint64(len(b)))
+			if e := call("mk"); e != nil {
+				return e
+			}
+			m := vm.Memory()
+			p := stack[len(stack)-1]
+			for i := 0; i < len(b); i++ {
+				m[8+int(p)+i] = b[i]
+			}
 		} else {
-			if e := call(args[i]); e != nil {
+			if e := call(s); e != nil {
 				return e
 			}
 		}
@@ -153,8 +165,12 @@ type k = uint32
 func kst(a k, m []byte) s {
 	x := get(m, a)
 	t, n := x>>29, x&536870911
-	if t != 2 {
-		panic("nyi: ~I")
+	switch t {
+	case 1:
+		return `"` + string(m[a+8:a+8+n]) + `"`
+	case 2:
+	default:
+		panic("nyi: kst t~CI")
 	}
 	r := make([]s, n)
 	for i := range r {
@@ -180,7 +196,7 @@ func leak(m []byte) error {
 		if get(m, p+4) != 0 {
 			return fmt.Errorf("non-free block at %d(%x)", p, p)
 		}
-		t := get(m, p+8)
+		t := m[p+8]
 		if t < 4 || t > 31 {
 			return fmt.Errorf("illegal bucket type %d at %d(%x)", t, p, p)
 		}

@@ -99,6 +99,14 @@ func run(args []string) string {
 					stack = stack[:len(stack)-1]
 					stack[len(stack)-1] = r
 				}
+			} else if strings.HasPrefix(a, `"`) {
+				a = strings.Trim(a, `"`)
+				b := []c(a)
+				r := mk(1, i(len(b)))
+				for i := 0; i < len(b); i++ {
+					MC[8+int(r)+i] = b[i]
+				}
+				stack = append(stack, r)
 			} else {
 				panic("unknown func: " + a)
 			}
@@ -172,9 +180,39 @@ func dx(x i) {
 		}
 	}
 }
-func dxr(x, r i) i          { dx(x); return r }
-func mki(i i) (r i)         { r = mk(2, 1); sI(r+8, i); return r }
+func rx(x i) {
+	if x > 255 {
+		MI[1+x>>2]++
+	}
+}
+func rl(x i) {
+	_, xn, xp := v1(x)
+	xp += 8
+	for i := i(0); i < xn; i++ {
+		rx(xp)
+		xp += 4
+	}
+}
+func dxr(x, r i) i  { dx(x); return r }
+func mki(i i) (r i) { r = mk(2, 1); sI(r+8, i); return r }
+func mkd(x, y i) (r i) {
+	xt, _, xn, yn, _, _ := v2(x, y)
+	if xt != 5 {
+		panic("type")
+	} else if xn != yn {
+		panic("length")
+	}
+	r = mk(7, 2)
+	MI[2+r>>2] = x
+	MI[3+r>>2] = y
+	return r
+}
 func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
+func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
+	xt, xn, xp = v1(x)
+	yt, yn, yp = v1(y)
+	return
+}
 func til(x i) (r i) {
 	xt, _, xp := v1(x)
 	if xt != 2 {
@@ -191,10 +229,16 @@ func til(x i) (r i) {
 }
 func rev(x i) (r i) {
 	t, n, xp := v1(x)
-	if t == 0 {
+	if n == 0 {
 		return x
-	} else if t < 1 || t > 5 {
-		panic("nyi")
+	} else if t == 0 {
+		panic("type")
+	} else if t > 5 {
+		rl(x)
+	}
+	if t == 7 {
+		dx(x)
+		return mkd(rev(x+8), rev(x+12))
 	}
 	r = mk(t, n)
 	w := i(C(t))
@@ -261,8 +305,12 @@ func leak() error {
 func kst(x i) s {
 	a := MI[x>>2]
 	t, n := a>>29, a&536870911
-	if t != 2 {
-		panic("nyi: ~I")
+	switch t {
+	case 1:
+		return `"` + string(MC[x+8:x+8+n]) + `"`
+	case 2:
+	default:
+		panic("nyi: kst t~CI")
 	}
 	r := make([]s, n)
 	for i := i(0); i < n; i++ {

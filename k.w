@@ -1,9 +1,9 @@
 ini:I:I{0::1130366807310592j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
 bk:I:II{32-*7+y*I?C x}
 mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
-mki:I:I{r:2 mk 1;(r+8)::x;r}mkd:I:II{v2;(xn~yn)?!;r:7 mk 2;(r+8)::x;(r+12)::y;r}
+mki:I:I{r:2 mk 1;(r+8)::x;r}mkd:I:II{v2;(xt~5)?!;(xn~yn)?!;r:7 mk 2;(r+8)::x;(r+12)::y;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}
-fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{dx x;r}rx:0:I{x+:4;x::1+I x}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
+fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{dx x;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
 til:I:I{v1;(~2~xt)?!;n:I xp;r:xt mk n;rp:8+r;n/(rp::i;rp+:4);dxr}
 rev:I:I{v1;(~xn)? :x;(xt>5)?rl x;(xt~7)?(dx x; :(rev x+8)mkd rev x+12);r:xt mk xn;rp:8+r;k:0;xt?[;revC;;revF;!;;revI];dxr}revT:{(rp+:W*(xn-1);xn/((rp-k)::T xp+k;k+:W))}
 

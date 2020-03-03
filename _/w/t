@@ -1,3 +1,5 @@
 5 mki         /5
 5 mki til     /0 1 2 3 4
 5 mki til rev /4 3 2 1 0
+"abcd"        /"abcd"
+"abcd" rev    /"dcba"
