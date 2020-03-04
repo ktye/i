@@ -174,7 +174,11 @@ func kst(a k, m []byte) s {
 	}
 	r := make([]s, n)
 	for i := range r {
-		r[i] = strconv.Itoa(int(get(m, 8+4*k(i)+a)))
+		if n := int32(get(m, 8+4*k(i)+a)); n == -2147483648 {
+			r[i] = "0N"
+		} else {
+			r[i] = strconv.Itoa(int(n))
+		}
 	}
 	return strings.Join(r, " ")
 }

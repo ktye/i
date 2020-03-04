@@ -3,15 +3,23 @@ bk:I:II{32-*7+y*I?C x}
 mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkd:I:II{v2;(xt~5)?!;(xn~yn)?!;r:7 mk 2;(r+8)::x;(r+12)::y;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}
-fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{dx x;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
+fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?fr x)}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
 til:I:I{v1;(~2~xt)?!;n:I xp;r:xt mk n;rp:8+r;n/(rp::i;rp+:4);dxr}
 rev:I:I{v1;(~xn)? :x;(xt>5)?rl x;(xt~7)?(dx x; :(rev x+8)mkd rev x+12);r:xt mk xn;rp:8+r;k:0;xt?[;revC;;revF;!;;revI];dxr}revT:{(rp+:W*(xn-1);xn/((rp-k)::T xp+k;k+:W))}
+atx:I:II{v2;(xt~7)?!;(~yt~2)?!;r:xt mk yn;rp:r+8;xt?[!;atC;atI;!];dxyr}
+fst:I:I{v1;(xt~7)?(rx 12+x;dx x; :fst 12+x);x atx mki 1}
+atC:{(yn/((rp+i)::C?32;(i<xn)?(rp+i)::C xp+i))}
+atI:{(yn/(rp::naI;(i<xn)?rp::I xp;rp+:4;xp+:4))}naI:{-2147483648}
+/atF:{(yn/(rp::naF;(i<xn)?rp::F xp;rp+:8;xp+:8))}naF:{9221120237041090561f}
+/atL:{(yn/(rp::0;(i<xn)?(rp::I xp;rx I rp;)rp+:4;xp+:4))}
+
 
 \
 revI:{(rp+:4*(xn-1); xn/((rp-k)::I xp+k;k+:4))}
 revI:{ (rp+:4*(xn-1); xn/((rp-k)::I xp+k;k+:4)) }
 rev:I:I{v1;(~2~xt)?!;r:xt mk xn;rp:8+r;rp+:4*(xn-1);k:0;xn/((rp-k)::C xp+k;k+:4);dxr}
 rev:I:I{v1;(~xn)?:x;r:xt mk xn;rp:r+8;xt?[!;!;(rp+:(xn-1);xn/(rp-i)::C xn+i);!];dxr}
+
 
 \
 lrc:I:II{!;1}drc:I:II{!;1} /nyi

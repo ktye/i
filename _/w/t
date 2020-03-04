@@ -1,5 +1,9 @@
-5 mki         /5
-5 mki til     /0 1 2 3 4
-5 mki til rev /4 3 2 1 0
-"abcd"        /"abcd"
-"abcd" rev    /"dcba"
+5 mki                        /5
+5 mki til                    /0 1 2 3 4
+5 mki til rev                /4 3 2 1 0
+"abcd"                       /"abcd"
+"abcd" rev                   /"dcba"
+5 mki til rev 3 mki til atx  /4 3 2
+3 mki til rev 5 mki til atx  /2 1 0 0N 0N
+"abc" 4 mki til atx          /"abc "
+5 mki til rev fst            /4

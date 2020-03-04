@@ -70,8 +70,8 @@ func runtest() {
 func run(args []string) string {
 	trace := false
 	m0 := 16
-	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev}
-	fn2 := map[string]vt2{"mk": mk, "dump": dump}
+	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst}
+	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -193,8 +193,9 @@ func rl(x i) {
 		xp += 4
 	}
 }
-func dxr(x, r i) i  { dx(x); return r }
-func mki(i i) (r i) { r = mk(2, 1); sI(r+8, i); return r }
+func dxr(x, r i) i     { dx(x); return r }
+func dxyr(x, y, r i) i { dx(x); dx(y); return r }
+func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkd(x, y i) (r i) {
 	xt, _, xn, yn, _, _ := v2(x, y)
 	if xt != 5 {
@@ -248,6 +249,47 @@ func rev(x i) (r i) {
 		xp, rp = xp+w, rp-w
 	}
 	return dxr(x, r)
+}
+func fst(x i) (r i) {
+	xt, _, _ := v1(x)
+	if xt == 7 {
+		rx(12 + x)
+		dx(x)
+		return fst(12 + x)
+	}
+	return atx(x, mki(1))
+}
+func atx(x, y i) (r i) {
+	xt, yt, xn, yn, xp, _ := v2(x, y)
+	if xt == 7 {
+		panic("nyi atx d")
+	}
+	if yt != 2 {
+		panic("atx yt~I")
+	}
+	r = mk(xt, yn)
+	rp := r + 8
+	switch xt {
+	case 1:
+		for i := i(0); i < yn; i++ {
+			sC(rp+i, 32)
+			if i < xn {
+				sC(rp+i, C(xp+i))
+			}
+		}
+	case 2:
+		for i := i(0); i < yn; i++ {
+			sI(rp, 2147483648)
+			if i < xn {
+				sI(rp, I(xp))
+				xp += 4
+			}
+			rp += 4
+		}
+	default:
+		panic(fmt.Sprintf("nyi atx xt=%d", xt))
+	}
+	return dxyr(x, y, r)
 }
 func trap() { panic("trap") }
 func dump(a, n i) i {
@@ -314,7 +356,11 @@ func kst(x i) s {
 	}
 	r := make([]s, n)
 	for i := i(0); i < n; i++ {
-		r[i] = strconv.Itoa(int(int32(MI[2+i+x>>2])))
+		n := int32(MI[2+i+x>>2])
+		r[i] = strconv.Itoa(int(n))
+		if n == -2147483648 {
+			r[i] = "0N"
+		}
 	}
 	return strings.Join(r, " ")
 }

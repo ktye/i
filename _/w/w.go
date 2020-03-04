@@ -103,6 +103,7 @@ func run(r io.Reader) (module, []c) {
 				state = sRety
 				f.ex = true
 			} else {
+				fmt.Printf("%s\n", string(b))
 				err("parse function name")
 			}
 		case sRety:
@@ -407,6 +408,9 @@ func (p *parser) monadic(f, x expr, h pos) expr {
 		}
 		return v1{s: s(v), argv: argv{x}, pos: h}
 	case fun:
+		if s, o := x.(seq); o {
+			return cal{fun: v, argv: s.argv}
+		}
 		return cal{fun: v, argv: argv{x}}
 	case asn:
 		return ret{argv: argv{x}, pos: h}
@@ -499,6 +503,15 @@ func (p *parser) noun() expr {
 			return p.noun()
 		}
 		return p.pSym(p.tok)
+		/*
+			s := p.pSym(p.tok)
+			if f, o := s.(fun); o {
+				if p.t(sC('(')) {
+					a := p.seq(')')
+					xxx fun{
+				}
+			}
+		*/
 	case p.t(sC('/')):
 		return nlp{}
 	case p.t(sCon):
@@ -1099,7 +1112,7 @@ func (v cvt) bytes() []c {
 func (v cvt) cstr() s    { return jn("(", styp[v.t], ")", cstring(v.x())) } // todo: signed?
 func (v cvt) gstr() s    { return jn(styp[v.t], "(", gstring(v.x()), ")") } // todo signed
 func (v typ) rt() T      { return 0 }
-func (v typ) valid() s   { return "illegal type" }
+func (v typ) valid() s   { return "freestanding type" }
 func (v typ) bytes() []c { return nil }
 func (v fun) rt() T      { return 0 }
 func (v fun) valid() s   { return "unapplied func " + v.s }
@@ -1612,7 +1625,7 @@ func (m module) cout(data []c) []c {
 	for _, f := range m {
 		st := styp[f.t]
 		if f.t == 0 {
-			st = "void "
+			st = "V "
 		}
 		sig := ""
 		for i := 0; i < f.args; i++ {
@@ -1642,7 +1655,7 @@ func (m module) cout(data []c) []c {
 		}
 		st := styp[f.t]
 		if f.t == 0 {
-			st = "void "
+			st = "V "
 		}
 		fmt.Fprintf(&b, "%s %s(%s){%s", st, f.name, sig, loc)
 		if sq, o := f.ast.(seq); o {
