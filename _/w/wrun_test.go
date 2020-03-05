@@ -92,7 +92,53 @@ func runWagon(b []byte, args []string, exp string) error {
 		}
 		return nil
 	}
+	pushVector := func(s string) bool {
+		if idx := strings.Index(s, ","); idx == -1 {
+			return false
+		}
+		s = strings.Trim(s, ",")
+		f := strings.Index(s, ".")
+		v := strings.Split(s, ",")
+		n := uint32(len(v))
+		iv := make([]int64, n)
+		fv := make([]float64, n)
+		var e error
+		for i, s := range v {
+			if f == -1 {
+				iv[i], e = strconv.ParseInt(s, 10, 32)
+			} else {
+				fv[i], e = strconv.ParseFloat(s, 64)
+			}
+			if e != nil {
+				return false
+			}
+		}
+		m := vm.Memory()
+		if f == -1 {
+			stack = append(stack, 2, uint64(n))
+			if e = call("mk"); e != nil {
+				return false
+			}
+			x := uint32(stack[len(stack)-1])
+			for i := uint32(0); i < n; i++ {
+				binary.LittleEndian.PutUint32(m[x+8+i*4:], uint32(iv[i]))
+			}
+		} else {
+			stack = append(stack, 3, uint64(n))
+			if e = call("mk"); e != nil {
+				return false
+			}
+			x := uint32(stack[len(stack)-1])
+			for i := uint32(0); i < n; i++ {
+				binary.LittleEndian.PutUint64(m[x+8+i*8:], math.Float64bits(fv[i]))
+			}
+		}
+		return true
+	}
 	for _, s := range args {
+		if pushVector(s) {
+			continue
+		}
 		if u, e := strconv.ParseUint(s, 10, 64); e == nil {
 			stack = append(stack, u)
 		} else if s == "dump" {
@@ -165,24 +211,46 @@ type k = uint32
 func kst(a k, m []byte) s {
 	x := get(m, a)
 	t, n := x>>29, x&536870911
+	var f func(i int) s
+	var tof func(s) s = func(s s) s { return s }
+	istr := func(i int) s {
+		if n := int32(get(m, 8+4*k(i)+a)); n == -2147483648 {
+			return "0N"
+		} else {
+			return strconv.Itoa(int(n))
+		}
+	}
+	fstr := func(i int) s {
+		if f := getf(m, a+8+8*k(i)); math.IsNaN(f) {
+			return "0n"
+		} else {
+			return strconv.FormatFloat(f, 'g', -1, 64)
+		}
+	}
 	switch t {
 	case 1:
 		return `"` + string(m[a+8:a+8+n]) + `"`
 	case 2:
+		f = istr
+	case 3:
+		f = fstr
+		tof = func(s s) s {
+			if strings.Index(s, ".") == -1 {
+				return s + "f"
+			}
+			return s
+		}
 	default:
 		panic("nyi: kst t~CI")
 	}
 	r := make([]s, n)
 	for i := range r {
-		if n := int32(get(m, 8+4*k(i)+a)); n == -2147483648 {
-			r[i] = "0N"
-		} else {
-			r[i] = strconv.Itoa(int(n))
-		}
+		r[i] = f(i)
 	}
-	return strings.Join(r, " ")
+	return tof(strings.Join(r, " "))
 }
-func get(m []byte, a k) k { return binary.LittleEndian.Uint32(m[a:]) }
+func get(m []byte, a k) k        { return binary.LittleEndian.Uint32(m[a:]) }
+func getf(m []byte, a k) float64 { return math.Float64frombits(binary.LittleEndian.Uint64(m[a:])) }
 func mark(m []byte) { // mark bucket type within free blocks
 	for t := k(4); t < 32; t++ {
 		p := get(m, 4*t) // free pointer of type t

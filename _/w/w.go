@@ -672,7 +672,7 @@ func (p *parser) pSym(b []c) expr {
 	}
 	return loc{pos: pos(p.p), s: s(b), i: -1}
 }
-func sCon(b []c) int { // 123 123i 123j .123 123. -..
+func sCon(b []c) int { // 123 123i 123j 123f .123 123. -..
 	dot := false
 	if !cr09(b[0]) {
 		return 0
@@ -680,7 +680,7 @@ func sCon(b []c) int { // 123 123i 123j .123 123. -..
 	for i, c := range b {
 		if cr09(c) {
 			continue
-		} else if dot == false && (c == 'i' || c == 'j') {
+		} else if dot == false && (c == 'i' || c == 'j' || c == 'f') {
 			return i + 1
 		} else if dot == false && c == '.' {
 			dot = true
@@ -702,16 +702,21 @@ func (p *parser) pCon(b []c) expr {
 		}
 	}
 	r.t = I
-	if c := b[len(b)-1]; c == 'i' || c == 'j' {
+	if c := b[len(b)-1]; c == 'i' || c == 'j' || c == 'f' {
 		b = b[:len(b)-1]
 		if c == 'j' {
 			r.t = J
+		} else if c == 'f' {
+			r.t = F
 		}
 	}
 	if i, e := strconv.ParseInt(s(b), 10, 64); e != nil {
 		return p.err(e.Error())
 	} else {
 		r.i = i
+		if r.t == F {
+			r.f = math.Float64frombits(uint64(r.i))
+		}
 	}
 	return r
 }
@@ -1086,11 +1091,15 @@ func (v con) bytes() (r []c) {
 }
 func (v con) cstr() s {
 	if v.t == F {
-		s := sf("%v", v.f)
-		if strings.Index(s, ".") == -1 {
-			s += ".0"
+		if math.IsNaN(v.f) {
+			return "NAN"
+		} else {
+			s := sf("%v", v.f)
+			if strings.Index(s, ".") == -1 {
+				s += ".0"
+			}
+			return s
 		}
-		return s
 	}
 	return sf("%d", v.i)
 }

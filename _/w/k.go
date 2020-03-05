@@ -9,6 +9,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/bits"
 	"os"
 	"strconv"
@@ -35,6 +36,9 @@ type slice struct {
 	l int
 	c int
 }
+
+const naI i = 2147483648
+const naJ j = 9221120237041090561
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -71,11 +75,50 @@ func run(args []string) string {
 	trace := false
 	m0 := 16
 	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst}
-	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx}
+	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
+	pushVector := func(s string) bool {
+		if idx := strings.Index(s, ","); idx == -1 {
+			return false
+		}
+		s = strings.Trim(s, ",")
+		f := strings.Index(s, ".")
+		v := strings.Split(s, ",")
+		n := uint32(len(v))
+		iv := make([]int64, n)
+		fv := make([]float64, n)
+		var e error
+		for i, s := range v {
+			if f == -1 {
+				iv[i], e = strconv.ParseInt(s, 10, 32)
+			} else {
+				fv[i], e = strconv.ParseFloat(s, 64)
+			}
+			if e != nil {
+				return false
+			}
+		}
+		if f == -1 {
+			x := mk(2, n)
+			stack = append(stack, x)
+			for i := uint32(0); i < n; i++ {
+				MI[(x+8+i*4)>>2] = uint32(iv[i])
+			}
+		} else {
+			x := mk(3, n)
+			stack = append(stack, x)
+			for i := uint32(0); i < n; i++ {
+				MF[(x+8+i*8)>>3] = fv[i]
+			}
+		}
+		return true
+	}
 	for _, a := range append([]string{strconv.Itoa(m0), "ini"}, args...) {
+		if pushVector(a) {
+			continue
+		}
 		if n, e := strconv.ParseUint(a, 10, 32); e == nil {
 			stack = append(stack, i(n))
 		} else {
@@ -220,35 +263,33 @@ func til(x i) (r i) {
 		trap()
 	}
 	n := I(xp)
+	dx(x)
+	if ii := int32(n); ii < 0 {
+		return tir(i(-ii))
+	}
 	r = mk(xt, n)
 	rp := 8 + r
 	for i := i(0); i < n; i++ {
 		sI(rp, i)
 		rp += 4
 	}
-	return dxr(x, r)
+	return r
+}
+func tir(n i) (r i) {
+	r = mk(2, n)
+	rp := 8 + r + 4*(n-1)
+	for i := i(0); i < n; i++ {
+		sI(rp, i)
+		rp -= 4
+	}
+	return r
 }
 func rev(x i) (r i) {
-	t, n, xp := v1(x)
+	_, n, _ := v1(x)
 	if n == 0 {
 		return x
-	} else if t == 0 {
-		panic("type")
-	} else if t > 5 {
-		rl(x)
 	}
-	if t == 7 {
-		dx(x)
-		return mkd(rev(x+8), rev(x+12))
-	}
-	r = mk(t, n)
-	w := i(C(t))
-	rp := 8 + r + w*(n-1)
-	for k := i(0); k < n; k++ {
-		copy(MC[rp:rp+w], MC[xp:xp+w])
-		xp, rp = xp+w, rp-w
-	}
-	return dxr(x, r)
+	return atx(x, tir(n))
 }
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
@@ -257,10 +298,33 @@ func fst(x i) (r i) {
 		dx(x)
 		return fst(12 + x)
 	}
-	return atx(x, mki(1))
+	return atx(x, mki(0))
+}
+func rsh(x, y i) (r i) {
+	xt, _, xn, _, _, _ := v2(x, y)
+	if xt != 2 {
+		panic("type")
+	} else if xn == 1 {
+		return tak(x, y)
+	} else {
+		panic("nyi rsh")
+	}
+}
+func tak(x, y i) (r i) {
+	_, _, _, yn, xp, _ := v2(x, y)
+	n := I(xp)
+	r = til(x)
+	if yn < n {
+		rp := 8 + r
+		for i := i(0); i < n; i++ {
+			sI(rp, I(rp)%yn)
+			rp += 4
+		}
+	}
+	return atx(y, r)
 }
 func atx(x, y i) (r i) {
-	xt, yt, xn, yn, xp, _ := v2(x, y)
+	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 7 {
 		panic("nyi atx d")
 	}
@@ -270,21 +334,35 @@ func atx(x, y i) (r i) {
 	r = mk(xt, yn)
 	rp := r + 8
 	switch xt {
-	case 1:
+	case 1: // yn/((rp+i)::C?32;yi:I yp;(yi<xn)?(rp+i)::C xp+yi;yp+:4)
 		for i := i(0); i < yn; i++ {
 			sC(rp+i, 32)
-			if i < xn {
-				sC(rp+i, C(xp+i))
+			yi := I(yp)
+			if yi < xn {
+				sC(rp+i, C(xp+yi))
 			}
+			yp += 4
 		}
-	case 2:
+	case 2: // yn/(rp::naI;yi:I yp;(yi<xn)?rp::I xp+4*yi;rp+:4;yp+:4)
 		for i := i(0); i < yn; i++ {
-			sI(rp, 2147483648)
-			if i < xn {
-				sI(rp, I(xp))
-				xp += 4
+			sI(rp, naI)
+			yi := I(yp)
+			if yi < xn {
+				sI(rp, I(xp+4*yi))
 			}
 			rp += 4
+			yp += 4
+		}
+	case 3: // yn/(rp::naF;yi:I yp;(yi<xn)?rp::F xp+8*yi;rp+:8;yp+:4)
+		naF := math.Float64frombits(naJ)
+		for i := i(0); i < yn; i++ {
+			sF(rp, naF)
+			yi := I(yp)
+			if yi < xn {
+				sF(rp, F(xp+8*yi))
+			}
+			rp += 8
+			yp += 4
 		}
 	default:
 		panic(fmt.Sprintf("nyi atx xt=%d", xt))
@@ -347,20 +425,41 @@ func leak() error {
 func kst(x i) s {
 	a := MI[x>>2]
 	t, n := a>>29, a&536870911
+	var f func(i i) s
+	var tof func(s) s = func(s s) s { return s }
+	istr := func(i i) s {
+		if n := int32(MI[i+2+x>>2]); n == -2147483648 {
+			return "0N"
+		} else {
+			return strconv.Itoa(int(n))
+		}
+	}
+	fstr := func(i i) s {
+		if f := MF[i+1+x>>3]; math.IsNaN(f) {
+			return "0n"
+		} else {
+			return strconv.FormatFloat(f, 'g', -1, 64)
+		}
+	}
 	switch t {
 	case 1:
 		return `"` + string(MC[x+8:x+8+n]) + `"`
 	case 2:
+		f = istr
+	case 3:
+		f = fstr
+		tof = func(s s) s {
+			if strings.Index(s, ".") == -1 {
+				return s + "f"
+			}
+			return s
+		}
 	default:
 		panic("nyi: kst t~CI")
 	}
 	r := make([]s, n)
-	for i := i(0); i < n; i++ {
-		n := int32(MI[2+i+x>>2])
-		r[i] = strconv.Itoa(int(n))
-		if n == -2147483648 {
-			r[i] = "0N"
-		}
+	for k := range r {
+		r[k] = f(i(k))
 	}
-	return strings.Join(r, " ")
+	return tof(strings.Join(r, " "))
 }

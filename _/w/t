@@ -3,7 +3,14 @@
 5 mki til rev                /4 3 2 1 0
 "abcd"                       /"abcd"
 "abcd" rev                   /"dcba"
+1,2,3                        /1 2 3
+1,2.,3                       /1 2 3f
+4,5,3,2 rev                  /2 3 5 4
+4,5,3,2  1,3 atx             /5 2
+4,5,3,2. 1,3 atx             /5 2f
 5 mki til rev 3 mki til atx  /4 3 2
 3 mki til rev 5 mki til atx  /2 1 0 0N 0N
 "abc" 4 mki til atx          /"abc "
 5 mki til rev fst            /4
+3 mki 5 mki til rsh          /0 1 2
+5 mki 3 mki til tak          /0 1 2 0 1

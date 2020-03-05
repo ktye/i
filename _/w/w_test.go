@@ -42,6 +42,7 @@ func TestB(t *testing.T) {
 		{"I:I", "x/r:r+i;r", "20000440410021020340200120026a2101200241016a22022000490d000b0b2001"},
 		{"I:I", "x/r+:i;r", "20000440410021020340200120026a2101200241016a22022000490d000b0b2001"},
 		{"I:II", "x+y", "20002001 6a"},
+		{"I:II", "x\\y", "20002001 70"},
 		{"I:II", "r:x;r+:y;r", "2000 2102 2002 2001 6a 2102 2002"},
 		{"I:I", "x/r:i;r", "2000044041002102034020022101200241016a22022000490d000b0b2001"},
 		{"I:II", "(3+x)*y", "4103 2000 6a 2001 6c"},
@@ -110,14 +111,21 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	if broken {
 		t.Skip()
 	}
-	m, data, err := KWasmModule()
+	m, data, src, err := KWasmModule()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if idx := bytes.Index(src, []byte{'\n', '\\'}); idx != -1 {
+		src = src[:idx+1]
+	}
+	tests, err := ioutil.ReadFile("t")
 	if err != nil {
 		t.Fatal(err)
 	}
 	wasm := m.wasm(data)
 	_, exp := m.exports()
 	var txt, fns bytes.Buffer
-	fmt.Fprintf(&txt, "kwasm(%d b) %s", len(wasm), time.Now().Format("2006.01.02"))
+	fmt.Fprintf(&txt, "kwasm(%d b) %s tests src", len(wasm), time.Now().Format("2006.01.02"))
 	for _, f := range exp {
 		if f.t != 0 && (f.args == 1 || f.args == 2) {
 			fmt.Fprintf(&txt, " %s", f.name)
@@ -129,33 +137,35 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	}
 	txt.WriteString(`\n `)
 	var b bytes.Buffer
-	b.WriteString(hh)
-	b.WriteString(base64.StdEncoding.EncodeToString(wasm))
-	b.WriteString(ht1)
-	b.Write(txt.Bytes())
-	b.WriteString(ht2)
-	b.Write(fns.Bytes())
-	b.WriteString(ht3)
+	s := hh
+	s = strings.Replace(s, `{{wasm}}`, base64.StdEncoding.EncodeToString(wasm), 1)
+	s = strings.Replace(s, `{{tests}}`, base64.StdEncoding.EncodeToString(tests), 1)
+	s = strings.Replace(s, `{{src}}`, base64.StdEncoding.EncodeToString(src), 1)
+	s = strings.Replace(s, `{{cons}}`, string(txt.Bytes()), 1)
+	s = strings.Replace(s, `{{fncs}}`, string(fns.Bytes()), 1)
+	b.WriteString(s)
 	if e := ioutil.WriteFile("k.html", b.Bytes(), 0644); e != nil {
 		t.Fatal(e)
 	}
 }
 
-func KWasmModule() (module, []byte, error) {
+func KWasmModule() (module, []byte, []byte, error) {
 	var src io.Reader
+	var srcb []byte
 	if k, e := ioutil.ReadFile("../../k.w"); e != nil {
-		return nil, nil, e
+		return nil, nil, nil, e
 	} else {
 		src = bytes.NewReader(k)
+		srcb = k
 	}
 	m, data := run(src)
-	return m, data, nil
+	return m, data, srcb, nil
 }
 func TestCout(t *testing.T) { // write k_c from ../../k.w
 	if broken {
 		t.Skip()
 	}
-	m, data, err := KWasmModule()
+	m, data, _, err := KWasmModule()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,12 +204,15 @@ const hh = `<html>
 <textarea id="kons" class="term" wrap="off" autofocus spellcheck="false"></textarea>
 <canvas id="cnv"></canvas>
 <script>
-var r = "`
-const ht1 = `"
+var r = "{{wasm}}"
+var rt = "{{tests}}"
+var rs = "{{src}}"
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function ae(x,y,z){x.addEventListener(y,z)};
 var kwasm = sa(atob(r))
+var tests = atob(rt)
+var src = atob(rs)
 var K
 // kons (k console)
 var hit = kons
@@ -207,8 +220,7 @@ var konstore = ""
 var edname = ""
 var ed = false
 function initKons() {
- kons.value = "`
-const ht2 = `"
+ kons.value = "{{cons}}"
  var hold = false
  kons.onkeydown = function(e) {
   if(e.which === 27) { // quit edit / toggle hold / close image
@@ -235,6 +247,8 @@ const ht2 = `"
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
+   if (s === "tests")           { O(tests);                        return }
+   if (s === "src")             { O(src);                          return }
    if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
    if (s === "\\h")             { O(atob(h));P();                  return }
    if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
@@ -251,29 +265,60 @@ const ht2 = `"
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
 
+function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
+function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
  var h = K.I[x>>2]
  var t = h>>29
  var n = h&536870911
  var o = []
  switch(t){
- //case 1:
+ case 1:
+  return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
  case 2:
   x >>= 2
-  return K.I.slice(2+x, 2+x+n).join(" ")
+  return K.I.slice(2+x, 2+x+n).join(" ").split("2147483648").join("0N")
+ case 3:
+  x >>= 3
+  var s = K.F.slice(1+x, 1+x+n).join(" ")
+  if(s.indexOf(".")==-1) s+="f"
+  return s
  default:
   return "kst nyi: t=" + String(t)
  }
 }
 
-var funcs = {`
-const ht3 = `}
+var funcs = {{{fncs}}}
+function vector(s) {
+ var t = 2
+ if(s.indexOf(".") != -1) t = 3
+ if(s.indexOf(",")==-1)   return 0
+ if(s.startsWith(","))    s=s.substr(1)
+ if(s.endsWith(","))      s=s.substr(0,s.length-1)
+ var v = s.split(",").map(x=>Number(x))
+ var n = v.length
+ var x = K.exports.mk(t, n)
+ if (t==2) for (var i=0;i<n;i++) K.I[2+i+(x>>2)] = v[i];
+ else      for (var i=0;i<n;i++) K.F[1+i+(x>>3)] = v[i];
+ return x
+}
+function chrVector(s) {
+ s = s.substr(1,s.length-2)
+ var n = s.length
+ var x = K.exports.mk(1, n)
+ console.log("chr ", x, n, K.I[x>>2])
+ for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
+ return x
+}
 function E(s) {
  try{ // todo save/restore
   var stack = []
   var v = s.split(" ").filter(x => x)
   for (var i=0; i<v.length; i++) {
    s = v[i]
+   var x = vector(s)
+   if (x!=0) { stack.push(x); continue; }
+   if (s.startsWith('"')) { stack.push(chrVector(s)); continue; }
    var x = Number(s)
    var y = 0
    if(x==x) {
@@ -338,9 +383,6 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
  }
  kons.focus()
 })();
-
-function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
-function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 </script></body></html>
 `
 
@@ -354,7 +396,9 @@ const kh = `#include<stdlib.h>
 typedef void V;typedef char C;typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t uI;typedef uint64_t uJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 V trap() { exit(1); }
-C *MC;I* MI;J* MJ;F *MF;`
+C *MC;I* MI;J* MJ;F *MF;
+//F NaN = &((unt64_t)9221120237041090561ull);
+`
 const kt1 = `// Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
 const trace = 0;
 I pop1(I *s, I n, I *x) {
@@ -408,7 +452,7 @@ I Dump(I *s, I n) {
 	return n-2;
 }
 V O(I x) {
-	I i;
+	I i, tof;
 	I t = MI[x>>2]>>29;
 	I n = MI[x>>2]&536870911;
 	switch(t){
@@ -420,15 +464,61 @@ V O(I x) {
 	case 2:
 		x = 2 + (x>>2);
 		for(i=0;i<n;i++) {
-			if (i>0) {
-				printf(" ");
-			}
-			printf("%d", MI[x+i]);
+			if (i>0)  printf(" ");
+			if (MI[x+i] == -2147483648) printf("0N");
+			else                        printf("%d", MI[x+i]);
 		}
 		printf("\n");
 		break;
-	default: printf("nyi: kst%d\n", t);trap();
+	case 3:
+		tof = 1;
+		x = 1 + (x>>3);
+		for(i=0;i<n;i++) {
+			if (i>0)  printf(" ");
+			if (MF[x+i] != MF[x+i]) { printf("0n"); tof = 0; } else printf("%g", MF[x+i]);
+			if (MF[x+i] != (F)(I)MF[x+i]) tof = 0;
+		}
+		if(tof) printf("f");
+		printf("\n");
+		break;
+	default:
+		printf("nyi: kst %x t=%d\n", x, t);trap();
 	}
+}
+I chrVector(C *s) {
+	I i, x;
+	I n = strlen(s);
+	s++; n-=2;
+	if(n<0) trap();
+	x = mk(1, n);
+	for (i=0; i<n; i++) MC[8+x+i] = s[i];
+	return x;
+}
+I numVector(C *s) {
+	I n = strlen(s);
+	I x, i;
+	F fv[8];
+	I iv[8];
+	C *p;
+	I isf = (strchr(s, '.') != NULL);
+	if (s[0] == ',')      { s++;      n--; }
+	if (n>0&&s[n-1]==',') { s[n-1]=0; n--; }
+	p = strtok(s, ",");
+	n = 0;
+	while(p != NULL) {
+		if (n==8) break;
+		if (isf)  fv[n++] = atof(p);
+		else      iv[n++] = atoi(p);
+ 		p = strtok(NULL, ",");
+	}
+	if (isf) {
+		x = mk(3, n);
+		for (i=0; i<n; i++) MF[i+1+(x>>3)] = fv[i];
+	} else {
+		x = mk(2, n);
+		for (i=0; i<n; i++) MI[i+2+(x>>2)] = iv[i];
+	}
+	return x;
 }
 #define M0 16
 I main(int args, C **argv){
@@ -441,6 +531,14 @@ I main(int args, C **argv){
 	ini(M0);
 	for (i=1; i<args; i++) {
 		a = argv[i];
+		if (strchr(a, ',') != NULL) {
+			n = push(stack, n, numVector(a));
+			continue;
+		}
+		if (a[0] == '"') {
+			n = push(stack, n, chrVector(a));
+			continue;
+		}
 		if (a[0] >= '0' && a[0] <= '9') {
 			n = push(stack, n, Number(a));
 			continue;
