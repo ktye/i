@@ -227,6 +227,7 @@ func kst(a k, m []byte) s {
 			return strconv.FormatFloat(f, 'g', -1, 64)
 		}
 	}
+	sep := " "
 	switch t {
 	case 1:
 		return `"` + string(m[a+8:a+8+n]) + `"`
@@ -240,14 +241,18 @@ func kst(a k, m []byte) s {
 			}
 			return s
 		}
+	case 6:
+		f = func(i int) s { return kst(get(m, 8+4*uint32(i)+a), m) }
+		sep = ";"
+		tof = func(s s) s { return "(" + s + ")" }
 	default:
-		panic("nyi: kst t~CI")
+		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}
 	r := make([]s, n)
 	for i := range r {
 		r[i] = f(i)
 	}
-	return tof(strings.Join(r, " "))
+	return tof(strings.Join(r, sep))
 }
 func get(m []byte, a k) k        { return binary.LittleEndian.Uint32(m[a:]) }
 func getf(m []byte, a k) float64 { return math.Float64frombits(binary.LittleEndian.Uint64(m[a:])) }

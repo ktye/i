@@ -74,8 +74,8 @@ func runtest() {
 func run(args []string) string {
 	trace := false
 	m0 := 16
-	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst}
-	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak}
+	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst, "enl": enl}
+	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak, "lcat": lcat}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -187,7 +187,13 @@ func msl() { // update slice headers after set/inc MJ
 	MC = *(*[]c)(unsafe.Pointer(&cp))
 	// todo Z
 }
-func bk(t, n i) i { return i(32 - bits.LeadingZeros32(7+n*i(C(t)))) }
+func bk(t, n i) (r i) {
+	r = i(32 - bits.LeadingZeros32(7+n*i(C(t))))
+	if r < 4 {
+		return 4
+	}
+	return r
+}
 func mk(x, y i) i {
 	t := bk(x, y)
 	i := 4 * t
@@ -219,6 +225,12 @@ func dx(x i) {
 		xr := I(x + 4)
 		sI(x+4, xr-1)
 		if xr == 1 {
+			xt, xn, xp := v1(x)
+			if xt > 5 { // todo Z
+				for i := i(0); i < xn; i++ {
+					dx(I(xp + 4*i))
+				}
+			}
 			fr(x)
 		}
 	}
@@ -257,6 +269,17 @@ func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	yt, yn, yp = v1(y)
 	return
 }
+func use(x i) (r i) {
+	xt, xn, xp := v1(x)
+	if I(x+4) != 1 {
+		r = mk(xt, xn)
+		mv(r+8, xp, i(C(xt)))
+		dx(x)
+		x = r
+	}
+	return x
+}
+func mv(dst, src, n i) { copy(MC[dst:dst+n], MC[src:src+n]) }
 func til(x i) (r i) {
 	xt, _, xp := v1(x)
 	if xt != 2 {
@@ -369,7 +392,21 @@ func atx(x, y i) (r i) {
 	}
 	return dxyr(x, y, r)
 }
-func trap() { panic("trap") }
+func lcat(x, y i) (r i) { // list append
+	x = use(x)
+	xt, xn, xp := v1(x)
+	if bk(xt, xn) < bk(xt, xn+1) {
+		r = mk(xt, xn+1)
+		mv(r+8, xp, 4*xn)
+		dx(x)
+		x, xp = r, r+8
+	}
+	sI(x, (xn+1)|6<<29)
+	sI(xp+4*xn, y)
+	return x
+}
+func enl(x i) (r i) { return lcat(mk(6, 0), x) }
+func trap()         { panic("trap") }
 func dump(a, n i) i {
 	p := a >> 2
 	fmt.Printf("%.8x ", a)
@@ -406,21 +443,20 @@ func mark() { // mark bucket type within free blocks
 		}
 	}
 }
-func leak() error {
+func leak() {
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
 		if MI[p+1] != 0 {
-			return fmt.Errorf("non-free block at %d(%x)", p<<2, p<<2)
+			panic(fmt.Errorf("non-free block at %d(%x)", p<<2, p<<2))
 		}
 		t := MI[p+2]
 		if t < 4 || t > 31 {
-			return fmt.Errorf("illegal bucket type %d at %d(%x)", t, p<<2, p<<2)
+			panic(fmt.Errorf("illegal bucket type %d at %d(%x)", t, p<<2, p<<2))
 		}
 		dp := i(1) << t
 		p += dp >> 2
 	}
-	return nil
 }
 func kst(x i) s {
 	a := MI[x>>2]
@@ -441,6 +477,7 @@ func kst(x i) s {
 			return strconv.FormatFloat(f, 'g', -1, 64)
 		}
 	}
+	sep := " "
 	switch t {
 	case 1:
 		return `"` + string(MC[x+8:x+8+n]) + `"`
@@ -454,12 +491,16 @@ func kst(x i) s {
 			}
 			return s
 		}
+	case 6:
+		f = func(i i) s { return kst(MI[2+i+x>>2]) }
+		sep = ";"
+		tof = func(s s) s { return "(" + s + ")" }
 	default:
-		panic("nyi: kst t~CI")
+		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}
 	r := make([]s, n)
 	for k := range r {
 		r[k] = f(i(k))
 	}
-	return tof(strings.Join(r, " "))
+	return tof(strings.Join(r, sep))
 }

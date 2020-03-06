@@ -14,3 +14,5 @@
 5 mki til rev fst            /4
 3 mki 5 mki til rsh          /0 1 2
 5 mki 3 mki til tak          /0 1 2 0 1
+2 mki enl                    /(2)
+/6 0 mk 1 mki lcat 2 mki lcat /(1;2)

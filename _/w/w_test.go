@@ -400,7 +400,7 @@ C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
 `
 const kt1 = `// Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
-const trace = 0;
+const trace = 1;
 I pop1(I *s, I n, I *x) {
 	*x = s[n-1];
 	return n-1;
@@ -417,7 +417,7 @@ I push(I *s, I n, I x) {
 I f1(I (*f)(I), I *s, I n) {
 	if(trace) printf("%d: ", s[n-1]);
 	s[n-1] = f(s[n-1]);
-	if(trace) printf("%d\n", s[n-1]);
+	if(trace) printf("%d(%x)\n", s[n-1], s[n-1]);
 	return n;
 }
 I f2(I (*f)(I,I), I *s, I n) {
@@ -435,26 +435,24 @@ I Match(C *a, C *b) {
 		if (a[i] == 0)    return 1;
 	}
 }
-I Dump(I *s, I n) {
-	I x = s[n-2];
-	I y = s[n-1];
-	I p = 0;
+V Dump(I x, I n) {
+	I p = x>>2;
 	printf("\n%08x  ", x);
-	for (I i=x; i<x+y; i++) {
-		printf("%02x", (uint8_t)MC[i]);
-		p++;
-		if ((i > x) && (p%32 == 0)) {
-			printf("\n%08x  ", i+1);
-		} else if ((i > x) && (p%4 == 0)) {
+	for (I i=0; i<n; i++) {
+		printf(" %08x", MI[p+i]);
+		if ((i > x) && ((i+1)%8 == 0)) {
+			printf("\n%08x  ", x+4*i+4);
+		} else if ((i > 0) && ((i+1)%4 == 0)) {
 			printf(" ");
 		}
 	}
-	return n-2;
+	printf("\n");
 }
 V O(I x) {
 	I i, tof;
 	I t = MI[x>>2]>>29;
 	I n = MI[x>>2]&536870911;
+	printf("x=%d t=%d n=%d\n", x, t, n);
 	switch(t){
 	case 1:
 		printf("\"");
@@ -481,6 +479,14 @@ V O(I x) {
 		if(tof) printf("f");
 		printf("\n");
 		break;
+	case 6:
+		x = 2 + (x>>2);
+		printf("(");
+		for(i=0;i<n;i++) {
+			if(i>0) printf(";");
+			O(MI[x+i]);
+		}
+		printf(")\n");
 	default:
 		printf("nyi: kst %x t=%d\n", x, t);trap();
 	}
@@ -548,7 +554,7 @@ I main(int args, C **argv){
 			n = f1(mki, stack, n);
 `
 const kt2 = `		} else if (Match("dump", a)) {
-			n = Dump(stack, n);
+			Dump(stack[n-2], stack[n-1]); n-=2;
 		} else if ((a[0] == '"') && strlen(a) > 1) {
 			x = strlen(a) - 2;
 			r = mk(1, x);

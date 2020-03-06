@@ -1217,7 +1217,7 @@ func (v sto) gstr() s {
 func (v ret) rt() T      { return 0 /*v.x().rt()*/ }
 func (v ret) valid() s   { return ifex(v.x().rt() == 0, "return zero type") }
 func (v ret) bytes() []c { return append(v.x().bytes(), 0x0f) }
-func (v ret) cstr() s    { return jn("return ", cstring(v.x()), ";") }
+func (v ret) cstr() s    { return jn("R ", cstring(v.x()), ";") }
 func (v ret) gstr() s    { return jn("return ", gstring(v.x()), ";") }
 func (v iff) rt() T      { return 0 }
 func (v iff) valid() s {
