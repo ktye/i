@@ -13,7 +13,7 @@ atI:{(yn/(rp::naI;yi:I yp;(yi<xn)?rp::I xp+4*yi;rp+:4;yp+:4))}naI:{-2147483648}
 atF:{(yn/(rp::naF;yi:I yp;(yi<xn)?rp::F xp+8*yi;rp+:8;yp+:4))}naF:{9221120237041090561f}
 rsh:I:II{v2;(~xt~2)? :x;(xn~1)? :x tak y;y} /nyi rsh
 tak:I:II{v2;n:I xp;r:til x;rp:r+8;(yn<n)?(n/(rp+4*i)::i\yn);y atx r}
-use:{(~1~I v+4)?(r:xt mk xn;rp+r+8;mv(rp;xp;xn*I?C xt);dx x;x:r;xp:x+8)} mv:0:III{(z%4)/(x::I y;x+:4;y+:4)} /dst src nc
+use:{(~1~I v+4)?(r:xt mk xn;rp+r+8;mv(rp;xp;xn*I?C xt);dx x;x:r;xp:x+8)} mv:0:III{(7+z%8)/(x::J y;x+:8;y+:8)}
 lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
 enl:I:I{(6 mk 0) lcat x}
 

@@ -1382,7 +1382,7 @@ func c2str(tab map[s]code, op s, t T, x, y expr) s {
 	if len(o) > 2 {
 		return jn(u, o, "(", cstring(x), ",", cstring(y), ")")
 	} else {
-		return jn("(", embrace(cstring, x), o, u, embrace(cstring, y), ")")
+		return jn("(", u, embrace(cstring, x), o, u, embrace(cstring, y), ")")
 	}
 }
 func g2str(tab map[s]code, op s, t T, x, y expr) s {

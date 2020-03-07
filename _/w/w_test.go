@@ -268,21 +268,26 @@ function P()  { kons.value += " " }
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
- var h = K.I[x>>2]
- var t = h>>29
- var n = h&536870911
+ var h = K.I[x>>>2]
+ var t = (h>>>29)>>>0
+ var n = (h&536870911)>>>0
  var o = []
  switch(t){
  case 1:
   return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
  case 2:
-  x >>= 2
+  x >>>= 2
   return K.I.slice(2+x, 2+x+n).join(" ").split("2147483648").join("0N")
  case 3:
-  x >>= 3
+  x >>>= 3
   var s = K.F.slice(1+x, 1+x+n).join(" ")
   if(s.indexOf(".")==-1) s+="f"
   return s
+ case 6:
+  x >>>= 2
+  var r = []
+  for (var i=0; i<n; i++) r.push(kst(K.I[2+x+i]))
+  return "("+r.join(";")+")"
  default:
   return "kst nyi: t=" + String(t)
  }
@@ -306,9 +311,20 @@ function chrVector(s) {
  s = s.substr(1,s.length-2)
  var n = s.length
  var x = K.exports.mk(1, n)
- console.log("chr ", x, n, K.I[x>>2])
+ console.log("chr ", x, n, K.I[x>>>2])
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
  return x
+}
+function xx(x) { return x.toString(16).padStart(8,'0') }
+function dump(x, n) {
+ var p = x >>> 2
+ O("\n"+xx(p)+" ")
+ for (var i=0; i<n; i++) {
+  O(" "+xx(K.I[p+i]))
+  if ((i>0)&&((i+1)%8==0)) O("\n"+xx(x+4*i+4)+" ")
+  else if ((i>0)&&((i+1)%4==0)) O(" ")
+ }
+ O("\n")
 }
 function E(s) {
  try{ // todo save/restore
@@ -323,6 +339,9 @@ function E(s) {
    var y = 0
    if(x==x) {
     stack.push(x)
+   } else if (s=="dump") {
+    y = stack.pop()
+    dump(stack.pop(), y)
    } else if(s in funcs) {
     var n = funcs[s]
     x = stack.pop()
@@ -400,7 +419,7 @@ C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
 `
 const kt1 = `// Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
-const trace = 1;
+const trace = 0;
 I pop1(I *s, I n, I *x) {
 	*x = s[n-1];
 	return n-1;
@@ -440,24 +459,20 @@ V Dump(I x, I n) {
 	printf("\n%08x  ", x);
 	for (I i=0; i<n; i++) {
 		printf(" %08x", MI[p+i]);
-		if ((i > x) && ((i+1)%8 == 0)) {
-			printf("\n%08x  ", x+4*i+4);
-		} else if ((i > 0) && ((i+1)%4 == 0)) {
-			printf(" ");
-		}
+		if ((i > x) && ((i+1)%8 == 0))      printf("\n%08x  ", x+4*i+4);
+		else if ((i > 0) && ((i+1)%4 == 0)) printf(" ");
 	}
 	printf("\n");
 }
-V O(I x) {
+V kst(I x) {
 	I i, tof;
-	I t = MI[x>>2]>>29;
-	I n = MI[x>>2]&536870911;
-	printf("x=%d t=%d n=%d\n", x, t, n);
+	I t = ((uI)MI[x>>2])>>29;
+	I n = ((uI)MI[x>>2])&536870911;
 	switch(t){
 	case 1:
 		printf("\"");
 		for(i=0;i<n;i++) printf("%c", MC[8+x+i]);
-		printf("\"\n");
+		printf("\"");
 		break;
 	case 2:
 		x = 2 + (x>>2);
@@ -466,7 +481,6 @@ V O(I x) {
 			if (MI[x+i] == -2147483648) printf("0N");
 			else                        printf("%d", MI[x+i]);
 		}
-		printf("\n");
 		break;
 	case 3:
 		tof = 1;
@@ -477,20 +491,21 @@ V O(I x) {
 			if (MF[x+i] != (F)(I)MF[x+i]) tof = 0;
 		}
 		if(tof) printf("f");
-		printf("\n");
 		break;
 	case 6:
 		x = 2 + (x>>2);
 		printf("(");
 		for(i=0;i<n;i++) {
 			if(i>0) printf(";");
-			O(MI[x+i]);
+			kst(MI[x+i]);
 		}
-		printf(")\n");
+		printf(")");
+		break;
 	default:
 		printf("nyi: kst %x t=%d\n", x, t);trap();
 	}
 }
+V O(I x) { kst(x); printf("\n"); }
 I chrVector(C *s) {
 	I i, x;
 	I n = strlen(s);
