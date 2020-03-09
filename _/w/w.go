@@ -875,7 +875,7 @@ func getop(tab map[s]code, op s, t T) (r c) {
 		panic("unknown operator: " + op)
 	}
 	switch t {
-	case I:
+	case C, I:
 		r = ops.I
 	case J:
 		r = ops.J
@@ -1071,7 +1071,7 @@ func (v v1) gstr() s   { o, u := gop(v1Tab, v.s, v.rt()); return jn(o, u, "(", g
 func (v cmp) rt() T    { return I }
 func (v cmp) valid() s { return v2(v).valid() }
 func (v cmp) bytes() []c {
-	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.rt()))
+	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.x().rt()))
 }
 func (v cmp) cstr() s  { return c2str(cTab, v.s, v.rt(), v.x(), v.y()) }
 func (v cmp) gstr() s  { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
@@ -1634,7 +1634,7 @@ func (m module) cout(data []c) []c {
 	for _, f := range m {
 		st := styp[f.t]
 		if f.t == 0 {
-			st = "V "
+			st = "V"
 		}
 		sig := ""
 		for i := 0; i < f.args; i++ {

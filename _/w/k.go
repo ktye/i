@@ -17,6 +17,8 @@ import (
 	"unsafe"
 )
 
+const trace = false
+
 type c = byte
 type s = string
 type i = uint32
@@ -72,10 +74,9 @@ func runtest() {
 	}
 }
 func run(args []string) string {
-	trace := false
 	m0 := 16
-	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst, "enl": enl}
-	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak, "lcat": lcat}
+	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "wer": wer, "not": not}
+	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak, "cat": cat, "eql": eql}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -164,7 +165,7 @@ func run(args []string) string {
 	return r
 }
 func ini(x i) i {
-	sJ(0, 1130366807310592)
+	sJ(0, 289360691419414784) // uint64(0x0404040408040100)
 	sI(128, x)
 	p := i(256)
 	for i := i(8); i < x; i++ {
@@ -226,7 +227,7 @@ func dx(x i) {
 		sI(x+4, xr-1)
 		if xr == 1 {
 			xt, xn, xp := v1(x)
-			if xt > 5 { // todo Z
+			if xt > 4 {
 				for i := i(0); i < xn; i++ {
 					dx(I(xp + 4*i))
 				}
@@ -280,6 +281,22 @@ func use(x i) (r i) {
 	return x
 }
 func mv(dst, src, n i) { copy(MC[dst:dst+n], MC[src:src+n]) }
+func ext(x, y i) (rx, ry i) {
+	xt, yt, xn, yn, _, _ := v2(x, y)
+	if xt != yt {
+		trap()
+	}
+	if xn == yn {
+		return x, y
+	}
+	if xn == 1 && yn > 1 {
+		return tak(mki(yn), x), y
+	}
+	if xn > 1 && yn == 1 {
+		return x, tak(mki(xn), y)
+	}
+	panic("length")
+}
 func til(x i) (r i) {
 	xt, _, xp := v1(x)
 	if xt != 2 {
@@ -392,6 +409,34 @@ func atx(x, y i) (r i) {
 	}
 	return dxyr(x, y, r)
 }
+func cat(x, y i) (r i) {
+	xt, yt, _, _, _, _ := v2(x, y)
+	if xt == 0 || yt == 0 {
+		trap()
+	}
+	if xt == yt {
+		return ucat(x, y)
+	}
+	if xt == 5 {
+		return lcat(x, y)
+	}
+	panic("nyi cat")
+}
+func ucat(x, y i) (r i) {
+	xt, _, xn, yn, xp, yp := v2(x, y)
+	if xt > 4 {
+		rl(x)
+	}
+	if xt > 5 {
+		r = mkd(x+8, x+12)
+		return dxyr(x, y, r)
+	}
+	r = mk(xt, xn+yn)
+	w := i(C(xt))
+	mv(r+8, xp, w*xn)
+	mv(r+8+w*xn, yp, w*yn)
+	return dxyr(x, y, r)
+}
 func lcat(x, y i) (r i) { // list append
 	x = use(x)
 	xt, xn, xp := v1(x)
@@ -401,12 +446,129 @@ func lcat(x, y i) (r i) { // list append
 		dx(x)
 		x, xp = r, r+8
 	}
-	sI(x, (xn+1)|6<<29)
+	sI(x, (xn+1)|5<<29)
 	sI(xp+4*xn, y)
 	return x
 }
-func enl(x i) (r i) { return lcat(mk(6, 0), x) }
-func trap()         { panic("trap") }
+func enl(x i) (r i) { return lcat(mk(5, 0), x) }
+func cnt(x i) (r i) {
+	_, xn, _ := v1(x)
+	dx(x)
+	return mki(xn)
+}
+func wer(x i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt != 2 {
+		panic("type")
+	}
+	n := i(0)
+	for i := i(0); i < xn; i++ {
+		n += I(xp + 4*i)
+	}
+	r = mk(2, n)
+	rp := 8 + r
+	for i := i(0); i < xn; i++ {
+		nj := I(xp)
+		for j := uint32(0); j < nj; j++ {
+			sI(rp, i)
+			rp += 4
+		}
+		xp += 4
+	}
+	return dxr(x, r)
+}
+func not(x i) (r i) { return eql(mki(0), x) }
+func eql(x, y i) (r i) {
+	x, y = ext(x, y)
+	xt, _, xn, _, xp, yp := v2(x, y)
+
+	switch xt {
+	case 0, 2, 4:
+		r = eqI(xp, yp, xn)
+	case 1:
+		r = eqC(xp, yp, xn)
+	case 3:
+		r = eqF(xp, yp, xn)
+	default:
+		panic("nyi")
+	}
+	return dxyr(x, y, r)
+}
+func eqC(xp, yp, n i) (r i) {
+	r = mk(2, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		sI(rp+i, boolvar(C(xp+i) == C(yp+i)))
+	}
+	return r
+}
+func eqI(xp, yp, n i) (r i) {
+	r = mk(2, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		sI(rp, boolvar(I(xp) == I(yp)))
+		rp += 4
+		xp += 4
+		yp += 4
+	}
+	return r
+}
+func eqF(xp, yp, n i) (r i) {
+	r = mk(2, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		sI(rp, boolvar(F(xp) == F(yp)))
+		rp += 4
+		xp += 8
+		yp += 8
+	}
+	return r
+}
+
+func boolvar(b bool) i {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+/*
+func lrc(f func(i) i, x i) (r i) {
+	_, xn, xp := v1(x)
+	r = mk(5, xn)
+	for i := i(0); i < xn; i++ {
+		xi := I(xp + 4*i)
+		rx(xi)
+		sI(r+8+4*i, f(xi))
+	}
+	return dxr(x, r)
+}
+func drc(f func(i) i, x i) (r i) {
+	u := I(x + 8)
+	v := I(x + 12)
+	rx(u)
+	rx(v)
+	return dxr(x, mkd(u, f(v)))
+}
+*/
+func maxI(x, y i) (r i) {
+	_, _, xn, yn, xp, yp := v2(x, y)
+	if xn != yn {
+		panic("length")
+	}
+	r = mk(2, xn)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		ii := 4 * i
+		xi, yi := I(xp+ii), I(yp+ii)
+		sI(rp+ii, yi)
+		if xi > yi {
+			sI(rp+ii, xi)
+		}
+	}
+	return dxyr(x, y, r)
+}
+func trap() { panic("trap") }
 func dump(a, n i) i {
 	p := a >> 2
 	fmt.Printf("%.8x ", a)
@@ -439,12 +601,14 @@ func atoi(s string) i {
 func mark() { // mark bucket type within free blocks
 	for t := i(4); t < 32; t++ {
 		for p := MI[t] >> 2; p != 0; p = MI[p] >> 2 {
+			MI[1+p] = 0
 			MI[2+p] = t
 		}
 	}
 }
 func leak() {
 	mark()
+	//dump(0, 200)
 	p := i(64)
 	for p < i(len(MI)) {
 		if MI[p+1] != 0 {
@@ -491,7 +655,7 @@ func kst(x i) s {
 			}
 			return s
 		}
-	case 6:
+	case 5:
 		f = func(i i) s { return kst(MI[2+i+x>>2]) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }

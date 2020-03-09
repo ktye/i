@@ -15,4 +15,12 @@
 3 mki 5 mki til rsh          /0 1 2
 5 mki 3 mki til tak          /0 1 2 0 1
 2 mki enl                    /(2)
-6 0 mk 1 mki lcat 2 mki lcat /(1;2)
+5 0 mk 1 mki cat 2 mki cat   /(1;2)
+1,2 3,4 cat                  /1 2 3 4
+1,2,3,4 cnt                  /4
+1,0,0,1 wer                  /0 3
+3,0,2 wer                    /0 0 0 2 2
+1 mki 2 mki eql              /0
+1,2,3 3,2,1 eql              /0 1 0
+3 mki til not                /1 0 0
+1,2.2,3 3,2.2,1 eql          /0 1 0

@@ -1,10 +1,13 @@
-ini:I:I{0::1130366807310592j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
+ini:I:I{0::289360691419414784j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
 bk:I:II{r:32-*7+y*I?C x;(r<4)? :4;r}
 mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
-mki:I:I{r:2 mk 1;(r+8)::x;r}mkd:I:II{v2;(xt~5)?!;(xn~yn)?!;r:7 mk 2;(r+8)::x;(r+12)::y;r}
+mki:I:I{r:2 mk 1;(r+8)::x;r}
+mkf:I:F{r:3 mk 1;(r+8)::x;r}
+mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}
-fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>5)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
+fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>4)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
 til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;r:xt mk n;rp:8+r;n/(rp::i;rp+:4);r}tir:I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
+ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:(mki yn) tak x;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:(mki xn) tak y;yn:xn;yp:y+8);(~xn~yn)?!}
 rev:I:I{v1;(~xn)? :x;x atx tir xn}
 fst:I:I{v1;(xt~7)?(rx 12+x;dx x; :fst 12+x);x atx mki 0}
 atx:I:II{v2;(xt~7)?!;(~yt~2)?!;r:xt mk yn;rp:r+8;xt?[!;atC;atI;atF;!];dxyr}
@@ -13,18 +16,27 @@ atI:{(yn/(rp::naI;yi:I yp;(yi<xn)?rp::I xp+4*yi;rp+:4;yp+:4))}naI:{-2147483648}
 atF:{(yn/(rp::naF;yi:I yp;(yi<xn)?rp::F xp+8*yi;rp+:8;yp+:4))}naF:{9221120237041090561f}
 rsh:I:II{v2;(~xt~2)? :x;(xn~1)? :x tak y;y} /nyi rsh
 tak:I:II{v2;n:I xp;r:til x;rp:r+8;(yn<n)?(n/(rp+4*i)::i\yn);y atx r}
-use:{(~1~I v+4)?(r:xt mk xn;rp+r+8;mv(rp;xp;xn*I?C xt);dx x;x:r;xp:x+8)} mv:0:III{(7+z%8)/(x::J y;x+:8;y+:8)}
-lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
-enl:I:I{(6 mk 0) lcat x}
+use:{(~1~I v+4)?(r:xt mk xn;rp+r+8;mv(rp;xp;xn*I?C xt);dx x;x:r;xp:x+8)}mv:0:III{z/((x+i)::C y+i)}
+cat:I:II{v2;((~xt)|~yt)?!;(xt~yt)? :x ucat y;(xt~5)? :x lcat y;!;x}
+ucat:I:II{v2;(xt>4)?(rl x);(xt>5)?(r:(x+8)mkd x+12;dx x;dx y; :r);r:xt mk xn+yn;w:I?C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
+lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|5<<29;x}
+enl:I:I{(5 mk 0) lcat x}
+cnt:I:I{v1;dx x;mki xn}
+wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;rp:r+8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
+not:I:I{x eql mki 0}
+eql:I:II{v2;ext;xt?[;eqC;;eqF;;!;!;!;eqI];dxyr} eqT:{(r:2 mk xn;rp:r+8;xn/(rp::(T xp)~T yp;rp+:4;xp+:W;yp+:W))}
+up:I:II{v1; (xt<y)?/xt?[;ic;fi; :x mkz mkf 0.;!];dxr} ic:{(r:2 mk xn;rp:8+r;xn/(rp::I?C xp+i;rp+:4);dx x;x:r;xt:2)} fi:{(r:3 mk xn;rp:8+r;xn/(rp::F?I xp;rp+:8;xp+:4);dx x;x:r;xt:3)}
 
 \
-/atL:{(yn/(rp::0;(i<xn)?(rp::I xp;rx I rp;)rp+:4;xp+:4))}
+/not:I:I{v1;xt?[;(notC);;(notf);; :x lrc 126;(notZ); :x drc 126;(notI)];x}
+not:I:I{v1;xt?[;!;;!;;!;!;!; :x];x}
+notT:{r:2 mk xn;rp+r+8;xn/(rp::~T xp;rp+:4;xp+:W);dx x; :r}
+/notf:{r:2 mk xn;rp+r+8;xn/(rp::0.~F xp;rp+:4;xp+:8);dx x; :r}
+notZ:{rl x;dx x; :(not x+8)max not x+12}
+/lrc:I:II{v1;rl x;r:5 mk xn;rp:r+8;xn/(rp::.y xp;rp+:4;xp+:4);dxr} // todo call indirect .y
+/drc:I:II{v1;rl x;r:(x+8)mkd.x+12;dxr}
 
 \
-lrc:I:II{!;1}drc:I:II{!;1} /nyi
-til:I:I{v1;(~2~xt)?!;r:xt mk n:I xp;rp:8+r;n/(rp::i;rp+:4);dxr}
-fst:I:I{v1;(~xt)? :x;(7~xt)? :x;r:xt mk 1;xt?[;(r+8)::C xp;;(r+8)::J xp;((r+8)::J xp;(r+16)::J xp+8);;;!;(r+8)::I xp];(xt~6)?xn lnc x+8;dxr}
-rev:I:I{v1;xt?[!;;;;;;r:((inc xp)mkd inc xp+4);r:xt mk xn];xt?[!;(rp:r+7+xn;xn/((rp-i)::C xp+i));;(rp:r+8*xn;xn/(rp::J xp;rp-:8;xp+:8));(rp:r-8+16*xn;xn/(rp::J xp;(8+rp)::J 1+xp;rp-:16;xp+:16));;((r+8)::rev r+8;(r+12)::rev r+12);;;(rp:r+4+4*xn;xn/(rp::I xp;xp+:4;rp-:4))];dxr}
 cnt:I:I{v1;decr x;mki xn}
 tip:I:I{v1;r:2 mk 2;(8+r)::xt;(12+r)::xn;dxr}
 sumi:I:II{y/r+:I x+1;r}
@@ -46,8 +58,8 @@ p,i → (addr,offset,width)
 e.g. (p,i)::I 144,0
 
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
-Fcifzsld   xt~0(function) x<256(basic) 
-0148x440   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?
+Fcifslzd   xt~0(function) x<256(basic) 
+01484444   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?
 	   fn~xn&0xff    (argn)
 
 + add abs                 abs:+z         memory

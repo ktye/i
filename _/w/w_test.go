@@ -19,6 +19,7 @@ func TestB(t *testing.T) {
 		b   string
 		e   string
 	}{
+		{"I:IF", "x::y;x", "2000 2001 390300 2000"},
 		{"I:II", "y+I?C x", "2001 2000 2d0000 6a"},
 		{"I:II", "y+I?C x", "2001 2000 2d0000 6a"},
 		{"I:I", "x?[;x:4;x:6];x", "024002400240024020000e020001020b0c010b410421000c010b410621000c000b2000"},
@@ -283,7 +284,7 @@ function kst(x) {
   var s = K.F.slice(1+x, 1+x+n).join(" ")
   if(s.indexOf(".")==-1) s+="f"
   return s
- case 6:
+ case 5:
   x >>>= 2
   var r = []
   for (var i=0; i<n; i++) r.push(kst(K.I[2+x+i]))
@@ -492,7 +493,7 @@ V kst(I x) {
 		}
 		if(tof) printf("f");
 		break;
-	case 6:
+	case 5:
 		x = 2 + (x>>2);
 		printf("(");
 		for(i=0;i<n;i++) {

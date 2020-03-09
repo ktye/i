@@ -241,7 +241,7 @@ func kst(a k, m []byte) s {
 			}
 			return s
 		}
-	case 6:
+	case 5:
 		f = func(i int) s { return kst(get(m, 8+4*uint32(i)+a), m) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
@@ -260,6 +260,7 @@ func mark(m []byte) { // mark bucket type within free blocks
 	for t := k(4); t < 32; t++ {
 		p := get(m, 4*t) // free pointer of type t
 		for p != 0 {
+			m[4+p] = 0
 			m[8+p] = c(t)
 			p = get(m, p) // pointer to next free
 		}
