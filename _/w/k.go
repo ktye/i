@@ -75,12 +75,28 @@ func runtest() {
 }
 func run(args []string) string {
 	m0 := 16
-	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "wer": wer, "not": not}
+	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
 	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak, "cat": cat, "eql": eql}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
 	pushVector := func(s string) bool {
+		if len(s) > 0 && s[0] == '`' {
+			v := strings.Split(s[1:], "`")
+			sn := i(len(v))
+			sv := mk(4, sn)
+			for i := i(0); i < sn; i++ {
+				b := v[i]
+				rn := uint32(len(b))
+				r := mk(1, rn)
+				for k := uint32(0); k < rn; k++ {
+					MC[8+r+k] = b[k]
+				}
+				sI(sv+8+4*i, r)
+			}
+			stack = append(stack, sv)
+			return true
+		}
 		if idx := strings.Index(s, ","); idx == -1 {
 			return false
 		}
@@ -227,7 +243,7 @@ func dx(x i) {
 		sI(x+4, xr-1)
 		if xr == 1 {
 			xt, xn, xp := v1(x)
-			if xt > 4 {
+			if xt > 3 {
 				for i := i(0); i < xn; i++ {
 					dx(I(xp + 4*i))
 				}
@@ -243,9 +259,8 @@ func rx(x i) {
 }
 func rl(x i) {
 	_, xn, xp := v1(x)
-	xp += 8
 	for i := i(0); i < xn; i++ {
-		rx(xp)
+		rx(I(xp))
 		xp += 4
 	}
 }
@@ -404,6 +419,19 @@ func atx(x, y i) (r i) {
 			rp += 8
 			yp += 4
 		}
+	case 4, 5:
+		naS := mk(1, 0)
+		for i := i(0); i < yn; i++ {
+			sI(rp, naS)
+			yi := I(yp)
+			if yi < xn {
+				sI(rp, I(xp+4*yi))
+			}
+			rp += 4
+			yp += 4
+		}
+		rl(r)
+		dx(naS)
 	default:
 		panic(fmt.Sprintf("nyi atx xt=%d", xt))
 	}
@@ -455,6 +483,12 @@ func cnt(x i) (r i) {
 	_, xn, _ := v1(x)
 	dx(x)
 	return mki(xn)
+}
+func tip(x i) (r i) {
+	xt, _, _ := v1(x)
+	r = mk(2, 1)
+	sI(8+r, xt)
+	return dxr(x, r)
 }
 func wer(x i) (r i) {
 	xt, xn, xp := v1(x)
@@ -531,43 +565,6 @@ func boolvar(b bool) i {
 	}
 	return 0
 }
-
-/*
-func lrc(f func(i) i, x i) (r i) {
-	_, xn, xp := v1(x)
-	r = mk(5, xn)
-	for i := i(0); i < xn; i++ {
-		xi := I(xp + 4*i)
-		rx(xi)
-		sI(r+8+4*i, f(xi))
-	}
-	return dxr(x, r)
-}
-func drc(f func(i) i, x i) (r i) {
-	u := I(x + 8)
-	v := I(x + 12)
-	rx(u)
-	rx(v)
-	return dxr(x, mkd(u, f(v)))
-}
-*/
-func maxI(x, y i) (r i) {
-	_, _, xn, yn, xp, yp := v2(x, y)
-	if xn != yn {
-		panic("length")
-	}
-	r = mk(2, xn)
-	rp := r + 8
-	for i := i(0); i < xn; i++ {
-		ii := 4 * i
-		xi, yi := I(xp+ii), I(yp+ii)
-		sI(rp+ii, yi)
-		if xi > yi {
-			sI(rp+ii, xi)
-		}
-	}
-	return dxyr(x, y, r)
-}
 func trap() { panic("trap") }
 func dump(a, n i) i {
 	p := a >> 2
@@ -641,6 +638,11 @@ func kst(x i) s {
 			return strconv.FormatFloat(f, 'g', -1, 64)
 		}
 	}
+	sstr := func(i i) s {
+		r := I(x + 8 + 4*i)
+		rn := I(r) & 536870911
+		return string(MC[r+8 : r+8+rn])
+	}
 	sep := " "
 	switch t {
 	case 1:
@@ -655,6 +657,10 @@ func kst(x i) s {
 			}
 			return s
 		}
+	case 4:
+		f = sstr
+		sep = "`"
+		tof = func(s s) s { return "`" + s }
 	case 5:
 		f = func(i i) s { return kst(MI[2+i+x>>2]) }
 		sep = ";"

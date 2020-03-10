@@ -269,6 +269,7 @@ function P()  { kons.value += " " }
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
+ console.log("kst", x)
  var h = K.I[x>>>2]
  var t = (h>>>29)>>>0
  var n = (h&536870911)>>>0
@@ -284,6 +285,13 @@ function kst(x) {
   var s = K.F.slice(1+x, 1+x+n).join(" ")
   if(s.indexOf(".")==-1) s+="f"
   return s
+ case 4:
+  x >>>= 2
+  var r = ""
+  var v = K.I.slice(2+x, 2+x+n)
+  var tr = function(s) { return s.substr(1, s.length-2) }
+  for (var i=0; i<n; i++) r += String.fromCharCode(96) + tr(kst(v[i]))
+  return r
  case 5:
   x >>>= 2
   var r = []
@@ -304,16 +312,21 @@ function vector(s) {
  var v = s.split(",").map(x=>Number(x))
  var n = v.length
  var x = K.exports.mk(t, n)
- if (t==2) for (var i=0;i<n;i++) K.I[2+i+(x>>2)] = v[i];
- else      for (var i=0;i<n;i++) K.F[1+i+(x>>3)] = v[i];
+ if (t==2) for (var i=0;i<n;i++) K.I[2+i+(x>>>2)] = v[i];
+ else      for (var i=0;i<n;i++) K.F[1+i+(x>>>3)] = v[i];
  return x
 }
 function chrVector(s) {
  s = s.substr(1,s.length-2)
  var n = s.length
  var x = K.exports.mk(1, n)
- console.log("chr ", x, n, K.I[x>>>2])
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
+ return x
+}
+function symVector(s) {
+ var v = s.substr(1).split(String.fromCharCode(96))
+ var x = K.exports.mk(4, v.length)
+ for (var i=0; i<v.length; i++) K.I[2+i+(x>>>2)] = chrVector("_"+v[i]+"_")
  return x
 }
 function xx(x) { return x.toString(16).padStart(8,'0') }
@@ -336,6 +349,7 @@ function E(s) {
    var x = vector(s)
    if (x!=0) { stack.push(x); continue; }
    if (s.startsWith('"')) { stack.push(chrVector(s)); continue; }
+   if (s.startsWith(String.fromCharCode(96))) { stack.push(symVector(s)); continue; }
    var x = Number(s)
    var y = 0
    if(x==x) {
@@ -466,7 +480,7 @@ V Dump(I x, I n) {
 	printf("\n");
 }
 V kst(I x) {
-	I i, tof;
+	I i, j, y, m, tof;
 	I t = ((uI)MI[x>>2])>>29;
 	I n = ((uI)MI[x>>2])&536870911;
 	switch(t){
@@ -493,6 +507,15 @@ V kst(I x) {
 		}
 		if(tof) printf("f");
 		break;
+	case 4:
+		x = 2 + (x>>2);
+		for(i=0;i<n;i++) {
+			printf("%c", 96);
+			y = MI[x+i];
+			m = MI[y>>2]&536870911;
+			for(j=0;j<m;j++) printf("%c", MC[8+y+j]);
+		}
+		break;
 	case 5:
 		x = 2 + (x>>2);
 		printf("(");
@@ -507,6 +530,11 @@ V kst(I x) {
 	}
 }
 V O(I x) { kst(x); printf("\n"); }
+I findChr(C *s, I n, C p) {
+	I i;
+	for (i=0; i<n; i++) if (s[i] == p) return i;
+	return n;
+}
 I chrVector(C *s) {
 	I i, x;
 	I n = strlen(s);
@@ -514,6 +542,23 @@ I chrVector(C *s) {
 	if(n<0) trap();
 	x = mk(1, n);
 	for (i=0; i<n; i++) MC[8+x+i] = s[i];
+	return x;
+}
+I symVector(C *s) {
+	I i, j, x, y, m;
+	I n = strlen(s);
+	I ns = 0;
+	C *p;
+	for (i=0;i<n;i++) if(s[i] == 96) ns++;
+	x = mk(4, ns);
+	s++;n--;
+	for (i=0;i<ns;i++) {
+		m = findChr(s, n, 96);
+		y = mk(1, m);
+		for (j=0;j<m;j++) MC[8+y+j] = s[j];
+		MI[2+i+(x>>2)] = y;
+		s += m+1; n -= m+1;
+	}
 	return x;
 }
 I numVector(C *s) {
@@ -555,6 +600,10 @@ I main(int args, C **argv){
 		a = argv[i];
 		if (strchr(a, ',') != NULL) {
 			n = push(stack, n, numVector(a));
+			continue;
+		}
+		if (a[0] == 96) {
+			n = push(stack, n, symVector(a));
 			continue;
 		}
 		if (a[0] == '"') {

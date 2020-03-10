@@ -24,3 +24,7 @@
 1,2,3 3,2,1 eql              /0 1 0
 3 mki til not                /1 0 0
 1,2.2,3 3,2.2,1 eql          /0 1 0
+1,2 tip                      /2
+"abc" tip                    /1
+`a`be`ceta                   /`a`be`ceta
+`alpha`beta`gamma 4,2,1 atx  /``gamma`beta

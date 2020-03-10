@@ -5,15 +5,15 @@ mki:I:I{r:2 mk 1;(r+8)::x;r}
 mkf:I:F{r:3 mk 1;(r+8)::x;r}
 mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}
-fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>4)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;x+:8;xn/(rx x;x+:4)}
+fr:0:I{v1;t:4*xt bk xn;x::I t;t::x}dx:0:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>3)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:0:I{(x>255)?(x+:4;x::1+I x)}rl:0:I{v1;xn/(rx I xp;xp+:4)}
 til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;r:xt mk n;rp:8+r;n/(rp::i;rp+:4);r}tir:I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
 ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:(mki yn) tak x;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:(mki xn) tak y;yn:xn;yp:y+8);(~xn~yn)?!}
 rev:I:I{v1;(~xn)? :x;x atx tir xn}
 fst:I:I{v1;(xt~7)?(rx 12+x;dx x; :fst 12+x);x atx mki 0}
-atx:I:II{v2;(xt~7)?!;(~yt~2)?!;r:xt mk yn;rp:r+8;xt?[!;atC;atI;atF;!];dxyr}
-atC:{(yn/((rp+i)::C?32;yi:I yp;(yi<xn)?(rp+i)::C xp+yi;yp+:4))}
-atI:{(yn/(rp::naI;yi:I yp;(yi<xn)?rp::I xp+4*yi;rp+:4;yp+:4))}naI:{-2147483648}
-atF:{(yn/(rp::naF;yi:I yp;(yi<xn)?rp::F xp+8*yi;rp+:8;yp+:4))}naF:{9221120237041090561f}
+atx:I:II{v2;(xt~7)?!;(~yt~2)?!;r:xt mk yn;rp:r+8;xt?[!;atc;atI;atF;atL;!];dxyr}
+atc:{(yn/((rp+i)::C?32;yi:I yp;(yi<xn)?(rp+i)::C xp+yi;yp+:4))}
+atL:{(nas:1 mk 0;yn/(rp::nas;yi:I yp;(yi<xn)?rp::I xp+4*yi;rp+:4;yp+:4);rl r;dx nas)}
+atT:{(yn/(rp::naT;yi:I yp;(yi<xn)?rp::T xp+W*yi;rp+:W;yp+:4))}naI:{-2147483648}naF:{9221120237041090561f}
 rsh:I:II{v2;(~xt~2)? :x;(xn~1)? :x tak y;y} /nyi rsh
 tak:I:II{v2;n:I xp;r:til x;rp:r+8;(yn<n)?(n/(rp+4*i)::i\yn);y atx r}
 use:{(~1~I v+4)?(r:xt mk xn;rp+r+8;mv(rp;xp;xn*I?C xt);dx x;x:r;xp:x+8)}mv:0:III{z/((x+i)::C y+i)}
@@ -21,7 +21,7 @@ cat:I:II{v2;((~xt)|~yt)?!;(xt~yt)? :x ucat y;(xt~5)? :x lcat y;!;x}
 ucat:I:II{v2;(xt>4)?(rl x);(xt>5)?(r:(x+8)mkd x+12;dx x;dx y; :r);r:xt mk xn+yn;w:I?C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
 lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|5<<29;x}
 enl:I:I{(5 mk 0) lcat x}
-cnt:I:I{v1;dx x;mki xn}
+cnt:I:I{v1;dx x;mki xn}tip:I:I{v1;r:2 mk 1;(8+r)::xt;dxr}
 wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;rp:r+8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
 not:I:I{x eql mki 0}
 eql:I:II{v2;ext;xt?[;eqC;;eqF;;!;!;!;eqI];dxyr} eqT:{(r:2 mk xn;rp:r+8;xn/(rp::(T xp)~T yp;rp+:4;xp+:W;yp+:W))}
@@ -68,7 +68,7 @@ Fcifslzd   xt~0(function) x<256(basic)
 % div sqr                               12.. 15   k-tree/value pointer     todo
 & min wer                               16..127   free pointers (4*i) for bt i, i:4..31
 | max rev                              128..131   memsize log2
-< les gup                 
+< les gup                              
 > mor gdn                 
 = eql grp                 
 ~ mtc not   mc mtl

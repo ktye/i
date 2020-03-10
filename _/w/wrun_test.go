@@ -92,7 +92,33 @@ func runWagon(b []byte, args []string, exp string) error {
 		}
 		return nil
 	}
+	mk := func(t, n uint32) uint32 {
+		stack = append(stack, uint64(t), uint64(n))
+		if e := call("mk"); e != nil {
+			panic(e)
+		}
+		r := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		return uint32(r)
+	}
 	pushVector := func(s string) bool {
+		m := vm.Memory()
+		if len(s) > 0 && s[0] == '`' {
+			v := strings.Split(s[1:], "`")
+			sn := uint32(len(v))
+			sv := mk(4, sn)
+			for i := uint32(0); i < sn; i++ {
+				b := v[i]
+				rn := uint32(len(b))
+				r := mk(1, rn)
+				for k := uint32(0); k < rn; k++ {
+					m[8+r+k] = b[k]
+				}
+				binary.LittleEndian.PutUint32(m[sv+8+4*i:], uint32(r)) // sI(sv+8+4*i, r)
+			}
+			stack = append(stack, uint64(sv))
+			return true
+		}
 		if idx := strings.Index(s, ","); idx == -1 {
 			return false
 		}
@@ -113,29 +139,23 @@ func runWagon(b []byte, args []string, exp string) error {
 				return false
 			}
 		}
-		m := vm.Memory()
 		if f == -1 {
-			stack = append(stack, 2, uint64(n))
-			if e = call("mk"); e != nil {
-				return false
-			}
-			x := uint32(stack[len(stack)-1])
+			x := mk(2, n)
 			for i := uint32(0); i < n; i++ {
 				binary.LittleEndian.PutUint32(m[x+8+i*4:], uint32(iv[i]))
 			}
+			stack = append(stack, uint64(x))
 		} else {
-			stack = append(stack, 3, uint64(n))
-			if e = call("mk"); e != nil {
-				return false
-			}
-			x := uint32(stack[len(stack)-1])
+			x := mk(3, n)
 			for i := uint32(0); i < n; i++ {
 				binary.LittleEndian.PutUint64(m[x+8+i*8:], math.Float64bits(fv[i]))
 			}
+			stack = append(stack, uint64(x))
 		}
 		return true
 	}
 	for _, s := range args {
+		m := vm.Memory()
 		if pushVector(s) {
 			continue
 		}
@@ -147,15 +167,11 @@ func runWagon(b []byte, args []string, exp string) error {
 		} else if strings.HasPrefix(s, `"`) {
 			s = strings.Trim(s, `"`)
 			b := []c(s)
-			stack = append(stack, 1, uint64(len(b)))
-			if e := call("mk"); e != nil {
-				return e
-			}
-			m := vm.Memory()
-			p := stack[len(stack)-1]
+			p := mk(1, uint32(len(b)))
 			for i := 0; i < len(b); i++ {
 				m[8+int(p)+i] = b[i]
 			}
+			stack = append(stack, uint64(p))
 		} else {
 			if e := call(s); e != nil {
 				return e
@@ -227,6 +243,11 @@ func kst(a k, m []byte) s {
 			return strconv.FormatFloat(f, 'g', -1, 64)
 		}
 	}
+	sstr := func(i int) s {
+		r := get(m, a+8+4*k(i))
+		rn := get(m, r) & 536870911
+		return string(m[r+8 : r+8+rn])
+	}
 	sep := " "
 	switch t {
 	case 1:
@@ -241,6 +262,10 @@ func kst(a k, m []byte) s {
 			}
 			return s
 		}
+	case 4:
+		f = sstr
+		sep = "`"
+		tof = func(s s) s { return "`" + s }
 	case 5:
 		f = func(i int) s { return kst(get(m, 8+4*uint32(i)+a), m) }
 		sep = ";"
