@@ -1568,7 +1568,7 @@ func (f fn) code() (r []c) {
 func (f fn) locs() (r []c) {
 	var u []T
 	var n []int
-	for i, t := range f.locl {
+	for i, t := range f.locl[f.args:] {
 		if i > 0 && t == f.locl[i-1] {
 			n[len(n)-1]++
 		} else {

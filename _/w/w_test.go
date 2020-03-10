@@ -68,7 +68,7 @@ func TestB(t *testing.T) {
 func TestRun(t *testing.T) {
 	m, data := run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/"))
 	g := s(hex(m.wasm(data)))
-	e := "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a0b010901027f200020016a0b"
+	e := "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a09010700200020016a0b"
 	if e != g {
 		t.Fatalf("expected/got\n%s\n%s\n", e, g)
 	}
