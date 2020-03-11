@@ -163,7 +163,7 @@ func parseList(s string) i {
 func run(args []string) string {
 	m0 := 16
 	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
-	fn2 := map[string]vt2{"mk": mk, "atx": atx, "rsh": rsh, "tak": tak, "cat": cat, "eql": eql}
+	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -212,7 +212,6 @@ func ini(x i) i {
 	p := i(256)
 	for i := i(8); i < x; i++ {
 		sI(4*i, p)
-		sI(p, i)
 		p *= 2
 	}
 	return x
@@ -331,10 +330,10 @@ func ext(x, y i) (rx, ry i) {
 		return x, y
 	}
 	if xn == 1 && yn > 1 {
-		return tak(mki(yn), x), y
+		return take(x, yn), y
 	}
 	if xn > 1 && yn == 1 {
-		return x, tak(mki(xn), y)
+		return x, take(y, xn)
 	}
 	panic("length")
 }
@@ -348,10 +347,13 @@ func til(x i) (r i) {
 	if ii := int32(n); ii < 0 {
 		return tir(i(-ii))
 	}
-	r = mk(xt, n)
-	rp := 8 + r
+	return seq(0, n, 1)
+}
+func seq(a, n, s i) (r i) {
+	r = mk(2, n)
+	rp := r + 8
 	for i := i(0); i < n; i++ {
-		sI(rp, i)
+		sI(rp, s*(a+i))
 		rp += 4
 	}
 	return r
@@ -381,28 +383,80 @@ func fst(x i) (r i) {
 	}
 	return atx(x, mki(0))
 }
-func rsh(x, y i) (r i) {
-	xt, _, xn, _, _, _ := v2(x, y)
+func drop(x, n i) (r i) {
+	_, xn, _ := v1(x)
+	if n > xn {
+		n = xn
+	}
+	return atx(x, seq(n, xn-n, 1))
+}
+func cut(x, y i) (r i) {
+	xt, _, xn, yn, xp, _ := v2(x, y)
 	if xt != 2 {
 		panic("type")
-	} else if xn == 1 {
-		return tak(x, y)
-	} else {
-		panic("nyi rsh")
 	}
+	if xn == 1 {
+		n := I(xp)
+		return dxr(x, drop(y, n))
+	}
+	r = mk(5, xn)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		a := I(xp)
+		b := I(xp + 4)
+		if i == xn-1 {
+			b = yn
+		}
+		if b < a {
+			panic("domain")
+		}
+		rx(y)
+		sI(rp, atx(y, seq(a, b-a, 1)))
+		xp += 4
+		rp += 4
+	}
+	return dxyr(x, y, r)
 }
-func tak(x, y i) (r i) {
-	_, _, _, yn, xp, _ := v2(x, y)
-	n := I(xp)
-	r = til(x)
-	if yn < n {
+func rsh(x, y i) (r i) {
+	xt, _, xn, _, xp, _ := v2(x, y)
+	if xt != 2 {
+		panic("type")
+	}
+	n := prod(xp, xn)
+	r = take(y, n)
+	if xn == 1 {
+		return dxr(x, r)
+	}
+	xn--
+	xe := xp + 4*xn
+	for i := i(0); i < xn; i++ {
+		m := I(xe)
+		n /= m
+		n = prod(xp, xn-i)
+		r = cut(seq(0, n, m), r)
+		xe -= 4
+	}
+	return dxr(x, r)
+}
+func prod(xp, n i) (r i) {
+	r = 1
+	for i := i(0); i < n; i++ {
+		r *= I(xp)
+		xp += 4
+	}
+	return r
+}
+func take(x, n i) (r i) {
+	_, xn, _ := v1(x)
+	r = seq(0, n, 1)
+	if xn < n {
 		rp := 8 + r
 		for i := i(0); i < n; i++ {
-			sI(rp, I(rp)%yn)
+			sI(rp, I(rp)%xn)
 			rp += 4
 		}
 	}
-	return atx(y, r)
+	return atx(x, r)
 }
 func atx(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)

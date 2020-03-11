@@ -341,7 +341,7 @@ function lstVector(s) {
   if (c == '(') l++
   else if (c == ')') { l--; if(l<0) throw new Error("list)") }
   else if ((l==0) && (c==';')) {
-   r.push(parseNoun(s.substr(a,i)))
+   r.push(parseNoun(s.substring(a,i)))
    a = i + 1
   }
  }
