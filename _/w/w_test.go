@@ -269,7 +269,6 @@ function P()  { kons.value += " " }
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
- console.log("kst", x)
  var h = K.I[x>>>2]
  var t = (h>>>29)>>>0
  var n = (h&536870911)>>>0
@@ -303,14 +302,15 @@ function kst(x) {
 }
 
 var funcs = {{{fncs}}}
-function vector(s) {
+function parseNoun(s) {
  var t = 2
+ if(s.startsWith('"'))                     return chrVector(s);
+ if(s.startsWith(String.fromCharCode(96))) return symVector(s);
+ if(s.startsWith('('))                     return lstVector(s.substr(1));
  if(s.indexOf(".") != -1) t = 3
- if(s.indexOf(",")==-1)   return 0
- if(s.startsWith(","))    s=s.substr(1)
- if(s.endsWith(","))      s=s.substr(0,s.length-1)
  var v = s.split(",").map(x=>Number(x))
  var n = v.length
+ if (n==0) return 0;
  var x = K.exports.mk(t, n)
  if (t==2) for (var i=0;i<n;i++) K.I[2+i+(x>>>2)] = v[i];
  else      for (var i=0;i<n;i++) K.F[1+i+(x>>>3)] = v[i];
@@ -327,6 +327,27 @@ function symVector(s) {
  var v = s.substr(1).split(String.fromCharCode(96))
  var x = K.exports.mk(4, v.length)
  for (var i=0; i<v.length; i++) K.I[2+i+(x>>>2)] = chrVector("_"+v[i]+"_")
+ return x
+}
+function lstVector(s) {
+ if (s.length == 0 || s.endsWith(')') == false) { throw new Error("parse list: "+s) }
+ if (s.length == 1) return K.exports.mk(5, 0);
+ s = s.substr(0, s.length-1)
+ var a = 0
+ var l = 0
+ var r = []
+ for (var i=0; i<s.length; i++) {
+  var c = s[i]
+  if (c == '(') l++
+  else if (c == ')') { l--; if(l<0) throw new Error("list)") }
+  else if ((l==0) && (c==';')) {
+   r.push(parseNoun(s.substr(a,i)))
+   a = i + 1
+  }
+ }
+ r.push(parseNoun(s.substr(a)))
+ var x = K.exports.mk(5, r.length)
+ for (var i=0; i<r.length; i++) K.I[2+i+(x>>>2)] = r[i]
  return x
 }
 function xx(x) { return x.toString(16).padStart(8,'0') }
@@ -346,37 +367,32 @@ function E(s) {
   var v = s.split(" ").filter(x => x)
   for (var i=0; i<v.length; i++) {
    s = v[i]
-   var x = vector(s)
-   if (x!=0) { stack.push(x); continue; }
-   if (s.startsWith('"')) { stack.push(chrVector(s)); continue; }
-   if (s.startsWith(String.fromCharCode(96))) { stack.push(symVector(s)); continue; }
-   var x = Number(s)
-   var y = 0
-   if(x==x) {
-    stack.push(x)
-   } else if (s=="dump") {
-    y = stack.pop()
-    dump(stack.pop(), y)
-   } else if(s in funcs) {
+   if (s=="dump") { dump(0,100); continue; }
+   if(s in funcs) {
     var n = funcs[s]
     x = stack.pop()
     if(n==2) {
      y = x
      x = stack.pop()
      stack.push(K.exports[s](x, y))
-     stack[stack.length-1]
     } else {
      stack.push(K.exports[s](x))
     }
+    continue
    }
+   var x = parseNoun(s)
+   if (x!=0) { stack.push(x); continue; }
+   else      { throw new Error(s); }
   }
-  if(stack.length == 1) {
-   x = stack[stack.length-1]
+  if(stack.length != 1) { throw new Error("stack length "+String(stack.length)) }
+  else {
+   x = stack.pop()
    O(kst(x)+"\n")
    K.exports.dx(x)
   }
  } catch(e) {
-   O("error")
+  console.log(e)
+  O("error")
  }
 }
 
@@ -460,13 +476,10 @@ I f2(I (*f)(I,I), I *s, I n) {
 	if(trace) printf("%d\n", s[n-2]);
 	return n-1;
 }
-I Number(C *s) {
-	R strtol(s, (C **)NULL, 10);
-}
 I Match(C *a, C *b) {
 	for (I i=0; ;i++) {
-		if (a[i] != b[i]) return 0;
-		if (a[i] == 0)    return 1;
+		if (a[i] != b[i]) R 0;
+		if (a[i] == 0)    R 1;
 	}
 }
 V Dump(I x, I n) {
@@ -530,10 +543,11 @@ V kst(I x) {
 	}
 }
 V O(I x) { kst(x); printf("\n"); }
+I parseNoun(C *s);
 I findChr(C *s, I n, C p) {
 	I i;
 	for (i=0; i<n; i++) if (s[i] == p) return i;
-	return n;
+	R n;
 }
 I chrVector(C *s) {
 	I i, x;
@@ -542,7 +556,37 @@ I chrVector(C *s) {
 	if(n<0) trap();
 	x = mk(1, n);
 	for (i=0; i<n; i++) MC[8+x+i] = s[i];
-	return x;
+	R x;
+}
+I lstVector(C *s) {
+	I r[9];
+	I l = 0;
+	I a = 0;
+	I rn = 0;
+	I i;
+	C p;
+	I n = strlen(s);
+	if ((n == 0) || s[n-1] != ')') { printf("parse list: %s\n", s); trap(); }
+	if (n == 1) return mk(5, 0);
+	s[n-1] = 0; n--;
+	for (i=0; i<n; i++) {
+		p = s[i];
+		if (p=='(') l++;
+		else if (p==')') {
+			l--;
+			if (l<0) { printf(")"); trap(); }
+		} else if (l==0 && p == ';') {
+			s[i] = 0;
+			r[rn++] = parseNoun(s+a);
+			if (r[rn-1] == 0) { printf("null element"); trap(); }
+			a = i + 1;
+			if (rn==8) { printf("list limit"); trap(); }
+		}
+	}
+	r[rn++] = parseNoun(s+a);
+	l = mk(5, rn);
+	for (i=0;i<rn;i++) MI[2+(l>>2)+i] = r[i];
+	R l;
 }
 I symVector(C *s) {
 	I i, j, x, y, m;
@@ -559,7 +603,7 @@ I symVector(C *s) {
 		MI[2+i+(x>>2)] = y;
 		s += m+1; n -= m+1;
 	}
-	return x;
+	R x;
 }
 I numVector(C *s) {
 	I n = strlen(s);
@@ -585,7 +629,15 @@ I numVector(C *s) {
 		x = mk(2, n);
 		for (i=0; i<n; i++) MI[i+2+(x>>2)] = iv[i];
 	}
-	return x;
+	R x;
+}
+I parseNoun(C *s) {
+	if (strchr(s, ',') != NULL)     return numVector(s);
+	if (s[0] == '"')                return chrVector(s);
+	if (s[0] == 96)                 return symVector(s);
+	if (s[0] >= '0' && s[0] <= '9') return numVector(s);
+	if (s[0] == '(')                return lstVector(s+1);
+	R 0;
 }
 #define M0 16
 I main(int args, C **argv){
@@ -598,33 +650,16 @@ I main(int args, C **argv){
 	ini(M0);
 	for (i=1; i<args; i++) {
 		a = argv[i];
-		if (strchr(a, ',') != NULL) {
-			n = push(stack, n, numVector(a));
-			continue;
-		}
-		if (a[0] == 96) {
-			n = push(stack, n, symVector(a));
-			continue;
-		}
-		if (a[0] == '"') {
-			n = push(stack, n, chrVector(a));
-			continue;
-		}
-		if (a[0] >= '0' && a[0] <= '9') {
-			n = push(stack, n, Number(a));
+		x = parseNoun(a);
+		if (x != 0) {
+			n = push(stack, n, x);
 			continue;
 		}
 		//printf("%s ", argv[i]);
-		if (Match("mki", a)) {
-			n = f1(mki, stack, n);
+		if (Match("dump", a)) {
+			Dump(0, 100);
 `
-const kt2 = `		} else if (Match("dump", a)) {
-			Dump(stack[n-2], stack[n-1]); n-=2;
-		} else if ((a[0] == '"') && strlen(a) > 1) {
-			x = strlen(a) - 2;
-			r = mk(1, x);
-			for (i=0; i<x; i++) MC[8+i+r] = a[1+i];
-			n = push(stack, n, r);
+const kt2 = `
 		} else {
 			printf("arg!");
 			trap();

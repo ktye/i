@@ -47,10 +47,14 @@ func TestWagon(t *testing.T) {
 	}
 }
 
+type K struct {
+	m     *wasm.Module
+	vm    *exec.VM
+	stack []uint32
+}
+
 func runWagon(b []byte, args []string, exp string) error {
 	fmt.Println(args, exp)
-	h := []string{"16", "ini"}
-	args = append(h, args...)
 	m, e := wasm.ReadModule(bytes.NewReader(b), nil)
 	if e != nil {
 		return e
@@ -65,135 +69,185 @@ func runWagon(b []byte, args []string, exp string) error {
 	if trace {
 		fmt.Println("memory", len(vm.Memory()))
 	}
-
-	var stack []uint64
-	call := func(s string) error {
-		x, ok := m.Export.Entries[s]
-		if !ok {
-			return fmt.Errorf("unknown func: " + s)
-		}
-		fidx := m.Function.Types[x.Index]
-		ftyp := m.Types.Entries[fidx]
-		n := len(ftyp.ParamTypes)
-		pop := make([]uint64, n)
-		copy(pop, stack[len(stack)-n:])
-		stack = stack[:len(stack)-n]
-		res, e := vm.ExecCode(int64(x.Index), pop...)
-		if e != nil {
-			return e
-		}
-		if res != nil {
-			stack = append(stack, u64(res))
-			if trace {
-				fmt.Printf("%s %v: %v(%x)\n", s, pop, res, res)
-			}
-		} else if trace {
-			fmt.Printf("%s %v: nil\n", s, pop)
-		}
-		return nil
-	}
-	mk := func(t, n uint32) uint32 {
-		stack = append(stack, uint64(t), uint64(n))
-		if e := call("mk"); e != nil {
-			panic(e)
-		}
-		r := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
-		return uint32(r)
-	}
-	pushVector := func(s string) bool {
-		m := vm.Memory()
-		if len(s) > 0 && s[0] == '`' {
-			v := strings.Split(s[1:], "`")
-			sn := uint32(len(v))
-			sv := mk(4, sn)
-			for i := uint32(0); i < sn; i++ {
-				b := v[i]
-				rn := uint32(len(b))
-				r := mk(1, rn)
-				for k := uint32(0); k < rn; k++ {
-					m[8+r+k] = b[k]
-				}
-				binary.LittleEndian.PutUint32(m[sv+8+4*i:], uint32(r)) // sI(sv+8+4*i, r)
-			}
-			stack = append(stack, uint64(sv))
-			return true
-		}
-		if idx := strings.Index(s, ","); idx == -1 {
-			return false
-		}
-		s = strings.Trim(s, ",")
-		f := strings.Index(s, ".")
-		v := strings.Split(s, ",")
-		n := uint32(len(v))
-		iv := make([]int64, n)
-		fv := make([]float64, n)
-		var e error
-		for i, s := range v {
-			if f == -1 {
-				iv[i], e = strconv.ParseInt(s, 10, 32)
-			} else {
-				fv[i], e = strconv.ParseFloat(s, 64)
-			}
-			if e != nil {
-				return false
-			}
-		}
-		if f == -1 {
-			x := mk(2, n)
-			for i := uint32(0); i < n; i++ {
-				binary.LittleEndian.PutUint32(m[x+8+i*4:], uint32(iv[i]))
-			}
-			stack = append(stack, uint64(x))
-		} else {
-			x := mk(3, n)
-			for i := uint32(0); i < n; i++ {
-				binary.LittleEndian.PutUint64(m[x+8+i*8:], math.Float64bits(fv[i]))
-			}
-			stack = append(stack, uint64(x))
-		}
-		return true
-	}
+	K := K{m: m, vm: vm, stack: []uint32{16}}
+	K.call("ini")
+	K.pop()
 	for _, s := range args {
-		m := vm.Memory()
-		if pushVector(s) {
-			continue
-		}
-		if u, e := strconv.ParseUint(s, 10, 64); e == nil {
-			stack = append(stack, u)
-		} else if s == "dump" {
-			dump(vm.Memory(), k(stack[len(stack)-2]), k(stack[len(stack)-1]))
-			stack = stack[:len(stack)-2]
-		} else if strings.HasPrefix(s, `"`) {
-			s = strings.Trim(s, `"`)
-			b := []c(s)
-			p := mk(1, uint32(len(b)))
-			for i := 0; i < len(b); i++ {
-				m[8+int(p)+i] = b[i]
-			}
-			stack = append(stack, uint64(p))
-		} else {
-			if e := call(s); e != nil {
+		if o, e := K.call(s); o == true {
+			if e != nil {
 				return e
 			}
+			continue
 		}
+		if strings.HasSuffix(s, "dump") {
+			if n, e := strconv.Atoi(strings.TrimPrefix(s, "dump")); e == nil {
+				K.dump(0, uint32(n))
+			} else {
+				K.dump(0, 100)
+			}
+			continue
+		}
+		K.push(K.parseVector(s))
 	}
-	if len(stack) != 2 { // [16, result]
-		return fmt.Errorf("stack size")
+	if len(K.stack) != 1 {
+		return fmt.Errorf("stack #" + strconv.Itoa(len(K.stack)))
 	}
 	// compare result
-	got := kst(k(stack[1]), vm.Memory())
+	r := K.pop()
+	got := K.kst(r)
 	if got != exp {
 		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
 	}
 	// free result and check for memory leaks
-	if e := call("dx"); e != nil {
+	K.push(r)
+	if _, e := K.call("dx"); e != nil {
 		return e
 	}
-	if e := leak(vm.Memory()); e != nil {
+	if e := leak(K.vm.Memory()); e != nil {
 		return e
 	}
 	return nil
+}
+func (K *K) push(x ...uint32) {
+	K.stack = append(K.stack, x...)
+}
+func (K *K) pop() (r uint32) {
+	r = K.stack[len(K.stack)-1]
+	K.stack = K.stack[:len(K.stack)-1]
+	return r
+}
+func (K *K) call(s string) (bool, error) {
+	m, vm := K.m, K.vm
+	x, ok := m.Export.Entries[s]
+	if !ok {
+		return false, fmt.Errorf("function does not exist: %s", s)
+	}
+	fidx := m.Function.Types[x.Index]
+	ftyp := m.Types.Entries[fidx]
+	n := len(ftyp.ParamTypes)
+	var e error
+	var res interface{}
+	if n == 1 {
+		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()))
+	} else if n == 2 {
+		y := K.pop()
+		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()), uint64(y))
+	} else {
+		return true, fmt.Errorf("%s expects %d arguments", s, n)
+	}
+	if e != nil {
+		return true, e
+	}
+	if res != nil {
+		if u, o := res.(uint32); o {
+			K.push(uint32(u))
+		} else {
+			return true, fmt.Errorf("%s: result type %T", s, res)
+		}
+		if trace {
+			r := K.stack[len(K.stack)-1]
+			fmt.Printf("%s: %v(%x)\n", s, r, r)
+		}
+	} else if trace {
+		fmt.Printf("%s: nil\n", s)
+	}
+	return true, nil
+}
+func (K *K) mk(t, n uint32) uint32 {
+	K.push(t, n)
+	if _, e := K.call("mk"); e != nil {
+		panic(e)
+	}
+	return K.pop()
+}
+func (K *K) parseVector(s string) uint32 {
+	m := K.vm.Memory()
+	if len(s) > 0 && s[0] == '"' {
+		s = strings.Trim(s, `"`)
+		b := []c(s)
+		p := K.mk(1, uint32(len(b)))
+		for i := 0; i < len(b); i++ {
+			m[8+int(p)+i] = b[i]
+		}
+		return p
+	}
+	if len(s) > 0 && s[0] == '`' {
+		v := strings.Split(s[1:], "`")
+		sn := uint32(len(v))
+		sv := K.mk(4, sn)
+		for i := uint32(0); i < sn; i++ {
+			b := v[i]
+			rn := uint32(len(b))
+			r := K.mk(1, rn)
+			for k := uint32(0); k < rn; k++ {
+				m[8+r+k] = b[k]
+			}
+			binary.LittleEndian.PutUint32(m[sv+8+4*i:], uint32(r)) // sI(sv+8+4*i, r)
+		}
+		return sv
+	}
+	if len(s) > 0 && s[0] == '(' {
+		return K.parseList(s[1:])
+	}
+	f := strings.Index(s, ".")
+	v := strings.Split(s, ",")
+	n := uint32(len(v))
+	iv := make([]int64, n)
+	fv := make([]float64, n)
+	var e error
+	for i, s := range v {
+		if f == -1 {
+			iv[i], e = strconv.ParseInt(s, 10, 32)
+		} else {
+			fv[i], e = strconv.ParseFloat(s, 64)
+		}
+		if e != nil {
+			panic(fmt.Errorf("parse: %s", s))
+		}
+	}
+	if f == -1 {
+		x := K.mk(2, n)
+		for i := uint32(0); i < n; i++ {
+			binary.LittleEndian.PutUint32(m[x+8+i*4:], uint32(iv[i]))
+		}
+		return x
+	} else {
+		x := K.mk(3, n)
+		for i := uint32(0); i < n; i++ {
+			binary.LittleEndian.PutUint64(m[x+8+i*8:], math.Float64bits(fv[i]))
+		}
+		return x
+	}
+}
+func (K *K) parseList(s string) uint32 {
+	if len(s) == 0 || s[len(s)-1] != ')' {
+		panic("parse list")
+	} else if len(s) == 1 {
+		return K.mk(5, 0)
+	}
+	r := make([]uint32, 0)
+	s = s[:len(s)-1]
+	l, a := 0, 0
+	for i, c := range s {
+		if c == '(' {
+			l++
+		} else if c == ')' {
+			l--
+			if l < 0 {
+				panic(")")
+			}
+		} else if l == 0 && c == ';' {
+			r = append(r, K.parseVector(s[a:i]))
+			a = i + 1
+		}
+	}
+	r = append(r, K.parseVector(s[a:]))
+	x := K.mk(5, uint32(len(r)))
+	m := K.vm.Memory()
+	for k := range r {
+		binary.LittleEndian.PutUint32(m[8+x+4*uint32(k):], r[k])
+	}
+	return x
 }
 func u64(v interface{}) uint64 {
 	switch x := v.(type) {
@@ -207,11 +261,12 @@ func u64(v interface{}) uint64 {
 		panic(x)
 	}
 }
-func dump(M []byte, a, n k) {
+func (K *K) dump(a, n k) {
+	m := K.vm.Memory()
 	fmt.Printf("%.8x ", a)
 	for i := k(0); i < n; i++ {
 		p := a + 4*i
-		x := get(M, p)
+		x := get(m, p)
 		fmt.Printf(" %.8x", x)
 		if i > 0 && (i+1)%8 == 0 {
 			fmt.Printf("\n%.8x ", p+4)
@@ -224,7 +279,8 @@ func dump(M []byte, a, n k) {
 
 type k = uint32
 
-func kst(a k, m []byte) s {
+func (K *K) kst(a k) s {
+	m := K.vm.Memory()
 	x := get(m, a)
 	t, n := x>>29, x&536870911
 	var f func(i int) s
@@ -267,7 +323,7 @@ func kst(a k, m []byte) s {
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
 	case 5:
-		f = func(i int) s { return kst(get(m, 8+4*uint32(i)+a), m) }
+		f = func(i int) s { return K.kst(get(m, 8+4*uint32(i)+a)) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
 	default:

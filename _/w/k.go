@@ -73,107 +73,133 @@ func runtest() {
 		}
 	}
 }
+func parseVector(s string) i {
+	if len(s) > 0 && s[0] == '"' { // "char"
+		s = strings.Trim(s, `"`)
+		b := []c(s)
+		r := mk(1, i(len(b)))
+		for i := 0; i < len(b); i++ {
+			MC[8+int(r)+i] = b[i]
+		}
+		return r
+	}
+	if len(s) > 0 && s[0] == '`' { // `symbols`b`c
+		v := strings.Split(s[1:], "`")
+		sn := i(len(v))
+		sv := mk(4, sn)
+		for i := i(0); i < sn; i++ {
+			b := v[i]
+			rn := uint32(len(b))
+			r := mk(1, rn)
+			for k := uint32(0); k < rn; k++ {
+				MC[8+r+k] = b[k]
+			}
+			sI(sv+8+4*i, r)
+		}
+		return sv
+	}
+	if len(s) > 0 && s[0] == '(' { // (`list;1;2)
+		return parseList(s[1:])
+	}
+	f := strings.Index(s, ".") // 1.23,2.34 (float)
+	v := strings.Split(s, ",") // 1,2,3 (int vector)
+	n := uint32(len(v))
+	iv := make([]int64, n)
+	fv := make([]float64, n)
+	var e error
+	for i, s := range v {
+		if f == -1 {
+			iv[i], e = strconv.ParseInt(s, 10, 32)
+		} else {
+			fv[i], e = strconv.ParseFloat(s, 64)
+		}
+		if e != nil {
+			panic("parse number: " + s)
+		}
+	}
+	if f == -1 {
+		x := mk(2, n)
+		for i := uint32(0); i < n; i++ {
+			MI[(x+8+i*4)>>2] = uint32(iv[i])
+		}
+		return x
+	} else {
+		x := mk(3, n)
+		for i := uint32(0); i < n; i++ {
+			MF[(x+8+i*8)>>3] = fv[i]
+		}
+		return x
+	}
+}
+func parseList(s string) i {
+	if len(s) == 0 || s[len(s)-1] != ')' {
+		panic("parse list")
+	} else if len(s) == 1 {
+		return mk(5, 0)
+	}
+	r := make([]i, 0)
+	s = s[:len(s)-1]
+	l, a := 0, 0
+	for i, c := range s {
+		if c == '(' {
+			l++
+		} else if c == ')' {
+			l--
+			if l < 0 {
+				panic(")")
+			}
+		} else if l == 0 && c == ';' {
+			r = append(r, parseVector(s[a:i]))
+			a = i + 1
+		}
+	}
+	r = append(r, parseVector(s[a:]))
+	x := mk(5, i(len(r)))
+	for k := range r {
+		MI[2+(x>>2)+i(k)] = r[k]
+	}
+	return x
+}
 func run(args []string) string {
 	m0 := 16
-	fn1 := map[string]vt1{"ini": ini, "mki": mki, "til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
-	fn2 := map[string]vt2{"mk": mk, "dump": dump, "atx": atx, "rsh": rsh, "tak": tak, "cat": cat, "eql": eql}
+	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
+	fn2 := map[string]vt2{"mk": mk, "atx": atx, "rsh": rsh, "tak": tak, "cat": cat, "eql": eql}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
-	pushVector := func(s string) bool {
-		if len(s) > 0 && s[0] == '`' {
-			v := strings.Split(s[1:], "`")
-			sn := i(len(v))
-			sv := mk(4, sn)
-			for i := i(0); i < sn; i++ {
-				b := v[i]
-				rn := uint32(len(b))
-				r := mk(1, rn)
-				for k := uint32(0); k < rn; k++ {
-					MC[8+r+k] = b[k]
-				}
-				sI(sv+8+4*i, r)
+	ini(16)
+	for _, a := range args {
+		if f1, o := fn1[a]; o {
+			r := f1(stack[len(stack)-1])
+			if trace {
+				fmt.Printf("%s %d: x%x\n", a, stack[len(stack)-1], r)
 			}
-			stack = append(stack, sv)
-			return true
-		}
-		if idx := strings.Index(s, ","); idx == -1 {
-			return false
-		}
-		s = strings.Trim(s, ",")
-		f := strings.Index(s, ".")
-		v := strings.Split(s, ",")
-		n := uint32(len(v))
-		iv := make([]int64, n)
-		fv := make([]float64, n)
-		var e error
-		for i, s := range v {
-			if f == -1 {
-				iv[i], e = strconv.ParseInt(s, 10, 32)
-			} else {
-				fv[i], e = strconv.ParseFloat(s, 64)
-			}
-			if e != nil {
-				return false
-			}
-		}
-		if f == -1 {
-			x := mk(2, n)
-			stack = append(stack, x)
-			for i := uint32(0); i < n; i++ {
-				MI[(x+8+i*4)>>2] = uint32(iv[i])
-			}
-		} else {
-			x := mk(3, n)
-			stack = append(stack, x)
-			for i := uint32(0); i < n; i++ {
-				MF[(x+8+i*8)>>3] = fv[i]
-			}
-		}
-		return true
-	}
-	for _, a := range append([]string{strconv.Itoa(m0), "ini"}, args...) {
-		if pushVector(a) {
+			stack[len(stack)-1] = r
 			continue
 		}
-		if n, e := strconv.ParseUint(a, 10, 32); e == nil {
-			stack = append(stack, i(n))
-		} else {
-			if f1, o := fn1[a]; o {
-				r := f1(stack[len(stack)-1])
-				if trace {
-					fmt.Printf("%s %d: x%x\n", a, stack[len(stack)-1], r)
-				}
-				stack[len(stack)-1] = r
-				continue
+		if f2, o := fn2[a]; o {
+			x, y := stack[len(stack)-2], stack[len(stack)-1]
+			r := f2(x, y)
+			if trace {
+				fmt.Printf("%s %d %d: x%x\n", a, x, y, r)
 			}
-			if f2, o := fn2[a]; o {
-				x, y := stack[len(stack)-2], stack[len(stack)-1]
-				r := f2(x, y)
-				if trace {
-					fmt.Printf("%s %d %d: x%x\n", a, x, y, r)
-				}
-				if a == "dump" {
-					stack = stack[:len(stack)-2]
-				} else {
-					stack = stack[:len(stack)-1]
-					stack[len(stack)-1] = r
-				}
-			} else if strings.HasPrefix(a, `"`) {
-				a = strings.Trim(a, `"`)
-				b := []c(a)
-				r := mk(1, i(len(b)))
-				for i := 0; i < len(b); i++ {
-					MC[8+int(r)+i] = b[i]
-				}
-				stack = append(stack, r)
-			} else {
-				panic("unknown func: " + a)
-			}
+			stack = stack[:len(stack)-1]
+			stack[len(stack)-1] = r
+			continue
 		}
+		if strings.HasPrefix(a, "dump") {
+			a = strings.TrimPrefix(a, "dump")
+			if n, e := strconv.Atoi(a); e == nil {
+				dump(0, uint32(n))
+			} else {
+				dump(0, 100)
+			}
+			continue
+		}
+		stack = append(stack, parseVector(a))
 	}
-	if len(stack) != 2 {
-		panic("stack")
+	if len(stack) != 1 {
+		panic("stack #" + strconv.Itoa(len(stack)))
 	}
 	r := kst(stack[len(stack)-1])
 	dx(stack[len(stack)-1])
