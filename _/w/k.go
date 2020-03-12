@@ -163,7 +163,7 @@ func parseList(s string) i {
 func run(args []string) string {
 	m0 := 16
 	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
-	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mtc": mtc, "fnd": fnd}
+	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mtc": mtc, "fnd": fnd, "exc": exc}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -745,6 +745,13 @@ func fnl(x, n i, y i) (r i) {
 		x += 4
 	}
 	return n
+}
+func exc(x, y i) (r i) { // x^y
+	_, yn, _ := v1(y)
+	r = mk(2, 1)
+	sI(r+8, yn)
+	rx(x)
+	return atx(x, wer(eql(r, fnd(y, x)))) // x@&xn=y?x
 }
 
 func boolvar(b bool) i {

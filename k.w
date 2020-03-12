@@ -35,7 +35,7 @@ fnc:I:III{y/((C?z)~C x+i)? :i;y}
 fni:I:III{y/((z~I x)? :i;x+:4);y}
 fnj:I:IIJ{y/((z~J x)? :i;x+:8);y}
 fnl:I:III{y/((z match I x)? :i;x+:4);y}
-
+exc:I:II{r:2 mk 1;(r+8)::(I y)&536870911;rx x;x atx wer r eql y fnd x}
 up:I:II{v1; (xt<y)?/xt?[;ic;fi; :x mkz mkf 0.;!];dxr} ic:{(r:2 mk xn;rp:8+r;xn/(rp::I?C xp+i;rp+:4);dx x;x:r;xt:2)} fi:{(r:3 mk xn;rp:8+r;xn/(rp::F?I xp;rp+:8;xp+:4);dx x;x:r;xt:3)}
 
 \
@@ -89,6 +89,6 @@ Fcifslzd   xt~0(function) x<256(basic)
 $ str cst   
 # rsh cnt   take
 _ drp flr   drop          ang:_z
-? fnd unq   fnd1              
+? fnd unq   fnd fnx fnc fni..              
 @ atx typ                 z:abs@ang  z@ang
 . cal val                 re:. z
