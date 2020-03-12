@@ -29,14 +29,13 @@ wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;rp:r+8;xn/((I xp)/(r
 not:I:I{x eql mki 0}
 eql:I:II{v2;ext;xt?[;eqC;;eqF;;!;!;!;eqI];dxyr} eqT:{(r:2 mk xn;rp:r+8;xn/(rp::(T xp)~T yp;rp+:4;xp+:W;yp+:W))}
 mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;xt?[ :1;nn:xn;nn:xn<<2;nn:xn<<3;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];nn/(~(C xp+i)~C yp+i)? :0;1}
-fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;rp:r+8;w:I?C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}
-fnx:I:II{v1;xt?[!; :fnc(xp;xn;I?C y); :fni(xp;xn;I y); :fnj(xp;xn;J y);;;!;!; :fnl(xp;xn;I y)];x}
-fnc:I:III{y/((C?z)~C x+i)? :i;y}
-fni:I:III{y/((z~I x)? :i;x+:4);y}
-fnj:I:IIJ{y/((z~J x)? :i;x+:8);y}
-fnl:I:III{y/((z match I x)? :i;x+:4);y}
+fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;rp:r+8;w:I?C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx:I:II{v1;xt?[!; :fnc(xp;xn;I?C y); :fni(xp;xn;I y); :fnj(xp;xn;J y);;;!;!; :fnl(xp;xn;I y)];x}fnc:I:III{y/((C?z)~C x+i)? :i;y}fni:I:III{y/((z~I x)? :i;x+:4);y}fnj:I:IIJ{y/((z~J x)? :i;x+:8);y}fnl:I:III{y/((z match I x)? :i;x+:4);y}
 exc:I:II{r:2 mk 1;(r+8)::(I y)&536870911;rx x;x atx wer r eql y fnd x}
 up:I:II{v1; (xt<y)?/xt?[;ic;fi; :x mkz mkf 0.;!];dxr} ic:{(r:2 mk xn;rp:8+r;xn/(rp::I?C xp+i;rp+:4);dx x;x:r;xt:2)} fi:{(r:3 mk xn;rp:8+r;xn/(rp::F?I xp;rp+:8;xp+:4);dx x;x:r;xt:3)}
+/srt:I:I{rx x;x atx grd x}gdn:I:I{rev grd x}
+/grd:I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);rp:r+8;yp:y+8;msrt(yp;rp;0;xn;xp;xt);dxyr}
+/msrt:0:IIIIII{((x3-z)>2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}
+/mrge:0:IIIIIII{k:z;j:x4;w:I?C x6;x3/($[(k>=x4)|((j<x3)&.x6(x5+w*I x+k<<2; p+w*I x+j<<2));((y+i<<2)::I x+j<<2;j+:1);((y+i<<2)::I x+k<<2;i+:1)])}
 
 \
 /not:I:I{v1;xt?[;(notC);;(notf);; :x lrc 126;(notZ); :x drc 126;(notI)];x}
@@ -73,16 +72,16 @@ Fcifslzd   xt~0(function) x<256(basic)
 01484444   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?
 	   fn~xn&0xff    (argn)
 
-+ add abs                 abs:+z         memory
-- sub neg                                0..  7   type sizes   0 1 4 8 16 4 4 0
-* mul fst                                8.. 11   k-tree/key   pointer     todo
-% div sqr                               12.. 15   k-tree/value pointer     todo
-& min wer                               16..127   free pointers (4*i) for bt i, i:4..31
-| max rev                              128..131   memsize log2
-< les gup                              
-> mor gdn                 
-= eql grp                 
-~ mtc not   match
++ add abs                 abs:+z                   memory
+- sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
+* mul fst                                          8.. 11   k-tree/key   pointer     todo
+% div sqr                                         12.. 15   k-tree/value pointer     todo
+& min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
+| max rev                                        128..131   memsize log2
+< les grd                              
+> mor gdn                                        function tables (call indirect)
+= eql grp                                        T1:I:I (#128)      T2:I:I (#128)
+~ mtc not   match                                                   0..7 gtT 
 ! key til   seq           z:re!im  im:!z
 , cat enl                 
 ^ exc asc                 

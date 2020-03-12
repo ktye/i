@@ -30,6 +30,8 @@ var MI []i
 var MJ []j
 var MF []f
 var WT []i
+var T1 [128]func(i, i) i
+var T2 [128]func(i, i) i
 
 type vt1 func(i) i
 type vt2 func(i, i) i
@@ -162,7 +164,7 @@ func parseList(s string) i {
 }
 func run(args []string) string {
 	m0 := 16
-	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
+	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt}
 	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mtc": mtc, "fnd": fnd, "exc": exc}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
@@ -214,6 +216,11 @@ func ini(x i) i {
 		sI(4*i, p)
 		p *= 2
 	}
+	T2[1] = gtC
+	T2[2] = gtI
+	T2[3] = gtF
+	T2[4] = gtL
+	T2[5] = gtL
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -752,6 +759,62 @@ func exc(x, y i) (r i) { // x^y
 	sI(r+8, yn)
 	rx(x)
 	return atx(x, wer(eql(r, fnd(y, x)))) // x@&xn=y?x
+}
+func grd(x i) (r i) { // <x
+	xt, xn, xp := v1(x)
+	r = seq(0, xn, 1)
+	w := seq(0, xn, 1)
+	msrt(w+8, r+8, 0, xn, xp, xt) // xt:1,2,3,4,5
+	return dxyr(x, w, r)
+}
+func gdn(x i) (r i) { return rev(grd(x)) }           // >x
+func srt(x i) (r i) { rx(x); return atx(x, grd(x)) } // ^x
+func msrt(x, r, a, b, p, t i) { // merge sort
+	if b-a < 2 {
+		return
+	}
+	c := (a + b) / 2
+	msrt(r, x, a, c, p, t)
+	msrt(r, x, c, b, p, t)
+	mrge(x, r, a, b, c, p, t)
+}
+func mrge(x, r, a, b, c, p, t i) {
+	i, j := a, c
+	gt := T2[t]
+	w := uint32(C(t))
+	for k := a; k < b; k++ {
+		if i >= c || (j < b && gt(p+w*I(x+i<<2), p+w*I(x+j<<2)) == 1) {
+			sI(r+k<<2, I(x+j<<2))
+			j++
+		} else {
+			sI(r+k<<2, I(x+i<<2))
+			i++
+		}
+	}
+}
+func gtC(x, y i) i { return boolvar(C(x) > C(y)) }
+func gtI(x, y i) i { return boolvar(int32(I(x)) > int32(I(y))) }
+func gtF(x, y i) i { return boolvar(F(x) > F(y)) }
+func gtL(x, y i) i {
+	x, y = I(x), I(y)
+	xt, yt, xn, yn, xp, yp := v2(x, y)
+	if xt != yt {
+		return boolvar(xt > yt)
+	}
+	n := xn
+	if yn < xn {
+		n = yn
+	}
+	gt := T2[xt]
+	w := uint32(C(xt))
+	for i := i(0); i < n; i++ {
+		if gt(xp+w*i, yp+w*i) == 1 {
+			return 1
+		} else if gt(yp+w*i, xp+w*i) == 1 {
+			return 0
+		}
+	}
+	return boolvar(xn > yn)
 }
 
 func boolvar(b bool) i {
