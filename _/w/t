@@ -1,36 +1,41 @@
-5                            /5
-5 til                        /0 1 2 3 4
-5 til rev                    /4 3 2 1 0
-"abcd"                       /"abcd"
-"abcd" rev                   /"dcba"
-1,2,3                        /1 2 3
-1,2.,3                       /1 2 3f
-4,5,3,2 rev                  /2 3 5 4
-4,5,3,2  1,3 atx             /5 2
-4,5,3,2. 1,3 atx             /5 2f
-5 til rev 3 til atx          /4 3 2
-3 til rev 5 til atx          /2 1 0 0N 0N
-"abc" 4 til atx              /"abc "
-5 til rev fst                /4
-3 5 til rsh                  /0 1 2
-5 3 til rsh                  /0 1 2 0 1
-2,3 4 til rsh                /(0 1 2;3 0 1)
-3 5 til cut                  /3 4
-2,4,4,6 9 til cut            /(2 3;;4 5;6 7 8)
-2 enl                        /(2)
-(1;2)                        /(1;2)
-(1;2;(`a`b;3.0))             /(1;2;(`a`b;3f))
-(1;2;3.0) 0,2 atx            /(1;3f)
-()                           /()
-1,2 3,4 cat                  /1 2 3 4
-1,2,3,4 cnt                  /4
-1,0,0,1 wer                  /0 3
-3,0,2 wer                    /0 0 0 2 2
-1 2 eql                      /0
-1,2,3 3,2,1 eql              /0 1 0
-3 til not                    /1 0 0
-1,2.2,3 3,2.2,1 eql          /0 1 0
-1,2 tip                      /2
-"abc" tip                    /1
-`a`be`ceta                   /`a`be`ceta
-`alpha`beta`gamma 4,2,1 atx  /``gamma`beta
+5                               /5
+5 til                           /0 1 2 3 4
+5 til rev                       /4 3 2 1 0
+"abcd"                          /"abcd"
+"abcd" rev                      /"dcba"
+1,2,3                           /1 2 3
+1,2.,3                          /1 2 3f
+4,5,3,2 rev                     /2 3 5 4
+4,5,3,2  1,3 atx                /5 2
+4,5,3,2. 1,3 atx                /5 2f
+5 til rev 3 til atx             /4 3 2
+3 til rev 5 til atx             /2 1 0 0N 0N
+"abc" 4 til atx                 /"abc "
+5 til rev fst                   /4
+3 5 til rsh                     /0 1 2
+5 3 til rsh                     /0 1 2 0 1
+2,3 4 til rsh                   /(0 1 2;3 0 1)
+3 5 til cut                     /3 4
+2,4,4,6 9 til cut               /(2 3;;4 5;6 7 8)
+2 enl                           /(2)
+(1;2)                           /(1;2)
+(1;2;(`a`b;3.0))                /(1;2;(`a`b;3f))
+(1;2;3.0) 0,2 atx               /(1;3f)
+()                              /()
+1,2 3,4 cat                     /1 2 3 4
+1,2,3,4 cnt                     /4
+1,0,0,1 wer                     /0 3
+3,0,2 wer                       /0 0 0 2 2
+1 2 eql                         /0
+1,2,3 3,2,1 eql                 /0 1 0
+3 til not                       /1 0 0
+1,2.2,3 3,2.2,1 eql             /0 1 0
+1,2 tip                         /2
+"abc" tip                       /1
+`a`be`ceta                      /`a`be`ceta
+`alpha`beta`gamma 4,2,1 atx     /``gamma`beta
+"alpha" "beta" mtc              /0
+1,2 1,2 mtc                     /1
+(1;"xy";(`a)) (1;"xy";(`a)) mtc /1
+4,2,6,2 2,7 fnd                 /1 4
+(1;2,3;`a`b) (2,3;8) fnd        /1 3

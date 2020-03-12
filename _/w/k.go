@@ -163,7 +163,7 @@ func parseList(s string) i {
 func run(args []string) string {
 	m0 := 16
 	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not}
-	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql}
+	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mtc": mtc, "fnd": fnd}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -591,6 +591,46 @@ func wer(x i) (r i) {
 	}
 	return dxr(x, r)
 }
+func mtc(x, y i) (r i) { // x~y
+	r = mk(2, 1)
+	sI(r+8, match(x, y))
+	return dxyr(x, y, r)
+}
+func match(x, y i) (r i) { // x~y
+	if x == y {
+		return 1
+	}
+	if I(x) != I(y) {
+		return 0
+	}
+	xt, xn, xp := v1(x)
+	yp, nn := y+8, i(0)
+	switch xt {
+	case 0:
+		return 1 // todo
+	case 1:
+		nn = xn
+	case 2:
+		nn = xn << 2
+	case 3:
+		nn = xn << 3
+	default:
+		for i := i(0); i < xn; i++ {
+			if match(I(xp), I(yp)) == 0 {
+				return 0
+			}
+			xp += 4
+			yp += 4
+		}
+		return 1
+	}
+	for i := i(0); i < nn; i++ {
+		if C(xp+i) != C(yp+i) {
+			return 0
+		}
+	}
+	return 1
+}
 func not(x i) (r i) { return eql(mki(0), x) }
 func eql(x, y i) (r i) {
 	x, y = ext(x, y)
@@ -637,6 +677,74 @@ func eqF(xp, yp, n i) (r i) {
 		yp += 8
 	}
 	return r
+}
+func fnd(x, y i) (r i) { // x?y
+	xt, yt, _, yn, _, yp := v2(x, y)
+	if xt != yt {
+		trap()
+	}
+	r = mk(2, yn)
+	rp := r + 8
+	w := i(C(yt))
+	for i := i(0); i < yn; i++ {
+		sI(rp, fnx(x, yp))
+		rp += 4
+		yp += w
+	}
+	return dxyr(x, y, r)
+}
+func fnx(x, yp i) (r i) {
+	xt, xn, xp := v1(x)
+	switch xt {
+	case 0:
+		trap()
+	case 1:
+		return fnc(xp, xn, C(yp))
+	case 2:
+		return fni(xp, xn, I(yp))
+	case 3:
+		return fnj(xp, xn, J(yp))
+	case 4, 5:
+		return fnl(xp, xn, I(yp))
+	default:
+		panic("nyi")
+	}
+	return 0
+}
+func fnc(x, n i, y byte) (r i) {
+	for i := i(0); i < n; i++ {
+		if C(x+i) == y {
+			return i
+		}
+	}
+	return n
+}
+func fni(x, n i, y i) (r i) {
+	for i := i(0); i < n; i++ {
+		if I(x) == y {
+			return i
+		}
+		x += 4
+	}
+	return n
+}
+func fnj(x, n i, y j) (r i) {
+	for i := i(0); i < n; i++ {
+		if J(x) == y {
+			return i
+		}
+		x += 8
+	}
+	return n
+}
+func fnl(x, n i, y i) (r i) {
+	for i := i(0); i < n; i++ {
+		if match(I(x), y) == 1 {
+			return i
+		}
+		x += 4
+	}
+	return n
 }
 
 func boolvar(b bool) i {

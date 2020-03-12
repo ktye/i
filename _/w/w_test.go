@@ -632,11 +632,12 @@ I numVector(C *s) {
 	R x;
 }
 I parseNoun(C *s) {
-	if (strchr(s, ',') != NULL)     return numVector(s);
-	if (s[0] == '"')                return chrVector(s);
-	if (s[0] == 96)                 return symVector(s);
-	if (s[0] >= '0' && s[0] <= '9') return numVector(s);
-	if (s[0] == '(')                return lstVector(s+1);
+	C c = s[0];
+	if (c == '"')                return chrVector(s);
+	if (c == 96)                 return symVector(s);
+	if (c >= '0' && s[0] <= '9') return numVector(s);
+	if (c == '(')                return lstVector(s+1);
+	if (strchr(s, ',') != NULL)  return numVector(s);
 	R 0;
 }
 #define M0 16
