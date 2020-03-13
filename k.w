@@ -32,6 +32,8 @@ mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1
 fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;rp:r+8;w:I?C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx:I:II{v1;xt?[!; :fnc(xp;xn;I?C y); :fni(xp;xn;I y); :fnj(xp;xn;J y);;;!;!; :fnl(xp;xn;I y)];x}fnc:I:III{y/((C?z)~C x+i)? :i;y}fni:I:III{y/((z~I x)? :i;x+:4);y}fnj:I:IIJ{y/((z~J x)? :i;x+:8);y}fnl:I:III{y/((z match I x)? :i;x+:4);y}
 exc:I:II{r:2 mk 1;(r+8)::(I y)&536870911;rx x;x atx wer r eql y fnd x}
 up:I:II{v1; (xt<y)?/xt?[;ic;fi; :x mkz mkf 0.;!];dxr} ic:{(r:2 mk xn;rp:8+r;xn/(rp::I?C xp+i;rp+:4);dx x;x:r;xt:2)} fi:{(r:3 mk xn;rp:8+r;xn/(rp::F?I xp;rp+:8;xp+:4);dx x;x:r;xt:3)}
+0:{til;rev}
+cal:I:II{dx x;(I.I 8+x)y}
 /srt:I:I{rx x;x atx grd x}gdn:I:I{rev grd x}
 /grd:I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);rp:r+8;yp:y+8;msrt(yp;rp;0;xn;xp;xt);dxyr}
 /msrt:0:IIIIII{((x3-z)>2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}

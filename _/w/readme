@@ -25,6 +25,8 @@
 # x?/y             while x do y (y must be null)
 # I?x F?x I?'x     type conversions ?'(signed)
 # sum x ; x add y  named function call, dyad(infix), names can be defined later
+# 8:{f;g;h}        add f,g,h to function table starting at offset 8
+# (I.x+1)(a;b)     call indirect: return type I, function index x+1, args a b
 # 
 # see ops for all wasm opcodes and their w operators
 

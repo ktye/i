@@ -52,13 +52,13 @@ func main() {
 	flag.BoolVar(&cout, "c", false, "c output")
 	flag.BoolVar(&gout, "go", false, "go output")
 	flag.Parse()
-	m, data := run(stdin)
+	m, tab, data := run(stdin)
 	if cout {
-		os.Stdout.Write(m.cout(data))
+		os.Stdout.Write(m.cout(tab, data))
 	} else if gout {
-		os.Stdout.Write(m.gout(data))
+		os.Stdout.Write(m.gout(tab, data))
 	} else {
-		os.Stdout.Write(m.wasm(data))
+		os.Stdout.Write(m.wasm(tab, data))
 	}
 }
 func (t T) String() s {
@@ -68,7 +68,7 @@ func (t T) String() s {
 		return s(c)
 	}
 }
-func run(r io.Reader) (module, []c) {
+func run(r io.Reader) (module, []segment, []c) {
 	sFnam, sRety, sArgs, sBody, sData, sCmnt := 0, 1, 2, 3, 4, 5
 	rd := bufio.NewReader(r)
 	state := sFnam
@@ -80,7 +80,8 @@ func run(r io.Reader) (module, []c) {
 	for {
 		b, e := rd.ReadByte()
 		if e == io.EOF || (state == sFnam && b == '\\') {
-			return m.compile(), decode(data)
+			mod, tab := m.compile()
+			return mod, tab, decode(data)
 		} else if e != nil {
 			panic(e)
 		}
@@ -95,7 +96,7 @@ func run(r io.Reader) (module, []c) {
 				continue
 			} else if len(f.name) == 0 && b == '/' {
 				state = sCmnt
-			} else if craZ(b) || (len(f.name) > 0 && cr09(b)) {
+			} else if craZ(b) || cr09(b) {
 				f.name += s(b)
 			} else if b == '.' {
 				state = sRety
@@ -187,12 +188,21 @@ func boolvar(v bool) int {
 	}
 	return 0
 }
-
-func (m module) compile() (r module) {
+func (s sig) String() s {
+	r := s.t.String() + ":"
+	for i := range s.a {
+		r += s.a[i].String()
+	}
+	return r
+}
+func (m module) compile() (r module, tab []segment) {
 	mac := make(map[s][]c)
 	fns := make(map[s]int)
 	var fsg []sig
 	for _, f := range m {
+		if cr09(f.name[0]) {
+			continue
+		}
 		_, x := mac[f.name]
 		_, y := fns[f.name]
 		if x || y {
@@ -221,24 +231,38 @@ func (m module) compile() (r module) {
 			fsg = append(fsg, sig{t: f.t, a: sg})
 		}
 	}
+	sgm := make(map[string]int)
+	for _, sig := range fsg {
+		s := sig.String()
+		if _, o := sgm[s]; !o {
+			sgm[s] = len(sgm)
+		}
+	}
 	for i, f := range r {
-		f.ast = f.parse(mac, fns, fsg)
+		f.ast = f.parse(mac, fns, fsg, sgm)
 		r[i] = f
 	}
-	return r
+	for _, f := range m {
+		if !cr09(f.name[0]) {
+			continue
+		}
+		tab = append(tab, f.parseTab(fns))
+	}
+	return r, tab
 }
 
 type parser struct {
 	mac map[s][]c
 	fns map[s]int
 	fsg []sig
+	sgm map[s]int
 	*fn
 	p   int
 	b   []byte
 	tok []byte
 }
 
-func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse function body
+func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr { // parse function body
 	f.lmap = make(map[string]int)
 	for i := 0; i < f.args; i++ {
 		s := s('x' + c(i))
@@ -247,7 +271,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse func
 		}
 		f.lmap[s] = i
 	}
-	p := parser{mac: mac, fns: fns, fsg: fsg, fn: f, b: strip(f.Bytes())}
+	p := parser{mac: mac, fns: fns, fsg: fsg, sgm: sgm, fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
 	e = p.locals(e, 0)
 	if x, s := p.validate(e); x != nil {
@@ -260,6 +284,19 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig) expr { // parse func
 		}
 	}
 	return e
+}
+func (f *fn) parseTab(fns map[s]int) (tab segment) { // function table: 8:{f;g;h}
+	var e error
+	tab.off, e = strconv.Atoi(f.name)
+	if e != nil {
+		panic("illegal function name: " + f.name)
+	}
+	v := bytes.Split(bytes.TrimSuffix(f.Bytes(), []c{'}'}), []c{';'})
+	tab.names = make([]string, len(v))
+	for i := range v {
+		tab.names[i] = strings.TrimSpace(s(v[i]))
+	}
+	return tab
 }
 func strip(b []c) []c { // strip comments
 	lines := bytes.Split(b, []c{'\n'})
@@ -395,6 +432,13 @@ func (p *parser) ex(x expr) expr {
 			s.argv = append(argv{x}, s.argv...)
 			s.pos = pos(h)
 			return s
+		} else if d, o := x.(dot); o {
+			if s, o := v.(seq); o {
+				d.argv = s.argv
+			} else {
+				d.argv = argv{v}
+			}
+			return d
 		} else {
 			return p.xerr(pos(h), sf("noun-noun (missing verb) %#v %#v", x, v))
 		}
@@ -459,6 +503,15 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 		if _, o := cTab[s(v)]; o {
 			return cmp{s: s(v), argv: argv{x, y}, pos: h}
 		}
+		if s(v) == "." {
+			d := dot{pos: h, idx: y}
+			if t, o := x.(typ); o == false {
+				return p.xerr(d, "dot call requires type on the left")
+			} else {
+				d.t = t.t
+			}
+			return d
+		}
 		if s(v) == "?" || s(v) == "?/" || s(v) == "?'" {
 			if xt, o := x.(typ); o {
 				sn := 0
@@ -503,15 +556,6 @@ func (p *parser) noun() expr {
 			return p.noun()
 		}
 		return p.pSym(p.tok)
-		/*
-			s := p.pSym(p.tok)
-			if f, o := s.(fun); o {
-				if p.t(sC('(')) {
-					a := p.seq(')')
-					xxx fun{
-				}
-			}
-		*/
 	case p.t(sC('/')):
 		return nlp{}
 	case p.t(sCon):
@@ -607,6 +651,20 @@ func (p *parser) locals(e expr, lv int) expr {
 			l.t = l.argv[1].rt()
 		}
 		return l
+	case dot:
+		tv := make([]T, len(l.argv))
+		for i, a := range l.argv {
+			l.argv[i] = p.locals(a, lv)
+			tv[i] = l.argv[i].rt()
+		}
+		l.idx = p.locals(l.idx, lv)
+		s := sig{t: l.t, a: tv}.String()
+		if idx, o := p.sgm[s]; o {
+			l.sig = idx
+		} else {
+			return p.xerr(e, sf("unknown function signature for indirect dot call %s", s))
+		}
+		return l
 	default:
 		if av, o := e.(argvec); o {
 			v := av.args()
@@ -672,6 +730,9 @@ func (p *parser) pSym(b []c) expr {
 	}
 	return loc{pos: pos(p.p), s: s(b), i: -1}
 }
+func (p *parser) pDot(b []c) expr {
+	return loc{pos: pos(p.p), s: s(b), i: -1}
+}
 func sCon(b []c) int { // 123 123i 123j 123f .123 123. -..
 	dot := false
 	if !cr09(b[0]) {
@@ -723,7 +784,7 @@ func (p *parser) pCon(b []c) expr {
 func sOp(b []c) int {
 	if b[0] == '?' && len(b) > 1 && b[1] == '/' { // ?/ while
 		return 2
-	} else if b[0] == ':' || b[0] == '?' {
+	} else if b[0] == ':' || b[0] == '?' || b[0] == '.' {
 		return 1
 	}
 	for _, n := range []int{3, 2, 1} { // longest match first
@@ -808,6 +869,13 @@ type fun struct { // f
 type cal struct { // f x
 	fun
 	argv
+}
+type dot struct { // call indirect
+	pos
+	argv      // function arguments
+	t    T    // function return type
+	idx  expr // function index
+	sig  int  // function signature index
 }
 type loc struct { // local get
 	pos
@@ -1161,6 +1229,31 @@ func (v cal) gstr() s {
 	}
 	return jn(v.s, "(", strings.Join(av, ","), ")")
 }
+func (d dot) rt() T    { return d.t }
+func (d dot) valid() s { return "" }
+func (d dot) bytes() (r []c) {
+	for _, a := range d.argv {
+		r = append(r, a.bytes()...)
+	}
+	r = append(r, d.idx.bytes()...)
+	r = append(r, 0x11)
+	r = append(r, leb(d.sig)...)
+	return append(r, 0x00)
+}
+func (d dot) cstr() s {
+	av := make([]s, len(d.argv))
+	ptr := fmt.Sprintf("(%s(*)(", d.t)
+	for i, a := range d.argv {
+		av[i] = cstring(a)
+		if i > 0 {
+			ptr += ","
+		}
+		ptr += a.rt().String()
+	}
+	ptr += "))"
+	return jn("(", ptr, "MT[", cstring(d.idx), "])(", strings.Join(av, ","), ")")
+}
+func (d dot) gstr() s    { panic("nyi") }
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, leb(v.i)...) }
@@ -1461,7 +1554,7 @@ func init() {
 }
 
 // emit wasm byte code
-func (m module) wasm(data []c) []c {
+func (m module) wasm(tab []segment, data []c) []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
 	// type section(1: function signatures)
 	sec := NewSection(1)
@@ -1488,7 +1581,15 @@ func (m module) wasm(data []c) []c {
 		sec.cat(leb(sigs[s(f.sig())]))
 	}
 	sec.out(o)
-	// no table section(4)
+	// function table section(4)
+	if len(tab) > 0 {
+		sec = NewSection(4)
+		sec.cat1(1)                    // one table
+		sec.cat1(0x70)                 // table type
+		sec.cat1(0)                    // flags
+		sec.cat(leb(segmentsize(tab))) // size
+		sec.out(o)
+	}
 	// linear memory section(5)
 	sec = NewSection(5)
 	sec.cat([]c{1, 0, 1}) // 1 initial memory segment, unshared, size 1 block
@@ -1510,7 +1611,26 @@ func (m module) wasm(data []c) []c {
 	}
 	sec.out(o)
 	// no start section(8)
-	// no element section(9)
+	// element section(9)
+	if len(tab) > 0 {
+		names := make(map[string]int)
+		for i, f := range m {
+			names[f.name] = i
+		}
+		sec = NewSection(9)
+		sec.cat(leb(len(tab)))
+		for _, t := range tab {
+			sec.cat1(0) // table index
+			sec.cat1(0x41)
+			sec.cat(leb(t.off))
+			sec.cat1(0x0b)
+			sec.cat(leb(len(t.names)))
+			for _, name := range t.names {
+				sec.cat(leb(names[name]))
+			}
+		}
+		sec.out(o)
+	}
 	// code section(10)
 	sec = NewSection(10)
 	sec.cat(leb(len(m))) // number of functions
@@ -1532,10 +1652,22 @@ func (m module) exports() (idx []int, fns []fn) {
 	}
 	return idx, fns
 }
+func segmentsize(t []segment) (n int) {
+	for _, s := range t {
+		if v := s.off + len(s.names); v > n {
+			n = v
+		}
+	}
+	return n
+}
 
 type section struct {
 	t c
 	b []c
+}
+type segment struct {
+	off   int
+	names []string
 }
 
 func NewSection(t c) section { return section{t: t} }
@@ -1628,9 +1760,13 @@ func log(a ...interface{})       { fmt.Fprintln(os.Stderr, a...) }
 func logf(f s, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
 func sf(f s, a ...interface{}) s { return fmt.Sprintf(f, a...) }
 
-func (m module) cout(data []c) []c {
+func (m module) cout(tab []segment, data []c) []c {
 	var b bytes.Buffer
 	b.WriteString(chead)
+
+	if len(tab) > 0 {
+		fmt.Fprintf(&b, "V *MT[%d];\n", segmentsize(tab))
+	}
 	for _, f := range m {
 		st := styp[f.t]
 		if f.t == 0 {
@@ -1687,9 +1823,19 @@ func (m module) cout(data []c) []c {
 			b.WriteString(";}\n")
 		}
 	}
+	if len(tab) > 0 {
+		fmt.Fprintf(&b, "V mt_init(){")
+		for _, t := range tab {
+			for k, s := range t.names {
+				fmt.Fprintf(&b, "MT[%d]=%s;", t.off+k, s)
+			}
+		}
+		fmt.Fprintf(&b, "}\n")
+	}
 	return b.Bytes()
 }
-func (m module) gout(data []c) []c {
+func (m module) gout(tab []segment, data []c) []c {
+	// todo: segments / function pointers
 	var b bytes.Buffer
 	b.WriteString(ghead)
 	for _, f := range m {

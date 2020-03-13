@@ -19,6 +19,7 @@ func TestB(t *testing.T) {
 		b   string
 		e   string
 	}{
+		{"I:I", "(I.x) 3", "4103 2000 11 00 00"},
 		{"I:IF", "x::y;x", "2000 2001 390300 2000"},
 		{"I:II", "y+I?C x", "2001 2000 2d0000 6a"},
 		{"I:II", "y+I?C x", "2001 2000 2d0000 6a"},
@@ -55,7 +56,7 @@ func TestB(t *testing.T) {
 	}
 	for n, tc := range testCases {
 		f := newfn(tc.sig, tc.b)
-		e := f.parse(nil, nil, nil)
+		e := f.parse(nil, nil, nil, map[string]int{"I:I": 0})
 		b := string(hex(e.bytes()))
 		s := trim(tc.e)
 		if b != s {
@@ -66,8 +67,8 @@ func TestB(t *testing.T) {
 	}
 }
 func TestRun(t *testing.T) {
-	m, data := run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/"))
-	g := s(hex(m.wasm(data)))
+	m, tab, data := run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/"))
+	g := s(hex(m.wasm(tab, data)))
 	e := "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a09010700200020016a0b"
 	if e != g {
 		t.Fatalf("expected/got\n%s\n%s\n", e, g)
@@ -75,8 +76,8 @@ func TestRun(t *testing.T) {
 }
 func ctest(t *testing.T, sig, b s) {
 	b = jn("f:", sig, "{", b, "}")
-	m, data := run(strings.NewReader(b))
-	out := m.cout(data)
+	m, tab, data := run(strings.NewReader(b))
+	out := m.cout(tab, data)
 	if len(out) == 0 {
 		t.Fatal("no output")
 	}
@@ -112,7 +113,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	if broken {
 		t.Skip()
 	}
-	m, data, src, err := KWasmModule()
+	m, tab, data, src, err := KWasmModule()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +124,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	if err != nil {
 		t.Fatal(err)
 	}
-	wasm := m.wasm(data)
+	wasm := m.wasm(tab, data)
 	_, exp := m.exports()
 	var txt, fns bytes.Buffer
 	fmt.Fprintf(&txt, "kwasm(%d b) %s tests src", len(wasm), time.Now().Format("2006.01.02"))
@@ -150,29 +151,29 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	}
 }
 
-func KWasmModule() (module, []byte, []byte, error) {
+func KWasmModule() (module, []segment, []byte, []byte, error) {
 	var src io.Reader
 	var srcb []byte
 	if k, e := ioutil.ReadFile("../../k.w"); e != nil {
-		return nil, nil, nil, e
+		return nil, nil, nil, nil, e
 	} else {
 		src = bytes.NewReader(k)
 		srcb = k
 	}
-	m, data := run(src)
-	return m, data, srcb, nil
+	m, tab, data := run(src)
+	return m, tab, data, srcb, nil
 }
 func TestCout(t *testing.T) { // write k_c from ../../k.w
 	if broken {
 		t.Skip()
 	}
-	m, data, _, err := KWasmModule()
+	m, tab, data, _, err := KWasmModule()
 	if err != nil {
 		t.Fatal(err)
 	}
 	var dst bytes.Buffer
 	io.Copy(&dst, strings.NewReader(kh))
-	dst.Write(m.cout(data))
+	dst.Write(m.cout(tab, data))
 	io.Copy(&dst, strings.NewReader(kt1))
 	for _, f := range m {
 		if f.args == 1 && f.t == I && f.locl[0] == I && f.name != "ini" && f.name != "mki" {
@@ -642,6 +643,7 @@ I parseNoun(C *s) {
 }
 #define M0 16
 I main(int args, C **argv){
+	mt_init();
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	memset(MC, 0, 1<<M0);
 	I stack[32];

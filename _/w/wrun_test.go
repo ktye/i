@@ -40,8 +40,8 @@ func TestWagon(t *testing.T) {
 		}
 		in := strings.TrimSpace(vv[0])
 		exp := strings.TrimSpace(vv[1])
-		m, data := run(bytes.NewReader(mb))
-		if e = runWagon(m.wasm(data), strings.Fields(in), exp); e != nil {
+		m, tab, data := run(bytes.NewReader(mb))
+		if e = runWagon(tab, m.wasm(tab, data), strings.Fields(in), exp); e != nil {
 			t.Fatalf("%d: %s", i+1, e)
 		}
 	}
@@ -53,7 +53,7 @@ type K struct {
 	stack []uint32
 }
 
-func runWagon(b []byte, args []string, exp string) error {
+func runWagon(tab []segment, b []byte, args []string, exp string) error {
 	fmt.Println(args, exp)
 	m, e := wasm.ReadModule(bytes.NewReader(b), nil)
 	if e != nil {
