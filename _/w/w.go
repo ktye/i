@@ -968,7 +968,7 @@ func cop(tab map[s]code, op s, t T) (o, u s) {
 		o = v[tnum[t]]
 	}
 	if o[0] == 'U' {
-		if t != F {
+		if t != F && t != C {
 			u = "(u" + styp[t] + ")"
 		}
 		o = o[1:]
@@ -1061,7 +1061,8 @@ func (v cnd) valid() s {
 		}
 	}
 	for i := 1; i < n; i += 2 {
-		if v.argv[i].rt() != rt {
+		if t := v.argv[i].rt(); t != rt {
+			fmt.Println(t, "!=", rt)
 			return sf("conditional has mixed types")
 		}
 	}
@@ -1070,6 +1071,9 @@ func (v cnd) valid() s {
 func (v cnd) bytes() (r []c) {
 	t := v.rt()
 	a := v.argv
+	if t == 0 && len(a) == 3 {
+		return catb(a[0].bytes(), []c{0x04, 0x40}, a[1].bytes(), []c{0x05}, a[2].bytes(), []c{0x0b}) // if(a0){a1}else{a2}
+	}
 	for i := 0; i < len(a)-1; i += 2 {
 		r = catb(r, a[i].bytes(), []c{0x04, c(t)}, a[i+1].bytes(), []c{0x05})
 	}
@@ -1078,6 +1082,9 @@ func (v cnd) bytes() (r []c) {
 func (v cnd) cstr() (r s) {
 	s := ""
 	a := v.argv
+	if v.rt() == 0 && len(a) == 3 {
+		return jn("if(", cstring(a[0]), "){", cstring(a[1]), "}else{", cstring(a[2]), "}")
+	}
 	for i := 0; i < len(a)-1; i += 2 {
 		if i > 0 {
 			s = ":"
@@ -1087,12 +1094,17 @@ func (v cnd) cstr() (r s) {
 	return r + ":" + cstring(a[len(a)-1])
 }
 func (v cnd) gstr() (r s) {
-	if t := v.rt(); t == 0 {
+	t := v.rt()
+	a := v.argv
+	if t == 0 && len(a) == 3 {
+		return jn("if ", gstring(a[0]), "{", gstring(a[1]), "}else{", gstring(a[2]), "}")
+	}
+	if t == 0 {
 		r = "func(){"
 	} else {
 		r = "func()" + styp[t] + "{"
 	}
-	s, a := "", v.argv
+	s := ""
 	for i := 0; i < len(a)-1; i += 2 {
 		if i > 0 {
 			s = "else"
@@ -1141,8 +1153,8 @@ func (v cmp) valid() s { return v2(v).valid() }
 func (v cmp) bytes() []c {
 	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.x().rt()))
 }
-func (v cmp) cstr() s  { return c2str(cTab, v.s, v.rt(), v.x(), v.y()) }
-func (v cmp) gstr() s  { return g2str(cTab, v.s, v.rt(), v.x(), v.y()) }
+func (v cmp) cstr() s  { return c2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
+func (v cmp) gstr() s  { return g2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
 func (v con) rt() T    { return v.t }
 func (v con) valid() s { return ifex(v.t == 0, "constant has zero type") }
 func (v con) bytes() (r []c) {
@@ -1800,7 +1812,7 @@ func (m module) cout(tab []segment, data []c) []c {
 		}
 		st := styp[f.t]
 		if f.t == 0 {
-			st = "V "
+			st = "V"
 		}
 		fmt.Fprintf(&b, "%s %s(%s){%s", st, f.name, sig, loc)
 		if sq, o := f.ast.(seq); o {

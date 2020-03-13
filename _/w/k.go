@@ -763,33 +763,34 @@ func exc(x, y i) (r i) { // x^y
 func grd(x i) (r i) { // <x
 	xt, xn, xp := v1(x)
 	r = seq(0, xn, 1)
-	w := seq(0, xn, 1)
-	msrt(w+8, r+8, 0, xn, xp, xt) // xt:1,2,3,4,5
-	return dxyr(x, w, r)
+	y := seq(0, xn, 1)
+	msrt(y+8, r+8, 0, xn, xp, xt) // xt:1,2,3,4,5
+	return dxyr(x, y, r)
 }
 func gdn(x i) (r i) { return rev(grd(x)) }           // >x
 func srt(x i) (r i) { rx(x); return atx(x, grd(x)) } // ^x
-func msrt(x, r, a, b, p, t i) { // merge sort
-	if b-a < 2 {
+func msrt(x, y, z, x3, x4, x5 i) { // merge sort
+	if x3-z < 2 {
 		return
 	}
-	c := (a + b) / 2
-	msrt(r, x, a, c, p, t)
-	msrt(r, x, c, b, p, t)
-	mrge(x, r, a, b, c, p, t)
+	c := (z + x3) / 2
+	msrt(y, x, z, c, x4, x5)
+	msrt(y, x, c, x3, x4, x5)
+	mrge(x, y, z, x3, c, x4, x5)
 }
-func mrge(x, r, a, b, c, p, t i) {
-	i, j := a, c
-	gt := T2[t]
-	w := uint32(C(t))
-	for k := a; k < b; k++ {
-		if i >= c || (j < b && gt(p+w*I(x+i<<2), p+w*I(x+j<<2)) == 1) {
-			sI(r+k<<2, I(x+j<<2))
+func mrge(x, y, z, x3, x4, x5, x6 i) {
+	k, j, a := z, x4, i(0)
+	gt := T2[x6]
+	w := uint32(C(x6))
+	for i := z; i < x3; i++ {
+		if k >= x4 || (j < x3 && gt(x5+w*I(x+k<<2), x5+w*I(x+j<<2)) == 1) {
+			a = j
 			j++
 		} else {
-			sI(r+k<<2, I(x+i<<2))
-			i++
+			a = k
+			k++
 		}
+		sI(y+i<<2, I(x+a<<2))
 	}
 }
 func gtC(x, y i) i { return boolvar(C(x) > C(y)) }
@@ -808,9 +809,11 @@ func gtL(x, y i) i {
 	gt := T2[xt]
 	w := uint32(C(xt))
 	for i := i(0); i < n; i++ {
-		if gt(xp+w*i, yp+w*i) == 1 {
+		a, b := xp+w*i, yp+w*i
+		if gt(a, b) == 1 {
 			return 1
-		} else if gt(yp+w*i, xp+w*i) == 1 {
+		}
+		if gt(b, a) == 1 {
 			return 0
 		}
 	}
