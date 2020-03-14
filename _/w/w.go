@@ -35,15 +35,16 @@ type sig struct {
 type module []fn
 
 const (
+	V = T(0x00)
 	C = T(0x01) // i8
 	I = T(0x7f) // i32
 	J = T(0x7e) // i64
 	F = T(0x7c) // f64
 )
 
-var typs = map[c]T{'C': C, 'I': I, 'J': J, 'F': F}
+var typs = map[c]T{'V': V, 'C': C, 'I': I, 'J': J, 'F': F}
 var tnum = map[T]int{C: 0, I: 0, J: 1, F: 2} // same op for C and I
-var styp = map[T]s{C: "C", I: "I", J: "J", F: "F"}
+var styp = map[T]s{V: "V", C: "C", I: "I", J: "J", F: "F"}
 var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 
 func main() {
@@ -61,13 +62,7 @@ func main() {
 		os.Stdout.Write(m.wasm(tab, data))
 	}
 }
-func (t T) String() s {
-	if c := map[T]c{C: 'C', I: 'I', J: 'J', F: 'F'}[t]; c == 0 {
-		return "0"
-	} else {
-		return s(c)
-	}
-}
+func (t T) String() s { return styp[t] }
 func run(r io.Reader) (module, []segment, []c) {
 	sFnam, sRety, sArgs, sBody, sData, sCmnt := 0, 1, 2, 3, 4, 5
 	rd := bufio.NewReader(r)
@@ -1057,7 +1052,7 @@ func (v cnd) valid() s {
 	rt := v.rt()
 	for i := 0; i < n-1; i += 2 {
 		if t := v.argv[i].rt(); t != I {
-			return sf("conditional must be I (%s)", t)
+			return sf("[%d]conditional must be I (%s)", i, t)
 		}
 	}
 	for i := 1; i < n; i += 2 {
@@ -1263,7 +1258,11 @@ func (d dot) cstr() s {
 		ptr += a.rt().String()
 	}
 	ptr += "))"
-	return jn("(", ptr, "MT[", cstring(d.idx), "])(", strings.Join(av, ","), ")")
+	s := ""
+	if d.t == 0 {
+		s = ";"
+	}
+	return jn("(", ptr, "MT[", cstring(d.idx), "])(", strings.Join(av, ","), ")", s)
 }
 func (d dot) gstr() s    { panic("nyi") }
 func (v loc) rt() T      { return v.t }
