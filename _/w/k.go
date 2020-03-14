@@ -224,8 +224,8 @@ func ini(x i) i {
 	T2[9] = eqC
 	T2[10] = eqI
 	T2[11] = eqF
-	T2[12] = match
-	T2[13] = match
+	T2[12] = eqL
+	T2[13] = eqL
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -732,56 +732,15 @@ func fnd(x, y i) (r i) { // x?y
 }
 func fnx(x, yp i) (r i) {
 	xt, xn, xp := v1(x)
-	switch xt {
-	case 0:
-		trap()
-	case 1:
-		return fnc(xp, xn, C(yp))
-	case 2:
-		return fni(xp, xn, I(yp))
-	case 3:
-		return fnj(xp, xn, J(yp))
-	case 4, 5:
-		return fnl(xp, xn, I(yp))
-	default:
-		panic("nyi")
-	}
-	return 0
-}
-func fnc(x, n i, y byte) (r i) {
-	for i := i(0); i < n; i++ {
-		if C(x+i) == y {
+	eq := T2[8+xt]
+	w := uint32(C(xt))
+	for i := i(0); i < xn; i++ {
+		if eq(xp, yp) == 1 {
 			return i
 		}
+		xp += w
 	}
-	return n
-}
-func fni(x, n i, y i) (r i) {
-	for i := i(0); i < n; i++ {
-		if I(x) == y {
-			return i
-		}
-		x += 4
-	}
-	return n
-}
-func fnj(x, n i, y j) (r i) {
-	for i := i(0); i < n; i++ {
-		if J(x) == y {
-			return i
-		}
-		x += 8
-	}
-	return n
-}
-func fnl(x, n i, y i) (r i) {
-	for i := i(0); i < n; i++ {
-		if match(I(x), y) == 1 {
-			return i
-		}
-		x += 4
-	}
-	return n
+	return xn
 }
 func exc(x, y i) (r i) { // x^y
 	_, yn, _ := v1(y)
@@ -852,6 +811,7 @@ func gtL(x, y i) i {
 	}
 	return boolvar(xn > yn)
 }
+func eqL(x, y i) i { return match(I(x), I(y)) }
 
 func boolvar(b bool) i {
 	if b {

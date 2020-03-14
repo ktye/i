@@ -20,16 +20,16 @@ lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp
 enl:I:I{(5 mk 0) lcat x} cnt:I:I{v1;dx x;mki xn}tip:I:I{v1;r:2 mk 1;(8+r)::xt;dxr} not:I:I{x eql mki 0}
 wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;rp:r+8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
 mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;xt?[ :1;nn:xn;nn:xn<<2;nn:xn<<3;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];nn/(~(C xp+i)~C yp+i)? :0;1}
-fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;rp:r+8;w:I?C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx:I:II{v1;xt?[!; :fnc(xp;xn;I?C y); :fni(xp;xn;I y); :fnj(xp;xn;J y);;;!;!; :fnl(xp;xn;I y)];x}fnc:I:III{y/((C?z)~C x+i)? :i;y}fni:I:III{y/((z~I x)? :i;x+:4);y}fnj:I:IIJ{y/((z~J x)? :i;x+:8);y}fnl:I:III{y/((z match I x)? :i;x+:4);y}
+fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;rp:r+8;w:I?C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx:I:II{v1;eq:8+xt;w:I?C xt;xn/(((I.eq)(xp;y))? :i;xp+:w);xn}
 exc:I:II{r:2 mk 1;(r+8)::(I y)&536870911;rx x;x atx wer r eql y fnd x}
 srt:I:I{rx x;x atx grd x}gdn:I:I{rev grd x}
 grd:I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);rp:r+8;msrt(y+8;rp;0;xn;xp;xt);dxyr}
 msrt:0:IIIIII{((x3-z)>=2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}
 mrge:0:IIIIIII{k:z;j:x4;w:I?C x6;i:z;(i<x3)?/(c:k>=x4;(~c)?$[j>=x3;c:0;c:(I.x6)(x5+w*I x+k<<2;x5+w*I x+j<<2)];$[c;(a:j;j+:1);(a:k;k+:1)];(y+i<<2)::I x+a<<2;i+:1)}
-gtc:I:II{(C x)>C y}gti:I:II{(I x)>'I y}gtf:I:II{(F x)>F y} eqc:I:II{(C x)~C y}eqi:I:II{(I x)~ I y}eqf:I:II{(F x)~F y}
+gtc:I:II{(C x)>C y}gti:I:II{(I x)>'I y}gtf:I:II{(F x)>F y} eqc:I:II{(C x)~C y}eqi:I:II{(I x)~ I y}eqf:I:II{(F x)~F y}eqL:I:II{(I x)match I y}
 gtl:I:II{x:I x;y:I y;v2;(~xt~yt)? :xt>yt;n:xn;(yn<xn)?n:yn;w:I?C xt;n/(a:xp+i*w;b:yp+i*w;((I.xt)(a;b))? :1;((I.xt)(b;a))? :0);xn>yn}
 eql:I:II{cmp(x;y;1)}mor:I:II{cmp(x;y;0)}les:I:II{cmp(y;x;0)}cmp:I:III{v2;upx;ext;f:xt;z?f+:8;w:I?C xt;r:2 mk xn;rp:r+8;xn/(rp::(I.f)(xp;yp);xp+:w;yp+:w;rp+:4);dxyr}
-1:{gtc;gti;gtf;gtl;gtl} 9:{eqc;eqi;eqf;match;match}
+1:{gtc;gti;gtf;gtl;gtl} 9:{eqc;eqi;eqf;eqL;eqL}
 
 \
 /not:I:I{v1;xt?[;(notC);;(notf);; :x lrc 126;(notZ); :x drc 126;(notI)];x}
