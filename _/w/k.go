@@ -165,7 +165,7 @@ func parseList(s string) i {
 func run(args []string) string {
 	m0 := 16
 	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt}
-	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mtc": mtc, "fnd": fnd, "exc": exc}
+	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mor": mor, "les": les, "mtc": mtc, "fnd": fnd, "exc": exc}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -221,6 +221,11 @@ func ini(x i) i {
 	T2[3] = gtF
 	T2[4] = gtL
 	T2[5] = gtL
+	T2[9] = eqC
+	T2[10] = eqI
+	T2[11] = eqF
+	T2[12] = match
+	T2[13] = match
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -343,6 +348,55 @@ func ext(x, y i) (rx, ry i) {
 		return x, take(y, xn)
 	}
 	panic("length")
+}
+func upx(x, y i) (i, i) {
+	xt, yt, xn, yn, _, _ := v2(x, y)
+	if xt == yt {
+		return x, y
+	}
+	if xt >= 5 || yt >= 5 {
+		trap()
+	}
+	for xt < yt {
+		x = up(x, xt, xn)
+		xt++
+	}
+	for yt < xt {
+		y = up(y, yt, yn)
+		yt++
+	}
+	return x, y
+}
+func up(x, t, n i) (r i) {
+	r = mk(t+1, n)
+	xp, rp := x+8, r+8
+	switch t {
+	case 1:
+		for i := i(0); i < n; i++ {
+			sI(rp, uint32(C(xp+i)))
+			rp += 4
+		}
+	case 2:
+		for i := i(0); i < n; i++ {
+			sF(rp, float64(I(xp)))
+			xp += 4
+			rp += 8
+		}
+	default:
+		trap()
+	}
+	return dxr(x, r)
+}
+func explode(x i) (r i) {
+	_, n, _ := v1(x)
+	r = mk(5, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		rx(x)
+		sI(rp, atx(x, mki(i)))
+		rp += 4
+	}
+	return dxr(x, r)
 }
 func til(x i) (r i) {
 	xt, _, xp := v1(x)
@@ -639,52 +693,28 @@ func match(x, y i) (r i) { // x~y
 	return 1
 }
 func not(x i) (r i) { return eql(mki(0), x) }
-func eql(x, y i) (r i) {
+func cmp(x, y, eq i) (r i) {
+	x, y = upx(x, y)
 	x, y = ext(x, y)
-	xt, _, xn, _, xp, yp := v2(x, y)
-
-	switch xt {
-	case 0, 2, 4:
-		r = eqI(xp, yp, xn)
-	case 1:
-		r = eqC(xp, yp, xn)
-	case 3:
-		r = eqF(xp, yp, xn)
-	default:
-		panic("nyi")
+	t, _, n, _, xp, yp := v2(x, y)
+	cm := T2[t]
+	if eq == 1 {
+		cm = T2[t+8]
+	}
+	w := uint32(C(t))
+	r = mk(2, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		sI(rp, cm(xp, yp))
+		xp += w
+		yp += w
+		rp += 4
 	}
 	return dxyr(x, y, r)
 }
-func eqC(xp, yp, n i) (r i) {
-	r = mk(2, n)
-	rp := r + 8
-	for i := i(0); i < n; i++ {
-		sI(rp+i, boolvar(C(xp+i) == C(yp+i)))
-	}
-	return r
-}
-func eqI(xp, yp, n i) (r i) {
-	r = mk(2, n)
-	rp := r + 8
-	for i := i(0); i < n; i++ {
-		sI(rp, boolvar(I(xp) == I(yp)))
-		rp += 4
-		xp += 4
-		yp += 4
-	}
-	return r
-}
-func eqF(xp, yp, n i) (r i) {
-	r = mk(2, n)
-	rp := r + 8
-	for i := i(0); i < n; i++ {
-		sI(rp, boolvar(F(xp) == F(yp)))
-		rp += 4
-		xp += 8
-		yp += 8
-	}
-	return r
-}
+func eql(x, y i) (r i) { return cmp(x, y, 1) }
+func mor(x, y i) (r i) { return cmp(x, y, 0) }
+func les(x, y i) (r i) { return cmp(y, x, 0) }
 func fnd(x, y i) (r i) { // x?y
 	xt, yt, _, yn, _, yp := v2(x, y)
 	if xt != yt {
@@ -794,8 +824,11 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 	}
 }
 func gtC(x, y i) i { return boolvar(C(x) > C(y)) }
+func eqC(x, y i) i { return boolvar(C(x) == C(y)) }
 func gtI(x, y i) i { return boolvar(int32(I(x)) > int32(I(y))) }
+func eqI(x, y i) i { return boolvar(int32(I(x)) == int32(I(y))) }
 func gtF(x, y i) i { return boolvar(F(x) > F(y)) }
+func eqF(x, y i) i { return boolvar(F(x) == F(y)) }
 func gtL(x, y i) i {
 	x, y = I(x), I(y)
 	xt, yt, xn, yn, xp, yp := v2(x, y)
