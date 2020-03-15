@@ -117,7 +117,7 @@ func run(r io.Reader) (module, []segment, []c) {
 				continue
 			}
 			f.t = typs[b]
-			if f.t == 0 && b != '0' {
+			if f.t == 0 && b != 'V' {
 				err("parse return type")
 			}
 		case sArgs:
