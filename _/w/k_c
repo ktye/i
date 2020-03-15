@@ -10,8 +10,8 @@ I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^
 V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
-V *MT[33];
-I ini(I);I bk(I,I);I mk(I,I);I mki(I);I mkf(F);I mkd(I,I);I mkz(I,I);V fr(I);V dx(I);V rx(I);V rl(I);I til(I);I seq(I,I,I);I tir(I);I up(I,I,I);I atx(I,I);I rev(I);I fst(I);I cut(I,I);I rsh(I,I);I prod(I,I);I take(I,I);I drop(I,I);V mv(I,I,I);I cat(I,I);I ucat(I,I);I lcat(I,I);I enl(I);I cnt(I);I tip(I);I not(I);I wer(I);I mtc(I,I);I match(I,I);I fnd(I,I);I fnx(I,I);I exc(I,I);I srt(I);I gdn(I);I grd(I);V msrt(I,I,I,I,I,I);V mrge(I,I,I,I,I,I,I);I gtc(I,I);I gti(I,I);I gtf(I,I);I eqc(I,I);I eqi(I,I);I eqf(I,I);I eqL(I,I);I gtl(I,I);I eql(I,I);I mor(I,I);I les(I,I);I cmp(I,I,I);I nd(I,I,I);I add(I,I);I sub(I,I);I mul(I,I);I diw(I,I);V adc(I,I,I);V adi(I,I,I);V adf(I,I,I);V adz(I,I,I);V suc(I,I,I);V sui(I,I,I);V suf(I,I,I);V suz(I,I,I);V muc(I,I,I);V mui(I,I,I);V muf(I,I,I);V muz(I,I,I);V dic(I,I,I);V dii(I,I,I);V dif(I,I,I);V diz(I,I,I);
+V *MT[160];
+I ini(I);I bk(I,I);I mk(I,I);I mki(I);I mkf(F);I mkd(I,I);I mkz(I,I);V fr(I);V dx(I);V rx(I);V rl(I);I til(I);I seq(I,I,I);I tir(I);I up(I,I,I);I atx(I,I);I rev(I);I fst(I);I cut(I,I);I rsh(I,I);I prod(I,I);I take(I,I);I drop(I,I);I use(I);V mv(I,I,I);I cat(I,I);I ucat(I,I);I lcat(I,I);I enl(I);I cnt(I);I tip(I);I not(I);I wer(I);I mtc(I,I);I match(I,I);I fnd(I,I);I fnx(I,I);I exc(I,I);I srt(I);I gdn(I);I grd(I);V msrt(I,I,I,I,I,I);V mrge(I,I,I,I,I,I,I);I gtc(I,I);I gti(I,I);I gtf(I,I);I eqc(I,I);I eqi(I,I);I eqf(I,I);I eqL(I,I);I gtl(I,I);I eql(I,I);I mor(I,I);I les(I,I);I cmp(I,I,I);I nd(I,I,I);I nm(I,I);I add(I,I);I sub(I,I);I mul(I,I);I diw(I,I);V adc(I,I,I);V adi(I,I,I);V adf(I,I,I);V adz(I,I,I);V suc(I,I,I);V sui(I,I,I);V suf(I,I,I);V suz(I,I,I);V muc(I,I,I);V mui(I,I,I);V muf(I,I,I);V muz(I,I,I);V dic(I,I,I);V dii(I,I,I);V dif(I,I,I);V diz(I,I,I);I abs(I);I neg(I);I sqr(I);V abc(I,I);V abi(I,I);V abf(I,I);V abz(I,I);V nec(I,I);V nei(I,I);V nef(I,I);V nez(I,I);V sqc(I,I);V sqi(I,I);V sqf(I,I);V sqz(I,I);I zre(I);I zim(I);I zri(I,I);I crAZ(I);I craz(I);
 I ini(I x0){I x1=0;I x2=0;MJ[0>>3]=(J)289360691419414784;MI[128>>2]=(I)x0;x1=256;x2=8;while(((uI)x2<(uI)x0)){MI[(4*x2)>>2]=(I)x1;x1=(x1*2);x2=(x2+1);}R x0;}
 I bk(I x0,I x1){I x2=0;x2=(32-(__builtin_clz((7+((x1*((I)MC[x0])))))));if(((uI)x2<(uI)4)){R 4;}R x2;}
 I mk(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;x2=bk(x0,x1);x3=(4*x2);while(!(MI[x3>>2])){x3=(x3+4);}if((128==x3)){trap();}x4=MI[x3>>2];MI[x3>>2]=(I)MI[x4>>2];x5=(x3-4);while(((uI)x5>=(uI)((4*x2)))){x6=(x4+((1<<(((uI)x5>>(uI)2)))));MI[x6>>2]=(I)MI[x5>>2];MI[x5>>2]=(I)x6;x5=(x5-4);}MI[x4>>2]=(I)(x1|((x0<<29)));MI[(x4+4)>>2]=(I)1;R x4;}
@@ -23,20 +23,21 @@ V fr(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>
 V dx(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;if(((uI)x0>(uI)255)){x1=MI[(x0+4)>>2];MI[(x0+4)>>2]=(I)(x1-1);if((1==x1)){x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);if(((uI)x2>(uI)3)){for(x5=0;x5<x3;x5++){dx(MI[(x4+((4*x5)))>>2]);}}fr(x0);}};}
 V rx(I x0){if(((uI)x0>(uI)255)){x0=(x0+4);MI[x0>>2]=(I)(1+(MI[x0>>2]));};}
 V rl(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);for(x4=0;x4<x2;x4++){rx(MI[x3>>2]);x3=(x3+4);};}
-I til(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);if(!((2==x1))){trap();}x4=MI[x3>>2];dx(x0);if((x4<0)){R tir(-x4);}R seq(0,x4,1);}
+I til(I x0){I x1=0;I x2=0;I x3=0;I x4=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);if(!((2==x1))){trap();}x4=MI[x3>>2];dx(x0);if((x4<0)){R tir(-(x4));}R seq(0,x4,1);}
 I seq(I x0,I x1,I x2){I x3=0;I x4=0;I x5=0;x3=mk(2,x1);x4=(8+x3);for(x5=0;x5<x1;x5++){MI[x4>>2]=(I)(x2*((x5+x0)));x4=(x4+4);}R x3;}
 I tir(I x0){I x1=0;I x2=0;I x3=0;x1=mk(2,x0);x2=(4+((x1+((4*x0)))));for(x3=0;x3<x0;x3++){MI[x2>>2]=(I)x3;x2=(x2-4);}R x1;}
 I up(I x0,I x1,I x2){I x3=0;I x4=0;I x5=0;I x6=0;x3=mk((x1+1),x2);x4=(x0+8);x5=(x3+8);switch(x1){case 1:for(x6=0;x6<x2;x6++){MI[x5>>2]=(I)(I)MC[(x4+x6)];x5=(x5+4);}break;case 2:for(x6=0;x6<x2;x6++){MF[x5>>3]=(F)(F)MI[x4>>2];x5=(x5+8);x4=(x4+4);}break;default:trap();}dx(x0);R x3;}
 I atx(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=((uI)(MI[x1>>2])>>(uI)29);x6=((MI[x1>>2])&536870911);x7=(8+x1);if(!((x5==2))){trap();}x8=mk(x2,x6);x9=(x8+8);switch(x2){case 0:trap();break;case 1:for(x12=0;x12<x6;x12++){MC[(x9+x12)]=(C)(C)32;x10=MI[x7>>2];if(((uI)x10<(uI)x3)){MC[(x9+x12)]=(C)MC[(x4+x10)];}x7=(x7+4);}break;case 2:for(x12=0;x12<x6;x12++){MI[x9>>2]=(I)-2147483648;x10=MI[x7>>2];if(((uI)x10<(uI)x3)){MI[x9>>2]=(I)MI[(x4+((4*x10)))>>2];}x9=(x9+4);x7=(x7+4);}break;case 3:for(x12=0;x12<x6;x12++){MF[x9>>3]=(F)NAN;x10=MI[x7>>2];if(((uI)x10<(uI)x3)){MF[x9>>3]=(F)MF[(x4+((8*x10)))>>3];}x9=(x9+8);x7=(x7+4);}break;case 4:x11=mk(1,0);for(x12=0;x12<x6;x12++){MI[x9>>2]=(I)x11;x10=MI[x7>>2];if(((uI)x10<(uI)x3)){MI[x9>>2]=(I)MI[(x4+((4*x10)))>>2];}x9=(x9+4);x7=(x7+4);}rl(x8);dx(x11);break;case 5:x11=mk(1,0);for(x12=0;x12<x6;x12++){MI[x9>>2]=(I)x11;x10=MI[x7>>2];if(((uI)x10<(uI)x3)){MI[x9>>2]=(I)MI[(x4+((4*x10)))>>2];}x9=(x9+4);x7=(x7+4);}rl(x8);dx(x11);break;default:trap();}dx(x0);dx(x1);R x8;}
-I rev(I x0){I x1=0;I x2=0;I x3=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);if(!x2){R x0;}R atx(x0,tir(x2));}
+I rev(I x0){I x1=0;I x2=0;I x3=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);if(!(x2)){R x0;}R atx(x0,tir(x2));}
 I fst(I x0){I x1=0;I x2=0;I x3=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);if((x1==7)){rx((12+x0));dx(x0);R fst((12+x0));}R atx(x0,mki(0));}
 I cut(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=((uI)(MI[x1>>2])>>(uI)29);x6=((MI[x1>>2])&536870911);x7=(8+x1);if(!((x2==2))){trap();}if((x3==1)){x8=drop(x1,MI[x4>>2]);dx(x0);R x8;}x8=mk(5,x3);x9=(x8+8);for(x12=0;x12<x3;x12++){x10=MI[x4>>2];x11=MI[(x4+4)>>2];if((x12==((x3-1)))){x11=x6;}if(((uI)x11<(uI)x10)){trap();}rx(x1);MI[x9>>2]=(I)atx(x1,seq(x10,(x11-x10),1));x4=(x4+4);x9=(x9+4);}dx(x0);dx(x1);R x8;}
 I rsh(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=((uI)(MI[x1>>2])>>(uI)29);x6=((MI[x1>>2])&536870911);x7=(8+x1);if(!((x2==2))){trap();}x8=prod(x4,x3);x9=take(x1,x8);if((x3==1)){dx(x0);R x9;}x3=(x3-1);x10=(x4+((4*x3)));for(x12=0;x12<x3;x12++){x11=MI[x10>>2];x8=((uI)x8/(uI)x11);x8=prod(x4,(x3-x12));x9=cut(seq(0,x8,x11),x9);x10=(x10-4);}dx(x0);R x9;}
 I prod(I x0,I x1){I x2=0;I x3=0;x2=1;for(x3=0;x3<x1;x3++){x2=(x2*(MI[x0>>2]));x0=(x0+4);}R x2;}
 I take(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=til(mki(x1));x6=(x5+8);if(((uI)x3<(uI)x1)){for(x7=0;x7<x1;x7++){MI[(x6+((4*x7)))>>2]=(I)((uI)x7%(uI)x3);}}R atx(x0,x5);}
 I drop(I x0,I x1){I x2=0;I x3=0;I x4=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);if(((uI)x1>(uI)x3)){trap();}R atx(x0,seq(x1,(x3-x1),1));}
+I use(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;if((1==(MI[(x0+4)>>2]))){R x0;}x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);x4=mk(x1,x2);x5=(x4+8);mv(x5,x3,(x2*((I)MC[x1])));dx(x0);R x4;}
 V mv(I x0,I x1,I x2){I x3=0;for(x3=0;x3<x2;x3++){MC[(x0+x3)]=(C)MC[(x1+x3)];};}
-I cat(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=((uI)(MI[x1>>2])>>(uI)29);x6=((MI[x1>>2])&536870911);x7=(8+x1);if(((!x2)|(!x5))){trap();}if((x2==x5)){R ucat(x0,x1);}if((x2==5)){R lcat(x0,x1);}trap();R x0;}
+I cat(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=((uI)(MI[x1>>2])>>(uI)29);x6=((MI[x1>>2])&536870911);x7=(8+x1);if(((!(x2))|(!(x5)))){trap();}if((x2==x5)){R ucat(x0,x1);}if((x2==5)){R lcat(x0,x1);}trap();R x0;}
 I ucat(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;I x9=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=((uI)(MI[x1>>2])>>(uI)29);x6=((MI[x1>>2])&536870911);x7=(8+x1);if(((uI)x2>(uI)4)){rl(x0);}if(((uI)x2>(uI)5)){x8=mkd((x0+8),(x0+12));dx(x0);dx(x1);R x8;}x8=mk(x2,(x3+x6));x9=(I)MC[x2];mv((x8+8),x4,(x9*x3));mv((x8+((8+((x9*x3))))),x7,(x9*x6));dx(x0);dx(x1);R x8;}
 I lcat(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);if(((uI)(bk(x2,x3))<(uI)(bk(x2,(x3+1))))){x5=mk(x2,(x3+1));mv((x5+8),x4,(4*x3));dx(x0);x0=x5;x4=(x0+8);}MI[(x4+((4*x3)))>>2]=(I)x1;MI[x0>>2]=(I)(((x3+1))|((5<<29)));R x0;}
 I enl(I x0){R lcat(mk(5,0),x0);}
@@ -53,7 +54,7 @@ I srt(I x0){rx(x0);R atx(x0,grd(x0));}
 I gdn(I x0){R rev(grd(x0));}
 I grd(I x0){I x1=0;I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;x1=((uI)(MI[x0>>2])>>(uI)29);x2=((MI[x0>>2])&536870911);x3=(8+x0);x4=seq(0,x2,1);x5=seq(0,x2,1);x6=(x4+8);msrt((x5+8),x6,0,x2,x3,x1);dx(x0);dx(x5);R x4;}
 V msrt(I x0,I x1,I x2,I x3,I x4,I x5){I x6=0;if(((uI)((x3-x2))>=(uI)2)){x6=((uI)((x3+x2))/(uI)2);msrt(x1,x0,x2,x6,x4,x5);msrt(x1,x0,x6,x3,x4,x5);mrge(x0,x1,x2,x3,x6,x4,x5);};}
-V mrge(I x0,I x1,I x2,I x3,I x4,I x5,I x6){I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;x7=x2;x8=x4;x9=(I)MC[x6];x10=x2;while(((uI)x10<(uI)x3)){x11=((uI)x7>=(uI)x4);if(!x11){if(((uI)x8>=(uI)x3)){x11=0;}else{x11=((I(*)(I,I))MT[x6])((x5+((x9*(MI[(x0+((x7<<2)))>>2])))),(x5+((x9*(MI[(x0+((x8<<2)))>>2])))));}}if(x11){x12=x8;x8=(x8+1);}else{x12=x7;x7=(x7+1);}MI[(x1+((x10<<2)))>>2]=(I)MI[(x0+((x12<<2)))>>2];x10=(x10+1);};}
+V mrge(I x0,I x1,I x2,I x3,I x4,I x5,I x6){I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;x7=x2;x8=x4;x9=(I)MC[x6];x10=x2;while(((uI)x10<(uI)x3)){x11=((uI)x7>=(uI)x4);if(!(x11)){if(((uI)x8>=(uI)x3)){x11=0;}else{x11=((I(*)(I,I))MT[x6])((x5+((x9*(MI[(x0+((x7<<2)))>>2])))),(x5+((x9*(MI[(x0+((x8<<2)))>>2])))));}}if(x11){x12=x8;x8=(x8+1);}else{x12=x7;x7=(x7+1);}MI[(x1+((x10<<2)))>>2]=(I)MI[(x0+((x12<<2)))>>2];x10=(x10+1);};}
 I gtc(I x0,I x1){R ((MC[x0])>(MC[x1]));}
 I gti(I x0,I x1){R ((MI[x0>>2])>(MI[x1>>2]));}
 I gtf(I x0,I x1){R ((MF[x0>>3])>(MF[x1>>3]));}
@@ -67,10 +68,11 @@ I mor(I x0,I x1){R cmp(x0,x1,0);}
 I les(I x0,I x1){R cmp(x1,x0,0);}
 I cmp(I x0,I x1,I x2){I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;I x13=0;x3=((uI)(MI[x0>>2])>>(uI)29);x4=((MI[x0>>2])&536870911);x5=(8+x0);x6=((uI)(MI[x1>>2])>>(uI)29);x7=((MI[x1>>2])&536870911);x8=(8+x1);if(((uI)x3>=(uI)5)){trap();}if(((uI)x6>=(uI)5)){trap();}while(((uI)x3<(uI)x6)){x0=up(x0,x3,x4);x3=(x3+1);}while(((uI)x6<(uI)x3)){x1=up(x1,x6,x7);x6=(x6+1);}x5=(x0+8);x8=(x1+8);if(!((x3==x6))){trap();}if((((x4==1))&(((uI)x7>(uI)1)))){x0=take(x0,x7);x4=x7;x5=(x0+8);}if((((x7==1))&(((uI)x4>(uI)1)))){x1=take(x1,x4);x7=x4;x8=(x1+8);}if(!((x4==x7))){trap();}x9=x3;if(x2){x9=(x9+8);}x10=(I)MC[x3];x11=mk(2,x4);x12=(x11+8);for(x13=0;x13<x4;x13++){MI[x12>>2]=(I)((I(*)(I,I))MT[x9])(x5,x8);x5=(x5+x10);x8=(x8+x10);x12=(x12+4);}dx(x0);dx(x1);R x11;}
 I nd(I x0,I x1,I x2){I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;I x9=0;I x10=0;I x11=0;I x12=0;I x13=0;x3=((uI)(MI[x0>>2])>>(uI)29);x4=((MI[x0>>2])&536870911);x5=(8+x0);x6=((uI)(MI[x1>>2])>>(uI)29);x7=((MI[x1>>2])&536870911);x8=(8+x1);if(((uI)x3>=(uI)5)){trap();}if(((uI)x6>=(uI)5)){trap();}while(((uI)x3<(uI)x6)){x0=up(x0,x3,x4);x3=(x3+1);}while(((uI)x6<(uI)x3)){x1=up(x1,x6,x7);x6=(x6+1);}x5=(x0+8);x8=(x1+8);if(!((x3==x6))){trap();}if((((x4==1))&(((uI)x7>(uI)1)))){x0=take(x0,x7);x4=x7;x5=(x0+8);}if((((x7==1))&(((uI)x4>(uI)1)))){x1=take(x1,x4);x7=x4;x8=(x1+8);}if(!((x4==x7))){trap();}x9=(I)MC[x3];x10=(x2+x3);x11=mk(x3,x4);x12=(x11+8);for(x13=0;x13<x4;x13++){((V(*)(I,I,I))MT[x10])(x5,x8,x12);x5=(x5+x9);x8=(x8+x9);x12=(x12+x9);}dx(x0);dx(x1);R x11;}
-I add(I x0,I x1){R nd(x0,x1,16);}
-I sub(I x0,I x1){R nd(x0,x1,20);}
-I mul(I x0,I x1){R nd(x0,x1,24);}
-I diw(I x0,I x1){R nd(x0,x1,28);}
+I nm(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;I x8=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);x5=use(x0);x6=(x5+8);x7=(I)MC[x2];x1=(x1+x2);for(x8=0;x8<x3;x8++){((V(*)(I,I))MT[x1])(x4,x6);x4=(x4+x7);x6=(x6+x7);}if((x2==4)){if((x1==19)){R zre(x5);}}R x5;}
+I add(I x0,I x1){R nd(x0,x1,143);}
+I sub(I x0,I x1){R nd(x0,x1,147);}
+I mul(I x0,I x1){R nd(x0,x1,151);}
+I diw(I x0,I x1){R nd(x0,x1,155);}
 V adc(I x0,I x1,I x2){MC[x2]=(C)((MC[x0])+(MC[x1]));;}
 V adi(I x0,I x1,I x2){MI[x2>>2]=(I)((MI[x0>>2])+(MI[x1>>2]));;}
 V adf(I x0,I x1,I x2){MF[x2>>3]=(F)((MF[x0>>3])+(MF[x1>>3]));;}
@@ -86,8 +88,28 @@ V muz(I x0,I x1,I x2){MF[x2>>3]=(F)((((MF[x0>>3])*(MF[(x0+8)>>3])))-(((MF[x1>>3]
 V dic(I x0,I x1,I x2){MC[x2]=(C)((MC[x0])/(MC[x1]));;}
 V dii(I x0,I x1,I x2){MI[x2>>2]=(I)((uI)(MI[x0>>2])/(uI)(MI[x1>>2]));;}
 V dif(I x0,I x1,I x2){MF[x2>>3]=(F)((MF[x0>>3])/(MF[x1>>3]));;}
-V diz(I x0,I x1,I x2){F x3=.0;F x4=.0;F x5=.0;F x6=.0;F x7=.0;F x8=.0;x3=MF[x0>>3];x4=MF[(x0+8)>>3];x5=MF[x1>>3];x6=MF[(x1+8)>>3];if(((fabsx5)>=(fabsx6))){x7=(x6/x5);x8=(x5+((x7*x6)));MF[x2>>3]=(F)(((x3+((x4*x7))))/x8);MF[(x2+8)>>3]=(F)(((x4-((x3*x7))))/x8);}else{x7=(x5/x6);x8=(x6+((x7*x5)));MF[x2>>3]=(F)(((x3*((x7+x4))))/x8);MF[(x2+8)>>3]=(F)(((x4*((x7-x3))))/x8);};}
-V mt_init(){MT[1]=gtc;MT[2]=gti;MT[3]=gtf;MT[4]=gtl;MT[5]=gtl;MT[9]=eqc;MT[10]=eqi;MT[11]=eqf;MT[12]=eqL;MT[13]=eqL;MT[17]=adc;MT[18]=adi;MT[19]=adf;MT[20]=adz;MT[21]=suc;MT[22]=sui;MT[23]=suf;MT[24]=suz;MT[25]=muc;MT[26]=mui;MT[27]=muf;MT[28]=muz;MT[29]=dic;MT[30]=dii;MT[31]=dif;MT[32]=diz;}
+V diz(I x0,I x1,I x2){F x3=.0;F x4=.0;F x5=.0;F x6=.0;F x7=.0;F x8=.0;x3=MF[x0>>3];x4=MF[(x0+8)>>3];x5=MF[x1>>3];x6=MF[(x1+8)>>3];if(((fabs(x5))>=(fabs(x6)))){x7=(x6/x5);x8=(x5+((x7*x6)));MF[x2>>3]=(F)(((x3+((x4*x7))))/x8);MF[(x2+8)>>3]=(F)(((x4-((x3*x7))))/x8);}else{x7=(x5/x6);x8=(x6+((x7*x5)));MF[x2>>3]=(F)(((x3*((x7+x4))))/x8);MF[(x2+8)>>3]=(F)(((x4*((x7-x3))))/x8);};}
+I abs(I x0){R nm(x0,15);}
+I neg(I x0){R nm(x0,19);}
+I sqr(I x0){R nm(x0,27);}
+V abc(I x0,I x1){I x2=0;x2=(I)MC[x0];if(craz(x2)){MC[x1]=(C)(C)(x2-32);}else{MC[x1]=(C)(C)x2;};}
+V abi(I x0,I x1){I x2=0;x2=MI[x0>>2];if((x2<0)){MI[x1>>2]=(I)(0-x2);}else{MI[x1>>2]=(I)x2;};}
+V abf(I x0,I x1){MF[x1>>3]=(F)fabs(MF[x0>>3]);;}
+V abz(I x0,I x1){F x2=.0;F x3=.0;x2=MF[x0>>3];x3=MF[(x0+8)>>3];MF[x1>>3]=(F)sqrt((x2*((x2+((x3*x3))))));;}
+V nec(I x0,I x1){I x2=0;x2=(I)MC[x0];if(crAZ(x2)){MC[x1]=(C)(C)(x2+32);}else{MC[x1]=(C)(C)x2;};}
+V nei(I x0,I x1){MI[x1>>2]=(I)(0-(MI[x0>>2]));;}
+V nef(I x0,I x1){MF[x1>>3]=(F)-(MF[x0>>3]);;}
+V nez(I x0,I x1){MF[x1>>3]=(F)-(MF[x0>>3]);MF[(x1+8)>>3]=(F)-(MF[(x0+8)>>3]);;}
+V sqc(I x0,I x1){trap();;}
+V sqi(I x0,I x1){trap();;}
+V sqf(I x0,I x1){MF[x1>>3]=(F)sqrt(MF[x0>>3]);;}
+V sqz(I x0,I x1){MF[x1>>3]=(F)MF[x0>>3];MF[(x1+8)>>3]=(F)-(MF[(x0+8)>>3]);;}
+I zre(I x0){R zri(x0,0);}
+I zim(I x0){R zri(x0,8);}
+I zri(I x0,I x1){I x2=0;I x3=0;I x4=0;I x5=0;I x6=0;I x7=0;x2=((uI)(MI[x0>>2])>>(uI)29);x3=((MI[x0>>2])&536870911);x4=(8+x0);if((x2==4)){trap();}x5=mk(3,x3);x6=(x5+8);x4=(x4+x1);for(x7=0;x7<x3;x7++){MF[x6>>3]=(F)MF[x4>>3];x6=(x6+8);x4=(x4+16);}dx(x0);R x5;}
+I crAZ(I x0){if(((uI)x0>(uI)64)){if(((uI)x0<(uI)91)){R 1;}}R 0;}
+I craz(I x0){if(((uI)x0>(uI)96)){if(((uI)x0<(uI)123)){R 1;}}R 0;}
+V mt_init(){MT[1]=gtc;MT[2]=gti;MT[3]=gtf;MT[4]=gtl;MT[5]=gtl;MT[9]=eqc;MT[10]=eqi;MT[11]=eqf;MT[12]=eqL;MT[13]=eqL;MT[16]=abc;MT[17]=abi;MT[18]=abf;MT[19]=abz;MT[20]=nec;MT[21]=nei;MT[22]=nef;MT[23]=nez;MT[28]=sqc;MT[29]=sqi;MT[30]=sqf;MT[31]=sqz;MT[144]=adc;MT[145]=adi;MT[146]=adf;MT[147]=adz;MT[148]=suc;MT[149]=sui;MT[150]=suf;MT[151]=suz;MT[152]=muc;MT[153]=mui;MT[154]=muf;MT[155]=muz;MT[156]=dic;MT[157]=dii;MT[158]=dif;MT[159]=diz;}
 // Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
 const trace = 0;
 I pop1(I *s, I n, I *x) {
@@ -313,6 +335,7 @@ I main(int args, C **argv){
 		} else if (Match("prod", a)) { n = f2(prod, stack, n);
 		} else if (Match("take", a)) { n = f2(take, stack, n);
 		} else if (Match("drop", a)) { n = f2(drop, stack, n);
+		} else if (Match("use", a)) { n = f1(use, stack, n);
 		} else if (Match("cat", a)) { n = f2(cat, stack, n);
 		} else if (Match("ucat", a)) { n = f2(ucat, stack, n);
 		} else if (Match("lcat", a)) { n = f2(lcat, stack, n);
@@ -340,10 +363,19 @@ I main(int args, C **argv){
 		} else if (Match("eql", a)) { n = f2(eql, stack, n);
 		} else if (Match("mor", a)) { n = f2(mor, stack, n);
 		} else if (Match("les", a)) { n = f2(les, stack, n);
+		} else if (Match("nm", a)) { n = f2(nm, stack, n);
 		} else if (Match("add", a)) { n = f2(add, stack, n);
 		} else if (Match("sub", a)) { n = f2(sub, stack, n);
 		} else if (Match("mul", a)) { n = f2(mul, stack, n);
 		} else if (Match("diw", a)) { n = f2(diw, stack, n);
+		} else if (Match("abs", a)) { n = f1(abs, stack, n);
+		} else if (Match("neg", a)) { n = f1(neg, stack, n);
+		} else if (Match("sqr", a)) { n = f1(sqr, stack, n);
+		} else if (Match("zre", a)) { n = f1(zre, stack, n);
+		} else if (Match("zim", a)) { n = f1(zim, stack, n);
+		} else if (Match("zri", a)) { n = f2(zri, stack, n);
+		} else if (Match("crAZ", a)) { n = f1(crAZ, stack, n);
+		} else if (Match("craz", a)) { n = f1(craz, stack, n);
 
 		} else {
 			printf("arg!");

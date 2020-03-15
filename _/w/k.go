@@ -317,14 +317,14 @@ func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	return
 }
 func use(x i) (r i) {
-	xt, xn, xp := v1(x)
-	if I(x+4) != 1 {
-		r = mk(xt, xn)
-		mv(r+8, xp, i(C(xt)))
-		dx(x)
-		x = r
+	if I(x+4) == 1 {
+		return x
 	}
-	return x
+	xt, xn, xp := v1(x)
+	r = mk(xt, xn)
+	mv(r+8, xp, xn*i(C(xt)))
+	dx(x)
+	return r
 }
 func mv(dst, src, n i) { copy(MC[dst:dst+n], MC[src:src+n]) }
 func ext(x, y i) (rx, ry i) {

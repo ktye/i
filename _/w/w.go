@@ -275,7 +275,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 	}
 	if t := e.rt(); t != p.fn.t {
 		if !(t == 0 && p.fn.t == 255) {
-			return p.err(sf("return type is %s not %s", t, p.fn.t))
+			return p.err(sf("%s: return type is %s not %s", f.name, t, p.fn.t))
 		}
 	}
 	return e
@@ -1141,7 +1141,7 @@ func (v v1) bytes() []c {
 	}
 	return append(v.x().bytes(), getop(v1Tab, v.s, v.rt()))
 }
-func (v v1) cstr() s   { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, u, embrace(cstring, v.x())) }
+func (v v1) cstr() s   { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, u, "(", cstring(v.x()), ")") }
 func (v v1) gstr() s   { o, u := gop(v1Tab, v.s, v.rt()); return jn(o, u, "(", gstring(v.x()), ")") }
 func (v cmp) rt() T    { return I }
 func (v cmp) valid() s { return v2(v).valid() }
