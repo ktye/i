@@ -219,6 +219,7 @@ func ini(x i) i {
 	copy(MT[1:], []interface{}{gtC, gtI, gtF, gtL, gtL})
 	copy(MT[9:], []interface{}{eqC, eqI, eqF, eqL, eqL})
 	copy(MT[16:], []interface{}{abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz})
+	copy(MT[128:], []interface{}{nag, nac, nai, naf, nas, naz, nal})
 	copy(MT[16+128:], []interface{}{adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz})
 	return x
 }
@@ -515,60 +516,25 @@ func take(x, n i) (r i) {
 }
 func atx(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
-	if xt == 7 {
-		panic("nyi atx d")
-	}
 	if yt != 2 {
 		panic("atx yt~I")
 	}
 	r = mk(xt, yn)
 	rp := r + 8
-	switch xt {
-	case 1: // yn/((rp+i)::C?32;yi:I yp;(yi<xn)?(rp+i)::C xp+yi;yp+:4)
-		for i := i(0); i < yn; i++ {
-			sC(rp+i, 32)
-			yi := I(yp)
-			if yi < xn {
-				sC(rp+i, C(xp+yi))
-			}
-			yp += 4
+	w := i(C(xt))
+	f := MT[xt+128].(func(i))
+	for i := i(0); i < yn; i++ {
+		yi := I(yp)
+		if yi < xn {
+			mv(rp, xp+w*yi, w)
+		} else {
+			f(rp)
 		}
-	case 2: // yn/(rp::naI;yi:I yp;(yi<xn)?rp::I xp+4*yi;rp+:4;yp+:4)
-		for i := i(0); i < yn; i++ {
-			sI(rp, naI)
-			yi := I(yp)
-			if yi < xn {
-				sI(rp, I(xp+4*yi))
-			}
-			rp += 4
-			yp += 4
-		}
-	case 3: // yn/(rp::naF;yi:I yp;(yi<xn)?rp::F xp+8*yi;rp+:8;yp+:4)
-		naF := math.Float64frombits(naJ)
-		for i := i(0); i < yn; i++ {
-			sF(rp, naF)
-			yi := I(yp)
-			if yi < xn {
-				sF(rp, F(xp+8*yi))
-			}
-			rp += 8
-			yp += 4
-		}
-	case 4, 5:
-		naS := mk(1, 0)
-		for i := i(0); i < yn; i++ {
-			sI(rp, naS)
-			yi := I(yp)
-			if yi < xn {
-				sI(rp, I(xp+4*yi))
-			}
-			rp += 4
-			yp += 4
-		}
+		rp += w
+		yp += 4
+	}
+	if xt > 3 {
 		rl(r)
-		dx(naS)
-	default:
-		panic(fmt.Sprintf("nyi atx xt=%d", xt))
 	}
 	return dxyr(x, y, r)
 }
@@ -838,6 +804,13 @@ func gtL(x, y i) i {
 	return boolvar(xn > yn)
 }
 func eqL(x, y i) i  { return match(I(x), I(y)) }
+func nag(r i)       { sI(r, 0) }
+func nac(r i)       { sC(r, 32) }
+func nai(r i)       { sI(r, naI) }
+func naf(r i)       { sJ(r, naJ) }
+func naz(r i)       { sJ(r, naJ); sJ(r+8, naJ) }
+func nas(r i)       { sI(r, mk(1, 0)); sI(4+I(r), 0) }
+func nal(r i)       { sI(r, 0) }
 func adc(x, y, r i) { sC(r, C(x)+C(y)) }
 func adi(x, y, r i) { sI(r, I(x)+I(y)) }
 func adf(x, y, r i) { sF(r, F(x)+F(y)) }

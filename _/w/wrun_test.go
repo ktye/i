@@ -261,8 +261,8 @@ func u64(v interface{}) uint64 {
 		panic(x)
 	}
 }
-func (K *K) dump(a, n k) {
-	m := K.vm.Memory()
+func (K *K) dump(a, n k) { dump(K.vm.Memory(), a, n) }
+func dump(m []byte, a, n k) {
 	fmt.Printf("%.8x ", a)
 	for i := k(0); i < n; i++ {
 		p := a + 4*i
@@ -348,6 +348,7 @@ func mark(m []byte) { // mark bucket type within free blocks
 	}
 }
 func leak(m []byte) error {
+	//dump(m, 0, 200)
 	mark(m)
 	p := k(256) // first data block
 	for p < k(len(m)) {
