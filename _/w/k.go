@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"math"
 	"math/bits"
+	"math/cmplx"
 	"os"
 	"strconv"
 	"strings"
@@ -30,8 +31,7 @@ var MI []i
 var MJ []j
 var MF []f
 var WT []i
-var T1 [128]func(i, i) i
-var T2 [128]func(i, i) i
+var MT [256]interface{}
 
 type vt1 func(i) i
 type vt2 func(i, i) i
@@ -164,8 +164,8 @@ func parseList(s string) i {
 }
 func run(args []string) string {
 	m0 := 16
-	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt}
-	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mor": mor, "les": les, "mtc": mtc, "fnd": fnd, "exc": exc}
+	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt, "abs": abs, "neg": neg, "sqr": sqr}
+	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mor": mor, "les": les, "mtc": mtc, "fnd": fnd, "exc": exc, "add": add, "sub": sub, "mul": mul, "diw": diw}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
@@ -216,16 +216,10 @@ func ini(x i) i {
 		sI(4*i, p)
 		p *= 2
 	}
-	T2[1] = gtC
-	T2[2] = gtI
-	T2[3] = gtF
-	T2[4] = gtL
-	T2[5] = gtL
-	T2[9] = eqC
-	T2[10] = eqI
-	T2[11] = eqF
-	T2[12] = eqL
-	T2[13] = eqL
+	copy(MT[1:], []interface{}{gtC, gtI, gtF, gtL, gtL})
+	copy(MT[9:], []interface{}{eqC, eqI, eqF, eqL, eqL})
+	copy(MT[16:], []interface{}{abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz})
+	copy(MT[16+128:], []interface{}{adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz})
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -697,9 +691,9 @@ func cmp(x, y, eq i) (r i) {
 	x, y = upx(x, y)
 	x, y = ext(x, y)
 	t, _, n, _, xp, yp := v2(x, y)
-	cm := T2[t]
+	cm := MT[t].(func(i, i) i)
 	if eq == 1 {
-		cm = T2[t+8]
+		cm = MT[t+8].(func(i, i) i)
 	}
 	w := uint32(C(t))
 	r = mk(2, n)
@@ -732,7 +726,7 @@ func fnd(x, y i) (r i) { // x?y
 }
 func fnx(x, yp i) (r i) {
 	xt, xn, xp := v1(x)
-	eq := T2[8+xt]
+	eq := MT[8+xt].(func(i, i) i)
 	w := uint32(C(xt))
 	for i := i(0); i < xn; i++ {
 		if eq(xp, yp) == 1 {
@@ -769,7 +763,7 @@ func msrt(x, y, z, x3, x4, x5 i) { // merge sort
 }
 func mrge(x, y, z, x3, x4, x5, x6 i) {
 	k, j, a := z, x4, i(0)
-	gt := T2[x6]
+	gt := MT[x6].(func(i, i) i)
 	w := uint32(C(x6))
 	for i := z; i < x3; i++ {
 		if k >= x4 || (j < x3 && gt(x5+w*I(x+k<<2), x5+w*I(x+j<<2)) == 1) {
@@ -781,6 +775,38 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 		}
 		sI(y+i<<2, I(x+a<<2))
 	}
+}
+func nm(x, f i) (r i) {
+	r = use(x)
+	t, n, rp := v1(r)
+	xp := x + 8
+	w := uint32(C(t))
+	g := MT[f+t].(func(i, i))
+	for i := i(0); i < n; i++ {
+		g(xp, rp)
+		xp += w
+		rp += w
+	}
+	if t == 4 && f == 19 { // +z
+		return zre(r)
+	}
+	return r
+}
+func nd(x, y, f i) i {
+	x, y = upx(x, y)
+	x, y = ext(x, y)
+	t, _, n, _, xp, yp := v2(x, y)
+	w := uint32(C(t))
+	g := MT[f+t].(func(i, i, i))
+	r := mk(t, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		g(xp, yp, rp)
+		xp += w
+		yp += w
+		rp += w
+	}
+	return dxyr(x, y, r)
 }
 func gtC(x, y i) i { return boolvar(C(x) > C(y)) }
 func eqC(x, y i) i { return boolvar(C(x) == C(y)) }
@@ -798,7 +824,7 @@ func gtL(x, y i) i {
 	if yn < xn {
 		n = yn
 	}
-	gt := T2[xt]
+	gt := MT[xt].(func(i, i) i)
 	w := uint32(C(xt))
 	for i := i(0); i < n; i++ {
 		a, b := xp+w*i, yp+w*i
@@ -811,8 +837,90 @@ func gtL(x, y i) i {
 	}
 	return boolvar(xn > yn)
 }
-func eqL(x, y i) i { return match(I(x), I(y)) }
+func eqL(x, y i) i  { return match(I(x), I(y)) }
+func adc(x, y, r i) { sC(r, C(x)+C(y)) }
+func adi(x, y, r i) { sI(r, I(x)+I(y)) }
+func adf(x, y, r i) { sF(r, F(x)+F(y)) }
+func adz(x, y, r i) { sZ(r, Z(x)+Z(y)) }
+func suc(x, y, r i) { sC(r, C(x)-C(y)) }
+func sui(x, y, r i) { sI(r, I(x)-I(y)) }
+func suf(x, y, r i) { sF(r, F(x)-F(y)) }
+func suz(x, y, r i) { sZ(r, Z(x)-Z(y)) }
+func muc(x, y, r i) { sC(r, C(x)*C(y)) }
+func mui(x, y, r i) { sI(r, I(x)*I(y)) }
+func muf(x, y, r i) { sF(r, F(x)*F(y)) }
+func muz(x, y, r i) { sZ(r, Z(x)*Z(y)) }
+func dic(x, y, r i) { sC(r, C(x)/C(y)) }
+func dii(x, y, r i) { sI(r, I(x)/I(y)) }
+func dif(x, y, r i) { sF(r, F(x)/F(y)) }
+func diz(x, y, r i) { sZ(r, Z(x)/Z(y)) }
+func add(x, y i) i  { return nd(x, y, 15+128) }
+func sub(x, y i) i  { return nd(x, y, 19+128) }
+func mul(x, y i) i  { return nd(x, y, 23+128) }
+func diw(x, y i) i  { return nd(x, y, 27+128) }
+func abs(x i) i     { return nm(x, 15) }
+func neg(x i) i     { return nm(x, 19) }
+func sqr(x i) i     { return nm(x, 27) }
+func abc(x, r i) { // +c (toupper)
+	if c := C(x); craz(c) {
+		sC(r, c-32)
+	} else {
+		sC(r, c)
+	}
+}
+func abi(x, r i) {
+	if c := int32(I(x)); c < 0 {
+		sI(r, i(-c))
+	} else {
+		sI(r, i(c))
+	}
+}
+func abf(x, r i) { sF(r, math.Abs(F(x))) }
+func abz(x, r i) { sF(r, cmplx.Abs(Z(x))) }
+func nec(x, r i) { // -c (tolower)
+	if c := C(x); crAZ(c) {
+		sC(r, c+32)
+	} else {
+		sC(r, c)
+	}
+}
+func nei(x, r i) { sI(r, i(-int32(I(x)))) }
+func nef(x, r i) { sF(r, -F(x)) }
+func nez(x, r i) { sZ(r, -Z(x)) }
+func sqc(x, r i) { panic("%c") } // %c ?
+func sqi(x, r i) { panic("%i") } // %i ?
+func sqf(x, r i) { sF(r, math.Sqrt(F(x))) }
+func sqz(x, r i) { sZ(r, cmplx.Conj(Z(x))) } // %z complex conjugate
+func zri(x i, o i) (r i) {
+	t, n, xp := v1(x)
+	if t != 4 {
+		panic("type")
+	}
+	r = mk(3, n)
+	rp := r + 8
+	xp += o
+	for i := i(0); i < n; i++ {
+		sF(rp, F(xp))
+		rp += 8
+		xp += 16
+	}
+	return dxr(x, r)
+}
+func zre(x i) (r i) { return zri(x, 0) }
+func zim(x i) (r i) { return zri(x, 8) }
 
+func craz(x c) bool {
+	if x < 'a' || x > 'z' {
+		return false
+	}
+	return true
+}
+func crAZ(x c) bool {
+	if x < 'A' || x > 'Z' {
+		return false
+	}
+	return true
+}
 func boolvar(b bool) i {
 	if b {
 		return 1
@@ -835,14 +943,16 @@ func dump(a, n i) i {
 	fmt.Println()
 	return 0
 }
-func C(a i) c     { return MC[a] } // global get, e.g. I i
-func I(a i) i     { return MI[a>>2] }
-func J(a i) j     { return MJ[a>>3] }
-func F(a i) f     { return MF[a>>3] }
-func sC(a i, v c) { MC[a] = v } // global set, e.g. i::v
-func sI(a i, v i) { MI[a>>2] = v }
-func sJ(a i, v j) { MJ[a>>3] = v }
-func sF(a i, v f) { MF[a>>3] = v }
+func C(a i) c              { return MC[a] } // global get, e.g. I i
+func I(a i) i              { return MI[a>>2] }
+func J(a i) j              { return MJ[a>>3] }
+func F(a i) f              { return MF[a>>3] }
+func Z(a i) complex128     { return complex(MF[a>>3], MF[1+a>>3]) }
+func sC(a i, v c)          { MC[a] = v } // global set, e.g. i::v
+func sI(a i, v i)          { MI[a>>2] = v }
+func sJ(a i, v j)          { MJ[a>>3] = v }
+func sF(a i, v f)          { MF[a>>3] = v }
+func sZ(a i, v complex128) { MF[a>>3] = real(v); MF[1+a>>3] = imag(v) }
 func atoi(s string) i {
 	if x, e := strconv.Atoi(s); e == nil {
 		return i(x)
