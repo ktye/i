@@ -1,30 +1,30 @@
-ini:I:I{0::289360691419414784j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
+ini:I:I{0::289360742959022336j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
 bk:I:II{r:32-*7+y*I?C x;(r<4)? :4;r}mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}r8:{rp:r+8}
-fr:V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>3)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{(x>255)?(x+:4;x::1+I x)}rl:V:I{v1;xn/(rx I xp;xp+:4)}
+fr:V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>4)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{(x>255)?(x+:4;x::1+I x)}rl:V:I{v1;xn/(rx I xp;xp+:4)}
 til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq:I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir:I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
 ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:x take yn;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:y take xn;yn:xn;yp:y+8);(~xn~yn)?!}
 upx:{(xt>=5)?!;(yt>=5)?!;(xt<yt)?/(x:up(x;xt;xn);xt+:1);(yt<xt)?/(y:up(y;yt;yn);yt+:1);xp:x+8;yp:y+8}
 up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::I?C xp+i;rp+:4);z/(rp::F?I xp;rp+:8;xp+:4);!];dxr}
-atx:I:II{v2;(~yt~2)?!;r:xt mk yn;r8;w:I?C xt;f:xt+128;yn/(yi:I yp;$[yi<xn;mv(rp;xp+w*yi;w);(V.f)rp];rp+:w;yp+:4);(xt>3)?rl r;dxyr}
+atx:I:II{v2;(~yt~2)?!;r:xt mk yn;r8;w:I?C xt;f:xt+128;yn/(yi:I yp;$[yi<xn;mv(rp;xp+w*yi;w);(V.f)rp];rp+:w;yp+:4);(xt>4)?rl r;dxyr}
 rev:I:I{v1;(~xn)? :x;x atx tir xn}fst:I:I{v1;(xt~7)?(rx 12+x;dx x; :fst 12+x);x atx mki 0}
-cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:5 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
+cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:6 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
 rsh:I:II{v2;(~xt~2)?!;n:prod(xp;xn);r:y take n;(xn~1)?(dx x; :r);xn-:1;xe:xp+4*xn;xn/(m:I xe;n:n%m;n:xp prod xn-i;r:(seq(0;n;m))cut r;xe-:4);dxr}prod:I:II{r:1;y/(r*:I x;x+:4);r}
 take:I:II{v1;r:til mki y;r8;(xn<y)?(y/(rp+4*i)::i\xn);x atx r}drop:I:II{v1;(y>xn)?!;x atx seq(y;xn-y;1)}
 use:I:I{(1~I x+4)? :x;v1;r:xt mk xn;r8;mv(rp;xp;xn*I?C xt);dx x;r}mv:V:III{z/(x+i)::C y+i}
-cat:I:II{v2;((~xt)|~yt)?!;(xt~yt)? :x ucat y;(xt~5)? :x lcat y;!;x}
+cat:I:II{v2;((~xt)|~yt)?!;(xt~yt)? :x ucat y;(xt~6)? :x lcat y;!;x}
 ucat:I:II{v2;(xt>4)?(rl x);(xt>5)?(r:(x+8)mkd x+12;dx x;dx y; :r);r:xt mk xn+yn;w:I?C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
-lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|5<<29;x}
-enl:I:I{(5 mk 0) lcat x} cnt:I:I{v1;dx x;mki xn}tip:I:I{v1;r:2 mk 1;(8+r)::xt;dxr} not:I:I{x eql mki 0}
+lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
+enl:I:I{(6 mk 0) lcat x} cnt:I:I{v1;dx x;mki xn}typ:I:I{v1;r:2 mk 1;(8+r)::xt;dxr} not:I:I{x eql mki 0}
 wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;r8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
-mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;xt?[ :1;nn:xn;nn:xn<<2;nn:xn<<3;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];nn/(~(C xp+i)~C yp+i)? :0;1}
+mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;xt?[ :1;nn:xn;nn:xn<<2;nn:xn<<3;nn:xn<<4;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];nn/(~(C xp+i)~C yp+i)? :0;1}
 fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:I?C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx:I:II{v1;eq:8+xt;w:I?C xt;xn/(((I.eq)(xp;y))? :i;xp+:w);xn}
 exc:I:II{rx x;x atx wer (mki (I y)&536870911)eql y fnd x}
 srt:I:I{rx x;x atx grd x}gdn:I:I{rev grd x}grd:I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);r8;msrt(y+8;rp;0;xn;xp;xt);dxyr}
 msrt:V:IIIIII{((x3-z)>=2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}
 mrge:V:IIIIIII{k:z;j:x4;w:I?C x6;i:z;(i<x3)?/(c:k>=x4;(~c)?$[j>=x3;c:0;c:(I.x6)(x5+w*I x+k<<2;x5+w*I x+j<<2)];$[c;(a:j;j+:1);(a:k;k+:1)];(y+i<<2)::I x+a<<2;i+:1)}
-gtc:I:II{(C x)>C y}gti:I:II{(I x)>'I y}gtf:I:II{(F x)>F y} eqc:I:II{(C x)~C y}eqi:I:II{(I x)~ I y}eqf:I:II{(F x)~F y}eqL:I:II{(I x)match I y}
+gtc:I:II{(C x)>C y}gti:I:II{(I x)>'I y}gtf:I:II{(F x)>F y} eqc:I:II{(C x)~C y}eqi:I:II{(I x)~ I y}eqf:I:II{(F x)~F y}eqz:I:II{(x eqf y)? :(x+8)eqf y+8;0}eqL:I:II{(I x)match I y}
 gtl:I:II{x:I x;y:I y;v2;(~xt~yt)? :xt>yt;n:xn;(yn<xn)?n:yn;w:I?C xt;n/(a:xp+i*w;b:yp+i*w;((I.xt)(a;b))? :1;((I.xt)(b;a))? :0);xn>yn}
 eql:I:II{cmp(x;y;1)}mor:I:II{cmp(x;y;0)}les:I:II{cmp(y;x;0)}cmp:I:III{v2;upx;ext;f:xt;z?f+:8;w:I?C xt;r:2 mk xn;r8;xn/(rp::(I.f)(xp;yp);xp+:w;yp+:w;rp+:4);dxyr}
 nd:I:III{v2;upx;ext;w:I?C xt;f:z+xt;r:xt mk xn;r8;xn/((V.f)(xp;yp;rp);xp+:w;yp+:w;rp+:w);dxyr}
@@ -42,19 +42,21 @@ sqc:V:II{!}sqi:V:II{!}sqf:V:II{y::%F x}sqz:V:II{y::F x;(y+8)::-F x+8}
 zre:I:I{x zri 0}zim:I:I{x zri 8}zri:I:II{v1;(xt~4)?!;r:3 mk xn;r8;xp+:y;xn/(rp::F xp;rp+:8;xp+:16);dxr}
 crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 nag:V:I{x::0}nac:V:I{x::C?32}nai:V:I{x::-2147483648}naf:V:I{x::9221120237041090561f}naz:V:I{naf x;naf x+8}nas:V:I{x::1 mk 0;(4+I x)::0}nal:V:I{x::0}
-1:{gtc;gti;gtf;gtl;gtl}9:{eqc;eqi;eqf;eqL;eqL}
+xx1:I:I{!;x}xx2:I:II{!;x}str:I:I{!;x}val:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}
+1:{gtc;gti;gtf;gtl;gtl}9:{eqc;eqi;eqf;eqz;eqL;eqL}
 16:{abc;abi;abf;abz;nec;nei;nef;nez}28:{sqc;sqi;sqf;sqz}
-128:{nag;nac;nai;naf;nas;naz;nal} // todo naz/nas
+33:{til;xx1;cnt;str;sqr;wer;xx1;xx1;xx1;fst;abs;enl;neg;val}
+60:{grd;eql;gdn;unq;typ}94:{srt;flr}126:{not}
+128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
 144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
-
 
 \
 odo5:{p#’x(&#)’_(p:*/x)%*\x}
 flip:,'/,''
 
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
-Fcifslzd   xt~0(function) x<256(basic) 
-01484444   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?
+Fcifzsld   xt~0(function) x<256(basic) 
+0148x444   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?
 	   fn~xn&0xff    (argn)
 
 + add abs                 abs:+z                   memory

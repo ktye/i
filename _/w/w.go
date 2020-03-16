@@ -1633,11 +1633,11 @@ func (m module) wasm(tab []segment, data []c) []c {
 		for _, t := range tab {
 			sec.cat1(0) // table index
 			sec.cat1(0x41)
-			sec.cat(leb(t.off))
+			sec.cat(lebs(t.off))
 			sec.cat1(0x0b)
-			sec.cat(leb(len(t.names)))
+			sec.cat(lebs(len(t.names)))
 			for _, name := range t.names {
-				sec.cat(leb(names[name]))
+				sec.cat(lebs(names[name]))
 			}
 		}
 		sec.out(o)

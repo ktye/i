@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"math/cmplx"
 	"strconv"
 	"strings"
 	"testing"
@@ -174,7 +175,7 @@ func (K *K) parseVector(s string) uint32 {
 	if len(s) > 0 && s[0] == '`' {
 		v := strings.Split(s[1:], "`")
 		sn := uint32(len(v))
-		sv := K.mk(4, sn)
+		sv := K.mk(5, sn)
 		for i := uint32(0); i < sn; i++ {
 			b := v[i]
 			rn := uint32(len(b))
@@ -223,7 +224,7 @@ func (K *K) parseList(s string) uint32 {
 	if len(s) == 0 || s[len(s)-1] != ')' {
 		panic("parse list")
 	} else if len(s) == 1 {
-		return K.mk(5, 0)
+		return K.mk(6, 0)
 	}
 	r := make([]uint32, 0)
 	s = s[:len(s)-1]
@@ -242,7 +243,7 @@ func (K *K) parseList(s string) uint32 {
 		}
 	}
 	r = append(r, K.parseVector(s[a:]))
-	x := K.mk(5, uint32(len(r)))
+	x := K.mk(6, uint32(len(r)))
 	m := K.vm.Memory()
 	for k := range r {
 		binary.LittleEndian.PutUint32(m[8+x+4*uint32(k):], r[k])
@@ -299,6 +300,13 @@ func (K *K) kst(a k) s {
 			return strconv.FormatFloat(f, 'g', -1, 64)
 		}
 	}
+	zstr := func(i int) s {
+		if z := complex(getf(m, x+8+16*k(i)), getf(m, x+16+16*k(i))); cmplx.IsNaN(z) {
+			return "0ni0n"
+		} else {
+			return strconv.FormatFloat(real(z), 'g', -1, 64) + "i" + strconv.FormatFloat(imag(z), 'g', -1, 64)
+		}
+	}
 	sstr := func(i int) s {
 		r := get(m, a+8+4*k(i))
 		rn := get(m, r) & 536870911
@@ -319,13 +327,17 @@ func (K *K) kst(a k) s {
 			return s
 		}
 	case 4:
+		f = zstr
+	case 5:
 		f = sstr
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
-	case 5:
+	case 6:
 		f = func(i int) s { return K.kst(get(m, 8+4*uint32(i)+a)) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
+	case 7:
+		return K.kst(x+8) + "!" + K.kst(x+12)
 	default:
 		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}

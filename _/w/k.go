@@ -88,7 +88,7 @@ func parseVector(s string) i {
 	if len(s) > 0 && s[0] == '`' { // `symbols`b`c
 		v := strings.Split(s[1:], "`")
 		sn := i(len(v))
-		sv := mk(4, sn)
+		sv := mk(5, sn)
 		for i := i(0); i < sn; i++ {
 			b := v[i]
 			rn := uint32(len(b))
@@ -137,7 +137,7 @@ func parseList(s string) i {
 	if len(s) == 0 || s[len(s)-1] != ')' {
 		panic("parse list")
 	} else if len(s) == 1 {
-		return mk(5, 0)
+		return mk(6, 0)
 	}
 	r := make([]i, 0)
 	s = s[:len(s)-1]
@@ -156,7 +156,7 @@ func parseList(s string) i {
 		}
 	}
 	r = append(r, parseVector(s[a:]))
-	x := mk(5, i(len(r)))
+	x := mk(6, i(len(r)))
 	for k := range r {
 		MI[2+(x>>2)+i(k)] = r[k]
 	}
@@ -164,7 +164,7 @@ func parseList(s string) i {
 }
 func run(args []string) string {
 	m0 := 16
-	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "tip": tip, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt, "abs": abs, "neg": neg, "sqr": sqr}
+	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "typ": typ, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt, "abs": abs, "neg": neg, "sqr": sqr}
 	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mor": mor, "les": les, "mtc": mtc, "fnd": fnd, "exc": exc, "add": add, "sub": sub, "mul": mul, "diw": diw}
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
@@ -209,7 +209,7 @@ func run(args []string) string {
 	return r
 }
 func ini(x i) i {
-	sJ(0, 289360691419414784) // uint64(0x0404040408040100)
+	sJ(0, 289360742959022336) // uint64(0x0404041008040100)
 	sI(128, x)
 	p := i(256)
 	for i := i(8); i < x; i++ {
@@ -217,9 +217,13 @@ func ini(x i) i {
 		p *= 2
 	}
 	copy(MT[1:], []interface{}{gtC, gtI, gtF, gtL, gtL})
-	copy(MT[9:], []interface{}{eqC, eqI, eqF, eqL, eqL})
+	copy(MT[9:], []interface{}{eqC, eqI, eqF, eqZ, eqL, eqL})
 	copy(MT[16:], []interface{}{abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz})
-	copy(MT[128:], []interface{}{nag, nac, nai, naf, nas, naz, nal})
+	copy(MT[33:], []interface{}{til, nil, cnt, str, sqr, wer, nil, nil, nil, fst, abs, enl, neg, val})
+	copy(MT[60:], []interface{}{grd, eql, gdn, unq, typ})
+	copy(MT[94:], []interface{}{srt, flr})
+	copy(MT[126:], []interface{}{not})
+	copy(MT[128:], []interface{}{nag, nac, nai, naf, naz, nas, nal})
 	copy(MT[16+128:], []interface{}{adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz})
 	return x
 }
@@ -275,7 +279,7 @@ func dx(x i) {
 		sI(x+4, xr-1)
 		if xr == 1 {
 			xt, xn, xp := v1(x)
-			if xt > 3 {
+			if xt > 4 {
 				for i := i(0); i < xn; i++ {
 					dx(I(xp + 4*i))
 				}
@@ -300,12 +304,7 @@ func dxr(x, r i) i     { dx(x); return r }
 func dxyr(x, y, r i) i { dx(x); dx(y); return r }
 func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkd(x, y i) (r i) {
-	xt, _, xn, yn, _, _ := v2(x, y)
-	if xt != 5 {
-		panic("type")
-	} else if xn != yn {
-		panic("length")
-	}
+	x, y = ext(x, y)
 	r = mk(7, 2)
 	MI[2+r>>2] = x
 	MI[3+r>>2] = y
@@ -326,6 +325,32 @@ func use(x i) (r i) {
 	mv(r+8, xp, xn*i(C(xt)))
 	dx(x)
 	return r
+}
+func lrc(x, f i) (r i) { // list recurse
+	_, xn, xp := v1(x)
+	rl(x)
+	g := MT[f].(func(i) i)
+	r = mk(6, xn)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		sI(rp, g(xp))
+		rp += 4
+		xp += 4
+	}
+	return dxr(x, r)
+}
+func drc(x, f i) (r i) { // dict recurse
+	g := MT[f].(func(i) i)
+	dx(x + 8)
+	dx(x + 12)
+	dx(x)
+	return mkd(x+8, g(12+x))
+}
+func drx(x, f i) (r i) { // dict recurse on values
+	rx(12 + x)
+	dx(x)
+	g := MT[f].(func(i) i)
+	return g(12 + x)
 }
 func mv(dst, src, n i) { copy(MC[dst:dst+n], MC[src:src+n]) }
 func ext(x, y i) (rx, ry i) {
@@ -382,9 +407,9 @@ func up(x, t, n i) (r i) {
 	}
 	return dxr(x, r)
 }
-func explode(x i) (r i) {
+func expl(x i) (r i) {
 	_, n, _ := v1(x)
-	r = mk(5, n)
+	r = mk(6, n)
 	rp := r + 8
 	for i := i(0); i < n; i++ {
 		rx(x)
@@ -433,9 +458,7 @@ func rev(x i) (r i) {
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
 	if xt == 7 {
-		rx(12 + x)
-		dx(x)
-		return fst(12 + x)
+		return drx(x, '*')
 	}
 	return atx(x, mki(0))
 }
@@ -455,7 +478,7 @@ func cut(x, y i) (r i) {
 		n := I(xp)
 		return dxr(x, drop(y, n))
 	}
-	r = mk(5, xn)
+	r = mk(6, xn)
 	rp := r + 8
 	for i := i(0); i < xn; i++ {
 		a := I(xp)
@@ -533,7 +556,7 @@ func atx(x, y i) (r i) {
 		rp += w
 		yp += 4
 	}
-	if xt > 3 {
+	if xt > 4 {
 		rl(r)
 	}
 	return dxyr(x, y, r)
@@ -546,7 +569,7 @@ func cat(x, y i) (r i) {
 	if xt == yt {
 		return ucat(x, y)
 	}
-	if xt == 5 {
+	if xt == 6 {
 		return lcat(x, y)
 	}
 	panic("nyi cat")
@@ -575,17 +598,17 @@ func lcat(x, y i) (r i) { // list append
 		dx(x)
 		x, xp = r, r+8
 	}
-	sI(x, (xn+1)|5<<29)
+	sI(x, (xn+1)|6<<29)
 	sI(xp+4*xn, y)
 	return x
 }
-func enl(x i) (r i) { return lcat(mk(5, 0), x) }
+func enl(x i) (r i) { return lcat(mk(6, 0), x) }
 func cnt(x i) (r i) {
 	_, xn, _ := v1(x)
 	dx(x)
 	return mki(xn)
 }
-func tip(x i) (r i) {
+func typ(x i) (r i) {
 	xt, _, _ := v1(x)
 	r = mk(2, 1)
 	sI(8+r, xt)
@@ -635,6 +658,8 @@ func match(x, y i) (r i) { // x~y
 		nn = xn << 2
 	case 3:
 		nn = xn << 3
+	case 4:
+		nn = xn << 4
 	default:
 		for i := i(0); i < xn; i++ {
 			if match(I(xp), I(yp)) == 0 {
@@ -742,6 +767,10 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 		sI(y+i<<2, I(x+a<<2))
 	}
 }
+func str(x i) (r i) { panic("nyi") }
+func val(x i) (r i) { panic("nyi") }
+func unq(x i) (r i) { panic("nyi") }
+func flr(x i) (r i) { panic("flr") }
 func nm(x, f i) (r i) {
 	r = use(x)
 	t, n, rp := v1(r)
@@ -780,6 +809,7 @@ func gtI(x, y i) i { return boolvar(int32(I(x)) > int32(I(y))) }
 func eqI(x, y i) i { return boolvar(int32(I(x)) == int32(I(y))) }
 func gtF(x, y i) i { return boolvar(F(x) > F(y)) }
 func eqF(x, y i) i { return boolvar(F(x) == F(y)) }
+func eqZ(x, y i) i { return boolvar(F(x) == F(y) && F(x+8) == F(y+8)) }
 func gtL(x, y i) i {
 	x, y = I(x), I(y)
 	xt, yt, xn, yn, xp, yp := v2(x, y)
@@ -975,6 +1005,13 @@ func kst(x i) s {
 			return strconv.FormatFloat(f, 'g', -1, 64)
 		}
 	}
+	zstr := func(i i) s {
+		if z := Z(x + 8 + 16*i); cmplx.IsNaN(z) {
+			return "0ni0n"
+		} else {
+			return strconv.FormatFloat(real(z), 'g', -1, 64) + "i" + strconv.FormatFloat(imag(z), 'g', -1, 64)
+		}
+	}
 	sstr := func(i i) s {
 		r := I(x + 8 + 4*i)
 		rn := I(r) & 536870911
@@ -995,13 +1032,17 @@ func kst(x i) s {
 			return s
 		}
 	case 4:
+		f = zstr
+	case 5:
 		f = sstr
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
-	case 5:
+	case 6:
 		f = func(i i) s { return kst(MI[2+i+x>>2]) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
+	case 7:
+		return kst(x+8) + "!" + kst(x+12)
 	default:
 		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}

@@ -42,8 +42,8 @@
 3.0 1,2,3,4 eql                 /0 0 1 0
 3.0 1,2,3,4 mor                 /1 1 0 0
 1,2,3,4 3.0 les                 /1 1 0 0
-1,2 tip                         /2
-"abc" tip                       /1
+1,2 typ                         /2
+"abc" typ                       /1
 `a`be`ceta                      /`a`be`ceta
 `alpha`beta`gamma 4,2,1 atx     /``gamma`beta
 "alpha" "beta" mtc              /0

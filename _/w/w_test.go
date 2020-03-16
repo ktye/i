@@ -286,13 +286,18 @@ function kst(x) {
   if(s.indexOf(".")==-1) s+="f"
   return s
  case 4:
+  x >>>= 3
+  var s = K.F.slice(1+x, 1+x+2*n)
+  for (var i=0; i<s.length; i+=2) s[i]=s[i]+"i"+s[i+1]
+  return s.slice(n).join(" ")
+ case 5:
   x >>>= 2
   var r = ""
   var v = K.I.slice(2+x, 2+x+n)
   var tr = function(s) { return s.substr(1, s.length-2) }
   for (var i=0; i<n; i++) r += String.fromCharCode(96) + tr(kst(v[i]))
   return r
- case 5:
+ case 6:
   x >>>= 2
   var r = []
   for (var i=0; i<n; i++) r.push(kst(K.I[2+x+i]))
@@ -326,13 +331,13 @@ function chrVector(s) {
 }
 function symVector(s) {
  var v = s.substr(1).split(String.fromCharCode(96))
- var x = K.exports.mk(4, v.length)
+ var x = K.exports.mk(5, v.length)
  for (var i=0; i<v.length; i++) K.I[2+i+(x>>>2)] = chrVector("_"+v[i]+"_")
  return x
 }
 function lstVector(s) {
  if (s.length == 0 || s.endsWith(')') == false) { throw new Error("parse list: "+s) }
- if (s.length == 1) return K.exports.mk(5, 0);
+ if (s.length == 1) return K.exports.mk(6, 0);
  s = s.substr(0, s.length-1)
  var a = 0
  var l = 0
@@ -347,7 +352,7 @@ function lstVector(s) {
   }
  }
  r.push(parseNoun(s.substr(a)))
- var x = K.exports.mk(5, r.length)
+ var x = K.exports.mk(6, r.length)
  for (var i=0; i<r.length; i++) K.I[2+i+(x>>>2)] = r[i]
  return x
 }
@@ -522,6 +527,13 @@ V kst(I x) {
 		if(tof) printf("f");
 		break;
 	case 4:
+		x = 1 + (x>>3);
+		for(i=0;i<2*n;i++) {
+			if (i%2 == 0) printf("i");
+			else if (i>0) printf(" ");
+			if (MF[x+i] != MF[x+i]) printf("0n"); else printf("%g", MF[x+i]);
+		}
+	case 5:
 		x = 2 + (x>>2);
 		for(i=0;i<n;i++) {
 			printf("%c", 96);
@@ -530,7 +542,7 @@ V kst(I x) {
 			for(j=0;j<m;j++) printf("%c", MC[8+y+j]);
 		}
 		break;
-	case 5:
+	case 6:
 		x = 2 + (x>>2);
 		printf("(");
 		for(i=0;i<n;i++) {
@@ -568,7 +580,7 @@ I lstVector(C *s) {
 	C p;
 	I n = strlen(s);
 	if ((n == 0) || s[n-1] != ')') { printf("parse list: %s\n", s); trap(); }
-	if (n == 1) return mk(5, 0);
+	if (n == 1) return mk(6, 0);
 	s[n-1] = 0; n--;
 	for (i=0; i<n; i++) {
 		p = s[i];
@@ -585,7 +597,7 @@ I lstVector(C *s) {
 		}
 	}
 	r[rn++] = parseNoun(s+a);
-	l = mk(5, rn);
+	l = mk(6, rn);
 	for (i=0;i<rn;i++) MI[2+(l>>2)+i] = r[i];
 	R l;
 }
@@ -595,7 +607,7 @@ I symVector(C *s) {
 	I ns = 0;
 	C *p;
 	for (i=0;i<n;i++) if(s[i] == 96) ns++;
-	x = mk(4, ns);
+	x = mk(5, ns);
 	s++;n--;
 	for (i=0;i<ns;i++) {
 		m = findChr(s, n, 96);
