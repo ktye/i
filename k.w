@@ -3,7 +3,7 @@ bk:I:II{r:32-*7+y*I?C x;(r<4)? :4;r}mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}r8:{rp:r+8}
 fr:V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>4)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{(x>255)?(x+:4;x::1+I x)}rl:V:I{v1;xn/(rx I xp;xp+:4)}
-til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq:I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir:I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
+til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir.I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
 ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:x take yn;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:y take xn;yn:xn;yp:y+8);(~xn~yn)?!}
 upx:{(xt>=5)?!;(yt>=5)?!;(xt<yt)?/(x:up(x;xt;xn);xt+:1);(yt<xt)?/(y:up(y;yt;yn);yt+:1);xp:x+8;yp:y+8}
 up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::I?C xp+i;rp+:4);z/(rp::F?I xp;rp+:8;xp+:4);!];dxr}
@@ -42,13 +42,16 @@ sqc:V:II{!}sqi:V:II{!}sqf:V:II{y::%F x}sqz:V:II{y::F x;(y+8)::-F x+8}
 zre:I:I{x zri 0}zim:I:I{x zri 8}zri:I:II{v1;(xt~4)?!;r:3 mk xn;r8;xp+:y;xn/(rp::F xp;rp+:8;xp+:16);dxr}
 crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 nag:V:I{x::0}nac:V:I{x::C?32}nai:V:I{x::-2147483648}naf:V:I{x::9221120237041090561f}naz:V:I{naf x;naf x+8}nas:V:I{x::1 mk 0;(4+I x)::0}nal:V:I{x::0}
-xx1:I:I{!;x}xx2:I:II{!;x}str:I:I{!;x}val:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}
+cal1:I:II{(I.y)(x)}cal2:I:III{(I.z)(x;y)}
+xx1:I:I{!;x}xx2:I:II{!;x}str:I:I{!;x}val:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}cal:I:II{!;x}
 1:{gtc;gti;gtf;gtl;gtl}9:{eqc;eqi;eqf;eqz;eqL;eqL}
 16:{abc;abi;abf;abz;nec;nei;nef;nez}28:{sqc;sqi;sqf;sqz}
 33:{til;xx1;cnt;str;sqr;wer;xx1;xx1;xx1;fst;abs;enl;neg;val}
-60:{grd;eql;gdn;unq;typ}94:{srt;flr}126:{not}
+60:{grd;grp;gdn;unq;typ}94:{srt;flr}124:{rev;xx1;not}
 128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
 144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
+161:{mkd;xx2;rsh;cst;diw;min;xx2;xx2;xx2;mul;add;cat;sub;cal}
+188:{les;eql;mor;fnd;atx}222:{exc;cut}252:{max;xx2;mtc}
 
 \
 odo5:{p#’x(&#)’_(p:*/x)%*\x}

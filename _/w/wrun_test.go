@@ -118,6 +118,14 @@ func (K *K) pop() (r uint32) {
 	return r
 }
 func (K *K) call(s string) (bool, error) {
+	fc := ":+-*%&|<>=!~,^#_$?@."
+	if len(s) == 2 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
+		K.push(uint32(s[0]))
+		s = "cal1"
+	} else if len(s) == 1 && strings.Index(fc, s) != -1 {
+		K.push(uint32(128 + s[0]))
+		s = "cal2"
+	}
 	m, vm := K.m, K.vm
 	x, ok := m.Export.Entries[s]
 	if !ok {
@@ -133,6 +141,10 @@ func (K *K) call(s string) (bool, error) {
 	} else if n == 2 {
 		y := K.pop()
 		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()), uint64(y))
+	} else if n == 3 {
+		z := K.pop()
+		y := K.pop()
+		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()), uint64(y), uint64(z))
 	} else {
 		return true, fmt.Errorf("%s expects %d arguments", s, n)
 	}
@@ -339,7 +351,8 @@ func (K *K) kst(a k) s {
 	case 7:
 		return K.kst(x+8) + "!" + K.kst(x+12)
 	default:
-		panic(fmt.Sprintf("nyi: kst: t=%d", t))
+		K.dump(0, 200)
+		panic(fmt.Sprintf("nyi: kst: t=%d a=%x x=%x", t, a, x))
 	}
 	r := make([]s, n)
 	for i := range r {

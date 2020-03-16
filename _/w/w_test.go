@@ -174,17 +174,7 @@ func TestCout(t *testing.T) { // write k_c from ../../k.w
 	var dst bytes.Buffer
 	io.Copy(&dst, strings.NewReader(kh))
 	dst.Write(m.cout(tab, data))
-	io.Copy(&dst, strings.NewReader(kt1))
-	for _, f := range m {
-		if f.args == 1 && f.t == I && f.locl[0] == I && f.name != "ini" && f.name != "mki" {
-			s := "\t\t} else if (Match(\"" + f.name + "\", a)) { n = f1(" + f.name + ", stack, n);\n"
-			dst.WriteString(s)
-		} else if f.args == 2 && f.t == I && f.locl[0] == I && f.locl[1] == I {
-			s := "\t\t} else if (Match(\"" + f.name + "\", a)) { n = f2(" + f.name + ", stack, n);\n"
-			dst.WriteString(s)
-		}
-	}
-	io.Copy(&dst, strings.NewReader(kt2))
+	io.Copy(&dst, strings.NewReader(kt))
 	if e := ioutil.WriteFile("k_c", dst.Bytes(), 0744); e != nil {
 		t.Fatal(e)
 	}
@@ -455,7 +445,7 @@ V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
 `
-const kt1 = `// Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
+const kt = `// Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
 const trace = 0;
 I pop1(I *s, I n, I *x) {
 	*x = s[n-1];
@@ -469,18 +459,6 @@ I pop2(I *s, I n, I *x, I *y) {
 I push(I *s, I n, I x) {
 	s[n] = x;
 	return n+1;
-}
-I f1(I (*f)(I), I *s, I n) {
-	if(trace) printf("%d: ", s[n-1]);
-	s[n-1] = f(s[n-1]);
-	if(trace) printf("%d(%x)\n", s[n-1], s[n-1]);
-	return n;
-}
-I f2(I (*f)(I,I), I *s, I n) {
-	if(trace) printf("%d %d: ", s[n-2], s[n-1]);
-	s[n-2] = f(s[n-2], s[n-1]);
-	if(trace) printf("%d\n", s[n-2]);
-	return n-1;
 }
 I Match(C *a, C *b) {
 	for (I i=0; ;i++) {
@@ -665,6 +643,17 @@ I main(int args, C **argv){
 	ini(M0);
 	for (i=1; i<args; i++) {
 		a = argv[i];
+		if (!strncmp(a, "fnd", 3)) a = "?";
+		if (strchr(":+-*%&|<>=!~,^#_$?@.", a[0]) != NULL) {
+			if (a[1] == 0) {
+				stack[n-2] = cal2(stack[n-2], stack[n-1], 128+a[0]);
+				n--;
+				continue;
+			} else if (a[1] == ':') {
+				stack[n-1] = cal1(stack[n-1], a[0]);
+				continue;
+			}
+		}
 		x = parseNoun(a);
 		if (x != 0) {
 			n = push(stack, n, x);
@@ -673,8 +662,6 @@ I main(int args, C **argv){
 		//printf("%s ", argv[i]);
 		if (Match("dump", a)) {
 			Dump(0, 100);
-`
-const kt2 = `
 		} else {
 			printf("arg!");
 			trap();

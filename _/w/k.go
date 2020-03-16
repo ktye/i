@@ -164,29 +164,24 @@ func parseList(s string) i {
 }
 func run(args []string) string {
 	m0 := 16
-	fn1 := map[string]vt1{"til": til, "rev": rev, "fst": fst, "enl": enl, "cnt": cnt, "typ": typ, "wer": wer, "not": not, "grd": grd, "gdn": gdn, "srt": srt, "abs": abs, "neg": neg, "sqr": sqr}
-	fn2 := map[string]vt2{"mk": mk, "atx": atx, "cut": cut, "rsh": rsh, "cat": cat, "eql": eql, "mor": mor, "les": les, "mtc": mtc, "fnd": fnd, "exc": exc, "add": add, "sub": sub, "mul": mul, "diw": diw}
+	fc := ":+-*%&|<>=!~,^#_$?@."
 	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
 	ini(16)
 	for _, a := range args {
-		if f1, o := fn1[a]; o {
-			r := f1(stack[len(stack)-1])
-			if trace {
-				fmt.Printf("%s %d: x%x\n", a, stack[len(stack)-1], r)
-			}
-			stack[len(stack)-1] = r
+		if a == "fnd" {
+			a = "?"
+		}
+		if len(a) == 2 && a[1] == ':' && strings.Index(fc, a[:1]) != -1 {
+			f := MT[int(a[0])].(func(i) i)
+			stack[len(stack)-1] = f(stack[len(stack)-1])
 			continue
 		}
-		if f2, o := fn2[a]; o {
-			x, y := stack[len(stack)-2], stack[len(stack)-1]
-			r := f2(x, y)
-			if trace {
-				fmt.Printf("%s %d %d: x%x\n", a, x, y, r)
-			}
+		if len(a) == 1 && strings.Index(fc, a) != -1 {
+			f := MT[int(a[0])+128].(func(i, i) i)
+			stack[len(stack)-2] = f(stack[len(stack)-2], stack[len(stack)-1])
 			stack = stack[:len(stack)-1]
-			stack[len(stack)-1] = r
 			continue
 		}
 		if strings.HasPrefix(a, "dump") {
@@ -216,15 +211,25 @@ func ini(x i) i {
 		sI(4*i, p)
 		p *= 2
 	}
-	copy(MT[1:], []interface{}{gtC, gtI, gtF, gtL, gtL})
-	copy(MT[9:], []interface{}{eqC, eqI, eqF, eqZ, eqL, eqL})
-	copy(MT[16:], []interface{}{abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz})
-	copy(MT[33:], []interface{}{til, nil, cnt, str, sqr, wer, nil, nil, nil, fst, abs, enl, neg, val})
-	copy(MT[60:], []interface{}{grd, eql, gdn, unq, typ})
-	copy(MT[94:], []interface{}{srt, flr})
-	copy(MT[126:], []interface{}{not})
-	copy(MT[128:], []interface{}{nag, nac, nai, naf, naz, nas, nal})
-	copy(MT[16+128:], []interface{}{adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz})
+	copy(MT[0:], []interface{}{
+		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
+		nil, gtC, gtI, gtF, gtL, gtL, nil, nil, nil, eqC, eqI, eqF, eqZ, eqL, eqL, nil, // 000..015
+		abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 016..031
+		nil, til, nil, cnt, str, sqr, wer, nil, nil, nil, fst, abs, enl, neg, val, nil, // 032..047
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, grd, eql, gdn, unq, // 048..063
+		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 064..079
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, srt, flr, // 080..095
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 096..111
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, rev, nil, not, nil, // 112..127
+		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 128..143
+		adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 144..159
+		nil, mkd, nil, rsh, cst, diw, min, nil, nil, nil, mul, add, cat, sub, cal, nil, // 160..175
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, les, eql, mor, fnd, // 176..191
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192..207
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, exc, cut, // 208..223
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224..239
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, max, nil, mtc, nil, // 240..255
+	})
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -539,6 +544,9 @@ func take(x, n i) (r i) {
 }
 func atx(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
+	if xt == 0 {
+		return cal(x, enl(y))
+	}
 	if yt != 2 {
 		panic("atx yt~I")
 	}
@@ -560,6 +568,28 @@ func atx(x, y i) (r i) {
 		rl(r)
 	}
 	return dxyr(x, y, r)
+}
+func cal(x, y i) (r i) {
+	yt, yn, yp := v1(y)
+	if yt != 6 {
+		panic("type")
+	}
+	if x < 128 {
+		if yn != 1 {
+			panic("arity")
+		}
+		f := MT[x].(func(i) i)
+		return f(fst(y))
+	} else if x < 256 {
+		if yn != 2 {
+			panic("arity")
+		}
+		rl(y)
+		dx(y)
+		f := MT[x].(func(i, i) i)
+		return f(yp, yp+4)
+	}
+	panic("nyi")
 }
 func cat(x, y i) (r i) {
 	xt, yt, _, _, _, _ := v2(x, y)
@@ -767,10 +797,13 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 		sI(y+i<<2, I(x+a<<2))
 	}
 }
-func str(x i) (r i) { panic("nyi") }
-func val(x i) (r i) { panic("nyi") }
-func unq(x i) (r i) { panic("nyi") }
-func flr(x i) (r i) { panic("flr") }
+func str(x i) (r i)    { panic("nyi") }
+func val(x i) (r i)    { panic("nyi") }
+func unq(x i) (r i)    { panic("nyi") }
+func flr(x i) (r i)    { panic("nyi") }
+func cst(x, y i) (r i) { panic("nyi") }
+func min(x, y i) (r i) { panic("nyi") }
+func max(x, y i) (r i) { panic("nyi") }
 func nm(x, f i) (r i) {
 	r = use(x)
 	t, n, rp := v1(r)
