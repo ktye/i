@@ -7,6 +7,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -48,7 +49,7 @@ func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
 		runtest()
 	} else {
-		fmt.Println(run(os.Args[1:]))
+		fmt.Println(run(strings.Join(os.Args[1:], " ")))
 	}
 }
 func runtest() {
@@ -67,7 +68,7 @@ func runtest() {
 		}
 		in := strings.TrimSpace(vv[0])
 		exp := strings.TrimSpace(vv[1])
-		got := run(strings.Fields(in))
+		got := run(in)
 		fmt.Println(in, "/", got)
 		if exp != got {
 			fmt.Printf("!")
@@ -76,6 +77,13 @@ func runtest() {
 	}
 }
 func parseVector(s string) i {
+	fc := ":+-*%&|<>=!~,^#_$?@."
+	if len(s) == 2 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
+		return i(s[0])
+	}
+	if len(s) == 1 && strings.Index(fc, s) != -1 {
+		return i(128 + s[0])
+	}
 	if len(s) > 0 && s[0] == '"' { // "char"
 		s = strings.Trim(s, `"`)
 		b := []c(s)
@@ -162,46 +170,14 @@ func parseList(s string) i {
 	}
 	return x
 }
-func run(args []string) string {
+func run(s string) string {
 	m0 := 16
-	fc := ":+-*%&|<>=!~,^#_$?@."
-	stack := make([]i, 0)
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
 	ini(16)
-	for _, a := range args {
-		if a == "fnd" {
-			a = "?"
-		}
-		if len(a) == 2 && a[1] == ':' && strings.Index(fc, a[:1]) != -1 {
-			f := MT[int(a[0])].(func(i) i)
-			stack[len(stack)-1] = f(stack[len(stack)-1])
-			continue
-		}
-		if len(a) == 1 && strings.Index(fc, a) != -1 {
-			f := MT[int(a[0])+128].(func(i, i) i)
-			stack[len(stack)-2] = f(stack[len(stack)-2], stack[len(stack)-1])
-			stack = stack[:len(stack)-1]
-			continue
-		}
-		if strings.HasPrefix(a, "dump") {
-			a = strings.TrimPrefix(a, "dump")
-			if n, e := strconv.Atoi(a); e == nil {
-				dump(0, uint32(n))
-			} else {
-				dump(0, 100)
-			}
-			continue
-		}
-		stack = append(stack, parseVector(a))
-	}
-	if len(stack) != 1 {
-		panic("stack #" + strconv.Itoa(len(stack)))
-	}
-	r := kst(stack[len(stack)-1])
-	dx(stack[len(stack)-1])
-	leak()
-	return r
+	x := parseVector(s)
+	fmt.Println("run", kst(x))
+	return kst(evl(x))
 }
 func ini(x i) i {
 	sJ(0, 289360742959022336) // uint64(0x0404041008040100)
@@ -462,6 +438,7 @@ func rev(x i) (r i) {
 }
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
+	fmt.Printf("fst x=%x t=%d\n", x, xt)
 	if xt == 7 {
 		return drx(x, '*')
 	}
@@ -543,8 +520,11 @@ func take(x, n i) (r i) {
 	return atx(x, r)
 }
 func atx(x, y i) (r i) {
+	fmt.Printf("atx x=%x y=%x\n", x, y)
+	fmt.Printf("atx:x=%s y=%s\n", kst(x), kst(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
+		fmt.Println("call")
 		return cal(x, enl(y))
 	}
 	if yt != 2 {
@@ -567,28 +547,34 @@ func atx(x, y i) (r i) {
 	if xt > 4 {
 		rl(r)
 	}
+	fmt.Printf("==> atx r=%s\n", kst(r))
 	return dxyr(x, y, r)
 }
 func cal(x, y i) (r i) {
+	fmt.Printf("call x=%x y=%x\n", x, y)
+	fmt.Printf("call:x=%s y=%s\n", kst(x), kst(y))
 	yt, yn, yp := v1(y)
 	if yt != 6 {
 		panic("type")
 	}
 	if x < 128 {
 		if yn != 1 {
+			fmt.Printf("x=%d yn=%d\n", x, yn)
 			panic("arity")
 		}
 		f := MT[x].(func(i) i)
 		return f(fst(y))
 	} else if x < 256 {
 		if yn != 2 {
+			fmt.Printf("x=%d yn=%d\n", x, yn)
 			panic("arity")
 		}
 		rl(y)
 		dx(y)
 		f := MT[x].(func(i, i) i)
-		return f(yp, yp+4)
+		return f(I(yp), I(yp+4))
 	}
+	fmt.Printf("nyi call x=%d\n", x)
 	panic("nyi")
 }
 func cat(x, y i) (r i) {
@@ -798,7 +784,6 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 	}
 }
 func str(x i) (r i)    { panic("nyi") }
-func val(x i) (r i)    { panic("nyi") }
 func unq(x i) (r i)    { panic("nyi") }
 func flr(x i) (r i)    { panic("nyi") }
 func cst(x, y i) (r i) { panic("nyi") }
@@ -898,6 +883,7 @@ func abs(x i) i     { return nm(x, 15) }
 func neg(x i) i     { return nm(x, 19) }
 func sqr(x i) i     { return nm(x, 27) }
 func abc(x, r i) { // +c (toupper)
+	fmt.Println("abc / toupper")
 	if c := C(x); craz(c) {
 		sC(r, c-32)
 	} else {
@@ -944,6 +930,55 @@ func zri(x i, o i) (r i) {
 }
 func zre(x i) (r i) { return zri(x, 0) }
 func zim(x i) (r i) { return zri(x, 8) }
+
+func val(x i) (r i) {
+	xt, _, _ := v1(x)
+	switch xt {
+	case 6:
+		return evl(x)
+	case 7:
+		rx(x + 12)
+		return dxr(x, x+12)
+	default:
+		fmt.Printf("val xt=%d\n", xt)
+		panic("nyi")
+	}
+}
+func evl(x i) (r i) {
+	xt, xn, xp := v1(x)
+	fmt.Printf("evl x=%x t=%d n=%d\n", x, xt, xn)
+	if xt != 6 || xn == 0 {
+		return x
+	} else if xn == 1 {
+		return fst(x)
+	}
+	fmt.Printf("evl xx=%x\n", x)
+	rl(x)
+	r = mk(6, xn)
+	//fmt.Printf("x=%x r=%x\n", x, r)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		fmt.Printf("[%d]:I(%x)=%x\n", i, xp, I(xp))
+		sI(rp, evl(I(xp)))
+		rp += 4
+		xp += 4
+	}
+	fmt.Printf("r=%s\n", kst(r))
+	//dump(0, 200)
+	rp = r + 8
+	dx(x)
+	if xn == 2 {
+		rl(r)
+		fmt.Printf("atx? r=%x Irp=%x Irp+4=%x\n", r, I(rp), I(rp+4))
+		fmt.Printf("Irp=%s Irp+4=%s\n", kst(I(rp)), kst(I(rp+4)))
+		return dxr(r, atx(I(rp), I(rp+4)))
+	} else if xn == 3 {
+		rx(I(rp))
+		return cal(I(rp), drop(r, 1))
+	} else {
+		panic("args")
+	}
+}
 
 func craz(x c) bool {
 	if x < 'a' || x > 'z' {
@@ -1020,8 +1055,7 @@ func leak() {
 	}
 }
 func kst(x i) s {
-	a := MI[x>>2]
-	t, n := a>>29, a&536870911
+	t, n, _ := v1(x)
 	var f func(i i) s
 	var tof func(s) s = func(s s) s { return s }
 	istr := func(i i) s {
@@ -1052,6 +1086,15 @@ func kst(x i) s {
 	}
 	sep := " "
 	switch t {
+	case 0:
+		fc := []byte(":+-*%&|<>=!~,^#_$?@.")
+		if x < 128 && bytes.Index(fc, []byte{byte(x)}) != -1 {
+			return string(byte(x)) + ":"
+		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
+			return string(byte(x - 128))
+		} else {
+			panic(fmt.Errorf("nyi: kst func %x\n", x))
+		}
 	case 1:
 		return `"` + string(MC[x+8:x+8+n]) + `"`
 	case 2:
