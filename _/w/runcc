@@ -3,7 +3,7 @@ tcc=/local/tcc/tcc
 if [ "$1" = "fmt" ]; then
 	/local/LLVM/bin/clang-format.exe k_c > xx_c
 elif [ x"$1" = "xt" ]; then
-	while read line; do
+	grep -v '^/' t | while read line; do
 		x=`echo $line | awk 'BEGIN{FS=" /"}{print $1}'`
 		y=`echo $line | awk 'BEGIN{FS=" /"}{print $2}'`
 		z=`$tcc -run k_c "$x"`
@@ -11,7 +11,7 @@ elif [ x"$1" = "xt" ]; then
 			echo " $line"; echo "$z"
 			exit 1
 		fi
-	done < t
+	done
 	echo ok
 else
 	# go test (generate k_c)

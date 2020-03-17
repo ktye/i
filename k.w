@@ -61,9 +61,10 @@ flip:,'/,''
 
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
 Fcifzsld   xt~0(function) x<256(basic) 
-0148x444   ft~xn&0xff00  (derived, proj, lambda, native)  composition==lambda?
-	   fn~xn&0xff    (argn)
-
+0148x444   xn~2 (derived) adv  verb
+	   xn~3 (proj)    verb argv empty-index
+	   xn~4 (lambda)  str  tree args locals
+	   
 + add abs                 abs:+z                   memory
 - sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
 * mul fst                                          8.. 11   k-tree/key   pointer     todo

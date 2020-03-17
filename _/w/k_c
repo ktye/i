@@ -296,7 +296,7 @@ I parseNoun(C *s) {
 	if (c == 96)                 return symVector(s);
 	if (c >= '0' && s[0] <= '9') return numVector(s);
 	if (c == '(')                return lstVector(s+1);
-	if (strchr(":+-*%&|<>=!~,^#_$?@.", c) != NULL) { if (s[1] == ':') return c; return 128+c; }
+	if (strchr(":+-*%&|<>=!~,^#_$?@.'/\\", c) != NULL) { if (s[1] == ':') return c; return 128+c; }
 	return numVector(s);
 }
 #define M0 16

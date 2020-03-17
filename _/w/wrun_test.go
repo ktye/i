@@ -120,7 +120,7 @@ func (K *K) call(s string, argv ...uint32) uint32 {
 }
 func (K *K) parseVector(s string) uint32 {
 	m := K.vm.Memory()
-	fc := ":+-*%&|<>=!~,^#_$?@."
+	fc := ":+-*%&|<>=!~,^#_$?@.+'/\\"
 	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
 		return uint32(s[0])
 	}

@@ -77,7 +77,7 @@ func runtest() {
 	}
 }
 func parseVector(s string) i {
-	fc := ":+-*%&|<>=!~,^#_$?@."
+	fc := ":+-*%&|<>=!~,^#_$?@.'/\\"
 	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
 		return i(s[0])
 	}
@@ -111,8 +111,8 @@ func parseVector(s string) i {
 	if len(s) > 0 && s[0] == '(' { // (`list;1;2)
 		return parseList(s[1:])
 	}
-	f := strings.Index(s, ".") // 1.23,2.34 (float)
-	v := strings.Split(s, ",") // 1,2,3 (int vector)
+	f := strings.Index(s, ".") // 1.23 2.34 (float)
+	v := strings.Split(s, " ") // 1 2 3 (int vector)
 	n := uint32(len(v))
 	iv := make([]int64, n)
 	fv := make([]float64, n)
@@ -190,7 +190,7 @@ func ini(x i) i {
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtC, gtI, gtF, gtL, gtL, nil, nil, nil, eqC, eqI, eqF, eqZ, eqL, eqL, nil, // 000..015
 		abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 016..031
-		nil, til, nil, cnt, str, sqr, wer, nil, nil, nil, fst, abs, enl, neg, val, nil, // 032..047
+		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, // 032..047
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, grd, eql, gdn, unq, // 048..063
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 064..079
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, srt, flr, // 080..095
@@ -198,7 +198,7 @@ func ini(x i) i {
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, rev, nil, not, nil, // 112..127
 		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 128..143
 		adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 144..159
-		nil, mkd, nil, rsh, cst, diw, min, nil, nil, nil, mul, add, cat, sub, cal, nil, // 160..175
+		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, nil, // 160..175
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, les, eql, mor, fnd, // 176..191
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192..207
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, exc, cut, // 208..223
@@ -388,7 +388,10 @@ func up(x, t, n i) (r i) {
 	return dxr(x, r)
 }
 func expl(x i) (r i) {
-	_, n, _ := v1(x)
+	xt, n, _ := v1(x)
+	if xt == 6 {
+		return x
+	}
 	r = mk(6, n)
 	rp := r + 8
 	for i := i(0); i < n; i++ {
@@ -518,8 +521,6 @@ func take(x, n i) (r i) {
 	return atx(x, r)
 }
 func atx(x, y i) (r i) {
-	//fmt.Printf("atx x=%x y=%x\n", x, y)
-	//fmt.Printf("atx:x=%s y=%s\n", kst(x), kst(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
@@ -552,9 +553,15 @@ func atx(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func cal(x, y i) (r i) {
-	yt, yn, yp := v1(y)
+	_, yt, xn, yn, xp, yp := v2(x, y)
 	if yt != 6 {
 		panic("type")
+	}
+	if yn == 1 {
+		if x == '\'' || x == '/' || x == '\\' || x == 128+'\'' || x == 128+'/' || x == 128+'\\' {
+			f := MT[x].(func(i) i)
+			return f(fst(y))
+		}
 	}
 	if x < 128 {
 		if yn != 1 {
@@ -570,6 +577,21 @@ func cal(x, y i) (r i) {
 		dx(y)
 		f := MT[x].(func(i, i) i)
 		return f(I(yp), I(yp+4))
+	} else if xn == 2 { // derived
+		rl(x)
+		dx(x)
+		a := I(xp)
+		if yn == 2 {
+			a += 128
+			rl(y)
+			dx(y)
+			f := MT[a].(func(i, i, i) i)
+			return f(I(yp), I(yp+4), I(xp+4))
+		} else if yn != 1 {
+			panic("arity")
+		}
+		f := MT[a].(func(i, i) i)
+		return f(fst(y), I(xp+4))
 	}
 	panic("nyi")
 }
@@ -927,6 +949,35 @@ func zri(x i, o i) (r i) {
 func zre(x i) (r i) { return zri(x, 0) }
 func zim(x i) (r i) { return zri(x, 8) }
 
+func drv(a, x i) (r i) {
+	r = mk(0, 2)
+	sI(8+r, a)
+	sI(12+r, x)
+	return r
+}
+func ecv(x i) (r i) { println("ecv"); return drv(40, x) } // ech(40) eci(40+128)
+func epv(x i) (r i) { println("epv"); return drv(41, x) } // ecp(41) epi(41+128)
+func ech(x, y i) (r i) { // f'x
+	x = expl(x)
+	_, xn, xp := v1(x)
+	r = mk(6, xn)
+	rp := r + 8
+	rl(x)
+	if y < 256 && y > 127 { // force monad
+		y -= 128
+	}
+	for i := i(0); i < xn; i++ {
+		rx(y)
+		sI(rp, atx(y, I(xp)))
+		xp += 4
+		rp += 4
+	}
+	return dxyr(x, y, r)
+}
+func ecp(x, y i) (r i) { panic("nyi ecp") } //   f':x
+func epi(x, y i) (r i) { panic("nyi epi") } // x f':y
+func ecd(x, y i) (r i) { panic("nyi ecd") } // x f' y
+
 func val(x i) (r i) {
 	xt, _, _ := v1(x)
 	switch xt {
@@ -1075,7 +1126,7 @@ func kst(x i) s {
 	sep := " "
 	switch t {
 	case 0:
-		fc := []byte(":+-*%&|<>=!~,^#_$?@.")
+		fc := []byte(":+-*%&|<>=!~,^#_$?@.'/\\")
 		if x < 128 && bytes.Index(fc, []byte{byte(x)}) != -1 {
 			return string(byte(x)) + ":"
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
