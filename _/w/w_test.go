@@ -299,7 +299,13 @@ function kst(x) {
 
 var funcs = {{{fncs}}}
 function parseNoun(s) {
+ var fc = ":+-*%&|<>=!~,^#_$?@."
  var t = 2
+ if((s.length>0)&&(fc.indexOf(s[0])!=-1)){ 
+  var c = s.charCodeAt(0)
+  if((s.length>1)&&s[1]==":") return c
+                              return c+128
+ }
  if(s.startsWith('"'))                     return chrVector(s);
  if(s.startsWith(String.fromCharCode(96))) return symVector(s);
  if(s.startsWith('('))                     return lstVector(s.substr(1));
@@ -359,33 +365,11 @@ function dump(x, n) {
 }
 function E(s) {
  try{ // todo save/restore
-  var stack = []
-  var v = s.split(" ").filter(x => x)
-  for (var i=0; i<v.length; i++) {
-   s = v[i]
-   if (s=="dump") { dump(0,100); continue; }
-   if(s in funcs) {
-    var n = funcs[s]
-    x = stack.pop()
-    if(n==2) {
-     y = x
-     x = stack.pop()
-     stack.push(K.exports[s](x, y))
-    } else {
-     stack.push(K.exports[s](x))
-    }
-    continue
-   }
-   var x = parseNoun(s)
-   if (x!=0) { stack.push(x); continue; }
-   else      { throw new Error(s); }
-  }
-  if(stack.length != 1) { throw new Error("stack length "+String(stack.length)) }
-  else {
-   x = stack.pop()
-   O(kst(x)+"\n")
-   K.exports.dx(x)
-  }
+  var x = parseNoun(s)
+  if (x==0) { throw new Error(s); }
+  x = K.exports.evl(x)
+  O(kst(x)+"\n")
+  K.exports.dx(x)
  } catch(e) {
   console.log(e)
   O("error")
@@ -445,27 +429,7 @@ V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
 `
-const kt = `// Postfix test interface: e.g. 5 mki til rev fst 0 500 dump
-const trace = 0;
-I pop1(I *s, I n, I *x) {
-	*x = s[n-1];
-	return n-1;
-}
-I pop2(I *s, I n, I *x, I *y) {
-	*x = s[n-2];
-	*y = s[n-1];
-	return n-2;
-}
-I push(I *s, I n, I x) {
-	s[n] = x;
-	return n+1;
-}
-I Match(C *a, C *b) {
-	for (I i=0; ;i++) {
-		if (a[i] != b[i]) R 0;
-		if (a[i] == 0)    R 1;
-	}
-}
+const kt = `
 V Dump(I x, I n) {
 	I p = x>>2;
 	printf("\n%08x  ", x);
@@ -481,6 +445,11 @@ V kst(I x) {
 	I t = ((uI)MI[x>>2])>>29;
 	I n = ((uI)MI[x>>2])&536870911;
 	switch(t){
+	case 0:
+		if(x<128)       printf("%c", x);
+		else if (x<256) printf("%c", x-128);
+		else { printf("kst(x=%x)"); trap(); }
+		break;
 	case 1:
 		printf("\"");
 		for(i=0;i<n;i++) printf("%c", MC[8+x+i]);
@@ -628,6 +597,7 @@ I parseNoun(C *s) {
 	if (c == 96)                 return symVector(s);
 	if (c >= '0' && s[0] <= '9') return numVector(s);
 	if (c == '(')                return lstVector(s+1);
+	if (strchr(":+-*%&|<>=!~,^#_$?@.", c) != NULL) { if (s[1] == ':') return c; return 128+c; }
 	if (strchr(s, ',') != NULL)  return numVector(s);
 	R 0;
 }
@@ -636,38 +606,8 @@ I main(int args, C **argv){
 	mt_init();
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	memset(MC, 0, 1<<M0);
-	I stack[32];
-	I i, n = 0;
-	I x, y, r;
-	C *a;
-	ini(M0);
-	for (i=1; i<args; i++) {
-		a = argv[i];
-		if (!strncmp(a, "fnd", 3)) a = "?";
-		if (strchr(":+-*%&|<>=!~,^#_$?@.", a[0]) != NULL) {
-			if (a[1] == 0) {
-				stack[n-2] = cal2(stack[n-2], stack[n-1], 128+a[0]);
-				n--;
-				continue;
-			} else if (a[1] == ':') {
-				stack[n-1] = cal1(stack[n-1], a[0]);
-				continue;
-			}
-		}
-		x = parseNoun(a);
-		if (x != 0) {
-			n = push(stack, n, x);
-			continue;
-		}
-		//printf("%s ", argv[i]);
-		if (Match("dump", a)) {
-			Dump(0, 100);
-		} else {
-			printf("arg!");
-			trap();
-		}
-	}
-	if (n != 1) { printf("stack (%d)", n);trap(); }
-	O(stack[0]);
+	ini(16);
+	I x = parseNoun(argv[1]);
+	O(evl(x));
 }
 `

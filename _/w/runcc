@@ -6,7 +6,7 @@ elif [ x"$1" = "xt" ]; then
 	while read line; do
 		x=`echo $line | awk 'BEGIN{FS=" /"}{print $1}'`
 		y=`echo $line | awk 'BEGIN{FS=" /"}{print $2}'`
-		z=`$tcc -run k_c $x`
+		z=`$tcc -run k_c "$x"`
 		if [ "$y" != "$z" ]; then
 			echo " $line"; echo "$z"
 			exit 1
@@ -15,5 +15,5 @@ elif [ x"$1" = "xt" ]; then
 	echo ok
 else
 	# go test (generate k_c)
-	$tcc -run k_c $*
+	$tcc -run k_c "$*"
 fi

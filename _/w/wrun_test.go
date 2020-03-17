@@ -42,20 +42,19 @@ func TestWagon(t *testing.T) {
 		in := strings.TrimSpace(vv[0])
 		exp := strings.TrimSpace(vv[1])
 		m, tab, data := run(bytes.NewReader(mb))
-		if e = runWagon(tab, m.wasm(tab, data), strings.Fields(in), exp); e != nil {
+		if e = runWagon(tab, m.wasm(tab, data), in, exp); e != nil {
 			t.Fatalf("%d: %s", i+1, e)
 		}
 	}
 }
 
 type K struct {
-	m     *wasm.Module
-	vm    *exec.VM
-	stack []uint32
+	m  *wasm.Module
+	vm *exec.VM
 }
 
-func runWagon(tab []segment, b []byte, args []string, exp string) error {
-	fmt.Println(args, exp)
+func runWagon(tab []segment, b []byte, s string, exp string) error {
+	fmt.Println(s, exp)
 	m, e := wasm.ReadModule(bytes.NewReader(b), nil)
 	if e != nil {
 		return e
@@ -70,115 +69,68 @@ func runWagon(tab []segment, b []byte, args []string, exp string) error {
 	if trace {
 		fmt.Println("memory", len(vm.Memory()))
 	}
-	K := K{m: m, vm: vm, stack: []uint32{16}}
-	K.call("ini")
-	K.pop()
-	for _, s := range args {
-		if o, e := K.call(s); o == true {
-			if e != nil {
-				return e
-			}
-			continue
-		}
-		if strings.HasSuffix(s, "dump") {
-			if n, e := strconv.Atoi(strings.TrimPrefix(s, "dump")); e == nil {
-				K.dump(0, uint32(n))
-			} else {
-				K.dump(0, 100)
-			}
-			continue
-		}
-		K.push(K.parseVector(s))
-	}
-	if len(K.stack) != 1 {
-		return fmt.Errorf("stack #" + strconv.Itoa(len(K.stack)))
-	}
-	// compare result
-	r := K.pop()
+	K := K{m: m, vm: vm}
+	K.call("ini", 16)
+	r := K.call("evl", K.parseVector(s))
 	got := K.kst(r)
 	if got != exp {
 		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
 	}
 	// free result and check for memory leaks
-	K.push(r)
-	if _, e := K.call("dx"); e != nil {
-		return e
-	}
+	K.call("dx", r)
 	if e := leak(K.vm.Memory()); e != nil {
 		return e
 	}
 	return nil
 }
-func (K *K) push(x ...uint32) {
-	K.stack = append(K.stack, x...)
-}
-func (K *K) pop() (r uint32) {
-	r = K.stack[len(K.stack)-1]
-	K.stack = K.stack[:len(K.stack)-1]
-	return r
-}
-func (K *K) call(s string) (bool, error) {
-	fc := ":+-*%&|<>=!~,^#_$?@."
-	if len(s) == 2 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
-		K.push(uint32(s[0]))
-		s = "cal1"
-	} else if len(s) == 1 && strings.Index(fc, s) != -1 {
-		K.push(uint32(128 + s[0]))
-		s = "cal2"
-	}
+func (K *K) call(s string, argv ...uint32) uint32 {
 	m, vm := K.m, K.vm
 	x, ok := m.Export.Entries[s]
 	if !ok {
-		return false, fmt.Errorf("function does not exist: %s", s)
+		panic(fmt.Errorf("function does not exist: %s", s))
 	}
 	fidx := m.Function.Types[x.Index]
 	ftyp := m.Types.Entries[fidx]
 	n := len(ftyp.ParamTypes)
 	var e error
 	var res interface{}
+	if n != len(argv) {
+		panic(fmt.Errorf("%s expects %d arguments (got %d)", s, n, len(argv)))
+	}
 	if n == 1 {
-		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()))
+		res, e = vm.ExecCode(int64(x.Index), uint64(argv[0]))
 	} else if n == 2 {
-		y := K.pop()
-		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()), uint64(y))
+		res, e = vm.ExecCode(int64(x.Index), uint64(argv[0]), uint64(argv[1]))
 	} else if n == 3 {
-		z := K.pop()
-		y := K.pop()
-		res, e = vm.ExecCode(int64(x.Index), uint64(K.pop()), uint64(y), uint64(z))
+		res, e = vm.ExecCode(int64(x.Index), uint64(argv[0]), uint64(argv[1]), uint64(argv[2]))
 	} else {
-		return true, fmt.Errorf("%s expects %d arguments", s, n)
+		panic(fmt.Errorf("%s expects %d arguments", s, n))
 	}
 	if e != nil {
-		return true, e
-	}
-	if res != nil {
-		if u, o := res.(uint32); o {
-			K.push(uint32(u))
-		} else {
-			return true, fmt.Errorf("%s: result type %T", s, res)
-		}
-		if trace {
-			r := K.stack[len(K.stack)-1]
-			fmt.Printf("%s: %v(%x)\n", s, r, r)
-		}
-	} else if trace {
-		fmt.Printf("%s: nil\n", s)
-	}
-	return true, nil
-}
-func (K *K) mk(t, n uint32) uint32 {
-	K.push(t, n)
-	if _, e := K.call("mk"); e != nil {
 		panic(e)
 	}
-	return K.pop()
+	switch v := res.(type) {
+	case nil:
+		return 0
+	case uint32:
+		return v
+	default:
+		panic(fmt.Errorf("%s returns %T", s, res))
+	}
 }
 func (K *K) parseVector(s string) uint32 {
 	m := K.vm.Memory()
+	fc := ":+-*%&|<>=!~,^#_$?@."
+	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
+		return uint32(s[0])
+	}
+	if len(s) > 0 && strings.Index(fc, s[:1]) != -1 {
+		return 128 + uint32(s[0])
+	}
 	if len(s) > 0 && s[0] == '"' {
 		s = strings.Trim(s, `"`)
 		b := []c(s)
-		p := K.mk(1, uint32(len(b)))
+		p := K.call("mk", 1, uint32(len(b)))
 		for i := 0; i < len(b); i++ {
 			m[8+int(p)+i] = b[i]
 		}
@@ -187,11 +139,11 @@ func (K *K) parseVector(s string) uint32 {
 	if len(s) > 0 && s[0] == '`' {
 		v := strings.Split(s[1:], "`")
 		sn := uint32(len(v))
-		sv := K.mk(5, sn)
+		sv := K.call("mk", 5, sn)
 		for i := uint32(0); i < sn; i++ {
 			b := v[i]
 			rn := uint32(len(b))
-			r := K.mk(1, rn)
+			r := K.call("mk", 1, rn)
 			for k := uint32(0); k < rn; k++ {
 				m[8+r+k] = b[k]
 			}
@@ -219,13 +171,13 @@ func (K *K) parseVector(s string) uint32 {
 		}
 	}
 	if f == -1 {
-		x := K.mk(2, n)
+		x := K.call("mk", 2, n)
 		for i := uint32(0); i < n; i++ {
 			binary.LittleEndian.PutUint32(m[x+8+i*4:], uint32(iv[i]))
 		}
 		return x
 	} else {
-		x := K.mk(3, n)
+		x := K.call("mk", 3, n)
 		for i := uint32(0); i < n; i++ {
 			binary.LittleEndian.PutUint64(m[x+8+i*8:], math.Float64bits(fv[i]))
 		}
@@ -236,7 +188,7 @@ func (K *K) parseList(s string) uint32 {
 	if len(s) == 0 || s[len(s)-1] != ')' {
 		panic("parse list")
 	} else if len(s) == 1 {
-		return K.mk(6, 0)
+		return K.call("mk", 6, 0)
 	}
 	r := make([]uint32, 0)
 	s = s[:len(s)-1]
@@ -255,7 +207,7 @@ func (K *K) parseList(s string) uint32 {
 		}
 	}
 	r = append(r, K.parseVector(s[a:]))
-	x := K.mk(6, uint32(len(r)))
+	x := K.call("mk", 6, uint32(len(r)))
 	m := K.vm.Memory()
 	for k := range r {
 		binary.LittleEndian.PutUint32(m[8+x+4*uint32(k):], r[k])
@@ -326,6 +278,16 @@ func (K *K) kst(a k) s {
 	}
 	sep := " "
 	switch t {
+	case 0:
+		if a < 128 {
+			return string([]byte{byte(a)}) + ":"
+		} else if a < 256 {
+			return string([]byte{byte(a) - 128})
+		} else {
+			fmt.Printf("x=%x a=%x\n", x, a)
+			dump(m, 0, 200)
+			panic("kst t=0 nyi")
+		}
 	case 1:
 		return `"` + string(m[a+8:a+8+n]) + `"`
 	case 2:
@@ -379,6 +341,7 @@ func leak(m []byte) error {
 	for p < k(len(m)) {
 		// a free block has refcount==0 at p+4 and bucket type at p+8 (after marking)
 		if get(m, p+4) != 0 {
+			dump(m, 0, 200)
 			return fmt.Errorf("non-free block at %d(%x)", p, p)
 		}
 		t := m[p+8]

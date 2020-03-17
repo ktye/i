@@ -78,10 +78,10 @@ func runtest() {
 }
 func parseVector(s string) i {
 	fc := ":+-*%&|<>=!~,^#_$?@."
-	if len(s) == 2 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
+	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
 		return i(s[0])
 	}
-	if len(s) == 1 && strings.Index(fc, s) != -1 {
+	if len(s) > 0 && strings.Index(fc, s[:1]) != -1 {
 		return i(128 + s[0])
 	}
 	if len(s) > 0 && s[0] == '"' { // "char"
@@ -176,7 +176,6 @@ func run(s string) string {
 	msl()
 	ini(16)
 	x := parseVector(s)
-	fmt.Println("run", kst(x))
 	return kst(evl(x))
 }
 func ini(x i) i {
@@ -438,7 +437,6 @@ func rev(x i) (r i) {
 }
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
-	fmt.Printf("fst x=%x t=%d\n", x, xt)
 	if xt == 7 {
 		return drx(x, '*')
 	}
@@ -520,16 +518,15 @@ func take(x, n i) (r i) {
 	return atx(x, r)
 }
 func atx(x, y i) (r i) {
-	fmt.Printf("atx x=%x y=%x\n", x, y)
-	fmt.Printf("atx:x=%s y=%s\n", kst(x), kst(y))
+	//fmt.Printf("atx x=%x y=%x\n", x, y)
+	//fmt.Printf("atx:x=%s y=%s\n", kst(x), kst(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
-		fmt.Println("call")
 		return cal(x, enl(y))
 	}
 	if yt != 2 {
 		panic("atx yt~I")
-	}
+	} // todo dict
 	r = mk(xt, yn)
 	rp := r + 8
 	w := i(C(xt))
@@ -547,26 +544,26 @@ func atx(x, y i) (r i) {
 	if xt > 4 {
 		rl(r)
 	}
-	fmt.Printf("==> atx r=%s\n", kst(r))
+	if xt == 6 && yn == 1 {
+		rx(I(r + 8))
+		dx(r)
+		r = I(r + 8)
+	}
 	return dxyr(x, y, r)
 }
 func cal(x, y i) (r i) {
-	fmt.Printf("call x=%x y=%x\n", x, y)
-	fmt.Printf("call:x=%s y=%s\n", kst(x), kst(y))
 	yt, yn, yp := v1(y)
 	if yt != 6 {
 		panic("type")
 	}
 	if x < 128 {
 		if yn != 1 {
-			fmt.Printf("x=%d yn=%d\n", x, yn)
 			panic("arity")
 		}
 		f := MT[x].(func(i) i)
 		return f(fst(y))
 	} else if x < 256 {
 		if yn != 2 {
-			fmt.Printf("x=%d yn=%d\n", x, yn)
 			panic("arity")
 		}
 		rl(y)
@@ -574,7 +571,6 @@ func cal(x, y i) (r i) {
 		f := MT[x].(func(i, i) i)
 		return f(I(yp), I(yp+4))
 	}
-	fmt.Printf("nyi call x=%d\n", x)
 	panic("nyi")
 }
 func cat(x, y i) (r i) {
@@ -946,31 +942,23 @@ func val(x i) (r i) {
 }
 func evl(x i) (r i) {
 	xt, xn, xp := v1(x)
-	fmt.Printf("evl x=%x t=%d n=%d\n", x, xt, xn)
 	if xt != 6 || xn == 0 {
 		return x
 	} else if xn == 1 {
 		return fst(x)
 	}
-	fmt.Printf("evl xx=%x\n", x)
 	rl(x)
 	r = mk(6, xn)
-	//fmt.Printf("x=%x r=%x\n", x, r)
 	rp := r + 8
 	for i := i(0); i < xn; i++ {
-		fmt.Printf("[%d]:I(%x)=%x\n", i, xp, I(xp))
 		sI(rp, evl(I(xp)))
 		rp += 4
 		xp += 4
 	}
-	fmt.Printf("r=%s\n", kst(r))
-	//dump(0, 200)
 	rp = r + 8
 	dx(x)
 	if xn == 2 {
 		rl(r)
-		fmt.Printf("atx? r=%x Irp=%x Irp+4=%x\n", r, I(rp), I(rp+4))
-		fmt.Printf("Irp=%s Irp+4=%s\n", kst(I(rp)), kst(I(rp+4)))
 		return dxr(r, atx(I(rp), I(rp+4)))
 	} else if xn == 3 {
 		rx(I(rp))
