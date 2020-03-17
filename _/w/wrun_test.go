@@ -155,7 +155,7 @@ func (K *K) parseVector(s string) uint32 {
 		return K.parseList(s[1:])
 	}
 	f := strings.Index(s, ".")
-	v := strings.Split(s, ",")
+	v := strings.Split(s, " ")
 	n := uint32(len(v))
 	iv := make([]int64, n)
 	fv := make([]float64, n)

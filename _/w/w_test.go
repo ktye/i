@@ -310,7 +310,7 @@ function parseNoun(s) {
  if(s.startsWith(String.fromCharCode(96))) return symVector(s);
  if(s.startsWith('('))                     return lstVector(s.substr(1));
  if(s.indexOf(".") != -1) t = 3
- var v = s.split(",").map(x=>Number(x))
+ var v = s.split(" ").map(x=>Number(x))
  var n = v.length
  if (n==0) return 0;
  var x = K.exports.mk(t, n)
@@ -572,15 +572,13 @@ I numVector(C *s) {
 	I iv[8];
 	C *p;
 	I isf = (strchr(s, '.') != NULL);
-	if (s[0] == ',')      { s++;      n--; }
-	if (n>0&&s[n-1]==',') { s[n-1]=0; n--; }
-	p = strtok(s, ",");
+	p = strtok(s, " ");
 	n = 0;
 	while(p != NULL) {
 		if (n==8) break;
 		if (isf)  fv[n++] = atof(p);
 		else      iv[n++] = atoi(p);
- 		p = strtok(NULL, ",");
+ 		p = strtok(NULL, " ");
 	}
 	if (isf) {
 		x = mk(3, n);
@@ -598,8 +596,7 @@ I parseNoun(C *s) {
 	if (c >= '0' && s[0] <= '9') return numVector(s);
 	if (c == '(')                return lstVector(s+1);
 	if (strchr(":+-*%&|<>=!~,^#_$?@.", c) != NULL) { if (s[1] == ':') return c; return 128+c; }
-	if (strchr(s, ',') != NULL)  return numVector(s);
-	R 0;
+	return numVector(s);
 }
 #define M0 16
 I main(int args, C **argv){
