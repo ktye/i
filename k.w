@@ -49,6 +49,8 @@ ech:I:II{x:lx x;v1;r:6 mk xn;r8;rl x;(y<256)?(y>127)?y-:128;xn/(rx y;rp::y atx I
 ecp:I:II{v1;(~xn)?(dx y; :fst x);x rxn -1+2*xn;y rxn xn-1;r:fst x;(xn-1)/r:r cat y cal (x atx mki 1+i)l2 x atx mki i;dxyr}
 ovr:I:II{v1;(~xn)?(dx y; :fst x);x rxn xn;y rxn xn-1;r:fst x;(xn-1)/r:y cal r l2 x atx mki i+1;dxyr}
 scn:I:II{v1;(~xn)?(dx y; :fst y);x rxn xn;y rxn xn-1;t:fst x;rx t;r:enl t;(xn-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
+ecr:I:III{v2;r:6 mk yn;r8;x rxn yn;y rxn yn;z rxn yn;yn/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
+ecl:I:III{v2;r:6 mk xn;r8;x rxn xn;y rxn yn;z rxn yn;xn/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
 ecd:I:III{!;x}epi:I:III{!;x}
 val:I:I{v1;xt?[;;;;;r:evl x;(rx x+12;r:x+12;dx x);!];r}
 evl:I:I{v1;(~xt~6)? :x;(xn~0)? :x;(xn~1)? :fst x;rl x;r:6 mk xn;r8;xn/(rp::evl I xp;rp+:4;xp+:4);r8;dx x;(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
@@ -61,7 +63,7 @@ sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
 128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
 144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
 161:{mkd;xx2;rsh;cst;diw;min;ecv;ecd;epi;mul;add;cat;sub;cal;ovv}
-188:{les;eql;mor;fnd;atx}220:{scv;xx1;exc;cut}252:{max;xx2;mtc}
+188:{les;eql;mor;fnd;atx}219:{ecl;scv;xx1;exc;cut}251:{ecr;max;xx2;mtc}
 
 \
 odo5:{p#’x(&#)’_(p:*/x)%*\x}
@@ -73,22 +75,29 @@ Fcifzsld   xt~0(function) x<256(basic)
 	   xn~3(proj)     verb argv empty-index
 	   xn~4(lambda)   str  tree args locals
 	   
-+ add abs                 abs:+z                   memory
-- sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
-* mul fst                                          8.. 11   k-tree/key   pointer     todo
-% div sqr                                         12.. 15   k-tree/value pointer     todo
-& min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
-| max rev                                        128..131   memsize log2
-< les grd                              
-> mor gdn                                        function tables (call indirect)
-= eql grp                                        T1:I:I (#128)      T2:I:I (#128)
-~ mtc not   match                                                   0..7 gtT 
-! key til   seq           z:re!im  im:!z
-, cat enl                 
-^ exc asc                 
-$ str cst   
-# rsh cnt   take
-_ drp flr   drop          ang:_z
-? fnd unq   fnd fnx fnc fni..              
-@ atx typ                 z:abs@ang  z@ang
-. cal val                 re:. z
++  add abs                 abs:+z                   memory
+-  sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
+*  mul fst                                          8.. 11   k-tree/key   pointer     todo
+%  div sqr                                         12.. 15   k-tree/value pointer     todo
+&  min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
+|  max rev                                        128..131   memsize log2
+<  les grd                              
+>  mor gdn                                        function tables (call indirect)
+=  eql grp                                        T1:I:I (#128)      T2:I:I (#128)
+~  mtc not   match                                                   0..7 gtT 
+!  key til   seq           z:re!im  im:!z
+,  cat enl                 
+^  exc asc                 
+$  str cst   
+#  rsh cnt   take
+_  drp flr   drop          ang:_z
+?  fnd unq   fnd fnx fnc fni..              
+@  atx typ                 z:abs@ang  z@ang
+.  cal val                 re:. z
+
++'x  ech(40)  x+'y  ?(168)    x'y  ?
++/x  ovr(123) x+/y  ecr(251)  x/y  ?
++\x  scn(91)  x+\y  ecl(219)  x\y  ?
++':x ecp(41)  x':y  ?(169)    x':y ?
++/:x ?(125)   x+/:y ?(253)    x/:y sv?
++\:x ?(93)    x+\:y ?         x\:y vs?

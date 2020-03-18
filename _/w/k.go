@@ -201,9 +201,9 @@ func ini(x i) i {
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, // 160..175
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, les, eql, mor, fnd, // 176..191
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192..207
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scv, nil, exc, cut, // 208..223
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 208..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224..239
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, max, nil, mtc, nil, // 240..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 240..255
 	})
 	return x
 }
@@ -962,10 +962,12 @@ func drv(x, y i) (r i) { // x(adv) y(verb), e.g. ech +
 	sI(12+r, y)
 	return r
 }
-func ecv(x i) (r i) { return drv(40, x) }  // ech(40) eci(40+128)
-func epv(x i) (r i) { return drv(41, x) }  // ecp(41) epi(41+128)
-func ovv(x i) (r i) { return drv(123, x) } // ovr(123) ovi(123+128)
-func scv(x i) (r i) { return drv(91, x) }  // scn(91) sci(91+128)
+func ecv(x i) (r i) { return drv(40, x) }  // '  ech(40)  ?(40+128)
+func epv(x i) (r i) { return drv(41, x) }  // ': ecp(41)  ?(41+128)
+func ovv(x i) (r i) { return drv(123, x) } // /  ovr(123) ecr(123+128)
+func riv(x i) (r i) { return drv(125, x) } // /: ?(125)   ?(128+125)
+func scv(x i) (r i) { return drv(91, x) }  // \  scn(91)  ecl(91+128)
+func liv(x i) (r i) { return drv(93, x) }  // \: ?(93)    ?(221)
 func ech(x, y i) (r i) { // f'x (each)
 	x = lx(x)
 	_, xn, xp := v1(x)
@@ -1025,6 +1027,34 @@ func scn(x, y i) (r i) { // y\x (scan)
 		r = lcat(r, t)
 	}
 	dx(t)
+	return dxyr(x, y, r)
+}
+func ecr(x, y, f i) (r i) { // x f/ y (each-right)
+	_, _, _, yn, _, _ := v2(x, y)
+	r = mk(6, yn)
+	rp := r + 8
+	rxn(x, yn)
+	rxn(y, yn)
+	rxn(f, yn)
+	for i := i(0); i < yn; i++ {
+		sI(rp, cal(f, l2(x, atx(y, mki(i)))))
+		rp += 4
+	}
+	dx(f)
+	return dxyr(x, y, r)
+}
+func ecl(x, y, f i) (r i) { // x f\ y (each-left)
+	_, _, xn, _, _, _ := v2(x, y)
+	r = mk(6, xn)
+	rp := r + 8
+	rxn(x, xn)
+	rxn(y, xn)
+	rxn(f, xn)
+	for i := i(0); i < xn; i++ {
+		sI(rp, cal(f, l2(atx(x, mki(i)), y)))
+		rp += 4
+	}
+	dx(f)
 	return dxyr(x, y, r)
 }
 func epi(x, y, f i) (r i) { panic("nyi epi") } // x f':y
