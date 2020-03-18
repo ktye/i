@@ -80,7 +80,7 @@ I mul(I x0,I x1){R nd(x0,x1,151);}
 I diw(I x0,I x1){R nd(x0,x1,155);}
 V adc(I x0,I x1,I x2){MC[x2]=(C)((MC[x0])+(MC[x1]));;}
 V adi(I x0,I x1,I x2){MI[x2>>2]=(I)((MI[x0>>2])+(MI[x1>>2]));;}
-V adf(I x0,I x1,I x2){MF[x2>>3]=(F)((MF[x0>>3])+(MF[x1>>3]));;}
+V adf(I x0,I x1,I x2){MF[x2>>3]=(F)((MF[x0>>3])+(sin(MF[x1>>3])));;}
 V adz(I x0,I x1,I x2){adf(x0,x1,x2);adf((x0+8),(x1+8),(x2+8));;}
 V suc(I x0,I x1,I x2){MC[x2]=(C)((MC[x0])-(MC[x1]));;}
 V sui(I x0,I x1,I x2){MI[x2>>2]=(I)((MI[x0>>2])-(MI[x1>>2]));;}

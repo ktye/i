@@ -268,6 +268,9 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 	}
 	p := parser{mac: mac, fns: fns, fsg: fsg, sgm: sgm, fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
+	if e == nil {
+		return nil
+	}
 	e = p.locals(e, 0)
 	if x, s := p.validate(e); x != nil {
 		println(f.name)
@@ -1584,12 +1587,29 @@ func (m module) wasm(tab []segment, data []c) []c {
 		sec.cat([]c(s))
 	}
 	sec.out(o)
-	// no import section(2)
+	// import section(2)
+	imports := m.imports()
+	if len(imports) > 0 {
+		sec = NewSection(2)
+		sec.cat(leb(len(imports)))
+		for _, f := range imports {
+			mod := "ext"
+			sec.cat(leb(len(mod)))
+			sec.cat([]c(mod))
+			sec.cat(leb(len(f.name)))
+			sec.cat([]c(f.name))
+			sec.cat1(0) // kind
+			sec.cat(leb(sigs[s(f.sig())]))
+		}
+		sec.out(o)
+	}
 	// function section(3: function signature indexes)
 	sec = NewSection(3)
-	sec.cat(leb(len(m)))
+	sec.cat(leb(len(m) - len(imports)))
 	for _, f := range m {
-		sec.cat(leb(sigs[s(f.sig())]))
+		if f.ast != nil {
+			sec.cat(leb(sigs[s(f.sig())]))
+		}
 	}
 	sec.out(o)
 	// function table section(4)
@@ -1644,8 +1664,11 @@ func (m module) wasm(tab []segment, data []c) []c {
 	}
 	// code section(10)
 	sec = NewSection(10)
-	sec.cat(leb(len(m))) // number of functions
+	sec.cat(leb(len(m) - len(imports))) // number of functions
 	for _, f := range m {
+		if f.ast == nil {
+			continue // import
+		}
 		b := f.code()
 		sec.cat(leb(len(b)))
 		sec.cat(b)
@@ -1653,6 +1676,14 @@ func (m module) wasm(tab []segment, data []c) []c {
 	sec.out(o)
 	// no data section(11)
 	return o.Bytes()
+}
+func (m module) imports() (r []fn) {
+	for i, f := range m {
+		if m[i].ast == nil {
+			r = append(r, f)
+		}
+	}
+	return r
 }
 func (m module) exports() (idx []int, fns []fn) {
 	for i, f := range m {
@@ -1704,6 +1735,9 @@ func (f fn) sig() (r []c) {
 	return r
 }
 func (f fn) code() (r []c) {
+	if f.ast == nil {
+		println("nil ast")
+	}
 	r = append(r, f.locs()...)
 	r = append(r, f.ast.bytes()...)
 	return append(r, 0x0b)
@@ -1779,6 +1813,9 @@ func (m module) cout(tab []segment, data []c) []c {
 		fmt.Fprintf(&b, "V *MT[%d];\n", segmentsize(tab))
 	}
 	for _, f := range m {
+		if f.ast == nil {
+			continue // import
+		}
 		st := styp[f.t]
 		if f.t == 0 {
 			st = "V"
@@ -1794,6 +1831,9 @@ func (m module) cout(tab []segment, data []c) []c {
 	}
 	fmt.Fprintf(&b, "\n")
 	for _, f := range m {
+		if f.ast == nil {
+			continue // import
+		}
 		sig, loc := "", ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {

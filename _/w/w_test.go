@@ -399,7 +399,7 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 (async () => {
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
- K = await WebAssembly.instantiate(module);
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2} });
  K.C = new Uint8Array(K.exports.mem.buffer)
  K.I = new Uint32Array(K.exports.mem.buffer)
  K.F = new Float64Array(K.exports.mem.buffer)
