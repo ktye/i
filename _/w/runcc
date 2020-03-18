@@ -3,16 +3,16 @@ tcc=/local/tcc/tcc
 if [ "$1" = "fmt" ]; then
 	/local/LLVM/bin/clang-format.exe k_c > xx_c
 elif [ x"$1" = "xt" ]; then
-	grep -v '^/' t | while read line; do
-		x=`echo $line | awk 'BEGIN{FS=" /"}{print $1}'`
-		y=`echo $line | awk 'BEGIN{FS=" /"}{print $2}'`
-		z=`$tcc -run k_c "$x"`
-		if [ "$y" != "$z" ]; then
-			echo " $line"; echo "$z"
-			exit 1
-		fi
-	done
-	echo ok
+	cat t | $tcc -run k_c t | awk '{
+		x=$0
+		getline < "t"
+		y=$0
+		gsub(/.* \//, "")
+		if(x!=$0) {
+			print y"\ngot: "x
+			exit
+		}
+	}' && echo "ok"
 else
 	# go test (generate k_c)
 	$tcc -run k_c "$*"

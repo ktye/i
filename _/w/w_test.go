@@ -526,7 +526,7 @@ I lstVector(C *s) {
 	I i;
 	C p;
 	I n = strlen(s);
-	if ((n == 0) || s[n-1] != ')') { printf("parse list: %s\n", s); trap(); }
+	if ((n == 0) || s[n-1] != ')') { printf("parse list: %s???\n", s); trap(); }
 	if (n == 1) return mk(6, 0);
 	s[n-1] = 0; n--;
 	for (i=0; i<n; i++) {
@@ -590,6 +590,9 @@ I numVector(C *s) {
 	R x;
 }
 I parseNoun(C *s) {
+	I i;
+	I n = strlen(s);
+	for (i=n-1; i>=0; i--) { if(s[i]==' ') s[i] = 0; else break; }
 	C c = s[0];
 	if (c == '"')                return chrVector(s);
 	if (c == 96)                 return symVector(s);
@@ -599,9 +602,22 @@ I parseNoun(C *s) {
 	return numVector(s);
 }
 #define M0 16
+V runtest() {
+	I x;
+	C buf[128];
+	C *p;
+	while (fgets(buf, 128, stdin) != NULL) {
+		if ((p=strstr(buf, " /"))==NULL) { trap(); }
+		*p = 0;
+		memset(MC, 0, 1<<M0);
+		ini(16);
+		O(evl(parseNoun(buf)));
+	}
+}
 I main(int args, C **argv){
 	mt_init();
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
+	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
 	memset(MC, 0, 1<<M0);
 	ini(16);
 	I x = parseNoun(argv[1]);

@@ -193,15 +193,15 @@ func ini(x i) i {
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, // 032..047
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, grd, eql, gdn, unq, // 048..063
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 064..079
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, srt, flr, // 080..095
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 080..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 096..111
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, rev, nil, not, nil, // 112..127
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 112..127
 		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 128..143
 		adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 144..159
-		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, nil, // 160..175
+		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, // 160..175
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, les, eql, mor, fnd, // 176..191
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192..207
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, exc, cut, // 208..223
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scv, nil, exc, cut, // 208..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224..239
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, max, nil, mtc, nil, // 240..255
 	})
@@ -268,9 +268,10 @@ func dx(x i) {
 		}
 	}
 }
-func rx(x i) {
+func rx(x i) { rxn(x, 1) }
+func rxn(x, y i) {
 	if x > 255 {
-		MI[1+x>>2]++
+		MI[1+x>>2] += y
 	}
 }
 func rl(x i) {
@@ -286,8 +287,14 @@ func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkd(x, y i) (r i) {
 	x, y = ext(x, y)
 	r = mk(7, 2)
-	MI[2+r>>2] = x
-	MI[3+r>>2] = y
+	sI(r+8, x)
+	sI(r+12, y)
+	return r
+}
+func l2(x, y i) (r i) {
+	r = mk(6, 2)
+	sI(r+8, x)
+	sI(r+12, y)
 	return r
 }
 func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
@@ -387,7 +394,7 @@ func up(x, t, n i) (r i) {
 	}
 	return dxr(x, r)
 }
-func expl(x i) (r i) {
+func lx(x i) (r i) { // explode
 	xt, n, _ := v1(x)
 	if xt == 6 {
 		return x
@@ -628,8 +635,9 @@ func lcat(x, y i) (r i) { // list append
 	xt, xn, xp := v1(x)
 	if bk(xt, xn) < bk(xt, xn+1) {
 		r = mk(xt, xn+1)
-		mv(r+8, xp, 4*xn)
+		rl(x)
 		dx(x)
+		mv(r+8, xp, 4*xn)
 		x, xp = r, r+8
 	}
 	sI(x, (xn+1)|6<<29)
@@ -901,7 +909,6 @@ func abs(x i) i     { return nm(x, 15) }
 func neg(x i) i     { return nm(x, 19) }
 func sqr(x i) i     { return nm(x, 27) }
 func abc(x, r i) { // +c (toupper)
-	fmt.Println("abc / toupper")
 	if c := C(x); craz(c) {
 		sC(r, c-32)
 	} else {
@@ -949,16 +956,18 @@ func zri(x i, o i) (r i) {
 func zre(x i) (r i) { return zri(x, 0) }
 func zim(x i) (r i) { return zri(x, 8) }
 
-func drv(a, x i) (r i) {
+func drv(x, y i) (r i) { // x(adv) y(verb), e.g. ech +
 	r = mk(0, 2)
-	sI(8+r, a)
-	sI(12+r, x)
+	sI(8+r, x)
+	sI(12+r, y)
 	return r
 }
-func ecv(x i) (r i) { println("ecv"); return drv(40, x) } // ech(40) eci(40+128)
-func epv(x i) (r i) { println("epv"); return drv(41, x) } // ecp(41) epi(41+128)
-func ech(x, y i) (r i) { // f'x
-	x = expl(x)
+func ecv(x i) (r i) { return drv(40, x) }  // ech(40) eci(40+128)
+func epv(x i) (r i) { return drv(41, x) }  // ecp(41) epi(41+128)
+func ovv(x i) (r i) { return drv(123, x) } // ovr(123) ovi(123+128)
+func scv(x i) (r i) { return drv(91, x) }  // scn(91) sci(91+128)
+func ech(x, y i) (r i) { // f'x (each)
+	x = lx(x)
 	_, xn, xp := v1(x)
 	r = mk(6, xn)
 	rp := r + 8
@@ -974,9 +983,52 @@ func ech(x, y i) (r i) { // f'x
 	}
 	return dxyr(x, y, r)
 }
-func ecp(x, y i) (r i) { panic("nyi ecp") } //   f':x
-func epi(x, y i) (r i) { panic("nyi epi") } // x f':y
-func ecd(x, y i) (r i) { panic("nyi ecd") } // x f' y
+func ecp(x, y i) (r i) { // f':x (each-prior)
+	_, xn, _ := v1(x)
+	if xn == 0 {
+		return dxr(y, fst(x))
+	}
+	rxn(x, 2*xn-1)
+	rxn(y, xn-1)
+	r = fst(x)
+	for i := i(0); i < (xn - 1); i++ {
+		r = cat(r, cal(y, l2(atx(x, mki(i+1)), atx(x, mki(i)))))
+	}
+	return dxyr(x, y, r)
+}
+func ovr(x, y i) (r i) { // y/x (over/reduce)
+	_, xn, _ := v1(x)
+	if xn == 0 {
+		return dxr(y, fst(x))
+	}
+	rxn(x, xn)
+	rxn(y, xn-1)
+	r = fst(x)
+	for i := i(0); i < xn-1; i++ {
+		r = cal(y, l2(r, atx(x, mki(i+1))))
+	}
+	return dxyr(x, y, r)
+}
+func scn(x, y i) (r i) { // y\x (scan)
+	_, xn, _ := v1(x)
+	if xn == 0 {
+		return dxr(y, fst(x))
+	}
+	rxn(x, xn)
+	rxn(y, xn-1)
+	t := fst(x)
+	rx(t)
+	r = enl(t)
+	for i := i(0); i < xn-1; i++ {
+		t = cal(y, l2(t, atx(x, mki(i+1))))
+		rx(t)
+		r = lcat(r, t)
+	}
+	dx(t)
+	return dxyr(x, y, r)
+}
+func epi(x, y, f i) (r i) { panic("nyi epi") } // x f':y
+func ecd(x, y, f i) (r i) { panic("nyi ecd") } // x f' y
 
 func val(x i) (r i) {
 	xt, _, _ := v1(x)

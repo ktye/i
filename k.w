@@ -1,14 +1,15 @@
 ini:I:I{0::289360742959022336j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
 bk:I:II{r:32-*7+y*I?C x;(r<4)? :4;r}mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
-mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}
+mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}l2:I:II{r:6 mk 2;(r+8)::x;(r+12)::y;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}r8:{rp:r+8}
-fr:V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>4)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{(x>255)?(x+:4;x::1+I x)}rl:V:I{v1;xn/(rx I xp;xp+:4)}
+fr:V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;(xt>4)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{x rxn 1}rxn:V:II{(x>255)?(x+:4;x::y+I x)}rl:V:I{v1;xn/(rx I xp;xp+:4)}
+lx:I:I{v1;(xt~6)? :x;r:6 mk xn;r8;xn/(rx x;rp::x atx mki i;rp+:4);dxr}
 til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir.I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
 ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:x take yn;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:y take xn;yn:xn;yp:y+8);(~xn~yn)?!}
 upx:{(xt>=5)?!;(yt>=5)?!;(xt<yt)?/(x:up(x;xt;xn);xt+:1);(yt<xt)?/(y:up(y;yt;yn);yt+:1);xp:x+8;yp:y+8}
 up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::I?C xp+i;rp+:4);z/(rp::F?I xp;rp+:8;xp+:4);!];dxr}
 atx:I:II{v2;(~xt)?( :x cal enl y);(~yt~2)?!;r:xt mk yn;r8;w:I?C xt;f:xt+128;yn/(yi:I yp;$[yi<xn;mv(rp;xp+w*yi;w);(V.f)rp];rp+:w;yp+:4);(xt>4)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
-cal:I:II{v2;(~yt~6)?!;(x<128)?((~yn~1)?!; :(I.x)(fst y));(x<256)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));!;x}
+cal:I:II{v2;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y)));(x<128)?((~yn~1)?!; :(I.x)(fst y));(x<256)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));(xn~2)?(rl x;dx x;a:I xp;yn?[; :((I.a)(fst y;I xp+4));(a+:128;rl y;dx y; :((I.a)(I yp;I yp+4;I xp+4)));!]);!;x}
 rev:I:I{v1;(~xn)? :x;x atx tir xn}fst:I:I{v1;(xt~7)?(rx 12+x;dx x; :fst 12+x);x atx mki 0}
 cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:6 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
 rsh:I:II{v2;(~xt~2)?!;n:prod(xp;xn);r:y take n;(xn~1)?(dx x; :r);xn-:1;xe:xp+4*xn;xn/(m:I xe;n:n%m;n:xp prod xn-i;r:(seq(0;n;m))cut r;xe-:4);dxr}prod:I:II{r:1;y/(r*:I x;x+:4);r}
@@ -16,7 +17,7 @@ take:I:II{v1;r:til mki y;r8;(xn<y)?(y/(rp+4*i)::i\xn);x atx r}drop:I:II{v1;(y>xn
 use:I:I{(1~I x+4)? :x;v1;r:xt mk xn;r8;mv(rp;xp;xn*I?C xt);dx x;r}mv:V:III{z/(x+i)::C y+i}
 cat:I:II{v2;((~xt)|~yt)?!;(xt~yt)? :x ucat y;(xt~6)? :x lcat y;!;x}
 ucat:I:II{v2;(xt>4)?(rl x);(xt>5)?(r:(x+8)mkd x+12;dx x;dx y; :r);r:xt mk xn+yn;w:I?C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
-lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;mv(r+8;xp;4*xn);dx x;x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
+lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;rl x;dx x;mv(r+8;xp;4*xn);x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
 enl:I:I{(6 mk 0) lcat x} cnt:I:I{v1;dx x;mki xn}typ:I:I{v1;r:2 mk 1;(8+r)::xt;dxr} not:I:I{x eql mki 0}
 wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;r8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
 mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;xt?[ :1;nn:xn;nn:xn<<2;nn:xn<<3;nn:xn<<4;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];nn/(~(C xp+i)~C yp+i)? :0;1}
@@ -43,17 +44,24 @@ sqc:V:II{!}sqi:V:II{!}sqf:V:II{y::%F x}sqz:V:II{y::F x;(y+8)::-F x+8}
 zre:I:I{x zri 0}zim:I:I{x zri 8}zri:I:II{v1;(xt~4)?!;r:3 mk xn;r8;xp+:y;xn/(rp::F xp;rp+:8;xp+:16);dxr}
 crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 nag:V:I{x::0}nac:V:I{x::C?32}nai:V:I{x::-2147483648}naf:V:I{x::9221120237041090561f}naz:V:I{naf x;naf x+8}nas:V:I{x::1 mk 0;(4+I x)::0}nal:V:I{x::0}
+drv:I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv:I:I{40 drv x}epv:I:I{41 drv x}ovv:I:I{123 drv x}scv:I:I{91 drv x}
+ech:I:II{x:lx x;v1;r:6 mk xn;r8;rl x;(y<256)?(y>127)?y-:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
+ecp:I:II{v1;(~xn)?(dx y; :fst x);x rxn -1+2*xn;y rxn xn-1;r:fst x;(xn-1)/r:r cat y cal (x atx mki 1+i)l2 x atx mki i;dxyr}
+ovr:I:II{v1;(~xn)?(dx y; :fst x);x rxn xn;y rxn xn-1;r:fst x;(xn-1)/r:y cal r l2 x atx mki i+1;dxyr}
+scn:I:II{v1;(~xn)?(dx y; :fst y);x rxn xn;y rxn xn-1;t:fst x;rx t;r:enl t;(xn-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
+ecd:I:III{!;x}epi:I:III{!;x}
 val:I:I{v1;xt?[;;;;;r:evl x;(rx x+12;r:x+12;dx x);!];r}
 evl:I:I{v1;(~xt~6)? :x;(xn~0)? :x;(xn~1)? :fst x;rl x;r:6 mk xn;r8;xn/(rp::evl I xp;rp+:4;xp+:4);r8;dx x;(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
 xx1:I:I{!;x}xx2:I:II{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
+sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
 1:{gtc;gti;gtf;gtl;gtl}9:{eqc;eqi;eqf;eqz;eqL;eqL}
 16:{abc;abi;abf;abz;nec;nei;nef;nez}28:{sqc;sqi;sqf;sqz}
-33:{til;xx1;cnt;str;sqr;wer;xx1;xx1;xx1;fst;abs;enl;neg;val}
-60:{grd;grp;gdn;unq;typ}94:{srt;flr}124:{rev;xx1;not}
+33:{til;xx1;cnt;str;sqr;wer;epv;ech;ecp;fst;abs;enl;neg;val}
+60:{grd;grp;gdn;unq;typ}91:{scn;xx1;xx1;srt;flr}123:{ovr;rev;xx1;not}
 128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
 144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
-161:{mkd;xx2;rsh;cst;diw;min;xx2;xx2;xx2;mul;add;cat;sub;cal}
-188:{les;eql;mor;fnd;atx}222:{exc;cut}252:{max;xx2;mtc}
+161:{mkd;xx2;rsh;cst;diw;min;ecv;ecd;epi;mul;add;cat;sub;cal;ovv}
+188:{les;eql;mor;fnd;atx}220:{scv;xx1;exc;cut}252:{max;xx2;mtc}
 
 \
 odo5:{p#’x(&#)’_(p:*/x)%*\x}
@@ -61,9 +69,9 @@ flip:,'/,''
 
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
 Fcifzsld   xt~0(function) x<256(basic) 
-0148x444   xn~2 (derived) adv  verb
-	   xn~3 (proj)    verb argv empty-index
-	   xn~4 (lambda)  str  tree args locals
+0148x444   xn~2(derived)  adv  verb
+	   xn~3(proj)     verb argv empty-index
+	   xn~4(lambda)   str  tree args locals
 	   
 + add abs                 abs:+z                   memory
 - sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
