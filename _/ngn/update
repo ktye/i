@@ -26,7 +26,7 @@ int32_t clz(int32_t x){int32_t r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "c
 #endif
 
 EOF
-for file in g.h k.h a.c b.c c.c e.c f.c h.c i.c j.c k.c m.c o.c p.c s.c v.c w.c; do
+for file in g.h k.h a.c b.c c.c e.c f.c h.c i.c j.c k.c m.c o.c p.c s.c v.c w.c x.c; do 
         echo "//$file"
         cat $ngn/$file
 done | grep -v "#include" >> k.c
