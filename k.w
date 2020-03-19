@@ -33,7 +33,7 @@ eql:I:II{cmp(x;y;1)}mor:I:II{cmp(x;y;0)}les:I:II{cmp(y;x;0)}cmp:I:III{v2;upx;ext
 nd:I:III{v2;upx;ext;w:I?C xt;f:z+xt;r:xt mk xn;r8;xn/((V.f)(xp;yp;rp);xp+:w;yp+:w;rp+:w);dxyr}
 nm:I:II{v1;r:use x;r8;w:I?C xt;y+:xt;xn/(((V.y)(xp;rp));xp+:w;rp+:w);(xt~4)?(y~19)? :zre r;r}
 add:I:II{nd(x;y;143)}sub:I:II{nd(x;y;147)}mul:I:II{nd(x;y;151)}diw:I:II{nd(x;y;155)}
-adc:V:III{z::(C x)+C y}adi:V:III{z::(I x)+I y}adf:V:III{z::(F x)+sin F y}adz:V:III{adf(x;y;z);adf(x+8;y+8;z+8)}
+adc:V:III{z::(C x)+C y}adi:V:III{z::(I x)+I y}adf:V:III{z::(F x)+F y}adz:V:III{adf(x;y;z);adf(x+8;y+8;z+8)}
 suc:V:III{z::(C x)-C y}sui:V:III{z::(I x)-I y}suf:V:III{z::(F x)-F y}suz:V:III{suf(x;y;z);suf(x+8;y+8;z+8)}
 muc:V:III{z::(C x)*C y}mui:V:III{z::(I x)*I y}muf:V:III{z::(F x)*F y}muz:V:III{z::((F x)*F x+8)-(F y)*F y+8;(z+8)::((F x)*F y+8)+(F x+8)*F y}
 dic:V:III{z::(C x)%C y}dii:V:III{z::(I x)%I y}dif:V:III{z::(F x)%F y}
@@ -83,17 +83,17 @@ Fcifzsld   xt~0(function) x<256(basic)
 %  div sqr                                         12.. 15   k-tree/value pointer     todo
 &  min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                        128..131   memsize log2
-<  les grd                              
+<  les grd                                        132..135   k-tree root (dict)
 >  mor gdn                                        function tables (call indirect)
 =  eql grp                                        T1:I:I (#128)      T2:I:I (#128)
 ~  mtc not   match                                                   0..7 gtT 
 !  key til   seq           z:re!im  im:!z
 ,  cat enl                 
-^  exc asc                 
-$  str cst   
-#  rsh cnt   take
-_  drp flr   drop          ang:_z
-?  fnd unq   fnd fnx fnc fni..              
+^  exc asc                                         parse tree (left to right)
+$  str cst                                         (.;`s;a;+;y)      assign       s[a]+:y
+#  rsh cnt   take                                  (.;`s;(a;b;c);;y) depth assign s[a;b;c]:y
+_  drp flr   drop          ang:_z                  (:;a;b;c)         sequence     a;b;c
+?  fnd unq   fnd fnx fnc fni..                     ((/;+);1 2 3)     adverbs      +/1 2 3
 @  atx typ                 z:abs@ang  z@ang
 .  cal val                 re:. z
 

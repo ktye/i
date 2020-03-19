@@ -44,6 +44,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
+const ktree = 132
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -77,6 +78,9 @@ func runtest() {
 	}
 }
 func parseVector(s string) i {
+	if len(s) == 0 {
+		return 0
+	}
 	fc := ":+-*%&|<>=!~,^#_$?@.'/\\"
 	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
 		return i(s[0])
@@ -175,8 +179,11 @@ func run(s string) string {
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
 	ini(16)
-	x := parseVector(s)
-	return kst(evl(x))
+	x := evl(parseVector(s))
+	s = kst(x)
+	dx(x)
+	leak()
+	return s
 }
 func ini(x i) i {
 	sJ(0, 289360742959022336) // uint64(0x0404041008040100)
@@ -186,6 +193,7 @@ func ini(x i) i {
 		sI(4*i, p)
 		p *= 2
 	}
+	sI(ktree, mkd(mk(5, 0), mk(6, 0)))
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtC, gtI, gtF, gtL, gtL, nil, nil, nil, eqC, eqI, eqF, eqZ, eqL, eqL, nil, // 000..015
@@ -341,10 +349,7 @@ func drx(x, f i) (r i) { // dict recurse on values
 }
 func mv(dst, src, n i) { copy(MC[dst:dst+n], MC[src:src+n]) }
 func ext(x, y i) (rx, ry i) {
-	xt, yt, xn, yn, _, _ := v2(x, y)
-	if xt != yt {
-		trap()
-	}
+	_, _, xn, yn, _, _ := v2(x, y)
 	if xn == yn {
 		return x, y
 	}
@@ -451,6 +456,10 @@ func fst(x i) (r i) {
 		return drx(x, '*')
 	}
 	return atx(x, mki(0))
+}
+func lst(x i) (r i) {
+	_, xn, _ := v1(x)
+	return atx(x, mki(xn-1))
 }
 func drop(x, n i) (r i) {
 	_, xn, _ := v1(x)
@@ -1073,9 +1082,109 @@ func val(x i) (r i) {
 		panic("nyi")
 	}
 }
+func atd(x, y i) (r i) { // at-depth
+	fmt.Printf("atd x=%x(%s) y=%x(%s)\n", x, kst(x), y, kst(y))
+	if x == 0 {
+		return dxr(y, 0)
+	}
+	xt, yt, xn, yn, _, yp := v2(x, y)
+	if yt == 6 {
+		return atd(x, drop(y, 1))
+	} else if xt == 7 {
+		rl(x)
+		dx(x)
+		return atd(I(x+12), wer(I(x+8)))
+	} else if yt != 2 {
+		trap()
+	}
+	for i := i(0); i < yn; i++ {
+		if I(yp+i) >= xn {
+			return 0
+		}
+	}
+	return atx(x, y)
+}
+func lup(x i) (r i) {
+	fmt.Printf("lup x=%s\n", kst(x))
+	k := I(ktree)
+	rx(k)
+	return atd(k, x)
+}
+func asn(x, y i) (r i) {
+	xt, _, _ := v1(x)
+	if xt != 5 {
+		trap()
+	}
+	k := I(ktree)
+	kk := I(k + 8)
+	kv := I(k + 12)
+	n := I(kk) & 536870911
+	i := fnx(kk, x)
+	rx(y)
+	if i == n {
+		sI(k+8, cat(kk, x))
+		sI(k+12, lcat(kv, y))
+	} else {
+		vi := kv + 8 + 4*i
+		dx(I(vi))
+		sI(vi, y)
+	}
+	return dxr(x, y)
+}
+func asd(x, y, z, v i) (r i) { // .[x;a;f;y] depth assign
+	xt, yt, _, yn, xp, yp := v2(x, y)
+	if yt == 6 { // at-depth
+		rx(y)
+		return asd(atx(x, fst(y)), drop(y, 1), z, v)
+	} else if z != 0 {
+		rx(x)
+		if y == 0 {
+			v = cal(z, l2(atx(x, y), v))
+		} else {
+			v = cal(z, l2(x, v))
+		}
+	}
+	if y == 0 {
+		return dxr(x, v)
+	}
+	vn := I(v) & 536870911
+	if vn == 1 && yn != 1 {
+		v, vn = take(v, yn), yn
+	}
+	if xt == 7 {
+		rl(x)
+		dx(x)
+		xk := I(x + 8)
+		xv := I(x + 12)
+		rx(xk)
+		return mkd(xk, asd(xv, fnd(xk, y), 0, v))
+	}
+	x = use(x)
+	xp = x + 8
+	if xt == 6 {
+		v = lx(v)
+		rl(v)
+	}
+	vp := v + 8
+	w := i(C(xt))
+	for i := i(0); i < yn; i++ {
+		yi := I(yp)
+		mv(xp+yi*w, vp+i*w, w)
+		yp += 4
+		vp += 4
+	}
+	return dxyr(y, v, x)
+}
 func evl(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 || xn == 0 {
+		if xt == 5 && xn == 1 {
+			x = lup(x)
+			if x == 0 {
+				trap()
+			}
+			return x
+		}
 		return x
 	} else if xn == 1 {
 		return fst(x)
@@ -1090,6 +1199,23 @@ func evl(x i) (r i) {
 	}
 	rp = r + 8
 	dx(x)
+	if I(rp) == 128+'.' && xn == 5 { // (.;s;a;f;y) assign
+		rl(r)
+		dx(r)
+		s, a, f, y := I(rp+4), I(rp+8), I(rp+12), I(rp+16)
+		if a == 0 && f == 0 {
+			return asn(s, y)
+		}
+		rx(s)
+		v := lup(s)
+		if v == 0 {
+			trap()
+		}
+		return asn(s, asd(v, a, y, f))
+	}
+	if I(rp) == 128+':' { // a;b;c -> (:;a;b;c) sequence
+		return lst(r)
+	}
 	if xn == 2 {
 		rl(r)
 		return dxr(r, atx(I(rp), I(rp+4)))
@@ -1120,7 +1246,7 @@ func boolvar(b bool) i {
 	return 0
 }
 func trap() { panic("trap") }
-func dump(a, n i) i {
+func dump(a, n i) i { // type: cifzsld -> 2468ace
 	p := a >> 2
 	fmt.Printf("%.8x ", a)
 	for i := i(0); i < n; i++ {
@@ -1160,8 +1286,9 @@ func mark() { // mark bucket type within free blocks
 	}
 }
 func leak() {
-	mark()
 	//dump(0, 200)
+	dx(I(ktree))
+	mark()
 	p := i(64)
 	for p < i(len(MI)) {
 		if MI[p+1] != 0 {
@@ -1208,13 +1335,16 @@ func kst(x i) s {
 	sep := " "
 	switch t {
 	case 0:
+		if x == 0 {
+			return ""
+		}
 		fc := []byte(":+-*%&|<>=!~,^#_$?@.'/\\")
 		if x < 128 && bytes.Index(fc, []byte{byte(x)}) != -1 {
 			return string(byte(x)) + ":"
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
 			return string(byte(x - 128))
 		} else {
-			panic(fmt.Errorf("nyi: kst func %x\n", x))
+			return fmt.Sprintf(" '(%d)", x)
 		}
 	case 1:
 		return `"` + string(MC[x+8:x+8+n]) + `"`
@@ -1239,7 +1369,7 @@ func kst(x i) s {
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
 	case 7:
-		return kst(x+8) + "!" + kst(x+12)
+		return kst(I(x+8)) + "!" + kst(I(x+12))
 	default:
 		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}
