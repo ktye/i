@@ -1185,6 +1185,23 @@ func asd(x, y, z, v i) (r i) { // .[x;a;f;y] depth assign
 	return dxyr(y, v, x)
 }
 */
+func swc(x, loc i) (r i) { // ($;a;b;...)
+	_, xn, xp := v1(x)
+	for i := i(1); i < xn; {
+		r = I(xp + 4*i)
+		rx(r)
+		r = evl(r, loc)
+		if i%2 == 0 || i == xn-1 {
+			return dxr(x, r)
+		}
+		dx(r)
+		i++
+		if I(r+8) == 0 {
+			i++
+		}
+	}
+	return dxr(x, 0)
+}
 func evl(x, loc i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
@@ -1201,6 +1218,10 @@ func evl(x, loc i) (r i) {
 	} else if xn == 1 {
 		return fst(x)
 	}
+	v := I(xp)
+	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
+		return swc(x, loc)
+	}
 	rl(x)
 	r = mk(6, xn)
 	rp := r + 8
@@ -1211,7 +1232,6 @@ func evl(x, loc i) (r i) {
 	}
 	rp = r + 8
 	dx(x)
-	v := I(rp)
 	if xn > 2 {
 		if v == ':'+128 { // 186 (::;a;b;c) sequence
 			return lst(r)

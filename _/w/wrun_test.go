@@ -277,6 +277,9 @@ func dump(m []byte, a, n k) {
 type k = uint32
 
 func (K *K) kst(a k) s {
+	if a == 0 {
+		return ""
+	}
 	m := K.vm.Memory()
 	x := get(m, a)
 	t, n := x>>29, x&536870911
