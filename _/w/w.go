@@ -331,6 +331,9 @@ func (p *parser) indicate(pos int, e s) expr {
 		}
 		pos -= len(l) + 1
 	}
+	if len(s) > 0 {
+		return p.err("\n" + s + "\n^" + e)
+	}
 	return p.err(e)
 }
 func (p *parser) w() {

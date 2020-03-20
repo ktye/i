@@ -199,7 +199,7 @@ func ini(x i) i {
 		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, // 000..015
 		abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 016..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, // 032..047
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, les, eql, mor, fnd, // 048..063
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 048..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 064..079
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 080..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 096..111
@@ -207,7 +207,7 @@ func ini(x i) i {
 		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 128..143
 		adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 144..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, // 160..175
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, grd, eql, gdn, unq, // 176..191
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 176..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192..207
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 208..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224..239
@@ -336,10 +336,8 @@ func lrc(x, f i) (r i) { // list recurse
 }
 func drc(x, f i) (r i) { // dict recurse
 	g := MT[f].(func(i) i)
-	dx(x + 8)
-	dx(x + 12)
-	dx(x)
-	return mkd(x+8, g(12+x))
+	rl(x)
+	return dxr(x, mkd(x+8, g(12+x)))
 }
 func drx(x, f i) (r i) { // dict recurse on values
 	rx(12 + x)
@@ -453,11 +451,12 @@ func rev(x i) (r i) {
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
 	if xt == 7 {
-		return drx(x, '*')
+		return drx(x, '*'+128)
 	}
 	return atx(x, mki(0))
 }
-func lst(x i) (r i) {
+func dex(x, y i) (r i) { return dxr(x, y) } // :[x;y]
+func lst(x i) (r i) { // ::x
 	_, xn, _ := v1(x)
 	return atx(x, mki(xn-1))
 }
