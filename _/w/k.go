@@ -44,7 +44,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
-const ktree = 132
+const kkey, kval = 132, 136
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -179,7 +179,7 @@ func run(s string) string {
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
 	ini(16)
-	x := evl(parseVector(s))
+	x := evl(parseVector(s), 0)
 	s = kst(x)
 	dx(x)
 	leak()
@@ -193,25 +193,18 @@ func ini(x i) i {
 		sI(4*i, p)
 		p *= 2
 	}
-	sI(ktree, mkd(mk(5, 0), mk(6, 0)))
+	sI(kkey, mk(5, 0))
+	sI(kval, mk(6, 0))
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
-		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, // 000..015
-		abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 016..031
-		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, // 032..047
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 048..063
-		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 064..079
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 080..095
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 096..111
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 112..127
-		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 128..143
-		adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 144..159
-		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, // 160..175
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 176..191
-		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 192..207
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 208..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, // 224..239
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 240..255
+		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 000..031
+		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
+		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
+		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
 	})
 	return x
 }
@@ -626,9 +619,10 @@ func ucat(x, y i) (r i) {
 	xt, _, xn, yn, xp, yp := v2(x, y)
 	if xt > 4 {
 		rl(x)
+		rl(y)
 	}
-	if xt > 5 {
-		r = mkd(x+8, x+12)
+	if xt == 7 {
+		r = mkd(ucat(x+8, y+8), ucat(x+12, y+12))
 		return dxyr(x, y, r)
 	}
 	r = mk(xt, xn+yn)
@@ -1071,7 +1065,7 @@ func val(x i) (r i) {
 	xt, _, _ := v1(x)
 	switch xt {
 	case 6:
-		return evl(x)
+		return evl(x, 0)
 	case 7:
 		rx(x + 12)
 		return dxr(x, x+12)
@@ -1081,7 +1075,6 @@ func val(x i) (r i) {
 	}
 }
 func atd(x, y i) (r i) { // at-depth
-	fmt.Printf("atd x=%x(%s) y=%x(%s)\n", x, kst(x), y, kst(y))
 	if x == 0 {
 		return dxr(y, 0)
 	}
@@ -1102,33 +1095,51 @@ func atd(x, y i) (r i) { // at-depth
 	}
 	return atx(x, y)
 }
-func lup(x i) (r i) {
-	fmt.Printf("lup x=%s\n", kst(x))
-	k := I(ktree)
-	rx(k)
-	return atd(k, x)
+func kv(x, loc i) (k, v, n, m i) {
+	k = I(kkey)
+	v = I(kval)
+	if loc != 0 {
+		k = I(loc + 8)
+		v = I(loc + 12)
+	}
+	n = I(k) & 536870911
+	m = fnx(k, 8+x)
+	return k, v, n, m
 }
-func asn(x, y i) (r i) {
+func lup(x, loc i) (r i) {
+	_, v, n, m := kv(x, loc)
+	if m == n {
+		if loc != 0 {
+			return lup(x, 0)
+		}
+		return dxr(x, 0)
+	}
+	r = I(v + 8 + 4*m)
+	rx(r)
+	return dxr(x, r)
+}
+func asn(x, loc, u i) (r i) {
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
 	}
-	k := I(ktree)
-	kk := I(k + 8)
-	kv := I(k + 12)
-	n := I(kk) & 536870911
-	i := fnx(kk, x)
-	rx(y)
-	if i == n {
-		sI(k+8, cat(kk, x))
-		sI(k+12, lcat(kv, y))
-	} else {
-		vi := kv + 8 + 4*i
-		dx(I(vi))
-		sI(vi, y)
+	rx(u)
+	k, v, n, m := kv(x, loc)
+	if n == m {
+		if loc != 0 {
+			panic("asn to undefined local")
+		}
+		sI(kkey, cat(k, x))
+		sI(kval, cat(v, u))
+		return u
 	}
-	return dxr(x, y)
+	vp := 8 + v + 4*m
+	dx(I(vp))
+	sI(vp, u)
+	return dxr(x, u)
 }
+
+/*
 func asd(x, y, z, v i) (r i) { // .[x;a;f;y] depth assign
 	xt, yt, _, yn, xp, yp := v2(x, y)
 	if yt == 6 { // at-depth
@@ -1173,16 +1184,19 @@ func asd(x, y, z, v i) (r i) { // .[x;a;f;y] depth assign
 	}
 	return dxyr(y, v, x)
 }
-func evl(x i) (r i) {
+*/
+func evl(x, loc i) (r i) {
 	xt, xn, xp := v1(x)
-	if xt != 6 || xn == 0 {
+	if xt != 6 {
 		if xt == 5 && xn == 1 {
-			x = lup(x)
-			if x == 0 {
+			r = lup(x, loc)
+			if r == 0 {
 				trap()
 			}
-			return x
+			return r
 		}
+		return x
+	} else if xn == 0 {
 		return x
 	} else if xn == 1 {
 		return fst(x)
@@ -1191,31 +1205,39 @@ func evl(x i) (r i) {
 	r = mk(6, xn)
 	rp := r + 8
 	for i := i(0); i < xn; i++ {
-		sI(rp, evl(I(xp)))
+		sI(rp, evl(I(xp), loc))
 		rp += 4
 		xp += 4
 	}
 	rp = r + 8
 	dx(x)
-	/*
-		if I(rp) == 128+'.' && xn == 5 { // (.;s;a;f;y) assign
-			rl(r)
-			dx(r)
-			s, a, f, y := I(rp+4), I(rp+8), I(rp+12), I(rp+16)
-			if a == 0 && f == 0 {
-				return asn(s, y)
-			}
-			rx(s)
-			v := lup(s)
-			if v == 0 {
-				trap()
-			}
-			return asn(s, asd(v, a, y, f))
-		}
-		if I(rp) == 128+':' { // a;b;c -> (:;a;b;c) sequence
+	v := I(rp)
+	if xn > 2 {
+		if v == ':'+128 { // 186 (::;a;b;c) sequence
 			return lst(r)
 		}
-	*/
+		if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
+			v -= 128
+			loc = 0
+		}
+		if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
+			rl(r)
+			dx(r)
+			s, a, f, u := I(rp+4), I(rp+8), I(rp+12), I(rp+16)
+			if a == 0 && f == 0 {
+				return asn(s, loc, u)
+			}
+			panic("nyi")
+			/*
+				rx(s)
+				v := lup(s)
+				if v == 0 {
+					trap()
+				}
+				return asn(s, asd(v, a, y, f))
+			*/
+		}
+	}
 	if xn == 2 {
 		rl(r)
 		return dxr(r, atx(I(rp), I(rp+4)))
@@ -1287,7 +1309,8 @@ func mark() { // mark bucket type within free blocks
 }
 func leak() {
 	//dump(0, 200)
-	dx(I(ktree))
+	dx(I(kkey))
+	dx(I(kval))
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {

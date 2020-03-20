@@ -1,5 +1,5 @@
 sin:F:F{}cos:F:F{}atan2:F:FF{}
-ini:I:I{0::289360742959022336j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);x} /x:16(64k)
+ini:I:I{0::289360742959022336j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);kkey::5 mk 0;kval::6 mk 0;x}kkey:{132}kval:{136} /x:16(64k)
 bk:I:II{r:32-*7+y*I?C x;(r<4)? :4;r}mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}l2:I:II{r:6 mk 2;(r+8)::x;(r+12)::y;r}
 v1:{xt:(I x)>>29;xn:(I x)&536870911;xp:8+x}v2:{v1;yt:(I y)>>29;yn:(I y)&536870911;yp:8+y}r8:{rp:r+8}
@@ -17,7 +17,7 @@ rsh:I:II{v2;(~xt~2)?!;n:prod(xp;xn);r:y take n;(xn~1)?(dx x; :r);xn-:1;xe:xp+4*x
 take:I:II{v1;r:til mki y;r8;(xn<y)?(y/(rp+4*i)::i\xn);x atx r}drop:I:II{v1;(y>xn)?!;x atx seq(y;xn-y;1)}
 use:I:I{(1~I x+4)? :x;v1;r:xt mk xn;r8;mv(rp;xp;xn*I?C xt);dx x;r}mv:V:III{z/(x+i)::C y+i}
 cat:I:II{v2;((~xt)|~yt)?!;(xt~yt)? :x ucat y;(xt~6)? :x lcat y;!;x}
-ucat:I:II{v2;(xt>4)?(rl x);(xt>5)?(r:(x+8)mkd x+12;dx x;dx y; :r);r:xt mk xn+yn;w:I?C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
+ucat:I:II{v2;(xt>4)?(rl x;rl y);(xt~7)?(r:((x+8)ucat y+8)mkd(x+12)ucat y+12;dx x;dx y; :r);r:xt mk xn+yn;w:I?C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
 lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;rl x;dx x;mv(r+8;xp;4*xn);x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
 enl:I:I{(6 mk 0) lcat x} cnt:I:I{v1;dx x;mki xn}typ:I:I{v1;r:2 mk 1;(8+r)::xt;dxr} not:I:I{x eql mki 0}
 wer:I:I{v1;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;r8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
@@ -53,39 +53,21 @@ scn:I:II{v1;(~xn)?(dx y; :fst y);x rxn xn;y rxn xn-1;t:fst x;rx t;r:enl t;(xn-1)
 ecr:I:III{v2;r:6 mk yn;r8;x rxn yn;y rxn yn;z rxn yn;yn/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
 ecl:I:III{v2;r:6 mk xn;r8;x rxn xn;y rxn yn;z rxn yn;xn/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
 ecd:I:III{!;x}epi:I:III{!;x}
-val:I:I{v1;xt?[;;;;;r:evl x;(rx x+12;r:x+12;dx x);!];r}
-evl:I:I{v1;(~xt~6)? :x;(xn~0)? :x;(xn~1)? :fst x;rl x;r:6 mk xn;r8;xn/(rp::evl I xp;rp+:4;xp+:4);r8;dx x;(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
+val:I:I{v1;xt?[;;;;;r:x evl 0;(rx x+12;r:x+12;dx x);!];r}
+lup:I:II{kv;(m~n)?(y? :x lup 0;dx x; :0);r:I v+8+4*m;rx r;dxr}kv:{k:I kkey;v:I kval;y?(k:I y+8;v:I y+12);n:536870911&I k;m:k fnx 8+x}
+asn:I:III{v1;(~xt~5)?!;rx z;kv;(n~m)?(y?!;kkey::k cat x;kval::v cat z; :z);vp:8+v+4*m;dx I vp;vp::z;dx x;z}
+evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :fst x;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);r8;dx x;v:I rp;(xn>2)?((v~186)? :lst r;(v~174)?(v-:128;y:0);(v~46)?(xn~5)?(rl r;dx r;s:I rp+4;a:I rp+8;f:I rp+12;u:I rp+16;(~a)?(~f)? :asn(s;y;u);!));(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
 xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
 sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
 
-000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx}
-016:{abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}
-032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv}
-048:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
-064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
-080:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
-096:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
-112:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; xxx; mtc; xxx}
-128:{nag; nac; nai; naf; naz; nas; nal; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
-144:{adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
-160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abs; enl; neg; val; xxx}
-176:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; eql; gdn; unq}
-192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
-208:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; xxx; xxx; srt; flr}
-224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
-240:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; xxx; not; xxx}
-
-/000:{xx1;gtc;gti;gtf;gtl;gtl;xx1;xx1;xx1;eqc;eqi;eqf;eqz;eqL;eqL;xx1;abc;abi;abf;abz;nec;nei;nef;nez;xx1;xx1;xx1;xx1;sqc;sqi;sqf;sqz}
-/032:{xx1;mkd;xx2;rsh;cst;diw;min;ecv;ecd;epi;mul;add;cat;sub;cal;ovv;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;les;eql;mor;fnd}
-/064:{atx;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;
-/33:{}
-/60:{}91:{ecl;scv;xx1;exc;cut}123:{ecr;max;xx2;mtc}
-/128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
-/144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
-/161:{til;xx1;cnt;str;sqr;wer;epv;ech;ecp;fst;abs;enl;neg;val}
-/188:{grd;grp;gdn;unq;typ}219:{scn;xx1;xx1;srt;flr}251:{ovr;rev;xx1;not}
-
-
+000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}
+032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
+064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
+096:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; xxx; mtc; xxx}
+128:{nag; nac; nai; naf; naz; nas; nal; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
+160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abs; enl; neg; val; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; eql; gdn; unq}
+192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; xxx; xxx; srt; flr}
+224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; xxx; not; xxx}
 
 \
 odo5:{p#’x(&#)’_(p:*/x)%*\x}
@@ -103,10 +85,10 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 %  div sqr                                         12.. 15   k-tree/value pointer     todo
 &  min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                        128..131   memsize log2
-<  les grd                                        132..135   k-tree root (dict)
->  mor gdn                                        function tables (call indirect)
-=  eql grp                                        T1:I:I (#128)      T2:I:I (#128)
-~  mtc not   match                                                   0..7 gtT 
+<  les grd                                        132..135   k-tree keys
+>  mor gdn                                        136..130   k-tree values
+=  eql grp                                        
+~  mtc not   match                                
 !  key til   seq           z:re!im  im:!z
 ,  cat enl                 
 ^  exc asc                                         parse tree (left to right)

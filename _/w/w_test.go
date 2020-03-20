@@ -249,6 +249,7 @@ function P()  { kons.value += " " }
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
+ if(x==0) return ""
  var h = K.I[x>>>2]
  var t = (h>>>29)>>>0
  var n = (h&536870911)>>>0
@@ -292,6 +293,7 @@ function kst(x) {
 
 var funcs = {{{fncs}}}
 function parseNoun(s) {
+ if(s.length == 0) return s;
  var fc = ":+-*%&|<>=!~,^#_$?@.'/\\"
  var t = 2
  if((s.length>0)&&(fc.indexOf(s[0])!=-1)){ 
@@ -360,7 +362,7 @@ function E(s) {
  try{ // todo save/restore
   var x = parseNoun(s)
   if (x==0) { throw new Error(s); }
-  x = K.exports.evl(x)
+  x = K.exports.evl(x, 0)
   O(kst(x)+"\n")
   K.exports.dx(x)
  } catch(e) {
@@ -437,6 +439,7 @@ V kst(I x) {
 	I i, j, y, m, tof;
 	I t = ((uI)MI[x>>2])>>29;
 	I n = ((uI)MI[x>>2])&536870911;
+	if(!x) R;
 	switch(t){
 	case 0:
 		if(x<128)       printf("%c", x);
@@ -531,7 +534,6 @@ I lstVector(C *s) {
 		} else if (l==0 && p == ';') {
 			s[i] = 0;
 			r[rn++] = parseNoun(s+a);
-			if (r[rn-1] == 0) { printf("null element"); trap(); }
 			a = i + 1;
 			if (rn==8) { printf("list limit"); trap(); }
 		}
@@ -585,6 +587,7 @@ I numVector(C *s) {
 I parseNoun(C *s) {
 	I i;
 	I n = strlen(s);
+	if(!n) return 0;
 	for (i=n-1; i>=0; i--) { if(s[i]==' ') s[i] = 0; else break; }
 	C c = s[0];
 	if (c == '"')                return chrVector(s);
@@ -596,7 +599,6 @@ I parseNoun(C *s) {
 }
 #define M0 16
 V runtest() {
-	I x;
 	C buf[128];
 	C *p;
 	while (fgets(buf, 128, stdin) != NULL) {
@@ -605,7 +607,7 @@ V runtest() {
 		*p = 0;
 		memset(MC, 0, 1<<M0);
 		ini(16);
-		O(evl(parseNoun(buf)));
+		O(evl(parseNoun(buf),0));
 	}
 }
 I main(int args, C **argv){
@@ -615,6 +617,7 @@ I main(int args, C **argv){
 	memset(MC, 0, 1<<M0);
 	ini(16);
 	I x = parseNoun(argv[1]);
-	O(evl(x));
+	kst(x);
+	O(evl(x,0));
 }
 `

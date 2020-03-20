@@ -71,14 +71,17 @@ func runWagon(tab []segment, b []byte, s string, exp string) error {
 	}
 	K := K{m: m, vm: vm}
 	K.call("ini", 16)
-	r := K.call("evl", K.parseVector(s))
+	r := K.call("evl", K.parseVector(s), 0)
 	got := K.kst(r)
 	if got != exp {
 		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
 	}
 	// free result and check for memory leaks
+	mem := K.vm.Memory()
 	K.call("dx", r)
-	if e := leak(K.vm.Memory()); e != nil {
+	K.call("dx", get(mem, 132)) // kkey
+	K.call("dx", get(mem, 136)) // kval
+	if e := leak(mem); e != nil {
 		return e
 	}
 	return nil
@@ -147,6 +150,9 @@ func (K *K) call(s string, argv ...uint32) uint32 {
 func (K *K) parseVector(s string) uint32 {
 	m := K.vm.Memory()
 	fc := ":+-*%&|<>=!~,^#_$?@.+'/\\"
+	if len(s) == 0 {
+		return 0
+	}
 	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
 		return uint32(s[0]) + 128
 	}

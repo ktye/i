@@ -13,6 +13,7 @@ elif [ x"$1" = "xt" ]; then
 			print y"\ngot: "x
 			exit
 		}
+print y,x
 	}END{print x; if(x!="\"ok\"")print "error"}'
 else
 	# go test (generate k_c)
