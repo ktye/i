@@ -7,12 +7,13 @@ elif [ x"$1" = "xt" ]; then
 		x=$0
 		getline < "t"
 		y=$0
+		if (match(y, /^\//)) next
 		gsub(/.* \//, "")
 		if(x!=$0) {
 			print y"\ngot: "x
 			exit
 		}
-	}' && echo "ok"
+	}END{print x; if(x!="\"ok\"")print "error"}'
 else
 	# go test (generate k_c)
 	$tcc -run k_c "$*"

@@ -148,10 +148,10 @@ func (K *K) parseVector(s string) uint32 {
 	m := K.vm.Memory()
 	fc := ":+-*%&|<>=!~,^#_$?@.+'/\\"
 	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
-		return uint32(s[0])
+		return uint32(s[0]) + 128
 	}
 	if len(s) > 0 && strings.Index(fc, s[:1]) != -1 {
-		return 128 + uint32(s[0])
+		return uint32(s[0])
 	}
 	if len(s) > 0 && s[0] == '"' {
 		s = strings.Trim(s, `"`)
@@ -306,9 +306,9 @@ func (K *K) kst(a k) s {
 	switch t {
 	case 0:
 		if a < 128 {
-			return string([]byte{byte(a)}) + ":"
+			return string([]byte{byte(a)})
 		} else if a < 256 {
-			return string([]byte{byte(a) - 128})
+			return string([]byte{byte(a) - 128}) + ":"
 		} else {
 			fmt.Printf("x=%x a=%x\n", x, a)
 			dump(m, 0, 200)

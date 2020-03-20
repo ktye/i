@@ -10,7 +10,10 @@ ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:x take yn;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:y take
 upx:{(xt>=5)?!;(yt>=5)?!;(xt<yt)?/(x:up(x;xt;xn);xt+:1);(yt<xt)?/(y:up(y;yt;yn);yt+:1);xp:x+8;yp:y+8}
 up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::I?C xp+i;rp+:4);z/(rp::F?I xp;rp+:8;xp+:4);!];dxr}
 atx:I:II{v2;(~xt)?( :x cal enl y);(~yt~2)?!;r:xt mk yn;r8;w:I?C xt;f:xt+128;yn/(yi:I yp;$[yi<xn;mv(rp;xp+w*yi;w);(V.f)rp];rp+:w;yp+:4);(xt>4)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
-cal:I:II{v2;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y)));(x<128)?((~yn~1)?!; :(I.x)(fst y));(x<256)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));(xn~2)?(rl x;dx x;a:I xp;yn?[; :((I.a)(fst y;I xp+4));(a+:128;rl y;dx y; :((I.a)(I yp;I yp+4;I xp+4)));!]);!;x}
+
+/cal:I:II{v2;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y)));(x<128)?((~yn~1)?!; :(I.x)(fst y));(x<256)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));(xn~2)?(rl x;dx x;a:I xp;yn?[; :((I.a)(fst y;I xp+4));(a+:128;rl y;dx y; :((I.a)(I yp;I yp+4;I xp+4)));!]);!;x}
+cal:I:II{v2;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y)));(x<128)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));(x<256)?((~yn~1)?!; :(I.x)(fst y));(xn~2)?(rl x;dx x;a:I xp;yn?[; :((I.a+128)(fst y;I xp+4));(rl y;dx y; :((I.a)(I yp;I yp+4;I xp+4)));!]);!;x}
+
 rev:I:I{v1;(~xn)? :x;x atx tir xn}fst:I:I{v1;(xt~7)?(rx 12+x;dx x; :fst 12+x);x atx mki 0}
 cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:6 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
 rsh:I:II{v2;(~xt~2)?!;n:prod(xp;xn);r:y take n;(xn~1)?(dx x; :r);xn-:1;xe:xp+4*xn;xn/(m:I xe;n:n%m;n:xp prod xn-i;r:(seq(0;n;m))cut r;xe-:4);dxr}prod:I:II{r:1;y/(r*:I x;x+:4);r}
@@ -46,7 +49,7 @@ zre:I:I{x zri 0}zim:I:I{x zri 8}zri:I:II{v1;(xt~4)?!;r:3 mk xn;r8;xp+:y;xn/(rp::
 crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 nag:V:I{x::0}nac:V:I{x::C?32}nai:V:I{x::-2147483648}naf:V:I{x::9221120237041090561f}naz:V:I{naf x;naf x+8}nas:V:I{x::1 mk 0;(4+I x)::0}nal:V:I{x::0}
 drv:I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv:I:I{40 drv x}epv:I:I{41 drv x}ovv:I:I{123 drv x}scv:I:I{91 drv x}
-ech:I:II{x:lx x;v1;r:6 mk xn;r8;rl x;(y<256)?(y>127)?y-:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
+ech:I:II{x:lx x;v1;r:6 mk xn;r8;rl x;(y<120)?y+:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
 ecp:I:II{v1;(~xn)?(dx y; :fst x);x rxn -1+2*xn;y rxn xn-1;r:fst x;(xn-1)/r:r cat y cal (x atx mki 1+i)l2 x atx mki i;dxyr}
 ovr:I:II{v1;(~xn)?(dx y; :fst x);x rxn xn;y rxn xn-1;r:fst x;(xn-1)/r:y cal r l2 x atx mki i+1;dxyr}
 scn:I:II{v1;(~xn)?(dx y; :fst y);x rxn xn;y rxn xn-1;t:fst x;rx t;r:enl t;(xn-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
@@ -55,16 +58,36 @@ ecl:I:III{v2;r:6 mk xn;r8;x rxn xn;y rxn yn;z rxn yn;xn/(rp::z cal (x atx mki i)
 ecd:I:III{!;x}epi:I:III{!;x}
 val:I:I{v1;xt?[;;;;;r:evl x;(rx x+12;r:x+12;dx x);!];r}
 evl:I:I{v1;(~xt~6)? :x;(xn~0)? :x;(xn~1)? :fst x;rl x;r:6 mk xn;r8;xn/(rp::evl I xp;rp+:4;xp+:4);r8;dx x;(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
-xx1:I:I{!;x}xx2:I:II{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
+xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
 sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
-1:{gtc;gti;gtf;gtl;gtl}9:{eqc;eqi;eqf;eqz;eqL;eqL}
-16:{abc;abi;abf;abz;nec;nei;nef;nez}28:{sqc;sqi;sqf;sqz}
-33:{til;xx1;cnt;str;sqr;wer;epv;ech;ecp;fst;abs;enl;neg;val}
-60:{grd;grp;gdn;unq;typ}91:{scn;xx1;xx1;srt;flr}123:{ovr;rev;xx1;not}
-128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
-144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
-161:{mkd;xx2;rsh;cst;diw;min;ecv;ecd;epi;mul;add;cat;sub;cal;ovv}
-188:{les;eql;mor;fnd;atx}219:{ecl;scv;xx1;exc;cut}251:{ecr;max;xx2;mtc}
+
+000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx}
+016:{abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}
+032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv}
+048:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; les; eql; mor; fnd}
+064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
+080:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
+096:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
+112:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; xxx; mtc; xxx}
+128:{nag; nac; nai; naf; naz; nas; nal; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
+144:{adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
+160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abs; enl; neg; val; xxx}
+176:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; grd; eql; gdn; unq}
+192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
+208:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; xxx; xxx; srt; flr}
+224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx}
+240:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; xxx; not; xxx}
+
+/000:{xx1;gtc;gti;gtf;gtl;gtl;xx1;xx1;xx1;eqc;eqi;eqf;eqz;eqL;eqL;xx1;abc;abi;abf;abz;nec;nei;nef;nez;xx1;xx1;xx1;xx1;sqc;sqi;sqf;sqz}
+/032:{xx1;mkd;xx2;rsh;cst;diw;min;ecv;ecd;epi;mul;add;cat;sub;cal;ovv;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;les;eql;mor;fnd}
+/064:{atx;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;xx1;
+/33:{}
+/60:{}91:{ecl;scv;xx1;exc;cut}123:{ecr;max;xx2;mtc}
+/128:{nag;nac;nai;naf;naz;nas;nal} // todo naz/nas
+/144:{adc;adi;adf;adz;suc;sui;suf;suz;muc;mui;muf;muz;dic;dii;dif;diz}
+/161:{til;xx1;cnt;str;sqr;wer;epv;ech;ecp;fst;abs;enl;neg;val}
+/188:{grd;grp;gdn;unq;typ}219:{scn;xx1;xx1;srt;flr}251:{ovr;rev;xx1;not}
+
 
 
 \
@@ -72,7 +95,7 @@ odo5:{p#’x(&#)’_(p:*/x)%*\x}
 flip:,'/,''
 
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
-Fcifzsld   xt~0(function) x<256(basic) 
+Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 0148x444   xn~2(derived)  adv  verb
 	   xn~3(proj)     verb argv empty-index
 	   xn~4(lambda)   str  tree args locals

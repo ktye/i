@@ -125,19 +125,8 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 		t.Fatal(err)
 	}
 	wasm := m.wasm(tab, data)
-	_, exp := m.exports()
 	var txt, fns bytes.Buffer
-	fmt.Fprintf(&txt, "kwasm(%d b) %s tests src", len(wasm), time.Now().Format("2006.01.02"))
-	for _, f := range exp {
-		if f.t != 0 && (f.args == 1 || f.args == 2) {
-			fmt.Fprintf(&txt, " %s", f.name)
-			if fns.Len() != 0 {
-				fns.WriteByte(',')
-			}
-			fmt.Fprintf(&fns, "\"%s\":%d", f.name, f.args)
-		}
-	}
-	txt.WriteString(`\n `)
+	fmt.Fprintf(&txt, "kwasm(%d b) %s [tests src]\\n ", len(wasm), time.Now().Format("2006.01.02"))
 	var b bytes.Buffer
 	s := hh
 	s = strings.Replace(s, `{{wasm}}`, base64.StdEncoding.EncodeToString(wasm), 1)
@@ -265,6 +254,10 @@ function kst(x) {
  var n = (h&536870911)>>>0
  var o = []
  switch(t){
+ case 0:
+  if(x<128) return String.fromCharCode(x)
+  else if(x<256) return String.fromCharCode(x-128)
+  else return "{?"+x+"?}"
  case 1:
   return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
  case 2:
@@ -303,8 +296,8 @@ function parseNoun(s) {
  var t = 2
  if((s.length>0)&&(fc.indexOf(s[0])!=-1)){ 
   var c = s.charCodeAt(0)
-  if((s.length>1)&&s[1]==":") return c
-                              return c+128
+  if((s.length>1)&&s[1]==":") return c+128
+                              return c
  }
  if(s.startsWith('"'))                     return chrVector(s);
  if(s.startsWith(String.fromCharCode(96))) return symVector(s);
@@ -447,7 +440,7 @@ V kst(I x) {
 	switch(t){
 	case 0:
 		if(x<128)       printf("%c", x);
-		else if (x<256) printf("%c", x-128);
+		else if (x<256) printf("%c:", x-128);
 		else { printf("kst(x=%x)"); trap(); }
 		break;
 	case 1:
@@ -598,7 +591,7 @@ I parseNoun(C *s) {
 	if (c == 96)                 return symVector(s);
 	if (c >= '0' && s[0] <= '9') return numVector(s);
 	if (c == '(')                return lstVector(s+1);
-	if (strchr(":+-*%&|<>=!~,^#_$?@.'/\\", c) != NULL) { if (s[1] == ':') return c; return 128+c; }
+	if (strchr(":+-*%&|<>=!~,^#_$?@.'/\\", c) != NULL) { if (s[1] == ':') return c+128; return c; }
 	return numVector(s);
 }
 #define M0 16
@@ -608,6 +601,7 @@ V runtest() {
 	C *p;
 	while (fgets(buf, 128, stdin) != NULL) {
 		if ((p=strstr(buf, " /"))==NULL) { trap(); }
+		if (buf[0] == '/') { printf("skip\n"); continue; }
 		*p = 0;
 		memset(MC, 0, 1<<M0);
 		ini(16);
