@@ -749,7 +749,7 @@ V init()_(A x=syml=aX(5);F(xn,xai=aCn(&"_xyzo"[i],!!i))glb=aa0();cn[tX]=aX(0);cn
  #if __FreeBSD__
   V _start(C**p)_(main(*(L*)(V*)p,p+1);UR)
  #else
-  asm(".globl _start\n_start:pop %rdi\nmov %rsp,%rsi\njmp main");
+ // ktye asm(".globl _start\n_start:pop %rdi\nmov %rsp,%rsi\njmp main");
  #endif
 #endif
 //o.c
