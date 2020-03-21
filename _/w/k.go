@@ -44,7 +44,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
-const kkey, kval = 132, 136
+const kkey, kval, pp, pe = 132, 136, 140, 144
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -1064,6 +1064,8 @@ func ecd(x, y, f i) (r i) { panic("nyi ecd") } // x f' y
 func val(x i) (r i) {
 	xt, _, _ := v1(x)
 	switch xt {
+	case 1:
+		return evl(prs(x), 0)
 	case 6:
 		return evl(x, 0)
 	case 7:
@@ -1267,6 +1269,111 @@ func evl(x, loc i) (r i) {
 	} else {
 		panic("args")
 	}
+}
+func prs(x i) (r i) { // parse 'p x
+	_, xn, xp := v1(x)
+	sI(pp, xp)
+	sI(pe, xp+xn)
+	r = sq(xp + xn)
+	dx(x)
+	rn := 536870911 & I(r)
+	if rn > 1 {
+		return cat(enl(':'+128), r)
+	}
+	return fst(r)
+}
+func sq(t i) (r i) { // sequence a;b;c
+	r = mk(6, 0)
+	for {
+		v := ex(noun(t))
+		if v == 0 {
+			return r
+		}
+		r = lcat(r, v)
+	}
+}
+func ex(x i) (r i) {
+	if x == 0 {
+		return x
+	}
+	xt, _, _ := v1(x)
+	if xt == 0 { // verb
+		r = ex(noun(I(pe)))
+		if r == 0 {
+			return x // v
+		} else {
+			if x < 128 {
+				x += 128 // force monad
+			}
+			return l2(x, r) // ve
+		}
+	} else { // noun
+		r = noun(I(pe))
+		if r == 0 {
+			return x // n
+		}
+		rt, _, _ := v1(r)
+		if rt != 0 {
+			return l2(x, ex(r)) // te
+		}
+		y := ex(noun(I(pe)))
+		if y == 0 {
+			panic("parse composition") // 2+
+		} else {
+			l := mk(6, 3)
+			sI(l+8, r)
+			sI(l+12, x)
+			sI(l+16, y)
+			return l // nve
+		}
+	}
+	return x // todo
+}
+func noun(t i) (r i) {
+	if pw(t) {
+		return 0
+	}
+	p := I(pp)
+	n := t - p - 1
+	if r = num(p, n); r != 0 {
+		return r
+	}
+	if r = vrb(p, n); r != 0 {
+		return r
+	}
+	return 0
+}
+func pw(t i) bool {
+	p := I(pp)
+	for {
+		if p == t {
+			sI(pp, p)
+			return true // EOF
+		}
+		c := C(p)
+		if c != ' ' && c != '\r' && c != '\t' {
+			sI(pp, p)
+			return false
+		}
+		p++
+	}
+}
+func acc(n, r i) i { sI(pp, n+I(pp)); return r }
+func num(p, n i) (r i) {
+	c := C(p)
+	if c >= '0' && c <= '9' {
+		return acc(1, mki(i(c-'0')))
+	}
+	return 0
+}
+func vrb(p, n i) (r i) {
+	c := C(p)
+	s := `:+-*%&|<>=!~,^#_$?@.`
+	x := strings.IndexByte(s, c)
+	if x == -1 {
+		return 0
+	}
+	return acc(1, i(s[x]))
 }
 
 func craz(x c) bool {

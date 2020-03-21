@@ -87,10 +87,10 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 &  min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                        128..131   memsize log2
 <  les grd                                        132..135   k-tree keys
->  mor gdn                                        136..130   k-tree values
-=  eql grp                                        
-~  mtc not   match                                
-!  key til   seq           z:re!im  im:!z
+>  mor gdn                                        136..139   k-tree values
+=  eql grp                                        140..143   parse index
+~  mtc not   match                                144..147   parse end
+!  key til   seq           z:re!im  im:!z         
 ,  cat enl                 
 ^  exc asc                                         parse tree (left to right)
 $  str cst                                         (.;`s;a;+;y)      assign       s[a]+:y
