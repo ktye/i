@@ -44,7 +44,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
-const kkey, kval, pp, pe = 132, 136, 140, 144
+const kkey, kval, pp, asci, pe = 132, 136, 140, 144, 168
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -186,7 +186,10 @@ func run(s string) string {
 	return s
 }
 func ini(x i) i {
-	sJ(0, 289360742959022336) // uint64(0x0404041008040100)
+	sJ(0, 289360742959022336)       // uint64(0x0404041008040100)
+	sJ(asci, 4358400480451046202)   // :+-*%&|<  binary.LittleEndian.Uint64([]byte(`:+-*%&|<`))
+	sJ(asci+8, 6855426602975706430) // >=!~,^#_
+	sJ(asci+16, 25947543183572772)  // $?@.'/\0
 	sI(128, x)
 	p := i(256)
 	for i := i(8); i < x; i++ {
@@ -770,6 +773,15 @@ func fnx(x, yp i) (r i) {
 	}
 	return xn
 }
+func fnc(xp, xn i, c c) (r i) {
+	for r = 0; r < xn; r++ {
+		fmt.Printf("i=%d C=%c c=%c\n", r, C(xp+r), c)
+		if c == C(xp+r) {
+			return r
+		}
+	}
+	return r
+}
 func exc(x, y i) (r i) { // x^y
 	_, yn, _ := v1(y)
 	r = mk(2, 1)
@@ -1282,23 +1294,31 @@ func prs(x i) (r i) { // parse 'p x
 	}
 	return fst(r)
 }
-func sq(t i) (r i) { // sequence a;b;c
+func sq(t i) (r i) { // E:E;e|e (sequence)
 	r = mk(6, 0)
 	for {
-		v := ex(noun(t))
+		v := ex(tok(t))
 		if v == 0 {
 			return r
 		}
 		r = lcat(r, v)
 	}
 }
-func ex(x i) (r i) {
+func t() (r i) {
+	r = nxt() // V|N
+	for {
+		// if followed by A -> (A,r)
+		// else if followed by [ .. t, cat E
+		// else break
+	}
+}
+func ex(x i) (r i) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
 	if x == 0 {
 		return x
 	}
 	xt, _, _ := v1(x)
 	if xt == 0 { // verb
-		r = ex(noun(I(pe)))
+		r = ex(tok(I(pe)))
 		if r == 0 {
 			return x // v
 		} else {
@@ -1308,7 +1328,7 @@ func ex(x i) (r i) {
 			return l2(x, r) // ve
 		}
 	} else { // noun
-		r = noun(I(pe))
+		r = tok(I(pe))
 		if r == 0 {
 			return x // n
 		}
@@ -1316,7 +1336,7 @@ func ex(x i) (r i) {
 		if rt != 0 {
 			return l2(x, ex(r)) // te
 		}
-		y := ex(noun(I(pe)))
+		y := ex(tok(I(pe)))
 		if y == 0 {
 			panic("parse composition") // 2+
 		} else {
@@ -1329,7 +1349,7 @@ func ex(x i) (r i) {
 	}
 	return x // todo
 }
-func noun(t i) (r i) {
+func tok(t i) (r i) { // parse next token
 	if pw(t) {
 		return 0
 	}
@@ -1368,12 +1388,11 @@ func num(p, n i) (r i) {
 }
 func vrb(p, n i) (r i) {
 	c := C(p)
-	s := `:+-*%&|<>=!~,^#_$?@.`
-	x := strings.IndexByte(s, c)
-	if x == -1 {
+	r = fnc(asci, 20, c) // :+-*%&|<>=!~,^#_$?@.
+	if r == 20 {
 		return 0
 	}
-	return acc(1, i(s[x]))
+	return acc(1, i(c))
 }
 
 func craz(x c) bool {

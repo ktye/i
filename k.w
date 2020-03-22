@@ -89,8 +89,8 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 <  les grd                                        132..135   k-tree keys
 >  mor gdn                                        136..139   k-tree values
 =  eql grp                                        140..143   parse index
-~  mtc not   match                                144..147   parse end
-!  key til   seq           z:re!im  im:!z         
+~  mtc not   match                                144..167   :+-*%&|<>=!~,^#_$?@.'/\0 (8b align)
+!  key til   seq           z:re!im  im:!z         168..171   parse end  
 ,  cat enl                 
 ^  exc asc                                         parse tree (left to right)
 $  str cst                                         (.;`s;a;+;y)      assign       s[a]+:y
