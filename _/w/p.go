@@ -1,6 +1,6 @@
 // +build ignore
 
-// E:E;e|e e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
+// E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 package main
 
 import (
@@ -22,7 +22,7 @@ var tests = [][2]string{
 	{"3*", "(*;3;)"},
 	{"%*3", "(%;(*;3))"},
 	{"1+2", "(+;1;2)"},
-	{"(a;b;`c)", "(`a;`b;,`c)"},
+	{"(a;b;`c)", "(`a;`b;(`c))"},
 	{"(a;(1;2);3)", "(`a;(1;2);3)"},
 	{"x;y", "(`x;`y)"},
 	{"(x;y)", "(`x;`y)"},
@@ -35,6 +35,23 @@ var tests = [][2]string{
 	{"x+m[*i]/y", "(+;`x;((/;(`m;(*;`i)));`y))"},
 	{"#'=x", "((';#);(=;`x))"},
 	{"x~|x", "(~;`x;(|;`x))"},
+	{"(x+y)", "(+;`x;`y)"},
+	{"{x;y}", "{`x;`y}"},
+	{"{x+y}", "{+;`x;`y}"},
+	{"()", ""},
+	{"(1)", "1"},
+	{"{}", "{}"},
+	{"{1}", "{1}"},
+	{"{x+y}[1;2]", "({+;`x;`y};1;2)"},
+	{"1{x+y}2", "({+;`x;`y};1;2)"},
+	{"x:3", "(:;`x;3)"},
+	{"x::3", "(::;`x;3)"},
+	{"x+:3", "(+:;`x;3)"},
+	{"x+:", "(+:;`x;)"},
+	{"x[1]:5", "(:;(`x;1);5)"},
+	{"x[1;2]+:", "(+:;(`x;1;2);)"},
+	{"x[1;2]+:3", "(+:;(`x;1;2);3)"},
+	{"x[1]:5", "(:;(`x;1);5)"},
 }
 
 func main() {
@@ -66,8 +83,19 @@ type A string      // adverb / ':
 // classes a v ; (lookup table)
 // a: ['/\                  adverbs and [
 // v: :+-*%!&|<>=~,^#_$?@.  verbs
-// ;: ;)]                   terminators (including space)
-const c = "                                ;v vvvva ;vvvvva          v;vvvvv                          aa;vv                            v v"
+// ;: ;)]}                  terminators (including space)
+const c = "                                ;v vvvva ;vvvvva          v;vvvvv                          aa;vv                            v;v"
+
+/* todo
+  1 EC escapable   NL TAB CR (?)
+  2 az             a-z
+  4 AZ             A-Z
+  8 NM numbers     0123456789
+ 16 HX hex         numbers a-f A-F
+ 32 VB verbs       :+-*%!&|<>=~,^#_$?@.
+ 64 AD adverbs     '/\
+128 TE terminators ;)]} (space)
+*/
 
 var s C   // parser input
 var p int // current index in s
@@ -76,7 +104,7 @@ func run(i int) {
 	x := tests[i]
 	a, b := x[0], x[1]
 	s, p = C(x[0]), 0
-	r := E(0)
+	r := E()
 	g := o(r)
 	if len(r) == 1 {
 		g = o(r[0])
@@ -104,6 +132,9 @@ func isverb(x K) bool {
 	if _, ok := x.(V); ok {
 		return true // verb
 	}
+	if _, ok := x.(F); ok {
+		return true // lambda (not in other K)
+	}
 	if l, ok := x.(L); ok && len(l) == 2 {
 		if _, ok := l[0].(A); ok {
 			return true // adverb derived
@@ -118,23 +149,27 @@ func t() (r K) {
 		if p == len(s) {
 			return nil
 		}
-		if s[p] == '(' {
+		if s[p] == '(' || s[p] == '{' {
 			p++
-			l := E(')')
+			l := E()
 			x = l
 			if len(l) == 1 {
 				x = l[0]
 			}
-		} else if s[p] == '{' {
-			p++
-			x = F(E('}'))
+			if s[p-1] == '}' {
+				if l, ok := x.(L); ok {
+					x = F(l)
+				} else {
+					x = F{x}
+				}
+			}
 		}
 	}
 	for {
 		if p < len(s) && c[s[p]] == 'a' {
 			if s[p] == '[' {
 				p++
-				x = append(L{x}, E(']')...) //prepend x to E(list)
+				x = append(L{x}, E()...) //prepend x to E(list)
 			} else {
 				x = L{adverb(), x}
 			}
@@ -143,14 +178,11 @@ func t() (r K) {
 		}
 	}
 }
-func E(c byte) (r L) {
+func E() (r L) {
 	defer func() { trace("E->%s\n", o(r)) }()
 	r = L{e(t())}
 	for {
 		if w() || s[p] != ';' { // or newline
-			if c != 0 && (p == len(s) || s[p] != c) {
-				xx("expected terminating " + S(c))
-			}
 			if p < len(s) {
 				p++
 			}
@@ -276,9 +308,6 @@ func xx(e S) bool {
 func o(x K) string {
 	switch u := x.(type) {
 	case L:
-		if len(u) == 1 {
-			return "," + o(u[0])
-		}
 		v := make([]string, len(u))
 		for i, e := range u {
 			v[i] = o(e)
@@ -286,7 +315,7 @@ func o(x K) string {
 		return "(" + strings.Join(v, ";") + ")"
 	case F:
 		s := o(L(u))
-		return "{" + s[1:len(s)-2] + "}"
+		return "{" + s[1:len(s)-1] + "}"
 	case C:
 		return `"` + string(u) + `"`
 	case S:
