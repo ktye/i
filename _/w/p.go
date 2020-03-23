@@ -1,5 +1,6 @@
 // +build ignore
 
+// standalone k.w parser (w/o vectors)
 // E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 package main
 
@@ -67,6 +68,10 @@ var tests = [][2]string{
 
 func main() {
 	if len(os.Args) == 2 {
+		if os.Args[1] == "-c" {
+			cmap() // print cmap for k.w
+			return
+		}
 		if i, err := strconv.Atoi(os.Args[1]); err == nil {
 			if os.Args[1][0] == '-' {
 				i = -i
@@ -81,7 +86,7 @@ func main() {
 	}
 }
 
-// K type system
+// simplified K type system
 type K interface{} // any K value
 type L []K         // list (a;b;..)
 type λ []K         // {x+y}
@@ -117,11 +122,9 @@ func e(x K) (r K) {
 	}
 	y := t() // nil?
 	if isverb(y) && !isverb(x) {
-		r = L{y, x, e(t())}
-		return r
+		return L{y, x, e(t())}
 	}
-	l := L{x, e(y)}
-	return l
+	return L{x, e(y)}
 }
 func isverb(x K) bool {
 	if _, ok := x.(V); ok {
@@ -330,65 +333,36 @@ func o(x K) string {
 
 var trace = func(s string, v ...interface{}) (int, error) { return 0, nil }
 
-func cla(x, m byte) byte { return c_[x] & m }
-func is(x, m byte) bool  { return cla(x, m) != 0 }
-
-/*
-func name(m byte) string {
-	var r []string
-	if 0 != (m & EC) {
-		r = append(r, "EC")
-	}
-	if 0 != (m & az) {
-		r = append(r, "AZ")
-	}
-	if 0 != (m & NM) {
-		r = append(r, "NM")
-	}
-	if 0 != (m & VB) {
-		r = append(r, "VB")
-	}
-	if 0 != (m & AD) {
-		r = append(r, "AD")
-	}
-	if 0 != (m & TE) {
-		r = append(r, "TE")
-	}
-	return strings.Join(r, "|")
-}
-*/
+func is(x, m byte) bool { return (m & c_[x]) != 0 }
 
 const (
-	EC = 1 << iota //  1 EC escapable   nl tab cr (more?)
-	az             //  2 az             a-z
-	AZ             //  4 AZ             A-Z
-	NM             //  8 NM numbers     0123456789
-	VB             // 16 VB verbs       :+-*%!&|<>=~,^#_$?@.
-	AD             // 32 AD adverbs     '/\
-	TE             // 64 TE terminators ;)]} (space)
+	az = 1 << iota //  1 a-z
+	AZ             //  2 A-Z
+	NM             //  4 numbers     0123456789
+	VB             //  8 verbs       :+-*%!&|<>=~,^#_$?@.
+	AD             // 16 adverbs     '/\
+	TE             // 32 terminators ;)]} (space)
 )
 
 var c_ [128]byte // class map (constant)
 
+func cmap() {
+	fmt.Printf("x")
+	for _, c := range c_[32:] {
+		fmt.Printf("%02x", c)
+	}
+	fmt.Printf("\n")
+}
 func init() {
 	m := func(s string, b byte) {
 		for i := range s {
 			c_[s[i]] |= b
 		}
 	}
-	m("\n\r\t", EC)
 	m("abcdefghijklmnopqrstuvwxyz", az)
 	m("ABCDEFGHIJKLMNOPQRSTUVWXYZ", AZ)
 	m("0123456789", NM)
 	m(":+-*%!&|<>=~,^#_$?@.", VB)
 	m("'/\\", AD)
 	m(";)]} ", TE)
-
-	/*
-		for _, c := range []byte{EC, az, AZ, NM, VB, AD, TE, VB + AD} {
-			for _, b := range "a+' )\t" {
-				fmt.Printf("%q in %d? %v\n", string(byte(b)), c, is(byte(b), c))
-			}
-		}
-	*/
 }

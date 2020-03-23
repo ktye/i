@@ -60,7 +60,7 @@ swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);
 evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :fst x;v:I xp;(v~36)?(xn>3)?  :x swc y;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);r8;dx x;(xn>2)?((v~186)? :lst r;(v~174)?(v-:128;y:0);(v~46)?(xn~5)?(rl r;dx r;s:I rp+4;a:I rp+8;f:I rp+12;u:I rp+16;(~a)?(~f)? :asn(s;y;u);!));(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
 xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
 sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
-
+160:x...
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}
 032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
 064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
@@ -82,27 +82,27 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 	   
 +  add abs                 abs:+z                   memory
 -  sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
-*  mul fst                                          8.. 11   k-tree/key   pointer     todo
-%  div sqr                                         12.. 15   k-tree/value pointer     todo
+*  mul fst                                          8.. 11   
+%  div sqr                                         12.. 15   
 &  min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                        128..131   memsize log2
 <  les grd                                        132..135   k-tree keys
 >  mor gdn                                        136..139   k-tree values
-=  eql grp                                        140..143   parse index
-~  mtc not   match                                144..167   :+-*%&|<>=!~,^#_$?@.'/\0 (8b align)
-!  key til   seq           z:re!im  im:!z         168..171   parse end  
-,  cat enl                 
-^  exc asc                                         parse tree (left to right)
-$  str cst                                         (.;`s;a;+;y)      assign       s[a]+:y
-#  rsh cnt   take                                  (.;`s;(a;b;c);;y) depth assign s[a;b;c]:y
-_  drp flr   drop          ang:_z                  (::;a;b;c)        sequence     a;b;c  ::x(last) :[x;y](dex)
-?  fnd unq   fnd fnx fnc fni..                     ((/;+);1 2 3)     adverbs      +/1 2 3
-@  atx typ                 z:abs@ang  z@ang
+=  eql grp                                        140..143   
+~  mtc not   match                                144..147
+!  key til   seq           z:re!im  im:!z         148..151
+,  cat enl                                        152..155   
+^  exc asc                                        156..159   parse cur (pp)
+$  str cst                                        160..255   char map az|AZ|NM|VB|AD|TE
+#  rsh cnt   take                                 256.. ∞    buckets
+_  drp flr   drop          ang:_z                 
+?  fnd unq   fnd fnx fnc fni..                     
+@  atx typ                 z:abs@ang  z@ang        
 .  cal val                 re:. z
 
-+'x  ech(40)  x+'y  ?(168)    x'y  ?
-+/x  ovr(123) x+/y  ecr(251)  x/y  ?
-+\x  scn(91)  x+\y  ecl(219)  x\y  ?
-+':x ecp(41)  x':y  ?(169)    x':y ?
-+/:x ?(125)   x+/:y ?(253)    x/:y sv?
++'x  ech(40)  x+'y  ?(168)    x'y  ?              parse tree (left to right) xxx
++/x  ovr(123) x+/y  ecr(251)  x/y  ?              (.;`s;a;+;y)      assign       s[a]+:y
++\x  scn(91)  x+\y  ecl(219)  x\y  ?              (.;`s;(a;b;c);;y) depth assign s[a;b;c]:y
++':x ecp(41)  x':y  ?(169)    x':y ?              (::;a;b;c)        sequence     a;b;c  ::x(last) :[x;y](dex)
++/:x ?(125)   x+/:y ?(253)    x/:y sv?            ((/;+);1 2 3)     adverbs      +/1 2 3                      
 +\:x ?(93)    x+\:y ?         x\:y vs?

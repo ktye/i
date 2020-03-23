@@ -1,8 +1,8 @@
 // +build ignore
 
-// reference implementation for k.w
+// reference implementation for k.w (same memory layout)
 // go run k.go t
-// go run k.go 5 mki til rev
+// go run k.go EXPR
 
 package main
 
@@ -44,7 +44,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
-const kkey, kval, pp, asci, pe = 132, 136, 140, 144, 168
+const kkey, kval, pp, cmap = 132, 136, 156, 160
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -186,18 +186,6 @@ func run(s string) string {
 	return s
 }
 func ini(x i) i {
-	sJ(0, 289360742959022336)       // uint64(0x0404041008040100)
-	sJ(asci, 4358400480451046202)   // :+-*%&|<  binary.LittleEndian.Uint64([]byte(`:+-*%&|<`))
-	sJ(asci+8, 6855426602975706430) // >=!~,^#_
-	sJ(asci+16, 25947543183572772)  // $?@.'/\0
-	sI(128, x)
-	p := i(256)
-	for i := i(8); i < x; i++ {
-		sI(4*i, p)
-		p *= 2
-	}
-	sI(kkey, mk(5, 0))
-	sI(kval, mk(6, 0))
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 000..031
@@ -209,6 +197,15 @@ func ini(x i) i {
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
 	})
+	sJ(0, 289360742959022336) // type sizes uint64(0x0404041008040100)
+	sI(128, x)                // alloc
+	p := i(256)
+	for i := i(8); i < x; i++ {
+		sI(4*i, p) // free pointer
+		p *= 2
+	}
+	sI(kkey, mk(5, 0))
+	sI(kval, mk(6, 0))
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -222,7 +219,7 @@ func msl() { // update slice headers after set/inc MJ
 	MF = *(*[]f)(unsafe.Pointer(&fp))
 	MI = *(*[]i)(unsafe.Pointer(&ip))
 	MC = *(*[]c)(unsafe.Pointer(&cp))
-	// todo Z
+	cmake() // copy character map data
 }
 func bk(t, n i) (r i) {
 	r = i(32 - bits.LeadingZeros32(7+n*i(C(t))))
@@ -299,6 +296,13 @@ func l2(x, y i) (r i) {
 	r = mk(6, 2)
 	sI(r+8, x)
 	sI(r+12, y)
+	return r
+}
+func l3(x, y i) (r i) {
+	r = mk(6, 3)
+	sI(r+8, x)
+	sI(r+12, y)
+	sI(r+16, y)
 	return r
 }
 func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
@@ -922,7 +926,7 @@ func abs(x i) i     { return nm(x, 15) }
 func neg(x i) i     { return nm(x, 19) }
 func sqr(x i) i     { return nm(x, 27) }
 func abc(x, r i) { // +c (toupper)
-	if c := C(x); craz(c) {
+	if c := C(x); is(c, az) {
 		sC(r, c-32)
 	} else {
 		sC(r, c)
@@ -938,7 +942,7 @@ func abi(x, r i) {
 func abf(x, r i) { sF(r, math.Abs(F(x))) }
 func abz(x, r i) { sF(r, cmplx.Abs(Z(x))) }
 func nec(x, r i) { // -c (tolower)
-	if c := C(x); crAZ(c) {
+	if c := C(x); is(c, AZ) {
 		sC(r, c+32)
 	} else {
 		sC(r, c)
@@ -1282,6 +1286,134 @@ func evl(x, loc i) (r i) {
 		panic("args")
 	}
 }
+func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
+	xt, xn, xp := v1(x)
+	if xt != 1 {
+		trap()
+	}
+	sI(pp, xp)
+	return dxr(x, psq(xp+xn))
+}
+func psq(s i) (r i) { // E
+	r = enl(pex(tok(t)))
+	for {
+		v := wsp(s)
+		p := I(pp)
+		if !v {
+			v = C(p) != 59 // ;
+		}
+		if v {
+			if p < s {
+				sI(pp, p+1)
+			}
+			return r
+		}
+		sI(pp, p+1)
+		r = cat(r, pex(tok(s), s))
+	}
+}
+func pex(x, s i) (r i) { // e
+	if x == 0 || wsp(s) || is(C(I(pp)), TE) {
+		return x
+	}
+	y := ptt(s) // nil?
+	if isv(y) && !isv(x) {
+		return l3(y, x, pex(ptt(s), s))
+	}
+	return l2(x, pex(y, s))
+}
+func ptt(s i) (r k) { // t
+	x := tok(s)
+	if !x {
+		p := I(pp)
+		if p == s {
+			return 0
+		}
+		λ := C(p) == 123     // {
+		if λ || C(p) == 40 { // (
+			sI(pp, p+1)
+			x = psq(s)
+			if _, xn, _ := v1(x); xn == 1 {
+				x = fst(x)
+			}
+			if λ {
+				x = lam(p, s, x)
+			}
+		}
+	}
+	for {
+		p := I(pp)
+		b := C(p)
+		if p == s || is(b, AD) || b == '[' {
+			if b == '[' {
+				sI(pp, p+1)
+				x = cat(enl(x), psq(t))
+			} else {
+				a := C(p) // adverb
+				if C(p+1) == ':' {
+					sI(pp, p+1)
+					a += 128
+				}
+				x = l2(a, x)
+			}
+		} else {
+			return x
+		}
+	}
+}
+func isv(x i) bool { // is verb or (adverb;_)
+	xt, xn, _ := v1(x)
+	if !xt {
+		return true
+	}
+	if xt == 6 && xn == 2 {
+		a := I(xp)
+		if a < 256 {
+			if is(c(a), AD) || is(c(a-128), AD) {
+				return true // is adverb
+			}
+		}
+	}
+	return false
+}
+func wsp(s i) bool { // skip whitespace
+	p := I(pp)
+	for {
+		if p == s {
+			sI(pp, p)
+			return true // EOF
+		}
+		b := C(p)
+		if cla(b) != 0 || b == 10 { // nonwhite
+			sI(pp, p)
+			return false
+		}
+		p++
+	}
+}
+func tok(s i) (r i) { // next token
+	if wsp(s) {
+		return 0
+	}
+	p := I(pp)
+	b := C(p)
+	if is(b, TE) {
+		return 0
+	}
+	if r = num(b, p, s); r != 0 {
+		return r
+	}
+	// ...
+	return r
+}
+func num(b c, p, s i) (r i) {
+	if !is(b, NM) {
+		return 0
+	}
+	panic("nyi")
+}
+
+/*
 func prs(x i) (r i) { // parse 'p x
 	_, xn, xp := v1(x)
 	sI(pp, xp)
@@ -1394,19 +1526,31 @@ func vrb(p, n i) (r i) {
 	}
 	return acc(1, i(c))
 }
+*/
 
-func craz(x c) bool {
-	if x < 'a' || x > 'z' {
-		return false
+const az, AZ, NM, VB, AD, TE = 1, 2, 4, 8, 16, 32 // see p.go
+func is(x, m c) bool                              { return (m & cla(x)) != 0 }
+func cla(b, m c) c {
+	if 128 < (b - 32) {
+		return 0
 	}
-	return true
+	return m & C(i(128+b))
 }
-func crAZ(x c) bool {
-	if x < 'A' || x > 'Z' {
-		return false
+func cmake() { // init character token map (generated by go run p.go -c)
+	n := 128 - 32
+	s := "200800080808081000200808080808100404040404040404040408200808080808020202020202020202020202020202020202020202020202020200102008080001010101010101010101010101010101010101010101010101010008200800"
+	if len(s) != 2*n {
+		panic("cmap")
 	}
-	return true
+	for i := 0; i < n; i++ {
+		n, err := strconv.ParseUint(s[2*i:2+2*i], 16, 8)
+		if err != nil {
+			panic(err)
+		}
+		MC[cmap+i] = c(n)
+	}
 }
+
 func boolvar(b bool) i {
 	if b {
 		return 1
@@ -1457,6 +1601,8 @@ func leak() {
 	//dump(0, 200)
 	dx(I(kkey))
 	dx(I(kval))
+	sI(cmap, (1<<29)|120)
+	dx(cmap)
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
