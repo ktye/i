@@ -16,6 +16,10 @@ var tests = [][2]string{
 	{"+", "+"},
 	{`""`, `""`},
 	{`"abc+-*;"`, `"abc+-*;"`},
+	{"`abc", "(`abc)"},
+	{"`\"abc\"", "(`abc)"},
+	{"aBc", "`aBc"},
+	{"A5", "`A5"},
 	{"-:", "-:"},
 	{"+/", "(/;+)"},
 	{"*3", "(*;3)"},
@@ -52,6 +56,13 @@ var tests = [][2]string{
 	{"x[1;2]+:", "(+:;(`x;1;2);)"},
 	{"x[1;2]+:3", "(+:;(`x;1;2);3)"},
 	{"x[1]:5", "(:;(`x;1);5)"},
+	{"+-", "(+;-)"},
+	{"(+-)x", "((+;-);`x)"},
+	{"+-*", "(+;(-;*))"},
+	{"(+-*)3", "((+;(-;*));3)"},
+	{"(+-*)[1;3]", "((+;(-;*));1;3)"},
+	{"+-*%", "(+;(-;(*;%)))"},
+	{"(+/2*)5", "(((/;+);(*;2;));5)"},
 }
 
 func main() {
@@ -73,29 +84,13 @@ func main() {
 // K type system
 type K interface{} // any K value
 type L []K         // list (a;b;..)
-type F []K         // lambda {x+y}
+type λ []K         // {x+y}
 type C []byte      // "abc"
 type S string      // `abc (a-z)
-type I = int       // 3
+type I int         // 3
+type F float64     // 3.14
 type V string      // verb + -:
 type A string      // adverb / ':
-
-// classes a v ; (lookup table)
-// a: ['/\                  adverbs and [
-// v: :+-*%!&|<>=~,^#_$?@.  verbs
-// ;: ;)]}                  terminators (including space)
-const c = "                                ;v vvvva ;vvvvva          v;vvvvv                          aa;vv                            v;v"
-
-/* todo
-  1 EC escapable   NL TAB CR (?)
-  2 az             a-z
-  4 AZ             A-Z
-  8 NM numbers     0123456789
- 16 HX hex         numbers a-f A-F
- 32 VB verbs       :+-*%!&|<>=~,^#_$?@.
- 64 AD adverbs     '/\
-128 TE terminators ;)]} (space)
-*/
 
 var s C   // parser input
 var p int // current index in s
@@ -117,7 +112,7 @@ func run(i int) {
 }
 func e(x K) (r K) {
 	defer func() { trace("e(%s)->%s\n", o(x), o(r)) }()
-	if x == nil || w() || c[s[p]] == ';' {
+	if x == nil || w() || is(s[p], TE) {
 		return x
 	}
 	y := t() // nil?
@@ -132,7 +127,7 @@ func isverb(x K) bool {
 	if _, ok := x.(V); ok {
 		return true // verb
 	}
-	if _, ok := x.(F); ok {
+	if _, ok := x.(λ); ok {
 		return true // lambda (not in other K)
 	}
 	if l, ok := x.(L); ok && len(l) == 2 {
@@ -158,15 +153,15 @@ func t() (r K) {
 			}
 			if s[p-1] == '}' {
 				if l, ok := x.(L); ok {
-					x = F(l)
+					x = λ(l)
 				} else {
-					x = F{x}
+					x = λ{x}
 				}
 			}
 		}
 	}
 	for {
-		if p < len(s) && c[s[p]] == 'a' {
+		if p < len(s) && (is(s[p], AD) || s[p] == '[') {
 			if s[p] == '[' {
 				p++
 				x = append(L{x}, E()...) //prepend x to E(list)
@@ -208,19 +203,18 @@ func w() bool {
 	return false
 }
 func tok() (r K) { // next token
-	var b byte
 	if w() {
 		return nil
 	}
-	if c[b] == ';' { // terminator ;)]
+	if is(s[p], TE) {
 		return nil
 	}
-	if chars(&r) || number(&r) || symbol(&r) || quote(&r) || verb(&r) {
+	if chars(&r) || number(&r) || name(&r) || symbol(&r) || verb(&r) {
+		trace("Token: %s %T\n", o(r), r)
 	}
 	return r
 }
-func chars(r *K) (v bool) {
-	//defer func() { s := iff(v, r); fmt.Printf("chars? %v %s\n", v, s) }()
+func chars(r *K) bool {
 	if s[p] != '"' {
 		return false
 	}
@@ -237,11 +231,11 @@ func chars(r *K) (v bool) {
 	}
 }
 func number(r *K) (v bool) {
-	//defer func() { s := iff(v, r); fmt.Printf("number? %v %s\n", v, s) }()
+	atoi := func(b []byte) I { x, _ := strconv.Atoi(string(b)); return I(x) }
 	for i := 0; ; i++ {
-		if p+i == len(s) || s[p+i] < '0' || s[p+i] > '9' {
+		if p+i == len(s) || !is(s[p+i], NM) {
 			if i > 0 {
-				*r, _ = strconv.Atoi(string(s[p : p+i]))
+				*r = atoi(s[p : p+i])
 				p += i
 				return true
 			}
@@ -249,32 +243,33 @@ func number(r *K) (v bool) {
 		}
 	}
 }
-func symbol(r *K) (v bool) { // abc
-	if s[p] < 'a' || s[p] > 'z' {
+func name(r *K) (v bool) { // abc A3
+	if !is(s[p], az+AZ) {
 		return false
 	}
 	for i := 0; ; i++ {
-		if p+i == len(s) || s[p+i] < 'a' || s[p+i] > 'z' {
+		if p+i == len(s) || !is(s[p+i], az+AZ+NM) {
 			*r = S(s[p : p+i])
 			p += i
 			return true
 		}
 	}
 }
-func quote(r *K) (v bool) { // `abc
+func symbol(r *K) (v bool) { // `abc `"abc"
 	if s[p] != '`' {
 		return false
 	}
 	p++
-	if symbol(r) == false {
-		*r = S("")
+	if chars(r) {
+		*r = S((*r).(C))
+	} else if name(r) == false {
+		*r = L{S("")}
 	}
-	*r = L{*r}
+	*r = L{*r} // enlist
 	return true
 }
 func verb(r *K) (v bool) {
-	//defer func() { s := iff(v, r); fmt.Printf("verb? %v %s\n", v, s) }()
-	if c[s[p]] != 'v' {
+	if !is(s[p], VB) {
 		return false
 	}
 	x := string(s[p])
@@ -313,7 +308,7 @@ func o(x K) string {
 			v[i] = o(e)
 		}
 		return "(" + strings.Join(v, ";") + ")"
-	case F:
+	case λ:
 		s := o(L(u))
 		return "{" + s[1:len(s)-1] + "}"
 	case C:
@@ -321,7 +316,7 @@ func o(x K) string {
 	case S:
 		return "`" + string(u)
 	case I:
-		return strconv.Itoa(u)
+		return strconv.Itoa(int(u))
 	case V:
 		return string(u)
 	case A:
@@ -334,3 +329,66 @@ func o(x K) string {
 }
 
 var trace = func(s string, v ...interface{}) (int, error) { return 0, nil }
+
+func cla(x, m byte) byte { return c_[x] & m }
+func is(x, m byte) bool  { return cla(x, m) != 0 }
+
+/*
+func name(m byte) string {
+	var r []string
+	if 0 != (m & EC) {
+		r = append(r, "EC")
+	}
+	if 0 != (m & az) {
+		r = append(r, "AZ")
+	}
+	if 0 != (m & NM) {
+		r = append(r, "NM")
+	}
+	if 0 != (m & VB) {
+		r = append(r, "VB")
+	}
+	if 0 != (m & AD) {
+		r = append(r, "AD")
+	}
+	if 0 != (m & TE) {
+		r = append(r, "TE")
+	}
+	return strings.Join(r, "|")
+}
+*/
+
+const (
+	EC = 1 << iota //  1 EC escapable   nl tab cr (more?)
+	az             //  2 az             a-z
+	AZ             //  4 AZ             A-Z
+	NM             //  8 NM numbers     0123456789
+	VB             // 16 VB verbs       :+-*%!&|<>=~,^#_$?@.
+	AD             // 32 AD adverbs     '/\
+	TE             // 64 TE terminators ;)]} (space)
+)
+
+var c_ [128]byte // class map (constant)
+
+func init() {
+	m := func(s string, b byte) {
+		for i := range s {
+			c_[s[i]] |= b
+		}
+	}
+	m("\n\r\t", EC)
+	m("abcdefghijklmnopqrstuvwxyz", az)
+	m("ABCDEFGHIJKLMNOPQRSTUVWXYZ", AZ)
+	m("0123456789", NM)
+	m(":+-*%!&|<>=~,^#_$?@.", VB)
+	m("'/\\", AD)
+	m(";)]} ", TE)
+
+	/*
+		for _, c := range []byte{EC, az, AZ, NM, VB, AD, TE, VB + AD} {
+			for _, b := range "a+' )\t" {
+				fmt.Printf("%q in %d? %v\n", string(byte(b)), c, is(byte(b), c))
+			}
+		}
+	*/
+}
