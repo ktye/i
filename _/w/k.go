@@ -311,6 +311,7 @@ func l3(x, y, z i) (r i) {
 	sI(r+16, z)
 	return r
 }
+func nn(x i) (xn i)         { return I(x) & 536870911 }
 func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
 func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	xt, xn, xp = v1(x)
@@ -448,7 +449,7 @@ func tir(n i) (r i) {
 	return r
 }
 func rev(x i) (r i) {
-	_, n, _ := v1(x)
+	n := nn(x)
 	if n == 0 {
 		return x
 	}
@@ -461,13 +462,10 @@ func fst(x i) (r i) {
 	}
 	return atx(x, mki(0))
 }
-func dex(x, y i) (r i) { return dxr(x, y) } // :[x;y]
-func lst(x i) (r i) { // ::x
-	_, xn, _ := v1(x)
-	return atx(x, mki(xn-1))
-}
+func dex(x, y i) (r i) { return dxr(x, y) }                                   // :[x;y]
+func lst(x i) (r i)    { return atx(x, mki(nn(x)-1)) /* TODO k.w differs */ } // ::x
 func drop(x, n i) (r i) {
-	_, xn, _ := v1(x)
+	xn := nn(x)
 	if n > xn {
 		n = xn
 	}
@@ -530,7 +528,7 @@ func prod(xp, n i) (r i) {
 	return r
 }
 func take(x, n i) (r i) {
-	_, xn, _ := v1(x)
+	xn := nn(x)
 	r = seq(0, n, 1)
 	if xn < n {
 		rp := 8 + r
@@ -659,11 +657,7 @@ func lcat(x, y i) (r i) { // list append
 	return x
 }
 func enl(x i) (r i) { return lcat(mk(6, 0), x) }
-func cnt(x i) (r i) {
-	_, xn, _ := v1(x)
-	dx(x)
-	return mki(xn)
-}
+func cnt(x i) (r i) { dx(x); return mki(nn(x)) }
 func typ(x i) (r i) {
 	xt, _, _ := v1(x)
 	r = mk(2, 1)
@@ -792,13 +786,7 @@ func fnc(xp, xn i, c c) (r i) {
 	}
 	return r
 }
-func exc(x, y i) (r i) { // x^y
-	_, yn, _ := v1(y)
-	r = mk(2, 1)
-	sI(r+8, yn)
-	rx(x)
-	return atx(x, wer(eql(r, fnd(y, x)))) // x@&xn=y?x
-}
+func exc(x, y i) (r i) { rx(x); return atx(x, wer(eql(mki(nn(y)), fnd(y, x)))) } // x^y
 func grd(x i) (r i) { // <x
 	xt, xn, xp := v1(x)
 	r = seq(0, xn, 1)
@@ -1019,42 +1007,42 @@ func ech(x, y i) (r i) { // f'x (each)
 	return dxyr(x, y, r)
 }
 func ecp(x, y i) (r i) { // f':x (each-prior)
-	_, xn, _ := v1(x)
-	if xn == 0 {
+	n := nn(x)
+	if n == 0 {
 		return dxr(y, fst(x))
 	}
-	rxn(x, 2*xn-1)
-	rxn(y, xn-1)
+	rxn(x, 2*n-1)
+	rxn(y, n-1)
 	r = fst(x)
-	for i := i(0); i < (xn - 1); i++ {
+	for i := i(0); i < (n - 1); i++ {
 		r = cat(r, cal(y, l2(atx(x, mki(i+1)), atx(x, mki(i)))))
 	}
 	return dxyr(x, y, r)
 }
 func ovr(x, y i) (r i) { // y/x (over/reduce)
-	_, xn, _ := v1(x)
-	if xn == 0 {
+	n := nn(x)
+	if n == 0 {
 		return dxr(y, fst(x))
 	}
-	rxn(x, xn)
-	rxn(y, xn-1)
+	rxn(x, n)
+	rxn(y, n-1)
 	r = fst(x)
-	for i := i(0); i < xn-1; i++ {
+	for i := i(0); i < n-1; i++ {
 		r = cal(y, l2(r, atx(x, mki(i+1))))
 	}
 	return dxyr(x, y, r)
 }
 func scn(x, y i) (r i) { // y\x (scan)
-	_, xn, _ := v1(x)
-	if xn == 0 {
+	n := nn(x)
+	if n == 0 {
 		return dxr(y, fst(x))
 	}
-	rxn(x, xn)
-	rxn(y, xn-1)
+	rxn(x, n)
+	rxn(y, n-1)
 	t := fst(x)
 	rx(t)
 	r = enl(t)
-	for i := i(0); i < xn-1; i++ {
+	for i := i(0); i < n-1; i++ {
 		t = cal(y, l2(t, atx(x, mki(i+1))))
 		rx(t)
 		r = lcat(r, t)
@@ -1063,13 +1051,13 @@ func scn(x, y i) (r i) { // y\x (scan)
 	return dxyr(x, y, r)
 }
 func ecr(x, y, f i) (r i) { // x f/ y (each-right)
-	_, _, _, yn, _, _ := v2(x, y)
-	r = mk(6, yn)
+	n := nn(y)
+	r = mk(6, n)
 	rp := r + 8
-	rxn(x, yn)
-	rxn(y, yn)
-	rxn(f, yn)
-	for i := i(0); i < yn; i++ {
+	rxn(x, n)
+	rxn(y, n)
+	rxn(f, n)
+	for i := i(0); i < n; i++ {
 		sI(rp, cal(f, l2(x, atx(y, mki(i)))))
 		rp += 4
 	}
@@ -1077,13 +1065,13 @@ func ecr(x, y, f i) (r i) { // x f/ y (each-right)
 	return dxyr(x, y, r)
 }
 func ecl(x, y, f i) (r i) { // x f\ y (each-left)
-	_, _, xn, _, _, _ := v2(x, y)
-	r = mk(6, xn)
+	n := nn(x)
+	r = mk(6, n)
 	rp := r + 8
-	rxn(x, xn)
-	rxn(y, xn)
-	rxn(f, xn)
-	for i := i(0); i < xn; i++ {
+	rxn(x, n)
+	rxn(y, n)
+	rxn(f, n)
+	for i := i(0); i < n; i++ {
 		sI(rp, cal(f, l2(atx(x, mki(i)), y)))
 		rp += 4
 	}
@@ -1309,11 +1297,15 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	}
 	sI(pp, xp)
 	fmt.Printf("prs %s [%d %d]\n", kst(x), xp, xp+xn)
-	return dxr(x, sq(xp+xn))
+	r = sq(xp + xn)
+	if nn(r) == 1 {
+		r = fst(r)
+	}
+	return dxr(x, r)
 }
 func sq(s i) (r i) { // E
-	r = ex(pt(s), s)
-	fmt.Printf("sq %s\n", kst(r))
+	r = enl(ex(pt(s), s))
+	//fmt.Printf("sq %s\n", kst(r))
 	for f := 1; ; {
 		v := ws(s)
 		p := I(pp)
@@ -1328,10 +1320,12 @@ func sq(s i) (r i) { // E
 		}
 		sI(pp, p+1)
 		if f != 0 {
-			r = enl(r)
+			//r = enl(r)
 			f = 0
 		}
-		r = cat(r, ex(tok(s), s))
+		xx := ex(pt(s), s)
+		//fmt.Printf("lcat xx=%s\n", kst(xx))
+		r = lcat(r, xx)
 	}
 }
 func ex(x, s i) (r i) { // e
@@ -1350,7 +1344,6 @@ func pt(s i) (r i) { // t
 	x := tok(s)
 	if x == 0 {
 		p := I(pp)
-		fmt.Println("pt p", p)
 		if p == s {
 			return 0
 		}
@@ -1358,6 +1351,11 @@ func pt(s i) (r i) { // t
 		if λ || C(p) == 40 { // (
 			sI(pp, p+1)
 			x = sq(s)
+			if n := nn(x); n == 1 {
+				x = fst(x)
+			} else if n > 1 {
+				x = enl(x)
+			}
 			if λ {
 				x = lam(p, I(pp), x)
 			}
@@ -1369,12 +1367,12 @@ func pt(s i) (r i) { // t
 		if p < s && (is(b, AD) || b == '[') {
 			if b == '[' {
 				sI(pp, p+1)
-				x = cat(enl(x), sq(s))
+				xx := sq(s)
+				x = cat(enl(x), xx)
 			} else {
 				x = l2(tok(s), x) // adverb
 			}
 		} else {
-			fmt.Println("no!")
 			return x
 		}
 	}
@@ -1413,7 +1411,7 @@ func ws(s i) bool { // skip whitespace
 			return true // EOF
 		}
 		b := C(p)
-		if cla(b) != 0 || b == 10 { // nonwhite
+		if is(b, NW) || b == 10 {
 			sI(pp, p)
 			return false
 		}
@@ -1440,6 +1438,15 @@ func tok(s i) (r i) { // next token
 		return r
 	}
 	if r = adv(b, p, s); r != 0 {
+		//fmt.Printf("adv: r=%s\n", kst(r))
+		return r
+	}
+	if r = nam(b, p, s); r != 0 {
+		//fmt.Printf("nam: r=%s\n", kst(r))
+		return r
+	}
+	if r = sym(b, p, s); r != 0 {
+		//fmt.Printf("sym: r=%s\n", kst(r))
 		return r
 	}
 	// ...
@@ -1497,7 +1504,7 @@ func nam(b c, p, s i) (r i) { // abc  A3 (as `abc)
 		}
 	}
 }
-func sym(b c, p, s i) (r i) { // `abc`"abc"  as (`abc`abc)
+func sym(b c, p, s i) (r i) { // `abc`"abc"  as ,`abc`abc
 	if b != '`' {
 		return 0
 	}
@@ -1505,14 +1512,11 @@ func sym(b c, p, s i) (r i) { // `abc`"abc"  as (`abc`abc)
 	sI(pp, p)
 	if p < s {
 		b := C(p)
-		r = nam(b, p, s)
-		if r == 0 {
-			r = chr(b, p, s)
-			if r != 0 {
-				r = enl(r)
-				sI(r, 5<<29|1)
-				return r
-			}
+		if r = nam(b, p, s); r != 0 {
+			return enl(r)
+		}
+		if r = chr(b, p, s); r != 0 {
+			return enl(sc(r))
 		}
 	}
 	r = mk(5, 0)
@@ -1540,8 +1544,8 @@ func chr(b c, p, s i) (r i) { // "abc"
 	}
 }
 
-const az, AZ, NM, VB, AD, TE = 1, 2, 4, 8, 16, 32 // see p.go
-func is(x, m c) bool                              { return (m & cla(x)) != 0 }
+const az, AZ, NM, VB, AD, TE, NW = 1, 2, 4, 8, 16, 32, 64 // see p.go
+func is(x, m c) bool                                      { return (m & cla(x)) != 0 }
 func cla(b c) c {
 	if 128 < (b - 32) {
 		return 0
@@ -1550,7 +1554,7 @@ func cla(b c) c {
 }
 func cmake() { // init character token map (generated by go run p.go -c)
 	n := 128 - 32
-	s := "200800080808081000200808080808100404040404040404040408200808080808020202020202020202020202020202020202020202020202020200102008080001010101010101010101010101010101010101010101010101010008200800"
+	s := "204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800"
 	if len(s) != 2*n {
 		panic("cmap")
 	}
@@ -1625,10 +1629,12 @@ func leak() {
 	}
 }
 func kst(x i) s {
+	fmt.Printf("kst x=%x %d\n", x, x)
 	if x == 0 {
 		return ""
 	}
 	t, n, _ := v1(x)
+	fmt.Println("t/n: ", t, n)
 	var f func(i i) s
 	var tof func(s) s = func(s s) s { return s }
 	istr := func(i i) s {
@@ -1687,6 +1693,9 @@ func kst(x i) s {
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
 	case 6:
+		if n == 1 {
+			return "," + kst(I(8+x))
+		}
 		f = func(i i) s { return kst(MI[2+i+x>>2]) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }

@@ -36,6 +36,7 @@ var tests = [][2]string{
 	{"x;y", "(`x;`y)"},
 	{"(x;y)", "(`x;`y)"},
 	{"f[x;y]", "(`f;`x;`y)"},
+	{"f(a;b)", "(`f;(`a;`b))"},
 	{"x+y", "(+;`x;`y)"},
 	{"x+*y", "(+;`x;(*;`y))"},
 	{"1+3*x", "(+;1;(*;3;`x))"},
@@ -345,6 +346,7 @@ const (
 	VB             //  8 verbs       :+-*%!&|<>=~,^#_$?@.
 	AD             // 16 adverbs     '/\
 	TE             // 32 terminators ;)]} (space)
+	NW             // 64 nonwhite    33..126
 )
 
 var c_ [128]byte // class map (constant)
@@ -368,4 +370,7 @@ func init() {
 	m(":+-*%!&|<>=~,^#_$?@.", VB)
 	m("'/\\", AD)
 	m(";)]} ", TE)
+	for i := 33; i < 127; i++ {
+		c_[i] |= NW
+	}
 }
