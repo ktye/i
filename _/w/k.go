@@ -1,7 +1,7 @@
 // +build ignore
 
-// reference implementation for k.w (same memory layout)
-// go run k.go t
+// prototype implementation for k.w (same memory layout)
+// go run k.go t      /all tests
 // go run k.go EXPR
 
 package main
@@ -60,6 +60,10 @@ func runtest() {
 	}
 	v := strings.Split(strings.TrimSpace(string(b)), "\n")
 	for i := range v {
+		if len(v[i]) == 0 {
+			fmt.Println("skip rest")
+			os.Exit(0)
+		}
 		if len(v[i]) == 0 || v[i][0] == '/' {
 			continue
 		}
@@ -72,7 +76,7 @@ func runtest() {
 		got := run(in)
 		fmt.Println(in, "/", got)
 		if exp != got {
-			fmt.Printf("!")
+			fmt.Println("expected:", exp)
 			os.Exit(1)
 		}
 	}
@@ -179,7 +183,9 @@ func run(s string) string {
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
 	ini(16)
-	x := evl(parseVector(s), 0)
+	x := mk(1, i(len(s)))
+	copy(MC[x+8:], s)
+	x = prs(x)
 	s = kst(x)
 	dx(x)
 	leak()
@@ -235,7 +241,7 @@ func mk(x, y i) i {
 		i += 4
 	}
 	if i == 128 {
-		panic("oom")
+		panic("Ω")
 	}
 	a := I(i)
 	sI(i, I(a))
@@ -298,11 +304,11 @@ func l2(x, y i) (r i) {
 	sI(r+12, y)
 	return r
 }
-func l3(x, y i) (r i) {
+func l3(x, y, z i) (r i) {
 	r = mk(6, 3)
 	sI(r+8, x)
 	sI(r+12, y)
-	sI(r+16, y)
+	sI(r+16, z)
 	return r
 }
 func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
@@ -830,6 +836,16 @@ func str(x i) (r i)    { panic("nyi") }
 func unq(x i) (r i)    { panic("nyi") }
 func flr(x i) (r i)    { panic("nyi") }
 func cst(x, y i) (r i) { panic("nyi") }
+func sc(x i) (r i) {
+	r = enl(x)
+	sI(r, 5<<29|1)
+	return r
+}
+func cs(x i) (r i) {
+	r = x + 8
+	rx(r)
+	return dxr(x, r)
+}
 func min(x, y i) (r i) { panic("nyi") }
 func max(x, y i) (r i) { panic("nyi") }
 func nm(x, f i) (r i) {
@@ -1292,12 +1308,14 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 		trap()
 	}
 	sI(pp, xp)
-	return dxr(x, psq(xp+xn))
+	fmt.Printf("prs %s [%d %d]\n", kst(x), xp, xp+xn)
+	return dxr(x, sq(xp+xn))
 }
-func psq(s i) (r i) { // E
-	r = enl(pex(tok(t)))
-	for {
-		v := wsp(s)
+func sq(s i) (r i) { // E
+	r = ex(pt(s), s)
+	fmt.Printf("sq %s\n", kst(r))
+	for f := 1; ; {
+		v := ws(s)
 		p := I(pp)
 		if !v {
 			v = C(p) != 59 // ;
@@ -1309,74 +1327,85 @@ func psq(s i) (r i) { // E
 			return r
 		}
 		sI(pp, p+1)
-		r = cat(r, pex(tok(s), s))
+		if f != 0 {
+			r = enl(r)
+			f = 0
+		}
+		r = cat(r, ex(tok(s), s))
 	}
 }
-func pex(x, s i) (r i) { // e
-	if x == 0 || wsp(s) || is(C(I(pp)), TE) {
+func ex(x, s i) (r i) { // e
+	defer func() { fmt.Printf("ex %d %q\n", r, kst(r)) }()
+	if x == 0 || ws(s) || is(C(I(pp)), TE) {
 		return x
 	}
-	y := ptt(s) // nil?
+	y := pt(s) // nil?
 	if isv(y) && !isv(x) {
-		return l3(y, x, pex(ptt(s), s))
+		return l3(y, x, ex(pt(s), s))
 	}
-	return l2(x, pex(y, s))
+	return l2(x, ex(y, s))
 }
-func ptt(s i) (r k) { // t
+func pt(s i) (r i) { // t
+	defer func() { fmt.Printf("pt r=%d %q\n", r, kst(r)) }()
 	x := tok(s)
-	if !x {
+	if x == 0 {
 		p := I(pp)
+		fmt.Println("pt p", p)
 		if p == s {
 			return 0
 		}
 		λ := C(p) == 123     // {
 		if λ || C(p) == 40 { // (
 			sI(pp, p+1)
-			x = psq(s)
-			if _, xn, _ := v1(x); xn == 1 {
-				x = fst(x)
-			}
+			x = sq(s)
 			if λ {
-				x = lam(p, s, x)
+				x = lam(p, I(pp), x)
 			}
 		}
 	}
 	for {
 		p := I(pp)
 		b := C(p)
-		if p == s || is(b, AD) || b == '[' {
+		if p < s && (is(b, AD) || b == '[') {
 			if b == '[' {
 				sI(pp, p+1)
-				x = cat(enl(x), psq(t))
+				x = cat(enl(x), sq(s))
 			} else {
-				a := C(p) // adverb
-				if C(p+1) == ':' {
-					sI(pp, p+1)
-					a += 128
-				}
-				x = l2(a, x)
+				x = l2(tok(s), x) // adverb
 			}
 		} else {
+			fmt.Println("no!")
 			return x
 		}
 	}
 }
 func isv(x i) bool { // is verb or (adverb;_)
-	xt, xn, _ := v1(x)
-	if !xt {
-		return true
+	xt, xn, xp := v1(x)
+	if xt == 0 {
+		return true // function
 	}
 	if xt == 6 && xn == 2 {
 		a := I(xp)
 		if a < 256 {
 			if is(c(a), AD) || is(c(a-128), AD) {
-				return true // is adverb
+				return true // adverb
 			}
 		}
 	}
 	return false
 }
-func wsp(s i) bool { // skip whitespace
+func lam(p, s, x i) (r i) {
+	n := s - p
+	t := mk(1, n)
+	mv(t+8, pp+p, n)
+	r = mk(0, 4)
+	sI(r+8, t)         // string
+	sI(r+12, x)        // tree
+	sI(r+16, 0)        // todo args
+	sI(r+20, mk(5, 0)) // todo locals
+	return r
+}
+func ws(s i) bool { // skip whitespace
 	p := I(pp)
 	for {
 		if p == s {
@@ -1392,7 +1421,8 @@ func wsp(s i) bool { // skip whitespace
 	}
 }
 func tok(s i) (r i) { // next token
-	if wsp(s) {
+	defer func() { fmt.Printf("tok r=%s\n", kst(r)) }()
+	if ws(s) {
 		return 0
 	}
 	p := I(pp)
@@ -1400,7 +1430,16 @@ func tok(s i) (r i) { // next token
 	if is(b, TE) {
 		return 0
 	}
+	// todo call table
 	if r = num(b, p, s); r != 0 {
+		//fmt.Printf("number %s\n", kst(r))
+		return r
+	}
+	if r = vrb(b, p, s); r != 0 {
+		//fmt.Printf("verb %s\n", kst(r))
+		return r
+	}
+	if r = adv(b, p, s); r != 0 {
 		return r
 	}
 	// ...
@@ -1410,131 +1449,104 @@ func num(b c, p, s i) (r i) {
 	if !is(b, NM) {
 		return 0
 	}
-	panic("nyi")
-}
-
-/*
-func prs(x i) (r i) { // parse 'p x
-	_, xn, xp := v1(x)
-	sI(pp, xp)
-	sI(pe, xp+xn)
-	r = sq(xp + xn)
-	dx(x)
-	rn := 536870911 & I(r)
-	if rn > 1 {
-		return cat(enl(':'+128), r)
+	if is(C(p+1), NM) {
+		panic("nyi long numbers")
 	}
-	return fst(r)
+	sI(pp, p+1)
+	return mki(i(b - '0'))
 }
-func sq(t i) (r i) { // E:E;e|e (sequence)
-	r = mk(6, 0)
+func vrb(b c, p, s i) (r i) {
+	if is(b, VB) {
+		r = i(C(p))
+		if s > p+1 {
+			if C(p+1) == ':' {
+				p++
+				r += 128
+			}
+		}
+		sI(pp, p+1)
+		return r
+	}
+	return 0
+}
+func adv(b c, p, s i) (r i) {
+	if !is(b, AD) {
+		return 0
+	}
+	r = i(C(p))
+	if C(p+1) == ':' {
+		p++
+		r += 128
+	}
+	sI(pp, p+1)
+	return r
+}
+func nam(b c, p, s i) (r i) { // abc  A3 (as `abc)
+	if !is(b, az|AZ) {
+		return 0
+	}
+	a := p
 	for {
-		v := ex(tok(t))
-		if v == 0 {
+		p++
+		if p == s || !is(C(p), az|AZ|NM) {
+			n := p - a
+			r = mk(1, n)
+			mv(r+8, a, n)
+			sI(pp, p)
+			return sc(r)
+		}
+	}
+}
+func sym(b c, p, s i) (r i) { // `abc`"abc"  as (`abc`abc)
+	if b != '`' {
+		return 0
+	}
+	p++
+	sI(pp, p)
+	if p < s {
+		b := C(p)
+		r = nam(b, p, s)
+		if r == 0 {
+			r = chr(b, p, s)
+			if r != 0 {
+				r = enl(r)
+				sI(r, 5<<29|1)
+				return r
+			}
+		}
+	}
+	r = mk(5, 0)
+	sI(r+8, mk(1, 0))
+	return r
+}
+func chr(b c, p, s i) (r i) { // "abc"
+	if b != '"' {
+		return 0
+	}
+	a := p + 1
+	for {
+		p++
+		b := C(p)
+		if p == s {
+			panic("chr")
+		}
+		if b == '"' { // todo quote
+			n := p - a
+			r = mk(1, n)
+			mv(r+8, a, n)
+			sI(pp, p)
 			return r
 		}
-		r = lcat(r, v)
 	}
 }
-func t() (r i) {
-	r = nxt() // V|N
-	for {
-		// if followed by A -> (A,r)
-		// else if followed by [ .. t, cat E
-		// else break
-	}
-}
-func ex(x i) (r i) { // e:nve|te| t:n|v v:tA|V n:t[E]|(E)|{E}|N
-	if x == 0 {
-		return x
-	}
-	xt, _, _ := v1(x)
-	if xt == 0 { // verb
-		r = ex(tok(I(pe)))
-		if r == 0 {
-			return x // v
-		} else {
-			if x < 128 {
-				x += 128 // force monad
-			}
-			return l2(x, r) // ve
-		}
-	} else { // noun
-		r = tok(I(pe))
-		if r == 0 {
-			return x // n
-		}
-		rt, _, _ := v1(r)
-		if rt != 0 {
-			return l2(x, ex(r)) // te
-		}
-		y := ex(tok(I(pe)))
-		if y == 0 {
-			panic("parse composition") // 2+
-		} else {
-			l := mk(6, 3)
-			sI(l+8, r)
-			sI(l+12, x)
-			sI(l+16, y)
-			return l // nve
-		}
-	}
-	return x // todo
-}
-func tok(t i) (r i) { // parse next token
-	if pw(t) {
-		return 0
-	}
-	p := I(pp)
-	n := t - p - 1
-	if r = num(p, n); r != 0 {
-		return r
-	}
-	if r = vrb(p, n); r != 0 {
-		return r
-	}
-	return 0
-}
-func pw(t i) bool {
-	p := I(pp)
-	for {
-		if p == t {
-			sI(pp, p)
-			return true // EOF
-		}
-		c := C(p)
-		if c != ' ' && c != '\r' && c != '\t' {
-			sI(pp, p)
-			return false
-		}
-		p++
-	}
-}
-func acc(n, r i) i { sI(pp, n+I(pp)); return r }
-func num(p, n i) (r i) {
-	c := C(p)
-	if c >= '0' && c <= '9' {
-		return acc(1, mki(i(c-'0')))
-	}
-	return 0
-}
-func vrb(p, n i) (r i) {
-	c := C(p)
-	r = fnc(asci, 20, c) // :+-*%&|<>=!~,^#_$?@.
-	if r == 20 {
-		return 0
-	}
-	return acc(1, i(c))
-}
-*/
 
 const az, AZ, NM, VB, AD, TE = 1, 2, 4, 8, 16, 32 // see p.go
 func is(x, m c) bool                              { return (m & cla(x)) != 0 }
-func cla(b, m c) c {
+func cla(b c) c {
 	if 128 < (b - 32) {
 		return 0
 	}
-	return m & C(i(128+b))
+	return C(i(128 + b))
 }
 func cmake() { // init character token map (generated by go run p.go -c)
 	n := 128 - 32
@@ -1543,10 +1555,7 @@ func cmake() { // init character token map (generated by go run p.go -c)
 		panic("cmap")
 	}
 	for i := 0; i < n; i++ {
-		n, err := strconv.ParseUint(s[2*i:2+2*i], 16, 8)
-		if err != nil {
-			panic(err)
-		}
+		n, _ := strconv.ParseUint(s[2*i:2+2*i], 16, 8)
 		MC[cmap+i] = c(n)
 	}
 }
@@ -1601,8 +1610,6 @@ func leak() {
 	//dump(0, 200)
 	dx(I(kkey))
 	dx(I(kval))
-	sI(cmap, (1<<29)|120)
-	dx(cmap)
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
@@ -1618,6 +1625,9 @@ func leak() {
 	}
 }
 func kst(x i) s {
+	if x == 0 {
+		return ""
+	}
 	t, n, _ := v1(x)
 	var f func(i i) s
 	var tof func(s) s = func(s s) s { return s }
@@ -1650,9 +1660,6 @@ func kst(x i) s {
 	sep := " "
 	switch t {
 	case 0:
-		if x == 0 {
-			return ""
-		}
 		fc := []byte(":+-*%&|<>=!~,^#_$?@.'/\\")
 		if x < 128 && bytes.Index(fc, []byte{byte(x)}) != -1 {
 			return string(byte(x))

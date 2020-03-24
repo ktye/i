@@ -2,6 +2,10 @@
 
 // standalone k.w parser (w/o vectors)
 // E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
+//
+// go run p.go      /run all tests
+// go run p.go -5   /run #5 traced
+// go run p.go -c   /generate char map
 package main
 
 import (
@@ -91,9 +95,8 @@ type K interface{} // any K value
 type L []K         // list (a;b;..)
 type λ []K         // {x+y}
 type C []byte      // "abc"
-type S string      // `abc (a-z)
+type S string      // `abc
 type I int         // 3
-type F float64     // 3.14
 type V string      // verb + -:
 type A string      // adverb / ':
 
