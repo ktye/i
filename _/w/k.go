@@ -203,7 +203,7 @@ func ini(x i) i {
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
-		nag, nac, nai, naf, naz, nas, nal, nil, nil, nil, nil, nil, nil, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nag, nac, nai, naf, naz, nas, nal, nil, num, vrb, chr, nam, sym, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
@@ -1449,32 +1449,13 @@ func tok(s i) (r i) { // next token
 	if is(b, TE) {
 		return 0
 	}
-	// todo call table
-	if r = num(b, p, s); r != 0 {
-		//fmt.Printf("number %s\n", kst(r))
-		return r
+	for j := 0; j < 5; j++ { // num vrb chr nam sym
+		r = MT[j+136].(func(c, i, i) i)(b, p, s)
+		if r != 0 {
+			return r
+		}
 	}
-	if r = vrb(b, p, s); r != 0 {
-		//fmt.Printf("verb %s\n", kst(r))
-		return r
-	}
-	if r = adv(b, p, s); r != 0 {
-		//fmt.Printf("adv: r=%s\n", kst(r))
-		return r
-	}
-	if r = chr(b, p, s); r != 0 {
-		return r
-	}
-	if r = nam(b, p, s); r != 0 {
-		//fmt.Printf("nam: r=%s\n", kst(r))
-		return r
-	}
-	if r = sym(b, p, s); r != 0 {
-		//fmt.Printf("sym: r=%s\n", kst(r))
-		return r
-	}
-	// ...
-	return r
+	return 0
 }
 func num(b c, p, s i) (r i) {
 	if !is(b, NM) {
@@ -1486,28 +1467,16 @@ func num(b c, p, s i) (r i) {
 	sI(pp, p+1)
 	return mki(i(b - '0'))
 }
-func vrb(b c, p, s i) (r i) {
-	if is(b, VB) {
-		r = i(C(p))
-		if s > p+1 {
-			if C(p+1) == ':' {
-				p++
-				r += 128
-			}
-		}
-		sI(pp, p+1)
-		return r
-	}
-	return 0
-}
-func adv(b c, p, s i) (r i) {
-	if !is(b, AD) {
+func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
+	if !is(b, VB|AD) {
 		return 0
-	}
+	} // todo (space)'c space-each "spacy verbs"
 	r = i(C(p))
-	if C(p+1) == ':' {
-		p++
-		r += 128
+	if s > p+1 {
+		if C(p+1) == ':' {
+			p++
+			r += 128
+		}
 	}
 	sI(pp, p+1)
 	return r
@@ -1550,7 +1519,7 @@ func sym(b c, p, s i) (r i) { // `abc`"abc"  as ,`abc`abc
 func chr(b c, p, s i) (r i) { // "abc"
 	if b != '"' {
 		return 0
-	}
+	} // todo hex
 	a := p + 1
 	for {
 		p++
