@@ -45,7 +45,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
-const kkey, kval, pp, cmap = 132, 136, 156, 160
+const pp, kkey, kval, cmap = 8, 132, 136, 160
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -1445,7 +1445,7 @@ func tok(s i) (r i) { // next token
 	}
 	p := I(pp)
 	b := C(p)
-	if is(b, TE) {
+	if is(b, TE) { //32
 		return 0
 	}
 	for j := 0; j < 5; j++ { // num vrb chr nam sym
@@ -1457,22 +1457,22 @@ func tok(s i) (r i) { // next token
 	return 0
 }
 func num(b c, p, s i) (r i) {
-	if !is(b, NM) {
+	if !is(b, NM) { // 4
 		return 0
 	}
 	if is(C(p+1), NM) {
 		panic("nyi long numbers")
 	}
 	sI(pp, p+1)
-	return mki(i(b - '0'))
+	return mki(i(b - '0')) // 48
 }
 func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
-	if !is(b, VB|AD) {
+	if !is(b, VB|AD) { // 24
 		return 0
 	} // todo (space)'c space-each "spacy verbs"
 	r = i(C(p))
 	if s > p+1 {
-		if C(p+1) == ':' {
+		if C(p+1) == ':' { // 58
 			p++
 			r += 128
 		}

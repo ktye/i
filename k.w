@@ -60,12 +60,20 @@ swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);
 evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :fst x;v:I xp;(v~36)?(xn>3)?  :x swc y;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);r8;dx x;(xn>2)?((v~186)? :lst r;(v~174)?(v-:128;y:0);(v~46)?(xn~5)?(rl r;dx r;s:I rp+4;a:I rp+8;f:I rp+12;u:I rp+16;(~a)?(~f)? :asn(s;y;u);!));(2~xn)?(rl r;dx r; :(I rp)atx I rp+4);(~3~xn)?!;rx I rp;(I rp)cal r drop 1}
 xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
 sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
+
+/parse
+num:I:III{(~x is 4)? :0;((C 1+y) is 4)?!;8::1+y;mki b-48}
+vrb:I:III{(~x is 24)? :0;r:C y;(z>1+x)?(58~C 1+y)?(y+:1;r+:128);8::1+y;r}            /todo nam sym chr
+tok:I:III{(ws x)? :0;p:I 8;b:C 8;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));(~r)? :r);0} /todo 2/->5/
+is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;I 128+x}
 160!204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800
+
+
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}
 032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
 064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
 096:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; xxx; mtc; xxx}
-128:{nag; nac; nai; naf; naz; nas; nal; xxx;_num;_vrb;_chr;_nam;_sym; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
+128:{nag; nac; nai; naf; naz; nas; nal; xxx; num; vrb; xxx; xxx; xxx; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
 160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abs; enl; neg; val; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; eql; gdn; unq}
 192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; xxx; xxx; srt; flr}
 224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; xxx; not; xxx}
@@ -82,7 +90,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 	   
 +  add abs                 abs:+z                   memory
 -  sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
-*  mul fst                                          8.. 11   
+*  mul fst                                          8.. 11   parse cur (pp)
 %  div sqr                                         12.. 15   
 &  min wer                                         16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                        128..131   memsize log2
@@ -92,9 +100,9 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 ~  mtc not   match                                144..147
 !  key til   seq           z:re!im  im:!z         148..151
 ,  cat enl                                        152..155   
-^  exc asc                                        156..159   parse cur (pp)
+^  exc asc                                        156..159   
 $  str cst                                        160..255   char map az|AZ|NM|VB|AD|TE
-#  rsh cnt   take                                 256.. ∞    buckets
+#  rsh cnt   take                                 256.. ∞    buckets/heap
 _  drp flr   drop          ang:_z                 
 ?  fnd unq   fnd fnx fnc fni..                     
 @  atx typ                 z:abs@ang  z@ang        
