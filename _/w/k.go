@@ -20,6 +20,7 @@ import (
 )
 
 const trace = false
+const parse = false
 
 type c = byte
 type s = string
@@ -185,7 +186,11 @@ func run(s string) string {
 	ini(16)
 	x := mk(1, i(len(s)))
 	copy(MC[x+8:], s)
-	x = prs(x)
+	if parse {
+		x = prs(x)
+	} else {
+		x = val(x)
+	}
 	s = kst(x)
 	dx(x)
 	leak()
@@ -592,6 +597,9 @@ func cal(x, y i) (r i) {
 			f := MT[x].(func(i) i)
 			return f(fst(y))
 		}
+		if x < 128 {
+			x += 128
+		}
 	}
 	if x < 128 {
 		if yn != 2 {
@@ -626,8 +634,8 @@ func cal(x, y i) (r i) {
 }
 func cat(x, y i) (r i) {
 	xt, yt, _, _, _, _ := v2(x, y)
-	if xt == 0 || yt == 0 {
-		trap()
+	if xt == 0 {
+		x, xt = enl(x), 6
 	}
 	if xt == yt {
 		return ucat(x, y)
@@ -1241,7 +1249,7 @@ func evl(x, loc i) (r i) {
 		if xt == 5 && xn == 1 {
 			r = lup(x, loc)
 			if r == 0 {
-				trap()
+				panic("name does not exist")
 			}
 			return r
 		}
@@ -1311,6 +1319,8 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	r = sq(xp + xn)
 	if nn(r) == 1 {
 		r = fst(r)
+	} else {
+		r = cat(186, r)
 	}
 	return dxr(x, r)
 }
