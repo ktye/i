@@ -1,9 +1,10 @@
-k-  :minimal interactive interpreter (no filesystem, no argv, but stdin/stdout)
-k   :same core, with io, webserver, image output (win32-only)
-kwm :wasm build, online at ktye.github.io
-kwac:builds webassembly modules with k
-kui :graphical version using gioui.org
-i1  :the second interpreter (IO0), successor to iv, predecessor the current version
-.k  :nothing yet
-`   :k7 binary format `@ `?
-#   :ksql doc
+w      :source of the w bootstrap compiler k.go (for k.w)
+i1     :the second interpreter (following apl/iv)
+i2     :the third interpreter (k7 era)
+i2/k-  :minimal interactive interpreter (no filesystem/argv) only stdin/stdout
+i2/kwm :wasm build and js/html frontend to i2
+kwac   :webassembly compiler stub written in early k7
+kui    :bitmap ui in k (k7/i2)
+`      :k7 binary format `@ `?
+#      :k7 ksql doc
+ngn    :ngn/k +libc-asm+io (windows/macos/...)
