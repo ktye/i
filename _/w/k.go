@@ -311,8 +311,19 @@ func l3(x, y, z i) (r i) {
 	sI(r+16, z)
 	return r
 }
-func nn(x i) (xn i)         { return I(x) & 536870911 }
-func v1(x i) (xt, xn, xp i) { u := I(x); return u >> 29, u & 536870911, 8 + x }
+func nn(x i) (xn i) {
+	if x > 255 {
+		xn = I(x) & 536870911
+	}
+	return
+}
+func v1(x i) (xt, xn, xp i) {
+	if x > 255 {
+		u := I(x)
+		xt, xn, xp = u>>29, u&536870911, 8+x
+	}
+	return
+}
 func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	xt, xn, xp = v1(x)
 	yt, yn, yp = v1(y)
@@ -826,7 +837,7 @@ func flr(x i) (r i)    { panic("nyi") }
 func cst(x, y i) (r i) { panic("nyi") }
 func sc(x i) (r i) {
 	r = enl(x)
-	sI(r, 5<<29|1)
+	sI(r, 1|5<<29)
 	return r
 }
 func cs(x i) (r i) {
@@ -1296,7 +1307,7 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 		trap()
 	}
 	sI(pp, xp)
-	fmt.Printf("prs %s [%d %d]\n", kst(x), xp, xp+xn)
+	//fmt.Printf("prs %s [%d %d]\n", kst(x), xp, xp+xn)
 	r = sq(xp + xn)
 	if nn(r) == 1 {
 		r = fst(r)
@@ -1329,7 +1340,7 @@ func sq(s i) (r i) { // E
 	}
 }
 func ex(x, s i) (r i) { // e
-	defer func() { fmt.Printf("ex %d %q\n", r, kst(r)) }()
+	//defer func() { fmt.Printf("ex %d %q\n", r, kst(r)) }()
 	if x == 0 || ws(s) || is(C(I(pp)), TE) {
 		return x
 	}
@@ -1340,7 +1351,7 @@ func ex(x, s i) (r i) { // e
 	return l2(x, ex(y, s))
 }
 func pt(s i) (r i) { // t
-	defer func() { fmt.Printf("pt r=%d %q\n", r, kst(r)) }()
+	//defer func() { fmt.Printf("pt r=%d %q\n", r, kst(r)) }()
 	x := tok(s)
 	if x == 0 {
 		p := I(pp)
@@ -1419,7 +1430,7 @@ func ws(s i) bool { // skip whitespace
 	}
 }
 func tok(s i) (r i) { // next token
-	defer func() { fmt.Printf("tok r=%s\n", kst(r)) }()
+	//defer func() { fmt.Printf("tok r=%s\n", kst(r)) }()
 	if ws(s) {
 		return 0
 	}
@@ -1439,6 +1450,9 @@ func tok(s i) (r i) { // next token
 	}
 	if r = adv(b, p, s); r != 0 {
 		//fmt.Printf("adv: r=%s\n", kst(r))
+		return r
+	}
+	if r = chr(b, p, s); r != 0 {
 		return r
 	}
 	if r = nam(b, p, s); r != 0 {
@@ -1530,15 +1544,15 @@ func chr(b c, p, s i) (r i) { // "abc"
 	a := p + 1
 	for {
 		p++
-		b := C(p)
+		b = C(p)
 		if p == s {
-			panic("chr")
+			panic("chr/eof")
 		}
 		if b == '"' { // todo quote
 			n := p - a
 			r = mk(1, n)
 			mv(r+8, a, n)
-			sI(pp, p)
+			sI(pp, p+1)
 			return r
 		}
 	}
@@ -1629,12 +1643,10 @@ func leak() {
 	}
 }
 func kst(x i) s {
-	fmt.Printf("kst x=%x %d\n", x, x)
 	if x == 0 {
 		return ""
 	}
 	t, n, _ := v1(x)
-	fmt.Println("t/n: ", t, n)
 	var f func(i i) s
 	var tof func(s) s = func(s s) s { return s }
 	istr := func(i i) s {
