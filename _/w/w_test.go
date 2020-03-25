@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -57,7 +58,7 @@ func TestB(t *testing.T) {
 	for n, tc := range testCases {
 		f := newfn(tc.sig, tc.b)
 		e := f.parse(nil, nil, nil, map[string]int{"I:I": 0})
-		b := string(hex(e.bytes()))
+		b := hex.EncodeToString(e.bytes())
 		s := trim(tc.e)
 		if b != s {
 			t.Fatalf("%d: expected/got:\n%s\n%s", n+1, s, b)
@@ -67,12 +68,19 @@ func TestB(t *testing.T) {
 	}
 }
 func TestRun(t *testing.T) {
-	m, tab, data := run(strings.NewReader("add:I:II{x+y}/cnt\n/\n/sum:I:I{x/r+:i;r}\n/"))
-	g := s(hex(m.wasm(tab, data)))
-	e := "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a09010700200020016a0b"
-	if e != g {
-		t.Fatalf("expected/got\n%s\n%s\n", e, g)
+	testCases := [][2]string{
+		{"add:I:II{x+y}/comment\n/\n/sum:I:I{x/r+:i;r}\n/", "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a09010700200020016a0b"},
+		{"add:I:II{x+y}10!abcd ", "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a09010700200020016a0b0b080100410a0b02abcd"},
 	}
+	for _, tc := range testCases {
+		m, tab, data := run(strings.NewReader(tc[0]))
+		g := hex.EncodeToString(m.wasm(tab, data))
+		e := tc[1] // "0061736d0100000001070160027f7f017f030201000503010001070d02036d656d02000361646400000a09010700200020016a0b"
+		if e != g {
+			t.Fatalf("expected/got\n%s\n%s\n", e, g)
+		}
+	}
+
 }
 func ctest(t *testing.T, sig, b s) {
 	b = jn("f:", sig, "{", b, "}")
@@ -82,15 +90,6 @@ func ctest(t *testing.T, sig, b s) {
 		t.Fatal("no output")
 	}
 	//fmt.Println(string(out))
-}
-func hex(a []c) []c {
-	var r bytes.Buffer
-	for _, b := range a {
-		hi, lo := hxb(b)
-		r.WriteByte(hi)
-		r.WriteByte(lo)
-	}
-	return r.Bytes()
 }
 func newfn(sig string, body string) fn {
 	var buf bytes.Buffer
@@ -140,7 +139,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	}
 }
 
-func KWasmModule() (module, []segment, []byte, []byte, error) {
+func KWasmModule() (module, []segment, []dataseg, []byte, error) {
 	var src io.Reader
 	var srcb []byte
 	if k, e := ioutil.ReadFile("../../k.w"); e != nil {

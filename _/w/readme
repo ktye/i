@@ -1,23 +1,23 @@
-# webassembly compiler(draft)
+# webassembly compiler
 # 
 # write wasm by hand, but more compact than wat
 # 
 # the input file compiles to a wasm module.
 # it contains a collection of functions.
 #
-# add:I:II{x+y}                  /exported function
-# sum.I:I {x/r:+i;r}             /private function
-# mac:    {a:3;b:5}              /flat macro
-# negT:   {10/(x+W*i)::-T x+W*i} /type generic macro
-# negC:   {10/(x+4*i)::-I x+4*i} /negC negI negJ negF (expanded by negT)
-# sin:F:F {}                     /imported function (from module "ext")
+# add:I:II{x+y}        /exported function
+# sum.I:I {x/r:+i;r}   /private function
+# mac:    {a:3;b:5}    /flat macro
+# 0:      {add;sum}    /function table
+# sin:F:F {}           /imported function (from module "ext")
+# 255!010203ff         /data section
 #
 # types are I(i32) J(i64) F(f64)
 # no preference    apl style x*a+b, but lhs is evaluted first: x a b + *
 # arguments        x,y,z,x3,x4,.. are typed in the function declaration f:R:XYZ..
 # locals           are detected at evaluation order (type is derived) r:x+y
-# memory/heap      C x;I x;J x;F x (get from addr x)  x::y (set addr x to y)
-# a;b;c            sequence c(last) returns a typed value all others must return null
+# memory/heap      C x;I x;J x;F x (get from addr x)  x::y (write y to addr x)
+# a;b;c            sequence. c(last) returns a typed value all others must return null
 # x?y              if x then y
 # $[a;b;c;d;e]     if a then b elseif c then d else e
 # x?[a;b;c;d]      jump to statement x (must be I) default d (last), no return values
@@ -32,24 +32,24 @@
 # see ops for all wasm opcodes and their w operators
 
 # install go-1.13
-set -xe
-if [ "$1" = "clean" ]; then rm a.wasm a.html a.go k.h k.exe; exit; fi
+go build w.go
+./w < ../../k.w > k.wasm    # wasm binary
 
-go run w.go        < a.w > a.wasm    # wasm binary
-go run w.go -html  < a.w > a.html    # embed wasm in html
-# open file://.../index.html in a browser, in js console: k.add(1,2)
+# or transpile to c or go (no wasm involved):
+./w -c  < in.w > src.c
+./w -go < in.w > src.go
 
-# transpile to go or c
-go run w.go -go    < a.w > a.go      # write go source
-go run w.go -c     < a.w > k.h       # write c source
-/c/local/tcc/tcc  -o k.exe k_c
+# example: generate k_c and test it
+go test
+./runcc t
 
-# install wabt (webassembly binary toolkit github.com/WebAssembly/wabt)
-wabt=/c/local/wabt
-$wabt/wasm-validate  a.wasm
+# build online interpreter k.html
+go test            
+#browse to file:///.../k.html
 
-# interactive: webassembly.github.io/wabt/demo/wat2wasm
-# wasi: github.com/bytecodealliance/wasmtime/blob/master/docs/WASI-tutorial.md#web-assembly-text-example
-# memory: rsms.me/wasm-intro
+online at ktye.github.io
 
-ls -ln a.w a.wasm k.exe w.go 
+
+
+
+#webassembly.github.io/wabt/demo/wat2wasm 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
@@ -19,6 +20,7 @@ type T c
 type fn struct { // name:I:IIF{body} or name.I:IIF{..} (unexported)
 	name s
 	ex   bool
+	data bool   // data section (not a function)
 	src  [2]int // line, col
 	t    T      // return type
 	args int
@@ -51,7 +53,7 @@ func main() {
 	var stdin io.Reader = os.Stdin
 	var cout, gout bool
 	flag.BoolVar(&cout, "c", false, "c output")
-	flag.BoolVar(&gout, "go", false, "go output")
+	flag.BoolVar(&gout, "go", false, "go output (nyi)")
 	flag.Parse()
 	m, tab, data := run(stdin)
 	if cout {
@@ -63,7 +65,7 @@ func main() {
 	}
 }
 func (t T) String() s { return styp[t] }
-func run(r io.Reader) (module, []segment, []c) {
+func run(r io.Reader) (module, []segment, []dataseg) {
 	sFnam, sRety, sArgs, sBody, sData, sCmnt := 0, 1, 2, 3, 4, 5
 	rd := bufio.NewReader(r)
 	state := sFnam
@@ -71,12 +73,20 @@ func run(r io.Reader) (module, []segment, []c) {
 	err := func(s string) { panic(sf("%d:%d: %s", line, char, s)) }
 	var m module
 	var f fn
+	var datas []dataseg
 	var data []c
+	decode := func(data []c) []c {
+		r, e := hex.DecodeString(string(data))
+		if e != nil {
+			err("data section is no valid hex")
+		}
+		return r
+	}
 	for {
 		b, e := rd.ReadByte()
 		if e == io.EOF || (state == sFnam && b == '\\') {
 			mod, tab := m.compile()
-			return mod, tab, decode(data)
+			return mod, tab, datas
 		} else if e != nil {
 			panic(e)
 		}
@@ -98,6 +108,9 @@ func run(r io.Reader) (module, []segment, []c) {
 			} else if b == ':' {
 				state = sRety
 				f.ex = true
+			} else if b == '!' {
+				state = sData
+				f.data = true
 			} else {
 				fmt.Printf("%s\n", string(b))
 				err("parse function name")
@@ -142,7 +155,17 @@ func run(r io.Reader) (module, []segment, []c) {
 				f = fn{}
 			}
 		case sData:
-			if b == '}' {
+			if b == ' ' || b == '\n' || b == '\r' {
+				s := dataseg{}
+				if off, e := strconv.Atoi(f.name); e != nil {
+					err("data section name must be an integer, not: " + f.name)
+				} else {
+					s.off = off
+					s.bytes = decode(data)
+				}
+				datas = append(datas, s)
+				data = nil
+				f = fn{}
 				state = sFnam
 			} else {
 				data = append(data, b)
@@ -155,12 +178,6 @@ func run(r io.Reader) (module, []segment, []c) {
 			err("internal parse state")
 		}
 	}
-}
-func decode(data []c) []c {
-	if data != nil {
-		panic("nyi")
-	}
-	return nil
 }
 func hxb(x c) (c, c) { h := "0123456789abcdef"; return h[x>>4], h[x&0x0F] }
 func cr09(c c) bool  { return c >= '0' && c <= '9' }
@@ -1571,7 +1588,7 @@ func init() {
 }
 
 // emit wasm byte code
-func (m module) wasm(tab []segment, data []c) []c {
+func (m module) wasm(tab []segment, data []dataseg) []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
 	// type section(1: function signatures)
 	sec := NewSection(1)
@@ -1677,7 +1694,20 @@ func (m module) wasm(tab []segment, data []c) []c {
 		sec.cat(b)
 	}
 	sec.out(o)
-	// no data section(11)
+	// data section(11)
+	if len(data) > 0 {
+		sec = NewSection(11)
+		sec.cat(leb(len(data)))
+		for _, d := range data {
+			sec.cat1(0)    // memory index
+			sec.cat1(0x41) // const.i32 (off is an expr)
+			sec.cat(lebs(d.off))
+			sec.cat1(0x0b)
+			sec.cat(lebs(len(d.bytes)))
+			sec.cat(d.bytes)
+		}
+		sec.out(o)
+	}
 	return o.Bytes()
 }
 func (m module) imports() (r []fn) {
@@ -1713,6 +1743,10 @@ type section struct {
 type segment struct {
 	off   int
 	names []string
+}
+type dataseg struct {
+	off   int
+	bytes []c
 }
 
 func NewSection(t c) section { return section{t: t} }
@@ -1808,7 +1842,7 @@ func log(a ...interface{})       { fmt.Fprintln(os.Stderr, a...) }
 func logf(f s, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
 func sf(f s, a ...interface{}) s { return fmt.Sprintf(f, a...) }
 
-func (m module) cout(tab []segment, data []c) []c {
+func (m module) cout(tab []segment, data []dataseg) []c {
 	var b bytes.Buffer
 	b.WriteString(chead)
 
@@ -1888,7 +1922,7 @@ func (m module) cout(tab []segment, data []c) []c {
 	}
 	return b.Bytes()
 }
-func (m module) gout(tab []segment, data []c) []c {
+func (m module) gout(tab []segment, data []dataseg) []c {
 	// todo: segments / function pointers
 	var b bytes.Buffer
 	b.WriteString(ghead)

@@ -1388,8 +1388,7 @@ func pt(s i) (r i) { // t
 		if p < s && (is(b, AD) || b == '[') {
 			if b == '[' {
 				sI(pp, p+1)
-				xx := sq(s)
-				x = cat(enl(x), xx)
+				x = cat(enl(x), sq(s))
 			} else {
 				x = l2(tok(s), x) // adverb
 			}
