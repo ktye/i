@@ -283,6 +283,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 		}
 		f.lmap[s] = i
 	}
+	//fmt.Printf("parse %s\n", f.name)
 	p := parser{mac: mac, fns: fns, fsg: fsg, sgm: sgm, fn: f, b: strip(f.Bytes())}
 	e := p.seq('}')
 	if e == nil {
@@ -477,6 +478,7 @@ func (p *parser) monadic(f, x expr, h pos) expr {
 	case asn:
 		return ret{argv: argv{x}, pos: h}
 	default:
+		fmt.Printf("h=%d\nf=%#v\nx=%#v\n", h, f, x)
 		panic("nyi")
 	}
 }
@@ -1303,8 +1305,13 @@ func (v las) bytes() []c {
 }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
 func (v las) gstr() s     { return jn(locstr(v.x()), "=", s(v.y().bytes()), ";") }
-func (v lod) rt() T       { return v.t }
-func (v lod) valid() s    { return ifex(v.x().rt() != I, "lod type must be I") }
+func (v lod) rt() T {
+	if v.t == C {
+		return I
+	}
+	return v.t
+}
+func (v lod) valid() s { return ifex(v.x().rt() != I, "lod type must be I") }
 func (v lod) bytes() (r []c) {
 	op := map[T]c{C: 0x2d, I: 0x28, J: 0x29, F: 0x2b}[v.t]
 	al := alin[v.t]
@@ -1348,7 +1355,7 @@ func (v ret) cstr() s    { return jn("R ", cstring(v.x()), ";") }
 func (v ret) gstr() s    { return jn("return ", gstring(v.x()), ";") }
 func (v iff) rt() T      { return 0 }
 func (v iff) valid() s {
-	if t := v.x().rt(); t != I {
+	if t := v.x().rt(); t != I && t != C {
 		return sf("conditional has wrong type %s", t)
 	}
 	if t := v.y().rt(); t != 0 {

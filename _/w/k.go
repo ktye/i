@@ -1320,14 +1320,14 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	if nn(r) == 1 {
 		r = fst(r)
 	} else {
-		r = cat(186, r)
+		r = cat(186, r) // ':'+128
 	}
 	return dxr(x, r)
 }
 func sq(s i) (r i) { // E
 	r = enl(ex(pt(s), s))
 	//fmt.Printf("sq %s\n", kst(r))
-	for f := 1; ; {
+	for {
 		v := ws(s)
 		p := I(pp)
 		if !v {
@@ -1340,25 +1340,19 @@ func sq(s i) (r i) { // E
 			return r
 		}
 		sI(pp, p+1)
-		if f != 0 {
-			//r = enl(r)
-			f = 0
-		}
-		xx := ex(pt(s), s)
-		//fmt.Printf("lcat xx=%s\n", kst(xx))
-		r = lcat(r, xx)
+		r = lcat(r, ex(pt(s), s))
 	}
 }
 func ex(x, s i) (r i) { // e
 	//defer func() { fmt.Printf("ex %d %q\n", r, kst(r)) }()
-	if x == 0 || ws(s) || is(C(I(pp)), TE) {
+	if x == 0 || ws(s) || is(C(I(pp)), TE) { //32
 		return x
 	}
-	y := pt(s) // nil?
-	if isv(y) && !isv(x) {
-		return l3(y, x, ex(pt(s), s))
+	r = pt(s) // nil?
+	if isv(r) && !isv(x) {
+		return l3(r, x, ex(pt(s), s))
 	}
-	return l2(x, ex(y, s))
+	return l2(x, ex(r, s))
 }
 func pt(s i) (r i) { // t
 	//defer func() { fmt.Printf("pt r=%d %q\n", r, kst(r)) }()
@@ -1388,7 +1382,7 @@ func pt(s i) (r i) { // t
 		if p == s {
 			return r
 		}
-		if is(b, AD) {
+		if is(b, AD) { // 16
 			r = l2(tok(s), r) // adverb
 		} else if b == '[' {
 			sI(pp, p+1)

@@ -27,7 +27,7 @@ func TestB(t *testing.T) {
 		{"I:I", "x?[;x:4;x:6];x", "024002400240024020000e020001020b0c010b410421000c010b410621000c000b2000"},
 		{"I:I", "x?[x:4;;x:6];x", "024002400240024020000e020001020b410421000c020b0c000b410621000c000b2000"},
 		{"V:I", "x::5", "2000 4105 360200"},
-		{"V:I", "x::C 5", "2000 4105 2d0000 3a0000"},
+		{"V:I", "x::C?C 5", "2000 4105 2d0000 3a0000"},
 		{"V:I", "0::1130366807310592j", "4100 42 8082 90c0 8082 8102 370300"},
 		{"I:I", "x?!;x", "20000440 00 0b 2000"},
 		{"I:I", "-1+x", "417f 2000 6a"},
@@ -61,7 +61,7 @@ func TestB(t *testing.T) {
 		b := hex.EncodeToString(e.bytes())
 		s := trim(tc.e)
 		if b != s {
-			t.Fatalf("%d: expected/got:\n%s\n%s", n+1, s, b)
+			t.Fatalf("#%d:%s\n expected/got:\n%s\n%s", n+1, tc.b, s, b)
 		}
 		// fmt.Println(b)
 		ctest(t, tc.sig, tc.b)
