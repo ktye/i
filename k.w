@@ -62,9 +62,13 @@ xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:I
 sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
 
 /parse
+pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l|40~C p)?(8::1+p;r:sq x;n:nn r;$[n~1;r:fst r;n>1;r:enl r];l?r:lam(p;I pp; r)));1/(p:I 8;b:C p;(p~x)? :0;$[b is 16;r:l2(tok x;r);b~91;8::1+p;r:(enl r)cat sq s; :r]);!;r}
+isv:I:I{v1;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((a is 16)|((a-128)is 16)) :1);0}
+lam:I:III{!;x}                                                                       /todo
+tok:I:III{(ws x)? :0;p:I 8;b:C 8;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));(~r)? :r);0} /todo 2/->5/
+ws:I:I{(x~I pp)? :1;0}                                                               /todo space
 num:I:III{(~x is 4)? :0;((C 1+y) is 4)?!;8::1+y;mki b-48}
 vrb:I:III{(~x is 24)? :0;r:C y;(z>1+x)?(58~C 1+y)?(y+:1;r+:128);8::1+y;r}            /todo nam sym chr
-tok:I:III{(ws x)? :0;p:I 8;b:C 8;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));(~r)? :r);0} /todo 2/->5/
 is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;I 128+x}
 160!204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800
 
@@ -80,6 +84,7 @@ is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;I 128+x}
 
 \
 odo5:{p#’x(&#)’_(p:*/x)%*\x}
+fill:{@[y;&y=*0#y;:;x]} /aaron
 flip:,'/,''
 
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)

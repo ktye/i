@@ -1362,8 +1362,8 @@ func ex(x, s i) (r i) { // e
 }
 func pt(s i) (r i) { // t
 	//defer func() { fmt.Printf("pt r=%d %q\n", r, kst(r)) }()
-	x := tok(s)
-	if x == 0 {
+	r = tok(s)
+	if r == 0 {
 		p := I(pp)
 		if p == s {
 			return 0
@@ -1371,29 +1371,30 @@ func pt(s i) (r i) { // t
 		λ := C(p) == 123     // {
 		if λ || C(p) == 40 { // (
 			sI(pp, p+1)
-			x = sq(s)
-			if n := nn(x); n == 1 {
-				x = fst(x)
+			r = sq(s)
+			if n := nn(r); n == 1 {
+				r = fst(r)
 			} else if n > 1 {
-				x = enl(x)
+				r = enl(r)
 			}
 			if λ {
-				x = lam(p, I(pp), x)
+				r = lam(p, I(pp), r)
 			}
 		}
 	}
 	for {
 		p := I(pp)
 		b := C(p)
-		if p < s && (is(b, AD) || b == '[') {
-			if b == '[' {
-				sI(pp, p+1)
-				x = cat(enl(x), sq(s))
-			} else {
-				x = l2(tok(s), x) // adverb
-			}
+		if p == s {
+			return r
+		}
+		if is(b, AD) {
+			r = l2(tok(s), r) // adverb
+		} else if b == '[' {
+			sI(pp, p+1)
+			r = cat(enl(r), sq(s))
 		} else {
-			return x
+			return r
 		}
 	}
 }
@@ -1405,7 +1406,7 @@ func isv(x i) bool { // is verb or (adverb;_)
 	if xt == 6 && xn == 2 {
 		a := I(xp)
 		if a < 256 {
-			if is(c(a), AD) || is(c(a-128), AD) {
+			if is(c(a), AD) || is(c(a-128), AD) { // AD(16)
 				return true // adverb
 			}
 		}
