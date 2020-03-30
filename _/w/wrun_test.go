@@ -71,6 +71,8 @@ func runWagon(tab []segment, b []byte, s string, exp string) error {
 	}
 	K := K{m: m, vm: vm}
 	K.call("ini", 16)
+	//r := K.call("prs", K.mks(s))
+	//r := K.call("val", K.mks(s))
 	r := K.call("evl", K.parseVector(s), 0)
 	got := K.kst(r)
 	if got != exp {
@@ -146,6 +148,13 @@ func (K *K) call(s string, argv ...uint32) uint32 {
 	default:
 		panic(fmt.Errorf("%s returns %T", s, res))
 	}
+}
+func (K *K) mk(t, n uint32) uint32 { return K.call("mk", t, n) }
+func (K *K) mks(s string) (r uint32) {
+	m := K.vm.Memory()
+	r = K.mk(1, uint32(len(s)))
+	copy(m[8+r:], s)
+	return r
 }
 func (K *K) parseVector(s string) uint32 {
 	m := K.vm.Memory()

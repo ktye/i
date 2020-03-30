@@ -62,14 +62,14 @@ xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:I
 sadv:I:I{$[x~39;1;x~47;1;x~92;1;0]}
 
 /parse
-prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:186 cat r];dxr}
-sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:C p!59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
-ex:I:II{((~x)+(ws y)+((C I 8)is 32))? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
-pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l|40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
-isv:I:I{v1;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((a is 16)|((a-128)is 16))? :1);0}
-lam:I:III{!;x}                                                                       /todo
-ws:I:I{(x~I 8)? :1;0}                                                                /todo space
-tok:I:I{(ws x)? :0;p:I 8;b:C 8;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));(~r)? :r);0}   /todo 2/->5/
+/prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:186 cat r];dxr}
+/sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:C p!59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
+/ex:I:II{((~x)+(ws y)+((C I 8)is 32))? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
+/pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l|40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
+/isv:I:I{v1;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((a is 16)|((a-128)is 16))? :1);0}
+/lam:I:III{!;x}                                                                       /todo
+/ws:I:I{(x~I 8)? :1;0}                                                                /todo space
+/tok:I:I{(ws x)? :0;p:I 8;b:C 8;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));(~r)? :r);0}   /todo 2/->5/
 num:I:III{(~x is 4)? :0;((C 1+y) is 4)?!;8::1+y;mki x-48}
 vrb:I:III{(~x is 24)? :0;r:C y;(z>1+x)?(58~C 1+y)?(y+:1;r+:128);8::1+y;r}            /todo nam sym chr
 is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;I 128+x}

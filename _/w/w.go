@@ -1918,12 +1918,20 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 			b.WriteString(";}\n")
 		}
 	}
-	if len(tab) > 0 {
+	if len(tab) > 0 || len(data) > 0 {
 		fmt.Fprintf(&b, "V mt_init(){")
 		for _, t := range tab {
 			for k, s := range t.names {
 				fmt.Fprintf(&b, "MT[%d]=%s;", t.off+k, s)
 			}
+		}
+		for i, d := range data {
+			v := make([]string, len(d.bytes))
+			for j, c := range d.bytes {
+				v[j] = strconv.Itoa(int(c))
+			}
+			fmt.Fprintf(&b, "C d%d[%d]={%s};", i, len(d.bytes), strings.Join(v, ","))
+			fmt.Fprintf(&b, "C *mc=MC+%d;for(I i=0;i<%d;i++)mc[i]=d%d[i];\n", d.off, len(d.bytes), i)
 		}
 		fmt.Fprintf(&b, "}\n")
 	}

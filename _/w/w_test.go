@@ -422,6 +422,7 @@ I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^
 V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
+V Dump(I,I);
 `
 const kt = `
 V Dump(I x, I n) {
@@ -605,18 +606,19 @@ V runtest() {
 		if (buf[0] == '/') { printf("skip\n"); continue; }
 		*p = 0;
 		memset(MC, 0, 1<<M0);
+		mt_init();
 		ini(16);
 		O(evl(parseNoun(buf),0));
 	}
 }
 I main(int args, C **argv){
-	mt_init();
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
 	memset(MC, 0, 1<<M0);
+	mt_init();
 	ini(16);
 	I x = parseNoun(argv[1]);
-	kst(x);
+	O(x);
 	O(evl(x,0));
 }
 `
