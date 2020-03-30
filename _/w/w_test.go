@@ -138,7 +138,6 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 		t.Fatal(e)
 	}
 }
-
 func KWasmModule() (module, []segment, []dataseg, []byte, error) {
 	var src io.Reader
 	var srcb []byte
@@ -164,6 +163,21 @@ func TestCout(t *testing.T) { // write k_c from ../../k.w
 	dst.Write(m.cout(tab, data))
 	io.Copy(&dst, strings.NewReader(kt))
 	if e := ioutil.WriteFile("k_c", dst.Bytes(), 0744); e != nil {
+		t.Fatal(e)
+	}
+}
+func TestGout(t *testing.T) { // write kw.go from ../../k.w
+	if broken {
+		t.Skip()
+	}
+	m, tab, data, _, err := KWasmModule()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var dst bytes.Buffer
+	io.Copy(&dst, strings.NewReader(gh))
+	dst.Write(m.gout(tab, data))
+	if e := ioutil.WriteFile("kw_go", dst.Bytes(), 0744); e != nil {
 		t.Fatal(e)
 	}
 }
@@ -621,4 +635,15 @@ I main(int args, C **argv){
 	O(x);
 	O(evl(x,0));
 }
+`
+
+const gh = `// +build ignore
+
+package main
+
+type I=int32
+type J=int64
+type F=float64
+type uI=uint32
+type uF=uint64
 `

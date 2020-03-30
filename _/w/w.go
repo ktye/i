@@ -1055,12 +1055,12 @@ func (s seq) gstr() (r s) {
 		r = "func()" + styp[t] + "{"
 	}
 	for i, a := range s.argv {
-		if i == len(s.argv) && t != 0 {
+		if i == len(s.argv)-1 && t != 0 {
 			r += "return "
 		}
 		r += gstring(a)
 		if i < len(s.argv)-1 {
-			r += ";"
+			r += "\n"
 		}
 	}
 	if t != 0 {
@@ -1114,24 +1114,34 @@ func (v cnd) cstr() (r s) {
 	return r + ":" + cstring(a[len(a)-1])
 }
 func (v cnd) gstr() (r s) {
-	t := v.rt()
+	s := "if "
 	a := v.argv
-	if t == 0 && len(a) == 3 {
-		return jn("if ", gstring(a[0]), "{", gstring(a[1]), "}else{", gstring(a[2]), "}")
-	}
-	if t == 0 {
-		r = "func(){"
-	} else {
-		r = "func()" + styp[t] + "{"
-	}
-	s := ""
 	for i := 0; i < len(a)-1; i += 2 {
 		if i > 0 {
-			s = "else"
+			s = " else if "
 		}
-		r += s + " if " + gstring(a[i]) + "{return " + gstring(a[i+1]) + ";}"
+		r += s + gstring(a[i]) + "{" + gstring(a[i+1]) + "}"
 	}
-	return "else{" + gstring(a[len(a)-1]) + "}}()"
+	return r + " else {" + gstring(a[len(a)-1]) + "}"
+
+	/*
+		if t == 0 && len(a) == 3 {
+			return jn("if ", gstring(a[0]), "{", gstring(a[1]), "}else{", gstring(a[2]), "}")
+		}
+		if t == 0 {
+			r = "func(){"
+		} else {
+			r = "func()" + styp[t] + "{"
+		}
+		s := ""
+		for i := 0; i < len(a)-1; i += 2 {
+			if i > 0 {
+				s = "else"
+			}
+			r += s + " if " + gstring(a[i]) + "{return " + gstring(a[i+1]) + ";}"
+		}
+		return "else{" + gstring(a[len(a)-1]) + "}}()"
+	*/
 }
 func (v v2) rt() T {
 	t := v.x().rt()
@@ -1289,7 +1299,19 @@ func (d dot) cstr() s {
 	}
 	return jn("(", ptr, "MT[", cstring(d.idx), "])(", strings.Join(av, ","), ")", s)
 }
-func (d dot) gstr() s    { panic("nyi") }
+func (d dot) gstr() s {
+	av := make([]s, len(d.argv))
+	sig := ""
+	for i, a := range d.argv {
+		av[i] = gstring(a)
+		if i > 0 {
+			sig += ","
+		}
+		sig += a.rt().String()
+	}
+	f := jn("func(", sig, ")", d.t.String())
+	return jn("MT[", gstring(d.idx), "].(", f, ")(", strings.Join(av, ","), ")")
+}
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, leb(v.i)...) }
@@ -1304,7 +1326,7 @@ func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21}, leb(v.x().(loc).i)...)...)
 }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
-func (v las) gstr() s     { return jn(locstr(v.x()), "=", s(v.y().bytes()), ";") }
+func (v las) gstr() s     { return jn(locstr(v.x()), "=", gstring(v.y()), ";") }
 func (v lod) rt() T {
 	if v.t == C {
 		return I
@@ -1346,7 +1368,7 @@ func (v sto) cstr() s {
 	return jn(cgadr(cstring(v.x()), v.t), "=(", styp[v.t], ")", cstring(v.y()), ";")
 }
 func (v sto) gstr() s {
-	return jn(cgadr(gstring(v.x()), v.t), "=", styp[v.t], embrace(gstring, v.y()), ";")
+	return jn(cgadr(gstring(v.x()), v.t), "=", styp[v.t], "(", gstring(v.y()), ");")
 }
 func (v ret) rt() T      { return 0 /*v.x().rt()*/ }
 func (v ret) valid() s   { return ifex(v.x().rt() == 0, "return zero type") }
@@ -1519,16 +1541,16 @@ func c2str(tab map[s]code, op s, t T, x, y expr) s {
 		return jn("(", u, embrace(cstring, x), o, u, embrace(cstring, y), ")")
 	}
 }
-func g2str(tab map[s]code, op s, t T, x, y expr) s {
+func g2str(tab map[s]code, op s, t T, x, y expr) (r s) {
 	o, u := gop(tab, op, t)
 	uc := ""
 	if u != "" {
 		u, uc = u+"(", ")"
 	}
 	if len(o) > 2 {
-		return jn(u, o, "(", cstring(x), ",", cstring(y), ")")
+		return jn(u, o, "(", gstring(x), ",", gstring(y), ")")
 	} else {
-		return jn("(", u, cstring(x), uc, o, u, cstring(y), uc, ")")
+		return jn("(", u, gstring(x), uc, o, u, gstring(y), uc, ")")
 	}
 }
 func cstring(x expr) s { xs := x.(cstringer); return xs.cstr() }
@@ -1851,8 +1873,6 @@ func sf(f s, a ...interface{}) s { return fmt.Sprintf(f, a...) }
 
 func (m module) cout(tab []segment, data []dataseg) []c {
 	var b bytes.Buffer
-	b.WriteString(chead)
-
 	if len(tab) > 0 {
 		fmt.Fprintf(&b, "V *MT[%d];\n", segmentsize(tab))
 	}
@@ -1940,8 +1960,10 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 func (m module) gout(tab []segment, data []dataseg) []c {
 	// todo: segments / function pointers
 	var b bytes.Buffer
-	b.WriteString(ghead)
 	for _, f := range m {
+		if f.ast == nil {
+			continue // import
+		}
 		sig := ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {
@@ -1949,26 +1971,27 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 			}
 			sig += "x" + s('0'+byte(i)) + " " + styp[f.locl[i]]
 		}
+		//fmt.Printf("gout %s\n", f.name)
 		fmt.Fprintf(&b, "func %s(%s) %s {", f.name, sig, styp[f.t])
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq.argv {
-				if i < len(sq.argv)-1 {
-					b.WriteString("return ")
+				nl := "\n"
+				if i == len(sq.argv)-1 {
+					if f.t != 0 {
+						b.WriteString("return ")
+					}
+					nl = "}\n"
 				}
 				b.WriteString(gstring(e))
-				b.WriteString("}")
+				b.WriteString(nl)
 			}
 		} else {
-			b.WriteString("return ")
+			if f.t != 0 {
+				b.WriteString("return ")
+			}
 			b.WriteString(gstring(f.ast))
-			b.WriteString("}\n")
+			b.WriteString(";}\n")
 		}
 	}
 	return b.Bytes()
 }
-
-var chead = ``
-var ghead = `
-type I=int32;type J=int64;type F=float64
-func asI(x *I,y I)I{*x=y;return y};func lsJ(x *J,y J)J{*x=y;return y};func asF(x *F,y F)F{*x=y;return y};
-`
