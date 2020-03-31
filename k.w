@@ -15,7 +15,7 @@ rev:I:I{n:nn x;(~n)? :x;x atx tir n}fst:I:I{v1;(xt~7)?( :x drx 170);x atx mki 0}
 cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:6 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
 rsh:I:II{v2;(~xt~2)?!;n:prod(xp;xn);r:y take n;(xn~1)?(dx x; :r);xn-:1;xe:xp+4*xn;xn/(m:I xe;n:n%m;n:xp prod xn-i;r:(seq(0;n;m))cut r;xe-:4);dxr}prod:I:II{r:1;y/(r*:I x;x+:4);r}
 take:I:II{xn:nn x;r:til mki y;r8;(xn<y)?(y/(rp+4*i)::i\xn);x atx r}drop:I:II{xn:nn x;(y>xn)?!;x atx seq(y;xn-y;1)}
-use:I:I{(1~I x+4)? :x;v1;r:xt mk xn;r8;mv(rp;xp;xn*C xt);dx x;r}mv:V:III{z/(x+i)::C y+i}
+use:I:I{(1~I x+4)? :x;v1;r:xt mk xn;r8;mv(rp;xp;xn*C xt);dx x;r}mv:V:III{z/(x+i)::C?C y+i}
 cat:I:II{v2;(~xt)?(x:enl(x);xt:6);(xt~yt)? :x ucat y;(xt~6)? :x lcat y;!;x}
 ucat:I:II{v2;(xt>4)?(rl x;rl y);(xt~7)?(r:((x+8)ucat y+8)mkd(x+12)ucat y+12;dx x;dx y; :r);r:xt mk xn+yn;w:C xt;mv(r+8;xp;w*xn);mv(r+8+w*xn;yp;w*yn);dxyr}
 lcat:I:II{v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;rl x;dx x;mv(r+8;xp;4*xn);x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
@@ -53,7 +53,7 @@ scn:I:II{n:nn x;(~n)?(dx y; :fst y);x rxn n;y rxn n-1;t:fst x;rx t;r:enl t;(n-1)
 ecr:I:III{n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
 ecl:I:III{n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
 ecd:I:III{!;x}epi:I:III{!;x}
-val:I:I{v1;xt?[;;;;;r:x evl 0;(rx x+12;r:x+12;dx x);!];r}
+val:I:I{v1;xt?[;r:(prs x) evl 0;;;;r:x evl 0;(rx x+12;r:x+12;dx x);!];r}
 lup:I:II{kv;(m~n)?(y? :x lup 0;dx x; :0);r:I v+8+4*m;rx r;dxr}kv:{k:I kkey;v:I kval;y?(k:I y+8;v:I y+12);n:536870911&I k;m:k fnx 8+x}
 asn:I:III{v1;(~xt~5)?!;rx z;kv;(n~m)?(y?!;kkey::k cat x;kval::v cat z; :z);vp:8+v+4*m;dx I vp;vp::z;dx x;z}
 swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);dx r;i+:1;(~I r+8)?i+:1);dx x;0}
@@ -62,17 +62,17 @@ xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:I
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 /parse
-/prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:186 cat r];dxr}
-/sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:C p!59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
-/ex:I:II{((~x)+(ws y)+((C I 8)is 32))? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
-/pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l|40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
-/isv:I:I{v1;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((a is 16)|((a-128)is 16))? :1);0}
-/lam:I:III{!;x}                                                                       /todo
-/ws:I:I{(x~I 8)? :1;0}                                                                /todo space
-/tok:I:I{(ws x)? :0;p:I 8;b:C 8;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));(~r)? :r);0}   /todo 2/->5/
+prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:186 cat r];dxr}
+sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:C p!59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
+ex:I:II{((~x)+(ws y)+((C I 8)is 32))? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
+pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l|40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
+isv:I:I{v1;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((a is 16)|((a-128)is 16))? :1);0}
+lam:I:III{!;x}                                                                       /todo
+ws:I:I{(x~I 8)? :1;0}                                                                /todo space
+tok:I:I{(ws x)? :0;p:I 8;b:C p;(b is 32)? :0; 2/(r:((I.i+136)(b;p;x));r? :r);0}      /todo 2/->5/
 num:I:III{(~x is 4)? :0;((C 1+y) is 4)?!;8::1+y;mki x-48}
 vrb:I:III{(~x is 24)? :0;r:C y;(z>1+x)?(58~C 1+y)?(y+:1;r+:128);8::1+y;r}            /todo nam sym chr
-is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;I 128+x}
+is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;C 128+x}
 160!204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800
 
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}

@@ -641,9 +641,18 @@ I main(int args, C **argv){
 const gh = `// +build ignore
 
 package main
-import "math"
-import "math/bits"
-import "unsafe"
+import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"math"
+	"math/bits"
+	"math/cmplx"
+	"os"
+	"strconv"
+	"strings"
+	"unsafe"
+)
 func init() {
 	NAN = math.NaN()
 }
@@ -678,11 +687,156 @@ func clz32(x I) I { return I(bits.LeadingZeros32(x)) }
 func clz64(x J) I { return I(bits.LeadingZeros64(x)) }
 func i32b(x bool) I { if x { return 1 } else { return 0 } }
 func n32(x I) I { if x == 0 { return 1 } else { return 0 } }
-func main() {
+func dump(a, n I) { // type: cifzsld -> 2468ace
+	p := a >> 2
+	fmt.Printf("%.8x ", a)
+	for i := I(0); i < n; i++ {
+		x := MI[p+i]
+		fmt.Printf(" %.8x", x)
+		if i > 0 && (i+1)%8 == 0 {
+			fmt.Printf("\n%.8x ", a+4*i+4)
+		} else if i > 0 && (i+1)%4 == 0 {
+			fmt.Printf(" ")
+		}
+	}
+	fmt.Println()
+}
+func kst(x I) string {
+	fmt.Printf("kst %x\n", x)
+	type s = string
+	type i = I
+	Z := func(a i) complex128 { return complex(MF[a>>3], MF[1+a>>3]) }
+	if x == 0 {
+		return ""
+	}
+	var t, n i
+	if x > 255 {
+		u := MI[x>>2]
+		t = u>>29
+		n = u&536870911
+	}
+	var f func(i i) s
+	var tof func(s) s = func(s s) s { return s }
+	istr := func(i i) s {
+		if n := int32(MI[i+2+x>>2]); n == -2147483648 {
+			return "0N"
+		} else {
+			return strconv.Itoa(int(n))
+		}
+	}
+	fstr := func(i i) s {
+		if f := MF[i+1+x>>3]; math.IsNaN(f) {
+			return "0n"
+		} else {
+			return strconv.FormatFloat(f, 'g', -1, 64)
+		}
+	}
+	zstr := func(i i) s {
+		if z := Z(x + 8 + 16*i); cmplx.IsNaN(z) {
+			return "0ni0n"
+		} else {
+			return strconv.FormatFloat(real(z), 'g', -1, 64) + "i" + strconv.FormatFloat(imag(z), 'g', -1, 64)
+		}
+	}
+	sstr := func(i i) s {
+		r := I(x + 8 + 4*i)
+		rn := I(r) & 536870911
+		return string(MC[r+8 : r+8+rn])
+	}
+	sep := " "
+	switch t {
+	case 0:
+		fc := []byte(":+-*%&|<>=!~,^#_$?@.'/\\")
+		if x < 128 && bytes.Index(fc, []byte{byte(x)}) != -1 {
+			return string(byte(x))
+		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
+			return string(byte(x-128)) + ":"
+		} else {
+			return fmt.Sprintf(" '(%d)", x)
+		}
+	case 1:
+		return "\"" + string(MC[x+8:x+8+n]) + "\""
+	case 2:
+		f = istr
+	case 3:
+		f = fstr
+		tof = func(s s) s {
+			if strings.Index(s, ".") == -1 {
+				return s + "f"
+			}
+			return s
+		}
+	case 4:
+		f = zstr
+	case 5:
+		f = sstr
+		sep = string(96)
+		tof = func(s s) s { return sep + s }
+	case 6:
+		if n == 1 {
+			return "," + kst(I(8+x))
+		}
+		f = func(i i) s { return kst(MI[2+i+x>>2]) }
+		sep = ";"
+		tof = func(s s) s { return "(" + s + ")" }
+	case 7:
+		return kst(I(x+8)) + "!" + kst(I(x+12))
+	default:
+		panic(fmt.Sprintf("nyi: kst: t=%d", t))
+	}
+	r := make([]s, n)
+	for k := range r {
+		r[k] = f(i(k))
+	}
+	return tof(strings.Join(r, sep))
+}
+func runtest() {
+	b, e := ioutil.ReadFile("t")
+	if e != nil {
+		panic(e)
+	}
+	v := strings.Split(strings.TrimSpace(string(b)), "\n")
+	for i := range v {
+		if len(v[i]) == 0 {
+			fmt.Println("skip rest")
+			os.Exit(0)
+		}
+		if len(v[i]) == 0 || v[i][0] == '/' {
+			continue
+		}
+		vv := strings.Split(v[i], " /")
+		if len(vv) != 2 {
+			panic("test file")
+		}
+		in := strings.TrimSpace(vv[0])
+		exp := strings.TrimSpace(vv[1])
+		got := run(in)
+		fmt.Println(in, "/", got)
+		if exp != got {
+			fmt.Println("expected:", exp)
+			os.Exit(1)
+		}
+	}
+}
+func run(s string) string {
 	m0 := 16
 	MJ = make([]J, (1<<m0)>>3)
 	msl()
 	mt_init()
 	ini(16)
+	x := mk(1, I(len(s)))
+	copy(MC[x+8:], s)
+	s = kst(val(x))
+	//dx(x)
+	//leak()
+	return s
+}
+func main() {
+	//m0 := 16
+	//MJ = make([]J, (1<<m0)>>3)
+	//msl()
+	//mt_init()
+	//ini(16)
+	runtest()
 }
 `

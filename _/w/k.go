@@ -871,6 +871,7 @@ func nm(x, f i) (r i) {
 	return r
 }
 func nd(x, y, f i) i {
+	fmt.Printf("nd %x %x %x\n", x, y, f)
 	x, y = upx(x, y)
 	x, y = ext(x, y)
 	t, _, n, _, xp, yp := v2(x, y)

@@ -1998,7 +1998,11 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 			}
 			sig += "x" + s('0'+byte(i)) + " " + styp[f.locl[i]]
 		}
-		fmt.Fprintf(&b, "func %s(%s) %s {\n", f.name, sig, gtyp(f.t))
+		r := gtyp(f.t)
+		if r != "" {
+			r = "(r " + r + ")"
+		}
+		fmt.Fprintf(&b, "func %s(%s) %s {\n", f.name, sig, r)
 		locs := make(map[T][]s)
 		lvar, drop := make([]s, len(f.locl)-f.args), make([]s, len(f.locl)-f.args)
 		for i := f.args; i < len(f.locl); i++ { // declare locals
