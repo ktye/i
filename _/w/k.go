@@ -32,7 +32,6 @@ var MC []c // MC, MI, MJ, MF share array (see msl)
 var MI []i
 var MJ []j
 var MF []f
-var WT []i
 var MT [256]interface{}
 
 type vt1 func(i) i

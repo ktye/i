@@ -177,7 +177,7 @@ func TestGout(t *testing.T) { // write kw.go from ../../k.w
 	var dst bytes.Buffer
 	io.Copy(&dst, strings.NewReader(gh))
 	dst.Write(m.gout(tab, data))
-	if e := ioutil.WriteFile("kw_go", dst.Bytes(), 0744); e != nil {
+	if e := ioutil.WriteFile("kw.go", dst.Bytes(), 0744); e != nil {
 		t.Fatal(e)
 	}
 }
@@ -431,7 +431,7 @@ const kh = `#include<stdlib.h>
 #include<string.h>
 #include<math.h>
 #define R return
-typedef void V;typedef char C;typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t uI;typedef uint64_t uJ;
+typedef void V;typedef char C;typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t U;typedef uint64_t UJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
@@ -640,10 +640,37 @@ I main(int args, C **argv){
 const gh = `// +build ignore
 
 package main
-
+import "math/bits"
+import "unsafe"
 type I=int32
 type J=int64
 type F=float64
-type uI=uint32
-type uF=uint64
+type U=uint32
+type UJ=uint64
+type slice struct {
+	p uintptr
+	l int
+	c int
+}
+var MC []byte
+var MI []int32
+var MJ []int64
+var MF []float64
+var MT []interface{}
+func msl() { // update slice headers after set/inc MJ
+	cp := *(*slice)(unsafe.Pointer(&MC))
+	ip := *(*slice)(unsafe.Pointer(&MI))
+	jp := *(*slice)(unsafe.Pointer(&MJ))
+	fp := *(*slice)(unsafe.Pointer(&MF))
+	fp.l, fp.c, fp.p = jp.l, jp.c, jp.p
+	ip.l, ip.c, ip.p = jp.l*2, jp.c*2, jp.p
+	cp.l, cp.c, cp.p = ip.l*4, ip.c*4, ip.p
+	MF = *(*[]float64)(unsafe.Pointer(&fp))
+	MI = *(*[]int32)(unsafe.Pointer(&ip))
+	MC = *(*[]byte)(unsafe.Pointer(&cp))
+}
+func clz32(x U) I { return I(bits.LeadingZeros32(x)) }
+func clz64(x UJ) I { return I(bits.LeadingZeros64(x)) }
+func i32b(x bool) I { if x { return 1 } else { return 0 } }
+func n32(x U) U { if x == 0 { return 1 } else { return 0 } }
 `

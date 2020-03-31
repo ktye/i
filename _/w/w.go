@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -988,8 +989,10 @@ func cop(tab map[s]code, op s, t T) (o, u s) {
 		o = v[tnum[t]]
 	}
 	if o[0] == 'U' {
-		if t != F && t != C {
-			u = "(u" + styp[t] + ")"
+		if t == I {
+			u = "(U)"
+		} else if t == J {
+			u = "(UJ)"
 		}
 		o = o[1:]
 	}
@@ -1006,8 +1009,10 @@ func gop(tab map[s]code, op s, t T) (o, u s) {
 		o = v[tnum[t]]
 	}
 	if o[0] == 'U' {
-		if t != F {
-			u = "u" + styp[t]
+		if t == I {
+			u = "U"
+		} else if t == J {
+			u = "UJ"
 		}
 		o = o[1:]
 	}
@@ -1123,25 +1128,6 @@ func (v cnd) gstr() (r s) {
 		r += s + gstring(a[i]) + "{" + gstring(a[i+1]) + "}"
 	}
 	return r + " else {" + gstring(a[len(a)-1]) + "}"
-
-	/*
-		if t == 0 && len(a) == 3 {
-			return jn("if ", gstring(a[0]), "{", gstring(a[1]), "}else{", gstring(a[2]), "}")
-		}
-		if t == 0 {
-			r = "func(){"
-		} else {
-			r = "func()" + styp[t] + "{"
-		}
-		s := ""
-		for i := 0; i < len(a)-1; i += 2 {
-			if i > 0 {
-				s = "else"
-			}
-			r += s + " if " + gstring(a[i]) + "{return " + gstring(a[i+1]) + ";}"
-		}
-		return "else{" + gstring(a[len(a)-1]) + "}}()"
-	*/
 }
 func (v v2) rt() T {
 	t := v.x().rt()
@@ -1176,15 +1162,24 @@ func (v v1) bytes() []c {
 	}
 	return append(v.x().bytes(), getop(v1Tab, v.s, v.rt()))
 }
-func (v v1) cstr() s   { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, u, "(", cstring(v.x()), ")") }
-func (v v1) gstr() s   { o, u := gop(v1Tab, v.s, v.rt()); return jn(o, u, "(", gstring(v.x()), ")") }
+func (v v1) cstr() s { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, u, "(", cstring(v.x()), ")") }
+func (v v1) gstr() s {
+	o, u := gop(v1Tab, v.s, v.rt())
+	c := ")"
+	if u != "" {
+		u = "(" + u
+		c += ")"
+	}
+	return jn(o, u, "(", gstring(v.x()), c)
+}
 func (v cmp) rt() T    { return I }
 func (v cmp) valid() s { return v2(v).valid() }
 func (v cmp) bytes() []c {
 	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.x().rt()))
 }
 func (v cmp) cstr() s  { return c2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
-func (v cmp) gstr() s  { return g2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
+func (v cmp) gstr() s  { return "i32b(" + v.bgstr() + ")" }
+func (v cmp) bgstr() s { return g2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
 func (v con) rt() T    { return v.t }
 func (v con) valid() s { return ifex(v.t == 0, "constant has zero type") }
 func (v con) bytes() (r []c) {
@@ -1326,7 +1321,14 @@ func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21}, leb(v.x().(loc).i)...)...)
 }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
-func (v las) gstr() s     { return jn(locstr(v.x()), "=", gstring(v.y()), ";") }
+func (v las) gstr() s {
+	t := styp[v.x().rt()]
+	ys := gstring(v.y())
+	if len(ys) > 0 && ys[0] != '(' {
+		ys = "(" + ys + ")"
+	}
+	return jn(locstr(v.x()), "=", t, ys, ";")
+}
 func (v lod) rt() T {
 	if v.t == C {
 		return I
@@ -1347,8 +1349,14 @@ func cgadr(xs string, t T) (r string) { // e.g. "MF[x>>3]"
 	return r + "]"
 }
 func (v lod) cstr() s { return cgadr(cstring(v.x()), v.t) }
-func (v lod) gstr() s { return cgadr(gstring(v.x()), v.t) }
-func (v sto) rt() T   { return 0 }
+func (v lod) gstr() (r s) {
+	c := ""
+	if v.t == C {
+		r, c = "I(", ")"
+	}
+	return r + cgadr(gstring(v.x()), v.t) + c
+}
+func (v sto) rt() T { return 0 }
 func (v sto) valid() s {
 	if v.x().rt() != I {
 		return "store addr has wrong type"
@@ -1387,7 +1395,7 @@ func (v iff) valid() s {
 }
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
 func (v iff) cstr() s        { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
-func (v iff) gstr() s        { return jn("if ", gstring(v.x()), "{", gstring(v.y()), "}") }
+func (v iff) gstr() s        { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
 func (v swc) rt() T          { return 0 }
 func (v swc) valid() s {
 	if v.x().rt() != I {
@@ -1489,6 +1497,8 @@ func (v whl) gstr() s {
 	x := gstring(v.x())
 	if x == "1" {
 		x = ""
+	} else {
+		x = gbool(v.x())
 	}
 	return jn("for ", x, "{", gstring(v.y()), "}")
 }
@@ -1526,6 +1536,13 @@ func ifex(c bool, s s) s {
 		return s
 	}
 	return ""
+}
+func gbool(x expr) (r s) {
+	if c, o := x.(cmp); o {
+		return c.bgstr()
+	} else {
+		return "0!=" + gstring(x)
+	}
 }
 
 type code struct {
@@ -1566,13 +1583,13 @@ func embrace(sf func(expr) s, x expr) s {
 }
 
 var v1Tab = map[s]code{
-	"-": code{0, 0, 0x9a, "-", "-"},                                                                            // neg (-I -J is replaced)
-	"+": code{0, 0, 0x99, "fabs", "math.Abs"},                                                                  // abs (+I +J is not allowed)
-	"~": code{0x45, 0x50, 0, "!", "!"},                                                                         // eqz
-	"_": code{1, 1, 0x9c, ";;floor", "math.Floor"},                                                             // floor (ceil, trunc, nearest?)
-	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "Ubits.LeadingZeros32;Ubits.LeadingZeros64;"},   // clz
-	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", "Ubits.TrailingZeros32;Ubits;TrailingZeros64;"}, // ctz
-	"%": code{0, 0, 0x9f, "sqrt", "math.Sqrt"},                                                                 // sqr
+	"-": code{0, 0, 0x9a, "-", "-"},                                              // neg (-I -J is replaced)
+	"+": code{0, 0, 0x99, "fabs", "math.Abs"},                                    // abs (+I +J is not allowed)
+	"~": code{0x45, 0x50, 0, "!", "Un32"},                                        // eqz
+	"_": code{1, 1, 0x9c, ";;floor", "math.Floor"},                               // floor (ceil, trunc, nearest?)
+	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "Uclz32;Uclz64;"}, // clz
+	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", ""},               // ctz
+	"%": code{0, 0, 0x9f, "sqrt", "math.Sqrt"},                                   // sqr
 }
 var v2Tab = map[s]code{
 	`+`:   code{0x6a, 0x7c, 0xa0, "+", "+"},     // add
@@ -1876,14 +1893,11 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 	if len(tab) > 0 {
 		fmt.Fprintf(&b, "V *MT[%d];\n", segmentsize(tab))
 	}
-	for _, f := range m {
+	for _, f := range m { // predeclare functions
 		if f.ast == nil {
 			continue // import
 		}
 		st := styp[f.t]
-		if f.t == 0 {
-			st = "V"
-		}
 		sig := ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {
@@ -1905,7 +1919,7 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 			}
 			sig += styp[f.locl[i]] + " " + "x" + s('0'+byte(i))
 		}
-		for i := f.args; i < len(f.locl); i++ {
+		for i := f.args; i < len(f.locl); i++ { // declare locals
 			t := f.locl[i]
 			if t == F {
 				loc += sf("%s x%d=.0;", styp[t], i)
@@ -1914,9 +1928,6 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 			}
 		}
 		st := styp[f.t]
-		if f.t == 0 {
-			st = "V"
-		}
 		fmt.Fprintf(&b, "%s %s(%s){%s", st, f.name, sig, loc)
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq.argv {
@@ -1959,6 +1970,13 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 }
 func (m module) gout(tab []segment, data []dataseg) []c {
 	// todo: segments / function pointers
+	gtyp := func(t T) s {
+		if t == 0 {
+			return ""
+		} else {
+			return styp[t]
+		}
+	}
 	var b bytes.Buffer
 	for _, f := range m {
 		if f.ast == nil {
@@ -1971,8 +1989,18 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 			}
 			sig += "x" + s('0'+byte(i)) + " " + styp[f.locl[i]]
 		}
-		//fmt.Printf("gout %s\n", f.name)
-		fmt.Fprintf(&b, "func %s(%s) %s {", f.name, sig, styp[f.t])
+		fmt.Fprintf(&b, "func %s(%s) %s {\n", f.name, sig, gtyp(f.t))
+		locs := make(map[T][]s)
+		for i := f.args; i < len(f.locl); i++ { // declare locals
+			t := f.locl[i]
+			locs[t] = append(locs[t], "x"+strconv.Itoa(i))
+		}
+		var v []string
+		for i := range locs {
+			v = append(v, jn("var ", strings.Join(locs[i], ", "), " ", styp[i], "\n"))
+		}
+		sort.Strings(v) // reproducible order
+		fmt.Fprintf(&b, strings.Join(v, "\n"))
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq.argv {
 				nl := "\n"
