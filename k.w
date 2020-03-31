@@ -38,7 +38,7 @@ suc:V:III{z::(C x)-C y}sui:V:III{z::(I x)-I y}suf:V:III{z::(F x)-F y}suz:V:III{s
 muc:V:III{z::(C x)*C y}mui:V:III{z::(I x)*I y}muf:V:III{z::(F x)*F y}muz:V:III{z::((F x)*F x+8)-(F y)*F y+8;(z+8)::((F x)*F y+8)+(F x+8)*F y}
 dic:V:III{z::(C x)%C y}dii:V:III{z::(I x)%I y}dif:V:III{z::(F x)%F y}
 diz:V:III{a:F x;b:F x+8;c:F y;d:F y+8;$[(+c)>=(+d);(r:d%c;p:c+r*d;z::(a+b*r)%p;(z+8)::(b-a*r)%p);(r:c%d;p:d+r*c;z::(a*r+b)%p;(z+8)::(b*r-a)%p)]}
-abs:I:I{x nm 15}neg:I:I{x nm 19}sqr:I:I{x nm 27}
+abx:I:I{x nm 15}neg:I:I{x nm 19}sqr:I:I{x nm 27}
 abc:V:II{c:C x;$[craz c;y::C?c-32;y::C?c]}abi:V:II{i:I x;$[(i<'0);y::0-i;y::i]}abf:V:II{y::+F x}abz:V:II{a:F x;b:F x+8;y::%a*a+b*b}
 nec:V:II{c:C x;$[crAZ c;y::C?c+32;y::C?c]}nei:V:II{y::0-I x}nef:V:II{y::-F x}nez:V:II{y::-F x;(y+8)::-F x+8}
 sqc:V:II{!}sqi:V:II{!}sqf:V:II{y::%F x}sqz:V:II{y::F x;(y+8)::-F x+8}
@@ -80,7 +80,7 @@ is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;I 128+x}
 064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
 096:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; xxx; mtc; xxx}
 128:{nag; nac; nai; naf; naz; nas; nal; xxx; num; vrb; xxx; xxx; xxx; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
-160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abs; enl; neg; val; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; eql; gdn; unq}
+160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abx; enl; neg; val; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; eql; gdn; unq}
 192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; xxx; xxx; srt; flr}
 224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; xxx; not; xxx}
 
@@ -95,7 +95,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 	   xn~3(proj)     verb argv empty-index
 	   xn~4(lambda)   str  tree args locals
 	   
-+  add abs                 abs:+z                   memory
++  add abx                 abs:+z                   memory
 -  sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
 *  mul fst                                          8.. 11   parse cur (pp)
 %  div sqr                                         12.. 15   

@@ -431,7 +431,8 @@ const kh = `#include<stdlib.h>
 #include<string.h>
 #include<math.h>
 #define R return
-typedef void V;typedef char C;typedef int32_t I;typedef int64_t J;typedef double F;typedef uint32_t U;typedef uint64_t UJ;
+#undef abs
+typedef void V;typedef char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
@@ -451,8 +452,8 @@ V Dump(I x, I n) {
 }
 V kst(I x) {
 	I i, j, y, m, tof;
-	I t = ((uI)MI[x>>2])>>29;
-	I n = ((uI)MI[x>>2])&536870911;
+	I t = (MI[x>>2])>>29;
+	I n = (MI[x>>2])&536870911;
 	if(!x) R;
 	switch(t){
 	case 0:

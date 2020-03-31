@@ -1104,6 +1104,8 @@ func (v cnd) bytes() (r []c) {
 	}
 	return catb(r, a[len(a)-1].bytes(), bytes.Repeat([]c{0x0b}, len(a)/2))
 }
+
+/*
 func (v cnd) cstr() (r s) {
 	s := ""
 	a := v.argv
@@ -1117,6 +1119,18 @@ func (v cnd) cstr() (r s) {
 		r += s + cstring(a[i]) + "?" + cstring(a[i+1])
 	}
 	return r + ":" + cstring(a[len(a)-1])
+}
+*/
+func (v cnd) cstr() (r s) {
+	s := "if "
+	a := v.argv
+	for i := 0; i < len(a)-1; i += 2 {
+		if i > 0 {
+			s = " else if "
+		}
+		r += s + "(" + cstring(a[i]) + "){" + cstring(a[i+1]) + "}"
+	}
+	return r + " else {" + cstring(a[len(a)-1]) + "}"
 }
 func (v cnd) gstr() (r s) {
 	s := "if "
