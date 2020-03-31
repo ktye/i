@@ -44,7 +44,7 @@ nec:V:II{c:C x;$[crAZ c;y::C?c+32;y::C?c]}nei:V:II{y::0-I x}nef:V:II{y::-F x}nez
 sqc:V:II{!}sqi:V:II{!}sqf:V:II{y::%F x}sqz:V:II{y::F x;(y+8)::-F x+8}
 zre:I:I{x zri 0}zim:I:I{x zri 8}zri:I:II{v1;(xt~4)?!;r:3 mk xn;r8;xp+:y;xn/(rp::F xp;rp+:8;xp+:16);dxr}
 crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
-nag:V:I{x::0}nac:V:I{x::C?32}nai:V:I{x::-2147483648}naf:V:I{x::9221120237041090561f}naz:V:I{naf x;naf x+8}nas:V:I{x::1 mk 0;(4+I x)::0}nal:V:I{x::0}
+nag:V:I{x::0}nac:V:I{x::C?32}nai:V:I{x::2147483648}naf:V:I{x::9221120237041090561f}naz:V:I{naf x;naf x+8}nas:V:I{x::1 mk 0;(4+I x)::0}nal:V:I{x::0}
 drv:I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv:I:I{40 drv x}epv:I:I{41 drv x}ovv:I:I{123 drv x}scv:I:I{91 drv x}
 ech:I:II{x:lx x;v1;r:6 mk xn;r8;rl x;(y<120)?y+:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
 ecp:I:II{n:nn x;(~n)?(dx y; :fst x);x rxn -1+2*n;y rxn n-1;r:fst x;(n-1)/r:r cat y cal (x atx mki 1+i)l2 x atx mki i;dxyr}

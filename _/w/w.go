@@ -978,7 +978,7 @@ func getop(tab map[s]code, op s, t T) (r c) {
 	}
 	return r
 }
-func cop(tab map[s]code, op s, t T) (o, u s) {
+func cop(tab map[s]code, op s, t T) (o, sn s) {
 	ops, ok := tab[op]
 	if !ok {
 		panic("type")
@@ -988,17 +988,17 @@ func cop(tab map[s]code, op s, t T) (o, u s) {
 		v := strings.Split(o, ";")
 		o = v[tnum[t]]
 	}
-	if o[0] == 'U' {
+	if o[0] == 'S' {
 		if t == I {
-			u = "(U)"
+			sn = "(SI)"
 		} else if t == J {
-			u = "(UJ)"
+			sn = "(SJ)"
 		}
 		o = o[1:]
 	}
-	return o, u
+	return o, sn
 }
-func gop(tab map[s]code, op s, t T) (o, u s) {
+func gop(tab map[s]code, op s, t T) (o, sn s) {
 	ops, ok := tab[op]
 	if !ok {
 		panic("type")
@@ -1008,15 +1008,15 @@ func gop(tab map[s]code, op s, t T) (o, u s) {
 		v := strings.Split(o, ";")
 		o = v[tnum[t]]
 	}
-	if o[0] == 'U' {
+	if o[0] == 'S' {
 		if t == I {
-			u = "U"
+			sn = "SI"
 		} else if t == J {
-			u = "UJ"
+			sn = "SJ"
 		}
 		o = o[1:]
 	}
-	return o, u
+	return o, sn
 }
 
 func (a argv) args() []expr { return a }
@@ -1125,7 +1125,7 @@ func (v cnd) gstr() (r s) {
 		if i > 0 {
 			s = " else if "
 		}
-		r += s + gstring(a[i]) + "{" + gstring(a[i+1]) + "}"
+		r += s + gbool(a[i]) + "{" + gstring(a[i+1]) + "}"
 	}
 	return r + " else {" + gstring(a[len(a)-1]) + "}"
 }
@@ -1205,6 +1205,8 @@ func (v con) cstr() s {
 			}
 			return s
 		}
+	} else if v.t == I && v.i < 0 {
+		return sf("%d", uint32(v.i))
 	}
 	return sf("%d", v.i)
 }
@@ -1304,7 +1306,7 @@ func (d dot) gstr() s {
 		}
 		sig += a.rt().String()
 	}
-	f := jn("func(", sig, ")", d.t.String())
+	f := jn("func(", sig, ")", gtyp(d.t))
 	return jn("MT[", gstring(d.idx), "].(", f, ")(", strings.Join(av, ","), ")")
 }
 func (v loc) rt() T      { return v.t }
@@ -1583,42 +1585,42 @@ func embrace(sf func(expr) s, x expr) s {
 }
 
 var v1Tab = map[s]code{
-	"-": code{0, 0, 0x9a, "-", "-"},                                              // neg (-I -J is replaced)
-	"+": code{0, 0, 0x99, "fabs", "math.Abs"},                                    // abs (+I +J is not allowed)
-	"~": code{0x45, 0x50, 0, "!", "Un32"},                                        // eqz
-	"_": code{1, 1, 0x9c, ";;floor", "math.Floor"},                               // floor (ceil, trunc, nearest?)
-	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "Uclz32;Uclz64;"}, // clz
-	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", ""},               // ctz
-	"%": code{0, 0, 0x9f, "sqrt", "math.Sqrt"},                                   // sqr
+	"-": code{0, 0, 0x9a, "-", "-"},                                            // neg (-I -J is replaced)
+	"+": code{0, 0, 0x99, "fabs", "math.Abs"},                                  // abs (+I +J is not allowed)
+	"~": code{0x45, 0x50, 0, "!", "n32"},                                       // eqz
+	"_": code{1, 1, 0x9c, ";;floor", "math.Floor"},                             // floor (ceil, trunc, nearest?)
+	"*": code{0x67, 0x79, 0, "__builtin_clz;__builtin_clzll;", "clz32;clz64;"}, // clz
+	"|": code{0x68, 0x79, 0, "__builtin_ctz;__builtin_ctzll;", ""},             // ctz
+	"%": code{0, 0, 0x9f, "sqrt", "math.Sqrt"},                                 // sqr
 }
 var v2Tab = map[s]code{
 	`+`:   code{0x6a, 0x7c, 0xa0, "+", "+"},     // add
 	`-`:   code{0x6b, 0x7d, 0xa1, "-", "-"},     // sub
 	`*`:   code{0x6c, 0x7e, 0xa2, "*", "*"},     // mul
-	`%`:   code{0x6e, 0x80, 0xa3, "U/", "U/"},   // div/div_u
-	`%'`:  code{0x6d, 0x7f, 0xa3, "/", "/"},     // div_s
-	`\`:   code{0x70, 0x82, 0, "U%", "%U"},      // rem_u
-	`\'`:  code{0x6f, 0x81, 0, "%", "%"},        // rem_s
+	`%`:   code{0x6e, 0x80, 0xa3, "/", "/"},     // div/div_u
+	`%'`:  code{0x6d, 0x7f, 0xa3, "S/", "S/"},   // div_s
+	`\`:   code{0x70, 0x82, 0, "%", "%"},        // rem_u
+	`\'`:  code{0x6f, 0x81, 0, "S%", "S%"},      // rem_s
 	`&`:   code{0x71, 0x83, 0, "&", "&"},        // and
 	`|`:   code{0x72, 0x84, 0, "|", "|"},        // or
 	`^`:   code{0x73, 0x85, 0, "^", "^"},        // xor
 	`<<`:  code{0x74, 0x86, 0, "<<", "<<"},      // shl
-	`>>`:  code{0x76, 0x88, 0, "U>>", "U>>"},    // shr_u
-	`>>'`: code{0x75, 0x87, 0, ">>", ">>"},      // shl_s
+	`>>`:  code{0x76, 0x88, 0, ">>", ">>"},      // shr_u
+	`>>'`: code{0x75, 0x87, 0, "S>>", "S>>"},    // shl_s
 	`<|'`: code{0x77, 0x89, 0, "", ""},          // rotl
 	`>|'`: code{0x78, 0x8a, 0, "", ""},          // rotr
 	`&'`:  code{0, 0, 0xa4, "fmin", "math.Max"}, // min
 	`|'`:  code{0, 0, 0xa5, "fmax", "math.Min"}, // max
 }
 var cTab = map[s]code{
-	"<":   code{0x49, 0x54, 0x63, "U<", "U<"},   // lt/lt_u
-	"<'":  code{0x48, 0x53, 0x63, "<", "<"},     // lt_s
-	">":   code{0x4b, 0x56, 0x64, "U>", "U>"},   // gt/gt_u
-	">'":  code{0x4a, 0x55, 0x64, ">", ">"},     // gt_s
-	"<=":  code{0x4d, 0x58, 0x65, "U<=", "U<="}, // le/le_u
-	"<='": code{0x4c, 0x57, 0x65, "<=", "<="},   // le_s
-	">=":  code{0x4f, 0x5a, 0x66, "U>=", "U>="}, // ge/ge_u
-	">='": code{0x4e, 0x59, 0x66, ">=", ">="},   // ge/ge_s
+	"<":   code{0x49, 0x54, 0x63, "<", "<"},     // lt/lt_u
+	"<'":  code{0x48, 0x53, 0x63, "S<", "S<"},   // lt_s
+	">":   code{0x4b, 0x56, 0x64, ">", ">"},     // gt/gt_u
+	">'":  code{0x4a, 0x55, 0x64, "S>", "S>"},   // gt_s
+	"<=":  code{0x4d, 0x58, 0x65, "<=", "<="},   // le/le_u
+	"<='": code{0x4c, 0x57, 0x65, "S<=", "S<="}, // le_s
+	">=":  code{0x4f, 0x5a, 0x66, ">=", ">="},   // ge/ge_u
+	">='": code{0x4e, 0x59, 0x66, "S>=", "S>="}, // ge/ge_s
 	"~":   code{0x46, 0x51, 0x61, "==", "=="},   // eq
 	"!":   code{0x47, 0x52, 0x62, "!=", "!="},   // ne
 }
@@ -1970,13 +1972,6 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 }
 func (m module) gout(tab []segment, data []dataseg) []c {
 	// todo: segments / function pointers
-	gtyp := func(t T) s {
-		if t == 0 {
-			return ""
-		} else {
-			return styp[t]
-		}
-	}
 	var b bytes.Buffer
 	for _, f := range m {
 		if f.ast == nil {
@@ -1991,9 +1986,13 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 		}
 		fmt.Fprintf(&b, "func %s(%s) %s {\n", f.name, sig, gtyp(f.t))
 		locs := make(map[T][]s)
+		lvar, drop := make([]s, len(f.locl)-f.args), make([]s, len(f.locl)-f.args)
 		for i := f.args; i < len(f.locl); i++ { // declare locals
 			t := f.locl[i]
-			locs[t] = append(locs[t], "x"+strconv.Itoa(i))
+			s := "x" + strconv.Itoa(i)
+			locs[t] = append(locs[t], s)
+			lvar[i-f.args] = s
+			drop[i-f.args] = "_"
 		}
 		var v []string
 		for i := range locs {
@@ -2001,6 +2000,9 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 		}
 		sort.Strings(v) // reproducible order
 		fmt.Fprintf(&b, strings.Join(v, "\n"))
+		if len(lvar) > 0 { // _,_,_=x1,x2,x3 (prevent "declared and not used")
+			b.WriteString(jn(strings.Join(drop, ","), "=", strings.Join(lvar, ","), "\n"))
+		}
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq.argv {
 				nl := "\n"
@@ -2021,5 +2023,31 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 			b.WriteString(";}\n")
 		}
 	}
+	if len(tab) > 0 || len(data) > 0 {
+		mx := 0
+		for _, t := range tab {
+			if n := t.off + len(t.names); n > mx {
+				mx = n
+			}
+		}
+		fmt.Fprintf(&b, "var MT [%d]interface{}\n", mx)
+		fmt.Fprintf(&b, "func mt_init(){\n")
+		for _, t := range tab {
+			for k, s := range t.names {
+				fmt.Fprintf(&b, "MT[%d]=%s;", t.off+k, s)
+			}
+		}
+		for _, d := range data {
+			fmt.Fprintf(&b, "copy(MC[%d:], %q)\n", d.off, string(d.bytes))
+		}
+		fmt.Fprintf(&b, "}\n")
+	}
 	return b.Bytes()
+}
+func gtyp(t T) s {
+	if t == 0 {
+		return ""
+	} else {
+		return styp[t]
+	}
 }
