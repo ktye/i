@@ -38,7 +38,7 @@ func TestB(t *testing.T) {
 		{"I:I", "(x<6)?/x+:1;x", "0240 0340 2000 4106 49 45 0d01 20004101 6a 2100 0c00 0b0b2000"},
 		{"I:I", "(x<6)?/(x+:1;x+:1);x", "0240 0340 2000 4106 49 45 0d01 200041016a2100 200041016a2100 0c00 0b0b2000"},
 		{"I:I", "1/(x+:1;?x>5);x", "0240 0340 2000 4101 6a 2100 2000 4105 4b  0d01 0c00 0b0b2000"},
-		{"I:III", "$[x;y;z]", "2000047f20010520020b"},
+		{"I:III", "$[x;y;z]", "2000044020010520020b"},
 		{"I:I", "(x>3)?(:-x);x", "2000 4103 4b 0440 4100 2000 6b 0f 0b 2000"},
 		{"I:I", "(x>3)?x+:1;x", "2000 4103 4b 0440 2000 4101 6a 2100 0b 2000"},
 		{"I:II", "x::y;I x", "2000 2001 360200 2000 280200"},
@@ -305,61 +305,6 @@ function kst(x) {
 }
 
 var funcs = {{{fncs}}}
-function parseNoun(s) {
- if(s.length == 0) return s;
- var fc = ":+-*%&|<>=!~,^#_$?@.'/\\"
- var t = 2
- if((s.length>0)&&(fc.indexOf(s[0])!=-1)){ 
-  var c = s.charCodeAt(0)
-  if((s.length>1)&&s[1]==":") return c+128
-                              return c
- }
- if(s.startsWith('"'))                     return chrVector(s);
- if(s.startsWith(String.fromCharCode(96))) return symVector(s);
- if(s.startsWith('('))                     return lstVector(s.substr(1));
- if(s.indexOf(".") != -1) t = 3
- var v = s.split(" ").map(x=>Number(x))
- var n = v.length
- if (n==0) return 0;
- var x = K.exports.mk(t, n)
- if (t==2) for (var i=0;i<n;i++) K.I[2+i+(x>>>2)] = v[i];
- else      for (var i=0;i<n;i++) K.F[1+i+(x>>>3)] = v[i];
- return x
-}
-function chrVector(s) {
- s = s.substr(1,s.length-2)
- var n = s.length
- var x = K.exports.mk(1, n)
- for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
- return x
-}
-function symVector(s) {
- var v = s.substr(1).split(String.fromCharCode(96))
- var x = K.exports.mk(5, v.length)
- for (var i=0; i<v.length; i++) K.I[2+i+(x>>>2)] = chrVector("_"+v[i]+"_")
- return x
-}
-function lstVector(s) {
- if (s.length == 0 || s.endsWith(')') == false) { throw new Error("parse list: "+s) }
- if (s.length == 1) return K.exports.mk(6, 0);
- s = s.substr(0, s.length-1)
- var a = 0
- var l = 0
- var r = []
- for (var i=0; i<s.length; i++) {
-  var c = s[i]
-  if (c == '(') l++
-  else if (c == ')') { l--; if(l<0) throw new Error("list)") }
-  else if ((l==0) && (c==';')) {
-   r.push(parseNoun(s.substring(a,i)))
-   a = i + 1
-  }
- }
- r.push(parseNoun(s.substr(a)))
- var x = K.exports.mk(6, r.length)
- for (var i=0; i<r.length; i++) K.I[2+i+(x>>>2)] = r[i]
- return x
-}
 function xx(x) { return x.toString(16).padStart(8,'0') }
 function dump(x, n) {
  var p = x >>> 2
@@ -371,11 +316,15 @@ function dump(x, n) {
  }
  O("\n")
 }
+function mks(s) {
+ var n = s.length
+ var x = K.exports.mk(1, n)
+ for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
+ return x
+}
 function E(s) {
  try{ // todo save/restore
-  var x = parseNoun(s)
-  if (x==0) { throw new Error(s); }
-  x = K.exports.evl(x, 0)
+  var x = K.exports.val(mks(s))
   O(kst(x)+"\n")
   K.exports.dx(x)
  } catch(e) {
@@ -514,104 +463,6 @@ V kst(I x) {
 	}
 }
 V O(I x) { kst(x); printf("\n"); }
-I parseNoun(C *s);
-I findChr(C *s, I n, C p) {
-	I i;
-	for (i=0; i<n; i++) if (s[i] == p) return i;
-	R n;
-}
-I chrVector(C *s) {
-	I i, x;
-	I n = strlen(s);
-	s++; n-=2;
-	if(n<0) trap();
-	x = mk(1, n);
-	for (i=0; i<n; i++) MC[8+x+i] = s[i];
-	R x;
-}
-I lstVector(C *s) {
-	I r[9];
-	I l = 0;
-	I a = 0;
-	I rn = 0;
-	I i;
-	C p;
-	I n = strlen(s);
-	if ((n == 0) || s[n-1] != ')') { printf("parse list: %s???\n", s); trap(); }
-	if (n == 1) return mk(6, 0);
-	s[n-1] = 0; n--;
-	for (i=0; i<n; i++) {
-		p = s[i];
-		if (p=='(') l++;
-		else if (p==')') {
-			l--;
-			if (l<0) { printf(")"); trap(); }
-		} else if (l==0 && p == ';') {
-			s[i] = 0;
-			r[rn++] = parseNoun(s+a);
-			a = i + 1;
-			if (rn==8) { printf("list limit"); trap(); }
-		}
-	}
-	r[rn++] = parseNoun(s+a);
-	l = mk(6, rn);
-	for (i=0;i<rn;i++) MI[2+(l>>2)+i] = r[i];
-	R l;
-}
-I symVector(C *s) {
-	I i, j, x, y, m;
-	I n = strlen(s);
-	I ns = 0;
-	C *p;
-	for (i=0;i<n;i++) if(s[i] == 96) ns++;
-	x = mk(5, ns);
-	s++;n--;
-	for (i=0;i<ns;i++) {
-		m = findChr(s, n, 96);
-		y = mk(1, m);
-		for (j=0;j<m;j++) MC[8+y+j] = s[j];
-		MI[2+i+(x>>2)] = y;
-		s += m+1; n -= m+1;
-	}
-	R x;
-}
-I numVector(C *s) {
-	I n = strlen(s);
-	I x, i;
-	F fv[8];
-	I iv[8];
-	C *p;
-	I isf = (strchr(s, '.') != NULL);
-	p = strtok(s, " ");
-	n = 0;
-	while(p != NULL) {
-		if (n==8) break;
-		if (isf)  fv[n++] = atof(p);
-		else      iv[n++] = atoi(p);
- 		p = strtok(NULL, " ");
-	}
-	if (isf) {
-		x = mk(3, n);
-		for (i=0; i<n; i++) MF[i+1+(x>>3)] = fv[i];
-	} else {
-		x = mk(2, n);
-		for (i=0; i<n; i++) MI[i+2+(x>>2)] = iv[i];
-	}
-	R x;
-}
-I parseNoun(C *s) {
-	I i;
-	I n = strlen(s);
-	if(!n) return 0;
-	for (i=n-1; i>=0; i--) { if(s[i]==' ') s[i] = 0; else break; }
-	C c = s[0];
-	if (c == '"')                return chrVector(s);
-	if (c == 96)                 return symVector(s);
-	if (c >= '0' && s[0] <= '9') return numVector(s);
-	if (c == '(')                return lstVector(s+1);
-	if (strchr(":+-*%&|<>=!~,^#_$?@.'/\\", c) != NULL) { if (s[1] == ':') return c+128; return c; }
-	return numVector(s);
-}
 #define M0 16
 I mks(C *s) {
 	I n = strlen(s);

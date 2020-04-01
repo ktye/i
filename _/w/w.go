@@ -1094,13 +1094,14 @@ func (v cnd) valid() s {
 	return ""
 }
 func (v cnd) bytes() (r []c) {
-	t := v.rt()
+	//t := v.rt()
 	a := v.argv
-	if t == 0 && len(a) == 3 {
-		return catb(a[0].bytes(), []c{0x04, 0x40}, a[1].bytes(), []c{0x05}, a[2].bytes(), []c{0x0b}) // if(a0){a1}else{a2}
-	}
+	//if t == 0 && len(a) == 3 {
+	//	return catb(a[0].bytes(), []c{0x04, 0x40}, a[1].bytes(), []c{0x05}, a[2].bytes(), []c{0x0b}) // if(a0){a1}else{a2}
+	//}
 	for i := 0; i < len(a)-1; i += 2 {
-		r = catb(r, a[i].bytes(), []c{0x04, c(t)}, a[i+1].bytes(), []c{0x05})
+		//r = catb(r, a[i].bytes(), []c{0x04, c(t)}, a[i+1].bytes(), []c{0x05})
+		r = catb(r, a[i].bytes(), []c{0x04, 0x40}, a[i+1].bytes(), []c{0x05})
 	}
 	return catb(r, a[len(a)-1].bytes(), bytes.Repeat([]c{0x0b}, len(a)/2))
 }
