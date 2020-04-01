@@ -437,10 +437,10 @@ I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^
 V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
 //F NaN = &((unt64_t)9221120237041090561ull);
-V Dump(I,I);
+V dump(I,I);
 `
 const kt = `
-V Dump(I x, I n) {
+V dump(I x, I n) {
 	I p = x>>2;
 	printf("\n%08x  ", x);
 	for (I i=0; i<n; i++) {
@@ -613,17 +613,23 @@ I parseNoun(C *s) {
 	return numVector(s);
 }
 #define M0 16
+I mks(C *s) {
+	I n = strlen(s);
+	I x = mk(1, n);
+	for (I i=0; i<n; i++) MC[8+x+i] = s[i];
+	R x;
+}
 V runtest() {
 	C buf[128];
 	C *p;
 	while (fgets(buf, 128, stdin) != NULL) {
-		if ((p=strstr(buf, " /"))==NULL) { trap(); }
-		if (buf[0] == '/') { printf("skip\n"); continue; }
+		if((p=strstr(buf, " /"))==NULL) { trap(); }
+		if(buf[0] == '/') { printf("skip\n"); continue; }
 		*p = 0;
 		memset(MC, 0, 1<<M0);
 		mt_init();
 		ini(16);
-		O(evl(parseNoun(buf),0));
+		O(val(mks(buf)));
 	}
 }
 I main(int args, C **argv){
@@ -632,9 +638,7 @@ I main(int args, C **argv){
 	memset(MC, 0, 1<<M0);
 	mt_init();
 	ini(16);
-	I x = parseNoun(argv[1]);
-	O(x);
-	O(evl(x,0));
+	O(val(mks(argv[1])));
 }
 `
 
@@ -702,7 +706,7 @@ func dump(a, n I) { // type: cifzsld -> 2468ace
 	fmt.Println()
 }
 func kst(x I) string {
-	fmt.Printf("kst %x\n", x)
+	//fmt.Printf("kst %x\n", x)
 	type s = string
 	type i = I
 	Z := func(a i) complex128 { return complex(MF[a>>3], MF[1+a>>3]) }

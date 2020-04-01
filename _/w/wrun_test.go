@@ -19,7 +19,6 @@ import (
 const trace = false
 
 func TestWagon(t *testing.T) {
-	t.Skip()
 	if broken {
 		t.Skip()
 	}
@@ -33,7 +32,10 @@ func TestWagon(t *testing.T) {
 	}
 	v := strings.Split(strings.TrimSpace(string(b)), "\n")
 	for i := range v {
-		if len(v[i]) == 0 || v[i][0] == '/' {
+		if len(v[i]) == 0 {
+			fmt.Println("skip")
+			return
+		} else if v[i][0] == '/' {
 			continue
 		}
 		vv := strings.Split(v[i], " /")
@@ -55,7 +57,7 @@ type K struct {
 }
 
 func runWagon(tab []segment, b []byte, s string, exp string) error {
-	fmt.Println(s, exp)
+	fmt.Printf("%s / ", s)
 	m, e := wasm.ReadModule(bytes.NewReader(b), hostFuncs)
 	if e != nil {
 		return e
@@ -73,9 +75,10 @@ func runWagon(tab []segment, b []byte, s string, exp string) error {
 	K := K{m: m, vm: vm}
 	K.call("ini", 16)
 	//r := K.call("prs", K.mks(s))
-	//r := K.call("val", K.mks(s))
-	r := K.call("evl", K.parseVector(s), 0)
+	r := K.call("val", K.mks(s))
+	//r := K.call("evl", K.parseVector(s), 0)
 	got := K.kst(r)
+	fmt.Println(got)
 	if got != exp {
 		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
 	}

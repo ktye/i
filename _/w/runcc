@@ -3,7 +3,7 @@ tcc=/local/tcc/tcc
 if [ "$1" = "fmt" ]; then
 	/local/LLVM/bin/clang-format.exe k_c > xx_c
 elif [ x"$1" = "xt" ]; then
-	cat t | $tcc -run k_c t | awk '{
+	sed '/^$/q' t | $tcc -run k_c t | awk '{
 		x=$0
 		getline < "t"
 		y=$0
@@ -14,7 +14,7 @@ elif [ x"$1" = "xt" ]; then
 			exit
 		}
 print y,x
-	}END{print x; if(x!="\"ok\"")print "error"}'
+	}'
 else
 	# go test (generate k_c)
 	$tcc -run k_c "$*"

@@ -871,7 +871,6 @@ func nm(x, f i) (r i) {
 	return r
 }
 func nd(x, y, f i) i {
-	fmt.Printf("nd %x %x %x\n", x, y, f)
 	x, y = upx(x, y)
 	x, y = ext(x, y)
 	t, _, n, _, xp, yp := v2(x, y)
@@ -1244,6 +1243,7 @@ func swc(x, loc i) (r i) { // ($;a;b;...)
 	return dxr(x, 0)
 }
 func evl(x, loc i) (r i) {
+	//fmt.Printf("evl x=%x %s\n", x, kst(x))
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
@@ -1434,7 +1434,7 @@ func ws(s i) bool { // skip whitespace
 	}
 }
 func tok(s i) (r i) { // next token
-	//defer func() { fmt.Printf("tok r=%s\n", kst(r)) }()
+	//defer func() { fmt.Printf("tok: r=%x\n", r) }()
 	if ws(s) {
 		return 0
 	}

@@ -1104,23 +1104,6 @@ func (v cnd) bytes() (r []c) {
 	}
 	return catb(r, a[len(a)-1].bytes(), bytes.Repeat([]c{0x0b}, len(a)/2))
 }
-
-/*
-func (v cnd) cstr() (r s) {
-	s := ""
-	a := v.argv
-	if v.rt() == 0 && len(a) == 3 {
-		return jn("if(", cstring(a[0]), "){", cstring(a[1]), "}else{", cstring(a[2]), "}")
-	}
-	for i := 0; i < len(a)-1; i += 2 {
-		if i > 0 {
-			s = ":"
-		}
-		r += s + cstring(a[i]) + "?" + cstring(a[i+1])
-	}
-	return r + ":" + cstring(a[len(a)-1])
-}
-*/
 func (v cnd) cstr() (r s) {
 	s := "if "
 	a := v.argv
@@ -1197,7 +1180,17 @@ func (v cmp) bgstr() s { return g2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
 func (v con) rt() T    { return v.t }
 func (v con) valid() s { return ifex(v.t == 0, "constant has zero type") }
 func (v con) bytes() (r []c) {
-	r = append([]c{0x41}, lebs(int(v.i))...)
+	if v.t == I {
+		i := v.i
+		if i > 2147483647 { // e.g. nai must be positive for gout
+			var x int32
+			x = int32(i)
+			i = int64(x)
+		}
+		r = append([]c{0x41}, leb(i)...)
+	} else {
+		r = append([]c{0x41}, leb(v.i)...)
+	}
 	if v.t == J {
 		r[0]++
 	} else if v.t == F {
@@ -1263,7 +1256,7 @@ func (v cal) bytes() (r []c) {
 	for _, a := range v.argv {
 		r = append(r, a.bytes()...)
 	}
-	return append(append(r, 0x10), leb(v.n)...)
+	return append(append(r, 0x10), leb(int64(v.n))...)
 }
 func (v cal) cstr() s {
 	av, s := make([]s, len(v.argv)), ""
@@ -1290,7 +1283,7 @@ func (d dot) bytes() (r []c) {
 	}
 	r = append(r, d.idx.bytes()...)
 	r = append(r, 0x11)
-	r = append(r, leb(d.sig)...)
+	r = append(r, leb(int64(d.sig))...)
 	return append(r, 0x00)
 }
 func (d dot) cstr() s {
@@ -1325,7 +1318,7 @@ func (d dot) gstr() s {
 }
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
-func (v loc) bytes() []c { return append([]c{0x20}, leb(v.i)...) }
+func (v loc) bytes() []c { return append([]c{0x20}, leb(int64(v.i))...) }
 func (v loc) cstr() s    { return locstr(v) }
 func (v loc) gstr() s    { return locstr(v) }
 func (v las) rt() T      { return 0 }
@@ -1334,7 +1327,7 @@ func (v las) valid() s {
 	return ifex(tx == 0 || tx != ty, sf("assignment with mismatched types %s %s", tx, ty))
 }
 func (v las) bytes() []c {
-	return append(v.y().bytes(), append([]c{0x21}, leb(v.x().(loc).i)...)...)
+	return append(v.y().bytes(), append([]c{0x21}, leb(int64(v.x().(loc).i))...)...)
 }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
 func (v las) gstr() s {
@@ -1427,16 +1420,16 @@ func (v swc) valid() s {
 func (v swc) bytes() (r []c) { // (block(block(... x br_table 0..n) argv[i];break)...)
 	//fmt.Fprintf(os.Stderr, "%#v\n", v)
 	n := len(v.argv) - 1
-	r = catb(bytes.Repeat([]c{0x02, 0x40}, n+1), v.x().bytes(), []c{0x0e}, leb(n-1))
+	r = catb(bytes.Repeat([]c{0x02, 0x40}, n+1), v.x().bytes(), []c{0x0e}, leb(int64(n-1)))
 	for i := 0; i < n; i++ {
-		r = append(r, leb(i)...)
+		r = append(r, leb(int64(i))...)
 	}
 	r = append(r, 0x0b)
 	for i, a := range v.argv[1:] {
 		if _, o := a.(nop); o {
-			r = catb(r, []c{0x0c}, leb(n-2-i), []c{0x0b})
+			r = catb(r, []c{0x0c}, leb(int64(n-2-i)), []c{0x0b})
 		} else {
-			r = catb(r, a.bytes(), []c{0x0c}, leb(n-1-i), []c{0x0b})
+			r = catb(r, a.bytes(), []c{0x0c}, leb(int64(n-1-i)), []c{0x0b})
 		}
 	}
 	return r
@@ -1471,9 +1464,9 @@ func (v nlp) valid() s {
 func (v nlp) bytes() (r []c) {
 	r = v.x().bytes()
 	if isexpr(v.x()) {
-		r = append(append(r, 0x22), leb(v.n)...) // tee.n for general expressions
+		r = append(append(r, 0x22), leb(int64(v.n))...) // tee.n for general expressions
 	}
-	i, n := s(leb(v.c)), s(leb(v.n))
+	i, n := s(leb(int64(v.c))), s(leb(int64(v.n)))
 	//                    if           0   →i   loop
 	r = catb(r, []c(sf("\x04\x40\x41\x00\x21%s\x03\x40", i)))
 	//                                        i       1   +  tee→i    n   <  continue
@@ -1664,7 +1657,7 @@ func (m module) wasm(tab []segment, data []dataseg) []c {
 			m[i].sign = n
 		}
 	}
-	sec.cat(leb(len(sigv)))
+	sec.cat(leb(int64(len(sigv))))
 	for _, s := range sigv {
 		sec.cat([]c(s))
 	}
@@ -1673,34 +1666,34 @@ func (m module) wasm(tab []segment, data []dataseg) []c {
 	imports := m.imports()
 	if len(imports) > 0 {
 		sec = NewSection(2)
-		sec.cat(leb(len(imports)))
+		sec.cat(leb(int64(len(imports))))
 		for _, f := range imports {
 			mod := "ext"
-			sec.cat(leb(len(mod)))
+			sec.cat(leb(int64(len(mod))))
 			sec.cat([]c(mod))
-			sec.cat(leb(len(f.name)))
+			sec.cat(leb(int64(len(f.name))))
 			sec.cat([]c(f.name))
 			sec.cat1(0) // kind
-			sec.cat(leb(sigs[s(f.sig())]))
+			sec.cat(leb(int64(sigs[s(f.sig())])))
 		}
 		sec.out(o)
 	}
 	// function section(3: function signature indexes)
 	sec = NewSection(3)
-	sec.cat(leb(len(m) - len(imports)))
+	sec.cat(leb(int64(len(m) - len(imports))))
 	for _, f := range m {
 		if f.ast != nil {
-			sec.cat(leb(sigs[s(f.sig())]))
+			sec.cat(leb(int64(sigs[s(f.sig())])))
 		}
 	}
 	sec.out(o)
 	// function table section(4)
 	if len(tab) > 0 {
 		sec = NewSection(4)
-		sec.cat1(1)                    // one table
-		sec.cat1(0x70)                 // table type
-		sec.cat1(0)                    // flags
-		sec.cat(leb(segmentsize(tab))) // size
+		sec.cat1(1)                           // one table
+		sec.cat1(0x70)                        // table type
+		sec.cat1(0)                           // flags
+		sec.cat(leb(int64(segmentsize(tab)))) // size
 		sec.out(o)
 	}
 	// linear memory section(5)
@@ -1711,16 +1704,16 @@ func (m module) wasm(tab []segment, data []dataseg) []c {
 	// export section(7)
 	sec = NewSection(7)
 	idx, exp := m.exports()
-	sec.cat(leb(1 + len(exp))) // number of exports (funcs + memory)
-	sec.cat(leb(len("mem")))
+	sec.cat(leb(int64(1 + len(exp)))) // number of exports (funcs + memory)
+	sec.cat(leb(int64(len("mem"))))
 	sec.cat([]c("mem"))
 	sec.cat1(2) // export kind memory
 	sec.cat1(0) // memory index
 	for i, f := range exp {
-		sec.cat(leb(len(f.name)))
+		sec.cat(leb(int64(len(f.name))))
 		sec.cat([]c(f.name))
 		sec.cat1(0) // function-export
-		sec.cat(leb(idx[i]))
+		sec.cat(leb(int64(idx[i])))
 	}
 	sec.out(o)
 	// no start section(8)
@@ -1731,41 +1724,41 @@ func (m module) wasm(tab []segment, data []dataseg) []c {
 			names[f.name] = i
 		}
 		sec = NewSection(9)
-		sec.cat(leb(len(tab)))
+		sec.cat(leb(int64(len(tab))))
 		for _, t := range tab {
 			sec.cat1(0) // table index
 			sec.cat1(0x41)
-			sec.cat(lebs(t.off))
+			sec.cat(leb(int64(t.off)))
 			sec.cat1(0x0b)
-			sec.cat(lebs(len(t.names)))
+			sec.cat(leb(int64(len(t.names))))
 			for _, name := range t.names {
-				sec.cat(lebs(names[name]))
+				sec.cat(leb(int64(names[name])))
 			}
 		}
 		sec.out(o)
 	}
 	// code section(10)
 	sec = NewSection(10)
-	sec.cat(leb(len(m) - len(imports))) // number of functions
+	sec.cat(leb(int64(len(m) - len(imports)))) // number of functions
 	for _, f := range m {
 		if f.ast == nil {
 			continue // import
 		}
 		b := f.code()
-		sec.cat(leb(len(b)))
+		sec.cat(leb(int64(len(b))))
 		sec.cat(b)
 	}
 	sec.out(o)
 	// data section(11)
 	if len(data) > 0 {
 		sec = NewSection(11)
-		sec.cat(leb(len(data)))
+		sec.cat(leb(int64(len(data))))
 		for _, d := range data {
 			sec.cat1(0)    // memory index
 			sec.cat1(0x41) // const.i32 (off is an expr)
-			sec.cat(lebs(d.off))
+			sec.cat(leb(int64(d.off)))
 			sec.cat1(0x0b)
-			sec.cat(lebs(len(d.bytes)))
+			sec.cat(leb(int64(len(d.bytes))))
 			sec.cat(d.bytes)
 		}
 		sec.out(o)
@@ -1816,13 +1809,13 @@ func (s *section) cat(b []c) { s.b = append(s.b, b...) }
 func (s *section) cat1(b c)  { s.b = append(s.b, b) }
 func (s *section) out(w *bytes.Buffer) {
 	w.WriteByte(s.t)
-	w.Write(leb(len(s.b)))
+	w.Write(leb(int64(len(s.b))))
 	w.Write(s.b)
 }
 
 func (f fn) sig() (r []c) {
 	r = append(r, 0x60)
-	r = append(r, leb(f.args)...)
+	r = append(r, leb(int64(f.args))...)
 	for i := 0; i < f.args; i++ {
 		r = append(r, c(f.locl[i]))
 	}
@@ -1851,14 +1844,16 @@ func (f fn) locs() (r []c) {
 			u, n = append(u, t), append(n, 1)
 		}
 	}
-	r = leb(len(u))
+	r = leb(int64(len(u)))
 	for i, t := range u {
-		r = append(r, leb(n[i])...)
+		r = append(r, leb(int64(n[i]))...)
 		r = append(r, c(t))
 	}
 	return r
 }
-func leb(v int) []c { return lebu(v) }
+
+//func leb(v int64) []c { return lebx(v) }
+/*
 func lebu(v int) []c { // encode unsigned leb128
 	if v < 0 {
 		panic("lebu")
@@ -1877,7 +1872,8 @@ func lebu(v int) []c { // encode unsigned leb128
 	}
 	return b
 }
-func lebs(v int) []c { // encode signed leb128
+*/
+func leb(v int64) []c { // encode signed leb128
 	var b []c
 	for {
 		c := uint8(v & 0x7f)
@@ -2003,6 +1999,7 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 			r = "(r " + r + ")"
 		}
 		fmt.Fprintf(&b, "func %s(%s) %s {\n", f.name, sig, r)
+		fmt.Fprintln(&b, `//defer func(){fmt.Printf("`+f.name+`: r=%x\n", r)}()`)
 		locs := make(map[T][]s)
 		lvar, drop := make([]s, len(f.locl)-f.args), make([]s, len(f.locl)-f.args)
 		for i := f.args; i < len(f.locl); i++ { // declare locals
