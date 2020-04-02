@@ -313,7 +313,7 @@ func up(x, t, n i) (r i) {
 		}
 	case 2:
 		for i := i(0); i < n; i++ {
-			sF(rp, float64(I(xp)))
+			sF(rp, float64(int32(I(xp))))
 			xp += 4
 			rp += 8
 		}
@@ -1367,7 +1367,7 @@ func pun(b c, p, s i) (r i) {
 	sI(pp, p)
 	return mki(r)
 }
-func num(b c, p, s i) (r i) {
+func pin(b c, p, s i) (r i) {
 	r = pun(b, p, s)
 	if r != 0 {
 		return r
@@ -1387,6 +1387,37 @@ func num(b c, p, s i) (r i) {
 		}
 	}
 	return 0
+}
+func pfl(b c, p, s i) (r i) {
+	r = pin(b, p, s)
+	if r == 0 {
+		return r
+	}
+	p = I(pp)
+	if C(p) == '.' { //46
+		r = up(r, 2, 1)
+		p++
+		sI(pp, p)
+		if p < s {
+			b = C(p)
+			q := pun(b, p, s)
+			if q != 0 {
+				q = up(q, 2, 1)
+				f := 1.0
+				n := I(pp) - p
+				for i := i(0); i < n; i++ {
+					f *= 10
+				}
+				rp := 8 + r
+				sF(rp, F(rp)+F(8+q)/f)
+				dx(q)
+			}
+		}
+	}
+	return r
+}
+func num(b c, p, s i) (r i) {
+	return pfl(b, p, s)
 }
 func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if !is(b, VB|AD) { // 24
@@ -1594,7 +1625,7 @@ func kst(x i) s {
 		f = fstr
 		tof = func(s s) s {
 			if strings.Index(s, ".") == -1 {
-				return s + "f"
+				return s + ".0"
 			}
 			return s
 		}

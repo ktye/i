@@ -280,7 +280,7 @@ function kst(x) {
  case 3:
   x >>>= 3
   var s = K.F.slice(1+x, 1+x+n).join(" ")
-  if(s.indexOf(".")==-1) s+="f"
+  if(s.indexOf(".")==-1) s+=".0"
   return s
  case 4:
   x >>>= 3
@@ -431,7 +431,7 @@ V kst(I x) {
 			if (MF[x+i] != MF[x+i]) { printf("0n"); tof = 0; } else printf("%g", MF[x+i]);
 			if (MF[x+i] != (F)(I)MF[x+i]) tof = 0;
 		}
-		if(tof) printf("f");
+		if(tof) printf(".0");
 		break;
 	case 4:
 		x = 1 + (x>>3);
@@ -617,7 +617,7 @@ func kst(x I) string {
 		f = fstr
 		tof = func(s s) s {
 			if strings.Index(s, ".") == -1 {
-				return s + "f"
+				return s + ".0"
 			}
 			return s
 		}

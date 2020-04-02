@@ -344,7 +344,7 @@ func (K *K) kst(a k) s {
 		f = fstr
 		tof = func(s s) s {
 			if strings.Index(s, ".") == -1 {
-				return s + "f"
+				return s + ".0"
 			}
 			return s
 		}

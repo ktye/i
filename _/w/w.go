@@ -803,7 +803,7 @@ func (p *parser) pCon(b []c) expr {
 	return r
 }
 func sOp(b []c) int {
-	if b[0] == '?' && len(b) > 1 && b[1] == '/' { // ?/ while
+	if b[0] == '?' && len(b) > 1 && (b[1] == '/' || b[1] == '\'') { // ?/(while)  ?'(cvt signed)
 		return 2
 	} else if b[0] == ':' || b[0] == '?' || b[0] == '.' {
 		return 1
@@ -1841,8 +1841,9 @@ func (f fn) code() (r []c) {
 func (f fn) locs() (r []c) {
 	var u []T
 	var n []int
-	for i, t := range f.locl[f.args:] {
-		if i > 0 && t == f.locl[i-1] {
+	l := f.locl[f.args:]
+	for i, t := range l {
+		if i > 0 && t == l[i-1] {
 			n[len(n)-1]++
 		} else {
 			u, n = append(u, t), append(n, 1)
