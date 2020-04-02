@@ -125,7 +125,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	}
 	wasm := m.wasm(tab, data)
 	var txt, fns bytes.Buffer
-	fmt.Fprintf(&txt, "kwasm(%d b) %s [tests src]\\n ", len(wasm), time.Now().Format("2006.01.02"))
+	fmt.Fprintf(&txt, "k.w(%d b) %s [tests src]\\n ", len(wasm), time.Now().Format("2006.01.02"))
 	var b bytes.Buffer
 	s := hh
 	s = strings.Replace(s, `{{wasm}}`, base64.StdEncoding.EncodeToString(wasm), 1)
@@ -263,7 +263,7 @@ function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from 
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
  if(x==0) return ""
- var h = K.I[x>>>2]
+ var h = K.U[x>>>2]
  var t = (h>>>29)>>>0
  var n = (h&536870911)>>>0
  var o = []
@@ -290,14 +290,14 @@ function kst(x) {
  case 5:
   x >>>= 2
   var r = ""
-  var v = K.I.slice(2+x, 2+x+n)
+  var v = K.U.slice(2+x, 2+x+n)
   var tr = function(s) { return s.substr(1, s.length-2) }
   for (var i=0; i<n; i++) r += String.fromCharCode(96) + tr(kst(v[i]))
   return r
  case 6:
   x >>>= 2
   var r = []
-  for (var i=0; i<n; i++) r.push(kst(K.I[2+x+i]))
+  for (var i=0; i<n; i++) r.push(kst(K.U[2+x+i]))
   return "("+r.join(";")+")"
  default:
   return "kst nyi: t=" + String(t)
@@ -310,7 +310,7 @@ function dump(x, n) {
  var p = x >>> 2
  O("\n"+xx(p)+" ")
  for (var i=0; i<n; i++) {
-  O(" "+xx(K.I[p+i]))
+  O(" "+xx(K.U[p+i]))
   if ((i>0)&&((i+1)%8==0)) O("\n"+xx(x+4*i+4)+" ")
   else if ((i>0)&&((i+1)%4==0)) O(" ")
  }
@@ -358,7 +358,8 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
  const module = await WebAssembly.compile(kwasm.buffer);
  K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2} });
  K.C = new Uint8Array(K.exports.mem.buffer)
- K.I = new Uint32Array(K.exports.mem.buffer)
+ K.U = new Uint32Array(K.exports.mem.buffer)
+ K.I = new Int32Array(K.exports.mem.buffer)
  K.F = new Float64Array(K.exports.mem.buffer)
  K.exports.ini(16);
  var h = decodeURIComponent(window.location.hash.substr(1))

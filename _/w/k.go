@@ -105,7 +105,7 @@ func ini(x i) i {
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
-		nag, nac, nai, naf, naz, nas, nal, nil, num, vrb, chr, nam, sym, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nag, nac, nai, naf, naz, nas, nal, nil, nms, vrb, chr, nam, sym, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
@@ -1354,7 +1354,7 @@ func tok(s i) (r i) { // next token
 	}
 	return 0
 }
-func pun(b c, p, s i) (r i) {
+func pun(b c, p, s i) (r i) { // parse unsigned int
 	if !is(b, NM) { // 4
 		return 0
 	}
@@ -1367,7 +1367,7 @@ func pun(b c, p, s i) (r i) {
 	sI(pp, p)
 	return mki(r)
 }
-func pin(b c, p, s i) (r i) {
+func pin(b c, p, s i) (r i) { // parse signed int
 	r = pun(b, p, s)
 	if r != 0 {
 		return r
@@ -1388,7 +1388,7 @@ func pin(b c, p, s i) (r i) {
 	}
 	return 0
 }
-func pfl(b c, p, s i) (r i) {
+func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, no exp
 	r = pin(b, p, s)
 	if r == 0 {
 		return r
@@ -1416,8 +1416,31 @@ func pfl(b c, p, s i) (r i) {
 	}
 	return r
 }
-func num(b c, p, s i) (r i) {
+func num(b c, p, s i) (r i) { // parse single number
 	return pfl(b, p, s)
+}
+func nms(b c, p, s i) (r i) { // parse numeric vector
+	r = num(b, p, s)
+	if r == 0 {
+		return r
+	}
+	for {
+		p = I(pp)
+		b = C(p)
+		if p+2 > s {
+			return r
+		}
+		if b != 32 {
+			return r
+		}
+		p++
+		sI(pp, p)
+		q := num(C(p), p, s)
+		if q == 0 {
+			return r
+		}
+		r = cat(r, q)
+	}
 }
 func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if !is(b, VB|AD) { // 24
