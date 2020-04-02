@@ -1492,17 +1492,16 @@ func sym(b c, p, s i) (r i) { // `abc`"abc"  as ,`abc`abc
 	return r
 }
 func chr(b c, p, s i) (r i) { // "abc"
-	if b != '"' {
+	if b != '"' { //34
 		return 0
 	} // todo hex
 	a := p + 1
 	for {
 		p++
-		b = C(p)
 		if p == s {
 			panic("chr/eof")
 		}
-		if b == '"' { // todo quote
+		if C(p) == '"' { // todo quote
 			n := p - a
 			r = mk(1, n)
 			mv(r+8, a, n)
