@@ -1368,25 +1368,25 @@ func pun(b c, p, s i) (r i) {
 	return mki(r)
 }
 func num(b c, p, s i) (r i) {
-	return pun(b, p, s)
-	/*
-		n := i(0)
-		if b == '-' {
-			n = 1
-			p++
+	r = pun(b, p, s)
+	if r != 0 {
+		return r
+	}
+	if b == '-' { //45
+		p++
+		if p < s {
 			b = C(p)
 			sI(pp, p)
-		}
-		r = pun(b, p, s)
-		if r == 0 {
-			sI(pp, p-1)
-			return 0
-		}
-		if n != 0 {
+			r = pun(b, p, s)
+			if r == 0 {
+				sI(pp, p-1)
+				return 0
+			}
 			sI(8+r, -I(8+r))
+			return r
 		}
-		return r
-	*/
+	}
+	return 0
 }
 func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if !is(b, VB|AD) { // 24
