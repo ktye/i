@@ -595,8 +595,8 @@ func kst(x I) string {
 		}
 	}
 	sstr := func(i i) s {
-		r := I(x + 8 + 4*i)
-		rn := I(r) & 536870911
+		r := MI[(x + 8 + 4*i)>>2]
+		rn := MI[r>>2] & 536870911
 		return string(MC[r+8 : r+8+rn])
 	}
 	sep := " "

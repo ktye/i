@@ -1552,6 +1552,9 @@ func gbool(x expr) (r s) {
 		return c.bgstr()
 	} else {
 		if v, o := x.(v1); o && v.s == "~" {
+			if w, o := v.x().(cmp); o && w.s == "~" { // ~x~y
+				return gstring(w.x()) + "!=" + gstring(w.y())
+			}
 			return "0==" + gstring(v.x())
 		}
 		return "0!=" + gstring(x)

@@ -105,7 +105,7 @@ func ini(x i) i {
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
-		nag, nac, nai, naf, naz, nas, nal, nil, nms, vrb, chr, nam, sym, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nag, nac, nai, naf, naz, nas, nal, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
@@ -1346,7 +1346,7 @@ func tok(s i) (r i) { // next token
 	if is(b, TE) { //32
 		return 0
 	}
-	for j := 0; j < 5; j++ { // num vrb chr nam sym
+	for j := 0; j < 5; j++ { // nms vrb chr nam sms
 		r = MT[j+136].(func(c, i, i) i)(b, p, s)
 		if r != 0 {
 			return r
@@ -1457,13 +1457,13 @@ func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	return r
 }
 func nam(b c, p, s i) (r i) { // abc  A3 (as `abc)
-	if !is(b, az|AZ) {
+	if !is(b, az|AZ) { //3
 		return 0
 	}
 	a := p
 	for {
 		p++
-		if p == s || !is(C(p), az|AZ|NM) {
+		if p == s || !is(C(p), az|AZ|NM) { //7
 			n := p - a
 			r = mk(1, n)
 			mv(r+8, a, n)
@@ -1472,23 +1472,38 @@ func nam(b c, p, s i) (r i) { // abc  A3 (as `abc)
 		}
 	}
 }
-func sym(b c, p, s i) (r i) { // `abc`"abc"  as ,`abc`abc
-	if b != '`' {
+func sym(b c, p, s i) (r i) { // `abc `"abc"
+	if b != '`' { //96
 		return 0
 	}
 	p++
+	b = C(p)
 	sI(pp, p)
 	if p < s {
-		b := C(p)
 		if r = nam(b, p, s); r != 0 {
-			return enl(r)
+			return r
 		}
 		if r = chr(b, p, s); r != 0 {
-			return enl(sc(r))
+			return sc(r)
 		}
 	}
-	r = mk(5, 0)
+	r = mk(5, 1)
 	sI(r+8, mk(1, 0))
+	return r
+}
+func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
+	r = sym(b, p, s)
+	if r == 0 {
+		return r
+	}
+	for {
+		p = I(pp)
+		q := sym(C(p), p, s)
+		if q == 0 {
+			return enl(r)
+		}
+		r = cat(r, q)
+	}
 	return r
 }
 func chr(b c, p, s i) (r i) { // "abc"
