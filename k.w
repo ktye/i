@@ -64,9 +64,9 @@ sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 /parse
 prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:186 cat r];dxr}
-sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:C p!59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
+sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:~(C p)~59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
 ex:I:II{((~x)+(ws y)+((C I 8)is 32))? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
-pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l|40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
+pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l+40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
 isv:I:I{v1;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((a is 16)|((a-128)is 16))? :1);0}
 lam:I:III{!;x}                                                                       /todo
 ws:I:I{(x~I 8)? :1;0}                                                                /todo space
