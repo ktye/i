@@ -110,7 +110,7 @@ func ini(x i) i {
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
 	})
-	sJ(0, 289360742959022336) // type sizes uint64(0x0404041008040100)
+	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(128, x)                // alloc
 	p := i(256)
 	for i := i(8); i < x; i++ {
@@ -173,7 +173,7 @@ func dx(x i) {
 		sI(x+4, xr-1)
 		if xr == 1 {
 			xt, xn, xp := v1(x)
-			if xt > 4 {
+			if xt == 0 || xt > 4 {
 				for i := i(0); i < xn; i++ {
 					dx(I(xp + 4*i))
 				}
@@ -1136,6 +1136,21 @@ func swc(x, loc i) (r i) { // ($;a;b;...)
 	}
 	return dxr(x, 0)
 }
+func lev(x, loc i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt != 6 {
+		return x
+	}
+	rl(x)
+	r = mk(6, xn)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		sI(rp, evl(I(xp), loc))
+		rp += 4
+		xp += 4
+	}
+	return dxr(x, r)
+}
 func evl(x, loc i) (r i) {
 	//fmt.Printf("evl x=%x %s\n", x, kst(x))
 	xt, xn, xp := v1(x)
@@ -1151,34 +1166,26 @@ func evl(x, loc i) (r i) {
 	} else if xn == 0 {
 		return x
 	} else if xn == 1 {
-		return fst(x)
+		return lev(fst(x), loc)
 	}
 	v := I(xp)
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
-	rl(x)
-	r = mk(6, xn)
-	rp := r + 8
-	for i := i(0); i < xn; i++ {
-		sI(rp, evl(I(xp), loc))
-		rp += 4
-		xp += 4
-	}
-	rp = r + 8
-	dx(x)
+	x = lev(x, loc)
+	xp = x + 8
 	if xn > 2 {
 		if v == ':'+128 { // 186 (::;a;b;c) sequence
-			return lst(r)
+			return lst(x)
 		}
 		if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
 			v -= 128
 			loc = 0
 		}
 		if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
-			rl(r)
-			dx(r)
-			s, a, f, u := I(rp+4), I(rp+8), I(rp+12), I(rp+16)
+			rl(x)
+			dx(x)
+			s, a, f, u := I(xp+4), I(xp+8), I(xp+12), I(xp+16)
 			if a == 0 && f == 0 {
 				return asn(s, loc, u)
 			}
@@ -1194,11 +1201,11 @@ func evl(x, loc i) (r i) {
 		}
 	}
 	if xn == 2 {
-		rl(r)
-		return dxr(r, atx(I(rp), I(rp+4)))
+		rl(x)
+		return dxr(x, atx(I(xp), I(xp+4)))
 	} else if xn == 3 {
-		rx(I(rp))
-		return cal(I(rp), drop(r, 1))
+		rx(I(xp))
+		return cal(I(xp), drop(x, 1))
 	} else {
 		panic("args")
 	}
@@ -1302,14 +1309,21 @@ func isv(x i) bool { // is verb or (adverb;_)
 	return false
 }
 func lam(p, s, x i) (r i) {
+	var a i
+	if C(1+p) == '[' { //91 {[a;b]a..} -> ((;`a;`b);(..))
+		rx(x)
+		a = ovr(drop(fst(x), 1), 44) // ,/1_*x
+		x = drop(x, 1)
+	}
+	fmt.Printf("lam x=%s a=%s\n", kst(x), kst(a))
 	n := s - p
 	t := mk(1, n)
-	mv(t+8, pp+p, n)
+	mv(t+8, p, n)
 	r = mk(0, 4)
-	sI(r+8, t)         // string
-	sI(r+12, x)        // tree
-	sI(r+16, 0)        // todo args
-	sI(r+20, mk(5, 0)) // todo locals
+	sI(r+8, t)  // string
+	sI(r+12, x) // tree
+	sI(r+16, a) // todo args
+	sI(r+20, 0) // todo locals
 	return r
 }
 func ws(s i) bool { // skip whitespace
@@ -1647,6 +1661,8 @@ func kst(x i) s {
 			return string(byte(x))
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
 			return string(byte(x-128)) + ":"
+		} else if n == 4 { // lambda
+			f, n = sstr, 1
 		} else {
 			return fmt.Sprintf(" '(%d)", x)
 		}
