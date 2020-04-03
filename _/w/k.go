@@ -470,7 +470,7 @@ func atx(x, y i) (r i) {
 	w := i(C(xt))
 	for i := i(0); i < yn; i++ {
 		yi := I(yp)
-		if xn < yi {
+		if xn <= yi {
 			trap()
 		}
 		mv(rp, xp+w*yi, w)

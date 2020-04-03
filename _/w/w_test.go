@@ -241,6 +241,7 @@ function initKons() {
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
    s = s.trim()
+   console.log(s)
    if (s === "tests")           { O(tests);                        return }
    if (s === "src")             { O(src);                          return }
    if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
@@ -256,8 +257,12 @@ function initKons() {
  kons.onblur  = function(e) { kons.style.filter = "brightness(70%)" }
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
 }
+function indicate(line, col) { 
+ O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
+}
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
+
 
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
@@ -329,7 +334,8 @@ function E(s) {
   K.exports.dx(x)
  } catch(e) {
   console.log(e)
-  O("error")
+  indicate(K.I[35], K.I[36])
+  K.I[35]=0;K.I[36]=0
  }
 }
 
@@ -384,8 +390,8 @@ const kh = `#include<stdlib.h>
 #undef abs
 typedef void V;typedef char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
-V trap() { exit(1); }
 C *MC;I* MI;J* MJ;F *MF;
+V X(){exit(1);}
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
 `
@@ -409,7 +415,7 @@ V kst(I x) {
 	case 0:
 		if(x<128)       printf("%c", x);
 		else if (x<256) printf("%c:", x-128);
-		else { printf("kst(x=%x)"); trap(); }
+		else { printf("kst(x=%x)"); X(); }
 		break;
 	case 1:
 		printf("\"");
@@ -459,7 +465,7 @@ V kst(I x) {
 		printf(")");
 		break;
 	default:
-		printf("nyi: kst %x t=%d\n", x, t);trap();
+		printf("nyi: kst %x t=%d\n", x, t);X();
 	}
 }
 V O(I x) { kst(x); printf("\n"); }
@@ -474,7 +480,7 @@ V runtest() {
 	C buf[128];
 	C *p;
 	while (fgets(buf, 128, stdin) != NULL) {
-		if((p=strstr(buf, " /"))==NULL) { trap(); }
+		if((p=strstr(buf, " /"))==NULL) { X(); }
 		if(buf[0] == '/') { printf("skip\n"); continue; }
 		*p = 0;
 		memset(MC, 0, 1<<M0);

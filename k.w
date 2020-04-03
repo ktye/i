@@ -1,4 +1,5 @@
 /sin:F:F{}cos:F:F{}atan2:F:FF{}
+trap:V:II{140::x;144::y}
 ini:I:I{0::289360742959022336j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);kkey::5 mk 0;kval::6 mk 0;x}kkey:{132}kval:{136} /x:16(64k)
 bk:I:II{r:32-*7+y*C x;(r<4)? :4;r}mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;ext;r:7 mk 2;(r+8)::x;(r+12)::y;r}mkz:I:II{r:x mkd y;r::2|6<<29;r}l2:I:II{r:6 mk 2;(r+8)::x;(r+12)::y;r}l3:I:III{r:6 mk 3;(r+8)::x;(r+12)::y;(r+16)::z;r}
@@ -9,7 +10,7 @@ til:I:I{v1;(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;r
 ext:{(~xt~yt)?!;((xn~1)&yn>1)?(x:x take yn;xn:yn;xp:x+8);((yn~1)&xn>1)?(y:y take xn;yn:xn;yp:y+8);(~xn~yn)?!}
 upx:{(xt>=5)?!;(yt>=5)?!;(xt<yt)?/(x:up(x;xt;xn);xt+:1);(yt<xt)?/(y:up(y;yt;yn);yt+:1);xp:x+8;yp:y+8}
 up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::C xp+i;rp+:4);z/(rp::F?'I xp;rp+:8;xp+:4);!];dxr}
-atx:I:II{v2;(~xt)?( :x cal enl y);(~yt~2)?!;r:xt mk yn;r8;w:C xt;yn/(yi:I yp;(xn<yi)?!;mv(rp;xp+w*yi;w);rp+:w;yp+:4);(xt>4)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
+atx:I:II{v2;(~xt)?( :x cal enl y);(~yt~2)?!;r:xt mk yn;r8;w:C xt;yn/(yi:I yp;(xn<=yi)?!;mv(rp;xp+w*yi;w);rp+:w;yp+:4);(xt>4)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
 cal:I:II{v2;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y));(x<128)?x+:128);(x<128)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));(x<256)?((~yn~1)?!; :(I.x)(fst y));(xn~2)?(rl x;dx x;a:I xp;yn?[; :((I.a+128)(fst y;I xp+4));(rl y;dx y; :((I.a)(I yp;I yp+4;I xp+4)));!]);!;x}
 rev:I:I{n:nn x;(~n)? :x;x atx tir n}fst:I:I{v1;(xt~7)?( :x drx 170);x atx mki 0}lst:I:I{v1;(xt~7)?( :x drx 186);x atx mki xn-1}
 cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:6 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
@@ -111,8 +112,8 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 |  max rev                                        128..131   memsize log2
 <  les grd                                        132..135   k-tree keys
 >  mor gdn                                        136..139   k-tree values
-=  eql grp                                        140..143   
-~  mtc not   match                                144..147
+=  eql grp                                        140..143   trp line
+~  mtc not   match                                144..147   trp col
 !  key til   seq           z:re!im  im:!z         148..151
 ,  cat enl                                        152..155   
 ^  exc asc                                        156..159   

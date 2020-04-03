@@ -271,6 +271,7 @@ type parser struct {
 	sgm map[s]int
 	*fn
 	p   int
+	exp map[int]int
 	b   []byte
 	tok []byte
 }
@@ -285,7 +286,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 		f.lmap[s] = i
 	}
 	//fmt.Printf("parse %s\n", f.name)
-	p := parser{mac: mac, fns: fns, fsg: fsg, sgm: sgm, fn: f, b: strip(f.Bytes())}
+	p := parser{mac: mac, fns: fns, fsg: fsg, sgm: sgm, fn: f, b: strip(f.Bytes()), exp: make(map[int]int)}
 	e := p.seq('}')
 	if e == nil {
 		return nil
@@ -301,6 +302,15 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 		}
 	}
 	return e
+}
+func (p parser) pos() (r pos) {
+	r = pos(p.p)
+	for x, y := range p.exp {
+		if x < p.p {
+			r -= pos(y)
+		}
+	}
+	return r
 }
 func (f *fn) parseTab(fns map[s]int) (tab segment) { // function table: 8:{f;g;h}
 	var e error
@@ -416,7 +426,7 @@ func (p *parser) ex(x expr) expr {
 	if x == nil {
 		return x
 	}
-	h := p.p
+	h := p.pos()
 	v := p.noun()
 	if op, o := x.(opx); o && s(op) == "-" { // fix neg. numbers
 		if c, o := v.(con); o {
@@ -428,19 +438,21 @@ func (p *parser) ex(x expr) expr {
 	}
 	if p.verb(x) {
 		if y := p.ex(v); y == nil {
+			if t, o := x.(opx); o && s(t) == "!" {
+				return p.pTrp()
+			}
 			return x // verb ?
 		} else {
-			return p.monadic(x, y, pos(h))
+			return p.monadic(x, y, h)
 		}
 	} else {
 		if v == nil {
 			return x // noun
 		} else if p.verb(v) {
-			h = p.p
 			if y := p.ex(p.noun()); y == nil {
-				return p.xerr(pos(h), sf("verb-verb (missing noun) x=%#v v=%#v", x, v))
+				return p.xerr(p.pos(), sf("verb-verb (missing noun) x=%#v v=%#v", x, v))
 			} else {
-				return p.dyadic(v, x, y, pos(h))
+				return p.dyadic(v, x, y, h)
 			}
 		} else if t, o := x.(typ); o {
 			y := p.ex(v)
@@ -574,6 +586,7 @@ func (p *parser) noun() expr {
 	case p.t(sSym):
 		if mc, o := p.mac[s(p.tok)]; o { // macro-expansion
 			p.b = append(mc, p.b...)
+			p.exp[p.p] = len(mc) - len(s(p.tok))
 			return p.noun()
 		}
 		return p.pSym(p.tok)
@@ -747,9 +760,16 @@ func sSym(b []c) int { // [aZ][a9]*
 }
 func (p *parser) pSym(b []c) expr {
 	if n, o := p.fns[s(b)]; o {
-		return fun{s: s(b), n: n, sig: p.fsg[n], pos: pos(p.p)}
+		return fun{s: s(b), n: n, sig: p.fsg[n], pos: p.pos()}
 	}
 	return loc{pos: pos(p.p), s: s(b), i: -1}
+}
+func (p *parser) pTrp() expr {
+	n, o := p.fns["trap"]
+	if !o {
+		return opx("!") // no trap function defined
+	}
+	return seq{pos: p.pos(), argv: argv{cal{fun: fun{s: "trap", n: n, sig: p.fsg[n], pos: p.pos()}, argv: argv{con{t: I, i: int64(p.src[0])}, con{t: I, i: int64(p.src[1]) + int64(p.pos())}}}, opx("!")}}
 }
 func (p *parser) pDot(b []c) expr {
 	return loc{pos: pos(p.p), s: s(b), i: -1}
@@ -1520,7 +1540,7 @@ func (v brif) gstr() s    { return jn("if ", gstring(v.x()), "{break}") }
 func (v opx) rt() T       { return 0 }
 func (v opx) valid() s    { return ifex(s(v) != "!", "nonapplied operator") }
 func (v opx) bytes() []c  { return []c{0x00} }
-func (v opx) cstr() s     { return "trap();" }
+func (v opx) cstr() s     { return "X();" }
 func (v opx) gstr() s     { return `panic("trap")` }
 func (v pos) rt() T       { return 0 }
 func (v pos) valid() s    { return "position(dummy expr)" }
