@@ -115,7 +115,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 >  mor gdn                                        136..139   k-tree values
 =  eql grp                                        140..143   trp line
 ~  mtc not   match                                144..147   trp col
-!  key til   seq           z:re!im  im:!z         148..151
+!  key til   seq           z:re!im  im:!z         148..151   `x`y`z
 ,  cat enl                                        152..155   
 ^  exc asc                                        156..159   
 $  str cst   sc cs                                160..255   char map az|AZ|NM|VB|AD|TE

@@ -44,7 +44,7 @@ type slice struct {
 
 const naI i = 2147483648
 const naJ j = 9221120237041090561
-const pp, kkey, kval, cmap = 8, 132, 136, 160
+const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -119,6 +119,7 @@ func ini(x i) i {
 	}
 	sI(kkey, mk(5, 0))
 	sI(kval, mk(6, 0))
+	sI(xyz, cat(cat(mks(120), mks(121)), mks(122)))
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -198,6 +199,8 @@ func rl(x i) {
 func dxr(x, r i) i     { dx(x); return r }
 func dxyr(x, y, r i) i { dx(x); dx(y); return r }
 func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
+func mkc(c i) (r i)    { r = mk(1, 1); sC(r+8, byte(c)); return r }
+func mks(c i) (r i)    { return sc(mkc(c)) }
 func mkd(x, y i) (r i) {
 	x, y = ext(x, y)
 	r = mk(7, 2)
@@ -686,6 +689,7 @@ func fnd(x, y i) (r i) { // x?y
 }
 func fnx(x, yp i) (r i) {
 	xt, xn, xp := v1(x)
+	fmt.Printf("fnx %d/%d\n", xt, xn)
 	eq := MT[8+xt].(func(i, i) i)
 	w := uint32(C(xt))
 	for i := i(0); i < xn; i++ {
@@ -1308,12 +1312,37 @@ func isv(x i) bool { // is verb or (adverb;_)
 	}
 	return false
 }
+func lac(x, a i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt == 5 && xn == 1 {
+		p := I(xp)
+		if nn(p) == 1 {
+			r = i(C(8+p) - 'w')
+			if r > a {
+				if r < 4 {
+					return r
+				}
+			}
+		}
+	}
+	if xt == 6 {
+		for i := i(0); i < xn; i++ {
+			a = lac(I(xp), a)
+			xp += 4
+		}
+	}
+	return a
+}
 func lam(p, s, x i) (r i) {
 	var a i
 	if C(1+p) == '[' { //91 {[a;b]a..} -> ((;`a;`b);(..))
 		rx(x)
 		a = ovr(drop(fst(x), 1), 44) // ,/1_*x
 		x = drop(x, 1)
+	} else {
+		r = I(xyz)
+		rx(r)
+		a = take(r, lac(x, 0))
 	}
 	fmt.Printf("lam x=%s a=%s\n", kst(x), kst(a))
 	n := s - p
@@ -1606,6 +1635,7 @@ func leak() {
 	//dump(0, 200)
 	dx(I(kkey))
 	dx(I(kval))
+	dx(I(xyz))
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
