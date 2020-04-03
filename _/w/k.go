@@ -105,7 +105,7 @@ func ini(x i) i {
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
-		nag, nac, nai, naf, naz, nas, nal, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
@@ -468,14 +468,12 @@ func atx(x, y i) (r i) {
 	r = mk(xt, yn)
 	rp := r + 8
 	w := i(C(xt))
-	f := MT[xt+128].(func(i))
 	for i := i(0); i < yn; i++ {
 		yi := I(yp)
-		if yi < xn {
-			mv(rp, xp+w*yi, w)
-		} else {
-			f(rp)
+		if xn < yi {
+			trap()
 		}
+		mv(rp, xp+w*yi, w)
 		rp += w
 		yp += 4
 	}
@@ -820,13 +818,6 @@ func gtl(x, y i) i {
 	return boolvar(xn > yn)
 }
 func eqL(x, y i) i  { return match(I(x), I(y)) }
-func nag(r i)       { sI(r, 0) }
-func nac(r i)       { sC(r, 32) }
-func nai(r i)       { sI(r, naI) }
-func naf(r i)       { sJ(r, naJ) }
-func naz(r i)       { sJ(r, naJ); sJ(r+8, naJ) }
-func nas(r i)       { sI(r, mk(1, 0)); sI(4+I(r), 0) }
-func nal(r i)       { sI(r, 0) }
 func adc(x, y, r i) { sC(r, C(x)+C(y)) }
 func adi(x, y, r i) { sI(r, I(x)+I(y)) }
 func adf(x, y, r i) { sF(r, F(x)+F(y)) }

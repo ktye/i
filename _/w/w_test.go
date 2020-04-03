@@ -276,7 +276,7 @@ function kst(x) {
   return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
  case 2:
   x >>>= 2
-  return K.I.slice(2+x, 2+x+n).join(" ").split("2147483648").join("0N")
+  return K.I.slice(2+x, 2+x+n).join(" ")
  case 3:
   x >>>= 3
   var s = K.F.slice(1+x, 1+x+n).join(" ")
@@ -420,8 +420,7 @@ V kst(I x) {
 		x = 2 + (x>>2);
 		for(i=0;i<n;i++) {
 			if (i>0)  printf(" ");
-			if (MI[x+i] == -2147483648) printf("0N");
-			else                        printf("%d", MI[x+i]);
+			printf("%d", MI[x+i]);
 		}
 		break;
 	case 3:
@@ -573,13 +572,7 @@ func kst(x I) string {
 	}
 	var f func(i i) s
 	var tof func(s) s = func(s s) s { return s }
-	istr := func(i i) s {
-		if n := int32(MI[i+2+x>>2]); n == -2147483648 {
-			return "0N"
-		} else {
-			return strconv.Itoa(int(n))
-		}
-	}
+	istr := func(i i) s { return strconv.Itoa(int(int32(MI[i+2+x>>2]))) }
 	fstr := func(i i) s {
 		if f := MF[i+1+x>>3]; math.IsNaN(f) {
 			return "0n"
