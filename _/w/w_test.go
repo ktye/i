@@ -240,16 +240,16 @@ function initKons() {
    }
    if (kons.selectionEnd != kons.value.length) O(s)
    O("\n")
-   s = s.trim()
-   console.log(s)
+   var s = s.trim()
+   if(s.length>0&&s[0]=="'")s=" "+s //spacy verb
    if (s === "tests")           { O(tests);                        return }
    if (s === "src")             { O(src);                          return }
    if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
-   if (s === "\\h")             { O(atob(h));P();                  return }
-   if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
-   if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
-   if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());    return }
-   if (s === "\\lf")            { s = "\\m #:'.fs"                        }
+   //if (s === "\\h")             { O(atob(h));P();                  return }
+   //if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
+   //if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
+   //if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());    return }
+   //if (s === "\\lf")            { s = "\\m #:'.fs"                        }
    hash(s);E(s);P()
   }
  }
@@ -257,8 +257,9 @@ function initKons() {
  kons.onblur  = function(e) { kons.style.filter = "brightness(70%)" }
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
 }
-function indicate(line, col) { 
- O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
+function indicate(line, col) {
+ if(line==0)O("error\n")
+ else O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
 }
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
@@ -663,7 +664,7 @@ func runtest() {
 		if len(vv) != 2 {
 			panic("test file")
 		}
-		in := strings.TrimSpace(vv[0])
+		in := strings.TrimRight(vv[0], " \t\r")
 		exp := strings.TrimSpace(vv[1])
 		got := run(in)
 		fmt.Println(in, "/", got)

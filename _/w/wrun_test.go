@@ -42,7 +42,7 @@ func TestWagon(t *testing.T) {
 		if len(vv) != 2 {
 			panic("test file")
 		}
-		in := strings.TrimSpace(vv[0])
+		in := strings.TrimRight(vv[0], " \t\r")
 		exp := strings.TrimSpace(vv[1])
 		m, tab, data := run(bytes.NewReader(mb))
 		if e = runWagon(tab, m.wasm(tab, data), in, exp); e != nil {

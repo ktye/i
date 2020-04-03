@@ -71,7 +71,7 @@ func runtest() {
 		if len(vv) != 2 {
 			panic("test file")
 		}
-		in := strings.TrimSpace(vv[0])
+		in := strings.TrimRight(vv[0], " \t\r")
 		exp := strings.TrimSpace(vv[1])
 		got := run(in)
 		fmt.Println(in, "/", got)
@@ -108,7 +108,7 @@ func ini(x i) i {
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022336) // type sizes uint64(0x0404041008040100)
 	sI(128, x)                // alloc
@@ -1320,7 +1320,7 @@ func ws(s i) bool { // skip whitespace
 			return true // EOF
 		}
 		b := C(p)
-		if is(b, NW) || b == 10 {
+		if is(b, NW) || b == 10 { //64
 			sI(pp, p)
 			return false
 		}
@@ -1436,7 +1436,12 @@ func nms(b c, p, s i) (r i) { // parse numeric vector
 func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if !is(b, VB|AD) { // 24
 		return 0
-	} // todo (space)'c space-each "spacy verbs"
+	}
+	if b == 39 { // (space)'c  spacy verb
+		if C(p-1) == 32 {
+			p++
+		}
+	}
 	r = i(C(p))
 	if s > p+1 {
 		if C(p+1) == ':' { // 58
