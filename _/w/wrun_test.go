@@ -87,6 +87,7 @@ func runWagon(tab []segment, b []byte, s string, exp string) error {
 	K.call("dx", r)
 	K.call("dx", get(mem, 132)) // kkey
 	K.call("dx", get(mem, 136)) // kval
+	K.call("dx", get(mem, 148)) // xyz
 	if e := leak(mem); e != nil {
 		return e
 	}
@@ -331,6 +332,8 @@ func (K *K) kst(a k) s {
 			return string([]byte{byte(a)})
 		} else if a < 256 {
 			return string([]byte{byte(a) - 128}) + ":"
+		} else if n == 4 {
+			return sstr(0)
 		} else {
 			fmt.Printf("x=%x a=%x\n", x, a)
 			dump(m, 0, 200)

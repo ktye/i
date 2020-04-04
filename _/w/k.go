@@ -202,10 +202,8 @@ func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkc(c i) (r i)    { r = mk(1, 1); sC(r+8, byte(c)); return r }
 func mks(c i) (r i)    { return sc(mkc(c)) }
 func mkd(x, y i) (r i) {
-	x, y = ext(x, y)
-	r = mk(7, 2)
-	sI(r+8, x)
-	sI(r+12, y)
+	r = l2(x, y) // todo ext?
+	sI(r, 2|7<<29)
 	return r
 }
 func l2(x, y i) (r i) {
@@ -518,7 +516,8 @@ func cal(x, y i) (r i) {
 		}
 		f := MT[x].(func(i) i)
 		return f(fst(y))
-	} else if xn == 2 { // derived
+	}
+	if xn == 2 { // derived
 		rl(x)
 		dx(x)
 		a := I(xp)
@@ -533,7 +532,24 @@ func cal(x, y i) (r i) {
 		f := MT[a+128].(func(i, i) i)
 		return f(fst(y), I(xp+4))
 	}
+	if xn == 4 { // lambda
+		return lcl(x, y)
+	}
 	panic("nyi")
+}
+func lcl(x, y i) (r i) { // call lambda
+	if nn(y) != I(x+20) {
+		panic("arity")
+	}
+	a := I(x + 16)
+	rx(a)
+	t := I(x + 12)
+	rx(t)
+	d := mkd(a, y)
+	r = evl(t, d)
+	dx(x)
+	dx(d)
+	return r
 }
 func cat(x, y i) (r i) {
 	xt, yt, _, _, _, _ := v2(x, y)
@@ -689,7 +705,6 @@ func fnd(x, y i) (r i) { // x?y
 }
 func fnx(x, yp i) (r i) {
 	xt, xn, xp := v1(x)
-	fmt.Printf("fnx %d/%d\n", xt, xn)
 	eq := MT[8+xt].(func(i, i) i)
 	w := uint32(C(xt))
 	for i := i(0); i < xn; i++ {
@@ -1156,7 +1171,7 @@ func lev(x, loc i) (r i) {
 	return dxr(x, r)
 }
 func evl(x, loc i) (r i) {
-	//fmt.Printf("evl x=%x %s\n", x, kst(x))
+	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
@@ -1312,12 +1327,18 @@ func isv(x i) bool { // is verb or (adverb;_)
 	}
 	return false
 }
-func lac(x, a i) (r i) {
+func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 	xt, xn, xp := v1(x)
+	if xt == 6 {
+		for i := i(0); i < xn; i++ {
+			a = lac(I(xp), a)
+			xp += 4
+		}
+	}
 	if xt == 5 && xn == 1 {
 		p := I(xp)
 		if nn(p) == 1 {
-			r = i(C(8+p) - 'w')
+			r = i(C(8+p) - 'w') //119
 			if r > a {
 				if r < 4 {
 					return r
@@ -1325,34 +1346,28 @@ func lac(x, a i) (r i) {
 			}
 		}
 	}
-	if xt == 6 {
-		for i := i(0); i < xn; i++ {
-			a = lac(I(xp), a)
-			xp += 4
-		}
-	}
 	return a
 }
-func lam(p, s, x i) (r i) {
+func lam(p, s, z i) (r i) {
 	var a i
 	if C(1+p) == '[' { //91 {[a;b]a..} -> ((;`a;`b);(..))
-		rx(x)
-		a = ovr(drop(fst(x), 1), 44) // ,/1_*x
-		x = drop(x, 1)
+		rx(z)
+		a = ovr(drop(fst(z), 1), 44) // ,/1_*z
+		z = drop(z, 1)
 	} else {
 		r = I(xyz)
 		rx(r)
-		a = take(r, lac(x, 0))
+		a = take(r, lac(z, 0))
 	}
-	fmt.Printf("lam x=%s a=%s\n", kst(x), kst(a))
+	v := nn(a) // arity (<256)
 	n := s - p
 	t := mk(1, n)
 	mv(t+8, p, n)
 	r = mk(0, 4)
 	sI(r+8, t)  // string
-	sI(r+12, x) // tree
-	sI(r+16, a) // todo args
-	sI(r+20, 0) // todo locals
+	sI(r+12, z) // tree
+	sI(r+16, a) // args
+	sI(r+20, v) // arity
 	return r
 }
 func ws(s i) bool { // skip whitespace

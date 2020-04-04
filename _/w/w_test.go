@@ -277,7 +277,8 @@ function kst(x) {
  case 0:
   if(x<128) return String.fromCharCode(x)
   else if(x<256) return String.fromCharCode(x-128)
-  else return "{?"+x+"?}"
+  else if(n==4) {x=kst(K.U[(x+8)>>>2]); return x.substr(1,x.length-2)}
+  else return "?"+x+"?"
  case 1:
   return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
  case 2:
@@ -322,7 +323,7 @@ function dump(x, n) {
  }
  O("\n")
 }
-function mks(s) {
+function chrs(s) {
  var n = s.length
  var x = K.exports.mk(1, n)
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
@@ -330,7 +331,7 @@ function mks(s) {
 }
 function E(s) {
  try{ // todo save/restore
-  var x = K.exports.val(mks(s))
+  var x = K.exports.val(chrs(s))
   O(kst(x)+"\n")
   K.exports.dx(x)
  } catch(e) {
@@ -407,6 +408,10 @@ V dump(I x, I n) {
 	}
 	printf("\n");
 }
+V pstr(I x) {
+	I n = (MI[x>>2])&536870911;
+	for(I i=0;i<n;i++) printf("%c", MC[8+x+i]);
+}
 V kst(I x) {
 	I i, j, y, m, tof;
 	I t = (MI[x>>2])>>29;
@@ -416,12 +421,11 @@ V kst(I x) {
 	case 0:
 		if(x<128)       printf("%c", x);
 		else if (x<256) printf("%c:", x-128);
+		else if (n==4)  pstr(MI[(8+x)>>2]);
 		else { printf("kst(x=%x)"); X(); }
 		break;
 	case 1:
-		printf("\"");
-		for(i=0;i<n;i++) printf("%c", MC[8+x+i]);
-		printf("\"");
+		printf("\"");pstr(x);printf("\"");
 		break;
 	case 2:
 		x = 2 + (x>>2);
@@ -471,7 +475,7 @@ V kst(I x) {
 }
 V O(I x) { kst(x); printf("\n"); }
 #define M0 16
-I mks(C *s) {
+I chrs(C *s) {
 	I n = strlen(s);
 	I x = mk(1, n);
 	for (I i=0; i<n; i++) MC[8+x+i] = s[i];
@@ -487,7 +491,7 @@ V runtest() {
 		memset(MC, 0, 1<<M0);
 		mt_init();
 		ini(16);
-		O(val(mks(buf)));
+		O(val(chrs(buf)));
 	}
 }
 I main(int args, C **argv){
@@ -496,7 +500,7 @@ I main(int args, C **argv){
 	memset(MC, 0, 1<<M0);
 	mt_init();
 	ini(16);
-	O(val(mks(argv[1])));
+	O(val(chrs(argv[1])));
 }
 `
 
@@ -607,6 +611,8 @@ func kst(x I) string {
 			return string(byte(x))
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
 			return string(byte(x-128)) + ":"
+		} else if n == 4 {
+			return sstr(0)
 		} else {
 			return fmt.Sprintf(" '(%d)", x)
 		}

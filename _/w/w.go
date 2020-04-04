@@ -310,6 +310,9 @@ func (p parser) pos() (r pos) {
 			r -= pos(y)
 		}
 	}
+	if r < 0 {
+		r = 0
+	}
 	return r
 }
 func (f *fn) parseTab(fns map[s]int) (tab segment) { // function table: 8:{f;g;h}
