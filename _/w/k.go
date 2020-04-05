@@ -581,6 +581,8 @@ func ucat(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func lcat(x, y i) (r i) { // list append
+	//fmt.Printf("lcat %x,%x (%s,%s)\n", x, y, kst(x), kst(y))
+	//defer func() { fmt.Printf("=> %x %s\n", r, kst(r)) }()
 	x = use(x)
 	xt, xn, xp := v1(x)
 	if bk(xt, xn) < bk(xt, xn+1) {
@@ -1195,36 +1197,44 @@ func evl(x, loc i) (r i) {
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
-	//if xn == 3 && v<256 && (v==':'||v>128) {
-
-	//}
+	if xn == 3 && v < 256 && (v == ':' || v > 128) {
+		rl(x)
+		dx(x)
+		r = I(xp + 4)
+		rx(r)
+		fmt.Printf("xp+8 %s\n", kst(I(xp+8)))
+		r = l3(v, enl(fst(r)), drop(r, 1))
+		fmt.Printf("r %s\n", kst(r))
+		x = lcat(r, I(xp+8))
+	}
+	xt, xn, _ = v1(x)
+	fmt.Printf("evl %d/%d %s\n", xt, xn, kst(x))
 	x = lev(x, loc)
 	xp = x + 8
 	if xn > 2 {
-		if v == ','+128 { // 172 (,:;a;b;c) sequence
+		if v == 128 { // 128 (,:;a;b;c) sequence
 			return lst(x)
 		}
-		if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
-			v -= 128
-			loc = 0
-		}
-		if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
-			rl(x)
-			dx(x)
-			s, a, f, u := I(xp+4), I(xp+8), I(xp+12), I(xp+16)
-			if a == 0 && f == 0 {
-				return asn(s, loc, u)
+		/*
+			if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
+				v -= 128
+				loc = 0
 			}
-			panic("nyi")
-			/*
-				rx(s)
-				v := lup(s)
-				if v == 0 {
-					trap()
+			if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
+				rl(x)
+				dx(x)
+				s, a, f, u := I(xp+4), I(xp+8), I(xp+12), I(xp+16)
+				if a == 0 && f == 0 {
+					return asn(s, loc, u)
 				}
-				return asn(s, asd(v, a, y, f))
-			*/
-		}
+				//	rx(s)
+				//	v := lup(s)
+				//	if v == 0 {
+				//		trap()
+				//	}
+				//	return asn(s, asd(v, a, y, f))
+			}
+		*/
 	}
 	if xn == 2 {
 		rl(x)
@@ -1247,7 +1257,7 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	if nn(r) == 1 {
 		r = fst(r)
 	} else {
-		r = cat(44+128, r) // ,: 172
+		r = cat(128, r) // :::
 	}
 	return dxr(x, r)
 }
@@ -1673,7 +1683,7 @@ func leak() {
 	}
 }
 func kst(x i) s {
-	if x == 0 {
+	if x == 0 || x == 128 {
 		return ""
 	}
 	t, n, _ := v1(x)
@@ -1733,6 +1743,9 @@ func kst(x i) s {
 	case 4:
 		f = zstr
 	case 5:
+		if n == 0 {
+			return "0#`"
+		}
 		f = sstr
 		sep = "`"
 		tof = func(s s) s { return "`" + s }

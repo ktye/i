@@ -291,7 +291,7 @@ func dump(m []byte, a, n k) {
 type k = uint32
 
 func (K *K) kst(a k) s {
-	if a == 0 {
+	if a == 0 || a == 128 {
 		return ""
 	}
 	m := K.vm.Memory()
@@ -354,6 +354,9 @@ func (K *K) kst(a k) s {
 	case 4:
 		f = zstr
 	case 5:
+		if n == 0 {
+			return "0#`"
+		}
 		f = sstr
 		sep = "`"
 		tof = func(s s) s { return "`" + s }

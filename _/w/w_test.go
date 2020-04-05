@@ -268,7 +268,7 @@ function P()  { kons.value += " " }
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
- if(x==0) return ""
+ if((x==0)||(x==128)) return ""
  var h=0; var t=0; var n=0;
  if(x>255) {
   h = K.U[x>>>2]
@@ -299,6 +299,7 @@ function kst(x) {
   return s.slice(n).join(" ")
  case 5:
   x >>>= 2
+  if(n==0) return "0#"+String.fromCharCode(96)
   var r = ""
   var v = K.U.slice(2+x, 2+x+n)
   var tr = function(s) { return s.substr(1, s.length-2) }
@@ -419,6 +420,7 @@ V kst(I x) {
 	I i, j, y, m, tof;
 	I t = 0;
 	I n = 0;
+	if ((x==0)||(x==128)) R;
 	if (x > 255) {
 		t = (MI[x>>2])>>29;
 		n = (MI[x>>2])&536870911;
@@ -459,6 +461,7 @@ V kst(I x) {
 			if (MF[x+i] != MF[x+i]) printf("0n"); else printf("%g", MF[x+i]);
 		}
 	case 5:
+		if(n==0) { printf("0#%c",96); R; }
 		x = 2 + (x>>2);
 		for(i=0;i<n;i++) {
 			printf("%c", 96);
@@ -579,7 +582,7 @@ func kst(x I) string {
 	type s = string
 	type i = I
 	Z := func(a i) complex128 { return complex(MF[a>>3], MF[1+a>>3]) }
-	if x == 0 {
+	if x == 0 || x == 128 {
 		return ""
 	}
 	var t, n i
@@ -640,6 +643,7 @@ func kst(x I) string {
 	case 5:
 		f = sstr
 		sep = string(96)
+		if n == 0 { return "0#"+sep }
 		tof = func(s s) s { return sep + s }
 	case 6:
 		if n == 1 {

@@ -62,12 +62,12 @@ lup:I:II{kv;(m~n)?(y? :x lup 0;dx x; :0);r:I v+8+4*m;rx r;dxr}kv:{k:I kkey;v:I k
 asn:I:III{v1;(~xt~5)?!;rx z;kv;(n~m)?(y?!;kkey::k cat x;kval::v cat z; :z);vp:8+v+4*m;dx I vp;vp::z;dx x;z}
 swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);dx r;i+:1;(~I r+8)?i+:1);dx x;0}
 lev:I:II{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);dxr}
-evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;x:x lev y;xp:x+8;(xn>2)?((v~172)? :lst x;(v~174)?(v-:128;y:0);(v~46)?(xn~5)?(rl x;dx x;s:I xp+4;a:I xp+8;f:I xp+12;u:I xp+16;(~a)?(~f)? :asn(s;y;u);!));(2~xn)?(rl x;dx x; :(I xp)atx I xp+4);(~3~xn)?!;rx I xp;(I xp)cal x drop 1}
+evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;x:x lev y;xp:x+8;(xn>2)?((v~128)? :lst x;(v~174)?(v-:128;y:0);(v~46)?(xn~5)?(rl x;dx x;s:I xp+4;a:I xp+8;f:I xp+12;u:I xp+16;(~a)?(~f)? :asn(s;y;u);!));(2~xn)?(rl x;dx x; :(I xp)atx I xp+4);(~3~xn)?!;rx I xp;(I xp)cal x drop 1}
 xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}unq:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}min:I:II{!;x}max:I:II{!;x}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 /parse
-prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:172 cat r];dxr}
+prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:128 cat r];dxr}
 sq:I:I{r:enl(pt x)ex x;1/(v:ws x;p:I 8;(~v)?v:~(C p)~59;v?((p<x)?8::1+p; :r);8::1+p;r:r lcat(pt x)ex x);!;x}
 ex:I:II{((~x)+(ws y)+((C I 8)is 32))? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
 pt:I:I{r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l+40~C p)?(8::1+p;r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r;l?r:lam(p;I 8;r)));1/(p:I 8;b:C p;(p~x)? :r;$[b is 16;r:(tok x)l2 r;b~91;(8::1+p;r:(enl r)cat sq x); :r]);!;r}
@@ -134,6 +134,6 @@ _  drp flr   drop          ang:_z
 +'x  ech(40)  x+'y  ?(168)    x'y  ?              parse tree (left to right) xxx
 +/x  ovr(123) x+/y  ecr(251)  x/y  ?              (.;`s;a;+;y)      assign       s[a]+:y
 +\x  scn(91)  x+\y  ecl(219)  x\y  ?              (.;`s;(a;b;c);;y) depth assign s[a;b;c]:y
-+':x ecp(41)  x':y  ?(169)    x':y ?              (,:;a;b;c)        sequence     a;b;c  ::x(last) :[x;y](dex)
++':x ecp(41)  x':y  ?(169)    x':y ?              (;a;b;c)   (*128) sequence     a;b;c  ::x(last) :[x;y](dex)
 +/:x ?(125)   x+/:y ?(253)    x/:y sv?            ((/;+);1 2 3)     adverbs      +/1 2 3                      
 +\:x ?(93)    x+\:y ?         x\:y vs?
