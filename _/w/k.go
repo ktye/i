@@ -604,6 +604,9 @@ func typ(x i) (r i) {
 }
 func wer(x i) (r i) {
 	xt, xn, xp := v1(x)
+	if xt == 1 {
+		return prs(x)
+	}
 	if xt != 2 {
 		panic("type")
 	}
@@ -1171,6 +1174,7 @@ func lev(x, loc i) (r i) {
 	return dxr(x, r)
 }
 func evl(x, loc i) (r i) {
+	//fmt.Printf("evl x=%s\n", kst(x))
 	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
 	xt, xn, xp := v1(x)
 	if xt != 6 {

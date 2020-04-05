@@ -1,4 +1,4 @@
-w      :source of the w bootstrap compiler k.go (for k.w)
+w      :source of the w bootstrap compiler w.go (for k.w)
 i1     :the second interpreter (following apl/iv)
 i2     :the third interpreter (k7 era)
 i2/k-  :minimal interactive interpreter (no filesystem/argv) only stdin/stdout

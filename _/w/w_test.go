@@ -269,14 +269,17 @@ function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from 
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function kst(x) {
  if(x==0) return ""
- var h = K.U[x>>>2]
- var t = (h>>>29)>>>0
- var n = (h&536870911)>>>0
+ var h=0; var t=0; var n=0;
+ if(x>255) {
+  h = K.U[x>>>2]
+  t = (h>>>29)>>>0
+  n = (h&536870911)>>>0
+ }
  var o = []
  switch(t){
  case 0:
   if(x<128) return String.fromCharCode(x)
-  else if(x<256) return String.fromCharCode(x-128)
+  else if(x<256) return String.fromCharCode(x-128) + ":"
   else if(n==4) {x=kst(K.U[(x+8)>>>2]); return x.substr(1,x.length-2)}
   else return "?"+x+"?"
  case 1:
@@ -414,8 +417,12 @@ V pstr(I x) {
 }
 V kst(I x) {
 	I i, j, y, m, tof;
-	I t = (MI[x>>2])>>29;
-	I n = (MI[x>>2])&536870911;
+	I t = 0;
+	I n = 0;
+	if (x > 255) {
+		t = (MI[x>>2])>>29;
+		n = (MI[x>>2])&536870911;
+	}
 	if(!x) R;
 	switch(t){
 	case 0:

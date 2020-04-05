@@ -295,16 +295,16 @@ func (K *K) kst(a k) s {
 		return ""
 	}
 	m := K.vm.Memory()
-	x := get(m, a)
-	t, n := x>>29, x&536870911
+	x, t, n := k(0), k(0), k(0)
+	if a > 256 {
+		x = get(m, a)
+		t, n = x>>29, x&536870911
+	}
 	var f func(i int) s
 	var tof func(s) s = func(s s) s { return s }
 	istr := func(i int) s {
-		if n := int32(get(m, 8+4*k(i)+a)); n == -2147483648 {
-			return "0N"
-		} else {
-			return strconv.Itoa(int(n))
-		}
+		n := int32(get(m, 8+4*k(i)+a))
+		return strconv.Itoa(int(n))
 	}
 	fstr := func(i int) s {
 		if f := getf(m, a+8+8*k(i)); math.IsNaN(f) {
