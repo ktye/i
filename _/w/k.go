@@ -1195,10 +1195,13 @@ func evl(x, loc i) (r i) {
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
+	//if xn == 3 && v<256 && (v==':'||v>128) {
+
+	//}
 	x = lev(x, loc)
 	xp = x + 8
 	if xn > 2 {
-		if v == ':'+128 { // 186 (::;a;b;c) sequence
+		if v == ','+128 { // 172 (,:;a;b;c) sequence
 			return lst(x)
 		}
 		if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
@@ -1244,7 +1247,7 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	if nn(r) == 1 {
 		r = fst(r)
 	} else {
-		r = cat(186, r) // ':'+128
+		r = cat(44+128, r) // ,: 172
 	}
 	return dxr(x, r)
 }
