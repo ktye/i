@@ -220,17 +220,17 @@ func l3(x, y, z i) (r i) {
 	return r
 }
 func nn(x i) (xn i) {
-	if x > 255 {
-		xn = I(x) & 536870911
+	if x < 256 {
+		return 1
 	}
-	return
+	return I(x) & 536870911
 }
 func v1(x i) (xt, xn, xp i) {
-	if x > 255 {
-		u := I(x)
-		xt, xn, xp = u>>29, u&536870911, 8+x
+	if x < 256 {
+		return 0, 1, 0
 	}
-	return
+	u := I(x)
+	return u >> 29, u & 536870911, 8 + x
 }
 func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	xt, xn, xp = v1(x)
@@ -538,15 +538,20 @@ func cal(x, y i) (r i) {
 	panic("nyi")
 }
 func lcl(x, y i) (r i) { // call lambda
-	if nn(y) != I(x+20) {
+	fn := I(x + 20)
+	if nn(y) != fn {
 		panic("arity")
 	}
 	a := I(x + 16)
 	rx(a)
 	t := I(x + 12)
 	rx(t)
+	an := nn(I(x + 16))
+	if fn < an {
+		y = cat(y, take(enl(0), an-fn))
+	}
 	d := mkd(a, y)
-	r = evl(t, d)
+	r = lst(lev(t, d))
 	dx(x)
 	dx(d)
 	return r
@@ -1186,21 +1191,6 @@ func lev(x, loc i) (r i) {
 	}
 	return dxr(x, r)
 }
-func ras(x, xn i) (r i) { // rewrite assignment x[i]+:y  (+:;(`x;i);y) → (+;,`x;i;y)
-	v := I(x + 8)
-	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
-		if v > 128 {
-			v -= 128
-		}
-		rl(x)
-		dx(x)
-		r = I(x + 12)
-		rx(r)
-		u := I(x + 16) // store before alloc
-		x = lcat(l3(v, enl(fst(r)), drop(r, 1)), u)
-	}
-	return x
-}
 func evl(x, loc i) (r i) {
 	//fmt.Printf("evl x=%s\n", kst(x))
 	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
@@ -1223,8 +1213,7 @@ func evl(x, loc i) (r i) {
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
-	x = ras(x, xn)
-	x = lev(x, loc)
+	x = lev(ras(x, xn, 0), loc)
 	xn = nn(x)
 	xp = x + 8
 	if v == 128 {
@@ -1232,27 +1221,6 @@ func evl(x, loc i) (r i) {
 			return lst(x)
 		}
 	}
-
-	/*
-		if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
-			v -= 128
-			loc = 0
-		}
-		if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
-			rl(x)
-			dx(x)
-			s, a, f, u := I(xp+4), I(xp+8), I(xp+12), I(xp+16)
-			if a == 0 && f == 0 {
-				return asn(s, loc, u)
-			}
-			//	rx(s)
-			//	v := lup(s)
-			//	if v == 0 {
-			//		trap()
-			//	}
-			//	return asn(s, asd(v, a, y, f))
-		}
-	*/
 	if xn == 2 {
 		rl(x)
 		return dxr(x, atx(I(xp), I(xp+4)))
@@ -1320,13 +1288,14 @@ func pt(s i) (r i) { // t
 		if λ || C(p) == 40 { // (
 			sI(pp, p+1)
 			r = sq(s)
-			if n := nn(r); n == 1 {
-				r = fst(r)
-			} else if n > 1 {
-				r = enl(r)
-			}
 			if λ {
 				r = lam(p, I(pp), r)
+			} else {
+				if n := nn(r); n == 1 {
+					r = fst(r)
+				} else if n > 1 {
+					r = enl(r)
+				}
 			}
 		}
 	}
@@ -1382,6 +1351,50 @@ func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 	}
 	return a
 }
+func ras(x, xn, lp i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;i;y)  (and collect locals)
+	v := I(x + 8)
+	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
+		rl(x)
+		dx(x)
+		r = I(x + 12)
+		rx(r)
+		u := I(x + 16)
+		s := fst(r)
+		if lp != 0 && v == ':' { //58 detect local assignment
+			l := I(lp)
+			n := nn(l)
+			if fnx(l, s+8) == n {
+				rx(s)
+				sI(lp, cat(l, s))
+			}
+		}
+		if v > 128 {
+			v -= 128
+		}
+		x = lcat(l3(v, enl(s), drop(r, 1)), u)
+	}
+	return x
+}
+func loc(x, y i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt != 6 {
+		return x
+	}
+	rl(x)
+	r = mk(6, xn)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		xi := I(xp)
+		ri := ras(xi, nn(xi), y)
+		if xi == ri {
+			ri = loc(xi, y)
+		}
+		sI(rp, ri)
+		xp += 4
+		rp += 4
+	}
+	return dxr(x, r)
+}
 func lam(p, s, z i) (r i) {
 	var a i
 	if C(1+p) == '[' { //91 {[a;b]a..} -> ((;`a;`b);(..))
@@ -1394,14 +1407,16 @@ func lam(p, s, z i) (r i) {
 		a = take(r, lac(z, 0))
 	}
 	v := nn(a) // arity (<256)
+	a = enl(a)
+	z = loc(z, a+8) // pass a as "pointer"
 	n := s - p
 	t := mk(1, n)
 	mv(t+8, p, n)
 	r = mk(0, 4)
-	sI(r+8, t)  // string
-	sI(r+12, z) // tree
-	sI(r+16, a) // args
-	sI(r+20, v) // arity
+	sI(r+8, t)       // string
+	sI(r+12, z)      // tree
+	sI(r+16, fst(a)) // args
+	sI(r+20, v)      // arity
 	return r
 }
 func ws(s i) bool { // skip whitespace
