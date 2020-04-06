@@ -581,8 +581,6 @@ func ucat(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func lcat(x, y i) (r i) { // list append
-	//fmt.Printf("lcat %x,%x (%s,%s)\n", x, y, kst(x), kst(y))
-	//defer func() { fmt.Printf("=> %x %s\n", r, kst(r)) }()
 	x = use(x)
 	xt, xn, xp := v1(x)
 	if bk(xt, xn) < bk(xt, xn+1) {
@@ -1096,6 +1094,19 @@ func asn(x, loc, u i) (r i) {
 	sI(vp, u)
 	return dxr(x, u)
 }
+func asd(x, loc i) (r i) { // (+;`x;a;y)
+	rl(x)
+	dx(x)
+	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
+	dx(a)         // todo
+	if v != ':' { //58
+		rx(s)
+		u = cal(v, l2(lup(s, loc), u))
+	}
+	rx(s)
+	r = asn(s, loc, u)
+	return dxr(s, r)
+}
 
 /*
 func asd(x, y, z, v i) (r i) { // .[x;a;f;y] depth assign
@@ -1175,6 +1186,21 @@ func lev(x, loc i) (r i) {
 	}
 	return dxr(x, r)
 }
+func ras(x, xn i) (r i) { // rewrite assignment x[i]+:y  (+:;(`x;i);y) → (+;,`x;i;y)
+	v := I(x + 8)
+	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
+		if v > 128 {
+			v -= 128
+		}
+		rl(x)
+		dx(x)
+		r = I(x + 12)
+		rx(r)
+		u := I(x + 16) // store before alloc
+		x = lcat(l3(v, enl(fst(r)), drop(r, 1)), u)
+	}
+	return x
+}
 func evl(x, loc i) (r i) {
 	//fmt.Printf("evl x=%s\n", kst(x))
 	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
@@ -1197,54 +1223,45 @@ func evl(x, loc i) (r i) {
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
-	if xn == 3 && v < 256 && (v == ':' || v > 128) {
-		rl(x)
-		dx(x)
-		r = I(xp + 4)
-		rx(r)
-		fmt.Printf("xp+8 %s\n", kst(I(xp+8)))
-		r = l3(v, enl(fst(r)), drop(r, 1))
-		fmt.Printf("r %s\n", kst(r))
-		x = lcat(r, I(xp+8))
-	}
-	xt, xn, _ = v1(x)
-	fmt.Printf("evl %d/%d %s\n", xt, xn, kst(x))
+	x = ras(x, xn)
 	x = lev(x, loc)
+	xn = nn(x)
 	xp = x + 8
-	if xn > 2 {
-		if v == 128 { // 128 (,:;a;b;c) sequence
+	if v == 128 {
+		if xn > 2 { // 128 (,:;a;b;c) sequence
 			return lst(x)
 		}
-		/*
-			if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
-				v -= 128
-				loc = 0
-			}
-			if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
-				rl(x)
-				dx(x)
-				s, a, f, u := I(xp+4), I(xp+8), I(xp+12), I(xp+16)
-				if a == 0 && f == 0 {
-					return asn(s, loc, u)
-				}
-				//	rx(s)
-				//	v := lup(s)
-				//	if v == 0 {
-				//		trap()
-				//	}
-				//	return asn(s, asd(v, a, y, f))
-			}
-		*/
 	}
+
+	/*
+		if v == '.'+128 { // 174 (.:;s;a;f;y) global assign
+			v -= 128
+			loc = 0
+		}
+		if v == '.' && xn == 5 { // 46 (.;s;a;f;y) (local) assign
+			rl(x)
+			dx(x)
+			s, a, f, u := I(xp+4), I(xp+8), I(xp+12), I(xp+16)
+			if a == 0 && f == 0 {
+				return asn(s, loc, u)
+			}
+			//	rx(s)
+			//	v := lup(s)
+			//	if v == 0 {
+			//		trap()
+			//	}
+			//	return asn(s, asd(v, a, y, f))
+		}
+	*/
 	if xn == 2 {
 		rl(x)
 		return dxr(x, atx(I(xp), I(xp+4)))
-	} else if xn == 3 {
-		rx(I(xp))
-		return cal(I(xp), drop(x, 1))
-	} else {
-		panic("args")
 	}
+	if xn == 4 { // todo only allow dyadic v (no triadic lambdas)
+		return asd(x, loc)
+	}
+	rx(I(xp))
+	return cal(I(xp), drop(x, 1))
 }
 func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 	xt, xn, xp := v1(x)
