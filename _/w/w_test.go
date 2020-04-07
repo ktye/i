@@ -677,7 +677,7 @@ func runtest() {
 			fmt.Println("skip rest")
 			os.Exit(0)
 		}
-		if len(v[i]) == 0 || v[i][0] == '/' {
+		if v[i][0] == '/' {
 			continue
 		}
 		vv := strings.Split(v[i], " /")
@@ -694,6 +694,32 @@ func runtest() {
 		}
 	}
 }
+func mark() {
+	for t := uint32(4); t < 32; t++ {
+		p := MI[t]
+		for p != 0 {
+			MI[1+(p>>2)] = 0
+			MI[2+(p>>2)] = t
+			p = MI[p>>2]
+		}
+	}
+}
+func leak() {
+	//dump(0, 200)
+	mark()
+	p := uint32(64)
+	for p < uint32(len(MI)) {
+		if MI[p+1] != 0 {
+			panic(fmt.Errorf("non-free block at %d(%x)", p<<2, p<<2))
+		}
+		t := MI[p+2]
+		if t < 4 || t > 31 {
+			panic(fmt.Errorf("illegal bucket type %d at %d(%x)", t, p<<2, p<<2))
+		}
+		dp := uint32(1) << t
+		p += dp >> 2
+	}
+}
 func run(s string) string {
 	m0 := 16
 	MJ = make([]J, (1<<m0)>>3)
@@ -702,9 +728,13 @@ func run(s string) string {
 	ini(16)
 	x := mk(1, I(len(s)))
 	copy(MC[x+8:], s)
-	s = kst(val(x))
-	//dx(x)
-	//leak()
+	x = val(x)
+	s = kst(x)
+	dx(x)
+	dx(MI[132>>2]) //kkey
+	dx(MI[136>>2]) //kval
+	dx(MI[148>>2]) //xyz
+	leak()
 	return s
 }
 func main() {

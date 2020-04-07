@@ -161,117 +161,7 @@ func (K *K) mks(s string) (r uint32) {
 	copy(m[8+r:], s)
 	return r
 }
-func (K *K) parseVector(s string) uint32 {
-	m := K.vm.Memory()
-	fc := ":+-*%&|<>=!~,^#_$?@.+'/\\"
-	if len(s) == 0 {
-		return 0
-	}
-	if len(s) > 1 && s[1] == ':' && strings.Index(fc, s[:1]) != -1 {
-		return uint32(s[0]) + 128
-	}
-	if len(s) > 0 && strings.Index(fc, s[:1]) != -1 {
-		return uint32(s[0])
-	}
-	if len(s) > 0 && s[0] == '"' {
-		s = strings.Trim(s, `"`)
-		b := []c(s)
-		p := K.call("mk", 1, uint32(len(b)))
-		for i := 0; i < len(b); i++ {
-			m[8+int(p)+i] = b[i]
-		}
-		return p
-	}
-	if len(s) > 0 && s[0] == '`' {
-		v := strings.Split(s[1:], "`")
-		sn := uint32(len(v))
-		sv := K.call("mk", 5, sn)
-		for i := uint32(0); i < sn; i++ {
-			b := v[i]
-			rn := uint32(len(b))
-			r := K.call("mk", 1, rn)
-			for k := uint32(0); k < rn; k++ {
-				m[8+r+k] = b[k]
-			}
-			binary.LittleEndian.PutUint32(m[sv+8+4*i:], uint32(r)) // sI(sv+8+4*i, r)
-		}
-		return sv
-	}
-	if len(s) > 0 && s[0] == '(' {
-		return K.parseList(s[1:])
-	}
-	f := strings.Index(s, ".")
-	v := strings.Split(s, " ")
-	n := uint32(len(v))
-	iv := make([]int64, n)
-	fv := make([]float64, n)
-	var e error
-	for i, s := range v {
-		if f == -1 {
-			iv[i], e = strconv.ParseInt(s, 10, 32)
-		} else {
-			fv[i], e = strconv.ParseFloat(s, 64)
-		}
-		if e != nil {
-			panic(fmt.Errorf("parse: %s", s))
-		}
-	}
-	if f == -1 {
-		x := K.call("mk", 2, n)
-		for i := uint32(0); i < n; i++ {
-			binary.LittleEndian.PutUint32(m[x+8+i*4:], uint32(iv[i]))
-		}
-		return x
-	} else {
-		x := K.call("mk", 3, n)
-		for i := uint32(0); i < n; i++ {
-			binary.LittleEndian.PutUint64(m[x+8+i*8:], math.Float64bits(fv[i]))
-		}
-		return x
-	}
-}
-func (K *K) parseList(s string) uint32 {
-	if len(s) == 0 || s[len(s)-1] != ')' {
-		panic("parse list")
-	} else if len(s) == 1 {
-		return K.call("mk", 6, 0)
-	}
-	r := make([]uint32, 0)
-	s = s[:len(s)-1]
-	l, a := 0, 0
-	for i, c := range s {
-		if c == '(' {
-			l++
-		} else if c == ')' {
-			l--
-			if l < 0 {
-				panic(")")
-			}
-		} else if l == 0 && c == ';' {
-			r = append(r, K.parseVector(s[a:i]))
-			a = i + 1
-		}
-	}
-	r = append(r, K.parseVector(s[a:]))
-	x := K.call("mk", 6, uint32(len(r)))
-	m := K.vm.Memory()
-	for k := range r {
-		binary.LittleEndian.PutUint32(m[8+x+4*uint32(k):], r[k])
-	}
-	return x
-}
-func u64(v interface{}) uint64 {
-	switch x := v.(type) {
-	case uint32:
-		return uint64(x)
-	case uint64:
-		return x
-	case float64:
-		return math.Float64bits(x)
-	default:
-		panic(x)
-	}
-}
+
 func (K *K) dump(a, n k) { dump(K.vm.Memory(), a, n) }
 func dump(m []byte, a, n k) {
 	fmt.Printf("%.8x ", a)
@@ -382,11 +272,12 @@ func (K *K) kst(a k) s {
 func get(m []byte, a k) k        { return binary.LittleEndian.Uint32(m[a:]) }
 func getf(m []byte, a k) float64 { return math.Float64frombits(binary.LittleEndian.Uint64(m[a:])) }
 func mark(m []byte) { // mark bucket type within free blocks
+	set := func(x, y uint32) { binary.LittleEndian.PutUint32(m[x:], y) }
 	for t := k(4); t < 32; t++ {
 		p := get(m, 4*t) // free pointer of type t
 		for p != 0 {
-			m[4+p] = 0
-			m[8+p] = c(t)
+			set(4+p, 0)
+			set(8+p, t)
 			p = get(m, p) // pointer to next free
 		}
 	}

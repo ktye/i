@@ -599,7 +599,7 @@ func lcat(x, y i) (r i) { // list append
 	sI(xp+4*xn, y)
 	return x
 }
-func enl(x i) (r i) { return lcat(mk(6, 0), x) }
+func enl(x i) (r i) { r = mk(6, 1); sI(8+r, x); return r }
 func cnt(x i) (r i) { dx(x); return mki(nn(x)) }
 func typ(x i) (r i) {
 	xt, _, _ := v1(x)
@@ -725,7 +725,6 @@ func fnx(x, yp i) (r i) {
 }
 func fnc(xp, xn i, c c) (r i) {
 	for r = 0; r < xn; r++ {
-		fmt.Printf("i=%d C=%c c=%c\n", r, C(xp+r), c)
 		if c == C(xp+r) {
 			return r
 		}
@@ -1225,8 +1224,10 @@ func evl(x, loc i) (r i) {
 		rl(x)
 		return dxr(x, atx(I(xp), I(xp+4)))
 	}
-	if xn == 4 { // todo only allow dyadic v (no triadic lambdas)
-		return asd(x, loc)
+	if xn == 4 {
+		if 256 > I(x+8) {
+			return asd(x, loc)
+		}
 	}
 	rx(I(xp))
 	return cal(I(xp), drop(x, 1))
@@ -1237,7 +1238,6 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 		trap()
 	}
 	sI(pp, xp)
-	//fmt.Printf("prs %s [%d %d]\n", kst(x), xp, xp+xn)
 	r = sq(xp + xn)
 	if nn(r) == 1 {
 		r = fst(r)
@@ -1248,7 +1248,6 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 }
 func sq(s i) (r i) { // E
 	r = enl(ex(pt(s), s))
-	//fmt.Printf("sq %s\n", kst(r))
 	for {
 		v := ws(s)
 		p := I(pp)
@@ -1689,10 +1688,13 @@ func atoi(s string) i {
 	panic("atoi")
 }
 func mark() { // mark bucket type within free blocks
+	//dump(0, 200)
 	for t := i(4); t < 32; t++ {
-		for p := MI[t] >> 2; p != 0; p = MI[p] >> 2 {
-			MI[1+p] = 0
-			MI[2+p] = t
+		p := MI[t]
+		for p != 0 {
+			MI[1+(p>>2)] = 0
+			MI[2+(p>>2)] = t
+			p = MI[p>>2]
 		}
 	}
 }
