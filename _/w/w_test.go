@@ -308,6 +308,7 @@ function kst(x) {
  case 6:
   x >>>= 2
   var r = []
+  if (n==1) return "," + kst(K.U[2+x])
   for (var i=0; i<n; i++) r.push(kst(K.U[2+x+i]))
   return "("+r.join(";")+")"
  default:
@@ -472,6 +473,7 @@ V kst(I x) {
 		break;
 	case 6:
 		x = 2 + (x>>2);
+		if(n==1){ printf(","); kst(MI[x]); R; }
 		printf("(");
 		for(i=0;i<n;i++) {
 			if(i>0) printf(";");

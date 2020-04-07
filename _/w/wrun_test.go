@@ -361,6 +361,9 @@ func (K *K) kst(a k) s {
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
 	case 6:
+		if n == 1 {
+			return "," + K.kst(get(m, 8+a))
+		}
 		f = func(i int) s { return K.kst(get(m, 8+4*uint32(i)+a)) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
