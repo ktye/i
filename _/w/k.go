@@ -1192,7 +1192,7 @@ func lev(x, loc i) (r i) {
 	return dxr(x, r)
 }
 func evl(x, loc i) (r i) {
-	//fmt.Printf("evl x=%s\n", kst(x))
+	//fmt.Printf("evl x=%x %s\n", x, kst(x))
 	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
 	xt, xn, xp := v1(x)
 	if xt != 6 {
@@ -1315,7 +1315,7 @@ func pt(s i) (r i) { // t
 		}
 	}
 }
-func isv(x i) bool { // is verb or (adverb;_)
+func isv(x i) (r bool) { // is verb or (adverb;_)
 	xt, xn, xp := v1(x)
 	if xt == 0 {
 		return true // function
@@ -1386,6 +1386,7 @@ func loc(x, y i) (r i) {
 	for i := i(0); i < xn; i++ {
 		xi := I(xp)
 		ri := ras(xi, nn(xi), y)
+		//fmt.Printf("ri = %x?%x %s [%x]\n", xi, ri, kst(ri), MI[(ri>>2)+1])
 		if xi == ri {
 			ri = loc(xi, y)
 		}

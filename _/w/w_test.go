@@ -586,6 +586,7 @@ func kst(x I) string {
 		return ""
 	}
 	var t, n i
+	n = 1
 	if x > 255 {
 		u := MI[x>>2]
 		t = u>>29
@@ -610,7 +611,7 @@ func kst(x I) string {
 	}
 	sstr := func(i i) s {
 		r := MI[(x + 8 + 4*i)>>2]
-		rn := MI[r>>2] & 536870911
+		rn := nn(r)
 		return string(MC[r+8 : r+8+rn])
 	}
 	sep := " "
@@ -647,7 +648,7 @@ func kst(x I) string {
 		tof = func(s s) s { return sep + s }
 	case 6:
 		if n == 1 {
-			return "," + kst(I(8+x))
+			return "," + kst(MI[(8+x)>>2])
 		}
 		f = func(i i) s { return kst(MI[2+i+x>>2]) }
 		sep = ";"
