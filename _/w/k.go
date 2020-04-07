@@ -219,19 +219,19 @@ func l3(x, y, z i) (r i) {
 	sI(r+16, z)
 	return r
 }
+func tp(x i) i {
+	if x < 256 {
+		return 0
+	}
+	return I(x) >> 29
+}
 func nn(x i) (xn i) {
 	if x < 256 {
 		return 1
 	}
 	return I(x) & 536870911
 }
-func v1(x i) (xt, xn, xp i) {
-	if x < 256 {
-		return 0, 1, 0
-	}
-	u := I(x)
-	return u >> 29, u & 536870911, 8 + x
-}
+func v1(x i) (xt, xn, xp i) { return tp(x), nn(x), 8 + x }
 func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	xt, xn, xp = v1(x)
 	yt, yn, yp = v1(y)
@@ -459,9 +459,52 @@ func take(x, n i) (r i) {
 	return atx(x, r)
 }
 func atx(x, y i) (r i) {
+	//fmt.Printf("atx %s %s\n", kst(x), kst(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
+	}
+	if yt == 6 && xt == 6 { // at-depth or matrix (todo dict)
+		if yn == 0 {
+			return dxyr(x, y, mk(xt, 0))
+		}
+		rx(y)
+		f := fst(y)
+		t := drop(y, 1)
+		nf := nn(f)
+		if f == 0 || nf != 1 { // matrix index
+			if f != 0 {
+				x = atx(x, f)
+				xn = nf
+				xp = x + 8
+			}
+			r = mk(6, xn)
+			rp := r + 8
+			rl(x)
+			rxn(t, xn)
+			for i := i(0); i < xn; i++ {
+				xi := I(xp)
+				sI(rp, atx(xi, t))
+				xp += 4
+				rp += 4
+			}
+			return dxyr(x, t, r)
+		}
+		return atx(atx(x, f), t)
+	}
+	if xt == 7 { // d@..
+		//fmt.Printf("dict index\n")
+		xk := I(xp)
+		xv := I(xp + 4)
+		if yt == 5 {
+			rx(xk)
+			y = fnd(xk, y)
+			yt = 2
+		}
+		rx(xv)
+		dx(x)
+		x = xv
+		return atx(x, y)
 	}
 	if yt != 2 {
 		panic("atx yt~I")
@@ -1102,11 +1145,20 @@ func asd(x, loc i) (r i) { // (+;`x;a;y)
 	rl(x)
 	dx(x)
 	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
-	dx(a)         // todo
 	if v != ':' { //58
 		rx(s)
 		u = cal(v, l2(lup(s, loc), u))
 	}
+
+	dx(a)
+	/*
+		an := nn(a)
+		if nn == 0 {
+			dx(a)
+		} else {
+			fmt.Println("indexing")
+		}
+	*/
 	rx(s)
 	r = asn(s, loc, u)
 	return dxr(s, r)
