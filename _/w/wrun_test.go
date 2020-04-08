@@ -185,8 +185,8 @@ func (K *K) kst(a k) s {
 		return ""
 	}
 	m := K.vm.Memory()
-	x, t, n := k(0), k(0), k(0)
-	if a > 256 {
+	x, t, n := k(0), k(0), k(1)
+	if a > 255 {
 		x = get(m, a)
 		t, n = x>>29, x&536870911
 	}
@@ -225,7 +225,7 @@ func (K *K) kst(a k) s {
 		} else if n == 4 {
 			return sstr(0)
 		} else {
-			fmt.Printf("x=%x a=%x\n", x, a)
+			fmt.Printf("x=%x a=%x n=%d\n", x, a, n)
 			dump(m, 0, 200)
 			panic("kst t=0 nyi")
 		}
@@ -258,7 +258,7 @@ func (K *K) kst(a k) s {
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
 	case 7:
-		return K.kst(x+8) + "!" + K.kst(x+12)
+		return K.kst(get(m, a+8)) + "!" + K.kst(get(m, a+12))
 	default:
 		K.dump(0, 200)
 		panic(fmt.Sprintf("nyi: kst: t=%d a=%x x=%x", t, a, x))

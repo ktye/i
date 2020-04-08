@@ -311,6 +311,9 @@ function kst(x) {
   if (n==1) return "," + kst(K.U[2+x])
   for (var i=0; i<n; i++) r.push(kst(K.U[2+x+i]))
   return "("+r.join(";")+")"
+ case 7:
+  x >>>= 2
+  return kst(K.U[2+x]) + "!" + kst(K.U[3+x])
  default:
   return "kst nyi: t=" + String(t)
  }
@@ -480,6 +483,10 @@ V kst(I x) {
 			kst(MI[x+i]);
 		}
 		printf(")");
+		break;
+	case 7:
+		x >>= 2;
+		kst(MI[2+x]);printf("!");kst(MI[3+x]);
 		break;
 	default:
 		printf("nyi: kst %x t=%d\n", x, t);X();
@@ -656,7 +663,7 @@ func kst(x I) string {
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
 	case 7:
-		return kst(I(x+8)) + "!" + kst(I(x+12))
+		return kst(MI[(x+8)>>2]) + "!" + kst(MI[(x+12)>>2])
 	default:
 		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}

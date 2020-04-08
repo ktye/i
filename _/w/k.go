@@ -202,6 +202,16 @@ func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkc(c i) (r i)    { r = mk(1, 1); sC(r+8, byte(c)); return r }
 func mks(c i) (r i)    { return sc(mkc(c)) }
 func mkd(x, y i) (r i) {
+	xt, yt, xn, yn, _, _ := v2(x, y)
+	if xn != yn {
+		trap()
+	}
+	if xt != 5 {
+		trap()
+	}
+	if yt != 6 {
+		y = lx(y) // explode
+	}
 	r = l2(x, y) // todo ext?
 	sI(r, 2|7<<29)
 	return r
@@ -330,8 +340,8 @@ func lx(x i) (r i) { // explode
 	}
 	r = mk(6, n)
 	rp := r + 8
+	rxn(x, n)
 	for i := i(0); i < n; i++ {
-		rx(x)
 		sI(rp, atx(x, mki(i)))
 		rp += 4
 	}
@@ -1122,7 +1132,7 @@ func asn(x, loc, u i) (r i) {
 			panic("asn to undefined local")
 		}
 		sI(kkey, cat(k, x))
-		sI(kval, cat(v, u))
+		sI(kval, lcat(v, u))
 		return u
 	}
 	vp := 8 + v + 4*m
@@ -1130,75 +1140,94 @@ func asn(x, loc, u i) (r i) {
 	sI(vp, u)
 	return dxr(x, u)
 }
+func asi(x, y, z i) (r i) { //x[..y..]:z
+	xt, yt, xn, yn, xp, yp := v2(x, y)
+	if xt == 7 && yt == 5 {
+		rl(x)
+		dx(x)
+		k := I(xp)
+		v := I(xp + 4)
+		rx(k)
+		y = fnd(k, y)
+		r = mk(7, 2)
+		sI(r+8, k)
+		sI(r+12, asi(v, y, z))
+		return r
+	}
+	if yt != 2 {
+		trap()
+	}
+	zt, zn, zp := v1(z)
+	if yn > 1 && zn == 1 {
+		if zn != yn {
+			if zn != 1 {
+				trap()
+			}
+			z = take(z, yn)
+			zn = yn
+			zp = z + 8
+		}
+	}
+	if xt < 5 {
+		if zt != xt {
+			trap()
+		}
+		r = mk(xt, xn)
+		rp := r + 8
+		w := i(C(xt))
+		mv(rp, xp, w*xn)
+		for i := i(0); i < yn; i++ {
+			k := I(yp)
+			mv(rp+w*k, zp, w)
+			yp += 4
+			zp += w
+		}
+		dx(z)
+		return dxyr(x, y, r)
+	}
+	if xt == 6 {
+		r = take(x, xn)
+		rp := r + 8
+		z = lx(z) // explode
+		zp = z + 8
+		rl(z)
+		for i := i(0); i < yn; i++ {
+			k := I(yp)
+			t := rp + 4*k
+			dx(I(t))
+			sI(t, I(zp))
+			yp += 4
+			zp += 4
+		}
+		return dxyr(y, z, r)
+	}
+	trap()
+	return x
+}
 func asd(x, loc i) (r i) { // (+;`x;a;y)
 	rl(x)
 	dx(x)
 	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
+	an := nn(a)
 	if v != ':' { //58
 		rx(s)
-		u = cal(v, l2(lup(s, loc), u))
-	}
-
-	dx(a)
-	/*
-		an := nn(a)
-		if nn == 0 {
-			dx(a)
-		} else {
-			fmt.Println("indexing")
+		r = lup(s, loc)
+		if an != 0 {
+			rx(a)
+			r = atx(r, a)
 		}
-	*/
+		u = cal(v, l2(r, u))
+	}
+	if an == 0 {
+		dx(a)
+	} else {
+		rx(s)
+		u = asi(lup(s, loc), a, u)
+	}
 	rx(s)
 	r = asn(s, loc, u)
 	return dxr(s, r)
 }
-
-/*
-func asd(x, y, z, v i) (r i) { // .[x;a;f;y] depth assign
-	xt, yt, _, yn, xp, yp := v2(x, y)
-	if yt == 6 { // at-depth
-		rx(y)
-		return asd(atx(x, fst(y)), drop(y, 1), z, v)
-	} else if z != 0 {
-		rx(x)
-		if y == 0 {
-			v = cal(z, l2(atx(x, y), v))
-		} else {
-			v = cal(z, l2(x, v))
-		}
-	}
-	if y == 0 {
-		return dxr(x, v)
-	}
-	vn := I(v) & 536870911
-	if vn == 1 && yn != 1 {
-		v, vn = take(v, yn), yn
-	}
-	if xt == 7 {
-		rl(x)
-		dx(x)
-		xk := I(x + 8)
-		xv := I(x + 12)
-		rx(xk)
-		return mkd(xk, asd(xv, fnd(xk, y), 0, v))
-	}
-	x = use(x)
-	xp = x + 8
-	if xt == 6 {
-		v = lx(v)
-		rl(v)
-	}
-	vp := v + 8
-	w := i(C(xt))
-	for i := i(0); i < yn; i++ {
-		yi := I(yp)
-		mv(xp+yi*w, vp+i*w, w)
-		yp += 4
-		vp += 4
-	}
-	return dxyr(y, v, x)
-}
-*/
 func swc(x, loc i) (r i) { // ($;a;b;...)
 	_, xn, xp := v1(x)
 	for i := i(1); i < xn; {
@@ -1525,7 +1554,6 @@ func pin(b c, p, s i) (r i) { // parse signed int
 				return 0
 			}
 			sI(8+r, -I(8+r))
-			fmt.Printf("%d\n", MI[(8+r)>>2])
 			return r
 		}
 	}
@@ -1748,6 +1776,7 @@ func leak() {
 	dx(I(kkey))
 	dx(I(kval))
 	dx(I(xyz))
+	//dump(0, 300)
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
