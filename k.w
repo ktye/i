@@ -88,9 +88,9 @@ loc:I:II{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(xi:I xp;ri:ras(xi;nn xi;y);(xi~ri)
 lam:I:III{$[91~C 1+x;(rx z;a:((fst z)drop 1)ovr 44;z:z drop 1);(r:I xyz;rx r;a:r take z lac 0)];v:nn a;a:enl(a);z:z loc a+8;n:y-x;t:1 mk n;mv(t+8;x;n);r:0 mk 4;(r+8)::t;(r+12)::z;(r+16)::fst a;(r+20)::v;r}
 
 ws:I:I{p:I 8;1/((p~x)?(8::p; :1);b:C p;((b~10)+(b is 64))?(8::p; :0);p+:1);x}
-tok:I:I{(ws x)? :0;p:I 8;b:C p;(b is 32)? :0; 5/(r:((I.i+136)(b;p;x));r? :r);0}
+tok:I:I{(ws x)? :0;p:I 8;b:C p;(b is 32)? :0;n:0<((C p-1)is 4);(5-n)/(r:((I.i+n+136)(b;p;x));r? :r);0}
 pun:I:III{(~x is 4)? :0;((x is 4)*y<z)?/(r*:10;r+:x-48;y+:1;x:C y);8::y;mki r}
-pin:I:III{r:pun(x;y;z);r? :r;(r~45)?(y+:1;(y<z)?(x:C y;8::y;r:pun(x;y;z);(~r)?(8::y-1);r8;rp::-I rp; :r));0}
+pin:I:III{r:pun(x;y;z);r? :r;(x~45)?(y+:1;(y<z)?(x:C y;8::y;r:pun(x;y;z);(~r)?(8::y-1);r8;rp::-I rp; :r));0}
 pfl:I:III{r:pin(x;y;z);(~r)? :r;y:I 8;(46~C y)?(r:up(r;2;1);y+:1;8::y;(y<z)?(x:C y;q:pun(x;y;z);q?(q:up(q;2;1);f:1.0;((I 8)-y)/f*:10.0;r8;rp::(F rp)+(F 8+q)%f;dx q)));r}
 num:I:III{pfl(x;y;z)} /todo z
 nms:I:III{r:num(x;y;z);(~r)? :r;1/(y:I 8;x:C y;((y+2)>z)? :r;(~x~32)? :r;y+:1;8::y;q:num(C y;y;z);(~q)? :r;r:r cat q);r}

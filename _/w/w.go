@@ -1256,8 +1256,20 @@ func (v cvt) bytes() []c {
 	}
 	return append(v.x().bytes(), c(tab[v.t][2*tnum[v.x().rt()]+v.sign]))
 }
-func (v cvt) cstr() s    { return jn("(", styp[v.t], ")", cstring(v.x())) } // todo: signed?
-func (v cvt) gstr() s    { return jn(styp[v.t], "(", gstring(v.x()), ")") } // todo signed
+func (v cvt) cstr() s {
+	sn := ""
+	if v.sign == 1 && v.t == F { // F?'
+		sn = "(SI)"
+	}
+	return jn("(", styp[v.t], ")", sn, cstring(v.x()))
+}
+func (v cvt) gstr() s {
+	sn, cs := "", ""
+	if v.sign == 1 && v.t == F { // F?'
+		sn, cs = "SI(", ")"
+	}
+	return jn(styp[v.t], "(", sn, gstring(v.x()), cs, ")")
+}                        // todo signed
 func (v typ) rt() T      { return 0 }
 func (v typ) valid() s   { return "freestanding type" }
 func (v typ) bytes() []c { return nil }

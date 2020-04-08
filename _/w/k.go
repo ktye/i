@@ -1476,7 +1476,6 @@ func ws(s i) bool { // skip whitespace
 	}
 }
 func tok(s i) (r i) { // next token
-	//defer func() { fmt.Printf("tok: r=%x\n", r) }()
 	if ws(s) {
 		return 0
 	}
@@ -1485,8 +1484,12 @@ func tok(s i) (r i) { // next token
 	if is(b, TE) { //32
 		return 0
 	}
-	for j := 0; j < 5; j++ { // nms vrb chr nam sms
-		r = MT[j+136].(func(c, i, i) i)(b, p, s)
+	n := 0
+	if is(C(p-1), NM) { //4 (0-1: parse - as verb, skip nms); C(p-1) maybe refcount's last byte
+		n = 1
+	}
+	for j := 0; j < 5-n; j++ { // nms vrb chr nam sms
+		r = MT[j+136+n].(func(c, i, i) i)(b, p, s)
 		if r != 0 {
 			return r
 		}
@@ -1522,6 +1525,7 @@ func pin(b c, p, s i) (r i) { // parse signed int
 				return 0
 			}
 			sI(8+r, -I(8+r))
+			fmt.Printf("%d\n", MI[(8+r)>>2])
 			return r
 		}
 	}
