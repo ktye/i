@@ -73,7 +73,7 @@ asi:I:III{v2;(xt~7)?(yt~5)?(rl x;dx x;k:I xp;v:I xp+4;rx k;y:k fnd y;r:7 mk 2;(r
 swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);dx r;i+:1;(~I r+8)?i+:1);dx x;0}
 
 /ras:I:III{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?(rl x;dx x;r:I x+12;rx r;u:I x+16;s:fst r;z?(v~58)?(l:I z;n:nn l;(n~l fnx s+8)?(rx s;z::l cat s));(v>128)?v-:128;a:r drop 1;$[~nn a;(dx a;a:0);a:enl(a)];x:(l3(v;enl s;a))lcat u);x}
-ras:I:III{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;r rxn 2;s:fst r;a:r drop 1;$[nn a;(a:a lev y;an:nn a;(an~1)?a:fst a);(dx a;a:0)];u:I x+16;rx u;dx x; :(l3(v;s;a))lcat u evl y);0}
+ras:I:III{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;r rxn 2;s:fst r;a:r drop 1;$[nn a;(a:a lev z;an:nn a;(an~1)?a:fst a);(dx a;a:0)];u:I x+16;rx u;dx x; :(l3(v;s;a))lcat u evl z);0}
 
 lev:I:II{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);dxr}
 evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;r:ras(x;xn;y);r? :asd(r;y);x:x lev y;xn:nn x;xp:x+8;(v~128)?(xn>2)? :lst x;(xn~2)?(rl x;dx x; :(I xp)atx I xp+4);rx I xp;(I xp)cal x drop 1}
