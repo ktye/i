@@ -471,8 +471,7 @@ func take(x, n i) (r i) {
 	}
 	return atx(x, r)
 }
-func atl(x, y i) (r i) {
-	fmt.Printf("atl x=%s y=%s\n", kst(x), kst(y))
+func atm(x, y i) (r i) {
 	xt, xn, xp := v1(x)
 	if 0 == nn(y) {
 		return dxyr(x, y, mk(xt, 0))
@@ -516,16 +515,29 @@ func atd(x, y, yt i) (r i) {
 	dx(x)
 	return atx(v, y)
 }
+func atl(x, y, n i) (r i) {
+	r = mk(6, n)
+	rp := r + 8
+	yp := y + 8
+	rl(y)
+	rxn(x, n)
+	for i := i(0); i < n; i++ {
+		sI(rp, atx(x, I(yp)))
+		yp += 4
+		rp += 4
+	}
+	return dxyr(x, y, r)
+}
 func atx(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
 	}
-	if yt == 6 && xt > 5 { // at-depth or matrix (todo dict)
-		return atl(x, y)
-	}
 	if xt == 7 { // d@..
 		return atd(x, y, yt)
+	}
+	if yt == 6 { // at-list
+		return atl(x, y, yn)
 	}
 	if yt != 2 {
 		fmt.Printf("atx x=%s y=%s\n", kst(x), kst(y))
@@ -556,7 +568,7 @@ func atx(x, y i) (r i) {
 func cal(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt != 0 {
-		return atl(x, y)
+		return atm(x, y)
 	}
 	if yt != 6 {
 		panic("type")
