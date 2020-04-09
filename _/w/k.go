@@ -471,10 +471,9 @@ func take(x, n i) (r i) {
 	}
 	return atx(x, r)
 }
-func atm(x, y i) (r i) {
-	xt, xn, xp := v1(x)
+func atm(x, y i) (r i) { // {$[0~#y;:0#x;];}
 	if 0 == nn(y) {
-		return dxyr(x, y, mk(xt, 0))
+		return dxr(x, y)
 	}
 	rx(y)
 	f := fst(y)
@@ -486,20 +485,8 @@ func atm(x, y i) (r i) {
 	if f == 0 || nf != 1 { // matrix index
 		if f != 0 {
 			x = atx(x, f)
-			xn = nf
-			xp = x + 8
 		}
-		r = mk(6, xn)
-		rp := r + 8
-		rl(x)
-		rxn(t, xn)
-		for i := i(0); i < xn; i++ {
-			xi := I(xp)
-			sI(rp, atx(xi, t))
-			xp += 4
-			rp += 4
-		}
-		return dxyr(x, t, r)
+		return ecl(x, t, 64)
 	}
 	return atx(atx(x, f), t)
 }

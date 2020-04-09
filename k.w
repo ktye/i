@@ -12,7 +12,7 @@ upx:{(xt>=5)?!;(yt>=5)?!;(xt<yt)?/(x:up(x;xt;xn);xt+:1);(yt<xt)?/(y:up(y;yt;yn);
 up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::C xp+i;rp+:4);z/(rp::F?'I xp;rp+:8;xp+:4);!];dxr}
 
 atx:I:II{v2;(~xt)?( :x cal enl y);(xt~7)? :atd(x;y;yt);(yt~6)? :ecr(x;y;64);(~yt~2)?!;r:xt mk yn;r8;w:C xt;yn/(yi:I yp;(xn<=yi)?!;mv(rp;xp+w*yi;w);rp+:w;yp+:4);(xt>4)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
-atm:I:II{v1;(~nn y)?(dx x;dx y; :xt mk 0);rx y;f:fst y;t:y drop 1;(6~tp t)?(1~nn t)?t:fst t;nf:nn f;((~f)+~nf~1)?(f?(x:x atx f;xn:nf;xp:x+8);r:6 mk xn;r8;rl x;t rxn xn;xn/(xi:I xp;rp::xi atx t;xp+:4;rp+:4);dx x;dx t; :r);(x atx f)atx t}
+atm:I:II{(~nn y)?(dx x; :y);rx y;f:fst y;t:y drop 1;(6~tp t)?(1~nn t)?t:fst t;nf:nn f;((~f)+~nf~1)?(f?x:x atx f; :ecl(x;t;64));(x atx f)atx t}
 atd:I:III{k:I x+8;v:I x+12;(z~5)?(rx k;y:k fnd y;z:2);rx v;dx x;v atx y}
 
 cal:I:II{v2;xt? :x atm y;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y));(x<128)?x+:128);(x<128)?((~yn~2)?!;rl y;dx y; :(I.x)(I yp;I yp+4));(x<256)?((~yn~1)?!; :(I.x)(fst y));(xn~2)?(rl x;dx x;a:I xp;yn?[; :((I.a+128)(fst y;I xp+4));(rl y;dx y; :((I.a)(I yp;I yp+4;I xp+4)));!]);(xn~4)? :x lcl y;!;x}
