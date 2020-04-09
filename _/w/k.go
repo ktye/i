@@ -1136,10 +1136,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		v := I(xp + 4)
 		rx(k)
 		y = fnd(k, y)
-		r = mk(7, 2)
-		sI(r+8, k)
-		sI(r+12, asi(v, y, z))
-		return r
+		return mkd(k, asi(v, y, z))
 	}
 	if yt == 6 {
 		if xt == 7 { // (:;d;y;z)  {k:!x;v:. x;y:(,k?*y),1_y;k!.(:;v;y;z)}
@@ -1154,9 +1151,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 			} else {
 				f = seq(0, nn(k), 1)
 			}
-			y = cat(enl(f), drop(y, 1))
-			v = asi(v, y, z)
-			return mkd(k, v)
+			return mkd(k, asi(v, cat(enl(f), drop(y, 1)), z))
 		}
 		if xt != 6 || yt != 6 {
 			trap()
