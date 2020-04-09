@@ -1508,6 +1508,8 @@ func ras(x, xn, lp i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+
 	}
 	return x
 }
+
+/*
 func loc(x, y i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
@@ -1529,6 +1531,30 @@ func loc(x, y i) (r i) {
 	}
 	return dxr(x, r)
 }
+*/
+func loc(x, y i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt != 6 {
+		return y
+	}
+	for i := i(0); i < xn; i++ {
+		y = loc(I(xp), y)
+		xp += 4
+	}
+	xp = x + 8
+	if xn == 3 && I(xp) == 58 { // :
+		r = I(xp + 4)
+		rx(r)
+		s := fst(r)
+		n := nn(y)
+		if fnx(y, s+8) == n {
+			rx(s)
+			y = cat(y, s)
+		}
+		dx(s)
+	}
+	return y
+}
 func lam(p, s, z i) (r i) {
 	var a i
 	if C(1+p) == '[' { //91 {[a;b]a..} -> ((;`a;`b);(..))
@@ -1541,16 +1567,15 @@ func lam(p, s, z i) (r i) {
 		a = take(r, lac(z, 0))
 	}
 	v := nn(a) // arity (<256)
-	a = enl(a)
-	z = loc(z, a+8) // pass a as "pointer"
+	a = loc(z, a)
 	n := s - p
 	t := mk(1, n)
 	mv(t+8, p, n)
 	r = mk(0, 4)
-	sI(r+8, t)       // string
-	sI(r+12, z)      // tree
-	sI(r+16, fst(a)) // args
-	sI(r+20, v)      // arity
+	sI(r+8, t)  // string
+	sI(r+12, z) // tree
+	sI(r+16, a) // args
+	sI(r+20, v) // arity
 	return r
 }
 func ws(s i) bool { // skip whitespace
