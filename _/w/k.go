@@ -196,6 +196,7 @@ func rl(x i) {
 		xp += 4
 	}
 }
+func rld(x i)          { rl(x); dx(x) }
 func dxr(x, r i) i     { dx(x); return r }
 func dxyr(x, y, r i) i { dx(x); dx(y); return r }
 func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
@@ -560,8 +561,7 @@ func cal(x, y i) (r i) {
 		if yn != 2 {
 			panic("arity")
 		}
-		rl(y)
-		dx(y)
+		rld(y)
 		f := MT[x].(func(i, i) i)
 		return f(I(yp), I(yp+4))
 	} else if x < 256 {
@@ -572,12 +572,10 @@ func cal(x, y i) (r i) {
 		return f(fst(y))
 	}
 	if xn == 2 { // derived
-		rl(x)
-		dx(x)
+		rld(x)
 		a := I(xp)
 		if yn == 2 {
-			rl(y)
-			dx(y)
+			rld(y)
 			f := MT[a].(func(i, i, i) i)
 			return f(I(yp), I(yp+4), I(xp+4))
 		} else if yn != 1 {
@@ -644,8 +642,7 @@ func lcat(x, y i) (r i) { // list append
 	xt, xn, xp := v1(x)
 	if bk(xt, xn) < bk(xt, xn+1) {
 		r = mk(xt, xn+1)
-		rl(x)
-		dx(x)
+		rld(x)
 		mv(r+8, xp, 4*xn)
 		x, xp = r, r+8
 	}
@@ -1134,8 +1131,7 @@ func asn(x, loc, u i) (r i) {
 func asi(x, y, z i) (r i) { //x[..y..]:z
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 7 && yt == 5 {
-		rl(x)
-		dx(x)
+		rld(x)
 		k := I(xp)
 		v := I(xp + 4)
 		rx(k)
@@ -1147,8 +1143,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 	}
 	if yt == 6 {
 		if xt == 7 { // (:;d;y;z)  {k:!x;v:. x;y:(,k?*y),1_y;k!.(:;v;y;z)}
-			rl(x)
-			dx(x)
+			rld(x)
 			k := I(xp)
 			v := I(xp + 4)
 			rx(y)
@@ -1258,8 +1253,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 	return x
 }
 func asd(x, loc i) (r i) { // (+;`x;a;y)
-	rl(x)
-	dx(x)
+	rld(x)
 	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
 	if v != ':' { //58
 		rx(s)
