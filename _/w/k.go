@@ -394,9 +394,12 @@ func fst(x i) (r i) {
 func dex(x, y i) (r i) { return dxr(x, y) }                                   // :[x;y]
 func lst(x i) (r i)    { return atx(x, mki(nn(x)-1)) /* TODO k.w differs */ } // ::x
 func drop(x, n i) (r i) {
-	xn := nn(x)
+	xt, xn, _ := v1(x)
 	if n > xn {
 		n = xn
+	}
+	if xt == 6 && xn-n == 1 {
+		return enl(lst(x))
 	}
 	return atx(x, seq(n, xn-n, 1))
 }
@@ -469,6 +472,7 @@ func take(x, n i) (r i) {
 	return atx(x, r)
 }
 func atl(x, y i) (r i) {
+	fmt.Printf("atl x=%s y=%s\n", kst(x), kst(y))
 	xt, xn, xp := v1(x)
 	if 0 == nn(y) {
 		return dxyr(x, y, mk(xt, 0))
@@ -476,6 +480,9 @@ func atl(x, y i) (r i) {
 	rx(y)
 	f := fst(y)
 	t := drop(y, 1)
+	if tp(t) == 6 && nn(t) == 1 {
+		t = fst(t)
+	}
 	nf := nn(f)
 	if f == 0 || nf != 1 { // matrix index
 		if f != 0 {
@@ -521,6 +528,7 @@ func atx(x, y i) (r i) {
 		return atd(x, y, yt)
 	}
 	if yt != 2 {
+		fmt.Printf("atx x=%s y=%s\n", kst(x), kst(y))
 		panic("atx yt~I")
 	}
 	r = mk(xt, yn)
@@ -1177,6 +1185,9 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		rx(y)
 		a := fst(y)
 		y = drop(y, 1)
+		if nn(y) == 1 {
+			y = fst(y)
+		}
 		if a == 0 {
 			a = seq(0, xn, 1)
 		}
@@ -1313,6 +1324,34 @@ func lev(x, loc i) (r i) {
 	}
 	return dxr(x, r)
 }
+func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
+	// defer func() { fmt.Printf("ras r=%s\n", kst(r)) }()
+	v := I(x + 8)
+	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
+		if v > 128 {
+			v -= 128
+		}
+		r = I(x + 12)
+		rxn(r, 2)
+		s := fst(r)
+		a := drop(r, 1)
+		if nn(a) == 0 {
+			dx(a)
+			a = 0
+		} else {
+			a = lev(a, loc)
+			an := nn(a)
+			if an == 1 {
+				a = fst(a)
+			}
+		}
+		u := I(x + 16)
+		rx(u)
+		dx(x)
+		return lcat(l3(v, s, a), evl(u, loc))
+	}
+	return 0
+}
 func evl(x, loc i) (r i) {
 	// fmt.Printf("evl x=%x %s\n", x, kst(x))
 	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
@@ -1321,7 +1360,6 @@ func evl(x, loc i) (r i) {
 		if xt == 5 && xn == 1 {
 			r = lup(x, loc)
 			if r == 0 {
-				fmt.Printf("x=%s\n", kst(x))
 				panic("name does not exist")
 			}
 			return r
@@ -1336,8 +1374,11 @@ func evl(x, loc i) (r i) {
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
-	r = ras(x, xn, 0)
-	x = lev(r, loc)
+	r = ras(x, xn, loc)
+	if r != 0 {
+		return asd(r, loc)
+	}
+	x = lev(x, loc)
 	xn = nn(x)
 	xp = x + 8
 	if v == 128 {
@@ -1348,11 +1389,6 @@ func evl(x, loc i) (r i) {
 	if xn == 2 {
 		rl(x)
 		return dxr(x, atx(I(xp), I(xp+4)))
-	}
-	if xn == 4 {
-		if 256 > I(x+8) {
-			return asd(x, loc)
-		}
 	}
 	rx(I(xp))
 	return cal(I(xp), drop(x, 1))
@@ -1475,63 +1511,6 @@ func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 	}
 	return a
 }
-func ras(x, xn, lp i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
-	// defer func() { fmt.Printf("ras r=%s\n", kst(r)) }()
-	v := I(x + 8)
-	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
-		//fmt.Printf("ras x=%s\n", kst(x))
-		rl(x)
-		dx(x)
-		r = I(x + 12)
-		rx(r)
-		u := I(x + 16)
-		s := fst(r)
-		if lp != 0 && v == ':' { //58 detect local assignment
-			l := I(lp)
-			n := nn(l)
-			if fnx(l, s+8) == n {
-				rx(s)
-				sI(lp, cat(l, s))
-			}
-		}
-		if v > 128 {
-			v -= 128
-		}
-		a := drop(r, 1)
-		if nn(a) == 0 {
-			dx(a)
-			a = 0
-		} else {
-			a = enl(a) // TODO: need to eval a, but not when compiling lambdas. enl(evl(a))?
-		}
-		x = lcat(l3(v, enl(s), a), u)
-	}
-	return x
-}
-
-/*
-func loc(x, y i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt != 6 {
-		return x
-	}
-	rl(x)
-	r = mk(6, xn)
-	rp := r + 8
-	for i := i(0); i < xn; i++ {
-		xi := I(xp)
-		ri := ras(xi, nn(xi), y)
-		//fmt.Printf("ri = %x?%x %s [%x]\n", xi, ri, kst(ri), MI[(ri>>2)+1])
-		if xi == ri {
-			ri = loc(xi, y)
-		}
-		sI(rp, ri)
-		xp += 4
-		rp += 4
-	}
-	return dxr(x, r)
-}
-*/
 func loc(x, y i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
