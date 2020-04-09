@@ -498,7 +498,6 @@ func atl(x, y i) (r i) {
 	return atx(atx(x, f), t)
 }
 func atd(x, y, yt i) (r i) {
-	//fmt.Printf("dict index %d/%d\n", yt, yn)
 	k := I(x + 8)
 	v := I(x + 12)
 	if yt == 5 {
@@ -511,8 +510,6 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
-	//fmt.Printf("atx x=%s y=%s\n", kst(x), kst(y))
-	//defer func() { fmt.Printf("atx r=%s\n", kst(r)) }()
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
@@ -1154,8 +1151,67 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		sI(r+12, asi(v, y, z))
 		return r
 	}
-	if yt != 2 {
-		trap()
+	if yt == 6 {
+		if xt == 7 { // (:;d;y;z)  {k:!x;v:. x;y:(,k?*y),1_y;k!.(:;v;y;z)}
+			rl(x)
+			dx(x)
+			k := I(xp)
+			v := I(xp + 4)
+			rx(y)
+			f := fst(y)
+			if f != 0 {
+				rx(k)
+				f = fnd(k, f)
+			} else {
+				f = seq(0, nn(k), 1)
+			}
+			y = cat(enl(f), drop(y, 1))
+			v = asi(v, y, z)
+			return mkd(k, v)
+		}
+		if xt != 6 || yt != 6 {
+			trap()
+		}
+		r = take(x, xn)
+		rp := r + 8
+		rx(y)
+		a := fst(y)
+		y = drop(y, 1)
+		if a == 0 {
+			a = seq(0, xn, 1)
+		}
+		at, an, ap := v1(a)
+		if at != 2 {
+			panic("index-type")
+		}
+		if an == 1 { // depth-assign
+			dx(a)
+			ri := rp + 4*I(ap)
+			sI(ri, asi(I(ri), y, z))
+			return r
+		}
+		if yn != 2 {
+			panic("matrix-assign")
+		} // matrix-assign
+		zt := tp(z)
+		if zt != 6 {
+			z = take(enl(z), an)
+		}
+		if nn(z) != an {
+			trap()
+		}
+		rxn(y, an-1)
+		rl(z)
+		zp := z + 8
+		for i := i(0); i < an; i++ {
+			ri := rp + 4*I(ap)
+			sI(ri, asi(I(ri), y, I(zp)))
+			ap += 4
+			zp += 4
+		}
+		dx(a)
+		dx(z)
+		return r
 	}
 	zt, zn, zp := v1(z)
 	if yn > 1 && zn == 1 {
@@ -1208,19 +1264,16 @@ func asd(x, loc i) (r i) { // (+;`x;a;y)
 	rl(x)
 	dx(x)
 	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
-	an := nn(a)
 	if v != ':' { //58
 		rx(s)
 		r = lup(s, loc)
-		if an != 0 {
+		if a != 0 {
 			rx(a)
 			r = atx(r, a)
 		}
 		u = cal(v, l2(r, u))
 	}
-	if an == 0 {
-		dx(a)
-	} else {
+	if a != 0 {
 		rx(s)
 		u = asi(lup(s, loc), a, u)
 	}
@@ -1261,13 +1314,14 @@ func lev(x, loc i) (r i) {
 	return dxr(x, r)
 }
 func evl(x, loc i) (r i) {
-	//fmt.Printf("evl x=%x %s\n", x, kst(x))
+	// fmt.Printf("evl x=%x %s\n", x, kst(x))
 	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
 			r = lup(x, loc)
 			if r == 0 {
+				fmt.Printf("x=%s\n", kst(x))
 				panic("name does not exist")
 			}
 			return r
@@ -1282,7 +1336,8 @@ func evl(x, loc i) (r i) {
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
 		return swc(x, loc)
 	}
-	x = lev(ras(x, xn, 0), loc)
+	r = ras(x, xn, 0)
+	x = lev(r, loc)
 	xn = nn(x)
 	xp = x + 8
 	if v == 128 {
@@ -1420,9 +1475,11 @@ func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 	}
 	return a
 }
-func ras(x, xn, lp i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;i;y)  (and collect locals)
+func ras(x, xn, lp i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
+	// defer func() { fmt.Printf("ras r=%s\n", kst(r)) }()
 	v := I(x + 8)
 	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
+		//fmt.Printf("ras x=%s\n", kst(x))
 		rl(x)
 		dx(x)
 		r = I(x + 12)
@@ -1440,7 +1497,14 @@ func ras(x, xn, lp i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+
 		if v > 128 {
 			v -= 128
 		}
-		x = lcat(l3(v, enl(s), drop(r, 1)), u)
+		a := drop(r, 1)
+		if nn(a) == 0 {
+			dx(a)
+			a = 0
+		} else {
+			a = enl(a) // TODO: need to eval a, but not when compiling lambdas. enl(evl(a))?
+		}
+		x = lcat(l3(v, enl(s), a), u)
 	}
 	return x
 }
