@@ -515,19 +515,6 @@ func atd(x, y, yt i) (r i) {
 	dx(x)
 	return atx(v, y)
 }
-func atl(x, y, n i) (r i) {
-	r = mk(6, n)
-	rp := r + 8
-	yp := y + 8
-	rl(y)
-	rxn(x, n)
-	for i := i(0); i < n; i++ {
-		sI(rp, atx(x, I(yp)))
-		yp += 4
-		rp += 4
-	}
-	return dxyr(x, y, r)
-}
 func atx(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
@@ -537,7 +524,7 @@ func atx(x, y i) (r i) {
 		return atd(x, y, yt)
 	}
 	if yt == 6 { // at-list
-		return atl(x, y, yn)
+		return ecr(x, y, '@') //64
 	}
 	if yt != 2 {
 		fmt.Printf("atx x=%s y=%s\n", kst(x), kst(y))
