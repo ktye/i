@@ -301,8 +301,15 @@ func upx(x, y i) (i, i) {
 	if xt == yt {
 		return x, y
 	}
-	if xt >= 5 || yt >= 5 {
+	if xt == 7 || yt == 7 {
 		trap()
+	}
+	if xt == 6 {
+		y = lx(y)
+		yt = 6
+	} else if yt == 6 {
+		x = lx(x)
+		xt = 6
 	}
 	for xt < yt {
 		x = up(x, xt, xn)
@@ -851,10 +858,13 @@ func nm(x, f, h i) (r i) { // numeric monad f:scalar index (nec..), h:original f
 	}
 	return r
 }
-func nd(x, y, f i) i {
+func nd(x, y, f, h i) i {
 	x, y = upx(x, y)
 	x, y = ext(x, y)
 	t, _, n, _, xp, yp := v2(x, y)
+	if t == 6 {
+		return ecd(x, y, h)
+	}
 	w := uint32(C(t))
 	g := MT[f+t].(func(i, i, i))
 	r := mk(t, n)
@@ -914,10 +924,10 @@ func dic(x, y, r i) { sC(r, C(x)/C(y)) }
 func dii(x, y, r i) { sI(r, I(x)/I(y)) }
 func dif(x, y, r i) { sF(r, F(x)/F(y)) }
 func diz(x, y, r i) { sZ(r, Z(x)/Z(y)) }
-func add(x, y i) i  { return nd(x, y, 15+128) }
-func sub(x, y i) i  { return nd(x, y, 19+128) }
-func mul(x, y i) i  { return nd(x, y, 23+128) }
-func diw(x, y i) i  { return nd(x, y, 27+128) }
+func add(x, y i) i  { return nd(x, y, 15+128, 43) }
+func sub(x, y i) i  { return nd(x, y, 19+128, 45) }
+func mul(x, y i) i  { return nd(x, y, 23+128, 42) }
+func diw(x, y i) i  { return nd(x, y, 27+128, 37) }
 func abs(x i) i     { return nm(x, 15, 171) }
 func neg(x i) i     { return nm(x, 19, 173) }
 func sqr(x i) i     { return nm(x, 27, 165) }
