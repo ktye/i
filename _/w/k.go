@@ -832,7 +832,10 @@ func cs(x i) (r i) {
 }
 func min(x, y i) (r i) { panic("nyi") }
 func max(x, y i) (r i) { panic("nyi") }
-func nm(x, f i) (r i) {
+func nm(x, f, h i) (r i) { // numeric monad f:scalar index (nec..), h:original func (e.g. -: neg)
+	if tp(x) > 5 {
+		return ech(x, h)
+	}
 	r = use(x)
 	t, n, rp := v1(r)
 	xp := x + 8
@@ -915,9 +918,9 @@ func add(x, y i) i  { return nd(x, y, 15+128) }
 func sub(x, y i) i  { return nd(x, y, 19+128) }
 func mul(x, y i) i  { return nd(x, y, 23+128) }
 func diw(x, y i) i  { return nd(x, y, 27+128) }
-func abs(x i) i     { return nm(x, 15) }
-func neg(x i) i     { return nm(x, 19) }
-func sqr(x i) i     { return nm(x, 27) }
+func abs(x i) i     { return nm(x, 15, 171) }
+func neg(x i) i     { return nm(x, 19, 173) }
+func sqr(x i) i     { return nm(x, 27, 165) }
 func abc(x, r i) { // +c (toupper)
 	if c := C(x); is(c, az) {
 		sC(r, c-32)
@@ -979,6 +982,12 @@ func riv(x i) (r i) { return drv(125, x) } // /: ?(125)   ?(128+125)
 func scv(x i) (r i) { return drv(91, x) }  // \  scn(91)  ecl(91+128)
 func liv(x i) (r i) { return drv(93, x) }  // \: ?(93)    ?(221)
 func ech(x, y i) (r i) { // f'x (each)
+	if tp(x) == 7 {
+		rld(x)
+		k := I(x + 8)
+		v := I(x + 12)
+		return mkd(k, ech(v, y))
+	}
 	x = lx(x)
 	_, xn, xp := v1(x)
 	r = mk(6, xn)
