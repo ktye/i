@@ -840,8 +840,26 @@ func cs(x i) (r i) {
 	rx(r)
 	return dxr(x, r)
 }
-func min(x, y i) (r i) { panic("nyi") }
-func max(x, y i) (r i) { panic("nyi") }
+func mia(x, y, z i) (r i) { // minmax
+	x, y = upx(x, y)
+	x, y = ext(x, y)
+	if tp(x) == 6 {
+		return ecd(x, y, z)
+	}
+	rx(x)
+	rx(y)
+	var a i
+	if z == 38 {
+		a = les(x, y)
+	} else {
+		a = mor(x, y)
+	}
+	a = wer(a)
+	rx(a)
+	return asi(y, a, atx(x, a))
+}
+func min(x, y i) (r i) { return mia(x, y, 38) }
+func max(x, y i) (r i) { return mia(x, y, 124) }
 func nm(x, f, h i) (r i) { // numeric monad f:scalar index (nec..), h:original func (e.g. -: neg)
 	if tp(x) > 5 {
 		return ech(x, h)
