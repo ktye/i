@@ -91,7 +91,8 @@ func run(s string) string {
 	if parse {
 		x = prs(x)
 	} else {
-		x = val(x)
+		x = prs(x)
+		x = evl(x, 0)
 	}
 	s = kst(x)
 	dx(x)
@@ -142,7 +143,7 @@ func bk(t, n i) (r i) {
 	}
 	return r
 }
-func mk(x, y i) i {
+func mk(x, y i) (r i) {
 	t := bk(x, y)
 	i := 4 * t
 	for I(i) == 0 {
@@ -1087,7 +1088,6 @@ func ovr(x, y i) (r i) { // y/x (over/reduce)
 }
 func fxp(x, y i) (r i) { // y/x (fixed point)
 	z := x
-	r = x
 	for {
 		rx(x)
 		rx(y)
@@ -1437,8 +1437,6 @@ func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(
 	return 0
 }
 func evl(x, loc i) (r i) {
-	// fmt.Printf("evl x=%x %s\n", x, kst(x))
-	// defer func() { fmt.Printf("evl r=%s\n", kst(r)) }()
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
@@ -1472,7 +1470,8 @@ func evl(x, loc i) (r i) {
 	}
 	if xn == 2 {
 		rl(x)
-		return dxr(x, atx(I(xp), I(xp+4)))
+		r = atx(I(xp), I(xp+4))
+		return dxr(x, r)
 	}
 	rx(I(xp))
 	return cal(I(xp), drop(x, 1))
