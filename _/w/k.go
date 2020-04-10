@@ -511,7 +511,7 @@ func atx(x, y i) (r i) {
 	if xt == 7 { // d@..
 		return atd(x, y, yt)
 	}
-	if yt == 6 { // at-list
+	if yt > 5 { // at-list at-dict
 		return ecr(x, y, '@') //64
 	}
 	if yt != 2 {
@@ -1040,6 +1040,12 @@ func scn(x, y i) (r i) { // y\x (scan)
 	return dxyr(x, y, r)
 }
 func ecr(x, y, f i) (r i) { // x f/ y (each-right)
+	if tp(y) == 7 {
+		rld(y)
+		k := I(y + 8)
+		v := I(y + 12)
+		return mkd(k, ecr(x, v, f))
+	}
 	n := nn(y)
 	r = mk(6, n)
 	rp := r + 8
@@ -1054,6 +1060,12 @@ func ecr(x, y, f i) (r i) { // x f/ y (each-right)
 	return dxyr(x, y, r)
 }
 func ecl(x, y, f i) (r i) { // x f\ y (each-left)
+	if tp(x) == 7 {
+		rld(x)
+		k := I(x + 8)
+		v := I(x + 12)
+		return mkd(k, ecl(v, y, f))
+	}
 	n := nn(x)
 	r = mk(6, n)
 	rp := r + 8
