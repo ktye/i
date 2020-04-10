@@ -735,6 +735,9 @@ func not(x i) (r i) { return eql(mki(0), x) }
 func cmp(x, y, eq i) (r i) {
 	x, y = upx(x, y)
 	x, y = ext(x, y)
+	if tp(x) == 6 {
+		return ecd(x, y, 62-eq)
+	}
 	t, _, n, _, xp, yp := v2(x, y)
 	cm := MT[t].(func(i, i) i)
 	if eq == 1 {
