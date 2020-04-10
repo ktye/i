@@ -1089,7 +1089,25 @@ func ecl(x, y, f i) (r i) { // x f\ y (each-left)
 	return dxyr(x, y, r)
 }
 func epi(x, y, f i) (r i) { panic("nyi epi") } // x f':y
-func ecd(x, y, f i) (r i) { panic("nyi ecd") } // x f' y
+func ecd(x, y, f i) (r i) { // x f' y
+	n := nn(x)
+	if n != nn(y) {
+		panic("ecd length")
+	}
+	r = mk(6, n)
+	rp := r + 8
+	rxn(x, n)
+	rxn(y, n)
+	rxn(f, n)
+	for i := i(0); i < n; i++ {
+		c := mki(i)
+		rx(c)
+		sI(rp, cal(f, l2(atx(x, c), atx(y, c))))
+		rp += 4
+	}
+	dx(f)
+	return dxyr(x, y, r)
+}
 
 func val(x i) (r i) {
 	xt, _, _ := v1(x)

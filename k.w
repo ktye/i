@@ -59,7 +59,8 @@ ovr:I:II{n:nn x;(~n)?(dx y; :fst x);x rxn n;y rxn n-1;r:fst x;(n-1)/r:y cal r l2
 scn:I:II{n:nn x;(~n)?(dx y; :fst y);x rxn n;y rxn n-1;t:fst x;rx t;r:enl t;(n-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
 ecr:I:III{(7~tp y)?(rld y;k:I y+8;v:I y+12; :k mkd ecr(x;v;z));n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
 ecl:I:III{(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd ecl(v;y;z));n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
-ecd:I:III{!;x}epi:I:III{!;x}
+ecd:I:III{n:nn x;(~n~nn y)?!;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(c:mki i;rx c;rp::z cal(x atx c)l2 y atx c;rp+:4);dx z;dxyr}
+epi:I:III{!;x}
 val:I:I{v1;xt?[;r:(prs x) evl 0;;;;r:x evl 0;(rx x+12;r:x+12;dx x);!];r}
 lup:I:II{kv;(m~n)?(y? :x lup 0;dx x; :0);r:I v+8+4*m;rx r;dxr}kv:{k:I kkey;v:I kval;y?(k:I y+8;v:I y+12);n:536870911&I k;m:k fnx 8+x}
 
