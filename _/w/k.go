@@ -248,6 +248,23 @@ func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	yt, yn, yp = v1(y)
 	return
 }
+func ary(x i) (r i) { // arity
+	if x < 128 {
+		return 2
+	}
+	if x < 256 {
+		return 1
+	}
+	n := nn(x)
+	if n == 2 {
+		return 1 // derived
+	}
+	if n != 4 {
+		fmt.Println("n", n)
+		panic("ary")
+	}
+	return nn(I(x + 16)) // lambda
+}
 func use(x i) (r i) {
 	if I(x+4) == 1 {
 		return x
@@ -607,7 +624,7 @@ func lcl(x, y i) (r i) { // call lambda
 	rx(t)
 	an := nn(I(x + 16))
 	if fn < an {
-		y = cat(y, take(enl(0), an-fn))
+		y = lcat(y, take(enl(0), an-fn))
 	}
 	d := mkd(a, y)
 	r = lst(lev(t, d))
@@ -624,8 +641,12 @@ func cat(x, y i) (r i) {
 		return ucat(x, y)
 	}
 	if xt == 6 {
-		return lcat(x, y)
+		return ucat(x, lx(y))
 	}
+	if yt == 6 {
+		return ucat(lx(x), y)
+	}
+	fmt.Printf("cat x=%s y=%s\n", kst(x), kst(y))
 	panic("nyi cat")
 }
 func ucat(x, y i) (r i) {
@@ -1049,6 +1070,9 @@ func ecp(x, y i) (r i) { // f':x (each-prior)
 	return dxyr(x, y, r)
 }
 func ovr(x, y i) (r i) { // y/x (over/reduce)
+	if ary(y) == 1 {
+		return fxp(x, y)
+	}
 	n := nn(x)
 	if n == 0 {
 		return dxr(y, fst(x))
@@ -1060,6 +1084,21 @@ func ovr(x, y i) (r i) { // y/x (over/reduce)
 		r = cal(y, l2(r, atx(x, mki(i+1))))
 	}
 	return dxyr(x, y, r)
+}
+func fxp(x, y i) (r i) { // y/x (fixed point)
+	z := x
+	r = x
+	for {
+		rx(x)
+		rx(y)
+		r = atx(y, x)
+		if match(r, x)+match(r, z) != 0 {
+			dx(z)
+			return dxyr(x, y, r)
+		}
+		dx(x)
+		x = r
+	}
 }
 func scn(x, y i) (r i) { // y\x (scan)
 	n := nn(x)
@@ -1940,11 +1979,13 @@ func kst(x i) s {
 	sep := " "
 	switch t {
 	case 0:
-		fc := []byte(":+-*%&|<>=!~,^#_$?@.'/\\")
+		fc := []byte(":+-*%&|<>=!~,^#_$?@.'/\\({[)})")
 		if x < 128 && bytes.Index(fc, []byte{byte(x)}) != -1 {
 			return string(byte(x))
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
 			return string(byte(x-128)) + ":"
+		} else if n == 2 { // todo: ({[)}) => ' / \ ': /: \:
+			return kst(MI[(x+12)>>2]) + kst(MI[(x+8)>>2])
 		} else if n == 4 { // lambda
 			f, n = sstr, 1
 		} else {
