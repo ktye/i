@@ -1101,6 +1101,9 @@ func fxp(x, y i) (r i) { // y/x (fixed point)
 	}
 }
 func scn(x, y i) (r i) { // y\x (scan)
+	if ary(y) == 1 {
+		return sfp(x, y)
+	}
 	n := nn(x)
 	if n == 0 {
 		return dxr(y, fst(x))
@@ -1117,6 +1120,22 @@ func scn(x, y i) (r i) { // y\x (scan)
 	}
 	dx(t)
 	return dxyr(x, y, r)
+}
+func sfp(x, y i) (r i) { // y\x (scan fixed point)
+	z := x
+	rx(x)
+	a := mk(6, 0)
+	for {
+		rx(x)
+		rx(y)
+		r = atx(y, x)
+		if match(r, x)+match(r, z) != 0 {
+			dx(z)
+			return dxyr(x, y, lcat(a, r))
+		}
+		a = lcat(a, x)
+		x = r
+	}
 }
 func ecr(x, y, f i) (r i) { // x f/ y (each-right)
 	if tp(y) == 7 {

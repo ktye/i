@@ -59,7 +59,8 @@ ech:I:II{(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd v ech y);x:lx x;v1;r:6 mk xn;r
 ecp:I:II{n:nn x;(~n)?(dx y; :fst x);x rxn -1+2*n;y rxn n-1;r:fst x;(n-1)/r:r cat y cal (x atx mki 1+i)l2 x atx mki i;dxyr}
 ovr:I:II{(1~ary y)? :x fxp y;n:nn x;(~n)?(dx y; :fst x);x rxn n;y rxn n-1;r:fst x;(n-1)/r:y cal r l2 x atx mki i+1;dxyr}
 fxp:I:II{z:x;1?/(rx x;rx y;r:y atx x;((r match x)+r match z)?(dx x;dx y;dx z; :r);dx x;x:r);x}
-scn:I:II{n:nn x;(~n)?(dx y; :fst y);x rxn n;y rxn n-1;t:fst x;rx t;r:enl t;(n-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
+scn:I:II{(1~ary y)? :x sfp y;n:nn x;(~n)?(dx y; :fst y);x rxn n;y rxn n-1;t:fst x;rx t;r:enl t;(n-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
+sfp:I:II{z:x;rx x;a:6 mk 0;1?/(rx x;rx y;r:y atx x;((r match x)+r match z)?(dx x;dx y;dx z; :a lcat r);a:a lcat x;x:r);x}
 ecr:I:III{(7~tp y)?(rld y;k:I y+8;v:I y+12; :k mkd ecr(x;v;z));n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
 ecl:I:III{(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd ecl(v;y;z));n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
 ecd:I:III{n:nn x;(~n~nn y)?!;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(c:mki i;rx c;rp::z cal(x atx c)l2 y atx c;rp+:4);dx z;dxyr}
@@ -135,13 +136,13 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 -  sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
 *  mul fst                                          8.. 11   parse cur (pp)
 %  div sqr                                         12.. 15   
-&  min wer   prs                                   16..127   free pointers (4*i) for bt i, i:4..31
+&  min wer   prs flp                               16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                        128..131   memsize log2
 <  les grd                                        132..135   k-tree keys
 >  mor gdn                                        136..139   k-tree values
 =  eql grp                                        140..143   trp line
 ~  mtc not   match                                144..147   trp col
-!  mkd til   seq           z:re!im  im:!z         148..151   `x`y`z
+!  mkd til   seq           z:re!im  re:!z         148..151   `x`y`z
 ,  cat enl                                        152..155   
 ^  exc asc                                        156..159   
 $  str cst   sc cs                                160..255   char map az|AZ|NM|VB|AD|TE
@@ -149,11 +150,11 @@ $  str cst   sc cs                                160..255   char map az|AZ|NM|V
 _  drp flr   drop          ang:_z                 
 ?  fnd unq   fnd fnx fnc fni..                     
 @  atx typ                 z:abs@ang  z@ang        
-.  cal val                 re:. z
+.  cal val                 im:. z
 
-+'x  ech(40)  x+'y  ?(168)    x'y  ?              parse tree (left to right) xxx
-+/x  ovr(123) x+/y  ecr(251)  x/y  ?              (.;`s;a;+;y)      assign       s[a]+:y
-+\x  scn(91)  x+\y  ecl(219)  x\y  ?              (.;`s;(a;b;c);;y) depth assign s[a;b;c]:y
-+':x ecp(41)  x':y  ?(169)    x':y ?              (;a;b;c)   (*128) sequence     a;b;c  ::x(last) :[x;y](dex)
-+/:x ?(125)   x+/:y ?(253)    x/:y sv?            ((/;+);1 2 3)     adverbs      +/1 2 3                      
-+\:x ?(93)    x+\:y ?         x\:y vs?
++'x  ech(40)       x+'y  ecd(168)      x'y  bin?           parse tree (left to right) xxx
++/x  ovr(123),fxp  x+/y  ecr(251),whl  x/y  mod,mmul(L)?   (.;`s;a;+;y)      assign       s[a]+:y
++\x  scn(91),sfp   x+\y  ecl(219),swl  x\y  y%x,solve(L)?  (.;`s;(a;b;c);;y) depth assign s[a;b;c]:y
++':x ecp(41)       x+':y ?(169)        x':y win?           (;a;b;c)   (*128) sequence     a;b;c  ::x(last) :[x;y](dex)
++/:x ?(125)        x+/:y ?(253)        x/:y join?          ((/;+);1 2 3)     adverbs      +/1 2 3                      
++\:x ?(93)         x+\:y ?             x\:y split?       
