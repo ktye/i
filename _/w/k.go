@@ -754,6 +754,17 @@ func match(x, y i) (r i) { // x~y
 	return 1
 }
 func not(x i) (r i) { return eql(mki(0), x) }
+func tru(x i) (r i) {
+	xt, xn, xp := v1(x)
+	dx(x)
+	if xt != 2 {
+		trap()
+	}
+	if xn == 0 {
+		return 0
+	}
+	return I(xp)
+}
 func cmp(x, y, eq i) (r i) {
 	x, y = upx(x, y)
 	x, y = ext(x, y)
@@ -1070,9 +1081,28 @@ func ecp(x, y i) (r i) { // f':x (each-prior)
 	}
 	return dxyr(x, y, r)
 }
-func ovr(x, y i) (r i) { // y/x (over/reduce)
-	if ary(y) == 1 {
-		return fxp(x, y)
+func ovr(x, y i) (r i) { return ovs(x, y, 0) } // y/x (over/reduce)
+func ovs(x, y, s i) (r i) { // over/scan
+	if ary(y) == 1 { // fixed
+		z := x
+		rx(x)
+		for {
+			rx(x)
+			rx(y)
+			r = atx(y, x)
+			if match(r, x)+match(r, z) != 0 {
+				dx(z)
+				dx(x)
+				dx(y)
+				if s != 0 {
+					r = lcat(fst(s), r)
+				}
+				return r
+			}
+			scl(s, x)
+			dx(x)
+			x = r
+		}
 	}
 	n := nn(x)
 	if n == 0 {
@@ -1081,63 +1111,33 @@ func ovr(x, y i) (r i) { // y/x (over/reduce)
 	rxn(x, n)
 	rxn(y, n-1)
 	r = fst(x)
+	scl(s, r)
 	for i := i(0); i < n-1; i++ {
 		r = cal(y, l2(r, atx(x, mki(i+1))))
+		scl(s, r)
 	}
-	return dxyr(x, y, r)
+	dx(x)
+	dx(y)
+	if s == 0 {
+		return r
+	}
+	dx(r)
+	return fst(s)
 }
-func fxp(x, y i) (r i) { // y/x (fixed point)
-	z := x
-	for {
-		rx(x)
+func scl(x, y i) {
+	if x != 0 {
+		xp := x + 8
+		fmt.Printf("scl y=%s\n", kst(y))
 		rx(y)
-		r = atx(y, x)
-		if match(r, x)+match(r, z) != 0 {
-			dx(z)
-			return dxyr(x, y, r)
-		}
-		dx(x)
-		x = r
+		sI(xp, lcat(I(xp), y))
+		fmt.Printf("scl x=%s\n", kst(x))
 	}
 }
-func scn(x, y i) (r i) { // y\x (scan)
-	if ary(y) == 1 {
-		return sfp(x, y)
-	}
-	n := nn(x)
-	if n == 0 {
-		return dxr(y, fst(x))
-	}
-	rxn(x, n)
-	rxn(y, n-1)
-	t := fst(x)
-	rx(t)
-	r = enl(t)
-	for i := i(0); i < n-1; i++ {
-		t = cal(y, l2(t, atx(x, mki(i+1))))
-		rx(t)
-		r = lcat(r, t)
-	}
-	dx(t)
-	return dxyr(x, y, r)
-}
-func sfp(x, y i) (r i) { // y\x (scan fixed point)
-	z := x
-	rx(x)
-	a := mk(6, 0)
-	for {
-		rx(x)
-		rx(y)
-		r = atx(y, x)
-		if match(r, x)+match(r, z) != 0 {
-			dx(z)
-			return dxyr(x, y, lcat(a, r))
-		}
-		a = lcat(a, x)
-		x = r
-	}
-}
+func scn(x, y i) (r i) { return ovs(x, y, enl(mk(6, 0))) } // y\x (scan)
 func ecr(x, y, f i) (r i) { // x f/ y (each-right)
+	if ary(f) == 1 {
+		return whl(x, y, f)
+	}
 	if tp(y) == 7 {
 		rld(y)
 		k := I(y + 8)
@@ -1156,6 +1156,32 @@ func ecr(x, y, f i) (r i) { // x f/ y (each-right)
 	}
 	dx(f)
 	return dxyr(x, y, r)
+}
+func whl(x, y, f i) (r i) {
+	fmt.Printf("whl x=%s y=%s f=%s\n", kst(x), kst(y), kst(f))
+	xt := tp(x)
+	if xt != 0 {
+		if xt != 2 {
+			trap()
+		}
+		return wln(x, y, f)
+	}
+	r = y
+	for {
+		rx(x)
+		rx(f)
+		r = atx(f, r)
+		rx(r)
+		fmt.Printf("whl r=%s\n", kst(r))
+		if tru(atx(x, r)) == 0 {
+			dx(f)
+			dx(x)
+			return r
+		}
+	}
+}
+func wln(x, y, f i) (r i) { // n f/ y (for)
+	panic("wln")
 }
 func ecl(x, y, f i) (r i) { // x f\ y (each-left)
 	if tp(x) == 7 {
