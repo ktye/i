@@ -1046,6 +1046,9 @@ func riv(x i) (r i) { return drv(125, x) } // /: ?(125)   ?(128+125)
 func scv(x i) (r i) { return drv(91, x) }  // \  scn(91)  ecl(91+128)
 func liv(x i) (r i) { return drv(93, x) }  // \: ?(93)    ?(221)
 func ech(x, y i) (r i) { // f'x (each)
+	if tp(y) != 0 {
+		return bin(y, x)
+	}
 	if tp(x) == 7 {
 		rld(x)
 		k := I(x + 8)
@@ -1248,6 +1251,37 @@ func ecd(x, y, f i) (r i) { // x f' y
 	}
 	dx(f)
 	return dxyr(x, y, r)
+}
+func bin(x, y i) (r i) { // x'y binary search
+	xt, yt, xn, yn, xp, yp := v2(x, y)
+	if xt != yt {
+		trap()
+	}
+	r = mk(2, yn)
+	rp := r + 8
+	w := i(C(xt))
+	for i := i(0); i < yn; i++ {
+		sI(rp, ibin(xp, yp, xn, xt))
+		rp += 4
+		yp += w
+	}
+	return dxyr(x, y, r)
+}
+func ibin(x, y, n, t i) (r i) {
+	k, j, h := i(0), n-1, i(0)
+	gt := MT[t].(func(i, i) i)
+	w := i(C(t))
+	for {
+		if int32(k) > int32(j) {
+			return k - 1
+		}
+		h = (k + j) >> 1
+		if gt(x+w*h, y) != 0 {
+			j = h - 1
+		} else {
+			k = h + 1
+		}
+	}
 }
 
 func val(x i) (r i) {
@@ -1832,6 +1866,7 @@ func nms(b c, p, s i) (r i) { // parse numeric vector
 		if q == 0 {
 			return r
 		}
+		r, q = upx(r, q)
 		r = cat(r, q)
 	}
 }
