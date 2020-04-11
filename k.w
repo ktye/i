@@ -57,10 +57,9 @@ crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 drv:I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv:I:I{40 drv x}epv:I:I{41 drv x}ovv:I:I{123 drv x}scv:I:I{91 drv x}
 ech:I:II{(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd v ech y);x:lx x;v1;r:6 mk xn;r8;rl x;(y<120)?y+:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
 ecp:I:II{n:nn x;(~n)?(dx y; :fst x);x rxn -1+2*n;y rxn n-1;r:fst x;(n-1)/r:r cat y cal (x atx mki 1+i)l2 x atx mki i;dxyr}
-ovr:I:II{(1~ary y)? :x fxp y;n:nn x;(~n)?(dx y; :fst x);x rxn n;y rxn n-1;r:fst x;(n-1)/r:y cal r l2 x atx mki i+1;dxyr}
-fxp:I:II{z:x;1?/(rx x;rx y;r:y atx x;((r match x)+r match z)?(dx x;dx y;dx z; :r);dx x;x:r);x}
-scn:I:II{(1~ary y)? :x sfp y;n:nn x;(~n)?(dx y; :fst y);x rxn n;y rxn n-1;t:fst x;rx t;r:enl t;(n-1)/(t:y cal t l2 x atx mki 1+i;rx t;r:r lcat t);dx t;dxyr}
-sfp:I:II{z:x;rx x;a:6 mk 0;1?/(rx x;rx y;r:y atx x;((r match x)+r match z)?(dx x;dx y;dx z; :a lcat r);a:a lcat x;x:r);x}
+ovr:I:II{ovs(x;y;0)}scn:I:II{ovs(x;y;enl 6 mk 0)}scl:V:II{x?(rx y;xp:x+8;xp::(I xp)lcat y)}
+ovs:I:III{(1~ary y)? :fxp(x;y;z);n:nn x;x rxn n;r:fst x;y rxn n-1;z scl r;(n-1)/(r:y cal r l2 x atx mki i+1;z scl r);dx x;dx y;(~z)? :r;dx r;fst(z)}
+fxp:I:III{t:x;rx x;1?/(rx x;rx y;r:y atx x;((r match x)+r match t)?(dx x;dx y;dx t;z?r:(fst z)lcat r; :r);z scl x;dx x;x:r);x}
 ecr:I:III{(7~tp y)?(rld y;k:I y+8;v:I y+12; :k mkd ecr(x;v;z));n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
 ecl:I:III{(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd ecl(v;y;z));n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
 ecd:I:III{n:nn x;(~n~nn y)?!;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(c:mki i;rx c;rp::z cal(x atx c)l2 y atx c;rp+:4);dx z;dxyr}

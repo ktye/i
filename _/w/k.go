@@ -1082,47 +1082,45 @@ func ecp(x, y i) (r i) { // f':x (each-prior)
 	return dxyr(x, y, r)
 }
 func ovr(x, y i) (r i) { return ovs(x, y, 0) } // y/x (over/reduce)
-func ovs(x, y, s i) (r i) { // over/scan
+func ovs(x, y, z i) (r i) { // over/scan
 	if ary(y) == 1 { // fixed
-		z := x
+		t := x
 		rx(x)
 		for {
 			rx(x)
 			rx(y)
 			r = atx(y, x)
-			if match(r, x)+match(r, z) != 0 {
-				dx(z)
+			if match(r, x)+match(r, t) != 0 {
 				dx(x)
 				dx(y)
-				if s != 0 {
-					r = lcat(fst(s), r)
+				dx(t)
+				if z != 0 {
+					r = lcat(fst(z), r)
 				}
 				return r
 			}
-			scl(s, x)
+			scl(z, x)
 			dx(x)
 			x = r
 		}
 	}
 	n := nn(x)
-	if n == 0 {
-		return dxr(y, fst(x))
-	}
 	rxn(x, n)
+	r = fst(x) // panics on n~0
 	rxn(y, n-1)
-	r = fst(x)
-	scl(s, r)
+
+	scl(z, r)
 	for i := i(0); i < n-1; i++ {
 		r = cal(y, l2(r, atx(x, mki(i+1))))
-		scl(s, r)
+		scl(z, r)
 	}
 	dx(x)
 	dx(y)
-	if s == 0 {
+	if z == 0 {
 		return r
 	}
 	dx(r)
-	return fst(s)
+	return fst(z)
 }
 func scl(x, y i) {
 	if x != 0 {
