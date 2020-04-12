@@ -107,7 +107,7 @@ func ini(x i) i {
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
-		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, eql, gdn, unq, // 160..191
+		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
 	})
@@ -687,6 +687,9 @@ func wer(x i) (r i) {
 	if xt == 1 {
 		return prs(x)
 	}
+	if xt == 6 {
+		return flp(x)
+	}
 	if xt != 2 {
 		panic("type")
 	}
@@ -854,9 +857,48 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 		sI(y+i<<2, I(x+a<<2))
 	}
 }
-func str(x i) (r i)    { panic("nyi") }
-func unq(x i) (r i)    { panic("nyi") }
+func str(x i) (r i) { panic("nyi") }
+func unq(x i) (r i) {
+	xt, xn, xp := v1(x)
+	r = mk(xt, 0)
+	n := i(0)
+	w := i(C(xt))
+	for i := i(0); i < xn; i++ {
+		if fnx(r, xp) == n {
+			rx(x)
+			r = cat(r, atx(x, mki(i)))
+			n += 1
+		}
+		xp += w
+	}
+	return dxr(x, r)
+
+	/*
+		n := nn(x)
+		if n < 2 {
+			return x
+		}
+		x = srt(x)
+		rxn(x, n-1)
+		r = fst(x)
+		rx(r)
+		p := r
+		for i := i(1); i < n; i++ {
+			q := atx(x, mki(i))
+			if match(p, q) == 0 {
+				rx(q)
+				r = cat(r, q)
+			}
+			dx(p)
+			p = q
+		}
+		dx(p)
+		return r
+	*/
+}
+func grp(x i) (r i)    { panic("nyi") }
 func flr(x i) (r i)    { panic("nyi") }
+func flp(x i) (r i)    { panic("nyi") }
 func cst(x, y i) (r i) { panic("nyi") }
 func sc(x i) (r i) {
 	r = enl(x)
