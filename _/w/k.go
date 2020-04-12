@@ -314,30 +314,25 @@ func ext(x, y i) (rx, ry i) {
 	}
 	panic("length")
 }
-func upx(x, y i) (i, i) {
-	xt, yt, xn, yn, _, _ := v2(x, y)
+func upxy(x, y i) (i, i) { x = upx(x, y); y = upx(y, x); return x, y }
+func upx(x, y i) (r i) {
+	xt := tp(x)
+	yt := tp(y)
 	if xt == yt {
-		return x, y
+		return x
 	}
 	if xt == 7 || yt == 7 {
 		trap()
 	}
-	if xt == 6 {
-		y = lx(y)
-		yt = 6
-	} else if yt == 6 {
-		x = lx(x)
-		xt = 6
+	if yt == 6 {
+		return lx(x)
 	}
+	xn := nn(x)
 	for xt < yt {
 		x = up(x, xt, xn)
 		xt++
 	}
-	for yt < xt {
-		y = up(y, yt, yn)
-		yt++
-	}
-	return x, y
+	return x
 }
 func up(x, t, n i) (r i) {
 	r = mk(t+1, n)
@@ -766,7 +761,7 @@ func tru(x i) (r i) {
 	return I(xp)
 }
 func cmp(x, y, eq i) (r i) {
-	x, y = upx(x, y)
+	x, y = upxy(x, y)
 	x, y = ext(x, y)
 	if tp(x) == 6 {
 		return ecd(x, y, 62-eq)
@@ -874,7 +869,7 @@ func cs(x i) (r i) {
 	return dxr(x, r)
 }
 func mia(x, y, z i) (r i) { // minmax
-	x, y = upx(x, y)
+	x, y = upxy(x, y)
 	x, y = ext(x, y)
 	if tp(x) == 6 {
 		return ecd(x, y, z)
@@ -913,7 +908,7 @@ func nm(x, f, h i) (r i) { // numeric monad f:scalar index (nec..), h:original f
 	return r
 }
 func nd(x, y, f, h i) i {
-	x, y = upx(x, y)
+	x, y = upxy(x, y)
 	x, y = ext(x, y)
 	t, _, n, _, xp, yp := v2(x, y)
 	if t == 6 {
@@ -1253,6 +1248,7 @@ func ecd(x, y, f i) (r i) { // x f' y
 	return dxyr(x, y, r)
 }
 func bin(x, y i) (r i) { // x'y binary search
+	fmt.Printf("bin %s %s\n", kst(x), kst(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt != yt {
 		trap()
@@ -1268,11 +1264,15 @@ func bin(x, y i) (r i) { // x'y binary search
 	return dxyr(x, y, r)
 }
 func ibin(x, y, n, t i) (r i) {
+	fmt.Printf("ibin %x %x %x %x\n", x, y, n, t)
 	k, j, h := i(0), n-1, i(0)
 	gt := MT[t].(func(i, i) i)
 	w := i(C(t))
 	for {
+		fmt.Printf("k=%d j=%d w=%d h=%d\n", k, j, w, h)
 		if int32(k) > int32(j) {
+			fmt.Printf("r %d\n", k-1)
+			//panic("xxx")
 			return k - 1
 		}
 		h = (k + j) >> 1
@@ -1866,7 +1866,8 @@ func nms(b c, p, s i) (r i) { // parse numeric vector
 		if q == 0 {
 			return r
 		}
-		r, q = upx(r, q)
+		r = upx(r, q)
+		q = upx(q, r)
 		r = cat(r, q)
 	}
 }
