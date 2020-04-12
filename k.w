@@ -77,8 +77,15 @@ lev:I:II{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);dxr}
 evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;r:ras(x;xn;y);r? :asd(r;y);x:x lev y;xn:nn x;xp:x+8;(v~128)?(xn>2)? :lst x;(xn~2)?(rl x;r:(I xp)atx I xp+4;dx x; :r);rx I xp;(I xp)cal x drop 1}
 uqg:I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;y?y:y lcat 2 mk 0;n+:1);y?(yi:y+8+4*m;yi::(I yi)cat mki i);xp+:w);y?r:r l2 y;dxr}
 unq:I:I{x uqg 0}grp:I:I{x uqg 6 mk 0}
-xxx:I:I{!;x}str:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}flp:I:I{!;x}
+xxx:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}flp:I:I{!;x}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
+
+str:I:I{v1;(xt~1)? :x;((xt>5)+~xn~1)?xt? :x ech 164;xt?[r:x cg xn;;r:(I xp)ci 0;r:cf F xp;(r:cf F xp;r:r cc 105;r:r ucat cf F xp+8);(r:I xp;rx r);!];dxr}
+cc:I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}
+ng:I:II{y?x:(mkc 45)ucat x;x}
+cg:I:II{(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(~y~4)?!;r:I x+8;rx r;r}
+ci:I:II{(~x)? :mkc 48;m:0;(x<'0)?(x:0-x;m:1);r:1 mk 0;x?/(c:x\10;c?y:0;(~y)?r:r cc 48+c;x%:10);(~nn r)?r:r cc 48;(rev r)ng m}
+cf:I:F{(~x~x)? :(mkc 48)cc 110;m:0;(x<0.0)?(m:1;x:-x);(x>9218868437227405311f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.0)?/(e+:3;x%:1000.0);(x<1.0)?/(e-:3;x*:1000.0);n:I?'x;r:n ci 0;x-:F?n;d:6-nn r;(d<'1)?d:1;d/x*:10.0;r:(r cc 46)ucat(I?x)ci 1;e?r:(r cc 101)ucat e ci 0;r ng m}
 
 /parse
 prs:I:I{v1;(~xt~1)?!;8::xp;r:sq xp+xn;$[1~nn r;r:fst r;r:128 cat r];dxr}

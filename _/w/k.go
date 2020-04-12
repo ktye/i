@@ -643,14 +643,12 @@ func ucat(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func cc(x, y i) (r i) { // cat char
-	//fmt.Printf("cc x=%s\n", kst(x))
 	n := nn(x)
 	if bk(1, n) < bk(1, n+1) {
 		return ucat(x, mkc(y))
 	}
 	sC(x+8+n, byte(y))
 	sI(x, I(x)+1)
-	//fmt.Printf("cc r=%s\n", kst(x))
 	return x
 }
 func lcat(x, y i) (r i) { // list append
@@ -880,93 +878,93 @@ func grp(x i) (r i) { return uqg(x, mk(6, 0)) } // =x (group)
 func flr(x i) (r i) { panic("nyi") }
 func flp(x i) (r i) { panic("nyi") }
 
-func str(x i) (r i) { panic("nyi") }
-
-/*
 func str(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt == 1 {
 		return x
 	}
-	if xt == 6 {
-		return lrc(x, 164)
-	}
-	if xt == 7 {
-		return drc(x, 164)
-	}
-	if xn != 1 {
-		r = mk(6, xn)
-		rp := r + 8
-		rxn(x, xn)
-		for i := i(0); i < xn; i++ {
-			sI(rp, str(atx(x, mki(i))))
+	if xt > 5 || xn != 1 {
+		if xt != 0 {
+			return ech(x, 164)
 		}
 	}
 	switch xt {
 	case 0:
-		if xt < 256 {
-			r = mkc(x)
-			if r > 127 {
-				r = cc(r, ':')
-			}
-		} else if xn == 4 {
-			r = I(xp)
-			rx(r)
-		} else {
-			panic("nyi str f")
-		}
+		r = cg(x, xn)
 	case 2:
 		n := I(xp)
-		r = ci(n)
+		r = ci(n, 0)
 	case 3:
-		f := F(xp)
-		r = cf(n)
-
+		r = cf(F(xp))
+	case 4:
+		r = cf(F(xp))
+		r = cc(r, 'i') //105
+		r = ucat(r, cf(F(xp+8)))
+	case 5:
+		r = I(xp)
+		rx(r)
 	default:
 		panic("nyi")
 	}
 	return dxr(x, r)
 }
-func ci(n i) (r i) {
+func cg(x i, xn i) (r i) {
+	if x < 127 {
+		r = mkc(x)
+	} else if x < 256 {
+		r = cc(mkc(x-128), ':') //58
+	} else if xn == 4 {
+		r = I(x + 8)
+		rx(r)
+	} else {
+		panic("nyi str f")
+	}
+	return r
+}
+func ng(x, y i) (r i) {
+	if y != 0 {
+		x = ucat(mkc('-'), x) //45
+	}
+	return x
+}
+func ci(n, t i) (r i) {
 	if n == 0 {
-		dx(x)
-		return mkc('0')
+		return mkc('0') //48
 	}
 	m := i(0)
 	if int32(n) < 0 {
 		n = uint32(-int32(n))
-		m = mkc(i('-'))
+		m = 1
 	}
 	r = mk(1, 0)
 	for n != 0 {
-		r = cc(r, i('0'+n%10))
-		fmt.Printf("r %s\n", kst(r))
+		c := n % 10
+		if c != 0 {
+			t = 0
+		}
+		if t != 1 {
+			r = cc(r, i('0'+c))
+		}
 		n /= 10
 	}
-	r = rev(r)
-	if m != 0 {
-		r = ucat(m, r)
+	if nn(r) == 0 {
+		r = cc(r, '0')
 	}
+	return ng(rev(r), m)
 }
 func cf(f float64) (r i) {
 	if f != f {
-		dx(x)
-		return cc(mkc('0', 'n'))
+		return cc(mkc('0'), 'n') //48 110
 	}
 	m := i(0)
 	if f < 0 {
-		m = mkc(i('-'))
+		m = 1
 		f = -f
 	}
 	if f > 1.7976931348623157e+308 {
-		dx(x)
-		r = cc(mkc('0', 'w'))
-		if m != 0 {
-			r = ucat(m, r)
-		}
-		return r
+		return ng(cc(mkc('0'), 'w'), m) //119
 	}
-	e := 0
+	e := i(0)
 	for f > 1000 {
 		e += 3
 		f /= 1000.0
@@ -975,28 +973,23 @@ func cf(f float64) (r i) {
 		e -= 3
 		f *= 1000.0
 	}
+	fmt.Println("f/e", f, e)
 	n := int32(f)
-	r = ci(uint32(n))
+	r = ci(uint32(n), 0)
 	f -= float64(n)
-	r = cc(r, '.')
-	d := int32(nn(r) - 6)
-	if d < 1 {
+	d := 6 - nn(r)
+	if int32(d) < 1 {
 		d = 1
 	}
 	for i := i(0); i < d; i++ {
 		f *= 10
 	}
-	r = ucat(r, ci(int32(f)))
+	r = ucat(cc(r, '.'), ci(uint32(f), 1))
 	if e != 0 {
-		r = cc(r, 'e')
-		r = ucat(r, ci(e))
+		r = ucat(cc(r, 'e'), ci(e, 0))
 	}
-	if m != 0 {
-		r = ucat(m, r)
-	}
-	return r
+	return ng(r, m)
 }
-*/
 
 func cst(x, y i) (r i) { panic("nyi") }
 func sc(x i) (r i) {
