@@ -276,30 +276,6 @@ func use(x i) (r i) {
 	dx(x)
 	return r
 }
-func lrc(x, f i) (r i) { // list recurse
-	_, xn, xp := v1(x)
-	rl(x)
-	g := MT[f].(func(i) i)
-	r = mk(6, xn)
-	rp := r + 8
-	for i := i(0); i < xn; i++ {
-		sI(rp, g(xp))
-		rp += 4
-		xp += 4
-	}
-	return dxr(x, r)
-}
-func drc(x, f i) (r i) { // dict recurse
-	g := MT[f].(func(i) i)
-	rl(x)
-	return dxr(x, mkd(x+8, g(12+x)))
-}
-func drx(x, f i) (r i) { // dict recurse on values
-	rx(12 + x)
-	dx(x)
-	g := MT[f].(func(i) i)
-	return g(12 + x)
-}
 func mv(dst, src, n i) { copy(MC[dst:dst+n], MC[src:src+n]) }
 func ext(x, y i) (rx, ry i) {
 	_, _, xn, yn, _, _ := v2(x, y)
@@ -408,12 +384,17 @@ func rev(x i) (r i) {
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
 	if xt == 7 {
-		return drx(x, '*'+128)
+		return fst(val(x))
 	}
 	return atx(x, mki(0))
 }
-func dex(x, y i) (r i) { return dxr(x, y) }                                   // :[x;y]
-func lst(x i) (r i)    { return atx(x, mki(nn(x)-1)) /* TODO k.w differs */ } // ::x
+func dex(x, y i) (r i) { return dxr(x, y) } // :[x;y]
+func lst(x i) (r i) {
+	if tp(x) == 7 {
+		return lst(val(x))
+	}
+	return atx(x, mki(nn(x)-1)) /* TODO k.w differs */
+} // ::x
 func drop(x, n i) (r i) {
 	xt, xn, _ := v1(x)
 	if n > xn {
@@ -661,6 +642,17 @@ func ucat(x, y i) (r i) {
 	mv(r+8+w*xn, yp, w*yn)
 	return dxyr(x, y, r)
 }
+func cc(x, y i) (r i) { // cat char
+	//fmt.Printf("cc x=%s\n", kst(x))
+	n := nn(x)
+	if bk(1, n) < bk(1, n+1) {
+		return ucat(x, mkc(y))
+	}
+	sC(x+8+n, byte(y))
+	sI(x, I(x)+1)
+	//fmt.Printf("cc r=%s\n", kst(x))
+	return x
+}
 func lcat(x, y i) (r i) { // list append
 	x = use(x)
 	xt, xn, xp := v1(x)
@@ -857,7 +849,6 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 		sI(y+i<<2, I(x+a<<2))
 	}
 }
-func str(x i) (r i) { panic("nyi") }
 func uqg(x, y i) (r i) { // ?x =x uniq/group
 	xt, xn, xp := v1(x)
 	r = mk(xt, 0)
@@ -884,10 +875,129 @@ func uqg(x, y i) (r i) { // ?x =x uniq/group
 	}
 	return dxr(x, r)
 }
-func unq(x i) (r i)    { return uqg(x, 0) }        // ?x (uniq)
-func grp(x i) (r i)    { return uqg(x, mk(6, 0)) } // =x (group)
-func flr(x i) (r i)    { panic("nyi") }
-func flp(x i) (r i)    { panic("nyi") }
+func unq(x i) (r i) { return uqg(x, 0) }        // ?x (uniq)
+func grp(x i) (r i) { return uqg(x, mk(6, 0)) } // =x (group)
+func flr(x i) (r i) { panic("nyi") }
+func flp(x i) (r i) { panic("nyi") }
+
+func str(x i) (r i) { panic("nyi") }
+
+/*
+func str(x i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt == 1 {
+		return x
+	}
+	if xt == 6 {
+		return lrc(x, 164)
+	}
+	if xt == 7 {
+		return drc(x, 164)
+	}
+	if xn != 1 {
+		r = mk(6, xn)
+		rp := r + 8
+		rxn(x, xn)
+		for i := i(0); i < xn; i++ {
+			sI(rp, str(atx(x, mki(i))))
+		}
+	}
+	switch xt {
+	case 0:
+		if xt < 256 {
+			r = mkc(x)
+			if r > 127 {
+				r = cc(r, ':')
+			}
+		} else if xn == 4 {
+			r = I(xp)
+			rx(r)
+		} else {
+			panic("nyi str f")
+		}
+	case 2:
+		n := I(xp)
+		r = ci(n)
+	case 3:
+		f := F(xp)
+		r = cf(n)
+
+	default:
+		panic("nyi")
+	}
+	return dxr(x, r)
+}
+func ci(n i) (r i) {
+	if n == 0 {
+		dx(x)
+		return mkc('0')
+	}
+	m := i(0)
+	if int32(n) < 0 {
+		n = uint32(-int32(n))
+		m = mkc(i('-'))
+	}
+	r = mk(1, 0)
+	for n != 0 {
+		r = cc(r, i('0'+n%10))
+		fmt.Printf("r %s\n", kst(r))
+		n /= 10
+	}
+	r = rev(r)
+	if m != 0 {
+		r = ucat(m, r)
+	}
+}
+func cf(f float64) (r i) {
+	if f != f {
+		dx(x)
+		return cc(mkc('0', 'n'))
+	}
+	m := i(0)
+	if f < 0 {
+		m = mkc(i('-'))
+		f = -f
+	}
+	if f > 1.7976931348623157e+308 {
+		dx(x)
+		r = cc(mkc('0', 'w'))
+		if m != 0 {
+			r = ucat(m, r)
+		}
+		return r
+	}
+	e := 0
+	for f > 1000 {
+		e += 3
+		f /= 1000.0
+	}
+	for f < 1 {
+		e -= 3
+		f *= 1000.0
+	}
+	n := int32(f)
+	r = ci(uint32(n))
+	f -= float64(n)
+	r = cc(r, '.')
+	d := int32(nn(r) - 6)
+	if d < 1 {
+		d = 1
+	}
+	for i := i(0); i < d; i++ {
+		f *= 10
+	}
+	r = ucat(r, ci(int32(f)))
+	if e != 0 {
+		r = cc(r, 'e')
+		r = ucat(r, ci(e))
+	}
+	if m != 0 {
+		r = ucat(m, r)
+	}
+	return r
+}
+*/
+
 func cst(x, y i) (r i) { panic("nyi") }
 func sc(x i) (r i) {
 	r = enl(x)
