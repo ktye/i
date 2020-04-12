@@ -858,45 +858,34 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 	}
 }
 func str(x i) (r i) { panic("nyi") }
-func unq(x i) (r i) {
+func uqg(x, y i) (r i) { // ?x =x uniq/group
 	xt, xn, xp := v1(x)
 	r = mk(xt, 0)
 	n := i(0)
 	w := i(C(xt))
 	for i := i(0); i < xn; i++ {
-		if fnx(r, xp) == n {
+		m := fnx(r, xp)
+		if m == n {
 			rx(x)
 			r = cat(r, atx(x, mki(i)))
+			if y != 0 {
+				y = lcat(y, mk(2, 0))
+			}
 			n += 1
+		}
+		if y != 0 {
+			yi := y + 8 + 4*m
+			sI(yi, cat(I(yi), mki(i)))
 		}
 		xp += w
 	}
+	if y != 0 {
+		r = l2(r, y)
+	}
 	return dxr(x, r)
-
-	/*
-		n := nn(x)
-		if n < 2 {
-			return x
-		}
-		x = srt(x)
-		rxn(x, n-1)
-		r = fst(x)
-		rx(r)
-		p := r
-		for i := i(1); i < n; i++ {
-			q := atx(x, mki(i))
-			if match(p, q) == 0 {
-				rx(q)
-				r = cat(r, q)
-			}
-			dx(p)
-			p = q
-		}
-		dx(p)
-		return r
-	*/
 }
-func grp(x i) (r i)    { panic("nyi") }
+func unq(x i) (r i)    { return uqg(x, 0) }        // ?x (uniq)
+func grp(x i) (r i)    { return uqg(x, mk(6, 0)) } // =x (group)
 func flr(x i) (r i)    { panic("nyi") }
 func flp(x i) (r i)    { panic("nyi") }
 func cst(x, y i) (r i) { panic("nyi") }

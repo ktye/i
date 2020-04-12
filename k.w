@@ -75,8 +75,9 @@ swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);
 ras:I:III{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;r rxn 2;s:fst r;a:r drop 1;$[nn a;(a:a lev z;an:nn a;(an~1)?a:fst a);(dx a;a:0)];u:I x+16;rx u;dx x; :(l3(v;s;a))lcat u evl z);0}
 lev:I:II{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);dxr}
 evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;r:ras(x;xn;y);r? :asd(r;y);x:x lev y;xn:nn x;xp:x+8;(v~128)?(xn>2)? :lst x;(xn~2)?(rl x;r:(I xp)atx I xp+4;dx x; :r);rx I xp;(I xp)cal x drop 1}
-unq:I:I{v1;r:xt mk 0;n:0;w:C xt;xn/((n~r fnx xp)?(rx x;r:r cat x atx mki i;n+:1);xp+:w);dxr}
-xxx:I:I{!;x}str:I:I{!;x}grp:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}flp:I:I{!;x}
+uqg:I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;y?y:y lcat 2 mk 0;n+:1);y?(yi:y+8+4*m;yi::(I yi)cat mki i);xp+:w);y?r:r l2 y;dxr}
+unq:I:I{x uqg 0}grp:I:I{x uqg 6 mk 0}
+xxx:I:I{!;x}str:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}flp:I:I{!;x}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 /parse
