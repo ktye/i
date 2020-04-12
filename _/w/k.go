@@ -1067,17 +1067,29 @@ func ech(x, y i) (r i) { // f'x (each)
 	return dxyr(x, y, r)
 }
 func ecp(x, y i) (r i) { // f':x (each-prior)
-	n := nn(x)
+	rx(x)
+	p := fst(x)
+	return epi(p, x, y)
+}
+func epi(x, y, z i) (r i) { // x f':y (each-prior-initial)
+	n := nn(y)
 	if n == 0 {
-		return dxr(y, fst(x))
+		return dxyr(x, z, y)
 	}
-	rxn(x, 2*n-1)
-	rxn(y, n-1)
-	r = fst(x)
-	for i := i(0); i < (n - 1); i++ {
-		r = cat(r, cal(y, l2(atx(x, mki(i+1)), atx(x, mki(i)))))
+	rxn(y, n)
+	rxn(z, n)
+	r = mk(6, n)
+	rp := r + 8
+	var yi i
+	for i := i(0); i < n; i++ {
+		yi = atx(y, mki(i))
+		rx(yi)
+		sI(rp, cal(z, l2(yi, x)))
+		x = yi
+		rp += 4
 	}
-	return dxyr(x, y, r)
+	dx(yi)
+	return dxyr(y, z, r)
 }
 func ovr(x, y i) (r i) { return ovs(x, y, 0) }             // y/x (over/reduce)
 func scn(x, y i) (r i) { return ovs(x, y, enl(mk(6, 0))) } // y\x (scan)
@@ -1227,7 +1239,6 @@ func ecl(x, y, f i) (r i) { // x f\ y (each-left)
 	dx(f)
 	return dxyr(x, y, r)
 }
-func epi(x, y, f i) (r i) { panic("nyi epi") } // x f':y
 func ecd(x, y, f i) (r i) { // x f' y
 	n := nn(x)
 	if n != nn(y) {
