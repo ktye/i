@@ -1556,7 +1556,7 @@ func (v brif) gstr() s    { return jn("if ", gstring(v.x()), "{break}") }
 func (v opx) rt() T       { return 0 }
 func (v opx) valid() s    { return ifex(s(v) != "!", "nonapplied operator") }
 func (v opx) bytes() []c  { return []c{0x00} }
-func (v opx) cstr() s     { return "X();" }
+func (v opx) cstr() s     { return "panic();" }
 func (v opx) gstr() s     { return `panic("trap")` }
 func (v pos) rt() T       { return 0 }
 func (v pos) valid() s    { return "position(dummy expr)" }

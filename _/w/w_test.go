@@ -267,7 +267,7 @@ function P()  { kons.value += " " }
 
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
-function kst(x) {
+function X(x) {
  if((x==0)||(x==128)) return ""
  var h=0; var t=0; var n=0;
  if(x>255) {
@@ -280,7 +280,7 @@ function kst(x) {
  case 0:
   if(x<128) return String.fromCharCode(x)
   else if(x<256) return String.fromCharCode(x-128) + ":"
-  else if(n==4) {x=kst(K.U[(x+8)>>>2]); return x.substr(1,x.length-2)}
+  else if(n==4) {x=X(K.U[(x+8)>>>2]); return x.substr(1,x.length-2)}
   else return "?"+x+"?"
  case 1:
   return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
@@ -303,17 +303,17 @@ function kst(x) {
   var r = ""
   var v = K.U.slice(2+x, 2+x+n)
   var tr = function(s) { return s.substr(1, s.length-2) }
-  for (var i=0; i<n; i++) r += String.fromCharCode(96) + tr(kst(v[i]))
+  for (var i=0; i<n; i++) r += String.fromCharCode(96) + tr(X(v[i]))
   return r
  case 6:
   x >>>= 2
   var r = []
-  if (n==1) return "," + kst(K.U[2+x])
-  for (var i=0; i<n; i++) r.push(kst(K.U[2+x+i]))
+  if (n==1) return "," + X(K.U[2+x])
+  for (var i=0; i<n; i++) r.push(X(K.U[2+x+i]))
   return "("+r.join(";")+")"
  case 7:
   x >>>= 2
-  return kst(K.U[2+x]) + "!" + kst(K.U[3+x])
+  return X(K.U[2+x]) + "!" + X(K.U[3+x])
  default:
   return "kst nyi: t=" + String(t)
  }
@@ -340,7 +340,7 @@ function chrs(s) {
 function E(s) {
  try{ // todo save/restore
   var x = K.exports.val(chrs(s))
-  O(kst(x)+"\n")
+  O(X(x)+"\n")
   K.exports.dx(x)
  } catch(e) {
   console.log(e)
@@ -401,7 +401,7 @@ const kh = `#include<stdlib.h>
 typedef void V;typedef char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 C *MC;I* MI;J* MJ;F *MF;
-V X(){exit(1);}
+V panic(){exit(1);}
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
 `
@@ -420,7 +420,7 @@ V pstr(I x) {
 	I n = (MI[x>>2])&536870911;
 	for(I i=0;i<n;i++) printf("%c", MC[8+x+i]);
 }
-V kst(I x) {
+V X(I x) {
 	I i, j, y, m, tof;
 	I t = 0;
 	I n = 0;
@@ -435,7 +435,7 @@ V kst(I x) {
 		if(x<128)       printf("%c", x);
 		else if (x<256) printf("%c:", x-128);
 		else if (n==4)  pstr(MI[(8+x)>>2]);
-		else { printf("kst(x=%x)"); X(); }
+		else { printf("kst(x=%x)", x); panic();}
 		break;
 	case 1:
 		printf("\"");pstr(x);printf("\"");
@@ -476,23 +476,23 @@ V kst(I x) {
 		break;
 	case 6:
 		x = 2 + (x>>2);
-		if(n==1){ printf(","); kst(MI[x]); R; }
+		if(n==1){ printf(","); X(MI[x]); R; }
 		printf("(");
 		for(i=0;i<n;i++) {
 			if(i>0) printf(";");
-			kst(MI[x+i]);
+			X(MI[x+i]);
 		}
 		printf(")");
 		break;
 	case 7:
 		x >>= 2;
-		kst(MI[2+x]);printf("!");kst(MI[3+x]);
+		X(MI[2+x]);printf("!");X(MI[3+x]);
 		break;
 	default:
-		printf("nyi: kst %x t=%d\n", x, t);X();
+		printf("nyi: kst %x t=%d\n", x, t);panic();
 	}
 }
-V O(I x) { kst(x); printf("\n"); }
+V O(I x) { X(x); printf("\n"); }
 #define M0 16
 I chrs(C *s) {
 	I n = strlen(s);
@@ -504,7 +504,7 @@ V runtest() {
 	C buf[128];
 	C *p;
 	while (fgets(buf, 128, stdin) != NULL) {
-		if((p=strstr(buf, " /"))==NULL) { X(); }
+		if((p=strstr(buf, " /"))==NULL) { panic(); }
 		if(buf[0] == '/') { printf("skip\n"); continue; }
 		*p = 0;
 		memset(MC, 0, 1<<M0);
@@ -586,8 +586,7 @@ func dump(a, n I) { // type: cifzsld -> 2468ace
 	}
 	fmt.Println()
 }
-func kst(x I) string {
-	//fmt.Printf("kst %x\n", x)
+func X(x I) string {
 	type s = string
 	type i = I
 	Z := func(a i) complex128 { return complex(MF[a>>3], MF[1+a>>3]) }
@@ -657,13 +656,13 @@ func kst(x I) string {
 		tof = func(s s) s { return sep + s }
 	case 6:
 		if n == 1 {
-			return "," + kst(MI[(8+x)>>2])
+			return "," + X(MI[(8+x)>>2])
 		}
-		f = func(i i) s { return kst(MI[2+i+x>>2]) }
+		f = func(i i) s { return X(MI[2+i+x>>2]) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
 	case 7:
-		return kst(MI[(x+8)>>2]) + "!" + kst(MI[(x+12)>>2])
+		return X(MI[(x+8)>>2]) + "!" + X(MI[(x+12)>>2])
 	default:
 		panic(fmt.Sprintf("nyi: kst: t=%d", t))
 	}
@@ -736,7 +735,7 @@ func run(s string) string {
 	x := mk(1, I(len(s)))
 	copy(MC[x+8:], s)
 	x = val(x)
-	s = kst(x)
+	s = X(x)
 	dx(x)
 	dx(MI[132>>2]) //kkey
 	dx(MI[136>>2]) //kval

@@ -94,7 +94,7 @@ func run(s string) string {
 		x = prs(x)
 		x = evl(x, 0)
 	}
-	s = kst(x)
+	s = X(x)
 	dx(x)
 	leak()
 	return s
@@ -516,7 +516,6 @@ func atx(x, y i) (r i) {
 		return ecr(x, y, '@') //64
 	}
 	if yt != 2 {
-		fmt.Printf("atx x=%s y=%s\n", kst(x), kst(y))
 		panic("atx yt~I")
 	}
 	r = mk(xt, yn)
@@ -623,7 +622,6 @@ func cat(x, y i) (r i) {
 	if yt == 6 {
 		return ucat(lx(x), y)
 	}
-	fmt.Printf("cat x=%s y=%s\n", kst(x), kst(y))
 	panic("nyi cat")
 }
 func ucat(x, y i) (r i) {
@@ -1706,7 +1704,6 @@ func lev(x, loc i) (r i) {
 	return dxr(x, r)
 }
 func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
-	// defer func() { fmt.Printf("ras r=%s\n", kst(r)) }()
 	v := I(x + 8)
 	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
 		if v > 128 {
@@ -1806,7 +1803,6 @@ func sq(s i) (r i) { // E
 	}
 }
 func ex(x, s i) (r i) { // e
-	//defer func() { fmt.Printf("ex %d %q\n", r, kst(r)) }()
 	if x == 0 || ws(s) || is(C(I(pp)), TE) { //32
 		return x
 	}
@@ -1817,7 +1813,6 @@ func ex(x, s i) (r i) { // e
 	return l2(x, ex(r, s))
 }
 func pt(s i) (r i) { // t
-	//defer func() { fmt.Printf("pt r=%d %q\n", r, kst(r)) }()
 	r = tok(s)
 	if r == 0 {
 		p := I(pp)
@@ -2241,7 +2236,7 @@ func leak() {
 		p += dp >> 2
 	}
 }
-func kst(x i) s {
+func X(x i) s {
 	if x == 0 || x == 128 {
 		return ""
 	}
@@ -2283,7 +2278,7 @@ func kst(x i) s {
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
 			return string(byte(x-128)) + ":"
 		} else if n == 2 { // todo: ({[)}) => ' / \ ': /: \:
-			return kst(MI[(x+12)>>2]) + kst(MI[(x+8)>>2])
+			return X(MI[(x+12)>>2]) + X(MI[(x+8)>>2])
 		} else if n == 4 { // lambda
 			f, n = sstr, 1
 		} else {
@@ -2312,15 +2307,15 @@ func kst(x i) s {
 		tof = func(s s) s { return "`" + s }
 	case 6:
 		if n == 1 {
-			return "," + kst(I(8+x))
+			return "," + X(I(8+x))
 		}
-		f = func(i i) s { return kst(MI[2+i+x>>2]) }
+		f = func(i i) s { return X(MI[2+i+x>>2]) }
 		sep = ";"
 		tof = func(s s) s { return "(" + s + ")" }
 	case 7:
-		return kst(I(x+8)) + "!" + kst(I(x+12))
+		return X(I(x+8)) + "!" + X(I(x+12))
 	default:
-		panic(fmt.Sprintf("nyi: kst: t=%d", t))
+		panic(fmt.Sprintf("nyi: t=%d", t))
 	}
 	r := make([]s, n)
 	for k := range r {
