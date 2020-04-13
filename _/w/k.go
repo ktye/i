@@ -107,9 +107,9 @@ func ini(x i) i {
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
-		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
-		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, nil, nil, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, nil, not, nil, // 224..255
+		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
+		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(128, x)                // alloc
@@ -813,6 +813,58 @@ func fnc(xp, xn i, c c) (r i) {
 	}
 	return r
 }
+func jon(x, y i) (r i) { // y/:x (join)
+	xt, xn, xp := v1(x)
+	if xt != 6 || xn == 0 {
+		trap()
+	}
+	rl(x)
+	r = I(xp)
+	rxn(y, xn-2)
+	for i := i(0); i < xn-1; i++ {
+		xp += 4
+		r = cat(cat(r, y), I(xp))
+	}
+	return dxr(x, r)
+}
+func spl(x, y i) (r i) { // y\:x (split)
+	rx(x)
+	yn := nn(y)
+	r = cut(cat(mki(0), fds(x, y)), x)
+	rn := nn(r) - 1
+	rp := r + 8
+	for i := i(0); i < rn; i++ {
+		rp += 4
+		sI(rp, drop(I(rp), yn))
+	}
+	return r
+}
+func fds(x, y i) (r i) { // find subarray y in x
+	xt, yt, xn, yn, xp, yp := v2(x, y)
+	if xt != yt || xt > 5 {
+		trap()
+	}
+	if yn == 0 || xn < yn {
+		return dxyr(x, y, mk(2, 0))
+	}
+	r = mk(2, 0)
+	eq := MT[8+xt].(func(i, i) i)
+	w := i(C(xt))
+	for i := i(0); i < xn-yn; i++ {
+		a := uint32(0)
+		for j := uint32(0); j < yn; j++ {
+			k := w * j
+			a += eq(xp+k, yp+k)
+		}
+		if a == yn {
+			r = ucat(r, mki(i))
+			i += yn - 1
+			xp += w * (yn - 1)
+		}
+		xp += w
+	}
+	return dxyr(x, y, r)
+}
 func exc(x, y i) (r i) { rx(x); return atx(x, wer(eql(mki(nn(y)), fnd(y, x)))) } // x^y
 func grd(x i) (r i) { // <x
 	xt, xn, xp := v1(x)
@@ -1168,12 +1220,12 @@ func drv(x, y i) (r i) { // x(adv) y(verb), e.g. ech +
 	sI(12+r, y)
 	return r
 }
-func ecv(x i) (r i) { return drv(40, x) }  // '  ech(40)  ?(40+128)
-func epv(x i) (r i) { return drv(41, x) }  // ': ecp(41)  ?(41+128)
-func ovv(x i) (r i) { return drv(123, x) } // /  ovr(123) ecr(123+128)
-func riv(x i) (r i) { return drv(125, x) } // /: ?(125)   ?(128+125)
-func scv(x i) (r i) { return drv(91, x) }  // \  scn(91)  ecl(91+128)
-func liv(x i) (r i) { return drv(93, x) }  // \: ?(93)    ?(221)
+func ecv(x i) (r i) { return drv(40, x) }  // '  ech(168) ecd(40)
+func epv(x i) (r i) { return drv(41, x) }  // ': ecp(169) epi(41)
+func ovv(x i) (r i) { return drv(123, x) } // /  ovr(251) ecr(123)
+func riv(x i) (r i) { return drv(125, x) } // /: jon(253) ?(125)
+func scv(x i) (r i) { return drv(91, x) }  // \  scn(219) ecl(91)
+func liv(x i) (r i) { return drv(93, x) }  // \: spl(221) ?(93)
 func ech(x, y i) (r i) { // f'x (each)
 	if tp(y) != 0 {
 		return bin(y, x)
@@ -1393,7 +1445,6 @@ func ecd(x, y, f i) (r i) { // x f' y
 	return dxyr(x, y, r)
 }
 func bin(x, y i) (r i) { // x'y binary search
-	fmt.Printf("bin %s %s\n", kst(x), kst(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt != yt {
 		trap()
@@ -1409,15 +1460,11 @@ func bin(x, y i) (r i) { // x'y binary search
 	return dxyr(x, y, r)
 }
 func ibin(x, y, n, t i) (r i) {
-	fmt.Printf("ibin %x %x %x %x\n", x, y, n, t)
 	k, j, h := i(0), n-1, i(0)
 	gt := MT[t].(func(i, i) i)
 	w := i(C(t))
 	for {
-		fmt.Printf("k=%d j=%d w=%d h=%d\n", k, j, w, h)
 		if int32(k) > int32(j) {
-			fmt.Printf("r %d\n", k-1)
-			//panic("xxx")
 			return k - 1
 		}
 		h = (k + j) >> 1

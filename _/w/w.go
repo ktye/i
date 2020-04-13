@@ -729,7 +729,8 @@ func (p *parser) validate(e expr) (expr, s) {
 func (p *parser) nloc(s s, t T) int { // local index by name, may create new
 	n, o := p.fn.lmap[s]
 	if o {
-		if p.fn.locl[n] != t {
+		if tt := p.fn.locl[n]; t != tt {
+			fmt.Printf("%v %v %#v %#v\n", tt, t, p.fn.locl, p.fn.lmap)
 			p.err(s + " exists with different type")
 		}
 	} else {
