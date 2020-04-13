@@ -30,7 +30,7 @@ func TestWagon(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	v := strings.Split(strings.TrimSpace(string(b)), "\n")
+	v := strings.Split(string(b), "\n")
 	for i := range v {
 		if len(v[i]) == 0 {
 			fmt.Println("skip")

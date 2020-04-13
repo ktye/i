@@ -58,7 +58,7 @@ func runtest() {
 	if e != nil {
 		panic(e)
 	}
-	v := strings.Split(strings.TrimSpace(string(b)), "\n")
+	v := strings.Split(string(b), "\n")
 	for i := range v {
 		if len(v[i]) == 0 {
 			fmt.Println("skip rest")
@@ -109,7 +109,7 @@ func ini(x i) i {
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(128, x)                // alloc
@@ -346,6 +346,11 @@ func lx(x i) (r i) { // explode
 }
 func til(x i) (r i) {
 	xt, _, xp := v1(x)
+	if xt == 7 {
+		r = I(xp)
+		rx(r)
+		return dxr(x, r)
+	}
 	if xt != 2 {
 		trap()
 	}
@@ -814,7 +819,7 @@ func fnc(xp, xn i, c c) (r i) {
 func jon(x, y i) (r i) { // y/:x (join)
 	xt, xn, xp := v1(x)
 	if xt != 6 || xn == 0 {
-		trap()
+		return dxr(y, x) // allow ","/"abc" -> "abc"
 	}
 	rl(x)
 	r = I(xp)
@@ -927,7 +932,31 @@ func unq(x i) (r i) { return uqg(x, 0) }        // ?x (uniq)
 func grp(x i) (r i) { return uqg(x, mk(6, 0)) } // =x (group)
 func flr(x i) (r i) { panic("nyi") }
 func flp(x i) (r i) { panic("nyi") }
-
+func kst(x i) (r i) {
+	t := tp(x)
+	if t == 7 {
+		rx(x)
+		return ucat(cc(kst(til(x)), '!'), kst(val(x))) //33
+	}
+	if t == 6 {
+		x = ech(x, 235) // 'k-each
+	} else {
+		x = str(x)
+	}
+	switch t {
+	case 0:
+		r = x
+	case 1:
+		r = cc(ucat(mkc('"'), x), '"') //34   todo quote
+	case 5:
+		r = ucat(mkc('`'), jon(x, mkc('`'))) //96
+	case 6:
+		r = cc(ucat(mkc('('), jon(x, mkc(';'))), ')') //40 59 41
+	default:
+		r = jon(x, mkc(' ')) //32  2 3 4
+	}
+	return r
+}
 func str(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt == 1 {
@@ -1482,8 +1511,9 @@ func val(x i) (r i) {
 	case 6:
 		return evl(x, 0)
 	case 7:
-		rx(x + 12)
-		return dxr(x, x+12)
+		r = I(x + 12)
+		rx(r)
+		return dxr(x, r)
 	default:
 		fmt.Printf("val xt=%d\n", xt)
 		panic("nyi")
