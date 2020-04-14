@@ -1105,7 +1105,6 @@ func cf(f float64) (r i) {
 		e -= 3
 		f *= 1000.0
 	}
-	fmt.Println("f/e", f, e)
 	n := int32(f)
 	r = ci(uint32(n), 0)
 	f -= float64(n)
@@ -2137,6 +2136,27 @@ func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, 
 				dx(q)
 			}
 		}
+	}
+	p = I(pp)
+	if p < s && C(p) == 'e' { //101
+		sI(pp, p+1)
+		q := pin(C(p+1), p+1, s)
+		if q == 0 {
+			sI(pp, p)
+			return r
+		}
+		e := I(q + 8)
+		dx(q)
+		f := F(r + 8)
+		for int32(e) < 0 {
+			f /= 10.0
+			e++
+		}
+		for e > 0 {
+			f *= 10.0
+			e--
+		}
+		sF(r+8, f)
 	}
 	return r
 }
