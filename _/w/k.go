@@ -390,12 +390,12 @@ func fst(x i) (r i) {
 	return atx(x, mki(0))
 }
 func dex(x, y i) (r i) { return dxr(x, y) } // :[x;y]
-func lst(x i) (r i) {
+func lst(x i) (r i) { // ::x
 	if tp(x) == 7 {
 		return lst(val(x))
 	}
 	return atx(x, mki(nn(x)-1)) /* TODO k.w differs */
-} // ::x
+}
 func drop(x, n i) (r i) {
 	xt, xn, _ := v1(x)
 	if n > xn {
@@ -407,7 +407,11 @@ func drop(x, n i) (r i) {
 	return atx(x, seq(n, xn-n, 1))
 }
 func cut(x, y i) (r i) {
-	xt, _, xn, yn, xp, _ := v2(x, y)
+	xt, yt, xn, yn, xp, _ := v2(x, y)
+	if yt == 7 {
+		rx(y)
+		return tkd(exc(til(y), x), y)
+	}
 	if xt != 2 {
 		panic("type")
 	}
@@ -434,7 +438,10 @@ func cut(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func rsh(x, y i) (r i) {
-	xt, _, xn, _, xp, _ := v2(x, y)
+	xt, yt, xn, _, xp, _ := v2(x, y)
+	if yt == 7 {
+		return tkd(x, y)
+	}
 	if xt != 2 {
 		panic("type")
 	}
@@ -473,6 +480,18 @@ func take(x, n i) (r i) {
 		}
 	}
 	return atx(x, r)
+}
+func tkd(x, y i) (r i) {
+	t := tp(x)
+	k := I(y + 8)
+	v := I(y + 12)
+	rld(y)
+	if t == 5 {
+		rx(k)
+		x = wer(eql(k, x))
+	}
+	rx(x)
+	return mkd(atx(k, x), atx(v, x))
 }
 func atm(x, y i) (r i) { // {$[0~#y;:0#x;];}
 	if 0 == nn(y) {
@@ -671,7 +690,13 @@ func lcat(x, y i) (r i) { // list append
 	return x
 }
 func enl(x i) (r i) { r = mk(6, 1); sI(8+r, x); return r }
-func cnt(x i) (r i) { dx(x); return mki(nn(x)) }
+func cnt(x i) (r i) {
+	if tp(x) == 7 {
+		x = til(x)
+	}
+	dx(x)
+	return mki(nn(x))
+}
 func typ(x i) (r i) {
 	xt, _, _ := v1(x)
 	r = mk(2, 1)
