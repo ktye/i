@@ -267,57 +267,6 @@ function P()  { kons.value += " " }
 
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
-function X(x) {
- if((x==0)||(x==128)) return ""
- var h=0; var t=0; var n=0;
- if(x>255) {
-  h = K.U[x>>>2]
-  t = (h>>>29)>>>0
-  n = (h&536870911)>>>0
- }
- var o = []
- switch(t){
- case 0:
-  if(x<128) return String.fromCharCode(x)
-  else if(x<256) return String.fromCharCode(x-128) + ":"
-  else if(n==4) {x=X(K.U[(x+8)>>>2]); return x.substr(1,x.length-2)}
-  else return "?"+x+"?"
- case 1:
-  return '"'+su(K.C.slice(8+x, 8+x+n))+'"'
- case 2:
-  x >>>= 2
-  return K.I.slice(2+x, 2+x+n).join(" ")
- case 3:
-  x >>>= 3
-  var s = K.F.slice(1+x, 1+x+n).join(" ")
-  if(s.indexOf(".")==-1) s+=".0"
-  return s
- case 4:
-  x >>>= 3
-  var s = K.F.slice(1+x, 1+x+2*n)
-  for (var i=0; i<s.length; i+=2) s[i]=s[i]+"i"+s[i+1]
-  return s.slice(n).join(" ")
- case 5:
-  x >>>= 2
-  if(n==0) return "0#"+String.fromCharCode(96)
-  var r = ""
-  var v = K.U.slice(2+x, 2+x+n)
-  var tr = function(s) { return s.substr(1, s.length-2) }
-  for (var i=0; i<n; i++) r += String.fromCharCode(96) + tr(X(v[i]))
-  return r
- case 6:
-  x >>>= 2
-  var r = []
-  if (n==1) return "," + X(K.U[2+x])
-  for (var i=0; i<n; i++) r.push(X(K.U[2+x+i]))
-  return "("+r.join(";")+")"
- case 7:
-  x >>>= 2
-  return X(K.U[2+x]) + "!" + X(K.U[3+x])
- default:
-  return "kst nyi: t=" + String(t)
- }
-}
 
 var funcs = {{{fncs}}}
 function xx(x) { return x.toString(16).padStart(8,'0') }
@@ -331,16 +280,17 @@ function dump(x, n) {
  }
  O("\n")
 }
-function chrs(s) {
+function cs(s) {
  var n = s.length
  var x = K.exports.mk(1, n)
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
  return x
 }
+function sk(x) { var n = K.exports.nn(x); return su(K.C.slice(8+x, 8+x+n)) }
 function E(s) {
  try{ // todo save/restore
-  var x = K.exports.val(chrs(s))
-  O(X(x)+"\n")
+  var x = K.exports.kst(K.exports.val(cs(s)))
+  O(sk(x)+"\n")
   K.exports.dx(x)
  } catch(e) {
   console.log(e)
@@ -420,79 +370,7 @@ V pstr(I x) {
 	I n = (MI[x>>2])&536870911;
 	for(I i=0;i<n;i++) printf("%c", MC[8+x+i]);
 }
-V X(I x) {
-	I i, j, y, m, tof;
-	I t = 0;
-	I n = 0;
-	if ((x==0)||(x==128)) R;
-	if (x > 255) {
-		t = (MI[x>>2])>>29;
-		n = (MI[x>>2])&536870911;
-	}
-	if(!x) R;
-	switch(t){
-	case 0:
-		if(x<128)       printf("%c", x);
-		else if (x<256) printf("%c:", x-128);
-		else if (n==4)  pstr(MI[(8+x)>>2]);
-		else { printf("kst(x=%x)", x); panic();}
-		break;
-	case 1:
-		printf("\"");pstr(x);printf("\"");
-		break;
-	case 2:
-		x = 2 + (x>>2);
-		for(i=0;i<n;i++) {
-			if (i>0)  printf(" ");
-			printf("%d", MI[x+i]);
-		}
-		break;
-	case 3:
-		tof = 1;
-		x = 1 + (x>>3);
-		for(i=0;i<n;i++) {
-			if (i>0)  printf(" ");
-			if (MF[x+i] != MF[x+i]) { printf("0n"); tof = 0; } else printf("%g", MF[x+i]);
-			if (MF[x+i] != (F)(I)MF[x+i]) tof = 0;
-		}
-		if(tof) printf(".0");
-		break;
-	case 4:
-		x = 1 + (x>>3);
-		for(i=0;i<2*n;i++) {
-			if (i%2 == 0) printf("i");
-			else if (i>0) printf(" ");
-			if (MF[x+i] != MF[x+i]) printf("0n"); else printf("%g", MF[x+i]);
-		}
-	case 5:
-		if(n==0) { printf("0#%c",96); R; }
-		x = 2 + (x>>2);
-		for(i=0;i<n;i++) {
-			printf("%c", 96);
-			y = MI[x+i];
-			m = MI[y>>2]&536870911;
-			for(j=0;j<m;j++) printf("%c", MC[8+y+j]);
-		}
-		break;
-	case 6:
-		x = 2 + (x>>2);
-		if(n==1){ printf(","); X(MI[x]); R; }
-		printf("(");
-		for(i=0;i<n;i++) {
-			if(i>0) printf(";");
-			X(MI[x+i]);
-		}
-		printf(")");
-		break;
-	case 7:
-		x >>= 2;
-		X(MI[2+x]);printf("!");X(MI[3+x]);
-		break;
-	default:
-		printf("nyi: kst %x t=%d\n", x, t);panic();
-	}
-}
-V O(I x) { X(x); printf("\n"); }
+V O(I x) { pstr(kst(x)); printf("\n"); }
 #define M0 16
 I chrs(C *s) {
 	I n = strlen(s);
@@ -630,6 +508,9 @@ func X(x I) string {
 			return string(byte(x))
 		} else if x < 256 && bytes.Index(fc, []byte{byte(x - 128)}) != -1 {
 			return string(byte(x-128)) + ":"
+		} else if n == 3 {
+			r := X(MI[(x + 12)>>2])
+			return X(MI[(x+8)>>2]) + "[" + r[1:len(r)-1] + "]"
 		} else if n == 4 {
 			return sstr(0)
 		} else {
@@ -734,8 +615,9 @@ func run(s string) string {
 	ini(16)
 	x := mk(1, I(len(s)))
 	copy(MC[x+8:], s)
-	x = val(x)
-	s = X(x)
+	x = kst(val(x))
+	n := nn(x)
+	s = string(MC[8+x:8+x+n])
 	dx(x)
 	dx(MI[132>>2]) //kkey
 	dx(MI[136>>2]) //kval

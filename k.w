@@ -4,7 +4,7 @@ ini:I:I{0::289360742959022340j;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);kkey
 bk:I:II{r:32-*7+y*C x;(r<4)? :4;r}mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}mkd:I:II{v2;(~xn~yn)?!;(~xt~5)?!;(~yt~6)?y:lx y;r:x l2 y;r::2|7<<29;r}mkc:I:I{r:1 mk 1;(r+8)::C?x;r}mks:I:I{sc mkc x}mkz:I:II{r:x mkd y;r::2|6<<29;r}l2:I:II{r:6 mk 2;(r+8)::x;(r+12)::y;r}l3:I:III{r:6 mk 3;(r+8)::x;(r+12)::y;(r+16)::z;r}
 nn:I:I{(x<256)? :1;536870911&I x}tp:I:I{(x<256)? :0;(I x)>>29}v1:{xt:tp x;xn:nn x;xp:8+x}v2:{v1;yt:tp y;yn:nn y;yp:8+y}r8:{rp:r+8}
-ary:I:I{(x<128)? :2;(x<256)? :1;n:nn x;(n~2)? :1;(~n~4)?!;nn I x+16}
+ary:I:I{(x<128)? :2;(x<256)? :1;n:nn x;(n~2)? :1;nn I x+16}
 fr:V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;((~xt)+xt>4)?xn/(dx I xp+4*i);fr x))}dex:I:II{dx x;y}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{x rxn 1}rxn:V:II{(x>255)?(x+:4;x::y+I x)}rl:V:I{v1;xn/(rx I xp;xp+:4)}rld:V:I{rl x;dx x}
 lx:I:I{v1;(xt~6)? :x;r:6 mk xn;r8;x rxn xn;xn/(rp::x atx mki i;rp+:4);dxr}
 til:I:I{v1;(7~xt)?(r:I xp;rx r;dx x; :r);(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir.I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
@@ -14,7 +14,9 @@ up:I:III{r:(y+1) mk z;xp:x+8;r8;y?[;z/(rp::C xp+i;rp+:4);z/(rp::F?'I xp;rp+:8;xp
 atx:I:II{v2;(~xt)?( :x cal enl y);(xt~7)? :atd(x;y;yt);(yt>5)? :ecr(x;y;64);(~yt~2)?!;r:xt mk yn;r8;w:C xt;yn/(yi:I yp;(xn<=yi)?!;mv(rp;xp+w*yi;w);rp+:w;yp+:4);(xt>4)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
 atm:I:II{(~nn y)?(dx x; :y);rx y;f:fst y;t:y drop 1;(6~tp t)?(1~nn t)?t:fst t;nf:nn f;((~f)+~nf~1)?(f?x:x atx f; :ecl(x;t;64));(x atx f)atx t}
 atd:I:III{k:I x+8;v:I x+12;(z~5)?(rx k;y:k fnd y;z:2);rx v;dx x;v atx y}
-cal:I:II{v2;xt? :x atm y;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y));(x<128)?x+:128);(x<128)?((~yn~2)?!;rld y; :(I.x)(I yp;I yp+4));(x<256)?((~yn~1)?!; :(I.x)(fst y));(xn~2)?(rld x;a:I xp;yn?[; :((I.a+128)(fst y;I xp+4));(rld y; :((I.a)(I yp;I yp+4;I xp+4)));!]);(xn~4)? :x lcl y;!;x}
+cal:I:II{v2;xt? :x atm y;(~yt~6)?!;(yn~1)?(((sadv x)|sadv x-128)? :((I.x)(fst y));(x<128)?x+:128);(x<128)?((~yn~2)?!;rld y; :(I.x)(I yp;I yp+4));(x<256)?((~yn~1)?!; :(I.x)(fst y));(xn~2)?(rld x;a:I xp;yn?[; :((I.a+128)(fst y;I xp+4));(rld y; :((I.a)(I yp;I yp+4;I xp+4)));!]);(xn~3)?(rl x;r:asi(I x+12;I x+16;y);v:I x+8;dx x; :v cal r);(xn~4)? :x lcl y;!;x}
+
+
 lcl:I:II{fn:I x+20;(~fn~nn y)?!;a:I x+16;rx a;t:I x+12;rx t;an:nn I x+16;(fn<an)?y:y lcat(enl 0)take an-fn;d:a mkd y;r:lst t lev d;dx x;dx d;r}
 rev:I:I{n:nn x;(~n)? :x;x atx tir n}fst:I:I{v1;(xt~7)?( :fst val x);x atx mki 0}lst:I:I{(7~tp x)? :lst val x;x atx mki (nn x)-1}
 cut:I:II{v2;(~xt~2)?!;(xn~1)?(r:y drop I xp;dx x; :r);r:6 mk xn;r8;xn/(a:I xp;b:I xp+4;(i~xn-1)?b:yn;(b<a)?!;rx y;rp::y atx seq(a;b-a;1);xp+:4;rp+:4);dxyr}
@@ -77,17 +79,19 @@ asi:I:III{v2;(xt~7)?(yt~5)?(rld x;k:I xp;v:I xp+4;rx k;y:k fnd y; :k mkd asi(v;y
 swc:I:II{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:r evl y;((~i\2)|(i~xn-1))?(dx x; :r);dx r;i+:1;(~I r+8)?i+:1);dx x;0}
 ras:I:III{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;r rxn 2;s:fst r;a:r drop 1;$[nn a;(a:a lev z;an:nn a;(an~1)?a:fst a);(dx a;a:0)];u:I x+16;rx u;dx x; :(l3(v;s;a))lcat u evl z);0}
 lev:I:II{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(rp::(I xp)evl y;rp+:4;xp+:4);dxr}
-evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;r:ras(x;xn;y);r? :asd(r;y);x:x lev y;xn:nn x;xp:x+8;(v~128)?(xn>2)? :lst x;(xn~2)?(rl x;r:(I xp)atx I xp+4;dx x; :r);rx I xp;(I xp)cal x drop 1}
+evl:I:II{v1;(~xt~6)?((xt~5)?(xn~1)?(r:x lup y;(~r)?!; :r); :x);(~xn)? :x;(xn~1)? :(fst x)lev y;v:I xp;(v~36)?(xn>3)?  :x swc y;r:ras(x;xn;y);r? :asd(r;y);x:x lev y;xn:nn x;xp:x+8;(v~128)?(xn>2)? :lst x;(xn~2)?(rl x;r:(I xp)atx I xp+4;dx x; :r);a:(xp+4)fnl xn-1;a? :x prj a;rx I xp;(I xp)cal x drop 1}
+prj:I:II{r:0 mk 3;rx I x+8;(r+8)::I x+8;(r+12)::x drop 1;(r+16)::y;r}
+fnl:I:II{r:0;y/((~I x)?((~r)?r:2 mk 0;r:r ucat mki i);x+:4);r}
 uqg:I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;y?y:y lcat 2 mk 0;n+:1);y?(yi:y+8+4*m;yi::(I yi)cat mki i);xp+:w);y?r:r l2 y;dxr}
 unq:I:I{x uqg 0}grp:I:I{x uqg 6 mk 0}
 xxx:I:I{!;x}flr:I:I{!;x}cst:I:II{!;x}flp:I:I{!;x}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
-kst:I:I{t:tp x;(7~t)?(rx x; :((kst til x)cc 33)ucat kst val x);$[6~t;x:x ech 235;x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
+kst:I:I{t:tp x;(~nn x)?(5~t)?(dx x; :((mkc 48)cc 35)cc 96);(7~t)?(rx x; :((kst til x)cc 33)ucat kst val x);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
 str:I:I{v1;(xt~1)? :x;((xt>5)+~xn~1)?xt? :x ech 164;xt?[r:x cg xn;;r:(I xp)ci 0;r:cf F xp;(r:cf F xp;r:r cc 105;r:r ucat cf F xp+8);(r:I xp;rx r);!];dxr}
 cc:I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}
 ng:I:II{y?x:(mkc 45)ucat x;x}
-cg:I:II{(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(~y~4)?!;r:I x+8;rx r;r}
+cg:I:II{((~x)+x~128)? :1 mk 0;(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(y~3)?(rl x;dx I x+16;r:kst I x+12;(r+8)::C?91;(r+7+nn r)::C?93;r:(str I x+8)ucat r;dx x; :r);(~y~4)?!;r:I x+8;rx r;r}
 ci:I:II{(~x)? :mkc 48;m:0;(x<'0)?(x:0-x;m:1);r:1 mk 0;x?/(c:x\10;c?y:0;(~y)?r:r cc 48+c;x%:10);(~nn r)?r:r cc 48;(rev r)ng m}
 cf:I:F{(~x~x)? :(mkc 48)cc 110;m:0;(x<0.0)?(m:1;x:-x);(x>9218868437227405311f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.0)?/(e+:3;x%:1000.0);(x<1.0)?/(e-:3;x*:1000.0);n:I?'x;r:n ci 0;x-:F?n;d:6-nn r;(d<'1)?d:1;d/x*:10.0;r:(r cc 46)ucat(I?x)ci 1;e?r:(r cc 101)ucat e ci 0;r ng m}
 
@@ -151,7 +155,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 $  str cst   sc cs                                160..255   char map az|AZ|NM|VB|AD|TE
 #  rsh cnt   take                                 256.. ∞    buckets/heap
 _  drp flr   drop          ang:_z                 
-?  fnd unq   fnd fnx fnc fni..                     
+?  fnd unq   fnd fnx                     
 @  atx typ                 z:abs@ang  z@ang        
 .  cal val                 im:. z
 

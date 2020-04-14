@@ -89,12 +89,12 @@ func run(s string) string {
 	x := mk(1, i(len(s)))
 	copy(MC[x+8:], s)
 	if parse {
-		x = prs(x)
+		x = kst(prs(x))
 	} else {
 		x = prs(x)
-		x = evl(x, 0)
+		x = kst(evl(x, 0))
 	}
-	s = X(x)
+	s = string(MC[x+8 : x+nn(x)+8])
 	dx(x)
 	leak()
 	return s
@@ -260,11 +260,7 @@ func ary(x i) (r i) { // arity
 	if n == 2 {
 		return 1 // derived
 	}
-	if n != 4 {
-		fmt.Println("n", n)
-		panic("ary")
-	}
-	return nn(I(x + 16)) // lambda
+	return nn(I(x + 16)) // proj, lambda
 }
 func use(x i) (r i) {
 	if I(x+4) == 1 {
@@ -589,6 +585,13 @@ func cal(x, y i) (r i) {
 		f := MT[a+128].(func(i, i) i)
 		return f(fst(y), I(xp+4))
 	}
+	if xn == 3 { // proj
+		rl(x)
+		r = asi(I(x+12), I(x+16), y)
+		v := I(x + 8)
+		dx(x)
+		return cal(v, r)
+	}
 	if xn == 4 { // lambda
 		return lcl(x, y)
 	}
@@ -808,14 +811,6 @@ func fnx(x, yp i) (r i) {
 	}
 	return xn
 }
-func fnc(xp, xn i, c c) (r i) {
-	for r = 0; r < xn; r++ {
-		if c == C(xp+r) {
-			return r
-		}
-	}
-	return r
-}
 func jon(x, y i) (r i) { // y/:x (join)
 	xt, xn, xp := v1(x)
 	if xt != 6 || xn == 0 {
@@ -934,11 +929,17 @@ func flr(x i) (r i) { panic("nyi") }
 func flp(x i) (r i) { panic("nyi") }
 func kst(x i) (r i) {
 	t := tp(x)
+	if nn(x) == 0 && t == 5 {
+		return dxr(x, cc(cc(mkc('0'), '#'), '`')) //48 35 96
+	}
 	if t == 7 {
 		rx(x)
 		return ucat(cc(kst(til(x)), '!'), kst(val(x))) //33
 	}
 	if t == 6 {
+		if nn(x) == 1 {
+			return ucat(mkc(','), kst(fst(x))) //44
+		}
 		x = ech(x, 235) // 'k-each
 	} else {
 		x = str(x)
@@ -988,10 +989,21 @@ func str(x i) (r i) {
 	return dxr(x, r)
 }
 func cg(x i, xn i) (r i) {
+	if x == 0 || x == 128 {
+		return mk(1, 0)
+	}
 	if x < 127 {
 		r = mkc(x)
 	} else if x < 256 {
 		r = cc(mkc(x-128), ':') //58
+	} else if xn == 3 {
+		rl(x)
+		dx(I(x + 16))
+		r = kst(I(x + 12))
+		sC(r+8, '[')       //91
+		sC(r+7+nn(r), ']') //93
+		r = ucat(str(I(x+8)), r)
+		dx(x)
 	} else if xn == 4 {
 		r = I(x + 8)
 		rx(r)
@@ -1797,8 +1809,32 @@ func evl(x, loc i) (r i) {
 		r = atx(I(xp), I(xp+4))
 		return dxr(x, r)
 	}
+	a := fnl(xp+4, xn-1)
+	if a != 0 {
+		return prj(x, a)
+	}
 	rx(I(xp))
 	return cal(I(xp), drop(x, 1))
+}
+func prj(x, a i) (r i) {
+	r = mk(0, 3)
+	rx(I(x + 8))
+	sI(r+8, I(x+8))
+	sI(r+12, drop(x, 1))
+	sI(r+16, a)
+	return r
+}
+func fnl(xp, xn i) (r i) {
+	for i := i(0); i < xn; i++ {
+		if I(xp) == 0 {
+			if r == 0 {
+				r = mk(2, 0)
+			}
+			r = ucat(r, mki(i))
+		}
+		xp += 4
+	}
+	return r
 }
 func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 	xt, xn, xp := v1(x)
@@ -2309,6 +2345,9 @@ func X(x i) s {
 			return string(byte(x-128)) + ":"
 		} else if n == 2 { // todo: ({[)}) => ' / \ ': /: \:
 			return X(MI[(x+12)>>2]) + X(MI[(x+8)>>2])
+		} else if n == 3 {
+			r := X(I(x + 12))
+			return X(I(x+8)) + "[" + r[1:len(r)-1] + "]"
 		} else if n == 4 { // lambda
 			f, n = sstr, 1
 		} else {

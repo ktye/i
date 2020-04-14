@@ -74,16 +74,15 @@ func runWagon(tab []segment, b []byte, s string, exp string) error {
 	}
 	K := K{m: m, vm: vm}
 	K.call("ini", 16)
-	//r := K.call("prs", K.mks(s))
-	r := K.call("val", K.mks(s))
-	//r := K.call("evl", K.parseVector(s), 0)
-	got := K.kst(r)
+	r := K.call("kst", K.call("val", K.mks(s)))
+	n := K.call("nn", r)
+	mem := K.vm.Memory()
+	got := string(mem[r+8 : r+8+n])
 	fmt.Println(got)
 	if got != exp {
 		return fmt.Errorf("expected/got:\n%s\n%s", exp, got)
 	}
 	// free result and check for memory leaks
-	mem := K.vm.Memory()
 	K.call("dx", r)
 	K.call("dx", get(mem, 132)) // kkey
 	K.call("dx", get(mem, 136)) // kval
@@ -222,6 +221,9 @@ func (K *K) kst(a k) s {
 			return string([]byte{byte(a)})
 		} else if a < 256 {
 			return string([]byte{byte(a) - 128}) + ":"
+		} else if n == 3 {
+			r := K.kst(get(m, a+12))
+			return K.kst(get(m, a+8)) + "[" + r[1:len(r)-1] + "]"
 		} else if n == 4 {
 			return sstr(0)
 		} else {
