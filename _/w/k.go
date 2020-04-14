@@ -967,7 +967,11 @@ func flr(x i) (r i) {
 	}
 	return x
 }
-func flp(x i) (r i) { panic("nyi") }
+func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/!n}
+	n := nn(I(x + 8))
+	m := nn(x)
+	return atx(ovr(x, ','), ecr(mul(mki(n), seq(0, m, 1)), seq(0, n, 1), '+')) //44 43
+}
 func kst(x i) (r i) {
 	t := tp(x)
 	if nn(x) == 0 && t == 5 {
