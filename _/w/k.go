@@ -950,7 +950,23 @@ func uqg(x, y i) (r i) { // ?x =x uniq/group
 }
 func unq(x i) (r i) { return uqg(x, 0) }        // ?x (uniq)
 func grp(x i) (r i) { return uqg(x, mk(6, 0)) } // =x (group)
-func flr(x i) (r i) { panic("nyi") }
+func flr(x i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt > 5 {
+		return ech(x, 223)
+	}
+	if xt == 3 {
+		r = mk(2, xn)
+		rp := r + 8
+		for i := i(0); i < xn; i++ {
+			sI(rp, uint32(int32(F(xp))))
+			xp += 8
+			rp += 4
+		}
+		return dxr(x, r)
+	}
+	return x
+}
 func flp(x i) (r i) { panic("nyi") }
 func kst(x i) (r i) {
 	t := tp(x)
@@ -2114,6 +2130,9 @@ func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, 
 					f *= 10
 				}
 				rp := 8 + r
+				if F(rp) < 0 {
+					sF(8+q, -F(8+q))
+				}
 				sF(rp, F(rp)+F(8+q)/f)
 				dx(q)
 			}
