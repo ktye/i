@@ -1523,10 +1523,8 @@ func ecl(x, y, f i) (r i) { // x f\ y (each-left)
 	return dxyr(x, y, r)
 }
 func ecd(x, y, f i) (r i) { // x f' y
+	x, y = ext(x, y)
 	n := nn(x)
-	if n != nn(y) {
-		panic("ecd length")
-	}
 	r = mk(6, n)
 	rp := r + 8
 	rxn(x, n)
