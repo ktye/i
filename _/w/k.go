@@ -1105,21 +1105,33 @@ func cf(f float64) (r i) {
 		e += 3
 		f /= 1000.0
 	}
-	for f < 1 {
-		e -= 3
-		f *= 1000.0
+	if f < 1 {
+		if f >= 0.01 {
+			r = cc(mkc('0'), '.') //48 46
+			if f < 0.1 {
+				r = cc(r, '0')
+				f *= 10
+			}
+			f *= 1.0e7
+			return ng(ucat(r, ci(uint32(f), 1)), m)
+		}
+		for f < 1 {
+			e -= 3
+			f *= 1000.0
+		}
 	}
 	n := int32(f)
 	r = ci(uint32(n), 0)
 	f -= float64(n)
-	d := 6 - nn(r)
+	d := 7 - nn(r)
 	if int32(d) < 1 {
 		d = 1
 	}
 	for i := i(0); i < d; i++ {
 		f *= 10
 	}
-	r = ucat(cc(r, '.'), ci(uint32(f), 1))
+	r = cc(r, '.') //46
+	r = ucat(r, ci(uint32(f), 1))
 	if e != 0 {
 		r = ucat(cc(r, 'e'), ci(e, 0))
 	}
@@ -2129,6 +2141,10 @@ func pin(b c, p, s i) (r i) { // parse signed int
 	return 0
 }
 func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, no exp
+	m := i(0)
+	if b == '-' { //45
+		m = 1
+	}
 	r = pin(b, p, s)
 	if r == 0 {
 		return r
@@ -2177,6 +2193,12 @@ func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, 
 			e--
 		}
 		sF(r+8, f)
+	}
+	if m == 1 { // fix lost -0.
+		f := F(r + 8)
+		if f > 0 {
+			sF(r+8, -f)
+		}
 	}
 	return r
 }

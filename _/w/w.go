@@ -1232,7 +1232,7 @@ func (v con) cstr() s {
 			return "NAN"
 		} else {
 			s := sf("%v", v.f)
-			if strings.Index(s, ".") == -1 {
+			if strings.Index(s, ".") == -1 && strings.Index(s, "e") == -1 {
 				s += ".0"
 			}
 			return s
