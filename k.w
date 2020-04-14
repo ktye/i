@@ -86,7 +86,8 @@ fnl:I:II{r:0;y/((~I x)?((~r)?r:2 mk 0;r:r ucat mki i);x+:4);r}
 uqg:I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;y?y:y lcat 2 mk 0;n+:1);y?(yi:y+8+4*m;yi::(I yi)cat mki i);xp+:w);y?r:r l2 y;dxr}
 unq:I:I{x uqg 0}grp:I:I{x uqg 6 mk 0}
 flr:I:I{v1;(xt>5)? :x ech 223;(xt~3)?(r:2 mk xn;r8;xn/(rp::I?'F xp;xp+:8;rp+:4);dx x; :r);x}
-xxx:I:I{!;x}cst:I:II{!;x}flp:I:I{!;x}
+cst:I:II{v2;(xt~5)?(yt~1)?(dx x; :sc y);((~xt~2)+~xn~1)?!;dx x;x:I x+8;(yt>x)?!;(yt<'x)?/(y:up(y;yt;yn);yt+:1);y}
+xxx:I:I{!;x}flp:I:I{!;x}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 kst:I:I{t:tp x;(~nn x)?(5~t)?(dx x; :((mkc 48)cc 35)cc 96);(7~t)?(rx x; :((kst til x)cc 33)ucat kst val x);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}

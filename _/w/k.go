@@ -1121,8 +1121,26 @@ func cf(f float64) (r i) {
 	}
 	return ng(r, m)
 }
-
-func cst(x, y i) (r i) { panic("nyi") }
+func cst(x, y i) (r i) { // x$y
+	xt, yt, xn, yn, _, _ := v2(x, y)
+	if xt == 5 && yt == 1 {
+		dx(x)
+		return sc(y)
+	}
+	if xt != 2 || xn != 1 {
+		trap()
+	}
+	dx(x)
+	x = I(x + 8)
+	if yt > x {
+		trap()
+	}
+	for yt < x {
+		y = up(y, yt, yn)
+		yt++
+	}
+	return y
+}
 func sc(x i) (r i) {
 	r = enl(x)
 	sI(r, 1|5<<29)
