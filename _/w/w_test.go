@@ -343,6 +343,7 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 const kh = `#include<stdlib.h>
 #include<stdio.h>
 #include<stddef.h>
+#include<setjmp.h>
 #include<malloc.h>
 #include<string.h>
 #include<math.h>
@@ -351,7 +352,8 @@ const kh = `#include<stdlib.h>
 typedef void V;typedef char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 C *MC;I* MI;J* MJ;F *MF;
-V panic(){exit(1);}
+static jmp_buf jb;
+V panic(){printf("k.w:%u:%u\n", MI[140>>2], MI[144>>2]);longjmp(jb,1);}
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
 `
@@ -392,12 +394,29 @@ V runtest() {
 	}
 }
 I main(int args, C **argv){
+	C buf[128];
+	C *p, *b;
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
 	memset(MC, 0, 1<<M0);
 	mt_init();
 	ini(16);
-	O(val(chrs(argv[1])));
+	if(args==2) {
+		O(val(chrs(argv[1])));
+		return 0;
+	}
+	b=malloc(1<<M0);
+	printf(" ");
+	while (fgets(buf, 128, stdin) != NULL) {
+		if ((p=strchr(buf, '\r'))!=NULL) *p = 0;
+		if ((p=strchr(buf, '\n'))!=NULL) *p = 0;
+		if (!strcmp(buf, "\\\\")) exit(0);
+		if (!setjmp(jb)) {
+			O(val(chrs(buf)));
+			memcpy(b, MC, 1<<M0);
+        	} else  memcpy(MC, b, 1<<M0);
+		printf(" ");
+	}
 }
 `
 
