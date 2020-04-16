@@ -1240,7 +1240,8 @@ func nm(x, f, h i) (r i) { // numeric monad f:scalar index (nec..), h:original f
 	t, n, rp := v1(r)
 	xp := x + 8
 	w := uint32(C(t))
-	g := MT[f+t].(func(i, i))
+	f += t
+	g := MT[f].(func(i, i))
 	for i := i(0); i < n; i++ {
 		g(xp, rp)
 		xp += w
