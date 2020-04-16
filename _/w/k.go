@@ -1000,6 +1000,16 @@ func flr(x i) (r i) {
 		}
 		return dxr(x, r)
 	}
+	if xt == 4 {
+		r = mk(3, xn)
+		rp := r + 8
+		for i := i(0); i < xn; i++ {
+			sF(rp, ang(F(xp), F(xp+8)))
+			xp += 16
+			rp += 8
+		}
+		return dxr(x, r)
+	}
 	return x
 }
 func ang(x, y f) float64 {
