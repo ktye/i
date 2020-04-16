@@ -359,6 +359,9 @@ func lx(x i) (r i) { // explode
 }
 func til(x i) (r i) {
 	xt, _, xp := v1(x)
+	if xt == 4 {
+		return zre(x)
+	}
 	if xt == 7 {
 		r = I(xp)
 		rx(r)
@@ -1642,12 +1645,13 @@ func ibin(x, y, n, t i) (r i) {
 		}
 	}
 }
-
 func val(x i) (r i) {
 	xt, _, _ := v1(x)
 	switch xt {
 	case 1:
 		return evl(prs(x), 0)
+	case 4:
+		return zim(x)
 	case 6:
 		return evl(x, 0)
 	case 7:
