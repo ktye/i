@@ -204,9 +204,19 @@ func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkc(c i) (r i)    { r = mk(1, 1); sC(r+8, byte(c)); return r }
 func mks(c i) (r i)    { return sc(mkc(c)) }
 func mkd(x, y i) (r i) {
-	xt, yt, xn, yn, _, _ := v2(x, y)
-	if xn != yn {
-		trap()
+	x, y = ext(x, y)
+	xt, yt, xn, _, xp, yp := v2(x, y)
+	if xt == 3 && yt == 3 {
+		r = mk(4, xn)
+		rp := r + 8
+		for i := i(0); i < xn; i++ {
+			sF(rp, F(xp))
+			sF(rp+8, F(yp))
+			rp += 16
+			xp += 8
+			yp += 8
+		}
+		return dxyr(x, y, r)
 	}
 	if xt != 5 {
 		trap()
@@ -320,6 +330,13 @@ func up(x, t, n i) (r i) {
 			sF(rp, float64(int32(I(xp))))
 			xp += 4
 			rp += 8
+		}
+	case 3:
+		for i := i(0); i < n; i++ {
+			sF(rp, F(xp))
+			sF(rp+8, 0.0)
+			xp += 8
+			rp += 16
 		}
 	default:
 		trap()
@@ -493,6 +510,21 @@ func tkd(x, y i) (r i) {
 	rx(x)
 	return mkd(atx(k, x), atx(v, x))
 }
+func phi(x, y i) (r i) {
+	n := nn(y)
+	r = mk(4, n)
+	rp := r + 8
+	yp := y + 8
+	for i := i(0); i < n; i++ {
+		p := 0.017453292519943295 * F(yp)
+		sF(rp, math.Cos(p))
+		sF(rp+8, math.Sin(p))
+		rp += 16
+		yp += 8
+	}
+	dx(y)
+	return mul(x, r)
+}
 func atm(x, y i) (r i) { // {$[0~#y;:0#x;];}
 	if 0 == nn(y) {
 		return dxr(x, y)
@@ -534,6 +566,9 @@ func atx(x, y i) (r i) {
 	}
 	if yt > 5 { // at-list at-dict
 		return ecr(x, y, '@') //64
+	}
+	if yt == 3 && xt < 5 {
+		return phi(x, y)
 	}
 	if yt != 2 {
 		panic("atx yt~I")
@@ -967,6 +1002,13 @@ func flr(x i) (r i) {
 	}
 	return x
 }
+func ang(x, y f) float64 {
+	p := 57.29577951308232 * math.Atan2(y, x)
+	if p < 0 {
+		p += 360.0
+	}
+	return p
+}
 func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/!n}
 	n := nn(I(x + 8))
 	m := nn(x)
@@ -1022,9 +1064,7 @@ func str(x i) (r i) {
 	case 3:
 		r = cf(F(xp))
 	case 4:
-		r = cf(F(xp))
-		r = cc(r, 'i') //105
-		r = ucat(r, cf(F(xp+8)))
+		r = cz(F(xp), F(xp+8))
 	case 5:
 		r = I(xp)
 		rx(r)
@@ -1136,6 +1176,11 @@ func cf(f float64) (r i) {
 		r = ucat(cc(r, 'e'), ci(e, 0))
 	}
 	return ng(r, m)
+}
+func cz(x, y f) (r i) {
+	a := math.Hypot(x, y)
+	p := uint32(0.5 + ang(x, y))
+	return ucat(cc(cf(a), 'a'), ci(p, 0))
 }
 func cst(x, y i) (r i) { // x$y
 	xt, yt, xn, yn, _, _ := v2(x, y)
@@ -2203,7 +2248,28 @@ func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, 
 	return r
 }
 func num(b c, p, s i) (r i) { // parse single number
-	return pfl(b, p, s)
+	r = pfl(b, p, s)
+	if r == 0 {
+		return r
+	}
+	p = I(pp)
+	if C(p) == 'a' { //97
+		if tp(r) == 2 {
+			r = up(r, 2, 1)
+		}
+		p++
+		sI(pp, p)
+		r = up(r, 3, 1)
+		a := pfl(C(p), p, s)
+		if a == 0 {
+			a = mki(0)
+		}
+		if tp(a) == 2 {
+			a = up(a, 2, 1)
+		}
+		r = atx(r, a)
+	}
+	return r
 }
 func nms(b c, p, s i) (r i) { // parse numeric vector
 	r = num(b, p, s)
@@ -2365,12 +2431,12 @@ func C(a i) c              { return MC[a] } // global get, e.g. I i
 func I(a i) i              { return MI[a>>2] }
 func J(a i) j              { return MJ[a>>3] }
 func F(a i) f              { return MF[a>>3] }
-func Z(a i) complex128     { return complex(MF[a>>3], MF[1+a>>3]) }
+func Z(a i) complex128     { return complex(MF[a>>3], MF[1+(a>>3)]) }
 func sC(a i, v c)          { MC[a] = v } // global set, e.g. i::v
 func sI(a i, v i)          { MI[a>>2] = v }
 func sJ(a i, v j)          { MJ[a>>3] = v }
 func sF(a i, v f)          { MF[a>>3] = v }
-func sZ(a i, v complex128) { MF[a>>3] = real(v); MF[1+a>>3] = imag(v) }
+func sZ(a i, v complex128) { MF[a>>3] = real(v); MF[1+(a>>3)] = imag(v) }
 func atoi(s string) i {
 	if x, e := strconv.Atoi(s); e == nil {
 		return i(x)

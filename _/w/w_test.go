@@ -322,7 +322,7 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 (async () => {
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
- K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2} });
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot} });
  K.C = new Uint8Array(K.exports.mem.buffer)
  K.U = new Uint32Array(K.exports.mem.buffer)
  K.I = new Int32Array(K.exports.mem.buffer)
@@ -434,6 +434,10 @@ var MI []I
 var MJ []J
 var MF []F
 var NAN F
+func sin(x F) F { return math.Sin(x) }
+func cos(x F) F { return math.Cos(x) }
+func atan2(x, y F) F { return math.Atan2(x, y) }
+func hypot(x, y F) F { return math.Hypot(x, y) }
 func msl() { // update slice headers after set/inc MJ
 	cp := *(*slice)(unsafe.Pointer(&MC))
 	ip := *(*slice)(unsafe.Pointer(&MI))

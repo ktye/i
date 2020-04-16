@@ -96,6 +96,7 @@ func hostFuncs(name string) (*wasm.Module, error) { // imported as module "ext"
 	sin := func(proc *exec.Process, x float64) float64 { return math.Sin(x) }
 	cos := func(proc *exec.Process, x float64) float64 { return math.Cos(x) }
 	atan2 := func(proc *exec.Process, x, y float64) float64 { return math.Atan2(x, y) }
+	hypot := func(proc *exec.Process, x, y float64) float64 { return math.Hypot(x, y) }
 
 	m := wasm.NewModule()
 	m.Types = &wasm.SectionTypes{
@@ -108,12 +109,14 @@ func hostFuncs(name string) (*wasm.Module, error) { // imported as module "ext"
 		{Sig: &m.Types.Entries[0], Host: reflect.ValueOf(sin), Body: &wasm.FunctionBody{}},
 		{Sig: &m.Types.Entries[0], Host: reflect.ValueOf(cos), Body: &wasm.FunctionBody{}},
 		{Sig: &m.Types.Entries[1], Host: reflect.ValueOf(atan2), Body: &wasm.FunctionBody{}},
+		{Sig: &m.Types.Entries[1], Host: reflect.ValueOf(hypot), Body: &wasm.FunctionBody{}},
 	}
 	m.Export = &wasm.SectionExports{
 		Entries: map[string]wasm.ExportEntry{
 			"sin":   {FieldStr: "sin", Kind: wasm.ExternalFunction, Index: 0},
 			"cos":   {FieldStr: "cos", Kind: wasm.ExternalFunction, Index: 1},
 			"atan2": {FieldStr: "atan2", Kind: wasm.ExternalFunction, Index: 2},
+			"hypot": {FieldStr: "hypot", Kind: wasm.ExternalFunction, Index: 3},
 		},
 	}
 	return m, nil
