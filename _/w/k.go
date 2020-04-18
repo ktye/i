@@ -20,7 +20,6 @@ import (
 )
 
 const trace = false
-const parse = false
 
 type c = byte
 type s = string
@@ -88,12 +87,7 @@ func run(s string) string {
 	ini(16)
 	x := mk(1, i(len(s)))
 	copy(MC[x+8:], s)
-	if parse {
-		x = kst(prs(x))
-	} else {
-		x = prs(x)
-		x = kst(evl(x, 0))
-	}
+	x = kst(val(x))
 	s = string(MC[x+8 : x+nn(x)+8])
 	dx(x)
 	leak()
@@ -1655,7 +1649,14 @@ func val(x i) (r i) {
 	xt, _, _ := v1(x)
 	switch xt {
 	case 1:
-		return evl(prs(x), 0)
+		r = prs(x)
+		n := I(r+8) == 58
+		r = evl(r, 0)
+		if n {
+			dx(r)
+			return 0
+		}
+		return r
 	case 4:
 		return zim(x)
 	case 6:

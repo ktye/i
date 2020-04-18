@@ -28,7 +28,7 @@ void draw0(int w, int h, char *p) {
 	if (hbm == NULL) return;
 	o = SelectObject(hdcmem, hbm);
 	if (o == 0) return;
-	BitBlt(hdc, 0, 20, w, h, hdcmem, 0, 0, 0x00CC0020);
+	BitBlt(hdc, 0, 0, w, h, hdcmem, 0, 0, 0x00CC0020);
 	SelectObject(hdcmem, o);
 	DeleteDC(hdcmem);
 	DeleteDC(hbm);

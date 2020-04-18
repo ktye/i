@@ -291,8 +291,8 @@ function cs(s) {
 function sk(x) { var n = K.exports.nn(x); return su(K.C.slice(8+x, 8+x+n)) }
 function E(s) {
  try{ // todo save/restore
-  var x = K.exports.kst(K.exports.val(cs(s)))
-  O(sk(x)+"\n")
+  var x = K.exports.val(cs(s))
+  if(x != 0) O(sk(K.exports.kst(x))+"\n")
   K.exports.dx(x)
  } catch(e) {
   console.log(e)
@@ -388,8 +388,9 @@ V dump(I x, I n) {
 V pstr(I x) {
 	I n = (MI[x>>2])&536870911;
 	for(I i=0;i<n;i++) printf("%c", MC[8+x+i]);
+	dx(x);
 }
-V O(I x) { pstr(kst(x)); printf("\n"); }
+V O(I x) { if(!x)R; pstr(kst(x)); printf("\n"); }
 #define M0 16
 I chrs(C *s) {
 	I n = strlen(s);
