@@ -213,6 +213,7 @@ var hit = kons
 var konstore = ""
 var edname = ""
 var ed = false
+var ctx
 function initKons() {
  kons.value = "{{cons}}"
  var hold = false
@@ -256,6 +257,7 @@ function initKons() {
  kons.onmousedown = function(e) { hit=kons; if(e.button==2)pd(e); }
  kons.onblur  = function(e) { kons.style.filter = "brightness(70%)" }
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
+ ctx = cnv.getContext('2d')
 }
 function indicate(line, col) {
  if(line==0)O("error\n")
@@ -299,6 +301,15 @@ function E(s) {
  }
 }
 
+function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
+function draw(w, h, p) {
+  console.log("draw", w, h, p)
+  imgSize(w, h)
+  var u = new Uint8ClampedArray(K.C.slice(p, p+4*w*h))
+  var d = new ImageData(u, w, h)
+  for (var i=3; i<d.data.length; i+=4) d.data[i] = 255
+  ctx.putImageData(d, 0, 0)
+}
 function edit(name) { 
  edname = name; ed = true; konstore = kons.value; 
  var u = getfile(name.trim())
@@ -322,7 +333,7 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 (async () => {
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
- K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot} });
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw} });
  K.C = new Uint8Array(K.exports.mem.buffer)
  K.U = new Uint32Array(K.exports.mem.buffer)
  K.I = new Int32Array(K.exports.mem.buffer)
@@ -335,7 +346,7 @@ function hash(s){window.location.hash=encodeURIComponent(s.trim())}
   kons.value += h
   kons.setSelectionRange(p, kons.value.length)
  }
- kons.focus()
+ imgSize(0,0);kons.focus()
 })();
 </script></body></html>
 `
@@ -356,6 +367,7 @@ static jmp_buf jb;
 V panic(){printf("k.w:%u:%u\n", MI[140>>2], MI[144>>2]);longjmp(jb,1);}
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
+V draw(I x, I y, I z){printf("draw %x %x %x\n", x, y, z);}
 `
 const kt = `
 V dump(I x, I n) {
@@ -457,6 +469,7 @@ func sin(x F) F { return math.Sin(x) }
 func cos(x F) F { return math.Cos(x) }
 func atan2(x, y F) F { return math.Atan2(x, y) }
 func hypot(x, y F) F { return math.Hypot(x, y) }
+func draw(x, y, z I) { fmt.Printf("draw %x %x %x\n", x, y, z) }
 func msl() { // update slice headers after set/inc MJ
 	cp := *(*slice)(unsafe.Pointer(&MC))
 	ip := *(*slice)(unsafe.Pointer(&MI))
