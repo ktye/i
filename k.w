@@ -171,5 +171,5 @@ _  drp flr   drop          ang:_z
 +/x  ovr(251),fxp  x+/y  ecr(123),n/whl x/y  mod,mmul(L)?    (:;`x;y)           assign       x:y
 +\x  scn(219),fxp  x+\y  ecl(91),n/whl  x\y  y%x,solve(L)?   (+;(`x;a;b;c);y)   assign(m/i)  s[a;b;c]+:y
 +':x ecp(169)      x+':y epi(41)        x':y win?            (;a;b;c)   (*128)  sequence     a;b;c  ::x(last) :[x;y](dex)
-+/:x ?(253)        x+/:y ?(125)         x/:y join?           ((/;+);1 2 3)      adverbs      +/1 2 3                      
-+\:x ?(221)        x+\:y ?(93)          x\:y split?       
++/:x ?(253)        x+/:y ovi(125)       x/:y join?           ((/;+);1 2 3)      adverbs      +/1 2 3                      
++\:x ?(221)        x+\:y sci(93)        x\:y split?       
