@@ -98,8 +98,8 @@ func ini(x i) i {
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
-		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, nil, exc, cut, // 064..095
-		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, nil, mtc, nil, // 096..127
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
+		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
@@ -1449,19 +1449,27 @@ func epi(x, y, z i) (r i) { // x f':y (each-prior-initial)
 	dx(yi)
 	return dxyr(y, z, r)
 }
-func ovr(x, y i) (r i) { return ovs(x, y, 0) }             // y/x (over/reduce)
-func scn(x, y i) (r i) { return ovs(x, y, enl(mk(6, 0))) } // y\x (scan)
-func ovs(x, y, z i) (r i) { // over/scan
+func ovr(x, y i) (r i)    { return ovs(x, y, 0, 0) }             // y/x (over/reduce)
+func scn(x, y i) (r i)    { return ovs(x, y, enl(mk(6, 0)), 0) } // y\x (scan)
+func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/: x (over initial)
+func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/: x (scan initial)
+func ovs(x, y, z, l i) (r i) { // over/scan
 	if ary(y) == 1 {
 		return fxp(x, y, z)
 	}
 	n := nn(x)
 	rxn(x, n)
-	r = fst(x) // panics on n~0
-	rxn(y, n-1)
-	scl(z, r)
-	for i := i(0); i < n-1; i++ {
-		r = cal(y, l2(r, atx(x, mki(i+1))))
+	r = l
+	o := i(1)
+	if r == 0 {
+		r = fst(x)
+		o = 0
+		n--
+		scl(z, r)
+	}
+	rxn(y, n)
+	for i := i(0); i < n; i++ {
+		r = cal(y, l2(r, atx(x, mki(i+1-o))))
 		scl(z, r)
 	}
 	dx(x)

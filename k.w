@@ -61,8 +61,8 @@ crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 drv:I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv:I:I{40 drv x}epv:I:I{41 drv x}ovv:I:I{123 drv x}riv:I:I{125 drv x}scv:I:I{91 drv x}liv:I:I{93 drv x}
 ech:I:II{(tp y)? :y bin x;(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd v ech y);x:lx x;v1;r:6 mk xn;r8;rl x;(y<120)?y+:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
 ecp:I:II{rx x;p:fst x;epi(p;x;y)}epi:I:III{n:nn y;(~n)?(dx x;dx z; :y);y rxn n;z rxn n;r:6 mk n;r8;n/(yi:y atx mki i;rx yi;rp::z cal yi l2 x;x:yi;rp+:4);dx yi;dx y;dx z;r}
-ovr:I:II{ovs(x;y;0)}scn:I:II{ovs(x;y;enl 6 mk 0)}scl:V:II{x?(rx y;xp:x+8;xp::(I xp)lcat y)}
-ovs:I:III{(1~ary y)? :fxp(x;y;z);n:nn x;x rxn n;r:fst x;y rxn n-1;z scl r;(n-1)/(r:y cal r l2 x atx mki i+1;z scl r);dx x;dx y;(~z)? :r;dx r;fst(z)}
+ovr:I:II{ovs(x;y;0;0)}scn:I:II{ovs(x;y;enl 6 mk 0;0)}ovi:I:III{ovs(y;z;0;x)}sci:I:III{ovs(y;z;enl 6 mk 0;x)}scl:V:II{x?(rx y;xp:x+8;xp::(I xp)lcat y)}
+ovs:I:IIII{(1~ary y)? :fxp(x;y;z);n:nn x;x rxn n;r:x3;o:1;(~r)?(r:fst x;o:0;n-:1;z scl r);y rxn n;n/(r:y cal r l2 x atx mki i+1-o;z scl r);dx x;dx y;(~z)? :r;dx r;fst(z)}
 fxp:I:III{t:x;rx x;1?/(rx x;rx y;r:y atx x;((r match x)+r match t)?(dx x;dx y;dx t;z?r:(fst z)lcat r; :r);z scl x;dx x;x:r);x}
 ecr:I:III{(1~ary z)? :whl(x;y;z;0);(7~tp y)?(rld y;k:I y+8;v:I y+12; :k mkd ecr(x;v;z));n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
 ecl:I:III{(1~ary z)? :whl(x;y;z;enl 6 mk 0);(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd ecl(v;y;z));n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
@@ -129,8 +129,8 @@ is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;C 128+x}
 
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; xxx; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; xxx; xxx; xxx; sqc; sqi; sqf; sqz}
 032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
-064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; xxx; exc; cut}
-096:{xxx; xxx; xxx; xxx; drw; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; xxx; mtc; xxx}
+064:{atx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; sci; exc; cut}
+096:{xxx; xxx; xxx; xxx; drw; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; ovi; mtc; xxx}
 128:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; nms; vrb; chr; nam; sms; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
 160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abx; enl; neg; val; riv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; grp; gdn; unq}
 192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; liv; spl; srt; flr}
