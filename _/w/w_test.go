@@ -367,7 +367,12 @@ static jmp_buf jb;
 V panic(){printf("k.w:%u:%u\n", MI[140>>2], MI[144>>2]);longjmp(jb,1);}
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
-V draw(I x, I y, I z){printf("draw %x %x %x\n", x, y, z);}
+#ifndef DRW
+V draw0(I x,I y,C *z){printf("draw..\n");}
+#else
+V draw0(I,I,C*);
+#endif
+V draw(I x, I y, I z){draw0(x,y,MC+z);}
 `
 const kt = `
 V dump(I x, I n) {
