@@ -289,7 +289,7 @@ function cs(s) {
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
  return x
 }
-function sk(x) { var n = K.exports.nn(x); return su(K.C.slice(8+x, 8+x+n)); K.exports.dx(x) }
+function sk(x) { var n = K.exports.nn(x); K.exports.dx(x); return su(K.C.slice(8+x, 8+x+n))}
 function E(s) {
  try{ // todo save/restore
   var x = K.exports.val(cs(s))
@@ -336,7 +336,7 @@ function msl() {
  K.I = new Int32Array(K.exports.mem.buffer)
  K.F = new Float64Array(K.exports.mem.buffer)
 }
-function grow(x) { var a=1<<(x-K.U[32]);K.exports.mem.grow(a); msl(); return x}
+function grow(x) { var a=((1<<x)-(1<<K.U[32]))>>>16;console.log("grow", a);K.exports.mem.grow(a); msl(); return x}
 
 (async () => {
  initKons()

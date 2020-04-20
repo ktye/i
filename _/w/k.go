@@ -100,7 +100,7 @@ func ini(x i) i {
 		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
-		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
+		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, lin, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
@@ -568,6 +568,7 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
+	fmt.Printf("atx x=%s y=%s\n", X(x), X(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
@@ -1036,11 +1037,41 @@ func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/!n}
 	return atx(ovr(x, ','), ecr(mul(mki(n), seq(0, m, 1)), seq(0, n, 1), '+')) //44 43
 }
 func drw(x, y i) (r i) { // x 'd y
-	w := I(x + 8)
-	h := nn(y) % w
-	fmt.Printf("draw w=%d h=%d p=%x\n", w, h, y+8)
 	return dxyr(x, y, 0)
 }
+func bln(x, y, z i) (r i) { // bresenham line
+	if x > y {
+		t := y
+		y = x
+		x = t
+	}
+	dx := int32((y - x) % z)
+	dy := -int32((y - x) / z)
+	n := -dy
+	if dx > n {
+		n = dx
+	}
+	n += 1
+	r = mk(2, i(n))
+	rp := r + 8
+	e := dx + dy
+	p := x
+	for i := int32(0); i < n; i++ {
+		sI(rp, p)
+		f := 2 * e
+		if f > dy {
+			e += dy
+			p += 1
+		}
+		if f < dx {
+			e += dx
+			p += z
+		}
+		rp += 4
+	}
+	return r
+}
+func lin(x, y i) (r i) { return dxyr(x, y, bln(I(y+8), I(y+12), I(x+8))) }
 func kst(x i) (r i) {
 	t := tp(x)
 	if nn(x) == 0 && t == 5 {
