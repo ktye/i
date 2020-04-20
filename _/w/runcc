@@ -3,7 +3,7 @@ tcc=/local/tcc/tcc
 if [ "$1" = "fmt" ]; then
 	/local/LLVM/bin/clang-format.exe k_c > xx_c
 elif [ x"$1" = "xkw" ]; then
-	tcc -o kw.o -c kw_c && tcc -DDRW -o k.exe k_c kw.o -luser32 -lgdi32
+	$tcc -o kw.o -c kw_c && $tcc -DDRW -o k.exe k_c kw.o -luser32 -lgdi32
 elif [ x"$1" = "xt" ]; then
 	sed '/^$/q' t | $tcc -run k_c t | awk '{
 		x=$0

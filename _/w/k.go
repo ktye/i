@@ -84,6 +84,7 @@ func run(s string) string {
 	m0 := 16
 	MJ = make([]j, (1<<m0)>>3)
 	msl()
+	cmake() // copy character map data
 	ini(16)
 	x := mk(1, i(len(s)))
 	copy(MC[x+8:], s)
@@ -128,7 +129,16 @@ func msl() { // update slice headers after set/inc MJ
 	MF = *(*[]f)(unsafe.Pointer(&fp))
 	MI = *(*[]i)(unsafe.Pointer(&ip))
 	MC = *(*[]c)(unsafe.Pointer(&cp))
-	cmake() // copy character map data
+}
+func grow(x i) (r i) {
+	if x > 31 {
+		panic("Ω")
+	}
+	c := make([]uint64, 1<<(x-3))
+	copy(c, MJ)
+	MJ = c
+	msl()
+	return x
 }
 func bk(t, n i) (r i) {
 	r = i(32 - bits.LeadingZeros32(7+n*i(C(t))))
@@ -140,11 +150,15 @@ func bk(t, n i) (r i) {
 func mk(x, y i) (r i) {
 	t := bk(x, y)
 	i := 4 * t
+	m := 4 * I(128)
 	for I(i) == 0 {
+		if i >= m {
+			sI(128, grow(1+i/4))
+			sI(i, 1<<(i>>2))
+			m = i
+			i -= 4
+		}
 		i += 4
-	}
-	if i == 128 {
-		panic("Ω")
 	}
 	a := I(i)
 	sI(i, I(a))

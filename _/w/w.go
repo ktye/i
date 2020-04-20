@@ -1418,8 +1418,9 @@ func (v sto) bytes() (r []c) {
 	al := alin[v.t]
 	return catb(v.x().bytes(), y.bytes(), []c{op, al, 0})
 }
-func (v sto) cstr() s {
-	return jn(cgadr(cstring(v.x()), v.t), "=(", styp[v.t], ")", cstring(v.y()), ";")
+func (v sto) cstr() s { // e.g. sI(x, y), not MI[x>>2]=..., because MI could have changed at realloc.
+	return jn("s", v.t.String(), "(", cstring(v.x()), ",", cstring(v.y()), ");")
+	// return jn(cgadr(cstring(v.x()), v.t), "=(", styp[v.t], ")", cstring(v.y()), ";")
 }
 func (v sto) gstr() s {
 	return jn(cgadr(gstring(v.x()), v.t), "=", styp[v.t], "(", gstring(v.y()), ");")

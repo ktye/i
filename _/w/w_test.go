@@ -246,6 +246,7 @@ function initKons() {
    if (s === "tests")           { O(tests);                        return }
    if (s === "src")             { O(src);                          return }
    if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
+   if (s === "\\d")             { dump(0, 200);                    return }
    //if (s === "\\h")             { O(atob(h));P();                  return }
    //if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
    //if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
@@ -288,12 +289,11 @@ function cs(s) {
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
  return x
 }
-function sk(x) { var n = K.exports.nn(x); return su(K.C.slice(8+x, 8+x+n)) }
+function sk(x) { var n = K.exports.nn(x); return su(K.C.slice(8+x, 8+x+n)); K.exports.dx(x) }
 function E(s) {
  try{ // todo save/restore
   var x = K.exports.val(cs(s))
   if(x != 0) O(sk(K.exports.kst(x))+"\n")
-  K.exports.dx(x)
  } catch(e) {
   console.log(e)
   indicate(K.I[35], K.I[36])
@@ -330,14 +330,19 @@ ae(kons,"contextmenu", function(e) { // button-3 search
 })
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
-(async () => {
- initKons()
- const module = await WebAssembly.compile(kwasm.buffer);
- K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw} });
+function msl() {
  K.C = new Uint8Array(K.exports.mem.buffer)
  K.U = new Uint32Array(K.exports.mem.buffer)
  K.I = new Int32Array(K.exports.mem.buffer)
  K.F = new Float64Array(K.exports.mem.buffer)
+}
+function grow(x) { var a=1<<(x-K.U[32]);K.exports.mem.grow(a); msl(); return x}
+
+(async () => {
+ initKons()
+ const module = await WebAssembly.compile(kwasm.buffer);
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow} });
+ msl()
  K.exports.ini(16);
  var h = decodeURIComponent(window.location.hash.substr(1))
  window.location.hash = h
@@ -365,8 +370,10 @@ I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^
 C *MC;I* MI;J* MJ;F *MF;
 static jmp_buf jb;
 V panic(){printf("k.w:%u:%u\n", MI[140>>2], MI[144>>2]);longjmp(jb,1);}
+V sC(I x,C y){MC[x]=y;}V sI(I x,I y){MI[x>>2]=y;}V sF(I x,F y){MF[x>>3]=y;}V sJ(I x,J y){MJ[x>>3]=y;};
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
+I grow(I x){MC=realloc(MC, 1<<x);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC; R x;}
 #ifndef DRW
 V draw0(I x,I y,C *z){printf("draw..\n");}
 #else
@@ -414,6 +421,7 @@ V runtest() {
 I main(int args, C **argv){
 	C buf[128];
 	C *p, *b;
+	I lb;
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
 	memset(MC, 0, 1<<M0);
@@ -423,17 +431,23 @@ I main(int args, C **argv){
 		O(val(chrs(argv[1])));
 		return 0;
 	}
-	b=malloc(1<<M0);
+	b=malloc(1<<M0);lb=M0;
 	printf(" ");
 	while (fgets(buf, 128, stdin) != NULL) {
 		if ((p=strchr(buf, '\r'))!=NULL) *p = 0;
 		if ((p=strchr(buf, '\n'))!=NULL) *p = 0;
 		if (!strcmp(buf, "\\\\")) exit(0);
-		if (!setjmp(jb)) {
-			O(val(chrs(buf)));
-			memcpy(b, MC, 1<<M0);
-        	} else  memcpy(MC, b, 1<<M0);
-		printf(" ");
+		if (!strcmp(buf, "\\d")) dump(0, 200);
+		else {
+			if (!setjmp(jb)) {
+				O(val(chrs(buf)));
+				if(MI[32]!=lb) {
+				 lb=MI[32];b=realloc(b,1<<lb);
+				}
+				memcpy(b, MC, 1<<M0);
+	        	} else  memcpy(MC, b, 1<<M0);
+			printf(" ");
+		}
 	}
 }
 `
@@ -488,6 +502,7 @@ func msl() { // update slice headers after set/inc MJ
 	MI = *(*[]I)(unsafe.Pointer(&ip))
 	MC = *(*[]byte)(unsafe.Pointer(&cp))
 }
+func grow(x I) I { panic("nyi grow"); return x }
 func clz32(x I) I { return I(bits.LeadingZeros32(x)) }
 func clz64(x J) I { return I(bits.LeadingZeros64(x)) }
 func i32b(x bool) I { if x { return 1 } else { return 0 } }
