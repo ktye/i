@@ -1190,6 +1190,9 @@ func cf(f float64) (r i) {
 	if f != f {
 		return cc(mkc('0'), 'n') //48 110
 	}
+	if f == 0 {
+		return cc(cc(mkc('0'), '.'), '0') //48 46 48
+	}
 	m := i(0)
 	if f < 0 {
 		m = 1

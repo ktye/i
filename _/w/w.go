@@ -54,7 +54,7 @@ func main() {
 	var stdin io.Reader = os.Stdin
 	var cout, gout bool
 	flag.BoolVar(&cout, "c", false, "c output")
-	flag.BoolVar(&gout, "go", false, "go output (nyi)")
+	flag.BoolVar(&gout, "go", false, "go output")
 	flag.Parse()
 	m, tab, data := run(stdin)
 	if cout {
