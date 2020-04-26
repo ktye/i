@@ -2218,12 +2218,8 @@ func tok(s i) (r i) { // next token
 	if is(b, TE) { //32
 		return 0
 	}
-	n := 0
-	if is(C(p-1), NM) { //4 (0-1: parse - as verb, skip nms); C(p-1) maybe refcount's last byte
-		n = 1
-	}
-	for j := 0; j < 5-n; j++ { // nms vrb chr nam sms
-		r = MT[j+136+n].(func(c, i, i) i)(b, p, s)
+	for j := 0; j < 5; j++ { // nms vrb chr nam sms
+		r = MT[j+136].(func(c, i, i) i)(b, p, s)
 		if r != 0 {
 			return r
 		}
@@ -2267,6 +2263,10 @@ func pin(b c, p, s i) (r i) { // parse signed int
 func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, no exp
 	m := i(0)
 	if b == '-' { //45
+		t := C(p - 1)
+		if is(t, az|AZ|NM) || t == ')' || t == ']' { // C(p-1) maybe refcount's last byte (k2 reflite p27)
+			return 0
+		}
 		m = 1
 	}
 	r = pin(b, p, s)
