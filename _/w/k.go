@@ -1085,7 +1085,8 @@ func lin(x, y i) (r i) {
 	r = mk(2, 0)
 	yp := y + 12
 	for i := i(0); i < n; i++ {
-		r = ucat(drop(r, 4294967295), bln(x, I(yp), w))
+		r = ucat(r, bln(x, I(yp), w))
+		x = I(yp)
 		yp += 4
 	}
 	dx(y)

@@ -97,7 +97,7 @@ drw:I:II{v2;w:I xp;draw(w;yn%w;yp);dx x;dx y;0}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 bln:I:III{(x>'y)?(t:y;y:x;x:t);d:(y-x)\z;b:0-((y-x)%z);n:0-b;(d>n)?n:d;n+:1;r:2 mk n;r8;e:d+b;p:x;n/(rp::p;f:2*e;(f>'b)?(e+:b;p+:1);(f<'d)?(e+:d;p+:z);rp+:4);r}
-lin:I:II{r:bln(I y+8;I y+12;I x+8);dxyr}
+lin:I:II{w:I x+8;n:nn y;dx x;x:I y+8;r:2 mk 0;yp:y+12;(n-1)/(r:r ucat bln(x;I yp;w);x:I yp;yp+:4);dx y;r}
 
 kst:I:I{t:tp x;(~nn x)?(5~t)?(dx x; :((mkc 48)cc 35)cc 96);(7~t)?(rx x; :((kst til x)cc 33)ucat kst val x);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
 str:I:I{v1;(xt~1)? :x;((xt>5)+~xn~1)?xt? :x ech 164;xt?[r:x cg xn;;r:(I xp)ci 0;r:cf F xp;r:(F xp)cz F xp+8;(r:I xp;rx r);!];dxr}
