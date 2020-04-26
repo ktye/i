@@ -543,9 +543,10 @@ func atm(x, y i) (r i) { // {$[0~#y;:0#x;];}
 	rx(y)
 	f := fst(y)
 	t := drop(y, 1)
-	if tp(t) == 6 && nn(t) == 1 {
-		t = fst(t)
+	if nn(t) > 1 {
+		return atm(atx(x, f), t)
 	}
+	t = fst(t)
 	nf := nn(f)
 	if f == 0 || nf != 1 { // matrix index
 		if f != 0 {
@@ -568,7 +569,7 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
-	fmt.Printf("atx x=%s y=%s\n", X(x), X(y))
+	//fmt.Printf("atx x=%s y=%s\n", X(x), X(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
