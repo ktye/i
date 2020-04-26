@@ -426,13 +426,18 @@ func lst(x i) (r i) { // ::x
 }
 func drop(x, n i) (r i) {
 	xt, xn, _ := v1(x)
+	a := n
+	if int32(n) < 0 {
+		n = -n
+		a = 0
+	}
 	if n > xn {
-		n = xn
+		return dxr(x, mk(xt, 0))
 	}
 	if xt == 6 && xn-n == 1 {
 		return enl(lst(x))
 	}
-	return atx(x, seq(n, xn-n, 1))
+	return atx(x, seq(a, xn-n, 1))
 }
 func cut(x, y i) (r i) {
 	xt, yt, xn, yn, xp, _ := v2(x, y)
@@ -1072,7 +1077,20 @@ func bln(x, y, z i) (r i) { // bresenham line
 	}
 	return r
 }
-func lin(x, y i) (r i) { return dxyr(x, y, bln(I(y+8), I(y+12), I(x+8))) }
+func lin(x, y i) (r i) {
+	w := I(x + 8)
+	n := nn(y) - 1
+	dx(x)
+	x = I(y + 8)
+	r = mk(2, 0)
+	yp := y + 12
+	for i := i(0); i < n; i++ {
+		r = ucat(drop(r, 4294967295), bln(x, I(yp), w))
+		yp += 4
+	}
+	dx(y)
+	return r
+}
 func kst(x i) (r i) {
 	t := tp(x)
 	if nn(x) == 0 && t == 5 {
