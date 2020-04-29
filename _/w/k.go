@@ -1892,7 +1892,17 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 	if xt == 6 {
 		r = take(x, xn)
 		rp := r + 8
-		z = lx(z) // explode
+		if zt != 6 {
+			if yn == 1 {
+				z = enl(z)
+				zn = 1
+			} else {
+				z = lx(z)
+			}
+		}
+		if yn != zn {
+			trap()
+		}
 		zp = z + 8
 		rl(z)
 		for i := i(0); i < yn; i++ {
@@ -2557,7 +2567,6 @@ func leak() {
 	dx(I(kkey))
 	dx(I(kval))
 	dx(I(xyz))
-	//dump(0, 300)
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
