@@ -178,3 +178,33 @@ _  drp flr   drop          ang:_z
 +':x ecp(169)      x+':y epi(41)        x':y win?            (;a;b;c)   (*128)  sequence     a;b;c  ::x(last) :[x;y](dex)
 +/:x ?(253)        x+/:y ovi(125)       x/:y join?           ((/;+);1 2 3)      adverbs      +/1 2 3                      
 +\:x ?(221)        x+\:y sci(93)        x\:y split?       
+
+// k and unix (proposal)
+to better interact with the command line, k(main) might have the following behaviour
+$ k                   interactive
+$ k f.k               load f.k then interactive
+$ k f.k -e            load f.k then quit (empty end-expr)
+$ k -e EXPR           execute EXPR (join of argv following -e) and quit
+$ ..|k -  EXPR        read all data from stdin, execute EXPR and exit
+$ ..|k -l EXPR [-e..] read line from stdin, execute EXPR on each line and exit
+
+expressions given as argv usually need 'quotes' and painful unquotes
+replace ´ (0xb4(latin-1) or 0xc2b4(utf-8)) with ' after reading argv,  e.g.  k -e '+/´x'
+
+pipe modes (last two examples) have special behaviour:
+before executing EXPR, global variables are assigned depending on the mode
+line mode (-l)
+ l:"line as char"
+ x:numeric vector (x:.'l) if the input is numeric
+block/table mode
+ l:("line1";..)
+ x:list of numberic vectors (if convertible)
+the result of expr is printed (if not nil or assign) for each line (-l) or once (no need for ""0:..)
+
+line mode (-l) allows infinity-data/low memory and prints after each line
+
+the end expression -e.. (which may be empty) has 3 use cases:
+ - eval kstring in argv
+ - prevent interactive mode after running file.k
+ - allow an aggregation/summary in line mode, like awk END{}
+
