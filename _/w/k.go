@@ -100,7 +100,7 @@ func ini(x i) i {
 		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
-		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, lin, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
+		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
@@ -1044,53 +1044,6 @@ func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/!n}
 }
 func drw(x, y i) (r i) { // x 'd y
 	return dxyr(x, y, 0)
-}
-func bln(x, y, z i) (r i) { // bresenham line
-	if x > y {
-		t := y
-		y = x
-		x = t
-	}
-	dx := int32((y - x) % z)
-	dy := -int32((y - x) / z)
-	n := -dy
-	if dx > n {
-		n = dx
-	}
-	n += 1
-	r = mk(2, i(n))
-	rp := r + 8
-	e := dx + dy
-	p := x
-	for i := int32(0); i < n; i++ {
-		sI(rp, p)
-		f := 2 * e
-		if f > dy {
-			e += dy
-			p += 1
-		}
-		if f < dx {
-			e += dx
-			p += z
-		}
-		rp += 4
-	}
-	return r
-}
-func lin(x, y i) (r i) {
-	w := I(x + 8)
-	n := nn(y) - 1
-	dx(x)
-	x = I(y + 8)
-	r = mk(2, 0)
-	yp := y + 12
-	for i := i(0); i < n; i++ {
-		r = ucat(r, bln(x, I(yp), w))
-		x = I(yp)
-		yp += 4
-	}
-	dx(y)
-	return r
 }
 func kst(x i) (r i) {
 	t := tp(x)
