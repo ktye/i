@@ -97,7 +97,7 @@ func run(s string) string {
 func ini(x i) i {
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
-		nil, gtc, gti, gtf, gtl, gtl, nil, nil, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, nil, nil, nil, sqc, sqi, sqf, sqz, // 000..031
+		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, lin, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
@@ -1382,30 +1382,33 @@ func gtl(x, y i) i {
 	}
 	return boolvar(xn > yn)
 }
-func eqL(x, y i) i  { return match(I(x), I(y)) }
-func adc(x, y, r i) { sC(r, C(x)+C(y)) }
-func adi(x, y, r i) { sI(r, I(x)+I(y)) }
-func adf(x, y, r i) { sF(r, F(x)+F(y)) }
-func adz(x, y, r i) { sZ(r, Z(x)+Z(y)) }
-func suc(x, y, r i) { sC(r, C(x)-C(y)) }
-func sui(x, y, r i) { sI(r, I(x)-I(y)) }
-func suf(x, y, r i) { sF(r, F(x)-F(y)) }
-func suz(x, y, r i) { sZ(r, Z(x)-Z(y)) }
-func muc(x, y, r i) { sC(r, C(x)*C(y)) }
-func mui(x, y, r i) { sI(r, I(x)*I(y)) }
-func muf(x, y, r i) { sF(r, F(x)*F(y)) }
-func muz(x, y, r i) { sZ(r, Z(x)*Z(y)) }
-func dic(x, y, r i) { sC(r, C(x)/C(y)) }
-func dii(x, y, r i) { sI(r, I(x)/I(y)) }
-func dif(x, y, r i) { sF(r, F(x)/F(y)) }
-func diz(x, y, r i) { sZ(r, Z(x)/Z(y)) }
-func add(x, y i) i  { return nd(x, y, 15+128, 43) }
-func sub(x, y i) i  { return nd(x, y, 19+128, 45) }
-func mul(x, y i) i  { return nd(x, y, 23+128, 42) }
-func diw(x, y i) i  { return nd(x, y, 27+128, 37) }
-func abs(x i) i     { return nm(x, 15, 171) }
-func neg(x i) i     { return nm(x, 19, 173) }
-func sqr(x i) i     { return nm(x, 27, 165) }
+func imod(x, y int32) (r i) { return i((x%y + y) % y) }
+func eqL(x, y i) i          { return match(I(x), I(y)) }
+func adc(x, y, r i)         { sC(r, C(x)+C(y)) }
+func adi(x, y, r i)         { sI(r, I(x)+I(y)) }
+func adf(x, y, r i)         { sF(r, F(x)+F(y)) }
+func adz(x, y, r i)         { sZ(r, Z(x)+Z(y)) }
+func suc(x, y, r i)         { sC(r, C(x)-C(y)) }
+func sui(x, y, r i)         { sI(r, I(x)-I(y)) }
+func suf(x, y, r i)         { sF(r, F(x)-F(y)) }
+func suz(x, y, r i)         { sZ(r, Z(x)-Z(y)) }
+func muc(x, y, r i)         { sC(r, C(x)*C(y)) }
+func mui(x, y, r i)         { sI(r, I(x)*I(y)) }
+func muf(x, y, r i)         { sF(r, F(x)*F(y)) }
+func muz(x, y, r i)         { sZ(r, Z(x)*Z(y)) }
+func dic(x, y, r i)         { sC(r, C(x)/C(y)) }
+func dii(x, y, r i)         { sI(r, I(x)/I(y)) }
+func dif(x, y, r i)         { sF(r, F(x)/F(y)) }
+func diz(x, y, r i)         { sZ(r, Z(x)/Z(y)) }
+func moi(x, y, r i)         { sI(r, imod(int32(I(x)), int32(I(y)))) }
+func add(x, y i) i          { return nd(x, y, 15+128, 43) }
+func sub(x, y i) i          { return nd(x, y, 19+128, 45) }
+func mul(x, y i) i          { return nd(x, y, 23+128, 42) }
+func diw(x, y i) i          { return nd(x, y, 27+128, 37) }
+func mod(x, y i) i          { return nd(x, y, 23, 7) }
+func abs(x i) i             { return nm(x, 15, 171) }
+func neg(x i) i             { return nm(x, 19, 173) }
+func sqr(x i) i             { return nm(x, 27, 165) }
 func abc(x, r i) { // +c (toupper)
 	if c := C(x); is(c, az) {
 		sC(r, c-32)
@@ -1517,8 +1520,18 @@ func epi(x, y, z i) (r i) { // x f':y (each-prior-initial)
 	dx(yi)
 	return dxyr(y, z, r)
 }
-func ovr(x, y i) (r i)    { return ovs(x, y, 0, 0) }             // y/x (over/reduce)
-func scn(x, y i) (r i)    { return ovs(x, y, enl(mk(6, 0)), 0) } // y\x (scan)
+func ovr(x, y i) (r i) { // y/x (over/reduce)
+	if tp(y) == 2 {
+		return mod(x, y)
+	}
+	return ovs(x, y, 0, 0)
+}
+func scn(x, y i) (r i) { // y\x (scan)
+	if tp(y) == 2 {
+		return diw(x, y) // y%x (flipped)
+	}
+	return ovs(x, y, enl(mk(6, 0)), 0)
+}
 func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/: x (over initial)
 func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/: x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
