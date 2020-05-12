@@ -150,7 +150,7 @@ func KWasmModule() (module, []segment, []dataseg, []byte, error) {
 	m, tab, data := run(src)
 	return m, tab, data, srcb, nil
 }
-func TestCout(t *testing.T) { // write k_c from ../../k.w
+func TestCout(t *testing.T) { // write k_h from ../../k.w
 	if broken {
 		t.Skip()
 	}
@@ -159,10 +159,10 @@ func TestCout(t *testing.T) { // write k_c from ../../k.w
 		t.Fatal(err)
 	}
 	var dst bytes.Buffer
-	io.Copy(&dst, strings.NewReader(kh))
+	//io.Copy(&dst, strings.NewReader(kh))
 	dst.Write(m.cout(tab, data))
-	io.Copy(&dst, strings.NewReader(kt))
-	if e := ioutil.WriteFile("k_c", dst.Bytes(), 0744); e != nil {
+	//io.Copy(&dst, strings.NewReader(kt))
+	if e := ioutil.WriteFile("k_h", dst.Bytes(), 0744); e != nil {
 		t.Fatal(e)
 	}
 }
@@ -354,102 +354,6 @@ function grow(x) { var a=((1<<x)-(1<<K.U[32]))>>>16;console.log("grow", a);K.exp
  imgSize(0,0);kons.focus()
 })();
 </script></body></html>
-`
-
-const kh = `#include<stdlib.h>
-#include<stdio.h>
-#include<stddef.h>
-#include<setjmp.h>
-#include<malloc.h>
-#include<string.h>
-#include<math.h>
-#define R return
-#undef abs
-typedef void V;typedef char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
-I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
-C *MC;I* MI;J* MJ;F *MF;
-static jmp_buf jb;
-V panic(){printf("k.w:%u:%u\n", MI[140>>2], MI[144>>2]);longjmp(jb,1);}
-V sC(I x,C y){MC[x]=y;}V sI(I x,I y){MI[x>>2]=y;}V sF(I x,F y){MF[x>>3]=y;}V sJ(I x,J y){MJ[x>>3]=y;};
-//F NaN = &((unt64_t)9221120237041090561ull);
-V dump(I,I);
-I grow(I x){MC=realloc(MC, 1<<x);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC; R x;}
-#ifndef DRW
-V draw0(I x,I y,C *z){printf("draw..\n");}
-#else
-V draw0(I,I,C*);
-#endif
-V draw(I x, I y, I z){draw0(x,y,MC+z);}
-`
-const kt = `
-V dump(I x, I n) {
-	I p = x>>2;
-	printf("\n%08x  ", x);
-	for (I i=0; i<n; i++) {
-		printf(" %08x", MI[p+i]);
-		if ((i > x) && ((i+1)%8 == 0))      printf("\n%08x  ", x+4*i+4);
-		else if ((i > 0) && ((i+1)%4 == 0)) printf(" ");
-	}
-	printf("\n");
-}
-V pstr(I x) {
-	I n = (MI[x>>2])&536870911;
-	for(I i=0;i<n;i++) printf("%c", MC[8+x+i]);
-	dx(x);
-}
-V O(I x) { if(!x)R; pstr(kst(x)); printf("\n"); }
-#define M0 16
-I chrs(C *s) {
-	I n = strlen(s);
-	I x = mk(1, n);
-	for (I i=0; i<n; i++) MC[8+x+i] = s[i];
-	R x;
-}
-V runtest() {
-	C buf[128];
-	C *p;
-	while (fgets(buf, 128, stdin) != NULL) {
-		if((p=strstr(buf, " /"))==NULL) { panic(); }
-		if(buf[0] == '/') { printf("skip\n"); continue; }
-		*p = 0;
-		memset(MC, 0, 1<<M0);
-		mt_init();
-		ini(16);
-		O(val(chrs(buf)));
-	}
-}
-I main(int args, C **argv){
-	C buf[128];
-	C *p, *b;
-	I lb;
-	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
-	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
-	memset(MC, 0, 1<<M0);
-	mt_init();
-	ini(16);
-	if(args==2) {
-		O(val(chrs(argv[1])));
-		return 0;
-	}
-	b=malloc(1<<M0);lb=M0;
-	printf(" ");
-	while (fgets(buf, 128, stdin) != NULL) {
-		if ((p=strchr(buf, '\r'))!=NULL) *p = 0;
-		if ((p=strchr(buf, '\n'))!=NULL) *p = 0;
-		if (!strcmp(buf, "\\\\")) exit(0);
-		if (!strcmp(buf, "\\d")) dump(0, 200);
-		else {
-			if (!setjmp(jb)) {
-				O(val(chrs(buf)));
-				if(MI[32]!=lb) {
-				 lb=MI[32];b=realloc(b,1<<lb);
-				}
-				memcpy(b, MC, 1<<M0);
-	        	} else  memcpy(MC, b, 1<<M0);
-			printf(" ");
-		}
-	}
-}
 `
 
 const gh = `// +build ignore

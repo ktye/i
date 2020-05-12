@@ -148,7 +148,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 0148x444   xn~2(derived)  adv  verb
 	   xn~3(proj)     verb argv empty-index
 	   xn~4(lambda)   str  tree args locals
-	   
+
 +  add abx                 abs:+z                   memory
 -  sub neg                                          0..  7   type sizes   0 1 4 8 16 4 4 0
 *  mul fst                                          8.. 11   parse cur (pp)
@@ -181,7 +181,7 @@ to better interact with the command line, k(main) might have the following behav
 $ k                   interactive
 $ k f.k               load f.k then interactive
 $ k f.k -e            load f.k then quit (empty end-expr)
-$ k -e EXPR           execute EXPR (join of argv following -e) and quit
+$ k -e EXPR           execute EXPR and quit
 $ ..|k -  EXPR        read all data from stdin, execute EXPR and exit
 $ ..|k -l EXPR [-e..] read line from stdin, execute EXPR on each line and exit
 
