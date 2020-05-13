@@ -920,13 +920,16 @@ func fds(x, y i) (r i) { // find subarray y in x
 	if xt != yt || xt > 5 {
 		trap()
 	}
-	if yn == 0 || xn < yn {
+	if yn == 0 {
+		return dxyr(x, y, drop(seq(0, xn, 1), 1))
+	}
+	if xn < yn {
 		return dxyr(x, y, mk(2, 0))
 	}
 	r = mk(2, 0)
 	eq := MT[8+xt].(func(i, i) i)
 	w := i(C(xt))
-	for i := i(0); i < xn-yn; i++ {
+	for i := i(0); i < xn; i++ {
 		a := uint32(0)
 		for j := uint32(0); j < yn; j++ {
 			k := w * j

@@ -36,7 +36,7 @@ mtc:I:II{r:2 mk 1;(r+8)::x match y;dxyr}match:I:II{(x~y)? :1;(~(I x)~I y)? :0;v1
 fnd:I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx:I:II{v1;eq:8+xt;w:C xt;xn/(((I.eq)(xp;y))? :i;xp+:w);xn}
 jon:I:II{v1;((~xt~6)+~xn)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
 spl:I:II{rx x;yn:nn y;r:((mki 0)cat x fds y)cut x;rn:(nn r)-1;r8;rn/(rp+:4;rp::(I rp) drop yn);r}
-fds:I:II{v2;((~xt~yt)+xt>5)?!;r:2 mk 0;((~yn)+xn<yn)?(dx x;dx y; :r);w:C xt;eq:8+xt;i:0;(xn-yn)/(a:0;yn/(k:w*j;a+:((I.eq)(xp+k;yp+k)));(a~yn)?(r:r ucat mki i;i+:yn-1;xp+:w*yn-1);xp+:w);dxyr}
+fds:I:II{v2;((~xt~yt)+xt>5)?!;(xn<yn)?(dx x;dx y; :2 mk 0);(~yn)?(dx x;dx y; :(seq(0;xn;1))drop 1);r:2 mk 0;w:C xt;eq:8+xt;i:0;xn/(a:0;yn/(k:w*j;a+:((I.eq)(xp+k;yp+k)));(a~yn)?(r:r ucat mki i;i+:yn-1;xp+:w*yn-1);xp+:w);dxyr}
 exc:I:II{rx x;x atx wer (mki nn y)eql y fnd x}
 srt:I:I{rx x;x atx grd x}gdn:I:I{rev grd x}grd:I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);r8;msrt(y+8;rp;0;xn;xp;xt);dxyr}
 msrt:V:IIIIII{((x3-z)>=2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}
@@ -139,10 +139,6 @@ is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;C 128+x}
 224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; kst; xxx; xxx; xxx; xxx; prs; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; jon; not; xxx}
 
 \
-odo5:{p#’x(&#)’_(p:*/x)%*\x}
-fill:{@[y;&y=*0#y;:;x]} /aaron
-flip:,'/,''
-
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
 Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 0148x444   xn~2(derived)  adv  verb
@@ -163,7 +159,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 ,  cat enl                                        152..155   
 ^  exc asc                                        156..159   
 $  str cst   sc cs                                160..255   char map az|AZ|NM|VB|AD|TE
-#  rsh cnt   take                                 256.. ∞    buckets/heap
+#  rsh cnt   take                                 256.....   buckets/heap
 _  drp flr   drop          ang:_z                 
 ?  fnd unq   fnd fnx                     
 @  atx typ                 z:abs@ang  z@ang        
@@ -176,32 +172,4 @@ _  drp flr   drop          ang:_z
 +/:x ?(253)        x+/:y ovi(125)       x/:y join?           ((/;+);1 2 3)      adverbs      +/1 2 3                      
 +\:x ?(221)        x+\:y sci(93)        x\:y split?       
 
-// k and unix (proposal)
-to better interact with the command line, k(main) might have the following behaviour
-$ k                   interactive
-$ k f.k               load f.k then interactive
-$ k f.k -e            load f.k then quit (empty end-expr)
-$ k -e EXPR           execute EXPR and quit
-$ ..|k -  EXPR        read all data from stdin, execute EXPR and exit
-$ ..|k -l EXPR [-e..] read line from stdin, execute EXPR on each line and exit
-
-expressions given as argv usually need 'quotes' and painful unquotes
-replace ´ (0xb4(latin-1) or 0xc2b4(utf-8)) with ' after reading argv,  e.g.  k -e '+/´x'
-
-pipe modes (last two examples) have special behaviour:
-before executing EXPR, global variables are assigned depending on the mode
-line mode (-l)
- l:"line as char"
- x:numeric vector (x:.'l) if the input is numeric
-block/table mode
- l:("line1";..)
- x:list of numberic vectors (if convertible)
-the result of expr is printed (if not nil or assign) for each line (-l) or once (no need for ""0:..)
-
-line mode (-l) allows infinity-data/low memory and prints after each line
-
-the end expression -e.. (which may be empty) has 3 use cases:
- - eval kstring in argv
- - prevent interactive mode after running file.k
- - allow an aggregation/summary in line mode, like awk END{}
-
+\(help)  \\(exit)  \d(dump)  \w(k.ws)

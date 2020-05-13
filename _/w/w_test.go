@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -150,13 +151,23 @@ func KWasmModule() (module, []segment, []dataseg, []byte, error) {
 	m, tab, data := run(src)
 	return m, tab, data, srcb, nil
 }
-func TestCout(t *testing.T) { // write k_h from ../../k.w
+func TestCout(t *testing.T) { // write k_h h_h from ../../k.w
 	if broken {
 		t.Skip()
 	}
-	m, tab, data, _, err := KWasmModule()
+	m, tab, data, src, err := KWasmModule()
 	if err != nil {
 		t.Fatal(err)
+	}
+	help := bytes.Index(src, []byte{'\n', '\\'})
+	if help != -1 {
+		f, e := os.Create("h_h")
+		if e != nil {
+			t.Fatal(e)
+		}
+		defer f.Close()
+		version := fmt.Sprintf("k.w(c) %s", time.Now().Format("2006.01.02"))
+		fmt.Fprintf(f, "const char *version=%q;\nV help(){printf(%q);}\n", version, string(src[help+3:]))
 	}
 	var dst bytes.Buffer
 	//io.Copy(&dst, strings.NewReader(kh))
