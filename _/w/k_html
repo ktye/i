@@ -12,10 +12,12 @@
 <body>
 <textarea id="kons" class="term" wrap="off" autofocus spellcheck="false"></textarea>
 <canvas id="cnv"></canvas>
+<a id="dl"></a>
 <script>
 var r = "{{wasm}}"
 var rt = "{{tests}}"
 var rs = "{{src}}"
+var help = "{{help}}"
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function ae(x,y,z){x.addEventListener(y,z)};
@@ -58,13 +60,13 @@ function initKons() {
    O("\n")
    var s = s.trim()
    if(s.length>0&&s[0]=="'")s=" "+s //spacy verb
-   if (s === "tests")           { O(tests);                        return }
-   if (s === "src")             { O(src);                          return }
+   if (s === "\\tests")         { O(tests);                        return }
+   if (s === "\\src")           { O(src);                          return }
+   if((s === "\\")||(s==="\\h")){ O(atob(help));P();               return }
    if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
-   if (s === "\\d")             { dump(0, 200);                    return }
-   //if (s === "\\h")             { O(atob(h));P();                  return }
+   if (s === "\\d")             { dump(0, 200);P();                return }
    //if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
-   //if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
+   if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
    //if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());    return }
    //if (s === "\\lf")            { s = "\\m #:'.fs"                        }
    hash(s);E(s);P()
@@ -93,7 +95,7 @@ function dump(x, n) {
  O("\n"+xx(p)+" ")
  for (var i=0; i<n; i++) {
   O(" "+xx(K.U[p+i]))
-  if ((i>0)&&((i+1)%8==0)) O("\n"+xx(x+4*i+4)+" ")
+  if ((i>0)&&((i+1)%8==0)&&((i+1)<n)) O("\n"+xx(x+4*i+4)+" ")
   else if ((i>0)&&((i+1)%4==0)) O(" ")
  }
  O("\n")
@@ -105,16 +107,22 @@ function cs(s) {
  return x
 }
 function sk(x) { var n = K.exports.nn(x); K.exports.dx(x); return su(K.C.slice(8+x, 8+x+n))}
-function E(s) {
- try{ // todo save/restore
+
+var bak
+function ktry(s) {
+ try{
   var x = K.exports.val(cs(s))
-  if(x != 0) O(sk(K.exports.kst(x))+"\n")
+  bak = K.C.slice(0, 1<<K.U[32])
+  return x
  } catch(e) {
   console.log(e)
   indicate(K.I[35], K.I[36])
   K.I[35]=0;K.I[36]=0
+  K.C.set(bak)
  }
+ return 0
 }
+function E(s) { var x=ktry(s); if(x!=0) O(sk(K.exports.kst(x))+"\n") }
 
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function draw(w, h, p) {
@@ -145,20 +153,64 @@ ae(kons,"contextmenu", function(e) { // button-3 search
 })
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
+// drop file (store in fs[`FILE])
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){
+ var r = new FileReader()
+ r.onload = function(){
+  var u = new Uint8Array(r.result)
+  putfile(x.name, u); O("fs[`"+x.name+"] /"+String(u.length)+"\n");P()
+ }
+ r.readAsArrayBuffer(x)
+}
+function putfile(name, u) { // from Uint8Array
+ var k = K.exports.sc(cs(name))
+ var v = K.exports.mk(1,u.length)
+ K.C.set(u,v+8)
+ var kv = K.exports.mkd(k, K.exports.enl(v))
+ var fs = K.exports.sc(cs("fs")); K.exports.rx(fs)
+ var fsv= K.exports.lup(fs, 0)
+ if(fsv==0) K.exports.dx(K.exports.asn(fs, 0, kv))
+ else       K.exports.dx(K.exports.asn(fs, 0, K.exports.cat(fsv, kv)))
+}
+
+// get file with \wFILE or \w (workspace k.ws) from fs[`FILE]
+function getfile(name) {
+ console.log("k.w size:", 1<<K.U[32])
+ if(name==="k.ws"){return K.C.slice(0, 1<<K.U[32])}
+ else{
+  var x = ktry("fs[`"+name+"]");
+  if(x!=0){ var n = K.exports.nn(x); K.exports.dx(x); return K.C.slice(8+x, 8+x+n) }
+ }
+ return false
+}
+function download(name) {
+ name = (name===""?"k.ws":name)
+ var u = getfile(name)
+ if (u !== false) {
+  var b = new Blob([u], {type:"application/octet-stream"})
+  dl.href = URL.createObjectURL(b)
+  dl.download = name
+  dl.click()
+ }
+}
+
 function msl() {
  K.C = new Uint8Array(K.exports.mem.buffer)
  K.U = new Uint32Array(K.exports.mem.buffer)
  K.I = new Int32Array(K.exports.mem.buffer)
  K.F = new Float64Array(K.exports.mem.buffer)
 }
-function grow(x) { var a=((1<<x)-(1<<K.U[32]))>>>16;console.log("grow", a);K.exports.mem.grow(a); msl(); return x}
+function grow(x) { var cur=K.exports.mem.buffer.byteLength; if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()}; return x}
 
 (async () => {
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
  K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow} });
  msl()
- K.exports.ini(16);
+ K.exports.ini(16)
+ bak = K.C.slice(0)
  var h = decodeURIComponent(window.location.hash.substr(1))
  window.location.hash = h
  if (h.length > 0) {

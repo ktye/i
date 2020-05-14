@@ -117,7 +117,9 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	if err != nil {
 		t.Fatal(err)
 	}
+	help := []byte{}
 	if idx := bytes.Index(src, []byte{'\n', '\\'}); idx != -1 {
+		help = src[idx+3:]
 		src = src[:idx+1]
 	}
 	tests, err := ioutil.ReadFile("t")
@@ -126,7 +128,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	}
 	wasm := m.wasm(tab, data)
 	var txt, fns bytes.Buffer
-	fmt.Fprintf(&txt, "k.w(%d b) %s [tests src]\\n ", len(wasm), time.Now().Format("2006.01.02"))
+	fmt.Fprintf(&txt, "k.w(%d b) %s [\\\\src \\\\tests \\\\h]\\n ", len(wasm), time.Now().Format("2006.01.02"))
 	var b bytes.Buffer
 	s, e := ioutil.ReadFile("k_html")
 	if e != nil {
@@ -135,6 +137,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	s = bytes.Replace(s, []byte(`{{wasm}}`), []byte(base64.StdEncoding.EncodeToString(wasm)), 1)
 	s = bytes.Replace(s, []byte(`{{tests}}`), []byte(base64.StdEncoding.EncodeToString(tests)), 1)
 	s = bytes.Replace(s, []byte(`{{src}}`), []byte(base64.StdEncoding.EncodeToString(src)), 1)
+	s = bytes.Replace(s, []byte(`{{help}}`), []byte(base64.StdEncoding.EncodeToString(help)), 1)
 	s = bytes.Replace(s, []byte(`{{cons}}`), txt.Bytes(), 1)
 	s = bytes.Replace(s, []byte(`{{fncs}}`), fns.Bytes(), 1)
 	b.Write(s)

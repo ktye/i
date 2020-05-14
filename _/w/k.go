@@ -756,7 +756,7 @@ func ucat(x, y i) (r i) {
 		rl(y)
 	}
 	if xt == 7 {
-		r = mkd(ucat(x+8, y+8), ucat(x+12, y+12))
+		r = mkd(ucat(I(x+8), I(y+8)), ucat(I(x+12), I(y+12)))
 		return dxyr(x, y, r)
 	}
 	r = mk(xt, xn+yn)
