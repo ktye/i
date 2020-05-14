@@ -1,8 +1,9 @@
 // +build ignore
 
 // prototype implementation for k.w (same memory layout)
-// go run k.go t      /all tests
-// go run k.go EXPR
+// go run k.go t        /all tests
+// go run k.go EXPR     /single expr
+// go run k.go -d DIR.. /write DIRs to k.ws
 
 package main
 
@@ -14,6 +15,7 @@ import (
 	"math/bits"
 	"math/cmplx"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -48,6 +50,8 @@ const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
 		runtest()
+	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
+		kdirs(os.Args[2:])
 	} else {
 		fmt.Println(run(strings.Join(os.Args[1:], " ")))
 	}
@@ -80,19 +84,55 @@ func runtest() {
 		}
 	}
 }
+func kdirs(dirs []string) {
+	kinit()
+	for _, name := range dirs {
+		dx(asn(sc(mkchrs([]byte(name))), 0, kdir(name)))
+	}
+	if err := ioutil.WriteFile("k.ws", MC, 0744); err != nil {
+		panic(err)
+	}
+}
+func kdir(name string) i {
+	read0 := func(s string) i {
+		b, err := ioutil.ReadFile(s)
+		if err != nil {
+			panic(err)
+		}
+		x := mkchrs(b)
+		return x
+	}
+	k, v := mk(5, 0), mk(6, 0)
+	files, err := ioutil.ReadDir(name)
+	if err != nil {
+		panic(err)
+	}
+	for _, fi := range files {
+		s := fi.Name()
+		k = ucat(k, sc(mkchrs([]byte(s))))
+		if fi.Mode().IsRegular() {
+			v = lcat(v, read0(filepath.Join(name, s)))
+		} else if fi.IsDir() {
+			v = lcat(v, kdir(filepath.Join(name, s)))
+		}
+	}
+	return mkd(k, v)
+}
 func run(s string) string {
-	m0 := 16
-	MJ = make([]j, (1<<m0)>>3)
-	msl()
-	cmake() // copy character map data
-	ini(16)
-	x := mk(1, i(len(s)))
-	copy(MC[x+8:], s)
+	kinit()
+	x := mkchrs([]byte(s))
 	x = kst(val(x))
 	s = string(MC[x+8 : x+nn(x)+8])
 	dx(x)
 	leak()
 	return s
+}
+func kinit() {
+	m0 := 16
+	MJ = make([]j, (1<<m0)>>3)
+	msl()   // pointers MC, MI, ..
+	cmake() // char maps
+	ini(16)
 }
 func ini(x i) i {
 	copy(MT[0:], []interface{}{
@@ -129,6 +169,11 @@ func msl() { // update slice headers after set/inc MJ
 	MF = *(*[]f)(unsafe.Pointer(&fp))
 	MI = *(*[]i)(unsafe.Pointer(&ip))
 	MC = *(*[]c)(unsafe.Pointer(&cp))
+}
+func mkchrs(b []byte) i {
+	x := mk(1, i(len(b)))
+	copy(MC[x+8:], b)
+	return x
 }
 func grow(x i) (r i) {
 	if x > 31 {
