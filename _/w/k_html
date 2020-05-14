@@ -1,0 +1,171 @@
+<head><meta charset="utf-8"><title>w</title></head>
+<link rel='icon' type'image/png' href="k32.png">
+<style>
+ html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
+ #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;font-family:monospace;overflow:auto;}
+ .term{background:black;color:white}
+ .hold{background:white;color:black}
+ .edit{background:#ffffea;color:black}
+ #cnv{width:100;height:100;top:0;right:0;position:absolute;}
+ #dl{display:none;}
+</style>
+<body>
+<textarea id="kons" class="term" wrap="off" autofocus spellcheck="false"></textarea>
+<canvas id="cnv"></canvas>
+<script>
+var r = "{{wasm}}"
+var rt = "{{tests}}"
+var rs = "{{src}}"
+function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function ae(x,y,z){x.addEventListener(y,z)};
+var kwasm = sa(atob(r))
+var tests = atob(rt)
+var src = atob(rs)
+var K
+// kons (k console)
+var hit = kons
+var konstore = ""
+var edname = ""
+var ed = false
+var ctx
+function initKons() {
+ kons.value = "{{cons}}"
+ var hold = false
+ kons.onkeydown = function(e) {
+  if(e.which === 27) { // quit edit / toggle hold / close image
+   delay = 0
+   pd(e)
+   if (ed) { qed(); hold=true }
+   hold = !hold
+   kons.className = (hold) ? "hold" : "term"
+   imgSize(0, 0)
+   hit = kons
+  } else if (e.which === 13 && !hold && !ed) { // execute
+   pd(e)
+   var a = kons.selectionStart
+   var b = kons.selectionEnd
+   var s = kons.value.substring(a, b)
+   if (b == a) {
+    if (kons.value[a] == "\n") a -= 1
+    a = kons.value.lastIndexOf("\n", a)
+    if (a == -1) a = 0
+    b = kons.value.indexOf("\n", b)
+    if (b == -1) b = kons.value.length
+    s = kons.value.substring(a, b)
+   }
+   if (kons.selectionEnd != kons.value.length) O(s)
+   O("\n")
+   var s = s.trim()
+   if(s.length>0&&s[0]=="'")s=" "+s //spacy verb
+   if (s === "tests")           { O(tests);                        return }
+   if (s === "src")             { O(src);                          return }
+   if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
+   if (s === "\\d")             { dump(0, 200);                    return }
+   //if (s === "\\h")             { O(atob(h));P();                  return }
+   //if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
+   //if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
+   //if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());    return }
+   //if (s === "\\lf")            { s = "\\m #:'.fs"                        }
+   hash(s);E(s);P()
+  }
+ }
+ kons.onmousedown = function(e) { hit=kons; if(e.button==2)pd(e); }
+ kons.onblur  = function(e) { kons.style.filter = "brightness(70%)" }
+ kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
+ ctx = cnv.getContext('2d')
+}
+function indicate(line, col) {
+ if(line==0)O("error\n")
+ else O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
+}
+function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
+function P()  { kons.value += " " }
+
+
+function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
+function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
+
+var funcs = {{{fncs}}}
+function xx(x) { return x.toString(16).padStart(8,'0') }
+function dump(x, n) {
+ var p = x >>> 2
+ O("\n"+xx(p)+" ")
+ for (var i=0; i<n; i++) {
+  O(" "+xx(K.U[p+i]))
+  if ((i>0)&&((i+1)%8==0)) O("\n"+xx(x+4*i+4)+" ")
+  else if ((i>0)&&((i+1)%4==0)) O(" ")
+ }
+ O("\n")
+}
+function cs(s) {
+ var n = s.length
+ var x = K.exports.mk(1, n)
+ for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
+ return x
+}
+function sk(x) { var n = K.exports.nn(x); K.exports.dx(x); return su(K.C.slice(8+x, 8+x+n))}
+function E(s) {
+ try{ // todo save/restore
+  var x = K.exports.val(cs(s))
+  if(x != 0) O(sk(K.exports.kst(x))+"\n")
+ } catch(e) {
+  console.log(e)
+  indicate(K.I[35], K.I[36])
+  K.I[35]=0;K.I[36]=0
+ }
+}
+
+function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
+function draw(w, h, p) {
+  console.log("draw", w, h, p)
+  imgSize(w, h)
+  var u = new Uint8ClampedArray(K.C.slice(p, p+4*w*h))
+  var d = new ImageData(u, w, h)
+  for (var i=3; i<d.data.length; i+=4) d.data[i] = 255
+  ctx.putImageData(d, 0, 0)
+}
+function edit(name) { 
+ edname = name; ed = true; konstore = kons.value; 
+ var u = getfile(name.trim())
+ kons.value = (u.length>0) ? su(u) : ""
+ kons.className = "edit"
+ kons.scrollTo(0,0);
+}
+function qed() { // quit edit
+ putfile(edname, us(kons.value))
+ kons.value = konstore; kons.scrollTo(0, kons.scrollHeight)
+ ed = false
+}
+ae(kons,"contextmenu", function(e) { // button-3 search
+ var l = kons.selectionEnd-kons.selectionStart; if(e.button==2&l>0) {
+  pd(e); var t = kons.value.substring(kons.selectionStart,kons.selectionEnd)
+  var f = function(a){ return kons.value.indexOf(t,a) }; var n = f(kons.selectionEnd)
+  if (n<0){n=f(0)}; kons.setSelectionRange(n,n+l); }
+})
+function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+
+function msl() {
+ K.C = new Uint8Array(K.exports.mem.buffer)
+ K.U = new Uint32Array(K.exports.mem.buffer)
+ K.I = new Int32Array(K.exports.mem.buffer)
+ K.F = new Float64Array(K.exports.mem.buffer)
+}
+function grow(x) { var a=((1<<x)-(1<<K.U[32]))>>>16;console.log("grow", a);K.exports.mem.grow(a); msl(); return x}
+
+(async () => {
+ initKons()
+ const module = await WebAssembly.compile(kwasm.buffer);
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow} });
+ msl()
+ K.exports.ini(16);
+ var h = decodeURIComponent(window.location.hash.substr(1))
+ window.location.hash = h
+ if (h.length > 0) {
+  var p = kons.value.length
+  kons.value += h
+  kons.setSelectionRange(p, kons.value.length)
+ }
+ imgSize(0,0);kons.focus()
+})();
+</script></body></html>
