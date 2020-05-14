@@ -10,6 +10,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<stddef.h>
+#include<dirent.h>
 #include<setjmp.h>
 #include<malloc.h>
 #include<string.h>
@@ -144,6 +145,10 @@ V kload(C *name){
 	x = jon(x, mkc(';'));
 	O(val(x));
 }
+V fstore(C *var, C *file){
+	if(!var[0]) var=file;
+	dx(asn(sc(chrs(var)), 0, read0(file)));
+}
 V wsread(C *name){ 
 	I n;
 	FILE *f = fopen(name, "rb");
@@ -170,6 +175,7 @@ V usage(){
 	fprintf(stderr, "$ k .. -L   FUNC MILLI     loop/sleep e.g. animation\n");
 	fprintf(stderr, "$ ..|k -    EXPR           data as  l(lines)  x(numbers 2d)\n");
 	fprintf(stderr, "$ ..|k -l   EXPR [-e..]    per line l(string) x(numbers 1d)\n");
+	fprintf(stderr, "$ k -fVAR   FILE ..        store file(bytes) as VAR(def FILE)\n");
 }
 I main(int args, C **argv){
 	C buf[128];
@@ -183,9 +189,10 @@ I main(int args, C **argv){
 	e = NULL;
 	
 	while(args>1){a=argv[1];n=strlen(a);
-		     if((n>2)&&(a[n-2]=='.')&&(a[n-1]=='k'))                 kload(a);         // *.k
-		else if((n>3)&&(a[n-3]=='.')&&(a[n-2]=='w')&&(a[n-1]=='s')) wsread(a);         // *.ws
-		else if(!strcmp(a, "-e")) {if(args==2)e="";else{e=argv[2];args--;argv++;}}     // -e [EXPR]
+		     if((n>2)&&(a[n-2]=='.')&&(a[n-1]=='k'))                                kload(a);    // *.k
+		else if((n>3)&&(a[n-3]=='.')&&(a[n-2]=='w')&&(a[n-1]=='s'))                wsread(a);    // *.ws
+		else if((n>1)&&(a[0]=='-')&&(a[1]=='f')&&(args>2)){fstore(a+2,argv[2]);args--;argv++;}   // -fVAR file
+		else if( !strcmp(a, "-e"))            {if(args==2)e="";else{e=argv[2];args--;argv++;}}   // -e [EXPR]
 		else { usage(); exit(1); }args--;argv++;
 	}
 	
@@ -194,7 +201,7 @@ I main(int args, C **argv){
 	if(e!=NULL) { O(val(chrs(e)));return 0; }
 	
 	// interactive
-	b=malloc(1<<M0);lb=M0;
+	lb=1<<MI[32];b=malloc(1<<lb);
 	printf("%s\n ", version);
 	while (fgets(buf, 128, stdin) != NULL) {
 		if ((p=strchr(buf, '\r'))!=NULL) *p = 0;
@@ -206,11 +213,9 @@ I main(int args, C **argv){
 		else {
 			if (!setjmp(jb)) {
 				O(val(chrs(buf)));
-				if(MI[32]!=lb) {
-				 lb=MI[32];b=realloc(b,1<<lb);
-				}
-				memcpy(b, MC, 1<<M0);
-	        	} else  memcpy(MC, b, 1<<M0);
+				if(MI[32]!=lb) { lb=MI[32];b=realloc(b,1<<lb); }
+				memcpy(b, MC, 1<<lb);
+	        	} else  memcpy(MC, b, 1<<lb);
 			printf(" ");
 		}
 	}
