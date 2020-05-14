@@ -29,8 +29,10 @@ I grow(I x){MC=realloc(MC, 1<<x);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC; R x;}
 
 #ifndef DRW
 V draw0(I x,I y,C *z){printf("draw..\n");}
+V sleepms(I x){printf("sleep..\n");}
 #else
 #include<windows.h>
+V sleepms(I x){Sleep(x);}
 HBITMAP screenBitmap(HDC hdc, int w, int h, char *p) {
 	BITMAPV5HEADER   bi;
 	HBITMAP          hbm;
@@ -168,11 +170,16 @@ V wswrite(I n) {
 	if(r!=n) fprintf(stderr, "k.ws write error\n");
 	else     printf("wrote k.ws %d\n ", n);
 }
+V loop(I delay){
+	I f = lup(sc(chrs("frame")),0);
+	if(!f){ fprintf(stderr, "frame does not exist\n"); exit(1); }
+	for(I i=0;;i++){rx(f);O(cal(f,enl(mki(i))));sleepms(delay);}
+}
 V usage(){ 
 	fprintf(stderr, "%s\n", version);
 	fprintf(stderr, "$ k [k.ws] [f.k..] [-e]    load ws/file\n");
 	fprintf(stderr, "$ k .. -e  [EXPR]          eval EXPR\n");
-	fprintf(stderr, "$ k .. -L   FUNC MILLI     loop/sleep e.g. animation\n");
+	fprintf(stderr, "$ k .. -L   MILLI          call frame in a loop (with delay)\n");
 	fprintf(stderr, "$ ..|k -    EXPR           data as  l(lines)  x(numbers 2d)\n");
 	fprintf(stderr, "$ ..|k -l   EXPR [-e..]    per line l(string) x(numbers 1d)\n");
 	fprintf(stderr, "$ k -fVAR   FILE ..        store file(bytes) as VAR(def FILE)\n");
@@ -180,7 +187,7 @@ V usage(){
 I main(int args, C **argv){
 	C buf[128];
 	C *p, *b, *a, *e;
-	I lb, n;
+	I lb, n, delay=0;
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
 	memset(MC, 0, 1<<M0);
@@ -192,6 +199,7 @@ I main(int args, C **argv){
 		     if((n>2)&&(a[n-2]=='.')&&(a[n-1]=='k'))                                kload(a);    // *.k
 		else if((n>3)&&(a[n-3]=='.')&&(a[n-2]=='w')&&(a[n-1]=='s'))                wsread(a);    // *.ws
 		else if((n>1)&&(a[0]=='-')&&(a[1]=='f')&&(args>2)){fstore(a+2,argv[2]);args--;argv++;}   // -fVAR file
+		else if((!strcmp(a, "-L"))&&(args>2)) {delay=(I)atoi(argv[2]);         args--;argv++;}   // -L ms
 		else if( !strcmp(a, "-e"))            {if(args==2)e="";else{e=argv[2];args--;argv++;}}   // -e [EXPR]
 		else { usage(); exit(1); }args--;argv++;
 	}
@@ -199,6 +207,7 @@ I main(int args, C **argv){
 	// nyi pipe mode(read all/lines)
 	
 	if(e!=NULL) { O(val(chrs(e)));return 0; }
+	if(delay>0) { loop(delay); }
 	
 	// interactive
 	lb=1<<MI[32];b=malloc(1<<lb);
