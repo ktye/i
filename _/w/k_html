@@ -121,7 +121,8 @@ function ktry(s) {
  }
  return 0
 }
-function E(s) { var x=ktry(s); if(x!=0) O(sk(K.exports.kst(x))+"\n") }
+function apl(s){var a="⍴⍳×÷⌈⌊⌽⍋⍒⍉←⋄¨".split(""); var k="#!*%|&|<>+:;'".split(""); return s.split("").map(x=>{var i=a.indexOf(x); return (i==-1)?x:k[i]}).join("")}
+function E(s) { var x=ktry(apl(s)); if(x!=0) O(sk(K.exports.kst(x))+"\n") }
 
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function draw(w, h, p) {
