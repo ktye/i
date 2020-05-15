@@ -126,7 +126,6 @@ function E(s) { var x=ktry(s); if(x!=0) O(sk(K.exports.kst(x))+"\n") }
 
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function draw(w, h, p) {
-  console.log("draw", w, h, p)
   imgSize(w, h)
   var u = new Uint8ClampedArray(K.C.slice(p, p+4*w*h))
   var d = new ImageData(u, w, h)
@@ -160,10 +159,12 @@ function addfile(x){
  var r = new FileReader()
  r.onload = function(){
   var u = new Uint8Array(r.result)
-  putfile(x.name, u); O("fs[`"+x.name+"] /"+String(u.length)+"\n");P()
+  if(x.name.endsWith(".ws")){setWorkspace(u);O("←"+x.name+"\n");P()}
+  else{putfile(x.name, u); O("fs[`"+x.name+"] /"+String(u.length)+"\n");P()}
  }
  r.readAsArrayBuffer(x)
 }
+function setWorkspace(u){var s=K.U[32];while((1<<s)<u.length)s++;grow(s);K.C.set(u);bak=K.C.slice(0, 1<<K.U[32])}
 function putfile(name, u) { // from Uint8Array
  var k = K.exports.sc(cs(name))
  var v = K.exports.mk(1,u.length)
@@ -202,7 +203,7 @@ function msl() {
  K.I = new Int32Array(K.exports.mem.buffer)
  K.F = new Float64Array(K.exports.mem.buffer)
 }
-function grow(x) { var cur=K.exports.mem.buffer.byteLength; if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()}; return x}
+function grow(x) {console.log("grow",x); var cur=K.exports.mem.buffer.byteLength; if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()}; return x}
 
 (async () => {
  initKons()
