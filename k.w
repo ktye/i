@@ -172,4 +172,4 @@ _  drp flr   drop          ang:_z
 +/:x ?(253)        x+/:y ovi(125)       x/:y join?           ((/;+);1 2 3)      adverbs      +/1 2 3                      
 +\:x ?(221)        x+\:y sci(93)        x\:y split?       
 
-\(help)  \\(exit)  \d(dump)  \w(k.ws)   \L milli(loop frame[i])
+\(help)  \\(exit)  \d(dump)  \w(k.ws)   \c(clear console)    \L milli(loop frame[i])         \e(edit) \eFILE \e`VAR (ESC to quit)

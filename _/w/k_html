@@ -60,15 +60,15 @@ function initKons() {
    O("\n")
    var s = s.trim()
    if(s.length>0&&s[0]=="'")s=" "+s //spacy verb
-   if (s === "\\tests")         { O(tests);                        return }
-   if (s === "\\src")           { O(src);                          return }
-   if((s === "\\")||(s==="\\h")){ O(atob(help));P();               return }
-   if (s === "\\c")             { kons.value=" ";imgSize(0, 0);    return }
-   if (s === "\\d")             { dump(0, 200);P();                return }
-   //if (s.substr(0,2) === "\\e") { P();edit(s.substr(2));           return }
-   if (s.substr(0,2) === "\\w") { download(s.substr(2).trim());P();return }
-   //if (s.substr(0,2) === "\\L") { P();loop(s.substr(2).trim());    return }
-   //if (s === "\\lf")            { s = "\\m #:'.fs"                        }
+   if (s === "\\tests")         {O(tests);                        return}
+   if (s === "\\src")           {O(src);                          return}
+   if((s === "\\")||(s==="\\h")){O(atob(help));P();               return}
+   if (s === "\\c")             {kons.value=" ";imgSize(0, 0);    return}
+   if (s === "\\d")             {dump(0, 200);P();                return}
+   if (s.startsWith("\\e"))     {P();edit(s.substr(2).trim());    return}
+   if (s.startsWith("\\w"))     {download(s.substr(2).trim());P();return}
+ //if (s.substr(0,2) === "\\L") {P();loop(s.substr(2).trim());    return}
+   else if (s.startsWith("\\")) {O("?");P();                      return}
    hash(s);E(s);P()
   }
  }
@@ -83,7 +83,6 @@ function indicate(line, col) {
 }
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
-
 
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
@@ -132,17 +131,19 @@ function draw(w, h, p) {
   for (var i=3; i<d.data.length; i+=4) d.data[i] = 255
   ctx.putImageData(d, 0, 0)
 }
-function edit(name) { 
- edname = name; ed = true; konstore = kons.value; 
- var u = getfile(name.trim())
+function edit(name) { var u;
+ if(name.startsWith("`")){
+  var x = ktry(name.slice(1)); if(x==0){P();return}; u=us(sk(K.exports.kst(x)))
+ } else { u = getfile(name); if(u===false) u=us("") }
+ edname = name; ed = true; konstore = kons.value;
  kons.value = (u.length>0) ? su(u) : ""
  kons.className = "edit"
  kons.scrollTo(0,0);
 }
 function qed() { // quit edit
- putfile(edname, us(kons.value))
- kons.value = konstore; kons.scrollTo(0, kons.scrollHeight)
- ed = false
+ var t = kons.value; kons.value = konstore; kons.scrollTo(0, kons.scrollHeight); ed = false
+ if(edname.startsWith("`")){edname=edname.slice(1);ktry(edname+":"+t)}
+ else                       putfile(edname, us(t))
 }
 ae(kons,"contextmenu", function(e) { // button-3 search
  var l = kons.selectionEnd-kons.selectionStart; if(e.button==2&l>0) {
