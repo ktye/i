@@ -173,7 +173,9 @@ func TestCout(t *testing.T) { // write k_h h_h from ../../k.w
 		}
 		defer f.Close()
 		version := fmt.Sprintf("k.w(c) %s", time.Now().Format("2006.01.02"))
-		fmt.Fprintf(f, "const char *version=%q;\nV help(){printf(%q);}\n", version, string(src[help+3:]))
+		q := fmt.Sprintf("%q", string(src[help+3:]))
+		q = strings.Replace(q, "%", `%%`, -1)
+		fmt.Fprintf(f, "const char *version=%q;\nV help(){printf(%s);}\n", version, q)
 	}
 	var dst bytes.Buffer
 	dst.Write(m.cout(tab, data))
