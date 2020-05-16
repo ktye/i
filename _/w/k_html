@@ -1,8 +1,8 @@
 <head><meta charset="utf-8"><title>w</title></head>
 <link rel='icon' type'image/png' href="k32.png">
 <style>
- html,body,textarea{height:100%;margin:0;padding:0;overflow:hidden;}
- #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;font-family:monospace;overflow:auto;}
+ html,body,textarea,input,select{height:100%;margin:0;padding:0;overflow:hidden;font-family:monospace;}
+ #kons{top:0;left:0;width:100%;height:100%;position:absolute;border:0pt;resize:none;overflow:auto;}
  .term{background:black;color:white}
  .hold{background:white;color:black}
  .edit{background:#ffffea;color:black}
@@ -205,7 +205,7 @@ function download(name) {
 //gui \gVAR \g(remove)
 function mkgui(s){var x,g,k,v,ki,vi,i,n;if(gui)gui.destroy();if(s.length==0)return;x=ktry(s);if(x==0)return;
  gui=new dat.GUI();var e=gui.domElement.style;e.position="absolute";e.right="50%"
- if(tp(x)==7){rx(x);rx(x);k=til(x);v=val(x);n=nn(x);for(i=0;i<nn(x);i++){rx(k);rx(v);ki=atx(k,mki(i));vi=atx(v,mki(i));gadd(gui,sk(cs(ki)),vi);dx(vi)};dx(k);dx(v)}
+ if(tp(x)==7){rx(x);rx(x);k=til(x);v=val(x);n=nn(k);for(i=0;i<n;i++){rx(k);rx(v);ki=atx(k,mki(i));vi=atx(v,mki(i));gadd(gui,sk(cs(ki)),vi);dx(vi)};dx(k);dx(v)}
  else gadd(gui,s,x); dx(x)}
 function gadd(g,key,x){var a,n,v,vi,r,i;n=nn(x);if(n==0)return;o={};switch(tp(x)){
  case 0:rx(x);o[key]=callback(x);g.add(o,key);return    /*x leaks*/          //button/function
@@ -228,17 +228,21 @@ function gadd(g,key,x){var a,n,v,vi,r,i;n=nn(x);if(n==0)return;o={};switch(tp(x)
       n=nn(a);for(i=0;i<n;i++){rx(a);rx(v); vi=atx(v,mki(i));
       gadd(f,sk(cs(atx(a,mki(i)))),vi);dx(vi);}; dx(a);dx(v);
 }}
-function callback(x){return function(){console.log(x);rx(x);var r=atx(x,kg());if(r!=0)O(sk(kst(r))+"\n")}}
-function kg(){ //k dict from gui
- //var c,k,v 
- //c=gui.__controllers;k=mk(5,0);v=mk(6,0)
- //for(var i=0;i<c.length;i++){k=cat(k,sc(cstr(c[i].property)));v=lcat(v,mki(c[i].getValue()))}
- //...
- //return mkd(k,v)
- return mki(0)
-}
+function callback(x){return function(){rx(x);var r=atx(x,kg(gui));if(r!=0)O(sk(kst(r))+"\n")}}
+function kg(g){ //k dict from gui
+ var i,c,ci,r,k,v;k=mk(5,0);v=mk(6,0)
+ c=g.__controllers;for(i=0;i<c.length;i++){ci=c[i];r=ci.getValue()
+      if (typeof(r)==="function") continue
+ else if (typeof(r)==="boolean")             r=mki(r+0)                    //bool->int
+ else if((typeof(r)==="string")&&ci.__input) r=cstr(r)                     //string->chars
+ else if (typeof(r)==="string")              r=sc(cstr(r))                 //options->symbol
+ else if (ci.__step===1)                     r=mki(r)                      //int
+ else if (ci.__color){var x=ci.__color;      r=mki((x.b<<16)+(x.g<<8)+x.r)}//color
+ else { var f = mk(3,1); K.F[1+(f>>>3)] = r; r=f                          }//float
+ k=cat(k,sc(cstr(ci.property)));v=lcat(v,r)}
+ c=g.__folders;for(i in c){k=cat(k,sc(cstr(i)));v=lcat(v,kg(c[i]))}
+ return mkd(k,v)}
 
- 
 function msl(){var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
 function grow(x){var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
 

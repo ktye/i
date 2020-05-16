@@ -449,6 +449,10 @@ func tir(n i) (r i) {
 	return r
 }
 func rev(x i) (r i) {
+	if tp(x) == 7 {
+		rld(x)
+		return mkd(rev(I(x+8)), rev(I(x+12)))
+	}
 	n := nn(x)
 	if n == 0 {
 		return x
