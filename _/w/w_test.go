@@ -127,7 +127,11 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 		t.Fatal(err)
 	}
 	wasm := m.wasm(tab, data)
-	var txt, fns bytes.Buffer
+	gui, err := ioutil.ReadFile("dat_gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var txt bytes.Buffer
 	fmt.Fprintf(&txt, "k.w(%d b) %s [\\\\src \\\\tests \\\\h]\\n ", len(wasm), time.Now().Format("2006.01.02"))
 	var b bytes.Buffer
 	s, e := ioutil.ReadFile("k_html")
@@ -138,8 +142,9 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 	s = bytes.Replace(s, []byte(`{{tests}}`), []byte(base64.StdEncoding.EncodeToString(tests)), 1)
 	s = bytes.Replace(s, []byte(`{{src}}`), []byte(base64.StdEncoding.EncodeToString(src)), 1)
 	s = bytes.Replace(s, []byte(`{{help}}`), []byte(base64.StdEncoding.EncodeToString(help)), 1)
+	s = bytes.Replace(s, []byte(`{{gui}}`), gui, 1)
 	s = bytes.Replace(s, []byte(`{{cons}}`), txt.Bytes(), 1)
-	s = bytes.Replace(s, []byte(`{{fncs}}`), fns.Bytes(), 1)
+	//s = bytes.Replace(s, []byte(`{{fncs}}`), fns.Bytes(), 1)
 	b.Write(s)
 	if e := ioutil.WriteFile("k.html", b.Bytes(), 0644); e != nil {
 		t.Fatal(e)

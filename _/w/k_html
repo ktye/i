@@ -18,13 +18,15 @@ var r = "{{wasm}}"
 var rt = "{{tests}}"
 var rs = "{{src}}"
 var help = "{{help}}"
+var G = {};var gui
+{{gui}}
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function ae(x,y,z){x.addEventListener(y,z)};
 var kwasm = sa(atob(r))
 var tests = atob(rt)
 var src = atob(rs)
-var K
+var K,nn,tp,mk,rx,dx,mk,val,sc,cs,mkd,asn,kst,enl,lup,cat,lcat,atx,mki,til
 // kons (k console)
 var hit = kons
 var konstore = ""
@@ -67,6 +69,7 @@ function initKons() {
    if (s === "\\d")             {dump(0, 200);P();                return}
    if (s.startsWith("\\e"))     {P();edit(s.substr(2).trim());    return}
    if (s.startsWith("\\w"))     {download(s.substr(2).trim());P();return}
+   if (s.startsWith("\\g"))     {mkgui(s.substr(2).trim());P();   return}
  //if (s.substr(0,2) === "\\L") {P();loop(s.substr(2).trim());    return}
    else if (s.startsWith("\\")) {O("?");P();                      return}
    hash(s);E(s);P()
@@ -87,7 +90,7 @@ function P()  { kons.value += " " }
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 
-var funcs = {{{fncs}}}
+//var funcs = {{{fncs}}}
 function xx(x) { return x.toString(16).padStart(8,'0') }
 function dump(x, n) {
  var p = x >>> 2
@@ -99,18 +102,18 @@ function dump(x, n) {
  }
  O("\n")
 }
-function cs(s) {
+function cstr(s) {
  var n = s.length
- var x = K.exports.mk(1, n)
+ var x = mk(1, n)
  for (var i=0;i<n;i++) K.C[8+x+i] = s.charCodeAt(i);
  return x
 }
-function sk(x) { var n = K.exports.nn(x); K.exports.dx(x); return su(K.C.slice(8+x, 8+x+n))}
+function sk(x) { var n = nn(x); dx(x); return su(K.C.slice(8+x, 8+x+n))}
 
 var bak
 function ktry(s) {
  try{
-  var x = K.exports.val(cs(s))
+  var x = val(cstr(s))
   bak = K.C.slice(0, 1<<K.U[32])
   return x
  } catch(e) {
@@ -122,7 +125,7 @@ function ktry(s) {
  return 0
 }
 function apl(s){var a="⍴⍳×÷⌈⌊⌽⍋⍒⍉←⋄¨".split(""); var k="#!*%|&|<>+:;'".split(""); return s.split("").map(x=>{var i=a.indexOf(x); return (i==-1)?x:k[i]}).join("")}
-function E(s) { var x=ktry(apl(s)); if(x!=0) O(sk(K.exports.kst(x))+"\n") }
+function E(s) { var x=ktry(apl(s)); if(x!=0) O(sk(kst(x))+"\n") }
 
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
 function draw(w, h, p) {
@@ -134,7 +137,7 @@ function draw(w, h, p) {
 }
 function edit(name) { var u;
  if(name.startsWith("`")){
-  var x = ktry(name.slice(1)); if(x==0){P();return}; u=us(sk(K.exports.kst(x)))
+  var x = ktry(name.slice(1)); if(x==0){P();return}; u=us(sk(kst(x)))
  } else { u = getfile(name); if(u===false) u=us("") }
  edname = name; ed = true; konstore = kons.value;
  kons.value = (u.length>0) ? su(u) : ""
@@ -168,14 +171,14 @@ function addfile(x){
 }
 function setWorkspace(u){var s=K.U[32];while((1<<s)<u.length)s++;grow(s);K.C.set(u);bak=K.C.slice(0, 1<<K.U[32])}
 function putfile(name, u) { // from Uint8Array
- var k = K.exports.sc(cs(name))
- var v = K.exports.mk(1,u.length)
+ var k = sc(cstr(name))
+ var v = mk(1,u.length)
  K.C.set(u,v+8)
- var kv = K.exports.mkd(k, K.exports.enl(v))
- var fs = K.exports.sc(cs("fs")); K.exports.rx(fs)
- var fsv= K.exports.lup(fs, 0)
- if(fsv==0) K.exports.dx(K.exports.asn(fs, 0, kv))
- else       K.exports.dx(K.exports.asn(fs, 0, K.exports.cat(fsv, kv)))
+ var kv = mkd(k, enl(v))
+ var fs = sc(cstr("fs")); rx(fs)
+ var fsv= lup(fs, 0)
+ if(fsv==0) dx(asn(fs, 0, kv))
+ else       dx(asn(fs, 0, cat(fsv, kv)))
 }
 
 // get file with \wFILE or \w (workspace k.ws) from fs[`FILE]
@@ -184,7 +187,7 @@ function getfile(name) {
  if(name==="k.ws"){return K.C.slice(0, 1<<K.U[32])}
  else{
   var x = ktry("fs[`"+name+"]");
-  if(x!=0){ var n = K.exports.nn(x); K.exports.dx(x); return K.C.slice(8+x, 8+x+n) }
+  if(x!=0){var n=nn(x);dx(x);return K.C.slice(8+x,8+x+n)}
  }
  return false
 }
@@ -199,13 +202,45 @@ function download(name) {
  }
 }
 
-function msl() {
- K.C = new Uint8Array(K.exports.mem.buffer)
- K.U = new Uint32Array(K.exports.mem.buffer)
- K.I = new Int32Array(K.exports.mem.buffer)
- K.F = new Float64Array(K.exports.mem.buffer)
+//gui \gVAR \g(remove)
+function mkgui(s){var x,g,k,v,ki,vi,i,n;if(gui)gui.destroy();if(s.length==0)return;x=ktry(s);if(x==0)return;
+ gui=new dat.GUI();var e=gui.domElement.style;e.position="absolute";e.right="50%"
+ if(tp(x)==7){rx(x);rx(x);k=til(x);v=val(x);n=nn(x);for(i=0;i<nn(x);i++){rx(k);rx(v);ki=atx(k,mki(i));vi=atx(v,mki(i));gadd(gui,sk(cs(ki)),vi);dx(vi)};dx(k);dx(v)}
+ else gadd(gui,s,x); dx(x)}
+function gadd(g,key,x){var a,n,v,vi,r,i;n=nn(x);if(n==0)return;o={};switch(tp(x)){
+ case 0:rx(x);o[key]=callback(x);g.add(o,key);return    /*x leaks*/          //button/function
+ case 1:v=su(K.C.slice(8+x,8+x+n));o[key]=v;g.add(o,key);return              //string
+ case 2:a=x>>>2;v=K.I.slice(2+a,2+a+n);
+        if (n==1){o[key]=v[0];g.add(o,key).step(1)}                          //int
+   else if((n==2)&&v[1]==1){r=false;if(v[0]!=0)r=true;o[key]=r;g.add(o,key)} //checkbox
+   else if((n==2)&&v[1]==0){                                                 //color
+           r=v[0];o[key]=[r&255,(r>>>8)&255,(r>>>16)&255];g.addColor(o,key)} 
+   else if (n==2){o[key]=v[0];g.add(o,key,0,v[1]).step(1)}                   //int[0,max]
+   else if (n> 2){o[key]=v[0];g.add(o,key,v[1],v[2]).step(1)};return         //int[min,max]
+ case 3:a=x>>>3;v=K.F.slice(1+a,1+a+n);o[key]=v[0];
+        if (n==1) g.add(o,key)                                //float
+   else if (n==2) g.add(o,key,0,v[1])                         //float[0,max]
+   else if (n==3) g.add(o,key,v[1],v[2])                      //float[min,max]
+   else if (n==4) g.add(o,key,v[1],v[2]).step(v[3]);return    //float[min,max] stepsize
+ case 5:v=[];for(i=0;i<n;i++){rx(x);r=atx(x,mki(i));v.push(sk(cs(r)));dx(r)}
+      o[key]=v[0];g.add(o,key,v);return                       // symbols->options
+ case 7:var f=g.addFolder(key);rx(x);rx(x);a=til(x);v=val(x); // dict->folder
+      n=nn(a);for(i=0;i<n;i++){rx(a);rx(v); vi=atx(v,mki(i));
+      gadd(f,sk(cs(atx(a,mki(i)))),vi);dx(vi);}; dx(a);dx(v);
+}}
+function callback(x){return function(){console.log(x);rx(x);var r=atx(x,kg());if(r!=0)O(sk(kst(r))+"\n")}}
+function kg(){ //k dict from gui
+ //var c,k,v 
+ //c=gui.__controllers;k=mk(5,0);v=mk(6,0)
+ //for(var i=0;i<c.length;i++){k=cat(k,sc(cstr(c[i].property)));v=lcat(v,mki(c[i].getValue()))}
+ //...
+ //return mkd(k,v)
+ return mki(0)
 }
-function grow(x) {console.log("grow",x); var cur=K.exports.mem.buffer.byteLength; if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()}; return x}
+
+ 
+function msl(){var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
+function grow(x){var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
 
 (async () => {
  initKons()
@@ -213,6 +248,7 @@ function grow(x) {console.log("grow",x); var cur=K.exports.mem.buffer.byteLength
  K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow} });
  msl()
  K.exports.ini(16)
+ var e=K.exports;nn=e.nn;tp=e.tp;rx=e.rx;dx=e.dx;mk=e.mk;val=e.val;sc=e.sc;cs=e.cs;mkd=e.mkd;asn=e.asn;kst=e.kst;enl=e.enl;lup=e.lup;cat=e.cat;lcat=e.lcat;atx=e.atx;mki=e.mki;til=e.til
  bak = K.C.slice(0)
  var h = decodeURIComponent(window.location.hash.substr(1))
  window.location.hash = h
