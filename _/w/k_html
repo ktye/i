@@ -203,7 +203,7 @@ function download(name) {
 }
 
 //gui \gVAR \g(remove)
-function mkgui(s){var x,g,k,v,ki,vi,i,n;if(gui)gui.destroy();if(s.length==0)return;x=ktry(s);if(x==0)return;
+function mkgui(s){var x,g,k,v,ki,vi,i,n;if(gui){gui.destroy();gui=undefined};if(s.length==0)return;x=ktry(s);if(x==0)return;
  gui=new dat.GUI();var e=gui.domElement.style;e.position="absolute";e.right="50%"
  if(tp(x)==7){rx(x);rx(x);k=til(x);v=val(x);n=nn(k);for(i=0;i<n;i++){rx(k);rx(v);ki=atx(k,mki(i));vi=atx(v,mki(i));gadd(gui,sk(cs(ki)),vi);dx(vi)};dx(k);dx(v)}
  else gadd(gui,s,x); dx(x)}
