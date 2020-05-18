@@ -1742,6 +1742,18 @@ func ibin(x, y, n, t i) (r i) {
 func val(x i) (r i) {
 	xt, _, _ := v1(x)
 	switch xt {
+	case 0:
+		if x < 256 {
+			return x
+		}
+		n := nn(x)
+		rl(x)
+		r = mk(6, n)
+		mv(r+8, x+8, 4*n)
+		if n == 4 {
+			sI(r+20, mki(I(r+20)))
+		}
+		return dxr(x, r)
 	case 1:
 		r = prs(x)
 		n := I(r+8) == 58
