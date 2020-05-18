@@ -10,7 +10,6 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<stddef.h>
-#include<dirent.h>
 #include<setjmp.h>
 #include<malloc.h>
 #include<string.h>
@@ -170,24 +169,21 @@ V wswrite(I n) {
 	if(r!=n) fprintf(stderr, "k.ws write error\n");
 	else     printf("wrote k.ws %d\n ", n);
 }
-V loop(I delay){
-	I f = lup(sc(chrs("frame")),0);
-	if(!f){ fprintf(stderr, "frame does not exist\n"); exit(1); }
-	for(I i=0;;i++){rx(f);O(cal(f,enl(mki(i))));sleepms(delay);}
-}
+V loop(I delay, I f){ for(I i=0;;i++){rx(f);O(cal(f,enl(mki(i))));sleepms(delay);} }
 V usage(){ 
 	fprintf(stderr, "%s\n", version);
-	fprintf(stderr, "$ k [k.ws] [f.k..] [-e]    load ws/file\n");
-	fprintf(stderr, "$ k .. -e  [EXPR]          eval EXPR\n");
-	fprintf(stderr, "$ k .. -L   MILLI          call frame in a loop (with delay)\n");
-	fprintf(stderr, "$ ..|k -    EXPR           data as  l(lines)  x(numbers 2d)\n");
-	fprintf(stderr, "$ ..|k -l   EXPR [-e..]    per line l(string) x(numbers 1d)\n");
-	fprintf(stderr, "$ k -fVAR   FILE ..        store file(bytes) as VAR(def FILE)\n");
+	fprintf(stderr, "$ k [k.ws]  [f.k..] [-e]    load ws/file\n");
+	fprintf(stderr, "$ k .. -e   [EXPR]          eval EXPR\n");
+	fprintf(stderr, "$ k .. -L ms FRAME          call FRAME[i] in loop (ms delay)\n");
+	fprintf(stderr, "$ ..|k -     EXPR           data as  l(lines)  x(numbers 2d)\n");
+	fprintf(stderr, "$ ..|k -l    EXPR [-e..]    per line l(string) x(numbers 1d)\n");
+	fprintf(stderr, "$ k -fVAR    FILE ..        store file(bytes) as VAR(def FILE)\n");
 }
+V SignalHandler(int signal) { printf("signal %d\n"); }
 I main(int args, C **argv){
 	C buf[128];
-	C *p, *b, *a, *e;
-	I lb, n, delay=0;
+	C *p, *b, *a, *e, *f=NULL;
+	I lb, n, d=0;
 	MC=malloc(1<<M0);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
 	if ((args == 2) && (!strcmp(argv[1], "t"))) {runtest(); exit(0);}
 	memset(MC, 0, 1<<M0);
@@ -199,7 +195,7 @@ I main(int args, C **argv){
 		     if((n>2)&&(a[n-2]=='.')&&(a[n-1]=='k'))                                kload(a);    // *.k
 		else if((n>3)&&(a[n-3]=='.')&&(a[n-2]=='w')&&(a[n-1]=='s'))                wsread(a);    // *.ws
 		else if((n>1)&&(a[0]=='-')&&(a[1]=='f')&&(args>2)){fstore(a+2,argv[2]);args--;argv++;}   // -fVAR file
-		else if((!strcmp(a, "-L"))&&(args>2)) {delay=(I)atoi(argv[2]);         args--;argv++;}   // -L ms
+		else if((!strcmp(a, "-L"))&&(args>3)) {d=(I)atoi(argv[2]);f=argv[3]; args-=2;argv+=2;}   // -L ms FRAME
 		else if( !strcmp(a, "-e"))            {if(args==2)e="";else{e=argv[2];args--;argv++;}}   // -e [EXPR]
 		else { usage(); exit(1); }args--;argv++;
 	}
@@ -207,7 +203,7 @@ I main(int args, C **argv){
 	// nyi pipe mode(read all/lines)
 	
 	if(e!=NULL) { O(val(chrs(e)));return 0; }
-	if(delay>0) { loop(delay); }
+	if(d>0){ n=val(chrs(f));if(n&&!tp(n))loop(d,n); }
 	
 	// interactive
 	lb=1<<MI[32];b=malloc(1<<lb);

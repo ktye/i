@@ -33,12 +33,13 @@ var konstore = ""
 var edname = ""
 var ed = false
 var ctx
+var tick
 function initKons() {
  kons.value = "{{cons}}"
  var hold = false
  kons.onkeydown = function(e) {
-  if(e.which === 27) { // quit edit / toggle hold / close image
-   delay = 0
+  if(e.which === 27) { // quit edit / toggle hold / close image / stop loop
+   clearInterval(tick)
    pd(e)
    if (ed) { qed(); hold=true }
    hold = !hold
@@ -70,7 +71,7 @@ function initKons() {
    if (s.startsWith("\\e"))     {P();edit(s.substr(2).trim());    return}
    if (s.startsWith("\\w"))     {download(s.substr(2).trim());P();return}
    if (s.startsWith("\\g"))     {mkgui(s.substr(2).trim());P();   return}
- //if (s.substr(0,2) === "\\L") {P();loop(s.substr(2).trim());    return}
+   if (s.startsWith("\\L"))     {P();loop(s.slice(2));            return}
    else if (s.startsWith("\\")) {O("?");P();                      return}
    hash(s);E(s);P()
   }
@@ -84,6 +85,9 @@ function indicate(line, col) {
  if(line==0)O("error\n")
  else O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
 }
+function loop(s) {console.log("Loop"); var v,t,f;v=s.split(" ");t=parseInt(v[0],10);if(!isNaN(t))v=v.slice(1);else t=100;s=v.join(" ").trim(); 
+ var f=ktry(s);if((s==0)||tp(f)!=0){O("L is no func");P();return};clearInterval(tick);
+ tick=setInterval(function(){console.log("tick");var x=ktry(function(){rx(f);return atx(f,kg(gui))});if(x!=0){O(sk(kst(x))+"\n");P()}},t)}
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
 
@@ -113,12 +117,13 @@ function sk(x) { var n = nn(x); dx(x); return su(K.C.slice(8+x, 8+x+n))}
 var bak
 function ktry(s) {
  try{
-  var x = val(cstr(s))
+  var x = (typeof(s)==="function")?s():val(cstr(s))
   bak = K.C.slice(0, 1<<K.U[32])
   return x
  } catch(e) {
   console.log(e)
   indicate(K.I[35], K.I[36])
+  clearInterval(tick)
   K.I[35]=0;K.I[36]=0
   K.C.set(bak)
  }
@@ -230,7 +235,7 @@ function gadd(g,key,x){var a,n,v,vi,r,i;n=nn(x);if(n==0)return;o={};switch(tp(x)
 }}
 function callback(x){return function(){rx(x);var r=atx(x,kg(gui));if(r!=0)O(sk(kst(r))+"\n")}}
 function kg(g){ //k dict from gui
- var i,c,ci,r,k,v;k=mk(5,0);v=mk(6,0)
+ var i,c,ci,r,k,v;k=mk(5,0);v=mk(6,0);if(g==undefined)return mkd(k,v)
  c=g.__controllers;for(i=0;i<c.length;i++){ci=c[i];r=ci.getValue()
       if (typeof(r)==="function") continue
  else if (typeof(r)==="boolean")             r=mki(r+0)                    //bool->int

@@ -169,5 +169,5 @@ _  drp flr   drop          ang:_z
 +/x  ovr(251),fxp  x+/y  ecr(123),n/whl x/y  mod,mmul(L)?     
 +\x  scn(219),fxp  x+\y  ecl(91),n/whl  x\y  y%x,solve(L)?  \(help)  \\(exit) \d(dump) \w(k.ws)
 +':x ecp(169)      x+':y epi(41)        x':y win?           \c(clear console)       
-+/:x ?(253)        x+/:y ovi(125)       x/:y join           \L milli(loop frame[i])
++/:x ?(253)        x+/:y ovi(125)       x/:y join           \L100 F  (loop F[ui] with delay ms)
 +\:x ?(221)        x+\:y sci(93)        x\:y split          \e(edit)  \eFILE  \e`VAR (ESC quit) 
