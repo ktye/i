@@ -1806,10 +1806,10 @@ func asn(x, loc, u i) (r i) {
 	}
 	rx(u)
 	k, v, n, m := kv(x, loc)
+	if n == m && loc != 0 {
+		k, v, n, m = kv(x, 0)
+	}
 	if n == m {
-		if loc != 0 {
-			panic("asn to undefined local")
-		}
 		sI(kkey, cat(k, x))
 		sI(kval, lcat(v, u))
 		return u
