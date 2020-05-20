@@ -141,7 +141,7 @@ V nocomment(I x) {
 V kload(C *name){
 	I x = spl(read0(name), mkc('\n'));
 	I n = nn(x);
-	for(I i=0; i<n; i++) nocomment(MI[2+i+(x>>2)]);
+	// for(I i=0; i<n; i++) nocomment(MI[2+i+(x>>2)]);
 	// todo src map (line numbers)? +\#x
 	x = jon(x, mkc(';'));
 	O(val(x));

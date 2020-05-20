@@ -58,13 +58,21 @@ func main() {
 	}
 }
 func multitest() {
-	// in, exp := "(1\n2 3;4 ) /comment", "(1;2 3;4)"
-	in, exp := "(1\n2 3;4 )", "(1;2 3;4)"
-	got := run(in)
-	fmt.Printf("%q /%s\n", in, got)
-	if got != exp {
-		fmt.Printf("expected:", exp)
-		os.Exit(1)
+	tc := []struct{ in, exp string }{
+		{"(1;2)", "(1;2)"},
+		{"(1\n2)", "(1;2)"},
+		{"(1 /xx\n2)", "(1;2)"},
+		{"(1\n2 3;4 ) /comment", "(1;2 3;4)"},
+		{`&"1+2 /alpha"`, "(+;1;2)"},
+		{`/x\n2`, "2"},
+	}
+	for _, t := range tc {
+		got := run(t.in)
+		fmt.Printf("%q /%s\n", t.in, got)
+		if got != t.exp {
+			fmt.Println("expected:", t.exp)
+			os.Exit(1)
+		}
 	}
 }
 func runtest() {
@@ -1768,6 +1776,7 @@ func val(x i) (r i) {
 	case 1:
 		r = prs(x)
 		n := I(r+8) == 58
+		fmt.Printf("<prs: %s\n", X(r))
 		r = evl(r, 0)
 		if n {
 			dx(r)
@@ -2107,8 +2116,12 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	if xt != 1 {
 		trap()
 	}
+	xn += xp
+	if xn > xp && C(xp) == '/' {
+		xp = com(xp, xn)
+	}
 	sI(pp, xp)
-	r = sq(xp + xn)
+	r = sq(xn)
 	if nn(r) == 1 {
 		r = fst(r)
 	} else {
@@ -2282,7 +2295,19 @@ func ws(s i) bool { // skip whitespace
 			return false
 		}
 		p++
+		if C(p) == '/' { //47
+			p = com(p, s)
+		}
 	}
+}
+func com(p, s i) (r i) {
+	for p < s {
+		if C(p) == 10 {
+			return 1 + p
+		}
+		p++
+	}
+	return p
 }
 func tok(s i) (r i) { // next token
 	if ws(s) {
@@ -2443,6 +2468,7 @@ func nms(b c, p, s i) (r i) { // parse numeric vector
 		sI(pp, p)
 		q := num(C(p), p, s)
 		if q == 0 {
+			sI(pp, p-1) // keep space for " /comment" (todo?)
 			return r
 		}
 		r = upx(r, q)
