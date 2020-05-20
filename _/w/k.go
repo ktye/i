@@ -49,11 +49,22 @@ const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "t" {
+		multitest()
 		runtest()
 	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
 		kdirs(os.Args[2:])
 	} else {
 		fmt.Println(run(strings.Join(os.Args[1:], " ")))
+	}
+}
+func multitest() {
+	// in, exp := "(1\n2 3;4 ) /comment", "(1;2 3;4)"
+	in, exp := "(1\n2 3;4 )", "(1;2 3;4)"
+	got := run(in)
+	fmt.Printf("%q /%s\n", in, got)
+	if got != exp {
+		fmt.Printf("expected:", exp)
+		os.Exit(1)
 	}
 }
 func runtest() {
@@ -2111,7 +2122,7 @@ func sq(s i) (r i) { // E
 		v := ws(s)
 		p := I(pp)
 		if !v {
-			v = C(p) != 59 // ;
+			v = (C(p) != 59 && C(p) != 10) // ; \n
 		}
 		if v {
 			if p < s {
@@ -2124,7 +2135,12 @@ func sq(s i) (r i) { // E
 	}
 }
 func ex(x, s i) (r i) { // e
-	if x == 0 || ws(s) || is(C(I(pp)), TE) { //32
+	//if x == 0 || ws(s) || is(C(I(pp)), TE) { //32
+	if x == 0 || ws(s) {
+		return x
+	}
+	b := C(I(pp)) // k.w uses r
+	if is(b, TE) || b == 10 {
 		return x
 	}
 	r = pt(s) // nil?
@@ -2274,7 +2290,7 @@ func tok(s i) (r i) { // next token
 	}
 	p := I(pp)
 	b := C(p)
-	if is(b, TE) { //32
+	if is(b, TE) || b == 10 { //32
 		return 0
 	}
 	for j := 0; j < 5; j++ { // nms vrb chr nam sms
