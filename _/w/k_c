@@ -130,22 +130,6 @@ I read0(C *name) {
 	}
 	fclose(f);return r;
 }
-V nocomment(I x) {
-	I n = nn(x);
-	I a = 0;
-	for(I i=0; i<n; i++) {
-		if((MC[8+x+i]=='/')&&((i==0)||(MC[7+x+i]==' '))) a = 1;
-		if(a) MC[8+x+i] = ' ';
-	}
-}
-V kload(C *name){
-	I x = spl(read0(name), mkc('\n'));
-	I n = nn(x);
-	// for(I i=0; i<n; i++) nocomment(MI[2+i+(x>>2)]);
-	// todo src map (line numbers)? +\#x
-	x = jon(x, mkc(';'));
-	O(val(x));
-}
 V fstore(C *var, C *file){
 	if(!var[0]) var=file;
 	dx(asn(sc(chrs(var)), 0, read0(file)));
@@ -192,7 +176,7 @@ I main(int args, C **argv){
 	e = NULL;
 	
 	while(args>1){a=argv[1];n=strlen(a);
-		     if((n>2)&&(a[n-2]=='.')&&(a[n-1]=='k'))                                kload(a);    // *.k
+		     if((n>2)&&(a[n-2]=='.')&&(a[n-1]=='k'))                        O(val(read0(a)));    // *.k
 		else if((n>3)&&(a[n-3]=='.')&&(a[n-2]=='w')&&(a[n-1]=='s'))                wsread(a);    // *.ws
 		else if((n>1)&&(a[0]=='-')&&(a[1]=='f')&&(args>2)){fstore(a+2,argv[2]);args--;argv++;}   // -fVAR file
 		else if((!strcmp(a, "-L"))&&(args>3)) {d=(I)atoi(argv[2]);f=argv[3]; args-=2;argv+=2;}   // -L ms FRAME

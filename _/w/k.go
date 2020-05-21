@@ -57,14 +57,18 @@ func main() {
 		fmt.Println(run(strings.Join(os.Args[1:], " ")))
 	}
 }
-func multitest() {
+func multitest() { //multiline, spaces, comments
 	tc := []struct{ in, exp string }{
+		{"1+2", "3"},
+		{"1 +2", "3"},
+		{"1+ 2", "3"},
 		{"(1;2)", "(1;2)"},
 		{"(1\n2)", "(1;2)"},
+		{"(1 \n2)", "(1;2)"},
 		{"(1 /xx\n2)", "(1;2)"},
 		{"(1\n2 3;4 ) /comment", "(1;2 3;4)"},
 		{`&"1+2 /alpha"`, "(+;1;2)"},
-		{`/x\n2`, "2"},
+		{"/x\n2", "2"},
 	}
 	for _, t := range tc {
 		got := run(t.in)
@@ -1775,8 +1779,7 @@ func val(x i) (r i) {
 		return dxr(x, r)
 	case 1:
 		r = prs(x)
-		n := I(r+8) == 58
-		fmt.Printf("<prs: %s\n", X(r))
+		n := I(r+8) == 58 //:
 		r = evl(r, 0)
 		if n {
 			dx(r)
@@ -2117,10 +2120,10 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 		trap()
 	}
 	xn += xp
-	if xn > xp && C(xp) == '/' {
-		xp = com(xp, xn)
-	}
 	sI(pp, xp)
+	if xn > 0 && C(xp) == '/' { //47
+		sI(pp, com(xp, xn))
+	}
 	r = sq(xn)
 	if nn(r) == 1 {
 		r = fst(r)
@@ -2148,7 +2151,6 @@ func sq(s i) (r i) { // E
 	}
 }
 func ex(x, s i) (r i) { // e
-	//if x == 0 || ws(s) || is(C(I(pp)), TE) { //32
 	if x == 0 || ws(s) {
 		return x
 	}
@@ -2284,6 +2286,12 @@ func lam(p, s, z i) (r i) {
 }
 func ws(s i) bool { // skip whitespace
 	p := I(pp)
+	if C(p) == '/' {
+		b := C(p - 1)
+		if b == 32 || b == 10 {
+			p = com(p, s)
+		}
+	}
 	for {
 		if p == s {
 			sI(pp, p)
@@ -2303,7 +2311,7 @@ func ws(s i) bool { // skip whitespace
 func com(p, s i) (r i) {
 	for p < s {
 		if C(p) == 10 {
-			return 1 + p
+			return p
 		}
 		p++
 	}
