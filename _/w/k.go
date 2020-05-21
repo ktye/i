@@ -487,6 +487,9 @@ func rev(x i) (r i) {
 }
 func fst(x i) (r i) {
 	xt, _, _ := v1(x)
+	if xt == 0 {
+		return x
+	}
 	if xt == 7 {
 		return fst(val(x))
 	}
@@ -746,6 +749,10 @@ func cal(x, y i) (r i) {
 }
 func lcl(x, y i) (r i) { // call lambda
 	fn := I(x + 20)
+	if fn == 0 {
+		dx(y)
+		y = mk(6, 0)
+	}
 	if nn(y) != fn {
 		panic("arity")
 	}
@@ -2138,7 +2145,11 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	return dxr(x, r)
 }
 func sq(s i) (r i) { // E
-	r = enl(ex(pt(s), s))
+	r = mk(6, 0)
+	x := ex(pt(s), s)
+	if x != 0 {
+		r = lcat(r, x)
+	}
 	for {
 		v := ws(s)
 		p := I(pp)
@@ -2152,6 +2163,9 @@ func sq(s i) (r i) { // E
 			return r
 		}
 		sI(pp, p+1)
+		if nn(r) == 0 {
+			r = lcat(r, 0)
+		}
 		r = lcat(r, ex(pt(s), s))
 	}
 }
@@ -2201,7 +2215,11 @@ func pt(s i) (r i) { // t
 			r = l2(tok(s), r) // adverb
 		} else if b == '[' {
 			sI(pp, p+1)
-			r = cat(enl(r), sq(s))
+			p := sq(s)
+			if nn(p) == 0 {
+				p = lcat(p, 0)
+			}
+			r = cat(enl(r), p) //sq(s))
 		} else {
 			return r
 		}
