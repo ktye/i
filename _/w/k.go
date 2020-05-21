@@ -424,6 +424,9 @@ func lx(x i) (r i) { // explode
 	if xt == 6 {
 		return x
 	}
+	if xt == 7 || n == 1 {
+		return enl(x)
+	}
 	r = mk(6, n)
 	rp := r + 8
 	rxn(x, n)
@@ -752,7 +755,9 @@ func lcl(x, y i) (r i) { // call lambda
 	rx(t)
 	an := nn(I(x + 16))
 	if fn < an {
-		y = lcat(y, take(enl(0), an-fn))
+		for i := i(0); i < an-fn; i++ {
+			y = lcat(y, 0)
+		}
 	}
 	d := mkd(a, y)
 	r = lst(lev(t, d))
