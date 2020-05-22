@@ -437,7 +437,10 @@ func lx(x i) (r i) { // explode
 	return dxr(x, r)
 }
 func til(x i) (r i) {
-	xt, _, xp := v1(x)
+	xt, xn, xp := v1(x)
+	if xt == 0 && xn == 4 {
+		return lcl(x, 0, 1) // !{..} dict from lambda
+	}
 	if xt == 4 {
 		return zre(x)
 	}
@@ -743,15 +746,15 @@ func cal(x, y i) (r i) {
 		return cal(v, r)
 	}
 	if xn == 4 { // lambda
-		return lcl(x, y)
+		return lcl(x, y, 0)
 	}
 	panic("nyi")
 }
-func lcl(x, y i) (r i) { // call lambda
+func lcl(x, y, z i) (r i) { // call lambda
 	fn := I(x + 20)
-	if fn == 0 {
+	if fn == 0 || z == 1 {
 		dx(y)
-		y = mk(6, 0)
+		y = mk(6, fn)
 	}
 	if nn(y) != fn {
 		panic("arity")
@@ -769,6 +772,10 @@ func lcl(x, y i) (r i) { // call lambda
 	d := mkd(a, y)
 	r = lst(lev(t, d))
 	dx(x)
+	if z != 0 {
+		dx(r)
+		return d
+	}
 	dx(d)
 	return r
 }
@@ -2197,9 +2204,11 @@ func pt(s i) (r i) { // t
 			if λ {
 				r = lam(p, I(pp), r)
 			} else {
-				if n := nn(r); n == 1 {
+				n := nn(r)
+				if n == 1 {
 					r = fst(r)
-				} else if n > 1 {
+				}
+				if n > 1 {
 					r = enl(r)
 				}
 			}
@@ -2286,9 +2295,13 @@ func loc(x, y i) (r i) {
 }
 func lam(p, s, z i) (r i) {
 	var a i
-	if C(1+p) == '[' { //91 {[a;b]a..} -> ((;`a;`b);(..))
+	if C(1+p) == '[' { //91 {[a;b]a..} -> ,((;`a;`b);(..))
+		z = fst(z)
 		rx(z)
 		a = ovr(drop(fst(z), 1), 44) // ,/1_*z
+		if a == 0 {
+			a = mk(5, 0)
+		}
 		z = drop(z, 1)
 	} else {
 		r = I(xyz)
