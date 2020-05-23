@@ -167,9 +167,10 @@ func ini(x i) i {
 		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
+	sI(12, 0x70881342)        // rng state
 	sI(128, x)                // alloc
 	p := i(256)
 	for i := i(8); i < x; i++ {
@@ -979,6 +980,28 @@ func fnx(x, yp i) (r i) {
 		xp += w
 	}
 	return xn
+}
+func rnd(x i) (r i) { // 'r x
+	xt, xn, xp := v1(x)
+	if xt != 2 || xn != 1 {
+		trap()
+	}
+	n := I(xp)
+	r = mk(3, n)
+	rp := r + 8
+	for i := i(0); i < n; i++ {
+		sF(rp, float64(rng())/f(0xFFFFFFFF))
+		rp += 8
+	}
+	return dxr(x, r)
+}
+func rng() (r i) {
+	r = I(12)
+	r ^= (r << 13)
+	r ^= (r >> 17)
+	r ^= (r << 5)
+	sI(12, r)
+	return r
 }
 func jon(x, y i) (r i) { // y/:x (join)
 	xt, xn, xp := v1(x)
