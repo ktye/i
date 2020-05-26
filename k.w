@@ -88,7 +88,7 @@ prj:I:II{r:0 mk 3;rx I x+8;(r+8)::I x+8;(r+12)::x drop 1;(r+16)::y;r}
 fnl:I:II{r:0;y/((~I x)?((~r)?r:2 mk 0;r:r ucat mki i);x+:4);r}
 uqg:I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;y?y:y lcat 2 mk 0;n+:1);y?(yi:y+8+4*m;yi::(I yi)cat mki i);xp+:w);y?r:r l2 y;dxr}
 unq:I:I{x uqg 0}grp:I:I{x uqg 6 mk 0}
-flr:I:I{v1;(xt>5)? :x ech 223;(xt~3)?(r:2 mk xn;r8;xn/(rp::I?'F xp;xp+:8;rp+:4);dx x; :r);(xt~4)?(r:3 mk xn;r8;xn/(rp::(F xp)ang F xp+8;xp+:16;rp+:8);dx x; :r);x}
+flr:I:I{v1;(xt>5)? :x ech 223;(xt~2)?(r:1 mk xn;r8;xn/((rp+i)::C?I xp;xp+:4);dx x; :r);(xt~3)?(r:2 mk xn;r8;xn/(rp::I?'F xp;xp+:8;rp+:4);dx x; :r);(xt~4)?(r:3 mk xn;r8;xn/(rp::(F xp)ang F xp+8;xp+:16;rp+:8);dx x; :r);x}
 ang:F:FF{p:57.29577951308232*y atan2 x;(p<0.0)?(p+:360.0);p}
 cst:I:II{v2;(xt~5)?(yt~1)?(dx x; :sc y);((~xt~2)+~xn~1)?!;dx x;x:I x+8;(yt>x)?!;(yt<'x)?/(y:up(y;yt;yn);yt+:1);y}
 flp:I:I{n:nn I x+8;m:nn x;(x ovr 44)atx ecr((mki n)mul seq(0;m;1);seq(0;n;1);43)}

@@ -1125,6 +1125,15 @@ func flr(x i) (r i) {
 	if xt > 5 {
 		return ech(x, 223)
 	}
+	if xt == 2 {
+		r = mk(1, xn)
+		rp := r + 8
+		for i := i(0); i < xn; i++ {
+			sC(rp+i, c(I(xp)))
+			xp += 4
+		}
+		return dxr(x, r)
+	}
 	if xt == 3 {
 		r = mk(2, xn)
 		rp := r + 8
