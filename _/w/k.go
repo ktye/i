@@ -747,6 +747,14 @@ func cal(x, y i) (r i) {
 		return cal(v, r)
 	}
 	if xn == 4 { // lambda
+		a := I(x + 20)
+		if a > yn {
+			a -= yn
+			for i := i(0); i < a; i++ {
+				y = lcat(y, 0)
+			}
+			return prj(x, y, seq(yn, a, 1))
+		}
 		return lcl(x, y, 0)
 	}
 	panic("nyi")
@@ -2140,17 +2148,17 @@ func evl(x, loc i) (r i) {
 	}
 	a := fnl(xp+4, xn-1)
 	if a != 0 {
-		return prj(x, a)
+		rx(I(x + 8))
+		return prj(I(x+8), drop(x, 1), a)
 	}
 	rx(I(xp))
 	return cal(I(xp), drop(x, 1))
 }
-func prj(x, a i) (r i) {
+func prj(x, y, z i) (r i) {
 	r = mk(0, 3)
-	rx(I(x + 8))
-	sI(r+8, I(x+8))
-	sI(r+12, drop(x, 1))
-	sI(r+16, a)
+	sI(r+8, x)
+	sI(r+12, y)
+	sI(r+16, z)
 	return r
 }
 func fnl(xp, xn i) (r i) {
