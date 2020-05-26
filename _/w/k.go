@@ -164,7 +164,7 @@ func ini(x i) i {
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
-		nil, nil, nil, nil, nil, nil, nil, nil, nms, vrb, chr, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nil, nil, nil, nil, nil, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
@@ -2613,6 +2613,11 @@ func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
 	return r
 }
 func chr(b c, p, s i) (r i) { // "abc"
+	if b == '0' {
+		if C(p+1) == 'x' {
+			return phx(2+p, s)
+		}
+	}
 	if b != '"' { //34
 		return 0
 	} // todo hex
@@ -2629,6 +2634,29 @@ func chr(b c, p, s i) (r i) { // "abc"
 			sI(pp, p+1)
 			return r
 		}
+	}
+}
+func phx(p, s i) (r i) { // 0xab12
+	h, q := true, i(0)
+	r = mk(1, 0)
+	for {
+		c := C(p)
+		if s <= p || !is(c, NM+az) {
+			sI(pp, p)
+			return r
+		}
+		if c < 58 { //':'
+			c -= 48 //'0'
+		}
+		if c > 96 {
+			c -= 87
+		}
+		h = !h
+		if h {
+			r = cc(r, i(c)+(q<<4))
+		}
+		q = i(c)
+		p++
 	}
 }
 
