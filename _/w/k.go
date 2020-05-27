@@ -443,7 +443,7 @@ func til(x i) (r i) {
 		return lcl(x, 0, 1) // !{..} dict from lambda
 	}
 	if xt == 4 {
-		return zre(x)
+		return zim(x)
 	}
 	if xt == 7 {
 		r = I(xp)
@@ -861,6 +861,9 @@ func wer(x i) (r i) {
 	if xt == 1 {
 		return prs(x)
 	}
+	if xt == 4 {
+		return zan(x, xn, xp)
+	}
 	if xt == 6 {
 		return flp(x)
 	}
@@ -1153,14 +1156,7 @@ func flr(x i) (r i) {
 		return dxr(x, r)
 	}
 	if xt == 4 {
-		r = mk(3, xn)
-		rp := r + 8
-		for i := i(0); i < xn; i++ {
-			sF(rp, ang(F(xp), F(xp+8)))
-			xp += 16
-			rp += 8
-		}
-		return dxr(x, r)
+		return zre(x)
 	}
 	return x
 }
@@ -1543,6 +1539,16 @@ func zri(x i, o i) (r i) {
 }
 func zre(x i) (r i) { return zri(x, 0) }
 func zim(x i) (r i) { return zri(x, 8) }
+func zan(x, xn, xp i) (r i) {
+	r = mk(3, xn)
+	rp := r + 8
+	for i := i(0); i < xn; i++ {
+		sF(rp, ang(F(xp), F(xp+8)))
+		xp += 16
+		rp += 8
+	}
+	return dxr(x, r)
+}
 
 func drv(x, y i) (r i) { // x(adv) y(verb), e.g. ech +
 	r = mk(0, 2)
@@ -1845,8 +1851,6 @@ func val(x i) (r i) {
 			return 0
 		}
 		return r
-	case 4:
-		return zim(x)
 	case 6:
 		return evl(x, 0)
 	case 7:
