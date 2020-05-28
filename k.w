@@ -92,7 +92,7 @@ flr:I:I{v1;(xt>5)? :x ech 223;(xt~2)?(r:1 mk xn;r8;xn/((rp+i)::C?I xp;xp+:4);dx 
 ang:F:FF{p:57.29577951308232*y atan2 x;(p<0.0)?(p+:360.0);p}
 cst:I:II{v2;(xt~5)?(yt~1)?(dx x; :sc y);((~xt~2)+~xn~1)?!;dx x;x:I x+8;(yt>x)?!;(yt<'x)?/(y:up(y;yt;yn);yt+:1);y}
 flp:I:I{n:nn I x+8;m:nn x;(x ovr 44)atx ecr((mki n)mul seq(0;m;1);seq(0;n;1);43)}
-rnd:I:I{v1;(~xt~2)?!;(~xn~1)?!;n:I xp;r:3 mk n;r8;n/(rp::(F?rng 0)%4751297606873776128f;rp+:8);dxr}
+rnd:I:I{(~1073741825~I x)?!;dx x;x:I x+8;r:2 mk x;r8;x/(rp::rng 0;rp+:4);r}
 rng:I:I{x:I 12;x^:x<<13;x^:x>>17;x^:x<<5;12::x;x}
 xxx:I:I{!;x}
 drw:I:II{v2;w:I xp;draw(w;yn%w;yp);dx x;dx y;0}

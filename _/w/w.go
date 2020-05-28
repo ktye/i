@@ -1165,6 +1165,7 @@ func (v v2) valid() s {
 		fmt.Fprintf(os.Stderr, "%#v\n", v)
 		return sf("right argument has zero type")
 	} else if tx != ty {
+		fmt.Fprintf(os.Stderr, "%#v\n", v)
 		return sf("types mismatch %s %s", tx, ty)
 	}
 	return ""

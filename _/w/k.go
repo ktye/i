@@ -993,18 +993,18 @@ func fnx(x, yp i) (r i) {
 	return xn
 }
 func rnd(x i) (r i) { // 'r x
-	xt, xn, xp := v1(x)
-	if xt != 2 || xn != 1 {
+	if I(x) != 1073741825 { // int#1
 		trap()
 	}
-	n := I(xp)
-	r = mk(3, n)
+	dx(x)
+	x = I(x + 8)
+	r = mk(2, x)
 	rp := r + 8
-	for i := i(0); i < n; i++ {
-		sF(rp, float64(rng())/f(0xFFFFFFFF))
-		rp += 8
+	for i := i(0); i < x; i++ {
+		sI(rp, rng())
+		rp += 4
 	}
-	return dxr(x, r)
+	return r
 }
 func rng() (r i) {
 	r = I(12)
