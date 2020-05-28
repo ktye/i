@@ -167,7 +167,7 @@ func ini(x i) i {
 		nil, nil, nil, nil, nil, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, lgf, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(12, 0x70881342)        // rng state
@@ -1522,6 +1522,19 @@ func sqc(x, r i) { panic("%c") } // %c ?
 func sqi(x, r i) { panic("%i") } // %i ?
 func sqf(x, r i) { sF(r, math.Sqrt(F(x))) }
 func sqz(x, r i) { sZ(r, cmplx.Conj(Z(x))) } // %z complex conjugate
+func lgf(x i) (r i) { // 'l x (log)
+	xt, xn, xp := v1(x)
+	if xt != 3 {
+		trap()
+	}
+	x = use(x)
+	xp = x + 8
+	for i := i(0); i < xn; i++ {
+		sF(xp, math.Log(F(xp)))
+		xp += 8
+	}
+	return x
+}
 func zri(x i, o i) (r i) {
 	t, n, xp := v1(x)
 	if t != 4 {

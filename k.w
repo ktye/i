@@ -1,4 +1,4 @@
-sin:F:F{}cos:F:F{}atan2:F:FF{}hypot:F:FF{}draw:V:III{}grow:I:I{}
+sin:F:F{}cos:F:F{}log:F:F{}atan2:F:FF{}hypot:F:FF{}draw:V:III{}grow:I:I{}
 trap:V:II{140::x;144::y}
 ini:I:I{0::289360742959022340j;12::1887966018;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);kkey::5 mk 0;kval::6 mk 0;xyz::((mks 120)cat mks 121)cat mks 122;x}kkey:{132}kval:{136}xyz:{148} /x:16(64k)
 bk:I:II{r:32-*7+y*C x;(r<4)? :4;r}
@@ -58,6 +58,7 @@ abx:I:I{nm(x;15;171)}neg:I:I{nm(x;19;173)}sqr:I:I{nm(x;27;165)}
 abc:V:II{c:C x;$[craz c;y::C?c-32;y::C?c]}abi:V:II{i:I x;$[(i<'0);y::0-i;y::i]}abf:V:II{y::+F x}abz:V:II{y::(F x)hypot F x+8}
 nec:V:II{c:C x;$[crAZ c;y::C?c+32;y::C?c]}nei:V:II{y::0-I x}nef:V:II{y::-F x}nez:V:II{y::-F x;(y+8)::-F x+8}
 sqc:V:II{!}sqi:V:II{!}sqf:V:II{y::%F x}sqz:V:II{y::F x;(y+8)::-F x+8}
+lgf:I:I{v1;(~xt~3)?!;x:use x;xp:x+8;xn/(xp::log F xp;xp+:8);x}
 zre:I:I{x zri 0}zim:I:I{x zri 8}zri:I:II{v1;r:3 mk xn;r8;xp+:y;xn/(rp::F xp;rp+:8;xp+:16);dxr}zan:I:III{r:3 mk y;r8;y/(rp::(F z)ang F z+8;z+:16;rp+:8);dxr}
 crAZ:I:I{(x>64)?(x<91)? :1;0}craz:I:I{(x>96)?(x<123)? :1;0}
 drv:I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv:I:I{40 drv x}epv:I:I{41 drv x}ovv:I:I{123 drv x}riv:I:I{125 drv x}scv:I:I{91 drv x}liv:I:I{93 drv x}
@@ -139,7 +140,7 @@ is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;C 128+x}
 128:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; chr; nms; vrb; nam; sms; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
 160:{xxx; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abx; enl; neg; val; riv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; grp; gdn; unq}
 192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; liv; spl; srt; flr}
-224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; kst; xxx; xxx; xxx; xxx; prs; xxx; rnd; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; jon; not; xxx}
+224:{xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; kst; lgf; xxx; xxx; xxx; prs; xxx; rnd; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovr; rev; jon; not; xxx}
 
 \
 01234567   xt:x>>29       xn:x&536870911 (-1+1<<29)
@@ -151,7 +152,7 @@ Fcifzsld   xt~0(function) x<256(basic) x<128(dyadic)
 +  add abx                 abs:+z              memory
 -  sub neg                                     0..  7   type sizes   0 1 4 8 16 4 4 0
 *  mul fst                                     8.. 11   parse cur (pp)
-%  div sqr                                    12.. 15   rng state
+%  div sqr                 conj:%z            12.. 15   rng state
 &  min wer   prs flp       ang:&z             16..127   free pointers (4*i) for bt i, i:4..31
 |  max rev                                   128..131   memsize log2
 <  les grd                                   132..135   k-tree keys

@@ -239,6 +239,7 @@ var MF []F
 var NAN F
 func sin(x F) F { return math.Sin(x) }
 func cos(x F) F { return math.Cos(x) }
+func log(x F) F { return math.Log(x) }
 func atan2(x, y F) F { return math.Atan2(x, y) }
 func hypot(x, y F) F { return math.Hypot(x, y) }
 func draw(x, y, z I) { fmt.Printf("draw %x %x %x\n", x, y, z) }
