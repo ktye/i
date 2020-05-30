@@ -169,7 +169,8 @@ function addfile(x){
  var r = new FileReader()
  r.onload = function(){
   var u = new Uint8Array(r.result)
-  if(x.name.endsWith(".ws")){setWorkspace(u);O("←"+x.name+"\n");P()}
+       if(x.name.endsWith(".ws")){setWorkspace(u);O("←"+x.name+"\n");P()}
+  else if(x.name.endsWith(".k" )){O(". "+x.name+"\n");E(su(u));P()}
   else{putfile(x.name, u); O("fs[`"+x.name+"] /"+String(u.length)+"\n");P()}
  }
  r.readAsArrayBuffer(x)
