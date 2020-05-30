@@ -779,7 +779,7 @@ func lcl(x, y, z i) (r i) { // call lambda
 		}
 	}
 	d := mkd(a, y)
-	r = lst(lev(t, d))
+	r = lst(ltr(t, d))
 	dx(x)
 	if z != 0 {
 		dx(r)
@@ -2084,7 +2084,7 @@ func swc(x, loc i) (r i) { // ($;a;b;...)
 	}
 	return dxr(x, 0)
 }
-func lev(x, loc i) (r i) {
+func ltr(x, loc i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		return x
@@ -2096,6 +2096,22 @@ func lev(x, loc i) (r i) {
 		sI(rp, evl(I(xp), loc))
 		rp += 4
 		xp += 4
+	}
+	return dxr(x, r)
+}
+func rtl(x, loc i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt != 6 {
+		return x
+	}
+	rl(x)
+	r = mk(6, xn)
+	rp := r + 8 + 4*xn
+	xp += 4 * xn
+	for i := i(0); i < xn; i++ {
+		rp -= 4
+		xp -= 4
+		sI(rp, evl(I(xp), loc))
 	}
 	return dxr(x, r)
 }
@@ -2113,7 +2129,7 @@ func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(
 			dx(a)
 			a = 0
 		} else {
-			a = lev(a, loc)
+			a = ltr(a, loc)
 			an := nn(a)
 			if an == 1 {
 				a = fst(a)
@@ -2140,7 +2156,7 @@ func evl(x, loc i) (r i) {
 	} else if xn == 0 {
 		return x
 	} else if xn == 1 {
-		return lev(fst(x), loc)
+		return rtl(fst(x), loc)
 	}
 	v := I(xp)
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
@@ -2150,14 +2166,14 @@ func evl(x, loc i) (r i) {
 	if r != 0 {
 		return asd(r, loc)
 	}
-	x = lev(x, loc)
+	if v == 128 { // 128 (,:;a;b;c) sequence
+		//if xn > 2 {
+		return lst(ltr(x, loc))
+		//}
+	}
+	x = rtl(x, loc)
 	xn = nn(x)
 	xp = x + 8
-	if v == 128 {
-		if xn > 2 { // 128 (,:;a;b;c) sequence
-			return lst(x)
-		}
-	}
 	if xn == 2 {
 		rl(x)
 		r = atx(I(xp), I(xp+4))
