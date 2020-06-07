@@ -177,7 +177,7 @@ func TestCout(t *testing.T) { // write k_h h_h from ../../k.w
 			t.Fatal(e)
 		}
 		defer f.Close()
-		version := fmt.Sprintf("k.w(c) %s", time.Now().Format("2006.01.02"))
+		version := fmt.Sprintf("k.c %s", time.Now().Format("2006.01.02"))
 		q := fmt.Sprintf("%q", string(src[help+3:]))
 		q = strings.Replace(q, "%", `%%`, -1)
 		fmt.Fprintf(f, "const char *version=%q;\nV help(){printf(%s);}\n", version, q)
