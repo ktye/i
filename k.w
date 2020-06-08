@@ -100,10 +100,10 @@ drw:I:II{v2;w:I xp;draw(w;yn%w;yp);dx x;dx y;0}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 kst:I:I{t:tp x;(~nn x)?(5~t)?(dx x; :((mkc 48)cc 35)cc 96);(7~t)?(rx x; :((kst til x)cc 33)ucat kst val x);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
-str:I:I{v1;(xt~1)? :x;((xt>5)+~xn~1)?xt? :x ech 164;xt?[r:x cg xn;;r:(I xp)ci 0;r:cf F xp;r:(F xp)cz F xp+8;(r:I xp;rx r);!];dxr}
+str:I:I{v1;(xt~1)? :x;(~xt)? :x cg xn;((xt>5)+~xn~1)? :x ech 164;xt?[;;r:(I xp)ci 0;r:cf F xp;r:(F xp)cz F xp+8;(r:I xp;rx r);!];dxr}
 cc:I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}
 ng:I:II{y?x:(mkc 45)ucat x;x}
-cg:I:II{((~x)+x~128)? :1 mk 0;(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(y~3)?(rl x;dx I x+16;r:kst I x+12;(r+8)::C?91;(r+7+nn r)::C?93;r:(str I x+8)ucat r;dx x; :r);(~y~4)?!;r:I x+8;rx r;r}
+cg:I:II{((~x)+x~128)? :1 mk 0;(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(y~3)?(rl x;dx I x+16;r:kst I x+12;(r+8)::C?91;(r+7+nn r)::C?93;r:(str I x+8)ucat r);(y~4)?(r:I x+8;rx r);dxr}
 ci:I:II{(~x)? :mkc 48;m:0;(x<'0)?(x:0-x;m:1);r:1 mk 0;x?/(c:x\10;c?y:0;(~y)?r:r cc 48+c;x%:10);(~nn r)?r:r cc 48;(rev r)ng m}
 cf:I:F{(~x~x)? :(mkc 48)cc 110;(x~0.0)? :((mkc 48)cc 46)cc 48;m:0;(x<0.0)?(m:1;x:-x);(x>9218868437227405311f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.0)?/(e+:3;x%:1000.0);(x<1.0)?((x>=0.01)?(r:(mkc 48)cc 46;(x<0.1)?(r:r cc 48;x*:10.0);x*:10000000.0; :(r ucat(I?x)ci 1)ng m);(x<1.0)?/(e-:3;x*:1000.0));n:I?'x;r:n ci 0;x-:F?n;d:7-nn r;(d<'1)?d:1;d/x*:10.0;r:(r cc 46)ucat(I?x)ci 1;e?r:(r cc 101)ucat e ci 0;r ng m}
 cz:I:FF{a:x hypot y;p:I?0.5+x ang y;((cf a)cc 97)ucat p ci 0}

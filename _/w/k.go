@@ -1211,14 +1211,13 @@ func str(x i) (r i) {
 	if xt == 1 {
 		return x
 	}
+	if xt == 0 {
+		return cg(x, xn)
+	}
 	if xt > 5 || xn != 1 {
-		if xt != 0 {
-			return ech(x, 164)
-		}
+		return ech(x, 164)
 	}
 	switch xt {
-	case 0:
-		r = cg(x, xn)
 	case 2:
 		n := I(xp)
 		r = ci(n, 0)
@@ -1249,14 +1248,14 @@ func cg(x i, xn i) (r i) {
 		sC(r+8, '[')       //91
 		sC(r+7+nn(r), ']') //93
 		r = ucat(str(I(x+8)), r)
-		dx(x)
+		//dx(x)
 	} else if xn == 4 {
 		r = I(x + 8)
 		rx(r)
 	} else {
 		panic("nyi str f")
 	}
-	return r
+	return dxr(x, r)
 }
 func ng(x, y i) (r i) {
 	if y != 0 {
