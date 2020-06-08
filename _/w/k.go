@@ -2549,12 +2549,17 @@ func num(b c, p, s i) (r i) { // parse single number
 		return r
 	}
 	p = I(pp)
-	if C(p) == 'a' { //97
+	b = C(p)
+	if b == 'a' || b == 'p' { //97 112
 		if tp(r) == 2 {
 			r = up(r, 2, 1)
 		}
 		p++
 		sI(pp, p)
+		if b == 'p' {
+			sF(r+8, math.Pi*F(r+8))
+			return r
+		}
 		r = up(r, 3, 1)
 		a := pfl(C(p), p, s)
 		if a == 0 {
