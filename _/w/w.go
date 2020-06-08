@@ -124,9 +124,6 @@ func run(r io.Reader) (module, []segment, []dataseg) {
 				err("parse return type")
 			}
 			if b == '{' && f.t == 0 {
-				if f.name == "M" {
-					state = sData
-				}
 				state = sBody // macro
 				continue
 			}
@@ -156,7 +153,7 @@ func run(r io.Reader) (module, []segment, []dataseg) {
 				f = fn{}
 			}
 		case sData:
-			if b == ' ' || b == '\n' || b == '\r' {
+			if b == '}' {
 				s := dataseg{}
 				if off, e := strconv.Atoi(f.name); e != nil {
 					err("data section name must be an integer, not: " + f.name)
@@ -168,7 +165,7 @@ func run(r io.Reader) (module, []segment, []dataseg) {
 				data = nil
 				f = fn{}
 				state = sFnam
-			} else {
+			} else if b != '{' {
 				data = append(data, b)
 			}
 		case sCmnt:

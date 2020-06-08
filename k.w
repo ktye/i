@@ -131,7 +131,7 @@ nam:I:III{(~x is 3)? :0;a:y;1/(y+:1;((y~z)+~(C y)is 7)?(n:y-a;r:1 mk n;mv(r+8;a;
 sym:I:III{(~x~96)? :0;y+:1;x:C y;8::y;(y<z)?(r:nam(x;y;z);r? :r;r:chr(x;y;z);r? :sc r);r:5 mk 1;(r+8)::1 mk 0;r}
 sms:I:III{r:sym(x;y;z);(~r)? :r;1/(y:I 8;q:sym(C y;y;z);(~q)? :enl r;r:r cat q);r}
 is:I:II{y&cla x}cla:I:I{(128<x-32)? :0;C 128+x}
-160!204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800
+160!{204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800}
 
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; mod; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; moi; xxx; xxx; sqc; sqi; sqf; sqz}
 032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
