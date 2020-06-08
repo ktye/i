@@ -768,6 +768,10 @@ func lcl(x, y, z i) (r i) { // call lambda
 	if nn(y) != fn {
 		panic("arity")
 	}
+	y = take(y, fn) // copy
+	if fn == 1 {
+		y = enl(y)
+	}
 	a := I(x + 16)
 	rx(a)
 	t := I(x + 12)
@@ -2182,9 +2186,7 @@ func evl(x, loc i) (r i) {
 		return asd(r, loc)
 	}
 	if v == 128 { // 128 (,:;a;b;c) sequence
-		//if xn > 2 {
 		return lst(ltr(x, loc))
-		//}
 	}
 	x = rtl(x, loc)
 	xn = nn(x)
