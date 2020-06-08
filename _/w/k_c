@@ -16,7 +16,7 @@
 #include<math.h>
 
 #define R return
-typedef void V;typedef char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
+typedef void V;typedef unsigned char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
 I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
 C *MC;I* MI;J* MJ;F *MF;
 static jmp_buf jb;

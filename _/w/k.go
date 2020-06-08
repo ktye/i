@@ -1348,7 +1348,7 @@ func cz(x, y f) (r i) {
 }
 func cst(x, y i) (r i) { // x$y
 	xt, yt, xn, yn, _, _ := v2(x, y)
-	if xt == 5 && yt == 1 {
+	if xt == 5 && yt == 1 { // `$"abc" /`abc
 		dx(x)
 		return sc(y)
 	}
@@ -1357,8 +1357,14 @@ func cst(x, y i) (r i) { // x$y
 	}
 	dx(x)
 	x = I(x + 8)
-	if yt > x {
+	if yt > x || yt > 4 { // flr?
 		trap()
+	}
+	if x == 8 { // 8$ifz (raw bytes)
+		n := yn * i(C(yt))
+		r = use(y)
+		sI(r, n|1<<29)
+		return r
 	}
 	for yt < x {
 		y = up(y, yt, yn)
