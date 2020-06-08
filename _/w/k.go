@@ -1357,6 +1357,16 @@ func cst(x, y i) (r i) { // x$y
 	}
 	dx(x)
 	x = I(x + 8)
+	if int32(x) < 0 && yt == 1 { // -3$0x123456.. (raw bytes to ifz)
+		x = -x
+		n := yn / i(C(x))
+		if i(C(x))*n != yn {
+			trap()
+		}
+		r = use(y)
+		sI(r, n|x<<29)
+		return r
+	}
 	if yt > x || yt > 4 { // flr?
 		trap()
 	}
