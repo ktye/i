@@ -1334,11 +1334,20 @@ func cf(f float64) (r i) {
 	if int32(d) < 1 {
 		d = 1
 	}
+	r = cc(r, '.') //46
 	for i := i(0); i < d; i++ {
 		f *= 10
+		r = cc(r, '0'+uint32(f))
+		f -= float64(uint32(f))
+		// todo: count trailing zeros and remove, round last?
 	}
-	r = cc(r, '.') //46
-	r = ucat(r, ci(uint32(f), 1))
+	/*
+		for i := i(0); i < d; i++ {
+			f *= 10
+		}
+		r = ucat(r, ci(uint32(f), 1))
+	*/
+
 	if e != 0 {
 		r = ucat(cc(r, 'e'), ci(e, 0))
 	}
