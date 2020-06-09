@@ -1224,7 +1224,7 @@ func str(x i) (r i) {
 	switch xt {
 	case 2:
 		n := I(xp)
-		r = ci(n, 0)
+		r = ci(n)
 	case 3:
 		r = cf(F(xp))
 	case 4:
@@ -1267,7 +1267,7 @@ func ng(x, y i) (r i) {
 	}
 	return x
 }
-func ci(n, t i) (r i) {
+func ci(n i) (r i) {
 	if n == 0 {
 		return mkc('0') //48
 	}
@@ -1279,12 +1279,7 @@ func ci(n, t i) (r i) {
 	r = mk(1, 0)
 	for n != 0 {
 		c := n % 10
-		if c != 0 {
-			t = 0
-		}
-		if t != 1 {
-			r = cc(r, i('0'+c))
-		}
+		r = cc(r, i('0'+c))
 		n /= 10
 	}
 	if nn(r) == 0 {
@@ -1312,51 +1307,50 @@ func cf(f float64) (r i) {
 		e += 3
 		f /= 1000.0
 	}
+	d := i(7)
 	if f < 1 {
-		if f >= 0.01 {
-			r = cc(mkc('0'), '.') //48 46
-			if f < 0.1 {
-				r = cc(r, '0')
-				f *= 10
+		d++
+		if f < 0.1 {
+			d++
+			if f < 0.01 {
+				d++
+				if f < 0.001 {
+					d = 7
+					for f < 1 {
+						e -= 3
+						f *= 1000.0
+					}
+				}
 			}
-			f *= 1.0e7
-			return ng(ucat(r, ci(uint32(f), 1)), m)
-		}
-		for f < 1 {
-			e -= 3
-			f *= 1000.0
 		}
 	}
+
 	n := int32(f)
-	r = ci(uint32(n), 0)
+	r = ci(uint32(n))
 	f -= float64(n)
-	d := 7 - nn(r)
+	d -= nn(r)
 	if int32(d) < 1 {
 		d = 1
 	}
 	r = cc(r, '.') //46
+	t := i(0)
 	for i := i(0); i < d; i++ {
 		f *= 10
-		r = cc(r, '0'+uint32(f))
-		f -= float64(uint32(f))
-		// todo: count trailing zeros and remove, round last?
+		n = int32(f)
+		r = cc(r, uint32('0'+n))
+		f -= float64(n)
+		t = (1 + t) * boolvar(i > 0 && n == 0)
 	}
-	/*
-		for i := i(0); i < d; i++ {
-			f *= 10
-		}
-		r = ucat(r, ci(uint32(f), 1))
-	*/
-
+	r = drop(r, -t)
 	if e != 0 {
-		r = ucat(cc(r, 'e'), ci(e, 0))
+		r = ucat(cc(r, 'e'), ci(e))
 	}
 	return ng(r, m)
 }
 func cz(x, y f) (r i) {
 	a := math.Hypot(x, y)
 	p := uint32(0.5 + ang(x, y))
-	return ucat(cc(cf(a), 'a'), ci(p, 0))
+	return ucat(cc(cf(a), 'a'), ci(p))
 }
 func cst(x, y i) (r i) { // x$y
 	xt, yt, xn, yn, _, _ := v2(x, y)
