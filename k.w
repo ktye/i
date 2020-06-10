@@ -1,8 +1,7 @@
 sin:F:F{}cos:F:F{}log:F:F{}atan2:F:FF{}hypot:F:FF{}draw:V:III{}grow:I:I{}
 trap:V:II{140::x;144::y}
-ini:I:I{0::289360742959022340j;12::1887966018;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);kkey::5 mk 0;kval::6 mk 0;xyz::((mks 120)cat mks 121)cat mks 122;x}kkey:{132}kval:{136}xyz:{148} /x:16(64k)
+ini:I:I{0::289360742959022340j;12::1887966018;128::x;p:256;i:8;(i<x)?/((4*i)::p;p*:2;i+:1);kkey::5 mk 0;kval::6 mk 0;xyz::((mks 120)cat mks 121)cat mks 122;x}kkey:{132}kval:{136}xyz:{148}
 bk:I:II{r:32-*7+y*C x;(r<4)? :4;r}
-/mk:I:II{t:x bk y;i:4*t;(~I i)?/i+:4;(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mk:I:II{t:x bk y;i:4*t;m:4*I 128;(~I i)?/((i>='m)?(m:grow 1+i%4;128::m;i::1<<i>>2;m:i;i-:4);i+:4);(128~i)?!;a:I i;i::I a;j:i-4;(j>=4*t)?/(u:a+1<<j>>2;u::I j;j::u;j-:4);a::y|x<<29;(a+4)::1;a}
 mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}
 mkd:I:II{v2;ext;(xt~3)?(yt~3)?(r:4 mk xn;r8;xn/(rp::F xp;(rp+8)::F yp;rp+:16;xp+:8;yp+:8);dx x;dx y; :r);(~xt~5)?!;(~yt~6)?y:lx y;r:x l2 y;r::2|7<<29;r}
@@ -108,7 +107,6 @@ ci:I:I{(~x)? :mkc 48;m:0;(x<'0)?(x:0-x;m:1);r:1 mk 0;x?/(c:x\10;r:r cc 48+c;x%:1
 cf:I:F{(~x~x)? :(mkc 48)cc 110;(x~0.0)? :((mkc 48)cc 46)cc 48;m:0;(x<0.0)?(m:1;x:-x);(x>9218868437227405311f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.0)?/(e+:3;x%:1000.0);d:7;(x<1.0)?(d+:1;(x<0.1)?(d+:1;(x<0.01)?(d+:1;(x<0.001)?(d:7;(x<1.0)?/(e-:3;x*:1000.0)))));n:I?'x;r:ci n;x-:F?n;d-:nn r;(d<'1)?d:1;r:r cc 46;t:0;d/(x*:10.0;n:I?x;r:r cc 48+n;x-:F?n;t:(1+t)*~n+~i);r:r drop(-t);e?r:(r cc 101)ucat ci e;r ng m}
 cz:I:FF{a:x hypot y;p:I?0.5+x ang y;((cf a)cc 97)ucat ci p}
 
-/parse
 prs:I:I{v1;(~xt~1)?!;xn+:xp;8::xp;xn?(47~C xp)?8::xp com xn;r:sq xn;$[1~nn r;r:fst r;r:128 cat r];dxr}
 sq:I:I{r:6 mk 0;q:(pt x)ex x;q?r:r lcat q;1/(v:ws x;p:I 8;(~v)?(v:C p;v:~(v~59)+v~10);v?((p<x)?8::1+p; :r);8::1+p;(~nn r)?r:r lcat 0;r:r lcat(pt x)ex x);!;x}
 ex:I:II{((~x)+(ws y))? :x;r:C I 8;((r is 32)+r~10)? :x;r:pt y;(isv r)?(~isv x)? :l3(r;x;(pt y)ex y);l2(x;r ex y)}
