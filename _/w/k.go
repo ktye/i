@@ -2473,6 +2473,9 @@ func pun(b c, p, s i) (r i) { // parse unsigned int
 		p++
 		b = C(p)
 	}
+	if r == 0 && b == 'x' { // 120 (0x)
+		return 0
+	}
 	sI(pp, p)
 	return mki(r)
 }
