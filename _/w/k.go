@@ -1655,7 +1655,8 @@ func ovr(x, y i) (r i) { // y/x (over/reduce)
 	return ovs(x, y, 0, 0)
 }
 func scn(x, y i) (r i) { // y\x (scan)
-	if tp(y) == 2 {
+	t := tp(y)
+	if t != 0 && t < 5 {
 		return diw(x, y) // y%x (flipped)
 	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
