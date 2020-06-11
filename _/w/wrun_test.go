@@ -100,6 +100,11 @@ func hostFuncs(name string) (*wasm.Module, error) { // imported as module "ext"
 	hypot := func(proc *exec.Process, x, y float64) float64 { return math.Hypot(x, y) }
 	draw := func(proc *exec.Process, x, y, z uint32) uint32 { return 0 }
 	grow := func(proc *exec.Process, x uint32) uint32 { return x } // not implemented for wrun_test
+	printc := func(proc *exec.Process, x, y uint32) {
+		b := make([]byte, int(y))
+		proc.ReadAt(b, int64(x))
+		fmt.Printf("%s\n", string(b))
+	}
 
 	m := wasm.NewModule()
 	m.Types = &wasm.SectionTypes{
@@ -108,6 +113,7 @@ func hostFuncs(name string) (*wasm.Module, error) { // imported as module "ext"
 			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeF64, wasm.ValueTypeF64}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeF64}},
 			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: nil},
 			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: nil},
 		},
 	}
 	m.FunctionIndexSpace = []wasm.Function{
@@ -118,16 +124,18 @@ func hostFuncs(name string) (*wasm.Module, error) { // imported as module "ext"
 		{Sig: &m.Types.Entries[1], Host: reflect.ValueOf(hypot), Body: &wasm.FunctionBody{}},
 		{Sig: &m.Types.Entries[2], Host: reflect.ValueOf(draw), Body: &wasm.FunctionBody{}},
 		{Sig: &m.Types.Entries[3], Host: reflect.ValueOf(grow), Body: &wasm.FunctionBody{}},
+		{Sig: &m.Types.Entries[4], Host: reflect.ValueOf(printc), Body: &wasm.FunctionBody{}},
 	}
 	m.Export = &wasm.SectionExports{
 		Entries: map[string]wasm.ExportEntry{
-			"sin":   {FieldStr: "sin", Kind: wasm.ExternalFunction, Index: 0},
-			"cos":   {FieldStr: "cos", Kind: wasm.ExternalFunction, Index: 1},
-			"log":   {FieldStr: "log", Kind: wasm.ExternalFunction, Index: 2},
-			"atan2": {FieldStr: "atan2", Kind: wasm.ExternalFunction, Index: 3},
-			"hypot": {FieldStr: "hypot", Kind: wasm.ExternalFunction, Index: 4},
-			"draw":  {FieldStr: "draw", Kind: wasm.ExternalFunction, Index: 5},
-			"grow":  {FieldStr: "grow", Kind: wasm.ExternalFunction, Index: 6},
+			"sin":    {FieldStr: "sin", Kind: wasm.ExternalFunction, Index: 0},
+			"cos":    {FieldStr: "cos", Kind: wasm.ExternalFunction, Index: 1},
+			"log":    {FieldStr: "log", Kind: wasm.ExternalFunction, Index: 2},
+			"atan2":  {FieldStr: "atan2", Kind: wasm.ExternalFunction, Index: 3},
+			"hypot":  {FieldStr: "hypot", Kind: wasm.ExternalFunction, Index: 4},
+			"draw":   {FieldStr: "draw", Kind: wasm.ExternalFunction, Index: 5},
+			"grow":   {FieldStr: "grow", Kind: wasm.ExternalFunction, Index: 6},
+			"printc": {FieldStr: "printc", Kind: wasm.ExternalFunction, Index: 7},
 		},
 	}
 	return m, nil

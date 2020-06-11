@@ -251,11 +251,12 @@ function kg(g){ //k dict from gui
 
 function msl(){var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
 function grow(x){var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
+function printc(x,y){O(su(K.C.slice(x,x+y))+"\n")}
 
 (async () => {
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
- K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow} });
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} });
  msl()
  K.exports.ini(16)
  var e=K.exports;nn=e.nn;tp=e.tp;rx=e.rx;dx=e.dx;mk=e.mk;val=e.val;sc=e.sc;cs=e.cs;mkd=e.mkd;asn=e.asn;kst=e.kst;enl=e.enl;lup=e.lup;cat=e.cat;lcat=e.lcat;atx=e.atx;mki=e.mki;til=e.til

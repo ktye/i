@@ -256,6 +256,7 @@ func msl() { // update slice headers after set/inc MJ
 	MC = *(*[]byte)(unsafe.Pointer(&cp))
 }
 func grow(x I) I { panic("nyi grow"); return x }
+func printc(x, y I) { fmt.Printf("%s\n", string(MC[x:x+y])) }
 func clz32(x I) I { return I(bits.LeadingZeros32(x)) }
 func clz64(x J) I { return I(bits.LeadingZeros64(x)) }
 func i32b(x bool) I { if x { return 1 } else { return 0 } }

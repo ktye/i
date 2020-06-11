@@ -25,6 +25,7 @@ V sC(I x,C y){MC[x]=y;}V sI(I x,I y){MI[x>>2]=y;}V sF(I x,F y){MF[x>>3]=y;}V sJ(
 //F NaN = &((unt64_t)9221120237041090561ull);
 V dump(I,I);
 I grow(I x){MC=realloc(MC, 1<<x);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC; R x;}
+V printc(I x, I y) {for(I i=0;i<y;i++)putchar(MC[x+i]);putchar('\n');}
 
 #ifndef DRW
 V draw0(I x,I y,C *z){printf("draw..\n");}

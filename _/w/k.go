@@ -165,7 +165,7 @@ func ini(x i) i {
 		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
-		nil, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
+		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
 		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, lgf, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
@@ -1178,6 +1178,14 @@ func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/!n}
 }
 func drw(x, y i) (r i) { // x 'd y
 	return dxyr(x, y, 0)
+}
+func out(x i) (r i) {
+	rx(x)
+	r = kst(x)
+	n := nn(r)
+	fmt.Printf("%s\n", MC[r+8:r+8+n])
+	dx(r)
+	return x
 }
 func kst(x i) (r i) {
 	t := tp(x)
@@ -2626,8 +2634,12 @@ func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if !is(b, VB|AD) { // 24
 		return 0
 	}
-	if b == 39 { // (space)'c  spacy verb
-		if C(p-1) == 32 {
+	if C(p-1) == 32 {
+		if b == 92 { // space\.. (out)
+			sI(pp, p+1)
+			return 160
+		}
+		if b == 39 { // (space)'c  spacy verb
 			p++
 		}
 	}
