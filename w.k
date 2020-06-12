@@ -13,12 +13,7 @@ c:~x;$["("~c;          seq[x;")"]    /(..)
 	     #s:sym(x);   x:_#s
 ;]}
 
-cmap:256#0
-cmap[&2=((1+"z")>!256)+(-1+"a")<!256]: 1 /[a-z]
-cmap[0+"0123456789"]+:                 2 /[0-9]
-cmap[0+"VCIJF"]+:                      4 /type
-cmap[0+"+-*%."]+:                      8 /op
-cmap[!33]+:                           16 /space
+set:{a:256#0;a[0+x]:1};num:set"0"+_!10;alpha:set"a"+_!26;alphanum:alpha+num;ctype:set"VCJF";op:set"+-*%";space:set(!33)
 
 / k w.k -fsrc k.w -e 'compile src;'
 /bug: \:2 3 4
