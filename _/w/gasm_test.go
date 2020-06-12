@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -62,53 +63,17 @@ func gasmImport() map[string]*wasm.Module {
 	return m.Done()
 }
 
-/*
-func hostFuncs(name string) (*wasm.Module, error) { // imported as module "ext"
-	sin := func(proc *exec.Process, x float64) float64 { return math.Sin(x) }
-	cos := func(proc *exec.Process, x float64) float64 { return math.Cos(x) }
-	log := func(proc *exec.Process, x float64) float64 { return math.Log(x) }
-	atan2 := func(proc *exec.Process, x, y float64) float64 { return math.Atan2(x, y) }
-	hypot := func(proc *exec.Process, x, y float64) float64 { return math.Hypot(x, y) }
-	draw := func(proc *exec.Process, x, y, z uint32) uint32 { return 0 }
-	grow := func(proc *exec.Process, x uint32) uint32 { return x } // not implemented for wrun_test
-	printc := func(proc *exec.Process, x, y uint32) {
-		b := make([]byte, int(y))
-		proc.ReadAt(b, int64(x))
-		fmt.Printf("%s\n", string(b))
+func dump(m []byte, n uint32) {
+	fmt.Printf("%.8x ", 0)
+	for i := uint32(0); i < n; i++ {
+		p := 4 * i
+		x := get(m, p)
+		fmt.Printf(" %.8x", x)
+		if i > 0 && (i+1)%8 == 0 {
+			fmt.Printf("\n%.8x ", p+4)
+		} else if i > 0 && (i+1)%4 == 0 {
+			fmt.Printf(" ")
+		}
 	}
-
-	m := wasm.NewModule()
-	m.Types = &wasm.SectionTypes{
-		Entries: []wasm.FunctionSig{
-			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeF64}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeF64}},
-			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeF64, wasm.ValueTypeF64}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeF64}},
-			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: nil},
-			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
-			{Form: 0, ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: nil},
-		},
-	}
-	m.FunctionIndexSpace = []wasm.Function{
-		{Sig: &m.Types.Entries[0], Host: reflect.ValueOf(sin), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[0], Host: reflect.ValueOf(cos), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[0], Host: reflect.ValueOf(log), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[1], Host: reflect.ValueOf(atan2), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[1], Host: reflect.ValueOf(hypot), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[2], Host: reflect.ValueOf(draw), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[3], Host: reflect.ValueOf(grow), Body: &wasm.FunctionBody{}},
-		{Sig: &m.Types.Entries[4], Host: reflect.ValueOf(printc), Body: &wasm.FunctionBody{}},
-	}
-	m.Export = &wasm.SectionExports{
-		Entries: map[string]wasm.ExportEntry{
-			"sin":    {FieldStr: "sin", Kind: wasm.ExternalFunction, Index: 0},
-			"cos":    {FieldStr: "cos", Kind: wasm.ExternalFunction, Index: 1},
-			"log":    {FieldStr: "log", Kind: wasm.ExternalFunction, Index: 2},
-			"atan2":  {FieldStr: "atan2", Kind: wasm.ExternalFunction, Index: 3},
-			"hypot":  {FieldStr: "hypot", Kind: wasm.ExternalFunction, Index: 4},
-			"draw":   {FieldStr: "draw", Kind: wasm.ExternalFunction, Index: 5},
-			"grow":   {FieldStr: "grow", Kind: wasm.ExternalFunction, Index: 6},
-			"printc": {FieldStr: "printc", Kind: wasm.ExternalFunction, Index: 7},
-		},
-	}
-	return m, nil
+	fmt.Println()
 }
-*/
