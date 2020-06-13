@@ -528,14 +528,10 @@ func cut(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if yt == 7 {
 		if xt == 2 {
-			if xn != 1 {
-				trap()
-			}
 			k := I(yp)
-			v := I(yp + 4)
-			rld(y)
-			n := I(xp)
-			return dxr(x, mkd(drop(k, n), enl(drop(v, n))))
+			rx(k)
+			x = cut(x, k)
+			return tkd(x, y)
 		}
 		rx(y)
 		return tkd(exc(til(y), x), y)
@@ -569,19 +565,9 @@ func rsh(x, y i) (r i) {
 	xt, yt, xn, _, xp, yp := v2(x, y)
 	if yt == 7 {
 		if xt == 2 {
-			if xn > 1 {
-				trap()
-			}
 			k := I(yp)
-			v := I(yp + 4)
-			rld(y)
-			n := I(xp)
-			k = take(k, n)
-			v = take(v, n)
-			if nn(k) == 1 {
-				v = enl(v)
-			}
-			return dxr(x, mkd(k, v))
+			rx(k)
+			x = rsh(x, k)
 		}
 		return tkd(x, y)
 	}
@@ -636,15 +622,12 @@ func tkd(x, y i) (r i) {
 	t := tp(x)
 	k := I(y + 8)
 	v := I(y + 12)
-
 	rld(y)
 	if t != 5 {
 		trap()
 	}
-	//if t == 5 {
 	rx(k)
-	x = wer(eql(k, x))
-	//}
+	x = fnd(k, x)
 	rx(x)
 	v = atx(v, x)
 	if nn(x) == 1 {
@@ -1718,7 +1701,6 @@ func scn(x, y i) (r i) { // y\x (scan)
 func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/: x (over initial)
 func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/: x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
-	fmt.Printf("ovs ary y=%d\n", ary(y))
 	if ary(y) == 1 {
 		return fxp(x, y, z)
 	}

@@ -8,8 +8,8 @@ compile:{class./mf'-1_"}"\:*(_10 92)\:x}
 expand:{k:!macro;$[(#k)>k?x;macro x;""]}
 symbol:...
 noun:{x:$[#s:symbol(x);(expand s),x;x]
-c:~x;$["("~c;          seq[x;")"]    /(..)
-             ~c^"VCIJF";     (`$c;1_x)     /type
+c:~x;i:0+c;$["("~i;          seq[x;")"]    /(..)
+             ctype i;     (`$c;1_x)        /type
 	     #s:sym(x);   x:_#s
 ;]}
 
@@ -17,3 +17,9 @@ set:{a:256#0;a[0+x]:1};num:set"0"+_!10;alpha:set"a"+_!26;alphanum:alpha+num;ctyp
 
 / k w.k -fsrc k.w -e 'compile src;'
 /bug: \:2 3 4
+
+!0
+0.+!0
+2_!0 /!0
+-4_!3 /!0
+({1_x})\!3 /(0 1 2;1 2;,2;!0)
