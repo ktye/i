@@ -525,8 +525,18 @@ func drop(x, n i) (r i) {
 	return atx(x, seq(a, xn-n, 1))
 }
 func cut(x, y i) (r i) {
-	xt, yt, xn, yn, xp, _ := v2(x, y)
+	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if yt == 7 {
+		if xt == 2 {
+			if xn != 1 {
+				trap()
+			}
+			k := I(yp)
+			v := I(yp + 4)
+			rld(y)
+			n := I(xp)
+			return dxr(x, mkd(drop(k, n), enl(drop(v, n))))
+		}
 		rx(y)
 		return tkd(exc(til(y), x), y)
 	}
@@ -556,8 +566,23 @@ func cut(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func rsh(x, y i) (r i) {
-	xt, yt, xn, _, xp, _ := v2(x, y)
+	xt, yt, xn, _, xp, yp := v2(x, y)
 	if yt == 7 {
+		if xt == 2 {
+			if xn > 1 {
+				trap()
+			}
+			k := I(yp)
+			v := I(yp + 4)
+			rld(y)
+			n := I(xp)
+			k = take(k, n)
+			v = take(v, n)
+			if nn(k) == 1 {
+				v = enl(v)
+			}
+			return dxr(x, mkd(k, v))
+		}
 		return tkd(x, y)
 	}
 	if xt != 2 {
@@ -589,7 +614,15 @@ func prod(xp, n i) (r i) {
 }
 func take(x, n i) (r i) {
 	xn := nn(x)
-	r = seq(0, n, 1)
+	o := i(0)
+	if int32(n) < 0 {
+		o = xn + n
+		n = -n
+		if int32(o) < 0 {
+			return x
+		}
+	}
+	r = seq(o, n, 1)
 	if xn < n {
 		rp := 8 + r
 		for i := i(0); i < n; i++ {
@@ -603,11 +636,15 @@ func tkd(x, y i) (r i) {
 	t := tp(x)
 	k := I(y + 8)
 	v := I(y + 12)
+
 	rld(y)
-	if t == 5 {
-		rx(k)
-		x = wer(eql(k, x))
+	if t != 5 {
+		trap()
 	}
+	//if t == 5 {
+	rx(k)
+	x = wer(eql(k, x))
+	//}
 	rx(x)
 	v = atx(v, x)
 	if nn(x) == 1 {
