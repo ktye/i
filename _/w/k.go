@@ -509,6 +509,9 @@ func lst(x i) (r i) { // ::x
 func drop(x, n i) (r i) {
 	xt, xn, _ := v1(x)
 	a := n
+	if xn == 0 {
+		return x
+	}
 	if int32(n) < 0 {
 		n = -n
 		a = 0
@@ -606,7 +609,11 @@ func tkd(x, y i) (r i) {
 		x = wer(eql(k, x))
 	}
 	rx(x)
-	return mkd(atx(k, x), atx(v, x))
+	v = atx(v, x)
+	if nn(x) == 1 {
+		v = enl(v)
+	}
+	return mkd(atx(k, x), v)
 }
 func phi(x, y i) (r i) {
 	n := nn(y)
@@ -1214,6 +1221,8 @@ func kst(x i) (r i) {
 	case 6:
 		r = cc(ucat(mkc('('), jon(x, mkc(';'))), ')') //40 59 41
 	default:
+		if nn(x) == 0 {
+		}
 		r = jon(x, mkc(' ')) //32  2 3 4
 	}
 	return r
@@ -1672,6 +1681,7 @@ func scn(x, y i) (r i) { // y\x (scan)
 func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/: x (over initial)
 func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/: x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
+	fmt.Printf("ovs ary y=%d\n", ary(y))
 	if ary(y) == 1 {
 		return fxp(x, y, z)
 	}
@@ -1699,12 +1709,14 @@ func ovs(x, y, z, l i) (r i) { // over/scan
 	return fst(z)
 }
 func fxp(x, y, z i) (r i) { // fixed point/converge
+	fmt.Printf("fxp x=%s y=%s\n", X(x), X(y))
 	t := x
 	rx(x)
 	for {
 		rx(x)
 		rx(y)
 		r = atx(y, x)
+		fmt.Printf(".. %s\n", X(r))
 		if match(r, x)+match(r, t) != 0 {
 			dx(x)
 			dx(y)
