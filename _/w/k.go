@@ -1540,8 +1540,8 @@ func eqc(x, y i) i { return boolvar(C(x) == C(y)) }
 func gti(x, y i) i { return boolvar(int32(I(x)) > int32(I(y))) }
 func eqi(x, y i) i { return boolvar(int32(I(x)) == int32(I(y))) }
 func gtf(x, y i) i { return boolvar(F(x) > F(y)) }
-func eqf(x, y i) i { return boolvar(F(x) == F(y)) }
-func eqz(x, y i) i { return boolvar(F(x) == F(y) && F(x+8) == F(y+8)) }
+func eqf(x, y i) i { return boolvar(J(x) == J(y)) }
+func eqz(x, y i) i { return boolvar(J(x) == J(y) && J(x+8) == J(y+8)) }
 func gtl(x, y i) i {
 	x, y = I(x), I(y)
 	xt, yt, xn, yn, xp, yp := v2(x, y)
@@ -2652,16 +2652,27 @@ func num(b c, p, s i) (r i) { // parse single number
 	}
 	p = I(pp)
 	b = C(p)
-	if b == 'a' || b == 'p' { //97 112
+	if b == 'a' || b == 'p' || b == 'n' || b == 'w' { //97 112 110 119
 		if tp(r) == 2 {
 			r = up(r, 2, 1)
 		}
 		p++
 		sI(pp, p)
-		if b == 'p' {
-			sF(r+8, math.Pi*F(r+8))
+		if b != 'a' {
+			var f float64
+			if b == 'p' {
+				f = math.Pi * F(r+8)
+			}
+			if b == 'n' {
+				f = math.Float64frombits(18444492273895866368)
+			}
+			if b == 'w' {
+				f = math.Inf(1) // todo -0w
+			}
+			sF(r+8, f)
 			return r
 		}
+
 		r = up(r, 3, 1)
 		a := pfl(C(p), p, s)
 		if a == 0 {

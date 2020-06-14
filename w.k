@@ -18,6 +18,7 @@ set:{a:256#0;a[0+x]:1};num:set"0"+_!10;alpha:set"a"+_!26;alphanum:alpha+num;ctyp
 / k w.k -fsrc k.w -e 'compile src;'
 /bug: \:2 3 4
 
+(1+!7)$/0 / (0;0.0;0.0a0;`;,0;`!,0)
 !0
 0.+!0
 2_!0 /!0

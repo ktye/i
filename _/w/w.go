@@ -813,10 +813,10 @@ func (p *parser) pCon(b []c) expr {
 			r.t = F
 		}
 	}
-	if i, e := strconv.ParseInt(s(b), 10, 64); e != nil {
+	if u, e := strconv.ParseUint(s(b), 10, 64); e != nil {
 		return p.err(e.Error())
 	} else {
-		r.i = i
+		r.i = int64(u)
 		if r.t == F {
 			r.f = math.Float64frombits(uint64(r.i))
 		}
@@ -1228,6 +1228,8 @@ func (v con) cstr() s {
 	if v.t == F {
 		if math.IsNaN(v.f) {
 			return "NAN"
+		} else if math.IsInf(v.f, 1) {
+			return "INFINITY"
 		} else {
 			s := sf("%v", v.f)
 			if strings.Index(s, ".") == -1 && strings.Index(s, "e") == -1 {

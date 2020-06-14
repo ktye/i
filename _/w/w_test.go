@@ -220,7 +220,8 @@ import (
 	"unsafe"
 )
 func init() {
-	NAN = math.NaN()
+	NAN = math.Float64frombits(18444492273895866368) // 0/0 (not math.NaN)
+	INFINITY = math.Inf(1)
 }
 type C=byte
 type I=uint32
@@ -236,7 +237,7 @@ var MC []C
 var MI []I
 var MJ []J
 var MF []F
-var NAN F
+var NAN, INFINITY F
 func sin(x F) F { return math.Sin(x) }
 func cos(x F) F { return math.Cos(x) }
 func log(x F) F { return math.Log(x) }
