@@ -365,10 +365,10 @@ func ext(x, y i) (rx, ry i) {
 	if xn == yn {
 		return x, y
 	}
-	if xn == 1 && yn > 1 {
+	if xn == 1 {
 		return take(x, yn), y
 	}
-	if xn > 1 && yn == 1 {
+	if yn == 1 {
 		return x, take(y, xn)
 	}
 	panic("length")
