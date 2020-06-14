@@ -490,7 +490,20 @@ func rev(x i) (r i) {
 	return atx(x, tir(n))
 }
 func fst(x i) (r i) {
-	xt, _, _ := v1(x)
+	xt, xn, _ := v1(x)
+	if xn == 0 {
+		dx(x)
+		if xt == 0 {
+			return 0
+		}
+		if xt == 5 {
+			return sc(mk(1, 0))
+		}
+		if xt > 5 {
+			return mk(6, 0)
+		}
+		return cst(mki(xt), mkc(0))
+	}
 	if xt == 0 {
 		return x
 	}
@@ -1189,6 +1202,7 @@ func flr(x i) (r i) {
 	if xt == 4 {
 		return zre(x)
 	}
+	trap()
 	return x
 }
 func ang(x, y f) float64 {
@@ -1432,6 +1446,10 @@ func cst(x, y i) (r i) { // x$y
 			return mkd(mk(5, 0), mk(6, 0))
 		}
 		return mk(x, 0)
+	}
+	if yt == 2 && I(y+8) == 0 { // zero value
+		dx(y)
+		return fst(mk(x, 0))
 	}
 	if yt > x || yt > 4 { // flr?
 		trap()
@@ -1751,14 +1769,12 @@ func ovs(x, y, z, l i) (r i) { // over/scan
 	return fst(z)
 }
 func fxp(x, y, z i) (r i) { // fixed point/converge
-	fmt.Printf("fxp x=%s y=%s\n", X(x), X(y))
 	t := x
 	rx(x)
 	for {
 		rx(x)
 		rx(y)
 		r = atx(y, x)
-		fmt.Printf(".. %s\n", X(r))
 		if match(r, x)+match(r, t) != 0 {
 			dx(x)
 			dx(y)
@@ -2924,6 +2940,7 @@ func X(x i) s {
 	sstr := func(i i) s {
 		r := I(x + 8 + 4*i)
 		rn := I(r) & 536870911
+		fmt.Printf("sstr x=%x r=%x rn=%d i=%d\n", x, r, rn, i)
 		return string(MC[r+8 : r+8+rn])
 	}
 	sep := " "
