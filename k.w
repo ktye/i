@@ -90,7 +90,7 @@ uqg:I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;
 unq:I:I{x uqg 0}grp:I:I{x uqg 6 mk 0}
 flr:I:I{v1;(xt>5)? :x ech 223;(xt~2)?(r:1 mk xn;r8;xn/((rp+i)::C?I xp;xp+:4);dx x; :r);(xt~3)?(r:2 mk xn;r8;xn/(rp::I?'F xp;xp+:8;rp+:4);dx x; :r);(xt~4)? :zre x;x}
 ang:F:FF{p:57.29577951308232*y atan2 x;(p<0.0)?(p+:360.0);p}
-cst:I:II{v2;(xt~5)?(yt~1)?(dx x; :sc y);((~xt~2)+~xn~1)?!;dx x;x:I x+8;(x<'0)?(x:-x;n:yn%C x;(~yn~n*C x)?!;r:use y;r::n|x<<29; :r);((yt>x)+yt>4)?!;(8~x)?(n:yn*C yt;r:use y;r::n|1<<29; :r);(yt<'x)?/(y:up(y;yt;yn);yt+:1);y}
+cst:I:II{v2;(xt~5)?(yt~1)?(dx x; :sc y);((~xt~2)+~xn~1)?!;dx x;x:I x+8;(x<'0)?(x:-x;n:yn%C x;(~yn~n*C x)?!;r:use y;r::n|x<<29; :r);(0~yn)?(dx y;(7~x)? :(5 mk 0)mkd 6 mk 0; :x mk 0);((yt>x)+yt>4)?!;(8~x)?(n:yn*C yt;r:use y;r::n|1<<29; :r);(yt<'x)?/(y:up(y;yt;yn);yt+:1);y}
 flp:I:I{n:nn I x+8;m:nn x;(x ovr 44)atx ecr((mki n)mul seq(0;m;1);seq(0;n;1);43)}
 rnd:I:I{(~1073741825~I x)?!;dx x;x:I x+8;r:2 mk x;r8;x/(rp::rng 0;rp+:4);r}
 rng:I:I{x:I 12;x^:x<<13;x^:x>>17;x^:x<<5;12::x;x}
@@ -99,7 +99,7 @@ drw:I:II{v2;w:I xp;draw(w;yn%w;yp);dx x;dx y;0}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 out:I:I{rx x;r:kst x;(r+8)printc nn r;dx r;x}
-kst:I:I{t:tp x;(~nn x)?(5~t)?(dx x; :((mkc 48)cc 35)cc 96);(7~t)?(rx x; :((kst til x)cc 33)ucat kst val x);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
+kst:I:I{t:tp x;(~nn x)?(t>1)?(t<6)?(dx x;r:((mkc 48)cc 35)cc 48;(t~3)?r:r cc 46;(t~4)?r:r cc 97;(t~5)?(r+10)::C?96; :r);(7~t)?(r:I x+8;t:I x+12;rld x;r:(kst r)cc 33;(0~nn t)?(dx t;t:mki 0); :r ucat kst t);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
 str:I:I{v1;(xt~1)? :x;(~xt)? :x cg xn;((xt>5)+~xn~1)? :x ech 164;xt?[;;r:ci I xp;r:cf F xp;r:(F xp)cz F xp+8;(r:I xp;rx r);!];dxr}
 cc:I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}
 ng:I:II{y?x:(mkc 45)ucat x;x}

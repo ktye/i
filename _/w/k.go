@@ -1216,12 +1216,30 @@ func out(x i) (r i) {
 }
 func kst(x i) (r i) {
 	t := tp(x)
-	if nn(x) == 0 && t == 5 {
-		return dxr(x, cc(cc(mkc('0'), '#'), '`')) //48 35 96
+	if nn(x) == 0 && t > 1 && t < 6 {
+		dx(x)
+		r = cc(cc(mkc('0'), '#'), '0') //48 35
+		if t == 3 {
+			r = cc(r, '.') //46
+		}
+		if t == 4 {
+			r = cc(r, 'a')
+		}
+		if t == 5 {
+			sC(r+10, '`') //96
+		}
+		return r
 	}
 	if t == 7 {
-		rx(x)
-		return ucat(cc(kst(til(x)), '!'), kst(val(x))) //33
+		r = I(x + 8)
+		t = I(x + 12)
+		rld(x)
+		r = cc(kst(r), '!') //33
+		if nn(t) == 0 {     // 0#`!0
+			dx(t)
+			t = mki(0)
+		}
+		return ucat(r, kst(t))
 	}
 	if t == 6 {
 		if nn(x) == 1 {
@@ -1241,8 +1259,6 @@ func kst(x i) (r i) {
 	case 6:
 		r = cc(ucat(mkc('('), jon(x, mkc(';'))), ')') //40 59 41
 	default:
-		if nn(x) == 0 {
-		}
 		r = jon(x, mkc(' ')) //32  2 3 4
 	}
 	return r
@@ -1409,6 +1425,13 @@ func cst(x, y i) (r i) { // x$y
 		r = use(y)
 		sI(r, n|x<<29)
 		return r
+	}
+	if yn == 0 {
+		dx(y)
+		if x == 7 {
+			return mkd(mk(5, 0), mk(6, 0))
+		}
+		return mk(x, 0)
 	}
 	if yt > x || yt > 4 { // flr?
 		trap()
