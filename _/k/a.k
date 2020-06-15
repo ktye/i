@@ -1,4 +1,4 @@
-kst:{$[#x;kstn;kst0]x} /roundtrip, single line
+kst:{$[#x;kstn;kst0]x} /roundtrip, single line, cannot handle null
 kst0:{(;_34 34;"!0";"0#0.";"0#0a";"0#`";"()";"0#`!0")@@x}
 kstn:{v:{" "/:$x};(($;kstc;v;v;v;ksts;kstl;kstd)@@x)x}
 kstd:{kst[!x],"!",kst[.x]}
