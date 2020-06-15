@@ -5,6 +5,4 @@ i2/k-  :minimal interactive interpreter (no filesystem/argv) only stdin/stdout
 i2/kwm :wasm build and js/html frontend to i2
 kwac   :webassembly compiler stub written in early k7
 kui    :bitmap ui in k (k7/i2)
-`      :k7 binary format `@ `?
-#      :k7 ksql doc
 ngn    :ngn/k +libc-asm+io (windows/macos/...)
