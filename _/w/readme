@@ -49,7 +49,11 @@ go test
 
 online at ktye.github.io
 
-
-
-
-#webassembly.github.io/wabt/demo/wat2wasm 
+# a complete wasm module (11 bytes input / 50 bytes output):
+$ echo "f:I:II{x+y}" | w | xxd
+0000000: 0061 736d 0100 0000 0107 0160 027f 7f01  .asm.......`....
+0000010: 7f03 0201 0005 0301 0001 070b 0203 6d65  ..............me
+0000020: 6d02 0001 6600 000a 0901 0700 2000 2001  m...f....... . .
+0000030: 6a0b                          ^^^^ ^^^^  j.
+         ^^add(i32)                    locX locY
+	 
