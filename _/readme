@@ -4,5 +4,5 @@ i2     :the third interpreter (k7 era)
 i2/k-  :minimal interactive interpreter (no filesystem/argv) only stdin/stdout
 i2/kwm :wasm build and js/html frontend to i2
 kwac   :webassembly compiler stub written in early k7
-kui    :k.w(go) + giui imgui
+kui    :k.w(go) + imgui(gioui)
 ngn    :ngn/k +libc-asm+io (windows/macos/...)
