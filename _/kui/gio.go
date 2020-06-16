@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"math"
 
-	"gioui.org/font/opentype"
-
 	"gioui.org/app"
+	"gioui.org/font/gofont"
+	"gioui.org/font/opentype"
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -26,7 +26,7 @@ func gio() {
 	flag.Parse()
 	editor.SetText("k.w(go) " + today[1:] + " +/∞\n")
 	go func() {
-		w := app.NewWindow(app.Title("k"), app.Size(unit.Dp(800), unit.Dp(650)))
+		w := app.NewWindow(app.Title("k"), app.Size(unit.Dp(640), unit.Dp(480)))
 		if e := loop(w); e != nil {
 			fatal(e)
 		}
@@ -84,7 +84,6 @@ func gui(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	widgets := []layout.Widget{
 		func(gtx Ctx) D {
 			e := material.Editor(th, tags, "+/0w")
-			e.Font.Style = text.Italic
 			return e.Layout(gtx)
 		},
 		func(gtx Ctx) D {
@@ -110,14 +109,15 @@ var collection *text.Collection
 
 func init() {
 	ttf, err := ioutil.ReadFile("font.ttf")
-	if err != nil {
-		panic(err)
+	if err == nil {
+		c := new(text.Collection)
+		face, err := opentype.Parse(ttf)
+		if err != nil {
+			panic(fmt.Sprintf("font.ttf: %v", err))
+		}
+		c.Register(text.Font{Typeface: "kui"}, face)
+		collection = c
+	} else {
+		collection = gofont.Collection()
 	}
-	c := new(text.Collection)
-	face, err := opentype.Parse(ttf)
-	if err != nil {
-		panic(fmt.Sprintf("font.ttf: %v", err))
-	}
-	c.Register(text.Font{Typeface: "kui"}, face)
-	collection = c
 }
