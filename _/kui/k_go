@@ -26,7 +26,7 @@ type slice struct {
 	l int
 	c int
 }
-var MB []C //backup
+var MB []J //backup
 var MC []C
 var MI []I
 var MJ []J
@@ -160,11 +160,12 @@ func X(x I) string { //kst(go-version for debug)
 	return tof(strings.Join(r, sep))
 }
 func ksave() {
-	if len(MB) < len(MC) {
-		MB = make([]C, len(MC))
+	if len(MB) < len(MJ) {
+		MB = make([]J, len(MJ))
 	}
-	copy(MB, MC)
+	copy(MB, MJ)
 }
+func krestore() { MJ = MB; msl(); MB = nil; ksave() }
 func kinit() {
 	m0 := 16
 	MJ = make([]J, (1<<m0)>>3)
@@ -173,4 +174,20 @@ func kinit() {
 	ini(16)
 	ksave()
 }
+func E(s string) (r string) {
+	defer func() {
+		if rc := recover(); rc != nil {
+			r = fmt.Sprintf("k.w:%d:%d", MI[140>>2], MI[144>>2])
+			krestore()
+		}
+	}()
+	b := []C(s)
+	x := kst(val(mk(1, I(len(b)))))
+	n := nn(x)
+	dx(x)
+	r = string(MC[8+x:8+x+n])
+	ksave()
+	return r
+}
 func fatal(e error) { if e != nil { panic(e) } }
+const today = `

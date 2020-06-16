@@ -1,5 +1,6 @@
 # install w; cp any/font.ttf .
 cp  k_go                    k.go
+date '+%Y.%M.%d`'      >>   k.go
 w    -go   < ../../k.w >>   k.go
 go   fmt                    k.go
 go build                     .

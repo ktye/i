@@ -24,7 +24,7 @@ type scaledConfig struct {
 
 func gio() {
 	flag.Parse()
-	editor.SetText("xyz")
+	editor.SetText("k.w(go) " + today[1:] + " +/∞\n")
 	go func() {
 		w := app.NewWindow(app.Title("k"), app.Size(unit.Dp(800), unit.Dp(650)))
 		if e := loop(w); e != nil {
@@ -36,14 +36,13 @@ func gio() {
 
 func loop(w *app.Window) error {
 	th := material.NewTheme(collection)
-
 	var ops op.Ops
 	for {
 		select {
 		case e := <-w.Events():
 			switch e := e.(type) {
 			case system.ClipboardEvent:
-				lineEditor.SetText(e.Text)
+				tags.SetText(e.Text)
 			case system.DestroyEvent:
 				return e.Err
 			case system.FrameEvent:
@@ -57,15 +56,14 @@ func loop(w *app.Window) error {
 }
 
 var (
-	editor     = new(widget.Editor)
-	lineEditor = &widget.Editor{
+	editor = new(widget.Editor)
+	tags   = &widget.Editor{
 		SingleLine: true,
 		Submit:     true,
 	}
 	list = &layout.List{
 		Axis: layout.Vertical,
 	}
-	topLabel = "abc"
 )
 
 type (
@@ -74,22 +72,24 @@ type (
 )
 
 func gui(gtx layout.Context, th *material.Theme) layout.Dimensions {
-	for _, e := range lineEditor.Events() {
+	for _, e := range tags.Events() {
 		if e, ok := e.(widget.SubmitEvent); ok {
-			topLabel = e.Text
-			lineEditor.SetText("")
+			tags.SetText("")
+			editor.Move(12345678) // end?
+			editor.Insert(" " + e.Text + "\n")
+			editor.Insert(E(e.Text))
+			editor.Insert("\n ")
 		}
 	}
 	widgets := []layout.Widget{
-		material.H3(th, topLabel).Layout,
+		func(gtx Ctx) D {
+			e := material.Editor(th, tags, "+/0w")
+			e.Font.Style = text.Italic
+			return e.Layout(gtx)
+		},
 		func(gtx Ctx) D {
 			gtx.Constraints.Max.Y = gtx.Px(unit.Dp(200))
 			return material.Editor(th, editor, "Hint").Layout(gtx)
-		},
-		func(gtx Ctx) D {
-			e := material.Editor(th, lineEditor, "Hint")
-			e.Font.Style = text.Italic
-			return e.Layout(gtx)
 		},
 	}
 
