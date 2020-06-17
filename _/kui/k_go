@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unsafe"
 )
-func main() { kinit(); gio() }
+func main() { kinit(); gui() }
 func init() {
 	NAN = math.Float64frombits(18444492273895866368) // 0/0 (not math.NaN)
 	INFINITY = math.Inf(1)
@@ -174,6 +174,7 @@ func kinit() {
 	ini(16)
 	ksave()
 }
+func apl(s string) string { r := []rune("⍴#⍳!×*÷%⌈|⌊&⌽|⍋<⍒>⍉+←:⋄;¨'"); v := make([]string, len(r)); for i, c := range r { v[i] = string(c) }; return strings.NewReplacer(v...).Replace(s) }
 func E(s string) (r string) {
 	defer func() {
 		if rc := recover(); rc != nil {
@@ -181,8 +182,11 @@ func E(s string) (r string) {
 			krestore()
 		}
 	}()
-	b := []C(s)
-	x := kst(val(mk(1, I(len(b)))))
+	XXX := func(s string) string { fmt.Println(s); return s }
+	b := []C(XXX(apl(s)))
+	x := mk(1, I(len(b))); copy(MC[8+x:], b)
+	fmt.Println(X(x)) //rm
+	x = kst(val(x))
 	n := nn(x)
 	dx(x)
 	r = string(MC[8+x:8+x+n])
@@ -190,4 +194,5 @@ func E(s string) (r string) {
 	return r
 }
 func fatal(e error) { if e != nil { panic(e) } }
+var magic = [32]int{0,116,104,101,32,118,97,108,117,101,32,111,102,32,122,101,114,111,32,105,115,32,101,118,101,114,121,116,104,105,110,103}
 const today = `

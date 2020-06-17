@@ -1,3 +1,5 @@
+// +build ignore
+
 package main
 
 import (
@@ -22,7 +24,7 @@ type scaledConfig struct {
 	Scale float32
 }
 
-func gio() {
+func gui() {
 	flag.Parse()
 	editor.SetText("k.w(go) " + today[1:] + " +/∞\n")
 	go func() {
@@ -48,7 +50,7 @@ func loop(w *app.Window) error {
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
 
-				gui(gtx, th)
+				gio(gtx, th)
 				e.Frame(gtx.Ops)
 			}
 		}
@@ -71,7 +73,7 @@ type (
 	Ctx = layout.Context
 )
 
-func gui(gtx layout.Context, th *material.Theme) layout.Dimensions {
+func gio(gtx layout.Context, th *material.Theme) layout.Dimensions {
 	for _, e := range tags.Events() {
 		if e, ok := e.(widget.SubmitEvent); ok {
 			tags.SetText("")
