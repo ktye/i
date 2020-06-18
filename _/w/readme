@@ -10,7 +10,7 @@
 # mac:    {a:3;b:5}    /flat macro
 # 0:      {add;sum}    /function table
 # sin:F:F {}           /imported function (from module "ext")
-# 255!010203ff         /data section
+# 256!{010203ff}       /data section
 #
 # types are I(i32) J(i64) F(f64)
 # no preference    apl style x*a+b, but lhs is evaluted first: x a b + *
@@ -21,7 +21,7 @@
 # x?y              if x then y
 # $[a;b;c;d;e]     if a then b elseif c then d else e
 # x?[a;b;c;d]      jump to statement x (must be I) default d (last), no return values
-# x/y              execute y x times (x evaluates to I, y must be null)
+# x/y              execute-y x-times (x evaluates to I, y must be null)
 #                  n-loops have implicit locals with names i(j,k... if nested) type I
 # x?/y             while x do y (y must be null)
 # I?x F?x I?'x     type conversions ?'(signed)
