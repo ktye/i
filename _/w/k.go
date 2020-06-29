@@ -162,7 +162,7 @@ func ini(x i) i {
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
-		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, QQQ, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
@@ -1742,7 +1742,7 @@ func scn(x, y i) (r i) { // y\x (scan)
 		return diw(x, y) // y%x (flipped)
 	}
 	if t > 5 { // A\0 D\x D\X
-		return MT['Q'].(func(i, i) i)(x, y) // qr decomposition/solution (external)
+		return MT['Q'].(func(i, i) i)(y, x) // qr decomposition/solution (external)
 	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
 }
@@ -2891,12 +2891,32 @@ func sI(a i, v i)          { MI[a>>2] = v }
 func sJ(a i, v j)          { MJ[a>>3] = v }
 func sF(a i, v f)          { MF[a>>3] = v }
 func sZ(a i, v complex128) { MF[a>>3] = real(v); MF[1+(a>>3)] = imag(v) }
-func atoi(s string) i {
-	if x, e := strconv.Atoi(s); e == nil {
-		return i(x)
-	}
-	panic("atoi")
+
+func QQQ(x, y i) (r i) {
+	fmt.Println("x/y", X(x), X(y))
+	r = mk(3, 1)
+	sF(r+8, norm(y+8, nn(y)))
+	return dxyr(x, y, r)
 }
+func norm(xp, n i) (r f) {
+	s := 0.0
+	for i := i(0); i < n; i++ {
+		v := F(xp)
+		if v != 0 {
+			if s < v {
+				t := s / v
+				r = 1 + r*t*t
+				s = v
+			} else {
+				t := v / s
+				r += t * t
+			}
+		}
+		xp += 8
+	}
+	return s * math.Sqrt(r)
+}
+
 func mark() { // mark bucket type within free blocks
 	//dump(0, 200)
 	for t := i(4); t < 32; t++ {
