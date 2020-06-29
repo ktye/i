@@ -1727,8 +1727,12 @@ func epi(x, y, z i) (r i) { // x f':y (each-prior-initial)
 	return dxyr(y, z, r)
 }
 func ovr(x, y i) (r i) { // y/x (over/reduce)
-	if tp(y) == 2 {
+	t := tp(y)
+	if t == 2 {
 		return mod(x, y)
+	}
+	if t == 6 { // mmul +/'x*\y
+		return ech(ecl(y, x, '*'), ovv('+')) //42 43
 	}
 	return ovs(x, y, 0, 0)
 }
