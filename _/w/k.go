@@ -1741,6 +1741,9 @@ func scn(x, y i) (r i) { // y\x (scan)
 	if t != 0 && t < 5 {
 		return diw(x, y) // y%x (flipped)
 	}
+	if t > 5 { // A\0 D\x D\X
+		return MT['Q'].(func(i, i) i)(x, y) // qr decomposition/solution (external)
+	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
 }
 func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/: x (over initial)
