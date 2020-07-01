@@ -162,7 +162,7 @@ func ini(x i) i {
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
-		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, QQQ, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
+		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
 		nil, nil, nil, nil, nil, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
@@ -1741,8 +1741,9 @@ func scn(x, y i) (r i) { // y\x (scan)
 	if t != 0 && t < 5 {
 		return diw(x, y) // y%x (flipped)
 	}
-	if t > 5 { // A\0 D\x D\X
-		return MT['Q'].(func(i, i) i)(y, x) // qr decomposition/solution (external)
+	if t > 5 { // A\0  qr\x  qr\X
+		fmt.Printf("scn y=%s %d %x %x\n", X(y), I(y), I(y+4)) // x+8
+		return qr(y, x)
 	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
 }
@@ -2892,11 +2893,94 @@ func sJ(a i, v j)          { MJ[a>>3] = v }
 func sF(a i, v f)          { MF[a>>3] = v }
 func sZ(a i, v complex128) { MF[a>>3] = real(v); MF[1+(a>>3)] = imag(v) }
 
-func QQQ(x, y i) (r i) {
-	fmt.Println("x/y", X(x), X(y))
-	r = mk(3, 1)
-	sF(r+8, norm(y+8, nn(y)))
-	return dxyr(x, y, r)
+func qr(x, y i) (r i) {
+	if tp(x) == 7 {
+		return qrs(x, y)
+	}
+	x = qrd(x)
+	if tp(y) == 2 && nn(y) == 1 { // A\0
+		dx(y)
+		return x
+	}
+	return qrs(x, y)
+}
+func qrd(x i) (r i) { // decomposition
+	m := nn(x)           //rows
+	x = ovr(flp(x), ',') //44 ,/&x qr compact storage
+	n := nn(x) / m       //cols
+	t := tp(x)           //fz
+	w := i(C(t))
+	two := uint32(1)
+	if t != 3 {
+		two = 2
+		if t != 4 {
+			panic("qr type")
+		}
+	}
+	d := mk(t, n) // diag
+	dp := d + 8
+	p := x + 8 // Hii
+	var a float64
+	for i := i(0); i < n; i++ {
+		s := norm(p, two*(m-i))
+		if t == 3 {
+			sF(dp, -s)
+			a = F(p)
+			if a < 0 {
+				sF(dp, s)
+				a = -a
+			}
+		}
+		if t == 4 {
+			re := F(p)
+			im := F(p + 8)
+			a = -s * math.Hypot(re, im)
+			sF(dp, -re*s/a)
+			sF(dp+8, -im*s/a)
+		}
+		s = 1.0 / math.Sqrt(s*(s+a))
+		sF(p, F(p)-F(dp))
+		if t == 4 {
+			sF(p+8, F(p+8)-F(dp+8))
+		}
+		q := p
+		for j := uint32(0); j < two*(m-i); j++ {
+			sF(q, F(q)*s)
+			q += 8
+		}
+		q = p + w*m
+		for j := uint32(0); j < n-(1+i); j++ {
+			mi := m - i
+			s = 0.0
+			si := 0.0
+			wk := uint32(0)
+			for k := uint32(0); k < two*mi; k++ {
+				s += F(p+wk) * F(q+wk)
+				wk += 8
+			}
+			if t == 4 {
+				wk = 0
+				for k := uint32(0); k < mi; k++ {
+					si += F(p+wk)*F(q+wk+8) - F(p+wk+8)*F(q+wk)
+					wk += w
+				}
+			}
+			wk = 0
+			for k := uint32(0); k < mi; k++ {
+				sF(q+wk, F(q+wk)-F(p+wk)*s+F(p+wk+8)*si)
+				if t == 4 {
+					sF(q+wk+8, F(q+wk+8)-F(q+wk)*si-F(q+wk+8)*s)
+				}
+				wk += w
+			}
+			q += w * m
+		}
+		dp += w
+		p += w * (1 + m)
+	}
+	r = I(148) // `x`y`z
+	rx(r)
+	return mkd(r, lcat(l2(x, d), mki(m))) // `x`y`z!(H;D;m)
 }
 func norm(xp, n i) (r f) {
 	s := 0.0
@@ -2915,6 +2999,9 @@ func norm(xp, n i) (r f) {
 		xp += 8
 	}
 	return s * math.Sqrt(r)
+}
+func qrs(x, y i) (r i) {
+	panic("nyi qrs")
 }
 
 func mark() { // mark bucket type within free blocks
@@ -2978,7 +3065,6 @@ func X(x i) s {
 	sstr := func(i i) s {
 		r := I(x + 8 + 4*i)
 		rn := I(r) & 536870911
-		fmt.Printf("sstr x=%x r=%x rn=%d i=%d\n", x, r, rn, i)
 		return string(MC[r+8 : r+8+rn])
 	}
 	sep := " "

@@ -169,9 +169,9 @@ $  str cst   sc cs                           160..255   char map az|AZ|NM|VB|AD|
 _  drp flr   drop          re:_z            
 ?  fnd unq   fnd fnx                         (:;`x;y)          assign      x:y
 @  atx typ                 z:abs@ang  z@ang  (+;(`x;a;b;c);y)  assign(m/i) s[a;b;c]+:y
-.  cal val                 im:. z            (;a;b;c)   (*128) sequence    a;b;c     ::x(last) 
-                                             ((/;+);1 2 3)     adverbs     +/1 2 3 :[x;y](dex)                 
-+'x  ech(168)      x+'y  ecd(40)        x'y  bin             
+.  cal val                 im:. z            (;a;b;c)   (*128) sequence    a;b;c      ::x(last) 
+                                             ((/;+);1 2 3)     adverbs     +/1 2 3  :[x;y](dex)                 
++'x  ech(168)      x+'y  ecd(40)        x'y  bin            b:A/x  x:A\b  qr:A\0   x:qr\b  (fz)    
 +/x  ovr(251),fxp  x+/y  ecr(123),n/whl x/y  mod,mmul(L)?     
 +\x  scn(219),fxp  x+\y  ecl(91),n/whl  x\y  y%x,solve(L)?  \(help)  \\(exit) \d(dump) \w(k.ws)
 +':x ecp(169)      x+':y epi(41)        x':y win?           \c(clear console)       
