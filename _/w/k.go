@@ -1742,7 +1742,6 @@ func scn(x, y i) (r i) { // y\x (scan)
 		return diw(x, y) // y%x (flipped)
 	}
 	if t > 5 { // A\0  qr\x  qr\X
-		fmt.Printf("scn y=%s %d %x %x\n", X(y), I(y), I(y+4)) // x+8
 		return qr(y, x)
 	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
@@ -3001,7 +3000,76 @@ func norm(xp, n i) (r f) {
 	return s * math.Sqrt(r)
 }
 func qrs(x, y i) (r i) {
-	panic("nyi qrs")
+	x = val(x)
+	h := I(x + 8)
+	d := I(x + 12)
+	m := I(8 + I(x+16))
+	t := tp(h)
+	if t != tp(y) {
+		panic("qrs type")
+	}
+	if m != nn(y) {
+		panic("qrs size")
+	}
+	y = qml(h, y, m, t)
+	r = rsv(h, y, m, t, d)
+	return dxr(x, r)
+}
+func qml(x, y, m, t i) i { // Q'*y
+	y = use(y)
+	n := nn(x) / m
+	w := i(C(t))
+	xp := x + 8
+	for i := i(0); i < n; i++ {
+		xp += w * i
+		yp := y + 8 + w*i
+		s := 0.0
+		for j := uint32(0); j < m-i; j++ {
+			s += F(xp) * F(yp)
+			if t == 4 {
+				panic("todo si")
+			}
+			xp += w
+			yp += w
+		}
+		wmi := w * (m - i)
+		yp -= wmi
+		xp -= wmi
+		for j := uint32(0); j < m-i; j++ {
+			sF(yp, F(yp)-F(xp)*s)
+			xp += w
+			yp += w
+		}
+	}
+	return y
+}
+func rsv(x, y, m, t, d i) i { // solve R*y = b
+	n := nn(x) / m
+	w := i(C(t))
+	xp := x + 8 + w*(m*n-(m+2-n))
+	yi := y + w*n
+	di := d + w*n
+	if t == 4 {
+		yi -= 8
+		di -= 8
+		panic("nyi complex rslv")
+	}
+	/*        m
+	 *   D Q Q Q Q Q    1..6 iteration order for xp
+	 *   4 D Q Q Q Q n
+	 *   5 2 D Q Q Q
+	 *   6 3 1 D Q Q */
+	for i := i(0); i < n; i++ {
+		for j := uint32(0); j < i; j++ {
+			sF(yi, F(yi)-F(xp)*F(yi+w))
+			xp += w * m
+		}
+		sF(yi, F(yi)/F(di))
+		yi -= w
+		di -= w
+		xp -= w * m * i
+	}
+	return take(y, n)
 }
 
 func mark() { // mark bucket type within free blocks
