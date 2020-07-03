@@ -175,10 +175,14 @@ func kinit() {
 	ksave()
 }
 func apl(s string) string { r := []rune("⍴#⍳!×*÷%⌈|⌊&⌽|⍋<⍒>⍉+←:⋄;¨'"); v := make([]string, len(r)); for i, c := range r { v[i] = string(c) }; return strings.NewReplacer(v...).Replace(s) }
-func E(s string) (r string) {
+
+var current I
+func E(s string) (r []string) {
+	dx(current)
+	current = 0
 	defer func() {
 		if rc := recover(); rc != nil {
-			r = fmt.Sprintf("k.w:%d:%d", MI[140>>2], MI[144>>2])
+			r = []string{fmt.Sprintf("k.w:%d:%d", MI[140>>2], MI[144>>2])}
 			krestore()
 		}
 	}()
@@ -186,12 +190,49 @@ func E(s string) (r string) {
 	b := []C(XXX(apl(s)))
 	x := mk(1, I(len(b))); copy(MC[8+x:], b)
 	fmt.Println(X(x)) //rm
-	x = kst(val(x))
-	n := nn(x)
-	dx(x)
-	r = string(MC[8+x:8+x+n])
+	x = val(x)
+	current = x
+	rx(current)
+	t := tp(x)
+	switch t {
+	case 6:
+		r = kstrings(x)
+	case 7:
+		rx(x)
+		a := kstrings(str(til(x)))
+		r = kstrings(val(x))
+		n := 0
+		for _, s := range a {
+			if len(s) > n {
+				n = len(s)
+			}
+		}
+		for i, s := range a {
+			r[i] = s[1:len(s)-1] + strings.Repeat(" ", n - len(s)) + "| " + r[i]
+		}
+	default:
+		r = []string{kstring(x)}
+	}
 	ksave()
 	return r
+}
+func kstrings(x I) (r []string) {
+	n := nn(x)
+	p := 2 + (x>>2)
+	for i := I(0); i<n; i++ {
+		xi := MI[p]
+		rx(xi)
+		r = append(r, kstring(xi))
+		p++
+	}
+	dx(x)
+	return r
+}
+func kstring(x I) string {
+	x = kst(x)
+	n := nn(x)
+	dx(x)
+	return string(MC[8+x:8+x+n])
 }
 func fatal(e error) { if e != nil { panic(e) } }
 var magic = [32]int{0,116,104,101,32,118,97,108,117,101,32,111,102,32,122,101,114,111,32,105,115,32,101,118,101,114,121,116,104,105,110,103}

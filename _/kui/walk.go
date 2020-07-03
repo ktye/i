@@ -9,11 +9,15 @@ import (
 )
 
 var tags *walk.LineEdit
-var edit *walk.TextEdit
+var list *walk.ListBox
+
+// var edit *walk.TextEdit
 var mwin *walk.MainWindow
 var wfnt *walk.Font
 var family = "Iosevka Term SS04"
 var fontsize int = 18
+var history []string
+var histidx int
 
 func gui() {
 	bg := SolidColorBrush{walk.RGB(0xFF, 0xFF, 0xEA)}
@@ -25,22 +29,49 @@ func gui() {
 		Layout:      VBox{MarginsZero: true, SpacingZero: true},
 		OnDropFiles: dropfiles,
 		Children: []Widget{
-			LineEdit{Text: "File Select Plot Help 2 3⍴⍳5", CueBanner: "+/0w", AssignTo: &tags, Background: bg, OnKeyDown: tagsKeyDownEval, OnMouseUp: tagsMouseUp},
-			TextEdit{Text: "k.w(go) " + today[1:] + "\r\n", AssignTo: &edit, Background: bg, HScroll: true, VScroll: true},
+			LineEdit{Text: "`abc`b`c!(1 2;3;\"hallo\")", CueBanner: "+/0w", AssignTo: &tags, Background: bg, OnKeyDown: tagsKeyDownEval, OnMouseUp: tagsMouseUp},
+			ListBox{Model: []string{"k.w(go) " + today[1:]}, AssignTo: &list, MultiSelection: true, Background: bg}, // HScroll: true, VScroll: true},
 		},
 	}.Create())
 	mwin.MouseWheel().Attach(cntrlWheelFontSize)
 	mwin.Run()
 }
+func show(s []string)   { list.SetModel(s) }
+func showstr(s string)  { show([]string{s}) }
+func evaluate(s string) { show(E(s)) } // edit.AppendText(" " + s + "\r\n" + E(s) + "\r\n") }
 
-func evaluate(s string) { edit.AppendText(" " + s + "\r\n" + E(s) + "\r\n") }
-
-func dropfiles(f []string) { edit.AppendText(fmt.Sprintf("drop %v\r\n", f)) } // nyi: drop`file1`file2!(0x1234;0x5678..)
+func dropfiles(f []string) { showstr(fmt.Sprintf("drop %v\r\n", f)) } // nyi: drop`file1`file2!(0x1234;0x5678..)
 func tagsKeyDownEval(k walk.Key) {
+	fmt.Println(k, walk.KeyEscape)
 	if k != walk.KeyReturn {
+		if len(history) > 0 {
+			h := func(i int) {
+				histidx += i
+				histidx = (histidx%len(history) + len(history)) % len(history)
+				tags.SetText(history[histidx])
+			}
+			if k == walk.KeyUp {
+				h(1)
+			}
+			if k == walk.KeyDown {
+				h(-1)
+			}
+		}
+		if k == walk.KeyEscape {
+			tags.SetText("")
+		}
 		return
 	}
-	evaluate(tags.Text())
+	s := tags.Text()
+	evaluate(s)
+	for _, h := range history {
+		if h == s {
+			return
+		}
+	}
+	history = append(history, s)
+	histidx = len(history) - 1
+	tags.SetText("")
 }
 func tagsMouseUp(x, y int, b walk.MouseButton) {
 	getSelectedText := func(a, b int) string { r := []rune(tags.Text()); return string(r[a:b]) }
@@ -74,7 +105,7 @@ func cntrlWheelFontSize(x, y int, button walk.MouseButton) {
 	}
 	wfnt, _ := walk.NewFont(family, fontsize, 0)
 	walk.SetWindowFont(tags.Handle(), wfnt)
-	walk.SetWindowFont(edit.Handle(), wfnt)
+	walk.SetWindowFont(list.Handle(), wfnt)
 	// layout? xxx.RequestLayout() ?
 }
 
