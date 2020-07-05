@@ -1,5 +1,5 @@
 # go install           ../w/w.go
 cp  k_go                    k.go
-date '+%Y.%m.%d`'      >>   k.go
+go run gen.go             # h.go
 w    -go   < ../../k.w >>   k.go
 go build                     .

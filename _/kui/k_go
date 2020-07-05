@@ -176,23 +176,51 @@ func kinit() {
 }
 func apl(s string) string { r := []rune("⍴#⍳!×*÷%⌈|⌊&⌽|⍋<⍒>⍉+←:⋄;¨'"); v := make([]string, len(r)); for i, c := range r { v[i] = string(c) }; return strings.NewReplacer(v...).Replace(s) }
 
-var current I
+var root, path I
 func E(s string) (r []string) {
-	dx(current)
-	current = 0
+	if strings.TrimSpace(s) == `\` {
+		return strings.Split(help, "\n")
+	}
+	x, sym := ES(s)
+	if x == 0 {
+		return []string{fmt.Sprintf("k.w:%d:%d", MI[140>>2], MI[144>>2])}
+	}
+	unroot()
+	if sym == 0 {
+		root = sc(mk(1, 0))
+		rx(root); rx(x)
+		asn(root, 0, x)
+	} else {
+		root = sym
+	}
+	return kstr(x)
+}
+func ES(s string) (x, sym I) {
 	defer func() {
 		if rc := recover(); rc != nil {
-			r = []string{fmt.Sprintf("k.w:%d:%d", MI[140>>2], MI[144>>2])}
 			krestore()
+			x = 0
 		}
 	}()
-	XXX := func(s string) string { fmt.Println(s); return s }
-	b := []C(XXX(apl(s)))
-	x := mk(1, I(len(b))); copy(MC[8+x:], b)
-	fmt.Println(X(x)) //rm
-	x = val(x)
-	current = x
-	rx(current)
+	b := []C(apl(s))
+	x = mk(1, I(len(b))); copy(MC[8+x:], b)
+	x = prs(x)
+	if tp(x) == 5 && nn(x) == 1 { //symbol
+		rx(x)
+		sym = x
+	}
+	x = evl(x, 0)
+	ksave()
+	return x, sym
+}
+func kstr(x I) (r []string) {
+	kstrings := func(x I) (r []string) { 
+		n := nn(x); p := 2 + (x>>2)
+		for i := I(0); i<n; i++ {
+			xi := MI[p]; rx(xi); r = append(r, kstring(xi)); p++
+		}
+		dx(x); return r
+	}
 	t := tp(x)
 	switch t {
 	case 6:
@@ -213,27 +241,28 @@ func E(s string) (r []string) {
 	default:
 		r = []string{kstring(x)}
 	}
-	ksave()
 	return r
 }
-func kstrings(x I) (r []string) {
-	n := nn(x)
-	p := 2 + (x>>2)
-	for i := I(0); i<n; i++ {
-		xi := MI[p]
-		rx(xi)
-		r = append(r, kstring(xi))
-		p++
+func kstring(x I) string { x = kst(x); n := nn(x); dx(x); return string(MC[8+x:8+x+n]) }
+func lookup() (r I) {
+	if root == 0 {
+		return 0
 	}
-	dx(x)
+	rx(root)
+	r = lup(root, 0)
+	n := nn(path)
+	if path != 0 && n > 0 {
+		rx(path)
+		if n == 1 {
+			r = atx(r, fst(path))
+		} else {
+			r = cal(r, path)
+		}
+	}
 	return r
 }
-func kstring(x I) string {
-	x = kst(x)
-	n := nn(x)
-	dx(x)
-	return string(MC[8+x:8+x+n])
-}
+func unroot() { dx(root); dx(path); root, path = 0, mk(6,0) }
+
 func fatal(e error) { if e != nil { panic(e) } }
 var magic = [32]int{0,116,104,101,32,118,97,108,117,101,32,111,102,32,122,101,114,111,32,105,115,32,101,118,101,114,121,116,104,105,110,103}
 const today = `
