@@ -532,10 +532,11 @@ func drop(x, n i) (r i) {
 	if n > xn {
 		return dxr(x, mk(xt, 0))
 	}
+	x = atx(x, seq(a, xn-n, 1))
 	if xt == 6 && xn-n == 1 {
-		return enl(lst(x))
+		x = enl(x)
 	}
-	return atx(x, seq(a, xn-n, 1))
+	return x
 }
 func cut(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
