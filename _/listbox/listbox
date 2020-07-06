@@ -1,0 +1,30 @@
+<head><meta charset="utf-8"><title>k.w</title></head>
+<style>
+ html,body{height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-flow:column;}
+ #tags{flex: 0 1 auto;background:#ffffea;font-family:monospace;border:none;border-bottom:1px solid black;}
+ #list{flex: 1 1 auto;background:#ffffea;font-family:monospace;border:none;}
+ #edit{flex: 1 1 auto;background:#ffffea;font-family:monospace;border:none;display:none;}
+ #draw{flex: 1 1 auto;background:#777777;display:none;}
+</style>
+<input    id="tags"/>
+<select   id="list" multiple><option>k.w 2020</option></select>
+<textarea id="edit" wrap="off" spellcheck="false"></textarea>
+<canvas   id="draw"/>
+<a        id="save"/>
+<script>
+var start=decodeURIComponent(window.location.hash.substr(1));if(start.length==0)start="src \\";tags.value=start;
+function display(x){[list,edit,draw].forEach(i=>i.style.display="none");x.style.display="block"}
+function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function exec(s){if(s.length==0){tags.value=start;return}console.log("execute",s);
+ if(s=="draw"){display(draw)}
+ if(s=="list"){display(list)}
+ if(s=="edit"){display(edit)}
+ hash(s)}
+var hist=[start];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
+tags.onkeydown = function(e){var k=e.which;
+ if(k==13){var s=tags.value.substring(tags.selectionStart,tags.selectionEnd);if(s.length==0){s=tags.value;addhist(s.trim());tags.value=""};exec(s.trim())}
+ if(k==38){gethist(true)}if(k==40){gethist(false)} }
+tags.ondblclick = function(e){exec(tags.value.substring(tags.selectionStart,tags.selectionEnd).trim())}
+draw.tabIndex=100;draw.onkeydown=function(e){if(e.which==27)display(list)}
+</script><body></body></html>
