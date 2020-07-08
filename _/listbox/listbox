@@ -1,30 +1,73 @@
 <head><meta charset="utf-8"><title>k.w</title></head>
+<link rel='icon' type'image/png' href="k32.png">
+<link rel="stylesheet" href="codemirror/codemirror.min.css">
 <style>
  html,body{height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-flow:column;}
  #tags{flex: 0 1 auto;background:#ffffea;font-family:monospace;border:none;border-bottom:1px solid black;}
  #list{flex: 1 1 auto;background:#ffffea;font-family:monospace;border:none;}
- #edit{flex: 1 1 auto;background:#ffffea;font-family:monospace;border:none;display:none;}
- #draw{flex: 1 1 auto;background:#777777;display:none;}
+ #canv{flex: 1 1 auto;background:#777777;display:none;}
+ .CodeMirror{flex: 1 1 auto;background:#ffffea;display:none;}
 </style>
 <input    id="tags"/>
-<select   id="list" multiple><option>k.w 2020</option></select>
-<textarea id="edit" wrap="off" spellcheck="false"></textarea>
-<canvas   id="draw"/>
+<select   id="list" multiple></select>
+<textarea id="area" wrap="off" spellcheck="false"></textarea>
+<canvas   id="canv"/>
 <a        id="save"/>
+<script src="codemirror/jquery.min.js"></script>
+<script src="codemirror/codemirror.min.js"></script>
 <script>
-var start=decodeURIComponent(window.location.hash.substr(1));if(start.length==0)start="src \\";tags.value=start;
-function display(x){[list,edit,draw].forEach(i=>i.style.display="none");x.style.display="block"}
-function hash(s){window.location.hash=encodeURIComponent(s.trim())}
+var edit=CodeMirror.fromTextArea(area,{})
+var ediv=edit.getWrapperElement()
+var hash=decodeURIComponent(window.location.hash.substr(1));if(hash.length==0)hash="src \\";tags.value=hash;
+function display(x){[list,canv,ediv].forEach(i=>i.style.display="none");x.style.display="block";if(x==ediv)edit.refresh()}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
-function exec(s){if(s.length==0){tags.value=start;return}console.log("execute",s);
+function exec(s){if(s.length==0)return;
  if(s=="draw"){display(draw)}
  if(s=="list"){display(list)}
- if(s=="edit"){display(edit)}
- hash(s)}
-var hist=[start];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
+ if(s=="edit"){display(ediv)}
+}
+var hist=[hash];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
 tags.onkeydown = function(e){var k=e.which;
- if(k==13){var s=tags.value.substring(tags.selectionStart,tags.selectionEnd);if(s.length==0){s=tags.value;addhist(s.trim());tags.value=""};exec(s.trim())}
+ if(k==13){var s=tags.value.substring(tags.selectionStart,tags.selectionEnd);
+  if(s.length==0){s=tags.value;addhist(s);tags.value=""};
+  if(s.length==0)return start();window.location.hash=encodeURIComponent(s)
+  EO(" "+s+"\n"+execute(s))
+ }
  if(k==38){gethist(true)}if(k==40){gethist(false)} }
 tags.ondblclick = function(e){exec(tags.value.substring(tags.selectionStart,tags.selectionEnd).trim())}
-draw.tabIndex=100;draw.onkeydown=function(e){if(e.which==27)display(list)}
+canv.tabIndex=100;canv.onkeydown=function(e){if(e.which==27)display(list)}
+
+function start(){
+ var t=1<<K.I[32];var f=0;var s=8;var u;for(var i=4;i<32;i++){s=2*s;for(var u=K.I[i];u!=0;u=K.I[u>>>2])f+=s}
+ EO(ver+" "+String(t-f)+"/"+String(t)) // used/total
+}
+
+// k.wasm module
+var ver = "k.w "
+var hlp = ""; fetch('h').then(r=>{return r.text()}).then(s=>{hlp=s;ver+=s.split("\n")[0];EO(ver)})
+var src = ""; fetch('s').then(r=>{return r.text()}).then(s=>{src=s})
+var EO = function(s) {edit.doc.setValue(s);display(ediv)}
+var draw = function(w,h,p) { console.log("draw: nyi") }
+var grow = function(x) {var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
+var printc = function(x,y){O(su(K.C.slice(x,x+y))+"\n")}
+var msl = function(){var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
+var nn, dx, mk, val, kst, bak
+WebAssembly.instantiateStreaming(fetch('k.wasm'), { "ext": {"sin":Math.sin,"cos":Math.cos,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
+ K=r.instance;msl();K.exports.ini(16);bak=K.C.slice(0)
+ nn=K.exports.nn;dx=K.exports.dx;mk=K.exports.mk;val=K.exports.val;kst=K.exports.kst
+});
+
+function execute(s) {t=s.trim();if(t.length==0)return;if(t==="\\")return hlp;var x=ktry(s);return x?sk(kst(x)):"'"}
+function us(s) { return new TextEncoder("utf-8").encode(s) }
+function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
+function sk(x) { var n=nn(x); dx(x); return su(K.C.slice(8+x, 8+x+n))}
+function cstr(s) { var n=s.length;var x=mk(1, n);for(var i=0;i<n;i++)K.C[8+x+i]=s.charCodeAt(i);return x}
+function ktry(s) {
+ try     { var x = val(cstr(s)); bak = K.C.slice(0, 1<<K.U[32]);return x}
+ catch(e){console.log(e);K.C.set(bak);return 0}
+}
+
+function clrList() {var n=list.options.length;for(var i=n-1;i>=0;i--)list.options[i]=null;}
+function setList(x){clrList();for(var i=0;i<x.length;i++){var o=document.createElement("option");o.text=x[i];list.add(o)}}
+
 </script><body></body></html>
