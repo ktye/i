@@ -39,7 +39,7 @@ go build w.go
 ./w -c  < in.w > src.c
 ./w -go < in.w > src.go
 
-# example: generate k_c and test it
+# example: generate k_h and test it
 go test
 ./runcc t
 

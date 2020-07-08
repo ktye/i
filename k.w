@@ -95,7 +95,7 @@ flp:I:I{n:nn I x+8;m:nn x;(x ovr 44)atx ecr((mki n)mul seq(0;m;1);seq(0;n;1);43)
 rnd:I:I{(~1073741825~I x)?!;dx x;x:I x+8;r:2 mk x;r8;x/(rp::rng 0;rp+:4);r}
 rng:I:I{x:I 12;x^:x<<13;x^:x>>17;x^:x<<5;12::x;x}
 xxx:I:I{!;x}
-drw:I:II{v2;w:I xp;draw(w;yn%w;yp);dx x;dx y;0}
+drw:I:II{v2;w:I xp;(yt~7)?draw(w;I xp+4;y);(yt~2)?draw(w;yn%w;y);dx x;dx y;0}
 sadv:I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
 out:I:I{rx x;r:kst x;(r+8)printc nn r;dx r;x}

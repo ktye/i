@@ -73,7 +73,7 @@ void draw0(int w, int h, char *p) {
 	DeleteDC(hbm);
 }
 #endif
-V draw(I x, I y, I z){draw0(x,y,MC+z);}
+V draw(I x, I y, I z){draw0(x,y,MC+z+8);}
 #undef abs
 #undef min
 #undef max

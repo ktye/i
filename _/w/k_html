@@ -132,13 +132,35 @@ function ktry(s) {
 function apl(s){var a="⍴⍳×÷⌈⌊⌽⍋⍒⍉←⋄¨".split(""); var k="#!*%|&|<>+:;'".split(""); return s.split("").map(x=>{var i=a.indexOf(x); return (i==-1)?x:k[i]}).join("")}
 function E(s) { var x=ktry(apl(s)); if(x!=0) O(sk(kst(x))+"\n") }
 
+function jk(x){
+ var n=nn(x);var r=[];var atom=function(x){return(x.length==1)?x[0]:x}
+ switch(tp(x)){
+ case 1:  r=su(K.C.slice(8+x,8+x+n));                           break
+ case 2:  x=(8+x)>>>2;r=atom(Array.from(K.I.slice(x,x+n)));     break
+ case 3:  x=(8+x)>>>3;r=atom(Array.from(K.F.slice(x,x+n)));     break
+ case 6:  x=(8+x)>>>2;for(var i=0;i<n;i++)r.push(jk(K.I[x+i])); break
+ default: r=undefined
+ };       return r
+}
 function imgSize(w, h) { cnv.style.width = w; cnv.style.height = h; cnv.width = w; cnv.height = h }
-function draw(w, h, p) {
-  imgSize(w, h)
+function draw(w, h, x) {
+ imgSize(w, h)
+ if(tp(x)==2){           //blit pixels
+  var p = 8+x
   var u = new Uint8ClampedArray(K.C.slice(p, p+4*w*h))
   var d = new ImageData(u, w, h)
   for (var i=3; i<d.data.length; i+=4) d.data[i] = 255
   ctx.putImageData(d, 0, 0)
+ }else if(tp(x)==7){     //canvas api calls
+  x = (8+x)>>>2
+  var k=K.I[x];var v=K.I[1+x];
+  console.log("nnk", nn(k), "x", x, "k", k, nn(k), tp(k), "v", v, nn(v), tp(v))
+  for(var i=0;i<nn(k);i++){
+   rx(k);rx(v);var s=jk(cs(atx(k,mki(i))));var a=jk(atx(v,mki(i)))
+   console.log("s:",s, "a:",a)
+   if(typeof(ctx[s])==="function")ctx[s](...a);else ctx[s]=a
+  }
+ }
 }
 function edit(name) { var u;
  if(name.startsWith("`")){
