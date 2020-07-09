@@ -2986,6 +2986,9 @@ func norm(xp, n i) (r f) {
 	s := 0.0
 	for i := i(0); i < n; i++ {
 		v := F(xp)
+		if v < 0.0 {
+			v = -v
+		}
 		if v != 0 {
 			if s < v {
 				t := s / v
@@ -3025,10 +3028,12 @@ func qml(x, y, m, t i) i { // Q'*y
 		xp += w * i
 		yp := y + 8 + w*i
 		s := 0.0
+		si := 0.0
 		for j := uint32(0); j < m-i; j++ {
 			s += F(xp) * F(yp)
 			if t == 4 {
-				panic("todo si")
+				s += F(xp+8) * F(yp+8)
+				si += F(xp)*F(yp+8) - F(xp+8)*F(yp)
 			}
 			xp += w
 			yp += w
@@ -3038,6 +3043,10 @@ func qml(x, y, m, t i) i { // Q'*y
 		xp -= wmi
 		for j := uint32(0); j < m-i; j++ {
 			sF(yp, F(yp)-F(xp)*s)
+			if t == 4 {
+				sF(yp, F(yp)+F(xp+8)*si)
+				sF(yp+8, F(yp+8)+F(xp)*si+F(xp+8)*s)
+			}
 			xp += w
 			yp += w
 		}
@@ -3053,7 +3062,6 @@ func rsv(x, y, m, t, d i) i { // solve R*y = b
 	if t == 4 {
 		yi -= 8
 		di -= 8
-		panic("nyi complex rslv")
 	}
 	/*        m
 	 *   D Q Q Q Q Q    1..6 iteration order for xp
@@ -3063,9 +3071,18 @@ func rsv(x, y, m, t, d i) i { // solve R*y = b
 	for i := i(0); i < n; i++ {
 		for j := uint32(0); j < i; j++ {
 			sF(yi, F(yi)-F(xp)*F(yi+w))
+			if t == 4 {
+				sF(yi, F(yi)+F(xp+8)*F(yi+w+8))
+				sF(yi+8, F(yi+8)-F(xp)*F(yi+w+8)-F(xp+8)*F(yi+w))
+			}
 			xp += w * m
 		}
-		sF(yi, F(yi)/F(di))
+		if t == 3 {
+			sF(yi, F(yi)/F(di))
+		}
+		if t == 4 {
+			diz(yi, di, yi)
+		}
 		yi -= w
 		di -= w
 		xp -= w * m * i
