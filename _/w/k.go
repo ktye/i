@@ -2380,10 +2380,20 @@ func pt(s i) (r i) { // t
 		λ := C(p) == 123     // {
 		if λ || C(p) == 40 { // (
 			sI(pp, p+1)
-			r = sq(s)
 			if λ {
-				r = lam(p, I(pp), r)
+				a := i(0)
+				if C(1+p) == '[' { //91
+					sI(pp, p+2)
+					a = sq(s)
+					if nn(a) == 0 {
+						a = lcat(a, mk(5, 0))
+					}
+					a = ovr(a, 44) // ,/
+				}
+				r = sq(s)
+				r = lam(p, I(pp), r, a)
 			} else {
+				r = sq(s)
 				n := nn(r)
 				if n == 1 {
 					r = fst(r)
@@ -2473,17 +2483,8 @@ func loc(x, y i) (r i) {
 	}
 	return y
 }
-func lam(p, s, z i) (r i) {
-	var a i
-	if C(1+p) == '[' { //91 {[a;b]a..} -> ,((;`a;`b);(..))
-		z = fst(z)
-		rx(z)
-		a = ovr(drop(fst(z), 1), 44) // ,/1_*z
-		if a == 0 {
-			a = mk(5, 0)
-		}
-		z = drop(z, 1)
-	} else {
+func lam(p, s, z, a i) (r i) {
+	if a == 0 {
 		r = I(xyz)
 		rx(r)
 		a = take(r, lac(z, 0))
