@@ -2906,7 +2906,7 @@ func qr(x, y i) (r i) {
 }
 func qrd(x i) (r i) { // decomposition
 	m := nn(x)           //rows
-	x = ovr(flp(x), ',') //44 ,/&x qr compact storage
+	x = ovr(flp(x), ',') //44 ,/&x Q(upper triag)
 	n := nn(x) / m       //cols
 	t := tp(x)           //fz
 	w := i(C(t))
@@ -2917,7 +2917,7 @@ func qrd(x i) (r i) { // decomposition
 			panic("qr type")
 		}
 	}
-	d := mk(t, n) // diag
+	d := mk(t, (n*(1+n))/2) // conj(R) triangular
 	dp := d + 8
 	p := x + 8 // Hii
 	var a float64
@@ -2930,8 +2930,7 @@ func qrd(x i) (r i) { // decomposition
 				sF(dp, s)
 				a = -a
 			}
-		}
-		if t == 4 {
+		} else if t == 4 {
 			re := F(p)
 			im := F(p + 8)
 			a = -s * math.Hypot(re, im)
@@ -2943,44 +2942,154 @@ func qrd(x i) (r i) { // decomposition
 		if t == 4 {
 			sF(p+8, F(p+8)-F(dp+8))
 		}
-		q := p
+		q := p //start of row i
 		for j := uint32(0); j < two*(m-i); j++ {
 			sF(q, F(q)*s)
 			q += 8
 		}
-		q = p + w*m
+		q = p + w*m //start of row i+1
 		for j := uint32(0); j < n-(1+i); j++ {
 			mi := m - i
 			s = 0.0
 			si := 0.0
-			wk := uint32(0)
-			for k := uint32(0); k < two*mi; k++ {
-				s += F(p+wk) * F(q+wk)
-				wk += 8
+			if t == 3 {
+				s = vvf(p, q, mi)
+			} else if t == 4 {
+				s = vvr(p, q, mi)
+				si = vvi(p, q, mi)
 			}
-			if t == 4 {
-				wk = 0
-				for k := uint32(0); k < mi; k++ {
-					si += F(p+wk)*F(q+wk+8) - F(p+wk+8)*F(q+wk)
-					wk += w
-				}
-			}
-			wk = 0
-			for k := uint32(0); k < mi; k++ {
-				sF(q+wk, F(q+wk)-F(p+wk)*s+F(p+wk+8)*si)
-				if t == 4 {
-					sF(q+wk+8, F(q+wk+8)-F(q+wk)*si-F(q+wk+8)*s)
-				}
-				wk += w
-			}
+			vssub(q, p, mi, w, 1, s, si)
 			q += w * m
 		}
-		dp += w
+		dp += w * (n - i)
 		p += w * (1 + m)
+	}
+	dp = d + 8
+	for i := i(0); i < n; i++ { //flip lower triag into upper R
+		dp += w
+		p = x + 8 + w*i
+		for j := i + 1; j < n; j++ {
+			p += w * m
+			sF(dp, F(p))
+			if t == 4 {
+				sF(dp+8, -F(p+8)) //conj
+			}
+			dp += w
+		}
 	}
 	r = I(148) // `x`y`z
 	rx(r)
-	return mkd(r, lcat(l2(x, d), mki(m))) // `x`y`z!(H;D;m)
+	return mkd(r, lcat(l2(x, d), mki(m))) // `x`y`z!(Q;R;m)
+}
+func qrs(x, y i) (r i) { //qr solve
+	x = val(x)
+	q := I(x + 8)
+	r = I(x + 12)
+	m := I(8 + I(x+16))
+	t := tp(q)
+	if t != tp(y) {
+		panic("qrs type")
+	}
+	if m != nn(y) {
+		panic("qrs size")
+	}
+	y = qml(q, y, m, t)
+	r = rsv(r, y, nn(q)/m, t)
+	return dxr(x, r)
+}
+func qml(x, y, m, t i) i { // Q'*y
+	y = use(y)
+	n := nn(x) / m
+	w := i(C(t))
+	yp := y + 8
+	x += 8
+	for i := i(0); i < n; i++ {
+		s, si := 0.0, 0.0
+		if t == 3 {
+			s = vvf(x, yp, m)
+		} else if t == 4 {
+			s = vvr(x, yp, m)
+			si = vvi(x, yp, m)
+		}
+		vssub(yp, x, m, w, 1, s, si)
+		x += w * (m + 1)
+		yp += w
+		m--
+	}
+	return y
+}
+func rsv(r, y, n, t i) i { // back-substitution
+	w := i(C(t))
+	yi := y + 8 + w*n
+	rp := r + 8 + w*nn(r)
+	for i := i(0); i < n; i++ {
+		s, si := 0.0, 0.0
+		if i > 0 {
+			if t == 3 {
+				s = vvf(rp, yi, i)
+			} else if t == 4 {
+				s = vvr(rp, yi, i)
+				si = vvi(rp, yi, i)
+			}
+		}
+		yi -= w
+		rp -= w
+		sF(yi, F(yi)-s)
+		if t == 3 {
+			sF(yi, F(yi)/F(rp))
+		} else if t == 4 {
+			sF(yi+8, F(yi+8)-si)
+			diz(yi, rp, yi)
+		}
+		rp -= w * (1 + i)
+	}
+	return take(y, n)
+}
+func vvf(x, y, n i) (r f) { //scalar product x*y (float)
+	for i := i(0); i < n; i++ {
+		r += F(x) * F(y)
+		x += 8
+		y += 8
+	}
+	return r
+}
+func vvr(x, y, n i) (r f) { //scalar product conj(x)*y (real part)
+	for i := i(0); i < n; i++ {
+		r += F(x)*F(y) + F(x+8)*F(y+8)
+		x += 16
+		y += 16
+	}
+	return r
+}
+func vvi(x, y, n i) (r f) { //scalar product conj(x)*y (imag part)
+	for i := i(0); i < n; i++ {
+		r += F(x)*F(y+8) - F(x+8)*F(y)
+		x += 16
+		y += 16
+	}
+	return r
+}
+func vssub(r, x, n, w, dx i, ar, ai float64) { //r[i] -= a*x[i], i=0..n-1 (w=8 float, w=16 complex)
+	wdx := w * dx
+	for i := i(0); i < n; i++ {
+		sF(r, F(r)-ar*F(x))
+		r += w
+		x += wdx
+	}
+	if w == 16 {
+		r -= w * n
+		x -= wdx * n
+		ri := r + 8
+		xi := x + 8
+		for i := i(0); i < n; i++ {
+			sF(r, F(r)+ai*F(xi))
+			sF(ri, F(ri)-ar*F(xi)-ai*F(x))
+			r += w
+			x += wdx
+			ri += w
+			xi += wdx
+		}
+	}
 }
 func norm(xp, n i) (r f) {
 	s := 0.0
@@ -3002,92 +3111,6 @@ func norm(xp, n i) (r f) {
 		xp += 8
 	}
 	return s * math.Sqrt(r)
-}
-func qrs(x, y i) (r i) {
-	x = val(x)
-	h := I(x + 8)
-	d := I(x + 12)
-	m := I(8 + I(x+16))
-	t := tp(h)
-	if t != tp(y) {
-		panic("qrs type")
-	}
-	if m != nn(y) {
-		panic("qrs size")
-	}
-	y = qml(h, y, m, t)
-	r = rsv(h, y, m, t, d)
-	return dxr(x, r)
-}
-func qml(x, y, m, t i) i { // Q'*y
-	y = use(y)
-	n := nn(x) / m
-	w := i(C(t))
-	xp := x + 8
-	for i := i(0); i < n; i++ {
-		xp += w * i
-		yp := y + 8 + w*i
-		s := 0.0
-		si := 0.0
-		for j := uint32(0); j < m-i; j++ {
-			s += F(xp) * F(yp)
-			if t == 4 {
-				s += F(xp+8) * F(yp+8)
-				si += F(xp)*F(yp+8) - F(xp+8)*F(yp)
-			}
-			xp += w
-			yp += w
-		}
-		wmi := w * (m - i)
-		yp -= wmi
-		xp -= wmi
-		for j := uint32(0); j < m-i; j++ {
-			sF(yp, F(yp)-F(xp)*s)
-			if t == 4 {
-				sF(yp, F(yp)+F(xp+8)*si)
-				sF(yp+8, F(yp+8)+F(xp)*si+F(xp+8)*s)
-			}
-			xp += w
-			yp += w
-		}
-	}
-	return y
-}
-func rsv(x, y, m, t, d i) i { // solve R*y = b
-	n := nn(x) / m
-	w := i(C(t))
-	xp := x + 8 + w*(m*n-(m+2-n))
-	yi := y + w*n
-	di := d + w*n
-	if t == 4 {
-		yi -= 8
-		di -= 8
-	}
-	/*        m
-	 *   D Q Q Q Q Q    1..6 iteration order for xp
-	 *   4 D Q Q Q Q n
-	 *   5 2 D Q Q Q
-	 *   6 3 1 D Q Q */
-	for i := i(0); i < n; i++ {
-		for j := uint32(0); j < i; j++ {
-			sF(yi, F(yi)-F(xp)*F(yi+w))
-			if t == 4 {
-				sF(yi, F(yi)+F(xp+8)*F(yi+w+8))
-				sF(yi+8, F(yi+8)-F(xp)*F(yi+w+8)-F(xp+8)*F(yi+w))
-			}
-			xp += w * m
-		}
-		if t == 3 {
-			sF(yi, F(yi)/F(di))
-		}
-		if t == 4 {
-			diz(yi, di, yi)
-		}
-		yi -= w
-		di -= w
-		xp -= w * m * i
-	}
-	return take(y, n)
 }
 
 func mark() { // mark bucket type within free blocks

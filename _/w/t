@@ -1,4 +1,5 @@
 randf:{( 'rx)%4.294967295e9};b:,/(A:3 2#randf 6)/x:randf 2;1.e-15>+x-A\b /1 1
+randf:{( 'rx)%4.294967295e9};b:,/(A:5 3#randf 15)/ \x:randf 3;1.e-15>+x- \( \A)\b /1 1
 randf:{( 'rx)%4.294967295e9};b:,/(A:3 2#(randf 6)!randf 6)/x:(randf 2)!randf 2;(x;A\b) /x
 12 /12
 -234 /-234
