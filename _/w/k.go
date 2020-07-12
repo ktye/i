@@ -1732,18 +1732,12 @@ func ovr(x, y i) (r i) { // y/x (over/reduce)
 	if t == 2 {
 		return mod(x, y)
 	}
-	if t == 6 { // mmul +/'x*\y
-		return ech(ecl(y, x, '*'), ovv('+')) //42 43
-	}
 	return ovs(x, y, 0, 0)
 }
 func scn(x, y i) (r i) { // y\x (scan)
 	t := tp(y)
 	if t != 0 && t < 5 {
 		return diw(x, y) // y%x (flipped)
-	}
-	if t > 5 { // A\0  qr\x  qr\X
-		return qr(y, x)
 	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
 }
@@ -2894,6 +2888,7 @@ func sJ(a i, v j)          { MJ[a>>3] = v }
 func sF(a i, v f)          { MF[a>>3] = v }
 func sZ(a i, v complex128) { MF[a>>3] = real(v); MF[1+(a>>3)] = imag(v) }
 
+/*
 func qr(x, y i) (r i) {
 	if tp(x) == 7 {
 		return qrs(x, y)
@@ -3113,6 +3108,7 @@ func norm(xp, n i) (r f) {
 	}
 	return s * math.Sqrt(r)
 }
+*/
 
 func mark() { // mark bucket type within free blocks
 	//dump(0, 200)
