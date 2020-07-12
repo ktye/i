@@ -1,4 +1,10 @@
-wip
+norm:{s*%+/x*x%:s:|/x:+0.+x}
+
+qr:{m:#x;x:&x;n:#x;n qrh/(,/x;!0;m;n)}
+qrh:{Q:x 0;i:#R:x 1;m:x 2;n:x 3
+(Q;R;m;n)}
+
+\
 
 /k9
 /8-local limit
@@ -15,7 +21,7 @@ qrh:{[x]Q:x 0;i:#R:x 1;m:x 2;n:x 3;ii:i+i*m          /householder step Q:nxm
 abs:{[x]x[i]:-x i:&x<0;x}
 nrm:{[x]s*sqrt+/x*x%:s:|/x:abs@x}                   /l2 vector norm
 
-\
+
 
 idx:{[i;k;n],/k+/i*n}
 
