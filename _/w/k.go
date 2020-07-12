@@ -1076,7 +1076,12 @@ func jon(x, y i) (r i) { // y/:x (join)
 func spl(x, y i) (r i) { // y\:x (split)
 	rx(x)
 	yn := nn(y)
-	r = cut(cat(mki(0), fds(x, y)), x)
+	r = fds(x, y)
+	if nn(r) == 0 {
+		dx(r)
+		return enl(x)
+	}
+	r = cut(cat(mki(0), r), x)
 	rn := nn(r) - 1
 	rp := r + 8
 	for i := i(0); i < rn; i++ {
@@ -3140,6 +3145,7 @@ func leak() {
 		p += dp >> 2
 	}
 }
+func O(s s, x i) i { fmt.Printf("%s: %x(%d/%d) %s\n", s, x, tp(x), nn(x), X(x)); return x }
 func X(x i) s {
 	if x == 0 || x == 128 {
 		return ""

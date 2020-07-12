@@ -141,6 +141,7 @@ n:{x<100};n{x*2}\1 /(1;2;4;8;16;32;64;128)
 "x"\:"axbcx" /("a";"bc";"")
 "an"\:"bananas" /("b";"";"as")
 "aaa"\:"aaaaaaa" /("";"";"a")
+"abc"\:"alphabeta" /,"alphabeta"
 "-.-"/:("abc";"def";"ghi") /"abc-.-def-.-ghi"
 1 2 3[2] /3
 (1;2;3) /(1;2;3)
