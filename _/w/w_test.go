@@ -132,7 +132,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 		t.Fatal(err)
 	}
 	var txt bytes.Buffer
-	fmt.Fprintf(&txt, "k.w(%d b) %s [\\\\src \\\\tests \\\\h]\\n ", len(wasm), time.Now().Format("2006.01.02"))
+	fmt.Fprintf(&txt, "k.w(%d b) %s [\\\\tests \\\\h]\\n ", len(wasm), time.Now().Format("2006.01.02"))
 	var b bytes.Buffer
 	s, e := ioutil.ReadFile("k_html")
 	if e != nil {

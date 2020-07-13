@@ -16,7 +16,6 @@
 <script>
 var r = "{{wasm}}"
 var rt = "{{tests}}"
-var rs = "{{src}}"
 var help = "{{help}}"
 var G = {};var gui
 {{gui}}
@@ -25,7 +24,6 @@ function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function ae(x,y,z){x.addEventListener(y,z)};
 var kwasm = sa(atob(r))
 var tests = atob(rt)
-var src = atob(rs)
 var K,nn,tp,mk,rx,dx,mk,val,sc,cs,mkd,asn,kst,enl,lup,cat,lcat,atx,mki,til
 // kons (k console)
 var hit = kons
@@ -64,7 +62,6 @@ function initKons() {
    var s = s.trim()
    if(s.length>0&&s[0]=="'")s=" "+s //spacy verb
    if (s === "\\tests")         {O(tests);                        return}
-   if (s === "\\src")           {O(src);                          return}
    if((s === "\\")||(s==="\\h")){O(atob(help));P();               return}
    if (s === "\\c")             {kons.value=" ";imgSize(0, 0);    return}
    if (s === "\\d")             {dump(0, 200);P();                return}
@@ -121,8 +118,8 @@ function ktry(s) {
   bak = K.C.slice(0, 1<<K.U[32])
   return x
  } catch(e) {
-  console.log(e)
-  indicate(K.I[35], K.I[36])
+  console.log(e.stack)
+  O("!\n ")
   clearInterval(tick)
   K.I[35]=0;K.I[36]=0
   K.C.set(bak)
