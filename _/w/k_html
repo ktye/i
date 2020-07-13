@@ -68,6 +68,7 @@ function initKons() {
    if (s.startsWith("\\e"))     {P();edit(s.substr(2).trim());    return}
    if (s.startsWith("\\w"))     {download(s.substr(2).trim());P();return}
    if (s.startsWith("\\g"))     {mkgui(s.substr(2).trim());P();   return}
+   if (s.startsWith("\\l"))     {P();load(s.slice(2).trim());     return}
    if (s.startsWith("\\L"))     {P();loop(s.slice(2));            return}
    else if (s.startsWith("\\")) {O("?");P();                      return}
    hash(s);E(s);P()
@@ -87,6 +88,8 @@ function loop(s) {var v,t,f;v=s.split(" ");t=parseInt(v[0],10);if(!isNaN(t))v=v.
  tick=setInterval(function(){var x=ktry(function(){rx(f);return atx(f,kg(gui))});if(x!=0){O(sk(kst(x))+"\n");P()}},t)}
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
+
+function load(s){fetch(s+".k").then(r=>{return r.text()}).then(s=>E(s.split("\n\\")[0]))} // e.g. \lm
 
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
