@@ -1,41 +1,52 @@
-norm:{s*%+/x*x%:s:|/x:+0.+x}
+/linear algebra
 
-qr:{m:#x;x:&x;n:#x;n qrh/(,/x;!0;m;n)}
-qrh:{Q:x 0;i:#R:x 1;m:x 2;n:x 3
-(Q;R;m;n)}
+/solve[A;b]          (solve A*x=b overdetermined)
+/qrsolve[q:qr A;b]   (reuse decomposition for multiple RHS)
+
+solve:  {[A;b];qrsolve[qr A;b]}
+qrsolve:{[q;b];qrslv[q;qrmul[q;b]]}
+
+qr: {m:#x;x:&x;n:#x;r:n qrh/(,/x;0.+!0;m;n;!m;(,/(n;m))#!n*m);`Q`D`m`n!(r 0;|r 1;r 2;r 3)} /qr decomposition
+qrh:{Q:x 0;i:#D:x 1;m:x 2;n:x 3;row:x 4;sub:1_x 5;ii:i+i*m
+ s:norm Q row;D,:d:s*1 -1@Q[ii]>0;s:1%%s*s++Q ii;Q[ii]-:d;Q[row]*:s
+ $[#sub;Q[,/sub]-:,/Q[row]*/+/'(Q[row]*/Q[sub]);]
+ (Q;D;m;n;m+1_row;1_'sub)}
+
+
+qrmul:{m:x`m;n:x`n;r:n qrml/(x`Q;y;!x`m;!m;x`m);(x`n)#r 1}                                 /calculate QT*b
+qrml: {Q:x 0;b:x 1;row:x 2;yi:x 3;m:x 4;b[yi]-:Q[row]*+/Q[row]*b[yi];(Q;b;m+1_row;1_yi;m)}
+
+qrslv:{n:x`n;r:n qrsl/(x`Q;y;x`D;n-1;x`m;x`n;!0);r 1}                                      /solve R*x=QT*b with back substitution
+qrsl: {Q:x 0;b:x 1;D:x 2;i:x 3;m:x 4;n:x 5;bi:x 6;col:i+m*bi
+ $[#bi;b[i]-:+/Q[col]*b[bi];]
+ b[i]%:*D
+ (Q;b;1_D;i-1;m;n;i,bi)}
+
+
+norm:{s*%+/x*x%:s:|/x:+0.+x}                                                               /vector norm(l2)
+
+matvec:{[A;b],/+/'A*\b}
+
+test:{[]
+ A: 0.+(1 -2 3;5 3 2;2 3 1;4 -1 1)
+ r: 0.+1 2 3
+ b: matvec[A;r]
+ x: solve[A;b]
+ $[0.000000000000001>e:|/+x-r;(`ok;e);(`fail;e)]}
 
 \
 
-/k9
-/8-local limit
-/matrix assign
-
-qr: {[A]n:#*A;m:#A;A:,/+A;(n;qrh)/:(A;!0;m;n)}       /qr decomposition A:mxn m>n
-qrh:{[x]Q:x 0;i:#R:x 1;m:x 2;n:x 3;ii:i+i*m          /householder step Q:nxm
-  s:nrm@Q(row:ii+!m-i);col:m*(i+1)_!n
-  R,:d:s*1 -1@Q[ii]<0
-  s:1%sqrt s*s+abs Q ii;Q[ii]-:d;Q[row]*:s
-  Q[,/rc]-:,/Q[row]*/+/Q[row]*Q[rc:row+\col]
-  (A;R;m;n)}
-  
-abs:{[x]x[i]:-x i:&x<0;x}
-nrm:{[x]s*sqrt+/x*x%:s:|/x:abs@x}                   /l2 vector norm
-
-
-
-idx:{[i;k;n],/k+/i*n}
-
 /matlab version(does not transpose A)
-function [A,d]=HouseholderQR(A);
+function [A,d]=qrh(A);
  [m,n]=size(A);
  for i=1:n,
  s=norm(A(i:m,i));
  if s==0, error(’rank(A)<n’), end
  if A(i,i)>=0, d(i)=-s; else d(i)=s; end
- fak=sqrt(s*(s+abs(A(i,i))));
+ f=sqrt(s*(s+abs(A(i,i))));
  A(i,i)=A(i,i)-d(i);
- A(i:m,i)=A(i:m,i)/fak;
- if i<n, % transformation of the rest of the matrix G:=G-u*(u’*G)
- A(i:m,i+1:n)=A(i:m,i+1:n)-A(i:m,i)*(A(i:m,i)’*A(i:m,i+1:n));
+ A(i:m,i)=A(i:m,i)/f;
+ if i<n
+  A(i:m,i+1:n)=A(i:m,i+1:n)-A(i:m,i)*(A(i:m,i)’*A(i:m,i+1:n));
  end
 end
