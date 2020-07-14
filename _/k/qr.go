@@ -2,31 +2,35 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"math"
+	"math/cmplx"
+	"strings"
 	"text/tabwriter"
 )
 
 func main() {
-	A := [][]float64{
-		{1, -2, 3},
-		{5, 3, 2},
+	A := [][]complex128{
+		{1, -2i, 3},
+		{5i, 3, 2},
 		{2, 3, 1},
 		{4, -1, 1},
 	}
 	fmt.Println("A", mat(A))
-	d, _ := NewReal(A)
+	d := New(A)
 	fmt.Println("H", mat(d.H))
-	fmt.Println("R", d.Rdiag)
+	fmt.Println("D", vec(d.Rdiag))
 
-	b := []float64{1, 2, 3, 4}
-	c, _ := d.QMul(b)
-	fmt.Println("QTb", c)
-	x, _ := d.RSolve(c)
-	fmt.Println("x", x)
+	b := []complex128{1, 2, 3, 4}
+	/*
+		c := d.QMul(b)
+		fmt.Println("c", vec(c))
+		x := d.RSolve(c)
+		fmt.Println("x", vec(x))
+	*/
+	fmt.Println("x", vec(d.Solve(b)))
 }
-func mat(A [][]float64) string {
+func mat(A [][]complex128) string {
 	var b bytes.Buffer
 	n := 0
 	if len(A) > 0 {
@@ -36,142 +40,132 @@ func mat(A [][]float64) string {
 	w := tabwriter.NewWriter(&b, 2, 8, 2, ' ', 0)
 	for _, v := range A {
 		for _, u := range v {
-			fmt.Fprintf(w, "\t%.4f", u)
+			fmt.Fprintf(w, "\t%s", absang(u))
 		}
 		fmt.Fprintf(w, "\n")
 	}
 	w.Flush()
 	return string(b.Bytes())
 }
-
-type RQ struct {
-	H     [][]float64
-	Rdiag []float64
-	m, n  int
+func vec(A []complex128) string {
+	v := make([]string, len(A))
+	for i, u := range A {
+		v[i] = absang(u)
+	}
+	return "[" + strings.Join(v, " ") + "]"
+}
+func absang(z complex128) string {
+	a := cmplx.Phase(z) / math.Pi * 180.0
+	if a < 0 {
+		a += 360.0
+	}
+	return fmt.Sprintf("%.4fa%.0f", cmplx.Abs(z), a)
 }
 
-func NewReal(A [][]float64) (RQ, error) {
+type QR struct {
+	H     [][]complex128
+	Rdiag []complex128 // Missing diagonal of R.
+	m, n  int          // number of rows and columns
+}
+
+// New calculates the QR Decomposition of a rectangular matrix.
+func New(A [][]complex128) QR {
 	m := len(A)    // Number of rows.
 	n := len(A[0]) // Number of columns.
 	if m < n {
-		return RQ{}, errors.New("qr: matrix is underdetermined")
+		panic("qr: matrix is underdetermined")
 	}
-	H := make([][]float64, n)
-	Rdiag := make([]float64, n)
+
+	H := make([][]complex128, n)
+	Rdiag := make([]complex128, n)
 	for i := 0; i < n; i++ {
-		H[i] = make([]float64, m)
+		H[i] = make([]complex128, m)
 		for k := 0; k < m; k++ {
 			H[i][k] = A[k][i]
 		}
 	}
 	for j := 0; j < n; j++ {
-		fmt.Printf("H(%d) = %s\n", j, mat(H))
-		s := RealNorm(H[j][j:])
-		//fmt.Println("norm", s)
+		s := VectorNorm(H[j][j:])
 		if s == 0 {
-			return RQ{}, errors.New("matrix contains zero-columns")
+			panic("matrix contains zero-columns")
 		}
-		if H[j][j] > 0 {
-			Rdiag[j] = -s
-		} else {
-			Rdiag[j] = s
-		}
-		//fmt.Printf("R[%d] = %v\n", j, Rdiag[j])
-		f := 1.0 / math.Sqrt(s*(s+math.Abs(H[j][j])))
-		//fmt.Println("f", f)
+
+		Rdiag[j] = -complex(s, 0) * cmplx.Rect(1, cmplx.Phase(H[j][j])) // Diagonal element.
+		f := complex(math.Sqrt(s*(s+cmplx.Abs(H[j][j]))), 0)
 		H[j][j] -= Rdiag[j]
-		//fmt.Println("Qii", H[j][j])
+
 		for k := j; k < m; k++ {
-			H[j][k] *= f
+			H[j][k] /= f
 		}
-		//fmt.Println("H", mat(H))
-		//fmt.Println("Qrow", H[j])
 		for i := j + 1; i < n; i++ {
-			var sum float64
+			var sum complex128
 			for k := j; k < m; k++ {
-				//fmt.Println("sum[%d]=%v\n", k, H[j][k]*H[i][k])
-				sum += H[j][k] * H[i][k]
+				sum += cmplx.Conj(H[j][k]) * H[i][k]
 			}
-			//fmt.Printf("sum (j+1)[%d] = %v\n", j+1, sum)
 			for k := j; k < m; k++ {
-				//fmt.Printf("H[%d][%d] -= %v\n", j, k, H[j][k]*sum)
 				H[i][k] -= H[j][k] * sum
 			}
 		}
 	}
-	return RQ{
+	return QR{
 		H:     H,
 		Rdiag: Rdiag,
 		m:     m,
 		n:     n,
-	}, nil
+	}
 }
-func (D RQ) Solve(b []float64) ([]float64, error) {
+func (D QR) Solve(b []complex128) []complex128 {
 	if len(b) != D.m {
-		return nil, errors.New("qr: wrong input dimension for QR.Solve.")
+		panic("qr: wrong input dimension for QR.Solve.")
 	}
-	if QTx, err := D.QMul(b); err != nil {
-		return nil, err
-	} else {
-		return D.RSolve(QTx)
-	}
+	return D.RSolve(D.QMul(b))
 }
-func (D RQ) QMul(x []float64) ([]float64, error) {
+func (D QR) QMul(x []complex128) []complex128 {
 	if len(x) != D.m {
-		return nil, errors.New("qr: input vector lengths mismatch for QMul.")
+		panic("qr: input vector lengths mismatch for QMul.")
 	}
-	y := make([]float64, D.m)
+	y := make([]complex128, D.m)
 	for i := 0; i < D.m; i++ {
 		y[i] = x[i]
 	}
 	for j := 0; j < D.n; j++ {
-		var sum float64
+		var sum complex128
 		for k := j; k < D.m; k++ {
-			sum += D.H[j][k] * y[k]
+			sum += cmplx.Conj(D.H[j][k]) * y[k]
 		}
 		for k := j; k < D.m; k++ {
 			y[k] -= D.H[j][k] * sum
 		}
-		//fmt.Printf("Qmul[%d] = %v\n", j, y)
 	}
-	return y, nil
+	return y
 }
-func (D RQ) RSolve(b []float64) ([]float64, error) {
+func (D QR) RSolve(b []complex128) []complex128 {
+	fmt.Println("solve b=", vec(b))
 	if len(b) != D.m {
-		return nil, errors.New("qr: input vector lengths mismatch for RSolve.")
+		panic("qr: input vector lengths mismatch for RSolve.")
 	}
-	x := make([]float64, D.m)
+	x := make([]complex128, D.m)
 	for i := 0; i < D.m; i++ {
 		x[i] = b[i]
 	}
 	for i := D.n - 1; i >= 0; i-- {
-		s := 0.0
+		var s complex128
+		//fmt.Printf("s(%d) = +/", i)
 		for j := i + 1; j < D.n; j++ {
-			fmt.Println("col ji", i+j*D.m)
+			//fmt.Printf(" (%s*%s)=%s", absang(D.H[j][i]), absang(x[j]), absang(D.H[j][i]*x[j]))
 			s += D.H[j][i] * x[j]
 		}
+		//fmt.Printf("\ns = %s\n", absang(s))
+		//fmt.Printf("x[%d]= %s -s = %s\n", i, absang(x[i]), absang(x[i]-s))
 		x[i] -= s
-		fmt.Println("x", i, x)
+		fmt.Printf("x[%d]=%s / %s = %s\n", i, absang(x[i]), absang(D.Rdiag[i]), absang(x[i]/D.Rdiag[i]))
 		x[i] /= D.Rdiag[i]
-		fmt.Println("X", i, x)
-		//fmt.Printf("Rsolve[%d] = %v (D=%v)\n", i, x, D.Rdiag[i])
 	}
-	return x[0:D.n], nil
+	return x[0:D.n]
 }
-func RealNorm(v []float64) (r float64) {
-	s := 0.0
-	for _, x := range v {
-		if x != 0 {
-			x = math.Abs(x)
-			if s < x {
-				t := s / x
-				r = 1 + r*t*t
-				s = x
-			} else {
-				t := x / s
-				r += t * t
-			}
-		}
+func VectorNorm(x []complex128) (norm float64) {
+	for i := 0; i < len(x); i++ {
+		norm = math.Hypot(norm, cmplx.Abs(x[i]))
 	}
-	return s * math.Sqrt(r)
+	return
 }
