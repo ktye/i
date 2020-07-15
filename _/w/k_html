@@ -74,10 +74,7 @@ function initKons() {
  kons.onfocus = function(e) { kons.style.filter = "brightness(100%)" }
  ctx = cnv.getContext('2d')
 }
-function indicate(line, col) {
- if(line==0)O("error\n")
- else O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
-}
+
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
 
