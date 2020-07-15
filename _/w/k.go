@@ -848,7 +848,7 @@ func cat(x, y i) (r i) {
 	if yt == 6 {
 		return ucat(lx(x), y)
 	}
-	panic("nyi cat")
+	return ucat(lx(x), lx(y))
 }
 func ucat(x, y i) (r i) {
 	xt, _, xn, yn, xp, yp := v2(x, y)

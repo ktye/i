@@ -97,6 +97,7 @@ _1.23 -3.2 /1 -3
 "a"+0x000102 /"abc"
 "bcd"-0x01 /"abc"
 "abc","d" /"abcd"
+"abc",1 2 3 /("a";"b";"c";1;2;3)
 `abc /`abc
 `"abc" /`abc
 `a``b /`a``b
