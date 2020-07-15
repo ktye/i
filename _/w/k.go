@@ -158,16 +158,17 @@ func kinit() {
 	ini(16)
 }
 func ini(x i) i {
+	sin, cos, exp, log := math.Sin, math.Cos, math.Exp, math.Log
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
-		atx, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
+		atx, nil, nil, nil, nil, nil, nmf, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
-		nil, nil, nil, nil, nil, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
+		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, lgf, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(12, 0x70881342)        // rng state
@@ -1453,10 +1454,12 @@ func cst(x, y i) (r i) { // x$y
 		}
 		return mk(x, 0)
 	}
-	if yt == 2 && I(y+8) == 0 { // zero value
-		dx(y)
-		return fst(mk(x, 0))
-	}
+	/*
+		if yt == 2 && I(y+8) == 0 { // zero value
+			dx(y)
+			return fst(mk(x, 0))
+		}
+	*/
 	if yt > x || yt > 4 { // flr?
 		trap()
 	}
@@ -1502,6 +1505,19 @@ func mia(x, y, z i) (r i) { // minmax
 }
 func min(x, y i) (r i) { return mia(x, y, 38) }
 func max(x, y i) (r i) { return mia(x, y, 124) }
+func nmf(x, y i) (r i) { // 'F (sin cos exp log)
+	dx(x)
+	x = I(x + 8)
+	y = use(cst(mki(3), y))
+	n := nn(y)
+	yp := y + 8
+	g := MT[x].(func(float64) float64)
+	for i := i(0); i < n; i++ {
+		sF(yp, g(F(yp)))
+		yp += 8
+	}
+	return y
+}
 func nm(x, f, h i) (r i) { // numeric monad f:scalar index (nec..), h:original func (e.g. -: neg)
 	if tp(x) > 5 {
 		return ech(x, h)
@@ -1628,6 +1644,7 @@ func sqc(x, r i) { panic("%c") } // %c ?
 func sqi(x, r i) { panic("%i") } // %i ?
 func sqf(x, r i) { sF(r, math.Sqrt(F(x))) }
 func sqz(x, r i) { sZ(r, cmplx.Conj(Z(x))) } // %z complex conjugate
+/*
 func lgf(x i) (r i) { // 'l x (log)
 	xt, xn, xp := v1(x)
 	if xt != 3 {
@@ -1641,6 +1658,7 @@ func lgf(x i) (r i) { // 'l x (log)
 	}
 	return x
 }
+*/
 func zri(x i, o i) (r i) {
 	t, n, xp := v1(x)
 	if t != 4 {

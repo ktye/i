@@ -78,7 +78,8 @@ function initKons() {
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
 
-function load(s){fetch(s+".k").then(r=>{return r.text()}).then(s=>E(s.split("\n\\")[0]))} // e.g. \lm
+function load(s){fetch(s+".k").then(r=>{return r.text()}).then(s=>E(strip(s)))} // e.g. \lm
+function strip(s){return s.split("\n\\")[0]}
 
 function us(s) { return new TextEncoder("utf-8").encode(s) } // uint8array from string
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
@@ -175,7 +176,7 @@ function addfile(x){
  r.onload = function(){
   var u = new Uint8Array(r.result)
        if(x.name.endsWith(".ws")){setWorkspace(u);O("←"+x.name+"\n");P()}
-  else if(x.name.endsWith(".k" )){O(". "+x.name+"\n");E(su(u));P()}
+  else if(x.name.endsWith(".k" )){O(". "+x.name+"\n");E(strip(su(u)));P()}
   else{putfile(x.name, u); O("fs[`"+x.name+"] /"+String(u.length)+"\n");P()}
  }
  r.readAsArrayBuffer(x)
@@ -220,7 +221,7 @@ function printc(x,y){O(su(K.C.slice(x,x+y))+"\n")}
 (async () => {
  initKons()
  const module = await WebAssembly.compile(kwasm.buffer);
- K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} });
+ K = await WebAssembly.instantiate(module, { "ext": {"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} });
  msl()
  K.exports.ini(16)
  var e=K.exports;nn=e.nn;tp=e.tp;rx=e.rx;dx=e.dx;mk=e.mk;val=e.val;sc=e.sc;cs=e.cs;mkd=e.mkd;asn=e.asn;kst=e.kst;enl=e.enl;lup=e.lup;cat=e.cat;lcat=e.lcat;atx=e.atx;mki=e.mki;til=e.til

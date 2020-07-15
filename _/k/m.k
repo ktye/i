@@ -1,3 +1,5 @@
+sin:129 'F;cos:130 'F;exp:131 'F;log:132 'F
+
 /linear algebra
 
 /solve[A;b]          (solve A*x=b overdetermined, real or complex)
