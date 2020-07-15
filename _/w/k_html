@@ -65,8 +65,7 @@ function initKons() {
    if (s.startsWith("\\e"))     {P();edit(s.substr(2).trim());    return}
    if (s.startsWith("\\w"))     {download(s.substr(2).trim());P();return}
    if (s.startsWith("\\l"))     {P();load(s.slice(2).trim());     return}
-   else if (s.startsWith("\\")) {O("?");P();                      return}
-   hash(s);E(s);P()
+   hash(s);E(" "+s);P()
   }
  }
  kons.onmousedown = function(e) { hit=kons; if(e.button==2)pd(e); }

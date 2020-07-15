@@ -98,7 +98,7 @@ xxx.I:I{!;x}
 drw.I:II{v2;w:I xp;(yt~7)?draw(w;I xp+4;y);(yt~2)?draw(w;yn%w;y);dx x;dx y;0}
 sadv.I:I{$[x~39;r:1;x~47;r:1;x~92;r:1;r:0];r}
 
-out.I:I{rx x;r:kst x;(r+8)printc nn r;dx r;x}
+out.I:I{rx x;r:x;(~1~tp r)?r:kst x;(r+8)printc nn r;dx r;x}
 kst:I:I{t:tp x;(~nn x)?(t>1)?(t<6)?(dx x;r:((mkc 48)cc 35)cc 48;(t~3)?r:r cc 46;(t~4)?r:r cc 97;(t~5)?(r+10)::C?96; :r);(7~t)?(r:I x+8;t:I x+12;rld x;r:(kst r)cc 33;(0~nn t)?(dx t;t:mki 0); :r ucat kst t);$[6~t;((1~nn x)? :(mkc 44)ucat kst fst x;x:x ech 235);x:str x];t?[r:x;r:((mkc 34)ucat x)cc 34;;;;r:(mkc 96)ucat x jon mkc 96;r:((mkc 40)ucat x jon mkc 59)cc 41;r:x jon mkc 32];r}
 str.I:I{v1;(xt~1)? :x;(~xt)? :x cg xn;((xt>5)+~xn~1)? :x ech 164;xt?[;;r:ci I xp;r:cf F xp;r:(F xp)cz F xp+8;(r:I xp;rx r);!];dxr}
 cc.I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}

@@ -204,7 +204,7 @@ I main(int args, C **argv){
 		else if (!strcmp(buf, "\\w"))     wswrite(1<<lb);
 		else {
 			if (!setjmp(jb)) {
-				O(val(chrs(buf)));
+				O(val(ucat(mkc(32),chrs(buf))));
 				if(MI[32]!=lb) { lb=MI[32];b=realloc(b,1<<lb); }
 				memcpy(b, MC, 1<<lb);
 	        	} else  memcpy(MC, b, 1<<lb);

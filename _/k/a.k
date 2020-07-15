@@ -9,5 +9,11 @@ print:kst
 
 hex:{,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}  /hex"alpha"
 
+tab:    {t:@x; \(_10)/:$[t~6;tochar'x;t~7;tabdict x; 'kx];}         /matrix output
+rpad:   {y#x,(y-#x)#" "}                        /rpad["alpha";10]
+tabdict:{k:$!x;pad:rpad[;|/#'k]; ((pad'k),'"|"),' 'k'.x}
+tochar: {$[1~@x;x; 'kx]}
+
+
 
 std:`kst`hex!(kst;hex);

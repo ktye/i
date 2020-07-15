@@ -1229,7 +1229,10 @@ func drw(x, y i) (r i) { // x 'd y
 }
 func out(x i) (r i) {
 	rx(x)
-	r = kst(x)
+	r = x
+	if tp(x) != 1 {
+		r = kst(x)
+	}
 	n := nn(r)
 	fmt.Printf("%s\n", MC[r+8:r+8+n])
 	dx(r)
