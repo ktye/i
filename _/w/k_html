@@ -161,9 +161,7 @@ function draw(w, h, x) {
  }
 }
 function edit(name) { var u;
- if(name.startsWith("`")){
-  var x = ktry(name.slice(1)); if(x==0){P();return}; u=us(sk(kst(x)))
- } else { u = getfile(name); if(u===false) u=us("") }
+ var x = ktry(name); if(x==0){P();return}; u=us(sk(kst(x)))
  edname = name; ed = true; konstore = kons.value;
  kons.value = (u.length>0) ? su(u) : ""
  kons.className = "edit"
@@ -171,8 +169,7 @@ function edit(name) { var u;
 }
 function qed() { // quit edit
  var t = kons.value; kons.value = konstore; kons.scrollTo(0, kons.scrollHeight); ed = false
- if(edname.startsWith("`")){edname=edname.slice(1);ktry(edname+":"+t)}
- else                       putfile(edname, us(t))
+ edname=edname;ktry(edname+":"+t)
 }
 ae(kons,"contextmenu", function(e) { // button-3 search
  var l = kons.selectionEnd-kons.selectionStart; if(e.button==2&l>0) {
