@@ -17,8 +17,6 @@
 var r = "{{wasm}}"
 var rt = "{{tests}}"
 var help = "{{help}}"
-var G = {};var gui
-{{gui}}
 function sa(s){var r=new Uint8Array(new ArrayBuffer(s.length));for(var i=0;i<s.length;i++)r[i]=s.charCodeAt(i);return r}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function ae(x,y,z){x.addEventListener(y,z)};
@@ -36,8 +34,7 @@ function initKons() {
  kons.value = "{{cons}}"
  var hold = false
  kons.onkeydown = function(e) {
-  if(e.which === 27) { // quit edit / toggle hold / close image / stop loop
-   clearInterval(tick)
+  if(e.which === 27) { // quit edit / toggle hold / close image
    pd(e)
    if (ed) { qed(); hold=true }
    hold = !hold
@@ -67,9 +64,7 @@ function initKons() {
    if (s === "\\d")             {dump(0, 200);P();                return}
    if (s.startsWith("\\e"))     {P();edit(s.substr(2).trim());    return}
    if (s.startsWith("\\w"))     {download(s.substr(2).trim());P();return}
-   if (s.startsWith("\\g"))     {mkgui(s.substr(2).trim());P();   return}
    if (s.startsWith("\\l"))     {P();load(s.slice(2).trim());     return}
-   if (s.startsWith("\\L"))     {P();loop(s.slice(2));            return}
    else if (s.startsWith("\\")) {O("?");P();                      return}
    hash(s);E(s);P()
   }
@@ -83,9 +78,6 @@ function indicate(line, col) {
  if(line==0)O("error\n")
  else O(src.split("\n")[line-1] + "\n" + " ".repeat(col) + "^\n")
 }
-function loop(s) {var v,t,f;v=s.split(" ");t=parseInt(v[0],10);if(!isNaN(t))v=v.slice(1);else t=100;s=v.join(" ").trim(); 
- var f=ktry(s);if((s==0)||tp(f)!=0){O("L is no func");P();return};clearInterval(tick);
- tick=setInterval(function(){var x=ktry(function(){rx(f);return atx(f,kg(gui))});if(x!=0){O(sk(kst(x))+"\n");P()}},t)}
 function O(s) { kons.value += s; kons.scrollTo(0, kons.scrollHeight) }
 function P()  { kons.value += " " }
 
@@ -123,7 +115,6 @@ function ktry(s) {
  } catch(e) {
   console.log(e.stack)
   O("!\n ")
-  clearInterval(tick)
   K.I[35]=0;K.I[36]=0
   K.C.set(bak)
  }
@@ -179,7 +170,7 @@ ae(kons,"contextmenu", function(e) { // button-3 search
 })
 function hash(s){window.location.hash=encodeURIComponent(s.trim())}
 
-// drop file (store in fs[`FILE])
+// drop file (store in fs[`FILE] or execute *.k)
 window.ondragover=function(e){pd(e)}
 window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
 function addfile(x){
@@ -224,47 +215,6 @@ function download(name) {
   dl.click()
  }
 }
-
-//gui \gVAR \g(remove)
-function mkgui(s){var x,g,k,v,ki,vi,i,n;if(gui){gui.destroy();gui=undefined};if(s.length==0)return;x=ktry(s);if(x==0)return;
- gui=new dat.GUI();var e=gui.domElement.style;e.position="absolute";e.right="50%"
- if(tp(x)==7){rx(x);rx(x);k=til(x);v=val(x);n=nn(k);for(i=0;i<n;i++){rx(k);rx(v);ki=atx(k,mki(i));vi=atx(v,mki(i));gadd(gui,sk(cs(ki)),vi);dx(vi)};dx(k);dx(v)}
- else gadd(gui,s,x); dx(x)}
-function gadd(g,key,x){var a,n,v,vi,r,i;n=nn(x);if(n==0)return;o={};switch(tp(x)){
- case 0:rx(x);o[key]=callback(x);g.add(o,key);return    /*x leaks*/          //button/function
- case 1:v=su(K.C.slice(8+x,8+x+n));o[key]=v;g.add(o,key);return              //string
- case 2:a=x>>>2;v=K.I.slice(2+a,2+a+n);
-        if (n==1){o[key]=v[0];g.add(o,key).step(1)}                          //int
-   else if((n==2)&&v[1]==1){r=false;if(v[0]!=0)r=true;o[key]=r;g.add(o,key)} //checkbox
-   else if((n==2)&&v[1]==0){                                                 //color
-           r=v[0];o[key]=[r&255,(r>>>8)&255,(r>>>16)&255];g.addColor(o,key)} 
-   else if (n==2){o[key]=v[0];g.add(o,key,0,v[1]).step(1)}                   //int[0,max]
-   else if (n> 2){o[key]=v[0];g.add(o,key,v[1],v[2]).step(1)};return         //int[min,max]
- case 3:a=x>>>3;v=K.F.slice(1+a,1+a+n);o[key]=v[0];
-        if (n==1) g.add(o,key)                                //float
-   else if (n==2) g.add(o,key,0,v[1])                         //float[0,max]
-   else if (n==3) g.add(o,key,v[1],v[2])                      //float[min,max]
-   else if (n==4) g.add(o,key,v[1],v[2]).step(v[3]);return    //float[min,max] stepsize
- case 5:v=[];for(i=0;i<n;i++){rx(x);r=atx(x,mki(i));v.push(sk(cs(r)));dx(r)}
-      o[key]=v[0];g.add(o,key,v);return                       // symbols->options
- case 7:var f=g.addFolder(key);rx(x);rx(x);a=til(x);v=val(x); // dict->folder
-      n=nn(a);for(i=0;i<n;i++){rx(a);rx(v); vi=atx(v,mki(i));
-      gadd(f,sk(cs(atx(a,mki(i)))),vi);dx(vi);}; dx(a);dx(v);
-}}
-function callback(x){return function(){rx(x);var r=atx(x,kg(gui));if(r!=0)O(sk(kst(r))+"\n")}}
-function kg(g){ //k dict from gui
- var i,c,ci,r,k,v;k=mk(5,0);v=mk(6,0);if(g==undefined)return mkd(k,v)
- c=g.__controllers;for(i=0;i<c.length;i++){ci=c[i];r=ci.getValue()
-      if (typeof(r)==="function") continue
- else if (typeof(r)==="boolean")             r=mki(r+0)                    //bool->int
- else if((typeof(r)==="string")&&ci.__input) r=cstr(r)                     //string->chars
- else if (typeof(r)==="string")              r=sc(cstr(r))                 //options->symbol
- else if (ci.__step===1)                     r=mki(r)                      //int
- else if (ci.__color){var x=ci.__color;      r=mki((x.b<<16)+(x.g<<8)+x.r)}//color
- else { var f = mk(3,1); K.F[1+(f>>>3)] = r; r=f                          }//float
- k=cat(k,sc(cstr(ci.property)));v=lcat(v,r)}
- c=g.__folders;for(i in c){k=cat(k,sc(cstr(i)));v=lcat(v,kg(c[i]))}
- return mkd(k,v)}
 
 function msl(){var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
 function grow(x){var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
