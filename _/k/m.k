@@ -1,4 +1,4 @@
-sin:129 'F;cos:130 'F;exp:131 'F;log:132 'F
+sin:129 'F;cos:130 'F;exp:131 'F;log:132 'F;log10:{0.4342944819032518* 'Fx};pow10:{131 'F2.302585092994046*x}
 
 /linear algebra
 
