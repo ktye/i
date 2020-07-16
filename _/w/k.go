@@ -2461,7 +2461,7 @@ func isv(x i) (r bool) { // is verb or (adverb;_)
 }
 func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 	xt, xn, xp := v1(x)
-	if xt == 6 {
+	if xt == 6 && xn > 1 {
 		for i := i(0); i < xn; i++ {
 			a = lac(I(xp), a)
 			xp += 4
@@ -2507,7 +2507,11 @@ func lam(p, s, z, a i) (r i) {
 	if a == 0 {
 		r = I(xyz)
 		rx(r)
-		a = take(r, lac(z, 0))
+		b := z
+		if nn(b) == 1 {
+			b = I(b + 8)
+		}
+		a = take(r, lac(b, 0))
 	}
 	v := nn(a) // arity (<256)
 	a = loc(z, a)
