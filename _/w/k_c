@@ -130,13 +130,10 @@ I read0(C *name, I strip) {
 		r = ucat(r, s);
 	}
 	fclose(f);
-	if(strip)r=fst(spl(r,flr(ucat(mki(10), mki(92))))); // ^\
+	if(strip)r=fst(spl(r,flr(ucat(mki(10), mki(92))))); // ^backslash
 	return r;
 }
-V fstore(C *var, C *file){
-	if(!var[0]) var=file;
-	dx(asn(sc(chrs(var)), 0, read0(file,0)));
-}
+V fstore(C *var, C *file){if(!var[0])var=file;dx(asn(sc(chrs(var)),0,read0(file,0)));}
 V wsread(C *name){ 
 	I n;
 	FILE *f = fopen(name, "rb");
