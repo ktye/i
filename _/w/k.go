@@ -1323,8 +1323,12 @@ func cg(x i, xn i) (r i) {
 	}
 	if x < 127 {
 		r = mkc(x)
+		// {[()]} should be replaced with adverbs
 	} else if x < 256 {
 		r = cc(mkc(x-128), ':') //58
+	} else if xn == 2 {
+		rl(x)
+		r = cat(str(I(x+12)), str(I(x+8)))
 	} else if xn == 3 {
 		rl(x)
 		dx(I(x + 16))
@@ -1332,12 +1336,11 @@ func cg(x i, xn i) (r i) {
 		sC(r+8, '[')       //91
 		sC(r+7+nn(r), ']') //93
 		r = ucat(str(I(x+8)), r)
-		//dx(x)
 	} else if xn == 4 {
 		r = I(x + 8)
 		rx(r)
 	} else {
-		panic("nyi str f")
+		panic("nyi cg")
 	}
 	return dxr(x, r)
 }

@@ -103,7 +103,7 @@ kst:I:I{t:tp x;(~nn x)?(t>1)?(t<6)?(dx x;r:((mkc 48)cc 35)cc 48;(t~3)?r:r cc 46;
 str.I:I{v1;(xt~1)? :x;(~xt)? :x cg xn;((xt>5)+~xn~1)? :x ech 164;xt?[;;r:ci I xp;r:cf F xp;r:(F xp)cz F xp+8;(r:I xp;rx r);!];dxr}
 cc.I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}
 ng.I:II{y?x:(mkc 45)ucat x;x}
-cg.I:II{((~x)+x~128)? :1 mk 0;(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(y~3)?(rl x;dx I x+16;r:kst I x+12;(r+8)::C?91;(r+7+nn r)::C?93;r:(str I x+8)ucat r);(y~4)?(r:I x+8;rx r);dxr}
+cg.I:II{((~x)+x~128)? :1 mk 0;(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(y~2)?(rl x;r:(str I x+12)cat str I x+8);(y~3)?(rl x;dx I x+16;r:kst I x+12;(r+8)::C?91;(r+7+nn r)::C?93;r:(str I x+8)ucat r);(y~4)?(r:I x+8;rx r);dxr}
 ci.I:I{(~x)? :mkc 48;m:0;(x<'0)?(x:0-x;m:1);r:1 mk 0;x?/(c:x\10;r:r cc 48+c;x%:10);(~nn r)?r:r cc 48;(rev r)ng m}
 cf.I:F{(~x~x)? :(mkc 48)cc 110;(x~0.0)? :((mkc 48)cc 46)cc 48;m:0;(x<0.0)?(m:1;x:-x);(x>9218868437227405311f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.0)?/(e+:3;x%:1000.0);d:7;(x<1.0)?(d+:1;(x<0.1)?(d+:1;(x<0.01)?(d+:1;(x<0.001)?(d:7;(x<1.0)?/(e-:3;x*:1000.0)))));n:I?'x;r:ci n;x-:F?n;d-:nn r;(d<'1)?d:1;r:r cc 46;t:0;d/(x*:10.0;n:I?x;r:r cc 48+n;x-:F?n;t:(1+t)*~n+~i);r:r drop(-t);e?r:(r cc 101)ucat ci e;r ng m}
 cz.I:FF{a:x hypot y;p:I?0.5+x ang y;((cf a)cc 97)ucat ci p}
