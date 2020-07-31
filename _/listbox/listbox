@@ -18,19 +18,14 @@
 <script>
 var edit=CodeMirror.fromTextArea(area,{})
 var ediv=edit.getWrapperElement()
-var hash=decodeURIComponent(window.location.hash.substr(1));if(hash.length==0)hash="src \\";tags.value=hash;
 function display(x){[list,canv,ediv].forEach(i=>i.style.display="none");x.style.display="block";if(x==ediv)edit.refresh()}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
-function exec(s){if(s.length==0)return;
- if(s=="draw"){display(draw)}
- if(s=="list"){display(list)}
- if(s=="edit"){display(ediv)}
-}
-var hist=[hash];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
+
+var hist=[""];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
 tags.onkeydown = function(e){var k=e.which;
  if(k==13){var s=tags.value.substring(tags.selectionStart,tags.selectionEnd);
   if(s.length==0){s=tags.value;addhist(s);tags.value=""};
-  if(s.length==0)return start();window.location.hash=encodeURIComponent(s)
+  if(s.length==0)return start()
   EO(" "+s+"\n"+execute(s))
  }
  if(k==38){gethist(true)}if(k==40){gethist(false)} }
@@ -41,6 +36,9 @@ function start(){
  var t=1<<K.I[32];var f=0;var s=8;var u;for(var i=4;i<32;i++){s=2*s;for(var u=K.I[i];u!=0;u=K.I[u>>>2])f+=s}
  EO(ver+" "+String(t-f)+"/"+String(t)) // used/total
 }
+function load(s){fetch(s).then(r=>{return r.text()}).then(s=>EO(execute(strip(s))))}
+function strip(s){return s.split("\n\\")[0]}
+var prog=decodeURIComponent(window.location.hash.substr(1))
 
 // k.wasm module
 var ver = "k.w "
@@ -51,21 +49,43 @@ var draw = function(w,h,p) { console.log("draw: nyi") }
 var grow = function(x) {var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
 var printc = function(x,y){O(su(K.C.slice(x,x+y))+"\n")}
 var msl = function(){var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
-var nn, dx, mk, val, kst, bak
-WebAssembly.instantiateStreaming(fetch('k.wasm'), { "ext": {"sin":Math.sin,"cos":Math.cos,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
+var nn, tp, dx, mk, sc, val, kst, lup, atx, lcat, bak
+WebAssembly.instantiateStreaming(fetch('k.wasm'), { "ext": {"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
  K=r.instance;msl();K.exports.ini(16);bak=K.C.slice(0)
- nn=K.exports.nn;dx=K.exports.dx;mk=K.exports.mk;val=K.exports.val;kst=K.exports.kst
+ nn=K.exports.nn;tp=K.exports.tp;dx=K.exports.dx;mk=K.exports.mk;sc=K.exports.sc;val=K.exports.val;kst=K.exports.kst;lup=K.exports.lup;atx=K.exports.atx;lcat=K.exports.lcat
+ if(prog.length>0)load(prog)
 });
 
-function execute(s) {t=s.trim();if(t.length==0)return;if(t==="\\")return hlp;var x=ktry(s);return x?sk(kst(x)):"'"}
+function execute(s) {t=s.trim();if(t.length==0)return;if(t==="\\")return hlp;var x=ktry(s);return x<0?"!":sk(kst(x))}
 function us(s) { return new TextEncoder("utf-8").encode(s) }
 function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
 function sk(x) { var n=nn(x); dx(x); return su(K.C.slice(8+x, 8+x+n))}
-function cstr(s) { var n=s.length;var x=mk(1, n);for(var i=0;i<n;i++)K.C[8+x+i]=s.charCodeAt(i);return x}
+function lk(s) { return lup(sc(cstr(s)),0) }
+function cstr(s) { var u=us(s);var x=mk(1,u.length);K.C.set(u,8+x);return x }
 function ktry(s) {
- try     { var x = val(cstr(s)); bak = K.C.slice(0, 1<<K.U[32]);return x}
- catch(e){console.log(e);K.C.set(bak);return 0}
+ try     {var x = val(cstr(s)); bak = K.C.slice(0, 1<<K.U[32]);return x}
+ catch(e){console.log(e);K.C.set(bak);return -1}
 }
+function trycall(f,x) {try{var x=atx(f,x); bak = K.C.slice(0, 1<<K.U[32]);return x}catch(e){K.C.set(bak);return 0}}
+
+// Exec tag(word) on double click:
+// - lookup global var, if:
+//  - value: disp value
+//  - func: call f[path] (nilad/monad)
+var path=[""]
+function exec(s){if(s.length==0)return;var x=lk(s);if(!x){EO("!"+s);return};disp(call(x));path=[s];stag()}
+function stag(){} // todo: k call tags[addr]
+function call(x){ if(tp(x))return x;return trycall(x,kpath());}
+function kpath(){var x=mk(6,0);for(var i=0;i<path.length;i++)x=lcat(x,kj(path[i]));return x}
+function disp(x){EO(sk(kst(x)))} // todo: array/list/dict/table/chars
+// if(s=="draw"){display(draw)}
+// if(s=="list"){display(list)}
+// if(s=="edit"){display(ediv)}
+
+function kj(x){if(typeof x==="string")return sc(cstr(x));
+ if(typeof x==="number"){var r=mk(2,1);K.I[2+(r>>>2)]=x;return r};
+ if(typeof x==="object"){var r=mk(2,x.length);for(var i=0;i<x.length;i++)K.I[2+i+(r>>>2)]=kj(x[i]);return r}
+ return 0;}
 
 function clrList() {var n=list.options.length;for(var i=n-1;i>=0;i--)list.options[i]=null;}
 function setList(x){clrList();for(var i=0;i<x.length;i++){var o=document.createElement("option");o.text=x[i];list.add(o)}}
