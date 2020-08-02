@@ -348,6 +348,9 @@ func ary(x i) (r i) { // arity
 	if n == 2 {
 		return 1 // derived
 	}
+	if n == 3 {
+		return nn(I(x + 16)) // proj
+	}
 	return I(x + 20) // lambda
 }
 func use(x i) (r i) {
