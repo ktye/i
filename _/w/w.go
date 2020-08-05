@@ -660,9 +660,9 @@ func (p *parser) locals(e expr, lv int) expr {
 		case loc:
 			l.n = x.i
 		default:
-			l.n = p.nloc(s('i'+lv)+"n", I) // create limit in jn ..
+			l.n = p.nloc(s(byte('i'+lv))+"n", I) // create limit in jn ..
 		}
-		l.c = p.nloc(s('i'+lv), I) // set/create loop counter
+		l.c = p.nloc(s(byte('i'+lv)), I) // set/create loop counter
 		l.argv[1] = p.locals(l.argv[1], lv+1)
 		return l
 	case v2:
