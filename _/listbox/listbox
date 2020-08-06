@@ -2,10 +2,10 @@
 <link rel='icon' type'image/png' href="k32.png">
 <style>
  html,body{height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-flow:column;}
- #tags{flex: 0 1 auto;background:#ffffea;font-family:monospace;border:none;border-bottom:1px solid black;}
- #list{flex: 1 1 auto;background:#ffffea;font-family:monospace;border:none;}
- #canv{flex: 1 1 auto;background:#777777;display:none;}
- #edit{flex: 1 1 auto;background:#ffffea;display:none;margin:0;border:1px solid blue;}
+ #tags{flex: 0 1 auto;background:#ffffea;font-family:monospace;font-size:100%;border:none;border-bottom:1px solid black;}
+ #list{flex: 1 1 auto;background:#ffffea;font-family:monospace;font-size:100%;border:none;}
+ #canv{flex: 1 1 auto;background:#777777;font-family:monospace;font-size:100%;display:none;}
+ #edit{flex: 1 1 auto;background:#ffffea;font-family:monospace;font-size:100%;display:none;margin:0;border:1px solid blue;}
 </style>
 <input    id="tags"/>
 <select   id="list" multiple></select>
@@ -16,7 +16,6 @@
 function display(x){[list,canv,edit].forEach(i=>i.style.display="none");x.style.display="block";}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 
-var path=[""]
 var hist=[""];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
 tags.onkeydown = function(e){var k=e.which;
  if(k==13){var s=tags.value.substring(tags.selectionStart,tags.selectionEnd);
@@ -28,9 +27,10 @@ tags.onkeydown = function(e){var k=e.which;
 tags.ondblclick = function(e){exec(tags.value.substring(tags.selectionStart,tags.selectionEnd).trim())}
 canv.tabIndex=100;canv.onkeydown=function(e){if(e.which==27)display(list)}
 
-document.body.onkeydown = function(e){if(e.which==27){back()}}
-list.onkeydown = function(e){if(e.which==13){pd(e);select()}}
-list.ondblclick= function(e){pd(e);select()}
+document.body.onkeydown = function(e){if(e.which==27){drop()}}
+list.onkeydown = function(e){if(e.which==13){pd(e);push()}}
+list.ondblclick= function(e){pd(e);push()}
+list.onchange  = slct
 
 function start(){
  var t=1<<K.I[32];var f=0;var s=8;var u;for(var i=4;i<32;i++){s=2*s;for(var u=K.I[i];u!=0;u=K.I[u>>>2])f+=s}
@@ -67,9 +67,10 @@ function ktry(s) {
 
 
 function repl(x,t){t=x.trim();if(t.length==0)return;if(t==="\\")return hlp;x=ktry(x);return (x<0)?"!":sk(tp(x)==1?x:kst(x))} // press enter on the tag bar
-function exec  (x){disp(ktry("path:,`"+x+";exec[]"))}                                                                        // double-click a word in the tag bar
-function select(x){disp(ktry("mark("+Array.from(list.selectedOptions).map(v=>v.index).join(" ")+")"))}                       // select entries from the listbox and press enter, or double-click a single entry
-function back  (x){disp(ktry("back[]"))}                                                                                     // go backwards(upwards) one level on ESC key
+function exec(x  ){disp(ktry("exec`"+x))}        /*todo: replace with exec[sym;sel]  remove slct */                          // double-click a word in the tag bar
+function slct(   ){ktry("slct("+Array.from(list.selectedOptions).map(v=>v.index).join(" ")+")")}                             // list selection changed
+function push(x  ){disp(ktry("push[]"))}                                                                                     // double click on list entry or press enter(multiple selections)
+function drop(x  ){disp(ktry("drop[]"))}                                                                                     // go backwards(upwards) one level on ESC key
 function disp(x,t){if(x<=0)return EO((x<0)?"!":"");t=tp(x);if(t==1)EO(sk(x));if(t==6)LO(x)}                                  // display result in a listbox or the editor
 
 function jk(x,r,p){if(tp(x)!=6)return (tp(x)==1)?sk(x):"!!";r=[];p=(8+x)>>>2;for(var i=0;i<nn(x);i++)r.push(sk(Rx(K.I[p+i])));dx(x);return r} // jk expects "abc" or ("abc";"def")
