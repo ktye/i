@@ -1,4 +1,4 @@
-<head><meta charset="utf-8"><title>k.w</title></head>
+<head><meta charset="utf-8"><title>listbox</title></head>
 <link rel='icon' type'image/png' href="k32.png">
 <style>
  html,body{height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-flow:column;}
@@ -28,6 +28,7 @@ tags.onkeydown = function(e){var k=e.which;
 tags.ondblclick = function(e){exec(tags.value.substring(tags.selectionStart,tags.selectionEnd).trim())}
 canv.tabIndex=100;canv.onkeydown=function(e){if(e.which==27)display(list)}
 
+document.body.onkeydown = function(e){if(e.which==27){back()}}
 list.onkeydown = function(e){if(e.which==13){pd(e);select()}}
 list.ondblclick= function(e){pd(e);select()}
 
@@ -35,7 +36,7 @@ function start(){
  var t=1<<K.I[32];var f=0;var s=8;var u;for(var i=4;i<32;i++){s=2*s;for(var u=K.I[i];u!=0;u=K.I[u>>>2])f+=s}
  EO(ver+" "+String(t-f)+"/"+String(t)) // used/total
 }
-function load(s){fetch(s).then(r=>{return r.text()}).then(s=>{EO(repl(stripDoc(s)));tag()})}
+function load(s){document.title=s;fetch(s).then(r=>{return r.text()}).then(s=>{EO(repl(stripDoc(s)));tag()})}
 function stripDoc(s){return s.split("\n\\")[0]}
 var prog=decodeURIComponent(window.location.hash.substr(1))
 
@@ -68,10 +69,12 @@ function ktry(s) {
 function repl(x,t){t=x.trim();if(t.length==0)return;if(t==="\\")return hlp;x=ktry(x);return (x<0)?"!":sk(tp(x)==1?x:kst(x))} // press enter on the tag bar
 function exec  (x){disp(ktry("path:,`"+x+";exec[]"))}                                                                        // double-click a word in the tag bar
 function select(x){disp(ktry("mark("+Array.from(list.selectedOptions).map(v=>v.index).join(" ")+")"))}                       // select entries from the listbox and press enter, or double-click a single entry
+function back  (x){disp(ktry("back[]"))}                                                                                     // go backwards(upwards) one level on ESC key
 function disp(x,t){if(x<=0)return EO((x<0)?"!":"");t=tp(x);if(t==1)EO(sk(x));if(t==6)LO(x)}                                  // display result in a listbox or the editor
 
 function jk(x,r,p){if(tp(x)!=6)return (tp(x)==1)?sk(x):"!!";r=[];p=(8+x)>>>2;for(var i=0;i<nn(x);i++)r.push(sk(Rx(K.I[p+i])));dx(x);return r} // jk expects "abc" or ("abc";"def")
-function LO(x){x=jk(x);clr();for(var i=0;i<x.length;i++){var o=document.createElement("option");o.text=x[i];list.add(o)};display(list)}
+function LO(x){x=jk(x);clr();for(var i=0;i<x.length;i++){var o=document.createElement("option");o.text=x[i];o.innerHTML=nbsp(o.innerHTML);list.add(o)};display(list)}
+function nbsp(x){return x.split(" ").join("&nbsp;")}
 function clr(n){n=list.options.length;for(var i=n-1;i>=0;i--)list.options[i]=null;}
 function tag(){tags.value=sk(ktry("tags"))}
 
