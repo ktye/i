@@ -1,24 +1,25 @@
 
-sel :!0
-path:(`Tree;1)
-exec:{$[@f:lup x;$[#path::x;disp walk path;1_,tags::Tags];f@0]}
-/exec:{$[#path::x;disp walk path;1_,tags::Tags]}
-slct:{sel::x}
-walk:{[p];$[1~#p;*.,,*p;.{(x;y)}/p]}
-push:{exec path::path,,sel}
-drop:{exec@-1_path}
+path:()
+exec:{$[0~#x;1_,tags::Tags;0~@f:lup x;disp f walk path;disp walk $[5~@x;path::,x;x]]}
+walk:{[p];$[0~#p;();1~#p;*.,,*p;.{(x;y)}/p]}
+push:{x:$[7~@d:walk path;$[1~#s:(!d)x;,s;s];x];exec path:: \path,,x}
+drop:{exec path::-1_path}
+root:{tags::Tags;()}
+asin:{asn[path;x];}
 
-disp:{t:@x;$[1~t;x;7~t;dis7 x;6~t;kstr'x; 'kx]}
+disp:{t:@x;$[6~t; 'k'x;7~t;dis7 x; 'kx]}
 dis7:{k:$!x;pad:rpad[;|/#'k]; ((pad'k),'"|"),' 'k'.x}
 rpad:{y#x,(y-#x)#" "}
-kstr:{$[1~@x;x; 'kx]}
 
 lup: {*.,,x}
+asn: {.(:;x;y)}
+tag: {tags}
 
 /
 
-Tags:"List Dict Ints Floats Symbols Tree Back"    /application default (or 0-level)
-tags:Tags                                         /tags for current path
+Tags:"List Dict Ints Floats Symbols Tree Back Help"   /application default (or 0-level)
+tags:Tags                                             /tags for current path
+tag:{$[~#x;Tags;|/`Floats`Ints=*x;Tags," sum";Tags]}  /tags may be updated dynamically based on path
 
 List:("alpha";"beta";"gamma")
 Dict:`alpha`b!(1 2;3 4 5;`symbol)
@@ -28,8 +29,14 @@ Symbols:`abc`d`efghi
 Tree:(`alpha`beta`gamma!(1 2 3;`a`b`c!1 2 3;("first line";"second line")))
 
 Back:drop
+sum:{+/walk path}
 
 "this is a listbox-ui example application
 
+double-click on words in the tag bar; then select, navigate or edit.
+ESC is Back
+
 application source: ktye.github.io/example.k
-listbox source    : ktye.github.io/listbox.html"
+listbox source    : ktye.github.io/listbox.html
+k.wasm binary     : ktye.github.io/k.wasm
+k source          : https://raw.githubusercontent.com/ktye/i/master/k.w"
