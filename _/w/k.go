@@ -1979,20 +1979,19 @@ func ibin(x, y, n, t i) (r i) {
 	}
 }
 func val(x i) (r i) {
-	xt, _, _ := v1(x)
+	xt, xn, _ := v1(x)
 	switch xt {
 	case 0:
 		if x < 256 {
 			return x
 		}
-		n := nn(x)
 		rl(x)
-		r = mk(6, n)
-		mv(r+8, x+8, 4*n)
-		if n == 4 {
+		r = mk(6, xn)
+		mv(r+8, x+8, 4*xn)
+		if xn == 4 {
 			sI(r+20, mki(I(r+20)))
 		}
-		return dxr(x, r)
+		dx(x)
 	case 1:
 		r = prs(x)
 		n := I(r+8) == 58 //:
@@ -2001,17 +2000,19 @@ func val(x i) (r i) {
 			dx(r)
 			return 0
 		}
-		return r
+	case 5:
+		r = lup(x, 0)
 	case 6:
-		return evl(x, 0)
+		r = evl(x, 0)
 	case 7:
 		r = I(x + 12)
 		rx(r)
-		return dxr(x, r)
+		dx(x)
 	default:
 		fmt.Printf("val xt=%d\n", xt)
 		panic("nyi")
 	}
+	return r
 }
 func kv(x, loc i) (k, v, n, m i) {
 	k = I(kkey)
@@ -2225,7 +2226,7 @@ func swc(x, loc i) (r i) { // ($;a;b;...)
 func ltr(x, loc i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
-		return x
+		return x // evl(x, loc)
 	}
 	rl(x)
 	r = mk(6, xn)
@@ -2240,7 +2241,7 @@ func ltr(x, loc i) (r i) {
 func rtl(x, loc i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
-		return x
+		return x //evl(x, loc)
 	}
 	rl(x)
 	r = mk(6, xn)
