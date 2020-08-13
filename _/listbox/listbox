@@ -1,21 +1,26 @@
 <head><meta charset="utf-8"><title>listbox</title></head>
 <link rel='icon' type'image/png' href="k32.png">
 <style>
- html,body{height:100%;margin:0;padding:0;overflow:hidden;display:flex;flex-flow:column;}
+ html,body{min-height:100vh;margin:0;padding:0;overflow:hidden;display:flex;flex-direction:column;}
  #tags{flex: 0 1 auto;background:#ffffea;font-family:monospace;font-size:100%;border:none;border-bottom:1px solid black;}
  #list{flex: 1 1 auto;background:#ffffea;font-family:monospace;font-size:100%;border:none;}
  #canv{flex: 1 1 auto;background:#777777;font-family:monospace;font-size:100%;display:none;}
- #edit{flex: 1 1 auto;background:#ffffea;font-family:monospace;font-size:100%;display:none;margin:0;border:1px solid blue;}
- #butn{flex: 0 1 auto;background:#ffffea;font-family:monospace;font-size:100%;border:none;display:none;}#ok{width:10%}#cancel{width:10%}#err{width:80%;background:#ffffea;border:none;}
+ #area{flex: 1 1 auto;background:#ffffea;font-family:monospace;font-size:100%;display:none;margin:0;border:1px solid blue;}
+ #butn{flex: 0 1 ;background:#ffffea;font-family:monospace;font-size:100%;border:none;display:flex;}
+ #ed{flex: 1 1 0px;}#ok{flex: 1 1 0px;}#cancel{flex: 1 1 0px;}#err{flex: 5 1 0px;;background:#ffffea;border:none;}#save{flex:1 1 0px;}
+ #dl{display:none;}
 </style>
 <input    id="tags" >
 <select   id="list" multiple></select>
-<textarea id="edit" wrap="off" spellcheck="false"></textarea>
+<textarea id="area" wrap="off" spellcheck="false"></textarea>
 <canvas   id="canv" ></canvas>
-<div      id="butn" ><button id="ok">ok</button><button id="cancel">cancel</button><input id="err" readonly></div>
-<a        id="save" ></a>
+<div      id="butn" ><button id="ed">edit</button><button id="ok">ok</button><button id="cancel">cancel</button><input id="err" readonly><button id="save">save</button></div>
+<a        id="dl"></a>
 <script>
-function display(x){[list,canv,edit,butn].forEach(i=>i.style.display="none");x.style.display="block";}
+function ge(x){return document.getElementById(x)}
+var tags=ge("tags");var list=ge("list");var canv=ge("canv");var area=ge("area");var butn=ge("butn");var ed=ge("ed");var ok=ge("ok");var cancel=ge("cancel");var err=ge("err");var save=ge("save")
+function displayEach(x,d){x.forEach(i=>i.style.display=d)}
+function display(x,e){displayEach([list,canv,area,ed,ok,cancel],"none");x.style.display="block";if(x==area)displayEach([ok,cancel],"block");else displayEach([ed],"block")}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 
 var hist=[""];function addhist(x){if(!hist.includes(x))hist.unshift(x)};function gethist(x){if(x)hist.unshift(hist.pop());else hist.push(hist.shift());tags.value=hist[0]}
@@ -29,61 +34,76 @@ tags.onkeydown = function(e){var k=e.which;
 tags.ondblclick = function(e){exec(tags.value.substring(tags.selectionStart,tags.selectionEnd).trim())}
 canv.tabIndex=100;canv.onkeydown=function(e){if(e.which==27)display(list)}
 
-document.body.onkeydown = function(e){if(e.which==27){drop()}}
-list.onkeydown = function(e){if(e.which==13){pd(e);push()}}
-list.ondblclick= function(e){pd(e);push()}
-ok.onclick     = function(e){asin(edit.value)}
-cancel.onclick = drop
+var prog=decodeURIComponent(window.location.hash.substr(1));var pos=prog.lastIndexOf(".");var ws=prog.substr(0,pos<0?prog.length:pos)+".ws"
+document.body.onkeydown = function(e){if(e.which==27){back()}}
+list.onkeydown    = function(e){if(e.which==13){pd(e);push()}}
+list.ondblclick   = function(e){pd(e);push()}
+ed.onclick        = function(e){edit()}
+ok.onclick        = function(e){asin(area.value)}
+cancel.onclick    = function(e){back()}
+save.onclick      = function(e,b){b=new Blob([K.C.slice(0,1<<K.U[32])],{type:"application/octet-stream"});dl.href=URL.createObjectURL(b);dl.download=ws;dl.click()}
 
 function start(){
- var t=1<<K.I[32];var f=0;var s=8;var u;for(var i=4;i<32;i++){s=2*s;for(var u=K.I[i];u!=0;u=K.I[u>>>2])f+=s}
+ var t=1<<K.U[32];var f=0;var s=8;var u;for(var i=4;i<32;i++){s=2*s;for(var u=K.U[i];u!=0;u=K.U[u>>>2])f+=s}
  EO(ver+" "+String(t-f)+"/"+String(t)) // used/total
 }
 function load(s){document.title=s;fetch(s).then(r=>{return r.text()}).then(s=>{EO(repl(stripDoc(s)));tag()})}
 function stripDoc(s){return s.split("\n\\")[0]}
-var prog=decodeURIComponent(window.location.hash.substr(1))
 
 // k.wasm module
 var ver   = "k.w "
 var hlp   = ""; fetch('h').then(r=>{return r.text()}).then(s=>{hlp=s;ver+=s.split("\n")[0];EO(ver)})
 var src   = ""; fetch('s').then(r=>{return r.text()}).then(s=>{src=s})
-var EO    = function(s)    {edit.value=s;display(edit)}
+var EO    = function(s)    {area.value=s;display(area)}
 var draw  = function(w,h,p){ console.log("draw: nyi") }
 var grow  = function(x)    {var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
-var printc= function(x,y)  {EO(logg(su(K.C.slice(x,x+y))+"\n"))}
+var printc= function(x,y)  {EO(su(K.C.slice(x,x+y))+"\n")}
 var msl   = function()     {var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
-var nn, tp, dx, mk, val, kst, bak
+var nn, tp, dx, mk, sc, val, kst, bak
 WebAssembly.instantiateStreaming(fetch('k.wasm'), { "ext": {"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
  K=r.instance;msl();K.exports.ini(16);bak=K.C.slice(0)
- nn=K.exports.nn;tp=K.exports.tp;dx=K.exports.dx;rx=K.exports.rx;mk=K.exports.mk;val=K.exports.val;kst=K.exports.kst
+ nn=K.exports.nn;tp=K.exports.tp;dx=K.exports.dx;rx=K.exports.rx;mk=K.exports.mk;sc=K.exports.sc;val=K.exports.val;kst=K.exports.kst
  EO(repl(listbox));if(prog.length>0)load(prog)
 });
 
-function us(s) { return new TextEncoder("utf-8").encode(s) }
-function su(u) { return (u.length) ? new TextDecoder("utf-8").decode(u) : "" }
-function sk(x) { if(x<0)return"!";if(tp(x)!=1){dx(x);return""};var n=nn(x);dx(x);return su(K.C.slice(8+x, 8+x+n))}
-function cS(s) { var u=us(s);var x=mk(1,u.length);K.C.set(u,8+x);return x }
-function Rx(x) { rx(x);return x}
-function ktry(s) {
- try     {var x=val(cS(s)); bak=K.C.slice(0, 1<<K.U[32]);return x}
+function us(s  ){return new TextEncoder("utf-8").encode(s)}
+function su(u  ){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function sk(x  ){if(x<0)return"!";if(tp(x)!=1){dx(x);return""};var n=nn(x);dx(x);return su(K.C.slice(8+x, 8+x+n))}
+function cu(u  ){var x=mk(1,u.length);K.C.set(u,8+x);return x}
+function sy(s  ){return sc(cu(us(s)))}
+function lo(x,n){n=x.length;var l=mk(6,n);for(var i=0;i<n;i++)K.U[2+i+(l>>>2)]=x[i];return l}
+function Rx(x  ){rx(x);return x}
+function ktry(s){
+ try     {var x=val(cu(us(s))); bak=K.C.slice(0, 1<<K.U[32]);return x}
  catch(e){console.log(e);K.C.set(bak);return -1}}
 
 
 function repl(x,t){t=x.trim();if(t.length==0)return;if(t==="\\")return hlp;x=ktry(x);return (x<0)?"!":sk(tp(x)==1?x:kst(x))} // press enter on the tag bar
 function exec(x  ){disp(ktry("exec`"+x));tag()}                                                                              // double-click a word in the tag bar
 function push(x  ){disp(ktry("push "+sel()));tag()}                                                                          // double click on list entry or press enter(multiple selections)
-function drop(x  ){disp(ktry("drop[]"));tag()}                                                                               // go backwards(upwards) one level on ESC key
+function back(x  ){disp(ktry("back[]"));tag()}                                                                               // go backwards(upwards) one level on ESC key
+function edit(   ){disp(ktry("edit[]"));tag()}
 function disp(x,t){if(x<=0)return EO((x<0)?"!":"");t=tp(x);if(t==1)ED(sk(x));if(t==6)LO(x)}                                  // display result in a listbox or the editor
-function asin(x,r){r=ktry("asin "+x);if(r==0)drop();else serr((r==-1)?"!":sk(r))}                                            // ok button clicked when editing a variable
+function asin(x,r){r=ktry("asin@"+x);if(r==0)back();else serr((r==-1)?"!":sk(r))}                                            // ok button clicked when editing a variable
 
-function jk(x,r,p){if(tp(x)!=6)return (tp(x)==1)?sk(x):"!!";r=[];p=(8+x)>>>2;for(var i=0;i<nn(x);i++)r.push(sk(Rx(K.I[p+i])));dx(x);return r} // jk expects "abc" or ("abc";"def")
+function jk(x,r,p){if(tp(x)!=6)return (tp(x)==1)?sk(x):"!!";r=[];p=(8+x)>>>2;for(var i=0;i<nn(x);i++)r.push(sk(Rx(K.U[p+i])));dx(x);return r} // jk expects "abc" or ("abc";"def")
 function LO(x){x=jk(x);clr();for(var i=0;i<x.length;i++){var o=document.createElement("option");o.text=x[i];o.innerHTML=nbsp(o.innerHTML);list.add(o)};display(list)}
 function nbsp(x){return x.split(" ").join("&nbsp;")}
 function clr(n){n=list.options.length;for(var i=n-1;i>=0;i--)list.options[i]=null;}
 function sel(s){s=Array.from(list.selectedOptions).map(v=>v.index).join(" ");return(s=="")?"()":s}
-function ED(x){serr("");err.value="";EO(x);butn.style.display="block"}
-function serr(x){err.value=logg(x);err.style.border=(x.length==0)?"none":"1px solid red"}
+function ED(x){serr("");err.value="";EO(x);}
+function serr(x){err.value=x;err.style.border=(x.length==0)?"none":"1px solid red"}
 function tag(r){tags.value=sk(ktry("tag path"))}
+
+// drop file (replace *.ws, exec *.k, or call drop[name;bytes])
+window.ondragover=function(e){pd(e)}
+window.ondrop    =function(e){pd(e);if(e.dataTransfer.items){for(var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){var r = new FileReader();r.onload=function(){var u=new Uint8Array(r.result)
+       if(x.name.endsWith(".ws")){var s=K.U[32];while((1<<s)<u.length)s++;grow(s);K.C.set(u);bak=K.C.slice(0,1<<K.U[32]);EO("↑"+x.name)}
+  else if(x.name.endsWith(".k" )){EO("."+x.name+"\n"+repl(stripDoc(su(u))))}
+  else{disp(val(lo([sy("drop"),lo([sy(x.name)]),cu(u)])))} //may not fail
+ };r.readAsArrayBuffer(x)}
+ 
 
 var listbox = `
 "todo: copy header of example.k here"
