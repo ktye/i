@@ -13,7 +13,7 @@ rpad:{y#x,(y-#x)#" "}
 data:`!()
 drop:{data,:x!,y;"data<-",$x}
 
-asn: {.(:;x;$[6~@y;,y;y])}
+asn: {.(:;x;$[6~@y;,,,y;y])}
 tag: {tags}
 
 /
