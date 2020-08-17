@@ -16,7 +16,7 @@ asn: {.(:;x;$[6~@y;,,,y;y])}
 
 /
 
-Tags:`List`Dict`Ints`Floats`Symbols`Tree`back`edit
+Tags:`List`Dict`Ints`Floats`Symbols`Tree`draw`back`edit
 tags:Tags                                             /tags for current path
 tag: {" "/:$?tags}                                    /tags may be updated dynamically based on path
 
@@ -27,7 +27,7 @@ Floats:129 'F!10
 Symbols:`abc`d`efghi
 Tree:(`alpha`beta`gamma!(1 2 3;`a`b`c!1 2 3;("first line";"second line")))
 
-sum:{+/walk path}
+draw:{30 'd 'r1500;("one";"two";"three")}
 
 "this is a listbox-ui example application
 
