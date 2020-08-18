@@ -1932,6 +1932,7 @@ func ecl(x, y, f i) (r i) { // x f\ y (each-left)
 }
 func ecd(x, y, f i) (r i) { // x f' y
 	x, y = ext(x, y)
+	fmt.Println("ecd", X(f), X(x), X(y))
 	n := nn(x)
 	r = mk(6, n)
 	rp := r + 8
@@ -2629,7 +2630,7 @@ func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, 
 	m := i(0)
 	if b == '-' { //45
 		t := C(p - 1)
-		if is(t, az|AZ|NM) || t == ')' || t == ']' { // C(p-1) maybe refcount's last byte (k2 reflite p27)
+		if is(t, az|AZ|NM) || t == ')' || t == ']' || t == '"' { // C(p-1) maybe refcount's last byte (k2 reflite p27)
 			return 0
 		}
 		m = 1
