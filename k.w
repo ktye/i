@@ -35,7 +35,7 @@ fnd.I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fn
 jon.I:II{v1;((~xt~6)+~xn)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
 spl.I:II{rx x;yn:nn y;r:x fds y;(~nn r)?(dx r;:enl x);r:((mki 0)cat r)cut x;rn:(nn r)-1;r8;rn/(rp+:4;rp::(I rp) drop yn);r}
 fds.I:II{v2;((~xt~yt)+xt>5)?!;(xn<yn)?(dx x;dx y; :2 mk 0);(~yn)?(dx x;dx y; :(seq(0;xn;1))drop 1);r:2 mk 0;w:C xt;eq:8+xt;i:0;xn/(a:0;yn/(k:w*j;a+:((I.eq)(xp+k;yp+k)));(a~yn)?(r:r ucat mki i;i+:yn-1;xp+:w*yn-1);xp+:w);dxyr}
-exc.I:II{rx x;x atx wer (mki nn y)eql y fnd x}
+exc.I:II{n:mki nn y;rx x;x atx wer n eql y fnd x}
 srt.I:I{rx x;x atx grd x}gdn.I:I{rev grd x}grd.I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);r8;msrt(y+8;rp;0;xn;xp;xt);dxyr}
 msrt.V:IIIIII{((x3-z)>=2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}
 mrge.V:IIIIIII{k:z;j:x4;w:C x6;i:z;(i<x3)?/(c:k>=x4;(~c)?$[j>=x3;c:0;c:(I.x6)(x5+w*I x+k<<2;x5+w*I x+j<<2)];$[c;(a:j;j+:1);(a:k;k+:1)];(y+i<<2)::I x+a<<2;i+:1)}

@@ -2,11 +2,11 @@ path:()
 exec:{$[0~#x;1_,tags::Tags;0~@f:.x;disp f walk path;disp walk $[5~@x;path::,x;x]]}
 walk:{[p];$[0~#p;();1~#p;*.,,*p;.{(x;y)}/p]}
 push:{x:$[7~@d:walk path;$[1~#s:(!d)x;,s;s];x];exec path:: \path,,x}
-back:{tags^:`ok;exec path::-1_path}
-edit:{tags,:`ok;  'k walk     path}
-ok:  {tags^:`ok;      asn[path; \x];}
+back:{walk path::-1_path}
+edit:{  'k walk     path}
+ok:  {     asn[path; x];}
 
-disp:{t:@x;$[1~t;x;ist x;dis8 x;6~t; 'k'x;7~t;dis7 x; 'kx]}
+disp:{t:@x;tags::(tags^`ok),$[t<6;`ok;0#`];$[1~t;x;ist x;dis8 x;6~t; 'k'x;7~t;dis7 x; 'kx]}
 dis7:{k:$!x;pad:rpad[;|/#'k]; ((pad'k),'"|"),' 'k'.x} /display dict
 dis8:{n:1+|/'#''t:&kst''(,$!*x),.'x;,/'&rpad''[t;n]}  /display table
 rpad:{y#x,(y-#x)#" "}
@@ -32,6 +32,10 @@ Tree:(`alpha`beta`gamma!(1 2 3;`a`b`c!1 2 3;("first line";"second line")))
 Table:(`abc`def`g!("x";2;3.0);`abc`def`g!("y";3;2.1);`abc`def`g!("zz";1;2.3))
 
 draw:{30 'd 'r1500;("one";"two";"three")}
+
+tags^`ok
+tags^`ok
+tags^`ok
 
 "this is a listbox-ui example application
 

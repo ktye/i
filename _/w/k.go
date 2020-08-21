@@ -1126,7 +1126,7 @@ func fds(x, y i) (r i) { // find subarray y in x
 	}
 	return dxyr(x, y, r)
 }
-func exc(x, y i) (r i) { rx(x); return atx(x, wer(eql(mki(nn(y)), fnd(y, x)))) } // x^y
+func exc(x, y i) (r i) { n := mki(nn(y)); rx(x); return atx(x, wer(eql(n, fnd(y, x)))) } // x^y
 func grd(x i) (r i) { // <x
 	xt, xn, xp := v1(x)
 	r = seq(0, xn, 1)
