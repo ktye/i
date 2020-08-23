@@ -2,16 +2,16 @@ path:()
 exec:{$[0~#x;1_,tags::Tags;0~@f:.x;disp f walk path;disp walk $[5~@x;path::,x;x]]}
 walk:{[p];$[0~#p;();1~#p;*.,,*p;.{(x;y)}/p]}
 push:{x:$[7~@d:walk path;$[1~#s:(!d)x;,s;s];x];exec path:: \path,,x}
-back:{walk path::-1_path}
-edit:{  'k walk     path}
-ok:  {     asn[path; x];}
+back:{disp walk path::-1_path}
+edit:{  'k walk path}
+ok:  {     asn[ path; x];    }
 
-disp:{t:@x;tags::(tags^`ok),$[t<6;`ok;0#`];$[1~t;x;ist x;dis8 x;6~t; 'k'x;7~t;dis7 x; 'kx]}
+disp:{t:@x;tags::(tags^`ok),$[t<6;`ok;0#`];$[ist x;dis8 x;6~t; 'k'x;7~t;dis7 x; 'kx]}
 dis7:{k:$!x;pad:rpad[;|/#'k]; ((pad'k),'"|"),' 'k'.x} /display dict
 dis8:{n:1+|/'#''t:&kst''(,$!*x),.'x;,/'&rpad''[t;n]}  /display table
 rpad:{y#x,(y-#x)#" "}
 kst: {$[1~@x;x; 'kx]}
-ist: {$[~6~@x;0;~|/7~'@'x;0;&/~':!'x;1;0]}             /is table
+ist: {$[~6~@x;0;2>#x;0;~|/7~'@'x;0;&/~':!'x;1;0]}     /is table
 
 data:`!()
 drop:{data,:x!,y;"data<-",$x}
@@ -19,7 +19,7 @@ asn: {.(:;x;$[6~@y;$[1~#x;,y;,,,y];y])}
 
 /
 
-Tags:`List`Dict`Ints`Floats`Symbols`Tree`Table`draw`back`edit
+Tags:`List`Dict`Ints`Floats`Symbols`Tree`Table`draw`edit
 tags:Tags                                             /tags for current path
 tag: {" "/:$?tags}                                    /tags may be updated dynamically based on path
 
