@@ -8,6 +8,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -48,6 +49,9 @@ const naJ j = 9221120237041090561
 const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 
 func main() {
+	if len(os.Args) == 1 {
+		repl()
+	}
 	if len(os.Args) == 2 && os.Args[1] == "t" {
 		multitest()
 		runtest()
@@ -55,6 +59,24 @@ func main() {
 		kdirs(os.Args[2:])
 	} else {
 		fmt.Println(run(strings.Join(os.Args[1:], " ")))
+	}
+}
+func repl() {
+	kinit()
+	s := bufio.NewScanner(os.Stdin)
+	for s.Scan() {
+		t := s.Text()
+		switch strings.TrimSpace(t) {
+		case `\`, `\\`:
+			os.Exit(0)
+		default:
+			if x := val(mkchrs([]byte(t))); x > 255 {
+				x = kst(x)
+				os.Stdout.Write(MC[x+8 : x+nn(x)+8])
+				os.Stdout.Write([]byte{10})
+				dx(x)
+			}
+		}
 	}
 }
 func multitest() { //multiline, spaces, comments
@@ -1932,7 +1954,6 @@ func ecl(x, y, f i) (r i) { // x f\ y (each-left)
 }
 func ecd(x, y, f i) (r i) { // x f' y
 	x, y = ext(x, y)
-	fmt.Println("ecd", X(f), X(x), X(y))
 	n := nn(x)
 	r = mk(6, n)
 	rp := r + 8
@@ -2795,7 +2816,7 @@ func nam(b c, p, s i) (r i) { // abc  A3 (as `abc)
 	}
 }
 func sym(b c, p, s i) (r i) { // `abc `"abc"
-	if b != '`' { //96
+	if b != '`' || p == s { //96
 		return 0
 	}
 	p++
