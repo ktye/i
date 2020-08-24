@@ -1,17 +1,22 @@
 path:()
 exec:{$[0~#x;1_,tags::Tags;0~@f:.x;disp f walk path;disp walk $[5~@x;path::,x;x]]}
-walk:{[p];$[0~#p;();1~#p;*.,,*p;.{(x;y)}/p]}
-push:{x:$[7~@d:walk path;$[1~#s:(!d)x;,s;s];x];exec path:: \path,,x}
+walk:{$[0~#x;();atx[.*x;1_x]]}
+/push:{x:$[7~@d:walk path;$[1~#s:(!d)x;,s;s];x];exec path:: \path,,x}
+push:{exec path::path,,$[ist walk path;-1+x^0;x]}
 back:{disp walk path::-1_path}
 edit:{  'k walk path}
 ok:  {     asn[ path; x];    }
 
 disp:{t:@x;tags::(tags^`ok),$[t<6;`ok;0#`];$[ist x;dis8 x;6~t; 'k'x;7~t;dis7 x; 'kx]}
 dis7:{k:$!x;pad:rpad[;|/#'k]; ((pad'k),'"|"),' 'k'.x} /display dict
-dis8:{n:1+|/'#''t:&kst''(,$!*x),.'x;,/'&rpad''[t;n]}  /display table
+dis8:{" "/:'&rpad''[l;|/'#''l:tst''(!x),/:'.x]}       /display table
 rpad:{y#x,(y-#x)#" "}
-kst: {$[1~@x;x; 'kx]}
-ist: {$[~6~@x;0;2>#x;0;~|/7~'@'x;0;&/~':!'x;1;0]}     /is table
+kst: {$[1~@x; x; 'kx]}
+tst: {$[5~@x;$x; 'kx]}
+ist: {$[~7~@x;0;~#x;0;&/(n:#*.x)~'#'.x;n>1;0]}          /dict is table
+atx: {$[#y;atx[$[ist x;tix[x;*y];x@*y];1_y];x]}
+tix: {@[;y]'x}                                        /index table x by row y
+
 
 data:`!()
 drop:{data,:x!,y;"data<-",$x}
@@ -29,7 +34,7 @@ Ints:10-!8
 Floats:129 'F!10
 Symbols:`abc`d`efghi
 Tree:(`alpha`beta`gamma!(1 2 3;`a`b`c!1 2 3;("first line";"second line")))
-Table:(`abc`def`g!("x";2;3.0);`abc`def`g!("y";3;2.1);`abc`def`g!("zz";1;2.3))
+Table:`abc`def`g`h!(`x`y`zz;9+!3;"ABC";(`a`b!1 2;`c`d!5 6;`a`d!7 9))
 
 draw:{30 'd 'r1500;("one";"two";"three")}
 
