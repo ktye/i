@@ -2337,6 +2337,11 @@ func evl(x, loc i) (r i) {
 	x = rtl(x, loc)
 	xn = nn(x)
 	xp = x + 8
+	if v == '@' && xn == 4 { //64
+		rl(x)
+		r = asi(I(x+12), I(x+16), I(x+20))
+		return dxr(x, r)
+	}
 	if xn == 2 {
 		rl(x)
 		r = atx(I(xp), I(xp+4))
