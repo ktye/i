@@ -2081,12 +2081,14 @@ func asn(x, loc, u i) (r i) {
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
 	xt, yt, xn, yn, xp, yp := v2(x, y)
-	if xt == 7 && yt == 5 {
+	if xt == 7 && yt < 6 {
 		rld(x)
 		k := I(xp)
 		v := I(xp + 4)
-		rx(k)
-		y = fnd(k, y)
+		if yt == 5 {
+			rx(k)
+			y = fnd(k, y)
+		}
 		return mkd(k, asi(v, y, z))
 	}
 	if yt == 6 {
@@ -2097,8 +2099,10 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 			rx(y)
 			f := fst(y)
 			if f != 0 {
-				rx(k)
-				f = fnd(k, f)
+				if tp(f) == 5 {
+					rx(k)
+					f = fnd(k, f)
+				}
 			} else {
 				f = seq(0, nn(k), 1)
 			}
