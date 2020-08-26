@@ -1,10 +1,10 @@
 path:()
-exec:{$[x~`edit;edit[];0~#x;1_,tags::Tags;0~@f:.x;disp f walk path;disp walk $[5~@x;path::,x;x]]}
+exec:{$[x~`edit;edit[];0~#x;1_,tags::Tags;0~@f:.*x;disp f walk path;disp walk $[5~@x;path::,x;x]]}
 walk:{$[0~#x;();atx[.*x;1_x]]}
-push:{exec path::path,,$[ist u:walk path;-1+x^0;x]}
+push:{exec path:: \path,,$[ist u:walk path;-1+x^0;x]}
 back:{disp walk path::-1_path}
 edit:{tako 1;    'k walk path}
-ok:  {s:*path;asn[s;$[ist n:.s;tas[n;x];$[#p:1_path;@[n;$[1~#p;*p;p];x];x]]];}
+ok:  {s:*path;asn[s;$[ist n:.s;tas[n;1_path;x];$[#p:1_path;@[n;$[1~#p;*p;p];x];x]]];}
 
 tako:{tags::(tags^`ok),$[x;`ok;0#`]}
 disp:{t:@x;tako t<6;$[ist x;dis8 x;6~t; 'k'x;7~t;dis7 x; 'kx]}
@@ -22,7 +22,7 @@ data:`!()
 drop:{data,:x!,y;"data<-",$x}
 /asn: {.(:;x;$[6~@y;$[1~#x;,y;,,,y];y])}
 asn: {.(:;x;$[6~@y;,y;y])}
-tas: { \(`tas;x;y);}
+tas: {$[0~#y;z;1~#y;@[x;(,!x),y;$[7~@z;.z;z]];@[x;@[y;0 1;1 0];z]]}
 
 /
 
@@ -37,6 +37,7 @@ Floats:129 'F!10
 Symbols:`abc`d`efghi
 Tree:(`alpha`beta`gamma!(1 2 3;`a`b`c!1 2 3;("first line";"second line")))
 Table:`abc`def`g`h!(`x`y`zz;9+!3;"ABC";(`a`b!1 2;`c`d!5 6;`a`d!7 9))
+T:`a`b!(1 2 3;1.1 2.2 3.3)
 
 draw:{30 'd 'r1500;("one";"two";"three")}
 
