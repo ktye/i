@@ -22,7 +22,7 @@ data:`!()
 drop:{data,:x!,y;"data<-",$x}
 /asn: {.(:;x;$[6~@y;$[1~#x;,y;,,,y];y])}
 asn: {.(:;x;$[6~@y;,y;y])}
-tas: {$[0~#y;z;1~#y;@[x;(,!x),y;$[7~@z;.z;z]];@[x;@[y;0 1;1 0];z]]}
+tas: { \("tas";#y);$[0~#y;z;1~#y;@[x;(,!x),y;$[7~@z;.z;z]];@[x; \@[y;0 1;y 1 0];z]]}
 
 /
 
@@ -40,10 +40,6 @@ Table:`abc`def`g`h!(`x`y`zz;9+!3;"ABC";(`a`b!1 2;`c`d!5 6;`a`d!7 9))
 T:`a`b!(1 2 3;1.1 2.2 3.3)
 
 draw:{30 'd 'r1500;("one";"two";"three")}
-
-tags^`ok
-tags^`ok
-tags^`ok
 
 "this is a listbox-ui example application
 
