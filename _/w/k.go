@@ -2170,18 +2170,16 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		if zt != xt {
 			trap()
 		}
-		r = mk(xt, xn)
+		r = use(x)
 		rp := r + 8
 		w := i(C(xt))
-		mv(rp, xp, w*xn)
 		for i := i(0); i < yn; i++ {
 			k := I(yp)
 			mv(rp+w*k, zp, w)
 			yp += 4
 			zp += w
 		}
-		dx(z)
-		return dxyr(x, y, r)
+		return dxyr(y, z, r)
 	}
 	if xt == 6 {
 		r = take(x, xn)
