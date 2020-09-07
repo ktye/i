@@ -2181,10 +2181,10 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		}
 		return dxyr(y, z, r)
 	}
-	if xt == 6 {
+	if xt == 6 || (xt == 5 && zt == 5) {
 		r = take(x, xn)
 		rp := r + 8
-		if zt != 6 {
+		if xt == 6 && zt != 6 {
 			if yn == 1 {
 				z = enl(z)
 				zn = 1
