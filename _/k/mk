@@ -1,0 +1,5 @@
+#!/bin/sh
+for j in *.j; do
+	k=`echo ${j}|sed 's/.$/k/'`
+	awk '/^\\/{f=substr($0,2,length($0)-1);print("/" f);while((getline l<f)>0)print(l);next}{print}' ${j} > ${k}
+done

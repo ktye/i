@@ -54,7 +54,7 @@ var nn, tp, dx, mk, sc, val, kst, bak
 WebAssembly.instantiateStreaming(fetch('k.wasm'),{"ext":{"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
  K=r.instance;msl();K.exports.ini(16);bak=K.C.slice(0)
  nn=K.exports.nn;tp=K.exports.tp;dx=K.exports.dx;rx=K.exports.rx;mk=K.exports.mk;sc=K.exports.sc;val=K.exports.val;kst=K.exports.kst
- EO(repl(listbox));if(prog.length>0)load(prog)
+ if(prog.length>0)load(prog)
 });
 
 function us(s  ){return new TextEncoder("utf-8").encode(s)}
@@ -101,9 +101,5 @@ function drw(w,h,x){imgSize(w,h)
   for(var i=0;i<nn(k);i++){rx(k);rx(v);var s=jk(cs(atx(k,mki(i))));var a=jk(atx(v,mki(i)));if(typeof(ctx[s])==="function")ctx[s](...a);else ctx[s]=a}}}
 function imgSize(w,h){canv.style.width=w;canv.style.height=h;canv.width=w;canv.height=h}
 
- 
-var listbox = `
-"todo: copy header of example.k here"
-`
 function logg(x){console.log(x);return x}
 </script><body></body></html>
