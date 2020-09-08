@@ -1,8 +1,7 @@
 \listbox.k
 
 Tags:`List`Dict`Ints`Floats`Symbols`Tree`Table`draw`edit
-tags:Tags                                             /tags for current path
-tag: {" "/:$?tags}                                    /tags may be updated dynamically based on path
+tags:Tags
 
 List:("alpha";"beta";"gamma")
 Dict:`alpha`b`c!(1 2;3 4 5;`symbol)
