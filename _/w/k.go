@@ -2724,36 +2724,38 @@ func num(b c, p, s i) (r i) { // parse single number
 	}
 	p = I(pp)
 	b = C(p)
-	if b == 'a' || b == 'p' || b == 'n' || b == 'w' { //97 112 110 119
-		if tp(r) == 2 {
-			r = up(r, 2, 1)
-		}
-		p++
-		sI(pp, p)
-		if b != 'a' {
-			var f float64
-			if b == 'p' {
-				f = math.Pi * F(r+8)
+	if p < s {
+		if b == 'a' || b == 'p' || b == 'n' || b == 'w' { //97 112 110 119
+			if tp(r) == 2 {
+				r = up(r, 2, 1)
 			}
-			if b == 'n' {
-				f = math.Float64frombits(18444492273895866368)
+			p++
+			sI(pp, p)
+			if b != 'a' {
+				var f float64
+				if b == 'p' {
+					f = math.Pi * F(r+8)
+				}
+				if b == 'n' {
+					f = math.Float64frombits(18444492273895866368)
+				}
+				if b == 'w' {
+					f = math.Inf(1) // todo -0w
+				}
+				sF(r+8, f)
+				return r
 			}
-			if b == 'w' {
-				f = math.Inf(1) // todo -0w
-			}
-			sF(r+8, f)
-			return r
-		}
 
-		r = up(r, 3, 1)
-		a := pfl(C(p), p, s)
-		if a == 0 {
-			a = mki(0)
+			r = up(r, 3, 1)
+			a := pfl(C(p), p, s)
+			if a == 0 {
+				a = mki(0)
+			}
+			if tp(a) == 2 {
+				a = up(a, 2, 1)
+			}
+			r = atx(r, a)
 		}
-		if tp(a) == 2 {
-			a = up(a, 2, 1)
-		}
-		r = atx(r, a)
 	}
 	return r
 }
