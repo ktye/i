@@ -48,7 +48,7 @@ var src   = ""; fetch('s').then(r=>{return r.text()}).then(s=>{src=s})
 var draw  = function(w,h,p){return drw(w,h,p)}
 var ctx   = canv.getContext('2d')
 var grow  = function(x)    {var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cur){var a=(1<<x)-cur;K.exports.mem.grow(a>>>16); msl()};return x}
-var printc= function(x,y)  {EO(su(K.C.slice(x,x+y))+"\n")}
+var printc= function(x,y)  {logg(su(K.C.slice(x,x+y)))}
 var msl   = function()     {var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
 var nn, tp, dx, mk, sc, val, kst, bak
 WebAssembly.instantiateStreaming(fetch('k.wasm'),{"ext":{"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
