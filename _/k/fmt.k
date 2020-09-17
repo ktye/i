@@ -1,9 +1,18 @@
 fmt:{kst@&x}
-kst:{$[6~@x;lst x;5~@x;$x; 'kx]}
-lst:{$[2~#x;,/kst'x;k x;3~#x;dya.x;brk[*x;1_x]]}
+kst:{$[6~@x;lst x;(1~#x)&5~@x;$x; 'kx]}
+lst:{$[1~#x;kst@*x;2~#x;mon.x;3~#x;dya.x;brk[*x;1_x]]}
+mon:{$[(1~#x)&0~@x;$[iad@*x;(kst y),$*x;,/kst'(x;y)];spc[kst x;kst y]]}
 dya:{$[0~@x;(emb y),($x),kst z;brk[x;(y;z)]]}
 brk:{,/(kst x;"[";";"/kst'y;"]")}
 emb:{"(",(kst x),")"}
+iad:{6>adv?`$$x}
+adv:,/`$'" "\:"' / \ ': /: \:"
+chr:(_"0"+!10),(_"A"+!26),_"a"+!26
+spc:{x,$[(~iad@*|x)&62>chr?*y;" ",y;y]}
 
-/fmt"3+4"
-fmt"*x"
+ \fmt"*x"
+ \fmt"+/1 2 3"
+ \fmt"f x"
+ \fmt"f`a`b`c"
+ \fmt"3+4"
+ \fmt"{x+y}[1;2]"
