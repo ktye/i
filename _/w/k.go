@@ -471,6 +471,9 @@ func til(x i) (r i) {
 	if xt == 4 {
 		return zim(x)
 	}
+	if xt == 6 {
+		return ech(x, 161)
+	}
 	if xt == 7 {
 		r = I(xp)
 		rx(r)
