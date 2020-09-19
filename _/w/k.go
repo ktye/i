@@ -1005,7 +1005,20 @@ func match(x, y i) (r i) { // x~y
 	}
 	return 1
 }
-func not(x i) (r i) { return eql(mki(0), x) }
+func not(x i) (r i) {
+	t := tp(x)
+	if t > 5 {
+		return ech(x, 126)
+	}
+	if t == 0 {
+		if x == 0 {
+			return mki(1)
+		}
+		dx(x)
+		return mki(0)
+	}
+	return eql(mki(0), x)
+}
 func tru(x i) (r i) {
 	xt, xn, xp := v1(x)
 	dx(x)
@@ -1217,6 +1230,9 @@ func flr(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt > 5 {
 		return ech(x, 223)
+	}
+	if xt == 0 {
+		return dxr(x, mki(x))
 	}
 	if xt == 2 {
 		r = mk(1, xn)
