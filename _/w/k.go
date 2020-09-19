@@ -2334,7 +2334,7 @@ func evl(x, loc i) (r i) {
 		if xt == 5 && xn == 1 {
 			r = lup(x, loc)
 			if r == 0 {
-				panic("name does not exist")
+				// panic("name does not exist")
 			}
 			return r
 		}
