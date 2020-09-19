@@ -1234,6 +1234,10 @@ func flr(x i) (r i) {
 	if xt == 0 {
 		return dxr(x, mki(x))
 	}
+	if xt == 1 {
+		dx(x)
+		return i(C(xp))
+	}
 	if xt == 2 {
 		r = mk(1, xn)
 		rp := r + 8

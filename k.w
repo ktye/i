@@ -90,7 +90,7 @@ prj.I:III{r:0 mk 3;(r+8)::x;(r+12)::y;(r+16)::z;r}
 fnl.I:II{r:0;y/((~I x)?((~r)?r:2 mk 0;r:r ucat mki i);x+:4);r}
 uqg.I:II{v1;r:xt mk 0;n:0;w:C xt;xn/(m:r fnx xp;(m~n)?(rx x;r:r cat x atx mki i;y?y:y lcat 2 mk 0;n+:1);y?(yi:y+8+4*m;yi::(I yi)cat mki i);xp+:w);y?r:r l2 y;dxr}
 unq.I:I{x uqg 0}grp.I:I{x uqg 6 mk 0}
-flr.I:I{v1;(xt>5)? :x ech 223;(~xt)?(dx x; :mki x);(xt~2)?(r:1 mk xn;r8;xn/((rp+i)::C?I xp;xp+:4);dx x; :r);(xt~3)?(r:2 mk xn;r8;xn/(rp::I?'F xp;xp+:8;rp+:4);dx x; :r);(xt~4)? :zre x;x}
+flr.I:I{v1;(xt>5)? :x ech 223;(~xt)?(dx x; :mki x);(1~xt)?(dx x; :C xp);(2~xt)?(r:1 mk xn;r8;xn/((rp+i)::C?I xp;xp+:4);dx x; :r);(xt~3)?(r:2 mk xn;r8;xn/(rp::I?'F xp;xp+:8;rp+:4);dx x; :r);(xt~4)? :zre x;x}
 ang.F:FF{p:57.29577951308232*y atan2 x;(p<0.0)?(p+:360.0);p}
 cst.I:II{v2;(xt~5)?(yt~1)?(dx x; :sc y);((~xt~2)+~xn~1)?!;dx x;x:I x+8;(x<'0)?(x:-x;n:yn%C x;(~yn~n*C x)?!;r:use y;r::n|x<<29; :r);(0~yn)?(dx y;(7~x)? :(5 mk 0)mkd 6 mk 0; :x mk 0);((yt>x)+yt>4)?!;(8~x)?(n:yn*C yt;r:use y;r::n|1<<29; :r);(yt<'x)?/(y:up(y;yt;yn);yt+:1);y}
 flp.I:I{n:nn I x+8;m:nn x;(x ovr 44)atx ecr((mki n)mul seq(0;m;1);seq(0;n;1);43)}
@@ -164,7 +164,7 @@ Fcifzsld   xn:x&^7<<29   xn~2(derived)   adv  verb
 ^  exc asc                               156..159  
 $  str cst   sc cs                       160..255  char map az|AZ|NM|VB|AD|TE
 #  rsh cnt   take                        256.....  buckets/heap
-_  drp flr   drop        re:_z   i:_f
+_  drp flr   drop        re:_z f:__i i:_f
 ?  fnd unq   fnd fnx                     (:;`x;y)          assign      x:y
 @  atx typ               z:abs@ang z@ang (+;(`x;a;b;c);y)  assign(m/i) s[a;b;c]+:y
 .  cal val               im:. z          (;a;b;c)   (*128) sequence    a;b;c     
