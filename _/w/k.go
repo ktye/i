@@ -546,7 +546,7 @@ func lst(x i) (r i) { // ::x
 	if tp(x) == 7 {
 		return lst(val(x))
 	}
-	return atx(x, mki(nn(x)-1)) /* TODO k.w differs */
+	return atx(x, mki(nn(x)-1))
 }
 func drop(x, n i) (r i) {
 	xt, xn, _ := v1(x)
@@ -2690,10 +2690,10 @@ func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, 
 		m = 1
 	}
 	r = pin(b, p, s)
-	if r == 0 {
+	p = I(pp)
+	if r == 0 || p == s {
 		return r
 	}
-	p = I(pp)
 	if C(p) == '.' { //46
 		r = up(r, 2, 1)
 		p++
