@@ -620,6 +620,9 @@ func rsh(x, y i) (r i) {
 	n := prod(xp, xn)
 	r = take(y, n)
 	if xn == 1 {
+		if yt == 6 && n == 1 {
+			r = enl(r)
+		}
 		return dxr(x, r)
 	}
 	xn--
