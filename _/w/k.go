@@ -2680,7 +2680,7 @@ func pin(b c, p, s i) (r i) { // parse signed int
 	}
 	return 0
 }
-func pfl(b c, p, s i) (r i) { // parse float (-)(u32).(u32) parts may overflow, no exp
+func pfl(b c, p, s i) (r i) { // parse float
 	m := i(0)
 	if b == '-' { //45
 		t := C(p - 1)
