@@ -51,7 +51,7 @@ add.I:II{nd(x;y;143;43)}sub.I:II{nd(x;y;147;45)}mul.I:II{nd(x;y;151;42)}diw.I:II
 adc.V:III{z::C?(C x)+C y}adi.V:III{z::(I x)+I y}adf.V:III{z::(F x)+F y}adz.V:III{adf(x;y;z);adf(x+8;y+8;z+8)}
 suc.V:III{z::C?(C x)-C y}sui.V:III{z::(I x)-I y}suf.V:III{z::(F x)-F y}suz.V:III{suf(x;y;z);suf(x+8;y+8;z+8)}
 muc.V:III{z::C?(C x)*C y}mui.V:III{z::(I x)*I y}muf.V:III{z::(F x)*F y}muz.V:III{z::((F x)*F y)-(F y+8)*F x+8;(z+8)::((F x)*F y+8)+(F x+8)*F y}
-dic.V:III{z::C?(C x)%C y}dii.V:III{z::(I x)%I y}dif.V:III{z::(F x)%F y}moi.V:III{x:I x;y:I y;z::(y+I?x\'y)\'y}
+dic.V:III{z::C?(C x)%C y}dii.V:III{z::(I x)%'I y}dif.V:III{z::(F x)%F y}moi.V:III{x:I x;y:I y;z::(y+I?x\'y)\'y}
 diz.V:III{a:F x;b:F x+8;c:F y;d:F y+8;$[(+c)>=(+d);(r:d%c;p:c+r*d;z::(a+b*r)%p;(z+8)::(b-a*r)%p);(r:c%d;p:d+r*c;z::(b+a*r)%p;(z+8)::((b*r)-a)%p)]}
 abx.I:I{nm(x;15;171)}neg.I:I{nm(x;19;173)}sqr.I:I{nm(x;27;165)}
 abc.V:II{c:C x;$[craz c;y::C?c-32;y::C?c]}abi.V:II{i:I x;$[(i<'0);y::0-i;y::i]}abf.V:II{y::+F x}abz.V:II{y::(F x)hypot F x+8}

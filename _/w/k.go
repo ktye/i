@@ -1662,7 +1662,7 @@ func mui(x, y, r i)         { sI(r, I(x)*I(y)) }
 func muf(x, y, r i)         { sF(r, F(x)*F(y)) }
 func muz(x, y, r i)         { sZ(r, Z(x)*Z(y)) }
 func dic(x, y, r i)         { sC(r, C(x)/C(y)) }
-func dii(x, y, r i)         { sI(r, I(x)/I(y)) }
+func dii(x, y, r i)         { sI(r, i(int32(I(x))/int32(I(y)))) }
 func dif(x, y, r i)         { sF(r, F(x)/F(y)) }
 func diz(x, y, r i)         { sZ(r, Z(x)/Z(y)) }
 func moi(x, y, r i)         { sI(r, imod(int32(I(x)), int32(I(y)))) }
