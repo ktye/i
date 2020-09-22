@@ -203,6 +203,7 @@ const gh = `// +build ignore
 
 package main
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -415,17 +416,20 @@ func leak() {
 		p += dp >> 2
 	}
 }
-func run(s string) string {
+func kinit() {
 	m0 := 16
 	MJ = make([]J, (1<<m0)>>3)
 	msl()
 	mt_init()
 	ini(16)
-	x := mk(1, I(len(s)))
-	copy(MC[x+8:], s)
+}
+func kstring(s string) I { x:=mk(1,I(len(s)));copy(MC[x+8:], s);return x}
+func stringk(x I) string { return string(MC[8+x:8+x+nn(x)]) }
+func run(s string) string {
+	kinit()
+	x := kstring(s)
 	x = kst(val(x))
-	n := nn(x)
-	s = string(MC[8+x:8+x+n])
+	s = stringk(x)
 	dx(x)
 	dx(MI[132>>2]) //kkey
 	dx(MI[136>>2]) //kval
@@ -434,11 +438,30 @@ func run(s string) string {
 	return s
 }
 func main() {
+	if len(os.Args) == 1 { repl(); return }
 	//m0 := 16
 	//MJ = make([]J, (1<<m0)>>3)
 	//msl()
 	//mt_init()
 	//ini(16)
 	runtest()
+}
+func repl() {
+	kinit()
+	s := bufio.NewScanner(os.Stdin)
+	for s.Scan() {
+		t := s.Text()
+		switch strings.TrimSpace(t) {
+		case "\\", "\\\\":
+			os.Exit(0)
+		default:
+			if x := val(kstring(t)); x > 255 {
+				x = kst(x)
+				os.Stdout.Write(MC[x+8 : x+nn(x)+8])
+				os.Stdout.Write([]byte{10})
+				dx(x)
+			}
+		}
+	}
 }
 `
