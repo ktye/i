@@ -454,6 +454,9 @@ func lx(x i) (r i) { // explode
 	if xt == 7 || n == 1 {
 		return enl(x)
 	}
+	if xt == 0 {
+		trap()
+	}
 	r = mk(6, n)
 	rp := r + 8
 	rxn(x, n)
@@ -769,12 +772,10 @@ func atx(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func cal(x, y i) (r i) {
+	y = lx(y)
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt != 0 {
 		return atm(x, y)
-	}
-	if yt != 6 {
-		panic("type")
 	}
 	if yn == 1 {
 		if x == '\'' || x == '/' || x == '\\' || x == 128+'\'' || x == 128+'/' || x == 128+'\\' {
