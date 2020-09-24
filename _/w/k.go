@@ -185,8 +185,8 @@ func ini(x i) i {
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
-		atx, nil, nil, nil, nil, nil, nmf, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecl, scv, sci, exc, cut, // 064..095
-		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ecr, max, ovi, mtc, nil, // 096..127
+		atx, nil, nil, nil, nil, nil, nmf, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, sci, scv, ecr, exc, cut, // 064..095
+		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovi, max, ecl, mtc, nil, // 096..127
 		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
@@ -773,7 +773,7 @@ func atx(x, y i) (r i) {
 }
 func cal(x, y i) (r i) {
 	y = lx(y)
-	xt, yt, xn, yn, xp, yp := v2(x, y)
+	xt, _, xn, yn, xp, yp := v2(x, y)
 	if xt != 0 {
 		return atm(x, y)
 	}
@@ -1825,11 +1825,15 @@ func scn(x, y i) (r i) { // y\x (scan)
 	}
 	return ovs(x, y, enl(mk(6, 0)), 0)
 }
-func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/: x (over initial)
-func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/: x (scan initial)
+func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/ x (over initial)
+func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/ x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
-	if ary(y) == 1 {
-		return fxp(x, y, z)
+	fmt.Printf("ovs x=%s y=%s z=%s l=%s\n", X(x), X(y), X(z), X(l))
+	if l != 0 && tp(l) == 0 {
+		dx(z)
+		return fxp(x, y, l)
+
+		//return whl(x, y, z, 0)
 	}
 	n := nn(x)
 	rxn(x, n)
@@ -1883,9 +1887,6 @@ func scl(x, y i) {
 	}
 }
 func ecr(x, y, f i) (r i) { // x f/ y (each-right)
-	if ary(f) == 1 {
-		return whl(x, y, f, 0)
-	}
 	if tp(y) == 7 {
 		rld(y)
 		k := I(y + 8)

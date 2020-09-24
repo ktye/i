@@ -10,7 +10,7 @@ plots:{q:s:plotsize;r:(!n)*w:*s%n:#x;r:r,\,/(0;w;s 1);,/plotn'&,/,'(r;!x;.x)}   
 plot1:{[r;t;a]drawplot[r;$[t~`polar;polarp pplot[!a;_a;|/|/+a];pplot.a,0]]}
 
 
-zip:{[f;l]f./&l} / e.g. zip[f3;(x;y;z)] x y z:lists
+zip:{[f;l]f./&l} / e.g. zip[f3;(x;y;z)] x y z:lists  extend: zip:{[f;l]f./&(|/#'l)#'l}
 explode:{:'x}    / dex-each e.g. explode 1 2 3
 
 plotsize:   800 600
