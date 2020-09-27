@@ -169,12 +169,12 @@ _  drp flr   drop        re:_z f:__i i:_f
 @  atx typ               z:abs@ang z@ang (+;(`x;a;b;c);y)  assign(m/i) s[a;b;c]+:y
 .  cal val               im:. z          (;a;b;c)   (*128) sequence    a;b;c     
                                          ((/;+);1 2 3)     adverbs     +/1 2 3 
-+'x  ech(168)      x+'y  ecd(40)         x'y  bin          ::x(last)   :[x;y](dex)
-+/x  ovr(251),fxp  x+/y  ovi(123),n/whl  x/y  mod
-+\x  scn(219),fxp  x+\y  sci(91),n/whl   x\y  y%x   \(help)  \\(exit)  \d(dump)
-+':x ecp(169)      x+':y epi(41)         x':y win?  dropfile(fs[name]) \lm(ld m.k)
-+/:x ?(253)        x+/:y ecl(125)        x/:y join  \wFILE(download)   \w(k.ws)
-+\:x ?(221)        x+\:y ecr(93)         x\:y split \c(clear console)  \e var(edt)
++'x  ech(168)  x+'y  ecd(40)             x'y  bin          ::x(last)   :[x;y](dex)
++/x  ovr(251)  x+/y  ovi(123)  whl nlp   x/y  mod
++\x  scn(219)  x+\y  sci(91)  (c;f)/:x   x\y  y%x   \(help)  \\(exit)  \d(dump)
++':x ecp(169)  x+':y epi(41)  (c;f)\:x   x':y win?  dropfile(fs[name]) \lm(ld m.k)
++/:x fxp(253)  x+/:y ecl(125) (n;f)/:x   x/:y join  \wFILE(download)   \w(k.ws)
++\:x fxp(221)  x+\:y ecr(93)  (n;f)\:x   x\:y split \c(clear console)  \e var(edt)
 
 rm:
 +'x  ech(168)      x+'y  ecd(40)         x'y  bin  

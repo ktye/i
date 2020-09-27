@@ -359,6 +359,8 @@ func v2(x, y i) (xt, yt, xn, yn, xp, yp i) {
 	yt, yn, yp = v1(y)
 	return
 }
+
+/*
 func ary(x i) (r i) { // arity
 	if x < 128 {
 		return 2
@@ -375,6 +377,7 @@ func ary(x i) (r i) { // arity
 	}
 	return I(x + 20) // lambda
 }
+*/
 func use(x i) (r i) {
 	if I(x+4) == 1 {
 		return x
@@ -1110,6 +1113,16 @@ func rng() (r i) {
 }
 func jon(x, y i) (r i) { // y/:x (join)
 	xt, xn, xp := v1(x)
+	yt := tp(y)
+	if yt == 0 {
+		return fxp(x, y, 0)
+	}
+	if yt == 6 {
+		rld(y)
+		f := I(y + 12)
+		y := I(y + 8)
+		return whl(y, x, f, 0)
+	}
 	if xt != 6 || xn == 0 {
 		return dxr(y, x) // allow ","/"abc" -> "abc"
 	}
@@ -1123,6 +1136,16 @@ func jon(x, y i) (r i) { // y/:x (join)
 	return dxr(x, r)
 }
 func spl(x, y i) (r i) { // y\:x (split)
+	yt := tp(y)
+	if yt == 0 {
+		return fxp(x, y, enl(mk(6, 0)))
+	}
+	if yt == 6 {
+		rld(y)
+		f := I(y + 12)
+		y := I(y + 8)
+		return whl(y, x, f, enl(mk(6, 0)))
+	}
 	rx(x)
 	yn := nn(y)
 	r = fds(x, y)
@@ -1756,10 +1779,10 @@ func drv(x, y i) (r i) { // x(adv) y(verb), e.g. ech +
 }
 func ecv(x i) (r i) { return drv(40, x) }  // '  ech(168) ecd(40)
 func epv(x i) (r i) { return drv(41, x) }  // ': ecp(169) epi(41)
-func ovv(x i) (r i) { return drv(123, x) } // /  ovr(251) ecr(123)
-func riv(x i) (r i) { return drv(125, x) } // /: jon(253) ?(125)
-func scv(x i) (r i) { return drv(91, x) }  // \  scn(219) ecl(91)
-func liv(x i) (r i) { return drv(93, x) }  // \: spl(221) ?(93)
+func ovv(x i) (r i) { return drv(123, x) } // /  ovr(251) ovi(123)
+func riv(x i) (r i) { return drv(125, x) } // /: jon(253) ecl(125)
+func scv(x i) (r i) { return drv(91, x) }  // \  scn(219) sci(91)
+func liv(x i) (r i) { return drv(93, x) }  // \: spl(221) ecr(93)
 func ech(x, y i) (r i) { // f'x (each)
 	if tp(y) != 0 {
 		return bin(y, x)
@@ -1828,13 +1851,14 @@ func scn(x, y i) (r i) { // y\x (scan)
 func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/ x (over initial)
 func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/ x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
-	fmt.Printf("ovs x=%s y=%s z=%s l=%s\n", X(x), X(y), X(z), X(l))
-	if l != 0 && tp(l) == 0 {
-		dx(z)
-		return fxp(x, y, l)
-
-		//return whl(x, y, z, 0)
-	}
+	/*
+		fmt.Printf("ovs x=%s y=%s z=%s l=%s\n", X(x), X(y), X(z), X(l))
+		if l != 0 && tp(l) == 0 {
+			dx(z)
+			return fxp(x, y, l)
+			//return whl(x, y, z, 0)
+		}
+	*/
 	n := nn(x)
 	rxn(x, n)
 	r = l
@@ -1858,7 +1882,7 @@ func ovs(x, y, z, l i) (r i) { // over/scan
 	dx(r)
 	return fst(z)
 }
-func fxp(x, y, z i) (r i) { // fixed point/converge
+func fxp(x, y, z i) (r i) { // f/:x f\:x fixed point/converge
 	t := x
 	rx(x)
 	for {
@@ -1886,7 +1910,7 @@ func scl(x, y i) {
 		sI(xp, lcat(I(xp), y))
 	}
 }
-func ecr(x, y, f i) (r i) { // x f/ y (each-right)
+func ecr(x, y, f i) (r i) { // x f/: y (each-right)
 	if tp(y) == 7 {
 		rld(y)
 		k := I(y + 8)
@@ -1939,7 +1963,7 @@ func whl(x, y, f, s i) (r i) {
 		dx(t)
 	}
 }
-func nlp(x, f, s, n i) (r i) { // n f/y (for)  n f\y (scan-for)
+func nlp(x, f, s, n i) (r i) { // (n;f)/:y (for)  (n;f)\:y (scan-for)
 	if int32(n) < 0 {
 		trap()
 	}
@@ -1957,10 +1981,10 @@ func nlp(x, f, s, n i) (r i) { // n f/y (for)  n f\y (scan-for)
 	}
 	return r
 }
-func ecl(x, y, f i) (r i) { // x f\ y (each-left)
-	if ary(f) == 1 {
-		return whl(x, y, f, enl(mk(6, 0)))
-	}
+func ecl(x, y, f i) (r i) { // x f\: y (each-left)
+	//if ary(f) == 1 {
+	//	return whl(x, y, f, enl(mk(6, 0)))
+	//}
 	if tp(x) == 7 {
 		rld(x)
 		k := I(x + 8)
