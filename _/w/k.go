@@ -1092,16 +1092,24 @@ func rng() (r i) {
 	sI(12, r)
 	return r
 }
-func jon(x, y i) (r i) { // y/:x (join)
-	yt := tp(y)
-	if yt == 0 {
-		return fxp(x, y, 0)
+func lop(x, y, l i) (r i) {
+	t := tp(y)
+	if t == 0 {
+		return fxp(x, y, l)
 	}
-	if yt == 6 {
+	if t == 6 {
 		rld(y)
 		f := I(y + 12)
 		y := I(y + 8)
-		return whl(y, x, f, 0)
+		return whl(y, x, f, l)
+	}
+	dx(l)
+	return 0
+}
+func jon(x, y i) (r i) { // y/:x (join)
+	r = lop(x, y, 0)
+	if r != 0 {
+		return r
 	}
 	xt, xn, xp := v1(x)
 	if xt != 6 || xn == 0 {
@@ -1117,15 +1125,9 @@ func jon(x, y i) (r i) { // y/:x (join)
 	return dxr(x, r)
 }
 func spl(x, y i) (r i) { // y\:x (split)
-	yt := tp(y)
-	if yt == 0 {
-		return fxp(x, y, enl(mk(6, 0)))
-	}
-	if yt == 6 {
-		rld(y)
-		f := I(y + 12)
-		y := I(y + 8)
-		return whl(y, x, f, enl(mk(6, 0)))
+	r = lop(x, y, enl(mk(6, 0)))
+	if r != 0 {
+		return r
 	}
 	rx(x)
 	yn := nn(y)
