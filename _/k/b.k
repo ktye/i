@@ -36,21 +36,21 @@ solve:  {[A;b];qrsolve[qr A;b]}
 qrsolve:{[q;b];qrslv[q;qrmul[q;b]]}
 
 qr: {m:#x;x:&x;n:#x;x:,/x;f:$[3~t:@x;qrh;qzh]                                              /qr decomposition
- r:n f/(x;t$!0;m;n;!m;(,/(n;m))#!n*m);`Q`D`m`n!(r 0;|r 1;r 2;r 3)}
+ r:(n;f)/:(x;t$!0;m;n;!m;(,/(n;m))#!n*m);`Q`D`m`n!(r 0;|r 1;r 2;r 3)}
 qrh:{Q:x 0;i:#D:x 1;m:x 2;n:x 3;row:x 4;sub:1_x 5;ii:i+i*m                                 /householder step(real)
  s:norm Q row;D,:d:s*1 -1@Q[ii]>0;s:1%%s*s++Q ii;Q[ii]-:d;Q[row]*:s
- $[#sub;Q[,/sub]-:,/Q[row]*/+/'(Q[row]*/Q[sub]);]
+ $[#sub;Q[,/sub]-:,/Q[row]*/:+/'(Q[row]*/:Q[sub]);]
  (Q;D;m;n;m+1_row;1_'sub)}
 qzh:{Q:x 0;i:#D:x 1;m:x 2;n:x 3;row:x 4;sub:1_x 5;ii:i+i*m                                 /householder step(complex)
  s:norm Q row;d:-s@&Q[ii];D,:d:-s@&Q[ii];s:1%%s*s++Q ii;Q[ii]-:d;Q[row]*:s
- $[#sub;Q[,/sub]-:,/Q[row]*/+/'((%Q[row])*/Q[sub]);]
+ $[#sub;Q[,/sub]-:,/Q[row]*/:+/'((%Q[row])*/:Q[sub]);]
  (Q;D;m;n;m+1_row;1_'sub)}
 
-qrmul:{m:x`m;n:x`n;f:$[3~t:@x`Q;qrml;qzml];r:n f/(x`Q;t$y;!x`m;!m;x`m);(x`n)#r 1}          /calculate QT*b
+qrmul:{m:x`m;n:x`n;f:$[3~t:@x`Q;qrml;qzml];r:(n;f)/:(x`Q;t$y;!x`m;!m;x`m);(x`n)#r 1}       /calculate QT*b
 qrml: {Q:x 0;b:x 1;row:x 2;yi:x 3;m:x 4;b[yi]-:Q[row]*+/Q[row]*b[yi];(Q;b;m+1_row;1_yi;m)}
 qzml: {Q:x 0;b:x 1;row:x 2;yi:x 3;m:x 4;b[yi]-:Q[row]*+/(%Q[row])*b[yi];(Q;b;m+1_row;1_yi;m)}
 
-qrslv:{n:x`n;r:n qrsl/(x`Q;y;x`D;n-1;x`m;x`n;!0);r 1}                                      /solve R*x=QT*b with back substitution
+qrslv:{n:x`n;r:(n;qrsl)/:(x`Q;y;x`D;n-1;x`m;x`n;!0);r 1}                                   /solve R*x=QT*b with back substitution
 qrsl: {Q:x 0;b:x 1;D:x 2;i:x 3;m:x 4;n:x 5;bi:x 6;col:i+m*bi
  $[#bi;b[i]-:+/Q[col]*b[bi];];b[i]%:*D
  (Q;b;1_D;i-1;m;n;i,bi)}
@@ -58,7 +58,7 @@ qrsl: {Q:x 0;b:x 1;D:x 2;i:x 3;m:x 4;n:x 5;bi:x 6;col:i+m*bi
 
 norm:{s*%+/x*x%:s:|/x:+0.+x}                                                               /vector norm(l2)
 
-matvec:{[A;b],/+/'A*\b}
+matvec:{[A;b],/+/'A*\:b}
 
 
 
@@ -77,23 +77,28 @@ test:{[]
 }
  
 
-tmsolve:{[A;BT](qr A)qrsolve/BT}
+tmsolve:{[A;BT](qr A)qrsolve/:BT}
 
-ucal1:{[s;t;r]n:#r;i:(u:?r)?r;q:qr[t,'0a+i=(n#,!#u)];X:q qrsolve/&s;K:(#t 0)#'X}
-ucal2:{[s;t;r]n:#r;i:(u:?r)?r;X:tmsolve[t,'0a+i=(n#,!#u);&s];K:(#t 0)#'X}
-s0:1a0 2a30
-s:(s0;s0+2a0 0a0;s0+0a0 2a0)
-t:(0a0 0a0;1a0 0a0;0a0 1a0)
-r:`a`a`a
+ucal:{[s;t;r]n:#r;i:(u:?r)?r;X:tmsolve[t,'0a+i=(n#,!#u);&s];K:(#t 0)#'X}
+ucalTest:{[]
+ s0:1a0 2a30
+ s:(s0;s0+2a0 0a0;s0+0a0 2a0)
+ t:(0a0 0a0;1a0 0a0;0a0 1a0)
+ r:`a`a`a
+ e:|//:+(2a0 0;0 2a0)-ucal[s;t;r]
+ `ucal,$[1.e-15>e;`ok;`fail]}
+
 
 pcal:{[s;u]i:!2\#s;&tmsolve[(s i)-s i+1;&u i]}
 pcnl:{[s;u;f;n]i:!2\#s;pcal[s g:(n&#i)#>f s i;u g]}
 
 uidx:{[u;a]solve[1@0.+a;u]}
-/ u:4.8a48 4.9a47 1.6a277 1.7a279
-/ a:(0 0;0 0;0 180;0 180)
-
-
+uidxTest:{[]
+ u0:2a30;ur:3a40
+ u:u0+ur@0 90 180.
+ a:(0 0;0 90;0 180)
+ e:|/+uidx[u;a]-,/(u0;ur)
+ `uidx,$[1.e-15>e;`ok;`fail]}
 
 Tags:`List`idx
 List:`u`a!(4.8a48 4.9a47 1.6a277 1.7a279;(0 0;0 0;0 180;0 180))
