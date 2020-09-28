@@ -14,6 +14,7 @@ rpad:   {y#x,(y-#x)#" "}                        /rpad["alpha";10]
 tabdict:{k:$!x;pad:rpad[;|/#'k]; ((pad'k),'"|"),' 'k'.x}
 tochar: {$[1~@x;x; 'kx]}
 
+zip:{[f;l]f./:&l} / e.g. zip[f3;(x;y;z)] x y z:lists, does not extend
 
+std:`kst`hex`zip!(kst;hex;zip)
 
-std:`kst`hex!(kst;hex);
