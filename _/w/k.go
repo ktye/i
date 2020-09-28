@@ -1093,7 +1093,6 @@ func rng() (r i) {
 	return r
 }
 func jon(x, y i) (r i) { // y/:x (join)
-	xt, xn, xp := v1(x)
 	yt := tp(y)
 	if yt == 0 {
 		return fxp(x, y, 0)
@@ -1104,6 +1103,7 @@ func jon(x, y i) (r i) { // y/:x (join)
 		y := I(y + 8)
 		return whl(y, x, f, 0)
 	}
+	xt, xn, xp := v1(x)
 	if xt != 6 || xn == 0 {
 		return dxr(y, x) // allow ","/"abc" -> "abc"
 	}

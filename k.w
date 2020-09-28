@@ -6,7 +6,6 @@ mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}
 mkd:I:II{v2;ext;(xt~3)?(yt~3)?(r:4 mk xn;r8;xn/(rp::F xp;(rp+8)::F yp;rp+:16;xp+:8;yp+:8);dx x;dx y; :r);(~xt~5)?!;(~yt~6)?y:lx y;r:x l2 y;r::2|7<<29;r}
 mkc:I:I{r:1 mk 1;(r+8)::C?x;r}mks:I:I{sc mkc x}mkz:I:II{r:x mkd y;r::2|6<<29;r}l2.I:II{r:6 mk 2;(r+8)::x;(r+12)::y;r}l3.I:III{r:6 mk 3;(r+8)::x;(r+12)::y;(r+16)::z;r}
 nn:I:I{(x<256)? :1;536870911&I x}tp:I:I{(x<256)? :0;(I x)>>29}v1:{xt:tp x;xn:nn x;xp:8+x}v2:{v1;yt:tp y;yn:nn y;yp:8+y}r8:{rp:r+8}
-ary.I:I{(x<128)? :2;(x<256)? :1;n:nn x;(n~2)? :1;(n~3)? :nn I x + 16;I x+20}
 fr.V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;((~xt)+xt>4)?xn/(dx I xp+4*i);fr x))}dex.I:II{dx x;y}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{x rxn 1}rxn.V:II{(x>255)?(x+:4;x::y+I x)}rl.V:I{v1;xn/(rx I xp;xp+:4)}rld.V:I{rl x;dx x}
 lx.I:I{v1;(xt~6)? :x;((xt~7)+xn~1)? :enl x;(0~xt)?!;r:6 mk xn;r8;x rxn xn;xn/(rp::x atx mki i;rp+:4);dxr}
 til:I:I{v1;(~xt)?(xn~4)? :lcl(x;0;1);(4~xt)? :zim x;(6~xt)? :x ech 161;(7~xt)?(r:I xp;rx r;dx x; :r);(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir.I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
@@ -32,8 +31,8 @@ enl:I:I{r:6 mk 1;(r+8)::x;r}cnt.I:I{(7~tp x)?x:til x;r:mki nn x;dxr}typ.I:I{v1;r
 wer.I:I{v1;(xt~1)? :prs x;(xt~4)? :zan(x;xn;xp);(xt~6)? :flp x;(~xt~2)?!;n:0;xn/(n+:I xp;xp+:4);xp:8+x;r:2 mk n;r8;xn/((I xp)/(rp::i;rp+:4);xp+:4);dxr}
 mtc.I:II{r:2 mk 1;(r+8)::x match y;dxyr}match.I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;xt?[ :1;n:xn;n:xn<<2;n:xn<<3;n:xn<<4;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];n/(~(C xp+i)~C yp+i)? :0;1}
 fnd.I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx.I:II{v1;eq:8+xt;w:C xt;xn/(((I.eq)(xp;y))? :i;xp+:w);xn}
-jon.I:II{v1;((~xt~6)+~xn)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
-spl.I:II{rx x;yn:nn y;r:x fds y;(~nn r)?(dx r;:enl x);r:((mki 0)cat r)cut x;rn:(nn r)-1;r8;rn/(rp+:4;rp::(I rp) drop yn);r}
+jon.I:II{yt:tp y;(~yt)? :fxp(x;y;0);(6~yt)?(rld y;f:I y+12;y:I y+8; :whl(y;x;f;0));v1;((~xt~6)+~xn)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
+spl.I:II{yt:tp y;(~yt)? :fxp(x;y;enl 6 mk 0);(6~yt)?(rld y;f:I y+12;y:I y+8; :whl(y;x;f;enl 6 mk 0));rx x;yn:nn y;r:x fds y;(~nn r)?(dx r;:enl x);r:((mki 0)cat r)cut x;rn:(nn r)-1;r8;rn/(rp+:4;rp::(I rp) drop yn);r}
 fds.I:II{v2;((~xt~yt)+xt>5)?!;(xn<yn)?(dx x;dx y; :2 mk 0);(~yn)?(dx x;dx y; :(seq(0;xn;1))drop 1);r:2 mk 0;w:C xt;eq:8+xt;i:0;xn/(a:0;yn/(k:w*j;a+:((I.eq)(xp+k;yp+k)));(a~yn)?(r:r ucat mki i;i+:yn-1;xp+:w*yn-1);xp+:w);dxyr}
 exc.I:II{n:mki nn y;rx x;x atx wer n eql y fnd x}
 srt.I:I{rx x;x atx grd x}gdn.I:I{rev grd x}grd.I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);r8;msrt(y+8;rp;0;xn;xp;xt);dxyr}
@@ -64,10 +63,10 @@ drv.I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv.I:I{40 drv x}epv.I:I{41 drv x}ovv.I:I
 ech.I:II{(tp y)? :y bin x;(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd v ech y);x:lx x;v1;r:6 mk xn;r8;rl x;(y<120)?y+:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
 ecp.I:II{rx x;p:fst x;epi(p;x;y)}epi.I:III{n:nn y;(~n)?(dx x;dx z; :y);y rxn n;z rxn n;r:6 mk n;r8;n/(yi:y atx mki i;rx yi;rp::z cal yi l2 x;x:yi;rp+:4);dx yi;dx y;dx z;r}
 ovr.I:II{t:tp y;(2~t)? :x mod y;ovs(x;y;0;0)}scn.I:II{t:tp y;t?(t<5)? :x diw y;ovs(x;y;enl 6 mk 0;0)}ovi.I:III{ovs(y;z;0;x)}sci.I:III{ovs(y;z;enl 6 mk 0;x)}scl.V:II{x?(rx y;xp:x+8;xp::(I xp)lcat y)}
-ovs.I:IIII{(1~ary y)? :fxp(x;y;z);n:nn x;x rxn n;r:x3;o:1;(~r)?(r:fst x;o:0;n-:1;z scl r);y rxn n;n/(r:y cal r l2 x atx mki i+1-o;z scl r);dx x;dx y;(~z)? :r;dx r;fst(z)}
+ovs.I:IIII{n:nn x;x rxn n;r:x3;o:1;(~r)?(r:fst x;o:0;n-:1;z scl r);y rxn n;n/(r:y cal r l2 x atx mki i+1-o;z scl r);dx x;dx y;(~z)? :r;dx r;fst(z)}
 fxp.I:III{t:x;rx x;1?/(rx x;rx y;r:y atx x;((r match x)+r match t)?(dx x;dx y;dx t;z?r:(fst z)lcat r; :r);z scl x;dx x;x:r);x}
-ecr.I:III{(1~ary z)? :whl(x;y;z;0);(7~tp y)?(rld y;k:I y+8;v:I y+12; :k mkd ecr(x;v;z));n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
-ecl.I:III{(1~ary z)? :whl(x;y;z;enl 6 mk 0);(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd ecl(v;y;z));n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
+ecr.I:III{(7~tp y)?(rld y;k:I y+8;v:I y+12; :k mkd ecr(x;v;z));n:nn y;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal x l2 y atx mki i;rp+:4);dx z;dxyr}
+ecl.I:III{(7~tp x)?(rld x;k:I x+8;v:I x+12; :k mkd ecl(v;y;z));n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(rp::z cal (x atx mki i)l2 y;rp+:4);dx z;dxyr}
 whl.I:IIII{t:tp x;t?(((~t~2)+~1~nn x)?!;dx x; :nlp(y;z;x3;I x+8));r:y;x3 scl r;n:mki 0;1?/(rx x;rx z;r:z atx r;x3 scl r;rx r;t:x atx r;(t match n)?(dx t;dx n;dx z;dx x;x3?(dx r;r:fst x3); :r);dx t);x}
 bin.I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C xt;yn/(rp::ibin(xp;yp;xn;xt);rp+:4;yp+:w);dxyr}
 ibin.I:IIII{k:0;j:z-1;w:C x3;1?/((k>'j)? :k-1;h:(k+j)>>1;$[((I.x3)(x+w*h;y));j:h-1;k:h+1]);x}
@@ -136,8 +135,8 @@ is.I:II{y&cla x}cla.I:I{(128<x-32)? :0;C 128+x}
 
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; mod; xxx; eqc; eqi; eqf; eqz; eqL; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; moi; xxx; xxx; sqc; sqi; sqf; sqz}
 032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
-064:{atx; xxx; xxx; xxx; xxx; xxx; nmf; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecl; scv; sci; exc; cut}
-096:{xxx; xxx; xxx; xxx; drw; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ecr; max; ovi; mtc; xxx}
+064:{atx; xxx; xxx; xxx; xxx; xxx; nmf; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; sci; scv; ecl; exc; cut}
+096:{xxx; xxx; xxx; xxx; drw; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovi; max; ecr; mtc; xxx}
 128:{xxx; sin; cos; exp; log; xxx; xxx; xxx; chr; nms; vrb; nam; sms; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
 160:{out; til; xxx; cnt; str; sqr; wer; epv; ech; ecp; fst; abx; enl; neg; val; riv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; lst; xxx; grd; grp; gdn; unq}
 192:{typ; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; scn; liv; spl; srt; flr}
@@ -175,11 +174,3 @@ _  drp flr   drop        re:_z f:__i i:_f
 +':x ecp(169)  x+':y epi(41)  (c;f)\:x   x':y win?  dropfile(fs[name]) \lm(ld m.k)
 +/:x fxp(253)  x+/:y ecl(125) (n;f)/:x   x/:y join  \wFILE(download)   \w(k.ws)
 +\:x fxp(221)  x+\:y ecr(93)  (n;f)\:x   x\:y split \c(clear console)  \e var(edt)
-
-rm:
-+'x  ech(168)      x+'y  ecd(40)         x'y  bin  
-+/x  ovr(251),fxp  x+/y  ecr(123),n/whl  x/y  mod
-+\x  scn(219),fxp  x+\y  ecl(91),n/whl   x\y  y%x  
-+':x ecp(169)      x+':y epi(41)         x':y win? 
-+/:x ?(253)        x+/:y ovi(125)        x/:y join 
-+\:x ?(221)        x+\:y sci(93)         x\:y split
