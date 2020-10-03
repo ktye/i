@@ -22,3 +22,4 @@ iline: {[a;b;w;h;cl]dx:*d:-a-b;dy:d 1;m:dx%0.+dy
  $[(+dx)<+dy;(w*_x)+y:_(a 1)+m*x:(a 0)+(1+2*dx<0)*!dx
   y+w*x:_(a 0)+m\y:(a 1)+(1+2*dy<0)*!dy]}
 
+istr:{[x;y;w;s](x+w*y-20)+i+w*10\i:,/font@0+s} /font.k (10x20)
