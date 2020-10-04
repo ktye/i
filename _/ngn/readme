@@ -1,8 +1,14 @@
 # ngn/k, (c) 2019-2020 ngn, GNU AGPLv3 - http://bitbucket.org/ngn/k/raw/master/LICENSE
 
-# e.g. on windows with msys2 where cc is gcc:
-cc k.c
-
-# or with tcc (wip)
-# sed 's/\$/IF/g' k.c | tcc -
-# <stdin>:749: error division by zero in constant
+cc=gcc
+ngn=/c/k/ngn/k
+set -x
+set -e
+for c in a b c e f h j k o p s v w x; do
+	$cc -c $ngn/${c}.c
+done
+for c in i m main; do
+	$cc -I$ngn -c ${c}.c
+done
+$cc *.o
+rm *.o
