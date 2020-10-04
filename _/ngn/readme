@@ -1,5 +1,7 @@
 # ngn/k, (c) 2019-2020 ngn, GNU AGPLv3 - http://bitbucket.org/ngn/k/raw/master/LICENSE
 
+# e.g. on windows with msys2/gcc
+
 cc=gcc
 ngn=/c/k/ngn/k
 set -x
@@ -12,3 +14,7 @@ for c in i m main; do
 done
 $cc *.o
 rm *.o
+
+
+# wasm
+#  sh mk

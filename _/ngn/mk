@@ -1,0 +1,33 @@
+# ngn/k, (c) 2019-2020 ngn, GNU AGPLv3 - http://bitbucket.org/ngn/k/raw/master/LICENSE
+
+# changes to ngn/k:
+# a.h (remove headers)
+#  -#include<unistd.h>
+#  -#include<math.h>
+#  +#define _0n (D)(0.0/0.0)
+#  +#define _0w (D)(1.0/0.0)
+# k.c (remove write)
+#  +//S S1(wrt...) [newline]
+#  +S A1(fnow...)
+# s.c
+#  replace "memcpy" with "mc"
+
+ngn=/c/k/ngn/k
+cc=/c/local/LLVM/bin/clang
+ws="--target=wasm32 -U __SIZEOF_INT128__"
+
+set -x
+set -e
+
+for c in a b c e f h j k o p s v w x; do
+	$cc -c $ws $ngn/${c}.c
+done
+for c in i m wasm; do
+	$cc -I$ngn -c $ws ${c}.c
+done
+
+$cc -o ngn.wasm -v $ws -Wl,--no-entry -Wl,--export=init,--export=mk,--export=nn,--export=val,--export=kst,--export=__heap_base,--initial-memory=33554432 -nostdlib *.o
+
+# lots of warnings
+# ngn.wasm (1MB)
+# index.html: Uncaught (in promise) CompileError: wasm validation error: at offset 280464: type mismatch: expression has type i32 but expected i64

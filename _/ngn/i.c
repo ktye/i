@@ -8,3 +8,5 @@ A1(frk,en(1,x);0)
 A1(hop,en(1,x);0)
 A1(hcl,en(1,x);0)
 L now(){return 0;};
+
+A2(wrt,en(1,x,y);0) // k.c

@@ -4,6 +4,7 @@
 //ktye
 void  *mmap(void *, size_t, int, int, int, off_t);
 int    munmap(void *, size_t);
+int    write(int x, char *s, int n) { return 0; }
 #define PROT_READ 0
 #define PROT_WRITE 0
 #define MAP_PRIVATE 0 
@@ -19,8 +20,10 @@ S A ma(UI b)_(dbg(asrt(!ml));asrt(4<b);P(b>=ZZ(mx),oom())mu+=1ll<<b;A x=mx[b];P(
 A1(mr0,dbg(ml++);asrt(x);P(pkd(x),0)asrt(Ar(x)>0);P(--Ar(x),0)C b=xb;P(!b,AT(tn,x))nxt(x)=mx[b];mx[b]=x&~(-1ull<<48);mu-=1ll<<b;Y(ref(x),mrn(xn,xa))x)
 A1(mr1,dbg(ml--);P(!x,0)P(xt==tn,munmap(xc-ZP,xn+ZP);0)dbg(ms(xc,0xab,xn*ZT[xt]));0)
 A1(mr,mr1(mr0(x)))V mrn(I n,O A*a){F(n,mr(a[i]))}A1(mRa,F(xn,mR(xai))x)A1(mut,P(pkd(x)||Ar(x)==1,x)A u=atnv(xt,xn,xc);xr;Y(ref(u),mRa(u))u)
-V*memcpy(V*x,O V*y,L n)_(C*p=x;O C*q=y;F(n,p[i]=q[i])x)V*memset(V*x,I c,L n)_(C*p=x;F(n,*p++=c);x)
-I strcmp(O C*s,O C*t)_(W(*s&&*s==*t,s++;t++)*s-*t)L strlen(O C*x)_(O C*p=x;W(*p,p++)p-x)
+V*memcpy(V*x,O V*y,L n)_(C*p=x;O C*q=y;F(n,p[i]=q[i])x)
+V*memset(V*x,I c,L n)_(C*p=x;F(n,*p++=c);x)
+I strcmp(O C*s,O C*t)_(W(*s&&*s==*t,s++;t++)*s-*t)
+L strlen(O C*x)_(O C*p=x;W(*p,p++)p-x)
 A atn(C t,L n)_(A x=ma(64-__builtin_clzll(ZA+7+n*ZT[t]));Ar(x)=1;AT(t,AN(n,x)))
 A atnv(C t,L n,O V*v)_(A u=atn(t,n);mc(uc,v,n*ZT[t]);u)A1(ax,Ar(x)>1?Ar(x)--,atn(xt,xn):x)A0(aa0,am(enl(as(0)),enl(au0)))
 A1(a1,atnv(tA,1,A(x)))A2(a2,atnv(tA,2,A(x,y)))A3(a3,atnv(tA,3,A(x,y,z)))A2(aM,atnv(tM,2,A(x,y)))A2(am,atnv(tm,2,A(x,y)))
