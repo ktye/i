@@ -799,6 +799,9 @@ func cal(x, y i) (r i) {
 	}
 	if xn == 3 { // proj
 		rl(x)
+		if yn == 1 {
+			y = fst(y)
+		}
 		r = asi(I(x+12), I(x+16), y)
 		v := I(x + 8)
 		dx(x)
@@ -2211,13 +2214,13 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 			if xn == 1 {
 				r = enl(r)
 			}
+			if yn == 1 {
+				z = enl(z)
+				zn = 1
+				zt = 6
+			}
 			if zt != 6 {
-				if yn == 1 {
-					z = enl(z)
-					zn = 1
-				} else {
-					z = lx(z)
-				}
+				z = lx(z)
 			}
 		}
 		rp := r + 8
