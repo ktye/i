@@ -132,7 +132,7 @@ func runtest() {
 func kdirs(dirs []string) {
 	kinit()
 	for _, name := range dirs {
-		dx(asn(sc(mkchrs([]byte(name))), 0, kdir(name)))
+		asn(sc(mkchrs([]byte(name))), 0, kdir(name))
 	}
 	if err := ioutil.WriteFile("k.ws", MC, 0744); err != nil {
 		panic(err)
@@ -2086,12 +2086,11 @@ func lup(x, loc i) (r i) {
 	rx(r)
 	return dxr(x, r)
 }
-func asn(x, loc, u i) (r i) {
+func asn(x, loc, u i) {
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
 	}
-	rx(u)
 	k, v, n, m := kv(x, loc)
 	if n == m && loc != 0 {
 		k, v, n, m = kv(x, 0)
@@ -2099,12 +2098,12 @@ func asn(x, loc, u i) (r i) {
 	if n == m {
 		sI(kkey, cat(k, x))
 		sI(kval, lcat(v, u))
-		return u
+	} else {
+		vp := 8 + v + 4*m
+		dx(I(vp))
+		sI(vp, u)
+		dx(x)
 	}
-	vp := 8 + v + 4*m
-	dx(I(vp))
-	sI(vp, u)
-	return dxr(x, u)
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
 	xt, yt, xn, yn, xp, yp := v2(x, y)
@@ -2257,13 +2256,14 @@ func asd(x, loc i) (r i) { // (+;`x;a;y)
 		}
 		u = cal(v, l2(r, u))
 	}
+	r = u
+	rx(r)
 	if a != 0 {
 		rx(s)
 		u = asi(lup(s, loc), a, u)
 	}
-	rx(s)
-	r = asn(s, loc, u)
-	return dxr(s, r)
+	asn(s, loc, u)
+	return r
 }
 func swc(x, loc i) (r i) { // ($;a;b;...)
 	_, xn, xp := v1(x)
