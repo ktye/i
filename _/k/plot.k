@@ -98,9 +98,9 @@ arct:{[r](R+r 0 1),(R:0.+2\r 2),0 2p}                 /arc arguments (within squ
 strokeLine:{[a;b]`beginPath`moveTo`lineTo`stroke!(();a;b;())}
 
 scale:{[x;from;to](*to)+(x-*from)*(-/to)%-/from}      /scale[1 2 3.;-5 5.;0 100]
-ctext:{[x;y;s]`fillText!,(s;x-2\fontwidth*#s;y)}
-ltext:{[x;y;s]`fillText!,(s;x;y)}
-rtext:{[x;y;s]`fillText!,(s;x-fontwidth*#s;y)}
+ctext:{[x;y;s]`fillText!,(s;x-2\w;y;w:fontwidth*#s)}
+ltext:{[x;y;s]`fillText!,(s;x;y;fontwidth*#s)}
+rtext:{[x;y;s]`fillText!,(s;x-w;y;w:fontwidth*#s)}
 
 sin:129 'F;cos:130 'F
 x:!20
