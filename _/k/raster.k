@@ -1,10 +1,8 @@
 raster:{[wh;a]
  f:u!.'u:`strokeStyle`beginPath`moveTo`lineTo`stroke`fill`rect`arc`fillText`clip`lineWidth`textBaseline
- s:`f`a`o`w`h`ix`iy`fg`pa`r!(f(!a);.a;(*/wh)#0;w;h;w:wh 0;h:wh 1;0;!0;0)
- s:rasterF/:s
+ s:`o`w`h`ix`iy`fg`pa`r!((*/wh)#0;w;h;w:wh 0;h:wh 1;0;!0;0)
+ s:.s{@[y;1;x]}/{(x;;,y)}'[f(!a);.a]
  s`o}
-
-rasterF:{[s]f:*s`f;a:*s`a;s:$[#s`f;f[s;a];s];s[`f]:1_s`f;s[`a]:1_s`a;s}
 
 strokeStyle:{[s;c]s[`fg]:icolor c;s}
 beginPath:  {[s;u]moveTo[s;()]} /pa:(x0 y0;x1 y1;..)
