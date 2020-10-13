@@ -73,7 +73,8 @@ void draw0(int w, int h, char *p) {
 	DeleteDC(hbm);
 }
 #endif
-V draw(I x, I y, I z){draw0(x,y,MC+z+8);}
+I raster(I);
+V draw(I x, I y, I z){z=raster(z);draw0(x,y,MC+z+8);}
 #undef abs
 #undef min
 #undef max
@@ -102,6 +103,14 @@ I chrs(C *s) {
 	I x = mk(1, n);
 	for (I i=0; i<n; i++) MC[8+x+i] = s[i];
 	R x;
+}
+I raster(I x){ if(7!=tp(x))return x;
+	rx(x);
+	I f = lup(sc(chrs("raster")),0);
+	if(!f){ printf("raster\n"); panic(); }
+	x = atx(f,x);
+	dx(x);
+	return x;
 }
 #include"h_h"
 V runtest() {
