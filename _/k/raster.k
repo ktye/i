@@ -1,7 +1,6 @@
 raster:{[wh;a]
- f:u!.'u:`strokeStyle`beginPath`moveTo`lineTo`stroke`fill`rect`arc`fillText`clip`lineWidth`textBaseline
  s:`o`w`h`ix`iy`fg`pa`r!((*/wh)#0;w;h;w:wh 0;h:wh 1;0;!0;0)
- s:.s{@[y;1;x]}/{(x;;,y)}'[f(!a);.a]
+ s:.s{@[y;1;x]}/{(x;;,y)}'[!a;.a]
  s`o}
 
 strokeStyle:{[s;c]s[`fg]:icolor c;s}
