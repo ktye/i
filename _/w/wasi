@@ -1,0 +1,32 @@
+# build standalone wasi module of k.w
+set -x
+set -e
+
+wabt=/c/local/wabt
+tw=$wabt/wasm2wat
+wt=$wabt/wat2wasm
+vl=$wabt/wasm-validate
+
+(
+cat << EOF
+write:I:IIII{}read:I:IIII{}
+sin.F:F{x}cos.F:F{x}exp.F:F{x}log.F:F{x}atan2.F:FF{x+y}hypot.F:FF{x+y}draw.V:III{x:x+y+z}grow.I:I{!;x}
+printc.V:II{p:2 mk 3;(p+8)::x;(p+12)::y;x:write(1;p+8;1;p+16);dx(p)}
+O.V:I{v1;xp printc xn;dx x}
+rd.I:I{b:1 mk 120;x:2 mk 3;(x+8)::b+8;(x+12)::120;(~0~read(0;x+8;1;x+16))? :0;b:b take (I x+16)-1;dx x;b}
+start:I:I{x?x:16;x:ini x;O mkc 32;nl:(mkc 10)cc 32;x:rd 1;x?/(x:kst val x;O x;dx x;rx nl;O nl;x:rd 1);0}
+EOF
+cat ../../k.w | sed 1d
+) | w > k.wasii 
+
+$tw k.wasii | sed 's/"ext" "/"wasi_unstable" "fd_/' | sed 's/export "mem"/export "memory"/' > k.wat
+$wt k.wat -o k.wasi
+$vl k.wasi
+
+## the _start function signature must be V:V (which is not possible in w)
+# e.g. (func $main (export "_start") i32.const 16 call 13 drop)
+#
+#$ wasm3 k.wasi
+#wasm3> start 16
+# 1+!10
+#1 2 3 4 5 6 7 8 9 10
