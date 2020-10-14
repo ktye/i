@@ -1,11 +1,11 @@
 
 plot: {[x;y]drawplots`xy!,(x;y)}
-polar:{[z]  drawplots`polar!,z }
+polar:{[z]  drawplots`polar!,,z }
 axis: {[x]`axis`nyi}
 
 drawplots:{[d]dplot plots d}
-replot:{[]dplot stolp}
-plots:{[d]stolp::$[0~@f:(`xy`polar!(plotxy;plotpo))@!d;,f;f].'.d}
+replot:{[]dplot saveplots}
+plots:{[d]saveplots::$[0~@f:(`xy`polar!(plotxy;plotpo))@!d;,f;f].'.d}
 
 plotsize:   800 600
 plotfont:   "20px monospace"
@@ -13,14 +13,14 @@ fontwidth:  10                         /or measure text dynamically in js
 plotcolors: ("#8dd3c7";"#feffb3";"#bfbbd9";"#fa8174";"#81b1d2";"#fdb462";"#b3de69";"#bc82bd";"#ccebc4";"#ffed6f") /("#003FFF";"#03ED3A";"#E8000B";"#8A2BE2";"#FFC400";"#00D7FF")
 plotfg:     "white"
 
-dplot:{[p]plotsize 'd xxx::,/drawp./:&(p;rects[0 0,plotsize;#p])}
+dplot:{[p]plotsize 'd,/drawp./:&(p;rects[0 0,plotsize;#p])}
 rects:{[r;n]r[2]%:n;((!n)*r 2),\:1_r}
 
 
 plotxy:{[x;y]a:autoxy.d:xydat[x;y];x:d 0;y:d 1
  lines:{`x`y`type`size!(x 0;x 1;`line;2;x 2)}'&(x;y;(#x)#plotcolors)
  `type`title`xlabel`ylabel`axis`lines!(`xy;"- plot -";"x";"y";a;lines)}
-plotpo:{[z]p:plotxy[!x;_x];p[`axis]:,/(-;+;-;+)@'|/+p`axis;p}
+plotpo:{[z];p:plotxy[!z;_z];p[`type]:`polar;p[`axis]:,/(-;+;-;+)@'|/+p`axis;p}
 
 xydat: {x:3$'$[~6~@x;,x;x];((#y)#x;y:3$'$[~6~@y;,y;y])}
 podat: {xydat[!x;_x]}
@@ -49,15 +49,14 @@ pplot:{[x;y;ax]x:3$'$[~6~@x;,x;x];y:3$'$[~6~@y;,y;y];x:(#y)#x
 polarp:{[p];p[`type]:`polar;p[`axis]:,/(-;+;-;+)@'|/+p`axis;p}
 
 drawp: {[p;r]$[`xy~p`type;drawxy;drawpo][p;r]}
-drawxy:{[p;rect] /o:`beginPath`rect`clip!(();rect;())
+drawxy:{[p;r]
  o:`font`textBaseline`fillStyle!(plotfont;"bottom";plotfg)
- left:5;right:5;top:20;bottom:20
- o,:rtext[r:(rect 2)-right;rect 3;((p`xlabel),"  "), 'k(p`axis)0 1]
- o,:ltext[left;top;((p`ylabel),"  ", 'k(p`axis)2 3)]
- o,:rtext[r;top;p`title]
- rect:clip[rect;left;right;top;bottom]
- o,:`beginPath`lineWidth`strokeStyle`rect`stroke!(();2;plotfg;rect;())
- line:drawline[;p`axis;rect]
+ r:clip[r;left:5;right:5;top:20;bottom:20] /left:5;right:5;top:20;bottom:20
+ o,:rtext[rr:+/r 0 2;bottom++/r 1 3;((p`xlabel),"  "), 'k(p`axis)0 1]
+ o,:ltext[r 0;r 1;((p`ylabel),"  ", 'k(p`axis)2 3)]
+ o,:rtext[rr;r 1;p`title]
+ o,:`beginPath`lineWidth`strokeStyle`rect`stroke!(();2;plotfg;r;())
+ line:drawline[;p`axis;r]
  ,/o,line'p`lines}
  
 drawpo:{[p;rect]o:`font`textBaseline`fillStyle`strokeStyle`lineWidth!(plotfont;"bottom";plotfg;"gray";2)
@@ -87,12 +86,16 @@ ltext:{[x;y;s]`fillText!,(s;x;y;fontwidth*#s)}
 rtext:{[x;y;s]`fillText!,(s;x-w;y;w:fontwidth*#s)}
 
 sin:129 'F;cos:130 'F
-x:!20
-y:(sin@0.3*x;cos@0.3*x)
+/x:!20
+/y:(sin@0.3*x;cos@0.3*x)
 /plot[x;*y]
 /plot[x;y]
 /drawplots`xy`xy!((x;*y);(x;y))
 
-z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
+/z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
 /polar z
+/polar (z;-z)
+/drawplots`polar`polar!(z;(z;-z))
 
+testPlot:{[]x:!20;y:(sin@0.3*x;cos@0.3*x);z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
+ drawplots`xy`polar`polar`xy!((x;*y);,z;,(z;-z);(x;y))}
