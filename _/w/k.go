@@ -183,7 +183,7 @@ func ini(x i) i {
 	sin, cos, exp, log := math.Sin, math.Cos, math.Exp, math.Log
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
-		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqL, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
+		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqi, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nmf, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, sci, scv, ecl, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovi, max, ecr, mtc, nil, // 096..127
@@ -200,8 +200,9 @@ func ini(x i) i {
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-	sI(kkey, mk(5, 0))
-	sI(kval, mk(6, 0))
+	sI(kkey, enl(mk(1, 0)))
+	sI(kval, enl(0))
+	// todo dx(mks(120));dx(mks(121));dx(mks(122))
 	sI(xyz, cat(cat(mks(120), mks(121)), mks(122)))
 	return x
 }
@@ -275,7 +276,7 @@ func dx(x i) {
 		sI(x+4, xr-1)
 		if xr == 1 {
 			xt, xn, xp := v1(x)
-			if xt == 0 || xt > 4 {
+			if xt == 0 || xt > 5 {
 				for i := i(0); i < xn; i++ {
 					dx(I(xp + 4*i))
 				}
@@ -1371,8 +1372,8 @@ func str(x i) (r i) {
 	case 4:
 		r = cz(F(xp), F(xp+8))
 	case 5:
-		r = I(xp)
-		rx(r)
+		rx(x)
+		r = cs(x)
 	default:
 		panic("nyi")
 	}
@@ -1546,12 +1547,36 @@ func cst(x, y i) (r i) { // x$y
 	return y
 }
 func sc(x i) (r i) {
-	r = enl(x)
+	/*
+		r = enl(x)
+		sI(r, 1|5<<29)
+		return r
+	*/
+	k := I(kkey)
+	n := nn(k)
+	x = enl(x)
+	r = fnx(k, x+8)
+	if r < n {
+		dx(x)
+	} else {
+		sI(kkey, cat(k, x))
+		sI(kval, lcat(I(kval), 0))
+	}
+	r = mki(r)
 	sI(r, 1|5<<29)
 	return r
 }
 func cs(x i) (r i) {
-	r = x + 8
+	/*
+		r = x + 8
+		rx(r)
+		return dxr(x, r)
+	*/
+	r = I(8 + x)
+	if int32(r) < 0 {
+		return dxr(x, ci(-r))
+	}
+	r = I(8 + I(kkey) + 4*r)
 	rx(r)
 	return dxr(x, r)
 }
@@ -1714,21 +1739,6 @@ func sqc(x, r i) { panic("%c") } // %c ?
 func sqi(x, r i) { panic("%i") } // %i ?
 func sqf(x, r i) { sF(r, math.Sqrt(F(x))) }
 func sqz(x, r i) { sZ(r, cmplx.Conj(Z(x))) } // %z complex conjugate
-/*
-func lgf(x i) (r i) { // 'l x (log)
-	xt, xn, xp := v1(x)
-	if xt != 3 {
-		trap()
-	}
-	x = use(x)
-	xp = x + 8
-	for i := i(0); i < xn; i++ {
-		sF(xp, math.Log(F(xp)))
-		xp += 8
-	}
-	return x
-}
-*/
 func zri(x i, o i) (r i) {
 	t, n, xp := v1(x)
 	if t != 4 {
@@ -2063,6 +2073,8 @@ func val(x i) (r i) {
 	}
 	return r
 }
+
+/*
 func kv(x, loc i) (k, v, n, m i) {
 	k = I(kkey)
 	v = I(kval)
@@ -2086,24 +2098,49 @@ func lup(x, loc i) (r i) {
 	rx(r)
 	return dxr(x, r)
 }
+*/
+func lup(x, loc i) (r i) {
+	n := I(x + 8)
+	if int32(n) < 0 {
+		r = I(loc + 4 - 4*n) // local
+		fmt.Printf("local lup at loc+%d", 4-4*n)
+	} else {
+		r = I(8 + 4*n + I(kval)) // global
+	}
+	rx(r)
+	return dxr(x, r)
+}
 func asn(x, loc, u i) {
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
 	}
-	k, v, n, m := kv(x, loc)
-	if n == m && loc != 0 {
-		k, v, n, m = kv(x, 0)
-	}
-	if n == m {
-		sI(kkey, cat(k, x))
-		sI(kval, lcat(v, u))
+	n := I(x + 8)
+	if int32(n) < 0 {
+		n = i(-1 - int32(n))
+		fmt.Printf("n<0=>%d\n", n)
 	} else {
-		vp := 8 + v + 4*m
-		dx(I(vp))
-		sI(vp, u)
-		dx(x)
+		loc = I(kval)
 	}
+	loc += 8 + 4*n
+	dx(I(loc))
+	sI(loc, u)
+	dx(x)
+	/*
+		k, v, n, m := kv(x, loc)
+		if n == m && loc != 0 {
+			k, v, n, m = kv(x, 0)
+		}
+		if n == m {
+			sI(kkey, cat(k, x))
+			sI(kval, lcat(v, u))
+		} else {
+			vp := 8 + v + 4*m
+			dx(I(vp))
+			sI(vp, u)
+			dx(x)
+		}
+	*/
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
 	xt, yt, xn, yn, xp, yp := v2(x, y)
@@ -2192,7 +2229,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 			zp = z + 8
 		}
 	}
-	if xt < 5 {
+	if xt < 6 {
 		if zt != xt {
 			trap()
 		}
@@ -2207,7 +2244,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		}
 		return dxyr(y, z, r)
 	}
-	if xt == 6 || (xt == 5 && zt == 5) {
+	if xt == 6 || (xt == 5 && zt == 5) { // todo rm xt==5
 		r = take(x, xn)
 		if xt == 6 {
 			if xn == 1 {
@@ -2546,14 +2583,21 @@ func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 	}
 	if xt == 5 && xn == 1 {
 		p := I(xp)
-		if nn(p) == 1 {
-			r = i(C(8+p) - 'w') //119
-			if r > a {
-				if r < 4 {
-					return r
-				}
+		if p > a {
+			if p < 4 {
+				return p
 			}
 		}
+		/*
+			if nn(p) == 1 {
+				r = i(C(8+p) - 'w') //119
+				if r > a {
+					if r < 4 {
+						return r
+					}
+				}
+			}
+		*/
 	}
 	return a
 }
@@ -2580,6 +2624,23 @@ func loc(x, y i) (r i) {
 	}
 	return y
 }
+func col(x, a i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt == 5 && xn == 1 {
+		an := nn(a)
+		r = fnx(a, xp)
+		if r < an {
+			sI(xp, -(r + 1))
+		}
+	}
+	if xt == 6 {
+		for i := i(0); i < xn; i++ {
+			sI(xp, col(I(xp), a))
+			xp += 4
+		}
+	}
+	return x
+}
 func lam(p, s, z, a i) (r i) {
 	if nn(z) == 1 {
 		z = fst(z)
@@ -2593,6 +2654,7 @@ func lam(p, s, z, a i) (r i) {
 	}
 	v := nn(a) // arity (<256)
 	a = loc(z, a)
+	z = col(z, a)
 	n := s - p
 	t := mk(1, n)
 	mv(t+8, p, n)
@@ -2875,7 +2937,7 @@ func sym(b c, p, s i) (r i) { // `abc `"abc"
 		}
 	}
 	r = mk(5, 1)
-	sI(r+8, mk(1, 0))
+	sI(r+8, 0)
 	return r
 }
 func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
@@ -3094,7 +3156,8 @@ func X(x i) s {
 		if n == 0 {
 			return "0#`"
 		}
-		f = sstr
+		//f = sstr
+		f = istr
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
 	case 6:
