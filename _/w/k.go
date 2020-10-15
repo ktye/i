@@ -559,10 +559,14 @@ func cut(x, y i) (r i) {
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if yt == 7 {
 		if xt == 2 {
+			if xn != 1 {
+				trap()
+			}
 			k := I(yp)
-			rx(k)
-			x = cut(x, k)
-			return tkd(x, y)
+			v := I(yp + 4)
+			rld(y)
+			rx(x)
+			return mkd(cut(x, k), cut(x, v))
 		}
 		rx(y)
 		return tkd(exc(til(y), x), y)
