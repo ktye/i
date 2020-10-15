@@ -299,6 +299,7 @@ func rl(x i) {
 	}
 }
 func rld(x i)          { rl(x); dx(x) }
+func kvd(x i) (i, i)   { rld(x); return I(x + 8), I(x + 12) }
 func dxr(x, r i) i     { dx(x); return r }
 func dxyr(x, y, r i) i { dx(x); dx(y); return r }
 func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
@@ -497,8 +498,8 @@ func tir(n i) (r i) {
 }
 func rev(x i) (r i) {
 	if tp(x) == 7 {
-		rld(x)
-		return mkd(rev(I(x+8)), rev(I(x+12)))
+		k, v := kvd(x)
+		return mkd(rev(k), rev(v))
 	}
 	n := nn(x)
 	if n == 0 {
@@ -556,15 +557,13 @@ func drop(x, n i) (r i) {
 	return x
 }
 func cut(x, y i) (r i) {
-	xt, yt, xn, yn, xp, yp := v2(x, y)
+	xt, yt, xn, yn, xp, _ := v2(x, y)
 	if yt == 7 {
 		if xt == 2 {
 			if xn != 1 {
 				trap()
 			}
-			k := I(yp)
-			v := I(yp + 4)
-			rld(y)
+			k, v := kvd(y)
 			rx(x)
 			return mkd(cut(x, k), cut(x, v))
 		}
@@ -597,12 +596,15 @@ func cut(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func rsh(x, y i) (r i) {
-	xt, yt, xn, _, xp, yp := v2(x, y)
+	xt, yt, xn, _, xp, _ := v2(x, y)
 	if yt == 7 {
 		if xt == 2 {
-			k := I(yp)
-			rx(k)
-			x = rsh(x, k)
+			if xn != 1 {
+				trap()
+			}
+			k, v := kvd(y)
+			rx(x)
+			return mkd(rsh(x, k), rsh(x, v))
 		}
 		return tkd(x, y)
 	}
@@ -658,9 +660,7 @@ func take(x, n i) (r i) {
 }
 func tkd(x, y i) (r i) {
 	t := tp(x)
-	k := I(y + 8)
-	v := I(y + 12)
-	rld(y)
+	k, v := kvd(y)
 	if t != 5 {
 		trap()
 	}
@@ -1106,9 +1106,7 @@ func lop(x, y, l i) (r i) {
 		return fxp(x, y, l)
 	}
 	if t == 6 {
-		rld(y)
-		f := I(y + 12)
-		y := I(y + 8)
+		y, f := kvd(y) // not a dict
 		return whl(y, x, f, l)
 	}
 	dx(l)
@@ -1324,9 +1322,7 @@ func kst(x i) (r i) {
 		return r
 	}
 	if t == 7 {
-		r = I(x + 8)
-		t = I(x + 12)
-		rld(x)
+		r, t := kvd(x)
 		r = cc(kst(r), '!') //33
 		if nn(t) == 0 {     // 0#`!0
 			dx(t)
@@ -1785,9 +1781,7 @@ func ech(x, y i) (r i) { // f'x (each)
 		return bin(y, x)
 	}
 	if tp(x) == 7 {
-		rld(x)
-		k := I(x + 8)
-		v := I(x + 12)
+		k, v := kvd(x)
 		return mkd(k, ech(v, y))
 	}
 	x = lx(x)
@@ -1901,9 +1895,7 @@ func scl(x, y i) {
 }
 func ecr(x, y, f i) (r i) { // x f/: y (each-right)
 	if tp(y) == 7 {
-		rld(y)
-		k := I(y + 8)
-		v := I(y + 12)
+		k, v := kvd(y)
 		return mkd(k, ecr(x, v, f))
 	}
 	n := nn(y)
@@ -1972,9 +1964,7 @@ func nlp(x, f, s, n i) (r i) { // (n;f)/:y (for)  (n;f)\:y (scan-for)
 }
 func ecl(x, y, f i) (r i) { // x f\: y (each-left)
 	if tp(x) == 7 {
-		rld(x)
-		k := I(x + 8)
-		v := I(x + 12)
+		k, v := kvd(x)
 		return mkd(k, ecl(v, y, f))
 	}
 	n := nn(x)
@@ -2114,11 +2104,9 @@ func asn(x, loc, u i) {
 	dx(x)
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
-	xt, yt, xn, yn, xp, yp := v2(x, y)
+	xt, yt, xn, yn, _, yp := v2(x, y)
 	if xt == 7 && yt < 6 {
-		rld(x)
-		k := I(xp)
-		v := I(xp + 4)
+		k, v := kvd(x)
 		if yt == 5 {
 			rx(k)
 			y = fnd(k, y)
@@ -2127,9 +2115,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 	}
 	if yt == 6 {
 		if xt == 7 { // (:;d;y;z)  {k:!x;v:. x;y:(,k?*y),1_y;k!.(:;v;y;z)}
-			rld(x)
-			k := I(xp)
-			v := I(xp + 4)
+			k, v := kvd(x)
 			rx(y)
 			f := fst(y)
 			if f != 0 {
