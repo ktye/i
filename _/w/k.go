@@ -1573,9 +1573,6 @@ func cs(x i) (r i) {
 		return dxr(x, r)
 	*/
 	r = I(8 + x)
-	if int32(r) < 0 {
-		return dxr(x, ci(-r))
-	}
 	r = I(8 + I(kkey) + 4*r)
 	rx(r)
 	return dxr(x, r)
@@ -2073,39 +2070,18 @@ func val(x i) (r i) {
 	}
 	return r
 }
-
-/*
-func kv(x, loc i) (k, v, n, m i) {
-	k = I(kkey)
-	v = I(kval)
+func lup(x, loc i) (r i) {
 	if loc != 0 {
-		k = I(loc + 8)
-		v = I(loc + 12)
-	}
-	n = I(k) & 536870911
-	m = fnx(k, 8+x)
-	return k, v, n, m
-}
-func lup(x, loc i) (r i) {
-	_, v, n, m := kv(x, loc)
-	if m == n {
-		if loc != 0 {
-			return lup(x, 0)
+		r = I(loc + 8)
+		n := fnx(r, x+8)
+		if n == nn(r) {
+			loc = 0
+		} else {
+			r = I(8 + I(loc+12) + 4*n)
 		}
-		return dxr(x, 0)
 	}
-	r = I(v + 8 + 4*m)
-	rx(r)
-	return dxr(x, r)
-}
-*/
-func lup(x, loc i) (r i) {
-	n := I(x + 8)
-	if int32(n) < 0 {
-		r = I(loc + 4 - 4*n) // local
-		fmt.Printf("local lup at loc+%d", 4-4*n)
-	} else {
-		r = I(8 + 4*n + I(kval)) // global
+	if loc == 0 {
+		r = I(I(kval) + 8 + 4*I(x+8))
 	}
 	rx(r)
 	return dxr(x, r)
@@ -2116,31 +2092,22 @@ func asn(x, loc, u i) {
 		trap()
 	}
 	n := I(x + 8)
-	if int32(n) < 0 {
-		n = i(-1 - int32(n))
-		fmt.Printf("n<0=>%d\n", n)
-	} else {
+	if loc != 0 {
+		m := fnx(I(loc+8), x+8)
+		if m < nn(I(loc+8)) {
+			n = m
+			loc = I(loc + 12)
+		} else {
+			loc = 0
+		}
+	}
+	if loc == 0 {
 		loc = I(kval)
 	}
 	loc += 8 + 4*n
 	dx(I(loc))
 	sI(loc, u)
 	dx(x)
-	/*
-		k, v, n, m := kv(x, loc)
-		if n == m && loc != 0 {
-			k, v, n, m = kv(x, 0)
-		}
-		if n == m {
-			sI(kkey, cat(k, x))
-			sI(kval, lcat(v, u))
-		} else {
-			vp := 8 + v + 4*m
-			dx(I(vp))
-			sI(vp, u)
-			dx(x)
-		}
-	*/
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
 	xt, yt, xn, yn, xp, yp := v2(x, y)
@@ -2624,23 +2591,6 @@ func loc(x, y i) (r i) {
 	}
 	return y
 }
-func col(x, a i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt == 5 && xn == 1 {
-		an := nn(a)
-		r = fnx(a, xp)
-		if r < an {
-			sI(xp, -(r + 1))
-		}
-	}
-	if xt == 6 {
-		for i := i(0); i < xn; i++ {
-			sI(xp, col(I(xp), a))
-			xp += 4
-		}
-	}
-	return x
-}
 func lam(p, s, z, a i) (r i) {
 	if nn(z) == 1 {
 		z = fst(z)
@@ -2654,7 +2604,6 @@ func lam(p, s, z, a i) (r i) {
 	}
 	v := nn(a) // arity (<256)
 	a = loc(z, a)
-	z = col(z, a)
 	n := s - p
 	t := mk(1, n)
 	mv(t+8, p, n)
