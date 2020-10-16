@@ -7,7 +7,7 @@ sin:129 'F;cos:130 'F;exp:131 'F;log:132 'F;log10:{0.4342944819032518* 'Fx};pow1
 
 solve:  {[A;b];qrsolve[qr A;b]}
 qrsolve:{[q;b];qrslv[q;qrmul[q;b]]}
-
+ 
 qr: {m:#x;x:&x;n:#x;x:,/x;f:$[3~t:@x;qrh;qzh]                                              /qr decomposition
  r:(n;f)/:(x;t$!0;m;n;!m;(,/(n;m))#!n*m);`Q`D`m`n!(r 0;|r 1;r 2;r 3)}
 qrh:{Q:x 0;i:#D:x 1;m:x 2;n:x 3;row:x 4;sub:1_x 5;ii:i+i*m                                 /householder step(real)
@@ -33,10 +33,7 @@ norm:{s*%+/x*x%:s:|/x:+0.+x}                                                    
 
 matvec:{[A;b],/+/'A*\:b}
 
-
-
-test:{[]
- small:1.0e-14
+test:{[]small:1.0e-14
  A: 0.+(1 -2 3;5 3 2;2 3 1;4 -1 1)
  r: 0.+1 2 3
  b: matvec[A;r]
@@ -48,10 +45,8 @@ test:{[]
  x: solve[A;b]
  $[small>e:|/+x-r; \(`ok;e); \(`fail;e)]
 }
- 
 
 \
-
 /matlab version(does not transpose A)
 function [A,d]=qrh(A);
  [m,n]=size(A);

@@ -13,7 +13,8 @@ fontwidth:  10                         /or measure text dynamically in js
 plotcolors: ("#8dd3c7";"#feffb3";"#bfbbd9";"#fa8174";"#81b1d2";"#fdb462";"#b3de69";"#bc82bd";"#ccebc4";"#ffed6f") /("#003FFF";"#03ED3A";"#E8000B";"#8A2BE2";"#FFC400";"#00D7FF")
 plotfg:     "white"
 
-dplot:{[p]plotsize 'd,/drawp./:&(p;rects[0 0,plotsize;#p])}
+vplot:{[p],/drawp./:&(p;rects[0 0,plotsize;#p])}
+dplot:{[p]plotsize 'dvplot p} /,/drawp./:&(p;rects[0 0,plotsize;#p])}
 rects:{[r;n]r[2]%:n;((!n)*r 2),\:1_r}
 
 
@@ -86,8 +87,10 @@ ltext:{[x;y;s]`fillText!,(s;x;y;fontwidth*#s)}
 rtext:{[x;y;s]`fillText!,(s;x-w;y;w:fontwidth*#s)}
 
 sin:129 'F;cos:130 'F
-/x:!20
-/y:(sin@0.3*x;cos@0.3*x)
+x:!20
+y:(sin@0.3*x;cos@0.3*x)
+l:vplot plots`xy!,(x;y)
+/(*plotsize) 'd raster[plotsize;3#l]
 /plot[x;*y]
 /plot[x;y]
 /drawplots`xy`xy!((x;*y);(x;y))
@@ -99,3 +102,4 @@ sin:129 'F;cos:130 'F
 
 testPlot:{[]x:!20;y:(sin@0.3*x;cos@0.3*x);z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
  drawplots`xy`polar`polar`xy!((x;*y);,z;,(z;-z);(x;y))}
+ 
