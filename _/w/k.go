@@ -132,7 +132,7 @@ func runtest() {
 func kdirs(dirs []string) {
 	kinit()
 	for _, name := range dirs {
-		asn(sc(mkchrs([]byte(name))), 0, kdir(name))
+		asn(sc(mkchrs([]byte(name))), kdir(name))
 	}
 	if err := ioutil.WriteFile("k.ws", MC, 0744); err != nil {
 		panic(err)
@@ -857,7 +857,7 @@ func lcl(x, y, z i) (r i) {
 	dx(y)
 	t := I(x + 12)
 	rx(t)
-	r = evl(t, 0)
+	r = evl(t)
 	sp = I(kval) + 8 // could have changed
 	lp = l + 8
 	ap = a + 8
@@ -2055,15 +2055,15 @@ func val(x i) (r i) {
 	case 1:
 		r = prs(x)
 		n := I(r+8) == 58 //:
-		r = evl(r, 0)
+		r = evl(r)
 		if n {
 			dx(r)
 			return 0
 		}
 	case 5:
-		r = lup(x, 0)
+		r = lup(x)
 	case 6:
-		r = evl(x, 0)
+		r = evl(x)
 	case 7:
 		r = I(x + 12)
 		rx(r)
@@ -2074,19 +2074,19 @@ func val(x i) (r i) {
 	}
 	return r
 }
-func lup(x, loc i) (r i) {
+func lup(x i) (r i) {
 	r = I(I(kval) + 8 + 4*I(x+8))
 	rx(r)
 	return dxr(x, r)
 }
-func asn(x, loc, u i) {
+func asn(x, y i) {
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
 	}
 	p := I(kval) + 8 + 4*I(x+8)
 	dx(I(p))
-	sI(p, u)
+	sI(p, y)
 	dx(x)
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
@@ -2224,12 +2224,12 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 	trap()
 	return x
 }
-func asd(x, loc i) (r i) { // (+;`x;a;y)
+func asd(x i) (r i) { // (+;`x;a;y)
 	rld(x)
 	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
 	if v != ':' { //58
 		rx(s)
-		r = lup(s, loc)
+		r = lup(s)
 		if a != 0 {
 			rx(a)
 			r = atx(r, a)
@@ -2240,17 +2240,17 @@ func asd(x, loc i) (r i) { // (+;`x;a;y)
 	rx(r)
 	if a != 0 {
 		rx(s)
-		u = asi(lup(s, loc), a, u)
+		u = asi(lup(s), a, u)
 	}
-	asn(s, loc, u)
+	asn(s, u)
 	return r
 }
-func swc(x, loc i) (r i) { // ($;a;b;...)
+func swc(x i) (r i) { // ($;a;b;...)
 	_, xn, xp := v1(x)
 	for i := i(1); i < xn; {
 		r = I(xp + 4*i)
 		rx(r)
-		r = evl(r, loc)
+		r = evl(r)
 		if i%2 == 0 || i == xn-1 {
 			return dxr(x, r)
 		}
@@ -2262,7 +2262,7 @@ func swc(x, loc i) (r i) { // ($;a;b;...)
 	}
 	return dxr(x, 0)
 }
-func ltr(x, loc i) (r i) {
+func ltr(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		return x // evl(x, loc)
@@ -2271,16 +2271,16 @@ func ltr(x, loc i) (r i) {
 	r = mk(6, xn)
 	rp := r + 8
 	for i := i(0); i < xn; i++ {
-		sI(rp, evl(I(xp), loc))
+		sI(rp, evl(I(xp)))
 		rp += 4
 		xp += 4
 	}
 	return dxr(x, r)
 }
-func rtl(x, loc i) (r i) {
+func rtl(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
-		return x //evl(x, loc)
+		return x
 	}
 	rl(x)
 	r = mk(6, xn)
@@ -2289,11 +2289,11 @@ func rtl(x, loc i) (r i) {
 	for i := i(0); i < xn; i++ {
 		rp -= 4
 		xp -= 4
-		sI(rp, evl(I(xp), loc))
+		sI(rp, evl(I(xp)))
 	}
 	return dxr(x, r)
 }
-func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
+func ras(x, xn i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
 	v := I(x + 8)
 	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
 		if v > 128 {
@@ -2307,7 +2307,7 @@ func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(
 			dx(a)
 			a = 0
 		} else {
-			a = ltr(a, loc)
+			a = ltr(a)
 			an := nn(a)
 			if an == 1 {
 				a = fst(a)
@@ -2316,15 +2316,15 @@ func ras(x, xn, loc i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(
 		u := I(x + 16)
 		rx(u)
 		dx(x)
-		return lcat(l3(v, s, a), evl(u, loc))
+		return lcat(l3(v, s, a), evl(u))
 	}
 	return 0
 }
-func evl(x, loc i) (r i) {
+func evl(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
-			r = lup(x, loc)
+			r = lup(x)
 			if r == 0 {
 				// panic("name does not exist")
 			}
@@ -2334,20 +2334,20 @@ func evl(x, loc i) (r i) {
 	} else if xn == 0 {
 		return x
 	} else if xn == 1 {
-		return rtl(fst(x), loc)
+		return rtl(fst(x))
 	}
 	v := I(xp)
 	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
-		return swc(x, loc)
+		return swc(x)
 	}
-	r = ras(x, xn, loc)
+	r = ras(x, xn)
 	if r != 0 {
-		return asd(r, loc)
+		return asd(r)
 	}
 	if v == 128 { // 128 (,:;a;b;c) sequence
-		return lst(ltr(x, loc))
+		return lst(ltr(x))
 	}
-	x = rtl(x, loc)
+	x = rtl(x)
 	xn = nn(x)
 	xp = x + 8
 	if v == '@' && xn == 4 { //64
