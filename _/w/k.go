@@ -453,10 +453,7 @@ func lx(x i) (r i) { // explode
 	return dxr(x, r)
 }
 func til(x i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt == 0 && xn == 4 {
-		return lcl(x, 0, 1) // !{..} dict from lambda
-	}
+	xt, _, xp := v1(x)
 	if xt == 4 {
 		return zim(x)
 	}

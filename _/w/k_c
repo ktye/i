@@ -106,7 +106,7 @@ I chrs(C *s) {
 }
 I raster(I w, I h, I x){ if(7!=tp(x))return x;
 	rx(x);
-	I f = lup(sc(chrs("raster")),0);
+	I f = lup(sc(chrs("raster")));
 	if(!f){ printf("raster\n"); panic(); }
 	x = cal(f,l2(cat(mki(w),mki(h)), x));
 	dx(x);
@@ -142,7 +142,7 @@ I read0(C *name, I strip) {
 	if(strip)r=fst(spl(r,flr(ucat(mki(10), mki(92))))); // ^backslash
 	return r;
 }
-V fstore(C *var, C *file){if(!var[0])var=file;asn(sc(chrs(var)),0,read0(file,0));}
+V fstore(C *var, C *file){if(!var[0])var=file;asn(sc(chrs(var)),read0(file,0));}
 V wsread(C *name){ 
 	I n;
 	FILE *f = fopen(name, "rb");
