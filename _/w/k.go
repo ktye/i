@@ -825,41 +825,51 @@ func cal(x, y i) (r i) {
 	}
 	panic("nyi")
 }
-func lcl(x, y, z i) (r i) { // call lambda
+func lcl(x, y, z i) (r i) {
 	fn := I(x + 20)
-	if fn == 0 || z == 1 {
+	if fn == 0 {
 		dx(y)
-		y = mk(6, fn)
+		y = mk(6, 0)
 	}
 	if nn(y) != fn {
 		panic("arity")
 	}
-	y = take(y, fn) // copy
-	if fn == 1 {
-		y = enl(y)
-	}
+	yp := y + 8
 	a := I(x + 16)
-	rx(a)
+	ap := a + 8
+	an := nn(a)
+	l := mk(6, an)
+	lp := l + 8
+	sp := I(kval) + 8
+	for i := i(0); i < an; i++ {
+		d := sp + 4*I(ap)
+		sI(lp, I(d))
+		v := uint32(0)
+		if i < fn {
+			v = I(yp)
+			rx(v)
+			yp += 4
+		}
+		sI(d, v)
+		ap += 4
+		lp += 4
+	}
+	dx(y)
 	t := I(x + 12)
 	rx(t)
-	an := nn(I(x + 16))
-	if fn < an {
-		for i := i(0); i < an-fn; i++ {
-			y = lcat(y, 0)
-		}
+	r = evl(t, 0)
+	sp = I(kval) + 8 // could have changed
+	lp = l + 8
+	ap = a + 8
+	for i := i(0); i < an; i++ {
+		d := sp + 4*I(ap)
+		dx(I(d))
+		sI(d, I(lp))
+		ap += 4
+		lp += 4
 	}
-	d := mkd(a, y)
-
-	// r = lst(ltr(t, d))
-	r = evl(t, d)
-
-	dx(x)
-	if z != 0 {
-		dx(r)
-		return d
-	}
-	dx(d)
-	return r
+	dx(l)
+	return dxr(x, r)
 }
 func cat(x, y i) (r i) {
 	xt, yt, _, _, _, _ := v2(x, y)
@@ -2065,18 +2075,7 @@ func val(x i) (r i) {
 	return r
 }
 func lup(x, loc i) (r i) {
-	if loc != 0 {
-		r = I(loc + 8)
-		n := fnx(r, x+8)
-		if n == nn(r) {
-			loc = 0
-		} else {
-			r = I(8 + I(loc+12) + 4*n)
-		}
-	}
-	if loc == 0 {
-		r = I(I(kval) + 8 + 4*I(x+8))
-	}
+	r = I(I(kval) + 8 + 4*I(x+8))
 	rx(r)
 	return dxr(x, r)
 }
@@ -2085,22 +2084,9 @@ func asn(x, loc, u i) {
 	if xt != 5 {
 		trap()
 	}
-	n := I(x + 8)
-	if loc != 0 {
-		m := fnx(I(loc+8), x+8)
-		if m < nn(I(loc+8)) {
-			n = m
-			loc = I(loc + 12)
-		} else {
-			loc = 0
-		}
-	}
-	if loc == 0 {
-		loc = I(kval)
-	}
-	loc += 8 + 4*n
-	dx(I(loc))
-	sI(loc, u)
+	p := I(kval) + 8 + 4*I(x+8)
+	dx(I(p))
+	sI(p, u)
 	dx(x)
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
@@ -2545,16 +2531,6 @@ func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 				return p
 			}
 		}
-		/*
-			if nn(p) == 1 {
-				r = i(C(8+p) - 'w') //119
-				if r > a {
-					if r < 4 {
-						return r
-					}
-				}
-			}
-		*/
 	}
 	return a
 }
