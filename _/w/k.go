@@ -50,6 +50,7 @@ const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 
 func main() {
 	if len(os.Args) == 1 {
+		kinit()
 		repl()
 	}
 	if len(os.Args) == 2 && os.Args[1] == "t" {
@@ -58,11 +59,35 @@ func main() {
 	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
 		kdirs(os.Args[2:])
 	} else {
-		fmt.Println(run(strings.Join(os.Args[1:], " ")))
+		kinit()
+		for _, a := range os.Args[1:] {
+			if strings.HasSuffix(a, ".k") {
+				load(a)
+			} else {
+				panic("argument: " + a)
+			}
+		}
+		repl()
+	}
+}
+func load(f string) {
+	b, e := ioutil.ReadFile(f)
+	if e != nil {
+		panic(e)
+	}
+	if n := bytes.Index(b, []byte("\n\\")); n != -1 {
+		fmt.Println(n)
+		b = b[:n+1]
+	}
+	x := val(mkchrs(b))
+	if x > 255 {
+		x = kst(x)
+		os.Stdout.Write(MC[x+8 : x+nn(x)+8])
+		os.Stdout.Write([]byte{10})
+		dx(x)
 	}
 }
 func repl() {
-	kinit()
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
 		t := s.Text()
@@ -202,7 +227,6 @@ func ini(x i) i {
 	}
 	sI(kkey, enl(mk(1, 0)))
 	sI(kval, enl(0))
-	// todo dx(mks(120));dx(mks(121));dx(mks(122))
 	sI(xyz, cat(cat(mks(120), mks(121)), mks(122)))
 	return x
 }
@@ -835,7 +859,7 @@ func lcl(x, y, z i) (r i) {
 	a := I(x + 16)
 	ap := a + 8
 	an := nn(a)
-	l := mk(6, an)
+	l := mk(2, an) // stores reference which should not be modified
 	lp := l + 8
 	sp := I(kval) + 8
 	for i := i(0); i < an; i++ {
@@ -3032,6 +3056,11 @@ func X(x i) s {
 		rn := I(r) & 536870911
 		return string(MC[r+8 : r+8+rn])
 	}
+	ystr := func(i i) s {
+		n := I(x + 8 + 4*i)
+		s := X(I(I(kkey) + 8 + 4*n))
+		return s[1 : len(s)-1]
+	}
 	sep := " "
 	switch t {
 	case 0:
@@ -3068,8 +3097,7 @@ func X(x i) s {
 		if n == 0 {
 			return "0#`"
 		}
-		//f = sstr
-		f = istr
+		f = ystr
 		sep = "`"
 		tof = func(s s) s { return "`" + s }
 	case 6:

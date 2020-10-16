@@ -187,9 +187,9 @@ function putfile(name, u) { // from Uint8Array
  K.C.set(u,v+8)
  var kv = mkd(k, enl(v))
  var fs = sc(cstr("fs")); rx(fs)
- var fsv= lup(fs, 0)
- if(fsv==0) asn(fs, 0, kv)
- else       asn(fs, 0, cat(fsv, kv))
+ var fsv= lup(fs)
+ if(fsv==0) asn(fs, kv)
+ else       asn(fs, cat(fsv, kv))
 }
 
 // get file with \wFILE or \w (workspace k.ws) from fs[`FILE]
