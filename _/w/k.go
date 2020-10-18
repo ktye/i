@@ -157,7 +157,7 @@ func runtest() {
 func kdirs(dirs []string) {
 	kinit()
 	for _, name := range dirs {
-		asn(sc(mkchrs([]byte(name))), kdir(name))
+		dx(asn(sc(mkchrs([]byte(name))), kdir(name)))
 	}
 	if err := ioutil.WriteFile("k.ws", MC, 0744); err != nil {
 		panic(err)
@@ -209,7 +209,7 @@ func ini(x i) i {
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqi, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
-		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, dex, nil, les, eql, mor, fnd, // 032..063
+		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, asn, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nmf, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, sci, scv, ecl, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovi, max, ecr, mtc, nil, // 096..127
 		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
@@ -551,7 +551,6 @@ func fst(x i) (r i) {
 	}
 	return atx(x, mki(0))
 }
-func dex(x, y i) (r i) { return dxr(x, y) } // :[x;y]
 func lst(x i) (r i) { // ::x
 	if tp(x) == 7 {
 		return lst(val(x))
@@ -2100,7 +2099,7 @@ func lup(x i) (r i) {
 	rx(r)
 	return dxr(x, r)
 }
-func asn(x, y i) {
+func asn(x, y i) (r i) {
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
@@ -2109,6 +2108,8 @@ func asn(x, y i) {
 	dx(I(p))
 	sI(p, y)
 	dx(x)
+	rx(y)
+	return y
 }
 func asi(x, y, z i) (r i) { //x[..y..]:z
 	xt, yt, xn, yn, _, yp := v2(x, y)
@@ -2263,7 +2264,7 @@ func asd(x i) (r i) { // (+;`x;a;y)
 		rx(s)
 		u = asi(lup(s), a, u)
 	}
-	asn(s, u)
+	dx(asn(s, u))
 	return r
 }
 func swc(x i) (r i) { // ($;a;b;...)
@@ -2322,7 +2323,7 @@ func ras(x, xn i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x
 		}
 		r = I(x + 12)
 		rxn(r, 2)
-		s := fst(r)
+		s := fst(fst(r))
 		a := drop(r, 1)
 		if nn(a) == 0 {
 			dx(a)

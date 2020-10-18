@@ -6,7 +6,7 @@ mki:I:I{r:2 mk 1;(r+8)::x;r}mkf:I:F{r:3 mk 1;(r+8)::x;r}
 mkd:I:II{v2;ext;(xt~3)?(yt~3)?(r:4 mk xn;r8;xn/(rp::F xp;(rp+8)::F yp;rp+:16;xp+:8;yp+:8);dx x;dx y; :r);(~xt~5)?!;(~yt~6)?y:lx y;r:x l2 y;r::2|7<<29;r}
 mkc:I:I{r:1 mk 1;(r+8)::C?x;r}mks:I:I{sc mkc x}mkz:I:II{r:x mkd y;r::2|6<<29;r}l2.I:II{r:6 mk 2;(r+8)::x;(r+12)::y;r}l3.I:III{r:6 mk 3;(r+8)::x;(r+12)::y;(r+16)::z;r}
 nn:I:I{(x<256)? :1;536870911&I x}tp:I:I{(x<256)? :0;(I x)>>29}v1:{xt:tp x;xn:nn x;xp:8+x}v2:{v1;yt:tp y;yn:nn y;yp:8+y}r8:{rp:r+8}
-fr.V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;((~xt)+xt>5)?xn/(dx I xp+4*i);fr x))}dex.I:II{dx x;y}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{x rxn 1}rxn.V:II{(x>255)?(x+:4;x::y+I x)}rl.V:I{v1;xn/(rx I xp;xp+:4)}rld.V:I{rl x;dx x}kvdx:{rld x;k:I x+8;v:I x+12}kvdy:{rld y;k:I y+8;v:I y+12}
+fr.V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;((~xt)+xt>5)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{x rxn 1}rxn.V:II{(x>255)?(x+:4;x::y+I x)}rl.V:I{v1;xn/(rx I xp;xp+:4)}rld.V:I{rl x;dx x}kvdx:{rld x;k:I x+8;v:I x+12}kvdy:{rld y;k:I y+8;v:I y+12}
 lx.I:I{v1;(xt~6)? :x;((xt~7)+xn~1)? :enl x;(0~xt)?!;r:6 mk xn;r8;x rxn xn;xn/(rp::x atx mki i;rp+:4);dxr}
 til:I:I{v1;(4~xt)? :zim x;(6~xt)? :x ech 161;(7~xt)?(r:I xp;rx r;dx x; :r);(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir.I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
 ext:{(~xn~yn)?((xn~1)?(x:x take yn;xn:yn;xp:x+8);(yn~1)?(y:y take xn;yn:xn;yp:y+8))}
@@ -76,15 +76,15 @@ nlp.I:IIII{(x3<0)?!;r:x;y rxn x3;z scl x;x3/(r:y atx r;z scl r);dx y;z?(dx r;r:f
 ecd.I:III{v2;ext;n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(c:mki i;rx c;rp::z cal(x atx c)l2 y atx c;rp+:4);dx z;dxyr}
 val:I:I{v1;xt?[((x<256)? :x;rl x;r:6 mk xn;mv(r+8;x+8;4*xn);(xn~4)?(r+20)::mki I r+20;dx x);(r:prs x;n:58~I r+8;r:evl r;n?(dx r; r:0));;;;r:lup x;r:evl x;(r:I x+12;rx r;dx x);!];r}
 lup:I:I{r:I(I kval)+8+4*I x+8;rx(r);dxr}
-asn:V:II{(~5~tp x)?!;p:(I kval)+8+4*I x+8;dx I p;p::y;dx x}
-asd.I:I{rld x;v:I x+8;s:I x+12;a:I x+16;u:I x+20;(~v~58)?(rx s;r:lup s;a?(rx a;r:r atx a);u:v cal r l2 u);r:u;rx r;a?(rx s;u:asi(lup s;a;u));asn(s;u);r}
+asn:I:II{(~5~tp x)?!;p:(I kval)+8+4*I x+8;dx I p;p::y;rx y;dx x;y}
+asd.I:I{rld x;v:I x+8;s:I x+12;a:I x+16;u:I x+20;(~v~58)?(rx s;r:lup s;a?(rx a;r:r atx a);u:v cal r l2 u);r:u;rx r;a?(rx s;u:asi(lup s;a;u));dx s asn u;r}
 asi.I:III{v2;(xt~7)?(yt<6)?(kvdx;(yt~5)?(rx k;y:k fnd y); :k mkd asi(v;y;z));
 (yt~6)?((xt~7)?(kvdx;rx y;f:fst y;$[f;(5~tp f)?(rx k;f:k fnd f);(f:seq(0;nn k;1))]; :k mkd asi(v;(enl f)cat y drop 1;z)); ((~xt~6)+~yt~6)?!; r:x take xn;r8;rx y;a:fst(y);y:y drop 1;(1~nn y)?y:fst y;(~a)?a:seq(0;xn;1);(~2~tp a)?!;an:nn a;ap:a+8;(an~1)?(dx a;ri:rp+4*I ap;ri::asi(I ri;y;z); :r);(~yn~2)?!;(~6~tp z)?(z:(enl z)take an);(~an~nn z)?!;rxn(y;an-1);rl z;zp:z+8;an/(ri:rp+4*I ap;ri::asi(I ri;y;I zp);ap+:4;zp+:4);dx a;dx z; :r);
 (~yt~2)?!;zt:tp z;zn:nn z;zp:8+z;(yn>1)?(zn~1)?(~zn~yn)?((~zn~1)?!;z:z take yn;zn:yn;zp:z+8);
 (xt<6)?((~zt~xt)?!;r:use x;r8;w:C xt;yn/(k:I yp;mv(rp+w*k;zp;w);yp+:4;zp+:w);dx y;dx z; :r);
 ((xt~6)+(xt~5)*(zt~5))?(r:x take xn;(6~xt)?((1~xn)?r:enl r;(1~yn)?(z:enl z;zn:1;zt:6);(~6~zt)?z:lx z);r8;(~yn~zn)?!;zp:z+8;rl z;yn/(k:I yp;(~k<xn)?!;t:rp+4*k;dx I t;t::I zp;yp+:4;zp+:4);dx y;dx z; :r);!;x}
 swc.I:I{v1;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:evl r;((~i\2)|(i~xn-1))?(dx x; :r);dx r;i+:1;(~I r+8)?i+:1);dx x;0}
-ras.I:II{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;r rxn 2;s:fst r;a:r drop 1;$[nn a;(a:ltr a;an:nn a;(an~1)?a:fst a);(dx a;a:0)];u:I x+16;rx u;dx x; :(l3(v;s;a))lcat evl u);0}
+ras.I:II{v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;r rxn 2;s:fst fst r;a:r drop 1;$[nn a;(a:ltr a;an:nn a;(an~1)?a:fst a);(dx a;a:0)];u:I x+16;rx u;dx x; :(l3(v;s;a))lcat evl u);0}
 ltr.I:I{v1;(~xt~6)? :x;rl x;r:6 mk xn;r8;xn/(rp::evl (I xp);rp+:4;xp+:4);dxr}rtl.I:I{v1;(~xt~6)? :x;rl x;r:6 mk xn;rp:r+8+4*xn;xp+:4*xn;xn/(rp-:4;xp-:4;rp::evl I xp);dxr}
 evl.I:I{v1;(~xt~6)?((xt~5)?(xn~1)? :lup x; :x);(~xn)? :x;(xn~1)? :rtl fst x;v:I xp;(v~36)?(xn>3)?  :swc x;r:x ras xn;r? :asd r;(v~128)? :lst ltr x;x:rtl x;xn:nn x;xp:x+8;(v~64)?(xn~4)?(rl x;r:asi(I x+12;I x+16;I x+20);dx x; :r);(xn~2)?(rl x;r:(I xp)atx I xp+4;dx x; :r);a:(xp+4)fnl xn-1;a?(rx I x+8; :prj(I x+8;x drop 1;a));rx I xp;(I xp)cal x drop 1}
 prj.I:III{r:0 mk 3;(r+8)::x;(r+12)::y;(r+16)::z;r}
@@ -136,7 +136,7 @@ is.I:II{y&cla x}cla.I:I{(128<x-32)? :0;C 128+x}
 160!{204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800}
 
 000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; mod; xxx; eqc; eqi; eqf; eqz; eqi; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; moi; xxx; xxx; sqc; sqi; sqf; sqz}
-032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; dex; xxx; les; eql; mor; fnd}
+032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; asn; xxx; les; eql; mor; fnd}
 064:{atx; xxx; xxx; xxx; xxx; xxx; nmf; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; sci; scv; ecl; exc; cut}
 096:{xxx; xxx; xxx; xxx; drw; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovi; max; ecr; mtc; xxx}
 128:{xxx; sin; cos; exp; log; xxx; xxx; xxx; chr; nms; vrb; nam; sms; xxx; xxx; xxx; adc; adi; adf; adz; suc; sui; suf; suz; muc; mui; muf; muz; dic; dii; dif; diz}
@@ -170,7 +170,7 @@ _  drp flr   drop        re:_z f:__i i:_f
 @  atx typ               z:abs@ang z@ang (+;(`x;a;b;c);y)  assign(m/i) s[a;b;c]+:y
 .  cal val               im:. z          (;a;b;c)   (*128) sequence    a;b;c     
                                          ((/;+);1 2 3)     adverbs     +/1 2 3 
-+'x  ech(168)  x+'y  ecd(40)             x'y  bin          ::x(last)   :[x;y](dex)
++'x  ech(168)  x+'y  ecd(40)             x'y  bin          ::x(last)   `a`b:1 2
 +/x  ovr(251)  x+/y  ovi(123)  whl nlp   x/y  mod
 +\x  scn(219)  x+\y  sci(91)  (c;f)/:x   x\y  y%x   \(help)  \\(exit)  \d(dump)
 +':x ecp(169)  x+':y epi(41)  (c;f)\:x   x':y win?  dropfile(fs[name]) \lm(ld m.k)
