@@ -1,11 +1,11 @@
 
-plot: {[x;y]drawplots`xy!,(x;y)}
-polar:{[z]  drawplots`polar!,,z }
+plot: {[x;y]drawplots`xy!(x;y)}
+polar:{[z]  drawplots`polar!,z }
 axis: {[x]`axis`nyi}
 
 drawplots:{[d]dplot plots d}
 replot:{[]dplot saveplots}
-plots:{[d]saveplots::$[0~@f:(`xy`polar!(plotxy;plotpo))@!d;,f;f].'.d}
+plots:{[d]saveplots::$[0~@f:(`xy`polar!(plotxy;plotpo))@!d;,f;f]@'.d}
 
 plotsize:   800 600
 plotfont:   "20px monospace"
@@ -18,16 +18,15 @@ dplot:{[p]plotsize 'dvplot p} /,/drawp./:&(p;rects[0 0,plotsize;#p])}
 rects:{[r;n]r[2]%:n;((!n)*r 2),\:1_r}
 
 
-plotxy:{[x;y]a:autoxy.d:xydat[x;y];x:d 0;y:d 1
- lines:{`x`y`type`size!(x 0;x 1;`line;2;x 2)}'&(x;y;(#x)#plotcolors)
+plotxy:{[z]x:z 0;y:z 1;a:autoxy.d:xydat[x;y];x:d 0;y:d 1
+ lines:{`x`y`type`size`color!(x 0;x 1;`line;2;x 2)}'&(x;y;(#x)#plotcolors)
  `type`title`xlabel`ylabel`axis`lines!(`xy;"- plot -";"x";"y";a;lines)}
-plotpo:{[z];p:plotxy[!z;_z];p[`type]:`polar;p[`axis]:,/(-;+;-;+)@'|/+p`axis;p}
+plotpo:{[z];p:plotxy(!z;_z);p[`type]:`polar;p[`axis]:,/(-;+;-;+)@'|/+p`axis;p}
 
 xydat: {x:3$'$[~6~@x;,x;x];((#y)#x;y:3$'$[~6~@y;,y;y])}
 podat: {xydat[!x;_x]}
 autoxy:{,/(&/&/x;|/|/x;&/&/y;|/|/y)}
 autopo:{,/(-;+;-;+)@'|/+autoxy[x;y]}
-
 
 
 /plt: 
@@ -72,7 +71,7 @@ drawpo:{[p;rect]o:`font`textBaseline`fillStyle`strokeStyle`lineWidth!(plotfont;"
  
 
 drawline:{[l;axis;rect]o:`beginPath`lineWidth`strokeStyle!(();l`size;l`color)
- o,:`lineTo!(scale[l`x;axis 0 1;,/+\rect 0 2]),'scale[l`y;axis 2 3;|,/+\rect 1 3]
+ o,:((#ln)#`lineTo)!ln:(scale[l`x;axis 0 1;,/+\rect 0 2]),'scale[l`y;axis 2 3;|,/+\rect 1 3]
  o,:`stroke!,()
  o}
  
@@ -86,6 +85,7 @@ ctext:{[x;y;s]`fillText!,(s;x-2\w;y;w:fontwidth*#s)}
 ltext:{[x;y;s]`fillText!,(s;x;y;fontwidth*#s)}
 rtext:{[x;y;s]`fillText!,(s;x-w;y;w:fontwidth*#s)}
 
+
 sin:129 'F;cos:130 'F
 x:!20
 y:(sin@0.3*x;cos@0.3*x)
@@ -95,10 +95,11 @@ l:vplot plots`xy!,(x;y)
 /plot[x;y]
 /drawplots`xy`xy!((x;*y);(x;y))
 
-/z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
+z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
 /polar z
 /polar (z;-z)
 /drawplots`polar`polar!(z;(z;-z))
+
 
 testPlot:{[]x:!20;y:(sin@0.3*x;cos@0.3*x);z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
  drawplots`xy`polar`polar`xy!((x;*y);,z;,(z;-z);(x;y))}
