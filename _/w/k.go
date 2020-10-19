@@ -208,7 +208,7 @@ func ini(x i) i {
 	sin, cos, exp, log := math.Sin, math.Cos, math.Exp, math.Log
 	copy(MT[0:], []interface{}{
 		//   1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
-		nil, gtc, gti, gtf, gtl, gtl, nil, mod, nil, eqc, eqi, eqf, eqz, eqi, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
+		nil, gtc, gti, gtf, nil, gti, gtl, mod, nil, eqc, eqi, eqf, eqz, eqi, eqL, nil, abc, abi, abf, abz, nec, nei, nef, nez, nil, moi, nil, nil, sqc, sqi, sqf, sqz, // 000..031
 		nil, mkd, nil, rsh, cst, diw, min, ecv, ecd, epi, mul, add, cat, sub, cal, ovv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, asn, nil, les, eql, mor, fnd, // 032..063
 		atx, nil, nil, nil, nil, nil, nmf, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, sci, scv, ecl, exc, cut, // 064..095
 		nil, nil, nil, nil, drw, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, ovi, max, ecr, mtc, nil, // 096..127

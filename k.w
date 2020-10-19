@@ -135,7 +135,7 @@ sms.I:III{r:sym(x;y;z);(~r)? :r;1/(y:I 8;q:sym(C y;y;z);(~q)? :enl r;r:r cat q);
 is.I:II{y&cla x}cla.I:I{(128<x-32)? :0;C 128+x}
 160!{204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800}
 
-000:{xxx; gtc; gti; gtf; gtl; gtl; xxx; mod; xxx; eqc; eqi; eqf; eqz; eqi; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; moi; xxx; xxx; sqc; sqi; sqf; sqz}
+000:{xxx; gtc; gti; gtf; xxx; gti; gtl; mod; xxx; eqc; eqi; eqf; eqz; eqi; eqL; xxx; abc; abi; abf; abz; nec; nei; nef; nez; xxx; moi; xxx; xxx; sqc; sqi; sqf; sqz}
 032:{xxx; mkd; xxx; rsh; cst; diw; min; ecv; ecd; epi; mul; add; cat; sub; cal; ovv; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; asn; xxx; les; eql; mor; fnd}
 064:{atx; xxx; xxx; xxx; xxx; xxx; nmf; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; sci; scv; ecl; exc; cut}
 096:{xxx; xxx; xxx; xxx; drw; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; xxx; ovi; max; ecr; mtc; xxx}
