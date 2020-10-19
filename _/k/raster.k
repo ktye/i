@@ -1,21 +1,16 @@
-raster:{[wh;a]
- s:`o`w`h`ix`iy`fg`pa`r!((*/wh)#0;w;h;w:wh 0;h:wh 1;0;();0)
- s:.s{@[y;1;x]}/{(x;;,y)}'[!a;.a]
- s`o}
- 
+raster:{[wh;a]w:wh 0;h:wh 1;o:(w*h)#0;r:fg:0;pa:();(.'!a)@'.a;o}
 
-strokeStyle:{[s;c]s[`fg]:icolor c;s}
-beginPath:  {[s;u]s[`pa]:();s} /pa:(x0 y0;x1 y1;..)
-moveTo:     {[s;u]s[`pa]:,_u;s}
-lineTo:     {[s;u]s[`pa],:,_u;s}
-clip:       {[s;u]s[`cl]:,/0 0-':(&/;|/)@\:s`p;s}
-stroke:     {[s;u]f:iline[;;s`w;s`h];s[`o;$[0~s`r;,/1_f':s`pa;&(s`r)>+iarc[s`r;s`pa;s`w;s`h]]]:s`fg;s[`r]:0;s}
-fill:       {[s;u]s[`o;&0>iarc[s`r;s`pa;s`w;s`h]]:s`fg;s[`r]:0;s}
-rect:       {[s;u]dx:,/(u 2;0);dy:,/(0;u 3);o:u 0 1;s[`pa]:(o;o+dx;o+dx+dy;o+dy;o);s}
-arc:        {[s;u]s[`pa`r]:_u(0 1;2);s}
-fillText:   {[s;u]s[`o;istr[u 1;u 2;s`w;u 0]]:s`fg;s}
+strokeStyle:{fg::icolor x;}
+beginPath:  {[x]pa::();}
+moveTo:     {pa::,_x;}
+lineTo:     {pa::pa,_x;}
+stroke:     {[x]f:iline[;;w;h];o[$[0~r;,/1_f':pa;&(r)>+iarc[r;pa;w;h]]]::fg;r::0;}
+fill:       {[x]o[&0>iarc[r;pa;w;h]]::fg;r::0;}
+rect:       {dx:,/(x 2;0);dy:,/(0;x 3);a:x 0 1;pa::(a;a+dx;a+dx+dy;a+dy;a);}
+arc:        {pa::_x 0 1;r::_x 2;}
+fillText:   {o[istr[x 1;x 2;w;x 0]]::fg;}
 fillStyle:strokeStyle
-clip:lineWidth:textBaseline:font:{y;x}
+clip:lineWidth:textBaseline:font:{x;}
 
 
 ihex:  {[c]+/i*16\*\(n:#i:|"0123456789abcdef"?-c)#16}
@@ -127,4 +122,4 @@ rasterT:,/(`beginPath`strokeStyle`lineWidth`rect`stroke!(();"red";2;(10 10 80 50
  `beginPath`strokeStyle`arc`fill!(();"red";20 50 10 0 2p;()))
 rasterTest:{[](*wh) 'draster[wh:200 100;rasterT]}
 
-rasterTest[]
+/rasterTest[]
