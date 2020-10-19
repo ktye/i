@@ -330,27 +330,21 @@ func mki(i i) (r i)    { r = mk(2, 1); sI(r+8, i); return r }
 func mkc(c i) (r i)    { r = mk(1, 1); sC(r+8, byte(c)); return r }
 func mks(c i) (r i)    { return sc(mkc(c)) }
 func mkd(x, y i) (r i) {
-	x, y = ext(x, y)
-	xt, yt, xn, _, xp, yp := v2(x, y)
-	if xt == 3 && yt == 3 {
-		r = mk(4, xn)
-		rp := r + 8
-		for i := i(0); i < xn; i++ {
-			sF(rp, F(xp))
-			sF(rp+8, F(yp))
-			rp += 16
-			xp += 8
-			yp += 8
-		}
-		return dxyr(x, y, r)
+	if tp(x) != 5 {
+		r = mk(4, 1)
+		sF(r+8, float64(0))
+		sF(r+16, float64(1))
+		return add(x, mul(y, r))
 	}
-	if xt != 5 {
+	xn := nn(x)
+	if xn == 1 && nn(y) != 1 {
+		y = enl(y)
+	}
+	y = lx(y)
+	if xn != nn(y) {
 		trap()
 	}
-	if yt != 6 {
-		y = lx(y) // explode
-	}
-	r = l2(x, y) // todo ext?
+	r = l2(x, y)
 	sI(r, 2|7<<29)
 	return r
 }
@@ -1555,12 +1549,6 @@ func cst(x, y i) (r i) { // x$y
 		}
 		return mk(x, 0)
 	}
-	/*
-		if yt == 2 && I(y+8) == 0 { // zero value
-			dx(y)
-			return fst(mk(x, 0))
-		}
-	*/
 	if yt > x || yt > 4 { // flr?
 		trap()
 	}
@@ -1577,11 +1565,6 @@ func cst(x, y i) (r i) { // x$y
 	return y
 }
 func sc(x i) (r i) {
-	/*
-		r = enl(x)
-		sI(r, 1|5<<29)
-		return r
-	*/
 	k := I(kkey)
 	n := nn(k)
 	x = enl(x)
@@ -1597,11 +1580,6 @@ func sc(x i) (r i) {
 	return r
 }
 func cs(x i) (r i) {
-	/*
-		r = x + 8
-		rx(r)
-		return dxr(x, r)
-	*/
 	r = I(8 + x)
 	r = I(8 + I(kkey) + 4*r)
 	rx(r)
@@ -2323,7 +2301,7 @@ func ras(x, xn i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x
 		}
 		r = I(x + 12)
 		rxn(r, 2)
-		s := fst(fst(r))
+		s := fst(r)
 		a := drop(r, 1)
 		if nn(a) == 0 {
 			dx(a)
