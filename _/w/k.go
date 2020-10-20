@@ -1008,6 +1008,8 @@ func match(x, y i) (r i) { // x~y
 		nn = xn << 3
 	case 4:
 		nn = xn << 4
+	case 5:
+		nn = xn << 2
 	default:
 		for i := i(0); i < xn; i++ {
 			if match(I(xp), I(yp)) == 0 {

@@ -59,10 +59,11 @@ drawxy:{[p;r]
  line:drawline[;p`axis;r]
  ,/o,line'p`lines}
  
-drawpo:{[p;rect]o:`font`textBaseline`fillStyle`strokeStyle`lineWidth!(plotfont;"bottom";plotfg;"gray";2)
+drawpo:{[p;rect]o:`font`textBaseline`fillStyle`strokeStyle`lineWidth!(plotfont;"bottom";plotfg;"white";2)
  left:5;right:5;top:20;bottom:20;rect:squareclip clip[rect;left;right;top;bottom]
  o,:ltext[rect 0;ty:rect 1;(p`title)] /," ",$|/p`axis]
  o,:ctext[(rect 0)+2\rect 3;ty;"0"],rtext[+/rect 0 2;ty;$|/p`axis]
+ o,:`strokeStyle!"gray"
  o,:strokeLine.(,/+\rect 0 2),\:(rect 1)+2\rect 3
  o,:strokeLine.((rect 0)+2\rect 2),/:+\rect 1 3
  o,:`strokeStyle`beginPath`arc`stroke!(plotfg;();arct rect;())
@@ -89,7 +90,7 @@ rtext:{[x;y;s]`fillText!,(s;x-w;y;w:fontwidth*#s)}
 sin:129 'F;cos:130 'F
 x:!20
 y:(sin@0.3*x;cos@0.3*x)
-l:vplot plots`xy!,(x;y)
+/l:vplot plots`xy!,(x;y)
 /(*plotsize) 'd raster[plotsize;3#l]
 /plot[x;*y]
 /plot[x;y]
@@ -100,7 +101,7 @@ z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
 /polar (z;-z)
 /drawplots`polar`polar!(z;(z;-z))
 
+/ \vplot plots`polar!z
 
 testPlot:{[]x:!20;y:(sin@0.3*x;cos@0.3*x);z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
  drawplots`xy`polar`polar`xy!((x;*y);,z;,(z;-z);(x;y))}
- 
