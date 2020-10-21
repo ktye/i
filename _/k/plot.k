@@ -21,7 +21,8 @@ rects:{[r;n]r[2]%:n;((!n)*r 2),\:1_r}
 plotxy:{[z]x:z 0;y:z 1;a:autoxy.d:xydat[x;y];x:d 0;y:d 1
  lines:{`x`y`type`size`color!(x 0;x 1;`line;2;x 2)}'&(x;y;(#x)#plotcolors)
  `type`title`xlabel`ylabel`axis`lines!(`xy;"- plot -";"x";"y";a;lines)}
-plotpo:{[z];p:plotxy(!z;_z);p[`type]:`polar;p[`axis]:,/(-;+;-;+)@'|/+p`axis;p}
+plotpo:{[z];p:plotxy(!z;_z);p[`type]:`polar;p[`axis]:,/(-;+;-;+)@'|/+p`axis
+ l:p`lines;l[;`type`size]:(`point;5);p[`lines]:l;p}
 
 xydat: {x:3$'$[~6~@x;,x;x];((#y)#x;y:3$'$[~6~@y;,y;y])}
 podat: {xydat[!x;_x]}
@@ -71,10 +72,11 @@ drawpo:{[p;rect]o:`font`textBaseline`fillStyle`strokeStyle`lineWidth!(plotfont;"
  ,/o,line'p`lines}
  
 
-drawline:{[l;axis;rect]o:`beginPath`lineWidth`strokeStyle!(();l`size;l`color)
- o,:((#ln)#`lineTo)!ln:(scale[l`x;axis 0 1;,/+\rect 0 2]),'scale[l`y;axis 2 3;|,/+\rect 1 3]
- o,:`stroke!,()
- o}
+drawline:{[l;axis;rect]o:`lineWidth`strokeStyle`fillStyle!(l`size;l`color;l`color)
+ $[L:`line~l`type;o,:`beginPath!();0]
+ ln:(scale[l`x;axis 0 1;,/+\rect 0 2]),'scale[l`y;axis 2 3;|,/+\rect 1 3]
+ o,:$[L;((#ln)#`lineTo)!ln;,/{`beginPath`arc`fill!(();x,(l`size;0.;2p);())}'ln]
+ $[L;o,:`stroke!();o]}
  
 clip:{[rect;left;right;top;bottom]rect+:,/(left;top;-left+right;-top+bottom)}
 squareclip:{[r]s:(r 2)&r 3;r+,/(2\(r 2 3)-s;s-r 2 3)}
@@ -100,6 +102,8 @@ z:1.1a20 1.2a30 1.4a40 1.5a50 1.6a60
 /polar z
 /polar (z;-z)
 /drawplots`polar`polar!(z;(z;-z))
+
+drawplots`xy`polar!((x;y);z)
 
 / \vplot plots`polar!z
 

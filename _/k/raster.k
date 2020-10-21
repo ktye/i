@@ -13,9 +13,9 @@ fillStyle:strokeStyle
 clip:lineWidth:textBaseline:font:{x;}
 
 
-ihex:  {[c]+/i*16\*\(n:#i:|"0123456789abcdef"?-c)#16}
+ihex:  {[c]+/i*16\*\(n:#i:|"0123456789abcdef"?-c 4 5 2 3 0 1)#16}
 irgb:  {[rgb]+/1 256 65536*rgb}
-icolor:{c:`white`black`gray`red`green`blue!irgb'(3#255;3#0;3#128;255 0 0;0 255 0;0 0 255);$[(#c)>i:(!c)?k:`$x;c k;ihex 1_x]}
+icolor:{c:`white`black`gray`red`green`blue!irgb'(255;0;128;255 0 0;0 255 0;0 0 255);$[(#c)>i:(!c)?k:`$x;c k;ihex 1_x]}
 iline: {[a;b;w]$[(+*d)<+dy:(d:b-a)1;yline.$[0>dy;(b;a-b;w);(a;b-a;w)];xline.$[0>*d;(b;a-b;w);(a;b-a;w)]]}
 xline: {[a;d;w]dx:*d;m:(d 1)%0.+dx;(x+a 0)+w*y:_(a 1)+m*x:!dx}
 yline: {[a;d;w]dy:d 1;m:(*d)%0.+dy;(w*y+a 1)+x:_(a 0)+m*y:!dy}
