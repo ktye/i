@@ -2120,6 +2120,9 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 			trap()
 		}
 		r = take(x, xn)
+		if xn == 1 {
+			r = enl(r)
+		}
 		rp := r + 8
 		rx(y)
 		a := fst(y)
@@ -2189,20 +2192,18 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 		}
 		return dxyr(y, z, r)
 	}
-	if xt == 6 || (xt == 5 && zt == 5) { // todo rm xt==5
+	if xt == 6 {
 		r = take(x, xn)
-		if xt == 6 {
-			if xn == 1 {
-				r = enl(r)
-			}
-			if yn == 1 {
-				z = enl(z)
-				zn = 1
-				zt = 6
-			}
-			if zt != 6 {
-				z = lx(z)
-			}
+		if xn == 1 {
+			r = enl(r)
+		}
+		if yn == 1 {
+			z = enl(z)
+			zn = 1
+			zt = 6
+		}
+		if zt != 6 {
+			z = lx(z)
 		}
 		rp := r + 8
 		if yn != zn {
