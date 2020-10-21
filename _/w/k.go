@@ -1935,9 +1935,6 @@ func whl(x, y, f, s i) (r i) {
 	n := mki(0)
 	for {
 		rx(x)
-		rx(f)
-		r = atx(f, r)
-		scl(s, r)
 		rx(r)
 		t := atx(x, r)
 		if 1 == match(t, n) {
@@ -1952,6 +1949,9 @@ func whl(x, y, f, s i) (r i) {
 			return r
 		}
 		dx(t)
+		rx(f)
+		r = atx(f, r)
+		scl(s, r)
 	}
 }
 func nlp(x, f, s, n i) (r i) { // (n;f)/:y (for)  (n;f)\:y (scan-for)
