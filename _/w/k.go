@@ -656,6 +656,9 @@ func prod(xp, n i) (r i) {
 	return r
 }
 func take(x, n i) (r i) {
+	if 0 == nn(x) {
+		x = fst(x)
+	}
 	xn := nn(x)
 	o := i(0)
 	if int32(n) < 0 {
