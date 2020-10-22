@@ -549,6 +549,9 @@ func lst(x i) (r i) { // ::x
 	if tp(x) == 7 {
 		return lst(val(x))
 	}
+	if nn(x) == 0 {
+		return fst(x)
+	}
 	return atx(x, mki(nn(x)-1))
 }
 func drop(x, n i) (r i) {
@@ -735,7 +738,7 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
-	//fmt.Printf("atx x=%s y=%s\n", X(x), X(y))
+	// fmt.Printf("atx x=%s y=%s\n", X(x), X(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
@@ -2054,7 +2057,7 @@ func val(x i) (r i) {
 		dx(x)
 	case 1:
 		r = prs(x)
-		n := I(r+8) == 58 //:
+		n := (I(r+8) == 58) && 2 < nn(r) //:
 		r = evl(r)
 		if n {
 			dx(r)
