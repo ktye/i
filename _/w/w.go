@@ -391,7 +391,6 @@ func (p *parser) t(f func([]c) int) bool { // test
 func (p *parser) seq(term c) expr {
 	var seq seq
 	seq.pos = pos(p.p)
-	sempos := p.p
 	for {
 		e := p.ex(p.noun())
 		if e != nil {
@@ -407,10 +406,6 @@ func (p *parser) seq(term c) expr {
 			} else if p.b[0] != ';' {
 				p.xerr(seq, "expected ;")
 			} else {
-				if p.p == sempos { // empty statement (for jump table)
-					seq.argv = append(seq.argv, nop{})
-				}
-				sempos = p.p
 				p.b = p.b[1:]
 			}
 		}
@@ -460,10 +455,6 @@ func (p *parser) ex(x expr) expr {
 				y = v
 			}
 			return lod{t: t.t, argv: argv{y}, pos: pos(h)} // I x
-		} else if s, o := v.(swc); o {
-			s.argv = append(argv{x}, s.argv...)
-			s.pos = pos(h)
-			return s
 		} else if d, o := x.(dot); o {
 			if s, o := v.(seq); o {
 				d.argv = s.argv
@@ -599,17 +590,13 @@ func (p *parser) noun() expr {
 		if len(p.b) > 0 && p.b[0] == ':' { // w/o space
 			p.t(sC(':'))
 			t := T(0)
-			if len(p.b) > 0 && p.b[0] == '\'' { // ::' (i32.store_8)
+			if len(p.b) > 0 && p.b[0] == '\'' { // ::' (i32.store_8) //todo remove
 				p.t(sC('\''))
 				t = C
 			}
 			return asn{e.(opx), t}
 		} else if s(e.(opx)) == ":" {
 			return asn{opx(""), 0}
-		} else if s(e.(opx)) == "?" && len(p.b) > 0 && p.b[0] == '[' {
-			p.t(sC('['))
-			s := p.seq(']').(seq)
-			return swc{argv: s.argv} // ?[a;b;..] (jump)
 		}
 		return e
 	case p.t(sCnd):
@@ -946,11 +933,6 @@ type ret struct { // :x (return)
 type iff struct { // x?y
 	pos
 	argv
-}
-type swc struct { // x?[a;b;..] jump table
-	pos
-	argv
-	// t T todo as expression with return value (how to do in c/go?)
 }
 type nlp struct { // x/y loop
 	pos
@@ -1443,54 +1425,7 @@ func (v iff) valid() s {
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
 func (v iff) cstr() s        { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
 func (v iff) gstr() s        { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
-func (v swc) rt() T          { return 0 }
-func (v swc) valid() s {
-	if v.x().rt() != I {
-		return "swc wrong type for x"
-	}
-	for i, a := range v.argv[1:] {
-		if a.rt() != 0 {
-			return sf("swc arg %d must have zero type", i+1)
-		}
-	}
-	return ""
-}
-func (v swc) bytes() (r []c) { // (block(block(... x br_table 0..n) argv[i];break)...)
-	//fmt.Fprintf(os.Stderr, "%#v\n", v)
-	n := len(v.argv) - 1
-	r = catb(bytes.Repeat([]c{0x02, 0x40}, n+1), v.x().bytes(), []c{0x0e}, leb(int64(n-1)))
-	for i := 0; i < n; i++ {
-		r = append(r, leb(int64(i))...)
-	}
-	r = append(r, 0x0b)
-	for i, a := range v.argv[1:] {
-		if _, o := a.(nop); o {
-			r = catb(r, []c{0x0c}, leb(int64(n-2-i)), []c{0x0b})
-		} else {
-			r = catb(r, a.bytes(), []c{0x0c}, leb(int64(n-1-i)), []c{0x0b})
-		}
-	}
-	return r
-}
-func (v swc) cstr() (r s) {
-	r = jn("switch(", cstring(v.x()), "){")
-	for i, a := range v.argv[1 : len(v.argv)-1] {
-		if _, o := a.(nop); !o {
-			r += sf("case %d:%sbreak;", i, cstring(a))
-		}
-	}
-	return r + sf("default:%s}", cstring(v.argv[len(v.argv)-1]))
-}
-func (v swc) gstr() (r s) {
-	r = jn("switch ", gstring(v.x()), "{")
-	for i, a := range v.argv[1 : len(v.argv)-1] {
-		if _, o := a.(nop); !o {
-			r += sf("case %d:%s;", i, gstring(a))
-		}
-	}
-	return r + sf("default:%s;}", gstring(v.argv[len(v.argv)-1]))
-}
-func (v nlp) rt() T { return 0 }
+func (v nlp) rt() T          { return 0 }
 func (v nlp) valid() s {
 	if xt, yt := v.x().rt(), v.y().rt(); xt != I {
 		return sf("loop range is not I: %s", xt)
@@ -1645,23 +1580,23 @@ var v1Tab = map[s]code{
 	"%": code{0, 0, 0x9f, "sqrt", "math.Sqrt"},                                 // sqr
 }
 var v2Tab = map[s]code{
-	`+`:   code{0x6a, 0x7c, 0xa0, "+", "+"},     // add
-	`-`:   code{0x6b, 0x7d, 0xa1, "-", "-"},     // sub
-	`*`:   code{0x6c, 0x7e, 0xa2, "*", "*"},     // mul
-	`%`:   code{0x6e, 0x80, 0xa3, "/", "/"},     // div/div_u
-	`%'`:  code{0x6d, 0x7f, 0xa3, "S/", "S/"},   // div_s
-	`\`:   code{0x70, 0x82, 0, "%", "%"},        // rem_u
-	`\'`:  code{0x6f, 0x81, 0, "S%", "S%"},      // rem_s
-	`&`:   code{0x71, 0x83, 0, "&", "&"},        // and
-	`|`:   code{0x72, 0x84, 0, "|", "|"},        // or
-	`^`:   code{0x73, 0x85, 0, "^", "^"},        // xor
-	`<<`:  code{0x74, 0x86, 0, "<<", "<<"},      // shl
-	`>>`:  code{0x76, 0x88, 0, ">>", ">>"},      // shr_u
-	`>>'`: code{0x75, 0x87, 0, "S>>", "S>>"},    // shl_s
-	`<|'`: code{0x77, 0x89, 0, "", ""},          // rotl
-	`>|'`: code{0x78, 0x8a, 0, "", ""},          // rotr
-	`&'`:  code{0, 0, 0xa4, "fmin", "math.Max"}, // min
-	`|'`:  code{0, 0, 0xa5, "fmax", "math.Min"}, // max
+	`+`:  code{0x6a, 0x7c, 0xa0, "+", "+"},   // add
+	`-`:  code{0x6b, 0x7d, 0xa1, "-", "-"},   // sub
+	`*`:  code{0x6c, 0x7e, 0xa2, "*", "*"},   // mul
+	`%`:  code{0x6e, 0x80, 0xa3, "/", "/"},   // div/div_u
+	`%'`: code{0x6d, 0x7f, 0xa3, "S/", "S/"}, // div_s
+	`\`:  code{0x70, 0x82, 0, "%", "%"},      // rem_u
+	`\'`: code{0x6f, 0x81, 0, "S%", "S%"},    // rem_s
+	`&`:  code{0x71, 0x83, 0, "&", "&"},      // and
+	`|`:  code{0x72, 0x84, 0, "|", "|"},      // or
+	`^`:  code{0x73, 0x85, 0, "^", "^"},      // xor
+	`<<`: code{0x74, 0x86, 0, "<<", "<<"},    // shl
+	`>>`: code{0x76, 0x88, 0, ">>", ">>"},    // shr_u
+	//	`>>'`: code{0x75, 0x87, 0, "S>>", "S>>"},    // shl_s
+	//	`<|'`: code{0x77, 0x89, 0, "", ""},          // rotl
+	//	`>|'`: code{0x78, 0x8a, 0, "", ""},          // rotr
+	//	`&'`:  code{0, 0, 0xa4, "fmin", "math.Max"}, // min
+	//	`|'`:  code{0, 0, 0xa5, "fmax", "math.Min"}, // max
 }
 var cTab = map[s]code{
 	"<":   code{0x49, 0x54, 0x63, "<", "<"},     // lt/lt_u

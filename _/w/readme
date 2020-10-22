@@ -20,7 +20,6 @@
 # a;b;c            sequence. c(last) returns a typed value all others must return null
 # x?y              if x then y
 # $[a;b;c;d;e]     if a then b elseif c then d else e
-# x?[a;b;c;d]      jump to statement x (must be I) default d (last), no return values
 # x/y              execute-y x-times (x evaluates to I, y must be null)
 #                  n-loops have implicit locals with names i(j,k... if nested) type I
 # x?/y             while x do y (y must be null)
