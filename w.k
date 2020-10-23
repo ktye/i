@@ -46,3 +46,26 @@ a:compile src
  \a[`funcs;`asi;`body]
  \a[`funcs;`asi;`ast]
 
+
+wasm:{}
+leb:{r:"";({c:x/128;s:x/64;x%:128;c+:$[((~s)+~x~-1)*(~~x)+~~s;128;0];r::r,_c;$[c<128;0;1]};{x%128})/:x;r}
+whdr:0x0061736d01000000
+/wsig:0x60,...
+
+\
+func leb(v int64) []c { // encode signed leb128
+	var b []c
+	for {
+		c := uint8(v & 0x7f)
+		s := uint8(v & 0x40)
+		v >>= 7
+		if (v != -1 || s == 0) && (v != 0 || s != 0) {
+			c |= 0x80
+		}
+		b = append(b, c)
+		if c&0x80 == 0 {
+			break
+		}
+	}
+	return b
+}
