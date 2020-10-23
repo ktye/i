@@ -643,7 +643,17 @@ func rsh(x, y i) (r i) {
 		n /= m
 		n = prod(xp, xn-i)
 		r = cut(seq(0, n, m), r)
+		if m == 1 && i > 0 {
+			if tp(r) != 6 {
+				r = enl(r)
+			} else {
+				r = ech(r, 172)
+			}
+		}
 		xe -= 4
+	}
+	if I(xe) == 1 {
+		r = enl(r)
 	}
 	return dxr(x, r)
 }
