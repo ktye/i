@@ -767,6 +767,9 @@ func sCon(b []c) int { // 123 123i 123j 123f .123 123. -..
 	if !cr09(b[0]) {
 		return 0
 	}
+	if len(b) > 17 && b[0] == '0' && b[1] == 'x' {
+		return 18
+	}
 	for i, c := range b {
 		if cr09(c) {
 			continue
@@ -782,6 +785,15 @@ func sCon(b []c) int { // 123 123i 123j 123f .123 123. -..
 }
 func (p *parser) pCon(b []c) expr {
 	var r con
+	if len(b) == 18 && b[0] == '0' && b[1] == 'x' {
+		b, e := hex.DecodeString(string(b[2:]))
+		if e != nil {
+			return p.err(e.Error())
+		}
+		r.t = F
+		r.f = math.Float64frombits(binary.LittleEndian.Uint64(b))
+		return r
+	}
 	if bytes.IndexByte(b, '.') != -1 {
 		if f, e := strconv.ParseFloat(s(b), 64); e != nil {
 			return p.err(e.Error())
@@ -792,13 +804,11 @@ func (p *parser) pCon(b []c) expr {
 		}
 	}
 	r.t = I
-	if c := b[len(b)-1]; c == 'i' || c == 'j' || c == 'f' {
+	if c := b[len(b)-1]; c == 'j' {
 		b = b[:len(b)-1]
-		if c == 'j' {
-			r.t = J
-		} else if c == 'f' {
-			r.t = F
-		}
+		r.t = J
+	} else if c == 'i' || c == 'f' {
+		return p.err("parse number [0-9]i [0-9]f is deprecated")
 	}
 	if u, e := strconv.ParseUint(s(b), 10, 64); e != nil {
 		return p.err(e.Error())
