@@ -7,8 +7,9 @@ ksts:{"`","`"/:$x}
 kstl:{$[1~#x;",",kst@*x;"(",(";"/:kst'x),")"]}
 print:kst
 
-hex: {,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}  /hex"alpha"
-bits:{2/128 64 32 16 8 4 2 1\x}
+hex:  {,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}  /hex"alpha"
+unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
+bits: {2/128 64 32 16 8 4 2 1\x}
 
 tab:    {t:@x; \(_10)/:$[t~6;tochar'x;t~7;tabdict x; 'kx];}         /matrix output
 rpad:   {y#x,(y-#x)#" "}                        /rpad["alpha";10]
