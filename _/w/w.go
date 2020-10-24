@@ -1842,27 +1842,6 @@ func (f fn) locs() (r []c) {
 	return r
 }
 
-//func leb(v int64) []c { return lebx(v) }
-/*
-func lebu(v int) []c { // encode unsigned leb128
-	if v < 0 {
-		panic("lebu")
-	}
-	var b []c
-	for {
-		c := uint8(v & 0x7f)
-		v >>= 7
-		if v != 0 {
-			c |= 0x80
-		}
-		b = append(b, c)
-		if c&0x80 == 0 {
-			break
-		}
-	}
-	return b
-}
-*/
 func leb(v int64) []c { // encode signed leb128
 	var b []c
 	for {
