@@ -1,14 +1,12 @@
 // k/ui (win32)
 // tcc -o u.exe u_c -luser32 -lgdi32
+// ./u.exe ../k/ui.k
 #include <windows.h>
-// #include "k.h"
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<setjmp.h>
 #include<math.h>
 
-// screen, width, height should be handled by k.
 int width; int height;
 char *screen;
 
@@ -27,16 +25,21 @@ V draw(I x,I y,I z){printf("no draw..\n");}
 #undef max
 #include"k_h"
 
+C *MB;
+I LB;
 I u = 0;
 int ui(I x) {
-	if(!u)u=val(sc(ucat(mkc('u'),mkc('i'))));
-	rx(u);x=atx(u,x);
-	//memcpy(screen,MC+x+8,4*width*height);
-	int32_t *idst = (int32_t*)screen;
-	int32_t *ip   = (int32_t*)(MC+x+8);
-	int h1 = height-1;
-	for(int k=0;k<height;k++)for(int i=0;i<width;i++)idst[width*(h1-k)+i]=ip[width*k+i];
-	dx(x);
+	if(!setjmp(jb)) {
+		if(!u)u=val(sc(ucat(mkc('u'),mkc('i'))));
+		rx(u);x=atx(u,x);
+		int32_t *idst = (int32_t*)screen;
+		int32_t *ip   = (int32_t*)(MC+x+8);
+		int h1 = height-1;
+		for(int k=0;k<height;k++)for(int i=0;i<width;i++)idst[width*(h1-k)+i]=ip[width*k+i];
+		dx(x);
+		if(MI[32]!=LB) { LB=MI[32];MB=realloc(MB,1<<LB); }
+		memcpy(MB, MC, 1<<LB);
+	} else  memcpy(MC, MB, 1<<LB);
 }
 int size(int w, int h) { 
 	int i;
@@ -146,5 +149,6 @@ int main(int args, char **argv) {
 	mt_init();
 	ini(16);
 	if(args==2)dx(val(read0(argv[1])));
+	LB=1<<MI[32];MB=malloc(1<<LB);
 	winMain(GetModuleHandle(NULL), 0, 0, 1);
 }
