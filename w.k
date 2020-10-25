@@ -9,12 +9,12 @@ mf:{r:"{"\:x;(trim/:r 0;r 1)}
 
 parse:{[x;macro;funcs]x,`ast!type ex token"(",(x`body),")"}
 token:{r:0#`!0;{r::r,$[#t:tok x;(t 1)!*t;0#r]; :t}/:x;r}
-tok:  {t:toks;n:r:0;x:({$[~#t;0;n::*r::(*t)x]};{t::1_t;x})/:xpnd/:ws/:x;(n#x;!r;n_x)}
+tok:  {t:toks;n:r:0;x:({$[~#t;0; \~n::*r::( \*t)x]};{t::1_t;x})/:xpnd/:ws/:x;(n#x;!r;n_x)}
 
 first:{0+*x}
 toks:(tSem:{`sem!";"~*x}
  tOpa:{`op !$[~+/n:,/(x{y~(#y)#x}/:ops);0;":"~x l:#ops n?1;1+l;l]}
- tFun:{`fun!$n*|/funcs=`$(n:*tSym x)#x}
+ tFun:{`fun!n*|/funcs=`$(n:*tSym x)#x}
  tSym:{`sym!(alpha first x)*(alphanum 0+x)?0}
  tNlp:{`nlp!"/"~*x}
  tCon:{`con!$[~num first x;0;"0x"~2#x;18;"j"~t:x n*(#x)>n:(num 0+x)?0;1+n;"."~t;m+**tCon(m:1+n)_x;n]}
@@ -23,7 +23,7 @@ toks:(tSem:{`sem!";"~*x}
 
 unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
 ws:  {$[space first x;1_x;x]}
-xpnd:{$[0~k: :pSym x;x;(#macro)>(!macro)?s:k 1;(macro s),(#$s)_x;x]}
+xpnd:{$[~#s:(*tSym x)#x;x;(#macro)>(!macro)?v:`$s;(macro v),(#s)_x;x]}
 ops: " "\:(">=' %' \' << >> <' <= >= ?/ ?' $[ I. F. C? I? J? F? : + - * % ~ _ * | \ & ^ ! ? < > = C I J F")
 set: {@[256#0;x;1]};num:set"0"+!10;alphanum:num+alpha:set"a"+!26;clo:set")]"+0;ctype:set"VCIJF"+0;space:set@!33
 
@@ -39,9 +39,13 @@ fun:{((`cal;**x),$[`seq~**a;1_*a;,*a];(a:ex 1_x)1)}         /(`cal;"f";a;b;..)
 /type
 type:{x}
 
-/\src:"f:I:II{x+y}g:I:II{f x}"
-/\a:compile src
+/src:"f:I:II{x+y}g:I:II{f x}"
+/a:compile src
 / \a[`funcs;`g]
+
+funcs:`f`g
+macro:`v!,"w"
+ \tok"x+y"
 
 \
 wasm:{}
