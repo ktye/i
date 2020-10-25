@@ -1,0 +1,150 @@
+// k/ui (win32)
+// tcc -o u.exe u_c -luser32 -lgdi32
+#include <windows.h>
+// #include "k.h"
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<setjmp.h>
+#include<math.h>
+
+// screen, width, height should be handled by k.
+int width; int height;
+char *screen;
+
+#define R return
+typedef void V;typedef unsigned char C;typedef uint32_t I;typedef uint64_t J;typedef double F;typedef int32_t SI;typedef int64_t SJ;
+I __builtin_clz(I x){I r;__asm__("bsr %1, %0" : "=r" (r) : "rm" (x) : "cc");R r^31;}
+C *MC;I* MI;J* MJ;F *MF;
+static jmp_buf jb;
+V panic(){printf("!\n");fflush(stdout);longjmp(jb,1);}
+V sC(I x,C y){MC[x]=y;}V sI(I x,I y){MI[x>>2]=y;}V sF(I x,F y){MF[x>>3]=y;}V sJ(I x,J y){MJ[x>>3]=y;};
+I grow(I x){MC=realloc(MC, 1<<x);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC; R x;}
+V printc(I x, I y) {for(I i=0;i<y;i++)putchar(MC[x+i]);putchar('\n');}
+V draw(I x,I y,I z){printf("no draw..\n");}
+#undef abs
+#undef min
+#undef max
+#include"k_h"
+
+I u = 0;
+int ui(I x) {
+	if(!u)u=val(sc(ucat(mkc('u'),mkc('i'))));
+	rx(u);x=atx(u,x);
+	//memcpy(screen,MC+x+8,4*width*height);
+	int32_t *idst = (int32_t*)screen;
+	int32_t *ip   = (int32_t*)(MC+x+8);
+	int h1 = height-1;
+	for(int k=0;k<height;k++)for(int i=0;i<width;i++)idst[width*(h1-k)+i]=ip[width*k+i];
+	dx(x);
+}
+int size(int w, int h) { 
+	int i;
+	printf("size %d %d\n", w, h); fflush(stdout);
+	width = w; height = h;
+	if (screen != NULL) free(screen);
+	screen = malloc(4*w*h);
+	if (screen == NULL) return 0;
+	ui(cat(mki(w),mki(h)));
+	return 1;
+}
+int key(int c) {
+	printf("key %d\n", c);fflush(stdout);
+	return ui(mkc(c==13?10:c));
+}
+int mouse(int x, int y) {
+	printf("mouse %d %d\n", x, y); fflush(stdout);
+	return ui(cat(mki(x),mki(y)));
+}
+void redraw(HWND hwnd, int screen){if (!screen) return; RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE);}
+
+char szAppName[] = "k"; // The name of this application
+char szTitle[]   = "k"; // The title bar text
+
+HBITMAP screenBitmap(HDC hdc, int w, int h, char *p) {
+	BITMAPV5HEADER   bi;
+	HBITMAP          hbm;
+	char            *dst;
+	ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
+	bi.bV5Size = sizeof(bi);
+	bi.bV5Height = h; bi.bV5Width = w; bi.bV5Planes = 1; bi.bV5BitCount = 32; bi.bV5Compression = 3; 
+	bi.bV5XPelsPerMeter = 3780; bi.bV5YPelsPerMeter = 3780;
+	bi.bV5RedMask = 0x000000FF; bi.bV5GreenMask = 0x0000FF00; bi.bV5BlueMask = 0x00FF0000, bi.bV5AlphaMask = 0xFF000000;
+	hbm = CreateDIBSection(hdc, &bi, 0, &dst, 0, 0);
+	if(hbm==NULL)return NULL;
+	memcpy(dst, p, 4*w*h);
+	return hbm;
+}
+LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+        case WM_CREATE:break;
+	case WM_DESTROY:PostQuitMessage(0);break;
+	case WM_LBUTTONDOWN: redraw(hwnd, mouse(LOWORD(lParam), HIWORD(lParam)));break;
+	case WM_CHAR:if (wParam > 1) redraw(hwnd, key((int)wParam));break;
+	case WM_SIZE:if (wParam != SIZE_MINIMIZED) size(LOWORD(lParam), HIWORD(lParam));
+        case WM_PAINT: {
+		HDC      hdc, hdcmem;
+		HBITMAP  hbm;
+		HGDIOBJ  o;
+		hdc = GetDC(hwnd);
+		hdcmem = CreateCompatibleDC(hdc);
+		hbm = screenBitmap(hdc, width, height, screen);
+		if (hbm == NULL) return;
+		o = SelectObject(hdcmem, hbm);
+		if (o == 0) return;
+		BitBlt(hdc, 0, 0, width, height, hdcmem, 0, 0, 0x00CC0020);
+		SelectObject(hdcmem, o);
+		DeleteDC(hdcmem);
+		DeleteObject(hbm);
+	}
+	default:
+		return DefWindowProc(hwnd, message, wParam, lParam);
+	}
+	return 0;
+}
+int winMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	MSG msg;
+	WNDCLASS wc;
+	HWND hwnd;
+	
+	screen = NULL;
+	ZeroMemory(&wc, sizeof wc);
+	wc.hInstance     = hInstance;
+	wc.lpszClassName = szAppName;
+	wc.lpfnWndProc   = (WNDPROC)WndProc;
+	wc.hIcon         = LoadIcon(NULL, IDI_EXCLAMATION);
+	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+
+	if (FALSE == RegisterClass(&wc)) return 0;
+	hwnd = CreateWindow(szAppName, szTitle, WS_DLGFRAME|WS_VISIBLE|WS_SYSMENU/*WS_OVERLAPPEDWINDOW|WS_VISIBLE|WS_THICKFRAME*/, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600, 0, 0, hInstance, 0);
+  	if (NULL == hwnd) return 0;
+	while (GetMessage(&msg, NULL, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return msg.wParam;
+}
+I read0(C *name) {
+	C b[512];
+	size_t n;
+	I s, r = mk(1, 0);
+	FILE *f = fopen(name, "rt");
+	if(f==NULL){ fprintf(stderr, "open %s\n", name); exit(1); }
+	while((n=fread(b, 1, sizeof(b), f)) > 0) {
+		for(I i=0; i<n; i++)if(b[i]=='\r')b[i]=' ';
+		s = mk(1, n);
+		memcpy(MC+s+8, b, n);
+		r = ucat(r, s);
+	}
+	fclose(f);
+	r=fst(spl(r,flr(ucat(mki(10), mki(92))))); // ^backslash
+	return r;
+}
+int main(int args, char **argv) {
+	MC=malloc(1<<16);MI=(I*)MC;MJ=(J*)MC;MF=(F*)MC;
+	memset(MC, 0, 1<<16);
+	mt_init();
+	ini(16);
+	if(args==2)dx(val(read0(argv[1])));
+	winMain(GetModuleHandle(NULL), 0, 0, 1);
+}

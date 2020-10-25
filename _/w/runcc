@@ -2,6 +2,8 @@
 tcc=/local/tcc/tcc
 if [ "$1" = "kw" ]; then
 	$tcc -o kw.exe -DDRW k_c -luser32 -lgdi32
+elif [ "$1" = "u" ]; then
+	$tcc -o u.exe u_c -luser32 -lgdi32
 elif [ "$1" = "t" ]; then
 	sed '/^$/q' t | $tcc -run k_c t | awk '{
 		x=$0
