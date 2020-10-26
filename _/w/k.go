@@ -49,10 +49,6 @@ const naJ j = 9221120237041090561
 const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 
 func main() {
-	if len(os.Args) == 1 {
-		kinit()
-		repl()
-	}
 	if len(os.Args) == 2 && os.Args[1] == "t" {
 		multitest()
 		runtest()
@@ -60,12 +56,29 @@ func main() {
 		kdirs(os.Args[2:])
 	} else {
 		kinit()
-		for _, a := range os.Args[1:] {
-			if strings.HasSuffix(a, ".k") {
+		args := os.Args[1:]
+		for {
+			if len(args) == 0 {
+				break
+			}
+			a := args[0]
+			if strings.HasPrefix(a, "-f") {
+				b, e := ioutil.ReadFile(args[1])
+				if e != nil {
+					panic(e)
+				}
+				name := a[2:]
+				if name == "" {
+					name = args[1]
+				}
+				dx(asn(sc(mkchrs([]byte(name))), mkchrs(b)))
+				args = args[1:]
+			} else if strings.HasSuffix(a, ".k") {
 				load(a)
 			} else {
 				panic("argument: " + a)
 			}
+			args = args[1:]
 		}
 		repl()
 	}
@@ -751,7 +764,6 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
-	// fmt.Printf("atx x=%s y=%s\n", X(x), X(y))
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))

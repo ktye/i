@@ -249,7 +249,16 @@ func msl() { // update slice headers after set/inc MJ
 	MI = *(*[]I)(unsafe.Pointer(&ip))
 	MC = *(*[]byte)(unsafe.Pointer(&cp))
 }
-func grow(x I) I { panic("nyi grow"); return x }
+func grow(x I) I {
+	if x > 31 {
+		panic("Ω")
+	}
+	c := make([]uint64, 1<<(x-3))
+	copy(c, MJ)
+	MJ = c
+	msl()
+	return x
+}
 func printc(x, y I) { fmt.Printf("%s\n", string(MC[x:x+y])) }
 func clz32(x I) I { return I(bits.LeadingZeros32(x)) }
 func clz64(x J) I { return I(bits.LeadingZeros64(x)) }
@@ -434,16 +443,35 @@ func run(s string) string {
 	return s
 }
 func main() {
-	if len(os.Args) == 1 { repl(); return }
-	//m0 := 16
-	//MJ = make([]J, (1<<m0)>>3)
-	//msl()
-	//mt_init()
-	//ini(16)
-	runtest()
+	args := os.Args[1:]
+	if len(args) == 1 && args[0] == "t" { runtest();return }
+	kinit()
+	for {
+		if len(args) == 0 {
+			break
+		}
+		a := args[0]
+		if strings.HasPrefix(a, "-f") {
+			b, e := ioutil.ReadFile(args[1])
+			if e != nil {
+				panic(e)
+			}
+			name := a[2:]
+			if name == "" {
+				name = args[1]
+			}
+			dx(asn(sc(mkchrs([]byte(name))), mkchrs(b)))
+			args = args[1:]
+		} else if strings.HasSuffix(a, ".k") {
+			load(a)
+		} else {
+			panic("argument: " + a)
+		}
+		args = args[1:]
+	}
+	repl()
 }
 func repl() {
-	kinit()
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
 		t := s.Text()
@@ -458,6 +486,28 @@ func repl() {
 				dx(x)
 			}
 		}
+	}
+}
+func mkchrs(b []byte) uint32 {
+	x := mk(1, uint32(len(b)))
+	copy(MC[x+8:], b)
+	return x
+}
+func load(f string) {
+	b, e := ioutil.ReadFile(f)
+	if e != nil {
+		panic(e)
+	}
+	if n := bytes.Index(b, []byte("\n\\")); n != -1 {
+		fmt.Println(n)
+		b = b[:n+1]
+	}
+	x := val(mkchrs(b))
+	if x > 255 {
+		x = kst(x)
+		os.Stdout.Write(MC[x+8 : x+nn(x)+8])
+		os.Stdout.Write([]byte{10})
+		dx(x)
 	}
 }
 `
