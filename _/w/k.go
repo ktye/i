@@ -102,6 +102,7 @@ func load(f string) {
 }
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
+	fmt.Printf("k.go\n ")
 	for s.Scan() {
 		t := s.Text()
 		switch strings.TrimSpace(t) {
@@ -115,6 +116,7 @@ func repl() {
 				dx(x)
 			}
 		}
+		fmt.Printf(" ")
 	}
 }
 func multitest() { //multiline, spaces, comments
