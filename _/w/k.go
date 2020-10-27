@@ -75,6 +75,12 @@ func main() {
 				args = args[1:]
 			} else if strings.HasSuffix(a, ".k") {
 				load(a)
+			} else if a == "-e" {
+				args = args[1:]
+				if len(args) > 0 {
+					dx(out(val(mkchrs([]byte(strings.Join(args, " "))))))
+				}
+				os.Exit(0)
 			} else {
 				panic("argument: " + a)
 			}
@@ -109,12 +115,7 @@ func repl() {
 		case `\`, `\\`:
 			os.Exit(0)
 		default:
-			if x := val(mkchrs([]byte(t))); x > 255 {
-				x = kst(x)
-				os.Stdout.Write(MC[x+8 : x+nn(x)+8])
-				os.Stdout.Write([]byte{10})
-				dx(x)
-			}
+			dx(out(val(mkchrs([]byte(t)))))
 		}
 		fmt.Printf(" ")
 	}
@@ -1351,6 +1352,9 @@ func drw(x, y i) (r i) { // x 'd y
 	return dxyr(x, y, 0)
 }
 func out(x i) (r i) {
+	if x == 0 {
+		return
+	}
 	rx(x)
 	r = x
 	if tp(x) != 1 {
