@@ -75,11 +75,17 @@ func main() {
 				args = args[1:]
 			} else if strings.HasSuffix(a, ".k") {
 				load(a)
+			} else if a == "-leak" {
+				leak()
+				fmt.Println("no leak\n")
+				os.Exit(0)
 			} else if a == "-e" {
 				args = args[1:]
 				if len(args) > 0 {
-					dx(out(val(mkchrs([]byte(strings.Join(args, " "))))))
+					s := strings.Join(args, " ")
+					dx(out(val(mkchrs([]byte(s)))))
 				}
+				leak()
 				os.Exit(0)
 			} else {
 				panic("argument: " + a)
@@ -95,16 +101,9 @@ func load(f string) {
 		panic(e)
 	}
 	if n := bytes.Index(b, []byte("\n\\")); n != -1 {
-		fmt.Println(n)
 		b = b[:n+1]
 	}
-	x := val(mkchrs(b))
-	if x > 255 {
-		x = kst(x)
-		os.Stdout.Write(MC[x+8 : x+nn(x)+8])
-		os.Stdout.Write([]byte{10})
-		dx(x)
-	}
+	dx(out(val(mkchrs(b))))
 }
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
@@ -112,6 +111,20 @@ func repl() {
 	for s.Scan() {
 		t := s.Text()
 		switch strings.TrimSpace(t) {
+		case `\leak`:
+			b := make([]uint64, len(MJ))
+			copy(b, MJ)
+			leak()
+			copy(MJ, b)
+			msl()
+			fmt.Println("no leak")
+		case `\256`:
+			fmt.Printf("%x %d/%d: rc=%x Ixp=%x\n", 256, tp(256), nn(256), I(256+4), I(256+8))
+		case `\v`:
+			x := I(kkey)
+			rx(x)
+			fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
+			dx(out(jon(x, mkc('`'))))
 		case `\`, `\\`:
 			os.Exit(0)
 		default:
@@ -332,7 +345,10 @@ func rxn(x, y i) {
 	}
 }
 func rl(x i) {
-	_, xn, xp := v1(x)
+	xt, xn, xp := v1(x)
+	if xt > 0 && xt < 6 {
+		panic(fmt.Sprintf("rl on %d/%d", xt, xn))
+	}
 	for i := i(0); i < xn; i++ {
 		rx(I(xp))
 		xp += 4
@@ -795,7 +811,7 @@ func atx(x, y i) (r i) {
 		rp += w
 		yp += 4
 	}
-	if xt > 4 {
+	if xt > 5 {
 		rl(r)
 	}
 	if xt == 6 && yn == 1 {
@@ -826,7 +842,8 @@ func cal(x, y i) (r i) {
 		}
 		rld(y)
 		f := MT[x].(func(i, i) i)
-		return f(I(yp), I(yp+4))
+		r = f(I(yp), I(yp+4))
+		return r
 	} else if x < 256 {
 		if yn != 1 {
 			panic("arity")
@@ -934,7 +951,7 @@ func cat(x, y i) (r i) {
 }
 func ucat(x, y i) (r i) {
 	xt, _, xn, yn, xp, yp := v2(x, y)
-	if xt > 4 {
+	if xt > 5 {
 		rl(x)
 		rl(y)
 	}
@@ -2109,6 +2126,9 @@ func val(x i) (r i) {
 	return r
 }
 func lup(x i) (r i) {
+	if I(x+8) == 0 {
+		panic("lup#0!!")
+	}
 	r = I(I(kval) + 8 + 4*I(x+8))
 	rx(r)
 	return dxr(x, r)
@@ -2117,6 +2137,9 @@ func asn(x, y i) (r i) {
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
+	}
+	if I(x+8) == 0 {
+		panic("asn#0!!")
 	}
 	p := I(kval) + 8 + 4*I(x+8)
 	dx(I(p))

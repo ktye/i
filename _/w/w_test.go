@@ -310,9 +310,14 @@ func X(x I) string {
 		}
 	}
 	sstr := func(i i) s {
-		r := MI[(x + 8 + 4*i)>>2]
+		r := MI[(x+8+4*i)>>2]
 		rn := nn(r)
 		return string(MC[r+8 : r+8+rn])
+	}
+	ystr := func(i i) s {
+		n := MI[(x+8+4*i)>>2]
+		s := X(MI[(MI[132>>2]+8+4*n)>>2])
+		return s[1 : len(s)-1]
 	}
 	sep := " "
 	switch t {
@@ -345,9 +350,11 @@ func X(x I) string {
 	case 4:
 		f = zstr
 	case 5:
-		f = sstr
+		f = ystr
 		sep = string(96)
-		if n == 0 { return "0#"+sep }
+		if n == 0 {
+			return "0#" + sep
+		}
 		tof = func(s s) s { return sep + s }
 	case 6:
 		if n == 1 {
@@ -502,15 +509,8 @@ func load(f string) {
 		panic(e)
 	}
 	if n := bytes.Index(b, []byte("\n\\")); n != -1 {
-		fmt.Println(n)
 		b = b[:n+1]
 	}
-	x := val(mkchrs(b))
-	if x > 255 {
-		x = kst(x)
-		os.Stdout.Write(MC[x+8 : x+nn(x)+8])
-		os.Stdout.Write([]byte{10})
-		dx(x)
-	}
+	dx(out(val(mkchrs(b))))
 }
 `
