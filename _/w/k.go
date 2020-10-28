@@ -2690,13 +2690,13 @@ func tok(s i) (r i) { // next token
 	}
 	return 0
 }
-func puj(b c, p, s i) (r uint64) {
+func pui(b c, p, s i) (r uint32) {
 	if !is(b, NM) { // 4
 		return 0
 	}
 	for is(b, NM) && p < s {
 		r *= 10
-		r += uint64(b) - '0' //48
+		r += uint32(b) - '0' //48
 		p++
 		b = C(p)
 	}
@@ -2707,7 +2707,7 @@ func puj(b c, p, s i) (r uint64) {
 	return r
 }
 func pin(b c, p, s i) (r i) { // parse signed int
-	u := puj(b, p, s)
+	u := pui(b, p, s)
 	if I(pp) != p {
 		return mki(i(u))
 	}
@@ -2716,7 +2716,7 @@ func pin(b c, p, s i) (r i) { // parse signed int
 		if p < s {
 			b = C(p)
 			sI(pp, p)
-			u = puj(b, p, s)
+			u = pui(b, p, s)
 			if I(pp) != p {
 				return mki(-i(u))
 			}
@@ -2725,6 +2725,23 @@ func pin(b c, p, s i) (r i) { // parse signed int
 		}
 	}
 	return 0
+}
+func pfd(p, s i, f float64) float64 {
+	g := float64(1)
+	if f < 0 {
+		g = -g
+	}
+	for {
+		b := C(p)
+		if p < s && is(b, NM) { //4
+			g *= 0.1
+			f += g * float64(b-'0') //48
+		} else {
+			sI(pp, p)
+			return f
+		}
+		p++
+	}
 }
 func pfl(b c, p, s i) (r i) { // parse float
 	m := i(0)
@@ -2742,23 +2759,8 @@ func pfl(b c, p, s i) (r i) { // parse float
 	}
 	if C(p) == '.' { //46
 		r = up(r, 2, 1)
-		p++
-		sI(pp, p)
-		if p < s {
-			b = C(p)
-			f := float64(puj(b, p, s))
-			if I(pp) != p {
-				n := I(pp) - p
-				for i := i(0); i < n; i++ {
-					f /= 10
-				}
-				rp := 8 + r
-				if F(rp) < 0 {
-					f = -f
-				}
-				sF(rp, F(rp)+f)
-			}
-		}
+		rp := r + 8
+		sF(rp, pfd(p+1, s, F(rp)))
 	}
 	p = I(pp)
 	if p < s && C(p) == 'e' { //101
