@@ -1715,8 +1715,8 @@ func eqc(x, y i) i { return boolvar(C(x) == C(y)) }
 func gti(x, y i) i { return boolvar(int32(I(x)) > int32(I(y))) }
 func eqi(x, y i) i { return boolvar(int32(I(x)) == int32(I(y))) }
 func gtf(x, y i) i { return boolvar(F(x) > F(y)) }
-func eqf(x, y i) i { return boolvar(J(x) == J(y)) }
-func eqz(x, y i) i { return boolvar(J(x) == J(y) && J(x+8) == J(y+8)) }
+func eqf(x, y i) i { return boolvar(I(x) == I(y) && I(x+4) == I(y+4)) }
+func eqz(x, y i) i { return eqf(x, y) * eqf(x+8, y+8) }
 func gtl(x, y i) i {
 	x, y = I(x), I(y)
 	xt, yt, xn, yn, xp, yp := v2(x, y)

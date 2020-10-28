@@ -40,7 +40,7 @@ exc.I:II{n:mki nn y;rx x;x atx wer n eql y fnd x}
 srt.I:I{rx x;x atx grd x}gdn.I:I{rev grd x}grd.I:I{v1;r:seq(0;xn;1);y:seq(0;xn;1);r8;msrt(y+8;rp;0;xn;xp;xt);dxyr}
 msrt.V:IIIIII{((x3-z)>=2)?(c:(x3+z)%2;msrt(y;x;z;c;x4;x5);msrt(y;x;c;x3;x4;x5);mrge(x;y;z;x3;c;x4;x5))}
 mrge.V:IIIIIII{k:z;j:x4;w:C x6;i:z;(i<x3)?/(c:k>=x4;(~c)?$[j>=x3;c:0;c:(I.x6)(x5+w*I x+k<<2;x5+w*I x+j<<2)];$[c;(a:j;j+:1);(a:k;k+:1)];(y+i<<2)::I x+a<<2;i+:1)}
-gtc.I:II{(C x)>C y}gti.I:II{(I x)>'I y}gtf.I:II{(F x)>F y}eqc.I:II{(C x)~C y}eqi.I:II{(I x)~ I y}eqf.I:II{(J x)~J y}eqz.I:II{(x eqf y)? :(x+8)eqf y+8;0}eqL.I:II{(I x)match I y}
+gtc.I:II{(C x)>C y}gti.I:II{(I x)>'I y}gtf.I:II{(F x)>F y}eqc.I:II{(C x)~C y}eqi.I:II{(I x)~ I y}eqf.I:II{((I x)~I y)*(I x+4)~I y+4}eqz.I:II{(x eqf y)*(x+8)eqf y+8}eqL.I:II{(I x)match I y}
 gtl.I:II{x:I x;y:I y;v2;(~xt~yt)? :xt>yt;n:xn;(yn<xn)?n:yn;w:C xt;n/(a:xp+i*w;b:yp+i*w;((I.xt)(a;b))? :1;((I.xt)(b;a))? :0);xn>yn}
 sc:I:I{k:I kkey;n:nn k;x:enl x;r:k fnx x+8;$[r<n;dx x;(kkey::k cat x;kval::(I kval)lcat 0)];r:mki r;r::1|5<<29;r}
 cs:I:I{r:I x+8;r:I 8+(I kkey)+4*r;rx r;dxr}
