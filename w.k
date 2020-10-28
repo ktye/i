@@ -20,7 +20,7 @@ toks:(tSem:{`sem!";"~*x}
  tFun:{`fun!n*|/(extrn,funcs)=`$(n:*tSym x)#x}
  tSym:{`sym!(alpha first x)*(alphanum 0+x)?0}
  tNlp:{`nlp!"/"~*x}
- tCon:{`con!$[~num first x;0;"0x"~2#x;18;"j"~t:x n*(#x)>n:(num 0+x)?0;1+n;"."~t;m+**tCon(m:1+n)_x;n]}
+ tCon:{`con!$[~num first x;0;"0x"~2#x;18;"."~t:x n*(#x)>n:(num 0+x)?0;m+**tCon(m:1+n)_x;n]}
  tBra:{`bra!"("~*x}
  tTrp:{`sym!"!"~*x}
  tClo:{`clo!clo first x})
@@ -28,17 +28,21 @@ toks:(tSem:{`sem!";"~*x}
 unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
 ws:  {$[space first x;1_x;x]}
 xpnd:{$[~#s:(*tSym x)#x;x;(#macro)>(!macro)?v:`$s;(macro v),(#s)_x;x]}
-ops: " "\:(">=' %' \' << >> <' <= >= ?/ ?' $[ I. F. C? I? J? F? : + - * % ~ _ * | \ & ^ ? < > = C I J F")
-set: {@[256#0;x;1]};num:set"0"+!10;alphanum:num+alpha:set"a"+!26;clo:set")]"+0;ctype:set"VCIJF"+0;blank:set 10 13 32;space:set@!33
+ops: " "\:(">=' %' \' << >> <' <= >= ?/ ?' $[ I. F. C? I? F? : + - * % ~ _ * | \ & ^ ? < > = C I F")
+set: {@[256#0;x;1]};num:set"0"+!10;alphanum:num+alpha:set"a"+!26;clo:set")]"+0;ctype:set"VCIF"+0;blank:set 10 13 32;space:set@!33
 
 /ast
-ex:{u:ey x;$[0~**u;u;0~#u 1;u;(#o)*|/")];"=*o:*u 1;u;(($[|/(extrn,funcs)=`$o;`cal;`op2];o;*u;*v);(v:ex 1_u 1)1)]}     /(e;tail)
+ex:{u:ey x;$[0~**u;u;0~#u 1;u;(#o)*|/")];"=*o:*u 1;u;(nlp($[|/(extrn,funcs)=`$o;`cal;`op2];o;*u;*v);(v:ex 1_u 1)1)]}     /(e;tail)
 ey:{p:*!x;$[`bra~p;seq 1_x;+/`sym`con=p;(p,,*x;1_x);`fun~p;fun x;`op~p;mon x;(0;x)]}  /(e;tail)
 
 seq:{r:,`seq;e:0;($[2~#r;r 1;r];1_({~0~*e::ex x};ser)/:x)}  /(`seq;e0;e1;..)
 ser:{r::r,,*e;x:e 1;$[`sem~*!x;1_x;x]}
 mon:{((`op1;*x;*a);(a:$["["~ :*x;seq 1_x;ex 1_x])1)}        /(`op1;"+";arg)
 fun:{((`cal;*x),$[`seq~**a;1_*a;,*a];(a:ex 1_x)1)}          /(`cal;"f";a;b;..)
+
+/rewrite x/y as ?/
+nlp:{$[(`op2;"/")~x 0 1;$[`sym~*x 2;`seq;(`seq;(`op2;":";(`sym;"n");x 2)],,(`op2;":";(`sym;"i");(`con;"0"));(`op2;"/?";(`op2;"<";(`sym;"i");$[`sym~x 2;x 2;(`sym;"n")]);scat[( \x) 3;,(`op2;"+:";(`sym;"i");(`con;"1"))]));x]}
+scat:{$[`seq~*x;x,,y;(`seq;x;y)]}
 
 /w string(from ast)
 wst:{t:*x;$[`seq~t;,/"(",(";"/:wst'1_x),")";`sym~t;x 1;`con~t;x 1;`op1~t;(sOp1 x 1),wst x 2;`op2~t;,/(embr(x 2);sOp x 1;wst x 3);`cal~t;sCal x; 'k(t;"??")]}
@@ -48,25 +52,26 @@ sCal:{$[3~n:#x;(x 1)," ",wst x 2;4~n;(embr x 2)," ",(x 1)," ",wst x 3;(x 1),"(",
 embr:{t:*x;e:{"(",(wst x),")"};$[|/t=`cal`op1`op2;e x;wst x]}
 cmp:{s:$[2<#s:wst ast x;1_-1_s;s];$[s~b:body x;`ok;(s;b)]}
 
+
 /typify ast
-type:{(tp(*x))x}
-tp :`con!{$["0x"~2#x;(`F`con;-3$[2_x 1]);|/"."=s:x 1;(`F`con;&x 1);"j"~*|s;(`J`con;&-1_s);(`I`con;&s)]}
-tp,:`cal!{(,(funcs`$x 1),`cal),(x 1),type'2_x}
-tp,:`op1!{((**a),`op1;a:type x 2)}
-tp,:`op2!{((**a),`op2;a:type x 2;type x 3)}
-tp,:`seq!{l:type'1_x;(,((** :l),`seq)),l}
+type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt@ \x;typ ast x}
+typ:{ \(`typ;x);(tp(*x))x}
+tp :`con!{$["0x"~2#x;(`F`con;-3$[2_x 1]);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]}
+tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}
+tp,:`op1!{((**a),`op1;x 1;a:typ x 2)}
+tp,:`op2!{vo2((**a),`op2;x 1;a:$[":"~x 1;asn[x 2;**t];typ x 2];t:typ x 3)}
+tp,:`sym!{$["!"~x 1;(,`V`trp);((l s),`sym;s:`$x 1)]}
+tp,:`seq!{;r:typ'1_x;(,((** :r),`seq)),r}
+asn:{l,:$[(#l)~(!l)?s:`$x 1;s!y;`!0];(tp`sym)x}
+vo2:{ \(`vo2;x);$[|/(`$'" "\:"? ::")=`$o:x 1;((,`V`op2),1_x);x]} //force void rtyp
 
 /macro:`v!,"w"
 /src:"f:I:II{x+y}g:I:II{f x}"
 /funcs:`f`g
 
 
-
-compile src
-tt:,/{`$x}',/{.token x}'.body
-/a:ast funcs
-/module src
-/ ;ast::funcs!parse'funcs}
+reset[];module src
+a:parse`rl
 
 \
 wasm:{}
