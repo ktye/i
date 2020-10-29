@@ -640,6 +640,9 @@ func (p *parser) locals(e expr, lv int) expr {
 		}
 		return l
 	case nlp:
+		if lv != 0 {
+			panic("nested n-loop (deprecated)")
+		}
 		l.argv[0] = p.locals(l.argv[0], lv+1)
 		switch x := l.argv[0].(type) {
 		case las:
