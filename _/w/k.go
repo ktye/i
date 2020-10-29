@@ -2752,7 +2752,7 @@ func pfl(b c, p, s i) (r i) { // parse float
 		}
 		m = 1
 	}
-	r = pin(b, p, s)
+	r = pin(b, p, s) //overflows uint32
 	p = I(pp)
 	if r == 0 || p == s {
 		return r
