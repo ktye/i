@@ -1389,6 +1389,8 @@ func cgadr(xs string, t T) (r string) { // e.g. "MF[x>>3]"
 	}
 	return r + "]"
 }
+
+//func cadr(xs string, t T) (r string) { return jn("(*(", styp[t], "*)(MC+", xs, "))") } // e.g. (*(I*)(MC+x))
 func (v lod) cstr() s { return cgadr(cstring(v.x()), v.t) }
 func (v lod) gstr() (r s) {
 	c := ""

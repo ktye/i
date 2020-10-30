@@ -1,8 +1,8 @@
 /k -fsrc k.w w.k
 /   compile src
 
-compile:{reset[];module x;tokens:funcs!token'funcs;ast::funcs!parse'funcs;type'funcs;"ok"}
-reset:{ast::tokens::macro::argt::rtyp::locl::body::0#(exprt::extrn::funcs::0#`)!table::mem::()}
+compile:{reset[];module x;tokens:funcs!token'funcs;ast::funcs!parse'funcs;tast::funcs!type'funcs}
+reset:{tast::ast::tokens::macro::argt::rtyp::locl::body::0#(exprt::extrn::funcs::0#`)!table::mem::()}
 module:{class./:mf'-1_"}"\:*(_10 92)\:x}
 afun:{ex:1<+/":"=x; x:"."\:@[x;&x=":";"."];name:`$*x; exprt,:$[ex;name;0#`]; rtyp,:name!`$x 1; argt,:name!,/`$'""\:x 2; body,:name!y;name}
 class:{$["!"~(:x);mem::`off`data!(.-1_x;."0x",y);num(0+*x);table,:`off`funcs!(.-1_x;trim'";"\:y); ":"~(:x);macro,:(`$-1_x)!,y;*(#y;s:afun[x;y]);funcs,:s;extrn,:s]}
@@ -58,14 +58,14 @@ cmp:{s:$[2<#s:wst ast x;1_-1_s;s];$[s~b:body x;`ok;(s;b)]}
 /typify ast, parse constants
 type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt x;a:typ ast x;locl,:x!l;a}
 typ:{(tp(*x))x}                                                                  /typed ast:
-tp :`con!{$["0x"~2#x;(`F`con;-3$[2_x 1]);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]}   /(`I`con;3)  (`F`con;3.14)
-tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}                                    /(`I`cal;`f;x;y;..)
+tp :`con!{$["0x"~2#x;(`F`con;-3$[2_x 1]);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]}   /(`I`con;3)  (`F`con;3.14)  constant
+tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}                                    /(`I`cal;`f;x;y;..)         function call
 tp,:`icl!{((`$*x 1),`ical),2_x}
-tp,:`op1!{((**a),`op1;x 1;a:typ x 2)}                                            /(`I`op1;"+";x)
-tp,:`op2!{vo2((**a),`op2;x 1;a:$[":"~x 1;asn[x 2;**t];typ x 2];t:typ x 3)}       /(`I`op2;"+";x;y)
-tp,:`sym!{$["!"~x 1;(,`V`trp);((l s),`sym;s:`$x 1)]}                             /(`I`sym;`a)   ,`V`trp
-tp,:`seq!{;r:typ'1_x;(,((** :r),`seq)),r}                                        /(`I`seq;a;b;..)
-asn:{l,:$[(#l)~(!l)?s:`$x 1;s!y;`!0];(tp`sym)x}
+tp,:`op1!{((**a),`op1;x 1;a:typ x 2)}                                            /(`I`op1;"+";x)             monadic op
+tp,:`op2!{vo2((**a),`op2;x 1;a:$[":"~x 1;asn[x 2;**t];typ x 2];t:typ x 3)}       /(`I`op2;"+";x;y)           dyadic op
+tp,:`sym!{$["!"~x 1;(,`V`trp);((l s),`sym;s:`$x 1)]}                             /(`I`sym;`a)   ,`V`trp      local variable
+tp,:`seq!{;r:typ'1_x;(,((** :r),`seq)),r}                                        /(`I`seq;a;b;..)            sequence
+asn:{l,:$[(#l)~(!l)?s:`$x 1;s!y;0#`!0];(tp`sym)x}
 vo2:{$[|/(`$'" "\:"? ::")=`$o:x 1;((,`V`op2),1_x);x]} /force void rtyp
 
 
@@ -90,8 +90,25 @@ fsig:{`$0x60,(leb@#t),(,/wtyp t:argt x),$[`V~r:rtyp x;_0;0x01,wtyp r]}
 wtyp:`V`C`I`J`F!0x00017f7e7c
 wsec:{(_x),(leb@#y),y}
 leb:{a:128;r:!0;({c:a/x;s:c>63;r::r,c+w:$[s+x%a;a;0];w};{x%a})/:x;_r} /signed leb128 for x>=0
+rle:{(x i;,/1_-':(i:&1,1_~,/=':x),#x)}
 
-wfcn:{[x]"nyi"} /todo
+wfcn:{emit:{(wemt@(*x)1)x};loc:locl x;(wloc x),(emit tast x),0x0b}
+wloc:{l:,/.(#argt x)_locl x; $[#l;(leb@#*u),,/(*u){(leb y),wtyp x}'((u:rle l)1);_0]} /locals
+topi:{`$($**x),x 1}
+syms:{,/`$'" "\:x}
+wemt :`seq!{,/emit'1_x}
+wemt,:`con!{$[`I~t:**x;leb x 1;0x44,8$x 1]}
+wemt,:`sym!{0x20,leb(!loc)?x 1}                                          /get local
+wemt,:`op1!{(emit x 2),wtop1 topi x}
+wemt,:`op2!{$[n>(!wspf)?s:`$x 1;(wspf s)x;(`I`op2;"-")~x 0 1;0x4100,(emit x 2),0x6b;(emit x 2),(emit x 3),wop2 topi x]}
+
+wspf:(syms": ::")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                    /set local
+ {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00})    /store
+
+alin:`C`I`F!0 2 3                             
+wop1 :(syms"I~ I* F- F+ F~ F_ F%"                   )!0x45679a99509c9f   /wasm opcodes
+wop2 :(syms"I+ I- I* I% I%' I\ I\' I% I| I^ I<< I>>")!0x6a6b6c6e6d706f7172737476
+wop2,:(syms"F+ F- F* F%"                            )!0xa0a1a2a3
 
 \
 hex:  {,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}  /hex"alpha"
