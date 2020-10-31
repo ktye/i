@@ -56,12 +56,11 @@ muc.V:III{z::C?(C x)*C y}mui.V:III{z::(I x)*I y}muf.V:III{z::(F x)*F y}muz.V:III
 dic.V:III{z::C?(C x)%C y}dii.V:III{z::(I x)%'I y}dif.V:III{z::(F x)%F y}moi.V:III{x:I x;y:I y;z::(y+I?x\'y)\'y}
 diz.V:III{a:F x;b:F x+8;c:F y;d:F y+8;$[(+c)>=(+d);(r:d%c;p:c+r*d;z::(a+b*r)%p;(z+8)::(b-a*r)%p);(r:c%d;p:d+r*c;z::(b+a*r)%p;(z+8)::((b*r)-a)%p)]}
 abx.I:I{nm(x;15;171)}neg.I:I{nm(x;19;173)}sqr.I:I{nm(x;27;165)}
-abc.V:II{c:C x;$[craz c;y::C?c-32;y::C?c]}abi.V:II{i:I x;$[(i<'0);y::-i;y::i]}abf.V:II{y::+F x}abz.V:II{y::(F x)hypot F x+8}
-nec.V:II{c:C x;$[crbz c;y::C?c+32;y::C?c]}nei.V:II{y::-I x}nef.V:II{y::-F x}nez.V:II{y::-F x;(y+8)::-F x+8}
+abc.V:II{c:C x;$[c is 1;y::C?c-32;y::C?c]}abi.V:II{i:I x;$[(i<'0);y::-i;y::i]}abf.V:II{y::+F x}abz.V:II{y::(F x)hypot F x+8}
+nec.V:II{c:C x;$[c is 2;y::C?c+32;y::C?c]}nei.V:II{y::-I x}nef.V:II{y::-F x}nez.V:II{y::-F x;(y+8)::-F x+8}
 sqc.V:II{!}sqi.V:II{!}sqf.V:II{y::%F x}sqz.V:II{y::F x;(y+8)::-F x+8}
 lgf.I:I{v1;(~xt~3)?!;x:use x;xp:x+8;xn/(xp::log F xp;xp+:8);x}
 zre.I:I{x zri 0}zim.I:I{x zri 8}zri.I:II{v1;r:3 mk xn;r8;xp+:y;xn/(rp::F xp;rp+:8;xp+:16);dxr}zan.I:III{r:3 mk y;r8;y/(rp::(F z)ang F z+8;z+:16;rp+:8);dxr}
-crbz.I:I{(x>64)?(x<91)? :1;0}craz.I:I{(x>96)?(x<123)? :1;0}
 drv.I:II{r:0 mk 2;(r+8)::x;(r+12)::y;r}ecv.I:I{40 drv x}epv.I:I{41 drv x}ovv.I:I{123 drv x}riv.I:I{125 drv x}scv.I:I{91 drv x}liv.I:I{93 drv x}
 ech.I:II{(tp y)? :y bin x;(7~tp x)?(kvdx; :k mkd v ech y);x:lx x;v1;r:6 mk xn;r8;rl x;(y<120)?y+:128;xn/(rx y;rp::y atx I xp;xp+:4;rp+:4);dxyr}
 ecp.I:II{rx x;p:fst x;epi(p;x;y)}epi.I:III{n:nn y;(~n)?(dx x;dx z; :y);y rxn n;z rxn n;r:6 mk n;r8;n/(yi:y atx mki i;rx yi;rp::z cal yi l2 x;x:yi;rp+:4);dx yi;dx y;dx z;r}
