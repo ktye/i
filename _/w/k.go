@@ -1904,14 +1904,6 @@ func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/ x (over
 func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/ x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
 	n := nn(x)
-	if n == 0 && l == 0 {
-		if z != 0 {
-			dx(x)
-			x = fst(z)
-		}
-		dx(y)
-		return x
-	}
 	rxn(x, n)
 	r = l
 	o := i(1)
