@@ -38,7 +38,7 @@ seq:{r:,`seq;e:0;($[2~#r;r 1;r];1_({~0~*e::ex x};ser)/:x)}                /(`seq
 ser:{r::r,,*e;x:e 1;$[`sem~*!x;1_x;x]}
 mon:{((`op1;*x;*a);(a:$["["~ :*x;seq 1_x;ex 1_x])1)}                      /(`op1;"+";arg)
 fun:{((`cal;*x),$[`seq~**a;1_*a;,*a];(a:ex 1_x)1)}                        /(`cal;"f";a;b;..)                    
-icl:{(((`icl;u 1;(u:*x)2),$[`seq~*w:*v;1_w;,w]);(v:ex x 1)1)}             /(`icl;"I.";f;x;y..) indirect call
+icl:{(((`icl;u 1;(u:*x)2),$[`seq~*w:*v;1_w;,w]);(v:ex x 1)1)}             /(`icl;"I.";f;x;y..) todo infix: (I.x)(a;b;c) -> x I.(a;b;c)
 
 nlp:{$[(`op2;"/")~x 0 1;$[(`con;"1")~x 2; (`op2;"?/"),2_x ;wnlp 2_x];x]}  /rewrite x/y(n-loop) as ?/(while)
 wnlp:{h:(,`seq),$[`sym~**x;();,(`op2;":";(`sym;"n");*x)],,(`op2;":";(`sym;"i");(`con;"0"));h,,(`op2;"?/";(`op2;"<";(`sym;"i");(`sym;$[`sym~**x;(*x)1;"n"]));scat[x 1;(`op2;"+:";(`sym;"i");(`con;"1"))])}
@@ -69,8 +69,6 @@ asn:{l,:$[(#l)~(!l)?s:`$x 1;s!y;0#`!0];(tp`sym)x}
 vo2:{$[|/(`$'" "\:"? ::")=`$o:x 1;((,`V`op2),1_x);x]} /force void rtyp
 
 
-compile src
-
 /web-wide assembler
 wasm:{sigs:?,/fsig'(funcs,extrn); 0x0061736d01000000,,/{wsec[*x;(x 1)[]]}'((1
      {(leb@#sigs),,/$sigs})                                    /sec1(function signature definitions)
@@ -98,17 +96,20 @@ topi:{`$($**x),x 1}
 syms:{,/`$'" "\:x}
 wemt :`seq!{,/emit'1_x}
 wemt,:`con!{$[`I~t:**x;leb x 1;0x44,8$x 1]}
-wemt,:`sym!{0x20,leb(!loc)?x 1}                                          /get local
+wemt,:`sym!{0x20,leb(!loc)?x 1}                                               /get local
 wemt,:`op1!{(emit x 2),wtop1 topi x}
-wemt,:`op2!{$[n>(!wspf)?s:`$x 1;(wspf s)x;(`I`op2;"-")~x 0 1;0x4100,(emit x 2),0x6b;(emit x 2),(emit x 3),wop2 topi x]}
+wemt,:`op2!{ \(`op2;x);$[ \(#wspf)>(!wspf)?s:`$x 1;(wspf s)x; \(`I`op2;"-")~x 0 1;0x4100,(emit x 2),0x6b;(emit x 2),(emit x 3),wop2 topi@ \x]}
 
-wspf:(syms": ::")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                    /set local
- {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00})    /store
+wspf:(syms": :: ?/")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                      /set local
+ {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}          /store
+ {0x02400340,c,0x0c000b0b,(c:$[`I`con~*x 2;"";(emit x 2),0x450d01]),emit x 3}) /while                   /while
 
 alin:`C`I`F!0 2 3                             
 wop1 :(syms"I~ I* F- F+ F~ F_ F%"                   )!0x45679a99509c9f   /wasm opcodes
 wop2 :(syms"I+ I- I* I% I%' I\ I\' I% I| I^ I<< I>>")!0x6a6b6c6e6d706f7172737476
 wop2,:(syms"F+ F- F* F%"                            )!0xa0a1a2a3
+
+/wasm compile src
 
 \
 hex:  {,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}  /hex"alpha"
