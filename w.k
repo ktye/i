@@ -99,11 +99,13 @@ wemt :`seq`trp!({,/emit'1_x};{0x00}}
 wemt,:`con!{$[`I~t:**x;leb x 1;0x44,8$x 1]}
 wemt,:`sym!{0x20,leb(!loc)?x 1}                                               /get local
 wemt,:`cal!{ \x;(,/emit'2_x),0x10,leb funcs?x 1}
-wemt,:`op1!{$[|/"ICF"~\:x 1;wlod x;(emit x 2),wop1 topi x]}
+wemt,:`op1!{$[|/"ICF"~\:x 1;wlod x;("?"~ :x 1)&(2~#x 1);wcvt x;(emit x 2),wop1 topi x]}
 wemt,:`op2!{$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(`I`op2;"-")~x 0 1;0x4100,(emit x 2),0x6b;(":"~*x 1)+1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
 
 wlod:{;a:_alin t:**x 2;(emit x 2),((`C`I`F!0x2d282b)t),a,0x00}                /load(heap)
 wasn:{emit@[x;1 3;(":";@[x;1;*x 1])]}                                         /modified assign
+
+/wcvt:{t:`$**x 1;xt:**x 2;$[xt~t;emit x 2;...}
 
 wspf:(syms": :: ?/ ?")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                    /set local
  {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}          /store(heap)
