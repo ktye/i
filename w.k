@@ -91,7 +91,7 @@ leb:{a:128;r:!0;({c:a/x;s:c>63;r::r,c+w:$[s+x%a;a;0];w};{x%a})/:x;_r} /signed le
 rle:{(x i;,/1_-':(i:&1,1_~,/=':x),#x)}
 
 wfcn:{emit:{(wemt@(* \x)1)x};loc:locl x;(wloc x),(emit tast x),0x0b}
-wloc:{l:,/.(#argt x)_locl x; $[#l;(leb@#*u),,/(*u){(leb y),wtyp x}'((u:rle l)1);_0]} /locals
+wloc:{l:,/.(#argt x)_locl x; $[#*l;(leb@#*u),,/(*u){(leb y),wtyp x}'((u:rle l)1);_0]} /locals
 topi:{`$($**x),x 1}
 syms:{,/`$'" "\:x}
  
@@ -99,13 +99,14 @@ wemt :`seq`trp!({,/emit'1_x};{0x00}}
 wemt,:`con!{$[`I~t:**x;leb x 1;0x44,8$x 1]}
 wemt,:`sym!{0x20,leb(!loc)?x 1}                                               /get local
 wemt,:`cal!{ \x;(,/emit'2_x),0x10,leb funcs?x 1}
-wemt,:`op1!{$[|/"ICF"~\:x 1;wlod x;("?"~ :x 1)&(2~#x 1);wcvt x;(emit x 2),wop1 topi x]}
-wemt,:`op2!{$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(`I`op2;"-")~x 0 1;0x4100,(emit x 2),0x6b;(":"~*x 1)+1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
+wemt,:`op1!{$[|/"ICF"~\:x 1;wlod x;("?"~ :x 1)&(2~#x 1);wcvt x;$[`I`op1;"-";~x 0 1];0x4100,(emit x 2),0x6b;(emit x 2),wop1 topi x]}
+wemt,:`op2!{$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(":"~*x 1)+1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
 
 wlod:{;a:_alin t:**x 2;(emit x 2),((`C`I`F!0x2d282b)t),a,0x00}                /load(heap)
 wasn:{emit@[x;1 3;(":";@[x;1;*x 1])]}                                         /modified assign
 
-/wcvt:{t:`$**x 1;xt:**x 2;$[xt~t;emit x 2;...}
+
+wcvt:{t:$[`C~t:`$**x 1;`I;t];xt:**x 2;sn:_3~#x 1;(emit x 2),$[xt~t;"";t~`I;0xab-sn;0xb8-sn]} /convert
 
 wspf:(syms": :: ?/ ?")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                    /set local
  {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}          /store(heap)
@@ -115,10 +116,12 @@ wspf:(syms": :: ?/ ?")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                    /s
 alin:`C`I`F!0 2 3                             
 wop1 :(syms"I~ I* F- F+ F~ F_ F% I: F:"             )!0x45679a99509c9f0f0f   /wasm opcodes
 wop2 :(syms"I+ I- I* I% I%' I\ I\' I% I| I^ I<< I>>")!0x6a6b6c6e6d706f7172737476
-wop2,:(syms"I< I<' I> I>' I<= I<=' I>= I>=' I~"     )!0x49484b4a4d4c4f4e46
+wop2,:(syms"I< I<' I> I>' I<= I<=' I>= I>=' I~ I&"  )!0x49484b4a4d4c4f4e4671
 wop2,:(syms"F+ F- F* F%"                            )!0xa0a1a2a3
 
-wasm compile src
+
+compile src
+/wasm[]
 
 \
 hex:  {,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}  /hex"alpha"
