@@ -35,7 +35,7 @@ func TestB(t *testing.T) {
 		{"I:I", "I?255j&1130366807310592j>>J?8*x", "42ff0142808290c080828102410820006cad8883a7"},
 		{"I:I", "(x<6)?/x+:1;x", "0240 0340 2000 4106 49 45 0d01 20004101 6a 2100 0c00 0b0b2000"},
 		{"I:I", "(x<6)?/(x+:1;x+:1);x", "0240 0340 2000 4106 49 45 0d01 200041016a2100 200041016a2100 0c00 0b0b2000"},
-//		{"I:I", "1/(x+:1;?x>5);x", "0240 0340 2000 4101 6a 2100 2000 4105 4b  0d01 0c00 0b0b2000"},
+		//		{"I:I", "1/(x+:1;?x>5);x", "0240 0340 2000 4101 6a 2100 2000 4105 4b  0d01 0c00 0b0b2000"},
 		{"I:III", "$[x;y;z]", "2000044020010520020b"},
 		{"I:I", "(x>3)?(:-x);x", "2000 4103 4b 0440 4100 2000 6b 0f 0b 2000"},
 		{"I:I", "(x>3)?x+:1;x", "2000 4103 4b 0440 2000 4101 6a 2100 0b 2000"},
@@ -207,6 +207,7 @@ import (
 	"math/bits"
 	"math/cmplx"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -435,11 +436,11 @@ func kinit() {
 	mt_init()
 	ini(16)
 }
-func kstring(s string) I { x:=mk(1,I(len(s)));copy(MC[x+8:], s);return x}
+func mkchrs(s []byte) I { x:=mk(1,I(len(s)));copy(MC[x+8:], s);return x}
 func stringk(x I) string { return string(MC[8+x:8+x+nn(x)]) }
 func run(s string) string {
 	kinit()
-	x := kstring(s)
+	x := mkchrs([]byte(s))
 	x = kst(val(x))
 	s = stringk(x)
 	dx(x)
@@ -493,15 +494,27 @@ func repl() {
 		case "\\", "\\\\":
 			os.Exit(0)
 		default:
-			dx(out(val(kstring(t))))
+			ktry(t)
 		}
 		fmt.Printf(" ")
 	}
 }
-func mkchrs(b []byte) uint32 {
-	x := mk(1, uint32(len(b)))
-	copy(MC[x+8:], b)
-	return x
+func ktry(s string) {
+	b := make([]uint64, len(MJ))
+	copy(b, MJ)
+	defer func() {
+		if r := recover(); r != nil {
+			MJ = b
+			msl()
+			v := bytes.Split(debug.Stack(), []byte("\n"))
+			if len(v) > 20 {
+				v = v[:20]
+			}
+			os.Stdout.Write(bytes.Join(v, []byte("\n")))
+			fmt.Println()
+		}
+	}()
+	dx(out(val(mkchrs([]byte(s)))))
 }
 func load(f string) {
 	b, e := ioutil.ReadFile(f)

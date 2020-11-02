@@ -17,6 +17,7 @@ import (
 	"math/cmplx"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -49,9 +50,21 @@ const naJ j = 9221120237041090561
 const pp, kkey, kval, xyz, cmap = 8, 132, 136, 148, 160
 
 func main() {
-	if len(os.Args) == 2 && os.Args[1] == "t" {
-		multitest()
-		runtest()
+	if len(os.Args) > 1 && os.Args[1] == "t" {
+		if len(os.Args) > 2 { // ./k t 3 4 5
+			a := make([]int, len(os.Args)-2)
+			var e error
+			for i, s := range os.Args[2:] {
+				a[i], e = strconv.Atoi(s)
+				if e != nil {
+					panic(fmt.Errorf("wrong arg! ./k t [int..]"))
+				}
+			}
+			runtest(a)
+		} else {
+			multitest()
+			runtest(nil)
+		}
 	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
 		kdirs(os.Args[2:])
 	} else {
@@ -105,6 +118,9 @@ func load(f string) {
 	}
 	dx(out(val(mkchrs(b))))
 }
+
+var ddd = false
+
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
 	fmt.Printf("k.go\n ")
@@ -125,13 +141,32 @@ func repl() {
 			rx(x)
 			fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
 			dx(out(jon(x, mkc('`'))))
+		case `\d`:
+			ddd = true
 		case `\`, `\\`:
 			os.Exit(0)
 		default:
-			dx(out(val(mkchrs([]byte(t)))))
+			ktry(t)
 		}
 		fmt.Printf(" ")
 	}
+}
+func ktry(s string) {
+	b := make([]uint64, len(MJ))
+	copy(b, MJ)
+	defer func() {
+		if r := recover(); r != nil {
+			MJ = b
+			msl()
+			v := bytes.Split(debug.Stack(), []byte("\n"))
+			if len(v) > 20 {
+				v = v[:20]
+			}
+			os.Stdout.Write(bytes.Join(v, []byte("\n")))
+			fmt.Println()
+		}
+	}()
+	dx(out(val(mkchrs([]byte(s)))))
 }
 func multitest() { //multiline, spaces, comments
 	tc := []struct{ in, exp string }{
@@ -155,12 +190,19 @@ func multitest() { //multiline, spaces, comments
 		}
 	}
 }
-func runtest() {
+func runtest(n []int) {
 	b, e := ioutil.ReadFile("t")
 	if e != nil {
 		panic(e)
 	}
 	v := strings.Split(string(b), "\n")
+	if n != nil {
+		w := make([]string, len(n))
+		for i := range n {
+			w[i] = v[n[i]]
+		}
+		v = w
+	}
 	for i := range v {
 		if len(v[i]) == 0 {
 			fmt.Println("skip rest")
@@ -783,6 +825,9 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
+	if ddd {
+		fmt.Printf("atx %s %s\n", X(x), X(y))
+	}
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
@@ -1360,7 +1405,7 @@ func ang(x, y f) float64 {
 	}
 	return p
 }
-func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/!n}
+func flp(x i) (r i) { // flip/transpose {n:#*x;(,/x)(n*!#x)+/:!n}
 	n := nn(I(x + 8))
 	m := nn(x)
 	return atx(ovr(x, ','), ecr(mul(mki(n), seq(0, m, 1)), seq(0, n, 1), '+')) //44 43
@@ -1887,6 +1932,7 @@ func epi(x, y, z i) (r i) { // x f':y (each-prior-initial)
 	return dxyr(y, z, r)
 }
 func ovr(x, y i) (r i) { // y/x (over/reduce)
+	fmt.Printf("ovr %s %s\n", X(x), X(y))
 	t := tp(y)
 	if t == 2 {
 		return mod(x, y)
@@ -1904,6 +1950,10 @@ func ovi(x, y, z i) (r i) { return ovs(y, z, 0, x) }             // z y/ x (over
 func sci(x, y, z i) (r i) { return ovs(y, z, enl(mk(6, 0)), x) } // z y/ x (scan initial)
 func ovs(x, y, z, l i) (r i) { // over/scan
 	n := nn(x)
+	if n == 0 && l == 0 {
+		x = enl(x)
+		n = 1
+	}
 	rxn(x, n)
 	r = l
 	o := i(1)
@@ -2381,6 +2431,9 @@ func ras(x, xn i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x
 	return 0
 }
 func evl(x i) (r i) {
+	if ddd {
+		fmt.Printf("evl %s\n", X(x))
+	}
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
