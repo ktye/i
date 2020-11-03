@@ -1932,7 +1932,6 @@ func epi(x, y, z i) (r i) { // x f':y (each-prior-initial)
 	return dxyr(y, z, r)
 }
 func ovr(x, y i) (r i) { // y/x (over/reduce)
-	fmt.Printf("ovr %s %s\n", X(x), X(y))
 	t := tp(y)
 	if t == 2 {
 		return mod(x, y)

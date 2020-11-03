@@ -69,8 +69,10 @@ asn:{l,:$[(#l)~(!l)?s:`$x 1;s!y;0#`!0];(tp`sym)x}
 vo2:{$[|/(`$'" "\:"? ::")=`$o:x 1;((,`V`op2),1_x);x]} /force void rtyp
 
 
+/todo start of code section
+
 /web-wide assembler
-wasm:{sigs:?,/wfsg'(funcs,extrn); 0x0061736d01000000,,/{wsec[*x;(x 1)[]]}'((1
+wasm:{sigs:?,/wfsg'allf:(extrn,funcs); 0x0061736d01000000,,/{wsec[*x;(x 1)[]]}'((1
      {(leb@#sigs),,/$sigs})                                    /sec1(function signature definitions)
  ( 2;{(leb@#extrn),,/wext'extrn})                              /sec2(import)
  ( 3;{(leb@#funcs),,/leb'(sigs?,/wfsg'funcs)})                 /sec3(function signature indexes)
@@ -82,8 +84,8 @@ wasm:{sigs:?,/wfsg'(funcs,extrn); 0x0061736d01000000,,/{wsec[*x;(x 1)[]]}'((1
  (11;{0x010041,(leb mem`off),0x0b,(leb@#mem`data),mem`data}))} /sec11(data)
 
 wext:{m:"ext"; (leb@#m),m,(leb@#$x),($x),0x00,leb sigs?wfsg x}
-wexp:{(leb@$x),($x),0x00,leb funcs?x}                                   /todo: or (funcs,extrn)?x
-wtab:{0x0041,(leb x`off),0x0b,(leb@#x`funcs),,/leb'funcs?,/`$'x`funcs}  / "
+wexp:{(leb@#$x),($x),0x00,leb allf?x}
+wtab:{0x0041,(leb x`off),0x0b,(leb@#x`funcs),,/leb'allf?,/`$'x`funcs}  / "
 wfsg:{wsig[rtyp x;argt x]}
 wsig:{`$0x60,(leb@#y),(,/wtyp y),$[`V~x;_0;0x01,wtyp x]}
 wtyp:`V`C`I`J`F!0x00017f7e7c
@@ -96,10 +98,10 @@ wloc:{l:,/.(#argt x)_locl x; $[#*l;(leb@#*u),,/(*u){(leb y),wtyp x}'((u:rle l)1)
 topi:{`$($**x),x 1}
 syms:{,/`$'" "\:x}
 
-wemt :`seq`trp!({,/emit'1_x};{0x00}}
-wemt,:`con!{$[`I~t:**x;leb x 1;0x44,8$x 1]}
+wemt :`seq`trp!({,/emit'1_x};{0x00})
+wemt,:`con!{$[`I~t:**x;0x41,leb x 1;0x44,8$x 1]}                                             /const
 wemt,:`sym!{0x20,leb(!loc)?x 1}                                                              /get local
-wemt,:`cal!{(,/emit'2_x),0x10,leb funcs?x 1}
+wemt,:`cal!{(,/emit'2_x),0x10,leb allf?x 1}
 wemt,:`icl!{(,/emit'2_x),(emit x 1),0x11,(leb sigs?wsig[**x;,/{**x}'2_x]),0x00}              /call indirect
 wemt,:`op1!{$[|/"ICF"~\:x 1;wlod x;("?"~ :x 1)&(2~#x 1);wcvt x;$[`I`op1;"-";~x 0 1];0x4100,(emit x 2),0x6b;(emit x 2),wop1 topi x]}
 wemt,:`op2!{$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(":"~ :x 1)&1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
@@ -109,7 +111,7 @@ wasn:{emit@[x;1 3;(":";@[x;1;*x 1])]}                                           
 wcvt:{t:$[`C~t:`$**x 1;`I;t];xt:**x 2;sn:_3~#x 1;(emit x 2),$[xt~t;"";t~`I;0xab-sn;0xb8-sn]} /convert
 wspf:(syms": :: ?/ ?")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                                   /set local
  {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}                         /store(heap)
- {0x02400340,c,0x0c000b0b,(c:$[`I`con~*x 2;"";(emit x 2),0x450d01]),emit x 3}                /while
+ {0x02400340,$[`I`con~*x 2;"";(emit x 2),0x450d01],(emit x 3),0x0c000b0b}                    /while
  {(emit x 2),0x0440,(emit x 3),0x0b})                                                        /if
 
 alin:`C`I`F!0 2 3                                    /wasm opcodes
