@@ -1,6 +1,7 @@
 /k -fsrc k.w w.k
 /   compile src
 
+
 compile:{reset[];module x;tokens:funcs!token'funcs;ast::funcs!parse'funcs;tast::funcs!type'funcs}
 reset:{tast::ast::tokens::macro::argt::rtyp::locl::body::0#(exprt::extrn::funcs::0#`)!table::mem::()}
 module:{class./:mf'-1_"}"\:*(_10 92)\:x}
@@ -93,7 +94,7 @@ wsec:{(_x),(leb@#y),y}
 leb:{a:128;r:!0;({c:a/x;s:c>63;r::r,c+w:$[s+x%a;a;0];w};{x%a})/:x;_r} /signed leb128 for x>=0
 rle:{(x i;,/1_-':(i:&1,1_~,/=':x),#x)}
 
-wfcn:{emit:{(wemt@(*x)1)x};loc:locl x;(wloc x),(emit tast x),0x0b}
+wfcn:{ \(`WFCN;x);emit:{(wemt@(* \x)1)x};loc:locl x;(wloc x),(emit tast x),0x0b}
 wloc:{l:,/.(#argt x)_locl x; $[#*l;(leb@#*u),,/(*u){(leb y),wtyp x}'((u:rle l)1);_0]} /locals
 topi:{`$($**x),x 1}
 syms:{,/`$'" "\:x}
@@ -103,12 +104,15 @@ wemt,:`con!{$[`I~t:**x;0x41,leb x 1;0x44,8$x 1]}                                
 wemt,:`sym!{0x20,leb(!loc)?x 1}                                                              /get local
 wemt,:`cal!{(,/emit'2_x),0x10,leb allf?x 1}
 wemt,:`icl!{(,/emit'2_x),(emit x 1),0x11,(leb sigs?wsig[**x;,/{**x}'2_x]),0x00}              /call indirect
-wemt,:`op1!{$[|/"ICF"~\:x 1;wlod x;("?"~ :x 1)&(2~#x 1);wcvt x;$[`I`op1;"-";~x 0 1];0x4100,(emit x 2),0x6b;(emit x 2),wop1 topi x]}
-wemt,:`op2!{$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(":"~ :x 1)&1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
+wemt,:`op1!{ (`op1;x);$[|/"CIF"~\:x 1;wlod x;wtvc x;wcvt x;(`I`op1;"-")~x 0 1;0x4100,(emit x 2),0x6b;"$["~x 1;wcnd x;(emit x 2),wop1 topi x]}
+wemt,:`op2!{ (`op2;x);$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(":"~ :x 1)&1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
 
-wlod:{;a:_alin t:**x 2;(emit x 2),((`C`I`F!0x2d282b)t),a,0x00}                               /load(heap)
+wlod:{a:_alin t:`$x 1;(emit x 2),((`C`I`F!0x2d282b)t),a,0x00}                               /load(heap)
 wasn:{emit@[x;1 3;(":";@[x;1;*x 1])]}                                                        /modified assign
+wtvc:{$[2>#a:x 1;0;"?"~a 1;1;0]}
 wcvt:{t:$[`C~t:`$**x 1;`I;t];xt:**x 2;sn:_3~#x 1;(emit x 2),$[xt~t;"";t~`I;0xab-sn;0xb8-sn]} /convert
+wcnd:{j:1+i:2*!2\-1+#a:1_x 2;  \(`a;a);   \(`i`j;i;j;a i; a j); (,/{(emit x),0x0440,(emit y),0x05}'[a i;a j]),(emit@ :a),(2\#a)#0x0b} /cnd $[x;y;..]
+
 wspf:(syms": :: ?/ ?")!({(emit x 3),0x21,leb(!loc)?(x 2)1}                                   /set local
  {a:_alin t:**x 2;(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}                         /store(heap)
  {0x02400340,$[`I`con~*x 2;"";(emit x 2),0x450d01],(emit x 3),0x0c000b0b}                    /while
