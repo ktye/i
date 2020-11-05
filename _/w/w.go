@@ -506,6 +506,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 				fmt.Printf("f=%#v\nx=%#v\ny=%#v\n", f, x, y)
 				return p.xerr(a, fmt.Sprintf("assignment expects a symbol on the left: not %T", x))
 			}
+			/* todo: move index to locals?
 			if n, o := p.fn.lmap[xv.s]; o == false {
 				xv.i = len(p.fn.lmap)
 				p.fn.lmap[xv.s] = xv.i
@@ -513,6 +514,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 			} else {
 				xv.i = n
 			}
+			*/
 			a.argv = []expr{xv, y}
 			return a
 		}
@@ -611,23 +613,36 @@ func (p *parser) locals(e expr, lv int) expr {
 	switch l := e.(type) {
 	case las:
 		l.argv[1] = p.locals(l.argv[1], lv)
-		x := l.argv[0].(loc)
-		if x.t == 0 {
-			x.t = p.locl[x.i]
-			l.argv[0] = x
-		}
 		yt := l.argv[1].rt()
 		if yt == 0 {
 			fmt.Fprintf(os.Stderr, "%#v\n", l)
 			return p.xerr(e, "cannot assign zero type")
 		}
-		if x.t == 0 {
-			p.locl[x.i] = yt
-			x.t = yt
-			l.argv[0] = x
-		} else if x.t != yt {
+		x := l.argv[0].(loc)
+		x.i = p.nloc(x.s, yt)
+		x.t = yt
+		if p.locl[x.i] != yt {
 			return p.xerr(e, sf("local reassignment of type %s with %s", x.t, yt))
 		}
+		l.argv[0] = x
+		/*
+			//if x.t == 0 {
+			//	x.t = p.locl[x.i]
+			//	l.argv[0] = x
+			//}
+			yt := l.argv[1].rt()
+			if yt == 0 {
+				fmt.Fprintf(os.Stderr, "%#v\n", l)
+				return p.xerr(e, "cannot assign zero type")
+			}
+			if x.t == 0 {
+				p.locl[x.i] = yt
+				x.t = yt
+				l.argv[0] = x
+			} else if x.t != yt {
+				return p.xerr(e, sf("local reassignment of type %s with %s", x.t, yt))
+			}
+		*/
 		return l
 	case loc:
 		if n, o := p.fn.lmap[l.s]; o {
@@ -647,13 +662,14 @@ func (p *parser) locals(e expr, lv int) expr {
 		l.argv[0] = p.locals(l.argv[0], lv+1)
 		switch x := l.argv[0].(type) {
 		case las:
+			panic("local assign in n-loop conditional (deprecated)")
 			l.n = x.argv[0].(loc).i
 		case loc:
 			l.n = x.i
 		default:
-			l.n = p.nloc(s(byte('i'+lv))+"n", I) // create limit in jn ..
+			l.n = p.nloc("n", I)
 		}
-		l.c = p.nloc(s(byte('i'+lv)), I) // set/create loop counter
+		l.c = p.nloc("i", I) // set/create loop counter
 		l.argv[1] = p.locals(l.argv[1], lv+1)
 		return l
 	case v2:

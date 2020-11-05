@@ -53,17 +53,18 @@ cmp:{s:$[2<#s:wst ast x;1_-1_s;s];$[s~b:body x;`ok;(s;b)]}
 
 /typify ast, parse constants
 type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt x;a:typ ast x;locl,:x!l;a}
-typ:{(tp(*x))x}                                                                      /typed ast:
-tp :`con!{$["0x"~2#x 1;(`F`con;-3$unhex 2_x 1);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]}     /(`I`con;3)  (`F`con;3.14)  constant
+typ:{(tp(*x))x}                                                                    /typed ast:
+tp :`con!{$["0x"~2#x 1;(`F`con;-3$unhex 2_x 1);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]} /(`I`con;3)  (`F`con;3.14)  constant
 tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}                                        /(`I`cal;`f;x;y;..)         function call
 tp,:`icl!{(,(`$*x 1),`icl),typ'2_x}
 tp,:`op1!{a:typ x 2;($[3>`C`I`F?t:`$o;iif t;1~|/"?"=o;iif`$*o;(**a)],`op1;o:x 1;a)}  /(`I`op1;"+";x)             monadic op
-tp,:`op2!{ \(`OP2;x);vo2((**a),`op2;x 1;a:$[":"~x 1;tasn[x 2;**t];"/"~x 1;tnlp x;typ x 2];t:typ x 3)}   /(`I`op2;"+";x;y)           dyadic op
+tp,:`op2!{$[":"~x 1;tasn x;"/"~x 1;tnlp x;top2 x]}                                   /(`I`op2;"+";x;y)           dyadic op
 tp,:`sym!{$["!"~x 1;(,`V`trp);((l s),`sym;s:`$x 1)]}                                 /(`I`sym;`a)   ,`V`trp      local variable
 tp,:`seq!{;r:typ'1_x;(,((** :r),`seq)),r}                                            /(`I`seq;a;b;..)            sequence
-loca:{ \(`LA;x);l,:$[(#l)~(!l)?!x;x;0#`!0]}
-tasn:{loca(`$x 1)!y;(tp`sym)x}
-tnlp:{ \(`L;x);$[`I`sym~*r:typ x 2;0;loca`n!`I];loca`i!`I;r}     /preserve loc order of w.go
+loca:{l,:$[(#l)~(!l)?!x;x;0#`!0]}
+top2:{a:typ x 2;vo2((**a),`op2;x 1;a;typ x 3)}
+tasn:{b:typ x 3;loca(`$(x 2)1)!**b;((,/(**a;`op2));":";a:(tp`sym)x 2;b)}
+tnlp:{$[`I`sym~*a:typ x 2;0;loca`n!`I];loca`i!`I;(`V`op2;"/";a;typ x 3)}
 /nlpi:{l,:$[~"/"~x 1;0#`!0;(#l)~(!l)?`i;`i!`I;0#`!0]}
 vo2:{$[|/(`$'" "\:"? :: /")=`$o:x 1;((,`V`op2),1_x);x]} /force void rtyp
 iif:{$[`C~x;`I;x]}
@@ -116,10 +117,12 @@ wcnd:{j:1+i:2*!2\-1+#a:1_x 2;f:{(emit x),0x0440,(emit y),0x05}
 wspf:(syms": :: ?/ / ?")!({(emit x 3),0x21,leb lup(x 2)1}                                    /set local
  {a:_alin t:$[(`I`op1;"C?")~2#x 3;`C;**x 3];(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}    /store(heap)
  {0x02400340,$[`I`con~*x 2;"";(emit x 2),0x450d01],(emit x 3),0x0c000b0b}                    /while
- {i:leb lup`i;n:leb lup`n;r:(emit x 2);s:$[`I`sym~*x 2;*("";n:leb lup(x 2)1);r,0x22,n]       /n-loop
+ {i:leb lup`i;n:leb lup`n;r:(emit x 2);s:$[`I`sym~*x 2;*("";n:leb lup(x 2)1);0x22,n]       /n-loop
   r,s,0x0440410021,i,0x0340,(emit x 3),0x20,i,0x41016a22,i,0x20,n,0x490d000b0b}
  {(emit x 2),0x0440,(emit x 3),0x0b})                                                        /if
 
+
+/todo type of f~f must be I
 
 alin:`C`I`F!0 2 3                                    /wasm opcodes
 wop1 :(syms"I~ I* F- F+ F~ F_ F% I: F:"             )!0x45679a99509c9f0f0f                   

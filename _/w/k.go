@@ -1060,11 +1060,11 @@ func wer(x i) (r i) {
 	if xt != 2 {
 		panic("type")
 	}
-	n := i(0)
+	rn := i(0)
 	for i := i(0); i < xn; i++ {
-		n += I(xp + 4*i)
+		rn += I(xp + 4*i)
 	}
-	r = mk(2, n)
+	r = mk(2, rn)
 	rp := 8 + r
 	for i := i(0); i < xn; i++ {
 		nj := I(xp)
