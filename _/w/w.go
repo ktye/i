@@ -520,6 +520,7 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 		}
 	case nlp:
 		if a, o := x.(con); o && a.t == I && a.i == 1 { // 1/
+			panic("1/ is deprecated, use 1?/")
 			return whl{pos: h, argv: argv{x, y}}
 		}
 		return nlp{pos: h, argv: argv{x, y}}
