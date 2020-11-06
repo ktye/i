@@ -110,7 +110,7 @@ cc.I:II{n:nn x;((1 bk n)<1 bk n+1)? :x ucat mkc y;(x+8+n)::C?y;x::1+I x;x}
 ng.I:II{y?x:(mkc 45)ucat x;x}
 cg.I:II{((~x)+x~128)? :1 mk 0;(x<127)? :mkc x;(x<256)? :(mkc x-128)cc 58;(y~2)?(rl x;r:(str I x+12)cat str I x+8);(y~3)?(rl x;dx I x+16;r:kst I x+12;(r+8)::C?91;(r+7+nn r)::C?93;r:(str I x+8)ucat r);(y~4)?(r:I x+8;rx r);dxr}
 ci.I:I{(~x)? :mkc 48;m:0;(x<'0)?(x:-x;m:1);r:1 mk 0;x?/(c:x\10;r:r cc 48+c;x%:10);(~nn r)?r:r cc 48;(rev r)ng m}
-cf.I:F{(~x~x)? :(mkc 48)cc 110;(x~0.)? :((mkc 48)cc 46)cc 48;m:0;(x<0.)?(m:1;x:-x);(x>0xffffffffffffef7f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.)?/(e+:3;x%:1000.);d:7;(x<1.)?(d+:1;(x<0.1)?(d+:1;(x<0.01)?(d+:1;(x<0.001)?(d:7;(x<1.0)?/(e-:3;x*:1000.)))));n:I?'x;r:ci n;x-:F?n;d-:nn r;(d<'1)?d:1;r:r cc 46;t:0;d/(x*:10.;n:I?x;r:r cc 48+n;x-:F?n;t:(1+t)*~n+~i);r:r drop(-t);e?r:(r cc 101)ucat ci e;r ng m}
+cf.I:F{(~x~x)? :(mkc 48)cc 110;(x~0.)? :((mkc 48)cc 46)cc 48;m:0;(x<0.)?(m:1;x:-x);(x>0xffffffffffffef7f)? :((mkc 48)cc 119)ng m;e:0;(x>1000.)?/(e+:3;x%:1000.);d:7;(x<1.)?(d+:1;(x<0.1)?(d+:1;(x<0x7b14ae47e17a843f)?(d+:1;(x<0xfca9f1d24d62503f)?(d:7;(x<1.0)?/(e-:3;x*:1000.)))));n:I?'x;r:ci n;x-:F?n;d-:nn r;(d<'1)?d:1;r:r cc 46;t:0;d/(x*:10.;n:I?x;r:r cc 48+n;x-:F?n;t:(1+t)*~n+~i);r:r drop(-t);e?r:(r cc 101)ucat ci e;r ng m}
 cz.I:FF{a:x hypot y;p:I?0.5+x ang y;((cf a)cc 97)ucat ci p}
 
 prs:I:I{v1;(~xt~1)?!;xn+:xp;8::xp;xn?(47~C xp)?8::xp com xn;r:sq xn;$[1~nn r;r:fst r;r:128 cat r];dxr}

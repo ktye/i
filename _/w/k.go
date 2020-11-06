@@ -1554,6 +1554,15 @@ func ci(n i) (r i) {
 	}
 	return ng(rev(r), m)
 }
+
+/*
+func hf(f float64) string {
+	b := make([]byte, 8)
+	u := math.Float64bits(f)
+	binary.LittleEndian.PutUint64(b, u)
+	return "0x"+hex.EncodeToString(b)
+}
+*/
 func cf(f float64) (r i) {
 	if f != f {
 		return cc(mkc('0'), 'n') //48 110
@@ -1566,7 +1575,7 @@ func cf(f float64) (r i) {
 		m = 1
 		f = -f
 	}
-	if f > 1.7976931348623157e+308 {
+	if f > 1.7976931348623157e+308 { // 0xffffffffffffef7f, see hf()
 		return ng(cc(mkc('0'), 'w'), m) //119
 	}
 	e := i(0)
@@ -1579,9 +1588,9 @@ func cf(f float64) (r i) {
 		d++
 		if f < 0.1 {
 			d++
-			if f < 0.01 {
+			if f < 0.01 { // 0x7b14ae47e17a843f
 				d++
-				if f < 0.001 {
+				if f < 0.001 { // 0xfca9f1d24d62503f
 					d = 7
 					for f < 1 {
 						e -= 3
