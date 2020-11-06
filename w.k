@@ -1,6 +1,7 @@
-/k -fsrc k.w w.k
-/   compile src
-
+/w compiler
+/
+/write wasm binary to stdout
+/ k -fsrc k.w w.k -e wasm compile src
 
 compile:{reset[];module x;tokens:funcs!token'funcs;ast::funcs!parse'funcs;tast::funcs!type'funcs}
 reset:{tast::ast::tokens::macro::argt::rtyp::locl::body::0#(exprt::extrn::funcs::0#`)!table::mem::()}
@@ -42,18 +43,9 @@ fun:{((`cal;*x),$[`seq~**a;1_*a;,*a];(a:ex 1_x)1)}                        /(`cal
 icl:{(((`icl;u 1;(u:*x)2),$[`seq~*w:*v;1_w;,w]);(v:ex x 1)1)}             /(`icl;"I.";f;x;y..) todo infix: (I.x)(a;b;c) -> x I.(a;b;c)
 
 
-/w string(from ast)
-wst:{t:*x;$[`seq~t;,/"(",(";"/:wst'1_x),")";`sym~t;x 1;`con~t;x 1;`op1~t;(sOp1 x 1),wst x 2;`op2~t;,/(embr(x 2);sOp x 1;wst x 3);`cal~t;sCal x;`icl~t;sIcl x;'k(t;"??")]}
-sOp:{x,$[|/alpha 0+-x;" ";""]}
-sOp1:{$[":"~x;" :";sOp x]}
-sCal:{$[3~n:#x;(x 1)," ",wst x 2;4~n;(embr x 2)," ",(x 1)," ",wst x 3;(x 1),"(",(";"/:wst'2_x),")"]}
-sIcl:{"(",(x 1),(wst x 2),")(",(";"/:wst'3_x),")"}
-embr:{t:*x;e:{"(",(wst x),")"};$[|/t=`cal`op1`op2;e x;wst x]}
-cmp:{s:$[2<#s:wst ast x;1_-1_s;s];$[s~b:body x;`ok;(s;b)]}
-
 /typify ast, parse constants
 type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt x;a:typ ast x;locl,:x!l;a}
-typ:{(tp(*x))x}                                                                    /typed ast:
+typ:{(tp(*x))x}                                                                      /typed ast:
 tp :`con!{$["0x"~2#x 1;(`F`con;-3$unhex 2_x 1);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]} /(`I`con;3)  (`F`con;3.14)  constant
 tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}                                        /(`I`cal;`f;x;y;..)         function call
 tp,:`icl!{(,(`$*x 1),`icl),typ'2_x}
@@ -68,7 +60,6 @@ flop:{$[~|/frel~\:`$x 1;0;~~/(`F;`F)~{**x}'2_x;0;1]}
 fcmp:{$[~`F~**x;x;flop x;(,(`I`op2)),1_x;x]}
 tasn:{b:typ x 3;loca(`$(x 2)1)!**b;((,/(**a;`op2));":";a:(tp`sym)x 2;b)}
 tnlp:{$[`I`sym~*a:typ x 2;0;loca`n!`I];loca`i!`I;(`V`op2;"/";a;typ x 3)}
-/nlpi:{l,:$[~"/"~x 1;0#`!0;(#l)~(!l)?`i;`i!`I;0#`!0]}
 vo2:{$[|/(`$'" "\:"? :: /")=`$o:x 1;((,`V`op2),1_x);x]} /force void rtyp
 iif:{$[`C~x;`I;x]}
 unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
@@ -103,37 +94,30 @@ topi:{`$($[flop x;"F";$**x]),x 1}
 syms:{,/`$'" "\:x}
 
 wemt :`seq`trp!({,/emit'1_x};{0x00})
-wemt,:`con!{$[`I~t:**x;0x41,leb x 1;0x44,8$x 1]}                                             /const
-wemt,:`sym!{0x20,leb lup x 1}                                                                /get local
+wemt,:`con!{$[`I~t:**x;0x41,leb x 1;0x44,8$x 1]}                                                 /const
+wemt,:`sym!{0x20,leb lup x 1}                                                                    /get local
 wemt,:`cal!{(,/emit'2_x),0x10,leb allf?x 1}
-wemt,:`icl!{(,/emit'2_x),(emit x 1),0x11,(leb sigs?wsig[**x;,/{**x}'2_x]),0x00}              /call indirect
+wemt,:`icl!{(,/emit'2_x),(emit x 1),0x11,(leb sigs?wsig[**x;,/{**x}'2_x]),0x00}                  /call indirect
 wemt,:`op1!{$[|/"CIF"~\:x 1;wlod x;wtvc x;wcvt x;(`I`op1;"-")~x 0 1;0x4100,(emit x 2),0x6b;"$["~x 1;wcnd x;(emit x 2),wop1 topi x]}
 wemt,:`op2!{$[(#wspf)>(!wspf)?s:`$x 1;(wspf s)x;(":"~ :x 1)&1<#?x 1;wasn x;(emit x 2),(emit x 3),wop2 topi x]}
 
-wlod:{a:_alin t:`$x 1;(emit x 2),((`C`I`F!0x2d282b)t),a,0x00}                                /load(heap)
-wasn:{emit@[x;1 3;(":";@[x;1;*x 1])]}                                                        /modified assign
+wlod:{a:_alin t:`$x 1;(emit x 2),((`C`I`F!0x2d282b)t),a,0x00}                                    /load(heap)
+wasn:{emit@[x;1 3;(":";@[x;1;*x 1])]}                                                            /modified assign
 wtvc:{$[2>#a:x 1;0;"?"~a 1;1;0]}
-wcvt:{t:iif`$**x 1;xt:**x 2;sn:_3~#x 1;(emit x 2),$[xt~t;"";t~`I;0xab-sn;0xb8-sn]}           /convert
+wcvt:{t:iif`$**x 1;xt:**x 2;sn:_3~#x 1;(emit x 2),$[xt~t;"";t~`I;0xab-sn;0xb8-sn]}               /convert
 wcnd:{j:1+i:2*!2\-1+#a:1_x 2;f:{(emit x),0x0440,(emit y),0x05}
-    $[1~#i;f[a i;a j];,/f'[a i;a j]],(emit@ :a),(2\#a)#0x0b}                                 /cnd $[x;y;..]
+    $[1~#i;f[a i;a j];,/f'[a i;a j]],(emit@ :a),(2\#a)#0x0b}                                     /cnd $[x;y;..]
 
-wspf:(syms": :: ?/ / ?")!({(emit x 3),0x21,leb lup(x 2)1}                                    /set local
- {a:_alin t:$[(`I`op1;"C?")~2#x 3;`C;**x 3];(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}    /store(heap)
- {0x02400340,$[`I`con~*x 2;"";(emit x 2),0x450d01],(emit x 3),0x0c000b0b}                    /while  x?/y  1/y
- {i:leb lup`i;n:leb lup`n;r:(emit x 2);s:$[`I`sym~*x 2;*("";n:leb lup(x 2)1);0x22,n]         /n-loop
+wspf:(syms": :: ?/ / ?")!({(emit x 3),0x21,leb lup(x 2)1}                                        /set local
+ {a:_alin t:$[(`I`op1;"C?")~2#x 3;`C;**x 3];(emit x 2),(emit x 3),((`C`I`F!0x3a3639)t),a,0x00}   /store(heap)
+ {0x02400340,$[`I`con~*x 2;"";(emit x 2),0x450d01],(emit x 3),0x0c000b0b}                        /while  x?/y  1/y
+ {i:leb lup`i;n:leb lup`n;r:(emit x 2);s:$[`I`sym~*x 2;*("";n:leb lup(x 2)1);0x22,n]             /n-loop
   r,s,0x0440410021,i,0x0340,(emit x 3),0x20,i,0x41016a22,i,0x20,n,0x490d000b0b}
- {(emit x 2),0x0440,(emit x 3),0x0b})                                                        /if
-
+ {(emit x 2),0x0440,(emit x 3),0x0b})                                                            /if
 
 alin:`C`I`F!0 2 3                                    /wasm opcodes
 wop1 :(syms"I~ I* F- F+ F_ F% I: F:"                )!0x45679a999c9f0f0f                   
 wop2 :(syms"I+ I- I* I% I%' I\ I\' I% I| I^ I<< I>>")!0x6a6b6c6e6d706f7172737476
 wop2,:(syms"I< I<' I> I>' I<= I<=' I>= I>=' I~ I&"  )!0x49484b4a4d4c4f4e4671
 wop2,:(syms"F+ F- F* F% F< F> F<= F>= F~"           )!0xa0a1a2a36364656661
-
-b:wasm compile src
-/wasm[]
-
-
-hex:  {,/{"0123456789abcdef"@,/(x%16;16/x)}'0+x}
 
