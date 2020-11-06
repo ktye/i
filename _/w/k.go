@@ -142,7 +142,8 @@ func repl() {
 			fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
 			dx(out(jon(x, mkc('`'))))
 		case `\d`:
-			ddd = true
+			//ddd = true
+			dump(0, 200)
 		case `\`, `\\`:
 			os.Exit(0)
 		default:
@@ -2509,6 +2510,7 @@ func fnl(xp, xn i) (r i) {
 	return r
 }
 func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
+	fmt.Printf("prs %x\n", x)
 	xt, xn, xp := v1(x)
 	if xt != 1 {
 		trap()
