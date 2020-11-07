@@ -64,6 +64,10 @@ vo2:{$[|/(`$'" "\:"? :: /")=`$o:x 1;((,`V`op2),1_x);x]} /force void rtyp
 iif:{$[`C~x;`I;x]}
 unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
 
+/pretty-print (typed)ast
+AST:{f:{i:,/(+\o:"("=x)-+\")"=x;l:0,i@&o;(_10)/:(l#'" "),'(0,&o)_x}; ,/{($x),":",(f@ 'ky),_10}'[!tast;.tast]}
+
+/compile"f:I:II{x+y}"
 
 /web-wide assembler
 wasm:{sigs:?,/wfsg'allf:(extrn,funcs); 0x0061736d01000000,,/{wsec[*x;(x 1)[]]}'((1
