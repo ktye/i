@@ -18,7 +18,7 @@ elif [ "$1" = "t" ]; then
 print y,x
 	}'
 elif [ "$1" = "w" ]; then
-	$tcc -run k_c -fsrc ../../k.w ../../w.k -e 'wasm compile src'
+	$tcc -run k_c -fw k.wasm -fs ../../k.w ../../w.k -e 'b:wasm compile s;b~w'
 else
 	# go test (generate k_c)
 	$tcc -run k_c "$*"
