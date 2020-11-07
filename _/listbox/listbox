@@ -51,11 +51,11 @@ var grow  = function(x)    {var cur=K.exports.mem.buffer.byteLength;if((1<<x)>cu
 var printc= function(x,y)  {logg(su(K.C.slice(x,x+y)))}
 var msl   = function()     {var b=K.exports.mem.buffer;K.C=new Uint8Array(b);K.U=new Uint32Array(b);K.I=new Int32Array(b);K.F=new Float64Array(b)}
 var nn, tp, dx, mk, sc, val, kst, bak
-WebAssembly.instantiateStreaming(fetch('k.wasm'),{"ext":{"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
+fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,{"ext":{"sin":Math.sin,"cos":Math.cos,"exp":Math.exp,"log":Math.log,"atan2":Math.atan2,"hypot":Math.hypot,"draw":draw,"grow":grow,"printc":printc} }).then(r=>{
  K=r.instance;msl();K.exports.ini(16);bak=K.C.slice(0)
  nn=K.exports.nn;tp=K.exports.tp;dx=K.exports.dx;rx=K.exports.rx;mk=K.exports.mk;sc=K.exports.sc;val=K.exports.val;kst=K.exports.kst
  if(prog.length>0)load(prog)
-});
+}));
 
 function us(s  ){return new TextEncoder("utf-8").encode(s)}
 function su(u  ){return (u.length)?new TextDecoder("utf-8").decode(u):""}
