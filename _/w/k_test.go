@@ -30,6 +30,7 @@ func ktest(newk func([]byte) K, t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	m, tab, data := run(bytes.NewReader(mb))
 	v := strings.Split(string(b), "\n")
 	for i := range v {
 		if len(v[i]) == 0 {
@@ -45,7 +46,7 @@ func ktest(newk func([]byte) K, t *testing.T) {
 		in := strings.TrimRight(vv[0], " \t\r")
 		exp := strings.TrimSpace(vv[1])
 		fmt.Printf("%s /%s\n", in, exp)
-		m, tab, data := run(bytes.NewReader(mb))
+
 		k := newk(m.wasm(tab, data))
 
 		k.Call("ini", 16)
