@@ -67,19 +67,17 @@ unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
 /pretty-print (typed)ast
 AST:{f:{i:,/(+\o:"("=x)-+\")"=x;l:0,i@&o;(_10)/:(l#'" "),'(0,&o)_x}; ,/{($x),":",(f@ 'ky),_10}'[!tast;.tast]}
 
-/compile"f:I:II{x+y}"
-
 /web-wide assembler
 wasm:{sigs:?,/wfsg'allf:(extrn,funcs); 0x0061736d01000000,,/{wsec[*x;(x 1)[]]}'((1
-     {(leb@#sigs),,/$sigs})                                    /sec1(function signature definitions)
- ( 2;{(leb@#extrn),,/wext'extrn})                              /sec2(import)
- ( 3;{(leb@#funcs),,/leb'(sigs?,/wfsg'funcs)})                 /sec3(function signature indexes)
- ( 4;{0x017000,(leb@|/{(x`off)+#x`funcs}'table)})              /sec4(indirect call table size)
- ( 5;{0x010001})                                               /sec5(linear memory)
- ( 7;{(leb 1+#exprt),(leb@#"mem"),"mem",0x0200,,/wexp'exprt})  /sec7(exports)
- ( 9;{(leb@#table),/wtab'table})                               /sec9(elements/call table)
- (10;{(leb@#funcs),,/{(leb@#b),b:wfcn x}'funcs})               /sec10(code)
- (11;{0x010041,(leb mem`off),0x0b,(leb@#mem`data),mem`data}))} /sec11(data)
+     {(leb@#sigs),,/$sigs})                                                 /sec1(function signature definitions)
+ ( 2;{$[#extrn;(leb@#extrn),,/wext'extrn;""]})                              /sec2(import)
+ ( 3;{(leb@#funcs),,/leb'(sigs?,/wfsg'funcs)})                              /sec3(function signature indexes)
+ ( 4;{$[#table;0x017000,(leb@|/{(x`off)+#x`funcs}'table);""]})              /sec4(indirect call table size)
+ ( 5;{0x010001})                                                            /sec5(linear memory)
+ ( 7;{(leb 1+#exprt),(leb@#"mem"),"mem",0x0200,$[#exprt;,/wexp'exprt;""]})  /sec7(exports)
+ ( 9;{$[#table;(leb@#table),/wtab'table;""]})                               /sec9(elements/call table)
+ (10;{(leb@#funcs),,/{(leb@#b),b:wfcn x}'funcs})                            /sec10(code)
+ (11;{$[#mem;0x010041,(leb mem`off),0x0b,(leb@#mem`data),mem`data;""]}))}   /sec11(data)
 
 wext:{m:"ext"; (leb@#m),m,(leb@#$x),($x),0x00,leb sigs?wfsg x}
 wexp:{(leb@#$x),($x),0x00,leb allf?x}
@@ -87,7 +85,7 @@ wtab:{0x0041,(leb x`off),0x0b,(leb@#x`funcs),,/leb'allf?,/`$'x`funcs}
 wfsg:{wsig[rtyp x;argt x]}
 wsig:{`$0x60,(leb@#y),(,/wtyp y),$[`V~x;_0;0x01,wtyp x]}
 wtyp:`V`C`I`J`F!0x00017f7e7c
-wsec:{(_x),(leb@#y),y}
+wsec:{$[#y;(_x),(leb@#y),y;""]}
 leb:{a:128;r:!0;({c:a/x;s:c>63;r::r,c+w:$[s+x%a;a;0];w};{x%a})/:x;_r} /signed leb128 for x>=0
 rle:{(x i;,/1_-':(i:&1,1_~,/=':x),#x)}
 lup:{(!loc)?x}
