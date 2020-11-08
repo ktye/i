@@ -3,7 +3,7 @@
 /write wasm binary to stdout
 / k -fsrc k.w w.k -e wasm compile src
 
-compile:{reset[];module x;tokens:funcs!token'funcs;ast::funcs!parse'funcs;tast::funcs!dce'type'funcs}
+compile:{reset[];module x;tokens:funcs!token'funcs;ast::funcs!parse'funcs;tast::funcs!type'funcs}
 reset:{tast::ast::tokens::macro::argt::rtyp::locl::body::0#(exprt::extrn::funcs::0#`)!table::mem::()}
 module:{class./:mf'-1_"}"\:*(_10 92)\:x}
 afun:{ex:1<+/":"=x; x:"."\:@[x;&x=":";"."];name:`$*x; exprt,:$[ex;name;0#`]; rtyp,:name!`$x 1; argt,:name!,/`$'""\:x 2; body,:name!y;name}
@@ -44,7 +44,7 @@ icl:{(((`icl;u 1;(u:*x)2),$[`seq~*w:*v;1_w;,w]);(v:ex x 1)1)}             /(`icl
 
 
 /typify ast, parse constants
-type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt x;a:typ ast x;locl,:x!l;a}
+type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt x;a:dce typ ast x;locl,:x!(*a)_l;a 1}
 typ:{(tp(*x))x}                                                                      /typed ast:
 tp :`con!{$["0x"~2#x 1;(`F`con;-3$unhex 2_x 1);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]} /(`I`con;3)  (`F`con;3.14)  constant
 tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}                                        /(`I`cal;`f;x;y;..)         function call
@@ -65,10 +65,11 @@ iif:{$[`C~x;`I;x]}
 unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
 
 /dce (e.g. v1/v2 macros)
-dce :{elim[x;(flas x)^fsym x]}
+dce :{(s;elim[x;s:(flas x)^fsym x])}
 flas:{$[(`I`op2;":")~2#x;?,/(x 2)1,flas x 3;6~@x;?,/flas'x;0#`]}             /find local assign
 fsym:{$[`I`sym~*x;(x 1);(`I`op2;":")~2#x;fsym x 3;6~@x;?,/fsym'x;0#`]}       /find symbols, ignore asn
 elim:{$[~#y;x;~`I`seq~*x;x;x@&~|/,/'{(`I`op2;":";(`I`sym;y))~3#x}\:/:[x;y]]} /!
+
 
 /pretty-print (typed)ast
 AST:{f:{i:,/(+\o:"("=x)-+\")"=x;l:0,i@&o;(_10)/:(l#'" "),'(0,&o)_x}; ,/{($x),":",(f@ 'ky),_10}'[!tast;.tast]}
