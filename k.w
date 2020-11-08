@@ -9,7 +9,7 @@ nn:I:I{(x<256)? :1;536870911&I x}tp:I:I{(x<256)? :0;(I x)>>29}v1:{xt:tp x;xn:nn 
 fr.V:I{v1;t:4*xt bk xn;x::I t;t::x}dx:V:I{(x>255)?(xr:I x+4;(x+4)::xr-1;(1~xr)?(v1;((~xt)+xt>5)?xn/(dx I xp+4*i);fr x))}dxr:{dx x;r}dxyr:{dx x;dx y;r}rx:V:I{x rxn 1}rxn.V:II{(x>255)?(x+:4;x::y+I x)}rl.V:I{v1;xn/(rx I xp;xp+:4)}rld.V:I{rl x;dx x}kvdx:{rld x;k:I x+8;v:I x+12}kvdy:{rld y;k:I y+8;v:I y+12}
 lx.I:I{v1;(xt~6)? :x;((xt~7)+xn~1)? :enl x;(0~xt)?!;r:6 mk xn;r8;x rxn xn;xn/(rp::x atx mki i;rp+:4);dxr}
 til:I:I{v1;(4~xt)? :zim x;(6~xt)? :x ech 161;(7~xt)?(r:I xp;rx r;dx x; :r);(~2~xt)?!;n:I xp;dx x;(n<'0)? :tir -n;seq(0;n;1)}seq.I:III{r:2 mk y;rp:8+r;y/(rp::z*i+x;rp+:4);r}tir.I:I{r:2 mk x;rp:4+r+4*x;x/(rp::i;rp-:4);r}
-ext:{(~xn~yn)?((xn~1)?(x:x take yn;xn:yn;xp:x+8);(yn~1)?(y:y take xn;yn:xn;yp:y+8))}
+ext:{xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:x take yn;xn:yn);(yn~1)?(y:y take xn;yn:xn));xt:tp x;yt:tp y;xp:x+8;yp:y+8}
 upx.I:II{t:tp x;yt:tp y;(t~yt)? :x;((t~7)+(yt~7))?!;(yt~6)? :lx x;n:nn x;(t<yt)?/(x:up(x;t;n);t+:1);x}
 up.I:III{r:(y+1) mk z;xp:x+8;r8;$[(1~y);z/(rp::C xp+i;rp+:4);(2~y);z/(rp::F?'I xp;rp+:8;xp+:4);(3~y);z/(rp::F xp;(rp+8)::0.;xp+:8;rp+:16);!];dxr}upxy:{x:x upx y;y:y upx x}
 atx:I:II{v2;(~xt)?( :x cal enl y);(xt~7)? :atd(x;y;yt);(yt>5)? :ecr(x;y;64);(yt~3)?(xt<5)? :x phi y;(~yt~2)?!;r:xt mk yn;r8;w:C xt;yn/(yi:I yp;(xn<=yi)?!;mv(rp;xp+w*yi;w);rp+:w;yp+:4);(xt>5)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dxyr}
@@ -29,7 +29,7 @@ ucat:I:II{v2;(xt>5)?(rl x;rl y);(xt~7)?(r:((I x+8)ucat I y+8)mkd(I x+12)ucat I y
 lcat:I:II{x:use x;v1;((xt bk xn)<(xt bk xn+1))?(r:xt mk xn+1;rld x;mv(r+8;xp;4*xn);x:r;xp:x+8);(xp+4*xn)::y;x::(xn+1)|6<<29;x}
 enl:I:I{r:6 mk 1;(r+8)::x;r}cnt.I:I{(7~tp x)?x:til x;r:mki nn x;dxr}typ.I:I{v1;r:2 mk 1;(8+r)::xt;dxr}not.I:I{t:tp x;(t>5)? :x ech 126;(~t)?((~x)? :mki 1;dx x; :mki 0);x eql mki 0}
 wer.I:I{v1;(xt~1)? :prs x;(xt~4)? :zan(x;xn;xp);(xt~6)? :flp x;(~xt~2)?!;rn:0;xn/(rn+:I xp;xp+:4);xp:8+x;r:2 mk rn;r8;j:0;(j<xn)?/((I xp)/(rp::j;rp+:4);xp+:4;j+:1);dxr}
-mtc.I:II{r:2 mk 1;(r+8)::x match y;dxyr}match.I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;$[~xt; :1;1~xt;n:xn;2~xt;n:xn<<2;3~xt;n:xn<<3;4~xt;n:xn<<4;5~xt;n:xn<<2;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];n/(~(C xp+i)~C yp+i)? :0;1}
+mtc.I:II{r:2 mk 1;(r+8)::x match y;dxyr}match.I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;$[~xt; :1;1~xt;m:xn;2~xt;m:xn<<2;3~xt;m:xn<<3;4~xt;m:xn<<4;5~xt;m:xn<<2;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];m/(~(C xp+i)~C yp+i)? :0;1}
 fnd.I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx.I:II{v1;eq:8+xt;w:C xt;xn/(((I.eq)(xp;y))? :i;xp+:w);xn}
 lop.I:III{t:tp y;(~t)?( :fxp(x;y;z));(6~t)?(rld y;f:I y+12;y:I y+8; :whl(y;x;f;z));dx z;0}
 jon.I:II{r:lop(x;y;0);r? :r;v1;((~xt~6)+~xn)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
@@ -43,9 +43,9 @@ gtc.I:II{(C x)>C y}gti.I:II{(I x)>'I y}gtf.I:II{(F x)>F y}eqc.I:II{(C x)~C y}eqi
 gtl.I:II{x:I x;y:I y;v2;(~xt~yt)? :xt>yt;n:xn;(yn<xn)?n:yn;w:C xt;n/(a:xp+i*w;b:yp+i*w;((I.xt)(a;b))? :1;((I.xt)(b;a))? :0);xn>yn}
 sc:I:I{k:I kkey;n:nn k;x:enl x;r:k fnx x+8;$[r<n;dx x;(kkey::k cat x;kval::(I kval)lcat 0)];r:mki r;r::1|5<<29;r}
 cs:I:I{r:I x+8;r:I 8+(I kkey)+4*r;rx r;dxr}
-eql.I:II{cmp(x;y;1)}mor.I:II{cmp(x;y;0)}les.I:II{cmp(y;x;0)}cmp.I:III{upxy;v2;ext;(xt~6)? :ecd(x;y;62-z);f:xt;z?f+:8;w:C xt;r:2 mk xn;r8;xn/(rp::(I.f)(xp;yp);xp+:w;yp+:w;rp+:4);dxyr}
-min.I:II{mia(x;y;38)}max.I:II{mia(x;y;124)}mia.I:III{upxy;v2;ext;(xt~6)? :ecd(x;y;z);rx x;rx y;$[z~38;a:x les y;a:x mor y];a:wer a;rx a;asi(y;a;x atx a)}
-nd.I:IIII{upxy;v2;ext;(xt~6)? :ecd(x;y;x3);w:C xt;f:z+xt;r:xt mk xn;r8;xn/((V.f)(xp;yp;rp);xp+:w;yp+:w;rp+:w);dxyr}
+eql.I:II{cmp(x;y;1)}mor.I:II{cmp(x;y;0)}les.I:II{cmp(y;x;0)}cmp.I:III{upxy;ext;(xt~6)? :ecd(x;y;62-z);f:xt;z?f+:8;w:C xt;r:2 mk xn;r8;xn/(rp::(I.f)(xp;yp);xp+:w;yp+:w;rp+:4);dxyr}
+min.I:II{mia(x;y;38)}max.I:II{mia(x;y;124)}mia.I:III{upxy;ext;(xt~6)? :ecd(x;y;z);rx x;rx y;$[z~38;a:x les y;a:x mor y];a:wer a;rx a;asi(y;a;x atx a)}
+nd.I:IIII{upxy;ext;(xt~6)? :ecd(x;y;x3);w:C xt;f:z+xt;r:xt mk xn;r8;xn/((V.f)(xp;yp;rp);xp+:w;yp+:w;rp+:w);dxyr}
 nm.I:III{v1;(xt>5)? :ech(x;z);r:use x;r8;w:C xt;y+:xt;xn/(((V.y)(xp;rp));xp+:w;rp+:w);(xt~4)?(y~19)? :zre r;r}
 nmf.I:II{dx x;x:I x+8;y:use(mki 3)cst y;yp:y+8;(nn y)/(yp::(F.x)(F yp);yp+:8);y}
 add.I:II{nd(x;y;143;43)}sub.I:II{nd(x;y;147;45)}mul.I:II{nd(x;y;151;42)}diw.I:II{nd(x;y;155;37)}mod.I:II{nd(x;y;23;7)}
@@ -72,7 +72,7 @@ whl.I:IIII{t:tp x;t?(((~t~2)+~1~nn x)?!;dx x; :nlp(y;z;x3;I x+8));r:y;x3 scl r;n
 bin.I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C xt;yn/(rp::ibin(xp;yp;xn;xt);rp+:4;yp+:w);dxyr}
 ibin.I:IIII{k:0;j:z-1;w:C x3;1?/((k>'j)? :k-1;h:(k+j)>>1;$[(I.x3)(x+w*h;y);j:h-1;k:h+1]);x}
 nlp.I:IIII{(x3<0)?!;r:x;y rxn x3;z scl x;x3/(r:y atx r;z scl r);dx y;z?(dx r;r:fst z);r}
-ecd.I:III{v2;ext;n:nn x;r:6 mk n;r8;x rxn n;y rxn n;z rxn n;n/(c:mki i;rx c;rp::z cal(x atx c)l2 y atx c;rp+:4);dx z;dxyr}
+ecd.I:III{ext;r:6 mk xn;r8;x rxn xn;y rxn xn;z rxn xn;xn/(c:mki i;rx c;rp::z cal(x atx c)l2 y atx c;rp+:4);dx z;dxyr}
 val:I:I{v1;$[~xt;((x<256)? :x;rl x;r:6 mk xn;mv(r+8;x+8;4*xn);(xn~4)?(r+20)::mki I r+20;dx x);(1~xt);(r:prs x;n:(2<nn r)*58~I r+8;r:evl r;n?(dx r; r:0));(5~xt);r:lup x;(6~xt);r:evl x;(7~xt);(r:I x+12;rx r;dx x);!];r}
 lup:I:I{r:I(I kval)+8+4*I x+8;rx(r);dxr}
 asn:I:II{(~5~tp x)?!;p:(I kval)+8+4*I x+8;dx I p;p::y;rx y;dx x;y}

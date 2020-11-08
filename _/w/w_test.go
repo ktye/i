@@ -55,6 +55,7 @@ func TestB(t *testing.T) {
 	}
 	for n, tc := range testCases {
 		f := newfn(tc.sig, tc.b)
+		FN = &f
 		e := f.parse(nil, nil, nil, map[string]int{"I:I": 0})
 		b := hex.EncodeToString(e.bytes())
 		s := trim(tc.e)

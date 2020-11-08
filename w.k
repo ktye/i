@@ -68,7 +68,7 @@ unhex:{,/{+/_16 1*"0123456789abcdef"?x}'(,/(2\#x;2))#x}
 dce :{(s;elim[x;s:(flas x)^fsym x])}
 flas:{$[(`I`op2;":")~2#x;?,/(x 2)1,flas x 3;6~@x;?,/flas'x;0#`]}             /find local assign
 fsym:{$[`I`sym~*x;(x 1);(`I`op2;":")~2#x;fsym x 3;6~@x;?,/fsym'x;0#`]}       /find symbols, ignore asn
-elim:{$[~#y;x;~`I`seq~*x;x;x@&~|/,/'{(`I`op2;":";(`I`sym;y))~3#x}\:/:[x;y]]} /!
+elim:{$[~#y;x;~`seq~1_*x;x;x@&~|/,/'{(`I`op2;":";(`I`sym;y))~3#x}\:/:[x;y]]} /!
 
 
 /pretty-print (typed)ast

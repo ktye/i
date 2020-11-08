@@ -266,6 +266,7 @@ type parser struct {
 	fns map[s]int
 	fsg []sig
 	sgm map[s]int
+	las map[string]int
 	*fn
 	p   int
 	exp map[int]int
@@ -289,6 +290,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 		return nil
 	}
 	e = p.locals(e)
+	e = p.dce(e)
 	if x, s := p.validate(e); x != nil {
 		println(f.name)
 		return p.xerr(x, s)
@@ -601,6 +603,51 @@ func (p *parser) noun() expr {
 		return nil
 	}
 }
+func (p *parser) dce(e expr) expr {
+	s, o := e.(seq)
+	if !o {
+		return e
+	}
+	m := make(map[string]bool)
+	for s, n := range p.las {
+		if n == 1 {
+			m[s] = true
+		}
+	}
+	var a []int
+	for i := range s.argv {
+		k := true
+		if l, o := s.argv[i].(las); o {
+			if m[l.argv[0].(loc).s] {
+				k = false
+			}
+		}
+		if k {
+			a = append(a, i)
+		}
+	}
+	if len(a) < len(s.argv) {
+		b := make([]expr, len(a))
+		for i := range a {
+			b[i] = s.argv[a[i]]
+		}
+		s.argv = b
+		for x := range m {
+			i, o := p.fn.lmap[x]
+			if !o {
+				panic("dce: expected local in lmap")
+			}
+			p.fn.locl = append(p.fn.locl[:i], p.fn.locl[i+1:]...)
+			for k, v := range p.fn.lmap {
+				if v > i {
+					p.fn.lmap[k] = v - 1
+				}
+			}
+			delete(p.fn.lmap, x)
+		}
+	}
+	return s
+}
 func (p *parser) locals(e expr) expr {
 	switch l := e.(type) {
 	case las:
@@ -611,22 +658,34 @@ func (p *parser) locals(e expr) expr {
 			return p.xerr(e, "cannot assign zero type")
 		}
 		x := l.argv[0].(loc)
-		x.i = p.nloc(x.s, yt)
+		i := p.nloc(x.s, yt)
 		x.t = yt
-		if p.locl[x.i] != yt {
+		if p.locl[i] != yt {
 			return p.xerr(e, sf("local reassignment of type %s with %s", x.t, yt))
+		}
+		if i >= p.fn.args && x.s != "i" {
+			if p.las == nil {
+				p.las = make(map[string]int)
+			}
+			p.las[x.s]++
 		}
 		l.argv[0] = x
 		return l
 	case loc:
-		if n, o := p.fn.lmap[l.s]; o {
-			l.i = n
+		n, o := p.fn.lmap[l.s]
+		if o {
 			l.t = p.locl[n]
 		} else {
 			return p.xerr(l, "undeclared("+l.s+")")
 		}
+		if n >= p.fn.args && l.s != "i" {
+			if p.las == nil {
+				return p.xerr(l, "unassigned "+p.fn.name)
+			}
+			p.las[l.s]++
+		}
 		if l.t == 0 {
-			l.t = p.locl[l.i]
+			l.t = p.locl[n]
 		}
 		return l
 	case nlp:
@@ -634,13 +693,13 @@ func (p *parser) locals(e expr) expr {
 		switch x := l.argv[0].(type) {
 		case las:
 			panic("local assign in n-loop conditional (deprecated)")
-			l.n = x.argv[0].(loc).i
 		case loc:
-			l.n = x.i
+			l.s = x.s
 		default:
-			l.n = p.nloc("n", I)
+			p.nloc("n", I)
+			l.s = "n"
 		}
-		l.c = p.nloc("i", I) // set/create loop counter
+		p.nloc("i", I)
 		l.argv[1] = p.locals(l.argv[1])
 		return l
 	case v2:
@@ -741,7 +800,7 @@ func (p *parser) pSym(b []c) expr {
 	if n, o := p.fns[s(b)]; o {
 		return fun{s: s(b), n: n, sig: p.fsg[n], pos: p.pos()}
 	}
-	return loc{pos: pos(p.p), s: s(b), i: -1}
+	return loc{pos: pos(p.p), s: s(b)}
 }
 func (p *parser) pTrp() expr {
 	n, o := p.fns["trap"]
@@ -751,7 +810,7 @@ func (p *parser) pTrp() expr {
 	return seq{pos: p.pos(), argv: argv{cal{fun: fun{s: "trap", n: n, sig: p.fsg[n], pos: p.pos()}, argv: argv{con{t: I, i: int64(p.src[0])}, con{t: I, i: int64(p.src[1]) + int64(p.pos())}}}, opx("!")}}
 }
 func (p *parser) pDot(b []c) expr {
-	return loc{pos: pos(p.p), s: s(b), i: -1}
+	return loc{pos: pos(p.p), s: s(b)}
 }
 func sCon(b []c) int { // 123 123i 123j 123f .123 123. -..
 	dot := false
@@ -911,7 +970,6 @@ type loc struct { // local get
 	pos
 	t T
 	s s
-	i int
 }
 type las struct { // local set
 	pos
@@ -938,8 +996,7 @@ type iff struct { // x?y
 type nlp struct { // x/y loop
 	pos
 	argv
-	n int // index in locl for loop limit
-	c int // index in locl for loop counter
+	s string // local varname for limit e.g. "n"
 }
 type whl struct { // x?/y while  1/ while(1)
 	pos
@@ -1331,9 +1388,16 @@ func (d dot) gstr() s {
 	f := jn("func(", sig, ")", gtyp(d.t))
 	return jn("MT[", gstring(d.idx), "].(", f, ")(", strings.Join(av, ","), ")")
 }
+func (v loc) i() int {
+	i, o := FN.lmap[v.s]
+	if !o {
+		panic(fmt.Sprintf("%s: loc: variable %s not in lmap", FN.name, v.s))
+	}
+	return i
+}
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
-func (v loc) bytes() []c { return append([]c{0x20}, leb(int64(v.i))...) }
+func (v loc) bytes() []c { return append([]c{0x20}, leb(int64(v.i()))...) }
 func (v loc) cstr() s    { return locstr(v) }
 func (v loc) gstr() s    { return locstr(v) }
 func (v las) rt() T      { return 0 }
@@ -1342,7 +1406,7 @@ func (v las) valid() s {
 	return ifex(tx == 0 || tx != ty, sf("assignment with mismatched types %s %s", tx, ty))
 }
 func (v las) bytes() []c {
-	return append(v.y().bytes(), append([]c{0x21}, leb(int64(v.x().(loc).i))...)...)
+	return append(v.y().bytes(), append([]c{0x21}, leb(int64(v.x().(loc).i()))...)...)
 }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
 func (v las) gstr() s {
@@ -1432,12 +1496,26 @@ func (v nlp) valid() s {
 	}
 	return ""
 }
+func (v nlp) n() int {
+	i, o := FN.lmap[v.s]
+	if !o {
+		panic(fmt.Sprintf("%s nlp: local %s not in lmap", FN.name, v.s))
+	}
+	return i
+}
+func (v nlp) i() int {
+	i, o := FN.lmap["i"]
+	if !o {
+		panic(fmt.Sprintf("%s nlp: local i not in lmap", FN.name))
+	}
+	return i
+}
 func (v nlp) bytes() (r []c) {
 	r = v.x().bytes()
 	if isexpr(v.x()) {
-		r = append(append(r, 0x22), leb(int64(v.n))...) // tee.n for general expressions
+		r = append(append(r, 0x22), leb(int64(v.n()))...) // tee.n for general expressions
 	}
-	i, n := s(leb(int64(v.c))), s(leb(int64(v.n)))
+	i, n := s(leb(int64(v.i()))), s(leb(int64(v.n())))
 	//                    if           0   →i   loop
 	r = catb(r, []c(sf("\x04\x40\x41\x00\x21%s\x03\x40", i)))
 	//                                        i       1   +  tee→i    n   <  continue
@@ -1445,15 +1523,15 @@ func (v nlp) bytes() (r []c) {
 }
 func (v nlp) cstr() (r s) {
 	if isexpr(v.x()) {
-		r = sf("x%d=%s;", v.n, cstring(v.x()))
+		r = sf("x%d=%s;", v.n(), cstring(v.x()))
 	}
-	return r + sf("for(x%d=0;x%d<x%d;x%d++){%s}", v.c, v.c, v.n, v.c, cstring(v.y()))
+	return r + sf("for(x%d=0;x%d<x%d;x%d++){%s}", v.i(), v.i(), v.n(), v.i(), cstring(v.y()))
 }
 func (v nlp) gstr() (r s) {
 	if isexpr(v.x()) {
-		r = sf("x%d=%s;", v.n, gstring(v.x()))
+		r = sf("x%d=%s;", v.n(), gstring(v.x()))
 	}
-	return r + sf("for x%d=0;x%d<x%d;x%d++{%s}", v.c, v.c, v.n, v.c, gstring(v.y()))
+	return r + sf("for x%d=0;x%d<x%d;x%d++{%s}", v.i(), v.i(), v.n(), v.i(), gstring(v.y()))
 }
 func (v whl) rt() T { return 0 }
 func (v whl) valid() s {
@@ -1501,7 +1579,7 @@ func (v nop) bytes() []c  { return nil }
 func (v nop) cstr() s     { return "()" }
 func (v nop) gstr() s     { return "()" }
 
-func locstr(v expr) s { return sf("x%d", v.(loc).i) }
+func locstr(v expr) s { return sf("x%d", v.(loc).i()) }
 func isexpr(x expr) bool { // general expr that needs an explicit assignment
 	switch x.(type) {
 	case las:
@@ -1619,6 +1697,8 @@ func init() {
 	}
 }
 
+var FN *fn
+
 // emit wasm byte code
 func (m module) wasm(tab []segment, data []dataseg) []c {
 	o := bytes.NewBuffer([]c{0, 0x61, 0x73, 0x6d, 1, 0, 0, 0}) // header
@@ -1721,6 +1801,7 @@ func (m module) wasm(tab []segment, data []dataseg) []c {
 		if f.ast == nil {
 			continue // import
 		}
+		FN = &f
 		b := f.code()
 		sec.cat(leb(int64(len(b))))
 		sec.cat(b)
@@ -1881,6 +1962,7 @@ func (m module) cout(tab []segment, data []dataseg) []c {
 		if f.ast == nil {
 			continue // import
 		}
+		FN = &f
 		sig, loc := "", ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {
@@ -1944,6 +2026,7 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 		if f.ast == nil {
 			continue // import
 		}
+		FN = &f
 		sig := ""
 		for i := 0; i < f.args; i++ {
 			if i > 0 {
@@ -1972,9 +2055,9 @@ func (m module) gout(tab []segment, data []dataseg) []c {
 		}
 		sort.Strings(v) // reproducible order
 		fmt.Fprintf(&b, strings.Join(v, "\n"))
-		if len(lvar) > 0 { // _,_,_=x1,x2,x3 (prevent "declared and not used")
-			b.WriteString(jn(strings.Join(drop, ","), "=", strings.Join(lvar, ","), "\n"))
-		}
+		//if len(lvar) > 0 { // _,_,_=x1,x2,x3 (prevent "declared and not used")
+		//	b.WriteString(jn(strings.Join(drop, ","), "=", strings.Join(lvar, ","), "\n"))
+		//}
 		if sq, o := f.ast.(seq); o {
 			for i, e := range sq.argv {
 				nl := "\n"
