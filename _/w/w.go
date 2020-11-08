@@ -288,7 +288,7 @@ func (f *fn) parse(mac map[s][]c, fns map[s]int, fsg []sig, sgm map[s]int) expr 
 	if e == nil {
 		return nil
 	}
-	e = p.locals(e, 0)
+	e = p.locals(e)
 	if x, s := p.validate(e); x != nil {
 		println(f.name)
 		return p.xerr(x, s)
@@ -506,15 +506,6 @@ func (p *parser) dyadic(f, x, y expr, h pos) expr {
 				fmt.Printf("f=%#v\nx=%#v\ny=%#v\n", f, x, y)
 				return p.xerr(a, fmt.Sprintf("assignment expects a symbol on the left: not %T", x))
 			}
-			/* todo: move index to locals?
-			if n, o := p.fn.lmap[xv.s]; o == false {
-				xv.i = len(p.fn.lmap)
-				p.fn.lmap[xv.s] = xv.i
-				p.fn.locl = append(p.fn.locl, 0) // type is still unknown
-			} else {
-				xv.i = n
-			}
-			*/
 			a.argv = []expr{xv, y}
 			return a
 		}
@@ -610,10 +601,10 @@ func (p *parser) noun() expr {
 		return nil
 	}
 }
-func (p *parser) locals(e expr, lv int) expr {
+func (p *parser) locals(e expr) expr {
 	switch l := e.(type) {
 	case las:
-		l.argv[1] = p.locals(l.argv[1], lv)
+		l.argv[1] = p.locals(l.argv[1])
 		yt := l.argv[1].rt()
 		if yt == 0 {
 			fmt.Fprintf(os.Stderr, "%#v\n", l)
@@ -626,24 +617,6 @@ func (p *parser) locals(e expr, lv int) expr {
 			return p.xerr(e, sf("local reassignment of type %s with %s", x.t, yt))
 		}
 		l.argv[0] = x
-		/*
-			//if x.t == 0 {
-			//	x.t = p.locl[x.i]
-			//	l.argv[0] = x
-			//}
-			yt := l.argv[1].rt()
-			if yt == 0 {
-				fmt.Fprintf(os.Stderr, "%#v\n", l)
-				return p.xerr(e, "cannot assign zero type")
-			}
-			if x.t == 0 {
-				p.locl[x.i] = yt
-				x.t = yt
-				l.argv[0] = x
-			} else if x.t != yt {
-				return p.xerr(e, sf("local reassignment of type %s with %s", x.t, yt))
-			}
-		*/
 		return l
 	case loc:
 		if n, o := p.fn.lmap[l.s]; o {
@@ -657,10 +630,7 @@ func (p *parser) locals(e expr, lv int) expr {
 		}
 		return l
 	case nlp:
-		if lv != 0 {
-			panic("nested n-loop (deprecated)")
-		}
-		l.argv[0] = p.locals(l.argv[0], lv+1)
+		l.argv[0] = p.locals(l.argv[0])
 		switch x := l.argv[0].(type) {
 		case las:
 			panic("local assign in n-loop conditional (deprecated)")
@@ -671,11 +641,11 @@ func (p *parser) locals(e expr, lv int) expr {
 			l.n = p.nloc("n", I)
 		}
 		l.c = p.nloc("i", I) // set/create loop counter
-		l.argv[1] = p.locals(l.argv[1], lv+1)
+		l.argv[1] = p.locals(l.argv[1])
 		return l
 	case v2:
-		l.argv[0] = p.locals(l.argv[0], lv)
-		l.argv[1] = p.locals(l.argv[1], lv)
+		l.argv[0] = p.locals(l.argv[0])
+		l.argv[1] = p.locals(l.argv[1])
 		t := l.rt()
 		for i := 0; i < 2; i++ {
 			if x, o := l.argv[i].(loc); o {
@@ -687,8 +657,8 @@ func (p *parser) locals(e expr, lv int) expr {
 		}
 		return l
 	case sto:
-		l.argv[0] = p.locals(l.argv[0], lv)
-		l.argv[1] = p.locals(l.argv[1], lv)
+		l.argv[0] = p.locals(l.argv[0])
+		l.argv[1] = p.locals(l.argv[1])
 		if l.t == 0 {
 			l.t = l.argv[1].rt()
 		}
@@ -696,10 +666,10 @@ func (p *parser) locals(e expr, lv int) expr {
 	case dot:
 		tv := make([]T, len(l.argv))
 		for i, a := range l.argv {
-			l.argv[i] = p.locals(a, lv)
+			l.argv[i] = p.locals(a)
 			tv[i] = l.argv[i].rt()
 		}
-		l.idx = p.locals(l.idx, lv)
+		l.idx = p.locals(l.idx)
 		s := sig{t: l.t, a: tv}.String()
 		if idx, o := p.sgm[s]; o {
 			l.sig = idx
@@ -711,7 +681,7 @@ func (p *parser) locals(e expr, lv int) expr {
 		if av, o := e.(argvec); o {
 			v := av.args()
 			for i, a := range v {
-				v[i] = p.locals(a, lv)
+				v[i] = p.locals(a)
 			}
 		}
 		return e
