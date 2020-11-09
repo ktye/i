@@ -162,7 +162,7 @@ Fcifzsld   xn:x&^7<<29   xn~2(derived)   adv  verb
 ~  mtc not               ~f              144..147  trp col
 !  mkd til   seq         z:re!im im:!z   148..151  `x`y`z
 ,  cat enl                               152..155  
-^  exc asc                               156..159  
+^  exc asc                               156..159  interned constants
 $  str cst   sc cs                       160..255  char map az|AZ|NM|VB|AD|TE
 #  rsh cnt   take                        256.....  buckets/heap
 _  drp flr   drop        re:_z f:__i i:_f
