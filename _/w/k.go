@@ -119,7 +119,7 @@ func load(f string) {
 	dx(out(val(mkchrs(b))))
 }
 
-var ddd = false
+var ddd = true
 
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
@@ -142,8 +142,9 @@ func repl() {
 			fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
 			dx(out(jon(x, mkc('`'))))
 		case `\d`:
-			//ddd = true
 			dump(0, 200)
+			ddd = !ddd
+			fmt.Println("debug", ddd)
 		case `\`, `\\`:
 			os.Exit(0)
 		default:
@@ -299,8 +300,8 @@ func ini(x i) i {
 	}
 	sI(kkey, enl(mk(1, 0)))
 	sI(kval, enl(0))
-	sI(kcon, mk(6, 0))
 	sI(xyz, cat(cat(mks(120), mks(121)), mks(122)))
+	sI(kcon, mk(6, 0))
 	return x
 }
 func msl() { // update slice headers after set/inc MJ
@@ -593,7 +594,7 @@ func rev(x i) (r i) {
 		return mkd(rev(k), rev(v))
 	}
 	n := nn(x)
-	if n == 0 {
+	if n < 2 {
 		return x
 	}
 	return atx(x, tir(n))
@@ -827,9 +828,6 @@ func atd(x, y, yt i) (r i) {
 	return atx(v, y)
 }
 func atx(x, y i) (r i) {
-	if ddd {
-		fmt.Printf("atx %s %s\n", X(x), X(y))
-	}
 	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt == 0 {
 		return cal(x, enl(y))
@@ -966,7 +964,11 @@ func lcl(x, y, z i) (r i) {
 	dx(y)
 	t := I(x + 12)
 	rx(t)
-	r = evl(t)
+	if tp(t) == 2 {
+		r = run(t)
+	} else {
+		r = evl(t)
+	}
 	sp = I(kval) + 8 // could have changed
 	lp = l + 8
 	ap = a + 8
@@ -1674,18 +1676,6 @@ func cst(x, y i) (r i) { // x$y
 	}
 	return y
 }
-func con(x i) (r i) { // intern constant
-	k := I(kcon)
-	n := nn(k)
-	x = enl(x)
-	r = fnx(k, x+8)
-	if r < n {
-		dx(x)
-	} else {
-		sI(kcon, lcat(I(kcon), fst(x)))
-	}
-	return r
-}
 func sc(x i) (r i) {
 	k := I(kkey)
 	n := nn(k)
@@ -2177,6 +2167,9 @@ func val(x i) (r i) {
 		}
 		dx(x)
 	case 1:
+		if ddd {
+			return run(com(prs(x)))
+		}
 		r = prs(x)
 		n := (I(r+8) == 58) && 2 < nn(r) //:
 		r = evl(r)
@@ -2184,6 +2177,8 @@ func val(x i) (r i) {
 			dx(r)
 			return 0
 		}
+	case 2:
+		r = run(x)
 	case 5:
 		r = lup(x)
 	case 6:
@@ -2200,11 +2195,26 @@ func val(x i) (r i) {
 }
 func lup(x i) (r i) {
 	if I(x+8) == 0 {
-		panic("lup#0!!")
+		//panic("lup#0!!")
 	}
 	r = I(I(kval) + 8 + 4*I(x+8))
 	rx(r)
 	return dxr(x, r)
+}
+
+func con(x i) (r i) { // intern constant
+	l := I(kcon)
+	lp := 8 + l
+	for i := i(0); i < nn(l); i++ {
+		r = I(lp)
+		if match(r, x) != 0 {
+			dx(x)
+			return mki(r)
+		}
+		lp += 4
+	}
+	sI(kcon, lcat(l, x))
+	return mki(x)
 }
 func asn(x, y i) (r i) {
 	xt, _, _ := v1(x)
@@ -2453,71 +2463,120 @@ func ras(x, xn i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x
 	}
 	return 0
 }
+func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
+	if xn == 2 && y < 256 {
+		if y < 128 {
+			if y != 58 {
+				return 0
+			}
+			y = 186 //::
+		}
+		k, v := kvd(x)
+		rx(k)
+		s := fst(k)
+		a := drop(k, 1)
+		if nn(a) == 0 {
+			dx(a)
+			a = 0
+		} else {
+			if nn(a) == 1 {
+				a = fst(a)
+			}
+		}
+		return enl(lcat(l3(y-128, enl(s), a), v))
+	}
+	return 0
+}
+
+// const(k-value) 0=x&0xf  push x
+// monad      n   1=x&0xf  n=x>>4  0..255
+// dyad       n   2=x&0xf  n=x>>4  0..255
+// tripple@       3=x&0x7          @[a;b;c]
+// quote verb n   4=x&0xf  n=x>>4  0..255 push verb
+// var        n   5=x&0xf  n=x>>4  var index
+// mkl        n   6=x&0xf  n=x>>4  length
+// assign         7=x&0x7  n=4     asd(top)
+// jif0       n   8=x&0x7  n=x>>4  rel offset
+// j          n   9=x&0x7  n=x>>4  rel offset
+// drop          15=x&0x7          drop 1
 func run(x i) (r i) { // execute byte code
 	xt, xn, xp := v1(x)
 	if xt != 2 {
 		panic("type")
 	}
+	if xn == 0 {
+		dx(x)
+		return 0
+	}
 	s := mk(2, 58)
-	sp := s + 8
+	sp := s + 4
 	t := xp + 4*xn
-	u, v := i(0), i(0)
+	n, m, u, v := i(0), i(0), i(0), i(0)
 	for xp < t {
-		n := I(xp)
-		m := n >> 29
-		n = n & 536870911
-		xp += 4
-		if n == 0 { // drop
-		} else if m == 0 { // +
-			if n < 128 {
-				sp -= 4
-				v = I(sp)
-				u = I(sp - 4)
-				if n == 64 { //@
-					sI(sp, atx(u, v))
-				} else {
-					sI(sp, cal(n, l2(u, v)))
-				}
-			} else if n < 256 {
-				v = I(sp - 4)
-				sI(sp, atx(n, v))
-			}
-		} else if m < 3 {
-			if m == 1 { // constant
-				v = 152
-			} else { //m=2 var
-				v = 132
-			}
-			v = 8 + I(v) + 4*n
-			rx(v)
-			sI(sp, v)
-		} else if m == 3 { // rel jump if 0
+		r = I(xp)
+		m = r & 0xf
+		n = r >> 4
+		// fmt.Printf("run %4d [%d 0x%x]\n", r, m, n)
+		if m == 0 { //k-const
+			sp += 4
+			rx(r)
+			sI(sp, r)
+		} else if m == 1 { //monad
+			u = I(sp)
+			sI(sp, atx(n, u))
+		} else if m == 2 { //dyad
+			u = I(sp)
 			sp -= 4
-			v := I(sp)
-			if I(8+v) == 0 {
-				dx(v)
+			v = I(sp)
+			if n == 64 { //@
+				r = atx(u, v) // todo proj?
+			} else {
+				r = cal(n, l2(u, v))
+			}
+			sI(sp, r)
+		} else if m == 3 { //@[x;y;z]
+			sp -= 8
+			sI(sp, asi(I(sp+8), I(sp+4), I(sp)))
+		} else if m == 4 { //(+)
+			sp += 4
+			sI(sp, n)
+		} else if m == 5 { //var
+			v = I(I(kval) + 8 + 4*n) //136
+			rx(v)
+			sp += 4
+			sI(sp, v)
+		} else if m == 6 { //mkl
+			r = mk(6, n)
+			rp := r + 8
+			for i := i(0); i < n; i++ {
+				sI(rp, I(sp))
+				rp += 4
+				sp -= 4
+			}
+			sp += 4
+			sI(sp, r)
+		} else if m == 7 { //assign
+			sI(sp, asd(I(sp)))
+		} else if m == 8 { //rel jump if 0
+			u = I(sp)
+			dx(u)
+			sp -= 4
+			if I(8+u) == 0 {
 				xp += n
 			}
-		} else if m == 4 { // rel jump
+		} else if m == 9 { //rel jump
 			xp += n
-		} else if m == 5 { // @[x;y;z]
-			sp -= 8
-			sI(sp, asi(I(sp-4), I(sp), I(sp+4)))
-		} else if n == 6 { // mkl
-			u = mk(6, n)
-			up := u + 8
-			for i := i(0); i < n; i++ {
-				sp -= 4
-				sI(up, I(sp))
-				up += 4
-			}
-			sI(sp, u)
-			sp += 4
+		} else if m == 15 { //drop
+			dx(I(sp))
+			sp -= 4
 		}
+		xp += 4
 	}
-	if sp != s+12 {
-		panic(fmt.Sprintf("unbalanced stack: %d", int32(sp-s-12)))
+	if sp != s+8 {
+		fmt.Println("unbalanced stack", sp-s-8)
+		panic("!stack")
 	}
+	dx(x)
 	dx(s)
 	return I(sp)
 }
@@ -2549,60 +2608,77 @@ func i2(x, y i) (r i) {
 	sI(r+12, y)
 	return r
 }
+func op(x, y i) (r i) { return mki(x | y<<4) }
 func com(x i) (r i) { // compile parse tree
-	in := X(x)
-	fmt.Println("com", in)
-	defer func() {
-		fmt.Printf("com %s: %s\n", in, X(r))
-	}()
 	xt, xn, xp := v1(x)
 	if xt != 6 || xn < 2 {
 		if xt == 5 && xn == 1 {
-			r = mki(I(x + 8)) // var
+			dx(x)
+			return op(5, I(x+8)) // var
 		} else if xt != 6 {
-			rx(x)
-			r = mki(-con(x))
+			if x < 256 {
+				return op(4, x)
+			}
+			return con(x)
 		} else if xn == 1 {
 			x = fst(x)
-			if tp(x) != 6 {
-				panic("com: why not list?")
+			if tp(x) == 5 {
+				return con(x)
+			} else if tp(x) != 6 { // e.g. ,(128)
+				return mk(2, 0)
 			}
-			r = ucat(ucat(mki(nn(x)), ovr(ech(x, 187), 44)), mki(6)) // (r,,/com'x),6
-		} // xn == 0: empty
-		dx(x)
-		return r
+			xp = nn(x)
+			return ucat(ovr(ech(rev(x), 187), 44), op(6, xp)) // (,/com'|x),( op(6,n) )
+		} else if xn == 0 { // ()
+			dx(x)
+			return op(6, 0)
+		}
 	}
 	v := I(xp)
+	rx(v)
 	x = drop(x, 1)
 	xn--
 	if v == '$' && xn > 2 { // 38 $[a;b;..]
 		return jsw(x)
 	}
-	// todo assign
 	if v == 128 { // 128 (,:;a;b;c) sequence
-		return jon(ech(x, 187), mki(0)) // 0/:com'1_x
+		return jon(ech(x, 187), mki(15)) // 15/:com'x
 	}
-	if xn == 1 && v > 255 { //64  (a;b) -> (@;a;b)
-		v = '@'
-		x = l2(v, fst(x))
-		xn = 2
+	r = rras(x, v, xn)
+	if r != 0 {
+		if nn(r) != 1 || tp(r) != 6 {
+			fmt.Println("#r (rras) must be 6/1")
+			panic("!com")
+		}
+		return ucat(com(r), op(7, 0)) // assign
+	}
+	if xn == 1 { //64  (a;b) -> (@;a;b)
+		if v > 255 { //(a;b) -> (@;a;b)
+			x = l2(v, fst(x))
+			v = '@'
+			xn = 2
+		}
 	} else if v == '@' && xn == 3 { //@[x;y;z] asi
-		v = 255
-	} else if xn == 1 && v < 128 { // -x
-		v += 128
-	} else if v > 255 { // (f;x;y) -> (.;f;(x;y))
-		v = '.' //46
-		x = l2(v, x)
+		xn = 3
+	} else if v > 255 {
+		if xn == 1 { // (f;x) -> (@;f;x)
+			x = l2(v, fst(x))
+			v = '@' //64
+		} else { // (f;x;y..) -> (.;f;(x;y..))
+			x = l2(v, enl(x))
+			v = '.' //46
+		}
 		xn = 2
 	}
-	r = ucat(mki(xn), ovr(ech(x, 187), 44))
+	r = ucat(ovr(ech(rev(x), 187), 44), op(xn, v))
 	// todo prj
 	if v > 255 {
 		panic("com: v > 256")
 	}
-	return ucat(r, mki(v))
+	return r
 }
 func evl(x i) (r i) {
+	//fmt.Printf("evl x=%d (%s) r=%d\n", x, X(x), r)
 	xt, xn, xp := v1(x)
 	if xt != 6 {
 		if xt == 5 && xn == 1 {
@@ -2856,6 +2932,9 @@ func lam(p, s, z, a i) (r i) {
 	t := mk(1, n)
 	mv(t+8, p, n)
 	r = mk(0, 4)
+	if ddd {
+		z = com(z)
+	}
 	sI(r+8, t)  // string
 	sI(r+12, z) // tree
 	sI(r+16, a) // args
