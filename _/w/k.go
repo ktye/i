@@ -48,6 +48,10 @@ const naJ j = 9221120237041090561
 const pp, kkey, kval, xyz, kcon, cmap = 8, 132, 136, 148, 156, 160
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "T" {
+		ddd = true
+		os.Args[1] = "t"
+	}
 	if len(os.Args) > 1 && os.Args[1] == "t" {
 		if len(os.Args) > 2 { // ./k t 3 4 5
 			a := make([]int, len(os.Args)-2)
@@ -63,8 +67,6 @@ func main() {
 			multitest()
 			runtest(nil)
 		}
-	} else if len(os.Args) > 2 && os.Args[1] == "ddd" {
-		ddd = true
 	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
 		kdirs(os.Args[2:])
 	} else {
@@ -100,6 +102,8 @@ func main() {
 				}
 				leak()
 				os.Exit(0)
+			} else if a == "ddd" {
+				ddd = true
 			} else {
 				panic("argument: " + a)
 			}
@@ -142,7 +146,7 @@ func repl() {
 			fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
 			dx(out(jon(x, mkc('`'))))
 		case `\d`:
-			dump(0, 200)
+			//dump(0, 200)
 			ddd = !ddd
 			fmt.Println("debug", ddd)
 		case `\`, `\\`:
@@ -893,7 +897,11 @@ func cal(x, y i) (r i) {
 		if yn != 1 {
 			panic("arity")
 		}
-		f := MT[x].(func(i) i)
+		f, ok := MT[x].(func(i) i)
+		if ok == false {
+			fmt.Printf("cal? x=%d y=%s\n", x, X(y))
+			panic("!call")
+		}
 		return f(fst(y))
 	}
 	if xn == 2 { // derived
@@ -928,11 +936,11 @@ func cal(x, y i) (r i) {
 			}
 			return prj(x, y, seq(yn, a, 1))
 		}
-		return lcl(x, y, 0)
+		return lcl(x, y)
 	}
 	panic("nyi")
 }
-func lcl(x, y, z i) (r i) {
+func lcl(x, y i) (r i) {
 	fn := I(x + 20)
 	if fn == 0 {
 		dx(y)
@@ -999,7 +1007,11 @@ func cat(x, y i) (r i) {
 	return ucat(lx(x), lx(y))
 }
 func ucat(x, y i) (r i) {
-	xt, _, xn, yn, xp, yp := v2(x, y)
+	xt, yt, xn, yn, xp, yp := v2(x, y)
+	if xt != yt {
+		fmt.Printf("ucat %x,%x %d/%d %d/%d %s %s\n", x, y, xt, xn, yt, yn, X(x), X(y))
+		panic("!ucat")
+	}
 	if xt > 5 {
 		rl(x)
 		rl(y)
@@ -1041,8 +1053,8 @@ func cnt(x i) (r i) {
 	if tp(x) == 7 {
 		x = til(x)
 	}
-	dx(x)
-	return mki(nn(x))
+	r = mki(nn(x))
+	return dxr(x, r)
 }
 func typ(x i) (r i) {
 	xt, _, _ := v1(x)
@@ -1242,8 +1254,13 @@ func jon(x, y i) (r i) { // y/:x (join)
 		return r
 	}
 	xt, xn, xp := v1(x)
-	if xt != 6 || xn == 0 {
-		return dxr(y, x) // allow ","/"abc" -> "abc"
+	if xn == 0 {
+		r = tp(y)
+		dx(y)
+		return dxr(x, mk(r, 0))
+	}
+	if xt != 6 {
+		return dxr(y, x) // allow ","/:"abc" -> "abc"
 	}
 	rl(x)
 	r = I(xp)
@@ -2481,6 +2498,8 @@ func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
 		} else {
 			if nn(a) == 1 {
 				a = fst(a)
+			} else {
+				a = enl(a)
 			}
 		}
 		return enl(lcat(l3(y-128, enl(s), a), v))
@@ -2498,7 +2517,34 @@ func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
 // assign         7=x&0x7  n=4     asd(top)
 // jif0       n   8=x&0x7  n=x>>4  rel offset
 // j          n   9=x&0x7  n=x>>4  rel offset
+// prj           10=x&0x7          project
 // drop          15=x&0x7          drop 1
+func od(x i) { // execute byte code
+	_, xn, xp := v1(x)
+	n, m := i(0), i(0)
+	for i := i(0); i < xn; i++ {
+		r := I(xp)
+		m = r & 0xf
+		n = r >> 4
+
+		s := ""
+		if m == 0 {
+			s = X(r)
+		} else if m < 3 {
+			s = X(n)
+		} else if m == 4 {
+			s = "(" + X(n) + ")"
+		} else if m == 5 {
+			s = X(I(I(kkey) + n))
+		} else if m == 8 {
+			s = "jif +" + strconv.Itoa(int(n))
+		} else if m == 9 {
+			s = "j +" + strconv.Itoa(int(n))
+		}
+		fmt.Printf(" %4d [%2d 0x%04x] %s\n", r, m, n, s)
+		xp += 4
+	}
+}
 func run(x i) (r i) { // execute byte code
 	xt, xn, xp := v1(x)
 	if xt != 2 {
@@ -2508,7 +2554,7 @@ func run(x i) (r i) { // execute byte code
 		dx(x)
 		return 0
 	}
-	s := mk(2, 58)
+	s := mk(2, 126)
 	sp := s + 4
 	t := xp + 4*xn
 	n, m, u, v := i(0), i(0), i(0), i(0)
@@ -2516,7 +2562,6 @@ func run(x i) (r i) { // execute byte code
 		r = I(xp)
 		m = r & 0xf
 		n = r >> 4
-		// fmt.Printf("run %4d [%d 0x%x]\n", r, m, n)
 		if m == 0 { //k-const
 			sp += 4
 			rx(r)
@@ -2529,7 +2574,7 @@ func run(x i) (r i) { // execute byte code
 			sp -= 4
 			v = I(sp)
 			if n == 64 { //@
-				r = atx(u, v) // todo proj?
+				r = atx(u, v)
 			} else {
 				r = cal(n, l2(u, v))
 			}
@@ -2566,49 +2611,82 @@ func run(x i) (r i) { // execute byte code
 			}
 		} else if m == 9 { //rel jump
 			xp += n
+		} else if m == 10 { // prj
+			v = I(sp)
+			u = I(sp - 4)
+			sp -= 8
+			sI(sp, prj(I(sp), u, v))
 		} else if m == 15 { //drop
 			dx(I(sp))
 			sp -= 4
 		}
 		xp += 4
+
+		if sp < s+4 {
+			fmt.Printf("stack underflow\n")
+			panic("!stack")
+		} else if sp > s+4*nn(s) {
+			fmt.Printf("stack overflow: %d\n", sp-s)
+			panic("!stack")
+		}
 	}
 	if sp != s+8 {
 		fmt.Println("unbalanced stack", sp-s-8)
-		panic("!stack")
+		//panic("!stack")
 	}
 	dx(x)
 	dx(s)
 	return I(sp)
 }
-func jsw(x i) (r i) { // compile $[a;b;..]
+func csw(x i) (r i) { // compile $[a;b;..]
 	_, xn, xp := v1(x)
-	if xn%2 == 0 {
-		x = lcat(x, 0)
+	if 0 == xn%2 {
+		fmt.Println("$[even]")
+		panic("cond")
 	}
-	x = rev(ech(drop(x, 1), 186)) // ';(com)
 	rl(x)
-	a, b, j := i(0), i(0), i(0)
+	r = mk(2, 0)
+	a, b, t := i(0), i(0), i(0)
+	a -= 4
 	for i := i(0); i < xn; i++ {
-		b = 8 + 4*nn(I(xp))
-		a += b
-		if i == 0 {
-			j = mk(2, 0)
-		} else if i%2 == 0 {
-			j = i2(6, a)
+		t = com(I(xp))
+		b = 4 * nn(t)
+		a += 4 + b
+		if 0 == i%2 {
+			b = op(9, a)
 		} else {
-			j = i2(0, b)
+			b = op(8, 4+b)
 		}
-		sI(xp, ucat(I(xp), j))
+		t = ucat(b, t)
+		r = ucat(t, r)
+		xp += 4
 	}
-	return ovr(rev(x), 44)
-}
-func i2(x, y i) (r i) {
-	r = mk(2, 2)
-	sI(r+8, x)
-	sI(r+12, y)
-	return r
+	dx(x)
+	return drop(r, 1)
 }
 func op(x, y i) (r i) { return mki(x | y<<4) }
+func adv(x i) (r i) {
+	//return x
+	xt, xn, xp := v1(x)
+	if xt == 6 && xn == 2 {
+		a := I(xp)
+		b := I(xp + 4)
+		if a > 0 && a < 256 && b > 0 && b < 256 {
+			if a == 128 || b == 128 {
+				fmt.Println("sem!")
+				panic("!adv")
+			}
+			dx(x)
+			r = cal(a, enl(b))
+			if tp(r) != 0 || nn(r) != 2 {
+				fmt.Println("adv no derived")
+				panic("!adv")
+			}
+			return r
+		}
+	}
+	return x
+}
 func com(x i) (r i) { // compile parse tree
 	xt, xn, xp := v1(x)
 	if xt != 6 || xn < 2 {
@@ -2639,7 +2717,7 @@ func com(x i) (r i) { // compile parse tree
 	x = drop(x, 1)
 	xn--
 	if v == '$' && xn > 2 { // 38 $[a;b;..]
-		return jsw(x)
+		return csw(rev(x))
 	}
 	if v == 128 { // 128 (,:;a;b;c) sequence
 		return jon(ech(x, 187), mki(15)) // 15/:com'x
@@ -2651,6 +2729,13 @@ func com(x i) (r i) { // compile parse tree
 			panic("!com")
 		}
 		return ucat(com(r), op(7, 0)) // assign
+	}
+	v = adv(v)
+	if xn > 1 {
+		r = fnl(x+8, xn) // projection
+		if r != 0 {
+			return ucat(ucat(ucat(com(v), com(enl(x))), com(r)), op(10, 0))
+		}
 	}
 	if xn == 1 { //64  (a;b) -> (@;a;b)
 		if v > 255 { //(a;b) -> (@;a;b)
@@ -2671,7 +2756,7 @@ func com(x i) (r i) { // compile parse tree
 		xn = 2
 	}
 	r = ucat(ovr(ech(rev(x), 187), 44), op(xn, v))
-	// todo prj
+
 	if v > 255 {
 		panic("com: v > 256")
 	}
@@ -2752,7 +2837,7 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 	}
 	xn += xp
 	sI(pp, xp)
-	if xn > 0 && C(xp) == '/' { //47
+	if xn > xp && C(xp) == '/' { //47
 		sI(pp, cmt(xp, xn))
 	}
 	r = sq(xn)
@@ -2949,7 +3034,9 @@ func ws(s i) bool { // skip whitespace
 			p = cmt(p, s)
 		}
 	}
+	iter := 0
 	for {
+		iter++
 		if p == s {
 			sI(pp, p)
 			return true // EOF
@@ -3001,7 +3088,8 @@ func pui(b c, p, s i) (r uint32) {
 		p++
 		b = C(p)
 	}
-	if r == 0 && b == 'x' { // 120 (0x)
+	if r == 0 && b == 'x' && p < s { // 120 (0x)
+		panic("pui 0x ? chr should be first")
 		return 0
 	}
 	sI(pp, p)
@@ -3235,8 +3323,10 @@ func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
 }
 func chr(b c, p, s i) (r i) { // "abc"
 	if b == '0' {
-		if C(p+1) == 'x' {
-			return phx(2+p, s)
+		if 1 < s-p {
+			if C(p+1) == 'x' {
+				return phx(2+p, s)
+			}
 		}
 	}
 	if b != '"' { //34
