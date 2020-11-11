@@ -23,8 +23,6 @@ import (
 	"unsafe"
 )
 
-const trace = false
-
 type c = byte
 type s = string
 type i = uint32
@@ -65,6 +63,8 @@ func main() {
 			multitest()
 			runtest(nil)
 		}
+	} else if len(os.Args) > 2 && os.Args[1] == "ddd" {
+		ddd = true
 	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
 		kdirs(os.Args[2:])
 	} else {
@@ -119,7 +119,7 @@ func load(f string) {
 	dx(out(val(mkchrs(b))))
 }
 
-var ddd = true
+var ddd = false
 
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
@@ -947,9 +947,9 @@ func lcl(x, y, z i) (r i) {
 	an := nn(a)
 	l := mk(2, an) // stores reference which should not be modified
 	lp := l + 8
-	sp := I(kval) + 8
+	sp := I(kval)
 	for i := i(0); i < an; i++ {
-		d := sp + 4*I(ap)
+		d := sp + I(ap)
 		sI(lp, I(d))
 		v := uint32(0)
 		if i < fn {
@@ -964,16 +964,16 @@ func lcl(x, y, z i) (r i) {
 	dx(y)
 	t := I(x + 12)
 	rx(t)
-	if tp(t) == 2 {
+	if ddd {
 		r = run(t)
 	} else {
 		r = evl(t)
 	}
-	sp = I(kval) + 8 // could have changed
+	sp = I(kval) // could have changed
 	lp = l + 8
 	ap = a + 8
 	for i := i(0); i < an; i++ {
-		d := sp + 4*I(ap)
+		d := sp + I(ap)
 		dx(I(d))
 		sI(d, I(lp))
 		ap += 4
@@ -1687,13 +1687,13 @@ func sc(x i) (r i) {
 		sI(kkey, cat(k, x))
 		sI(kval, lcat(I(kval), 0))
 	}
-	r = mki(r)
+	r = mki(8 + 4*r)
 	sI(r, 1|5<<29)
 	return r
 }
 func cs(x i) (r i) {
 	r = I(8 + x)
-	r = I(8 + I(kkey) + 4*r)
+	r = I(I(kkey) + r)
 	rx(r)
 	return dxr(x, r)
 }
@@ -2197,7 +2197,7 @@ func lup(x i) (r i) {
 	if I(x+8) == 0 {
 		//panic("lup#0!!")
 	}
-	r = I(I(kval) + 8 + 4*I(x+8))
+	r = I(I(kval) + I(x+8))
 	rx(r)
 	return dxr(x, r)
 }
@@ -2224,7 +2224,7 @@ func asn(x, y i) (r i) {
 	if I(x+8) == 0 {
 		panic("asn#0!!")
 	}
-	p := I(kval) + 8 + 4*I(x+8)
+	p := I(kval) + I(x+8)
 	dx(I(p))
 	sI(p, y)
 	dx(x)
@@ -2541,7 +2541,7 @@ func run(x i) (r i) { // execute byte code
 			sp += 4
 			sI(sp, n)
 		} else if m == 5 { //var
-			v = I(I(kval) + 8 + 4*n) //136
+			v = I(I(kval) + n) //136
 			rx(v)
 			sp += 4
 			sI(sp, v)
@@ -2883,7 +2883,7 @@ func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
 		}
 	}
 	if xt == 5 && xn == 1 {
-		p := I(xp)
+		p := (I(xp) - 8) / 4
 		if p > a {
 			if p < 4 {
 				return p
@@ -3215,7 +3215,7 @@ func sym(b c, p, s i) (r i) { // `abc `"abc"
 		}
 	}
 	r = mk(5, 1)
-	sI(r+8, 0)
+	sI(r+8, 8)
 	return r
 }
 func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
@@ -3401,7 +3401,7 @@ func X(x i) s {
 	}
 	ystr := func(i i) s {
 		n := I(x + 8 + 4*i)
-		s := X(I(I(kkey) + 8 + 4*n))
+		s := X(I(I(kkey) + n))
 		return s[1 : len(s)-1]
 	}
 	sep := " "
