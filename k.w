@@ -32,7 +32,7 @@ wer.I:I{v1;(xt~1)? :prs x;(xt~4)? :zan(x;xn;xp);(xt~6)? :flp x;(~xt~2)?!;rn:0;xn
 mtc.I:II{r:2 mk 1;(r+8)::x match y;dxyr}match.I:II{(x~y)? :1;(~(I x)~I y)? :0;v1;yp:y+8;m:0;$[~xt; :1;1~xt;m:xn;2~xt;m:xn<<2;3~xt;m:xn<<3;4~xt;m:xn<<4;5~xt;m:xn<<2;(xn/((~((I xp) match I yp))? :0;xp+:4;yp+:4); :1)];m/(~(C xp+i)~C yp+i)? :0;1}
 fnd.I:II{v2;(~xt~yt)?!;r:2 mk yn;r8;w:C yt;yn/(rp::x fnx yp;rp+:4;yp+:w);dxyr}fnx.I:II{v1;eq:8+xt;w:C xt;xn/(((I.eq)(xp;y))? :i;xp+:w);xn}
 lop.I:III{t:tp y;(~t)?( :fxp(x;y;z));(6~t)?(rld y;f:I y+12;y:I y+8; :whl(y;x;f;z));dx z;0}
-jon.I:II{r:lop(x;y;0);r? :r;v1;((~xt~6)+~xn)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
+jon.I:II{r:lop(x;y;0);r? :r;v1;(~xn)?(r:tp y;dx y;r:r mk 0;dx x; :r);(~xt~6)?(dx y; :x);rl x;r:I xp;y rxn xn-2;(xn-1)/(xp+:4;r:(r cat y)cat I xp);dxr}
 spl.I:II{r:lop(x;y;enl 6 mk 0);r? :r;rx x;yn:nn y;r:x fds y;(~nn r)?(dx r;:enl x);r:((mki 0)cat r)cut x;rn:(nn r)-1;r8;rn/(rp+:4;rp::(I rp) drop yn);r}
 fds.I:II{v2;((~xt~yt)+xt>5)?!;(xn<yn)?(dx x;dx y; :2 mk 0);(~yn)?(dx x;dx y; :(seq(0;xn;1))drop 1);r:2 mk 0;w:C xt;eq:8+xt;j:0;(j<xn)?/(a:0;yn/(k:w*i;a+:(I.eq)(xp+k;yp+k));(a~yn)?(r:r ucat mki j;j+:yn-1;xp+:w*yn-1);xp+:w;j+:1);dxyr}
 exc.I:II{n:mki nn y;rx x;x atx wer n eql y fnd x}
