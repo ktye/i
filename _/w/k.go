@@ -2545,7 +2545,7 @@ func od(x i) { // execute byte code
 		xp += 4
 	}
 }
-func run(x i) (r i) { // execute byte code
+func run(x i) (r i) { // execute byte code (run don't walk)
 	xt, xn, xp := v1(x)
 	if xt != 2 {
 		panic("type")
@@ -2568,17 +2568,14 @@ func run(x i) (r i) { // execute byte code
 			sI(sp, r)
 		} else if m == 1 { //monad
 			u = I(sp)
-			sI(sp, atx(n, u))
+			f := MT[n].(func(i) i)
+			sI(sp, f(u))
 		} else if m == 2 { //dyad
 			u = I(sp)
 			sp -= 4
 			v = I(sp)
-			if n == 64 { //@
-				r = atx(u, v)
-			} else {
-				r = cal(n, l2(u, v))
-			}
-			sI(sp, r)
+			f := MT[n].(func(i, i) i)
+			sI(sp, f(u, v))
 		} else if m == 3 { //@[x;y;z]
 			sp -= 8
 			sI(sp, asi(I(sp+8), I(sp+4), I(sp)))
@@ -2738,7 +2735,9 @@ func com(x i) (r i) { // compile parse tree
 		}
 	}
 	if xn == 1 { //64  (a;b) -> (@;a;b)
-		if v > 255 { //(a;b) -> (@;a;b)
+		if v < 128 && !is(byte(v), AD) {
+			v += 128
+		} else if v > 255 { //(a;b) -> (@;a;b)
 			x = l2(v, fst(x))
 			v = '@'
 			xn = 2
