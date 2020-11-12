@@ -2557,64 +2557,64 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 	s := mk(2, 126)
 	sp := s + 4
 	t := xp + 4*xn
-	n, m, u, v := i(0), i(0), i(0), i(0)
+	a, b := i(0), i(0)
+	n, m := i(0), i(0)
 	for xp < t {
 		r = I(xp)
 		m = r & 0xf
 		n = r >> 4
 		if m == 0 { //k-const
 			sp += 4
-			rx(r)
-			sI(sp, r)
+			sI(sp, a)
+			a = r
+			rx(a)
 		} else if m == 1 { //monad
-			u = I(sp)
 			f := MT[n].(func(i) i)
-			sI(sp, f(u))
+			a = f(a)
 		} else if m == 2 { //dyad
-			u = I(sp)
+			b = I(sp)
 			sp -= 4
-			v = I(sp)
 			f := MT[n].(func(i, i) i)
-			sI(sp, f(u, v))
+			a = f(a, b)
 		} else if m == 3 { //@[x;y;z]
+			a = asi(a, I(sp), I(sp-4))
 			sp -= 8
-			sI(sp, asi(I(sp+8), I(sp+4), I(sp)))
 		} else if m == 4 { //(+)
 			sp += 4
-			sI(sp, n)
+			sI(sp, a)
+			a = n
 		} else if m == 5 { //var
-			v = I(I(kval) + n) //136
-			rx(v)
 			sp += 4
-			sI(sp, v)
+			sI(sp, a)
+			a = I(I(kval) + n) //136
+			rx(a)
 		} else if m == 6 { //mkl
 			r = mk(6, n)
 			rp := r + 8
-			for i := i(0); i < n; i++ {
-				sI(rp, I(sp))
+			sI(rp, a)
+			for i := i(0); i < n-1; i++ {
 				rp += 4
+				sI(rp, I(sp))
 				sp -= 4
 			}
-			sp += 4
-			sI(sp, r)
+			a = r
 		} else if m == 7 { //assign
-			sI(sp, asd(I(sp)))
+			a = asd(a)
 		} else if m == 8 { //rel jump if 0
-			u = I(sp)
-			dx(u)
-			sp -= 4
-			if I(8+u) == 0 {
+			if I(8+a) == 0 {
 				xp += n
 			}
+			dx(a)
+			sp -= 4
+			a = I(sp)
 		} else if m == 9 { //rel jump
 			xp += n
 		} else if m == 10 { // prj
-			v = I(sp)
-			u = I(sp - 4)
+			a = prj(I(sp-4), I(sp), a)
 			sp -= 8
-			sI(sp, prj(I(sp), u, v))
 		} else if m == 15 { //drop
-			dx(I(sp))
+			dx(a)
+			a = I(sp)
 			sp -= 4
 		}
 		xp += 4
@@ -2633,7 +2633,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 	}
 	dx(x)
 	dx(s)
-	return I(sp)
+	return a
 }
 func csw(x i) (r i) { // compile $[a;b;..]
 	_, xn, xp := v1(x)
@@ -2705,8 +2705,8 @@ func com(x i) (r i) { // compile parse tree
 			xp = nn(x)
 			return ucat(ovr(ech(rev(x), 187), 44), op(6, xp)) // (,/com'|x),( op(6,n) )
 		} else if xn == 0 { // ()
-			dx(x)
-			return op(6, 0)
+			//dx(x)
+			return con(x) //op(6, 0)
 		}
 	}
 	v := I(xp)
