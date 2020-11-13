@@ -292,7 +292,7 @@ func ini(x i) i {
 		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, com, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, rnd, nil, nil, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, prs, nil, rnd, nil, tk2, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(12, 0x70881342)        // rng state
@@ -343,6 +343,7 @@ func bk(t, n i) (r i) {
 	return r
 }
 func mk(x, y i) (r i) {
+	// defer func() { fmt.Printf("mk r=%d\n", r) }()
 	t := bk(x, y)
 	i := 4 * t
 	m := 4 * I(128)
@@ -367,6 +368,7 @@ func mk(x, y i) (r i) {
 	return a
 }
 func fr(x i) {
+	// fmt.Printf("free %d\n", x)
 	xt, xn, _ := v1(x)
 	t := 4 * bk(xt, xn)
 	sI(x, I(t))
@@ -389,6 +391,9 @@ func dx(x i) {
 }
 func rx(x i) { rxn(x, 1) }
 func rxn(x, y i) {
+	if y < 0 {
+		panic("rxn<0")
+	}
 	if x > 255 {
 		MI[1+x>>2] += y
 	}
@@ -1258,6 +1263,8 @@ func jon(x, y i) (r i) { // y/:x (join)
 		r = tp(y)
 		dx(y)
 		return dxr(x, mk(r, 0))
+	} else if xn == 1 {
+		return dxr(y, fst(x))
 	}
 	if xt != 6 {
 		return dxr(y, x) // allow ","/:"abc" -> "abc"
@@ -2185,7 +2192,12 @@ func val(x i) (r i) {
 		dx(x)
 	case 1:
 		if ddd {
-			return run(com(prs(x)))
+			x = tk2(x)
+			fmt.Printf("tok: %s\n", X(x))
+			for i := i(0); i < nn(x); i++ {
+				fmt.Printf("tok[%d] = %d\n", i, I(x+8+4*i))
+			}
+			return run(prs2(x))
 		}
 		r = prs(x)
 		n := (I(r+8) == 58) && 2 < nn(r) //:
@@ -2554,6 +2566,8 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		dx(x)
 		return 0
 	}
+	fmt.Printf("run %s\n", X(x))
+	od(x)
 	s := mk(2, 126)
 	sp := s + 4
 	t := xp + 4*xn
@@ -2829,6 +2843,23 @@ func fnl(xp, xn i) (r i) {
 	}
 	return r
 }
+func prs2(x i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt != 6 {
+		panic("prs expects tokens")
+		trap()
+	}
+	r = mk(2, xn)
+	rp := r + 8
+	mv(rp, xp, 4*xn)
+	rld(x)
+	x = jon(sq2(rp, rp+4*xn), mki(15))
+	dx(r)
+	return x
+	//x = sq2(rp, rp+4*xn)
+	//dx(r)
+	//return x
+}
 func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 	xt, xn, xp := v1(x)
 	if xt != 1 {
@@ -2846,6 +2877,17 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 		r = cat(128, r) // :::
 	}
 	return dxr(x, r)
+}
+
+func sq2(x, y i) (r i) {
+	r = mk(6, 0)
+	for {
+		r = lcat(r, ex2(pt2(x, y), y))
+		x = I(pp)
+		if x == y || I(x) != 59 {
+			return r
+		}
+	}
 }
 func sq(s i) (r i) { // E
 	r = mk(6, 0)
@@ -2872,6 +2914,41 @@ func sq(s i) (r i) { // E
 		r = lcat(r, ex(pt(s), s))
 	}
 }
+func ex2(x, y i) (r i) {
+	if x == 0 {
+		return x
+	}
+	p := I(pp)
+	t := I(p)
+	fmt.Printf("ex2 p=%d t=%d\n", p, t)
+	if t < 256 && is(byte(t), TE) {
+		fmt.Println("ex2 TE")
+		return x
+	}
+	r = pt2(p, y)
+	if r == 0 {
+		fmt.Println("pt2 r 0")
+		return x
+	}
+	p = isv2(x)
+	fmt.Println("isv r?", p)
+	if isv2(r) != 0 && p == 0 {
+		fmt.Println("dyadic")
+		y = ex2(pt2(I(pp), y), y)
+		if y == 0 {
+			y = mki(4)
+		}
+		y = ucat(y, x)
+		return ucat(y, r)
+	}
+	fmt.Println("monadic")
+	if p == 2 {
+		fmt.Println("force monadic")
+		p = x + 4*(1+nn(x))
+		sI(p, 2047+I(p)) //monadic
+	}
+	return ucat(ex2(r, y), x)
+}
 func ex(x, s i) (r i) { // e
 	if x == 0 || ws(s) {
 		return x
@@ -2885,6 +2962,59 @@ func ex(x, s i) (r i) { // e
 		return l3(r, x, ex(pt(s), s))
 	}
 	return l2(x, ex(r, s))
+}
+
+func pt2(x, y i) (r i) {
+	s := "EOF"
+	if x < y {
+		s = X(I(x))
+	}
+	fmt.Printf("pt2 x=%d y=%d Ix=%s\n", x, y, s)
+	defer func() { fmt.Printf("<pt2 x=%d I(pp)=%d\n", x, I(pp)) }()
+	if x == y {
+		return 0
+	}
+	r = I(x)
+	if r < 256 {
+		switch r { // todo class
+		case ';', '(', '{', '[', ']', '}', ')':
+			return 0
+		}
+		//s := X(r)
+		if r > 128 {
+			panic("pt2 r?")
+		}
+		//r = op(1, r+128)
+		//fmt.Printf("pt2 op1 r=(%d) = %s\n", r, s)
+	} else {
+		s := X(r)
+		r = con(r)
+		fmt.Printf("pt2 con r=%d (%s)\n", r, s)
+	}
+	x += 4
+	for {
+		fmt.Printf("pt2 adv? %d < %d\n", x, y)
+		p := I(x)
+		if x == y || p > 255 {
+			if r < 256 {
+				fmt.Println("pt2 <- op2")
+				r = op(2, r)
+			}
+			sI(pp, x)
+			return r
+		}
+		if p < 256 {
+			if is(byte(p), AD) || is(byte(p-128), AD) {
+				if r < 256 {
+					r = con(cal(p, enl(r))) // +/
+				} else {
+					r = ucat(con(r), op(1, p)) // x/
+				}
+			}
+			x += 4
+		}
+		// todo {lambda (list or (x)
+	}
 }
 func pt(s i) (r i) { // t
 	r = tok(s)
@@ -2940,6 +3070,8 @@ func pt(s i) (r i) { // t
 		}
 	}
 }
+
+func isv2(x i) (r i) { return I(x+4*(1+nn(x))) & 0xf } // 1:adverb 2:verb 0:noun
 func isv(x i) (r bool) { // is verb or (adverb;_)
 	xt, xn, xp := v1(x)
 	if xt == 0 {
@@ -3025,6 +3157,25 @@ func lam(p, s, z, a i) (r i) {
 	sI(r+20, v) // arity
 	return r
 }
+
+/*
+func ws2(b c, p, s i) i { //returns p or 0(EOF), does not set I(pp)
+	for {
+		if p >= s {
+			return 0
+		}
+		if b == '/' {
+			p = cmt(p, s)
+			b = C(p)
+		}
+		if is(b, NW) || b == 10 { //64
+			return p
+		}
+		p++
+		b = C(p)
+	}
+}
+*/
 func ws(s i) bool { // skip whitespace
 	p := I(pp)
 	if C(p) == '/' {
@@ -3033,9 +3184,7 @@ func ws(s i) bool { // skip whitespace
 			p = cmt(p, s)
 		}
 	}
-	iter := 0
 	for {
-		iter++
 		if p == s {
 			sI(pp, p)
 			return true // EOF
@@ -3059,6 +3208,90 @@ func cmt(p, s i) (r i) {
 		p++
 	}
 	return p
+}
+
+/*
+func tok2(b c, p, s i) (r i) {
+	p = ws2(b, p, s)
+	if p == 0 {
+		fmt.Println("token EOF")
+		return 0
+	}
+	b = C(p)
+	if is(b, TE) || b == 10 {
+		fmt.Println("token TE")
+		return 0
+	}
+	for j := 0; j < 5; j++ { // nms vrb chr nam sms
+		r = MT[j+136].(func(c, i, i) i)(b, p, s)
+		if r != 0 {
+			fmt.Printf("token r=%s\n", X(r))
+			return r
+		}
+	}
+	return 0
+}
+*/
+func tk2(x i) (r i) { // tokenize
+	xt, xn, xp := v1(x)
+	if xt != 1 {
+		trap()
+	}
+	r = mk(6, 0)
+	xn += xp
+	if xp < xp && C(xp) == 47 { // /
+		xp = cmt(xp, xn)
+	}
+	sI(pp, xp)
+	for {
+		xp = ws2(I(pp), xn)
+		if xp == xn {
+			dx(x)
+			return r
+		}
+		t := ntk(xp, xn)
+		if t == 0 {
+			dx(x)
+			return r
+		}
+		r = lcat(r, t)
+	}
+}
+func ws2(x, y i) (r i) {
+	for {
+		if x == y {
+			return x
+		}
+		b := C(x)
+		if is(b, NW) || b == 10 { //64
+			return x
+		}
+		x++
+		if C(x) == 47 { // /
+			x = cmt(x, y)
+		}
+	}
+}
+func ntk(x, y i) (r i) { // next token
+	//fmt.Printf("ntk %d %d\n", x, y)
+	//defer func() { fmt.Printf("=> ntk %s\n", X(r)) }()
+	b := C(x)
+	for j := 0; j < 5; j++ {
+		r = MT[j+136].(func(c, i, i) i)(b, x, y)
+		if r != 0 {
+			return r
+		}
+	}
+	switch b { //todo: add more classes BR:({[]})
+	case ';', 10:
+		r = 59
+	case '(', '{', '[', ']', '}', ')':
+		r = uint32(b)
+	default:
+		return 0
+	}
+	sI(pp, 1+x)
+	return r
 }
 func tok(s i) (r i) { // next token
 	if ws(s) {
@@ -3330,7 +3563,7 @@ func chr(b c, p, s i) (r i) { // "abc"
 	}
 	if b != '"' { //34
 		return 0
-	} // todo hex
+	}
 	a := p + 1
 	for {
 		p++
@@ -3435,7 +3668,6 @@ func mark() { // mark bucket type within free blocks
 	}
 }
 func leak() {
-	//dump(0, 200)
 	dx(I(kkey))
 	dx(I(kval))
 	dx(I(xyz))
@@ -3443,6 +3675,7 @@ func leak() {
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
+
 		if MI[p+1] != 0 {
 			panic(fmt.Errorf("non-free block at %d(%x)", p<<2, p<<2))
 		}
