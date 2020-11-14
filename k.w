@@ -121,11 +121,11 @@ lam.I:IIII{$[1~nn z;z:fst z;z:128 cat z];(~x3)?(r:I xyz;rx r;x3:r take z lac 0);
 ws.I:I{p:I 8;(47~C p)?(b:C p-1;((b~32)+b~10)?p:p com x);1?/((p~x)?(8::p; :1);b:C p;((b~10)+(b is 64))?(8::p; :0);p+:1;(47~C p)?p:p com x);x}com.I:II{(x<y)?/((10~C x)? :x;x+:1);x}
 tok.I:I{(ws x)? :0;p:I 8;b:C p;((b is 32)+b~10)? :0;5/(r:(I.i+136)(b;p;x);r? :r);0}
 pui.I:III{(~x is 4)? :0;r:0;((x is 4)*y<z)?/(r*:10;r+:I?x-48;y+:1;x:C y);8::y;r}
-pin.I:III{u:pui(x;y;z);(~y~I 8)? :mki I?u;(x~45)?(y+:1;(y<z)?(x:C y;8::y;u:pui(x;y;z);(~y~I 8)? :mki -I?u;8::y-1;));0}
+pin.I:III{8::y;u:pui(x;y;z);(~y~I 8)? :mki I?u;(x~45)?(y+:1;(y<z)?(x:C y;8::y;u:pui(x;y;z);(~y~I 8)? :mki -I?u;8::y-1;));0}
 pfd.F:IIF{g:1.0;(z<0.)?g:-g;1?/(b:C x;$[(x<y)*b is 4;(g*:0.1;z+:g*F?b-48);(8::x; :z)];x+:1);z}
 pfl.I:III{m:0;(x~45)?(t:C y-1;((t~34)+(t~93)+(t~41)+t is 7)? :0;m:1);r:pin(x;y;z);y:I 8;((y~z)+~r)? :r;(46~C y)?(r:up(r;2;1);r8;rp::pfd(y+1;z;F rp));y:I 8;(y<z)?(101~C y)?(8::y+1;q:pin(C 1+y;1+y;z);(~q)?(8::y; :r);e:I q+8;dx q;f:F r+8;(e<'0)?/(f%:10.;e+:1);(e>0)?/(f*:10.;e-:1);(r+8)::f);m?(f:F r+8;(f>0.)? (r+8)::-f);r}
 num.I:III{r:pfl(x;y;z);(~r)? :r;y:I 8;x:C y;(y<z)?((119~x)+(110~x)+(112~x)+97~x)?((2~tp r)?r:up(r;2;1);y+:1;8::y;(~97~x)?((112~x)?f:3.141592653589793*F r+8;(110~x)?f:0x000000000000f8ff;(119~x)?f:0x000000000000f07f;(r+8)::f; :r);r:up(r;3;1);a:pfl(C y;y;z);(~a)?a:mki 0;(2~tp a)?a:up(a;2;1);r:r atx a);r}
-nms.I:III{r:num(x;y;z);(~r)? :r;1?/(y:I 8;x:C y;((y+2)>z)? :r;(~x~32)? :r;y+:1;8::y;q:num(C y;y;z);(~q)?(8::y-1; :r);r:r upx q;q:q upx r;r:r cat q);r}
+nms.I:III{r:num(x;y;z);(~r)? :r;1?/(y:I 8;x:C y;((y+2)>z)? :r;(~x~32)? :r;y+:1;q:num(C y;y;z);(~q)?(8::y-1; :r);r:r upx q;q:q upx r;r:r cat q);r}
 vrb.I:III{(~x is 24)? :0;(32~C y-1)?((x~92)?(8::1+y; :160);(x~39)?y+:1);r:C y;(z>1+x)?(58~C 1+y)?(y+:1;r+:128);8::1+y;r}
 chr.I:III{(48~x)?(1<z-y)?(120~C 1+y)? :(2+y)phx z;(~x~34)? :0;a:1+y;1?/(y+:1;(y~z)?!;(34~C y)?(n:y-a;r:1 mk n;mv(r+8;a;n);8::1+y; :r));r}
 phx.I:II{r:1 mk 0;h:1;q:0;1?/(c:C x;((y<=x)+~c is 5)?(8::x; :r);c-:(48*c<58)+87*c>96;h:~h;h?r:r cc c+q<<4;q:c;x+:1);x}
