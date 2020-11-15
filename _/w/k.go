@@ -123,7 +123,7 @@ func load(f string) {
 	dx(out(val(mkchrs(b))))
 }
 
-var ddd = false
+var ddd = true
 
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
@@ -184,7 +184,8 @@ func multitest() { //multiline, spaces, comments
 		{"(1 \n2)", "(1;2)"},
 		{"(1 /xx\n2)", "(1;2)"},
 		{"(1\n2 3;4 ) /comment", "(1;2 3;4)"},
-		{`&"1+2 /alpha"`, "(+;1;2)"},
+		{`1+2 /alpha`, "3"},
+		//{`&"1+2 /alpha"`, "(+;1;2)"},
 		{"/x\n2", "2"},
 	}
 	for _, t := range tc {
@@ -2192,12 +2193,12 @@ func val(x i) (r i) {
 		dx(x)
 	case 1:
 		if ddd {
+			fmt.Printf("val %s\n", X(x))
 			x = tk2(x)
 			fmt.Printf("tok: %s\n", X(x))
-			for i := i(0); i < nn(x); i++ {
-				fmt.Printf("tok[%d] = %d\n", i, I(x+8+4*i))
-			}
+			od(x)
 			return run(prs2(x))
+			return x
 		}
 		r = prs(x)
 		n := (I(r+8) == 58) && 2 < nn(r) //:
@@ -2233,17 +2234,17 @@ func lup(x i) (r i) {
 
 func con(x i) (r i) { // intern constant
 	l := I(kcon)
-	lp := 8 + l
+	lp := l + 8
 	for i := i(0); i < nn(l); i++ {
 		r = I(lp)
 		if match(r, x) != 0 {
 			dx(x)
-			return mki(r)
+			return r
 		}
 		lp += 4
 	}
 	sI(kcon, lcat(l, x))
-	return mki(x)
+	return x
 }
 func asn(x, y i) (r i) {
 	xt, _, _ := v1(x)
@@ -2548,6 +2549,7 @@ func od(x i) { // execute byte code
 			s = "(" + X(n) + ")"
 		} else if m == 5 {
 			s = X(I(I(kkey) + n))
+			s = s[1 : len(s)-1]
 		} else if m == 8 {
 			s = "jif +" + strconv.Itoa(int(n))
 		} else if m == 9 {
@@ -2589,6 +2591,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 			b = I(sp)
 			sp -= 4
 			f := MT[n].(func(i, i) i)
+			//fmt.Println(X(a), X(b))
 			a = f(a, b)
 		} else if m == 3 { //@[x;y;z]
 			a = asi(a, I(sp), I(sp-4))
@@ -2675,7 +2678,7 @@ func csw(x i) (r i) { // compile $[a;b;..]
 	dx(x)
 	return drop(r, 1)
 }
-func op(x, y i) (r i) { return mki(x | y<<4) }
+func op(x, y i) (r i) { return x | y<<4 }
 func adv(x i) (r i) {
 	//return x
 	xt, xn, xp := v1(x)
@@ -2845,20 +2848,12 @@ func fnl(xp, xn i) (r i) {
 }
 func prs2(x i) (r i) {
 	xt, xn, xp := v1(x)
-	if xt != 6 {
+	if xt != 2 {
 		panic("prs expects tokens")
 		trap()
 	}
-	r = mk(2, xn)
-	rp := r + 8
-	mv(rp, xp, 4*xn)
-	rld(x)
-	x = jon(sq2(rp, rp+4*xn), mki(15))
-	dx(r)
-	return x
-	//x = sq2(rp, rp+4*xn)
-	//dx(r)
-	//return x
+	r = jon(sq2(xp, xp+4*xn), mki(15))
+	return dxr(x, r)
 }
 func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 	xt, xn, xp := v1(x)
@@ -2882,11 +2877,17 @@ func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(
 func sq2(x, y i) (r i) {
 	r = mk(6, 0)
 	for {
-		r = lcat(r, ex2(pt2(x, y), y))
-		x = I(pp)
-		if x == y || I(x) != 59 {
-			return r
+		v := ex2(pt2(x, y), y)
+		if v == 15 {
+			r = lcat(r, mki(4))
+		} else if v > 15 {
+			r = lcat(r, v)
+			x = I(pp)
+			if I(x) != 15 {
+				return r
+			}
 		}
+		x += 4
 	}
 }
 func sq(s i) (r i) { // E
@@ -2915,39 +2916,55 @@ func sq(s i) (r i) { // E
 	}
 }
 func ex2(x, y i) (r i) {
-	if x == 0 {
+	if x < 16 {
 		return x
 	}
-	p := I(pp)
-	t := I(p)
-	fmt.Printf("ex2 p=%d t=%d\n", p, t)
-	if t < 256 && is(byte(t), TE) {
-		fmt.Println("ex2 TE")
+	p := I(x + 8)
+	x = drop(x, 1)
+	r = pt2(I(pp), y)
+	if r < 16 {
+		if p == 2 { //(+;..)
+			dx(x)
+			x = mki(op(4, I(x+8)>>4))
+		}
 		return x
 	}
-	r = pt2(p, y)
-	if r == 0 {
-		fmt.Println("pt2 r 0")
-		return x
-	}
-	p = isv2(x)
-	fmt.Println("isv r?", p)
-	if isv2(r) != 0 && p == 0 {
-		fmt.Println("dyadic")
+	q := I(r + 8)
+
+	//fmt.Printf("x=%d(%d) r=%d(%d)\n", x, p, r, q)
+	if q != 0 && p == 0 {
 		y = ex2(pt2(I(pp), y), y)
+		r = drop(r, 1)
 		if y == 0 {
 			y = mki(4)
+			dx(r)
+			r = mki(2 + I(8+r))
+			x = ucat(x, mki(6+2<<4)) //prj
+			return ucat(ucat(r, ucat(y, x)), ucat(mki(con(mki(1))), mki(10)))
+		}
+
+		if I(r+8) == 2+':'<<4 && I(x+8)&0xf == 5 { // x:y todo (+;`x;a;y), collect locals, ::
+			c := mk(5, 1)
+			sI(c+8, I(x+8)>>4)
+			dx(x)
+			x = mki(con(c))
 		}
 		y = ucat(y, x)
+		if q == 1 {
+			y = ucat(y, mki(6+2<<4))               // mkl 2
+			return ucat(y, ucat(r, mki(2+'.'<<4))) // .
+		}
 		return ucat(y, r)
 	}
-	fmt.Println("monadic")
 	if p == 2 {
-		fmt.Println("force monadic")
-		p = x + 4*(1+nn(x))
-		sI(p, 2047+I(p)) //monadic
+		q = x + 4*(1+nn(x))
+		sI(q, 2047+I(q)) //monadic
 	}
-	return ucat(ex2(r, y), x)
+	r = ucat(ex2(r, y), x)
+	if p != 2 {
+		r = ucat(r, mki(1026)) //op(2, @) juxtaposition
+	}
+	return r
 }
 func ex(x, s i) (r i) { // e
 	if x == 0 || ws(s) {
@@ -2965,55 +2982,62 @@ func ex(x, s i) (r i) { // e
 }
 
 func pt2(x, y i) (r i) {
-	s := "EOF"
-	if x < y {
-		s = X(I(x))
-	}
-	fmt.Printf("pt2 x=%d y=%d Ix=%s\n", x, y, s)
-	defer func() { fmt.Printf("<pt2 x=%d I(pp)=%d\n", x, I(pp)) }()
-	if x == y {
+	if x >= y {
+		sI(pp, x) // ???          todo ???
 		return 0
 	}
 	r = I(x)
-	if r < 256 {
-		switch r { // todo class
-		case ';', '(', '{', '[', ']', '}', ')':
-			return 0
+	m := r & 0xf
+	if r == 11 { // (
+		r = sq2(x+4, y)
+		n := nn(r)
+		if n == 1 {
+			r = fst(r)
+		} else {
+			r = ucat(jon(rev(r), mk(2, 0)), mki(op(6, n)))
 		}
-		//s := X(r)
-		if r > 128 {
-			panic("pt2 r?")
-		}
-		//r = op(1, r+128)
-		//fmt.Printf("pt2 op1 r=(%d) = %s\n", r, s)
+		m = 0
+		x = I(pp)
+	} else if r < 16 {
+		return r // todo: { ( [
 	} else {
-		s := X(r)
-		r = con(r)
-		fmt.Printf("pt2 con r=%d (%s)\n", r, s)
+		r = mki(r)
+	}
+	if m != 2 {
+		m = 0
+	}
+	if m == 1 {
+		panic("leading adverb")
 	}
 	x += 4
 	for {
-		fmt.Printf("pt2 adv? %d < %d\n", x, y)
 		p := I(x)
-		if x == y || p > 255 {
-			if r < 256 {
-				fmt.Println("pt2 <- op2")
-				r = op(2, r)
+		n := p & 0xf
+		if x < y && n == 12 { // [
+			a := sq2(x+4, y)
+			n := nn(a)
+			if n == 1 {
+				a = fst(a)
+				r = ucat(r, mki(2+'@'<<4))
+			} else {
+				a = jon(rev(a), mk(2, 0))
+				r = ucat(r, mki(op(6, n)))
 			}
-			sI(pp, x)
-			return r
-		}
-		if p < 256 {
-			if is(byte(p), AD) || is(byte(p-128), AD) {
-				if r < 256 {
-					r = con(cal(p, enl(r))) // +/
-				} else {
-					r = ucat(con(r), op(1, p)) // x/
-				}
+			r = ucat(a, r)
+			m = 0
+			x = 4 + I(pp)
+		} else if x < y && n == 1 { // adverb
+			if m == 2 {
+				m = r + 4*(1+nn(r))
+				sI(m, 2+I(m)) //op(4,v) quote verb
 			}
+			m = 1
+			r = ucat(r, mki(p))
 			x += 4
+		} else {
+			sI(pp, x)
+			return ucat(mki(m), r)
 		}
-		// todo {lambda (list or (x)
 	}
 }
 func pt(s i) (r i) { // t
@@ -3157,25 +3181,6 @@ func lam(p, s, z, a i) (r i) {
 	sI(r+20, v) // arity
 	return r
 }
-
-/*
-func ws2(b c, p, s i) i { //returns p or 0(EOF), does not set I(pp)
-	for {
-		if p >= s {
-			return 0
-		}
-		if b == '/' {
-			p = cmt(p, s)
-			b = C(p)
-		}
-		if is(b, NW) || b == 10 { //64
-			return p
-		}
-		p++
-		b = C(p)
-	}
-}
-*/
 func ws(s i) bool { // skip whitespace
 	p := I(pp)
 	if C(p) == '/' {
@@ -3209,37 +3214,14 @@ func cmt(p, s i) (r i) {
 	}
 	return p
 }
-
-/*
-func tok2(b c, p, s i) (r i) {
-	p = ws2(b, p, s)
-	if p == 0 {
-		fmt.Println("token EOF")
-		return 0
-	}
-	b = C(p)
-	if is(b, TE) || b == 10 {
-		fmt.Println("token TE")
-		return 0
-	}
-	for j := 0; j < 5; j++ { // nms vrb chr nam sms
-		r = MT[j+136].(func(c, i, i) i)(b, p, s)
-		if r != 0 {
-			fmt.Printf("token r=%s\n", X(r))
-			return r
-		}
-	}
-	return 0
-}
-*/
 func tk2(x i) (r i) { // tokenize
 	xt, xn, xp := v1(x)
 	if xt != 1 {
 		trap()
 	}
-	r = mk(6, 0)
+	r = mk(2, 0)
 	xn += xp
-	if xp < xp && C(xp) == 47 { // /
+	if C(xp) == 47 {
 		xp = cmt(xp, xn)
 	}
 	sI(pp, xp)
@@ -3254,12 +3236,12 @@ func tk2(x i) (r i) { // tokenize
 			dx(x)
 			return r
 		}
-		r = lcat(r, t)
+		r = ucat(r, mki(t))
 	}
 }
 func ws2(x, y i) (r i) {
 	for {
-		if x == y {
+		if x >= y {
 			return x
 		}
 		b := C(x)
@@ -3273,21 +3255,34 @@ func ws2(x, y i) (r i) {
 	}
 }
 func ntk(x, y i) (r i) { // next token
-	//fmt.Printf("ntk %d %d\n", x, y)
-	//defer func() { fmt.Printf("=> ntk %s\n", X(r)) }()
 	b := C(x)
 	for j := 0; j < 5; j++ {
 		r = MT[j+136].(func(c, i, i) i)(b, x, y)
 		if r != 0 {
+			if r&0xf == 0 {
+				if I(r) == 1+5<<29 {
+					dx(r)
+					r = op(5, I(r+8))
+				} else if I(r) == 1+6<<29 {
+					r = con(fst(r))
+				} else {
+					r = con(r)
+				}
+			}
 			return r
 		}
 	}
-	switch b { //todo: add more classes BR:({[]})
-	case ';', 10:
-		r = 59
-	case '(', '{', '[', ']', '}', ')':
-		r = uint32(b)
-	default:
+	if b == ';' || b == 10 {
+		r = 15
+	} else if is(b, TE) {
+		r = 14
+	} else if b == '(' {
+		r = 11
+	} else if b == '[' {
+		r = 12
+	} else if b == '{' {
+		r = 13
+	} else {
 		return 0
 	}
 	sI(pp, 1+x)
@@ -3328,6 +3323,7 @@ func pui(b c, p, s i) (r uint32) {
 	return r
 }
 func pin(b c, p, s i) (r i) { // parse signed int
+	sI(pp, p)
 	u := pui(b, p, s)
 	if I(pp) != p {
 		return mki(i(u))
@@ -3457,7 +3453,7 @@ func num(b c, p, s i) (r i) { // parse single number
 func nms(b c, p, s i) (r i) { // parse numeric vector
 	r = num(b, p, s)
 	if r == 0 {
-		return r
+		return 0
 	}
 	for {
 		p = I(pp)
@@ -3469,7 +3465,6 @@ func nms(b c, p, s i) (r i) { // parse numeric vector
 			return r
 		}
 		p++
-		sI(pp, p)
 		q := num(C(p), p, s)
 		if q == 0 {
 			sI(pp, p-1) // keep space for " /comment" (todo?)
@@ -3487,13 +3482,14 @@ func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if C(p-1) == 32 {
 		if b == 92 { // space\.. (out)
 			sI(pp, p+1)
-			return 160
+			return op(2, 160)
 		}
 		if b == 39 { // (space)'c  spacy verb
 			p++
 		}
 	}
 	r = i(C(p))
+	n := i(2) - boolvar(is(byte(r), AD))
 	if s > p+1 {
 		if C(p+1) == ':' { // 58
 			p++
@@ -3501,7 +3497,7 @@ func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 		}
 	}
 	sI(pp, p+1)
-	return r
+	return op(n, r)
 }
 func nam(b c, p, s i) (r i) { // abc  A3 (as `abc)
 	if !is(b, az|AZ) { //3
@@ -3538,10 +3534,10 @@ func sym(b c, p, s i) (r i) { // `abc `"abc"
 	sI(r+8, 8)
 	return r
 }
-func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
+func sms(b c, p, s i) (r i) { // `a`b
 	r = sym(b, p, s)
 	if r == 0 {
-		return r
+		return 0
 	}
 	for {
 		p = I(pp)
@@ -3549,9 +3545,9 @@ func sms(b c, p, s i) (r i) { // `a`b as ,`a`b
 		if q == 0 {
 			return enl(r)
 		}
-		r = cat(r, q)
+		r = ucat(r, q)
 	}
-	return r
+	return 0
 }
 func chr(b c, p, s i) (r i) { // "abc"
 	if b == '0' {
@@ -3570,7 +3566,7 @@ func chr(b c, p, s i) (r i) { // "abc"
 		if p == s {
 			panic("chr/eof")
 		}
-		if C(p) == '"' { // todo quote
+		if C(p) == '"' {
 			n := p - a
 			r = mk(1, n)
 			mv(r+8, a, n)
