@@ -218,6 +218,10 @@ func runtest(n []int) {
 		if len(v[i]) == 0 || v[i][0] == '/' {
 			continue
 		}
+		if v[i][0] == '&' && v[i][1] == '"' {
+			fmt.Printf("skip %s\n", v[i])
+			continue
+		}
 		vv := strings.Split(v[i], " /")
 		if len(vv) != 2 {
 			panic("test file")
@@ -2193,12 +2197,7 @@ func val(x i) (r i) {
 		dx(x)
 	case 1:
 		if ddd {
-			fmt.Printf("val %s\n", X(x))
-			x = tk2(x)
-			fmt.Printf("tok: %s\n", X(x))
-			od(x)
 			return run(prs2(x))
-			return x
 		}
 		r = prs(x)
 		n := (I(r+8) == 58) && 2 < nn(r) //:
@@ -2847,13 +2846,25 @@ func fnl(xp, xn i) (r i) {
 	return r
 }
 func prs2(x i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt != 2 {
-		panic("prs expects tokens")
-		trap()
-	}
-	r = jon(sq2(xp, xp+4*xn), mki(15))
-	return dxr(x, r)
+	fmt.Printf("\nprs2 %s\n", X(x))
+	rx(x)
+	r = tk2(x)
+	rld(r)
+	a := I(r + 12) //pos
+	r = I(r + 8)   //tokens
+	sI(152, x)     //src string
+	sI(144, a-r)   //offset
+	//fmt.Printf("offset %d\n", a-r)
+	//fmt.Printf("x(%d)=%s\n", x, X(x))
+	//fmt.Printf("a(%d)=%s\n", a, X(a))
+	//fmt.Printf("r(%d)=%s\n", r, X(r))
+
+	rp := r + 8
+	rn := nn(r)
+	t := jon(sq2(rp, rp+4*rn), mki(15))
+	dx(a)
+	dx(r)
+	return dxr(x, t)
 }
 func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
 	xt, xn, xp := v1(x)
@@ -2886,6 +2897,8 @@ func sq2(x, y i) (r i) {
 			if I(x) != 15 {
 				return r
 			}
+		} else if v < 15 {
+			return r
 		}
 		x += 4
 	}
@@ -2930,12 +2943,10 @@ func ex2(x, y i) (r i) {
 		return x
 	}
 	q := I(r + 8)
-
-	//fmt.Printf("x=%d(%d) r=%d(%d)\n", x, p, r, q)
 	if q != 0 && p == 0 {
 		y = ex2(pt2(I(pp), y), y)
 		r = drop(r, 1)
-		if y == 0 {
+		if y < 16 {
 			y = mki(4)
 			dx(r)
 			r = mki(2 + I(8+r))
@@ -2943,11 +2954,19 @@ func ex2(x, y i) (r i) {
 			return ucat(ucat(r, ucat(y, x)), ucat(mki(con(mki(1))), mki(10)))
 		}
 
-		if I(r+8) == 2+':'<<4 && I(x+8)&0xf == 5 { // x:y todo (+;`x;a;y), collect locals, ::
-			c := mk(5, 1)
-			sI(c+8, I(x+8)>>4)
-			dx(x)
-			x = mki(con(c))
+		if I(r+8) == 2+':'<<4 {
+			if I(x+8)&0xf == 5 { // x:y todo (+;`x;a;y), collect locals, ::
+				c := mk(5, 1)
+				sI(c+8, I(x+8)>>4)
+				dx(x)
+				x = mki(con(c))
+			} else if nn(x) == 3 && I(x+12)&0xf == 5 { // && I(x+16) == 1026 (@)
+				c := mk(5, 1)
+				sI(c+8, I(x+12)>>4)
+				x = ucat(ucat(ucat(y, fst(x)), mki(con(c))), mki(I(r+8)+2))
+				dx(r)
+				return ucat(ucat(x, mki(6+4<<4)), mki(7+4<<4))
+			}
 		}
 		y = ucat(y, x)
 		if q == 1 {
@@ -2991,15 +3010,90 @@ func pt2(x, y i) (r i) {
 	if r == 11 { // (
 		r = sq2(x+4, y)
 		n := nn(r)
-		if n == 1 {
+		if n == 0 {
+			r = mki(con(r)) // ()
+		} else if n == 1 {
 			r = fst(r)
 		} else {
 			r = ucat(jon(rev(r), mk(2, 0)), mki(op(6, n)))
 		}
 		m = 0
 		x = I(pp)
+	} else if r == 13 { // {
+		s0 := I(x + I(144))
+		a := i(0)
+		if I(x+4) == 12 { // {[args
+			r = sq2(x+8, y)
+			n := nn(r)
+			if n == 1 {
+				r = fst(r)
+			}
+			a = mk(5, n)
+			ap := a + 8
+			rp := r + 8
+			for i := i(0); i < n; i++ {
+				sI(ap, I(8+I(rp))>>4)
+				ap += 4
+				rp += 4
+			}
+			dx(r)
+			x = I(pp)
+		}
+		r = sq2(x+4, y) //tree
+		n := nn(r)
+		if n == 0 {
+			panic("{}?")
+		} else if n == 1 {
+			r = fst(r)
+		} else {
+			r = jon(r, mki(15))
+		}
+		s1 := 1 + I(I(pp)+I(144))
+		s := mk(1, s1-s0)
+		mv(s+8, s0, s1-s0)
+		if a != 0 {
+			x = a
+			a = nn(x)
+		} else { // detect xyz
+			rx(r)
+			v := fnd(ucat(ucat(mki(197), mki(261)), mki(325)), r) //x y z
+			rx(v)
+			v = ovr(atx(v, wer(not(eql(v, mki(3))))), 124)
+			if nn(v) == 0 {
+				a = 0
+			} else {
+				a = 1 + I(v+8)
+			}
+			dx(v)
+			x = I(xyz)
+			rx(x)
+			x = take(x, a)
+		}
+		rxn(r, 2)
+		l := atx(r, sub(wer(eql(r, mki(930))), mki(1))) //locals
+		lp := l + 8
+		for i := i(0); i < nn(l); i++ {
+			u := I(lp)
+			if u&0xf == 0 && tp(u) == 5 {
+				rx(u)
+				x = ucat(x, u)
+			}
+			lp += 4
+		}
+		x = unq(x)
+		dx(l)
+
+		f := mk(0, 4)
+		sI(f+8, s)  // string
+		sI(f+12, r) // tree
+		sI(f+16, x) // args
+		sI(f+20, a) // arity
+		r = mki(con(f))
+		m = 0
+		x = I(pp)
 	} else if r < 16 {
-		return r // todo: { ( [
+		sI(pp, x)
+		return r
 	} else {
 		r = mki(r)
 	}
@@ -3018,10 +3112,21 @@ func pt2(x, y i) (r i) {
 			n := nn(a)
 			if n == 1 {
 				a = fst(a)
+				if m == 2 { // +[1]
+					sI(r+8, 2+I(r+8))
+				}
 				r = ucat(r, mki(2+'@'<<4))
 			} else {
-				a = jon(rev(a), mk(2, 0))
-				r = ucat(r, mki(op(6, n)))
+				if n == 0 {
+					dx(a)
+					a = mki(con(mk(6, 0)))
+				} else {
+					a = ucat(jon(rev(a), mk(2, 0)), mki(op(6, n)))
+				}
+				if m == 2 {
+					sI(r+8, 2+I(r+8)) // +[1;2]
+				}
+				r = ucat(r, mki(2+'.'<<4))
 			}
 			r = ucat(a, r)
 			m = 0
@@ -3220,6 +3325,7 @@ func tk2(x i) (r i) { // tokenize
 		trap()
 	}
 	r = mk(2, 0)
+	a := mk(2, 0)
 	xn += xp
 	if C(xp) == 47 {
 		xp = cmt(xp, xn)
@@ -3229,14 +3335,15 @@ func tk2(x i) (r i) { // tokenize
 		xp = ws2(I(pp), xn)
 		if xp == xn {
 			dx(x)
-			return r
+			return l2(r, a)
 		}
 		t := ntk(xp, xn)
 		if t == 0 {
 			dx(x)
-			return r
+			return l2(r, a)
 		}
 		r = ucat(r, mki(t))
+		a = ucat(a, mki(xp))
 	}
 }
 func ws2(x, y i) (r i) {
