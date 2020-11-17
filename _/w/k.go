@@ -2677,6 +2677,32 @@ func csw(x i) (r i) { // compile $[a;b;..]
 	dx(x)
 	return drop(r, 1)
 }
+func swc2(x i) (r i) { // $[a;b;..]
+	_, xn, xp := v1(x)
+	if 0 == xn%2 {
+		fmt.Println("$[even]")
+		panic("cond")
+	}
+	rl(x)
+	r = mk(2, 0)
+	a, b, t := i(0), i(0), i(0)
+	a -= 4
+	for i := i(0); i < xn; i++ {
+		t = I(xp)
+		b = 4 * nn(t)
+		a += 4 + b
+		if 0 == i%2 {
+			b = op(9, a)
+		} else {
+			b = op(8, 4+b)
+		}
+		r = ucat(ucat(mki(b), t), r)
+		xp += 4
+	}
+	dx(x)
+	sI(r+8, 0)
+	return r
+}
 func op(x, y i) (r i) { return x | y<<4 }
 func adv(x i) (r i) {
 	//return x
@@ -2954,18 +2980,32 @@ func ex2(x, y i) (r i) {
 			return ucat(ucat(r, ucat(y, x)), ucat(mki(con(mki(1))), mki(10)))
 		}
 
-		if I(r+8) == 2+':'<<4 {
-			if I(x+8)&0xf == 5 { // x:y todo (+;`x;a;y), collect locals, ::
-				c := mk(5, 1)
-				sI(c+8, I(x+8)>>4)
-				dx(x)
-				x = mki(con(c))
-			} else if nn(x) == 3 && I(x+12)&0xf == 5 { // && I(x+16) == 1026 (@)
-				c := mk(5, 1)
-				sI(c+8, I(x+12)>>4)
-				x = ucat(ucat(ucat(y, fst(x)), mki(con(c))), mki(I(r+8)+2))
-				dx(r)
-				return ucat(ucat(x, mki(6+4<<4)), mki(7+4<<4))
+		t := I(r + 8)
+		if t&0xf == 2 {
+			t = t >> 4
+			fmt.Println("t")
+			if t == ':' || t > 127 {
+				fmt.Println("assign", t, t == ':', I(x+8)&0xf == 5, nn(x), I(x+12)&0xf)
+				if t == ':' && I(x+8)&0xf == 5 { // x:y
+					c := mk(5, 1)
+					sI(c+8, I(x+8)>>4)
+					dx(x)
+					x = mki(con(c))
+				} else if nn(x) == 1 && I(x+8)&0xf == 5 { // x+:y -> (+:;,`x;;y)
+					c := mk(5, 1)
+					sI(c+8, I(x+8)>>4)
+					dx(x)
+					x = ucat(ucat(ucat(y, mki(4)), mki(con(c))), mki(4+(t-128)<<4)) //  mki(I(r+8)+2))
+					dx(r)
+					return ucat(ucat(x, mki(6+4<<4)), mki(7+4<<4))
+
+				} else if nn(x) == 3 && I(x+12)&0xf == 5 { // && I(x+16) == 1026 (@)
+					c := mk(5, 1)
+					sI(c+8, I(x+12)>>4)
+					x = ucat(ucat(ucat(y, fst(x)), mki(con(c))), mki(I(r+8)+2))
+					dx(r)
+					return ucat(ucat(x, mki(6+4<<4)), mki(7+4<<4))
+				}
 			}
 		}
 		y = ucat(y, x)
@@ -3121,12 +3161,27 @@ func pt2(x, y i) (r i) {
 					dx(a)
 					a = mki(con(mk(6, 0)))
 				} else {
-					a = ucat(jon(rev(a), mk(2, 0)), mki(op(6, n)))
+					if n == 3 && I(r+8) == 1026 { // @[x;y;z]
+						dx(r)
+						a = ucat(jon(rev(a), mk(2, 0)), mki(3))
+						r = 0
+					} else if n > 2 && I(r+8) == 578 { // $[..]
+						dx(r)
+						r = 0
+						a = swc2(rev(a))
+					} else {
+						a = ucat(jon(rev(a), mk(2, 0)), mki(op(6, n)))
+					}
 				}
 				if m == 2 {
+					fmt.Println(I(r + 8))
 					sI(r+8, 2+I(r+8)) // +[1;2]
 				}
-				r = ucat(r, mki(2+'.'<<4))
+				if r == 0 {
+					r = mk(2, 0)
+				} else {
+					r = ucat(r, mki(2+'.'<<4))
+				}
 			}
 			r = ucat(a, r)
 			m = 0
