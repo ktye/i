@@ -373,7 +373,6 @@ func mk(x, y i) (r i) {
 	return a
 }
 func fr(x i) {
-	// fmt.Printf("free %d\n", x)
 	xt, xn, _ := v1(x)
 	t := 4 * bk(xt, xn)
 	sI(x, I(t))
@@ -2204,7 +2203,7 @@ func val(x i) (r i) {
 			}
 		*/
 	case 2:
-		r = run(x)
+		// r = run(l2(x, take(mki(0), nn(x))))
 	case 5:
 		r = lup(x)
 	//case 6:
@@ -2530,43 +2529,61 @@ func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
 // prj           10=x&0x7          project
 // drop          15=x&0x7          drop 1
 func od(x i) { // execute byte code
-	_, xn, xp := v1(x)
+	y := I(x + 12)
+	z := I(x + 12)
+	x = I(x + 8)
+	fmt.Printf("od %s\n", X(z))
+	_, _, xn, yn, xp, yp := v2(x, y)
+	if xn != yn {
+		panic(fmt.Sprintf("length %d %d", xn, yn))
+	}
 	n, m := i(0), i(0)
 	for i := i(0); i < xn; i++ {
 		r := I(xp)
 		m = r & 0xf
 		n = r >> 4
-
-		s := ""
+		s := fmt.Sprintf("%03d %6q  ", I(yp), string(C(I(yp))))
 		if m == 0 {
-			s = X(r)
+			s += X(r)
 		} else if m < 3 {
-			s = X(n)
+			s += X(n)
 		} else if m == 4 {
-			s = "(" + X(n) + ")"
+			s += "(" + X(n) + ")"
 		} else if m == 5 {
-			s = X(I(I(kkey) + n))
-			s = s[1 : len(s)-1]
+			ds := X(I(I(kkey) + n))
+			s += ds[1 : len(s)-1]
 		} else if m == 8 {
-			s = "jif +" + strconv.Itoa(int(n))
+			s += "jif +" + strconv.Itoa(int(n))
 		} else if m == 9 {
-			s = "j +" + strconv.Itoa(int(n))
+			s += "j +" + strconv.Itoa(int(n))
 		}
 		fmt.Printf(" %4d [%2d 0x%04x] %s\n", r, m, n, s)
 		xp += 4
+		yp += 4
 	}
 }
 func run(x i) (r i) { // execute byte code (run don't walk)
-	xt, xn, xp := v1(x)
-	if xt != 2 {
+	fmt.Println("run")
+	od(x)
+	rl(x)
+	y := I(x + 12)
+	z := I(x + 16)
+	dx(x)
+	x = I(x + 8)
+
+	xt, yt, xn, yn, xp, _ := v2(x, y)
+	if xt != 2 || yt != 2 {
 		panic("type")
+	}
+	if xn != yn {
+		panic("length")
 	}
 	if xn == 0 {
 		dx(x)
+		dx(y)
+		dx(z)
 		return 0
 	}
-	fmt.Println("run")
-	od(x)
 	s := mk(2, 126)
 	sp := s + 4
 	t := xp + 4*xn
@@ -2647,21 +2664,25 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		//panic("!stack")
 	}
 	dx(x)
+	dx(y)
+	dx(z)
 	dx(s)
 	return a
 }
-func swc2(x i) (r i) { // $[a;b;..]
-	_, xn, xp := v1(x)
+func swc2(x, y i) (r i) { // $[a;b;..]
+	_, _, xn, _, xp, yp := v2(x, y)
 	if 0 == xn%2 {
 		fmt.Println("$[even]")
 		panic("cond")
 	}
 	rl(x)
+	s := mk(2, 0)
 	r = mk(2, 0)
-	a, b, t := i(0), i(0), i(0)
+	a, b, t, w := i(0), i(0), i(0), i(0)
 	a -= 4
 	for i := i(0); i < xn; i++ {
 		t = I(xp)
+		w = I(yp)
 		b = 4 * nn(t)
 		a += 4 + b
 		if 0 == i%2 {
@@ -2670,11 +2691,14 @@ func swc2(x i) (r i) { // $[a;b;..]
 			b = op(8, 4+b)
 		}
 		r = ucat(ucat(mki(b), t), r)
+		s = ucat(ucat(mki(0), w), s)
 		xp += 4
+		yp += 4
 	}
 	dx(x)
+	dx(y)
 	sI(r+8, 0)
-	return r
+	return l2(drop(r, 1), drop(s, 1))
 }
 func op(x, y i) (r i) { return x | y<<4 }
 
@@ -2760,27 +2784,38 @@ func prs2(x i) (r i) {
 
 	rp := r + 8
 	rn := nn(r)
-	t := jon(sq2(rp, rp+4*rn), mki(15))
+	k, v := kvd(sq2(rp, rp+4*rn))
+	k = jon(k, mki(15))
+	v = jon(v, mki(0))
 	dx(a)
 	dx(r)
-	return dxr(x, t)
+	return l3(k, v, x)
 }
 func sq2(x, y i) (r i) {
-	r = mk(6, 0)
+	a := mk(6, 0)
+	s := mk(6, 0)
+	n := 0
 	for {
-		v := ex2(pt2(x, y), y)
-		if v == ';' {
-			r = lcat(r, mki(4))
-		} else if v > 128 {
-			r = lcat(r, v)
+		k, v := kvd(ex2(pt2(x, y), y))
+		if k < 128 {
+			dx(v)
+			if k == ';' || nn(a) > 0 {
+				a = lcat(a, mki(4))
+				s = lcat(s, mki(0))
+			}
+			if k != ';' {
+				return l2(a, s)
+			}
+		} else if k > 128 {
+			a = lcat(a, k)
+			s = lcat(s, v)
 			x = I(pp)
 			if I(x) != ';' {
-				return r
+				return l2(a, s)
 			}
-		} else if v < 128 {
-			return r
 		}
 		x += 4
+		n++
 	}
 }
 func fnl(x i) (r i) {
@@ -2843,22 +2878,28 @@ func ras2(x, y, z i) (r i) { // assign
 	}
 	return 0
 }
+func src(x i) (r i) { return mki(I(x + I(144))) }
 func ex2(x, y i) (r i) {
+	x, s := kvd(x)
 	if x < 128 {
-		return x
+		return l2(x, s)
 	}
 	p := vb(x)
-	r = pt2(I(pp), y)
-	if r < 256 {
-		return x
+	t := i(0)
+	r, t = kvd(pt2(I(pp), y))
+	if r < 128 {
+		dx(t)
+		return l2(x, s)
 	}
 	q := vb(r)
+	w := i(0)
 	if q != 0 && p == 0 {
-		y = ex2(pt2(I(pp), y), y)
+		y, w = kvd(ex2(pt2(I(pp), y), y))
 		v := i(2 + '.'<<4)
 		if y < 256 {
 			y = mki(4)
 			r = ucat(mki(con(mki(1))), r)
+			t = ucat(mki(0), t)
 			v = 10
 		}
 		p = ras2(x, y, r)
@@ -2868,71 +2909,89 @@ func ex2(x, y i) (r i) {
 		if q == 4 && v != 10 {
 			dx(r)
 			r = mki(I(r+8) - 2)
-			return ucat(ucat(y, x), r) // x y +
+			r = ucat(ucat(y, x), r)
+			return l2(r, ucat(ucat(w, s), t)) // x y +
 		}
-		return ucat(ucat(ucat(ucat(y, x), mki(6+2<<4)), r), mki(v)) // x y l2 r .
+		r = ucat(ucat(ucat(ucat(y, x), mki(6+2<<4)), r), mki(v)) // x y l2 r .
+		t = ucat(ucat(ucat(ucat(w, s), mki(0)), t), mki(0))
+		return l2(r, t)
 	}
-	r = ex2(r, y)
+	r, t = kvd(ex2(l2(r, t), y))
 	if p != 4 {
 		x = ucat(x, mki(1026))
+		s = ucat(s, mki(0))
 	} else {
 		dx(x)
 		x = mki(I(x+8) + 2045)
 	}
-	return ucat(r, x)
+	return l2(ucat(r, x), ucat(t, s))
 }
 func pt2(x, y i) (r i) {
 	if x >= y {
 		sI(pp, x)
-		return 0
+		return l2(0, mki(0))
 	}
 	r = I(x)
+	t := i(0)
 	if r == '(' {
-		r = sq2(x+4, y)
+		r, t = kvd(sq2(x+4, y))
 		n := nn(r)
 		if n == 0 {
 			r = mki(con(r)) // ()
+			t = ucat(t, mki(0))
 		} else if n == 1 {
 			r = fst(r)
+			t = fst(t)
 		} else {
 			r = ucat(jon(rev(r), mk(2, 0)), mki(op(6, n)))
+			t = ucat(jon(rev(t), mk(2, 0)), mki(0))
 		}
 		x = I(pp)
 	} else if r == '{' { // {
-		r = lam2(x, y)
+		r = lam2(x, y) // todo t
 		x = I(pp)
 	} else if r < 128 && r != '[' {
 		sI(pp, x)
-		return r
+		return l2(r, mki(0))
 	} else {
 		r = mki(r)
+		t = src(x)
 	}
 	x += 4
 	for {
 		p := I(x)
 		if x < y && p == '[' { // [
-			a := sq2(x+4, y)
+			a, w := kvd(sq2(x+4, y))
 			n := nn(a)
+			fmt.Printf("#[]: %d\n", n)
 			if n == 1 {
 				a = fst(a)
+				w = fst(w)
 				r = ucat(a, r)
+				t = ucat(w, t)
 				r = ucat(r, mki(2+'@'<<4))
+				t = ucat(t, mki(0))
 			} else if n > 2 && I(r+8) == 580 { // $[..] cond
 				dx(r)
-				r = swc2(rev(a))
+				dx(t)
+				r, t = kvd(swc2(rev(a), rev(w)))
 			} else if n == 3 && I(r+8) == 1028 { // @[x;y;z]
 				dx(r)
 				r = ucat(jon(rev(a), mk(2, 0)), mki(3))
+				t = ucat(jon(rev(w), mk(2, 0)), t)
 			} else {
 				l := i(0)
 				if n == 0 {
 					dx(a)
 					a = mki(con(mk(6, 0)))
+					w = fst(w)
 				} else {
 					l = fnl(a)
 					a = ucat(jon(rev(a), mk(2, 0)), mki(op(6, n)))
+					w = ucat(jon(rev(w), mk(2, 0)), mki(0))
 					if l != 0 {
 						a = ucat(a, mki(con(l)))
+						w = ucat(w, mki(0))
 						l = 10
 					}
 				}
@@ -2940,9 +2999,11 @@ func pt2(x, y i) (r i) {
 					l = 2 + '.'<<4
 				}
 				r = ucat(ucat(a, r), mki(l))
+				t = ucat(ucat(w, t), mki(0))
 			}
 			x = 4 + I(pp)
 		} else if x < y && p&0xf == 1 { // adverb
+			s := src(x)
 			v := vb(r)
 			if v > 2 {
 				dx(r)
@@ -2951,13 +3012,15 @@ func pt2(x, y i) (r i) {
 					r >>= 4
 				}
 				r = mki(con(atx(p>>4, r))) // apply adv
+				t = ucat(take(t, nn(t)-1), s)
 			} else {
 				r = ucat(r, mki(p))
+				t = ucat(t, s)
 			}
 			x += 4
 		} else {
 			sI(pp, x)
-			return r
+			return l2(r, t)
 		}
 	}
 }
@@ -2965,7 +3028,7 @@ func lam2(x, y i) (r i) {
 	s0 := I(x + I(144))
 	a := i(0)
 	if I(x+4) == '[' { // {[args
-		a = sq2(x+8, y)
+		a = fst(sq2(x+8, y))
 		n := nn(a)
 		if n == 1 {
 			a = fst(a)
@@ -2976,7 +3039,7 @@ func lam2(x, y i) (r i) {
 		sI(a, I(a)+3<<29) // 5<<29
 		x = I(pp)
 	}
-	r = sq2(x+4, y) //tree
+	r = fst(sq2(x+4, y)) //tree
 	n := nn(r)
 	if n == 1 {
 		r = fst(r)
