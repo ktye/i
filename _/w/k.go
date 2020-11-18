@@ -2393,9 +2393,7 @@ func asi(x, y, z i) (r i) { //x[..y..]:z
 	trap()
 	return x
 }
-func asd(x i) (r i) { // (+;`x;a;y)
-	rld(x)
-	v, s, a, u := I(x+8), I(x+12), I(x+16), I(x+20)
+func asd(v, s, a, u i) (r i) { // (+;`x;a;y)
 	if v != ':' && v != 186 { //58
 		rx(s)
 		r = lup(s)
@@ -2567,8 +2565,8 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		dx(x)
 		return 0
 	}
-	//fmt.Printf("run %s\n", X(x))
-	//od(x)
+	fmt.Println("run")
+	od(x)
 	s := mk(2, 126)
 	sp := s + 4
 	t := xp + 4*xn
@@ -2615,7 +2613,8 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 			}
 			a = r
 		} else if m == 7 { //assign
-			a = asd(a)
+			a = asd(a, I(sp), I(sp-4), I(sp-8))
+			sp -= 12
 		} else if m == 8 { //rel jump if 0
 			if I(8+a) == 0 {
 				xp += n
@@ -2651,35 +2650,6 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 	dx(s)
 	return a
 }
-
-/*
-func csw(x i) (r i) { // compile $[a;b;..]
-	_, xn, xp := v1(x)
-	if 0 == xn%2 {
-		fmt.Println("$[even]")
-		panic("cond")
-	}
-	rl(x)
-	r = mk(2, 0)
-	a, b, t := i(0), i(0), i(0)
-	a -= 4
-	for i := i(0); i < xn; i++ {
-		t = com(I(xp))
-		b = 4 * nn(t)
-		a += 4 + b
-		if 0 == i%2 {
-			b = op(9, a)
-		} else {
-			b = op(8, 4+b)
-		}
-		t = ucat(b, t)
-		r = ucat(t, r)
-		xp += 4
-	}
-	dx(x)
-	return drop(r, 1)
-}
-*/
 func swc2(x i) (r i) { // $[a;b;..]
 	_, xn, xp := v1(x)
 	if 0 == xn%2 {
@@ -2709,105 +2679,6 @@ func swc2(x i) (r i) { // $[a;b;..]
 func op(x, y i) (r i) { return x | y<<4 }
 
 /*
-func adv(x i) (r i) {
-	//return x
-	xt, xn, xp := v1(x)
-	if xt == 6 && xn == 2 {
-		a := I(xp)
-		b := I(xp + 4)
-		if a > 0 && a < 256 && b > 0 && b < 256 {
-			if a == 128 || b == 128 {
-				fmt.Println("sem!")
-				panic("!adv")
-			}
-			dx(x)
-			r = cal(a, enl(b))
-			if tp(r) != 0 || nn(r) != 2 {
-				fmt.Println("adv no derived")
-				panic("!adv")
-			}
-			return r
-		}
-	}
-	return x
-}
-func com(x i) (r i) { // compile parse tree
-	xt, xn, xp := v1(x)
-	if xt != 6 || xn < 2 {
-		if xt == 5 && xn == 1 {
-			dx(x)
-			return op(5, I(x+8)) // var
-		} else if xt != 6 {
-			if x < 256 {
-				return op(4, x)
-			}
-			return con(x)
-		} else if xn == 1 {
-			x = fst(x)
-			if tp(x) == 5 {
-				return con(x)
-			} else if tp(x) != 6 { // e.g. ,(128)
-				return mk(2, 0)
-			}
-			xp = nn(x)
-			return ucat(ovr(ech(rev(x), 187), 44), op(6, xp)) // (,/com'|x),( op(6,n) )
-		} else if xn == 0 { // ()
-			//dx(x)
-			return con(x) //op(6, 0)
-		}
-	}
-	v := I(xp)
-	rx(v)
-	x = drop(x, 1)
-	xn--
-	if v == '$' && xn > 2 { // 38 $[a;b;..]
-		return csw(rev(x))
-	}
-	if v == 128 { // 128 (,:;a;b;c) sequence
-		return jon(ech(x, 187), mki(15)) // 15/:com'x
-	}
-	r = rras(x, v, xn)
-	if r != 0 {
-		if nn(r) != 1 || tp(r) != 6 {
-			fmt.Println("#r (rras) must be 6/1")
-			panic("!com")
-		}
-		return ucat(com(r), op(7, 0)) // assign
-	}
-	v = adv(v)
-	if xn > 1 {
-		r = fnl(x+8, xn) // projection
-		if r != 0 {
-			return ucat(ucat(ucat(com(v), com(enl(x))), com(r)), op(10, 0))
-		}
-	}
-	if xn == 1 { //64  (a;b) -> (@;a;b)
-		if v < 128 && !is(byte(v), AD) {
-			v += 128
-		} else if v > 255 { //(a;b) -> (@;a;b)
-			x = l2(v, fst(x))
-			v = '@'
-			xn = 2
-		}
-	} else if v == '@' && xn == 3 { //@[x;y;z] asi
-		xn = 3
-	} else if v > 255 {
-		if xn == 1 { // (f;x) -> (@;f;x)
-			x = l2(v, fst(x))
-			v = '@' //64
-		} else { // (f;x;y..) -> (.;f;(x;y..))
-			x = l2(v, enl(x))
-			v = '.' //46
-		}
-		xn = 2
-	}
-	r = ucat(ovr(ech(rev(x), 187), 44), op(xn, v))
-
-	if v > 255 {
-		panic("com: v > 256")
-	}
-	return r
-}
 func evl(x i) (r i) {
 	//fmt.Printf("evl x=%d (%s) r=%d\n", x, X(x), r)
 	xt, xn, xp := v1(x)
@@ -2857,14 +2728,6 @@ func evl(x i) (r i) {
 	rx(I(xp))
 	return cal(I(xp), drop(x, 1))
 }
-*/
-func prj(x, y, z i) (r i) {
-	r = mk(0, 3)
-	sI(r+8, x)
-	sI(r+12, y)
-	sI(r+16, z)
-	return r
-}
 func fnl(xp, xn i) (r i) {
 	for i := i(0); i < xn; i++ {
 		if I(xp) == 0 {
@@ -2877,6 +2740,15 @@ func fnl(xp, xn i) (r i) {
 	}
 	return r
 }
+*/
+func prj(x, y, z i) (r i) {
+	r = mk(0, 3)
+	sI(r+8, x)
+	sI(r+12, y)
+	sI(r+16, z)
+	return r
+}
+
 func prs2(x i) (r i) {
 	rx(x)
 	r = tk2(x)
@@ -2911,12 +2783,24 @@ func sq2(x, y i) (r i) {
 		x += 4
 	}
 }
-
+func fnl(x i) (r i) {
+	rx(x)
+	r = wer(ovr(ecr(mki(4), x, 126), 44)) // &,/4~/:x
+	if nn(r) == 0 {
+		dx(r)
+		return 0
+	}
+	return r
+}
 func vb(x i) (r i) {
 	n := nn(x)
 	x += 8
-	if n == 1 && I(x)&0x0f == 4 {
+	r = I(x)
+	if n == 1 && r&0x0f == 4 {
 		return 4 //verb
+	}
+	if n == 1 && r&0x0f == 0 && tp(r) == 0 && nn(r) == 2 {
+		return 3 //applied adverb
 	}
 	if I(x+4*(n-1))&0x0f == 1 {
 		return 1 //adverb
@@ -2925,38 +2809,37 @@ func vb(x i) (r i) {
 }
 func quo(x i) (r i) {
 	r = mk(5, 1)
-	sI(r+8, I(x+8)>>4)
-	dx(x)
+	sI(r+8, x>>4)
 	return mki(con(r))
 }
 func ras2(x, y, z i) (r i) { // assign
-	if vb(z) == 4 && (I(z+8) == 932 || I(z+8) > 2048) {
-		a := i(0)
-		if nn(x) == 3 && I(12+x)&0xf == 5 { // x[i]+:y
-			rx(x)
-			a = fst(x)
-			x = quo(drop(x, 1))
-		} else if nn(x) == 1 && I(x+8)&0xf == 5 { // x+:y
-			a = mki(4)
-			x = quo(x)
-		} else if nn(x) == 5 && I(x+20)&0xf == 5 {
-			rx(x)
-			n := nn(x) - 2
-			a = take(x, n)
-			x = quo(atx(x, mki(n)))
-		} else {
-			return 0
-		}
-		dx(z)
-		z = I(z + 8)
-		if z > 2048 {
-			if z != 2980 { // ::
-				z -= 2048
+	if vb(z) == 4 {
+		v := I(z + 8)
+		if v == 932 || v > 2048 {
+			a := i(0)
+			n := nn(x)
+			s := I(x + 4*n)
+			if n == 1 && I(x+8)&0xf == 5 { // x:y x+:y
+				dx(x)
+				x = quo(I(x + 8))
+				if v == 932 {
+					dx(z)
+					return ucat(ucat(y, x), mki(2+':'<<4)) // y x :
+				}
+				a = mki(4)
+			} else if n > 2 && s&0xf == 5 {
+				a = take(x, n-2)
+				x = quo(s)
+			} else {
+				return 0
 			}
+			if v > 2048 {
+				v -= 2048
+			}
+			dx(z)
+			r = ucat(ucat(ucat(ucat(y, a), x), mki(v)), mki(7))
+			return r
 		}
-		y = ucat(y, a)
-		x = ucat(x, mki(z))
-		return ucat(ucat(ucat(y, x), mki(6+4<<4)), mki(7))
 	}
 	return 0
 }
@@ -2978,25 +2861,29 @@ func ex2(x, y i) (r i) {
 			r = ucat(mki(con(mki(1))), r)
 			v = 10
 		}
-		q = ras2(x, y, r)
-		if q != 0 {
-			return q
+		p = ras2(x, y, r)
+		if p != 0 {
+			return p
+		}
+		if q == 4 && v != 10 {
+			dx(r)
+			r = mki(I(r+8) - 2)
+			return ucat(ucat(y, x), r) // x y +
 		}
 		return ucat(ucat(ucat(ucat(y, x), mki(6+2<<4)), r), mki(v)) // x y l2 r .
 	}
-	if p == 2 {
-		q = x + 4*(1+nn(x))
-		sI(q, 2047+I(q)) //monadic
+	r = ex2(r, y)
+	if p != 4 {
+		x = ucat(x, mki(1026))
+	} else {
+		dx(x)
+		x = mki(I(x+8) + 2045)
 	}
-	r = ucat(ex2(r, y), x)
-	if p != 2 {
-		r = ucat(r, mki(1026)) //op(2, @) juxtaposition
-	}
-	return r
+	return ucat(r, x)
 }
 func pt2(x, y i) (r i) {
 	if x >= y {
-		sI(pp, x) // ???          todo ???
+		sI(pp, x)
 		return 0
 	}
 	r = I(x)
@@ -3037,21 +2924,36 @@ func pt2(x, y i) (r i) {
 				dx(r)
 				r = ucat(jon(rev(a), mk(2, 0)), mki(3))
 			} else {
+				l := i(0)
 				if n == 0 {
 					dx(a)
 					a = mki(con(mk(6, 0)))
 				} else {
+					l = fnl(a)
 					a = ucat(jon(rev(a), mk(2, 0)), mki(op(6, n)))
+					if l != 0 {
+						a = ucat(a, mki(con(l)))
+						l = 10
+					}
 				}
-				r = ucat(a, r)
-				r = ucat(r, mki(2+'.'<<4))
+				if l == 0 {
+					l = 2 + '.'<<4
+				}
+				r = ucat(ucat(a, r), mki(l))
 			}
 			x = 4 + I(pp)
-			//} else if x < y && n == 1 { // adverb
-			//	r = ucat(r, mki(p))
-			//	x += 4
 		} else if x < y && p&0xf == 1 { // adverb
-			r = ucat(r, mki(p))
+			v := vb(r)
+			if v > 2 {
+				dx(r)
+				r = I(r + 8)
+				if v == 4 {
+					r >>= 4
+				}
+				r = mki(con(atx(p>>4, r))) // apply adv
+			} else {
+				r = ucat(r, mki(p))
+			}
 			x += 4
 		} else {
 			sI(pp, x)
@@ -3101,20 +3003,17 @@ func lam2(x, y i) (r i) {
 		rx(x)
 		x = take(x, a)
 	}
-	rx(r)
-	l := ech(spl(r, ucat(ucat(mki(932), mki(70)), mki(7))), 124) // |'932 70 7\:r
-	lp := l + 8
-	for i := i(0); i < nn(l); i++ {
-		u := I(lp)
-		if I(u+12) == 4 {
-			u = I(u + 8)
+	rp := r + 8
+	u := i(0)
+	for i := i(0); i < nn(r); i++ {
+		if I(rp) == 930 && u&0xf == 0 && tp(u) == 5 {
 			rx(u)
 			x = ucat(x, u) // locals
 		}
-		lp += 4
+		u = I(rp)
+		rp += 4
 	}
 	x = unq(x)
-	dx(l)
 	f := mk(0, 4)
 	sI(f+8, s)  // string
 	sI(f+12, r) // tree
