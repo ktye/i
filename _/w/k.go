@@ -17,7 +17,6 @@ import (
 	"math/cmplx"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -162,14 +161,17 @@ func ktry(s string) {
 	copy(b, MJ)
 	defer func() {
 		if r := recover(); r != nil {
+			ics(I(140), I(144))
 			MJ = b
 			msl()
-			v := bytes.Split(debug.Stack(), []byte("\n"))
-			if len(v) > 20 {
-				v = v[:20]
-			}
-			os.Stdout.Write(bytes.Join(v, []byte("\n")))
-			fmt.Println()
+			/*
+				v := bytes.Split(debug.Stack(), []byte("\n"))
+				if len(v) > 20 {
+					v = v[:20]
+				}
+				os.Stdout.Write(bytes.Join(v, []byte("\n")))
+				fmt.Println()
+			*/
 		}
 	}()
 	dx(out(val(mkchrs([]byte(s)))))
@@ -278,6 +280,30 @@ func run1(s string) string {
 	dx(x)
 	leak()
 	return s
+}
+func ics(x, y i) {
+	xt, xn, xp := v1(x)
+	if xt != 1 || xn == 0 {
+		fmt.Println("src(140): %d/%d\n", xt, xn)
+		return
+	}
+	y -= 8
+	p := xp
+	q := xp + xn
+	for i := i(0); i < xn; i++ {
+		if i < y && C(xp) == 10 {
+			p = xp + 1
+		} else if i > y && C(xp) == 10 && q > i {
+			q = xp
+		}
+		xp++
+	}
+	os.Stdout.Write(MC[p:q])
+	os.Stdout.Write([]byte{10})
+	if y > 0 && y < 100 {
+		os.Stdout.Write(bytes.Repeat([]byte{' '}, int(y)))
+	}
+	os.Stdout.Write([]byte{'^', 10})
 }
 func kinit() {
 	m0 := 16
@@ -404,6 +430,7 @@ func rxn(x, y i) {
 }
 func rl(x i) {
 	xt, xn, xp := v1(x)
+	//fmt.Printf("rl %d/%d\n", xt, xn)
 	if xt > 0 && xt < 6 {
 		panic(fmt.Sprintf("rl on %d/%d", xt, xn))
 	}
@@ -936,7 +963,7 @@ func cal(x, y i) (r i) {
 		dx(x)
 		return cal(v, r)
 	}
-	if xn == 4 { // lambda
+	if xn == 5 { // lambda
 		a := I(x + 20)
 		if a > yn {
 			a -= yn
@@ -979,9 +1006,13 @@ func lcl(x, y i) (r i) {
 		lp += 4
 	}
 	dx(y)
-	t := I(x + 12)
+	b := I(x + 12)
+	s := I(x + 24)
+	t := I(x + 8)
+	rx(b)
 	rx(t)
-	r = run(t)
+	rx(s)
+	r = run(l3(b, s, t))
 	sp = I(kval) // could have changed
 	lp = l + 8
 	ap = a + 8
@@ -1156,17 +1187,6 @@ func not(x i) (r i) {
 		return mki(0)
 	}
 	return eql(mki(0), x)
-}
-func tru(x i) (r i) {
-	xt, xn, xp := v1(x)
-	dx(x)
-	if xt != 2 {
-		trap()
-	}
-	if xn == 0 {
-		return 0
-	}
-	return I(xp)
 }
 func cmp(x, y, eq i) (r i) {
 	x, y = upxy(x, y)
@@ -1550,7 +1570,7 @@ func cg(x i, xn i) (r i) {
 		sC(r+8, '[')       //91
 		sC(r+7+nn(r), ']') //93
 		r = ucat(str(I(x+8)), r)
-	} else if xn == 4 {
+	} else if xn == 5 { // todo arity
 		r = I(x + 8)
 		rx(r)
 	} else {
@@ -2530,9 +2550,8 @@ func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
 // drop          15=x&0x7          drop 1
 func od(x i) { // execute byte code
 	y := I(x + 12)
-	z := I(x + 12)
+	z := I(x + 16)
 	x = I(x + 8)
-	fmt.Printf("od %s\n", X(z))
 	_, _, xn, yn, xp, yp := v2(x, y)
 	if xn != yn {
 		panic(fmt.Sprintf("length %d %d", xn, yn))
@@ -2542,7 +2561,7 @@ func od(x i) { // execute byte code
 		r := I(xp)
 		m = r & 0xf
 		n = r >> 4
-		s := fmt.Sprintf("%03d %6q  ", I(yp), string(C(I(yp))))
+		s := fmt.Sprintf("%03d %6q  ", I(yp), string(C(z+I(yp))))
 		if m == 0 {
 			s += X(r)
 		} else if m < 3 {
@@ -2551,7 +2570,7 @@ func od(x i) { // execute byte code
 			s += "(" + X(n) + ")"
 		} else if m == 5 {
 			ds := X(I(I(kkey) + n))
-			s += ds[1 : len(s)-1]
+			s += ds[1 : len(ds)-1]
 		} else if m == 8 {
 			s += "jif +" + strconv.Itoa(int(n))
 		} else if m == 9 {
@@ -2563,15 +2582,16 @@ func od(x i) { // execute byte code
 	}
 }
 func run(x i) (r i) { // execute byte code (run don't walk)
-	fmt.Println("run")
-	od(x)
+	//od(x)
 	rl(x)
 	y := I(x + 12)
 	z := I(x + 16)
+	ss := I(140)
+	sI(140, z) // store src
 	dx(x)
 	x = I(x + 8)
 
-	xt, yt, xn, yn, xp, _ := v2(x, y)
+	xt, yt, xn, yn, xp, yp := v2(x, y)
 	if xt != 2 || yt != 2 {
 		panic("type")
 	}
@@ -2593,6 +2613,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		r = I(xp)
 		m = r & 0xf
 		n = r >> 4
+		sI(144, I(yp))
 		if m == 0 { //k-const
 			sp += 4
 			sI(sp, a)
@@ -2650,6 +2671,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 			sp -= 4
 		}
 		xp += 4
+		yp += 4
 
 		if sp < s+4 {
 			fmt.Printf("stack underflow\n")
@@ -2667,6 +2689,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 	dx(y)
 	dx(z)
 	dx(s)
+	sI(140, ss)
 	return a
 }
 func swc2(x, y i) (r i) { // $[a;b;..]
@@ -2774,6 +2797,7 @@ func prj(x, y, z i) (r i) {
 }
 
 func prs2(x i) (r i) {
+	// fmt.Printf("prs2 %s\n", X(x))
 	rx(x)
 	r = tk2(x)
 	rld(r)
@@ -2847,38 +2871,45 @@ func quo(x i) (r i) {
 	sI(r+8, x>>4)
 	return mki(con(r))
 }
-func ras2(x, y, z i) (r i) { // assign
+func ras2(x, y, z, u, v, w i) (r i) { // assign
+	t := i(0)
 	if vb(z) == 4 {
-		v := I(z + 8)
-		if v == 932 || v > 2048 {
+		p := I(z + 8)
+		if p == 932 || p > 2048 {
 			a := i(0)
 			n := nn(x)
 			s := I(x + 4*n)
 			if n == 1 && I(x+8)&0xf == 5 { // x:y x+:y
 				dx(x)
 				x = quo(I(x + 8))
-				if v == 932 {
+				if p == 932 {
 					dx(z)
-					return ucat(ucat(y, x), mki(2+':'<<4)) // y x :
+					dx(w)
+					return l2(ucat(ucat(y, x), mki(2+':'<<4)), ucat(ucat(v, u), mki(0))) // y x :
 				}
 				a = mki(4)
+				t = mki(0)
 			} else if n > 2 && s&0xf == 5 {
 				a = take(x, n-2)
+				t = take(u, n-2)
 				x = quo(s)
+				u = mki(0)
 			} else {
 				return 0
 			}
-			if v > 2048 {
-				v -= 2048
+			if p > 2048 {
+				p -= 2048
 			}
 			dx(z)
-			r = ucat(ucat(ucat(ucat(y, a), x), mki(v)), mki(7))
-			return r
+			dx(w)
+			r = ucat(ucat(ucat(ucat(y, a), x), mki(p)), mki(7))
+			t = ucat(ucat(ucat(ucat(v, t), u), mki(0)), mki(0))
+			return l2(r, t)
 		}
 	}
 	return 0
 }
-func src(x i) (r i) { return mki(I(x + I(144))) }
+func src(x i) (r i) { return mki(I(x+I(144)) - I(152)) }
 func ex2(x, y i) (r i) {
 	x, s := kvd(x)
 	if x < 128 {
@@ -2902,7 +2933,7 @@ func ex2(x, y i) (r i) {
 			t = ucat(mki(0), t)
 			v = 10
 		}
-		p = ras2(x, y, r)
+		p = ras2(x, y, r, s, w, t)
 		if p != 0 {
 			return p
 		}
@@ -2937,8 +2968,9 @@ func pt2(x, y i) (r i) {
 		r, t = kvd(sq2(x+4, y))
 		n := nn(r)
 		if n == 0 {
+			dx(t)
 			r = mki(con(r)) // ()
-			t = ucat(t, mki(0))
+			t = src(x)
 		} else if n == 1 {
 			r = fst(r)
 			t = fst(t)
@@ -2948,7 +2980,8 @@ func pt2(x, y i) (r i) {
 		}
 		x = I(pp)
 	} else if r == '{' { // {
-		r = lam2(x, y) // todo t
+		r = lam2(x, y)
+		t = src(x)
 		x = I(pp)
 	} else if r < 128 && r != '[' {
 		sI(pp, x)
@@ -2963,7 +2996,6 @@ func pt2(x, y i) (r i) {
 		if x < y && p == '[' { // [
 			a, w := kvd(sq2(x+4, y))
 			n := nn(a)
-			fmt.Printf("#[]: %d\n", n)
 			if n == 1 {
 				a = fst(a)
 				w = fst(w)
@@ -2984,7 +3016,8 @@ func pt2(x, y i) (r i) {
 				if n == 0 {
 					dx(a)
 					a = mki(con(mk(6, 0)))
-					w = fst(w)
+					dx(w)
+					w = mki(0)
 				} else {
 					l = fnl(a)
 					a = ucat(jon(rev(a), mk(2, 0)), mki(op(6, n)))
@@ -3025,6 +3058,7 @@ func pt2(x, y i) (r i) {
 	}
 }
 func lam2(x, y i) (r i) {
+	ds := I(x+I(144)) - I(152) - 8
 	s0 := I(x + I(144))
 	a := i(0)
 	if I(x+4) == '[' { // {[args
@@ -3039,12 +3073,22 @@ func lam2(x, y i) (r i) {
 		sI(a, I(a)+3<<29) // 5<<29
 		x = I(pp)
 	}
-	r = fst(sq2(x+4, y)) //tree
+	t := i(0)
+	r, t = kvd(sq2(x+4, y)) //tree
 	n := nn(r)
 	if n == 1 {
 		r = fst(r)
+		t = fst(t)
 	} else {
 		r = jon(r, mki(15))
+		t = jon(t, mki(0))
+	}
+	p := t + 8
+	for i := i(0); i < nn(t); i++ {
+		if I(p) != 0 {
+			sI(p, I(p)-ds)
+		}
+		p += 4
 	}
 	s1 := 1 + I(I(pp)+I(144))
 	s := mk(1, s1-s0)
@@ -3077,11 +3121,12 @@ func lam2(x, y i) (r i) {
 		rp += 4
 	}
 	x = unq(x)
-	f := mk(0, 4)
+	f := mk(0, 5)
 	sI(f+8, s)  // string
 	sI(f+12, r) // tree
 	sI(f+16, x) // args
 	sI(f+20, a) // arity
+	sI(f+24, t) // src
 	return mki(con(f))
 }
 
@@ -3769,9 +3814,8 @@ func leak() {
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
-
 		if MI[p+1] != 0 {
-			panic(fmt.Errorf("non-free block at %d(%x)", p<<2, p<<2))
+			panic(fmt.Errorf("non-free block at %d(%x) %d/%d", p<<2, p<<2, tp(p<<2), nn(p<<2)))
 		}
 		t := MI[p+2]
 		if t < 4 || t > 31 {
@@ -3833,7 +3877,7 @@ func X(x i) s {
 		} else if n == 3 {
 			r := X(I(x + 12))
 			return X(I(x+8)) + "[" + r[1:len(r)-1] + "]"
-		} else if n == 4 { // lambda
+		} else if n == 5 { // lambda
 			f, n = sstr, 1
 		} else {
 			return fmt.Sprintf(" '(%d)", x)
