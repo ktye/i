@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var broken = false // ../../k.w
+var broken = false // ../k.w
 
 func TestB(t *testing.T) {
 	testCases := []struct {
@@ -106,7 +106,7 @@ func newfn(sig string, body string) fn {
 	return f
 }
 func trim(s string) string { return strings.Replace(s, " ", "", -1) }
-func TestHtml(t *testing.T) { // write k.html from ../../k.w
+func TestHtml(t *testing.T) { // write k.html from ../k.w
 	if broken {
 		t.Skip()
 	}
@@ -145,7 +145,7 @@ func TestHtml(t *testing.T) { // write k.html from ../../k.w
 func KWasmModule() (module, []segment, []dataseg, []byte, error) {
 	var src io.Reader
 	var srcb []byte
-	if k, e := ioutil.ReadFile("../../k.w"); e != nil {
+	if k, e := ioutil.ReadFile("../k.w"); e != nil {
 		return nil, nil, nil, nil, e
 	} else {
 		src = bytes.NewReader(k)

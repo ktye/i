@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-// Test wasm module generated from ../../k.w.
+// Test wasm module generated from ../k.w.
 
 // K is implemented by a wasm interpreter (wagon/gasm)
 type K interface {
@@ -26,7 +26,7 @@ func ktest(newk func([]byte) K, t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	mb, e := ioutil.ReadFile("../../k.w")
+	mb, e := ioutil.ReadFile("../k.w")
 	if e != nil {
 		t.Fatal(e)
 	}

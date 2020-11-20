@@ -32,7 +32,7 @@
 
 # install go-1.13
 go build w.go
-./w < ../../k.w > k.wasm    # wasm binary
+./w < ../k.w > k.wasm    # wasm binary
 
 # or transpile to c or go (no wasm involved):
 ./w -c  < in.w > src.c
