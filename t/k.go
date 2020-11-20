@@ -1,5 +1,3 @@
-// +build ignore
-
 // prototype implementation for k.w (same memory layout)
 // go run k.go t        /all tests
 // go run k.go EXPR     /single expr
