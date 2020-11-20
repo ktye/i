@@ -1,0 +1,3 @@
+go build ../k.go
+./k.exe t
+time ./k.exe w.k -e
