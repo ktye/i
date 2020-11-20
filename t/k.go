@@ -2513,7 +2513,8 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		dx(z)
 		return 0
 	}
-	s := mk(2, 126)
+	s := mk(2, 1022)
+	se := s + 8 + 4*nn(s)
 	sp := s + 4
 	t := xp + 4*xn
 	a, b := i(0), i(0)
@@ -2593,8 +2594,8 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		if sp < s+4 {
 			fmt.Printf("stack underflow\n")
 			panic("!stack")
-		} else if sp > s+4*nn(s) {
-			fmt.Printf("stack overflow: %d\n", sp-s)
+		} else if sp > se {
+			fmt.Printf("stack overflow: %d > %d\n", sp, se)
 			panic("!stack")
 		}
 	}

@@ -52,13 +52,16 @@ var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 
 func main() {
 	var stdin io.Reader = os.Stdin
-	var cout, gout bool
+	var cout, kout, gout bool
 	flag.BoolVar(&cout, "c", false, "c output")
+	flag.BoolVar(&kout, "k", false, "k output")
 	flag.BoolVar(&gout, "go", false, "go output")
 	flag.Parse()
 	m, tab, data := run(stdin)
 	if cout {
 		os.Stdout.Write(m.cout(tab, data))
+	} else if kout {
+		os.Stdout.Write(m.kout(tab, data))
 	} else if gout {
 		os.Stdout.Write(m.gout(tab, data))
 	} else {
@@ -905,9 +908,21 @@ type argv []expr
 type cstringer interface {
 	cstr() s
 }
+type kstringer interface {
+	kstr() s
+}
 type gstringer interface {
 	gstr() s
 }
+
+func (a argv) kjoin(c string) s {
+	v := make([]string, len(a))
+	for i, x := range a {
+		v[i] = kstring(x)
+	}
+	return strings.Join(v, c)
+}
+
 type seq struct { // a;b;..
 	pos
 	argv
@@ -1098,6 +1113,7 @@ func (s seq) bytes() (r []c) {
 	}
 	return r
 }
+func (s seq) kstr() (r s) { return s.argv.kjoin(";") }
 func (s seq) cstr() (r s) {
 	t := s.rt()
 	if t != 0 {
@@ -1161,6 +1177,7 @@ func (v cnd) bytes() (r []c) {
 	}
 	return catb(r, a[len(a)-1].bytes(), bytes.Repeat([]c{0x0b}, len(a)/2))
 }
+func (v cnd) kstr() (r s) { return "$(" + v.argv.kjoin(";") + ")" }
 func (v cnd) cstr() (r s) {
 	s := "if "
 	a := v.argv
@@ -1205,6 +1222,7 @@ func (v v2) valid() s {
 func (v v2) bytes() []c {
 	return append(append(v.x().bytes(), v.y().bytes()...), getop(v2Tab, v.s, v.rt()))
 }
+func (v v2) kstr() s  { return k2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
 func (v v2) cstr() s  { return c2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
 func (v v2) gstr() s  { return g2str(v2Tab, v.s, v.rt(), v.x(), v.y()) }
 func (v v1) rt() T    { return v.x().rt() }
@@ -1217,6 +1235,7 @@ func (v v1) bytes() []c {
 	}
 	return append(v.x().bytes(), getop(v1Tab, v.s, v.rt()))
 }
+func (v v1) kstr() s { return k1str(v1Tab, v.s, v.rt(), v.x()) }
 func (v v1) cstr() s { o, u := cop(v1Tab, v.s, v.rt()); return jn(o, u, "(", cstring(v.x()), ")") }
 func (v v1) gstr() s {
 	o, u := gop(v1Tab, v.s, v.rt())
@@ -1232,6 +1251,7 @@ func (v cmp) valid() s { return v2(v).valid() }
 func (v cmp) bytes() []c {
 	return append(append(v.x().bytes(), v.y().bytes()...), getop(cTab, v.s, v.x().rt()))
 }
+func (v cmp) kstr() s  { return k2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
 func (v cmp) cstr() s  { return c2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
 func (v cmp) gstr() s  { return "i32b(" + v.bgstr() + ")" }
 func (v cmp) bgstr() s { return g2str(cTab, v.s, v.x().rt(), v.x(), v.y()) }
@@ -1258,6 +1278,24 @@ func (v con) bytes() (r []c) {
 		return b
 	}
 	return r
+}
+func (v con) kstr() s {
+	if v.t == F {
+		if math.IsNaN(v.f) {
+			return "0n"
+		} else if math.IsInf(v.f, 1) {
+			return "0w"
+		} else {
+			s := sf("%v", v.f)
+			if strings.Index(s, ".") == -1 && strings.Index(s, "e") == -1 {
+				s += ".0"
+			}
+			return s
+		}
+	} else if v.t == I && v.i < 0 {
+		return sf("%d", uint32(v.i))
+	}
+	return sf("%d", v.i)
 }
 func (v con) cstr() s {
 	if v.t == F {
@@ -1291,6 +1329,13 @@ func (v cvt) bytes() []c {
 		F: "\xb8\xb7\xba\xb9\x00\x00",
 	}
 	return append(v.x().bytes(), c(tab[v.t][2*tnum[v.x().rt()]+v.sign]))
+}
+func (v cvt) kstr() s {
+	sn := ""
+	if v.sign == 1 {
+		sn = "'"
+	}
+	return "`" + styp[v.t] + "$" + sn + cstring(v.x())
 }
 func (v cvt) cstr() s {
 	sn := ""
@@ -1330,6 +1375,13 @@ func (v cal) bytes() (r []c) {
 	}
 	return append(append(r, 0x10), leb(int64(v.n))...)
 }
+func (v cal) kstr() s {
+	o, c := " ", ""
+	if len(v.argv) != 1 {
+		o, c = "[", "]"
+	}
+	return v.s + o + v.argv.kjoin(";") + c
+}
 func (v cal) cstr() s {
 	av, s := make([]s, len(v.argv)), ""
 	for i, a := range v.argv {
@@ -1357,6 +1409,9 @@ func (d dot) bytes() (r []c) {
 	r = append(r, 0x11)
 	r = append(r, leb(int64(d.sig))...)
 	return append(r, 0x00)
+}
+func (d dot) kstr() s {
+	return "T[" + kstring(d.idx) + "][" + d.argv.kjoin(";") + "]" //todo..
 }
 func (d dot) cstr() s {
 	av := make([]s, len(d.argv))
@@ -1398,6 +1453,7 @@ func (v loc) i() int {
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, leb(int64(v.i()))...) }
+func (v loc) kstr() s    { return v.s }
 func (v loc) cstr() s    { return locstr(v) }
 func (v loc) gstr() s    { return locstr(v) }
 func (v las) rt() T      { return 0 }
@@ -1408,6 +1464,7 @@ func (v las) valid() s {
 func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21}, leb(int64(v.x().(loc).i()))...)...)
 }
+func (v las) kstr() (r s) { return kstring(v.x()) + ":" + kstring(v.y()) }
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
 func (v las) gstr() s {
 	t := styp[v.x().rt()]
@@ -1438,6 +1495,7 @@ func cgadr(xs string, t T) (r string) { // e.g. "MF[x>>3]"
 }
 
 //func cadr(xs string, t T) (r string) { return jn("(*(", styp[t], "*)(MC+", xs, "))") } // e.g. (*(I*)(MC+x))
+func (v lod) kstr() s { return styp[v.t] + " " + kstring(v.x()) }
 func (v lod) cstr() s { return cgadr(cstring(v.x()), v.t) }
 func (v lod) gstr() (r s) {
 	c := ""
@@ -1462,6 +1520,7 @@ func (v sto) bytes() (r []c) {
 	al := alin[v.t]
 	return catb(v.x().bytes(), y.bytes(), []c{op, al, 0})
 }
+func (v sto) kstr() s { return jn(styp[v.t], "[", kstring(v.x()), "]:", kstring(v.y())) } // todo type?
 func (v sto) cstr() s { // e.g. sI(x, y), not MI[x>>2]=..., because MI could have changed at realloc.
 	return jn("s", v.t.String(), "(", cstring(v.x()), ",", cstring(v.y()), ");")
 	// return jn(cgadr(cstring(v.x()), v.t), "=(", styp[v.t], ")", cstring(v.y()), ";")
@@ -1472,6 +1531,7 @@ func (v sto) gstr() s {
 func (v ret) rt() T      { return 0 /*v.x().rt()*/ }
 func (v ret) valid() s   { return ifex(v.x().rt() == 0, "return zero type") }
 func (v ret) bytes() []c { return append(v.x().bytes(), 0x0f) }
+func (v ret) kstr() s    { return " :" + kstring(v.x()) }
 func (v ret) cstr() s    { return jn("R ", cstring(v.x()), ";") }
 func (v ret) gstr() s    { return jn("return ", gstring(v.x()), ";") }
 func (v iff) rt() T      { return 0 }
@@ -1485,9 +1545,16 @@ func (v iff) valid() s {
 	return ""
 }
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
-func (v iff) cstr() s        { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
-func (v iff) gstr() s        { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
-func (v nlp) rt() T          { return 0 }
+func (v iff) kstr() s {
+	x := kstring(v.x())
+	if isexpr(v.x()) {
+		x = "(" + x + ")"
+	}
+	return jn(x, "?", kstring(v.y()))
+}                     // or $[x;y;]
+func (v iff) cstr() s { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
+func (v iff) gstr() s { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
+func (v nlp) rt() T   { return 0 }
 func (v nlp) valid() s {
 	if xt, yt := v.x().rt(), v.y().rt(); xt != I {
 		return sf("loop range is not I: %s", xt)
@@ -1521,6 +1588,13 @@ func (v nlp) bytes() (r []c) {
 	//                                        i       1   +  tee→i    n   <  continue
 	return catb(r, v.y().bytes(), []c(sf("\x20%s\x41\x01\x6a\x22%s\x20%s\x49\x0d\x00\x0b\x0b", i, i, n)))
 }
+func (v nlp) kstr() (r s) {
+	x := kstring(v.x())
+	if _, o := v.x().(con); o == false && isexpr(v.x()) {
+		x = "(" + x + ")"
+	}
+	return x + "/[" + kstring(v.y()) + "]"
+}
 func (v nlp) cstr() (r s) {
 	if isexpr(v.x()) {
 		r = sf("x%d=%s;", v.n(), cstring(v.x()))
@@ -1550,6 +1624,16 @@ func (v whl) bytes() (r []c) {
 	//             block   loop     ? y  continue
 	return []c(sf("\x02\x40\x03\x40%s%s\x0c\x00\x0b\x0b", cnd, s(v.y().bytes())))
 }
+func (v whl) kstr() (r s) {
+	x := kstring(v.x())
+	if isexpr(v.x()) {
+		x = "(" + x + ")"
+	}
+	if _, o := v.x().(con); o {
+		x = "1"
+	}
+	return x + "?/[" + kstring(v.y()) + "]"
+}
 func (v whl) cstr() s { return jn("while(", cstring(v.x()), "){", cstring(v.y()), "}") }
 func (v whl) gstr() s {
 	x := gstring(v.x())
@@ -1563,11 +1647,13 @@ func (v whl) gstr() s {
 func (v brif) rt() T      { return 0 }
 func (v brif) valid() s   { return ifex(v.x().rt() != I, "brif has wrong conditional type") }
 func (v brif) bytes() []c { return append(v.x().bytes(), 0x0d, 0x01) } // break outer block
+func (v brif) kstr() s    { panic("k brif?"); return "BRIF(todo)" }
 func (v brif) cstr() s    { return jn("if(", cstring(v.x()), ")break;") }
 func (v brif) gstr() s    { return jn("if ", gstring(v.x()), "{break}") }
 func (v opx) rt() T       { return 0 }
 func (v opx) valid() s    { return ifex(s(v) != "!", "nonapplied operator") }
 func (v opx) bytes() []c  { return []c{0x00} }
+func (v opx) kstr() s     { return "!0" }
 func (v opx) cstr() s     { return "panic();" }
 func (v opx) gstr() s     { return `panic("trap")` }
 func (v pos) rt() T       { return 0 }
@@ -1576,6 +1662,7 @@ func (v pos) bytes() []c  { return nil }
 func (v nop) rt() T       { return 0 }
 func (v nop) valid() s    { return "" }
 func (v nop) bytes() []c  { return nil }
+func (v nop) kstr() s     { panic("k-nop"); return "(nop)" }
 func (v nop) cstr() s     { return "()" }
 func (v nop) gstr() s     { return "()" }
 
@@ -1614,6 +1701,23 @@ type code struct {
 	c, g    s
 }
 
+func k2str(tab map[s]code, op s, t T, x, y expr) s {
+	a := ""
+	if t == F {
+		a = `\`
+	}
+	if s, o := k2sym[op]; o {
+		op = s
+	}
+	return kstring(x) + op + a + kstring(y) // todo (x) todo op
+}
+func k1str(tab map[s]code, op s, t T, x expr) s {
+	a := ""
+	if t == F {
+		a = `\`
+	}
+	return op + a + kstring(x) // todo op
+}
 func c2str(tab map[s]code, op s, t T, x, y expr) s {
 	o, u := cop(tab, op, t)
 	if len(o) > 2 {
@@ -1635,6 +1739,7 @@ func g2str(tab map[s]code, op s, t T, x, y expr) (r s) {
 	}
 }
 func cstring(x expr) s { xs := x.(cstringer); return xs.cstr() }
+func kstring(x expr) s { xs := x.(kstringer); return xs.kstr() }
 func gstring(x expr) s { xs := x.(gstringer); return xs.gstr() }
 func embrace(sf func(expr) s, x expr) s {
 	_, icon := x.(con)
@@ -1645,6 +1750,8 @@ func embrace(sf func(expr) s, x expr) s {
 		return jn("(", sf(x), ")")
 	}
 }
+
+var k2sym = map[s]s{"<=": "</", "<='": "</'", ">=": ">/", ">='": ">/'", `\`: "!", `\'`: "!'", "<<": "^", ">>": "_"}
 
 var v1Tab = map[s]code{
 	"-": code{0, 0, 0x9a, "-", "-"},                                            // neg (-I -J is replaced)
@@ -1938,6 +2045,48 @@ func log(a ...interface{})       { fmt.Fprintln(os.Stderr, a...) }
 func logf(f s, a ...interface{}) { fmt.Fprintf(os.Stderr, f, a...) }
 func sf(f s, a ...interface{}) s { return fmt.Sprintf(f, a...) }
 
+func (m module) kout(tab []segment, data []dataseg) []c {
+	var b bytes.Buffer
+	var names []string
+	fmt.Fprintf(&b, "k:(")
+	for j, f := range m {
+		FN = &f
+		sig := ""
+		for i := 0; i < f.args; i++ {
+			if i > 0 {
+				//sig += ","
+			}
+			sig += styp[f.locl[i]] //+ " " + "x" + s('0'+byte(i))
+		}
+		st := styp[f.t]
+		if j == 0 {
+			fmt.Fprintf(&b, "%s:{[%s;%s]", f.name, st, sig)
+		} else {
+			fmt.Fprintf(&b, "%6s:{[%s;%s]", f.name, st, sig)
+		}
+		if f.ast != nil {
+			b.WriteString(kstring(f.ast))
+		}
+		b.WriteString("}\n")
+		if f.ex {
+			names = append(names, f.name)
+		}
+	}
+	if len(tab) > 0 || len(data) > 0 {
+		for _, t := range tab {
+			fmt.Fprintf(&b, "  (%-3d;", t.off)
+			for _, s := range t.names {
+				fmt.Fprintf(&b, "`%s", s)
+			}
+			fmt.Fprintf(&b, ")\n")
+		}
+		for _, d := range data {
+			fmt.Fprintf(&b, "  (%d;0x%s)\n", d.off, hex.EncodeToString(d.bytes))
+		}
+	}
+	fmt.Fprintf(&b, "   `%s)\n\n", strings.Join(names, "`"))
+	return b.Bytes()
+}
 func (m module) cout(tab []segment, data []dataseg) []c {
 	var b bytes.Buffer
 	if len(tab) > 0 {
