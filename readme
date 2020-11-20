@@ -4,6 +4,9 @@ monadic
 dyadic
   +  -  *  %(div)  %'  !(mod)  !'  &(and)  |(or)  #(xor)  ^(lshift)  _(rshift)
 
+compare
+  <  >  </(le)  >/(ge)  ~(equal)
+
 derived
   x'(signed)  x\(float)
 
