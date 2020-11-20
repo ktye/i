@@ -1,8 +1,4 @@
-// prototype implementation for k.w (same memory layout)
-// go run k.go t        /all tests
-// go run k.go EXPR     /single expr
-// go run k.go -d DIR.. /write DIRs to k.ws
-
+// k bootstrap interpreter
 package main
 
 import (
@@ -163,14 +159,6 @@ func ktry(s string) {
 			ics(I(140), I(144))
 			MJ = b
 			msl()
-			/*
-				v := bytes.Split(debug.Stack(), []byte("\n"))
-				if len(v) > 20 {
-					v = v[:20]
-				}
-				os.Stdout.Write(bytes.Join(v, []byte("\n")))
-				fmt.Println()
-			*/
 		}
 	}()
 	dx(out(val(mkchrs([]byte(s)))))
@@ -330,7 +318,7 @@ func ini(x i) i {
 		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, nil, nil, rnd, nil, tk2, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, nil, nil, rnd, nil, tok, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(12, 0x70881342)        // rng state
@@ -1478,7 +1466,9 @@ func out(x i) (r i) {
 		r = kst(x)
 	}
 	n := nn(r)
-	fmt.Printf("%s\n", MC[r+8:r+8+n])
+	if n > 0 {
+		fmt.Printf("%s\n", MC[r+8:r+8+n])
+	}
 	dx(r)
 	return x
 }
@@ -2217,22 +2207,22 @@ func val(x i) (r i) {
 		}
 		dx(x)
 	case 1:
-		return run(prs2(x)) //todo :
-		/*
-			r = prs(x)
-			n := (I(r+8) == 58) && 2 < nn(r) //:
-			r = evl(r)
-			if n {
-				dx(r)
-				return 0
-			}
-		*/
+		x = prs(x)
+		rx(x)
+		r = lst(fst(x))
+		dx(r)
+		n := I(r+8) == 930
+		r = run(x)
+		if n {
+			dx(r)
+			return 0
+		}
 	case 2:
 		// r = run(l2(x, take(mki(0), nn(x))))
 	case 5:
 		r = lup(x)
-	//case 6:
-	//r = evl(x)
+	case 6:
+		return run(x)
 	case 7:
 		r = I(x + 12)
 		rx(r)
@@ -2761,70 +2751,6 @@ func swc2(x, y i) (r i) { // $[a;b;..]
 	return l2(drop(r, 1), drop(s, 1))
 }
 func op(x, y i) (r i) { return x | y<<4 }
-
-/*
-func evl(x i) (r i) {
-	//fmt.Printf("evl x=%d (%s) r=%d\n", x, X(x), r)
-	xt, xn, xp := v1(x)
-	if xt != 6 {
-		if xt == 5 && xn == 1 {
-			r = lup(x)
-			if r == 0 {
-				// panic("name does not exist")
-			}
-			return r
-		}
-		return x
-	} else if xn == 0 {
-		return x
-	} else if xn == 1 {
-		return rtl(fst(x))
-	}
-	v := I(xp)
-	if v == '$' && xn > 3 { // 36 ($;a;b;..) switch $[a;b;..]
-		return swc(x)
-	}
-	r = ras(x, xn)
-	if r != 0 {
-		return asd(r)
-	}
-	if v == 128 { // 128 (,:;a;b;c) sequence
-		return lst(ltr(x))
-	}
-	x = rtl(x)
-	xn = nn(x)
-	xp = x + 8
-	if v == '@' && xn == 4 { //64
-		rl(x)
-		r = asi(I(x+12), I(x+16), I(x+20))
-		return dxr(x, r)
-	}
-	if xn == 2 {
-		rl(x)
-		r = atx(I(xp), I(xp+4))
-		return dxr(x, r)
-	}
-	a := fnl(xp+4, xn-1)
-	if a != 0 {
-		rx(I(x + 8))
-		return prj(I(x+8), drop(x, 1), a)
-	}
-	rx(I(xp))
-	return cal(I(xp), drop(x, 1))
-}
-func fnl(xp, xn i) (r i) {
-	for i := i(0); i < xn; i++ {
-		if I(xp) == 0 {
-			if r == 0 {
-				r = mk(2, 0)
-			}
-			r = ucat(r, mki(i))
-		}
-		xp += 4
-	}
-	return r
-}
-*/
 func prj(x, y, z i) (r i) {
 	r = mk(0, 3)
 	sI(r+8, x)
@@ -2832,11 +2758,10 @@ func prj(x, y, z i) (r i) {
 	sI(r+16, z)
 	return r
 }
-
-func prs2(x i) (r i) {
-	// fmt.Printf("prs2 %s\n", X(x))
+func prs(x i) (r i) {
+	// fmt.Printf("prs %s\n", X(x))
 	rx(x)
-	r = tk2(x)
+	r = tok(x)
 	rld(r)
 	a := I(r + 12) //pos
 	r = I(r + 8)   //tokens
@@ -2845,14 +2770,14 @@ func prs2(x i) (r i) {
 
 	rp := r + 8
 	rn := nn(r)
-	k, v := kvd(sq2(rp, rp+4*rn))
+	k, v := kvd(sq(rp, rp+4*rn))
 	k = jon(k, mki(15))
 	v = jon(v, mki(0))
 	dx(a)
 	dx(r)
 	return l3(k, v, x)
 }
-func sq2(x, y i) (r i) {
+func sq(x, y i) (r i) {
 	a := mk(6, 0)
 	s := mk(6, 0)
 	n := 0
@@ -3002,7 +2927,7 @@ func pt2(x, y i) (r i) {
 	r = I(x)
 	t := i(0)
 	if r == '(' {
-		r, t = kvd(sq2(x+4, y))
+		r, t = kvd(sq(x+4, y))
 		n := nn(r)
 		if n == 0 {
 			dx(t)
@@ -3017,7 +2942,7 @@ func pt2(x, y i) (r i) {
 		}
 		x = I(pp)
 	} else if r == '{' { // {
-		r = lam2(x, y)
+		r = lam(x, y)
 		t = src(x)
 		x = I(pp)
 	} else if r < 128 && r != '[' {
@@ -3031,7 +2956,7 @@ func pt2(x, y i) (r i) {
 	for {
 		p := I(x)
 		if x < y && p == '[' { // [
-			a, w := kvd(sq2(x+4, y))
+			a, w := kvd(sq(x+4, y))
 			n := nn(a)
 			if n == 1 {
 				a = fst(a)
@@ -3094,12 +3019,12 @@ func pt2(x, y i) (r i) {
 		}
 	}
 }
-func lam2(x, y i) (r i) {
+func lam(x, y i) (r i) {
 	ds := I(x+I(144)) - I(152) - 8
 	s0 := I(x + I(144))
 	a := i(0)
 	if I(x+4) == '[' { // {[args
-		a = fst(sq2(x+8, y))
+		a = fst(sq(x+8, y))
 		n := nn(a)
 		if n == 1 {
 			a = fst(a)
@@ -3111,7 +3036,7 @@ func lam2(x, y i) (r i) {
 		x = I(pp)
 	}
 	t := i(0)
-	r, t = kvd(sq2(x+4, y)) //tree
+	r, t = kvd(sq(x+4, y)) //tree
 	n := nn(r)
 	if n == 1 {
 		r = fst(r)
@@ -3166,246 +3091,6 @@ func lam2(x, y i) (r i) {
 	sI(f+24, t) // src
 	return mki(con(f))
 }
-
-/*
-func prs(x i) (r i) { // parse (k.w) E:E;e|e e:nve|te| t:n|v|{E} v:tA|V n:t[E]|(E)|N
-	xt, xn, xp := v1(x)
-	if xt != 1 {
-		trap()
-	}
-	xn += xp
-	sI(pp, xp)
-	if xn > xp && C(xp) == '/' { //47
-		sI(pp, cmt(xp, xn))
-	}
-	r = sq(xn)
-	if nn(r) == 1 {
-		r = fst(r)
-	} else {
-		r = cat(128, r) // :::
-	}
-	return dxr(x, r)
-}
-func sq(s i) (r i) { // E
-	r = mk(6, 0)
-	x := ex(pt(s), s)
-	if x != 0 {
-		r = lcat(r, x)
-	}
-	for {
-		v := ws(s)
-		p := I(pp)
-		if !v {
-			v = (C(p) != 59 && C(p) != 10) // ; \n
-		}
-		if v {
-			if p < s {
-				sI(pp, p+1)
-			}
-			return r
-		}
-		sI(pp, p+1)
-		if nn(r) == 0 {
-			r = lcat(r, 0)
-		}
-		r = lcat(r, ex(pt(s), s))
-	}
-}
-func ex(x, s i) (r i) { // e
-	if x == 0 || ws(s) {
-		return x
-	}
-	b := C(I(pp)) // k.w uses r
-	if is(b, TE) || b == 10 {
-		return x
-	}
-	r = pt(s) // nil?
-	if isv(r) && !isv(x) {
-		return l3(r, x, ex(pt(s), s))
-	}
-	return l2(x, ex(r, s))
-}
-func pt(s i) (r i) { // t
-	r = tok(s)
-	if r == 0 {
-		p := I(pp)
-		if p == s {
-			return 0
-		}
-		λ := C(p) == 123     // {
-		if λ || C(p) == 40 { // (
-			sI(pp, p+1)
-			if λ {
-				a := i(0)
-				if C(1+p) == '[' { //91
-					sI(pp, p+2)
-					a = sq(s)
-					if nn(a) == 0 {
-						a = lcat(a, mk(5, 0))
-					}
-					a = ovr(a, 44) // ,/
-				}
-				r = sq(s)
-				r = lam(p, I(pp), r, a)
-			} else {
-				r = sq(s)
-				n := nn(r)
-				if n == 1 {
-					r = fst(r)
-				}
-				if n > 1 {
-					r = enl(r)
-				}
-			}
-		}
-	}
-	for {
-		p := I(pp)
-		b := C(p)
-		if p == s || C(p-1) == 32 {
-			return r
-		}
-		if is(b, AD) { // 16
-			r = l2(tok(s), r) // adverb
-		} else if b == '[' {
-			sI(pp, p+1)
-			p := sq(s)
-			if nn(p) == 0 {
-				p = lcat(p, 0)
-			}
-			r = cat(enl(r), p) //sq(s))
-		} else {
-			return r
-		}
-	}
-}
-func isv(x i) (r bool) { // is verb or (adverb;_)
-	xt, xn, xp := v1(x)
-	if xt == 0 {
-		return true // function
-	}
-	if xt == 6 && xn == 2 {
-		a := I(xp)
-		if a < 256 {
-			if is(c(a), AD) || is(c(a-128), AD) { // AD(16)
-				return true // adverb
-			}
-		}
-	}
-	return false
-}
-func lac(x, a i) (r i) { // lambda arity from tree {x+z}->3
-	xt, xn, xp := v1(x)
-	if xt == 6 {
-		if xn == 1 && tp(I(x+8)) == 5 {
-			return a
-		}
-		for i := i(0); i < xn; i++ {
-			a = lac(I(xp), a)
-			xp += 4
-		}
-	}
-	if xt == 5 && xn == 1 {
-		p := (I(xp) - 8) / 4
-		if p > a {
-			if p < 4 {
-				return p
-			}
-		}
-	}
-	return a
-}
-func loc(x, y i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt != 6 {
-		return y
-	}
-	for i := i(0); i < xn; i++ {
-		y = loc(I(xp), y)
-		xp += 4
-	}
-	xp = x + 8
-	if xn == 3 && I(xp) == 58 { // :
-		r = I(xp + 4)
-		rx(r)
-		s := fst(r)
-		n := nn(y)
-		if fnx(y, s+8) == n {
-			rx(s)
-			y = cat(y, s)
-		}
-		dx(s)
-	}
-	return y
-}
-func lam(p, s, z, a i) (r i) {
-	if nn(z) == 1 {
-		z = fst(z)
-	} else {
-		z = cat(128, z)
-	}
-	if a == 0 {
-		r = I(xyz)
-		rx(r)
-		a = take(r, lac(z, 0))
-	}
-	v := nn(a) // arity (<256)
-	a = loc(z, a)
-	n := s - p
-	t := mk(1, n)
-	mv(t+8, p, n)
-	r = mk(0, 4)
-	if ddd {
-		z = com(z)
-	}
-	sI(r+8, t)  // string
-	sI(r+12, z) // tree
-	sI(r+16, a) // args
-	sI(r+20, v) // arity
-	return r
-}
-func ws(s i) bool { // skip whitespace
-	p := I(pp)
-	if C(p) == '/' {
-		b := C(p - 1)
-		if b == 32 || b == 10 {
-			p = cmt(p, s)
-		}
-	}
-	for {
-		if p == s {
-			sI(pp, p)
-			return true // EOF
-		}
-		b := C(p)
-		if is(b, NW) || b == 10 { //64
-			sI(pp, p)
-			return false
-		}
-		p++
-		if C(p) == '/' { //47
-			p = cmt(p, s)
-		}
-	}
-}
-func tok(s i) (r i) { // next token
-	if ws(s) {
-		return 0
-	}
-	p := I(pp)
-	b := C(p)
-	if is(b, TE) || b == 10 { //32
-		return 0
-	}
-	for j := 0; j < 5; j++ { // nms vrb chr nam sms
-		r = MT[j+136].(func(c, i, i) i)(b, p, s)
-		if r != 0 {
-			return r
-		}
-	}
-	return 0
-}
-*/
 func cmt(p, s i) (r i) {
 	for p < s {
 		if C(p) == 10 {
@@ -3415,7 +3100,7 @@ func cmt(p, s i) (r i) {
 	}
 	return p
 }
-func tk2(x i) (r i) { // tokenize
+func tok(x i) (r i) { // tokenize
 	xt, xn, xp := v1(x)
 	if xt != 1 {
 		trap()
