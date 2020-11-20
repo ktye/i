@@ -276,7 +276,7 @@ func run1(s string) string {
 	return s
 }
 func ics(x, y i) {
-	fmt.Println("ics %d %d\n", x, y)
+	fmt.Printf("ics %d %d\n", x, y)
 	xt, xn, xp := v1(x)
 	if xt != 1 || xn == 0 {
 		fmt.Println("src(140): %d/%d\n", xt, xn)
@@ -2428,110 +2428,6 @@ func asd(v, s, a, u i) (r i) { // (+;`x;a;y)
 	return r
 }
 
-/*
-func swc(x i) (r i) { // ($;a;b;...)
-	_, xn, xp := v1(x)
-	for i := i(1); i < xn; {
-		r = I(xp + 4*i)
-		rx(r)
-		r = evl(r)
-		if i%2 == 0 || i == xn-1 {
-			return dxr(x, r)
-		}
-		dx(r)
-		i++
-		if I(r+8) == 0 {
-			i++
-		}
-	}
-	return dxr(x, 0)
-}
-func ltr(x i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt != 6 {
-		return x // evl(x, loc)
-	}
-	rl(x)
-	r = mk(6, xn)
-	rp := r + 8
-	for i := i(0); i < xn; i++ {
-		sI(rp, evl(I(xp)))
-		rp += 4
-		xp += 4
-	}
-	return dxr(x, r)
-}
-func rtl(x i) (r i) {
-	xt, xn, xp := v1(x)
-	if xt != 6 {
-		return x
-	}
-	rl(x)
-	r = mk(6, xn)
-	rp := r + 8 + 4*xn
-	xp += 4 * xn
-	for i := i(0); i < xn; i++ {
-		rp -= 4
-		xp -= 4
-		sI(rp, evl(I(xp)))
-	}
-	return dxr(x, r)
-}
-func ras(x, xn i) (r i) { // rewrite assignments x[i]+:y  (+:;(`x;i);y)→(+;,`x;,i;y)  (and collect locals)
-	v := I(x + 8)
-	if xn == 3 && v < 256 && (v == ':' || v > 128) { //58
-		if v > 128 {
-			v -= 128
-		}
-		r = I(x + 12)
-		rxn(r, 2)
-		s := fst(r)
-		a := drop(r, 1)
-		if nn(a) == 0 {
-			dx(a)
-			a = 0
-		} else {
-			a = ltr(a)
-			an := nn(a)
-			if an == 1 {
-				a = fst(a)
-			}
-		}
-		u := I(x + 16)
-		rx(u)
-		dx(x)
-		return lcat(l3(v, s, a), evl(u))
-	}
-	return 0
-}
-func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
-	if xn == 2 && y < 256 {
-		if y < 128 {
-			if y != 58 {
-				return 0
-			}
-			y = 186 //::
-		}
-		k, v := kvd(x)
-		rx(k)
-		s := fst(k)
-		a := drop(k, 1)
-		if nn(a) == 0 {
-			dx(a)
-			a = 0
-		} else {
-			if nn(a) == 1 {
-				a = fst(a)
-			} else {
-				a = enl(a)
-			}
-		}
-		return enl(lcat(l3(y-128, enl(s), a), v))
-	}
-	return 0
-}
-*/
-
 // const(k-value) 0=x&0xf  push x
 // monad      n   1=x&0xf  n=x>>4  0..255
 // dyad       n   2=x&0xf  n=x>>4  0..255
@@ -2714,7 +2610,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 	sI(140, ss)
 	return a
 }
-func swc2(x, y i) (r i) { // $[a;b;..]
+func swc(x, y i) (r i) { // $[a;b;..]
 	_, _, xn, _, xp, yp := v2(x, y)
 	if 0 == xn%2 {
 		fmt.Println("$[even]")
@@ -2743,11 +2639,6 @@ func swc2(x, y i) (r i) { // $[a;b;..]
 	}
 	dx(x)
 	dx(y)
-	//sI(r+8, 0)
-	if tp(s) != 2 || nn(s) < 1 {
-		fmt.Printf("s: %d/%d\n", tp(s), nn(s))
-		panic("s???")
-	}
 	return l2(drop(r, 1), drop(s, 1))
 }
 func op(x, y i) (r i) { return x | y<<4 }
@@ -2782,7 +2673,7 @@ func sq(x, y i) (r i) {
 	s := mk(6, 0)
 	n := 0
 	for {
-		k, v := kvd(ex2(pt2(x, y), y))
+		k, v := kvd(ex(pt(x, y), y))
 		if k < 128 {
 			dx(v)
 			if k == ';' || nn(a) > 0 {
@@ -2833,7 +2724,7 @@ func quo(x i) (r i) {
 	sI(r+8, x>>4)
 	return mki(con(r))
 }
-func ras2(x, y, z, u, v, w i) (r i) { // assign
+func ras(x, y, z, u, v, w i) (r i) { // assign
 	t := i(0)
 	if vb(z) == 4 {
 		p := I(z + 8)
@@ -2872,14 +2763,14 @@ func ras2(x, y, z, u, v, w i) (r i) { // assign
 	return 0
 }
 func src(x i) (r i) { return mki(I(x+I(144)) - I(152)) }
-func ex2(x, y i) (r i) {
+func ex(x, y i) (r i) {
 	x, s := kvd(x)
 	if x < 128 {
 		return l2(x, s)
 	}
 	p := vb(x)
 	t := i(0)
-	r, t = kvd(pt2(I(pp), y))
+	r, t = kvd(pt(I(pp), y))
 	if r < 128 {
 		dx(t)
 		return l2(x, s)
@@ -2887,7 +2778,7 @@ func ex2(x, y i) (r i) {
 	q := vb(r)
 	w := i(0)
 	if q != 0 && p == 0 {
-		y, w = kvd(ex2(pt2(I(pp), y), y))
+		y, w = kvd(ex(pt(I(pp), y), y))
 		v := i(2 + '.'<<4)
 		if y < 256 {
 			y = mki(4)
@@ -2895,7 +2786,7 @@ func ex2(x, y i) (r i) {
 			t = ucat(mki(0), t)
 			v = 10
 		}
-		p = ras2(x, y, r, s, w, t)
+		p = ras(x, y, r, s, w, t)
 		if p != 0 {
 			return p
 		}
@@ -2909,17 +2800,21 @@ func ex2(x, y i) (r i) {
 		t = ucat(ucat(ucat(ucat(w, s), mki(0)), t), mki(0))
 		return l2(r, t)
 	}
-	r, t = kvd(ex2(l2(r, t), y))
+	r, t = kvd(ex(l2(r, t), y))
 	if p != 4 {
 		x = ucat(x, mki(1026))
 		s = ucat(s, mki(0))
 	} else {
 		dx(x)
-		x = mki(I(x+8) + 2045)
+		if I(8+x) == 932 {
+			x = mki(4294967289)
+		} else {
+			x = mki(I(x+8) + 2045)
+		}
 	}
 	return l2(ucat(r, x), ucat(t, s))
 }
-func pt2(x, y i) (r i) {
+func pt(x, y i) (r i) {
 	if x >= y {
 		sI(pp, x)
 		return l2(0, mki(0))
@@ -2968,7 +2863,7 @@ func pt2(x, y i) (r i) {
 			} else if n > 2 && I(r+8) == 580 { // $[..] cond
 				dx(r)
 				dx(t)
-				r, t = kvd(swc2(rev(a), rev(w)))
+				r, t = kvd(swc(rev(a), rev(w)))
 			} else if n == 3 && I(r+8) == 1028 { // @[x;y;z]
 				dx(r)
 				r = ucat(jon(rev(a), mk(2, 0)), mki(3))
@@ -3113,7 +3008,7 @@ func tok(x i) (r i) { // tokenize
 	}
 	sI(pp, xp)
 	for {
-		xp = ws2(I(pp), xn)
+		xp = ws(I(pp), xn)
 		if xp == xn {
 			dx(x)
 			return l2(r, a)
@@ -3127,7 +3022,7 @@ func tok(x i) (r i) { // tokenize
 		a = ucat(a, mki(xp))
 	}
 }
-func ws2(x, y i) (r i) {
+func ws(x, y i) (r i) {
 	for {
 		if x >= y {
 			return x
