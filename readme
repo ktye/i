@@ -1,0 +1,24 @@
+monadic
+  +  -  ~(not)  _(floor)  *(clz)  %(sqrt)
+
+dyadic
+  +  -  *  %(div)  %'  !(mod)  !'  &(and)  |(or)  #(xor)  ^(lshift)  _(rshift)
+
+derived
+  x'(signed)  x\(float)
+
+memory
+  C x     I x     F x      load
+  C[x]:y  I[x]:y  F[x]:y   store
+
+convert
+  `I$x   `F$x
+
+control
+  x?y (if)   $(x;y;z) (cond)    x/[y] (n-loop)   x?/[y] (while)   :x (return)
+
+call
+  f x    f[x;y]
+
+call indirect
+  T[i][x;y;z]
