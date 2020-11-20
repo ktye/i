@@ -276,7 +276,6 @@ func run1(s string) string {
 	return s
 }
 func ics(x, y i) {
-	fmt.Printf("ics %d %d\n", x, y)
 	xt, xn, xp := v1(x)
 	if xt != 1 || xn == 0 {
 		fmt.Println("src(140): %d/%d\n", xt, xn)
@@ -2601,7 +2600,7 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 	}
 	if sp != s+8 {
 		fmt.Println("unbalanced stack", sp-s-8)
-		//panic("!stack")
+		panic("!stack")
 	}
 	dx(x)
 	dx(y)
@@ -2805,11 +2804,18 @@ func ex(x, y i) (r i) {
 		x = ucat(x, mki(1026))
 		s = ucat(s, mki(0))
 	} else {
+		p := r + 4*(1+nn(r))
+		v := I(8 + x)
 		dx(x)
-		if I(8+x) == 932 {
-			x = mki(4294967289)
+		if v == 932 { // :x
+			x = mki(4294967289) //jump far (return)
+		} else if v == 676 && I(p) == 4033 { // *|
+			dx(x)
+			dx(s)
+			sI(p, 2977)
+			return l2(r, t)
 		} else {
-			x = mki(I(x+8) + 2045)
+			x = mki(I(x+8) + 2045) //monadic
 		}
 	}
 	return l2(ucat(r, x), ucat(t, s))
