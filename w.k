@@ -46,7 +46,7 @@ icl:{(((`icl;u 1;(u:*x)2),$[`seq~*w:*v;1_w;,w]);(v:ex x 1)1)}             /(`icl
 /typify ast, parse constants
 type:{l:((#t)#`x`y`z`x3`x4`x5`x6`x7)!t:argt x;a:dce typ ast x;locl,:x!(*a)_l;a 1}
 typ:{(tp(*x))x}                                                                      /typed ast:
-tp :`con!{$["0x"~2#x 1;(`F`con;-3$unhex 2_x 1);|/"."=s:x 1;(`F`con;&s);(`I`con;&s)]} /(`I`con;3)  (`F`con;3.14)  constant
+tp :`con!{$["0x"~2#x 1;(`F`con;-3$unhex 2_x 1);|/"."=s:x 1;(`F`con;.s);(`I`con;.s)]} /(`I`con;3)  (`F`con;3.14)  constant
 tp,:`cal!{(,(rtyp s),`cal),(s:`$x 1),typ'2_x}                                        /(`I`cal;`f;x;y;..)         function call
 tp,:`icl!{(,(`$*x 1),`icl),typ'2_x}
 tp,:`op1!{a:typ x 2;($[3>`C`I`F?t:`$o;iif t;1~|/"?"=o;iif`$*o;(**a)],`op1;o:x 1;a)}  /(`I`op1;"+";x)             monadic op

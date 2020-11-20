@@ -70,6 +70,7 @@ func main() {
 		kdirs(os.Args[2:])
 	} else {
 		kinit()
+		defer indicate()
 		args := os.Args[1:]
 		for {
 			if len(args) == 0 {
@@ -122,7 +123,7 @@ func load(f string) {
 	dx(out(val(mkchrs(b))))
 }
 
-var ddd = true
+var ddd = false
 
 func repl() {
 	s := bufio.NewScanner(os.Stdin)
@@ -176,6 +177,13 @@ func ktry(s string) {
 	}()
 	dx(out(val(mkchrs([]byte(s)))))
 }
+func indicate() {
+	if r := recover(); r != nil {
+		ics(I(140), I(144))
+		panic(r)
+	}
+}
+
 func multitest() { //multiline, spaces, comments
 	tc := []struct{ in, exp string }{
 		{"1+2", "3"},
@@ -282,6 +290,7 @@ func run1(s string) string {
 	return s
 }
 func ics(x, y i) {
+	fmt.Println("ics %d %d\n", x, y)
 	xt, xn, xp := v1(x)
 	if xt != 1 || xn == 0 {
 		fmt.Println("src(140): %d/%d\n", xt, xn)
@@ -890,6 +899,7 @@ func atx(x, y i) (r i) {
 	for i := i(0); i < yn; i++ {
 		yi := I(yp)
 		if xn <= yi {
+			fmt.Printf("atx xt/xn %d/%d @%d\n", xt, xn, yi)
 			trap()
 		}
 		mv(rp, xp+w*yi, w)
@@ -1464,9 +1474,6 @@ func drw(x, y i) (r i) { // x 'd y
 	return dxyr(x, y, 0)
 }
 func out(x i) (r i) {
-	if x == 0 {
-		return
-	}
 	rx(x)
 	r = x
 	if tp(x) != 1 {
@@ -2207,7 +2214,7 @@ func val(x i) (r i) {
 		rl(x)
 		r = mk(6, xn)
 		mv(r+8, x+8, 4*xn)
-		if xn == 4 {
+		if xn == 5 {
 			sI(r+20, mki(I(r+20)))
 		}
 		dx(x)
@@ -2262,6 +2269,7 @@ func con(x i) (r i) { // intern constant
 	return x
 }
 func asn(x, y i) (r i) {
+	//fmt.Printf("ASN %s <- %s\n", X(x), X(y))
 	xt, _, _ := v1(x)
 	if xt != 5 {
 		trap()
@@ -2548,7 +2556,7 @@ func rras(x, y, xn i) (r i) { // (+:;(`x;i..);y) -> (+;,`x;,i;y)
 // j          n   9=x&0x7  n=x>>4  rel offset
 // prj           10=x&0x7          project
 // drop          15=x&0x7          drop 1
-func od(x i) { // execute byte code
+func od(x i) {
 	y := I(x + 12)
 	z := I(x + 16)
 	x = I(x + 8)
@@ -2561,9 +2569,13 @@ func od(x i) { // execute byte code
 		r := I(xp)
 		m = r & 0xf
 		n = r >> 4
-		s := fmt.Sprintf("%03d %6q  ", I(yp), string(C(z+I(yp))))
+		s := fmt.Sprintf("%04d %6q  ", I(yp), string(C(z+I(yp))))
 		if m == 0 {
-			s += X(r)
+			ds := X(r)
+			if len(ds) > 20 {
+				ds = ds[:20] + ".."
+			}
+			s += ds
 		} else if m < 3 {
 			s += X(n)
 		} else if m == 4 {
@@ -2576,13 +2588,27 @@ func od(x i) { // execute byte code
 		} else if m == 9 {
 			s += "j +" + strconv.Itoa(int(n))
 		}
-		fmt.Printf(" %4d [%2d 0x%04x] %s\n", r, m, n, s)
+		fmt.Printf(" %8d [%2d 0x%08x] %s\n", r, m, n, s)
 		xp += 4
 		yp += 4
 	}
 }
+func sum(x i) (r i) {
+	_, xn, xp := v1(x)
+	r = i(0)
+	for i := i(0); i < xn; i++ {
+		r += I(xp)
+		xp += 4
+	}
+	return r
+}
 func run(x i) (r i) { // execute byte code (run don't walk)
-	//od(x)
+	if ddd {
+		sum := sum(I(x + 8))
+		fmt.Println("RUN", x, sum)
+		defer func(x, y i) { fmt.Println("RET", x, y) }(x, sum)
+		od(x)
+	}
 	rl(x)
 	y := I(x + 12)
 	z := I(x + 16)
@@ -2613,7 +2639,9 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		r = I(xp)
 		m = r & 0xf
 		n = r >> 4
-		sI(144, I(yp))
+		if I(yp) != 0 {
+			sI(144, I(yp))
+		}
 		if m == 0 { //k-const
 			sp += 4
 			sI(sp, a)
@@ -2654,14 +2682,20 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 			a = asd(a, I(sp), I(sp-4), I(sp-8))
 			sp -= 12
 		} else if m == 8 { //rel jump if 0
-			if I(8+a) == 0 {
+			if a == 0 {
+				fmt.Println("jif00")
+				panic("jif 0!0")
+			}
+			if a == 0 || I(8+a) == 0 {
 				xp += n
+				yp += n
 			}
 			dx(a)
-			sp -= 4
 			a = I(sp)
+			sp -= 4
 		} else if m == 9 { //rel jump
 			xp += n
+			yp += n
 		} else if m == 10 { // prj
 			a = prj(a, I(sp-4), I(sp))
 			sp -= 8
@@ -2699,6 +2733,7 @@ func swc2(x, y i) (r i) { // $[a;b;..]
 		panic("cond")
 	}
 	rl(x)
+	rl(y)
 	s := mk(2, 0)
 	r = mk(2, 0)
 	a, b, t, w := i(0), i(0), i(0), i(0)
@@ -2720,7 +2755,11 @@ func swc2(x, y i) (r i) { // $[a;b;..]
 	}
 	dx(x)
 	dx(y)
-	sI(r+8, 0)
+	//sI(r+8, 0)
+	if tp(s) != 2 || nn(s) < 1 {
+		fmt.Printf("s: %d/%d\n", tp(s), nn(s))
+		panic("s???")
+	}
 	return l2(drop(r, 1), drop(s, 1))
 }
 func op(x, y i) (r i) { return x | y<<4 }
@@ -2972,11 +3011,11 @@ func pt2(x, y i) (r i) {
 			r = mki(con(r)) // ()
 			t = src(x)
 		} else if n == 1 {
-			r = fst(r)
-			t = fst(t)
+			r = ic(ic(fst(r), 4), 15) //not infix
+			t = ic(ic(fst(t), 0), 0)
 		} else {
-			r = ucat(jon(rev(r), mk(2, 0)), mki(op(6, n)))
-			t = ucat(jon(rev(t), mk(2, 0)), mki(0))
+			r = ic(jon(rev(r), mk(2, 0)), op(6, n))
+			t = ic(jon(rev(t), mk(2, 0)), 0)
 		}
 		x = I(pp)
 	} else if r == '{' { // {
@@ -3386,7 +3425,7 @@ func tk2(x i) (r i) { // tokenize
 	r = mk(2, 0)
 	a := mk(2, 0)
 	xn += xp
-	if C(xp) == 47 {
+	for xp < xn && C(xp) == 47 {
 		xp = cmt(xp, xn)
 	}
 	sI(pp, xp)
@@ -3410,14 +3449,21 @@ func ws2(x, y i) (r i) {
 		if x >= y {
 			return x
 		}
+		if C(x) == 47 {
+			c := C(x - 1)
+			if c == 32 || c == 10 {
+				x = cmt(x, y)
+			}
+		}
 		b := C(x)
 		if is(b, NW) || b == 10 { //64
 			return x
 		}
 		x++
-		if C(x) == 47 { // /
-			x = cmt(x, y)
-		}
+		//if C(x) == 47 { // /
+		//	x = cmt(x, y)
+		//	fmt.Printf("x=%d C(x)=%d\n", x, C(x))
+		//}
 	}
 }
 func ntk(x, y i) (r i) { // next token
@@ -3621,7 +3667,7 @@ func vrb(b c, p, s i) (r i) { // verb or adverb + -: ':
 	if C(p-1) == 32 {
 		if b == 92 { // space\.. (out)
 			sI(pp, p+1)
-			return op(4, 160)
+			return op(4, 32)
 		}
 		if b == 39 { // (space)'c  spacy verb
 			b = '+' //no adverb
