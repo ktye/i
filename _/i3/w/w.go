@@ -1335,7 +1335,7 @@ func (v cvt) kstr() s {
 	if v.sign == 1 {
 		sn = "'"
 	}
-	return "`" + styp[v.t] + "$" + sn + cstring(v.x())
+	return "`" + styp[v.t] + "$" + sn + kstring(v.x())
 }
 func (v cvt) cstr() s {
 	sn := ""

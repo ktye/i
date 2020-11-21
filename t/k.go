@@ -1864,7 +1864,29 @@ func diw(x, y i) i          { return nd(x, y, 27+128, 37) }
 func mod(x, y i) i          { return nd(x, y, 23, 7) }
 func abs(x i) i             { return nm(x, 15, 171) }
 func neg(x i) i             { return nm(x, 19, 173) }
-func sqr(x i) i             { return nm(x, 27, 165) }
+func sqr(x i) (r i) {
+	xt, xn, xp := v1(x)
+	if xt == 2 && xn == 1 {
+		r = I(xp)
+		m := r & 0xf
+		if m == 0 {
+			if tp(r) < 8 && I(r+4) > 0 {
+				rx(r)
+				return dxr(x, r)
+			}
+		} else if m == 5 {
+			r >>= 4
+			k := I(kkey)
+			if r%4 == 0 && r-8 < 4*nn(k) {
+				dx(x)
+				x = mk(5, 1)
+				sI(x+8, r)
+				return x
+			}
+		}
+	}
+	return nm(x, 27, 165)
+}
 func abc(x, r i) { // +c (toupper)
 	if c := C(x); is(c, az) {
 		sC(r, c-32)
@@ -1892,7 +1914,7 @@ func nei(x, r i) { sI(r, i(-int32(I(x)))) }
 func nef(x, r i) { sF(r, -F(x)) }
 func nez(x, r i) { sZ(r, -Z(x)) }
 func sqc(x, r i) { panic("%c") } // %c ?
-func sqi(x, r i) { panic("%i") } // %i ?
+func sqi(x, r i) { panic("%i") }
 func sqf(x, r i) { sF(r, math.Sqrt(F(x))) }
 func sqz(x, r i) { sZ(r, cmplx.Conj(Z(x))) } // %z complex conjugate
 func zri(x i, o i) (r i) {
