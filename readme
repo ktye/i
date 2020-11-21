@@ -1,5 +1,5 @@
 monadic
-  +  -  ~(not)  _(floor)  *(clz)  %(sqrt)
+  +(abs)  -(neg)  ~(not)  _(floor)  *(clz)  %(sqrt)
 
 dyadic
   +  -  *  %(div)  %'  !(mod)  !'  &(and)  |(or)  #(xor)  ^(lshift)  _(rshift)

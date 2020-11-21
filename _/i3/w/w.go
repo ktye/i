@@ -1453,10 +1453,15 @@ func (v loc) i() int {
 func (v loc) rt() T      { return v.t }
 func (v loc) valid() s   { return ifex(v.t == 0, "local has zero type") }
 func (v loc) bytes() []c { return append([]c{0x20}, leb(int64(v.i()))...) }
-func (v loc) kstr() s    { return v.s }
-func (v loc) cstr() s    { return locstr(v) }
-func (v loc) gstr() s    { return locstr(v) }
-func (v las) rt() T      { return 0 }
+func (v loc) kstr() s {
+	if v.t == F {
+		return strings.ToUpper(v.s)
+	}
+	return v.s
+}
+func (v loc) cstr() s { return locstr(v) }
+func (v loc) gstr() s { return locstr(v) }
+func (v las) rt() T   { return 0 }
 func (v las) valid() s {
 	tx, ty := v.x().rt(), v.y().rt()
 	return ifex(tx == 0 || tx != ty, sf("assignment with mismatched types %s %s", tx, ty))
@@ -1464,7 +1469,18 @@ func (v las) valid() s {
 func (v las) bytes() []c {
 	return append(v.y().bytes(), append([]c{0x21}, leb(int64(v.x().(loc).i()))...)...)
 }
-func (v las) kstr() (r s) { return kstring(v.x()) + ":" + kstring(v.y()) }
+func (v las) kstr() (r s) {
+	if l, o := v.x().(loc); o {
+		if v, o := v.y().(v2); o {
+			if ll, o := v.x().(loc); o && ll.s == l.s {
+				if c, o := v.y().(con); o && c.t == I {
+					return kstring(v.x()) + v.s + ":" + c.kstr()
+				}
+			}
+		}
+	}
+	return kstring(v.x()) + ":" + kstring(v.y())
+}
 func (v las) cstr() (r s) { return jn(locstr(v.x()), "=", cstring(v.y()), ";") }
 func (v las) gstr() s {
 	t := styp[v.x().rt()]
@@ -1545,16 +1561,10 @@ func (v iff) valid() s {
 	return ""
 }
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
-func (v iff) kstr() s {
-	x := kstring(v.x())
-	if isexpr(v.x()) {
-		x = "(" + x + ")"
-	}
-	return jn(x, "?", kstring(v.y()))
-}                     // or $[x;y;]
-func (v iff) cstr() s { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
-func (v iff) gstr() s { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
-func (v nlp) rt() T   { return 0 }
+func (v iff) kstr() s        { return jn(lembr(v.x()), "?", rembr(v.y())) } // or $[x;y;]
+func (v iff) cstr() s        { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
+func (v iff) gstr() s        { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
+func (v nlp) rt() T          { return 0 }
 func (v nlp) valid() s {
 	if xt, yt := v.x().rt(), v.y().rt(); xt != I {
 		return sf("loop range is not I: %s", xt)
@@ -1593,7 +1603,7 @@ func (v nlp) kstr() (r s) {
 	if _, o := v.x().(con); o == false && isexpr(v.x()) {
 		x = "(" + x + ")"
 	}
-	return x + "/[" + kstring(v.y()) + "]"
+	return x + "/" + rembr(v.y())
 }
 func (v nlp) cstr() (r s) {
 	if isexpr(v.x()) {
@@ -1632,7 +1642,7 @@ func (v whl) kstr() (r s) {
 	if _, o := v.x().(con); o {
 		x = "1"
 	}
-	return x + "?/[" + kstring(v.y()) + "]"
+	return x + "?/" + rembr(v.y())
 }
 func (v whl) cstr() s { return jn("while(", cstring(v.x()), "){", cstring(v.y()), "}") }
 func (v whl) gstr() s {
@@ -1709,7 +1719,7 @@ func k2str(tab map[s]code, op s, t T, x, y expr) s {
 	if s, o := k2sym[op]; o {
 		op = s
 	}
-	return kstring(x) + op + a + kstring(y) // todo (x) todo op
+	return lembr(x) + op + a + kstring(y) // todo (x) todo op
 }
 func k1str(tab map[s]code, op s, t T, x expr) s {
 	a := ""
@@ -1749,6 +1759,22 @@ func embrace(sf func(expr) s, x expr) s {
 	} else {
 		return jn("(", sf(x), ")")
 	}
+}
+func lembr(x expr) (r s) {
+	r = kstring(x)
+	if isexpr(x) {
+		if _, o := x.(con); !o {
+			return "(" + r + ")"
+		}
+	}
+	return r
+}
+func rembr(x expr) (r s) {
+	r = kstring(x)
+	if _, o := x.(seq); o {
+		return "(" + r + ")"
+	}
+	return r
 }
 
 var k2sym = map[s]s{"<=": "</", "<='": "</'", ">=": ">/", ">='": ">/'", `\`: "!", `\'`: "!'", "<<": "^", ">>": "_"}
@@ -2049,20 +2075,27 @@ func (m module) kout(tab []segment, data []dataseg) []c {
 	var b bytes.Buffer
 	var names []string
 	fmt.Fprintf(&b, "k:(")
+	argnames := []s{"x", "y", "z", "x3", "x4", "x5", "x6", "x7", "x8", "x9"}
 	for j, f := range m {
 		FN = &f
-		sig := ""
+		argv := make([]s, f.args)
 		for i := 0; i < f.args; i++ {
-			if i > 0 {
-				//sig += ","
+			argv[i] = argnames[i]
+			if f.locl[i] == F {
+				argv[i] = strings.ToUpper(argv[i])
 			}
-			sig += styp[f.locl[i]] //+ " " + "x" + s('0'+byte(i))
 		}
-		st := styp[f.t]
+		sig := strings.Join(argv, ";")
+		st := "r"
+		if f.t == V {
+			st = "V"
+		} else if f.t == F {
+			st = "R"
+		}
 		if j == 0 {
-			fmt.Fprintf(&b, "%s:{[%s;%s]", f.name, st, sig)
+			fmt.Fprintf(&b, "%s!{[%s;%s]", "`"+f.name, st, sig)
 		} else {
-			fmt.Fprintf(&b, "%6s:{[%s;%s]", f.name, st, sig)
+			fmt.Fprintf(&b, "%7s!{[%s;%s]", "`"+f.name, st, sig)
 		}
 		if f.ast != nil {
 			b.WriteString(kstring(f.ast))
