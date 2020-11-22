@@ -287,7 +287,8 @@ func ics(x, y i) {
 	for i := i(0); i < xn; i++ {
 		if i < y && C(xp) == 10 {
 			p = xp + 1
-		} else if i > y && C(xp) == 10 && q > i {
+			y -= i + 1
+		} else if i > y && C(xp) == 10 && q > xp {
 			q = xp
 		}
 		xp++
@@ -401,6 +402,14 @@ func fr(x i) {
 func dx(x i) {
 	if x > 255 {
 		xr := I(x + 4)
+		if xr == 0 {
+			if leaktest {
+				return // interned constants may already be released
+			}
+			fmt.Printf("x=%d(%x) %d/%d\n", x, x, tp(x), nn(x))
+			dump(x, 200)
+			panic("dx free")
+		}
 		sI(x+4, xr-1)
 		if xr == 1 {
 			xt, xn, xp := v1(x)
@@ -656,7 +665,7 @@ func fst(x i) (r i) {
 	}
 	return atx(x, mki(0))
 }
-func lst(x i) (r i) { // ::x
+func lst(x i) (r i) { // *|
 	if tp(x) == 7 {
 		return lst(val(x))
 	}
@@ -724,6 +733,9 @@ func cut(x, y i) (r i) {
 	return dxyr(x, y, r)
 }
 func rsh(x, y i) (r i) {
+	if y == 0 {
+		panic("rsh")
+	}
 	xt, yt, xn, _, xp, _ := v2(x, y)
 	if yt == 7 {
 		if xt == 2 {
@@ -876,6 +888,8 @@ func atx(x, y i) (r i) {
 		return phi(x, y)
 	}
 	if yt != 2 {
+		fmt.Printf("x=%s y=%s\n", X(x), X(y))
+		fmt.Printf("atx xt/xn %d/%d yt~I/yn %d/%d\n", xt, xn, yt, yn)
 		panic("atx yt~I")
 	}
 	r = mk(xt, yn)
@@ -930,7 +944,7 @@ func cal(x, y i) (r i) {
 		}
 		f, ok := MT[x].(func(i) i)
 		if ok == false {
-			fmt.Printf("cal? x=%d y=%s\n", x, X(y))
+			fmt.Printf("cal? x=%d (%s) y=%s\n", x, X(x), X(y))
 			panic("!call")
 		}
 		return f(fst(y))
@@ -2833,7 +2847,6 @@ func ex(x, y i) (r i) {
 		if v == 932 { // :x
 			x = mki(4294967289) //jump far (return)
 		} else if v == 676 && I(p) == 4033 { // *|
-			dx(x)
 			dx(s)
 			sI(p, 2977)
 			return l2(r, t)
@@ -3459,11 +3472,16 @@ func mark() { // mark bucket type within free blocks
 		}
 	}
 }
+
+var leaktest = false
+
 func leak() {
 	dx(I(kkey))
 	dx(I(kval))
 	dx(I(xyz))
+	leaktest = true
 	dx(I(kcon))
+	leaktest = false
 	mark()
 	p := i(64)
 	for p < i(len(MI)) {
