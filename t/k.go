@@ -2463,6 +2463,7 @@ func asd(v, s, a, u i) (r i) { // (+;`x;a;y)
 	return r
 }
 
+// nop            0=x      ignore
 // const(k-value) 0=x&0xf  push x
 // monad      n   1=x&0xf  n=x>>4  0..255
 // dyad       n   2=x&0xf  n=x>>4  0..255
@@ -2562,7 +2563,8 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		if I(yp) != 0 {
 			sI(144, I(yp))
 		}
-		if m == 0 { //k-const
+		if r == 0 { //nop
+		} else if m == 0 { //k-const
 			sp += 4
 			sI(sp, a)
 			a = r
@@ -2871,8 +2873,10 @@ func pt(x, y i) (r i) {
 			r = mki(con(r)) // ()
 			t = src(x)
 		} else if n == 1 {
-			r = ic(ic(fst(r), 4), 15) //not infix
-			t = ic(ic(fst(t), 0), 0)
+			r = ic(fst(r), 0)
+			t = ic(fst(t), 0)
+			//r = ic(ic(fst(r), 4), 15) //not infix
+			//t = ic(ic(fst(t), 0), 0)
 		} else {
 			r = ic(jon(rev(r), mk(2, 0)), op(6, n))
 			t = ic(jon(rev(t), mk(2, 0)), 0)
@@ -2908,7 +2912,7 @@ func pt(x, y i) (r i) {
 				r, t = kvd(swc(rev(a), rev(w)))
 			} else if n == 3 && I(r+8) == 1028 { // @[x;y;z]
 				dx(r)
-				r = ucat(jon(rev(a), mk(2, 0)), mki(3))
+				r = ic(jon(rev(a), mk(2, 0)), 3)
 				t = ucat(jon(rev(w), mk(2, 0)), t)
 			} else {
 				l := i(0)

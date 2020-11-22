@@ -1,4 +1,4 @@
-k:( `g!{[r;x]x+:3}; `ff!{[r;x;y](x<1)?(x+:4;y:0);y} )  /x+:y ;y+2
+k:( `g!{[r;x]x+:3}; `ff!{[r;x;y]x/(x+:4;y:0);y} )  /x+:y ;y+2
 
 
 funcs:{(,/!'x@i)!,/.'x@i:&,/7=@'x}
@@ -13,7 +13,8 @@ gotype:{$["Z"<$x;"i";"f"]}
 golocs:{l:(x 3)_x 2;$[#l;(";"/:{"var ",($x)," ",gotype x}'l),";";""]}
 gobody:{b:x 1;";"/:return()gotree/b}
 gotree:{p:-1+#x;m:16/y;n:16\y
-$[~m;  x,:,$%y
+$[~y;  ;
+  ~m;  x,:,$%y
  1~m;  x[p]:en gmon[go1;_n-128;x p] 
  2~m;  x:(-2_x),,$[63~n;goif;64~n;goat;46~n;gocal;gody[go2;(_n)]][x p;x p-1]
  4~m;  x,:,$_n
@@ -21,7 +22,7 @@ $[~m;  x,:,$%y
  6~m;  x:((-n)_x),,(-n)#x
  7~m;  x:(-4_x),,goas -4#x
  9~m;  x[p]:"return ",x p
-15~m;  x:$[(_0)~x p;-1_x;x]
+15~m;  ;
  $y];  x }
 
 goas:{ (x 2),(x 3),"=",x 0}
