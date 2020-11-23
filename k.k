@@ -35,7 +35,7 @@ k:(`sin!{[R;X]}
    `atx!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;yt:tp y;yn:nn y;yp:8+y;(~xt)? :cal[x;enl y];(xt~7)? :atd[x;y;yt];(yt>5)? :ecr[x;y;64];(yt~3)?(xt<5)? :phi[x;y];(~yt~2)?!0;r:mk[xt;yn];rp:r+8;w:C xt;yn/(yi:I yp;(xn</yi)?!0;mv[rp;xp+w*yi;w];rp:rp+w;yp+:4);(xt>5)?rl r;(yn~1)?(xt~6)?(rx I r+8;dx r;r:I r+8);dx x;dx y;r}
    `atm!{[r;x;y](~nn y)?(dx x; :y);rx y;f:fst y;t:drop[y;1];(1<nn t)? :atm[atx[x;f];t];t:fst t;nf:nn f;((~f)+~nf~1)?(f?x:atx[x;f]; :ecl[x;t;64]);atx[atx[x;f];t]}
    `atd!{[r;x;y;z]k:I x+8;v:I x+12;(z~5)?(rx k;y:fnd[k;y];z:2);rx v;dx x;atx[v;y]}
-   `cal!{[r;x;y]y:lx y;xt:tp x;xn:nn x;xp:8+x;yn:nn y;yp:8+y;xt? :atm[x;y];(yn~1)?(((sadv x)|sadv x-128)? :T[x][fst y];(x<128)?x+:128);(x<128)?((~yn~2)?!0;rld y; :T[x][I yp;I yp+4]);(x<256)?((~yn~1)?!0; :T[x][fst y]);(xn~2)?(rld x;a:I xp;$(1~yn; :T[a+128][fst y;I xp+4];2~yn;rld y; :T[a][I yp;I yp+4;I xp+4];!0));(xn~3)?(rl x;(1~yn)?y:fst y;r:asi[I x+12;I x+16;y];v:I x+8;dx x; :cal[v;r]);(xn~4)?(a:I x+20;(a>yn)?(a:a-yn;a/y:lcat[y;0]; :prj[x;y;seq[yn;a;1]]); :lcl[x;y]);!0;x}
+   `cal!{[r;x;y]y:lx y;xt:tp x;xn:nn x;xp:8+x;yn:nn y;yp:8+y;xt? :atm[x;y];(yn~1)?(((sadv x)|sadv x-128)? :T[x;`I;`I][fst y];(x<128)?x+:128);(x<128)?((~yn~2)?!0;rld y; :T[x;`I;`I`I][I yp;I yp+4]);(x<256)?((~yn~1)?!0; :T[x;`I;`I][fst y]);(xn~2)?(rld x;a:I xp;$(1~yn; :T[a+128;`I;`I`I][fst y;I xp+4];2~yn;(rld y; :T[a;`I;`I`I`I][I yp;I yp+4;I xp+4]);!0));(xn~3)?(rl x;(1~yn)?y:fst y;r:asi[I x+12;I x+16;y];v:I x+8;dx x; :cal[v;r]);(xn~4)?(a:I x+20;(a>yn)?(a:a-yn;a/y:lcat[y;0]; :prj[x;y;seq[yn;a;1]]); :lcl[x;y]);!0;x}
    `lcl!{[r;x;y]fn:I x+20;(~fn)?(dx y;y:mk[6;0]);(~fn~nn y)?!0;yp:y+8;a:I x+16;ap:a+8;an:nn a;l:mk[2;an];lp:l+8;sp:I 136;an/(d:sp+I ap;I[lp]:I d;v:0;(i<fn)?(v:I yp;rx v;yp+:4);I[d]:v;ap+:4;lp+:4);dx y;r:I x+12;rx r;r:evl r;sp:I 136;lp:l+8;ap:a+8;an/(d:sp+I ap;dx I d;I[d]:I lp;ap+:4;lp+:4);dx l;dx x;r}
    `rev!{[r;x](7~tp x)?(rld x;k:I x+8;v:I x+12; :mkd[rev k;rev v]);n:nn x;(n<2)? :x;atx[x;tir n]}
    `fst!{[r;x]xt:tp x;xn:nn x;(~xn)?(dx x;(xt~0)? :0;(xt~5)? :sc mk[1;0];(xt>5)? :mk[6;0]; :cst[mki xt;mkc 0]);(~xt)? :x;(xt~7)? :fst val x;atx[x;mki 0]}
@@ -58,19 +58,19 @@ k:(`sin!{[R;X]}
    `not!{[r;x]t:tp x;(t>5)? :ech[x;126];(~t)?((~x)? :mki 1;dx x; :mki 0);eql[x;mki 0]}
    `wer!{[r;x]xt:tp x;xn:nn x;xp:8+x;(xt~1)? :prs x;(xt~4)? :zan[x;xn;xp];(xt~6)? :flp x;(~xt~2)?!0;rn:0;xn/(rn:rn+I xp;xp+:4);xp:8+x;r:mk[2;rn];rp:r+8;j:0;(j<xn)?/((I xp)/(I[rp]:j;rp+:4);xp+:4;j+:1);dx x;r}
    `mtc!{[r;x;y]r:mk[2;1];I[r+8]:match[x;y];dx x;dx y;r}
- `match!{[r;x;y](x~y)? :1;(~(I x)~I y)? :0;xt:tp x;xn:nn x;xp:8+x;yp:y+8;m:0;$(~xt; :1;1~xt;m:xn;2~xt;m:xn^2;3~xt;m:xn^3;4~xt;m:xn^4;5~xt;m:xn^2;xn/((~match[I xp;I yp])? :0;xp+:4;yp+:4); :1);m/(~(C xp+i)~C yp+i)? :0;1}
+ `match!{[r;x;y](x~y)? :1;(~(I x)~I y)? :0;xt:tp x;xn:nn x;xp:8+x;yp:y+8;m:0;$(~xt; :1;1~xt;m:xn;2~xt;m:xn^2;3~xt;m:xn^3;4~xt;m:xn^4;5~xt;m:xn^2;(xn/((~match[I xp;I yp])? :0;xp+:4;yp+:4); :1));m/(~(C xp+i)~C yp+i)? :0;1}
    `fnd!{[r;x;y]xt:tp x;yt:tp y;yn:nn y;yp:8+y;(~xt~yt)?!0;r:mk[2;yn];rp:r+8;w:C yt;yn/(I[rp]:fnx[x;yp];rp+:4;yp:yp+w);dx x;dx y;r}
-   `fnx!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;eq:8+xt;w:C xt;xn/((T[eq][xp;y])? :i;xp:xp+w);xn}
+   `fnx!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;eq:8+xt;w:C xt;xn/((T[eq;`I;`I`I][xp;y])? :i;xp:xp+w);xn}
    `lop!{[r;x;y;z]t:tp y;(~t)? :fxp[x;y;z];(6~t)?(rld y;f:I y+12;y:I y+8; :whl[y;x;f;z]);dx z;0}
    `jon!{[r;x;y]r:lop[x;y;0];r? :r;xt:tp x;xn:nn x;xp:8+x;(~xn)?(r:tp y;dx y;r:mk[r;0];dx x; :r);(1~xn)?(dx y; :fst x);(~xt~6)?(dx y; :x);rl x;r:I xp;rxn[y;xn-2];(xn-1)/(xp+:4;r:cat[cat[r;y];I xp]);dx x;r}
    `spl!{[r;x;y]r:lop[x;y;enl mk[6;0]];r? :r;rx x;yn:nn y;r:fds[x;y];(~nn r)?(dx r; :enl x);r:cut[cat[mki 0;r];x];rn:(nn r)-1;rp:r+8;rn/(rp+:4;I[rp]:drop[I rp;yn]);r}
-   `fds!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;yt:tp y;yn:nn y;yp:8+y;((~xt~yt)+xt>5)?!0;(xn<yn)?(dx x;dx y; :mk[2;0]);(~yn)?(dx x;dx y; :drop[seq[0;xn;1];1]);r:mk[2;0];w:C xt;eq:8+xt;j:0;(j<xn)?/(a:0;yn/(k:w*i;a:a+T[eq][xp+k;yp+k]);(a~yn)?(r:ucat[r;mki j];j:j+yn-1;xp:xp+w*yn-1);xp:xp+w;j+:1);dx x;dx y;r}
+   `fds!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;yt:tp y;yn:nn y;yp:8+y;((~xt~yt)+xt>5)?!0;(xn<yn)?(dx x;dx y; :mk[2;0]);(~yn)?(dx x;dx y; :drop[seq[0;xn;1];1]);r:mk[2;0];w:C xt;eq:8+xt;j:0;(j<xn)?/(a:0;yn/(k:w*i;a:a+T[eq;`I;`I`I][xp+k;yp+k]);(a~yn)?(r:ucat[r;mki j];j:j+yn-1;xp:xp+w*yn-1);xp:xp+w;j+:1);dx x;dx y;r}
    `exc!{[r;x;y]n:mki nn y;rx x;atx[x;wer eql[n;fnd[y;x]]]}
    `srt!{[r;x]rx x;atx[x;grd x]}
    `gdn!{[r;x]rev grd x}
    `grd!{[r;x]xt:tp x;xn:nn x;xp:8+x;r:seq[0;xn;1];y:seq[0;xn;1];rp:r+8;msrt[y+8;rp;0;xn;xp;xt];dx x;dx y;r}
   `msrt!{[V;x;y;z;x3;x4;x5]((x3-z)>/2)?(c:(x3+z)%2;msrt[y;x;z;c;x4;x5];msrt[y;x;c;x3;x4;x5];mrge[x;y;z;x3;c;x4;x5])}
-  `mrge!{[V;x;y;z;x3;x4;x5;x6]k:z;j:x4;w:C x6;i:z;(i<x3)?/(c:k>/x4;(~c)?$(j>/x3;c:0;c:T[x6][x5+w*I x+k^2;x5+w*I x+j^2]);$(c;a:j;j+:1;a:k;k+:1);I[y+i^2]:I x+a^2;i+:1)}
+  `mrge!{[V;x;y;z;x3;x4;x5;x6]k:z;j:x4;w:C x6;i:z;(i<x3)?/(c:k>/x4;(~c)?$(j>/x3;c:0;c:T[x6;`I;`I`I][x5+w*I x+k^2;x5+w*I x+j^2]);$(c;(a:j;j+:1);(a:k;k+:1));I[y+i^2]:I x+a^2;i+:1)}
    `gtc!{[r;x;y](C x)>C y}
    `gti!{[r;x;y](I x)>'I y}
    `gtf!{[r;x;y](F x)>\F y}
@@ -79,19 +79,19 @@ k:(`sin!{[R;X]}
    `eqf!{[r;x;y]((I x)~I y)*(I x+4)~I y+4}
    `eqz!{[r;x;y](eqf[x;y])*eqf[x+8;y+8]}
    `eqL!{[r;x;y]match[I x;I y]}
-   `gtl!{[r;x;y]x:I x;y:I y;xt:tp x;xn:nn x;xp:8+x;yt:tp y;yn:nn y;yp:8+y;(~xt~yt)? :xt>yt;n:xn;(yn<xn)?n:yn;w:C xt;n/(a:xp+i*w;b:yp+i*w;(T[xt][a;b])? :1;(T[xt][b;a])? :0);xn>yn}
-    `sc!{[r;x]k:I 132;n:nn k;x:enl x;r:fnx[k;x+8];$(r<n;dx x;I[132]:cat[k;x];I[136]:lcat[I 136;0]);r:mki 8+4*r;I[r]:1|5^29;r}
+   `gtl!{[r;x;y]x:I x;y:I y;xt:tp x;xn:nn x;xp:8+x;yt:tp y;yn:nn y;yp:8+y;(~xt~yt)? :xt>yt;n:xn;(yn<xn)?n:yn;w:C xt;n/(a:xp+i*w;b:yp+i*w;(T[xt;`I;`I`I][a;b])? :1;(T[xt;`I;`I`I][b;a])? :0);xn>yn}
+    `sc!{[r;x]k:I 132;n:nn k;x:enl x;r:fnx[k;x+8];$(r<n;dx x;(I[132]:cat[k;x];I[136]:lcat[I 136;0]));r:mki 8+4*r;I[r]:1|5^29;r}
     `cs!{[r;x]r:I (I 132)+I x+8;rx r;dx x;r}
    `eql!{[r;x;y]cmp[x;y;1]}
    `mor!{[r;x;y]cmp[x;y;0]}
    `les!{[r;x;y]cmp[y;x;0]}
-   `cmp!{[r;x;y;z]x:upx[x;y];y:upx[y;x];xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:take[x;yn];xn:yn);(yn~1)?(y:take[y;xn];yn:xn));xt:tp x;xp:x+8;yp:y+8;(xt~6)? :ecd[x;y;62-z];f:xt;z?f+:8;w:C xt;r:mk[2;xn];rp:r+8;xn/(I[rp]:T[f][xp;yp];xp:xp+w;yp:yp+w;rp+:4);dx x;dx y;r}
+   `cmp!{[r;x;y;z]x:upx[x;y];y:upx[y;x];xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:take[x;yn];xn:yn);(yn~1)?(y:take[y;xn];yn:xn));xt:tp x;xp:x+8;yp:y+8;(xt~6)? :ecd[x;y;62-z];f:xt;z?f+:8;w:C xt;r:mk[2;xn];rp:r+8;xn/(I[rp]:T[f;`I;`I`I][xp;yp];xp:xp+w;yp:yp+w;rp+:4);dx x;dx y;r}
    `min!{[r;x;y]mia[x;y;38]}
    `max!{[r;x;y]mia[x;y;124]}
    `mia!{[r;x;y;z]x:upx[x;y];y:upx[y;x];xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:take[x;yn];xn:yn);(yn~1)?(y:take[y;xn];yn:xn));xt:tp x;(xt~6)? :ecd[x;y;z];rx x;rx y;$(z~38;a:les[x;y];a:mor[x;y]);a:wer a;rx a;asi[y;a;atx[x;a]]}
-    `nd!{[r;x;y;z;x3]x:upx[x;y];y:upx[y;x];xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:take[x;yn];xn:yn);(yn~1)?(y:take[y;xn];yn:xn));xt:tp x;xp:x+8;yp:y+8;(xt~6)? :ecd[x;y;x3];w:C xt;f:z+xt;r:mk[xt;xn];rp:r+8;xn/(T[f][xp;yp;rp];xp:xp+w;yp:yp+w;rp:rp+w);dx x;dx y;r}
-    `nm!{[r;x;y;z]xt:tp x;xn:nn x;xp:8+x;(xt>5)? :ech[x;z];r:use x;rp:r+8;w:C xt;y:y+xt;xn/(T[y][xp;rp];xp:xp+w;rp:rp+w);(xt~4)?(y~19)? :zre r;r}
-   `nmf!{[r;x;y]dx x;x:I x+8;y:use cst[mki 3;y];yp:y+8;(nn y)/(F[yp]:T[x][F yp];yp+:8);y}
+    `nd!{[r;x;y;z;x3]x:upx[x;y];y:upx[y;x];xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:take[x;yn];xn:yn);(yn~1)?(y:take[y;xn];yn:xn));xt:tp x;xp:x+8;yp:y+8;(xt~6)? :ecd[x;y;x3];w:C xt;f:z+xt;r:mk[xt;xn];rp:r+8;xn/(T[f;`V;`I`I`I][xp;yp;rp];xp:xp+w;yp:yp+w;rp:rp+w);dx x;dx y;r}
+    `nm!{[r;x;y;z]xt:tp x;xn:nn x;xp:8+x;(xt>5)? :ech[x;z];r:use x;rp:r+8;w:C xt;y:y+xt;xn/(T[y;`V;`I`I][xp;rp];xp:xp+w;rp:rp+w);(xt~4)?(y~19)? :zre r;r}
+   `nmf!{[r;x;y]dx x;x:I x+8;y:use cst[mki 3;y];yp:y+8;(nn y)/(F[yp]:T[x;`F;`F][F yp];yp+:8);y}
    `add!{[r;x;y]nd[x;y;143;43]}
    `sub!{[r;x;y]nd[x;y;147;45]}
    `mul!{[r;x;y]nd[x;y;151;42]}
@@ -113,7 +113,7 @@ k:(`sin!{[R;X]}
    `dii!{[V;x;y;z]I[z]:(I x)%'I y}
    `dif!{[V;x;y;z]F[z]:(F x)%\F y}
    `moi!{[V;x;y;z]x:I x;y:I y;I[z]:(y+`I$x!'y)!'y}
-   `diz!{[V;x;y;z]A:F x;B:F x+8;C:F y;D:F y+8;$((+\C)>/\+\D;R:D%\C;P:C+\R*\D;F[z]:(A+\B*\R)%\P;F[z+8]:(B-\A*\R)%\P;R:C%\D;P:D+\R*\C;F[z]:(B+\A*\R)%\P;F[z+8]:((B*\R)-\A)%\P)}
+   `diz!{[V;x;y;z]A:F x;B:F x+8;C:F y;D:F y+8;$((+\C)>/\+\D;(R:D%\C;P:C+\R*\D;F[z]:(A+\B*\R)%\P;F[z+8]:(B-\A*\R)%\P);(R:C%\D;P:D+\R*\C;F[z]:(B+\A*\R)%\P;F[z+8]:((B*\R)-\A)%\P))}
    `abx!{[r;x]nm[x;15;171]}
    `neg!{[r;x]nm[x;19;173]}
    `sqr!{[r;x]nm[x;27;165]}
@@ -155,16 +155,16 @@ k:(`sin!{[R;X]}
    `ecl!{[r;x;y;z](7~tp x)?(rld x;k:I x+8;v:I x+12; :mkd[k;ecl[v;y;z]]);n:nn x;r:mk[6;n];rp:r+8;rxn[x;n];rxn[y;n];rxn[z;n];n/(I[rp]:cal[z;l2[atx[x;mki i];y]];rp+:4);dx z;dx x;dx y;r}
    `whl!{[r;x;y;z;x3]t:tp x;t?(((~t~2)+~1~nn x)?!0;dx x; :nlp[y;z;x3;I x+8]);r:y;scl[x3;r];n:mki 0;1?/(rx x;rx r;t:atx[x;r];(match[t;n])?(dx t;dx n;dx z;dx x;x3?(dx r;r:fst x3); :r);dx t;rx z;r:atx[z;r];scl[x3;r]);x}
    `bin!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;yt:tp y;yn:nn y;yp:8+y;(~xt~yt)?!0;r:mk[2;yn];rp:r+8;w:C xt;yn/(I[rp]:ibin[xp;yp;xn;xt];rp+:4;yp:yp+w);dx x;dx y;r}
-  `ibin!{[r;x;y;z;x3]k:0;j:z-1;w:C x3;1?/((k>'j)? :k-1;h:(k+j)_1;$(T[x3][x+w*h;y];j:h-1;k:h+1));x}
+  `ibin!{[r;x;y;z;x3]k:0;j:z-1;w:C x3;1?/((k>'j)? :k-1;h:(k+j)_1;$(T[x3;`I;`I`I][x+w*h;y];j:h-1;k:h+1));x}
    `nlp!{[r;x;y;z;x3](x3<0)?!0;r:x;rxn[y;x3];scl[z;x];x3/(r:atx[y;r];scl[z;r]);dx y;z?(dx r;r:fst z);r}
    `ecd!{[r;x;y;z]xn:nn x;yn:nn y;(~xn~yn)?((xn~1)?(x:take[x;yn];xn:yn);(yn~1)?(y:take[y;xn];yn:xn));r:mk[6;xn];rp:r+8;rxn[x;xn];rxn[y;xn];rxn[z;xn];xn/(c:mki i;rx c;I[rp]:cal[z;l2[atx[x;c];atx[y;c]]];rp+:4);dx z;dx x;dx y;r}
-   `val!{[r;x]xt:tp x;xn:nn x;$(~xt;(x<256)? :x;rl x;r:mk[6;xn];mv[r+8;x+8;4*xn];(xn~4)?I[r+20]:mki I r+20;dx x;1~xt;r:prs x;n:(2<nn r)*58~I r+8;r:evl r;n?(dx r;r:0);5~xt;r:lup x;6~xt;r:evl x;7~xt;r:I x+12;rx r;dx x;!0);r}
+   `val!{[r;x]xt:tp x;xn:nn x;$(~xt;((x<256)? :x;rl x;r:mk[6;xn];mv[r+8;x+8;4*xn];(xn~4)?I[r+20]:mki I r+20;dx x);1~xt;(r:prs x;n:(2<nn r)*58~I r+8;r:evl r;n?(dx r;r:0));5~xt;r:lup x;6~xt;r:evl x;7~xt;(r:I x+12;rx r;dx x);!0);r}
    `lup!{[r;x]r:I (I 136)+I x+8;rx r;dx x;r}
    `asn!{[r;x;y](~5~tp x)?!0;p:(I 136)+I x+8;dx I p;I[p]:y;rx y;dx x;y}
    `asd!{[r;x]rld x;v:I x+8;s:I x+12;a:I x+16;u:I x+20;(~v~58)?(rx s;r:lup s;a?(rx a;r:atx[r;a]);u:cal[v;l2[r;u]]);r:u;rx r;a?(rx s;u:asi[lup s;a;u]);dx asn[s;u];r}
    `asi!{[r;x;y;z]xt:tp x;xn:nn x;yt:tp y;yn:nn y;yp:8+y;(xt~7)?(yt<6)?(rld x;k:I x+8;v:I x+12;(yt~5)?(rx k;y:fnd[k;y]); :mkd[k;asi[v;y;z]]);(yt~6)?((xt~7)?(rld x;k:I x+8;v:I x+12;rx y;f:fst y;$(f;(5~tp f)?(rx k;f:fnd[k;f]);f:seq[0;nn k;1]); :mkd[k;asi[v;cat[enl f;drop[y;1]];z]]);((~xt~6)+~yt~6)?!0;r:take[x;xn];(1~xn)?r:enl r;rp:r+8;rx y;a:fst y;y:drop[y;1];(1~nn y)?y:fst y;(~a)?a:seq[0;xn;1];(~2~tp a)?!0;an:nn a;ap:a+8;(an~1)?(dx a;ri:rp+4*I ap;I[ri]:asi[I ri;y;z]; :r);(~yn~2)?!0;(~6~tp z)?z:take[enl z;an];(~an~nn z)?!0;rxn[y;an-1];rl z;zp:z+8;an/(ri:rp+4*I ap;I[ri]:asi[I ri;y;I zp];ap+:4;zp+:4);dx a;dx z; :r);(~yt~2)?!0;zt:tp z;zn:nn z;zp:8+z;(yn>1)?(zn~1)?(~zn~yn)?((~zn~1)?!0;z:take[z;yn];zn:yn;zp:z+8);(xt<6)?((~zt~xt)?!0;r:use x;rp:r+8;w:C xt;yn/(k:I yp;mv[rp+w*k;zp;w];yp+:4;zp:zp+w);dx y;dx z; :r);(xt~6)?(r:take[x;xn];(1~xn)?r:enl r;(1~yn)?(z:enl z;zn:1;zt:6);(~6~zt)?z:lx z;rp:r+8;(~yn~zn)?!0;zp:z+8;rl z;yn/(k:I yp;(~k<xn)?!0;t:rp+4*k;dx I t;I[t]:I zp;yp+:4;zp+:4);dx y;dx z; :r);!0;x}
    `swc!{[r;x]xn:nn x;xp:8+x;i:1;(i<xn)?/(r:I xp+4*i;rx r;r:evl r;((~i!2)|i~xn-1)?(dx x; :r);dx r;i+:1;(~I r+8)?i+:1);dx x;0}
-   `ras!{[r;x;y]v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;rxn[r;2];s:fst r;a:drop[r;1];$(nn a;a:ltr a;an:nn a;(an~1)?a:fst a;dx a;a:0);u:I x+16;rx u;dx x; :lcat[l3[v;s;a];evl u]);0}
+   `ras!{[r;x;y]v:I x+8;(y~3)?(v<256)?((v~58)+v>128)?((v>128)?v-:128;r:I x+12;rxn[r;2];s:fst r;a:drop[r;1];$(nn a;(a:ltr a;an:nn a;(an~1)?a:fst a);(dx a;a:0));u:I x+16;rx u;dx x; :lcat[l3[v;s;a];evl u]);0}
    `ltr!{[r;x]xt:tp x;xn:nn x;xp:8+x;(~xt~6)? :x;rl x;r:mk[6;xn];rp:r+8;xn/(I[rp]:evl I xp;rp+:4;xp+:4);dx x;r}
    `rtl!{[r;x]xt:tp x;xn:nn x;xp:8+x;(~xt~6)? :x;rl x;r:mk[6;xn];rp:r+8+4*xn;xp:xp+4*xn;xn/(rp-:4;xp-:4;I[rp]:evl I xp);dx x;r}
    `evl!{[r;x]xt:tp x;xn:nn x;xp:8+x;(~xt~6)?((xt~5)?(xn~1)? :lup x; :x);(~xn)? :x;(xn~1)? :rtl fst x;v:I xp;(v~36)?(xn>3)? :swc x;r:ras[x;xn];r? :asd r;(v~128)? :lst ltr x;x:rtl x;xn:nn x;xp:x+8;(v~64)?(xn~4)?(rl x;r:asi[I x+12;I x+16;I x+20];dx x; :r);(xn~2)?(rl x;r:atx[I xp;I xp+4];dx x; :r);a:fnl[xp+4;xn-1];a?(rx I x+8; :prj[I x+8;drop[x;1];a]);rx I xp;cal[I xp;drop[x;1]]}
@@ -183,8 +183,8 @@ k:(`sin!{[R;X]}
    `drw!{[r;x;y]xp:8+x;yt:tp y;yn:nn y;w:I xp;(yt~7)?draw[w;I xp+4;y];(yt~2)?draw[w;yn%w;y];dx x;dx y;0}
   `sadv!{[r;x]$(x~39;r:1;x~47;r:1;x~92;r:1;r:0);r}
    `out!{[r;x](~x)? :x;rx x;r:x;(~1~tp r)?r:kst x;printc[r+8;nn r];dx r;x}
-   `kst!{[r;x]t:tp x;(~nn x)?(t>1)?(t<6)?(dx x;r:cc[cc[mkc 48;35];48];(t~3)?r:cc[r;46];(t~4)?r:cc[r;97];(t~5)?C[r+10]:`C$96; :r);(7~t)?(rld x;k:I x+8;v:I x+12;k:cc[kst k;33];(0~nn v)?(dx v;v:mki 0); :ucat[k;kst v]);$(6~t;(1~nn x)? :ucat[mkc 44;kst fst x];x:ech[x;235];x:str x);$(~t;r:x;1~t;r:cc[ucat[mkc 34;x];34];5~t;r:ucat[mkc 96;jon[x;mkc 96]];6~t;r:cc[ucat[mkc 40;jon[x;mkc 59]];41];r:jon[x;mkc 32]);r}
-   `str!{[r;x]xt:tp x;xn:nn x;xp:8+x;(xt~1)? :x;(~xt)? :cg[x;xn];((xt>5)+~xn~1)? :ech[x;164];$(2~xt;r:ci I xp;3~xt;r:cf F xp;4~xt;r:cz[F xp;F xp+8];5~xt;rx x;r:cs x;!0);dx x;r}
+   `kst!{[r;x]t:tp x;(~nn x)?(t>1)?(t<6)?(dx x;r:cc[cc[mkc 48;35];48];(t~3)?r:cc[r;46];(t~4)?r:cc[r;97];(t~5)?C[r+10]:`C$96; :r);(7~t)?(rld x;k:I x+8;v:I x+12;k:cc[kst k;33];(0~nn v)?(dx v;v:mki 0); :ucat[k;kst v]);$(6~t;((1~nn x)? :ucat[mkc 44;kst fst x];x:ech[x;235]);x:str x);$(~t;r:x;1~t;r:cc[ucat[mkc 34;x];34];5~t;r:ucat[mkc 96;jon[x;mkc 96]];6~t;r:cc[ucat[mkc 40;jon[x;mkc 59]];41];r:jon[x;mkc 32]);r}
+   `str!{[r;x]xt:tp x;xn:nn x;xp:8+x;(xt~1)? :x;(~xt)? :cg[x;xn];((xt>5)+~xn~1)? :ech[x;164];$(2~xt;r:ci I xp;3~xt;r:cf F xp;4~xt;r:cz[F xp;F xp+8];5~xt;(rx x;r:cs x);!0);dx x;r}
     `cc!{[r;x;y]n:nn x;((bk[1;n])<bk[1;n+1])? :ucat[x;mkc y];C[x+8+n]:`C$y;I[x]:1+I x;x}
     `ng!{[r;x;y]y?x:ucat[mkc 45;x];x}
     `cg!{[r;x;y]((~x)+x~128)? :mk[1;0];(x<127)? :mkc x;(x<256)? :cc[mkc x-128;58];(y~2)?(rl x;r:cat[str I x+12;str I x+8]);(y~3)?(rl x;dx I x+16;r:kst I x+12;C[r+8]:`C$91;C[r+7+nn r]:`C$93;r:ucat[str I x+8;r]);(y~4)?(r:I x+8;rx r);dx x;r}
@@ -194,17 +194,17 @@ k:(`sin!{[R;X]}
    `prs!{[r;x]xt:tp x;xn:nn x;xp:8+x;(~xt~1)?!0;xn:xn+xp;I[8]:xp;(xn>xp)?(47~C xp)?I[8]:com[xp;xn];r:sq xn;$(1~nn r;r:fst r;r:cat[128;r]);dx x;r}
     `sq!{[r;x]r:mk[6;0];q:ex[pt x;x];q?r:lcat[r;q];1?/(v:ws x;p:I 8;(~v)?(v:C p;v:~(v~59)+v~10);v?((p<x)?I[8]:1+p; :r);I[8]:1+p;(~nn r)?r:lcat[r;0];r:lcat[r;ex[pt x;x]]);!0;x}
     `ex!{[r;x;y]((~x)+ws y)? :x;r:C I 8;((is[r;32])+r~10)? :x;r:pt y;(isv r)?(~isv x)? :l3[r;x;ex[pt y;y]];l2[x;ex[r;y]]}
-    `pt!{[r;x]r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l+40~C p)?(I[8]:1+p;$(l;a:0;(91~C 1+p)?(I[8]:2+p;a:sq x;(~nn a)?a:lcat[a;mk[5;0]];a:ovr[a;44]);r:sq x;r:lam[p;I 8;r;a];r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r)));1?/(p:I 8;b:C p;((p~x)+32~C p-1)? :r;$(is[b;16];r:l2[tok x;r];b~91;I[8]:1+p;p:sq x;(~nn p)?p:lcat[p;0];r:cat[enl r;p]; :r));!0;r}
+    `pt!{[r;x]r:tok x;(~r)?(p:I 8;(p~x)? :0;l:123~C p;(l+40~C p)?(I[8]:1+p;$(l;(a:0;(91~C 1+p)?(I[8]:2+p;a:sq x;(~nn a)?a:lcat[a;mk[5;0]];a:ovr[a;44]);r:sq x;r:lam[p;I 8;r;a]);(r:sq x;n:nn r;(n~1)?r:fst r;(n>1)?r:enl r))));1?/(p:I 8;b:C p;((p~x)+32~C p-1)? :r;$(is[b;16];r:l2[tok x;r];b~91;(I[8]:1+p;p:sq x;(~nn p)?p:lcat[p;0];r:cat[enl r;p]); :r));!0;r}
    `isv!{[r;x]xt:tp x;xn:nn x;xp:8+x;(~xt)? :1;(xt~6)?(xn~2)?(a:I xp;(a<256)?((is[a;16])|is[a-128;16])? :1);0}
    `lac!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;(xt~6)?((1~xn)?(5~tp I x+8)? :y;xn/(y:lac[I xp;y];xp+:4));(xt~5)?(xn~1)?(p:((I xp)-8)%4;(p>y)?(p<4)? :p);y}
    `loc!{[r;x;y]xt:tp x;xn:nn x;xp:8+x;(~xt~6)? :y;xn/(y:loc[I xp;y];xp+:4);xp:x+8;(xn~3)?(58~I xp)?(r:I xp+4;rx r;s:fst r;n:nn y;(n~fnx[y;s+8])?(rx s;y:cat[y;s]);dx s);y}
    `lam!{[r;x;y;z;x3]$(1~nn z;z:fst z;z:cat[128;z]);(~x3)?(r:I 148;rx r;x3:take[r;lac[z;0]]);v:nn x3;x3:loc[z;x3];n:y-x;t:mk[1;n];mv[t+8;x;n];r:mk[0;4];I[r+8]:t;I[r+12]:z;I[r+16]:x3;I[r+20]:v;r}
     `ws!{[r;x]p:I 8;(47~C p)?(b:C p-1;((b~32)+b~10)?p:com[p;x]);1?/((p~x)?(I[8]:p; :1);b:C p;((b~10)+is[b;64])?(I[8]:p; :0);p+:1;(47~C p)?p:com[p;x]);x}
    `com!{[r;x;y](x<y)?/((10~C x)? :x;x+:1);x}
-   `tok!{[r;x](ws x)? :0;p:I 8;b:C p;((is[b;32])+b~10)? :0;5/(r:T[i+136][b;p;x];r? :r);0}
+   `tok!{[r;x](ws x)? :0;p:I 8;b:C p;((is[b;32])+b~10)? :0;5/(r:T[i+136;`I;`I`I`I][b;p;x];r? :r);0}
    `pui!{[r;x;y;z](~is[x;4])? :0;r:0;((is[x;4])*y<z)?/(r*:10;r:r+`I$x-48;y+:1;x:C y);I[8]:y;r}
    `pin!{[r;x;y;z]I[8]:y;u:pui[x;y;z];(~y~I 8)? :mki `I$u;(x~45)?(y+:1;(y<z)?(x:C y;I[8]:y;u:pui[x;y;z];(~y~I 8)? :mki -`I$u;I[8]:y-1));0}
-   `pfd!{[R;x;y;Z]G:1.0;(Z<\0.0)?G:-\G;1?/(b:C x;$((x<y)*is[b;4];G:G*\0.1;Z:Z+\G*\`F$b-48;I[8]:x; :Z);x+:1);Z}
+   `pfd!{[R;x;y;Z]G:1.0;(Z<\0.0)?G:-\G;1?/(b:C x;$((x<y)*is[b;4];(G:G*\0.1;Z:Z+\G*\`F$b-48);(I[8]:x; :Z));x+:1);Z}
    `pfl!{[r;x;y;z]m:0;(x~45)?(t:C y-1;((t~34)+(t~93)+(t~41)+is[t;7])? :0;m:1);r:pin[x;y;z];y:I 8;((y~z)+~r)? :r;(46~C y)?(r:up[r;2;1];rp:r+8;F[rp]:pfd[y+1;z;F rp]);y:I 8;(y<z)?(101~C y)?(I[8]:y+1;q:pin[C 1+y;1+y;z];(~q)?(I[8]:y; :r);e:I q+8;dx q;F:F r+8;(e<'0)?/(F:F%\10.0;e+:1);(e>0)?/(F:F*\10.0;e-:1);F[r+8]:F);m?(F:F r+8;(F>\0.0)?F[r+8]:-\F);r}
    `num!{[r;x;y;z]r:pfl[x;y;z];(~r)? :r;y:I 8;x:C y;(y<z)?((119~x)+(110~x)+(112~x)+97~x)?((2~tp r)?r:up[r;2;1];y+:1;I[8]:y;(~97~x)?((112~x)?F:3.141592653589793*\F r+8;(110~x)?F:0n;(119~x)?F:0w;F[r+8]:F; :r);r:up[r;3;1];a:pfl[C y;y;z];(~a)?a:mki 0;(2~tp a)?a:up[a;2;1];r:atx[r;a]);r}
    `nms!{[r;x;y;z]r:num[x;y;z];(~r)? :r;1?/(y:I 8;x:C y;((y+2)>z)? :r;(~x~32)? :r;y+:1;q:num[C y;y;z];(~q)?(I[8]:y-1; :r);r:upx[r;q];q:upx[q;r];r:cat[r;q]);r}

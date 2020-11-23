@@ -287,12 +287,12 @@ func ics(x, y i) {
 	for i := i(0); i < xn; i++ {
 		if i < y && C(xp) == 10 {
 			p = xp + 1
-			y -= i + 1
 		} else if i > y && C(xp) == 10 && q > xp {
 			q = xp
 		}
 		xp++
 	}
+	y -= p - (x + 8)
 	os.Stdout.Write(MC[p:q])
 	os.Stdout.Write([]byte{10})
 	if y > 0 && y < 100 {
@@ -318,7 +318,7 @@ func ini(x i) i {
 		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, nil, nil, nil, rnd, nil, tok, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, odf, nil, nil, rnd, nil, tok, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(12, 0x70881342)        // rng state
@@ -2463,6 +2463,23 @@ func asd(v, s, a, u i) (r i) { // (+;`x;a;y)
 	return r
 }
 
+func odf(x i) (r i) {
+	fmt.Printf("%s\n", X(x))
+	if tp(x) != 0 || nn(x) != 5 {
+		panic("odf: no-lambda")
+	}
+	s := I(x + 8)  // string
+	b := I(x + 12) // tree
+	m := I(x + 24) // src
+	rx(s)
+	rx(b)
+	rx(m)
+	r = l3(b, m, s)
+	od(r)
+	dx(r)
+	return x
+}
+
 // nop            0=x      ignore
 // const(k-value) 0=x&0xf  push x
 // monad      n   1=x&0xf  n=x>>4  0..255
@@ -2604,10 +2621,6 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 			a = asd(a, I(sp), I(sp-4), I(sp-8))
 			sp -= 12
 		} else if m == 8 { //rel jump if 0
-			if a == 0 {
-				fmt.Println("jif00")
-				panic("jif 0!0")
-			}
 			if a == 0 || I(8+a) == 0 {
 				xp += n
 				yp += n

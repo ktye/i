@@ -1113,7 +1113,7 @@ func (s seq) bytes() (r []c) {
 	}
 	return r
 }
-func (s seq) kstr() (r s) { return s.argv.kjoin(";") }
+func (s seq) kstr() (r s) { return "(" + s.argv.kjoin(";") + ")" }
 func (s seq) cstr() (r s) {
 	t := s.rt()
 	if t != 0 {
@@ -1411,7 +1411,11 @@ func (d dot) bytes() (r []c) {
 	return append(r, 0x00)
 }
 func (d dot) kstr() s {
-	return "T[" + kstring(d.idx) + "][" + d.argv.kjoin(";") + "]" //todo..
+	at := make([]string, len(d.argv))
+	for i, a := range d.argv {
+		at[i] = a.rt().String()
+	}
+	return "T[" + kstring(d.idx) + ";`" + d.t.String() + ";`" + strings.Join(at, "`") + "][" + d.argv.kjoin(";") + "]" //todo..
 }
 func (d dot) cstr() s {
 	av := make([]s, len(d.argv))
@@ -1561,7 +1565,7 @@ func (v iff) valid() s {
 	return ""
 }
 func (v iff) bytes() (r []c) { return catb(v.x().bytes(), []c{0x04, 0x40}, v.y().bytes(), []c{0x0b}) }
-func (v iff) kstr() s        { return jn(lembr(v.x()), "?", rembr(v.y())) } // or $[x;y;]
+func (v iff) kstr() s        { return jn(lembr(v.x()), "?", kstring(v.y())) } // or $[x;y;]
 func (v iff) cstr() s        { return jn("if(", cstring(v.x()), "){", cstring(v.y()), "}") }
 func (v iff) gstr() s        { return jn("if ", gbool(v.x()), "{", gstring(v.y()), "}") }
 func (v nlp) rt() T          { return 0 }
@@ -1603,7 +1607,7 @@ func (v nlp) kstr() (r s) {
 	if _, o := v.x().(con); o == false && isexpr(v.x()) {
 		x = "(" + x + ")"
 	}
-	return x + "/" + rembr(v.y())
+	return x + "/" + kstring(v.y())
 }
 func (v nlp) cstr() (r s) {
 	if isexpr(v.x()) {
@@ -1642,7 +1646,7 @@ func (v whl) kstr() (r s) {
 	if _, o := v.x().(con); o {
 		x = "1"
 	}
-	return x + "?/" + rembr(v.y())
+	return x + "?/" + kstring(v.y())
 }
 func (v whl) cstr() s { return jn("while(", cstring(v.x()), "){", cstring(v.y()), "}") }
 func (v whl) gstr() s {
@@ -1766,13 +1770,6 @@ func lembr(x expr) (r s) {
 		if _, o := x.(con); !o {
 			return "(" + r + ")"
 		}
-	}
-	return r
-}
-func rembr(x expr) (r s) {
-	r = kstring(x)
-	if _, o := x.(seq); o {
-		return "(" + r + ")"
 	}
 	return r
 }
@@ -2098,7 +2095,15 @@ func (m module) kout(tab []segment, data []dataseg) []c {
 			fmt.Fprintf(&b, "%7s!{[%s;%s]", "`"+f.name, st, sig)
 		}
 		if f.ast != nil {
-			b.WriteString(kstring(f.ast))
+			if sq, o := f.ast.(seq); o {
+				v := make([]string, len(sq.argv))
+				for i, a := range sq.argv {
+					v[i] = kstring(a)
+				}
+				b.WriteString(strings.Join(v, ";"))
+			} else {
+				b.WriteString(kstring(f.ast))
+			}
 		}
 		b.WriteString("}\n")
 		if f.ex {
