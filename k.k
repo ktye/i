@@ -9,7 +9,7 @@ k:(`sin!{[R;X]}
 `printc!{[V;x;y]}
    `ini!{[r;x]I[0]:134480132;I[4]:67372048;I[12]:1887966018;I[128]:x;p:256;i:8;(i<x)?/(I[4*i]:p;p*:2;i+:1);I[132]:enl mk[1;0];I[136]:enl 0;I[148]:cat[cat[mks 120;mks 121];mks 122];x}
     `bk!{[r;x;y]r:32-*7+y*C x;(r<4)? :4;r}
-    `mk!{[r;x;y]t:bk[x;y];b:4*t;m:4*I 128;(~I b)?/((b>/'m)?(m:grow 1+b%4;I[128]:m;I[b]:1^b_2;m:b;b-:4);b+:4);(128~b)?!0;a:I b;I[b]:I a;j:b-4;(j>/4*t)?/(u:a+1^j_2;I[u]:I j;I[j]:u;j-:4);I[a]:y|x^29;I[a+4]:1;a}
+    `mk!{[r;x;y]t:bk[x;y];b:4*t;m:4*I 128;(0~I b)?/((b>/'m)?(m:grow 1+b%4;I[128]:m;I[b]:1^b_2;m:b;b-:4);b+:4);(128~b)?!0;a:I b;I[b]:I a;j:b-4;(j>/4*t)?/(u:a+1^j_2;I[u]:I j;I[j]:u;j-:4);I[a]:y|x^29;I[a+4]:1;a}
    `mki!{[r;x]r:mk[2;1];I[r+8]:x;r}
    `mkf!{[r;X]r:mk[3;1];F[r+8]:X;r}
    `mkd!{[r;x;y](~5~tp x)?(r:mk[4;1];F[r+8]:`F$0;F[r+16]:`F$1; :add[x;mul[y;r]]);r:nn x;(1~r)?(~1~nn y)?y:enl y;y:lx y;(~r~nn y)?!0;r:l2[x;y];I[r]:2|7^29;r}
@@ -27,7 +27,7 @@ k:(`sin!{[R;X]}
     `rl!{[V;x]xn:nn x;xp:8+x;xn/(rx I xp;xp+:4)}
    `rld!{[V;x]rl x;dx x}
     `lx!{[r;x]xt:tp x;xn:nn x;(xt~6)? :x;((xt~7)+xn~1)? :enl x;(0~xt)?!0;r:mk[6;xn];rp:r+8;rxn[x;xn];xn/(I[rp]:atx[x;mki i];rp+:4);dx x;r}
-   `til!{[r;x]xt:tp x;xp:8+x;(4~xt)? :zim x;(6~xt)? :ech[x;161];(7~xt)?(r:I xp;rx r;dx x; :r);(~2~xt)?!0;n:I xp;dx x;(n<'0)? :tir -n;seq[0;n;1]}
+   `til!{[r;x]xt:tp x;xp:8+x;(4~xt)? :zim x;(6~xt)? :ech[x;161];(7~xt)?(r:I xp;rx r;dx x; :r);(~2~xt)?!0;n:I xp;dx x;(n<'0)? :tir[-n];seq[0;n;1]}
    `seq!{[r;x;y;z]r:mk[2;y];rp:8+r;y/(I[rp]:z*i+x;rp+:4);r}
    `tir!{[r;x]r:mk[2;x];rp:4+r+4*x;x/(I[rp]:i;rp-:4);r}
    `upx!{[r;x;y]t:tp x;yt:tp y;(t~yt)? :x;((t~7)+yt~7)?!0;(yt~6)? :lx x;n:nn x;(t<yt)?/(x:up[x;t;n];t+:1);x}
@@ -189,7 +189,7 @@ k:(`sin!{[R;X]}
     `ng!{[r;x;y]y?x:ucat[mkc 45;x];x}
     `cg!{[r;x;y]((~x)+x~128)? :mk[1;0];(x<127)? :mkc x;(x<256)? :cc[mkc x-128;58];(y~2)?(rl x;r:cat[str I x+12;str I x+8]);(y~3)?(rl x;dx I x+16;r:kst I x+12;C[r+8]:`C$91;C[r+7+nn r]:`C$93;r:ucat[str I x+8;r]);(y~4)?(r:I x+8;rx r);dx x;r}
     `ci!{[r;x](~x)? :mkc 48;m:0;(x<'0)?(x:-x;m:1);r:mk[1;0];x?/(c:x!10;r:cc[r;48+c];x%:10);(~nn r)?r:cc[r;48];ng[rev r;m]}
-    `cf!{[r;X](~X~\X)? :cc[mkc 48;110];(X~\0.0)? :cc[cc[mkc 48;46];48];m:0;(X<\0.0)?(m:1;X:-\X);(X>\1.7976931348623157e+308)? :ng[cc[mkc 48;119];m];e:0;(X>\1000.0)?/(e+:3;X:X%\1000.0);d:7;(X<\1.0)?(d+:1;(X<\0.1)?(d+:1;(X<\0.01)?(d+:1;(X<\0.001)?(d:7;(X<\1.0)?/(e-:3;X:X*\1000.0)))));n:`I$'X;r:ci n;X:X-\`F$n;d:d-nn r;(d<'1)?d:1;r:cc[r;46];t:0;d/(X:X*\10.0;n:`I$X;r:cc[r;48+n];X:X-\`F$n;t:(1+t)*~n+~i);r:drop[r;-t];e?r:ucat[cc[r;101];ci e];ng[r;m]}
+    `cf!{[r;X](~X~\X)? :cc[mkc 48;110];(X~\0.0)? :cc[cc[mkc 48;46];48];m:0;(X<\0.0)?(m:1;X:-\X);(X>\"ffffffffffffef7f")? :ng[cc[mkc 48;119];m];e:0;(X>\1000.0)?/(e+:3;X:X%\1000.0);d:7;(X<\1.0)?(d+:1;(X<\0.1)?(d+:1;(X<\0.01)?(d+:1;(X<\0.001)?(d:7;(X<\1.0)?/(e-:3;X:X*\1000.0)))));n:`I$'X;r:ci n;X:X-\`F$n;d:d-nn r;(d<'1)?d:1;r:cc[r;46];t:0;d/(X:X*\10.0;n:`I$X;r:cc[r;48+n];X:X-\`F$n;t:(1+t)*~n+~i);r:drop[r;-t];e?r:ucat[cc[r;101];ci e];ng[r;m]}
     `cz!{[r;X;Y]A:hypot[X;Y];p:`I$0.5+\ang[X;Y];ucat[cc[cf A;97];ci p]}
    `prs!{[r;x]xt:tp x;xn:nn x;xp:8+x;(~xt~1)?!0;xn:xn+xp;I[8]:xp;(xn>xp)?(47~C xp)?I[8]:com[xp;xn];r:sq xn;$(1~nn r;r:fst r;r:cat[128;r]);dx x;r}
     `sq!{[r;x]r:mk[6;0];q:ex[pt x;x];q?r:lcat[r;q];1?/(v:ws x;p:I 8;(~v)?(v:C p;v:~(v~59)+v~10);v?((p<x)?I[8]:1+p; :r);I[8]:1+p;(~nn r)?r:lcat[r;0];r:lcat[r;ex[pt x;x]]);!0;x}
@@ -203,10 +203,10 @@ k:(`sin!{[R;X]}
    `com!{[r;x;y](x<y)?/((10~C x)? :x;x+:1);x}
    `tok!{[r;x](ws x)? :0;p:I 8;b:C p;((is[b;32])+b~10)? :0;5/(r:T[i+136;`I;`I`I`I][b;p;x];r? :r);0}
    `pui!{[r;x;y;z](~is[x;4])? :0;r:0;((is[x;4])*y<z)?/(r*:10;r:r+`I$x-48;y+:1;x:C y);I[8]:y;r}
-   `pin!{[r;x;y;z]I[8]:y;u:pui[x;y;z];(~y~I 8)? :mki `I$u;(x~45)?(y+:1;(y<z)?(x:C y;I[8]:y;u:pui[x;y;z];(~y~I 8)? :mki -`I$u;I[8]:y-1));0}
+   `pin!{[r;x;y;z]I[8]:y;u:pui[x;y;z];(~y~I 8)? :mki `I$u ;(x~45)?(y+:1;(y<z)?(x:C y;I[8]:y;u:pui[x;y;z];(~y~I 8)? :mki@-`I$u;I[8]:y-1));0}
    `pfd!{[R;x;y;Z]G:1.0;(Z<\0.0)?G:-\G;1?/(b:C x;$((x<y)*is[b;4];(G:G*\0.1;Z:Z+\G*\`F$b-48);(I[8]:x; :Z));x+:1);Z}
-   `pfl!{[r;x;y;z]m:0;(x~45)?(t:C y-1;((t~34)+(t~93)+(t~41)+is[t;7])? :0;m:1);r:pin[x;y;z];y:I 8;((y~z)+~r)? :r;(46~C y)?(r:up[r;2;1];rp:r+8;F[rp]:pfd[y+1;z;F rp]);y:I 8;(y<z)?(101~C y)?(I[8]:y+1;q:pin[C 1+y;1+y;z];(~q)?(I[8]:y; :r);e:I q+8;dx q;F:F r+8;(e<'0)?/(F:F%\10.0;e+:1);(e>0)?/(F:F*\10.0;e-:1);F[r+8]:F);m?(F:F r+8;(F>\0.0)?F[r+8]:-\F);r}
-   `num!{[r;x;y;z]r:pfl[x;y;z];(~r)? :r;y:I 8;x:C y;(y<z)?((119~x)+(110~x)+(112~x)+97~x)?((2~tp r)?r:up[r;2;1];y+:1;I[8]:y;(~97~x)?((112~x)?F:3.141592653589793*\F r+8;(110~x)?F:0n;(119~x)?F:0w;F[r+8]:F; :r);r:up[r;3;1];a:pfl[C y;y;z];(~a)?a:mki 0;(2~tp a)?a:up[a;2;1];r:atx[r;a]);r}
+   `pfl!{[r;x;y;z]m:0;(x~45)?(t:C y-1;((t~34)+(t~93)+(t~41)+is[t;7])? :0;m:1);r:pin[x;y;z];y:I 8;((y~z)+~r)? :r;(46~C y)?(r:up[r;2;1];rp:r+8;F[rp]:pfd[y+1;z;F rp]);y:I 8;(y<z)?(101~C y)?(I[8]:y+1;q:pin[C 1+y;1+y;z];(~q)?(I[8]:y; :r);e:I q+8;dx q;N:F r+8;(e<'0)?/(N:N%\10.0;e+:1);(e>0)?/(N:N*\10.0;e-:1);F[r+8]:N);m?(N:F r+8;(N>\0.0)?F[r+8]:-\N);r}
+   `num!{[r;x;y;z]r:pfl[x;y;z];(~r)? :r;y:I 8;x:C y;(y<z)?((119~x)+(110~x)+(112~x)+97~x)?((2~tp r)?r:up[r;2;1];y+:1;I[8]:y;(~97~x)?((112~x)?N:3.141592653589793*\F r+8;(110~x)?N:0n;(119~x)?N:0w;F[r+8]:N; :r);r:up[r;3;1];a:pfl[C y;y;z];(~a)?a:mki 0;(2~tp a)?a:up[a;2;1];r:atx[r;a]);r}
    `nms!{[r;x;y;z]r:num[x;y;z];(~r)? :r;1?/(y:I 8;x:C y;((y+2)>z)? :r;(~x~32)? :r;y+:1;q:num[C y;y;z];(~q)?(I[8]:y-1; :r);r:upx[r;q];q:upx[q;r];r:cat[r;q]);r}
    `vrb!{[r;x;y;z](~is[x;24])? :0;(32~C y-1)?((x~92)?(I[8]:1+y; :160);(x~39)?y+:1);r:C y;(z>1+x)?(58~C 1+y)?(y+:1;r+:128);I[8]:1+y;r}
    `chr!{[r;x;y;z](48~x)?(1<z-y)?(120~C 1+y)? :phx[2+y;z];(~x~34)? :0;a:1+y;1?/(y+:1;(y~z)?!0;(34~C y)?(n:y-a;r:mk[1;n];mv[r+8;a;n];I[8]:1+y; :r));r}
@@ -216,14 +216,14 @@ k:(`sin!{[R;X]}
    `sms!{[r;x;y;z]r:sym[x;y;z];(~r)? :r;1?/(y:I 8;q:sym[C y;y;z];(~q)? :enl r;r:cat[r;q]);r}
     `is!{[r;x;y]y&cla x}
    `cla!{[r;x](128<x-32)? :0;C 128+x}
-  (0  ;`xxx`gtc`gti`gtf`xxx`gti`gtl`mod`xxx`eqc`eqi`eqf`eqz`eqi`eqL`xxx`abc`abi`abf`abz`nec`nei`nef`nez`xxx`moi`xxx`xxx`sqc`sqi`sqf`sqz)
-  (32 ;`xxx`mkd`xxx`rsh`cst`diw`min`ecv`ecd`epi`mul`add`cat`sub`cal`ovv`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`asn`xxx`les`eql`mor`fnd)
-  (64 ;`atx`xxx`xxx`xxx`xxx`xxx`nmf`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`sci`scv`ecl`exc`cut)
-  (96 ;`xxx`xxx`xxx`xxx`drw`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`ovi`max`ecr`mtc`xxx)
-  (128;`xxx`sin`cos`exp`log`xxx`xxx`xxx`chr`nms`vrb`nam`sms`xxx`xxx`xxx`adc`adi`adf`adz`suc`sui`suf`suz`muc`mui`muf`muz`dic`dii`dif`diz)
-  (160;`out`til`xxx`cnt`str`sqr`wer`epv`ech`ecp`fst`abx`enl`neg`val`riv`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`lst`xxx`grd`grp`gdn`unq)
-  (192;`typ`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`scn`liv`spl`srt`flr)
-  (224;`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`kst`lgf`xxx`xxx`xxx`prs`xxx`rnd`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`ovr`rev`jon`not`xxx)
+ ,/(`xxx`gtc`gti`gtf`xxx`gti`gtl`mod`xxx`eqc`eqi`eqf`eqz`eqi`eqL`xxx`abc`abi`abf`abz`nec`nei`nef`nez`xxx`moi`xxx`xxx`sqc`sqi`sqf`sqz
+    `xxx`mkd`xxx`rsh`cst`diw`min`ecv`ecd`epi`mul`add`cat`sub`cal`ovv`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`asn`xxx`les`eql`mor`fnd
+    `atx`xxx`xxx`xxx`xxx`xxx`nmf`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`sci`scv`ecl`exc`cut
+    `xxx`xxx`xxx`xxx`drw`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`ovi`max`ecr`mtc`xxx
+    `xxx`sin`cos`exp`log`xxx`xxx`xxx`chr`nms`vrb`nam`sms`xxx`xxx`xxx`adc`adi`adf`adz`suc`sui`suf`suz`muc`mui`muf`muz`dic`dii`dif`diz
+    `out`til`xxx`cnt`str`sqr`wer`epv`ech`ecp`fst`abx`enl`neg`val`riv`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`lst`xxx`grd`grp`gdn`unq
+    `typ`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`scn`liv`spl`srt`flr
+    `xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`kst`lgf`xxx`xxx`xxx`prs`xxx`rnd`xxx`xxx`xxx`xxx`xxx`xxx`xxx`xxx`ovr`rev`jon`not`xxx)
   (160;0x204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800)
    `sin`cos`exp`log`atan2`hypot`draw`grow`printc`ini`mk`mki`mkf`mkd`mkc`mks`mkz`nn`tp`dx`rx`til`atx`cal`fst`drop`mv`cat`ucat`lcat`enl`sc`cs`val`lup`asn`kst`prs)
 
