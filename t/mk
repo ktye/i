@@ -6,3 +6,5 @@
 ./k.exe ../k.k -e go k > out.go && go fmt out.go && go build out.go
 
 ./out.exe < t | sed 1d | awk -f t.awk
+
+./out.exe w.k -e

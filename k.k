@@ -239,10 +239,21 @@ shift:{$["I"~x;">>2";"F"~x;">>3";""]}
 rev:{$[6~@x;|x;x]}
 return:{$[x;:y;#y;;:y];p:-1+#y;$["return"~6#y p;y;y[p]:"return ",y[p]];y}
 
+c:   {f:funcs x;(_10)/:(,/cdec'[!f;.'.f];cdat x;(ctab x);,/cfun'[!f;.'.f];cmain)}
+cdat:{d:data x; "void initdat(){memcpy(C+",($*d),",(char[]){",(","/:$0+d 1),"});}"}
+ctab:{"void inittab(){",( ,/{"T[",($x),"]=",($y),";"}'[!#f;f:ftab x] ),"}"}
+cfdn:{$[#z 1;""/:(ctyp@*z 2;" ";$y;"(";csig z;")";$[x;cbod z;";"]);""]}
+cdec:cfdn[0]
+cfun:cfdn[1]
+ctyp:{$[`V~x;"void";"Z"<$x;"uint32_t";"float64"]}
+csig:{a:1_x 2;n:-1+x 3;","/:(n#a){(ctyp y)," ",$x}'n#a}
+cbod:{"{..}",_10}
+chead:((_10)/:{"#import<",x,".h>"}'$`stdlib`stdio`stdint`string`math),"char *C;uint32_t *I;double *F;"
+cmain:(_34)/:"`"\:"int main(int args, char **argv){C=malloc(1<<16);I=(*uint32_t)C;F=(*double)C;inittab();initdat();ini(16);
+}
+"
 
-
-/go   a way
- go:  {f:funcs x;o:gohead,(godat x),(gotab x),/gofun'[!f;.'.f];o}
+go:   {f:funcs x;o:gohead,(godat x),(gotab x),/gofun'[!f;.'.f];o}
 gofun:{$[#y 1;""/:("func ";$x;"(";gosig y;")";goret y;"{";goloc y;gobod y;"}";_10);""]}
 gosig:{a:1_x 2;n:-1+x 3;","/:(n#a){($x)," ",gotyp y}'n#a}
 goret:{$[`V~r:*x 2;"";"(",($r)," ",(gotyp r),")"]}
