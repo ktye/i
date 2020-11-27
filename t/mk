@@ -1,3 +1,8 @@
-go build k.go
-./k.exe t
-time ./k.exe w.k -e
+#go build k.go
+#./k.exe t
+#time ./k.exe w.k -e
+
+
+./k.exe ../k.k ../c.k -e go k > out.go && go fmt out.go && go build out.go
+
+./out.exe < t | sed 1d | awk -f t.awk
