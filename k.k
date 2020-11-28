@@ -227,7 +227,18 @@ k:(`sin!{[R;X]}
   (160;0x204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800)
    `sin`cos`exp`log`atan2`hypot`draw`grow`printc`ini`mk`mki`mkf`mkd`mkc`mks`mkz`nn`tp`dx`rx`til`atx`cal`fst`drop`mv`cat`ucat`lcat`enl`sc`cs`val`lup`asn`kst`prs)
 
-
+/k:(`grow!{[r;x]}
+/   `mk!{[r;x;y]x+y}
+/   `tir!{[r;x]r:mk[2;x];rp:4+r+4*x;x/(I[rp]:i;rp-:4);r}
+/   `bk!{[r;x;y]r:32-*7+y*C x;(r<4)? :4;r}
+/   `mk!{[r;x;y]t:bk[x;y];b:4*t;m:4*I 128;m}
+/  `mki!{[r;x]r:mk[2;1];I[r+8]:x;r}
+/     `bk`mki
+/  (0;"")
+/  `bk`mki)
+  
+/  
+/ 
 
 funcs:{(,/!'x@i)!,/.'x@i:&,/7=@'x}
 ftab: {x@*&,/&5=@'x}
@@ -235,23 +246,51 @@ data: {x@&,/6=@'k}
 exprt:{*|x}
 obj:{ 'ox} 
 en:{"(",x,")"}
-shift:{$["I"~x;">>2";"F"~x;">>3";""]}
 rev:{$[6~@x;|x;x]}
-return:{$[x;:y;#y;;:y];p:-1+#y;$["return"~6#y p;y;y[p]:"return ",y[p]];y}
 
-c:   {f:funcs x;(_10)/:(,/cdec'[!f;.'.f];cdat x;(ctab x);,/cfun'[!f;.'.f];cmain)}
+c:   {f:funcs x;(_10)/:(chead;,/cdec'[!f;.'.f];cdat x;(ctab x);,/cfun'[!f;.'.f];cmain)}
 cdat:{d:data x; "void initdat(){memcpy(C+",($*d),",(char[]){",(","/:$0+d 1),"});}"}
 ctab:{"void inittab(){",( ,/{"T[",($x),"]=",($y),";"}'[!#f;f:ftab x] ),"}"}
-cfdn:{$[#z 1;""/:(ctyp@*z 2;" ";$y;"(";csig z;")";$[x;cbod z;";"]);""]}
-cdec:cfdn[0]
-cfun:cfdn[1]
+cfdn:{$[#z 1;""/:(ctyp@*z 2;" ";$y;"(";csig z;")";$[x;"{",(_10),(cbod z),"}",(_10);";"]);""]};cdec:cfdn[0];cfun:cfdn[1]
 ctyp:{$[`V~x;"void";"Z"<$x;"uint32_t";"float64"]}
+ccif:{("char";"uint32_t";"double")"CIF"?x}
 csig:{a:1_x 2;n:-1+x 3;","/:(n#a){(ctyp y)," ",$x}'n#a}
-cbod:{"{..}",_10}
-chead:((_10)/:{"#import<",x,".h>"}'$`stdlib`stdio`stdint`string`math),"char *C;uint32_t *I;double *F;"
-cmain:(_34)/:"`"\:"int main(int args, char **argv){C=malloc(1<<16);I=(*uint32_t)C;F=(*double)C;inittab();initdat();ini(16);
-}
-"
+crtn:{$[x;:y;#y;;:y];p:-1+#y;$["return"~6#y p;y;y[p]:"return ",y[p]];y}
+ccon:{$["0n"~x;"NAN";"0w"~x;"INFINITY";x~"3.141592";"M_PI";x~"57.29577";"57.29577951308232";x~"ffffffffffffef7f";"1.7976931348623157e+308";x~"399d52a246df913f";"0.017453292519943295";x]}
+ccnd:{(5_,/{"else if(",(x 0),"){",(cstm rev x 1),"}"}'((2\#x),2)#x),"else{",(cstm rev@*|x),"}"}
+cfor:{"for(uint32_t i=0;i<",x,";i++)"}
+cfob:{x,"{",(_10),(cstm rev y),"}"}
+cmon:{s:$[(#x)~n:x?,y; y; x 1+n];s,z,$["("~*|s;")";""]}
+cdya:{[v;x;y]$[v~":"; :x,"=",y;v~"$"; :ccvt[x;y;""];v~"$("; :ccvt[x;y;"'"]; 0];s:$[(#c2)~n:c2?,v;v;c2 1+n]; csgn[s;x],csgn[s;s],csgn[s;y]}
+ccvt:{$["I"~x;"(uint32_t)";"(double)"],"(",csgn[z;y],")"}
+csgn:{o:$["'"~*|x;-1_x;x];$[x~y;o;$[o~x;y;"(int32_t)(",y,")"]]}
+catx:{$[|/"CIF"~\:x;clod[x;y];|/c1~\:x;cmon[c1;x;y];"for"~3#x;cfob[x;y];x,en y]}
+clod:{$["c"~*x;"(uint32_t)";""],"(*(",(x:ccif x),"*)M[",y,"])"}
+csto:{t:$["C"~x 2;("";"(char)");("*(",(ccif x 2),"*)";"")];(t 0),"M[",(x 1),"]=",(t 1),(x 0)}
+ciff:{"if(",x,"){",(_10),(cstm rev y),"}"}
+ccal:{$["?{"~x;cwhl y;c2~\:x;cdya[x;y 1;y 0]; "T"~x;cicl y; x,en@ ","/:rev y]}
+cicl:{a:","/:(d:`I`F`V!("uint32_t";"double";""))[,/`$'x 0];r:d@`$x 1;"T[",(x 2),"].(func(",a,")",r,")"}
+cwhl:{"while(",x[1],"){",(cstm rev@*x),"}"}
+casn:{$[x 1;csto x;(x 2),($[(#c2)~n:c2?,v:x 3;v;c2 1+n]),"=",x 0]}
+cbod:{b:x 1;cstm crtn[`V~*x 2;()ctre/b]}
+cstm:{,/($[6~@x;x;,x]),',_59 10}
+ctre:{p:-1+#x;m:16/y;n:16\y;$[~y;
+ 0~m;x,:,ccon@$%y
+ 1~m;x[p]:$[164~n;ccnd[|x p];128>n;cfor x p;170~n;"clz",en x p;en cmon[c1;_n-128;x p]]
+ 2~m;x:(-2_x),,$[63~n;ciff;64~n;catx;46~n;ccal;cdya(_n)][x p;x p-1]
+ 4~m;x,:,$_n
+ 5~m;x,:,$%y
+ 6~m;x:((-n)_x),,(-n)#x
+ 7~m;x:(-4_x),,casn -4#x
+ 9~m;x[p]:"return ",x p
+15~m;;$y];x}
+c1:" "\:"+[ math.Abs( -[ - - - %[ math.Sqrt( ! trap( ~ ! _\ math.Floor("
+c2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ / ~ == ~[ == < < <( <' <{ <= <{( <=' <[ < >( >' >{ >= >{( >=' >{[ >= >[ > > >"
+/
+chead:((_10)/:{"#import<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("char *M;"
+ "uint32_t clz(I x){uint32_t r;";"#ifdef TINYC";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}")
+cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);}"
+
 
 go:   {f:funcs x;o:gohead,(godat x),(gotab x),/gofun'[!f;.'.f];o}
 gofun:{$[#y 1;""/:("func ";$x;"(";gosig y;")";goret y;"{";goloc y;gobod y;"}";_10);""]}
@@ -261,10 +300,10 @@ gotyp:{$["Z"<$x;"uint32";"float64"]}
 goloc:{l:(x 3)_x 2;$[#l;(";"/:{"var ",($x)," ",gotyp x}'l),";";""]}
 gotab:{"func initab(){copy(T[0:],[]interface{}{", (","/:$(ftab x)) ,"})};"}
 godat:{d:data x; "func initdat(){copy(C[",($*d),":],[]byte{",(","/:$0+d 1),"})};"}
-gobod:{b:x 1;";"/:return[`V~*x 2;()gotre/b]}
+gortn:{$[x;:y;#y;;:y];p:-1+#y;$["return"~6#y p;y;y[p]:"return ",y[p]];y}
 goasn:{$[x 1;gosto x;(x 2),($[(#go2)~n:go2?,v:x 3;v;go2 1+n]),"=",x 0]}
 gocnd:{(5_,/{"else if ",(gobin x 0),"{",(";"/:rev x 1),"}"}'((2\#x),2)#x),"else{",(";"/:rev@*|x),"}"  }
-gofoc:{"for i:=uint32(0);i<",x,";i++"}
+gofor:{"for i:=uint32(0);i<",x,";i++"}
 gofob:{x,"{",(";"/:rev y),"}"}
 goatx:{$[|/"CIF"~\:x;golod[x;y];|/go1~\:x;gomon[go1;x;y];"for"~3#x;gofob[x;y];x,en y]}
 gocal:{$["?{"~x;gowhl y;|/(go2," ",goc)~\:x; godya[x;y 1;y 0]; "T"~x;goicl y; x,en@ ","/:rev y]}
@@ -272,8 +311,9 @@ goicl:{a:","/:(d:`I`F`V!("uint32";"float64";""))[,/`$'x 0];r:d@`$x 1;"T[",(x 2),
 gowhl:{"for ",(gobin x[1])," {",(";"/:rev@*x),"}"}
 gobin:{$["ib("~3#x;2_x;"n32(ib("~7#x;"!((",7_x;"n32"~3#x;"1==",x;"bi(",x,")"]}
 gonot:{"n32(",x,")"}
-golod:{x:x,"[",(en y),(shift x),"]";$["C"~*x;"uint32(",x,")";x]}
-gosto:{(x 2),"[",(en x 1),(shift x 2),"]=",$["C"~x 2;"byte(",(x 0),")";x 0]}
+golod:{x:x,"[",(en y),(gosht x),"]";$["C"~*x;"uint32(",x,")";x]}
+gosto:{(x 2),"[",(en x 1),(gosht x 2),"]=",$["C"~x 2;"byte(",(x 0),")";x 0]}
+gosht:{$["I"~x;">>2";"F"~x;">>3";""]}
 goiff:{"if ",(gobin x),"{",(";"/:rev y),"}"}
 goclz:{"uint32(bits.LeadingZeros32(",x,"))"}
 gomon:{s:$[(#x)~n:x?,y; y; x 1+n];$["("~*|s;s,z,")";s,z]}
@@ -282,12 +322,10 @@ gocvt:{$["I"~x;"uint32";"float64"],"(",gosgn[z;y],")"}
 gocon:{$["0n"~x;"math.Float64frombits(18444492273895866368)";"0w"~x;"math.Inf(1)";x~"3.141592";"math.Pi";x~"57.29577";"57.29577951308232";x~"ffffffffffffef7f";"1.7976931348623157e+308";x~"399d52a246df913f";"0.017453292519943295";x]}
 gosgn:{o:$["'"~*|x;-1_x;x];$[x~y;o;$[o~x;y;"int32(",y,")"]]}
 gosnb:{$[~""~y;y;"'"~*|x;"uint32";""]}
-go1:" "\:"+[ math.Abs( -[ - - - %[ math.Sqrt( ! trap( ~ ! _\ math.Floor("
-go2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ /"
-goc:" "\:"~ == ~[ == < < <( <' <{ <= <{( <=' <[ < >( >' >{ >= >{( >=' >{[ >= >[ > > >"
+gobod:{b:x 1;";"/:gortn[`V~*x 2;()gotre/b]}
 gotre:{p:-1+#x;m:16/y;n:16\y;$[~y;
  0~m;x,:,gocon@$%y
- 1~m;x[p]:$[164~n;gocnd[|x p];128>n;gofoc x p;"*"~n1:_n-128;goclz x p;"~"~n1;gonot x p;en gomon[go1;n1;x p]]
+ 1~m;x[p]:$[164~n;gocnd[|x p];128>n;gofor x p;"*"~n1:_n-128;goclz x p;"~"~n1;gonot x p;en gomon[go1;n1;x p]]
  2~m;x:(-2_x),,$[63~n;goiff;64~n;goatx;46~n;gocal;godya(_n)][x p;x p-1]
  4~m;x,:,$_n
  5~m;x,:,$%y
@@ -295,7 +333,10 @@ gotre:{p:-1+#x;m:16/y;n:16\y;$[~y;
  7~m;x:(-4_x),,goasn -4#x
  9~m;x[p]:"return ",x p
 15~m;;$y];x}
-
+go1:" "\:"+[ math.Abs( -[ - - - %[ math.Sqrt( ! trap( ~ ! _\ math.Floor("
+go2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ /"
+goc:" "\:"~ == ~[ == < < <( <' <{ <= <{( <=' <[ < >( >' >{ >= >{( >=' >{[ >= >[ > > >"
+/
 gohead:(_34)/:"`"\:"package main
 import (`unsafe`;`fmt`;`bufio`;`os`;`math`;`math/bits`;`io/ioutil`;`bytes`;`strings`)
 var C []byte;var I []uint32;var F []float64;var T [256]interface{}
