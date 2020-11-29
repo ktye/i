@@ -6,3 +6,8 @@
 #./out.exe w.k -e
 
 ./k.exe ../k.k -e c k | ~/bin/dumbindent.exe > k.c
+
+#zig=/c/local/zig/zig.exe 
+#$zig cc k.c -target native-native-gnu
+#$zig cc k.c -target x86_64-windows-gnu
+#$zig cc k.c -target i386-windows-gnu

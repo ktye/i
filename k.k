@@ -238,27 +238,27 @@ en:{"(",x,")"}
 rev:{$[6~@x;|x;x]}
 
 c:   {f:funcs x;(_10)/:(chead;,/cdec'[!f;.'.f];cdat x;(ctab x);,/cfun'[!f;.'.f];cmain)}
-cdat:{d:data x; "void initdat(){memcpy(M+",($*d),",(char[]){",(","/:$0+d 1),"},",($#d 1),");}"}
-ctab:{"void *T[",($n),"];void inittab(){",( ,/{"T[",($x),"]=",($y),";"}'[!n:#f;f:ftab x] ),"}"}
-cfdn:{$[#z 1;""/:(ctyp@*z 2;" ";$y;"(";csig z;")";$[x;"{",(_10),(cbod z),"}",(_10);";"]);""]};cdec:cfdn[0];cfun:cfdn[1]
-ctyp:{$[`V~x;"void";"Z"<$x;"uint32_t";"double"]}
-ccif:{("char";"uint32_t";"double")"CIF"?x}
+cdat:{d:data x; "V initdat(){memcpy(M+",($*d),",(char[]){",(","/:$0+d 1),"},",($#d 1),");}"}
+ctab:{"V *T[",($n),"];V inittab(){",( ,/{"T[",($x),"]=",($y),";"}'[!n:#f;f:ftab x] ),"}"}
+cfdn:{$[#z 1;""/:(ctyp@*z 2;" ";$y;"(";csig z;")";$[x;"{",(_10),(cloc z),(cbod z),"}",(_10);";"]);""]};cdec:cfdn[0];cfun:cfdn[1]
+cloc:{l:(x 3)_x 2;l,:$[`r~*x 2;`r;0#`];$[#l;cstm({(ctyp x)," ",($x)}'l);""]}
+ctyp:{$[`V~x;"V";"Z"<$x;"I";"F"]}
 csig:{a:1_x 2;n:-1+x 3;","/:(n#a){(ctyp y)," ",$x}'n#a}
 crtn:{$[x;:y;#y;;:y];p:-1+#y;$["return"~6#y p;y;y[p]:"return ",y[p]];y}
 ccon:{$["0n"~x;"NAN";"0w"~x;"INFINITY";x~"3.141592";"M_PI";x~"57.29577";"57.29577951308232";x~"ffffffffffffef7f";"1.7976931348623157e+308";x~"399d52a246df913f";"0.017453292519943295";x]}
 ccnd:{(5_,/{"else if(",(x 0),"){",(_10),(cstm rev x 1),"}"}'((2\#x),2)#x),"else{",(_10),(cstm rev@*|x),"}"}
-cfor:{"for(uint32_t i=0;i<",x,";i++)"}
+cfor:{"for(I i=0;i<",x,";i++)"}
 cfob:{x,"{",(_10),(cstm rev y),"}"}
 cmon:{s:$[(#x)~n:x?,y; y; x 1+n];s,z,$["("~*|s;")";""]}
 cdya:{[v;x;y]$[v~":"; :x,"=",y;v~"$"; :ccvt[x;y;""];v~"$("; :ccvt[x;y;"'"]; 0];s:$[(#c2)~n:c2?,v;v;c2 1+n]; en csgn[s;x],csgn[s;s],csgn[s;y]}
-ccvt:{$["I"~x;"(uint32_t)";"(double)"],"(",csgn[z;y],")"}
+ccvt:{$["I"~x;"(I)";"(F)"],"(",csgn[z;y],")"}
 csgn:{o:$["'"~*|x;-1_x;x];$[x~y;o;$[o~x;y;"(int32_t)(",y,")"]]}
 catx:{$[|/"CIF"~\:x;clod[x;y];|/c1~\:x;cmon[c1;x;y];"for"~3#x;cfob[x;y];x,en y]}
-clod:{$["c"~*x;"(uint32_t)";""],"(*(",(x:ccif x),"*)M[",y,"])"}
-csto:{t:$["C"~x 2;("";"(char)");("*(",(ccif x 2),"*)";"")];(t 0),"M[",(x 1),"]=",(t 1),(x 0)}
+clod:{$["c"~*x;"(I)";""],"(*(",x,"*)(M+",y,"))"}
+csto:{t:$["C"~x 2; "M[",(x 1),"]=(C)",*x; "(*(",(x 2),"*)(M+",(x 1),"))=",*x]}
 ciff:{"if(",x,"){",(_10),(cstm rev y),"}"}
 ccal:{$["?{"~x;cwhl y;|/c2~\:x;cdya[x;y 1;y 0]; "T"~x;cicl y; x,en@ ","/:rev y]}
-cicl:{a:","/:(d:`I`F`V!("uint32_t";"double";""))[,/`$'x 0];r:d@`$x 1;"T[",(x 2),"].(func(",a,")",r,")"}
+cicl:{"((",(x 1),"(*)(",(","/:$'x 0),"))T[",(x 2),"])"}
 cwhl:{"while(",x[1],"){",(_10),(cstm rev@*x),"}"}
 casn:{$[x 1;csto x;(x 2),($[(#c2)~n:c2?,v:x 3;v;c2 1+n]),"=",x 0]}
 cbod:{b:x 1;cstm crtn[`V~*x 2;()ctre/b]}
@@ -273,12 +273,13 @@ ctre:{p:-1+#x;m:16/y;n:16\y;$[~y;
  7~m;x:(-4_x),,casn -4#x
  9~m;x[p]:"return ",x p
 15~m;;$y];x}
-c1:" "\:"+[ math.Abs( -[ - - - %[ math.Sqrt( ! trap( ~ ! _\ math.Floor("
+c1:" "\:"+[ fabs( -[ - - - %[ sqrt( ! trap( ~ ! _\ floor("
 c2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ / ~ == ~[ == < < <( <' <{ <= <{( <=' <[ < >( >' >{ >= >{( >=' >{[ >= >[ > > >"
 /
-chead:((_10)/:{"#include<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("";"char *M;"
- "uint32_t clz(uint32_t x){uint32_t r;";"#ifdef __TINYC__";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}")
-cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);}"
+chead:((_10)/:{"#include<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("";"typedef char C;";"typedef uint32_t I;";"typedef double F;";"typedef void V;";"char *M;"
+ "I clz(I x){I r;";"#ifdef __TINYC__";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}"
+ "I grow(I x){M=realloc(M,1<<x);}";"V printc(I x, I y){fwrite(M+x,1,y,stdout);putchar('\n');}";"V trap(I x){exit(1);}";"V draw(I x,I y,I z){}")
+cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);printf(`k.k(c)\n `);}"
 
 
 go:   {f:funcs x;o:gohead,(godat x),(gotab x),/gofun'[!f;.'.f];o}
