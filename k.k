@@ -227,18 +227,7 @@ k:(`sin!{[R;X]}
   (160;0x204840484848485040604848484848504444444444444444444448604848484848424242424242424242424242424242424242424242424242424240506048484041414141414141414141414141414141414141414141414141414048604800)
    `sin`cos`exp`log`atan2`hypot`draw`grow`printc`ini`mk`mki`mkf`mkd`mkc`mks`mkz`nn`tp`dx`rx`til`atx`cal`fst`drop`mv`cat`ucat`lcat`enl`sc`cs`val`lup`asn`kst`prs)
 
-/k:(`grow!{[r;x]}
-/   `mk!{[r;x;y]x+y}
-/   `tir!{[r;x]r:mk[2;x];rp:4+r+4*x;x/(I[rp]:i;rp-:4);r}
-/   `bk!{[r;x;y]r:32-*7+y*C x;(r<4)? :4;r}
-/   `mk!{[r;x;y]t:bk[x;y];b:4*t;m:4*I 128;m}
-/  `mki!{[r;x]r:mk[2;1];I[r+8]:x;r}
-/     `bk`mki
-/  (0;"")
-/  `bk`mki)
-  
-/  
-/ 
+
 
 funcs:{(,/!'x@i)!,/.'x@i:&,/7=@'x}
 ftab: {x@*&,/&5=@'x}
@@ -249,28 +238,28 @@ en:{"(",x,")"}
 rev:{$[6~@x;|x;x]}
 
 c:   {f:funcs x;(_10)/:(chead;,/cdec'[!f;.'.f];cdat x;(ctab x);,/cfun'[!f;.'.f];cmain)}
-cdat:{d:data x; "void initdat(){memcpy(C+",($*d),",(char[]){",(","/:$0+d 1),"});}"}
-ctab:{"void inittab(){",( ,/{"T[",($x),"]=",($y),";"}'[!#f;f:ftab x] ),"}"}
+cdat:{d:data x; "void initdat(){memcpy(M+",($*d),",(char[]){",(","/:$0+d 1),"},",($#d 1),");}"}
+ctab:{"void *T[",($n),"];void inittab(){",( ,/{"T[",($x),"]=",($y),";"}'[!n:#f;f:ftab x] ),"}"}
 cfdn:{$[#z 1;""/:(ctyp@*z 2;" ";$y;"(";csig z;")";$[x;"{",(_10),(cbod z),"}",(_10);";"]);""]};cdec:cfdn[0];cfun:cfdn[1]
-ctyp:{$[`V~x;"void";"Z"<$x;"uint32_t";"float64"]}
+ctyp:{$[`V~x;"void";"Z"<$x;"uint32_t";"double"]}
 ccif:{("char";"uint32_t";"double")"CIF"?x}
 csig:{a:1_x 2;n:-1+x 3;","/:(n#a){(ctyp y)," ",$x}'n#a}
 crtn:{$[x;:y;#y;;:y];p:-1+#y;$["return"~6#y p;y;y[p]:"return ",y[p]];y}
 ccon:{$["0n"~x;"NAN";"0w"~x;"INFINITY";x~"3.141592";"M_PI";x~"57.29577";"57.29577951308232";x~"ffffffffffffef7f";"1.7976931348623157e+308";x~"399d52a246df913f";"0.017453292519943295";x]}
-ccnd:{(5_,/{"else if(",(x 0),"){",(cstm rev x 1),"}"}'((2\#x),2)#x),"else{",(cstm rev@*|x),"}"}
+ccnd:{(5_,/{"else if(",(x 0),"){",(_10),(cstm rev x 1),"}"}'((2\#x),2)#x),"else{",(_10),(cstm rev@*|x),"}"}
 cfor:{"for(uint32_t i=0;i<",x,";i++)"}
 cfob:{x,"{",(_10),(cstm rev y),"}"}
 cmon:{s:$[(#x)~n:x?,y; y; x 1+n];s,z,$["("~*|s;")";""]}
-cdya:{[v;x;y]$[v~":"; :x,"=",y;v~"$"; :ccvt[x;y;""];v~"$("; :ccvt[x;y;"'"]; 0];s:$[(#c2)~n:c2?,v;v;c2 1+n]; csgn[s;x],csgn[s;s],csgn[s;y]}
+cdya:{[v;x;y]$[v~":"; :x,"=",y;v~"$"; :ccvt[x;y;""];v~"$("; :ccvt[x;y;"'"]; 0];s:$[(#c2)~n:c2?,v;v;c2 1+n]; en csgn[s;x],csgn[s;s],csgn[s;y]}
 ccvt:{$["I"~x;"(uint32_t)";"(double)"],"(",csgn[z;y],")"}
 csgn:{o:$["'"~*|x;-1_x;x];$[x~y;o;$[o~x;y;"(int32_t)(",y,")"]]}
 catx:{$[|/"CIF"~\:x;clod[x;y];|/c1~\:x;cmon[c1;x;y];"for"~3#x;cfob[x;y];x,en y]}
 clod:{$["c"~*x;"(uint32_t)";""],"(*(",(x:ccif x),"*)M[",y,"])"}
 csto:{t:$["C"~x 2;("";"(char)");("*(",(ccif x 2),"*)";"")];(t 0),"M[",(x 1),"]=",(t 1),(x 0)}
 ciff:{"if(",x,"){",(_10),(cstm rev y),"}"}
-ccal:{$["?{"~x;cwhl y;c2~\:x;cdya[x;y 1;y 0]; "T"~x;cicl y; x,en@ ","/:rev y]}
+ccal:{$["?{"~x;cwhl y;|/c2~\:x;cdya[x;y 1;y 0]; "T"~x;cicl y; x,en@ ","/:rev y]}
 cicl:{a:","/:(d:`I`F`V!("uint32_t";"double";""))[,/`$'x 0];r:d@`$x 1;"T[",(x 2),"].(func(",a,")",r,")"}
-cwhl:{"while(",x[1],"){",(cstm rev@*x),"}"}
+cwhl:{"while(",x[1],"){",(_10),(cstm rev@*x),"}"}
 casn:{$[x 1;csto x;(x 2),($[(#c2)~n:c2?,v:x 3;v;c2 1+n]),"=",x 0]}
 cbod:{b:x 1;cstm crtn[`V~*x 2;()ctre/b]}
 cstm:{,/($[6~@x;x;,x]),',_59 10}
@@ -287,8 +276,8 @@ ctre:{p:-1+#x;m:16/y;n:16\y;$[~y;
 c1:" "\:"+[ math.Abs( -[ - - - %[ math.Sqrt( ! trap( ~ ! _\ math.Floor("
 c2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ / ~ == ~[ == < < <( <' <{ <= <{( <=' <[ < >( >' >{ >= >{( >=' >{[ >= >[ > > >"
 /
-chead:((_10)/:{"#import<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("char *M;"
- "uint32_t clz(I x){uint32_t r;";"#ifdef TINYC";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}")
+chead:((_10)/:{"#include<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("";"char *M;"
+ "uint32_t clz(uint32_t x){uint32_t r;";"#ifdef __TINYC__";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}")
 cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);}"
 
 

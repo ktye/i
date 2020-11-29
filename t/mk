@@ -5,4 +5,4 @@
 
 #./out.exe w.k -e
 
-./k.exe ../k.k -e c k
+./k.exe ../k.k -e c k | ~/bin/dumbindent.exe > k.c
