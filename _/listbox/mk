@@ -1,0 +1,3 @@
+k0=../../t/k.go
+kk=../../k.k
+go run $k0 $kk -e go k | go run unmain.go > k.go
