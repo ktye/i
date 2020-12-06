@@ -278,7 +278,7 @@ c2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ /
 /
 chead:((_10)/:{"#include<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("";"typedef char C;";"typedef uint32_t I;";"typedef double F;";"typedef void V;";"char *M;"
  "I clz(I x){I r;";"#ifdef __TINYC__";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}"
- "I grow(I x){M=realloc(M,1<<x);}";"V printc(I x, I y){fwrite(M+x,1,y,stdout);putchar('\n');}";"V trap(I x){exit(1);}";"V draw(I x,I y,I z){}")
+ "I grow(I x){M=realloc(M,1<<x);return x;}";"V printc(I x, I y){fwrite(M+x,1,y,stdout);putchar('\n');}";"V trap(I x){exit(1);}";"V draw(I x,I y,I z){}")
 cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);printf(`k.k(c)\n `);}"
 
 
