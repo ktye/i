@@ -279,8 +279,28 @@ c2:" "\:"% / ! % !( %' ^ << | ^ _ >> $( $' +[ + + + -[ - - - *[ * * * %( /' %[ /
 chead:((_10)/:{"#include<",x,".h>"}'$`stdlib`stdio`stdint`string`math),(_34)/:"`"\:(_10)/:("";"typedef char C;";"typedef uint32_t I;";"typedef double F;";"typedef void V;";"char *M;"
  "I clz(I x){I r;";"#ifdef __TINYC__";"__asm__(`bsr %1, %0` : `=r` (r) : `rm` (x) : `cc`);";"#else";"r=__builtin_clz(x);";"#endif";"return r;";"}"
  "I grow(I x){M=realloc(M,1<<x);return x;}";"V printc(I x, I y){fwrite(M+x,1,y,stdout);putchar('\n');}";"V trap(I x){exit(1);}";"V draw(I x,I y,I z){}")
-cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);printf(`k.k(c)\n `);}"
-
+/cmain:(_34)/:"`"\:"int main(int args, char **argv){M=malloc(1<<16);inittab();initdat();ini(16);printf(`k.k(c)\n `);}"
+cmain:(_34)/:"`"\:"
+I chrs(C *s) {
+	I n = strlen(s);
+	I x = mk(1, n);
+	for (I i=0; i<n; i++) M[8+x+i] = s[i];
+	return x;
+}
+int main(int args, char **argv){
+ M=malloc(1<<16);inittab();initdat();ini(16);
+ printf(`k.k(c)\n `);
+ C buf[128];C *p;
+ while (fgets(buf, 128, stdin) != NULL) {
+  if ((p=strchr(buf, '\r'))!=NULL) *p = 0;
+  if ((p=strchr(buf, '\n'))!=NULL) *p = 0;
+  if (!strcmp(buf, `\\\\`))         exit(0);
+  else {
+   dx(out(val(chrs(buf))));
+   printf(` `);
+  }
+ }
+}"
 
 go:   {f:funcs x;o:gohead,(godat x),(gotab x),/gofun'[!f;.'.f];o}
 gofun:{$[#y 1;""/:("func ";$x;"(";gosig y;")";goret y;"{";goloc y;gobod y;"}";_10);""]}
