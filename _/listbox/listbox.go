@@ -1,34 +1,44 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/ktye/plot"
+	"github.com/ktye/plot/plotui"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 )
+
+const (
+	EDIT = 1 << iota
+	LIST
+	PLOT
+)
+
+var Files []string
+var Src []string
 
 var mainWindow *walk.MainWindow
 var tagEdit *walk.LineEdit
 var listBox *walk.ListBox
 var textEdit *walk.TextEdit
 var splitter *walk.Splitter
-var canvas *walk.CustomWidget
-var bitmap *walk.Bitmap
-var B []byte
+var pltui plotui.Plot
+var B []byte //k-backup memory
 
 func main() {
-	ini(16)
-	fmt.Println(val(mkcs([]byte(listbox))))
-	fmt.Println(val(mkcs([]byte(appinit))))
-	for _, a := range os.Args[1:] {
-		dropfile(a)
-	}
+	ok := make(chan bool)
+	go readStdin(ok)
+	restart(listbox)
+	DropFiles(os.Args[1:])
 	B = make([]byte, len(C))
 	copy(B, C)
 
@@ -45,32 +55,42 @@ func main() {
 			LineEdit{
 				AssignTo:   &tagEdit,
 				OnMouseUp:  TagClick,
-				Text:       "edit list canvas listcanvas image flip",
+				Text:       "Src Edit List Plot",
 				OnKeyPress: TagKey,
 				Background: bg,
 			},
 			TextEdit{
 				AssignTo: &textEdit,
 				//Background:      bg, // walk#746
-				Visible: false,
+				ContextMenuItems: []MenuItem{
+					Action{Text: "Search", OnTriggered: Search},
+					Action{Text: "Save", OnTriggered: Save},
+				},
+				HScroll: true,
+				VScroll: true,
+				Visible: true,
+			},
+			ListBox{
+				AssignTo:        &listBox,
+				Model:           []string{"alpha", "beta"},
+				MultiSelection:  true,
+				OnItemActivated: push,
+				OnKeyDown:       ListKey,
+				Background:      bg,
+				Visible:         false,
 			},
 			VSplitter{
-				AssignTo: &splitter,
+				AssignTo:      &splitter,
+				Visible:       false,
+				StretchFactor: 2,
 				Children: []Widget{
-					CustomWidget{
-						AssignTo:           &canvas,
-						Paint:              Paint,
-						PaintMode:          PaintBuffered,
-						AlwaysConsumeSpace: false,
-						Visible:            false,
-					},
-					ListBox{
-						AssignTo:        &listBox,
-						Model:           []string{"alpha", "beta"},
-						MultiSelection:  true,
-						OnItemActivated: push,
-						OnKeyDown:       ListKey,
-						Background:      bg,
+					pltui.BuildPlot(nil),
+					Composite{
+						Layout: VBox{MarginsZero: true, SpacingZero: true},
+						Children: []Widget{
+							pltui.BuildSlider(),
+							pltui.BuildCaption(nil),
+						},
 					},
 				},
 			},
@@ -79,7 +99,28 @@ func main() {
 	fatal(mw.Create())
 	setIcon()
 	mainWindow.DropFiles().Attach(DropFiles)
+	go func() { ok <- true }()
 	mainWindow.Run()
+}
+func restart(s string) {
+	C = make([]byte, 1<<16)
+	msl()
+	ini(16)
+	initdat()
+	B = make([]byte, len(C))
+	copy(B, C)
+	Src = strings.Split(s, "\n")
+	ktry(s)
+}
+func readStdin(ok chan bool) {
+	plts, e := plot.DecodeAny(os.Stdin)
+	<-ok
+	if e == nil && len(plts) > 0 {
+		mainWindow.Synchronize(func() {
+			pltui.SetPlot(plts, nil)
+			show(PLOT)
+		})
+	}
 }
 func setIcon() {
 	if ico, err := walk.NewIconFromImage(kimg); err != nil {
@@ -87,25 +128,6 @@ func setIcon() {
 		os.Exit(1)
 	} else {
 		mainWindow.SetIcon(ico)
-	}
-}
-func Paint(canvas *walk.Canvas, updateBounds walk.Rectangle) error {
-	if bitmap != nil {
-		canvas.DrawImage(bitmap, walk.Point{0, 0})
-	}
-	return nil
-}
-func SetBitmap(m image.Image) {
-	// bounds := canvas.ClientBounds()
-	if bm, e := walk.NewBitmapFromImage(m); e != nil {
-		return
-	} else {
-		old := bitmap
-		bitmap = bm
-		canvas.Invalidate()
-		if old != nil {
-			old.Dispose()
-		}
 	}
 }
 func ListKey(key walk.Key) {
@@ -132,31 +154,45 @@ func TagClick(x, y int, button walk.MouseButton) {
 		return
 	}
 	switch s {
-	/*
-		case "edit":
-			show(true, false, false)
-		case "list":
-			show(false, false, true)
-		case "canvas":
-			show(false, true, false)
-		case "listcanvas":
-			show(false, true, true)
-		case "image":
-			SetBitmap(kimg)
-			show(false, true, false)
-	*/
+	case "Src":
+		textEdit.SetText(strings.Join(Src, "\r\n"))
+		show(EDIT)
+	case "Edit":
+		show(EDIT)
+	case "List":
+		show(LIST)
+	case "Plot":
+		show(PLOT)
 	case "ok":
 		ok(textEdit.Text())
-	case "flip":
-		o := splitter.Orientation()
-		if o == walk.Horizontal {
-			o = walk.Vertical
-		} else {
-			o = walk.Horizontal
-		}
-		splitter.Layout().(flipper).SetOrientation(o)
 	default:
-		exec(s)
+		if strings.HasPrefix(s, "k)") {
+			ktry(s[2:])
+		} else {
+			exec(s)
+		}
+	}
+}
+func Search() {
+	t := textEdit.Text()
+	a, b := textEdit.TextSelection()
+	if a >= 0 && a < len(t) && b >= 0 && b <= len(t) && b > a {
+		s := t[a:b]
+		i := strings.Index(t[a+1:], s)
+		if i == -1 {
+			i = strings.Index(t, s)
+		} else {
+			i += 1 + a
+		}
+		if i > 0 {
+			textEdit.SetTextSelection(i, i+len(s))
+		}
+	}
+}
+func Save() {
+	t := strings.Replace(textEdit.Text(), "\r", "", -1)
+	if e := ioutil.WriteFile("lb.k", []byte(t), 644); e != nil {
+		fmt.Println(e)
 	}
 }
 func exec(x string) { disp(ktry("exec`" + x)); tag() }     // double-click word in tag bar
@@ -187,11 +223,11 @@ func ok(x string) { // "ok" clicked when editing a variable
 }
 func EO(s string) {
 	textEdit.SetText(s)
-	show(true, false, false)
+	show(EDIT)
 }
 func LO(m []string) {
 	listBox.SetModel(m)
-	show(false, false, true)
+	show(LIST)
 }
 func tag() { tagEdit.SetText(sk(ktry("tag path"))) }
 func sel() string {
@@ -228,18 +264,27 @@ func lk(x uint32) []string {
 }
 func DropFiles(files []string) {
 	for _, f := range files {
-		dropfile(f)
+		if strings.HasSuffix(f, ".k") {
+			if b, e := ioutil.ReadFile(f); e == nil {
+				if n := bytes.Index(b, []byte("\n\\")); n != -1 {
+					b = b[:n+1]
+				}
+				Src = strings.Split(string(b), "\n")
+			}
+		} else {
+			Files = append(Files, f)
+		}
 	}
-}
-func dropfile(f string) {
-	if strings.HasSuffix(f, ".k") {
-		load(f)
+	x := mk(6, uint32(len(Files)))
+	for i := range Files {
+		I[2+uint32(i)+x>>2] = mkcs([]byte(Files[i]))
 	}
+	dx(asn(sc(mkcs([]byte("Files"))), x))
 }
-func show(t, c, l bool) {
-	textEdit.SetVisible(t)
-	canvas.SetVisible(c)
-	listBox.SetVisible(l)
+func show(flag int) {
+	textEdit.SetVisible(flag&EDIT != 0)
+	listBox.SetVisible(flag&LIST != 0)
+	splitter.SetVisible(flag&PLOT != 0)
 	//splitter.Children().Remove(canvas)
 	//splitter.Children().Remove(listBox)
 	//splitter.Children().Add(canvas)
@@ -249,7 +294,8 @@ func ktry(s string) (r uint32) {
 	fmt.Println("ktry", s)
 	defer func() {
 		if x := recover(); x != nil {
-			fmt.Println("!")
+			textEdit.SetText(s + "\r\n^")
+			show(EDIT)
 			// todo backup memory
 			r = 0xffffffff
 			copy(C, B)
@@ -265,10 +311,6 @@ func ktry(s string) (r uint32) {
 	return val(mkcs([]byte(s)))
 }
 
-type flipper interface {
-	SetOrientation(walk.Orientation) error
-}
-
 const kpng = `iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC`
 
 var kimg image.Image
@@ -276,5 +318,3 @@ var kimg image.Image
 func init() {
 	kimg, _ = png.Decode(base64.NewDecoder(base64.StdEncoding, strings.NewReader(kpng)))
 }
-
-const appinit = "list:$`a`b`c;text:(_10)/:list;dict:`a`b`c!(1 2;list;`f`g);table:`a`b`c!(0.+!3;_97 98 99;`e`f`g);Tags:`List`Table"
