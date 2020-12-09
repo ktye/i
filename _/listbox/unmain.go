@@ -15,6 +15,11 @@ import (
 )
 
 func main() {
+	del := make(map[string]bool)
+	for _, f := range append([]string{"main"}, os.Args[1:]...) {
+		del[f] = true
+	}
+
 	fset := token.NewFileSet()
 	f, e := parser.ParseFile(fset, "", os.Stdin, 0)
 	fatal(e)
@@ -22,7 +27,7 @@ func main() {
 	// remove main function
 	j := 0
 	for _, a := range f.Decls {
-		if d, o := a.(*ast.FuncDecl); o && d.Name.Name == "main" {
+		if d, o := a.(*ast.FuncDecl); o && del[d.Name.Name] {
 		} else {
 			f.Decls[j] = a
 			j++

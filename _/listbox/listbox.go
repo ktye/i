@@ -8,10 +8,10 @@ import (
 	"image/png"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/ktye/plot"
 	"github.com/ktye/plot/plotui"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
@@ -23,8 +23,9 @@ const (
 	PLOT
 )
 
-var Files []string
+var Files fs
 var Src []string
+var O bytes.Buffer
 
 var mainWindow *walk.MainWindow
 var tagEdit *walk.LineEdit
@@ -35,8 +36,6 @@ var pltui plotui.Plot
 var B []byte //k-backup memory
 
 func main() {
-	ok := make(chan bool)
-	go readStdin(ok)
 	restart(listbox)
 	DropFiles(os.Args[1:])
 	B = make([]byte, len(C))
@@ -55,16 +54,16 @@ func main() {
 			LineEdit{
 				AssignTo:   &tagEdit,
 				OnMouseUp:  TagClick,
-				Text:       "Src Edit List Plot",
+				Text:       "Src",
 				OnKeyPress: TagKey,
 				Background: bg,
 			},
 			TextEdit{
-				AssignTo: &textEdit,
-				//Background:      bg, // walk#746
+				AssignTo:   &textEdit,
+				Background: bg,
 				ContextMenuItems: []MenuItem{
 					Action{Text: "Search", OnTriggered: Search},
-					Action{Text: "Save", OnTriggered: Save},
+					Action{Text: "Save/Reload (lb.k)", OnTriggered: Save},
 				},
 				HScroll: true,
 				VScroll: true,
@@ -99,7 +98,7 @@ func main() {
 	fatal(mw.Create())
 	setIcon()
 	mainWindow.DropFiles().Attach(DropFiles)
-	go func() { ok <- true }()
+	tag()
 	mainWindow.Run()
 }
 func restart(s string) {
@@ -111,16 +110,17 @@ func restart(s string) {
 	copy(B, C)
 	Src = strings.Split(s, "\n")
 	ktry(s)
-}
-func readStdin(ok chan bool) {
-	plts, e := plot.DecodeAny(os.Stdin)
-	<-ok
-	if e == nil && len(plts) > 0 {
-		mainWindow.Synchronize(func() {
-			pltui.SetPlot(plts, nil)
-			show(PLOT)
-		})
-	}
+	kdo(func() {
+		drop := ktry("drop")
+		if drop != 0xffffffff && drop != 0 {
+			for i := range Files.l {
+				rx(drop)
+				key := sc(mkcs([]byte(Files.l[i])))
+				val := mkcs(Files.m[Files.l[i]])
+				dx(cal(drop, l2(key, val)))
+			}
+		}
+	})
 }
 func setIcon() {
 	if ico, err := walk.NewIconFromImage(kimg); err != nil {
@@ -137,7 +137,11 @@ func ListKey(key walk.Key) {
 }
 func TagKey(key walk.Key) {
 	if key == walk.KeyReturn {
-		fmt.Println("execute", tagEdit.Text())
+		s := tagEdit.Text()
+		if i := strings.Index(s, " k)"); i != -1 {
+			s = s[i+3:]
+		}
+		kdo(func() { dx(out(val(mkcs([]byte(s))))) })
 	}
 }
 func TagClick(x, y int, button walk.MouseButton) {
@@ -167,7 +171,7 @@ func TagClick(x, y int, button walk.MouseButton) {
 		ok(textEdit.Text())
 	default:
 		if strings.HasPrefix(s, "k)") {
-			ktry(s[2:])
+			kdo(func() { dx(out(val(mkcs([]byte(s[2:]))))) })
 		} else {
 			exec(s)
 		}
@@ -206,13 +210,17 @@ func disp(x uint32) { // display result in a listbox or the editor
 		return
 	}
 	fmt.Println("disp ", x)
-	switch tp(x) {
+	t := tp(x)
+	switch t {
 	case 1:
 		EO(sk(x))
 	case 6:
 		LO(lk(x))
+	default:
+		fmt.Println("disp: type", t)
 	}
 }
+func printc(x, y uint32) { fmt.Fprintf(&O, "%s\n", string(C[x:x+y])) }
 func ok(x string) { // "ok" clicked when editing a variable
 	r := ktry("ok@" + x)
 	if r == 0xffffffff {
@@ -272,23 +280,14 @@ func DropFiles(files []string) {
 				Src = strings.Split(string(b), "\n")
 			}
 		} else {
-			Files = append(Files, f)
+			Files.add(f)
 		}
 	}
-	x := mk(6, uint32(len(Files)))
-	for i := range Files {
-		I[2+uint32(i)+x>>2] = mkcs([]byte(Files[i]))
-	}
-	dx(asn(sc(mkcs([]byte("Files"))), x))
 }
 func show(flag int) {
 	textEdit.SetVisible(flag&EDIT != 0)
 	listBox.SetVisible(flag&LIST != 0)
 	splitter.SetVisible(flag&PLOT != 0)
-	//splitter.Children().Remove(canvas)
-	//splitter.Children().Remove(listBox)
-	//splitter.Children().Add(canvas)
-	//splitter.Children().Add(listBox)
 }
 func ktry(s string) (r uint32) {
 	fmt.Println("ktry", s)
@@ -296,19 +295,61 @@ func ktry(s string) (r uint32) {
 		if x := recover(); x != nil {
 			textEdit.SetText(s + "\r\n^")
 			show(EDIT)
-			// todo backup memory
 			r = 0xffffffff
-			copy(C, B)
-			C = C[:len(B)]
+			restore()
 		} else {
-			if B == nil || len(B) != len(C) {
-				B = make([]byte, len(C))
-			}
-			copy(B, C)
-			fmt.Println(r)
+			backup()
 		}
 	}()
 	return val(mkcs([]byte(s)))
+}
+func kdo(f func()) {
+	O.Reset()
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Fprintf(&O, "%s\r\n^\r\n", x)
+			textEdit.SetText(fmt.Sprintf("%s\r\n^\n", x))
+			show(EDIT)
+			restore()
+		} else {
+			backup()
+		}
+		if O.Len() > 0 {
+			EO(string(bytes.Replace(O.Bytes(), []byte{'\n'}, []byte("\r\n"), -1)))
+		}
+	}()
+	f()
+}
+func backup() {
+	if B == nil || len(B) != len(C) {
+		B = make([]byte, len(C))
+	}
+	copy(B, C)
+}
+func restore() {
+	copy(C, B)
+	C = C[:len(B)]
+}
+
+type fs struct {
+	l []string
+	m map[string][]byte
+}
+
+func (f *fs) add(path string) {
+	b, e := ioutil.ReadFile(path)
+	if e != nil {
+		EO(e.Error())
+	} else {
+		if f.m == nil {
+			f.m = make(map[string][]byte)
+		}
+		base := filepath.Base(path)
+		if _, ok := f.m[base]; ok == false {
+			f.l = append(f.l, base)
+		}
+		f.m[base] = b
+	}
 }
 
 const kpng = `iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC`
