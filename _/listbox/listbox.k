@@ -23,5 +23,11 @@ drop:{data,:x!,y;,/($x;": ";$#y;" bytes")}
 asn: {.(:;x;$[6~@y;,y;y])}
 tas: {$[0~#y;z;1~#y;@[x;(,!x),y;$[7~@z;.z;z]];@[x;@[y;0 1;y 1 0];z]]}
 tag: {" "/:$?tags}
+plot:{ 'px}
 
-tags:Tags:`Src`Edit`List`Files`Plot
+tags:Tags:`Src`List`Files`Plot`dict`table
+dict:`alpha`beta`gamma!(1 2;3 4 5;"characters")
+table:`a`b`c`d!(!10;1.2+!10;,/`$'d;d:_"a"+!10)
+tabel:`a`b`c!(!1000;0.5+!1000;0.5-!1000)
+p:`a!,1a20 1.2a18 0.9a22
+Plot:{plot p}
