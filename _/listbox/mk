@@ -1,4 +1,4 @@
-rsrc -manifest listbox.manifest -o listbox.syso
+#rsrc -manifest listbox.manifest -o listbox.syso
 
 k0=../../t/k.go
 kk=../../k.k

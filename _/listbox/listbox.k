@@ -18,8 +18,9 @@ ist: {$[~7~@x;0;~#x;0;&/(n:#*.x)~'#'.x;n>1;0]}        /dict is table
 atx: {$[#y;atx[$[z;tix[x;*y];x@*y];1_y;0];x]}
 tix: {@[;y]'x}                                        /index table x by row y
 
-data:`!()
-drop:{data,:x!,y;,/($x;": ";$#y;" bytes")}
+csv:"fa*"                                             /"1;ifaz+cs"
+list:data:()
+drop:{list,:`file!x;data,:parse[x;y];}
 asn: {.(:;x;$[6~@y;,y;y])}
 tas: {$[0~#y;z;1~#y;@[x;(,!x),y;$[7~@z;.z;z]];@[x;@[y;0 1;y 1 0];z]]}
 tag: {" "/:$?tags}

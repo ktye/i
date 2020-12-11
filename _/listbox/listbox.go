@@ -38,6 +38,7 @@ var pltui plotui.Plot
 var B []byte //k-backup memory
 
 func main() {
+	T[99] = csv2   // 'c[x;y]
 	T[240] = plot1 // 'px
 	restart(listbox)
 	DropFiles(os.Args[1:])
@@ -119,17 +120,9 @@ func restart(s string) {
 	copy(B, C)
 	Src = strings.Split(s, "\n")
 	ktry(s)
-	kdo(func() {
-		drop := ktry("drop")
-		if drop != 0xffffffff && drop != 0 {
-			for i := range Files.l {
-				rx(drop)
-				key := sc(mkcs([]byte(Files.l[i])))
-				val := mkcs(Files.m[Files.l[i]])
-				dx(cal(drop, l2(key, val)))
-			}
-		}
-	})
+	for _, f := range Files.l {
+		kdrop(f, Files.m[f])
+	}
 	tag()
 }
 func setIcon() {
@@ -209,7 +202,6 @@ func TextClick(x, y int, button walk.MouseButton) {
 			fmt.Println(al.At(i).Text())
 		}
 	}
-	fmt.Println("text click", button)
 }
 func Search() {
 	t := textEdit.Text()
@@ -413,7 +405,19 @@ func (f *fs) add(path string) {
 			f.l = append(f.l, base)
 		}
 		f.m[base] = b
+		kdrop(base, b)
 	}
+}
+func kdrop(s string, b []byte) {
+	kdo(func() {
+		drop := ktry("drop")
+		if drop != 0xffffffff && drop != 0 {
+			rx(drop)
+			key := sc(mkcs([]byte(s)))
+			val := mkcs(b)
+			dx(cal(drop, l2(key, val)))
+		}
+	})
 }
 
 type output struct {
