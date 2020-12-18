@@ -36,7 +36,7 @@ func (r *R5) Dump(b []byte, p uint32) {
 		}
 		fmt.Printf("%8x %8x ", r.pc, u)
 		s, a, b, c := r.dec(u)
-		fmt.Printf("%5s,%d,%d,%d\n", s, int32(a), int32(b), int32(c))
+		fmt.Printf("%6s,%d,%d,%d\n", s, int32(a), int32(b), int32(c))
 		if r.f[s] == nil {
 			panic(s)
 		}
@@ -47,7 +47,7 @@ func (r *R5) init(b []byte, p uint32) {
 	r.pc = p
 	r.m = b
 	r.f = map[string]func(uint32, uint32, uint32){
-		"xxx": r.xxx, "sb": r.sb, "sw": r.sw, "lb": r.lb, "lw": r.lw, "lbu": r.lbu,
+		"xxx": r.xxx, "jal": r.jal, "jalr": r.jalr, "sb": r.sb, "sw": r.sw, "lb": r.lb, "lw": r.lw, "lbu": r.lbu,
 		"addi": r.addi, "slli": r.slli, "srli": r.srli, "xori": r.xori, "ori": r.ori,
 		"andi": r.andi, "add": r.add, "sub": r.sub, "sll": r.sll,
 		"slt": r.slt, "sltu": r.sltu, "xor": r.xor, "srl": r.srl,
@@ -72,7 +72,7 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 	case 35:
 		return rvS(fs, x)
 	case 39:
-		return "fsd", immS(x), rs1(x), rs2(x)
+		return "fsd", rs1(x), rs2(x), immS(x)
 	case 51:
 		if f7(x) == 0 {
 			return rvR(fR, x)
@@ -81,7 +81,8 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 		}
 		return rvR(fS, x)
 	case 83:
-		if 0x02000000&x == 0 && 0xf0000000&x != 0 {
+		//fmt.Printf("%032b\n", x)
+		if 0x02000000&x == 0x02000000 && 0xe0000000&x == 0 {
 			return rvD(fD[3&x>>27], x)
 		} else if f7(x) == 81 {
 			return rvD(fE[f3(x)], x)
@@ -94,6 +95,10 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 		}
 	case 99:
 		return rvB(fB, x)
+	case 103:
+		return "jalr", rd(x), rs1(x), immI(x)
+	case 111:
+		return "jal", rd(x), 0, immJ(x)
 	}
 	panic(x)
 }
@@ -118,16 +123,9 @@ func rs2(x uint32) uint32  { return 31 & (x >> 20) }
 func f3(x uint32) uint32   { return 7 & (x >> 12) }
 func f7(x uint32) uint32   { return 127 & (x >> 25) }
 func immI(x uint32) uint32 { return uint32(int32(x) >> 20) }
-
-/*
-func B(x int32) uint32 {
-	if x < 0 {
-		x = 4096 + x
-	}
-	x = 128*(x%32) + 128*((x/2048)%2) + 33554432*(x/32) + 16777216*(x/4096)
-	return uint32(x)
+func immJ(x uint32) uint32 { // -1048576..1048575
+	return (0x000ff000 & x) | (0x7ff00000&x)>>19 | (uint32(int32(0x80000000&x) >> 11))
 }
-*/
 func immB(x uint32) uint32 {
 	return (30 & (x >> 7)) | ((x & 128) << 4) | ((0x7e000000 & x) >> 20) | uint32(int32(0x80000000&x)>>19)
 }
@@ -144,6 +142,8 @@ var fD = [4]string{"fadd", "fsub", "fmul", "fdiv"}
 var fE = [4]string{"fle", "flt", "feq", "xxx"}
 
 func (r *R5) xxx(c, a, b uint32)  { panic("illegal instruction") }
+func (r *R5) jal(c, a, b uint32)  { r.x[c] = r.pc + 4; r.pc += b }
+func (r *R5) jalr(c, a, b uint32) { r.x[c] = r.pc + 4; r.pc = r.x[a] + b }
 func (r *R5) sb(c, a, b uint32)   { r.m[a+b] = byte(c) }
 func (r *R5) sw(c, a, b uint32)   { r.su(a+b, c) }
 func (r *R5) lb(c, a, b uint32)   { r.x[c] = uint32(int8(r.m[r.x[a]+b])) }
