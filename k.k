@@ -237,6 +237,48 @@ obj:{ 'ox}
 en:{"(",x,")"}
 rev:{$[6~@x;|x;x]}
 
+
+/ risc-v  bare k assembly
+/   ftab, code, stack,  data, heap...
+/               x31/30  x29
+/
+/  `jal,0,0,`start         /ftab section size: 4*1+#ftab
+/  `jal,0,0,`sin           /ftab0
+/  `jal,0,0,`cos           /ftab1
+/    ..ftab..
+/  `jal,1,0,`stack,`start  /code section(start function)
+/    ..code..
+/  `auipc,31,0,0,`stack    /stack(grows upwards)
+/  `add,30,31,0            /store stack and arg pointer (x30/x31)
+/  `addi,29,0,1024
+/  `muli,29,29,(kB)
+/  `addi,29,29,31          /store k-zero (x29)
+/  `jal,0,1,0              /jump back to ..code..
+/   ..zeros -24+1024*(kB)  /stack fill
+/   ..k-data(256)          /..EOF
+/    [k-heap] remaining memory
+/
+r5:   {(*|data x),8$,/r5asm x}   
+r5asm:{n12:{$[x<0;4096+x;x]};n21:{$[x<0;2097152+x;x]};
+ R:{[x;rd;rs1;rs2](*x)+/128 4096 32768 1048576 33554432*(rd;x 1;rs1;rs2;x 2)}
+ I:{[x;rd;rs1;i](*x)+/128 4096 32768 1048576*(rd;x 1;rs1;i)}
+ S:{[x;rs1;rs2;i]i:n12 i;(*x)+/128 4096 32768 1048576 33554432*(32/i;x 1;rs1;rs2;32\i)}
+ B:{[x;rs1;rs2;i]o:-2147483648*0>i;i:n12 i;o+(*x)+/128 4096 32768 1048576 33554432*((32/i)+2/2048\i;x 1;rs1;rs2;(4096\i)+64/32\i)}
+  nil:{0};    jalr:I 103 0; jal:{[rd;r1;i]o:-2147483648*0>i;i:n21 i;o+111+/128 4096 524288*(rd;256/4096\i;4096/i)}
+  add:R 51 0 0;sub:R 51 0 32;sll:R 51 1 0;slt:R 51 2 0;sltu:R 51 3 0;xor:R 51 4 0;srl:R 51 5 0;sra:R 51 5 32;or:R 51 6 0;and:R 51 7 0;mul:R 51 0 1
+  div:R 51 4 1;divu:R 51 5 1;rem:R 51 6 1;remu:R 51 7 1;addi:I 19 0;slli:R 19 1 0;srli:R 19 5 0;xori:I 19 4;ori:I 19 6;andi:I 19 7;clz:R 19 1 48 
+   lb:I 3 0;lbu:I 3 4;lw:I 3 2;sb:S 35 0;sw:S 35 2;fld:I 7 3;fsd:S 39 3;beq:B 99 0;bne:B 99 1;blt:B 99 4;bge:B 99 5;bltu:B 99 6;bgeu:B 99 7
+ fadd:R 83 7 1;fsub:R 83 7 5;fmul:R 83 7 9;fdiv:R 83 7 13;fsqr:R 83 7 45;fle:R 83 0 81;flt:R 83 1 81;feq:R 83 2 81;fcvtwd:R 83 7 97;fcvtdw:R 83 7 105
+ as:{.[.*x;(x 1 2),$[5~@u:x 3;4*(a l?u)-*|x;u]]}; l:,/{*|x}'x@a:&,/5=#'x;as'x,'!#x}
+
+/list:{ \(_10)/:$x}
+/list r5asm( `sb,1,21,2047,`start
+/            `sw,1,21,2044,`b
+/	    `lb,1,21,2047
+/	    `lw,1,21,`start
+/	   `lbu,2,13,1234
+/	  `addi,1,21,2005);
+
 go:   {f:funcs x;o:gohead,(godat x),(gotab x),/gofun'[!f;.'.f];o}
 gofun:{$[#y 1;""/:("func ";$x;"(";gosig y;")";goret y;"{";goloc y;gobod y;"}";_10);""]}
 gosig:{a:1_x 2;n:-1+x 3;","/:(n#a){($x)," ",gotyp y}'n#a}
