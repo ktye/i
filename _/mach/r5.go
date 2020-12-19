@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
+	"os"
 )
 
 type R5 struct {
@@ -59,6 +60,7 @@ func (r *R5) init(b []byte, p uint32) {
 		"fsub": r.fsub, "fmul": r.fmul, "fdiv": r.fdiv, "fsqr": r.fsqr,
 		"fle": r.fle, "flt": r.flt, "feq": r.feq,
 		"fcvtwd": r.fcvtwd, "fcvtdw": r.fcvtdw,
+		"getc": r.getc, "putc": r.putc, "sin": r.sin, "cos": r.cos, "exp": r.exp, "log": r.log, "atan2": r.atan2, "hypot": r.hypot,
 	}
 }
 
@@ -85,7 +87,6 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 		}
 		return rvR(fS, x)
 	case 83:
-		//fmt.Printf("%032b\n", x)
 		if 0x02000000&x == 0x02000000 && 0xe0000000&x == 0 {
 			return rvD(fD[3&x>>27], x)
 		} else if f7(x) == 81 {
@@ -103,6 +104,8 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 		return "jalr", rd(x), rs1(x), immI(x)
 	case 111:
 		return "jal", rd(x), 0, immJ(x)
+	case 127: // extensions
+		return rvI(fX, x)
 	}
 	panic(x)
 }
@@ -144,6 +147,7 @@ var fB = [8]string{"beq", "bne", "xxx", "xxx", "blt", "bge", "bltu", "bgeu"}
 var fs = [3]string{"sb", "xxx", "sw"}
 var fD = [4]string{"fadd", "fsub", "fmul", "fdiv"}
 var fE = [4]string{"fle", "flt", "feq", "xxx"}
+var fX = [8]string{"getc", "putc", "sin", "cos", "exp", "log", "atan2", "hypot"}
 
 func (r *R5) xxx(c, a, b uint32)  { panic("illegal instruction") }
 func (r *R5) jal(c, a, b uint32)  { r.x[c] = r.pc + 4; r.pc += b }
@@ -196,6 +200,15 @@ func (r *R5) flt(c, a, b uint32)    { r.x[c] = bl(r.y[a] < r.y[b]) }
 func (r *R5) feq(c, a, b uint32)    { r.x[c] = bl(r.y[a] == r.y[b]) }
 func (r *R5) fcvtwd(c, a, b uint32) { r.x[c] = uint32(int32(r.y[a])) }
 func (r *R5) fcvtdw(c, a, b uint32) { r.y[c] = float64(int32(r.x[a])) }
+
+func (r *R5) getc(c, a, b uint32)  { x := []byte{0}; os.Stdin.Read(x); r.x[c] = uint32(x[0]) }
+func (r *R5) putc(c, a, b uint32)  { os.Stdout.Write([]byte{byte(r.x[a])}) }
+func (r *R5) sin(c, a, b uint32)   { r.y[c] = math.Sin(r.y[a]) }
+func (r *R5) cos(c, a, b uint32)   { r.y[c] = math.Cos(r.y[a]) }
+func (r *R5) exp(c, a, b uint32)   { r.y[c] = math.Exp(r.y[a]) }
+func (r *R5) log(c, a, b uint32)   { r.y[c] = math.Log(r.y[a]) }
+func (r *R5) atan2(c, a, b uint32) { r.y[c] = math.Atan2(r.y[a], r.y[b]) }
+func (r *R5) hypot(c, a, b uint32) { r.y[c] = math.Hypot(r.y[a], r.y[b]) }
 
 func (r *R5) u(i uint32) uint32      { return binary.LittleEndian.Uint32(r.m[i:]) }
 func (r *R5) d(i uint32) float64     { return math.Float64frombits(binary.LittleEndian.Uint64(r.m[i:])) }
