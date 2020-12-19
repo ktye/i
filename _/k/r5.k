@@ -15,7 +15,7 @@ sltu:R[51;3;0];  xor:R[51;4;0];  srl:R[51;5;0]; sra:R[51;5;32]
   or:R[51;6;0];  and:R[51;7;0];  mul:R[51;0;1]; div:R[51;4;1] 
 divu:R[51;5;1];  rem:R[51;6;1]; remu:R[51;7;1]
  addi:I[19;0];  slli:R[19;1;0]; srli:R[19;5;0]; xori:I[19;4]
-  ori:I[19;6];  andi:I[19;7]
+  ori:I[19;6];  andi:I[19;7];    clz:R[19;1;48]
    lb:I[3;0];    lbu:I[3;4];      lw:I[3;2];      sb:S[35;0] 
    sw:S[35;2];   fld:I[7;3];     fsd:S[39;3] 
   beq:B[99;0];   bne:B[99;1];    blt:B[99;4];    bge:B[99;5]
@@ -39,6 +39,7 @@ list asm(   sb,1,21,2047,`start
 	  xori,4,5,6
 	   ori,7,8,-3
 	  andi,9,0,-5
+	   clz,1,2,0
            add,1,21,3
            sub,1,21,4 
 	   sll,5,6,7

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"math/bits"
 )
 
 type R5 struct {
@@ -49,7 +50,7 @@ func (r *R5) init(b []byte, p uint32) {
 	r.f = map[string]func(uint32, uint32, uint32){
 		"xxx": r.xxx, "jal": r.jal, "jalr": r.jalr, "sb": r.sb, "sw": r.sw, "lb": r.lb, "lw": r.lw, "lbu": r.lbu,
 		"addi": r.addi, "slli": r.slli, "srli": r.srli, "xori": r.xori, "ori": r.ori,
-		"andi": r.andi, "add": r.add, "sub": r.sub, "sll": r.sll,
+		"andi": r.andi, "clz": r.clz, "add": r.add, "sub": r.sub, "sll": r.sll,
 		"slt": r.slt, "sltu": r.sltu, "xor": r.xor, "srl": r.srl,
 		"sra": r.sra, "or": r.or, "and": r.and, "mul": r.mul, "div": r.div,
 		"divu": r.divu, "rem": r.rem, "remu": r.remu, "beq": r.beq,
@@ -68,6 +69,9 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 	case 7:
 		return "fld", rd(x), rs1(x), immI(x)
 	case 19:
+		if f3(x) == 1 && f7(x) == 48 {
+			return "clz", rd(x), rs1(x), 0
+		}
 		return rvI(fI, x)
 	case 35:
 		return rvS(fs, x)
@@ -155,6 +159,7 @@ func (r *R5) srli(c, a, b uint32) { r.x[c] = r.x[a] >> b }
 func (r *R5) xori(c, a, b uint32) { r.x[c] = r.x[a] ^ b }
 func (r *R5) ori(c, a, b uint32)  { r.x[c] = r.x[a] | b }
 func (r *R5) andi(c, a, b uint32) { r.x[c] = r.x[a] & b }
+func (r *R5) clz(c, a, b uint32)  { r.x[c] = uint32(bits.LeadingZeros32(r.x[a])) }
 
 func (r *R5) add(c, a, b uint32)  { r.x[c] = r.x[a] + r.x[b] }
 func (r *R5) sub(c, a, b uint32)  { r.x[c] = r.x[a] - r.x[b] }
