@@ -1,8 +1,3 @@
-
-
-;; + add
-
-
 ;; risc-v virtual machine in webassembly
 ;; - instantiate module
 ;; - grow exported memory as needed
@@ -15,6 +10,18 @@
  (type (func (param i32 i32)))
  (type (func (param i32 f64)))
  (type (func (param f64 f64) (result i32)))
+ (type (func (param f64) (result f64)))
+ 
+ (import "ext" "getc" (func $getc (result i32)))
+ (import "ext" "putc" (func $putc (param i32)))
+ (import "ext" "draw" (func $draw (param i32 i32 i32)))
+ (import "ext" "sin"  (func $sin  (param f64) (result f64)))
+ (import "ext" "cos"  (func $cos  (param f64) (result f64)))
+ (import "ext" "exp"  (func $exp  (param f64) (result f64)))
+ (import "ext" "log"  (func $log  (param f64) (result f64)))
+ (import "ext" "atan2" (func $atan2 (param f64 f64) (result f64)))
+ (import "ext" "hypot" (func $hypot (param f64 f64) (result f64)))
+ 
  (func $jmp (param $pc i32) 
   (local $i  i32) (local $op i32) (local $rd i32) (local $r1 i32) (local $r2 i32) 
   (local $f3 i32) (local $f7 i32) (local $x  i32) (local $y  i32) (local $z  i32) (local $im i32) (local $is i32) (local $ib i32)
@@ -69,8 +76,16 @@
 		      (else (i32.add (i32.const 43) (i32.and (i32.const 3) (i32.shr_u (local.get $i) (i32.const 27)))))))))))))))))                             ;; fadd 43..46
 
 
-
-  (else (unreachable)))))))))))))))))))))
+  (else (if (i32.eq (local.get $op) (i32.const 127))      (then
+        (if       (i32.eqz (local.get $f3))               (then (i32.store (local.get $rd) (call $getc)))
+        (else (if (i32.eq  (local.get $f3) (i32.const 1)) (then (call $putc (i32.load (local.get $r1))))
+        (else (if (i32.eq  (local.get $f3) (i32.const 2)) (then (call $draw (i32.load (local.get $rd))(i32.load (local.get $r1))(i32.load (local.get $r2))))
+        (else (if (i32.lt_u(local.get $f3) (i32.const 7)) (then (f64.store offset=128 (local.get $rd) (call_indirect (type 6) 
+                                                       (f64.load offset=128 (local.get $r1)) (i32.add (i32.const 51) (local.get $f7)))))                           ;; sin 51..54
+        (else (f64.store offset=128 (local.get $rd) (call_indirect (type 1)
+	         (f64.load offset=128 (local.get $r1)) (f64.load offset=128 (local.get $r2)) (i32.add (i32.const 51 (local.get $f7))))))))))))))                   ;; atan2 55..56
+       
+  (else (unreachable)))))))))))))))))))))))
   
   (local.set $pc (i32.add (local.get $pc) (i32.const 4)))
  )
@@ -109,13 +124,14 @@
  (func $flt  (type 5) (f64.lt    (local.get 0) (local.get 1)))
  (func $feq  (type 5) (f64.eq    (local.get 0) (local.get 1)))
  (memory 1)
- (export "mem" (memory 0)) (export "jmp" (func 0))
- (table 51 funcref)
+ (export "mem" (memory 0)) (export "jmp" (func $jmp))
+ (table 57 funcref)
  (elem (i32.const 0)  $lb   $xxx  $lw  $xxx $lbu  $xxx  $xxx $xxx                  ;;  0..7
                           $add  $shl  $xxx $xxx $xor  $shr  $or  $and $sb $xxx $sw     ;;  7..18
 			  $mul  $xxx  $xxx $xxx $div  $divu $rem $remu                 ;; 19..26
 			  $sub  $xxx  $xxx $xxx $xxx  $sra  $xxx $xxx                  ;; 27..34
 			  $beq  $bne  $xxx $xxx $blt  $bge  $bltu $bgeu                ;; 35..42
 			  $fadd $fsub $fmul $fdiv                                      ;; 43..46
- ;;			  $fle  $flt  $feq $xxx                                        ;; 47..50
+ 			  $fle  $flt  $feq $xxx                                        ;; 47..50
+			  $sin  $cos  $exp $log $atan2 $hypot                          ;; 51..56
 ))
