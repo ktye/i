@@ -25,8 +25,11 @@
  (func $jmp (param $pc i32) 
   (local $i  i32) (local $op i32) (local $rd i32) (local $r1 i32) (local $r2 i32) 
   (local $f3 i32) (local $f7 i32) (local $x  i32) (local $y  i32) (local $z  i32) (local $im i32) (local $is i32) (local $ib i32)
-  (local.set $i (local.get $pc))
   
+  ;; fetch
+  (local.set $i (i32.load (local.get $pc)))
+  
+  ;; decode
   (local.set $op (i32.and (local.get $i) (i32.const 127)))
   (local.set $rd (i32.and (i32.shr_u (local.get $i) (i32.const  7)) (i32.const  31)))
   (local.set $r1 (i32.and (i32.shr_u (local.get $i) (i32.const 15)) (i32.const  31)))
@@ -39,8 +42,8 @@
                  (i32.or (i32.shl   (i32.and (i32.const 128)  (local.get $i)) (i32.const 4)) 
                  (i32.or (i32.shr_u (i32.and (i32.const 0x7e000000) (local.get $i)) (i32.const 20)) 
                          (i32.shr_s (i32.and (i32.const 0x80000000) (local.get $i)) (i32.const 19))))))
- 
   
+  ;; execute
   (if       (i32.eq (local.get $op) (i32.const   3)) (then (i32.store (local.get $rd) (call_indirect (type 0) (local.get $r1) (local.get $im) (local.get $f3)))) ;; ld 0..7
   (else (if (i32.eq (local.get $op) (i32.const   7)) (then (f64.store offset=128 (local.get $rd) (call $fld (local.get $r1) (local.get $im))))                   ;; fld
   (else (if (i32.eq (local.get $op) (i32.const  19)) (then (i32.store (local.get $rd) 
@@ -62,9 +65,6 @@
   (else (if (i32.eq (local.get $op) (i32.const 111)) (then (i32.store (local.get $rd) (i32.add (local.get $pc) (i32.const 4)))
                                                            (local.set $pc (i32.add (local.get $pc) (local.get $im))))                                            ;; jal
   
-  
-  
-  
   (else (if (i32.eq (local.get $op) (i32.const  83)) (then
             (if (i32.eq (local.get $f7) (i32.const 81)) (then                                                     
                 (i32.store (local.get $rd) (call_indirect (type 5) (f64.load offset=128 (local.get $r1)) (f64.load offset=128 (local.get $r2)) (i32.add (i32.const 47) (local.get $f3)))))
@@ -74,7 +74,6 @@
 	    (else (f64.store offset=128 (local.get $rd) (call_indirect (type 1) (f64.load offset=128 (local.get $r1)) (f64.load offset=128 (local.get $r2))
 	              (if (result i32) (i32.eq (local.get $f7) (i32.const 81)) (then (i32.add (i32.const 47) (local.get $f3)))                                  ;; fle  47..50
 		      (else (i32.add (i32.const 43) (i32.and (i32.const 3) (i32.shr_u (local.get $i) (i32.const 27)))))))))))))))))                             ;; fadd 43..46
-
 
   (else (if (i32.eq (local.get $op) (i32.const 127))      (then
         (if       (i32.eqz (local.get $f3))               (then (i32.store (local.get $rd) (call $getc)))
