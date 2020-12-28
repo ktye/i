@@ -56,6 +56,7 @@
                                                                             (if (result i32) (i32.eqz (local.get $f7)) (then (i32.const 8))                      ;; add 8..15
 	                                                                    (else (if (result i32) (i32.eq (local.get $f7) (i32.const 1)) (then (i32.const 19))  ;; mul 19..26
 	                                                                    (else (i32.const 27)))))))))                                                         ;; sub 27..34
+  (else (if (i32.eq (local.get $op) (i32.const  55)) (then (i32.store (local.get $rd) (i32.and (local.get $i) (i32.const 0xfffff000))))                        ;; lui
   (else (if (i32.eq (local.get $op) (i32.const  99)) (then (if (call_indirect (type 0) (local.get $r1) (local.get $r2) (i32.add (local.get $f3) (i32.const 35)))
               (then (local.set $pc (i32.sub (i32.add (local.get $pc) (local.get $ib)) (i32.const 4))))))                                                         ;; beq 35..42
 	      
@@ -84,7 +85,7 @@
         (else (f64.store offset=128 (local.get $rd) (call_indirect (type 1)
 	         (f64.load offset=128 (local.get $r1)) (f64.load offset=128 (local.get $r2)) (i32.add (i32.const 51 (local.get $f7))))))))))))))                   ;; atan2 55..56
        
-  (else (unreachable)))))))))))))))))))))))
+  (else (unreachable)))))))))))))))))))))))))
   
   (local.set $pc (i32.add (local.get $pc) (i32.const 4)))
  )

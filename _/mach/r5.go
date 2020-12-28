@@ -49,7 +49,7 @@ func (r *R5) init(b []byte, p uint32) {
 	r.pc = p
 	r.m = b
 	r.f = map[string]func(uint32, uint32, uint32){
-		"xxx": r.xxx, "jal": r.jal, "jalr": r.jalr, "sb": r.sb, "sw": r.sw, "lb": r.lb, "lw": r.lw, "lbu": r.lbu,
+		"xxx": r.xxx, "jal": r.jal, "jalr": r.jalr, "sb": r.sb, "sw": r.sw, "lb": r.lb, "lw": r.lw, "lbu": r.lbu, "lui": r.lui,
 		"addi": r.addi, "slli": r.slli, "srli": r.srli, "xori": r.xori, "ori": r.ori,
 		"andi": r.andi, "clz": r.clz, "add": r.add, "sub": r.sub, "sll": r.sll,
 		"slt": r.slt, "sltu": r.sltu, "xor": r.xor, "srl": r.srl,
@@ -86,6 +86,8 @@ func (r *R5) dec(x uint32) (string, uint32, uint32, uint32) {
 			return rvR(fM, x)
 		}
 		return rvR(fS, x)
+	case 55:
+		return "lui", rd(x), 0, immU(x)
 	case 83:
 		if 0x02000000&x == 0x02000000 && 0xe0000000&x == 0 {
 			return rvD(fD[3&x>>27], x)
@@ -129,6 +131,7 @@ func rs1(x uint32) uint32  { return 31 & (x >> 15) }
 func rs2(x uint32) uint32  { return 31 & (x >> 20) }
 func f3(x uint32) uint32   { return 7 & (x >> 12) }
 func f7(x uint32) uint32   { return 127 & (x >> 25) }
+func immU(x uint32) uint32 { return x & 0xfffff000 }
 func immI(x uint32) uint32 { return uint32(int32(x) >> 20) }
 func immJ(x uint32) uint32 { // -1048576..1048575
 	return (0x000ff000 & x) | (0x7ff00000&x)>>19 | (uint32(int32(0x80000000&x) >> 11))
@@ -157,6 +160,7 @@ func (r *R5) sw(c, a, b uint32)   { r.su(a+b, c) }
 func (r *R5) lb(c, a, b uint32)   { r.x[c] = uint32(int8(r.m[r.x[a]+b])) }
 func (r *R5) lw(c, a, b uint32)   { r.x[c] = r.u(r.x[a] + b) }
 func (r *R5) lbu(c, a, b uint32)  { r.x[c] = uint32(r.m[r.x[a]+b]) }
+func (r *R5) lui(c, a, b uint32)  { r.x[c] = b }
 func (r *R5) addi(c, a, b uint32) { r.x[c] = r.x[a] + b }
 func (r *R5) slli(c, a, b uint32) { r.x[c] = r.x[a] << b }
 func (r *R5) srli(c, a, b uint32) { r.x[c] = r.x[a] >> b }
