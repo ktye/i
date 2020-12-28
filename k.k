@@ -258,18 +258,34 @@ rev:{$[6~@x;|x;x]}
 /   ..k-data(256)          /..EOF
 /    [k-heap] remaining memory
 /
-r5:   {(*|data x),8$,/r5asm x}   
+r5:   {(r5tab x),,/r5fun'[!f;.f:funcs x]} /{(*|data x),8$,/r5asm x}   
 r5asm:{n12:{$[x<0;4096+x;x]};n21:{$[x<0;2097152+x;x]};
+ U:{[x;rd;rs1;i](*x)+/128 4096*(rd;4096\i)}
  R:{[x;rd;rs1;rs2](*x)+/128 4096 32768 1048576 33554432*(rd;x 1;rs1;rs2;x 2)}
  I:{[x;rd;rs1;i](*x)+/128 4096 32768 1048576*(rd;x 1;rs1;i)}
  S:{[x;rs1;rs2;i]i:n12 i;(*x)+/128 4096 32768 1048576 33554432*(32/i;x 1;rs1;rs2;32\i)}
  B:{[x;rs1;rs2;i]o:-2147483648*0>i;i:n12 i;o+(*x)+/128 4096 32768 1048576 33554432*((32/i)+2/2048\i;x 1;rs1;rs2;(4096\i)+64/32\i)}
-  nil:{0};    jalr:I 103 0; jal:{[rd;r1;i]o:-2147483648*0>i;i:n21 i;o+111+/128 4096 524288*(rd;256/4096\i;4096/i)}
-  add:R 51 0 0;sub:R 51 0 32;sll:R 51 1 0;slt:R 51 2 0;sltu:R 51 3 0;xor:R 51 4 0;srl:R 51 5 0;sra:R 51 5 32;or:R 51 6 0;and:R 51 7 0;mul:R 51 0 1
+  nil:{0}; w:{z}; jalr:I 103 0; jal:{[rd;r1;i]o:-2147483648*0>i;i:n21 i;o+111+/128 4096 524288*(rd;256/4096\i;4096/i)}
+  lui:U 55;add:R 51 0 0;sub:R 51 0 32;sll:R 51 1 0;slt:R 51 2 0;sltu:R 51 3 0;xor:R 51 4 0;srl:R 51 5 0;sra:R 51 5 32;or:R 51 6 0;and:R 51 7 0;mul:R 51 0 1
   div:R 51 4 1;divu:R 51 5 1;rem:R 51 6 1;remu:R 51 7 1;addi:I 19 0;slli:R 19 1 0;srli:R 19 5 0;xori:I 19 4;ori:I 19 6;andi:I 19 7;clz:R 19 1 48 
    lb:I 3 0;lbu:I 3 4;lw:I 3 2;sb:S 35 0;sw:S 35 2;fld:I 7 3;fsd:S 39 3;beq:B 99 0;bne:B 99 1;blt:B 99 4;bge:B 99 5;bltu:B 99 6;bgeu:B 99 7
  fadd:R 83 7 1;fsub:R 83 7 5;fmul:R 83 7 9;fdiv:R 83 7 13;fsqr:R 83 7 45;fle:R 83 0 81;flt:R 83 1 81;feq:R 83 2 81;fcvtwd:R 83 7 97;fcvtdw:R 83 7 105
  as:{.[.*x;(x 1 2),$[5~@u:x 3;4*(a l?u)-*|x;u]]}; l:,/{*|x}'x@a:&,/5=#'x;as'x,'!#x}
+r5tab:{(,`jal,0,0,`start),((`jal,0,0),/:ftab x),,(`jal,1,0,`stack,`start)}
+r5fun:{y;(,`add;0;0;0;x),()r5tre/b}
+r5int:{$[2~(x>-2049)+x<2048;,`addi,1,0,x;((`lui,1,0,x);(`addi,1,1,4095/x))]}
+r5flt:{((`jal;1;0;12);(`w;0;0;4#x);(`w;0;0;4_x);(`fld;1;1;-12))}
+r5con:{x:$[3~@x;8$x;x];$[1~@x;r5flt x;2~@x;r5int x;`nyi]}
+/r5tre:{p:-1+#x;m:16/y;n:16\y;$[~y;
+/ 0~m;x,:,gocon@$%y
+/ 1~m;x[p]:$[164~n;gocnd[|x p];128>n;gofor x p;"*"~n1:_n-128;goclz x p;"~"~n1;gonot x p;en gomon[go1;n1;x p]]
+/ 2~m;x:(-2_x),,$[63~n;goiff;64~n;goatx;46~n;gocal;godya(_n)][x p;x p-1]
+/ 4~m;x,:,$_n
+/ 5~m;x,:,$%y
+/ 6~m;x:((-n)_x),,(-n)#x
+/ 7~m;x:(-4_x),,goasn -4#x
+/ 9~m;x[p]:"return ",x p
+/15~m;;$y];x}
 
 /list:{ \(_10)/:$x}
 /list r5asm( `sb,1,21,2047,`start
