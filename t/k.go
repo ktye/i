@@ -278,7 +278,7 @@ func run1(s string) string {
 func ics(x, y i) {
 	xt, xn, xp := v1(x)
 	if xt != 1 || xn == 0 {
-		fmt.Println("src(140): %d/%d\n", xt, xn)
+		fmt.Printf("src(140): %d/%d\n", xt, xn)
 		return
 	}
 	y -= 8
@@ -2960,6 +2960,7 @@ func pt(x, y i) (r i) {
 				if v == 4 {
 					r >>= 4
 				}
+				rx(r)
 				r = mki(con(atx(p>>4, r))) // apply adv
 				t = ucat(take(t, nn(t)-1), s)
 			} else {
