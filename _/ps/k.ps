@@ -1,0 +1,25 @@
+/\\       { quit } bind def
+/.        { dup == } bind def
+
+/enlist   { 1 array astore } bind def
+/til      { 0 1 3 2 roll {} for array astore } bind def
+/first    { 0 get } bind def
+/reverse  { mark exch aload length -1 2 { 1 roll } for ] } bind def 
+/take     { exch 0 exch getinterval } bind def
+/at       { mark 3 1 roll { exch dup 3 2 roll get exch } forall pop ] } bind def
+/were     { mark exch 0 exch { { 1 copy } repeat 1 add } forall pop ] } bind def
+
+/ib       { { 1 } { 0 } ifelse } bind def
+/find     { mark 3 1 roll {eq ib} cvlit aload pop 3 array cvx astore forall ] were } bind def
+
+%vector-atom-func e.g. [1 2 3] 2 {add} vaf 
+/vaf      { mark 4 1 roll cvlit aload pop 2 array cvx astore forall ] } bind def
+/avf      { 2 1 roll vaf } bind def
+/vvf      { mark 0 1 4 index length 1 sub {
+            dup dup 5 add index exch get exch dup 4 add index 1 index get exch 3 add index exec 
+	  } for ] 4 1 roll pop pop pop } bind def
+
+
+/\    {(k.ps
+help..
+) print } bind def 
