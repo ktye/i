@@ -8,6 +8,7 @@
 /take     { exch 0 exch getinterval } bind def
 /at       { mark 3 1 roll { exch dup 3 2 roll get exch } forall pop ] } bind def
 /were     { mark exch 0 exch { { 1 copy } repeat 1 add } forall pop ] } bind def
+/cat      { [ 2 index dup type (arraytype) eq { aload pop } if counttomark 1 add index dup type (arraytope) eq { aload pop } if ] exch pop exch pop} bind def
 
 /ib       { { 1 } { 0 } ifelse } bind def
 /find     { mark 3 1 roll {eq ib} cvlit aload pop 3 array cvx astore forall ] were } bind def
