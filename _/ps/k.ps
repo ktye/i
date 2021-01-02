@@ -1,14 +1,25 @@
 /\\       { quit } bind def
 /.        { dup == } bind def
 
+/flip     { nyi } bind def
+/first    { 0 get } bind def
+/were     { mark exch 0 exch { { 1 copy } repeat 1 add } forall pop ] } bind def
+/reverse  { mark exch aload length -1 2 { 1 roll } for ] } bind def 
 /enlist   { 1 array astore } bind def
 /til      { 0 1 3 2 roll {} for array astore } bind def
-/first    { 0 get } bind def
-/reverse  { mark exch aload length -1 2 { 1 roll } for ] } bind def 
 /take     { exch 0 exch getinterval } bind def
 /at       { mark 3 1 roll { exch dup 3 2 roll get exch } forall pop ] } bind def
-/were     { mark exch 0 exch { { 1 copy } repeat 1 add } forall pop ] } bind def
-/cat      { [ 2 index dup type (arraytype) eq { aload pop } if counttomark 1 add index dup type (arraytope) eq { aload pop } if ] exch pop exch pop} bind def
+/cat      { [ 2 index dup type (arraytype) eq { aload pop } if counttomark 1 add index dup type (arraytype) eq { aload pop } if ] exch pop exch pop} bind def
+/headtail { dup first exch dup length 1 exch 1 sub getinterval } bind def
+
+/grade    { dup length til mrgsrt exch pop } bind def
+/mrgsrt   { dup length 1 gt {
+		dup dup length 2 div cvi 0 exch getinterval dup length 2 index length exch sub 1 index length exch 3 index 3 1 roll getinterval 3 2 roll pop
+		3 1 roll mrgsrt 3 1 roll exch mrgsrt 3 2 roll merge } if } bind def
+/merge   { [ { 1 index length 0 gt 1 index length 0 gt or { break } if
+		2 index 1 index first get 3 index 3 index first get le { exch headtail exch } { headtail } ifelse 4 1 roll
+		} loop counttomark 3 roll ] exch cat exch cat } bind def
+
 
 /ib       { { 1 } { 0 } ifelse } bind def
 /find     { mark 3 1 roll {eq ib} cvlit aload pop 3 array cvx astore forall ] were } bind def
