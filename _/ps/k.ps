@@ -16,9 +16,10 @@
 /mrgsrt   { dup length 1 gt {
 		dup dup length 2 div cvi 0 exch getinterval dup length 2 index length exch sub 1 index length exch 3 index 3 1 roll getinterval 3 2 roll pop
 		3 1 roll mrgsrt 3 1 roll exch mrgsrt 3 2 roll merge } if } bind def
-/merge   { [ { 1 index length 0 gt 1 index length 0 gt or { break } if
-		2 index 1 index first get 3 index 3 index first get le { exch headtail exch } { headtail } ifelse 4 1 roll
-		} loop counttomark 3 roll ] exch cat exch cat } bind def
+/merge   { [ 4 1 roll { 1 index length 0 eq 1 index length 0 eq or { exit } if
+		2 index 2 index first get 3 index 2 index first get le { exch headtail exch 4 1 roll exch } { headtail exch 4 1 roll } ifelse 
+		} loop counttomark 1 add 3 roll ] exch cat exch cat } bind def
+/sort    { dup grade at } bind def
 
 
 /ib       { { 1 } { 0 } ifelse } bind def
