@@ -140,9 +140,9 @@ func add(i *Interpreter) {
 	numOp2(i, func(x, y int) int { return x + y }, func(x, y float64) float64 { return x + y }, func(x, y complex128) complex128 { return x + y })
 }
 func (i *Interpreter) Run(s string) {
-	b := []rune(s)
+	token, b := []rune{}, []rune(s)
 	for {
-		token, b := i.Token(b)
+		token, b = i.Token(b)
 		if len(token) > 0 {
 			if v := i.parse(string(token)); v != nil {
 				v.Exec(i)
@@ -157,9 +157,7 @@ func (i *Interpreter) Token(b []rune) (token, tail []rune) {
 	isSpace := func(r rune) bool {
 		if r <= '\u00FF' {
 			switch r {
-			case ' ', '\t', '\n', '\v', '\f', '\r':
-				return true
-			case '\u0085', '\u00A0':
+			case ' ', '\t', '\n', '\v', '\f', '\r', '\u0085', '\u00A0':
 				return true
 			}
 			return false
@@ -174,17 +172,15 @@ func (i *Interpreter) Token(b []rune) (token, tail []rune) {
 		return false
 	}
 	adv := func(v []rune) []rune {
-		for len(v) > 0 {
-			if !isSpace(v[0]) {
-				v = v[1:]
-			}
+		for len(v) > 0 && isSpace(v[0]) {
+			v = v[1:]
 		}
 		return v
 	}
 	if len(b) == 0 {
 		return nil, nil
 	}
-	adv(b)
+	b = adv(b)
 	for i, r := range b {
 		if r == '(' {
 			panic("todo token string")
@@ -192,9 +188,10 @@ func (i *Interpreter) Token(b []rune) (token, tail []rune) {
 		if isSpace(r) {
 			tail = b[i:]
 			b = b[:i]
+			break
 		}
 	}
-	adv(tail)
+	tail = adv(tail)
 	return b, tail
 }
 func (i *Interpreter) parse(s string) Value {
@@ -235,7 +232,7 @@ func (i *Interpreter) where(v Value) Dictionary {
 }
 func mkBuiltins() Dictionary {
 	d := make(Dictionary)
-	d[Name("stack")] = Operator(pstack)
+	d[Name("stack")] = Operator(pstack) // we only have pstack
 	d[Name("pstack")] = Operator(pstack)
 	d[Name("pop")] = Operator(pop)
 	d[Name("exch")] = Operator(exch)
@@ -247,6 +244,7 @@ func pstack(i *Interpreter) {
 	for n := len(i.v.stack) - 1; n >= 0; n-- {
 		fmt.Println(i.v.stack[n].String())
 	}
+	fmt.Println() // to separate multiple calls. gs does not do this.
 }
 func exch(i *Interpreter) {
 	n := len(i.v.stack)
@@ -256,7 +254,7 @@ func pop(i *Interpreter)    { _ = i.Pop() }
 func _print(i *Interpreter) { v := i.Pop(); fmt.Printf("%s\n", v) }
 func (i *Interpreter) prompt() {
 	if n := len(i.v.stack); n > 0 {
-		fmt.Printf("PS<%d>")
+		fmt.Printf("PS<%d>", n)
 	} else {
 		fmt.Printf("PS>")
 	}
