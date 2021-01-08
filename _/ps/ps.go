@@ -26,9 +26,17 @@ func New() Interpreter {
 	i.d = []Dictionary{mkBuiltins(), make(Dictionary), make(Dictionary)}
 	return i
 }
-func (i *Interpreter) Push(v Value)   { i.v.Push(v) }
-func (i *Interpreter) Pop() (r Value) { return i.v.Pop() }
-func (i *Interpreter) err(e string)   { panic(e) }
+func (i *Interpreter) Push(v Value)        { i.v.Push(v) }
+func (i *Interpreter) Pop() (r Value)      { return i.v.Pop() }
+func (i *Interpreter) err(e string)        { panic(e) }
+func (i *Interpreter) Exec(k *Interpreter) { i.Push(k) }
+func (i *Interpreter) String() string      { return "save" }
+func (i *Interpreter) Clone() Value { // the interpreter is a Value itself (for save/restore)
+	k := New()
+	k.v = i.v.clone()
+	k.e = i.e.clone()
+	return &k
+}
 
 func (s *stack) Push(v Value) { s.stack = append(s.stack, v) }
 func (s *stack) Pop() (r Value) {
@@ -36,9 +44,17 @@ func (s *stack) Pop() (r Value) {
 	s.stack = s.stack[:len(s.stack)-1]
 	return r
 }
+func (s stack) clone() (r stack) {
+	r.stack = make([]Value, len(s.stack))
+	for i, v := range s.stack {
+		r.stack[i] = v.Clone()
+	}
+	return r
+}
 
 type Value interface {
 	Exec(i *Interpreter)
+	Clone() Value // deep copy
 	String() string
 }
 
@@ -57,10 +73,13 @@ type (
 
 func (b Boolean) Exec(i *Interpreter) { i.Push(b) }
 func (b Boolean) String() string      { return strconv.FormatBool(bool(b)) }
+func (b Boolean) Clone() Value        { return b }
 func (n Integer) Exec(i *Interpreter) { i.Push(n) }
 func (n Integer) String() string      { return strconv.Itoa(int(n)) }
+func (n Integer) Clone() Value        { return n }
 func (r Real) Exec(i *Interpreter)    { i.Push(r) }
 func (r Real) String() string         { return strconv.FormatFloat(float64(r), 'g', -1, 64) }
+func (r Real) Clone() Value           { return r }
 func (z Complex) Exec(i *Interpreter) { i.Push(z) }
 func (z Complex) String() string {
 	r, phi := cmplx.Polar(complex128(z))
@@ -80,8 +99,10 @@ func (z Complex) String() string {
 	}
 	return fmt.Sprintf("%v@%s", r, ang)
 }
+func (z Complex) Clone() Value           { return z }
 func (m Mark) Exec(i *Interpreter)       { i.Push(m) }
 func (m Mark) String() string            { return string(m) }
+func (m Mark) Clone() Value              { return m }
 func (d Dictionary) Exec(i *Interpreter) { i.Push(d) }
 func (d Dictionary) String() string {
 	var b strings.Builder
@@ -92,10 +113,13 @@ func (d Dictionary) String() string {
 	fmt.Fprintf(&b, ">>")
 	return b.String()
 }
+func (d Dictionary) Clone() Value      { panic("nyi"); return d }
 func (n Name) Exec(i *Interpreter)     { i.Push(n) } // todo lookup
 func (n Name) String() string          { return string(n) }
+func (n Name) Clone() Value            { return n }
 func (o Operator) Exec(i *Interpreter) { o(i) }
 func (o Operator) String() string      { return runtime.FuncForPC(reflect.ValueOf(o).Pointer()).Name() }
+func (o Operator) Clone() Value        { return o }
 
 // stack operators
 func pop(i *Interpreter) { _ = i.Pop() }
