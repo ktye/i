@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"math"
 	"math/cmplx"
 	"math/rand"
@@ -16,14 +17,16 @@ import (
 type Interpreter struct {
 	v, e stack // operand, dictionary, execution
 	d    []Dictionary
+	o    io.Writer
 }
 type stack struct {
 	stack []Value
 }
 
-func New() Interpreter {
+func New(o io.Writer) Interpreter {
 	var i Interpreter
 	i.d = []Dictionary{mkBuiltins(), make(Dictionary), make(Dictionary)}
+	i.o = o
 	return i
 }
 func (i *Interpreter) Push(v Value)        { i.v.Push(v) }
@@ -32,7 +35,7 @@ func (i *Interpreter) err(e string)        { panic(e) }
 func (i *Interpreter) Exec(k *Interpreter) { i.Push(k) }
 func (i *Interpreter) String() string      { return "save" }
 func (i *Interpreter) Clone() Value { // the interpreter is a Value itself (for save/restore)
-	k := New()
+	k := New(i.o)
 	k.v = i.v.clone()
 	k.e = i.e.clone()
 	return &k
@@ -57,6 +60,9 @@ type Value interface {
 	Clone() Value // deep copy
 	String() string
 }
+type Quoter interface {
+	Quote() string
+}
 
 type (
 	Boolean    bool
@@ -68,6 +74,7 @@ type (
 	Null       bool
 	Operator   func(*Interpreter)
 	Array      []Value
+	String     string
 	Dictionary map[Value]Value
 )
 
@@ -99,10 +106,29 @@ func (z Complex) String() string {
 	}
 	return fmt.Sprintf("%v@%s", r, ang)
 }
-func (z Complex) Clone() Value           { return z }
-func (m Mark) Exec(i *Interpreter)       { i.Push(m) }
-func (m Mark) String() string            { return string(m) }
-func (m Mark) Clone() Value              { return m }
+func (z Complex) Clone() Value         { return z }
+func (m Mark) Exec(i *Interpreter)     { i.Push(m) }
+func (m Mark) String() string          { return string(m) }
+func (m Mark) Clone() Value            { return m }
+func (n Name) Exec(i *Interpreter)     { i.Push(n) } // todo lookup
+func (n Name) String() string          { return string(n) }
+func (n Name) Clone() Value            { return n }
+func (o Operator) Exec(i *Interpreter) { o(i) }
+func (o Operator) String() string      { return runtime.FuncForPC(reflect.ValueOf(o).Pointer()).Name() }
+func (o Operator) Clone() Value        { return o }
+func (a Array) Exec(i *Interpreter)    { i.Push(a) }
+func (a Array) String() string         { return fmt.Sprintf("%v", []Value(a)) }
+func (a Array) Clone() Value {
+	r := make(Array, len(a))
+	for i, v := range a {
+		r[i] = v.Clone()
+	}
+	return r
+}
+func (s String) Exec(i *Interpreter)     { i.Push(s) }
+func (s String) String() string          { return string(s) }
+func (s String) Quote() string           { return "(" + string(quote(string(s))) + ")" }
+func (s String) Clone() Value            { return s }
 func (d Dictionary) Exec(i *Interpreter) { i.Push(d) }
 func (d Dictionary) String() string {
 	var b strings.Builder
@@ -113,13 +139,7 @@ func (d Dictionary) String() string {
 	fmt.Fprintf(&b, ">>")
 	return b.String()
 }
-func (d Dictionary) Clone() Value      { panic("nyi"); return d }
-func (n Name) Exec(i *Interpreter)     { i.Push(n) } // todo lookup
-func (n Name) String() string          { return string(n) }
-func (n Name) Clone() Value            { return n }
-func (o Operator) Exec(i *Interpreter) { o(i) }
-func (o Operator) String() string      { return runtime.FuncForPC(reflect.ValueOf(o).Pointer()).Name() }
-func (o Operator) Clone() Value        { return o }
+func (d Dictionary) Clone() Value { panic("nyi"); return d }
 
 // stack operators
 func pop(i *Interpreter) { _ = i.Pop() }
@@ -155,7 +175,7 @@ func roll(i *Interpreter) {
 }
 func clear(i *Interpreter) { i.v.stack = i.v.stack[:0] }
 func count(i *Interpreter) { i.Push(Integer(len(i.v.stack))) }
-func mark(i *Interpreter)  { i.Push(Mark("mark")) }
+func mark(i *Interpreter)  {}
 func cleartomark(i *Interpreter) {
 	counttomark(i)
 	n := int(i.Pop().(Integer))
@@ -170,6 +190,19 @@ func counttomark(i *Interpreter) {
 		}
 	}
 	i.err("unmatchedmark")
+}
+func array(i *Interpreter) {
+	n := int(i.Pop().(Integer))
+	l := len(i.v.stack)
+	if n < 0 {
+		i.err("range")
+	} else if n > l {
+		i.err("stack")
+	}
+	a := make(Array, n)
+	copy(a, i.v.stack[l-n:])
+	i.v.stack = i.v.stack[:l-1-n]
+	i.Push(a)
 }
 
 // arithmetic operators
@@ -251,6 +284,7 @@ func srand(i *Interpreter) {
 	}
 	rand.Seed(int64(x.(Integer)))
 }
+func eq(i *Interpreter) { x, y, _ := numTp2(i, 0, 0); i.Push(Boolean(x == y)) }
 func numType(v Value) int {
 	switch v.(type) {
 	case Integer:
@@ -262,6 +296,21 @@ func numType(v Value) int {
 	default:
 		return 0
 	}
+}
+func upNum(a, b Value) (Value, Value) {
+	max := func(x, y int) int {
+		if x > y {
+			return x
+		} else {
+			return y
+		}
+	}
+	if at, bt := numType(a), numType(b); at > 0 && bt > 0 {
+		a, _ = uptype(a, max(at, bt))
+		b, _ = uptype(b, max(at, bt))
+		return a, b
+	}
+	return a, b
 }
 func uptype(v Value, t int) (Value, int) {
 	if t == 1 {
@@ -292,12 +341,12 @@ func numOp1(i *Interpreter, minType, maxType int, fi func(x int) int, fr func(x 
 		i.Push(Complex(fz(complex128(x.(Complex)))))
 	}
 }
-func numOp2(i *Interpreter, minType, maxType int, fi func(x, y int) int, fr func(x, y float64) float64, fz func(x, y complex128) complex128) {
-	y := i.Pop()
-	x := i.Pop()
+func numTp2(i *Interpreter, minType, maxType int) (x, y Value, t int) {
+	y = i.Pop()
+	x = i.Pop()
 	xt, yt := numType(x), numType(y)
 	if xt*yt == 0 {
-		i.err("type")
+		return x, y, 0
 	}
 	for xt < yt {
 		x, xt = uptype(x, xt)
@@ -309,10 +358,17 @@ func numOp2(i *Interpreter, minType, maxType int, fi func(x, y int) int, fr func
 		x, xt = uptype(x, xt)
 		y, yt = uptype(y, yt)
 	}
+	t = xt
 	if maxType > 0 && xt > maxType {
-		i.err("type")
+		t = 0
 	}
-	switch xt {
+	return x, y, t
+}
+func numOp2(i *Interpreter, minType, maxType int, fi func(x, y int) int, fr func(x, y float64) float64, fz func(x, y complex128) complex128) {
+	x, y, t := numTp2(i, minType, maxType)
+	switch t {
+	case 0:
+		i.err("type")
 	case 1:
 		i.Push(Integer(fi(int(x.(Integer)), int(y.(Integer)))))
 	case 2:
@@ -335,6 +391,11 @@ func cvi(i *Interpreter) {
 }
 
 func (i *Interpreter) Run(s string) {
+	if strings.HasPrefix(s, "<<") {
+		s = strings.Replace(s, "<<", "«", 1)
+	}
+	s = strings.Replace(s, " <<", " «", -1)
+	s = strings.Replace(s, ">> ", "» ", -1)
 	token, b := []rune{}, []rune(s)
 	for {
 		token, b = i.Token(b)
@@ -372,13 +433,37 @@ func (i *Interpreter) Token(b []rune) (token, tail []rune) {
 		}
 		return v
 	}
+	str := func(s []rune) (b, t []rune) {
+		if len(s) == 0 {
+			i.err("parse")
+		}
+		q := false
+		for i, r := range s {
+			if r == '\\' {
+				q = !q
+			} else if !q && r == ')' {
+				return b, s[i+1:]
+			}
+			b = append(b, r)
+		}
+		i.err("parse-string")
+		return b, t
+	}
 	if len(b) == 0 {
 		return nil, nil
 	}
 	b = adv(b)
+	if len(b) > 0 && b[0] == '[' {
+		return b[:1], b[1:]
+	}
 	for i, r := range b {
-		if r == '(' {
-			panic("todo token string")
+		if i == 0 {
+			if r == '(' {
+				b, tail = str(b)
+				break
+			} else if r == '[' || r == '{' || r == '«' {
+				return b[:1], adv(b[1:])
+			}
 		}
 		if isSpace(r) {
 			tail = b[i:]
@@ -387,7 +472,60 @@ func (i *Interpreter) Token(b []rune) (token, tail []rune) {
 		}
 	}
 	tail = adv(tail)
+	if len(b) > 1 {
+		if t := b[len(b)-1]; t == ']' || t == '}' || t == '»' {
+			b = b[:len(b)-1]
+			tail = append([]rune{t, ' '}, tail...)
+		}
+	}
+	if len(b) > 0 && b[0] == '%' {
+		return nil, nil
+	}
 	return b, tail
+}
+func quote(s string) (r []rune) {
+	for _, v := range s {
+		switch v {
+		case '\n':
+			v = 'n'
+		case '\r':
+			v = 'r'
+		case '\t':
+			v = 't'
+		case '\\':
+		case ')':
+		default:
+			r = append(r, v)
+			continue
+		}
+		r = append(r, '\\')
+		r = append(r, v)
+	}
+	return r
+}
+func unquote(s string) string {
+	var r []rune
+	q := false
+	for _, v := range s {
+		if v == '\\' {
+			q = !q
+			if q {
+				continue
+			}
+		}
+		if q {
+			switch v {
+			case 'n':
+				v = '\n'
+			case 'r':
+				v = '\r'
+			case 't':
+				v = '\t'
+			}
+		}
+		r = append(r, v)
+	}
+	return string(r)
 }
 func (i *Interpreter) parse(s string) Value {
 	if s == "true" {
@@ -400,6 +538,9 @@ func (i *Interpreter) parse(s string) Value {
 	}
 	if f, e := strconv.ParseFloat(s, 64); e == nil {
 		return Real(f)
+	}
+	if strings.HasPrefix(s, "(") {
+		return String(unquote(s[1 : len(s)-2]))
 	}
 	if i := strings.Index(s, "a"); i > 0 {
 		if abs, e := strconv.ParseFloat(s[:i], 64); e == nil {
@@ -435,7 +576,10 @@ func mkBuiltins() Dictionary {
 		Name("roll"):        Operator(roll),
 		Name("clear"):       Operator(clear),
 		Name("count"):       Operator(count),
-		Name("mark"):        Operator(mark),
+		Name("mark"):        Operator(func(i *Interpreter) { i.Push(Mark("mark")) }),
+		Name("["):           Operator(func(i *Interpreter) { i.Push(Mark("[")) }),
+		Name("]"):           Operator(func(i *Interpreter) { counttomark(i); array(i) }),
+		Name("{"):           Operator(func(i *Interpreter) { i.Push(Mark("{")) }),
 		Name("cleartomark"): Operator(cleartomark),
 		Name("counttomark"): Operator(counttomark),
 
@@ -459,22 +603,30 @@ func mkBuiltins() Dictionary {
 		Name("ln"):       Operator(ln),
 		Name("log"):      Operator(log),
 		Name("rand"):     Operator(_rand),
-		Name("srand"):    Operator(srand),
+		Name("srand"):    Operator(srand), // no rrand
+
+		Name("eq"): Operator(eq),
 
 		Name("stack"):  Operator(pstack), // we only have pstack
 		Name("pstack"): Operator(pstack),
 		Name("="):      Operator(_print),
-		Name("=="):     Operator(_print),
+		Name("=="):     Operator(__print),
 	}
 }
 func pstack(i *Interpreter) {
 	for n := len(i.v.stack) - 1; n >= 0; n-- {
-		fmt.Println(i.v.stack[n].String())
+		fmt.Fprintln(i.o, i.v.stack[n].String())
 	}
-	fmt.Println() // to separate multiple calls. gs does not do this.
 }
 
-func _print(i *Interpreter) { v := i.Pop(); fmt.Printf("%s\n", v) }
+func _print(i *Interpreter) { v := i.Pop(); fmt.Fprintf(i.o, "%s\n", v) } // =, stack
+func __print(i *Interpreter) { // ==, pstack
+	v := i.Pop()
+	if q, o := v.(Quoter); o {
+		v = String(q.Quote())
+		fmt.Fprintf(i.o, "%s\n", v)
+	}
+}
 func (i *Interpreter) prompt() {
 	if n := len(i.v.stack); n > 0 {
 		fmt.Printf("PS<%d>", n)
@@ -485,7 +637,7 @@ func (i *Interpreter) prompt() {
 
 func main() {
 	s := bufio.NewScanner(os.Stdin)
-	i := New()
+	i := New(os.Stdout)
 	if len(os.Args) > 1 {
 		i.Run(strings.Join(os.Args[1:], " "))
 		return
