@@ -31,6 +31,7 @@ func New(o io.Writer) Interpreter {
 }
 func (i *Interpreter) Push(v Value)        { i.v.Push(v) }
 func (i *Interpreter) Pop() (r Value)      { return i.v.Pop() }
+func (i *Interpreter) Top() (r Value)      { return i.v.stack[len(i.v.stack)-1] }
 func (i *Interpreter) err(e string)        { panic(e) }
 func (i *Interpreter) Exec(k *Interpreter) { i.Push(k) }
 func (i *Interpreter) String() string      { return "save" }
@@ -66,6 +67,9 @@ type Quoter interface {
 type Comparable interface {
 	Compare(Comparable) (bool, bool, bool)
 }
+type Longer interface {
+	Length() int
+}
 
 type (
 	Boolean    bool
@@ -77,7 +81,7 @@ type (
 	Null       bool
 	Operator   func(*Interpreter)
 	Array      []Value
-	String     string
+	String     []rune
 	Dictionary map[Value]Value
 )
 
@@ -121,24 +125,32 @@ func (m Mark) Clone() Value            { return m }
 func (n Name) Exec(i *Interpreter)     { i.Push(n) } // todo lookup
 func (n Name) String() string          { return string(n) }
 func (n Name) Clone() Value            { return n }
+func (n Null) Exec(i *Interpreter)     { i.Push(n) }
+func (n Null) String() string          { return "null" }
+func (n Null) Clone() Value            { return n }
 func (o Operator) Exec(i *Interpreter) { o(i) }
 func (o Operator) String() string      { return runtime.FuncForPC(reflect.ValueOf(o).Pointer()).Name() }
 func (o Operator) Clone() Value        { return o }
-func (a Array) Exec(i *Interpreter)    { i.Push(a) }
-func (a Array) String() string         { return fmt.Sprintf("%v", []Value(a)) }
-func (a Array) Clone() Value {
-	r := make(Array, len(a))
-	for i, v := range a {
+func (a *Array) Exec(i *Interpreter)   { i.Push(a) }
+func (a *Array) String() string        { return fmt.Sprintf("%v", []Value(*a)) }
+func (a *Array) Clone() Value {
+	r := make(Array, len(*a))
+	for i, v := range *a {
 		r[i] = v.Clone()
 	}
-	return r
+	return &r
 }
-func (s String) Exec(i *Interpreter)                     { i.Push(s) }
-func (s String) String() string                          { return string(s) }
-func (s String) Quote() string                           { return "(" + string(quote(string(s))) + ")" }
-func (s String) Clone() Value                            { return s }
-func (x String) Compare(m Comparable) (bool, bool, bool) { y := m.(String); return x < y, x == y, x > y }
-func (d Dictionary) Exec(i *Interpreter)                 { i.Push(d) }
+func (a Array) Length() int           { return len(a) }
+func (s *String) Exec(i *Interpreter) { i.Push(s) }
+func (s *String) String() string      { return string(*s) }
+func (s *String) Quote() string       { return "(" + string(quote(string(*s))) + ")" }
+func (s *String) Clone() Value        { return s }
+func (x *String) Compare(m Comparable) (bool, bool, bool) {
+	y := m.(*String)
+	xs, ys := string(*x), string(*y)
+	return xs < ys, xs == ys, xs > ys
+}
+func (d Dictionary) Exec(i *Interpreter) { i.Push(d) }
 func (d Dictionary) String() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "<<")
@@ -149,6 +161,7 @@ func (d Dictionary) String() string {
 	return b.String()
 }
 func (d Dictionary) Clone() Value { panic("nyi"); return d }
+func (d Dictionary) Length() int  { return len(d) }
 
 // stack operators
 func pop(i *Interpreter) { _ = i.Pop() }
@@ -202,16 +215,67 @@ func counttomark(i *Interpreter) {
 }
 func array(i *Interpreter) {
 	n := int(i.Pop().(Integer))
-	l := len(i.v.stack)
 	if n < 0 {
 		i.err("range")
-	} else if n > l {
-		i.err("stack")
 	}
 	a := make(Array, n)
-	copy(a, i.v.stack[l-n:])
-	i.v.stack = i.v.stack[:l-1-n]
-	i.Push(a)
+	for i := range a {
+		a[i] = Null(true)
+	}
+	i.Push(&a)
+}
+func mkarray(i *Interpreter) {
+	counttomark(i)
+	array(i)
+	a := i.Top().(*Array)
+	n := len(*a)
+	l := len(i.v.stack)
+	copy(*a, i.v.stack[l-n-1:l-1])
+	i.Push(Integer(n + 2))
+	i.Push(Integer(1))
+	roll(i)
+	i.v.stack = i.v.stack[:l-n-1]
+}
+func length(i *Interpreter) {
+	v := i.Pop()
+	if a, o := v.(Longer); o {
+		i.Push(Integer(a.Length()))
+		return
+	}
+	i.err("type")
+}
+func get(i *Interpreter) {
+	k := i.Pop()
+	c := i.Pop()
+	switch a := c.(type) {
+	case *Array:
+		i.Push((*a)[k.(Integer)])
+	case *String:
+		s := []rune(*a)
+		i.Push(Integer(s[k.(Integer)]))
+	case Dictionary:
+		i.Push(a[k])
+	default:
+		i.err("type")
+	}
+}
+func put(i *Interpreter) {
+	v := i.Pop()
+	k := i.Pop()
+	c := i.Pop()
+	switch a := c.(type) {
+	case *Array:
+		(*a)[k.(Integer)] = v
+	case *String:
+		(*a)[k.(Integer)] = rune(v.(Integer))
+		//s := []rune(*a)
+		//s[k.(Integer)] = rune(v.(Integer))
+		//a = &String(s)
+	case Dictionary:
+		panic("nyi")
+	default:
+		i.err("type")
+	}
 }
 
 // arithmetic operators
@@ -436,7 +500,7 @@ func cmpTp2(i *Interpreter) (x, y Value) {
 	if t != 0 {
 		return x, y
 	}
-	return x.(String), y.(String)
+	return x.(*String), y.(*String)
 }
 func numTp2(i *Interpreter, minType, maxType int) (x, y Value, t int) {
 	y = i.Pop()
@@ -637,7 +701,8 @@ func (i *Interpreter) parse(s string) Value {
 		return Real(f)
 	}
 	if strings.HasPrefix(s, "(") {
-		return String(unquote(s[1 : len(s)-2]))
+		s := String([]rune(unquote(s[1 : len(s)-2])))
+		return &s
 	}
 	if i := strings.Index(s, "a"); i > 0 {
 		if abs, e := strconv.ParseFloat(s[:i], 64); e == nil {
@@ -675,8 +740,6 @@ func mkBuiltins() Dictionary {
 		Name("clear"):       Operator(clear),
 		Name("count"):       Operator(count),
 		Name("mark"):        Operator(func(i *Interpreter) { i.Push(Mark("mark")) }),
-		Name("["):           Operator(func(i *Interpreter) { i.Push(Mark("[")) }),
-		Name("]"):           Operator(func(i *Interpreter) { counttomark(i); array(i) }),
 		Name("{"):           Operator(func(i *Interpreter) { i.Push(Mark("{")) }),
 		Name("cleartomark"): Operator(cleartomark),
 		Name("counttomark"): Operator(counttomark),
@@ -705,6 +768,13 @@ func mkBuiltins() Dictionary {
 		Name("srand"):    Operator(srand), // no rrand
 
 		// array
+		Name("array"):  Operator(array),
+		Name("["):      Operator(func(i *Interpreter) { i.Push(Mark("[")) }),
+		Name("]"):      Operator(mkarray),
+		Name("length"): Operator(length),
+		Name("get"):    Operator(get),
+		Name("put"):    Operator(put),
+
 		// dictionary
 		// string
 		// relational/bitwise
@@ -746,8 +816,8 @@ func _print(i *Interpreter) { v := i.Pop(); fmt.Fprintf(i.o, "%s\n", v) } // =, 
 func __print(i *Interpreter) { // ==, pstack
 	v := i.Pop()
 	if q, o := v.(Quoter); o {
-		v = String(q.Quote())
-		fmt.Fprintf(i.o, "%s\n", v)
+		s := q.Quote()
+		fmt.Fprintf(i.o, "%s\n", s)
 	} else {
 		fmt.Fprintf(i.o, "%s\n", v)
 	}

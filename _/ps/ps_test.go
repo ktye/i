@@ -18,6 +18,9 @@ const T = `1 2 add           == %3
 2 2.0 eq                     == %true
 2 3 eq                       == %false
 [1]                          == %[1]
+3 array                      == %[null null null]
+[] length                    == %0
+[1.1 2.2] 1 get == %2.2
 1 2 lt                       == %true
 (beta) (alpha) lt            == %false
 5 6 and                      == %4
