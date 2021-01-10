@@ -63,6 +63,9 @@ type Value interface {
 type Quoter interface {
 	Quote() string
 }
+type Comparable interface {
+	Compare(Comparable) (bool, bool, bool)
+}
 
 type (
 	Boolean    bool
@@ -84,10 +87,15 @@ func (b Boolean) Clone() Value        { return b }
 func (n Integer) Exec(i *Interpreter) { i.Push(n) }
 func (n Integer) String() string      { return strconv.Itoa(int(n)) }
 func (n Integer) Clone() Value        { return n }
-func (r Real) Exec(i *Interpreter)    { i.Push(r) }
-func (r Real) String() string         { return strconv.FormatFloat(float64(r), 'g', -1, 64) }
-func (r Real) Clone() Value           { return r }
-func (z Complex) Exec(i *Interpreter) { i.Push(z) }
+func (x Integer) Compare(m Comparable) (bool, bool, bool) {
+	y := m.(Integer)
+	return x < y, x == y, x > y
+}
+func (r Real) Exec(i *Interpreter)                     { i.Push(r) }
+func (r Real) String() string                          { return strconv.FormatFloat(float64(r), 'g', -1, 64) }
+func (r Real) Clone() Value                            { return r }
+func (x Real) Compare(m Comparable) (bool, bool, bool) { y := m.(Real); return x < y, x == y, x > y }
+func (z Complex) Exec(i *Interpreter)                  { i.Push(z) }
 func (z Complex) String() string {
 	r, phi := cmplx.Polar(complex128(z))
 	phi *= 180.0 / math.Pi
@@ -125,11 +133,12 @@ func (a Array) Clone() Value {
 	}
 	return r
 }
-func (s String) Exec(i *Interpreter)     { i.Push(s) }
-func (s String) String() string          { return string(s) }
-func (s String) Quote() string           { return "(" + string(quote(string(s))) + ")" }
-func (s String) Clone() Value            { return s }
-func (d Dictionary) Exec(i *Interpreter) { i.Push(d) }
+func (s String) Exec(i *Interpreter)                     { i.Push(s) }
+func (s String) String() string                          { return string(s) }
+func (s String) Quote() string                           { return "(" + string(quote(string(s))) + ")" }
+func (s String) Clone() Value                            { return s }
+func (x String) Compare(m Comparable) (bool, bool, bool) { y := m.(String); return x < y, x == y, x > y }
+func (d Dictionary) Exec(i *Interpreter)                 { i.Push(d) }
 func (d Dictionary) String() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "<<")
@@ -284,7 +293,87 @@ func srand(i *Interpreter) {
 	}
 	rand.Seed(int64(x.(Integer)))
 }
-func eq(i *Interpreter) { x, y, _ := numTp2(i, 0, 0); i.Push(Boolean(x == y)) }
+func cmp(x, y Value) (bool, bool, bool) {
+	xc, yc := x.(Comparable), y.(Comparable)
+	return xc.Compare(yc)
+}
+func eq(i *Interpreter) {
+	x, y, t := numTp2(i, 0, 0)
+	if t > 0 {
+		i.Push(Boolean(x == y)) // with numeric uptyping
+	} else {
+		i.Push(Boolean(x == y)) // interface equality
+	}
+}
+func ne(i *Interpreter) { eq(i); not(i) }
+func ge(i *Interpreter) { x, y := cmpTp2(i); _, b, c := cmp(x, y); i.Push(Boolean(c || b)) }
+func gt(i *Interpreter) { x, y := cmpTp2(i); _, _, c := cmp(x, y); i.Push(Boolean(c)) }
+func le(i *Interpreter) { x, y := cmpTp2(i); a, b, _ := cmp(x, y); i.Push(Boolean(a || b)) }
+func lt(i *Interpreter) { x, y := cmpTp2(i); a, _, _ := cmp(x, y); i.Push(Boolean(a)) }
+func and(i *Interpreter) {
+	x, y, b := bit2(i)
+	if b {
+		i.Push(Boolean(x.(Boolean) && y.(Boolean)))
+	} else {
+		i.Push(Integer(x.(Integer) & y.(Integer)))
+	}
+}
+func or(i *Interpreter) {
+	x, y, b := bit2(i)
+	if b {
+		i.Push(Boolean(x.(Boolean) || y.(Boolean)))
+	} else {
+		i.Push(Integer(x.(Integer) | y.(Integer)))
+	}
+}
+func xor(i *Interpreter) {
+	x, y, b := bit2(i)
+	if b {
+		i.Push(Boolean(x.(Boolean) != y.(Boolean)))
+	} else {
+		i.Push(Integer(x.(Integer) ^ y.(Integer)))
+	}
+}
+func not(i *Interpreter) {
+	x, b := bit1(i)
+	if b {
+		i.Push(!Boolean(x.(Boolean)))
+	} else {
+		i.Push(^Integer(x.(Integer)))
+	}
+}
+func bitshift(i *Interpreter) {
+	x, y, b := bit2(i)
+	if b {
+		i.err("type")
+	}
+	s := y.(Integer)
+	if s < 0 {
+		i.Push(x.(Integer) >> -s)
+		return
+	}
+	i.Push(x.(Integer) << s)
+}
+func bit1(i *Interpreter) (Value, bool) {
+	x := i.Pop()
+	if _, o := x.(Boolean); o == true {
+		return x, true
+	}
+	if _, o := x.(Integer); o == true {
+		return x, false
+	}
+	i.err("type")
+	return x, false
+}
+func bit2(i *Interpreter) (Value, Value, bool) {
+	y, yb := bit1(i)
+	x, xb := bit1(i)
+	if xb == yb {
+		return x, y, xb
+	}
+	i.err("type")
+	return x, y, false
+}
 func numType(v Value) int {
 	switch v.(type) {
 	case Integer:
@@ -340,6 +429,14 @@ func numOp1(i *Interpreter, minType, maxType int, fi func(x int) int, fr func(x 
 	case 3:
 		i.Push(Complex(fz(complex128(x.(Complex)))))
 	}
+}
+func cmpTp2(i *Interpreter) (x, y Value) {
+	var t int
+	x, y, t = numTp2(i, 0, 0)
+	if t != 0 {
+		return x, y
+	}
+	return x.(String), y.(String)
 }
 func numTp2(i *Interpreter, minType, maxType int) (x, y Value, t int) {
 	y = i.Pop()
@@ -568,6 +665,7 @@ func (i *Interpreter) where(v Value) Dictionary {
 }
 func mkBuiltins() Dictionary {
 	return Dictionary{
+		// operand stack
 		Name("pop"):         Operator(pop),
 		Name("exch"):        Operator(exch),
 		Name("dup"):         Operator(dup),
@@ -583,6 +681,7 @@ func mkBuiltins() Dictionary {
 		Name("cleartomark"): Operator(cleartomark),
 		Name("counttomark"): Operator(counttomark),
 
+		// arithmetic
 		Name("add"):      Operator(add),
 		Name("div"):      Operator(div),
 		Name("idiv"):     Operator(idiv),
@@ -605,12 +704,36 @@ func mkBuiltins() Dictionary {
 		Name("rand"):     Operator(_rand),
 		Name("srand"):    Operator(srand), // no rrand
 
-		Name("eq"): Operator(eq),
+		// array
+		// dictionary
+		// string
+		// relational/bitwise
+		Name("eq"):       Operator(eq),
+		Name("ne"):       Operator(ne),
+		Name("ge"):       Operator(ge),
+		Name("gt"):       Operator(gt),
+		Name("le"):       Operator(le),
+		Name("lt"):       Operator(lt),
+		Name("and"):      Operator(and),
+		Name("not"):      Operator(not),
+		Name("or"):       Operator(or),
+		Name("xor"):      Operator(xor),
+		Name("true"):     Operator(func(i *Interpreter) { i.Push(Boolean(true)) }),
+		Name("false"):    Operator(func(i *Interpreter) { i.Push(Boolean(false)) }),
+		Name("bitshift"): Operator(bitshift),
 
 		Name("stack"):  Operator(pstack), // we only have pstack
 		Name("pstack"): Operator(pstack),
 		Name("="):      Operator(_print),
 		Name("=="):     Operator(__print),
+
+		// control
+		Name("quit"): Operator(func(i *Interpreter) { os.Exit(0) }),
+		// type
+		// file
+		// vm
+		// misc
+
 	}
 }
 func pstack(i *Interpreter) {
@@ -624,6 +747,8 @@ func __print(i *Interpreter) { // ==, pstack
 	v := i.Pop()
 	if q, o := v.(Quoter); o {
 		v = String(q.Quote())
+		fmt.Fprintf(i.o, "%s\n", v)
+	} else {
 		fmt.Fprintf(i.o, "%s\n", v)
 	}
 }

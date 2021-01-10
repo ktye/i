@@ -11,11 +11,19 @@ import (
 	"time"
 )
 
-const T = `1 2 add == %3
-1 2 sub == %-1
-1 %GS<1>`
-
 const GS = "c:/local/gs/bin/gswin64c.exe"
+
+const T = `1 2 add           == %3
+1 2 sub                      == %-1
+2 2.0 eq                     == %true
+2 3 eq                       == %false
+[1]                          == %[1]
+1 2 lt                       == %true
+(beta) (alpha) lt            == %false
+5 6 and                      == %4
+3 4 bitshift                 == %48
+49 -4 bitshift               == %3
+1 %GS<1>`
 
 func TestGS(t *testing.T) {
 	if e := ioutil.WriteFile("t.in", []byte(T), 0644); e != nil {
@@ -39,6 +47,7 @@ func TestPS(t *testing.T) {
 	for s.Scan() {
 		i.Run(s.Text())
 	}
+	fmt.Fprintf(&b, "GS<%d>", len(i.v.stack))
 	compare(t, b.String(), expected(t))
 }
 func compare(t *testing.T, got, exp string) {
