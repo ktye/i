@@ -30,8 +30,10 @@ func New(o io.Writer) Interpreter {
 	return i
 }
 func (i *Interpreter) Push(v Value)        { i.v.Push(v) }
+func (i *Interpreter) PushString(s string) { r := String([]rune(s)); i.Push(&r) }
 func (i *Interpreter) Pop() (r Value)      { return i.v.Pop() }
 func (i *Interpreter) Top() (r Value)      { return i.v.stack[len(i.v.stack)-1] }
+func (i *Interpreter) Dict() Dictionary    { return i.d[len(i.d)-1] }
 func (i *Interpreter) err(e string)        { panic(e) }
 func (i *Interpreter) Exec(k *Interpreter) { i.Push(k) }
 func (i *Interpreter) String() string      { return "save" }
@@ -40,6 +42,21 @@ func (i *Interpreter) Clone() Value { // the interpreter is a Value itself (for 
 	k.v = i.v.clone()
 	k.e = i.e.clone()
 	return &k
+}
+func (i *Interpreter) Type() Name { return "savetype" }
+func (i *Interpreter) lookup(n Value) Value {
+	d := i.where(n)
+	if d == nil {
+		i.err("undefined")
+	}
+	return d[n]
+}
+func (i *Interpreter) reassign(n, v Value) {
+	d := i.where(n)
+	if d == nil {
+		i.err("key")
+	}
+	d[n] = v
 }
 
 func (s *stack) Push(v Value) { s.stack = append(s.stack, v) }
@@ -60,6 +77,7 @@ type Value interface {
 	Exec(i *Interpreter)
 	Clone() Value // deep copy
 	String() string
+	Type() Name
 }
 type Quoter interface {
 	Quote() string
@@ -70,6 +88,9 @@ type Comparable interface {
 type Longer interface {
 	Length() int
 }
+type Namer interface { // Name, Quoted, *String
+	Name() Name
+}
 
 type (
 	Boolean    bool
@@ -78,6 +99,7 @@ type (
 	Complex    complex128
 	Mark       string
 	Name       string
+	Quoted     string
 	Null       bool
 	Operator   func(*Interpreter)
 	Array      []Value
@@ -88,9 +110,11 @@ type (
 func (b Boolean) Exec(i *Interpreter) { i.Push(b) }
 func (b Boolean) String() string      { return strconv.FormatBool(bool(b)) }
 func (b Boolean) Clone() Value        { return b }
+func (b Boolean) Type() Name          { return "booleantype" }
 func (n Integer) Exec(i *Interpreter) { i.Push(n) }
 func (n Integer) String() string      { return strconv.Itoa(int(n)) }
 func (n Integer) Clone() Value        { return n }
+func (n Integer) Type() Name          { return "integertype" }
 func (x Integer) Compare(m Comparable) (bool, bool, bool) {
 	y := m.(Integer)
 	return x < y, x == y, x > y
@@ -98,6 +122,7 @@ func (x Integer) Compare(m Comparable) (bool, bool, bool) {
 func (r Real) Exec(i *Interpreter)                     { i.Push(r) }
 func (r Real) String() string                          { return strconv.FormatFloat(float64(r), 'g', -1, 64) }
 func (r Real) Clone() Value                            { return r }
+func (r Real) Type() Name                              { return "realtype" }
 func (x Real) Compare(m Comparable) (bool, bool, bool) { y := m.(Real); return x < y, x == y, x > y }
 func (z Complex) Exec(i *Interpreter)                  { i.Push(z) }
 func (z Complex) String() string {
@@ -119,18 +144,29 @@ func (z Complex) String() string {
 	return fmt.Sprintf("%v@%s", r, ang)
 }
 func (z Complex) Clone() Value         { return z }
+func (z Complex) Type() Name           { return "complextype" }
 func (m Mark) Exec(i *Interpreter)     { i.Push(m) }
 func (m Mark) String() string          { return string(m) }
 func (m Mark) Clone() Value            { return m }
-func (n Name) Exec(i *Interpreter)     { i.Push(n) } // todo lookup
+func (m Mark) Type() Name              { return "marktype" }
+func (n Name) Exec(i *Interpreter)     { i.lookup(n) }
 func (n Name) String() string          { return string(n) }
+func (n Name) Name() Name              { return n }
 func (n Name) Clone() Value            { return n }
+func (n Name) Type() Name              { return "nametype" }
+func (q Quoted) Exec(i *Interpreter)   { i.Push(q) }
+func (q Quoted) String() string        { return "/" + string(q) }
+func (q Quoted) Name() Name            { return Name(q) }
+func (q Quoted) Clone() Value          { return q }
+func (q Quoted) Type() Name            { return "nametype" }
 func (n Null) Exec(i *Interpreter)     { i.Push(n) }
 func (n Null) String() string          { return "null" }
 func (n Null) Clone() Value            { return n }
+func (n Null) Type() Name              { return "nulltype" }
 func (o Operator) Exec(i *Interpreter) { o(i) }
 func (o Operator) String() string      { return runtime.FuncForPC(reflect.ValueOf(o).Pointer()).Name() }
 func (o Operator) Clone() Value        { return o }
+func (o Operator) Type() Name          { return "operatortype" }
 func (a *Array) Exec(i *Interpreter)   { i.Push(a) }
 func (a *Array) String() string        { return fmt.Sprintf("%v", []Value(*a)) }
 func (a *Array) Clone() Value {
@@ -140,16 +176,20 @@ func (a *Array) Clone() Value {
 	}
 	return &r
 }
-func (a Array) Length() int           { return len(a) }
+func (a *Array) Type() Name           { return "arraytype" }
+func (a *Array) Length() int          { return len(*a) }
 func (s *String) Exec(i *Interpreter) { i.Push(s) }
 func (s *String) String() string      { return string(*s) }
+func (s *String) Name() Name          { return Name(*s) }
 func (s *String) Quote() string       { return "(" + string(quote(string(*s))) + ")" }
 func (s *String) Clone() Value        { return s }
+func (s *String) Type() Name          { return "stringtype" }
 func (x *String) Compare(m Comparable) (bool, bool, bool) {
 	y := m.(*String)
 	xs, ys := string(*x), string(*y)
 	return xs < ys, xs == ys, xs > ys
 }
+func (s *String) Length() int            { return len(*s) }
 func (d Dictionary) Exec(i *Interpreter) { i.Push(d) }
 func (d Dictionary) String() string {
 	var b strings.Builder
@@ -161,6 +201,7 @@ func (d Dictionary) String() string {
 	return b.String()
 }
 func (d Dictionary) Clone() Value { panic("nyi"); return d }
+func (d Dictionary) Type() Name   { return "dicttype" }
 func (d Dictionary) Length() int  { return len(d) }
 
 // stack operators
@@ -171,13 +212,34 @@ func exch(i *Interpreter) {
 }
 func dup(i *Interpreter) { x := i.Pop(); i.Push(x); i.Push(x) }
 func _copy(i *Interpreter) {
-	n := i.Pop().(Integer)
-	if n < 0 {
-		i.err("range")
-	}
-	o := len(i.v.stack) - int(n)
-	for k := 0; k < int(n); k++ {
-		i.Push(i.v.stack[o+k])
+	switch i.Top().(type) {
+	case Integer:
+		n := i.Pop().(Integer)
+		if n < 0 {
+			i.err("range")
+		}
+		o := len(i.v.stack) - int(n)
+		for k := 0; k < int(n); k++ {
+			i.Push(i.v.stack[o+k])
+		}
+	case *Array:
+		a2 := i.Pop().(*Array)
+		a1 := i.Pop().(*Array)
+		a := make(Array, len(*a1))
+		copy(a, (*a1))
+		copy((*a2), a)
+		i.Push(&a)
+	case *String:
+		a2 := i.Pop().(*String)
+		a1 := i.Pop().(*String)
+		a := make(String, len(*a1))
+		copy(a, (*a1))
+		copy((*a2), a)
+		i.Push(&a)
+	case Dictionary:
+		panic("nyi")
+	default:
+		i.err("type")
 	}
 }
 func index(i *Interpreter) { cvi(i); i.Push(i.v.stack[len(i.v.stack)-int(i.Pop().(Integer))-1]) }
@@ -254,6 +316,9 @@ func get(i *Interpreter) {
 		s := []rune(*a)
 		i.Push(Integer(s[k.(Integer)]))
 	case Dictionary:
+		if s, o := k.(Namer); o {
+			k = s.Name()
+		}
 		i.Push(a[k])
 	default:
 		i.err("type")
@@ -268,13 +333,127 @@ func put(i *Interpreter) {
 		(*a)[k.(Integer)] = v
 	case *String:
 		(*a)[k.(Integer)] = rune(v.(Integer))
-		//s := []rune(*a)
-		//s[k.(Integer)] = rune(v.(Integer))
-		//a = &String(s)
 	case Dictionary:
-		panic("nyi")
+		if s, o := k.(Namer); o {
+			k = s.Name()
+		}
+		a[k] = v
 	default:
 		i.err("type")
+	}
+}
+func getinterval(i *Interpreter) {
+	n := int(i.Pop().(Integer))
+	k := int(i.Pop().(Integer))
+	c := i.Pop()
+	switch a := c.(type) {
+	case *Array:
+		r := (*a)[k : n+k]
+		i.Push(&r)
+	case *String:
+		r := (*a)[k : n+k]
+		i.Push(&r)
+	default:
+		i.err("type")
+	}
+}
+func putinterval(i *Interpreter) {
+	b := i.Pop()
+	k := int(i.Pop().(Integer))
+	c := i.Pop()
+	switch a := c.(type) {
+	case *Array:
+		r := (*a)
+		q := b.(*Array)
+		copy(r[k:], (*q))
+	case *String:
+		r := (*a)
+		q := b.(*String)
+		copy(r[k:], (*q))
+	default:
+		i.err("type")
+	}
+}
+func aload(i *Interpreter) {
+	a := i.Pop().(*Array)
+	for _, v := range *a {
+		i.Push(v)
+	}
+	i.Push(a)
+}
+func astore(i *Interpreter) {
+	a := i.Pop().(*Array)
+	n := len(*a)
+	for k := n - 1; k >= 0; k-- {
+		(*a)[k] = i.Pop()
+	}
+	i.Push(a)
+}
+func dict(i *Interpreter) { // int -- dict
+	_ = i.Pop().(Integer)
+	i.Push(make(Dictionary))
+}
+func mkdict(i *Interpreter) { // << k v k v .. >>
+	mkarray(i)
+	a := i.Pop().(*Array)
+	n := len(*a)
+	if n%2 != 0 {
+		i.err("range")
+	}
+	d := make(Dictionary)
+	for k := 0; k < n; k += 2 {
+		key := (*a)[k]
+		if s, o := key.(Namer); o {
+			key = s.Name()
+		}
+		d[key] = (*a)[k+1]
+	}
+	i.Push(d)
+}
+func begin(i *Interpreter) { i.d = append(i.d, i.Pop().(Dictionary)) }
+func end(i *Interpreter) {
+	if len(i.d) < 4 {
+		i.err("dictstack")
+	}
+	i.d = i.d[:len(i.d)-1]
+}
+func def(i *Interpreter) {
+	d := i.Dict()
+	v := i.Pop()
+	k := i.Pop()
+	d[k] = v
+}
+func load(i *Interpreter) {
+	n := i.Pop()
+	if s, o := n.(Namer); o {
+		n = s.Name()
+	}
+	i.Push(i.lookup(n))
+}
+func anchorsearch(i *Interpreter) { // string seek -- post match true | string false
+	p := string(*(i.Pop().(*String)))
+	r := i.Top().(*String)
+	s := string(*r)
+	if strings.HasPrefix(s, p) {
+		t := String([]rune(strings.TrimPrefix(s, p)))
+		i.Push(&t)
+		i.Push(Boolean(true))
+	} else {
+		i.Push(Boolean(false))
+	}
+}
+func search(i *Interpreter) { // string seek -- post match pre true | string false
+	p := string(*(i.Pop().(*String)))
+	r := i.Top().(*String)
+	s := string(*r)
+	if n := strings.Index(s, p); n != -1 {
+		i.PushString(s[n+len(p):])
+		i.PushString(s[n : n+len(p)])
+		i.PushString(s[:n])
+		i.Push(Boolean(true))
+	} else {
+		i.PushString(s)
+		i.Push(Boolean(true))
 	}
 }
 
@@ -366,8 +545,20 @@ func eq(i *Interpreter) {
 	if t > 0 {
 		i.Push(Boolean(x == y)) // with numeric uptyping
 	} else {
+		if r, o := eqstr(x, y); o {
+			i.Push(r)
+			return
+		}
 		i.Push(Boolean(x == y)) // interface equality
 	}
+}
+func eqstr(x, y Value) (Value, bool) {
+	xs, ox := x.(Namer)
+	ys, oy := y.(Namer)
+	if ox && oy {
+		return Boolean(xs.Name() == ys.Name()), true
+	}
+	return nil, false
 }
 func ne(i *Interpreter) { eq(i); not(i) }
 func ge(i *Interpreter) { x, y := cmpTp2(i); _, b, c := cmp(x, y); i.Push(Boolean(c || b)) }
@@ -555,6 +746,9 @@ func (i *Interpreter) Run(s string) {
 	if strings.HasPrefix(s, "<<") {
 		s = strings.Replace(s, "<<", "«", 1)
 	}
+	if strings.HasSuffix(s, ">>") {
+		s = s[:len(s)-2] + "»"
+	}
 	s = strings.Replace(s, " <<", " «", -1)
 	s = strings.Replace(s, ">> ", "» ", -1)
 	token, b := []rune{}, []rune(s)
@@ -568,6 +762,18 @@ func (i *Interpreter) Run(s string) {
 		if len(b) == 0 {
 			return
 		}
+	}
+}
+func token(i *Interpreter) {
+	p := i.Pop().(*String)
+	tok, tail := i.Token(*p)
+	if len(tok) == 0 {
+		i.Push(Boolean(false))
+	} else {
+		t := String(tail)
+		i.Push(Boolean(true))
+		i.Push(&t)
+		i.Push(i.parse(string(tok)))
 	}
 }
 func (i *Interpreter) Token(b []rune) (token, tail []rune) {
@@ -701,7 +907,7 @@ func (i *Interpreter) parse(s string) Value {
 		return Real(f)
 	}
 	if strings.HasPrefix(s, "(") {
-		s := String([]rune(unquote(s[1 : len(s)-2])))
+		s := String([]rune(unquote(s[1:len(s)])))
 		return &s
 	}
 	if i := strings.Index(s, "a"); i > 0 {
@@ -710,6 +916,9 @@ func (i *Interpreter) parse(s string) Value {
 				return Complex(cmplx.Rect(abs, math.Pi*ang/180.0))
 			}
 		}
+	}
+	if strings.HasPrefix(s, "/") {
+		return Quoted(s[1:])
 	}
 	name := Name(s)
 	d := i.where(name)
@@ -768,15 +977,29 @@ func mkBuiltins() Dictionary {
 		Name("srand"):    Operator(srand), // no rrand
 
 		// array
-		Name("array"):  Operator(array),
-		Name("["):      Operator(func(i *Interpreter) { i.Push(Mark("[")) }),
-		Name("]"):      Operator(mkarray),
-		Name("length"): Operator(length),
-		Name("get"):    Operator(get),
-		Name("put"):    Operator(put),
+		Name("array"):       Operator(array),
+		Name("["):           Operator(func(i *Interpreter) { i.Push(Mark("[")) }),
+		Name("]"):           Operator(mkarray),
+		Name("length"):      Operator(length),
+		Name("get"):         Operator(get),
+		Name("put"):         Operator(put),
+		Name("getinterval"): Operator(getinterval),
+		Name("putinterval"): Operator(putinterval),
+		Name("astore"):      Operator(astore),
+		Name("aload"):       Operator(aload),
 
 		// dictionary
+		Name("dict"):  Operator(dict),
+		Name("«"):     Operator(func(i *Interpreter) { i.Push(Mark("<<")) }),
+		Name("»"):     Operator(mkdict),
+		Name("begin"): Operator(begin),
+		Name("end"):   Operator(end),
+
 		// string
+		Name("anchorsearch"): Operator(anchorsearch),
+		Name("search"):       Operator(search),
+		Name("token"):        Operator(token),
+
 		// relational/bitwise
 		Name("eq"):       Operator(eq),
 		Name("ne"):       Operator(ne),
@@ -792,7 +1015,7 @@ func mkBuiltins() Dictionary {
 		Name("false"):    Operator(func(i *Interpreter) { i.Push(Boolean(false)) }),
 		Name("bitshift"): Operator(bitshift),
 
-		Name("stack"):  Operator(pstack), // we only have pstack
+		Name("stack"):  Operator(pstack), // same as pstack
 		Name("pstack"): Operator(pstack),
 		Name("="):      Operator(_print),
 		Name("=="):     Operator(__print),
