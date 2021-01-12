@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"math/bits"
@@ -156,7 +157,7 @@ func ktry(s string) {
 	copy(b, MJ)
 	defer func() {
 		if r := recover(); r != nil {
-			ics(I(140), I(144))
+			ics(I(140), I(144), os.Stdout)
 			MJ = b
 			msl()
 		}
@@ -165,7 +166,7 @@ func ktry(s string) {
 }
 func indicate() {
 	if r := recover(); r != nil {
-		ics(I(140), I(144))
+		ics(I(140), I(144), os.Stdout)
 		panic(r)
 	}
 }
@@ -275,10 +276,10 @@ func run1(s string) string {
 	leak()
 	return s
 }
-func ics(x, y i) {
+func ics(x, y i, w io.Writer) {
 	xt, xn, xp := v1(x)
 	if xt != 1 || xn == 0 {
-		fmt.Printf("src(140): %d/%d\n", xt, xn)
+		fmt.Fprintf(w, "src(140): %d/%d\n", xt, xn)
 		return
 	}
 	y -= 8
@@ -293,12 +294,12 @@ func ics(x, y i) {
 		xp++
 	}
 	y -= p - (x + 8)
-	os.Stdout.Write(MC[p:q])
-	os.Stdout.Write([]byte{10})
+	w.Write(MC[p:q])
+	w.Write([]byte{10})
 	if y > 0 && y < 100 {
-		os.Stdout.Write(bytes.Repeat([]byte{' '}, int(y)))
+		w.Write(bytes.Repeat([]byte{' '}, int(y)))
 	}
-	os.Stdout.Write([]byte{'^', 10})
+	w.Write([]byte{'^', 10})
 }
 func kinit() {
 	m0 := 16
