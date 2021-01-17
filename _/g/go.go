@@ -68,16 +68,17 @@ func ik(x uint32) (r int)          { tc(2, x); return int(MI[2+x>>2]) }
 func fk(x uint32) (r float64)      { tc(3, x); return MF[1+x>>3] }
 func zk(x uint32) (r complex128)   { tc(4, x); return complex(MF[1+x>>3], MF[2+x>>3]) }
 func sk(x uint32) (r string)       { tc(5, x); return string(ck(I(I(kkey) + I(8+x)))) }
-func CK(x uint32) (r []byte)       { tc(1, x); r = Ck(x); dx(x); return r }
-func IK(x uint32) (r []int)        { tc(2, x); r = Ik(x); dx(x); return r }
-func FK(x uint32) (r []float64)    { tc(3, x); r = Fk(x); dx(x); return r }
-func ZK(x uint32) (r []complex128) { tc(4, x); r = Zk(x); dx(x); return r }
-func SK(x uint32) (r []string)     { tc(5, x); r = Sk(x); dx(x); return r }
+func CK(x uint32) (r []byte)       { r = Ck(x); dx(x); return r }
+func IK(x uint32) (r []int)        { r = Ik(x); dx(x); return r }
+func FK(x uint32) (r []float64)    { r = Fk(x); dx(x); return r }
+func ZK(x uint32) (r []complex128) { r = Zk(x); dx(x); return r }
+func SK(x uint32) (r []string)     { r = Sk(x); dx(x); return r }
 func Ck(x uint32) (r []byte) {
 	tc(1, x)
 	n := nn(x)
+	x += 8
 	r = make([]byte, n)
-	copy(r, MC[8+x:8+x+n])
+	copy(r, MC[x:x+n])
 	return r
 }
 func Ik(x uint32) (r []int) {

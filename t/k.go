@@ -223,6 +223,7 @@ func ktry(s string) {
 	copy(b, MJ)
 	defer func() {
 		if r := recover(); r != nil {
+			fmt.Println(r)
 			lastStack = debug.Stack()
 			ics(I(140), I(144), os.Stdout)
 			MJ = b

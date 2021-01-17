@@ -23,14 +23,16 @@ var xline int
 var interactive bool
 
 func ginit() {
+	MT['r'+128] = read1
 	MT['p'+128] = plot1
 	MT['c'+128] = caption1
+	assign("read", 'r')
 	assign("caption", 'c')
 	assign("plot", 'p')
 	assign("WIDTH", mki(800))
 	assign("HEIGHT", mki(400))
 	assign("COLUMNS", mki(80))
-	assign("LINES", mki(50))
+	assign("LINES", mki(20))
 	assign("FFMT", mkchars("%g"))
 	assign("ZFMT", mkchars("%ga%.0f"))
 	plotKeys = mksymbols([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
@@ -38,6 +40,19 @@ func ginit() {
 func init() {
 	exit = exitRepl
 	Out = gOut
+
+	// -s lines, cols (terminal size)
+	s := func(a string, tail []string) ([]string, bool) {
+		if a != "-s" || len(tail) < 2 {
+			return tail, false
+		}
+		lines, cols := atoi(tail[0]), atoi(tail[1])
+		assign("LINES", ki(lines))
+		assign("COLS", ki(cols))
+		return tail[2:], true
+	}
+	argvParsers = append(argvParsers, s)
+
 	// \  \h  (help)
 	h := func(a string) bool {
 		if a != `\h` && a != `\` {
@@ -137,6 +152,37 @@ func Loadfile(file string) error {
 	}
 	return fmt.Errorf("loadfile: unknown file type: %s\n", file)
 }
+func read1(x uint32) uint32 {
+	if tp(x) == 5 && nn(x) == 1 {
+		x = cs(x)
+	}
+	if tp(x) != 1 {
+		panic("type")
+	}
+	if nn(x) == 0 {
+		dx(x)
+		x = kC([]byte("./"))
+	}
+	if MC[7+x+nn(x)] == '/' {
+		return readdir(string(CK(x)))
+	}
+	b, e := ioutil.ReadFile(string(CK(x)))
+	fatal(e)
+	return kC(b)
+}
+func readdir(s string) uint32 {
+	fi, e := ioutil.ReadDir(s)
+	fatal(e)
+	keys, vals := make([]string, len(fi)), make([]int, len(fi))
+	for i, f := range fi {
+		keys[i] = f.Name()
+		if f.IsDir() {
+			keys[i] += "/"
+		}
+		vals[i] = int(f.Size())
+	}
+	return mkd(kS(keys), kI(vals))
+}
 func LoadDataFile(file, sym string) error {
 	b, e := ioutil.ReadFile(file)
 	if e != nil {
@@ -175,6 +221,12 @@ func clipTerminal() io.Writer {
 		return os.Stdout
 	}
 	return &clipWriter{Writer: os.Stdout, c: c - 2, l: l}
+}
+
+func atoi(s string) int {
+	i, e := strconv.Atoi(s)
+	fatal(e)
+	return i
 }
 
 func printStack(stack []byte) {
