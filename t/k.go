@@ -11,7 +11,7 @@ import (
 	"math/bits"
 	"math/cmplx"
 	"os"
-	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -41,70 +41,167 @@ const naI i = 2147483648
 const naJ j = 9221120237041090561
 const pp, kkey, kval, xyz, kcon, cmap = 8, 132, 136, 148, 156, 160
 
-func main() {
-	if len(os.Args) > 1 && os.Args[1] == "T" {
-		ddd = true
-		os.Args[1] = "t"
-	}
-	if len(os.Args) > 1 && os.Args[1] == "t" {
-		if len(os.Args) > 2 { // ./k t 3 4 5
-			a := make([]int, len(os.Args)-2)
-			var e error
-			for i, s := range os.Args[2:] {
-				a[i], e = strconv.Atoi(s)
-				if e != nil {
-					panic(fmt.Errorf("wrong arg! ./k t [int..]"))
-				}
-			}
-			runtest(a)
-		} else {
-			multitest()
-			runtest(nil)
+var version = "k.go"
+var argvParsers []func(string, []string) ([]string, bool)
+var replParsers []func(string) bool
+var kiniRunners []func()
+var exit = os.Exit
+var Out func(x uint32)
+
+func init() {
+	// -f file  -fvar file  (load bytes + assign)
+	f := func(a string, tail []string) ([]string, bool) {
+		if strings.HasPrefix(a, "-f") == false {
+			return tail, false
 		}
-	} else if len(os.Args) > 2 && os.Args[1] == "-d" {
-		kdirs(os.Args[2:])
-	} else {
-		kinit()
-		defer indicate()
-		args := os.Args[1:]
-		for {
-			if len(args) == 0 {
+		b, e := ioutil.ReadFile(tail[0])
+		fatal(e)
+		name := a[2:]
+		if name == "" {
+			name = tail[0]
+		}
+		dx(asn(sc(kC([]byte(name))), kC(b)))
+		return tail[1:], true
+	}
+	// file.k (load)
+	k := func(a string, tail []string) ([]string, bool) {
+		if strings.HasSuffix(a, ".k") == false {
+			return tail, false
+		}
+		load(a)
+		return tail, true
+	}
+	// -leak (test)
+	lk := func(a string, tail []string) ([]string, bool) {
+		if a == "-leak" {
+			leak()
+			fmt.Println("no leak\n")
+		}
+		return tail, false
+	}
+	// -e [EXPR] then exit
+	e := func(a string, tail []string) ([]string, bool) {
+		if a != "-e" {
+			return tail, false
+		}
+		if len(tail) > 0 {
+			s := strings.Join(tail, " ")
+			dx(out(val(kC([]byte(s)))))
+		}
+		leak()
+		exit(0)
+		return tail, false
+	}
+	// -d (debug)
+	deb := func(a string, tail []string) ([]string, bool) {
+		if a == "-d" == false {
+			return tail, false
+		}
+		ddd = true
+		return tail, true
+	}
+	argvParsers = append(argvParsers, f, k, lk, e, deb)
+
+	// \leak (test)
+	le := func(a string) bool {
+		if strings.HasPrefix(a, `\leak`) == false {
+			return false
+		}
+		b := make([]uint64, len(MJ))
+		copy(b, MJ)
+		leak()
+		copy(MJ, b)
+		msl()
+		fmt.Println("no leak")
+		return true
+	}
+	// \v (variables)
+	v := func(a string) bool {
+		if a != `\v` {
+			return false
+		}
+		x := I(kkey)
+		rx(x)
+		fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
+		dx(out(jon(x, mkc('`'))))
+		return true
+	}
+	// \d (toggle debug)
+	d := func(a string) bool {
+		if a != `\d` {
+			return false
+		}
+		ddd = !ddd
+		fmt.Println("debug", ddd)
+		return true
+	}
+	// \s (stack)
+	s := func(a string) bool {
+		if a != `\s` {
+			return false
+		}
+		os.Stdout.Write(lastStack)
+		return true
+	}
+	// \\ (exit)
+	ex := func(a string) bool {
+		if a != `\\` {
+			return false
+		}
+		exit(0)
+		return true
+	}
+	replParsers = append(replParsers, le, v, d, s, ex)
+}
+func main() { Main(os.Args[1:]) }
+func Main(args []string) {
+	if len(args) > 0 && args[0] == "t" {
+		multitest()
+		runtest("t")
+		return
+	}
+	kinit()
+	defer indicate()
+	for {
+		if len(args) == 0 {
+			break
+		}
+		no := true
+		for _, p := range argvParsers {
+			if tail, ok := p(args[0], args[1:]); ok {
+				args = tail
+				no = false
 				break
 			}
-			a := args[0]
-			if strings.HasPrefix(a, "-f") {
-				b, e := ioutil.ReadFile(args[1])
-				if e != nil {
-					panic(e)
-				}
-				name := a[2:]
-				if name == "" {
-					name = args[1]
-				}
-				dx(asn(sc(mkchrs([]byte(name))), mkchrs(b)))
-				args = args[1:]
-			} else if strings.HasSuffix(a, ".k") {
-				load(a)
-			} else if a == "-leak" {
-				leak()
-				fmt.Println("no leak\n")
-				os.Exit(0)
-			} else if a == "-e" {
-				args = args[1:]
-				if len(args) > 0 {
-					s := strings.Join(args, " ")
-					dx(out(val(mkchrs([]byte(s)))))
-				}
-				leak()
-				os.Exit(0)
-			} else if a == "ddd" {
-				ddd = true
-			} else {
-				panic("argument: " + a)
-			}
-			args = args[1:]
 		}
-		repl()
+		if no {
+			panic("arg: " + args[0])
+		}
+	}
+	repl()
+}
+func repl() {
+	s := bufio.NewScanner(os.Stdin)
+	fmt.Printf("%s\n ", version)
+	for s.Scan() {
+		t := s.Text()
+		c := strings.TrimSpace(t)
+		no := true
+		for _, p := range replParsers {
+			if p(c) == true {
+				no = false
+				break
+			}
+		}
+		if no {
+			ktry(t)
+		}
+		fmt.Printf(" ")
+	}
+}
+func fatal(e error) {
+	if e != nil {
+		panic(e)
 	}
 }
 func load(f string) {
@@ -115,54 +212,24 @@ func load(f string) {
 	if n := bytes.Index(b, []byte("\n\\")); n != -1 {
 		b = b[:n+1]
 	}
-	dx(out(val(mkchrs(b))))
+	dx(out(val(kC(b))))
 }
 
 var ddd = false
+var lastStack []byte
 
-func repl() {
-	s := bufio.NewScanner(os.Stdin)
-	fmt.Printf("k.go\n ")
-	for s.Scan() {
-		t := s.Text()
-		switch strings.TrimSpace(t) {
-		case `\leak`:
-			b := make([]uint64, len(MJ))
-			copy(b, MJ)
-			leak()
-			copy(MJ, b)
-			msl()
-			fmt.Println("no leak")
-		case `\256`:
-			fmt.Printf("%x %d/%d: rc=%x Ixp=%x\n", 256, tp(256), nn(256), I(256+4), I(256+8))
-		case `\v`:
-			x := I(kkey)
-			rx(x)
-			fmt.Printf("kkey[%x] %d/%d\n", x, tp(x), nn(x))
-			dx(out(jon(x, mkc('`'))))
-		case `\d`:
-			//dump(0, 200)
-			ddd = !ddd
-			fmt.Println("debug", ddd)
-		case `\`, `\\`:
-			os.Exit(0)
-		default:
-			ktry(t)
-		}
-		fmt.Printf(" ")
-	}
-}
 func ktry(s string) {
 	b := make([]uint64, len(MJ))
 	copy(b, MJ)
 	defer func() {
 		if r := recover(); r != nil {
+			lastStack = debug.Stack()
 			ics(I(140), I(144), os.Stdout)
 			MJ = b
 			msl()
 		}
 	}()
-	dx(out(val(mkchrs([]byte(s)))))
+	dx(out(val(kC([]byte(s)))))
 }
 func indicate() {
 	if r := recover(); r != nil {
@@ -190,27 +257,20 @@ func multitest() { //multiline, spaces, comments
 		fmt.Printf("%q /%s\n", t.in, got)
 		if got != t.exp {
 			fmt.Println("expected:", t.exp)
-			os.Exit(1)
+			exit(1)
 		}
 	}
 }
-func runtest(n []int) {
-	b, e := ioutil.ReadFile("t")
+func runtest(file string) {
+	b, e := ioutil.ReadFile(file)
 	if e != nil {
 		panic(e)
 	}
 	v := strings.Split(string(b), "\n")
-	if n != nil {
-		w := make([]string, len(n))
-		for i := range n {
-			w[i] = v[n[i]]
-		}
-		v = w
-	}
 	for i := range v {
 		if len(v[i]) == 0 {
 			fmt.Println("skip rest")
-			os.Exit(0)
+			exit(0)
 		}
 		if len(v[i]) == 0 || v[i][0] == '/' {
 			continue
@@ -229,47 +289,13 @@ func runtest(n []int) {
 		fmt.Println(in, "/", got)
 		if exp != got {
 			fmt.Println("expected:", exp)
-			os.Exit(1)
+			exit(1)
 		}
 	}
-}
-func kdirs(dirs []string) {
-	kinit()
-	for _, name := range dirs {
-		dx(asn(sc(mkchrs([]byte(name))), kdir(name)))
-	}
-	if err := ioutil.WriteFile("k.ws", MC, 0744); err != nil {
-		panic(err)
-	}
-}
-func kdir(name string) i {
-	read0 := func(s string) i {
-		b, err := ioutil.ReadFile(s)
-		if err != nil {
-			panic(err)
-		}
-		x := mkchrs(b)
-		return x
-	}
-	k, v := mk(5, 0), mk(6, 0)
-	files, err := ioutil.ReadDir(name)
-	if err != nil {
-		panic(err)
-	}
-	for _, fi := range files {
-		s := fi.Name()
-		k = ucat(k, sc(mkchrs([]byte(s))))
-		if fi.Mode().IsRegular() {
-			v = lcat(v, read0(filepath.Join(name, s)))
-		} else if fi.IsDir() {
-			v = lcat(v, kdir(filepath.Join(name, s)))
-		}
-	}
-	return mkd(k, v)
 }
 func run1(s string) string {
 	kinit()
-	x := mkchrs([]byte(s))
+	x := kC([]byte(s))
 	x = kst(val(x))
 	s = string(MC[x+8 : x+nn(x)+8])
 	dx(x)
@@ -307,6 +333,9 @@ func kinit() {
 	msl()   // pointers MC, MI, ..
 	cmake() // char maps
 	ini(16)
+	for _, f := range kiniRunners {
+		f()
+	}
 }
 func ini(x i) i {
 	sin, cos, exp, log := math.Sin, math.Cos, math.Exp, math.Log
@@ -347,10 +376,10 @@ func msl() { // update slice headers after set/inc MJ
 	MI = *(*[]i)(unsafe.Pointer(&ip))
 	MC = *(*[]c)(unsafe.Pointer(&cp))
 }
-func mkchrs(b []byte) i {
-	x := mk(1, i(len(b)))
-	copy(MC[x+8:], b)
-	return x
+func kC(x []byte) (r uint32) {
+	r = mk(1, uint32(len(x)))
+	copy(MC[r+8:], x)
+	return r
 }
 func grow(x i) (r i) {
 	if x > 31 {
@@ -1474,6 +1503,10 @@ func drw(x, y i) (r i) { // x 'd y
 	return dxyr(x, y, 0)
 }
 func out(x i) (r i) {
+	if Out != nil {
+		Out(x)
+		return x
+	}
 	rx(x)
 	r = x
 	if tp(x) != 1 {
@@ -1481,7 +1514,7 @@ func out(x i) (r i) {
 	}
 	n := nn(r)
 	if n > 0 {
-		fmt.Printf("%s\n", MC[r+8:r+8+n])
+		fmt.Printf("%s\n", string(MC[r+8:r+8+n]))
 	}
 	dx(r)
 	return x

@@ -1,0 +1,7 @@
+
+go run gen.go
+cat ../../t/k.go | go run unmain.go printc > k_.go
+
+go fmt
+go build
+
