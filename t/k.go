@@ -362,6 +362,14 @@ func ini(x i) i {
 	sI(kkey, enl(mk(1, 0)))
 	sI(kval, enl(0))
 	sI(xyz, cat(cat(mks(120), mks(121)), mks(122)))
+
+	r := mk(1, 3)
+	sI(r+8, 7370084)    // "dup"
+	dx(sc(r))           // -> offset 0x18
+	r = mk(1, 4)        //
+	sI(r+8, 1751349349) // "exch"
+	dx(sc(r))           // -> offset 0x1c
+
 	sI(kcon, mk(6, 0))
 	return x
 }
@@ -2640,7 +2648,19 @@ func run(x i) (r i) { // execute byte code (run don't walk)
 		} else if m == 5 { //var
 			sp += 4
 			sI(sp, a)
-			a = I(I(kval) + n) //136
+			switch n {
+			case 0x18: // dup
+			case 0x1c: // exch
+				sp -= 4
+				a = I(sp)
+				sI(sp, I(sp+4))
+				if I(xp+4) == 1026 {
+					xp += 4 // skip @
+					yp += 4
+				}
+			default:
+				a = I(I(kval) + n) //136
+			}
 			rx(a)
 		} else if m == 6 { //mkl
 			r = mk(6, n)
