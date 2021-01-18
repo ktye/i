@@ -49,7 +49,9 @@ func kS(x []string) (r uint32) {
 	r = mk(5, uint32(len(x)))
 	p := int(2 + r>>2)
 	for i, u := range x {
-		MI[p+i] = sc(kC([]byte(u)))
+		t := sc(kC([]byte(u)))
+		MI[p+i] = I(t + 8)
+		dx(t)
 	}
 	return r
 }
@@ -113,13 +115,13 @@ func Sk(x uint32) (r []string) {
 	tc(5, x)
 	n := int(nn(x))
 	r = make([]string, n)
-	p := 2 + x>>2
+	p := int(2 + x>>2)
 	for i := range r {
-		c := I(I(kkey) + I(p))
-		r[i] = string(MC[8+c : 8+c+nn(c)])
+		r[i] = ski(MI[p+i])
 	}
 	return r
 }
+func ski(off uint32) string { return string(Ck(I(I(kkey) + off))) }
 
 func K(x interface{}) (r uint32) { return kgo(reflect.ValueOf(x)) }
 func G(x uint32, r interface{})  { gok(x, reflect.ValueOf(r).Elem()) }
@@ -207,7 +209,7 @@ func kstruct(x reflect.Value) (r uint32) {
 		u := x.Field(i)
 		n := t.Field(i).Name
 		if isexported(n) {
-			k = ucat(k, mksymbol(n))
+			k = ucat(k, ks(n))
 			v = lcat(v, kgo(u))
 		}
 	}
@@ -218,7 +220,7 @@ func kmap(m reflect.Value) (r uint32) {
 	v := mk(6, 0)
 	iter := m.MapRange()
 	for iter.Next() {
-		k = ucat(k, mksymbol(iter.Key().String()))
+		k = ucat(k, ks(iter.Key().String()))
 		v = lcat(v, kgo(iter.Value()))
 	}
 	return mkd(k, v)

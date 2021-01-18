@@ -33,9 +33,9 @@ func ginit() {
 	assign("HEIGHT", mki(400))
 	assign("COLUMNS", mki(80))
 	assign("LINES", mki(20))
-	assign("FFMT", mkchars("%g"))
-	assign("ZFMT", mkchars("%ga%.0f"))
-	plotKeys = mksymbols([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
+	assign("FFMT", kC([]byte("%g")))
+	assign("ZFMT", kC([]byte("%ga%.0f")))
+	plotKeys = kS([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
 }
 func init() {
 	exit = exitRepl
@@ -70,46 +70,6 @@ func exitRepl(x int) {
 		os.Exit(x)
 	}
 }
-
-/*
-func ExecLine(w io.Writer, s string) {
-	switch s {
-	default:
-		if strings.HasPrefix(s, `\l`) {
-			s = strings.TrimSpace(s[2:])
-			kerr(Loadfile(s))
-			if xline != 0 {
-				fmt.Fprintf(os.Stderr, "%s:%d\n", xfile, xline)
-				xline = 0
-			}
-		} else {
-			s := Exec(s, terminal(w))
-			if len(s) > 0 {
-				fmt.Fprintln(w, s)
-			}
-		}
-	}
-}
-func Exec(s string, w io.Writer) string {
-	b := make([]uint64, len(MJ))
-	copy(b, MJ)
-	defer func() {
-		if r := recover(); r != nil {
-			printStack(debug.Stack())
-			fmt.Println(r)
-			ics(I(140), I(144), os.Stdout)
-			MJ = b
-			msl()
-		}
-	}()
-	//dx(out(val(mkchrs([]byte(s)))))
-
-	if len(strings.TrimSpace(s)) == 0 {
-		return ""
-	}
-	r := val(mkchars(s))
-}
-*/
 func gOut(x uint32) {
 	var o io.Writer = os.Stdout
 	if interactive {
@@ -121,11 +81,13 @@ func gOut(x uint32) {
 		showPlot(p)
 		return
 	}
-	if rows, cols := istab(x); rows+cols > 0 {
+	if rows, cols := istab(x); rows > 1 {
 		writeTable(x, o, rows, cols)
 		return
+	} else if tp(x) == 7 {
+		writeDict(x, o)
+		return
 	}
-
 	rx(x)
 	o.Write(append(Ck(kst(x)), 10))
 }
@@ -207,7 +169,7 @@ func runscript(r io.Reader) (uint32, error) {
 			s = s[:idx]
 		}
 		dx(x)
-		x = val(mkchars(" " + s))
+		x = val(kC([]byte(" " + s)))
 	}
 	xline = 0
 	return x, nil
@@ -323,48 +285,9 @@ func lupString(s string) string {
 	}
 	return kstr(r)
 }
-func assign(s string, v uint32)  { dx(asn(mksymbol(s), v)) }
-func lookup(s string) (r uint32) { return lup(mksymbol(s)) }
-func mksymbol(s string) (r uint32) {
-	r = mk(1, uint32(len(s)))
-	copy(MC[8+r:], s)
-	return sc(r)
-}
-func mksymbols(v []string) (r uint32) {
-	r = mk(5, 0)
-	for _, s := range v {
-		r = ucat(r, mksymbol(s))
-	}
-	return r
-}
-func mkchars(s string) (r uint32) {
-	r = mk(1, uint32(len(s)))
-	copy(MC[8+r:], s)
-	return r
-}
-func mkfloat(f float64) (r uint32) {
-	r = mk(3, 1)
-	p := (r + 8) >> 3
-	MF[p] = f
-	return r
-}
-func mkfloats(f []float64) (r uint32) {
-	n := uint32(len(f))
-	r = mk(3, n)
-	p := (r + 8) >> 3
-	copy(MF[p:], f)
-	return r
-}
-func mkcmplx(z []complex128) (r uint32) {
-	n := uint32(len(z))
-	r = mk(4, n)
-	p := (r + 8) >> 3
-	for i := uint32(0); i < n; i++ {
-		MF[p+2*i] = real(z[i])
-		MF[p+1+2*i] = imag(z[i])
-	}
-	return r
-}
+func assign(s string, v uint32)  { dx(asn(ks(s), v)) }
+func lookup(s string) (r uint32) { return lup(ks(s)) }
+
 func kerr(e error) bool {
 	if e == nil {
 		return false
@@ -383,7 +306,6 @@ func perr(e error) {
 
 func kstr(x uint32) (r string) { n := nn(x); return string(MC[x+8 : x+8+n]) }
 
-func symstr(off uint32) string { return kstr(I(I(kkey) + off)) }
 func istab(x uint32) (uint32, uint32) {
 	if tp(x) == 7 {
 		v := MI[3+x>>2]
@@ -401,6 +323,22 @@ func istab(x uint32) (uint32, uint32) {
 	}
 	return 0, 0
 }
+func writeDict(x uint32, w io.Writer) {
+	k := Sk(I(8 + x))
+	m := 1
+	for i := range k {
+		if n := len(k[i]); n > m {
+			m = n
+		}
+	}
+	rx(x)
+	x = val(x)
+	x = ech(x, 'k'+128)
+	for i, s := range k {
+		fmt.Fprintf(w, "%s%s|%s\n", s, strings.Repeat(" ", m-len(s)), string(Ck(I(8+x+uint32(4*i)))))
+	}
+	dx(x)
+}
 func writeTable(x uint32, ww io.Writer, rows, cols uint32) {
 	tab := []byte{'\t'}
 	nl := []byte{'\n'}
@@ -409,7 +347,7 @@ func writeTable(x uint32, ww io.Writer, rows, cols uint32) {
 	w := tabwriter.NewWriter(ww, 2, 8, 1, ' ', 0)
 	keys, vals := MI[2+x>>2], MI[3+x>>2]
 	for i := uint32(0); i < cols; i++ {
-		w.Write([]byte(symstr(MI[2+keys>>2])))
+		w.Write([]byte(ski(MI[2+keys>>2])))
 		if i != cols-1 {
 			w.Write(tab)
 		}
@@ -437,7 +375,7 @@ func fmtVecAt(x uint32, i uint32, ffmt, zfmt string) string {
 		z := complex(MF[1+2*i+x>>3], MF[2+2*i+x>>3])
 		return absang(z, zfmt)
 	case 5:
-		return symstr(MI[2+i+x>>2])
+		return ski(MI[2+i+x>>2])
 	default:
 		return "?"
 	}

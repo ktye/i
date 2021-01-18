@@ -19,7 +19,7 @@ func plot1(x uint32) (r uint32) {
 	_ = xn
 	switch xt {
 	case 2:
-		return plot1(add(mkfloat(0), x))
+		return plot1(add(kf(0), x))
 	case 3:
 		p := plot.Plot{Type: plot.XY}
 		p.Lines = []plot.Line{pline(x, 0)}
@@ -101,7 +101,7 @@ func toPlot(x uint32) (plot.Plot, bool) {
 	return plot.Plot{}, false
 }
 func pline(y uint32, id int) (r plot.Line) {
-	x := add(mkfloat(0.0), til(mki(nn(y))))
+	x := add(kf(0.0), til(mki(nn(y))))
 	return pline2(x, y, id)
 }
 func pline2(x, y uint32, id int) (r plot.Line) {
