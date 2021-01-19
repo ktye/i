@@ -18,9 +18,9 @@ import (
 
 var nyi = errors.New("nyi")
 var plotKeys uint32
+var symbols = make(map[string]uint32)
 var xfile string
 var xline int
-var interactive bool
 
 func ginit() {
 	MT['r'+128] = read1
@@ -29,6 +29,10 @@ func ginit() {
 	assign("read", 'r')
 	assign("caption", 'c')
 	assign("plot", 'p')
+	symbols["COLUMNS"] = ks("COLUMNS")
+	symbols["LINES"] = ks("LINES")
+	symbols["WIDTH"] = ks("WIDTH")
+	symbols["HEIGHT"] = ks("HEIGHT")
 	assign("WIDTH", mki(800))
 	assign("HEIGHT", mki(400))
 	assign("COLUMNS", mki(80))
@@ -36,6 +40,7 @@ func ginit() {
 	assign("FFMT", kC([]byte("%g")))
 	assign("ZFMT", kC([]byte("%ga%.0f")))
 	plotKeys = kS([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
+
 }
 func init() {
 	exit = exitRepl
@@ -48,12 +53,12 @@ func init() {
 		}
 		lines, cols := atoi(tail[0]), atoi(tail[1])
 		assign("LINES", ki(lines))
-		assign("COLS", ki(cols))
+		assign("COLUMNS", ki(cols))
 		return tail[2:], true
 	}
 	argvParsers = append(argvParsers, s)
 
-	// \  \h  (help)
+	// \h(help)
 	h := func(a string) bool {
 		if a != `\h` && a != `\` {
 			return false
@@ -61,7 +66,24 @@ func init() {
 		fmt.Println(help)
 		return true
 	}
-	replParsers = append(replParsers, h)
+	le := func(a string) bool {
+		if strings.HasPrefix(a, `\leak`) == false {
+			return false
+		}
+		fmt.Println("b:leak")
+		b := make([]uint64, len(MJ))
+		copy(b, MJ)
+		dx(plotKeys) // differs from k.go
+		for _, x := range symbols {
+			dx(x)
+		}
+		leak()
+		copy(MJ, b)
+		msl()
+		fmt.Println("no leak")
+		return true
+	}
+	replParsers = append(replParsers, h, le)
 	kiniRunners = append(kiniRunners, ginit)
 }
 
@@ -70,28 +92,47 @@ func exitRepl(x int) {
 		os.Exit(x)
 	}
 }
+func memstore() []uint32 {
+	m := make([]uint32, len(MI))
+	copy(m, MI)
+	return m
+}
+func memcompare(m []uint32, s string) {
+	if len(m) != len(MI) {
+		panic(fmt.Sprintf("%s modified memory size: before %d now %d\n", s, len(m), len(MI)))
+	}
+	for i, u := range m {
+		if u != MI[i] {
+			panic(fmt.Sprintf("%s modified memory at %x(%d): 0x%x != 0x%x", s, i, i, m[i], MI[i]))
+		}
+	}
+}
 func gOut(x uint32) {
 	var o io.Writer = os.Stdout
+
+	var lines int
 	if interactive {
-		o = clipTerminal()
+		o, lines = clipTerminal()
 	}
 
+	//m := memstore()
 	p := pk(x)
+	//memcompare(m, "pk")
 	if p != nil {
 		showPlot(p)
+		//memcompare(m, "showplot")
 		return
 	}
 	if rows, cols := istab(x); rows > 1 {
-		writeTable(x, o, rows, cols)
+		writeTable(x, o, rows, cols, lines)
 		return
 	} else if tp(x) == 7 {
-		writeDict(x, o)
+		writeDict(x, o, lines)
 		return
 	}
 	rx(x)
-	o.Write(append(Ck(kst(x)), 10))
+	o.Write(append(CK(kst(x)), 10))
 }
-func SetInteractive() { interactive = true }
 func Loadfile(file string) error {
 	b := make([]uint64, len(MJ))
 	copy(b, MJ)
@@ -176,13 +217,13 @@ func runscript(r io.Reader) (uint32, error) {
 }
 
 // clip to COLUMNS/LINES if interactive
-func clipTerminal() io.Writer {
+func clipTerminal() (io.Writer, int) {
 	c := lupInt("COLUMNS")
 	l := lupInt("LINES")
 	if c <= 0 || l <= 0 {
-		return os.Stdout
+		return os.Stdout, 0
 	}
-	return &clipWriter{Writer: os.Stdout, c: c - 2, l: l}
+	return &clipWriter{Writer: os.Stdout, c: c - 2, l: l}, l
 }
 
 func atoi(s string) int {
@@ -267,27 +308,36 @@ func (cw *clipWriter) Write(p []byte) (n int, err error) {
 	return size, nil
 }
 
-func lupInt(s string) int {
-	r := lookup(s)
-	if r == 0 {
-		panic("var " + s + " does not exist")
+func lupInt(s string) int { // no modification
+	x, o := symbols[s]
+	if o == false {
+		panic("var " + s + " is not a registered symbol")
 	}
+	r := I(I(kval) + I(x+8))
 	if tp(r) != 2 || nn(r) != 1 {
 		panic("var " + s + " is not int#1")
 	}
-	dx(r)
 	return int(MI[2+r>>2])
 }
-func lupString(s string) string {
-	r := lookup(s)
-	if r == 0 || tp(r) != 1 {
-		panic("var " + s + " must exist as chars")
+func lupString(s string) string { // no modification
+	x, o := symbols[s]
+	if o == false {
+		panic("var " + s + " is not a registered symbol")
 	}
-	return kstr(r)
+	r := I(I(kval) + I(x+8))
+	if tp(r) != 1 {
+		panic("var " + s + " is not a char")
+	}
+	return string(Ck(r))
 }
-func assign(s string, v uint32)  { dx(asn(ks(s), v)) }
-func lookup(s string) (r uint32) { return lup(ks(s)) }
-
+func lookup(s string) uint32 {
+	r := lup(ks(s))
+	if r == 0 {
+		panic("symbol " + s + " does not exist")
+	}
+	return r
+}
+func assign(s string, v uint32) { dx(asn(ks(s), v)) }
 func kerr(e error) bool {
 	if e == nil {
 		return false
@@ -303,8 +353,6 @@ func perr(e error) {
 		panic(e)
 	}
 }
-
-func kstr(x uint32) (r string) { n := nn(x); return string(MC[x+8 : x+8+n]) }
 
 func istab(x uint32) (uint32, uint32) {
 	if tp(x) == 7 {
@@ -323,7 +371,7 @@ func istab(x uint32) (uint32, uint32) {
 	}
 	return 0, 0
 }
-func writeDict(x uint32, w io.Writer) {
+func writeDict(x uint32, w io.Writer, clip int) {
 	k := Sk(I(8 + x))
 	m := 1
 	for i := range k {
@@ -336,10 +384,14 @@ func writeDict(x uint32, w io.Writer) {
 	x = ech(x, 'k'+128)
 	for i, s := range k {
 		fmt.Fprintf(w, "%s%s|%s\n", s, strings.Repeat(" ", m-len(s)), string(Ck(I(8+x+uint32(4*i)))))
+		if clip > 0 && i > clip {
+			fmt.Fprintf(w, "..\n")
+			break
+		}
 	}
 	dx(x)
 }
-func writeTable(x uint32, ww io.Writer, rows, cols uint32) {
+func writeTable(x uint32, ww io.Writer, rows, cols uint32, clip int) {
 	tab := []byte{'\t'}
 	nl := []byte{'\n'}
 	ffmt := lupString("FFMT")
@@ -361,6 +413,10 @@ func writeTable(x uint32, ww io.Writer, rows, cols uint32) {
 			}
 		}
 		w.Write(nl)
+		if clip > 0 && int(k) > clip {
+			w.Write([]byte("..\n"))
+			break
+		}
 	}
 	w.Flush()
 }

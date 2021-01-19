@@ -21,7 +21,7 @@ func main() {
 	}
 
 	fset := token.NewFileSet()
-	f, e := parser.ParseFile(fset, "", os.Stdin, 0)
+	f, e := parser.ParseFile(fset, "", os.Stdin, parser.ParseComments)
 	fatal(e)
 
 	// remove main function

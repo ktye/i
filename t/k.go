@@ -75,7 +75,7 @@ func init() {
 	lk := func(a string, tail []string) ([]string, bool) {
 		if a == "-leak" {
 			leak()
-			fmt.Println("no leak\n")
+			fmt.Println("no leak")
 		}
 		return tail, false
 	}
@@ -102,7 +102,7 @@ func init() {
 	}
 	argvParsers = append(argvParsers, f, k, lk, e, deb)
 
-	// \leak (test)
+	// \leak
 	le := func(a string) bool {
 		if strings.HasPrefix(a, `\leak`) == false {
 			return false
@@ -115,7 +115,7 @@ func init() {
 		fmt.Println("no leak")
 		return true
 	}
-	// \v (variables)
+	// \v(vars)
 	v := func(a string) bool {
 		if a != `\v` {
 			return false
@@ -126,7 +126,7 @@ func init() {
 		dx(out(jon(x, mkc('`'))))
 		return true
 	}
-	// \d (toggle debug)
+	// \d(toggle debug)
 	d := func(a string) bool {
 		if a != `\d` {
 			return false
@@ -135,7 +135,7 @@ func init() {
 		fmt.Println("debug", ddd)
 		return true
 	}
-	// \s (stack)
+	// \s(stack)
 	s := func(a string) bool {
 		if a != `\s` {
 			return false
@@ -143,7 +143,7 @@ func init() {
 		os.Stdout.Write(lastStack)
 		return true
 	}
-	// \\ (exit)
+	// \\(exit)
 	ex := func(a string) bool {
 		if a != `\\` {
 			return false
@@ -180,7 +180,11 @@ func Main(args []string) {
 	}
 	repl()
 }
+
+var interactive bool
+
 func repl() {
+	interactive = true
 	s := bufio.NewScanner(os.Stdin)
 	fmt.Printf("%s\n ", version)
 	for s.Scan() {
@@ -334,8 +338,10 @@ func kinit() {
 	msl()   // pointers MC, MI, ..
 	cmake() // char maps
 	ini(16)
-	for _, f := range kiniRunners {
-		f()
+	if len(kiniRunners) > 0 {
+		for i := len(kiniRunners) - 1; i >= 0; i-- {
+			kiniRunners[i]()
+		}
 	}
 }
 func ini(x i) i {

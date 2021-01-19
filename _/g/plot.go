@@ -70,7 +70,7 @@ func caption1(x uint32) (r uint32) { // caption plot`sig
 	return K(m)
 }
 
-func pk(x uint32) (r plot.Plots) {
+func pk(x uint32) (r plot.Plots) { // plot from k (does not unref)
 	xt, xn := tp(x), nn(x)
 	if xt == 7 {
 		if p, ok := toPlot(x); ok {
@@ -79,20 +79,17 @@ func pk(x uint32) (r plot.Plots) {
 	} else if xt == 6 && xn >= 1 {
 		for i := uint32(0); i < xn; i++ {
 			xi := MI[2+i+x>>2]
-			rx(xi)
 			if p, ok := toPlot(xi); ok {
 				r = append(r, p)
 			} else {
-				dx(xi)
 				return nil
 			}
 		}
-		dx(x)
 		return r
 	}
 	return nil
 }
-func toPlot(x uint32) (plot.Plot, bool) {
+func toPlot(x uint32) (plot.Plot, bool) { // does not unref
 	if tp(x) == 7 && match(MI[2+x>>2], plotKeys) != 0 {
 		var p plot.Plot
 		G(x, &p)

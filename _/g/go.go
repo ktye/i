@@ -69,7 +69,7 @@ func ck(x uint32) (r byte)         { tc(1, x); return MC[8+x] }
 func ik(x uint32) (r int)          { tc(2, x); return int(MI[2+x>>2]) }
 func fk(x uint32) (r float64)      { tc(3, x); return MF[1+x>>3] }
 func zk(x uint32) (r complex128)   { tc(4, x); return complex(MF[1+x>>3], MF[2+x>>3]) }
-func sk(x uint32) (r string)       { tc(5, x); return string(ck(I(I(kkey) + I(8+x)))) }
+func sk(x uint32) (r string)       { tc(5, x); return string(Ck(I(I(kkey) + I(8+x)))) }
 func CK(x uint32) (r []byte)       { r = Ck(x); dx(x); return r }
 func IK(x uint32) (r []int)        { r = Ik(x); dx(x); return r }
 func FK(x uint32) (r []float64)    { r = Fk(x); dx(x); return r }
@@ -124,7 +124,7 @@ func Sk(x uint32) (r []string) {
 func ski(off uint32) string { return string(Ck(I(I(kkey) + off))) }
 
 func K(x interface{}) (r uint32) { return kgo(reflect.ValueOf(x)) }
-func G(x uint32, r interface{})  { gok(x, reflect.ValueOf(r).Elem()) }
+func G(x uint32, r interface{})  { gok(x, reflect.ValueOf(r).Elem()) } // does not unref
 func kgo(v reflect.Value) (r uint32) {
 	if v.IsValid() == false {
 		return 0
@@ -226,8 +226,6 @@ func kmap(m reflect.Value) (r uint32) {
 	return mkd(k, v)
 }
 
-type symbols []string
-
 func setBool(r, i uint32, v reflect.Value) {
 	if v.Bool() {
 		MI[2+i+r>>2] = 1
@@ -244,7 +242,7 @@ func setComplex(r, i uint32, v reflect.Value) {
 	MF[2+2*i+r>>3] = imag(z)
 }
 
-func gok(x uint32, r reflect.Value) {
+func gok(x uint32, r reflect.Value) { // does not unref
 	switch r.Kind() {
 	case reflect.Bool:
 		if tp(x) != 2 || nn(x) != 1 {
@@ -273,49 +271,74 @@ func gok(x uint32, r reflect.Value) {
 		r.SetComplex(complex(MF[1+x>>3], MF[2+x>>3]))
 	case reflect.String:
 		if t := tp(x); t == 1 {
-			r.SetString(kstr(x))
+			r.SetString(string(Ck(x)))
 		} else if t != 5 || nn(x) != 1 {
-			panic("expected string")
+			panic(fmt.Sprintf("expected string, got %d/%d", t, nn(x)))
 		} else {
-			rx(x)
-			c := cs(x)
-			r.SetString(kstr(c))
-			dx(c)
+			r.SetString(sk(x))
 		}
 	case reflect.Slice:
 		n := nn(x)
 		t := r.Type()
 		v := reflect.MakeSlice(t, int(n), int(n))
-		rxn(x, n)
-		for i := uint32(0); i < n; i++ {
-			gok(atx(x, mki(i)), v.Index(int(i)))
+		switch t.Elem().Kind() {
+		case reflect.Int:
+			u := Ik(x)
+			for i := range u {
+				v.Index(i).SetInt(int64(u[i]))
+			}
+		case reflect.Float64:
+			u := Fk(x)
+			for i := range u {
+				v.Index(i).SetFloat(float64(u[i]))
+			}
+		case reflect.Complex128:
+			u := Zk(x)
+			for i := range u {
+				v.Index(i).SetComplex(u[i])
+			}
+		case reflect.String:
+			if xt := tp(x); xt == 5 {
+				u := Sk(x)
+				for i := range u {
+					v.Index(i).SetString(u[i])
+				}
+			} else if xt == 6 {
+				for i := uint32(0); i < n; i++ {
+					v.Index(int(i)).SetString(string(Ck(MI[2+i+x>>2])))
+				}
+			} else {
+				panic(fmt.Sprintf("expected type for []string: %d", xt))
+			}
+		default:
+			if tp(x) != 6 {
+				panic(fmt.Sprintf("unkown slice type: %v, expect general list", t))
+			}
+			for i := uint32(0); i < n; i++ {
+				gok(MI[2+i+x>>2], v.Index(int(i)))
+			}
 		}
 		r.Set(v)
 	case reflect.Struct:
 		if xt := tp(x); xt != 7 {
 			panic(fmt.Errorf("expected dict: xt=%d %v", xt, r.Type()))
 		}
-		k := MI[2+x>>2]
+		keys := Sk(MI[2+x>>2])
 		v := MI[3+x>>2]
-		n := nn(k)
+		n := nn(v)
 		if n != uint32(exportedFields(r)) {
 			panic("number of dict/struct fields mismatches")
 		}
-		rxn(k, n)
-		rxn(v, n)
 		t := r.Type()
 		j := uint32(0)
 		for i := 0; i < r.NumField(); i++ {
 			name := t.Field(int(i)).Name
 			if isexported(name) {
-				kj := atx(k, mki(j))
-				c := cs(kj)
-				s := kstr(c)
-				dx(c)
+				s := keys[j]
 				if s != name {
 					panic("expected dict field: " + s)
 				}
-				gok(atx(v, mki(j)), r.Field(int(i)))
+				gok(MI[2+j+v>>2], r.Field(int(i)))
 				j++
 			}
 		}
@@ -325,18 +348,16 @@ func gok(x uint32, r reflect.Value) {
 		}
 		t := r.Type()
 		m := reflect.MakeMap(t)
-		k := MI[2+x>>2]
+		keys := Sk(MI[2+x>>2])
 		v := MI[3+x>>2]
-		n := nn(k)
-		rxn(k, n)
-		rxn(v, n)
+		n := nn(v)
 		kt := t.Key()
 		vt := t.Elem()
 		for i := uint32(0); i < n; i++ {
 			kk := reflect.New(kt).Elem()
 			vv := reflect.New(vt).Elem()
-			gok(atx(k, mki(i)), kk)
-			gok(atx(v, mki(i)), vv)
+			kk.SetString(keys[i])
+			gok(MI[2+i+v>>2], vv)
 			m.SetMapIndex(kk, vv)
 		}
 		r.Set(m)
@@ -356,7 +377,6 @@ func gok(x uint32, r reflect.Value) {
 	default:
 		panic("cannot convert to go type: " + r.Kind().String())
 	}
-	dx(x)
 }
 func autoInterface(x uint32) (r reflect.Value) {
 	switch tp(x) {
