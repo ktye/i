@@ -4,15 +4,43 @@ import (
 	"testing"
 )
 
+func eval(s string) uint32   { return val(kC([]byte(s))) }
+func kstval(s string) string { return string(CK(kst(eval(s)))) }
+func TestT(t *testing.T) {
+	kinit()
+	dx(eval("t:`a`b`c!(1+!10;2+!10;3+!10)"))
+	if s := kstval("#*where[t;5<t`c]"); s != "7" {
+		panic(s)
+	}
+	dx(eval("a:12"))
+	if s := kstval("#*t 'w{a>4}"); s != "6" {
+		panic(s + "?6")
+	}
+	if s := kstval("a"); s != "12" {
+		panic(s)
+	}
+	bleak()
+}
+func TestG(t *testing.T) {
+	kinit()
+	r := kstval("a:{x+y};a[3;4]")
+	if r != "7" {
+		t.Fatal()
+	}
+	bleak()
+}
+func TestPlot(t *testing.T) {
+	kinit()
+	dx(eval("plot 1 2 3"))
+	bleak()
+}
 func TestGo(t *testing.T) {
 	testR := func(x bool) {
 		if x == false {
 			t.Fatal()
 		}
 	}
-	k := func(s string) uint32 {
-		return val(kC([]byte(s)))
-	}
+	k := func(s string) uint32 { return eval(s) }
 
 	var r uint32
 	kinit()

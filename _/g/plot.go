@@ -45,10 +45,11 @@ func plot1(x uint32) (r uint32) {
 		return K(p)
 	case 7:
 		plts, e := plot.KTablePlot(x, MC, MI, MF)
+		// todo: unref x?
 		perr(e)
 		return K(plts[0])
 	}
-	return 0
+	return dxr(x, 0)
 }
 
 type Caption map[string]interface{}
@@ -60,14 +61,14 @@ func caption1(x uint32) (r uint32) { // caption plot`sig
 	}
 	c, e := p.MergedCaption()
 	perr(e)
-	// c.WriteTable(os.Stdout, 0)
-	m := make(Caption)
-	m["Title"] = c.Title
-	m["Text"] = c.LeadText
-	for _, col := range c.Columns {
-		m[col.Name] = col.Data
+	n := uint32(len(c.Columns))
+	v := mk(6, n)
+	keys := make([]string, n)
+	for i := uint32(0); i < n; i++ {
+		keys[i] = c.Columns[i].Name
+		MI[2+i+v>>2] = K(c.Columns[i].Data)
 	}
-	return K(m)
+	return mkd(kS(keys), v)
 }
 
 func pk(x uint32) (r plot.Plots) { // plot from k (does not unref)
@@ -109,6 +110,8 @@ func pline2(x, y uint32, id int) (r plot.Line) {
 		G(y, &r.C)
 	}
 	G(x, &r.X)
+	dx(x)
+	dx(y)
 	return r
 }
 func screensize() (int, int) {
@@ -117,12 +120,20 @@ func screensize() (int, int) {
 	return w, h
 }
 
+var lastCaption *plot.Caption
+
 func showPlot(p plot.Plots) {
+	c, e := p.MergedCaption()
+	if e != nil {
+		panic(e)
+	}
+	lastCaption = &c
 	w, h := screensize()
 	ip, e := p.IPlots(w, h, 0)
 	perr(e)
 	m := plot.Image(ip, nil, w, h, 0).(*image.RGBA)
 	drawTerm(pngData(m))
+	//if len(p) > 0 && p.Merg
 }
 func pngData(m image.Image) []byte {
 	var buf bytes.Buffer

@@ -26,19 +26,20 @@ func ginit() {
 	MT['r'+128] = read1
 	MT['p'+128] = plot1
 	MT['c'+128] = caption1
+	MT['w'] = where2
 	assign("read", 'r')
 	assign("caption", 'c')
 	assign("plot", 'p')
-	symbols["COLUMNS"] = ks("COLUMNS")
-	symbols["LINES"] = ks("LINES")
-	symbols["WIDTH"] = ks("WIDTH")
-	symbols["HEIGHT"] = ks("HEIGHT")
+	assign("where", 'w')
+	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT"} {
+		symbols[s] = ks(s)
+	}
 	assign("WIDTH", mki(800))
 	assign("HEIGHT", mki(400))
 	assign("COLUMNS", mki(80))
 	assign("LINES", mki(20))
-	assign("FFMT", kC([]byte("%g")))
-	assign("ZFMT", kC([]byte("%ga%.0f")))
+	assign("FFMT", kC([]byte("%.4g")))
+	assign("ZFMT", kC([]byte("%.4ga%.0f")))
 	plotKeys = kS([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
 
 }
@@ -54,6 +55,8 @@ func init() {
 		lines, cols := atoi(tail[0]), atoi(tail[1])
 		assign("LINES", ki(lines))
 		assign("COLUMNS", ki(cols))
+		assign("WIDTH", ki(cols*11))
+		assign("HEIGHT", ki(lines*20))
 		return tail[2:], true
 	}
 	argvParsers = append(argvParsers, s)
@@ -70,20 +73,22 @@ func init() {
 		if strings.HasPrefix(a, `\leak`) == false {
 			return false
 		}
-		fmt.Println("b:leak")
-		b := make([]uint64, len(MJ))
-		copy(b, MJ)
-		dx(plotKeys) // differs from k.go
-		for _, x := range symbols {
-			dx(x)
-		}
-		leak()
-		copy(MJ, b)
-		msl()
+		bleak()
 		fmt.Println("no leak")
 		return true
 	}
-	replParsers = append(replParsers, h, le)
+	// \c(caption)
+	c := func(a string) bool {
+		if a != `\c` {
+			return false
+		}
+		if lastCaption != nil {
+			w, _ := clipTerminal()
+			lastCaption.WriteTable(w, 0)
+		}
+		return true
+	}
+	replParsers = append(replParsers, h, le, c)
 	kiniRunners = append(kiniRunners, ginit)
 }
 
@@ -91,6 +96,17 @@ func exitRepl(x int) {
 	if interactive {
 		os.Exit(x)
 	}
+}
+func bleak() {
+	b := make([]uint64, len(MJ))
+	copy(b, MJ)
+	dx(plotKeys)
+	for _, x := range symbols {
+		dx(x)
+	}
+	leak()
+	copy(MJ, b)
+	msl()
 }
 func memstore() []uint32 {
 	m := make([]uint32, len(MI))
@@ -108,12 +124,7 @@ func memcompare(m []uint32, s string) {
 	}
 }
 func gOut(x uint32) {
-	var o io.Writer = os.Stdout
-
-	var lines int
-	if interactive {
-		o, lines = clipTerminal()
-	}
+	o, lines := clipTerminal()
 
 	//m := memstore()
 	p := pk(x)
@@ -218,12 +229,15 @@ func runscript(r io.Reader) (uint32, error) {
 
 // clip to COLUMNS/LINES if interactive
 func clipTerminal() (io.Writer, int) {
+	if !interactive {
+		return os.Stdout, 0
+	}
 	c := lupInt("COLUMNS")
 	l := lupInt("LINES")
 	if c <= 0 || l <= 0 {
 		return os.Stdout, 0
 	}
-	return &clipWriter{Writer: os.Stdout, c: c - 2, l: l}, l
+	return &clipWriter{Writer: os.Stdout, c: c - 2, l: l - 2}, l
 }
 
 func atoi(s string) int {
@@ -309,33 +323,25 @@ func (cw *clipWriter) Write(p []byte) (n int, err error) {
 }
 
 func lupInt(s string) int { // no modification
-	x, o := symbols[s]
-	if o == false {
-		panic("var " + s + " is not a registered symbol")
-	}
-	r := I(I(kval) + I(x+8))
+	r := lookup(s)
 	if tp(r) != 2 || nn(r) != 1 {
 		panic("var " + s + " is not int#1")
 	}
 	return int(MI[2+r>>2])
 }
 func lupString(s string) string { // no modification
-	x, o := symbols[s]
-	if o == false {
-		panic("var " + s + " is not a registered symbol")
-	}
-	r := I(I(kval) + I(x+8))
+	r := lookup(s)
 	if tp(r) != 1 {
 		panic("var " + s + " is not a char")
 	}
 	return string(Ck(r))
 }
-func lookup(s string) uint32 {
-	r := lup(ks(s))
-	if r == 0 {
-		panic("symbol " + s + " does not exist")
+func lookup(s string) uint32 { // no modification
+	x, o := symbols[s]
+	if o == false {
+		panic("var " + s + " is not a registered symbol")
 	}
-	return r
+	return I(I(kval) + I(x+8))
 }
 func assign(s string, v uint32) { dx(asn(ks(s), v)) }
 func kerr(e error) bool {
@@ -354,7 +360,7 @@ func perr(e error) {
 	}
 }
 
-func istab(x uint32) (uint32, uint32) {
+func istab(x uint32) (rows, cols int) {
 	if tp(x) == 7 {
 		v := MI[3+x>>2]
 		n := nn(v)
@@ -364,13 +370,14 @@ func istab(x uint32) (uint32, uint32) {
 		n0 := nn(MI[2+v>>2])
 		for i := uint32(0); i < n; i++ {
 			if nn(MI[2+i+v>>2]) != n0 {
-				return 0, 0
+				return 0, -1
 			}
 		}
-		return n0, nn(v)
+		return int(n0), int(nn(v))
 	}
-	return 0, 0
+	return 0, -1
 }
+
 func writeDict(x uint32, w io.Writer, clip int) {
 	k := Sk(I(8 + x))
 	m := 1
@@ -391,23 +398,23 @@ func writeDict(x uint32, w io.Writer, clip int) {
 	}
 	dx(x)
 }
-func writeTable(x uint32, ww io.Writer, rows, cols uint32, clip int) {
+func writeTable(x uint32, ww io.Writer, rows, cols int, clip int) {
 	tab := []byte{'\t'}
 	nl := []byte{'\n'}
 	ffmt := lupString("FFMT")
 	zfmt := lupString("ZFMT")
 	w := tabwriter.NewWriter(ww, 2, 8, 1, ' ', 0)
-	keys, vals := MI[2+x>>2], MI[3+x>>2]
-	for i := uint32(0); i < cols; i++ {
-		w.Write([]byte(ski(MI[2+keys>>2])))
-		if i != cols-1 {
+	keys, vals := Sk(MI[2+x>>2]), MI[3+x>>2]
+	for i := range keys {
+		w.Write([]byte(keys[i]))
+		if i != int(cols-1) {
 			w.Write(tab)
 		}
 	}
 	w.Write(nl)
-	for k := uint32(0); k < rows; k++ {
-		for i := uint32(0); i < cols; i++ {
-			w.Write([]byte(fmtVecAt(MI[2+i+vals>>2], k, ffmt, zfmt)))
+	for k := 0; k < rows; k++ {
+		for i := 0; i < cols; i++ {
+			w.Write([]byte(fmtVecAt(MI[2+uint32(i)+vals>>2], uint32(k), ffmt, zfmt)))
 			if i != cols-1 {
 				w.Write(tab)
 			}
