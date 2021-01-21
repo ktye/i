@@ -187,8 +187,13 @@ func repl() {
 	interactive = true
 	s := bufio.NewScanner(os.Stdin)
 	fmt.Printf("%s\n ", version)
+	o := Out
 	for s.Scan() {
+		Out = o
 		t := s.Text()
+		if len(t) > 0 && interactive && t[0] == ' ' {
+			Out = nil
+		}
 		c := strings.TrimSpace(t)
 		no := true
 		for _, p := range replParsers {
@@ -783,7 +788,9 @@ func rsh(x, y i) (r i) {
 	}
 	xt, yt, xn, _, xp, _ := v2(x, y)
 	if yt == 7 {
-		if xt == 2 {
+		if xt == 0 && nn(x) == 5 {
+			return expr(x, y)
+		} else if xt == 2 {
 			if xn != 1 {
 				trap()
 			}
@@ -924,6 +931,10 @@ func atx(x, y i) (r i) {
 		return cal(x, enl(y))
 	}
 	if xt == 7 { // d@..
+		if yt == 0 && nn(y) == 5 { // dict{expr}
+			rx(x)
+			return ecl(x, wer(expr(y, x)), 64)
+		}
 		return atd(x, y, yt)
 	}
 	if yt > 5 { // at-list at-dict
@@ -1079,6 +1090,18 @@ func lcl(x, y i) (r i) {
 	}
 	dx(l)
 	return dxr(x, r)
+}
+func expr(x, y i) (r i) { // expr(lambda, dict)
+	if tp(x) != 0 || nn(x) != 5 || MI[2+3+x>>2] != 0 {
+		panic("expr")
+	}
+	k, v := kvd(y)
+	rxn(k, 2)
+	env := ech(k, 46)   // save    env: .'!t
+	dx(ecd(k, v, 58))   // (!t):'(.t)
+	r = atx(x, 0)       // r:x[]
+	dx(ecd(k, env, 58)) // restore (!t):'env
+	return r
 }
 func cat(x, y i) (r i) {
 	xt, yt, _, _, _, _ := v2(x, y)

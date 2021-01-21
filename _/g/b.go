@@ -23,14 +23,29 @@ var xfile string
 var xline int
 
 func ginit() {
-	MT['r'+128] = read1
+	MT['R'+128] = read1
+	MT['r'+128] = rand1 // shuffle
+	MT['r'] = rand2
 	MT['p'+128] = plot1
+	MT['q'+128] = qr1
+	MT['q'] = solve2
+	MT['d'+128] = diag1
+	MT['m'] = mul2
 	MT['c'+128] = caption1
 	MT['w'] = where2
-	assign("read", 'r')
+	assign("read", 'R')
+	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
+	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randi: 'r[3;]
+	assign("randn", prj('r', l2(mki(4294967293), 0), mki(1))) // randi: 'r[-3;]
+	assign("randz", prj('r', l2(mki(4), 0), mki(1)))          // randi: 'r[4;]
+	assign("shuffle", 'r')
 	assign("caption", 'c')
 	assign("plot", 'p')
-	assign("where", 'w')
+	assign("qr", 'q')
+	assign("cond", prj('q', l2(mkc('c'), 0), mki(1))) // cond: 'q["c";]
+	assign("diag", 'd')
+	assign("mul", 'm') // XT*y or XT*Y r|z
+	assign("solve", 'q')
 	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT"} {
 		symbols[s] = ks(s)
 	}
@@ -124,8 +139,10 @@ func memcompare(m []uint32, s string) {
 	}
 }
 func gOut(x uint32) {
+	if x == 0 {
+		return
+	}
 	o, lines := clipTerminal()
-
 	//m := memstore()
 	p := pk(x)
 	//memcompare(m, "pk")
@@ -139,6 +156,9 @@ func gOut(x uint32) {
 		return
 	} else if tp(x) == 7 {
 		writeDict(x, o, lines)
+		return
+	} else if ismatrix(x) {
+		writeMatrix(x, o, lines)
 		return
 	}
 	rx(x)
@@ -377,7 +397,49 @@ func istab(x uint32) (rows, cols int) {
 	}
 	return 0, -1
 }
-
+func ismatrix(x uint32) (r bool) { // rectangular real/complex column major
+	if tp(x) != 6 || nn(x) < 1 {
+		return false
+	}
+	t := tp(MI[2+x>>2])
+	if t < 3 || t > 5 {
+		return false
+	}
+	n := nn(MI[2+x>>2])
+	for i := uint32(0); i < nn(x); i++ {
+		p := MI[2+i+x>>2]
+		if tp(p) != t || nn(p) != n {
+			return false
+		}
+	}
+	return true
+}
+func writeMatrix(x uint32, ww io.Writer, clip int) {
+	cols := nn(x)
+	rows := nn(MI[2+x>>2])
+	tab := []byte{'\t'}
+	nl := []byte{'\n'}
+	ffmt := lupString("FFMT")
+	zfmt := lupString("ZFMT")
+	fmt.Fprintf(ww, "%dx%d\n", rows, cols)
+	w := tabwriter.NewWriter(ww, 2, 8, 1, ' ', 0)
+	for i := uint32(0); i < rows; i++ {
+		if clip > 0 && int(i) == clip {
+			w.Flush()
+			fmt.Fprintf(ww, "..\n")
+			return
+		}
+		for k := uint32(0); k < cols; k++ {
+			w.Write([]byte(fmtVecAt(MI[2+k+x>>2], i, ffmt, zfmt)))
+			if k == cols-1 {
+				w.Write(nl)
+			} else {
+				w.Write(tab)
+			}
+		}
+	}
+	w.Flush()
+}
 func writeDict(x uint32, w io.Writer, clip int) {
 	k := Sk(I(8 + x))
 	m := 1
@@ -431,7 +493,7 @@ func writeTable(x uint32, ww io.Writer, rows, cols int, clip int) {
 func fmtVecAt(x uint32, i uint32, ffmt, zfmt string) string {
 	switch tp(x) {
 	case 2:
-		return strconv.Itoa(int(MI[2+i+x>>2]))
+		return strconv.Itoa(int(int32(MI[2+i+x>>2])))
 	case 3:
 		return fmt.Sprintf(ffmt, MF[1+i+x>>3])
 	case 4:

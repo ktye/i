@@ -6,21 +6,7 @@ import (
 
 func eval(s string) uint32   { return val(kC([]byte(s))) }
 func kstval(s string) string { return string(CK(kst(eval(s)))) }
-func TestT(t *testing.T) {
-	kinit()
-	dx(eval("t:`a`b`c!(1+!10;2+!10;3+!10)"))
-	if s := kstval("#*where[t;5<t`c]"); s != "7" {
-		panic(s)
-	}
-	dx(eval("a:12"))
-	if s := kstval("#*t 'w{a>4}"); s != "6" {
-		panic(s + "?6")
-	}
-	if s := kstval("a"); s != "12" {
-		panic(s)
-	}
-	bleak()
-}
+
 func TestG(t *testing.T) {
 	kinit()
 	r := kstval("a:{x+y};a[3;4]")
@@ -32,6 +18,67 @@ func TestG(t *testing.T) {
 func TestPlot(t *testing.T) {
 	kinit()
 	dx(eval("plot 1 2 3"))
+	bleak()
+}
+func TestRand(t *testing.T) {
+	kinit()
+	for _, in := range []string{"#randf 3", "#randi 3", "#randz 3", "#randn 3", "#shuffle `beta`alpha`gamma"} {
+		s := kstval(in)
+		if s != "3" {
+			t.Fatal()
+		}
+	}
+	bleak()
+}
+func TestSolve(t *testing.T) {
+	kinit()
+	if s := kstval(`A:3 5#randf 15;,/(@;#)@\:solve[A;randf 5]`); s != "3 3" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:5 6#randz 30;,/(@;#)@\:solve[A;randz 6]`); s != "4 5" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:3 5#randf 15;,/(@;#)@\:solve[A;10 5#randf 50]`); s != "6 10" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:5 6#randz 30;,/(@;#)@\:solve[A;11 6#randz 66]`); s != "6 11" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:3 5#randf 15;x:randf 3;b:,/mul[&A;x];1.e-7>|/+x-solve[A;b]`); s != "1" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:3 5#randz 15;x:randz 3;b:,/mul[&A;x];1.e-7>|/+x-solve[A;b]`); s != "1" {
+		t.Fatal(s)
+	}
+	if s := kstval(`cond diag 1a10 3a30 2a40`); s != "3.0" {
+		t.Fatal(s)
+	}
+	bleak()
+}
+func TestDiag(t *testing.T) {
+	kinit()
+	if s := kstval(`,/(@;#)@\:diag 5`); s != "6 5" {
+		t.Fatal(s)
+	}
+	if s := kstval(`,/(@;#)@\:diag 4 4#randf 24`); s != "3 4" {
+		t.Fatal(s)
+	}
+	if s := kstval(`,/(@;#)@\:diag 5 5#randz 25`); s != "4 5" {
+		t.Fatal(s)
+	}
+	bleak()
+}
+func TestMul(t *testing.T) {
+	kinit()
+	if s := kstval(`t:{,/(@*x;#x;#*x)}`); s != "" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:3 5#randf 15;B:4 5#randf 20;t mul[A;B]`); s != "3 4 3" {
+		t.Fatal(s)
+	}
+	if s := kstval(`A:3 5#randz 15;B:4 5#randz 20;t mul[A;B]`); s != "4 4 3" {
+		t.Fatal(s)
+	}
 	bleak()
 }
 func TestGo(t *testing.T) {
