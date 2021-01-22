@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -12,6 +11,7 @@ var ttests = [][2]string{
 	{"(*;+/)'`a`b#t", "``a`b!(`*`+{;(1;55);(2;65))"},
 	{"(`first`sum!(*;+/))'`a`b#t", "``a`b!(`first`sum;(1;55);(2;65))"},
 	{"`c=t", "(`q`w`e;`a`b;((1 4 7 10;2 5 8;3 6 9);(2 5 8 11;3 6 9;4 7 10)))"},
+	{"`c+/'t", "`c`a`b!(`q`w`e;(22;15;18);(26;18;21))"},
 }
 
 func TestT(t *testing.T) {
@@ -19,7 +19,6 @@ func TestT(t *testing.T) {
 	dx(eval(tinit))
 	for _, tc := range ttests {
 		s := kstval(tc[0])
-		fmt.Println(s)
 		if s != tc[1] {
 			t.Fatalf("%s\ngot:%s\nexp:%s\n", tc[0], s, tc[1])
 		}

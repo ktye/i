@@ -89,6 +89,7 @@ func init() {
 			dx(out(val(kC([]byte(s)))))
 		}
 		leak()
+		interactive = true // always exit from argv -e
 		exit(0)
 		return tail, false
 	}
@@ -1287,7 +1288,21 @@ func cmp(x, y, eq i) (r i) {
 	}
 	return dxyr(x, y, r)
 }
-func eql(x, y i) (r i) { return cmp(x, y, 1) }
+func eql(x, y i) (r i) {
+	xt := tp(x)
+	yt := tp(y)
+	if xt == 5 && yt == 7 { // `g=t table group
+		rx(y)
+		rx(x)
+		r = grp(atx(y, x))
+		y = cut(x, y)
+		u, x := kvd(r)
+		k, v := kvd(y)
+		v = ecl(v, x, 64) // v@\:x
+		return l3(u, k, v)
+	}
+	return cmp(x, y, 1)
+}
 func mor(x, y i) (r i) { return cmp(x, y, 0) }
 func les(x, y i) (r i) { return cmp(y, x, 0) }
 func fnd(x, y i) (r i) { // x?y
@@ -2030,6 +2045,29 @@ func zan(x, xn, xp i) (r i) {
 	}
 	return dxr(x, r)
 }
+func agg(x, y i) (r i) { // (*;+/)'d list-each dict-each
+	var k, v, a, b i
+	if tp(x) == 7 {
+		k, v = kvd(x)
+	} else { // 6
+		rx(x)
+		v = x
+		k = ovr(ecd(sc(mk(1, 0)), str(x), 36), 44) // ,/`$'$x
+	}
+	a, b = kvd(y)
+	a = ucat(sc(mk(1, 0)), a) // ``a`b`c
+	n := nn(v)
+	rxn(b, n)
+	rld(v)
+	p := 8 + v
+	t := mk(6, 0)
+	for i := i(0); i < n; i++ {
+		t = lcat(t, ech(b, I(p)))
+		p += 4
+	}
+	dx(b)
+	return mkd(a, cat(enl(k), flp(t)))
+}
 
 func drv(x, y i) (r i) { // x(adv) y(verb), e.g. ech +
 	r = mk(0, 2)
@@ -2045,6 +2083,9 @@ func scv(x i) (r i) { return drv(91, x) }  // \  scn(219) sci(91)
 func liv(x i) (r i) { return drv(93, x) }  // \: spl(221) ecl(93)
 func ech(x, y i) (r i) { // f'x (each)
 	if tp(y) != 0 {
+		if tp(y) >= 6 && tp(x) == 7 { // (*;+/)'t
+			return agg(y, x)
+		}
 		return bin(y, x)
 	}
 	if tp(x) == 7 {
@@ -2252,6 +2293,26 @@ func ecl(x, y, f i) (r i) { // x f\: y (each-left)
 	return dxyr(x, y, r)
 }
 func ecd(x, y, f i) (r i) { // x f' y
+	if tp(x) == 5 && tp(y) == 7 {
+		rx(x)
+		u := eql(x, y)
+		rld(u)
+		r = I(u + 12)
+		y = I(u + 16)
+		u = I(u + 8)
+		n := nn(y)
+		rxn(f, n)
+		u = enl(u)
+		yp := y + 8
+		rl(y)
+		for i := i(0); i < n; i++ {
+			u = lcat(u, ech(I(yp), f))
+			yp += 4
+		}
+		dx(y)
+		dx(f)
+		return mkd(ucat(x, r), u)
+	}
 	x, y = ext(x, y)
 	n := nn(x)
 	r = mk(6, n)
@@ -3577,7 +3638,9 @@ func mark() { // mark bucket type within free blocks
 
 var leaktest = false
 
-func leak() {
+var leak = _leak
+
+func _leak() {
 	dx(I(kkey))
 	dx(I(kval))
 	dx(I(xyz))
