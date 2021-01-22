@@ -35,9 +35,10 @@ func ginit() {
 	MT['w'] = where2
 	assign("read", 'R')
 	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
-	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randi: 'r[3;]
-	assign("randn", prj('r', l2(mki(4294967293), 0), mki(1))) // randi: 'r[-3;]
-	assign("randz", prj('r', l2(mki(4), 0), mki(1)))          // randi: 'r[4;]
+	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randf: 'r[3;]
+	assign("randn", prj('r', l2(mki(4294967293), 0), mki(1))) // randn: 'r[-3;]
+	assign("randz", prj('r', l2(mki(4), 0), mki(1)))          // randz: 'r[4;]
+	assign("rands", prj('r', l2(mki(5), 0), mki(1)))          // rands: 'r[5;]
 	assign("shuffle", 'r')
 	assign("caption", 'c')
 	assign("plot", 'p')
@@ -60,6 +61,7 @@ func ginit() {
 }
 func init() {
 	exit = exitRepl
+	leak = bleak
 	Out = gOut
 
 	// -s lines, cols (terminal size)
@@ -84,14 +86,6 @@ func init() {
 		fmt.Println(help)
 		return true
 	}
-	le := func(a string) bool {
-		if strings.HasPrefix(a, `\leak`) == false {
-			return false
-		}
-		bleak()
-		fmt.Println("no leak")
-		return true
-	}
 	// \c(caption)
 	c := func(a string) bool {
 		if a != `\c` {
@@ -103,7 +97,7 @@ func init() {
 		}
 		return true
 	}
-	replParsers = append(replParsers, h, le, c)
+	replParsers = append(replParsers, h, c)
 	kiniRunners = append(kiniRunners, ginit)
 }
 
@@ -119,7 +113,7 @@ func bleak() {
 	for _, x := range symbols {
 		dx(x)
 	}
-	leak()
+	_leak()
 	copy(MJ, b)
 	msl()
 }
@@ -501,9 +495,14 @@ func fmtVecAt(x uint32, i uint32, ffmt, zfmt string) string {
 		return absang(z, zfmt)
 	case 5:
 		return ski(MI[2+i+x>>2])
-	default:
-		return "?"
+	case 6:
+		xi := MI[2+i+x>>2]
+		if nn(xi) != 1 {
+			break
+		}
+		return fmtVecAt(xi, 0, ffmt, zfmt)
 	}
+	return "?"
 }
 
 // resolve backslash includes: \file.k

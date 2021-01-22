@@ -38,6 +38,7 @@ func rand1(x uint32) uint32 {
 // 3 'r n   n uniform floats range 0..1     randf n
 //-3 'r n   n normal distributed floats     randn n
 // 4 'r n   n binormal complex numbers      randz n
+// 5 'r n   n random 2-letter symbols       rands n
 func rand2(x, y uint32) uint32 {
 	if tp(x) != 2 || nn(x) != 1 || tp(y) != 2 || nn(y) != 1 {
 		panic("rand2: type (x and y must be int atoms)")
@@ -73,6 +74,12 @@ func rand2(x, y uint32) uint32 {
 			r[i] = complex(rand.NormFloat64(), rand.NormFloat64())
 		}
 		return kZ(r)
+	case 5:
+		r := make([]string, b)
+		for i := range r {
+			r[i] = string([]byte{'a' + byte(rand.Intn(26)), 'a' + byte(rand.Intn(26))})
+		}
+		return kS(r)
 	default:
 		panic("rand2: x type")
 	}
