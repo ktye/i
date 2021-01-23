@@ -1480,34 +1480,37 @@ func mrge(x, y, z, x3, x4, x5, x6 i) {
 		sI(y+i<<2, I(x+a<<2))
 	}
 }
-func uqg(x, y i) (r i) { // ?x =x uniq/group
+func unq(x i) (r i) { // ?x uniq  x@&(x?x)=!#x
 	xt, xn, xp := v1(x)
-	r = mk(xt, 0)
-	n := i(0)
+	r = mk(2, 0)
 	w := i(C(xt))
 	for i := i(0); i < xn; i++ {
-		m := fnx(r, xp)
-		if m == n {
-			rx(x)
-			r = cat(r, atx(x, mki(i)))
-			if y != 0 {
-				y = lcat(y, mk(2, 0))
-			}
-			n += 1
-		}
-		if y != 0 {
-			yi := y + 8 + 4*m
-			sI(yi, cat(I(yi), mki(i)))
+		m := fnx(x, xp)
+		if m == i {
+			r = ic(r, i)
 		}
 		xp += w
 	}
-	if y != 0 {
-		r = l2(r, y)
-	}
-	return dxr(x, r)
+	return atx(x, r)
 }
-func unq(x i) (r i) { return uqg(x, 0) }        // ?x (uniq)
-func grp(x i) (r i) { return uqg(x, mk(6, 0)) } // =x (group)
+func grp(x i) (r i) { // =x (group)  &'u=\:x
+	xt, xn, xp := v1(x)
+	r = mk(2, 0)
+	l := mk(6, 0)
+	w := i(C(xt))
+	for i := i(0); i < xn; i++ {
+		m := fnx(x, xp)
+		if m == i {
+			r = ic(r, i)
+			l = lcat(l, mki(i))
+		} else {
+			p := l + 8 + 4*m
+			sI(p, ic(I(p), i))
+		}
+		xp += w
+	}
+	return l2(atx(x, r), l)
+}
 func flr(x i) (r i) {
 	xt, xn, xp := v1(x)
 	if xt > 5 {
