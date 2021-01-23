@@ -49,6 +49,16 @@ var exit = os.Exit
 var Out func(x uint32)
 
 func init() {
+	// -t(test)
+	t := func(a string, tail []string) ([]string, bool) {
+		if a != "-t" {
+			return tail, false
+		}
+		multitest()
+		runtest("t")
+		os.Exit(0)
+		return tail, true
+	}
 	// -f file  -fvar file  (load bytes + assign)
 	f := func(a string, tail []string) ([]string, bool) {
 		if strings.HasPrefix(a, "-f") == false {
@@ -101,7 +111,7 @@ func init() {
 		ddd = true
 		return tail, true
 	}
-	argvParsers = append(argvParsers, f, k, lk, e, deb)
+	argvParsers = append(argvParsers, t, f, k, lk, e, deb)
 
 	// \leak
 	le := func(a string) bool {
@@ -156,11 +166,6 @@ func init() {
 }
 func main() { Main(os.Args[1:]) }
 func Main(args []string) {
-	if len(args) > 0 && args[0] == "t" {
-		multitest()
-		runtest("t")
-		return
-	}
 	kinit()
 	defer indicate()
 	for {
@@ -3214,7 +3219,7 @@ func tok(x i) (r i) { // tokenize
 	sI(pp, xp)
 	for {
 		xp = ws(I(pp), xn)
-		if xp == xn {
+		if xp >= xn {
 			dx(x)
 			return l2(r, a)
 		}
