@@ -21,5 +21,7 @@ tochar: {$[1~@x;x; 'kx]}
 zip:{[f;l]f./:&l}       /e.g. zip[f3;(x;y;z)] x y z:lists, does not extend
 compose:{[f;x]x{y x}/f} /e.g. f:({-x};{_x};..)
 
+odo:{(*/x)#/:&'x#'|*\-1_1,|x}
+
 std:`kst`hex`zip!(kst;hex;zip)
 
