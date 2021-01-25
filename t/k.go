@@ -1495,21 +1495,23 @@ func unq(x i) (r i) { // ?x uniq  x@&(x?x)=!#x
 }
 func grp(x i) (r i) { // =x (group)  &'u=\:x
 	xt, xn, xp := v1(x)
-	r = mk(2, 0)
+	rx(x)
+	u := unq(x)
 	l := mk(6, 0)
+	n := i(0)
 	w := i(C(xt))
 	for i := i(0); i < xn; i++ {
-		m := fnx(x, xp)
-		if m == i {
-			r = ic(r, i)
+		m := fnx(u, xp)
+		if m == n {
 			l = lcat(l, mki(i))
+			n++
 		} else {
 			p := l + 8 + 4*m
 			sI(p, ic(I(p), i))
 		}
 		xp += w
 	}
-	return l2(atx(x, r), l)
+	return dxr(x, l2(u, l))
 }
 func flr(x i) (r i) {
 	xt, xn, xp := v1(x)
