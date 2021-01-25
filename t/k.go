@@ -366,7 +366,7 @@ func ini(x i) i {
 		nil, sin, cos, exp, log, nil, nil, nil, chr, nms, vrb, nam, sms, nil, nil, nil, adc, adi, adf, adz, suc, sui, suf, suz, muc, mui, muf, muz, dic, dii, dif, diz, // 128..159
 		out, til, nil, cnt, str, sqr, wer, epv, ech, ecp, fst, abs, enl, neg, val, riv, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, lst, nil, grd, grp, gdn, unq, // 160..191
 		typ, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, scn, liv, spl, srt, flr, // 192..223
-		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, odf, nil, nil, rnd, nil, tok, nil, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, kst, nil, nil, nil, odf, nil, nil, rnd, nil, tok, unf, nil, nil, nil, nil, nil, ovr, rev, jon, not, nil, // 224..255
 	})
 	sJ(0, 289360742959022340) // type sizes uint64(0x0404041008040104)
 	sI(12, 0x70881342)        // rng state
@@ -1293,18 +1293,41 @@ func cmp(x, y, eq i) (r i) {
 	}
 	return dxyr(x, y, r)
 }
+func unf(x i) (r i) { // unify list 'ux
+	xt, xn, xp := v1(x)
+	if xt != 6 || xn == 0 {
+		return x
+	}
+	t := tp(I(xp))
+	for i := i(0); i < xn; i++ {
+		r = I(xp)
+		if tp(r) != t || nn(r) != 1 {
+			return x
+		}
+		xp += 4
+	}
+	return ovr(x, 44) // ,/x
+}
 func eql(x, y i) (r i) {
-	xt := tp(x)
+	xt, xn, _ := v1(x)
 	yt := tp(y)
 	if xt == 5 && yt == 7 { // `g=t table group
 		rx(y)
-		rx(x)
-		r = grp(atx(y, x))
+		rxn(x, 2)
+		r = atx(y, x)
+		if xn > 1 {
+			r = flp(r)
+		}
+		r = grp(r)
 		y = cut(x, y)
-		u, x := kvd(r)
+		u, q := kvd(r)
 		k, v := kvd(y)
-		v = ecl(v, x, 64) // v@\:x
-		return l3(u, k, v)
+		v = ecl(v, q, 64) // v@\:x
+		if xn > 1 {
+			u = flp(u)
+			u = ech(u, 'u')
+		}
+		return l2(mkd(x, u), mkd(k, v))
 	}
 	return cmp(x, y, 1)
 }
@@ -1785,9 +1808,13 @@ func cz(x, y f) (r i) {
 }
 func cst(x, y i) (r i) { // x$y
 	xt, yt, xn, yn, _, _ := v2(x, y)
-	if xt == 5 && yt == 1 { // `$"abc" /`abc
-		dx(x)
-		return sc(y)
+	if xt == 5 {
+		if yt == 1 { // `$"abc" /`abc
+			dx(x)
+			return sc(y)
+		} else if yt == 6 {
+			return unf(ecr(x, y, 36))
+		}
 	}
 	if xt != 2 || xn != 1 {
 		trap()
@@ -2302,26 +2329,60 @@ func ecl(x, y, f i) (r i) { // x f\: y (each-left)
 	dx(f)
 	return dxyr(x, y, r)
 }
+func sjn(xp, yp i) (r i) {
+	xp = I(I(kkey) + xp)
+	yp = I(I(kkey) + yp)
+	rx(xp)
+	rx(yp)
+	r = sc(ucat(xp, yp))
+	return dxr(r, I(r+8))
+}
 func ecd(x, y, f i) (r i) { // x f' y
 	if tp(x) == 5 && tp(y) == 7 {
-		rx(x)
+		if tp(f) == 0 {
+			f = enl(f)
+		}
+		if tp(f) == 6 {
+			if nn(f) > 1 {
+				rx(f)
+				r = cst(mk(5, 0), str(f))
+			} else {
+				r = sc(mk(1, 0))
+			}
+			f = mkd(r, f)
+		}
+		var s i
+		s, f = kvd(f)
+		m := nn(f)
 		u := eql(x, y)
-		rld(u)
-		r = I(u + 12)
-		y = I(u + 16)
-		u = I(u + 8)
+		x, y = kvd(u)
+		x, u = kvd(x)
+		r, y = kvd(y)
 		n := nn(y)
-		rxn(f, n)
-		u = enl(u)
 		yp := y + 8
-		rl(y)
+		k := mk(5, m*n)
+		kp := k + 8
+		rp := r + 8
 		for i := i(0); i < n; i++ {
-			u = lcat(u, ech(I(yp), f))
+			fp := f + 8
+			sp := s + 8
+			for j := uint32(0); j < m; j++ {
+				rx(I(fp))
+				rx(I(yp))
+				u = lcat(u, ovr(ech(I(yp), I(fp)), 44))
+				sI(kp, sjn(I(sp), I(rp)))
+				fp += 4
+				kp += 4
+				sp += 4
+			}
 			yp += 4
+			rp += 4
 		}
 		dx(y)
 		dx(f)
-		return mkd(ucat(x, r), u)
+		dx(r)
+		dx(s)
+		return mkd(ucat(x, k), u)
 	}
 	x, y = ext(x, y)
 	n := nn(x)
