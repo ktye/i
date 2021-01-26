@@ -1,11 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
 func eval(s string) uint32   { return val(kC([]byte(s))) }
 func kstval(s string) string { return string(CK(kst(eval(s)))) }
+
+func TestCsv(t *testing.T) {
+	kinit()
+	kstval("CSV:`i`f`a`s!(0;1.0;2a;\"4\")")
+	kstval("COMMA:\";\"")
+	s := string(CK(kst(csv1(kC([]byte(csvdata))))))
+	fmt.Println("csv test:", s)
+	bleak()
+}
 
 func TestG(t *testing.T) {
 	kinit()
@@ -150,3 +160,9 @@ type point struct {
 	X int
 	Y float64
 }
+
+const csvdata = `1;2,3;3,0;300;alpha
+2;3,4;3,1;301;beta
+3;4,5;3,2;302;gamma
+4;5,6;3,3;303;delta
+`

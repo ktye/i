@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -14,6 +15,7 @@ import (
 // plot complex (polar)
 // plot (..) (multiline)
 // plot dict (KTablePlot `x`y!..)
+// plot grouped dict (multiline)
 func plot1(x uint32) (r uint32) {
 	xt, xn := tp(x), nn(x)
 	_ = xn
@@ -28,26 +30,30 @@ func plot1(x uint32) (r uint32) {
 		p := plot.Plot{Type: plot.Polar}
 		p.Lines = []plot.Line{pline(x, 0)}
 		return K(p)
-	case 6:
+	case 6, 7:
 		if xn == 0 {
 			return 0
 		}
-		p := plot.Plot{}
-		if xt := tp(MI[2+x>>2]); xt == 4 {
-			p.Type = plot.Polar
+		// plot `c=`x`y`c!(x,x;(sin x),cos x:!10;(10#`a),10#`b)
+		if tx, ty, _, _, _ := iskeytab(x); tx != 0 {
+			rx(ty)
+			dx(x)
+			k, v := kvd(ty)
+			x = ecr(k, flp(v), 33) // k!/:&v
+			xn = nn(x)
+			fmt.Println("iskeytab:", tp(x), xn)
 		}
-		p.Lines = make([]plot.Line, int(xn))
-		rl(x)
-		for i := uint32(0); i < xn; i++ {
-			p.Lines[i] = pline(MI[2+i+x>>2], int(i))
-		}
-		dx(x)
-		return K(p)
-	case 7:
 		plts, e := plot.KTablePlot(x, MC, MI, MF)
-		// todo: unref x?
 		perr(e)
-		return K(plts[0])
+		if len(plts) == 1 {
+			r = K(plts[0])
+		} else {
+			r = mk(6, 0)
+			for _, p := range plts {
+				r = lcat(r, K(p))
+			}
+		}
+		return dxr(x, r)
 	}
 	return dxr(x, 0)
 }

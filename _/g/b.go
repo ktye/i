@@ -24,6 +24,8 @@ var xline int
 
 func ginit() {
 	MT['R'+128] = read1
+	MT['C'+128] = csv1
+	MT['C'] = csv2
 	MT['r'+128] = rand1 // shuffle
 	MT['r'] = rand2
 	MT['p'+128] = plot1
@@ -33,6 +35,7 @@ func ginit() {
 	MT['m'] = mul2
 	MT['c'+128] = caption1
 	assign("read", 'R')
+	assign("csv", 'C')
 	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
 	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randf: 'r[3;]
 	assign("randn", prj('r', l2(mki(4294967293), 0), mki(1))) // randn: 'r[-3;]
@@ -46,7 +49,11 @@ func ginit() {
 	assign("diag", 'd')
 	assign("mul", 'm') // XT*y or XT*Y r|z
 	assign("solve", 'q')
-	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT"} {
+	assign("sin", prj('F', l2(mki(129), 0), mki(1)))
+	assign("cos", prj('F', l2(mki(130), 0), mki(1)))
+	assign("exp", prj('F', l2(mki(131), 0), mki(1))) // pow10:{131 'F2.302585092994046*x}
+	assign("log", prj('F', l2(mki(132), 0), mki(1))) // log10:{0.4342944819032518* 'Fx}
+	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT", "COMMA"} {
 		symbols[s] = ks(s)
 	}
 	assign("WIDTH", mki(800))
@@ -55,6 +62,7 @@ func ginit() {
 	assign("LINES", mki(20))
 	assign("FFMT", kC([]byte("%.4g")))
 	assign("ZFMT", kC([]byte("%.4ga%.0f")))
+	assign("COMMA", kC([]byte(" ")))
 	plotKeys = kS([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
 
 }
@@ -153,12 +161,9 @@ func gOut(x uint32) {
 	} else if ismatrix(x) {
 		writeMatrix(x, o, lines)
 		return
-	} else if tp(x) == 6 && nn(x) == 2 {
-		tx, ty := MI[2+x>>2], MI[3+x>>2]
-		xrows, xcols := istab(tx)
-		yrows, ycols := istab(ty)
-		if xrows == yrows && xrows > 1 {
-			writeTables(tx, ty, o, xrows, xcols, ycols, lines)
+	} else if tp(x) == 6 {
+		if tx, ty, rows, xcols, ycols := iskeytab(x); tx != 0 {
+			writeTables(tx, ty, o, rows, xcols, ycols, lines)
 			return
 		}
 	}
@@ -397,6 +402,17 @@ func istab(x uint32) (rows, cols int) {
 		return int(n0), int(nn(v))
 	}
 	return 0, -1
+}
+func iskeytab(x uint32) (rx, ry uint32, rows, xcols, ycols int) {
+	if tp(x) == 6 && nn(x) == 2 {
+		tx, ty := MI[2+x>>2], MI[3+x>>2]
+		xrows, xcols := istab(tx)
+		yrows, ycols := istab(ty)
+		if xrows == yrows && xrows > 1 {
+			return tx, ty, xrows, xcols, ycols
+		}
+	}
+	return 0, 0, 0, 0, 0
 }
 func ismatrix(x uint32) (r bool) { // rectangular real/complex column major
 	if tp(x) != 6 || nn(x) < 1 {
