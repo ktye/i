@@ -32,7 +32,6 @@ func ginit() {
 	MT['d'+128] = diag1
 	MT['m'] = mul2
 	MT['c'+128] = caption1
-	MT['w'] = where2
 	assign("read", 'R')
 	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
 	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randf: 'r[3;]
@@ -146,7 +145,7 @@ func gOut(x uint32) {
 		return
 	}
 	if rows, cols := istab(x); rows > 1 {
-		writeTable(x, o, rows, cols, lines)
+		writeTables(x, 0, o, rows, cols, 0, lines)
 		return
 	} else if tp(x) == 7 {
 		writeDict(x, o, lines)
@@ -154,6 +153,14 @@ func gOut(x uint32) {
 	} else if ismatrix(x) {
 		writeMatrix(x, o, lines)
 		return
+	} else if tp(x) == 6 && nn(x) == 2 {
+		tx, ty := MI[2+x>>2], MI[3+x>>2]
+		xrows, xcols := istab(tx)
+		yrows, ycols := istab(ty)
+		if xrows == yrows && xrows > 1 {
+			writeTables(tx, ty, o, xrows, xcols, ycols, lines)
+			return
+		}
 	}
 	rx(x)
 	o.Write(append(CK(kst(x)), 10))
@@ -454,26 +461,46 @@ func writeDict(x uint32, w io.Writer, clip int) {
 	}
 	dx(x)
 }
-func writeTable(x uint32, ww io.Writer, rows, cols int, clip int) {
+func writeTables(x, y uint32, ww io.Writer, rows, xcols, ycols int, clip int) {
 	tab := []byte{'\t'}
 	nl := []byte{'\n'}
 	ffmt := lupString("FFMT")
 	zfmt := lupString("ZFMT")
 	w := tabwriter.NewWriter(ww, 2, 8, 1, ' ', 0)
-	keys, vals := Sk(MI[2+x>>2]), MI[3+x>>2]
-	for i := range keys {
-		w.Write([]byte(keys[i]))
-		if i != int(cols-1) {
+	xkeys, xvals := Sk(MI[2+x>>2]), MI[3+x>>2]
+	ykeys, yvals := []string{}, uint32(0)
+	if y != 0 {
+		ykeys, yvals = Sk(MI[2+y>>2]), MI[3+y>>2]
+	}
+	for i := range xkeys {
+		w.Write([]byte(xkeys[i]))
+		if i != int(xcols-1) {
+			w.Write(tab)
+		}
+	}
+	for i := range ykeys {
+		if i == 0 {
+			w.Write([]byte("|\t"))
+		}
+		w.Write([]byte(ykeys[i]))
+		if i != int(ycols-1) {
 			w.Write(tab)
 		}
 	}
 	w.Write(nl)
 	for k := 0; k < rows; k++ {
-		for i := 0; i < cols; i++ {
-			w.Write([]byte(fmtVecAt(MI[2+uint32(i)+vals>>2], uint32(k), ffmt, zfmt)))
-			if i != cols-1 {
+		for i := 0; i < xcols; i++ {
+			w.Write([]byte(fmtVecAt(MI[2+uint32(i)+xvals>>2], uint32(k), ffmt, zfmt)))
+			if i != xcols-1 {
 				w.Write(tab)
 			}
+		}
+		for i := 0; i < ycols; i++ {
+			if i == 0 {
+				w.Write([]byte("|"))
+			}
+			w.Write(tab)
+			w.Write([]byte(fmtVecAt(MI[2+uint32(i)+yvals>>2], uint32(k), ffmt, zfmt)))
 		}
 		w.Write(nl)
 		if clip > 0 && int(k) > clip {
@@ -498,6 +525,19 @@ func fmtVecAt(x uint32, i uint32, ffmt, zfmt string) string {
 	case 6:
 		xi := MI[2+i+x>>2]
 		if nn(xi) != 1 {
+			if tp(xi) == 1 {
+				return string(Ck(xi))
+			} else if tp(xi) < 6 {
+				dots, n := "", nn(xi)
+				if n > 4 {
+					dots, n = "..", 4
+				}
+				r := make([]string, n)
+				for i := uint32(0); i < n; i++ {
+					r[i] = fmtVecAt(xi, i, ffmt, zfmt)
+				}
+				return strings.Join(r, " ") + dots
+			}
 			break
 		}
 		return fmtVecAt(xi, 0, ffmt, zfmt)

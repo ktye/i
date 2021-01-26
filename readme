@@ -49,10 +49,10 @@ Fcifzsld   xn:x&^7<<29   xn~2(derived)   adv  verb
 ,  cat enl                               152..155  
 ^  exc asc                               156..159  interned const
 $  str cst   sc cs                       160..255  char map az|AZ|NM|VB|AD|TE
-#  rsh cnt   take                        256.....  buckets/heap
+#  rsh cnt   take f#(filter) d#          256.....  buckets/heap
 _  drp flr   drop        re:_z f:__i i:_f
 ?  fnd unq   fnd fnx                     (:;`x;y)          assign      x:y
-@  atx typ               z:abs@ang z@ang (+;(`x;a;b;c);y)  assign(m/i) s[a;b;c]+:y
+@  atx typ   x@f f#x     z:abs@ang z@ang (+;(`x;a;b;c);y)  assign(m/i) s[a;b;c]+:y
 .  cal val               im:. z          (;a;b;c)   (*128) sequence    a;b;c     
                                          ((/;+);1 2 3)     adverbs     +/1 2 3 
 +'x  ech(168)  x+'y  ecd(40)             x'y  bin          ::x(last)   `a`b:1 2
