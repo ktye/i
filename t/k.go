@@ -763,6 +763,10 @@ func cut(x, y i) (r i) {
 		rx(y)
 		return tkd(exc(til(y), x), y)
 	}
+	if xt == 0 {
+		rx(y)
+		return atx(y, wer(not(atx(x, y))))
+	}
 	if xt != 2 {
 		panic("type")
 	}
@@ -795,7 +799,13 @@ func rsh(x, y i) (r i) {
 	xt, yt, xn, _, xp, _ := v2(x, y)
 	if yt == 7 {
 		if xt == 0 && nn(x) == 5 {
-			return expr(x, y)
+			rx(y)
+			x = expr(x, y)
+			if tp(x) == 2 {
+				return ecl(y, wer(x), 64)
+			} else {
+				return dxr(y, x)
+			}
 		} else if xt == 2 {
 			if xn != 1 {
 				trap()
@@ -805,6 +815,10 @@ func rsh(x, y i) (r i) {
 			return mkd(rsh(x, k), rsh(x, v))
 		}
 		return tkd(x, y)
+	}
+	if xt == 0 {
+		rx(y)
+		return atx(y, wer(atx(x, y)))
 	}
 	if xt != 2 {
 		panic("type")
@@ -936,11 +950,10 @@ func atx(x, y i) (r i) {
 	if xt == 0 {
 		return cal(x, enl(y))
 	}
+	if yt == 0 {
+		return rsh(y, x)
+	}
 	if xt == 7 { // d@..
-		if yt == 0 && nn(y) == 5 { // dict{expr}
-			rx(x)
-			return ecl(x, wer(expr(y, x)), 64)
-		}
 		return atd(x, y, yt)
 	}
 	if yt > 5 { // at-list at-dict
