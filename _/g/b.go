@@ -11,7 +11,6 @@ import (
 	"math/cmplx"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -279,41 +278,6 @@ func atoi(s string) int {
 	i, e := strconv.Atoi(s)
 	fatal(e)
 	return i
-}
-
-func printStack(stack []byte) {
-	if !interactive {
-		debug.PrintStack()
-		return
-	}
-	v := bytes.Split(stack, []byte{10})
-	var o []string
-	for _, b := range v {
-		s := string(b)
-		if strings.HasPrefix(s, "\t") {
-			s = strings.TrimPrefix(s, "\t")
-			if i := strings.Index(s, " +"); i > 0 {
-				s = s[:i]
-			}
-			w := strings.Split(s, "/")
-			if len(w) > 2 {
-				w = w[len(w)-2:]
-			}
-			s = strings.Join(w, "/")
-			if strings.HasPrefix(s, "debug") || strings.HasPrefix(s, "runtime") {
-				continue
-			}
-			o = append(o, " "+s)
-		}
-	}
-	if len(o) > 10 {
-		o = o[:10]
-	}
-	if len(o) > 1 {
-		for i := len(o) - 1; i >= 0; i-- {
-			fmt.Println(o[i])
-		}
-	}
 }
 
 type clipWriter struct {
