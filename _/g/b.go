@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/cmplx"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -24,6 +25,7 @@ var xline int
 
 func ginit() {
 	MT['R'+128] = read1
+	MT['D'+128] = dir1
 	MT['C'+128] = csv1
 	MT['C'] = csv2
 	MT['r'+128] = rand1 // shuffle
@@ -35,6 +37,7 @@ func ginit() {
 	MT['m'] = mul2
 	MT['c'+128] = caption1
 	assign("read", 'R')
+	assign("dir", 'D')
 	assign("csv", 'C')
 	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
 	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randf: 'r[3;]
@@ -221,6 +224,13 @@ func readdir(s string) uint32 {
 		vals[i] = int(f.Size())
 	}
 	return mkd(kS(keys), kI(vals))
+}
+func dir1(x uint32) uint32 { // dir"*.k"
+	s, e := filepath.Glob(string(CK(x)))
+	if e != nil {
+		panic(e)
+	}
+	return kS(s)
 }
 func LoadDataFile(file, sym string) error {
 	b, e := ioutil.ReadFile(file)
