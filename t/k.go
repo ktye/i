@@ -1133,6 +1133,9 @@ func cat(x, y i) (r i) {
 	if xt == 6 {
 		return ucat(x, lx(y))
 	}
+	if xt == 7 {
+		return dcat(x, y)
+	}
 	if yt == 6 {
 		return ucat(lx(x), y)
 	}
@@ -1180,6 +1183,10 @@ func lcat(x, y i) (r i) { // list append
 	sI(x, (xn+1)|6<<29)
 	sI(xp+4*xn, y)
 	return x
+}
+func dcat(x, y i) (r i) { // d,v
+	k, v := kvd(x)
+	return mkd(k, ecd(v, y, 44))
 }
 func enl(x i) (r i) { r = mk(6, 1); sI(8+r, x); return r }
 func cnt(x i) (r i) {
