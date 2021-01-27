@@ -53,7 +53,7 @@ func ginit() {
 	assign("cos", prj('F', l2(mki(130), 0), mki(1)))
 	assign("exp", prj('F', l2(mki(131), 0), mki(1))) // pow10:{131 'F2.302585092994046*x}
 	assign("log", prj('F', l2(mki(132), 0), mki(1))) // log10:{0.4342944819032518* 'Fx}
-	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT", "COMMA"} {
+	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT"} {
 		symbols[s] = ks(s)
 	}
 	assign("WIDTH", mki(800))
@@ -62,7 +62,6 @@ func ginit() {
 	assign("LINES", mki(20))
 	assign("FFMT", kC([]byte("%.4g")))
 	assign("ZFMT", kC([]byte("%.4ga%.0f")))
-	assign("COMMA", kC([]byte(" ")))
 	plotKeys = kS([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
 
 }

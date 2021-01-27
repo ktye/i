@@ -15,34 +15,40 @@ import (
 //  csv[x;y]  format; char
 // format dict (global CSV)
 //  `a`b`c`d!(0;1.0;"2";3a)  "2" column 2 string as symbol, 3a reads abs deg from column 3 and 4
+//  `comma`a`b..!(";";..)     default: blanks
+//  `skip`comma`..!(2;",";..) header lines
 // return value
 //  table `a`b`c`d!(values..)
 //  table `file`a`b`c`d!(values...) (for file input)
-func csv1(x uint32) uint32 {
+func csv1(x uint32) (r uint32) {
 	d := val(ks("CSV"))
 	if d == 0 || tp(d) != 7 {
 		panic("csv: var CSV must be a format dict")
 	}
 	if tp(x) == 5 { // file
-		if nn(x) == 1 {
-			return csv1(read1(x))
+		xn := nn(x)
+		if xn == 0 {
+			panic("csv: no inputs")
+		} else if xn == 1 {
+			rx(x)
+			return csv3(d, read1(x), x)
 		}
 		// multiple files: `file`col1`col2!(`file1`file1`file1..;..)
-		rx(x)
-		k, v := kvd(d)
-		dx(v)
-		k = ucat(ks("file"), k)
-		v = ech(ech(x, 'C'), 46) // ,/' & .' C'x
-		rx(v)
-		n := ech(v, 35)      // #'
-		v = ech(flp(v), 'u') // ,/'&v
-		x = ecd(n, x, 35)    // n#'x
-		v = ucat(enl(x), v)
-		return mkd(k, v)
+		for i := i(0); i < xn; i++ {
+			rx(x)
+			t := csv1(atx(x, mki(i)))
+			if i == 0 {
+				r = t
+			} else {
+				r = dcat(r, val(t))
+			}
+		}
+		return r
 	}
-	return csv2(d, x)
+	return csv3(d, x, 0)
 }
-func csv2(x, y uint32) uint32 {
+func csv2(x, y uint32) uint32 { return csv3(x, y, 0) }
+func csv3(x, y, z uint32) uint32 {
 	type parser func(s [][]byte, i int) uint32
 	fparse := func(s [][]byte, i int) uint32 {
 		f, e := strconv.ParseFloat(strings.Replace(string(s[i]), ",", ".", -1), 64)
@@ -51,7 +57,25 @@ func csv2(x, y uint32) uint32 {
 		}
 		return kf(f)
 	}
+	sskip := ks("skip")
+	scoma := ks("comma")
+	skip, comma := 0, []byte(nil)
 	k, v := kvd(x)
+	if MI[2+k>>2] == MI[2+sskip>>2] {
+		rx(v)
+		skip = iK(fst(v))
+		k = drop(k, 1)
+		v = drop(v, 1)
+	}
+	if MI[2+k>>2] == MI[2+scoma>>2] {
+		rx(v)
+		comma = CK(fst(v))
+		k = drop(k, 1)
+		v = drop(v, 1)
+	}
+	dx(sskip)
+	dx(scoma)
+
 	table := mk(6, 0)
 	index := make([]int, nn(k))
 	parse := make([]parser, nn(k))
@@ -85,15 +109,18 @@ func csv2(x, y uint32) uint32 {
 	}
 	dx(v)
 
-	comma := lupString("COMMA")
 	split := func(b []byte) [][]byte {
-		return bytes.Split(b, []byte(comma))
+		return bytes.Split(b, comma)
 	}
-	if comma == " " || comma == "" {
+	if len(comma) == 0 {
 		split = bytes.Fields
 	}
-	b := CK(y)
-	lines := bytes.Split(b, []byte{10})
+	lines := bytes.Split(CK(y), []byte{10})
+	if skip > len(lines) {
+		skip = len(lines) - 1
+	}
+	lines = lines[skip:]
+	m := uint32(0)
 	for line, b := range lines {
 		line++
 		if len(b) > 0 && b[0] == 13 {
@@ -116,7 +143,11 @@ func csv2(x, y uint32) uint32 {
 			tp := 2 + uint32(i) + table>>2
 			MI[tp] = ucat(MI[tp], p(v, n))
 		}
+		m++
 	}
-	dx(y)
+	if z != 0 {
+		k = ucat(ks("file"), k)
+		table = ucat(enl(take(z, m)), table)
+	}
 	return mkd(k, table)
 }

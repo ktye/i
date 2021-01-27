@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -10,10 +9,8 @@ func kstval(s string) string { return string(CK(kst(eval(s)))) }
 
 func TestCsv(t *testing.T) {
 	kinit()
-	kstval("CSV:`i`f`a`s!(0;1.0;2a;\"4\")")
-	kstval("COMMA:\";\"")
-	s := string(CK(kst(csv1(kC([]byte(csvdata))))))
-	fmt.Println("csv test:", s)
+	kstval("CSV:`comma`i`f`z`s!(\";\";0;1.0;2a;\"4\")")
+	_ = string(CK(kst(csv1(kC([]byte(csvdata))))))
 	bleak()
 }
 
