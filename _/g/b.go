@@ -67,9 +67,13 @@ func ginit() {
 	plotKeys = kS([]string{"Type", "Style", "Limits", "Xlabel", "Ylabel", "Title", "Xunit", "Yunit", "Zunit", "Lines", "Foto", "Caption", "Data"})
 
 }
+
+var stdout io.Writer
+
 func init() {
 	exit = exitRepl
 	leak = bleak
+	stdout = os.Stdout
 	Out = gOut
 
 	// -s lines, cols (terminal size)
@@ -176,7 +180,7 @@ func Loadfile(file string) error {
 	copy(b, MJ)
 	defer func() {
 		if r := recover(); r != nil {
-			ics(I(140), I(144), os.Stdout)
+			ics(I(140), I(144), stdout)
 			MJ = b
 			msl()
 		}
@@ -264,14 +268,14 @@ func runscript(r io.Reader) (uint32, error) {
 // clip to COLUMNS/LINES if interactive
 func clipTerminal() (io.Writer, int) {
 	if !interactive {
-		return os.Stdout, 0
+		return stdout, 0
 	}
 	c := lupInt("COLUMNS")
 	l := lupInt("LINES")
 	if c <= 0 || l <= 0 {
-		return os.Stdout, 0
+		return stdout, 0
 	}
-	return &clipWriter{Writer: os.Stdout, c: c - 2, l: l - 2}, l
+	return &clipWriter{Writer: stdout, c: c - 2, l: l - 2}, l
 }
 
 func atoi(s string) int {
