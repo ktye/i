@@ -4,35 +4,65 @@ import (
 	"fmt"
 )
 
-type Numeric interface {
+type Number interface {
 	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64, complex128
 }
 
-func Add[T Numeric](x, y []T) []T {
+type Real interface {
+	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64
+}
+
+func GradeUp[T Real](x []T) (r []int) {
+	r = Til(len(x))
+	sort.SliceStable(r, func(i, j int) bool { return x[r[i]] < x[r[j]] })
+}
+
+func GradeDown[T Real](x []T) (r []int) {
+	r = Til(len(x))
+	sort.SliceStable(r, func(i, j int) bool { return x[r[i]] > x[r[j]] })
+}
+
+func Index[T any](x []T, i []int) (r []T) {
+	r = make([]T, len(i))
+	for i, k := range i {
+		r[i] = x[k]
+	}
+	return r
+}
+
+func Not[T Number](x []T) []bool { // or uint8?
+	r := make([]bool, len(x))
+	for i, u := range x {
+		r[i] = x != 0
+	}
+	return r
+}
+
+func Add[T Number](x, y []T) []T {
 	for i, u := range y { 
 		x[i] += u
 	}
 	return x
 }
-func Add1[T Numeric](x []T, y T) []T {
+func Add1[T Number](x []T, y T) []T {
 	for i := range x {
 		x[i] += y
 	}
 	return x
 }
-func Sub[T Numeric](x, y []T) []T {
+func Sub[T Number](x, y []T) []T {
 	for i, u := range y {
 		x[i] -= u
 	}
 	return x
 }
-func Sub1[T Numeric](x []T, y T) []T {
+func Sub1[T Number](x []T, y T) []T {
 	for i := range x {
 		x[i] -= y
 	}
 	return x
 }
-func Sub2[T Numeric](x T, y []T) []T {
+func Sub2[T Number](x T, y []T) []T {
 	for i, u := range y {
 		y[i] = x - u
 	}
