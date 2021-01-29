@@ -119,6 +119,11 @@ func csv3(x, y, z uint32) uint32 {
 	if skip > len(lines) {
 		skip = len(lines) - 1
 	}
+	if len(lines) > 0 && len(lines[0]) > 3 {
+		if b := lines[0]; b[0] == 0xef && b[1] == 0xbb && b[2] == 0xbf {
+			lines[0] = b[3:] // bom
+		}
+	}
 	lines = lines[skip:]
 	m := uint32(0)
 	for line, b := range lines {
