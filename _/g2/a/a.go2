@@ -2,103 +2,48 @@ package main
 
 import (
 	"fmt"
+	"sort"
 )
 
-type Number interface {
-	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64, complex128
-}
+type Number interface { type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64, complex128 }
+type Real   interface { type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,          float32, float64 }
 
-type Real interface {
-	type int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64
-}
+func GradeUp  [T Real]  (x []T)         (r []int) { r = Til(len(x)); sort.SliceStable(r, func(i, j int) bool { return x[r[i]] < x[r[j]] }); return r }
+func GradeDown[T Real]  (x []T)         (r []int) { r = Til(len(x)); sort.SliceStable(r, func(i, j int) bool { return x[r[i]] > x[r[j]] }); return r }
+func Index    [T any]   (x []T, i []int)(r []T)   { r = make([]T, len(i)); for i, k := range i { r[i] = x[k]; }; return r }
+func Not      [T Number](x []T)            []bool { r := make([]bool, len(x)); for i, u := range x { r[i] = u != 0; }; return r}
+func Add      [T Number](x, y []T)         []T    { for i, u := range y { x[i] += u;}; return x}
+func Add1     [T Number](x []T, y T)       []T    { for i := range x { x[i] += y; }; return x }
+func Sub      [T Number](x, y []T)         []T    {for i, u := range y {x[i] -= u;}; return x }
+func Sub1     [T Number](x []T, y T)       []T    { for i := range x { x[i] -= y; };return x }
+func Mul      [T Number](x, y []T)         []T    { for i, u := range y { x[i] *= u; }; return x }
+func Mul1     [T Number](x []T, y T)       []T    { for i := range x { x[i] *= y; }; return x }
+func Div      [T Number](x, y []T)         []T    { for i, u := range y { x[i] /= u; }; return x }
+func Div1     [T Number](x []T, y T)       []T    { y = 1/y; for i := range x { x[i] *= y; }; return x }
+func Min      [T Real]  (x, y []T)         []T    { for i, u := range y { if u < x[i] { x[i] = u; } }; return x }
+func Min1     [T Real]  (x []T, y T)       []T    { for i := range x { if y < x[i] { x[i] = y } }; return x }
+func Max      [T Real]  (x, y []T)         []T    { for i, u := range y { if u > x[i] { x[i] = u; } }; return x }
+func Max1     [T Real]  (x []T, y T)       []T    { for i := range x { if y > x[i] { x[i] = y; } }; return x }
+func Less     [T Real]  (x, y []T)         []bool { r := make([]bool, len(x)); for i, u := range y { r[i] = x[i] < u; }; return r }
+func Less1    [T Real]  (x []T, y T)       []bool { r := make([]bool, len(x)); for i, u := range x { r[i] = u < y; }; return r }
+func More     [T Real]  (x, y []T)         []bool { r := make([]bool, len(x)); for i, u := range y {  r[i] = x[i] > u; }; return r }
+func More1    [T Real]  (x []T, y T)       []bool { r := make([]bool, len(x)); for i, u := range x { r[i] = u > y; }; return r }
+func Negate   [T Number](x []T)            []T    { for i, u := range x { x[i] = 0 - u; }; return x }
+func Equal    [T Real]  (x, y []T)         []bool { r := make([]bool, len(x)); for i, u := range y { r[i] = x[i] == u; }; return r }
+func Equal1   [T Real]  (x []T, y T)       []bool { r := make([]bool, len(x)); for i, u := range x { r[i] = u == y; }; return r }
+func Match    [T Number](x, y []T)           bool { if len(x) != len(y) { return false }; for i, u := range y { if x[i] != u { return false; } };return true}
+func Til      [T Real]  (x T)           (r []T)   { if x < 0 { return Reverse(Til(0-x)) }; r = make([]T, int(x)); var i T; for i = 0; i<x; i += 1 { r[int(i)] = i; }; return r }
+func First    [T any]   (x []T)         (r T)     { if len(x) == 0 { return r }; return x[0] }
+func Cat      [T any]   (x, y []T)      (r []T)   { return append(x, y...) }
+func Cat1     [T any]   (x []T, y T)    (r []T)   { return append(x, y) }
+func Enlist   [T any]   (x T)           (r []T)   { return []T{x} }
+func Cut      [T any]   (n int, x []T)  (r [][]T) { r = make([][]T, n); m := len(x) / n; p := 0; for i := range r { r[i] = x[p:p+m]; if i == len(r) - 1 { r[i] = x[p:]; }; p += m; }; return r }
+//func Cuts   [T any]   (x []int, y []T)(r [][]T) {}
+func Take     [T any]   (n int, y []T)  (r []T)   { if n < 0 { return Reverse(Take(-n, Reverse(y))); }; r = make([]T, n); for i := range r { r[i] = y[i%len(y)]; }; return r }
+func Reverse  [T any]   (x []T)            []T    { if len(x) < 2 { return x }; k := len(x) - 1; for i := 0; i < len(x)/2; i++ { x[i], x[k] = x[k], x[i]; k--; }; return x }
+func Where              (x []bool)      (r []int) { n := 0; for _, u := range x { if u { n++; } }; r = make([]int, n); n = 0; for i, u := range x { if u { r[n] = i; n++; } }; return r }
+func Repeat             (x []int)       (r []int) { n := 0; for _, u := range x { if u > 0 { n += u; } }; r = make([]int, n); for i, u := range x { if u > 0 { for j := 0; j<u; j++ { r[n] = i; }; n++; } }; return r }
 
-func GradeUp[T Real](x []T) (r []int) {
-	r = Til(len(x))
-	sort.SliceStable(r, func(i, j int) bool { return x[r[i]] < x[r[j]] })
-}
-
-func GradeDown[T Real](x []T) (r []int) {
-	r = Til(len(x))
-	sort.SliceStable(r, func(i, j int) bool { return x[r[i]] > x[r[j]] })
-}
-
-func Index[T any](x []T, i []int) (r []T) {
-	r = make([]T, len(i))
-	for i, k := range i {
-		r[i] = x[k]
-	}
-	return r
-}
-
-func Not[T Number](x []T) []bool { // or uint8?
-	r := make([]bool, len(x))
-	for i, u := range x {
-		r[i] = x != 0
-	}
-	return r
-}
-
-func Add[T Number](x, y []T) []T {
-	for i, u := range y { 
-		x[i] += u
-	}
-	return x
-}
-func Add1[T Number](x []T, y T) []T {
-	for i := range x {
-		x[i] += y
-	}
-	return x
-}
-func Sub[T Number](x, y []T) []T {
-	for i, u := range y {
-		x[i] -= u
-	}
-	return x
-}
-func Sub1[T Number](x []T, y T) []T {
-	for i := range x {
-		x[i] -= y
-	}
-	return x
-}
-func Sub2[T Number](x T, y []T) []T {
-	for i, u := range y {
-		y[i] = x - u
-	}
-	return y
-}
-
-func Til(n int) (r []int) {
-	r = make([]int, n)
-	for i := range r {
-		r[i] = i
-	}
-	return r
-}
-
-func Take[T any](n int, y []T) (r []T) {
-	if n < 0 {
-		return Rev(Take(-n, Rev(y)))
-	}
-	r = make([]T, n)
-	for i := range r {
-		r[i] = y[i%len(y)]
-	}
-	return r
-}
-
-func Rev[T any](x []T) []T {
-	if len(x) < 2 {
-		return x
-	}
-	k := len(x) - 1
-	for i := 0; i < len(x)/2; i++ {
-		x[i], x[k] = x[k], x[i]
-		k--
-	}
-	return x
-}
 
 func main() {
 	o := fmt.Println
@@ -109,5 +54,9 @@ func main() {
 	o(Add([]int{1, 2, 3}, []int{4, 5, 6}))
 	o(Add1([]int{1, 2, 3}, 4))
 	o(Sub1([]float64{1, 2, 3}, 4))
+	o(Enlist(Til(5)))
+	o(Negate([]uint8{1, 2, 3}))
+	o(Cut(5, []int{1,2,3}))
+	o(Cut(3, Til(15)))
 }
 
