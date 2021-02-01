@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -41,7 +40,6 @@ func plot1(x uint32) (r uint32) {
 			k, v := kvd(ty)
 			x = ecr(k, flp(v), 33) // k!/:&v
 			xn = nn(x)
-			fmt.Println("iskeytab:", tp(x), xn)
 		}
 		plts, e := plot.KTablePlot(x, MC, MI, MF)
 		perr(e)
