@@ -22,6 +22,7 @@ var symbols = make(map[string]uint32)
 var xfile string
 var xline int
 
+func eval(s string) uint32 { return val(kC([]byte(s))) }
 func ginit() {
 	MT['R'+128] = read1
 	MT['D'+128] = dir1
@@ -58,6 +59,8 @@ func ginit() {
 	for _, s := range []string{"WIDTH", "HEIGHT", "COLUMNS", "LINES", "FFMT", "ZFMT"} {
 		symbols[s] = ks(s)
 	}
+	eval("avg:{(+/x)%#x}")
+	eval("ej:{[k;a;b]i:b[k]?a[k];a,k_(!b)!b[!b;i]}") // equi-join key table1 table2
 	assign("WIDTH", mki(800))
 	assign("HEIGHT", mki(400))
 	assign("COLUMNS", mki(80))
@@ -104,7 +107,7 @@ func init() {
 			return false
 		}
 		if lastCaption != nil {
-			w, _ := clipTerminal()
+			w, _, _ := clipTerminal()
 			lastCaption.WriteTable(w, 0)
 		}
 		return true
@@ -148,7 +151,7 @@ func gOut(x uint32) {
 	if x == 0 {
 		return
 	}
-	o, lines := clipTerminal()
+	o, lines, columns := clipTerminal()
 	//m := memstore()
 	p := pk(x)
 	//memcompare(m, "pk")
@@ -165,6 +168,9 @@ func gOut(x uint32) {
 		return
 	} else if ismatrix(x) {
 		writeMatrix(x, o, lines)
+		return
+	} else if tp(x) > 1 && tp(x) < 6 {
+		writeVector(x, o, columns)
 		return
 	} else if tp(x) == 6 {
 		if tx, ty, rows, xcols, ycols := iskeytab(x); tx != 0 {
@@ -266,16 +272,16 @@ func runscript(r io.Reader) (uint32, error) {
 }
 
 // clip to COLUMNS/LINES if interactive
-func clipTerminal() (io.Writer, int) {
+func clipTerminal() (io.Writer, int, int) {
 	if !interactive {
-		return stdout, 0
+		return stdout, 0, 0
 	}
 	c := lupInt("COLUMNS")
 	l := lupInt("LINES")
 	if c <= 0 || l <= 0 {
-		return stdout, 0
+		return stdout, 0, 0
 	}
-	return &clipWriter{Writer: stdout, c: c - 2, l: l - 2}, l
+	return &clipWriter{Writer: stdout, c: c - 2, l: l - 2}, l, c
 }
 
 func atoi(s string) int {
@@ -433,6 +439,27 @@ func writeMatrix(x uint32, ww io.Writer, clip int) {
 		}
 	}
 	w.Flush()
+}
+func writeVector(x uint32, w io.Writer, columns int) {
+	ffmt := lupString("FFMT")
+	zfmt := lupString("ZFMT")
+	n := nn(x)
+	c := 0
+	s := []byte(" ")
+	for i := uint32(0); i < n; i++ {
+		if i > 0 {
+			w.Write(s)
+			c++
+		}
+		s := fmtVecAt(x, i, ffmt, zfmt)
+		w.Write([]byte(s))
+		c += len(s)
+		if columns > 0 && c > columns {
+			break
+		}
+	}
+	w.Write([]byte{10})
+	return
 }
 func writeDict(x uint32, w io.Writer, clip int) {
 	k := Sk(I(8 + x))
