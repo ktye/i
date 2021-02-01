@@ -19,6 +19,7 @@ var ttests = [][2]string{
 	{"`c`d+/'T", "`c`d`a`b!(`q`w`e`e`q`w;0 0 0 1 1 1;5 7 3 15 17 8;7 9 4 17 19 9)"},
 	{"`c`d(*;+/)'T", "`c`d`*a`+{a`*b`+{b!(`q`w`e`e`q`w;0 0 0 1 1 1;1 2 3 6 7 8;5 7 3 15 17 8;2 3 4 7 8 9;7 9 4 17 19 9)"},
 	{"`c`d(`\"first \"`\"sum \"!(*;+/))'T", "`c`d`first a`sum a`first b`sum b!(`q`w`e`e`q`w;0 0 0 1 1 1;1 2 3 6 7 8;5 7 3 15 17 8;2 3 4 7 8 9;7 9 4 17 19 9)"},
+	{"t:`a`b`i!(1 2 3 4;5 6 7 8;0 0 1 1);b:`i`n`s!(0 1 2;`alpha`beta`gamma;2.1 2.2 3.3);ej[`i;t;b]", "`a`b`i`n`s!(1 2 3 4;5 6 7 8;0 0 1 1;`alpha`alpha`beta`beta;2.1 2.1 2.2 2.2)"},
 }
 
 func TestT(t *testing.T) {

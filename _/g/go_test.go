@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-func eval(s string) uint32   { return val(kC([]byte(s))) }
 func kstval(s string) string { return string(CK(kst(eval(s)))) }
 
 func TestCsv(t *testing.T) {

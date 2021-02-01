@@ -432,7 +432,9 @@ func mk(x, y i) (r i) {
 	for I(i) == 0 {
 		if i >= m {
 			sI(128, grow(1+i/4))
-			sI(i, 1<<(i>>2))
+			for j := m; j <= i; j += 4 { // todo: not in w.k/k.k (mark intermediates for large allocations)
+				sI(j, 1<<(j>>2))
+			}
 			m = i
 			i -= 4
 		}
