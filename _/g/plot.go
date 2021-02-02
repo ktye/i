@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -55,8 +56,38 @@ func plot1(x uint32) (r uint32) {
 	}
 	return dxr(x, 0)
 }
+func plot2(x, y uint32) (r uint32) { // plot with caption(table)
+	x = cal('p', enl(x))
+	if tp(y) != 7 {
+		panic("plot2: y type: not a table")
+	}
+	var c plot.Caption
+	keys := Sk(MI[2+y>>2])
+	v := MI[3+y>>2]
+	n := nn(v)
+	for i := uint32(0); i < n; i++ {
+		var col plot.CaptionColumn
+		col.Name = keys[i]
+		var vi = MI[2+i+v>>2]
+		switch tp(vi) {
+		case 2:
+			col.Data = Ik(vi)
+		case 3:
+			col.Data = Fk(vi)
+		case 4:
+			col.Data = Zk(vi)
+		case 5:
+			col.Data = Sk(vi)
+		default:
+			panic(fmt.Errorf("illegal caption column type: %d", i))
+		}
+		c.Columns = append(c.Columns, col)
+	}
+	dx(y)
+	return asi(x, l2(mki(0), ks("Caption")), K(c))
+}
 
-type Caption map[string]interface{}
+//type Caption map[string]interface{}
 
 func caption1(x uint32) (r uint32) { // caption plot`sig
 	p := pk(x)

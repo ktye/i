@@ -31,6 +31,7 @@ func ginit() {
 	MT['r'+128] = rand1 // shuffle
 	MT['r'] = rand2
 	MT['p'+128] = plot1
+	MT['p'] = plot2
 	MT['q'+128] = qr1
 	MT['q'] = solve2
 	MT['d'+128] = diag1
