@@ -1,0 +1,12 @@
+package k
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestK(t *testing.T) {
+	o := fmt.Println
+	o(Eval("*3"))
+	o(Eval("*3.14"))
+}

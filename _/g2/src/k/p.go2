@@ -1,0 +1,127 @@
+package k
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
+type Tokenizer func(b []byte) (K, []byte)
+
+func (i *I) Tokens(b []byte) (r []K) {
+	if len(b) == 0 {
+		return nil
+	}
+	for {
+		t, b := i.token(b)
+		if t.A != nil {
+			r = append(r, t)
+		}
+		if len(b) == 0 {
+			break
+		}
+	}
+	return r
+}
+func (i *I) token(b []byte) (token K, tail []byte) {
+	for _, t := range i.Tokenizers {
+		if v, tail := t(b); len(tail) < len(b) {
+			return v, tail
+		}
+	}
+	panic(fmt.Errorf("parse: " + string(b)))
+}
+func Whitespace(b []byte) (r K, tail []byte) {
+	for i, c := range b {
+		if c == 10 || c > 32 {
+			return r, b[i:]
+		}
+	}
+	return r, nil
+}
+func Hex(b []byte) (r K, tail []byte) {
+	if len(b) < 2 || b[0] != '0' || b[1] != 'x' {
+		return r, b
+	}
+	u := make([]byte, 0)
+	n := 2
+	for i := 0; i<len(b); i += 2 {
+		a, b := hx(b[i]), hx(b[i+1])
+		if a == 0xff || b == 0xff {
+			break
+		}
+		u = append(u, a << 4 | b)
+		n += 2
+	}
+	return K{A:u}, b[n:]
+}
+func hx(c byte) byte {
+	switch {
+	case '0' <= c && c <= '9':
+		return c - '0'
+	case 'a' <= c && c <= 'f':
+		return c - 'a' + 10
+	case 'A' <= c && c <= 'F':
+		return c - 'A' + 10
+	}
+	return 0xff
+}
+func Number(b []byte) (r K, tail []byte) {
+	if b[0] == '-' && len(b) > 1 {
+		u, tail := pu(b[1:])
+		if u.A == nil {
+			return r, b
+		}
+		return K{A:-u.A.(int)}, tail
+	}
+	return pu(b)
+}
+func pu(b []byte) (r K, tail []byte) {
+	n := len(b)
+	for i, c := range b {
+		if c < '0' && c > '9' {
+			if i == 0 {
+				return r, b
+			} else {
+				n = i
+				break
+			}
+		}
+	}
+	n, err := strconv.Atoi(string(b[:n]))
+	if err != nil {
+		return r, b
+	}
+	return K{A:n}, b[n:]
+}
+func Verb(b []byte) (r K, tail []byte) {
+	const s = "+-*%~!@#$%^&,.?"
+	h := b[0]
+	if strings.IndexByte(s, h) == 0 {
+		if len(b) > 1 && b[1] == ':' {
+			return K{A: V(h+128)}, b[2:]
+		}
+		return K{A:V(h)}, b[1:]
+	}
+	return r, b
+}
+func (i *I) Builtins(b []byte) (r K, tail []byte) {
+	// parse name, check i.Monads, i.Dyads
+	if n := parseName(b); n > 0 {
+		panic("nyi")
+	}
+	panic("nyi")
+}
+func parseName(b []byte) int {
+	for i, c := range b {
+		if c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' {
+			continue
+		}
+		if i > 0 && c >= '0' && c <= '9' {
+			continue
+		}
+		return i
+	}
+	return len(b)
+}
+

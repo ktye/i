@@ -1,0 +1,21 @@
+package a
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestA(t *testing.T) {
+	o := fmt.Println
+	o(Til(5))
+	o(Take(2, Til(5)))
+	o(Take(7, Til(5)))
+	o(Take(-2, Til(5)))
+	o(Add([]int{1, 2, 3}, []int{4, 5, 6}))
+	o(Add1([]int{1, 2, 3}, 4))
+	o(Sub1([]float64{1, 2, 3}, 4))
+	o(Enlist(Til(5)))
+	o(Negate([]uint8{1, 2, 3}))
+	o(Cut(5, []int{1,2,3}))
+	o(Cut(3, Til(15)))
+}

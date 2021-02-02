@@ -1,1 +1,2 @@
 go2go build
+go2go test

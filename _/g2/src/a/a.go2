@@ -1,7 +1,6 @@
-package main
+package a
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -44,7 +43,7 @@ func Reverse  [T any]   (x []T)            []T    { if len(x) < 2 { return x }; 
 func Where              (x []bool)      (r []int) { n := 0; for _, u := range x { if u { n++; } }; r = make([]int, n); n = 0; for i, u := range x { if u { r[n] = i; n++; } }; return r }
 func Repeat             (x []int)       (r []int) { n := 0; for _, u := range x { if u > 0 { n += u; } }; r = make([]int, n); for i, u := range x { if u > 0 { for j := 0; j<u; j++ { r[n] = i; }; n++; } }; return r }
 
-
+/*
 func main() {
 	o := fmt.Println
 	o(Til(5))
@@ -59,4 +58,4 @@ func main() {
 	o(Cut(5, []int{1,2,3}))
 	o(Cut(3, Til(15)))
 }
-
+*/

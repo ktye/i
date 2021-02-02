@@ -1,0 +1,93 @@
+package k
+
+import (
+	"a"
+	"strconv"
+)
+
+type K struct {
+	A interface{}
+	count int
+}
+type I struct {
+	Monads map[string][10]Monad
+	Tokenizers []Tokenizer
+}
+type V byte
+
+func New() *I {
+	var i I
+	i.Tokenizers = []Tokenizer{Whitespace, Hex, Number, Verb, i.Builtins}
+	return &i
+}
+
+type Monad func(K) K
+
+var Monadic = map[byte][12]Monad{
+	'*': {id, id, id, id, id, id, first[bool], first[byte], first[int], first[float64], first[complex128], first[string]},
+}
+
+func Eval(s string) K {
+	b := []byte(s)
+	f := Monadic[b[0]]
+	v := parse(string(b[1:]))
+	t := Type(v)
+	return f[t](v)
+}
+
+func parse(s string) K {
+	if n, err := strconv.Atoi(s); err == nil {
+		return K{A: n}
+	}
+	if n, err := strconv.ParseFloat(s, 64); err == nil {
+		return K{A: n}
+	}
+	// ...
+	return K{}
+}
+
+func Type(x K) int {
+	switch x.A.(type) {
+	case bool:
+		return 0
+	case byte:
+		return 1
+	case int:
+		return 2
+	case float64:
+		return 3
+	case complex128:
+		return 4
+	case string:
+		return 5
+	case []bool:
+		return 6
+	case []byte:
+		return 7
+	case []int:
+		return 8
+	case []float64:
+		return 9
+	case []complex128:
+		return 10
+	case []string:
+		return 11
+	default:
+		return -1
+	}
+}
+
+func id(x K) K { return x }
+
+func first[T any](x K) (r K) {
+	r.A = a.First(x.A.([]T))
+	return r
+}
+
+
+
+/*
+func I() int {
+	return First(Reverse(Til(5)))
+}
+*/
