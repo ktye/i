@@ -1,13 +1,20 @@
 package main
 
 import (
-	"k"
 	"fmt"
-	"strings"
+	"j"
 	"os"
+	"strings"
 )
 
 func main() {
-	i := k.New()
-	fmt.Println(i.Run(k.Parse([]byte(strings.Join(os.Args[1:], " ")))))
+	b := []byte(strings.Join(os.Args[1:], " ") + "\n")
+	for _, c := range b {
+		r := j.Step(uint32(c))
+		if r != 0 {
+			fmt.Println(j.XX(r))
+			j.Dx(r)
+		}
+	}
+	j.Leak()
 }
