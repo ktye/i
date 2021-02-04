@@ -36,6 +36,7 @@ package j
 
 import (
 	_ "embed"
+	"fmt"
 	"math/bits"
 )
 
@@ -131,20 +132,33 @@ func Exec(x uint32) uint32 {
 			l = lastp(x)
 		}
 		x := I(p)
+		exe := uint32(0)
 		if x&7 != 4 {
 			stk = lcat(stk, rx(x))
 		} else {
+			fmt.Println(x)
 			if x == 108 { // . execute
 				if p == x+8 {
 					panic(". underflow")
 				}
-				x = rx(I(p - 4))
+				exe = I(p - 4)
+			} else if x == 244 { // ? if
+				stk = swp(stk)
+				c := I(lastp(stk))>>1 != 0
+				stk = pop(stk)
+				if c {
+					exe = last(stk)
+				}
+				stk = pop(stk)
+			} else {
+				stk = F[x>>3](stk)
+			}
+			if exe != 0 {
+				x = rx(exe)
 				est = lcat(est, x)
 				rst = lcat(rst, 5+2*p)
 				p = x + 4
 				l = lastp(x)
-			} else {
-				stk = F[x>>3](stk)
 			}
 		}
 		p += 4
@@ -246,6 +260,13 @@ func last(x uint32) (r uint32) {
 		return 0
 	}
 	return I(lastp(x))
+}
+func prev(x uint32) (r uint32) {
+	n := nn(x)
+	if n < 2 {
+		panic("prev: underflow")
+	}
+	return I(x + 4*n)
 }
 func last2(x uint32) (a, b uint32) {
 	n := nn(x)
