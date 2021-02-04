@@ -6,7 +6,7 @@
 // 0     total memory (log2)
 // 1     symbol list
 // 2     value list
-// 3     parse list
+// 3
 // 4..32 free list
 //
 // abc   symbol (max 6)
@@ -19,6 +19,7 @@
 //
 // nyi:
 // .exec 'each /over
+// ,cat              [enlist][[]~,]:
 // [a][b]: assign
 // [c][t]? if
 // a i@ index
@@ -39,66 +40,11 @@ import (
 )
 
 var N uint32                // number
-var S uint32                // symbol
+var Y uint32                // symbol
+var P uint32                // parse root list
+var T uint32                // parse top list
 var M []uint32              // heap
-var P uint32                // current parse list
 var F []func(uint32) uint32 // function table
-
-func Step(x uint32) uint32 {
-	if x >= '0' && x <= '9' {
-		N *= 10
-		N += x - '0'
-		return 0
-	}
-	if N != 0 {
-		P = cat(P, 1|N<<1)
-		N = 0
-	}
-	if x >= 'a' && x <= 'z' {
-		S *= 32
-		S += x - 'a'
-		return 0
-	}
-	if S != 0 {
-		P = cat(P, 2|S<<2)
-		S = 0
-	}
-	if x < 33 {
-		if x == 10 {
-			return Exec(M[3])
-		}
-		return 0
-	}
-	if x == 91 { // '['
-		P = cat(P, mk(0))
-		P = last(P)
-		return 0
-	}
-	if x == 93 {
-		P = parent(M[3], P)
-		if P == 0 {
-			panic("parse]")
-		}
-		return 0
-	}
-	P = cat(P, 4|(x-33)<<3)
-	return 0
-}
-func Exec(x uint32) uint32 {
-	stk := mk(0)
-	n := nn(x)
-	xp := P + 8
-	for i := uint32(0); i < n; i++ {
-		x := I(xp)
-		if x&7 != 4 {
-			stk = lcat(stk, rx(x))
-		} else {
-			stk = F[x>>3](stk)
-		}
-		xp += 4
-	}
-	return stk
-}
 func init() {
 	finit()
 	x := uint32(16)
@@ -112,10 +58,99 @@ func init() {
 
 	M[1] = mk(0)
 	M[2] = mk(0)
-	M[3] = mk(0)
-	P = M[3]
+	P = mk(0)
+	T = P
 	//dump(127)
 }
+func Step(x uint32) uint32 {
+	if x >= '0' && x <= '9' { // parse number
+		N *= 10
+		N += x - '0'
+		return 0
+	}
+	if N != 0 {
+		T = pcat(T, 1|N<<1)
+		N = 0
+	}
+	if x >= 'a' && x <= 'z' { // parse symbol
+		Y *= 32
+		Y += x - 'a'
+		return 0
+	}
+	if Y != 0 {
+		T = pcat(T, 2|Y<<2)
+		Y = 0
+	}
+	if x < 33 {
+		if x == 10 {
+			if T != P {
+				panic("unclosed]")
+			}
+			v := Exec(T)
+			P = mk(0)
+			T = P
+			return dx(v)
+		}
+		return 0
+	}
+	if x == 91 { // '['
+		T = pcat(T, mk(0))
+		T = last(T)
+		return 0
+	}
+	if x == 93 {
+		T = parent(P, T)
+		if T == 0 {
+			panic("parse]")
+		}
+		return 0
+	}
+	T = pcat(T, 4|(x-33)<<3)
+	return 0
+}
+func Exec(x uint32) uint32 {
+	if nn(x) == 0 {
+		return x
+	}
+	est := lcat(mk(0), x) // execution stack
+	rst := mk(0)          // return stack
+	stk := mk(0)          // value stack
+	p := x + 8
+	l := lastp(x)
+	for {
+		for p > l {
+			if nn(rst) == 0 {
+				dx(est)
+				dx(rst)
+				return stk
+			}
+			p = last(rst) >> 1
+			est = pop(est)
+			rst = pop(rst)
+			x = last(est)
+			l = lastp(x)
+		}
+		x := I(p)
+		if x&7 != 4 {
+			stk = lcat(stk, rx(x))
+		} else {
+			if x == 108 { // . execute
+				if p == x+8 {
+					panic(". underflow")
+				}
+				x = rx(I(p - 4))
+				est = lcat(est, x)
+				rst = lcat(rst, 5+2*p)
+				p = x + 4
+				l = lastp(x)
+			} else {
+				stk = F[x>>3](stk)
+			}
+		}
+		p += 4
+	}
+}
+
 func bk(n uint32) (r uint32) { // bucket type
 	r = uint32(32 - bits.LeadingZeros32(7+4*n))
 	if r < 4 {
@@ -152,6 +187,9 @@ func rx(x uint32) uint32 {
 }
 func dx(x uint32) uint32 {
 	if x&7 == 0 {
+		if I(x) == 0 {
+			panic("dx")
+		}
 		sI(x, I(x)-1)
 		if I(x) == 0 {
 			n := I(x + 4)
@@ -185,11 +223,11 @@ func lcat(x uint32, y uint32) (r uint32) {
 	dx(x)
 	return r
 }
-func cat(x, y uint32) (r uint32) {
-	p := parent(M[3], x)
+func pcat(x, y uint32) (r uint32) {
+	p := parent(P, x)
 	r = lcat(x, y)
-	if x == M[3] {
-		M[3] = r
+	if x == P {
+		P = r
 		return r
 	}
 	sI(lastp(p), r)
@@ -207,7 +245,7 @@ func last(x uint32) (r uint32) {
 	if n == 0 {
 		return 0
 	}
-	return lastp(x)
+	return I(lastp(x))
 }
 func last2(x uint32) (a, b uint32) {
 	n := nn(x)
@@ -227,6 +265,7 @@ func parent(x, y uint32) (r uint32) {
 	}
 	return parent(l, y)
 }
+
 func I(x uint32) uint32 { return M[x>>2] }
 func sI(x, y uint32)    { M[x>>2] = y }
 
@@ -332,6 +371,7 @@ func pop(x uint32) (r uint32) {
 		panic("pop:underflow")
 	}
 	if bk(n) == bk(n-1) {
+		dx(last(x))
 		sI(x+4, n-1)
 	} else {
 		n--

@@ -12,8 +12,7 @@ func main() {
 	for _, c := range b {
 		r := j.Step(uint32(c))
 		if r != 0 {
-			fmt.Println(j.XX(r))
-			j.Dx(r)
+			fmt.Println(j.X(r))
 		}
 	}
 	j.Leak()

@@ -6,23 +6,7 @@ import (
 	"strings"
 )
 
-func Dx(x uint32) uint32 { return dx(x) }
-
-func X(x uint32) uint32 {
-	if x&7 == 0 {
-		n := nn(x)
-		fmt.Printf("%x[%d]:", x, n)
-		for i := uint32(0); i < n; i++ {
-			fmt.Printf(" %x", M[2+i+x>>2])
-		}
-		fmt.Println()
-	} else {
-		fmt.Printf("%x: %d\n", x>>1)
-	}
-	return x
-}
-
-func XX(x uint32) string {
+func X(x uint32) string {
 	//fmt.Printf("xx %d(%x) %b\n", x, x, x)
 	if x == 0 {
 		panic("XX0")
@@ -30,7 +14,7 @@ func XX(x uint32) string {
 		n := nn(x)
 		v := make([]string, n)
 		for i := uint32(0); i < n; i++ {
-			v[i] = XX(M[2+i+x>>2])
+			v[i] = X(M[2+i+x>>2])
 		}
 		return "[" + strings.Join(v, " ") + "]"
 	} else if x&1 != 0 {
@@ -46,14 +30,15 @@ func XX(x uint32) string {
 func Leak() {
 	dx(M[1])
 	dx(M[2])
-	dx(M[3])
+	dx(P)
 	//dump(200)
 	mark()
 	//dump(200)
 	p := uint32(32)
 	for p < uint32(len(M)) {
 		if M[p] != 0 {
-			panic(fmt.Errorf("non-free block: %d(%x)", 4*p, 4*p))
+			// fmt.Println(X(4 * p))
+			panic(fmt.Errorf("non-free block: %d(%x) rc=%d #=%d", 4*p, 4*p, M[p], M[1+p]))
 		}
 		n := uint32(1 << bk(M[1+p]))
 		p += n >> 2
