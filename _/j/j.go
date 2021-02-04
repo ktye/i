@@ -19,8 +19,8 @@
 //
 // nyi:
 // .exec 'each /over
-// ,cat              [enlist][[]~,]:
-// [a][b]: assign
+// ,cat              [[]~,][enlist]:
+// [v][s]: assign
 // [c][t]? if
 // a i@ index
 // a i v$store
@@ -57,13 +57,13 @@ func ini() {
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-
 	M[1] = mk(0)
 	M[2] = mk(0)
 	P = mk(0)
 	T = P
 	//dump(127)
 }
+
 func Step(x uint32) uint32 {
 	if C == 1 {
 		if x == ')' { // end comment
@@ -86,7 +86,7 @@ func Step(x uint32) uint32 {
 	}
 	if x >= 'a' && x <= 'z' { // parse symbol
 		Y *= 32
-		Y += x - 'a'
+		Y += x - '`'
 		return 0
 	}
 	if Y != 0 {
@@ -144,7 +144,11 @@ func Exec(x uint32) uint32 {
 			l = lastp(x)
 		}
 		x := I(p)
-		if x&7 != 4 {
+		if x&3 == 2 {
+			if x&3 == 2 {
+				exe = lup(x)
+			}
+		} else if x&7 != 4 {
 			stk = lcat(stk, rx(x))
 		} else {
 			if x == 108 { // . execute
@@ -164,14 +168,14 @@ func Exec(x uint32) uint32 {
 			} else {
 				stk = F[x>>3](stk)
 			}
-			if exe != 0 {
-				x = rx(exe)
-				est = lcat(est, x)
-				rst = lcat(rst, 9+2*p)
-				p = x + 4
-				l = lastp(x)
-				exe = 0
-			}
+		}
+		if exe != 0 {
+			x = rx(exe)
+			est = lcat(est, x)
+			rst = lcat(rst, 9+2*p)
+			p = x + 4
+			l = lastp(x)
+			exe = 0
 		}
 		p += 4
 	}
@@ -320,6 +324,7 @@ func finit() {
 	f('<', lti)
 	f('&', min)
 	f('^', max)
+	f(':', asn)
 }
 func swp(s uint32) uint32 {
 	x := lastp(s)
@@ -420,5 +425,42 @@ func pop(x uint32) (r uint32) {
 		return r
 	}
 	return x
+}
+func asn(s uint32) uint32 {
+	y := last(last(s))
+	if y&3 != 2 {
+		panic("asn: not a symbol")
+	}
+	v := rx(last(pop(s)))
+	if v&7 != 0 {
+		v = lcat(mk(0), v) // enlist atoms
+	}
+	p := fns(I(4), y)
+	if p == 0 {
+		sI(4, lcat(I(4), y))
+		sI(8, lcat(I(8), 1))
+		p = 4 + 4*nn(I(4))
+	}
+	rx(I(I(8) + p))
+	sI(I(8)+p, v)
+	return pop(s)
+}
+func lup(x uint32) uint32 {
+	p := fns(I(4), x)
+	if p == 0 {
+		panic("undefined" + X(x))
+	}
+	return I(I(8) + p) // does not ref
+}
+func fns(x, y uint32) uint32 {
+	n := nn(x)
+	p := uint32(8)
+	for i := uint32(0); i < n; i++ {
+		if I(x+p) == y {
+			return p
+		}
+		p += 4
+	}
+	return 0
 }
 func init() { ini() }
