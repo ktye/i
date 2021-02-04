@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/ktye/plot"
 )
@@ -159,15 +161,23 @@ var lastCaption *plot.Caption
 
 func showPlot(p plot.Plots) {
 	c, e := p.MergedCaption()
-	if e != nil {
-		panic(e)
-	}
-	lastCaption = &c
-	w, h := screensize()
-	ip, e := p.IPlots(w, h, 0)
 	perr(e)
-	m := plot.Image(ip, nil, w, h, 0).(*image.RGBA)
-	drawTerm(pngData(m))
+	lastCaption = &c
+	if dir := lupString("PLTDIR"); dir == "" {
+		w, h := screensize()
+		ip, e := p.IPlots(w, h, 0)
+		perr(e)
+		m := plot.Image(ip, nil, w, h, 0).(*image.RGBA)
+		drawTerm(pngData(m))
+	} else {
+		w, e := ioutil.TempFile(dir, "*.plt")
+		name := w.Name()
+		perr(e)
+		defer w.Close()
+		perr(p.Encode(w))
+		fmt.Println(strings.Replace(name, `\`, "/", -1))
+	}
+
 	//if len(p) > 0 && p.Merg
 }
 func pngData(m image.Image) []byte {
