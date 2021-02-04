@@ -12,16 +12,18 @@
 // abc   symbol (max 6)
 // 123   int (max 31 bit)
 // [..]  list/quote
+// [..]. exec
 // #     length/non-list: -1
+// c[.]? if c
+// [.][a]: assign
+// a     lookup&exec
 // +-*%\ arith(mod)
 // <=>   compare
 // &^    min max
 //
 // nyi:
-// .exec 'each /over
+// 'each /over
 // ,cat              [[]~,][enlist]:
-// [v][s]: assign
-// [c][t]? if
 // a i@ index
 // a i v$store
 // ;putc
@@ -240,6 +242,27 @@ func fr(x uint32) {
 	sI(p, x)
 }
 func nn(x uint32) uint32 { return I(4 + x) }
+func cat(s uint32) uint32 {
+	y := rx(last(s))
+	p := lastp(pop(s))
+	x := I(p)
+	if x&7 != 0 {
+		x = lcat(mk(0), x)
+	}
+	if y&7 == 0 {
+		n := nn(y)
+		yp := y + 8
+		for i := uint32(0); i < n; i++ {
+			x = lcat(x, rx(I(yp)))
+			yp += 4
+		}
+		dx(y)
+	} else {
+		x = lcat(x, y)
+	}
+	sI(p, x)
+	return s
+}
 func lcat(x uint32, y uint32) (r uint32) {
 	n := nn(x)
 	r = mk(1 + n)
@@ -325,6 +348,7 @@ func finit() {
 	f('&', min)
 	f('^', max)
 	f(':', asn)
+	f(',', cat)
 }
 func swp(s uint32) uint32 {
 	x := lastp(s)
