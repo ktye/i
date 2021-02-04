@@ -36,7 +36,6 @@ package j
 
 import (
 	_ "embed"
-	"fmt"
 	"math/bits"
 )
 
@@ -44,9 +43,11 @@ var N uint32                // number
 var Y uint32                // symbol
 var P uint32                // parse root list
 var T uint32                // parse top list
+var C uint32                // parse comment
 var M []uint32              // heap
 var F []func(uint32) uint32 // function table
-func init() {
+func ini() {
+	N, Y, P, T, C = 0, 0, 0, 0, 0
 	finit()
 	x := uint32(16)
 	M = make([]uint32, 1<<(x-2)) // 64kB
@@ -64,6 +65,16 @@ func init() {
 	//dump(127)
 }
 func Step(x uint32) uint32 {
+	if C == 1 {
+		if x == ')' { // end comment
+			C = 0
+		}
+		return 0
+	}
+	if x == '(' { // start comment
+		C = 1
+		return 0
+	}
 	if x >= '0' && x <= '9' { // parse number
 		N *= 10
 		N += x - '0'
@@ -116,6 +127,7 @@ func Exec(x uint32) uint32 {
 	est := lcat(mk(0), x) // execution stack
 	rst := mk(0)          // return stack
 	stk := mk(0)          // value stack
+	exe := uint32(0)
 	p := x + 8
 	l := lastp(x)
 	for {
@@ -132,16 +144,15 @@ func Exec(x uint32) uint32 {
 			l = lastp(x)
 		}
 		x := I(p)
-		exe := uint32(0)
 		if x&7 != 4 {
 			stk = lcat(stk, rx(x))
 		} else {
-			fmt.Println(x)
 			if x == 108 { // . execute
 				if p == x+8 {
 					panic(". underflow")
 				}
-				exe = I(p - 4)
+				exe = last(stk)
+				stk = pop(stk)
 			} else if x == 244 { // ? if
 				stk = swp(stk)
 				c := I(lastp(stk))>>1 != 0
@@ -156,9 +167,10 @@ func Exec(x uint32) uint32 {
 			if exe != 0 {
 				x = rx(exe)
 				est = lcat(est, x)
-				rst = lcat(rst, 5+2*p)
+				rst = lcat(rst, 9+2*p)
 				p = x + 4
 				l = lastp(x)
+				exe = 0
 			}
 		}
 		p += 4
@@ -409,3 +421,4 @@ func pop(x uint32) (r uint32) {
 	}
 	return x
 }
+func init() { ini() }

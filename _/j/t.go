@@ -43,7 +43,6 @@ func Leak() {
 		n := uint32(1 << bk(M[1+p]))
 		p += n >> 2
 	}
-	fmt.Println("no leak")
 }
 func mark() {
 	free := func(x, t uint32) {
