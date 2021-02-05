@@ -20,7 +20,12 @@ import (
 // return value
 //  table `a`b`c`d!(values..)
 //  table `file`a`b`c`d!(values...) (for file input)
+// write(format) table x as bytes
+//  csv table
 func csv1(x uint32) (r uint32) {
+	if _, cols := istab(x); cols > 0 {
+		return csvw(x)
+	}
 	d := val(ks("CSV"))
 	if d == 0 || tp(d) != 7 {
 		panic("csv: var CSV must be a format dict")
@@ -155,4 +160,27 @@ func csv3(x, y, z uint32) uint32 {
 		table = ucat(enl(take(z, m)), table)
 	}
 	return mkd(k, table)
+}
+func csvw(x uint32) (r uint32) {
+	rows, cols := istab(x)
+	k, v := kvd(x)
+	ks := SK(k)
+	var keys []string
+	for i, s := range ks {
+		keys = append(keys, s)
+		if tp(MI[2+uint32(i)+v>>2]) == 4 { // extra columns
+			keys = append(keys, "angle")
+		}
+	}
+	r = kC([]byte(strings.Join(keys, ",") + "\n"))
+	for i := 0; i < rows; i++ {
+		vp := 2 + v>>2
+		w := make([]string, cols)
+		for j := range w {
+			w[j] = fmtVecAt(MI[vp+uint32(j)], uint32(i), "%v", "%v,%v")
+		}
+		r = ucat(r, kC([]byte(strings.Join(w, ",")+"\n")))
+	}
+	dx(v)
+	return r
 }
