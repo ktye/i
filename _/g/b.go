@@ -25,6 +25,7 @@ var xline int
 func eval(s string) uint32 { return val(kC([]byte(s))) }
 func ginit() {
 	MT['R'+128] = read1
+	MT['W'] = write2
 	MT['D'+128] = dir1
 	MT['C'+128] = csv1
 	MT['C'] = csv2
@@ -38,6 +39,7 @@ func ginit() {
 	MT['m'] = mul2
 	MT['c'+128] = caption1
 	assign("read", 'R')
+	assign("write", 'W')
 	assign("dir", 'D')
 	assign("csv", 'C')
 	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
@@ -204,6 +206,18 @@ func Loadfile(file string) error {
 		return err
 	}
 	return fmt.Errorf("loadfile: unknown file type: %s\n", file)
+}
+func write2(x, y uint32) uint32 { // write["!file";"data"]
+	if tp(x) != 1 || tp(y) != 1 {
+		panic("write type")
+	}
+	if nn(x) < 2 || MC[8+x] != '!' {
+		panic("write: !file")
+	}
+	file := string(CK(x)[1:])
+	data := CK(y)
+	perr(ioutil.WriteFile(file, data, 0744))
+	return ks(file)
 }
 func read1(x uint32) uint32 {
 	if tp(x) == 5 && nn(x) == 1 {
