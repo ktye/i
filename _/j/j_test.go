@@ -29,7 +29,7 @@ func TestJ(t *testing.T) {
 	}
 }
 func runtest(t *testing.T, b []byte) string {
-	ini()
+	//ini()
 	defer Leak()
 	for _, c := range b {
 		if Step(uint32(c)) != 0 {

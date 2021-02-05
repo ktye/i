@@ -20,14 +20,40 @@ func X(x uint32) string {
 	} else if x&1 != 0 {
 		return strconv.Itoa(int(int32(x) >> 1))
 	} else if x&2 != 0 {
-		return "<" + strconv.Itoa(int(x)) + ">"
+		// return "<" + strconv.Itoa(int(x)) + ">"
+		return sy(x)
 	} else if x&4 != 0 {
 		return string([]byte{33 + byte(x>>3)})
 	}
 	panic("XX")
 }
 
+func sy(x uint32) string {
+	var b []byte
+	x >>= 2
+	for x > 0 {
+		b = append(b, '`'+byte(x%32))
+		x >>= 5
+	}
+	return string(reverse(b))
+}
+func reverse(b []byte) []byte {
+	n := len(b)
+	r := make([]byte, n)
+	if n == 0 {
+		return r
+	}
+	n--
+	for i := 0; i < len(b); i++ {
+		r[i] = b[n-i]
+	}
+	return r
+}
+
 func Leak() {
+	B := make([]uint32, len(M))
+	copy(B, M)
+	defer func() { copy(M, B) }()
 	dx(M[1])
 	dx(M[2])
 	dx(P)

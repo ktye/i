@@ -13,24 +13,25 @@
 // 123   int (max 31 bit)
 // [..]  list/quote
 // [..]. exec
+// [..]; continue with (insert below in execution stack)
 // #     length/non-list: -1
-// c[.]? if c
 // [.][a]: assign
 // a     lookup&exec
 // +-*%\ arith(mod)
 // <=>   compare
 // &^    min max
+// ,     cat                    [[]~,][enlist]:
+// ~"_   swap dup pop
 //
 // nyi:
 // 'each /over
-// ,cat              [[]~,][enlist]:
 // a i@ index
 // a i v$store
 // ;putc
 // !trace
 // `trap
-// n} break
-// addpc depth{
+// depth{  setpc at depth to start   [1{][self]:
+// depth}  setpc at depth to end     [1}][return]:
 // (comment)
 //  go:embed j.j
 //  var j []byte
@@ -38,6 +39,7 @@ package j
 
 import (
 	_ "embed"
+	"fmt"
 	"math/bits"
 )
 
@@ -127,14 +129,15 @@ func Exec(x uint32) uint32 {
 		return x
 	}
 	est := lcat(mk(0), x) // execution stack
-	rst := mk(0)          // return stack
+	rst := lcat(mk(0), 1) // return stack
 	stk := mk(0)          // value stack
 	exe := uint32(0)
 	p := x + 8
 	l := lastp(x)
 	for {
+		//fmt.Println("p/l", p, l, X(stk))
 		for p > l {
-			if nn(rst) == 0 {
+			if nn(rst) == 1 {
 				dx(est)
 				dx(rst)
 				return stk
@@ -153,21 +156,45 @@ func Exec(x uint32) uint32 {
 		} else if x&7 != 4 {
 			stk = lcat(stk, rx(x))
 		} else {
+			// fmt.Println("x", x, X(x))
 			if x == 108 { // . execute
 				if p == x+8 {
 					panic(". underflow")
 				}
 				exe = last(stk)
 				stk = pop(stk)
-			} else if x == 244 { // ? if
-				stk = swp(stk)
-				c := I(lastp(stk))>>1 != 0
+			} else if x == 724 { // depth{ reset pc
+				panic("resetpc")
+				fmt.Println("ddpc")
+				a := lasti(stk)
 				stk = pop(stk)
-				if c {
-					exe = last(stk)
+				if a == 0 {
+					p += a
+				} else {
+					panic("depty nyi")
 				}
+			} else if x == 740 { // depth} drop at depth
+				a := lasti(stk)
 				stk = pop(stk)
+				if a == 0 {
+					p = l - 4
+				} else {
+					//fmt.Println("} del@", a, X(est), X(rst))
+					est = delat(est, a)
+					rst = delat(rst, a-1)
+					//fmt.Println("! del@", a, X(est), X(rst))
+				}
+			} else if x == 212 { // ; continue with
+				x := rx(last(stk))
+				xp := 1 + 2*(x+8)
+				stk = pop(stk)
+				est = prependlast(est, x)
+				rst = lcat(rst, xp)
 			} else {
+				if x == 4 { // !
+					fmt.Println(" rst", X(rst))
+					fmt.Println(" est", X(est))
+				}
 				stk = F[x>>3](stk)
 			}
 		}
@@ -249,18 +276,7 @@ func cat(s uint32) uint32 {
 	if x&7 != 0 {
 		x = lcat(mk(0), x)
 	}
-	if y&7 == 0 {
-		n := nn(y)
-		yp := y + 8
-		for i := uint32(0); i < n; i++ {
-			x = lcat(x, rx(I(yp)))
-			yp += 4
-		}
-		dx(y)
-	} else {
-		x = lcat(x, y)
-	}
-	sI(p, x)
+	sI(p, lcat(x, y))
 	return s
 }
 func lcat(x uint32, y uint32) (r uint32) {
@@ -292,6 +308,13 @@ func lastp(x uint32) uint32 {
 		panic("empty")
 	}
 	return 4 + x + 4*n
+}
+func lasti(x uint32) (r uint32) {
+	r = last(x)
+	if r&1 == 0 {
+		panic("int expected")
+	}
+	return r >> 1
 }
 func last(x uint32) (r uint32) {
 	n := nn(x)
@@ -332,6 +355,7 @@ func sI(x, y uint32)    { M[x>>2] = y }
 func finit() {
 	f := func(c byte, g func(uint32) uint32) { F[c-33] = g }
 	F = make([]func(uint32) uint32, 128)
+	f('!', stk)
 	f('~', swp)
 	f('"', dup)
 	f('_', pop)
@@ -349,8 +373,13 @@ func finit() {
 	f('^', max)
 	f(':', asn)
 	f(',', cat)
+	f('@', atx)
 }
-func swp(s uint32) uint32 {
+func stk(s uint32) uint32 { // !
+	fmt.Println(" " + X(s))
+	return s
+}
+func swp(s uint32) uint32 { // ~
 	x := lastp(s)
 	if x < s+12 {
 		panic("swp underflow")
@@ -450,7 +479,7 @@ func pop(x uint32) (r uint32) {
 	}
 	return x
 }
-func asn(s uint32) uint32 {
+func asn(s uint32) uint32 { // :
 	y := last(last(s))
 	if y&3 != 2 {
 		panic("asn: not a symbol")
@@ -465,14 +494,14 @@ func asn(s uint32) uint32 {
 		sI(8, lcat(I(8), 1))
 		p = 4 + 4*nn(I(4))
 	}
-	rx(I(I(8) + p))
+	dx(I(I(8) + p))
 	sI(I(8)+p, v)
 	return pop(s)
 }
 func lup(x uint32) uint32 {
 	p := fns(I(4), x)
 	if p == 0 {
-		panic("undefined" + X(x))
+		panic("undefined: " + X(x))
 	}
 	return I(I(8) + p) // does not ref
 }
@@ -486,5 +515,54 @@ func fns(x, y uint32) uint32 {
 		p += 4
 	}
 	return 0
+}
+func atx(s uint32) uint32 { // [..]i@
+	l := prev(s)
+	if l&7 != 0 {
+		panic("atx: not a list")
+	}
+	i := lasti(s)
+	s = pop(s)
+	if i < 0 || i >= nn(l) {
+		panic("atx: range")
+	}
+	sI(lastp(s), rx(I(8+4*i+l)))
+	dx(l)
+	return s
+}
+func prependlast(x, y uint32) uint32 {
+	if nn(x) == 0 {
+		return lcat(x, y)
+	}
+	x = lcat(x, 1)
+	p := lastp(x)
+	sI(p, I(p-4))
+	sI(p-4, y)
+	return x
+}
+func delat(x, y uint32) uint32 { // delete at y from tail
+	n := nn(x)
+	if y >= n {
+		panic("delat: underflow")
+	}
+	p := lastp(x) - 4*y
+	dx(I(p))
+	for i := uint32(0); i < y; i++ {
+		sI(p, I(p+4))
+		p += 4
+	}
+	sI(p, 1)
+
+	// if bk(n) == bk(n-1) { reuse
+	r := mk(n - 1)
+	rp := r + 8
+	p = x + 8
+	for i := uint32(0); i < n-1; i++ {
+		sI(rp, rx(I(p)))
+		rp += 4
+		p += 4
+	}
+	dx(x)
+	return r
 }
 func init() { ini() }
