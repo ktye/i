@@ -80,8 +80,13 @@ func Step(x uint32) uint32 {
 		return 0
 	}
 	if x >= '0' && x <= '9' { // parse number
+		x -= '0'
+		if x|N == 0 {
+			T = pcat(T, 1)
+			return 0
+		}
 		N *= 10
-		N += x - '0'
+		N += x
 		return 0
 	}
 	if N != 0 {
@@ -135,9 +140,12 @@ func Exec(x uint32) uint32 {
 	p := x + 8
 	l := lastp(x)
 	for {
-		//fmt.Println("p/l", p, l, X(stk))
+		//fmt.Println("p/l", p, l, nn(est), I(est), nn(rst), I(rst), nn(stk), I(stk), X(stk))
+		LeakExec(est, rst, stk)
+
 		for p > l {
 			if nn(rst) == 1 {
+				fmt.Println("quit")
 				dx(est)
 				dx(rst)
 				return stk
@@ -161,17 +169,20 @@ func Exec(x uint32) uint32 {
 				if p == x+8 {
 					panic(". underflow")
 				}
-				exe = last(stk)
+				exe = rx(last(stk))
 				stk = pop(stk)
 			} else if x == 724 { // depth{ reset pc
-				panic("resetpc")
-				fmt.Println("ddpc")
 				a := lasti(stk)
 				stk = pop(stk)
 				if a == 0 {
-					p += a
+					p = x + 4
 				} else {
-					panic("depty nyi")
+					n := nn(rst) - a
+					//fmt.Println("reset ", a, "at", n, "to", 8+I(4+est+4*n))
+					if int32(n) < 0 {
+						panic("{underflow")
+					}
+					sI(rst+8+4*n, 1+2*(8+I(4+est+4*n)))
 				}
 			} else if x == 740 { // depth} drop at depth
 				a := lasti(stk)
@@ -191,19 +202,25 @@ func Exec(x uint32) uint32 {
 				est = prependlast(est, x)
 				rst = lcat(rst, xp)
 			} else {
-				if x == 4 { // !
-					fmt.Println(" rst", X(rst))
-					fmt.Println(" est", X(est))
-				}
 				stk = F[x>>3](stk)
+				if x == 4 { // !
+					annotate(est, rst, p)
+				}
 			}
 		}
 		if exe != 0 {
-			x = rx(exe)
+			//fmt.Println("anno")
+			//fmt.Println("rst?", XX(rst))
+			//fmt.Println("est?", XX(est))
+			x = exe
 			est = lcat(est, x)
 			rst = lcat(rst, 9+2*p)
 			p = x + 4
 			l = lastp(x)
+
+			//fmt.Println("rst>", XX(rst))
+			//fmt.Println("est>", XX(est))
+			//annotate(est, rst, p)
 			exe = 0
 		}
 		p += 4
@@ -245,7 +262,7 @@ func rx(x uint32) uint32 {
 	return x
 }
 func dx(x uint32) uint32 {
-	if x&7 == 0 {
+	if x != 0 && x&7 == 0 {
 		if I(x) == 0 {
 			panic("dx")
 		}
@@ -271,7 +288,8 @@ func fr(x uint32) {
 func nn(x uint32) uint32 { return I(4 + x) }
 func cat(s uint32) uint32 {
 	y := rx(last(s))
-	p := lastp(pop(s))
+	s = pop(s)
+	p := lastp(s)
 	x := I(p)
 	if x&7 != 0 {
 		x = lcat(mk(0), x)
@@ -376,7 +394,7 @@ func finit() {
 	f('@', atx)
 }
 func stk(s uint32) uint32 { // !
-	fmt.Println(" " + X(s))
+	fmt.Println("(stk) " + X(s))
 	return s
 }
 func swp(s uint32) uint32 { // ~
@@ -484,7 +502,8 @@ func asn(s uint32) uint32 { // :
 	if y&3 != 2 {
 		panic("asn: not a symbol")
 	}
-	v := rx(last(pop(s)))
+	s = pop(s)
+	v := rx(last(s))
 	if v&7 != 0 {
 		v = lcat(mk(0), v) // enlist atoms
 	}
@@ -503,7 +522,7 @@ func lup(x uint32) uint32 {
 	if p == 0 {
 		panic("undefined: " + X(x))
 	}
-	return I(I(8) + p) // does not ref
+	return rx(I(I(8) + p))
 }
 func fns(x, y uint32) uint32 {
 	n := nn(x)
