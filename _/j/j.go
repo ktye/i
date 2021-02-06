@@ -22,17 +22,18 @@
 // &^    min max
 // ,     cat                    [[]~,][enlist]:
 // ~"_   swap dup pop
+// []i@  index                  [0@][first:]
+// depth{  setpc at depth to start   [1{][rec]:
+// depth}  setpc at depth to end     [1}][return]:
+// (comment)
 //
 // nyi:
-// 'each /over
-// a i@ index
+// 'each /over ?
 // a i v$store
 // ;putc
 // !trace
 // `trap
-// depth{  setpc at depth to start   [1{][self]:
-// depth}  setpc at depth to end     [1}][return]:
-// (comment)
+
 //  go:embed j.j
 //  var j []byte
 package j
@@ -145,7 +146,6 @@ func Exec(x uint32) uint32 {
 
 		for p > l {
 			if nn(rst) == 1 {
-				fmt.Println("quit")
 				dx(est)
 				dx(rst)
 				return stk
