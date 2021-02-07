@@ -110,16 +110,21 @@ func reverse(b []byte) []byte {
 	return r
 }
 
-func Leak() { LeakExec(P, 0, 0) }
-func LeakExec(a, b, c uint32) {
+func Leak() { leak(P, 0) }
+func leak(a, b uint32) {
+	if a != 0 && I(a) != 1 {
+		panic(fmt.Errorf("leak stk=%d", I(a)))
+	}
+	if b != 0 && I(b) != 1 {
+		panic(fmt.Errorf("leak est=%d", I(b)))
+	}
 	B := make([]uint32, len(M))
 	copy(B, M)
 	defer func() { copy(M, B) }()
 	dx(a)
 	dx(b)
-	dx(c)
-	dx(M[1])
 	dx(M[2])
+	dx(M[3])
 	//dx(P)
 	//dump(200)
 	mark()

@@ -1,39 +1,3 @@
-// ..000 pointer(list)
-// ....1 int  x>>1
-// ...10 symbol x>>2
-// ..100 operator x>>3
-//
-// 0     total memory (log2)
-// 1     symbol list
-// 2     value list
-// 3
-// 4..32 free list
-//
-// abc   symbol (max 6)
-// 123   int (max 31 bit)
-// [..]  list/quote
-// [..]. exec
-// [..]; continue with (insert below in execution stack)
-// #     length/non-list: -1
-// [.][a]: assign
-// a     lookup&exec
-// +-*%\ arith(mod)
-// <=>   compare
-// &^    min max
-// ,     cat                    [[]~,][enlist]:
-// ~"_   swap dup pop
-// []i@  index                  [0@][first:]
-// depth{  setpc at depth to start   [1{][rec]:
-// depth}  setpc at depth to end     [1}][return]:
-// (comment)
-//
-// nyi:
-// 'each /over ?
-// a i v$store
-// ;putc
-// !trace
-// `trap
-
 //  go:embed j.j
 //  var j []byte
 package j
@@ -62,8 +26,8 @@ func ini() {
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-	M[1] = mk(0)
 	M[2] = mk(0)
+	M[3] = mk(0)
 	P = mk(0)
 	T = P
 	//dump(127)
@@ -108,7 +72,7 @@ func Step(x uint32) uint32 {
 			if T != P {
 				panic("unclosed]")
 			}
-			v := Exec(T)
+			v := Exec(mk(0), T)
 			P = mk(0)
 			T = P
 			return dx(v)
@@ -130,101 +94,42 @@ func Step(x uint32) uint32 {
 	T = pcat(T, 4|(x-33)<<3)
 	return 0
 }
-func Exec(x uint32) uint32 {
-	if nn(x) == 0 {
-		return x
+func Exec(stk, q uint32) uint32 {
+	if nn(q) == 0 {
+		dx(q)
+		return stk
+	} else if q&7 != 0 {
+		panic("exec: not a quotation")
 	}
-	est := lcat(mk(0), x) // execution stack
-	rst := lcat(mk(0), 1) // return stack
-	stk := mk(0)          // value stack
-	exe := uint32(0)
-	p := x + 8
-	l := lastp(x)
-	for {
-		//fmt.Println("p/l", p, l, nn(est), I(est), nn(rst), I(rst), nn(stk), I(stk), X(stk))
-		LeakExec(est, rst, stk)
-
-		for p > l {
-			if nn(rst) == 1 {
-				dx(est)
-				dx(rst)
-				return stk
-			}
-			p = last(rst) >> 1
-			est = pop(est)
-			rst = pop(rst)
-			x = last(est)
-			l = lastp(x)
-		}
+	//fmt.Println("rc stk", I(stk), "q", I(q))
+	r := uint32(0)
+	p := q + 8
+	l := lastp(q)
+	for p <= l {
 		x := I(p)
-		if x&3 == 2 {
-			if x&3 == 2 {
-				exe = lup(x)
-			}
-		} else if x&7 != 4 {
+		if x&3 == 2 { // symbol
+			stk = Exec(stk, lup((x)))
+		} else if x&7 != 4 { // no operator but (list or number)
 			stk = lcat(stk, rx(x))
-		} else {
-			// fmt.Println("x", x, X(x))
-			if x == 108 { // . execute
-				if p == x+8 {
-					panic(". underflow")
-				}
-				exe = rx(last(stk))
-				stk = pop(stk)
-			} else if x == 724 { // depth{ reset pc
-				a := lasti(stk)
-				stk = pop(stk)
-				if a == 0 {
-					p = x + 4
-				} else {
-					n := nn(rst) - a
-					//fmt.Println("reset ", a, "at", n, "to", 8+I(4+est+4*n))
-					if int32(n) < 0 {
-						panic("{underflow")
-					}
-					sI(rst+8+4*n, 1+2*(8+I(4+est+4*n)))
-				}
-			} else if x == 740 { // depth} drop at depth
-				a := lasti(stk)
-				stk = pop(stk)
-				if a == 0 {
-					p = l - 4
-				} else {
-					//fmt.Println("} del@", a, X(est), X(rst))
-					est = delat(est, a)
-					rst = delat(rst, a-1)
-					//fmt.Println("! del@", a, X(est), X(rst))
-				}
-			} else if x == 212 { // ; continue with
-				x := rx(last(stk))
-				xp := 1 + 2*(x+8)
-				stk = pop(stk)
-				est = prependlast(est, x)
-				rst = lcat(rst, xp)
-			} else {
-				stk = F[x>>3](stk)
-				if x == 4 { // !
-					annotate(est, rst, p)
-				}
+		} else if x == 740 { // } push to reg
+			if r == 0 {
+				r = mk(0)
 			}
-		}
-		if exe != 0 {
-			//fmt.Println("anno")
-			//fmt.Println("rst?", XX(rst))
-			//fmt.Println("est?", XX(est))
-			x = exe
-			est = lcat(est, x)
-			rst = lcat(rst, 9+2*p)
-			p = x + 4
-			l = lastp(x)
-
-			//fmt.Println("rst>", XX(rst))
-			//fmt.Println("est>", XX(est))
-			//annotate(est, rst, p)
-			exe = 0
+			r = lcat(r, rx(last(stk)))
+			stk = pop(stk)
+		} else if x == 724 { // { pop from reg
+			x := rx(last(r))
+			r = pop(r)
+			stk = lcat(stk, x)
+		} else {
+			//fmt.Println(x)
+			stk = F[x>>3](stk)
 		}
 		p += 4
 	}
+	dx(q)
+	dx(r)
+	return stk
 }
 
 func bk(n uint32) (r uint32) { // bucket type
@@ -370,32 +275,46 @@ func parent(x, y uint32) (r uint32) {
 func I(x uint32) uint32 { return M[x>>2] }
 func sI(x, y uint32)    { M[x>>2] = y }
 
-func finit() {
-	f := func(c byte, g func(uint32) uint32) { F[c-33] = g }
-	F = make([]func(uint32) uint32, 128)
-	f('!', stk)
-	f('~', swp)
-	f('"', dup)
-	f('_', pop)
-	f('|', rol)
-	f('#', cnt)
-	f('+', add)
-	f('-', sub)
-	f('*', mul)
-	f('%', dif)
-	f('\\', mod)
-	f('=', eql)
-	f('>', gti)
-	f('<', lti)
-	f('&', min)
-	f('^', max)
-	f(':', asn)
-	f(',', cat)
-	f('@', atx)
-}
 func stk(s uint32) uint32 { // !
 	fmt.Println("(stk) " + X(s))
 	return s
+}
+func exe(s uint32) uint32 { // [q]. exec
+	q := rx(last(s))
+	return Exec(pop(s), q)
+}
+func ife(s uint32) uint32 { // c[t][e]?  (if c then t else e)
+	e := rx(last(s))
+	s = pop(s)
+	t := rx(last(s))
+	s = pop(s)
+	c := lasti(s)
+	if c == 0 {
+		dx(t)
+		return Exec(pop(s), e)
+	} else {
+		dx(e)
+		return Exec(pop(s), t)
+	}
+}
+func whl(s uint32) uint32 { // [c][d]' (while c do d)
+	d := rx(last(s))
+	s = pop(s)
+	c := rx(last(s))
+	s = pop(s)
+	for {
+		s = Exec(s, rx(c))
+		i := lasti(s)
+		fmt.Println("whl", X(s))
+		s = pop(s)
+		if i == 0 {
+			dx(c)
+			dx(d)
+			return s
+		} else {
+			s = Exec(s, rx(d))
+		}
+	}
 }
 func swp(s uint32) uint32 { // ~
 	x := lastp(s)
@@ -507,22 +426,22 @@ func asn(s uint32) uint32 { // :
 	if v&7 != 0 {
 		v = lcat(mk(0), v) // enlist atoms
 	}
-	p := fns(I(4), y)
+	p := fns(I(8), y)
 	if p == 0 {
-		sI(4, lcat(I(4), y))
-		sI(8, lcat(I(8), 1))
-		p = 4 + 4*nn(I(4))
+		sI(8, lcat(I(8), y))
+		sI(12, lcat(I(12), 1))
+		p = 4 + 4*nn(I(8))
 	}
-	dx(I(I(8) + p))
-	sI(I(8)+p, v)
+	dx(I(I(12) + p))
+	sI(I(12)+p, v)
 	return pop(s)
 }
 func lup(x uint32) uint32 {
-	p := fns(I(4), x)
+	p := fns(I(8), x)
 	if p == 0 {
 		panic("undefined: " + X(x))
 	}
-	return rx(I(I(8) + p))
+	return rx(I(I(12) + p))
 }
 func fns(x, y uint32) uint32 {
 	n := nn(x)
@@ -549,39 +468,31 @@ func atx(s uint32) uint32 { // [..]i@
 	dx(l)
 	return s
 }
-func prependlast(x, y uint32) uint32 {
-	if nn(x) == 0 {
-		return lcat(x, y)
-	}
-	x = lcat(x, 1)
-	p := lastp(x)
-	sI(p, I(p-4))
-	sI(p-4, y)
-	return x
-}
-func delat(x, y uint32) uint32 { // delete at y from tail
-	n := nn(x)
-	if y >= n {
-		panic("delat: underflow")
-	}
-	p := lastp(x) - 4*y
-	dx(I(p))
-	for i := uint32(0); i < y; i++ {
-		sI(p, I(p+4))
-		p += 4
-	}
-	sI(p, 1)
 
-	// if bk(n) == bk(n-1) { reuse
-	r := mk(n - 1)
-	rp := r + 8
-	p = x + 8
-	for i := uint32(0); i < n-1; i++ {
-		sI(rp, rx(I(p)))
-		rp += 4
-		p += 4
-	}
-	dx(x)
-	return r
+func finit() {
+	f := func(c byte, g func(uint32) uint32) { F[c-33] = g }
+	F = make([]func(uint32) uint32, 128)
+	f('!', stk)
+	f('.', exe)
+	f('?', ife)
+	f(3_9, whl)
+	f('~', swp)
+	f('"', dup)
+	f('_', pop)
+	f('|', rol)
+	f('#', cnt)
+	f('+', add)
+	f('-', sub)
+	f('*', mul)
+	f('/', dif)
+	f('%', mod)
+	f('=', eql)
+	f('>', gti)
+	f('<', lti)
+	f('&', min)
+	f('^', max)
+	f(':', asn)
+	f(',', cat)
+	f('@', atx)
 }
 func init() { ini() }
