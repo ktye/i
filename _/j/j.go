@@ -8,6 +8,8 @@ import (
 	"math/bits"
 )
 
+//go:generate go run h.go
+
 var N uint32                // number
 var Y uint32                // symbol
 var P uint32                // parse root list

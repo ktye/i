@@ -1,4 +1,6 @@
-(catenate)
+(-catenate)
+(this is text)
+(this is another line of text)
 1 2,            ([1 2])
 1[2],           ([1 2])         (x gets enlisted if atom)
 [1 2]3,         ([1 2 3])
@@ -14,7 +16,7 @@
 [1 2]enlist                 ([[1 2]])
 [1 2][3 4]enlist,           ([1 2 [3 4]])
 
-(count til)
+(-count til)
 [["#]~,[<],[]~["#,]'][til]:    ()
 5til                           ([0 1 2 3 4])
 []["#5<]["#,]'                 ([0 1 2 3 4])
