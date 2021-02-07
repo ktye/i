@@ -1,8 +1,8 @@
 j stack language            !trace                  list operators                      
                                                       #     length/non-list: -1         
-32-bit type system        parse                       ,     cat          [[]~,][enlist]:
-  ..000 list[quotation]     (comment)                []i@   index        [0@][first:]   
-  ....1 int  x>>1           abc   symbol (max 6)     [a]i v$store (nyi)                 
+32-bit type system        parse                       ,     cat                         
+  ..000 list[quotation]     (comment)                []i@   index                       
+  ....1 int  x>>1           abc   symbol (max 6)     [a]i v$store       [a]"#v$ (append)
   ...10 symbol x>>2         123   int (max 31 bit)                                      
   ..100 operator x>>3       [..]  list/quote        assign/quote/exec                   
                                                       [p][a]: assign [p] to symbol a    

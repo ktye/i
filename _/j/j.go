@@ -198,7 +198,17 @@ func cat(s uint32) uint32 {
 	if x&7 != 0 {
 		x = lcat(mk(0), x)
 	}
-	sI(p, lcat(x, y))
+	if y&7 != 0 {
+		x = lcat(x, y)
+	} else {
+		yp := y + 8
+		for i := uint32(0); i < nn(y); i++ {
+			x = lcat(x, rx(I(yp)))
+			yp += 4
+		}
+		dx(y)
+	}
+	sI(p, x)
 	return s
 }
 func lcat(x uint32, y uint32) (r uint32) {
@@ -304,7 +314,7 @@ func whl(s uint32) uint32 { // [c][d]' (while c do d)
 	for {
 		s = Exec(s, rx(c))
 		i := lasti(s)
-		fmt.Println("whl", X(s))
+		// fmt.Println("whl", X(s))
 		s = pop(s)
 		if i == 0 {
 			dx(c)
@@ -344,6 +354,42 @@ func cnt(s uint32) uint32 {
 		r = 1 + 2*nn(x)
 	}
 	return v1(s, r)
+}
+func use(x uint32) uint32 {
+	if I(x) == 1 {
+		return x
+	}
+	n := nn(x)
+	r := mk(n)
+	rp := r + 8
+	xp := x + 8
+	for i := uint32(0); i < n; i++ {
+		sI(rp, rx(I(xp)))
+		xp += 4
+		rp += 4
+	}
+	dx(x)
+	return r
+}
+func amd(s uint32) uint32 { // [a]i v$ amend (set array at index i to v)
+	v := rx(last(s))
+	s = pop(s)
+	i := lasti(s)
+	s = pop(s)
+	p := lastp(s)
+	a := use(I(p))
+	n := nn(a)
+	if i == n {
+		a = lcat(a, v)
+	} else if i < 0 || i > n {
+		panic("amd: range")
+	} else {
+		ap := 8 + a + 4*i
+		rx(I(ap))
+		sI(ap, v)
+	}
+	sI(p, a)
+	return s
 }
 func v1(s, x uint32) uint32 {
 	sp := s + 4 + 4*nn(s)
@@ -474,7 +520,7 @@ func finit() {
 	f('!', stk) // 0
 	f('"', dup) // 1
 	f('#', cnt) // 2
-	// f('$', amd) // 3
+	f('$', amd) // 3
 	f('%', mod) // 4
 	f('&', min) // 5
 	f(3_9, whl) // 6 `

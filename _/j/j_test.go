@@ -14,7 +14,7 @@ func TestJ(t *testing.T) {
 	}
 	v := bytes.Split(b, []byte{10})
 	for _, b := range v {
-		if len(b) == 0 {
+		if len(b) == 0 || b[0] == '(' { // (section)
 			continue
 		}
 		fmt.Println(string(b))
@@ -22,9 +22,14 @@ func TestJ(t *testing.T) {
 		if i < 0 {
 			t.Fatal("no (")
 		}
+		e := bytes.IndexByte(b, ')') // first) (other comments possible)
+		if e < 0 {
+			t.Fatal("no )")
+		}
+		exp := string(b[i : 1+e])
 		r := runtest(t, b[:i])
-		if r != string(b[i:]) {
-			t.Fatalf("got %s", r)
+		if r != exp {
+			t.Fatalf("got %q\nexp %q\n", r, exp)
 		}
 	}
 }
