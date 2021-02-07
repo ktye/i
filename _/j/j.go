@@ -181,7 +181,6 @@ func dx(x uint32) uint32 {
 			}
 			fr(x)
 		}
-		return x
 	}
 	return x
 }
@@ -362,7 +361,7 @@ func ints(s uint32) (j, k int32) {
 func add(s uint32) uint32 { a, b := ints(s); return i2(s, a+b) }
 func sub(s uint32) uint32 { a, b := ints(s); return i2(s, a-b) }
 func mul(s uint32) uint32 { a, b := ints(s); return i2(s, a*b) }
-func dif(s uint32) uint32 { a, b := ints(s); return i2(s, a/b) }
+func div(s uint32) uint32 { a, b := ints(s); return i2(s, a/b) }
 func mod(s uint32) uint32 { a, b := ints(s); return i2(s, a%b) }
 func eql(s uint32) uint32 { a, b := last2(s); return i2(s, ib(a == b)) }
 func gti(s uint32) uint32 { a, b := ints(s); return i2(s, ib(a > b)) }
@@ -472,27 +471,28 @@ func atx(s uint32) uint32 { // [..]i@
 func finit() {
 	f := func(c byte, g func(uint32) uint32) { F[c-33] = g }
 	F = make([]func(uint32) uint32, 128)
-	f('!', stk)
-	f('.', exe)
-	f('?', ife)
-	f(3_9, whl)
-	f('~', swp)
-	f('"', dup)
-	f('_', pop)
-	f('|', rol)
-	f('#', cnt)
-	f('+', add)
-	f('-', sub)
-	f('*', mul)
-	f('/', dif)
-	f('%', mod)
-	f('=', eql)
-	f('>', gti)
-	f('<', lti)
-	f('&', min)
-	f('^', max)
-	f(':', asn)
-	f(',', cat)
-	f('@', atx)
+	f('!', stk) // 0
+	f('"', dup) // 1
+	f('#', cnt) // 2
+	// f('$', amd) // 3
+	f('%', mod) // 4
+	f('&', min) // 5
+	f(3_9, whl) // 6 `
+	f('*', mul) // 9
+	f('+', add) // 10
+	f(',', cat) // 11
+	f('-', sub) // 12
+	f('.', exe) // 13
+	f('/', div) // 14
+	f(':', asn) // 25
+	f('<', lti) // 27
+	f('=', eql) // 28
+	f('>', gti) // 29
+	f('?', ife) // 30
+	f('@', atx) // 31
+	f('^', max) // 61
+	f('_', pop) // 62
+	f('|', rol) // 91
+	f('~', swp) // 93
 }
 func init() { ini() }
