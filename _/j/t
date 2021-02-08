@@ -1,6 +1,5 @@
 (-catenate)
-(this is text)
-(this is another line of text)
+(catenate, append, cons, enlist)
 1 2,            ([1 2])
 1[2],           ([1 2])         (x gets enlisted if atom)
 [1 2]3,         ([1 2 3])
@@ -16,6 +15,32 @@
 [1 2]enlist                 ([[1 2]])
 [1 2][3 4]enlist,           ([1 2 [3 4]])
 
+(-branch)
+(if, if-else can be applied to numbers or quotations)
+[  }}.{{?  ] [ ifte ]:    ()
+1 1[=][2][3]ifte          (2)
+1 5[=][2][3]ifte          (3)
+
+[  []?  ] [ if ]:         ()
+2 1[2+]if                 (4)
+2 0[3*]if                 (2)
+
+[  }.{[]?  ] [ iff ]:     ()
+2 1 1[<][2+]iff           (2)
+2 1 2[<][3*]iff           (6)
+
+
+(-loop)
+(loop, recurse or call)
+[ ... ][while]:      () ([c][d]while  "while c do d")
+1[5<][1+]while             (1 2 4 5)
+
+
+1[c][d]    |"}~"}~.~{|{|[__]?      
+1[c]t[d][]
+
+1[c][d]while
+
 (-count til)
 [["#]~,[<],[]~["#,]'][til]:    ()
 5til                           ([0 1 2 3 4])
@@ -26,19 +51,6 @@
 
 
 
-
-[  }}.{{?  ] [ ifte ]:    ()
-1 1[=][2][3]ifte          (2)
-1 5[=][2][3]ifte          (3)
-
-[  []?  ] [ if ]:         ()
-2 1[2+]if                 (4)
-2 0[3*]if                 (2)
-
-
-[  }.{[]?  ] [ iff ]:     ()
-2 1 1[<][2+]iff           (2)
-2 1 2[<][3*]iff           (6)
 
 
 

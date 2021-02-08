@@ -35,7 +35,7 @@ func ini() {
 	//dump(127)
 }
 
-func Step(x uint32) uint32 {
+func J(x uint32) uint32 {
 	if C == 1 {
 		if x == ')' { // end comment
 			C = 0
@@ -107,9 +107,36 @@ func Exec(stk, q uint32) uint32 {
 	r := uint32(0)
 	p := q + 8
 	l := lastp(q)
+	tailcall := func(x uint32) {
+		fmt.Println("tailcall")
+		dx(q)
+		q = x
+		p = q + 4
+		l = lastp(q)
+	}
 	for p <= l {
 		x := I(p)
-		if x&3 == 2 { // symbol
+		if tail := p == l; tail && x&3 == 2 { // symbol
+			tailcall(lup(x))
+		} else if tail && x == 93 { // "."
+			t := rx(last(stk))
+			stk = pop(stk)
+			tailcall(t)
+		} else if tail && x == 127 { // "?" branch last
+			e := rx(last(stk))
+			stk = pop(stk)
+			t := rx(last(stk))
+			stk = pop(stk)
+			c := lasti(stk)
+			stk = pop(stk)
+			if c == 0 {
+				dx(t)
+				tailcall(e)
+			} else {
+				dx(e)
+				tailcall(t)
+			}
+		} else if x&3 == 2 { // symbol
 			stk = Exec(stk, lup((x)))
 		} else if x&7 != 4 { // no operator but (list or number)
 			stk = lcat(stk, rx(x))
@@ -132,6 +159,44 @@ func Exec(stk, q uint32) uint32 {
 	dx(q)
 	dx(r)
 	return stk
+}
+func exe(s uint32) uint32 { // [q]. exec
+	q := rx(last(s))
+	return Exec(pop(s), q)
+}
+func ife(s uint32) uint32 { // c[t][e]?  (if c then t else e)
+	e := rx(last(s))
+	s = pop(s)
+	t := rx(last(s))
+	s = pop(s)
+	c := lasti(s)
+	if c == 0 {
+		dx(t)
+		return Exec(pop(s), e)
+	} else {
+		dx(e)
+		return Exec(pop(s), t)
+	}
+}
+func whl(s uint32) uint32 { // [c][d]' (while c do d)
+	panic("while")
+	d := rx(last(s))
+	s = pop(s)
+	c := rx(last(s))
+	s = pop(s)
+	for {
+		s = Exec(s, rx(c))
+		i := lasti(s)
+		// fmt.Println("whl", X(s))
+		s = pop(s)
+		if i == 0 {
+			dx(c)
+			dx(d)
+			return s
+		} else {
+			s = Exec(s, rx(d))
+		}
+	}
 }
 
 func bk(n uint32) (r uint32) { // bucket type
@@ -171,7 +236,7 @@ func rx(x uint32) uint32 {
 func dx(x uint32) uint32 {
 	if x != 0 && x&7 == 0 {
 		if I(x) == 0 {
-			panic("dx")
+			panic("dx on free")
 		}
 		sI(x, I(x)-1)
 		if I(x) == 0 {
@@ -290,43 +355,7 @@ func stk(s uint32) uint32 { // !
 	fmt.Println("(stk) " + X(s))
 	return s
 }
-func exe(s uint32) uint32 { // [q]. exec
-	q := rx(last(s))
-	return Exec(pop(s), q)
-}
-func ife(s uint32) uint32 { // c[t][e]?  (if c then t else e)
-	e := rx(last(s))
-	s = pop(s)
-	t := rx(last(s))
-	s = pop(s)
-	c := lasti(s)
-	if c == 0 {
-		dx(t)
-		return Exec(pop(s), e)
-	} else {
-		dx(e)
-		return Exec(pop(s), t)
-	}
-}
-func whl(s uint32) uint32 { // [c][d]' (while c do d)
-	d := rx(last(s))
-	s = pop(s)
-	c := rx(last(s))
-	s = pop(s)
-	for {
-		s = Exec(s, rx(c))
-		i := lasti(s)
-		// fmt.Println("whl", X(s))
-		s = pop(s)
-		if i == 0 {
-			dx(c)
-			dx(d)
-			return s
-		} else {
-			s = Exec(s, rx(d))
-		}
-	}
-}
+
 func swp(s uint32) uint32 { // ~
 	x := lastp(s)
 	if x < s+12 {

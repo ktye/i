@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"j"
+	. "j"
 	"os"
 	"strings"
 )
@@ -10,10 +10,10 @@ import (
 func main() {
 	b := []byte(strings.Join(os.Args[1:], " ") + "\n")
 	for _, c := range b {
-		r := j.Step(uint32(c))
+		r := J(uint32(c))
 		if r != 0 {
-			fmt.Println(j.X(r))
+			fmt.Println(X(r))
 		}
 	}
-	j.Leak()
+	Leak()
 }

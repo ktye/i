@@ -35,11 +35,11 @@ func TestJ(t *testing.T) {
 }
 func runtest(t *testing.T, b []byte) string {
 	for _, c := range b {
-		if Step(uint32(c)) != 0 {
+		if J(uint32(c)) != 0 {
 			t.Fatal("early value")
 		}
 	}
-	r := Step(10)
+	r := J(10)
 	if r == 0 {
 		t.Fatal("zero result")
 	}
