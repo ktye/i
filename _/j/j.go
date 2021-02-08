@@ -28,6 +28,7 @@ func ini() {
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
+	M[1] = mk(8) // max stack size
 	M[2] = mk(0)
 	M[3] = mk(0)
 	P = mk(0)
@@ -74,10 +75,10 @@ func J(x uint32) uint32 {
 			if T != P {
 				panic("unclosed]")
 			}
-			v := Exec(mk(0), T)
+			v := Exec(T)
 			P = mk(0)
 			T = P
-			return dx(v)
+			return v
 		}
 		return 0
 	}
@@ -429,21 +430,22 @@ func v1(s, x uint32) uint32 {
 	return s
 }
 func ints(s uint32) (j, k int32) {
-	a, b := last2(s)
+	b := pop()
+	a := pop()
 	if a&1 == 0 || b&1 == 0 {
 		panic("ints")
 	}
 	return int32(a) >> 1, int32(b) >> 1
 }
-func add(s uint32) uint32 { a, b := ints(s); return i2(s, a+b) }
-func sub(s uint32) uint32 { a, b := ints(s); return i2(s, a-b) }
-func mul(s uint32) uint32 { a, b := ints(s); return i2(s, a*b) }
-func div(s uint32) uint32 { a, b := ints(s); return i2(s, a/b) }
-func mod(s uint32) uint32 { a, b := ints(s); return i2(s, a%b) }
-func eql(s uint32) uint32 { a, b := last2(s); return i2(s, ib(a == b)) }
-func gti(s uint32) uint32 { a, b := ints(s); return i2(s, ib(a > b)) }
-func lti(s uint32) uint32 { a, b := ints(s); return i2(s, ib(a < b)) }
-func max(s uint32) uint32 {
+func add() { push(pop() + pop()) }
+func sub() { push(pop() - pop()) }
+func mul() { push(pop() * pop()) }
+func div() { push(pop() / pop()) }
+func mod() { push(pop() % pop()) }
+func eql() { push(ib(pop() == pop())) }
+func gti() { push(ib(pop() > pop())) }
+func lti() { push(ib(pop() < pop())) }
+func max() {
 	a, b := ints(s)
 	if a > b {
 		return i2(s, a)
@@ -457,48 +459,39 @@ func min(s uint32) uint32 {
 	}
 	return i2(s, b)
 }
-func i2(s uint32, a int32) uint32 {
-	s = pop(s)
-	n := nn(s)
-	sI(s+4+4*n, uint32(1|(a<<1)))
-	return s
-}
 func ib(b bool) int32 {
 	if b {
 		return 1
 	}
 	return 0
 }
-func pop(x uint32) (r uint32) {
-	n := nn(x)
-	if n == 0 {
-		panic("pop:underflow")
+func pop() (r uint32) {
+	s := I(4)
+	p := I(s + 12)
+	if p == s+12 {
+		panic("stack underflow")
 	}
-	if bk(n) == bk(n-1) {
-		dx(last(x))
-		sI(x+4, n-1)
-	} else {
-		n--
-		r = mk(n)
-		rp := r + 8
-		xp := x + 8
-		for i := uint32(0); i < n; i++ {
-			sI(rp, rx(I(xp)))
-			xp += 4
-			rp += 4
-		}
-		dx(x)
-		return r
-	}
-	return x
+	r = I(p)
+	sI(p, 0)
+	sI(s+12, p-4)
+	return r
 }
-func asn(s uint32) uint32 { // :
-	y := last(last(s))
+func push(x uint32) {
+	s := I(4)
+	p := I(s+12) + 4
+	if p == s+4*nn(s) {
+		panic("stack overflow")
+	}
+	sI(p, x)
+	sI(s+12, p)
+}
+func drp(x uint32) { pop(x) } // x _ -- (pop)
+func asn(s uint32) uint32 { // [q][s]: -- (assign)
+	y := pop(s)
 	if y&3 != 2 {
 		panic("asn: not a symbol")
 	}
-	s = pop(s)
-	v := rx(last(s))
+	v := pop(s)
 	if v&7 != 0 {
 		v = lcat(mk(0), v) // enlist atoms
 	}
@@ -568,7 +561,7 @@ func finit() {
 	f('?', ife) // 30
 	f('@', atx) // 31
 	f('^', max) // 61
-	f('_', pop) // 62
+	f('_', drp) // 62
 	f('|', rol) // 91
 	f('~', swp) // 93
 }

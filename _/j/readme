@@ -8,7 +8,7 @@ j stack language            !trace                  list operators
                                                       [p][a]: assign [p] to symbol a    
 heap memory               numeric operators (dyadic)  a       lookup symbol a and exec  
   0     total memory(log)    +-*/% arith              [p].    exec                      
-  1     zero                 <=>   compare                                              
+  1     stack                <=>   compare                                              
   2     symbol list          &^    min max          control                             
   3     value list                                    c[t][e]?      (if c then t else e)
   4..32 free list         stack operators             ;  tail recurse(nyi)              
