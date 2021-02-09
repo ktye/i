@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -12,10 +13,17 @@ import (
 // Ck Ik Fk Zk Sk  (.. slices from k without unref)
 // CK IK FK ZK SK  (.. slices        with    unref)
 
+func na(x float64) float64 {
+	if x != x {
+		return math.NaN() // 0x7FF8000000000001 (see also go #44016)
+	}
+	return x
+}
+
 func kc(x byte) (r uint32)       { return kC([]byte{x}) }
 func ki(x int) (r uint32)        { return kI([]int{x}) }
-func kf(x float64) (r uint32)    { return kF([]float64{x}) }
-func kz(x complex128) (r uint32) { return kZ([]complex128{x}) }
+func kf(x float64) (r uint32)    { return kF([]float64{na(x)}) }
+func kz(x complex128) (r uint32) { return kZ([]complex128{complex(na(real(x)), na(imag(x)))}) }
 func ks(x string) (r uint32)     { return sc(kC([]byte(x))) }
 
 // func kC(x []byte) (r uint32) in k.go
@@ -31,7 +39,7 @@ func kF(x []float64) (r uint32) {
 	r = mk(3, uint32(len(x)))
 	p := int(1 + r>>3)
 	for i, u := range x {
-		MF[p+i] = u
+		MF[p+i] = na(u)
 	}
 	return r
 }
@@ -39,8 +47,8 @@ func kZ(x []complex128) (r uint32) {
 	r = mk(4, uint32(len(x)))
 	p := 1 + r>>3
 	for _, u := range x {
-		MF[p] = real(u)
-		MF[p+1] = imag(u)
+		MF[p] = na(real(u))
+		MF[p+1] = na(imag(u))
 		p += 2
 	}
 	return r

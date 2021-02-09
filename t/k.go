@@ -37,8 +37,6 @@ type slice struct {
 	c int
 }
 
-const naI i = 2147483648
-const naJ j = 9221120237041090561
 const pp, kkey, kval, xyz, kcon, cmap = 8, 132, 136, 148, 156, 160
 
 var version = "k.go"
@@ -1300,9 +1298,11 @@ func cmp(x, y, eq i) (r i) {
 		return ecd(x, y, 62-eq)
 	}
 	t, _, n, _, xp, yp := v2(x, y)
-	cm := MT[t].(func(i, i) i)
+	var cm func(i, i) i
 	if eq == 1 {
 		cm = MT[t+8].(func(i, i) i)
+	} else {
+		cm = MT[t].(func(i, i) i) //nil for Z
 	}
 	w := uint32(C(t))
 	r = mk(2, n)
@@ -3489,7 +3489,8 @@ func num(b c, p, s i) (r i) { // parse single number
 					f = math.Pi * F(r+8)
 				}
 				if b == 'n' {
-					f = math.Float64frombits(18444492273895866368)
+					f = math.NaN() // 0x7FF8000000000001 (see also go #44016)
+					// use 0n@0n for complex
 				}
 				if b == 'w' {
 					f = math.Inf(1) // todo -0w

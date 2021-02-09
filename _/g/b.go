@@ -42,6 +42,7 @@ func ginit() {
 	assign("write", 'W')
 	assign("dir", 'D')
 	assign("csv", 'C')
+	assign("naz", kz(complex(math.NaN(), math.NaN())))
 	assign("randi", prj('r', l2(mki(2), 0), mki(1)))          // randi: 'r[2;]
 	assign("randf", prj('r', l2(mki(3), 0), mki(1)))          // randf: 'r[3;]
 	assign("randn", prj('r', l2(mki(4294967293), 0), mki(1))) // randn: 'r[-3;]
@@ -552,7 +553,11 @@ func fmtVecAt(x uint32, i uint32, ffmt, zfmt string) string {
 	case 2:
 		return strconv.Itoa(int(int32(MI[2+i+x>>2])))
 	case 3:
-		return fmt.Sprintf(ffmt, MF[1+i+x>>3])
+		if f := MF[1+i+x>>3]; f != f {
+			return "0n"
+		} else {
+			return fmt.Sprintf(ffmt, f)
+		}
 	case 4:
 		z := complex(MF[1+2*i+x>>3], MF[2+2*i+x>>3])
 		return absang(z, zfmt)
@@ -621,5 +626,7 @@ func absang(x complex128, format string) string {
 	if phi == -0.0 || phi == 360.0 {
 		phi = 0.0
 	}
+	//if r != r || phi != phi {
+	//	return "0na
 	return fmt.Sprintf(format, r, phi)
 }
