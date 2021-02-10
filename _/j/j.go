@@ -10,13 +10,13 @@ import (
 
 //go:generate go run h.go
 
-var N uint32                // number
-var Y uint32                // symbol
-var P uint32                // parse root list
-var T uint32                // parse top list
-var C uint32                // parse comment
-var M []uint32              // heap
-var F []func(uint32) uint32 // function table
+var N uint32   // number
+var Y uint32   // symbol
+var P uint32   // parse root list
+var T uint32   // parse top list
+var C uint32   // parse comment
+var M []uint32 // heap
+var F []func() // function table
 func ini() {
 	N, Y, P, T, C = 0, 0, 0, 0, 0
 	finit()
@@ -75,10 +75,9 @@ func J(x uint32) uint32 {
 			if T != P {
 				panic("unclosed]")
 			}
-			v := Exec(T)
+			Exec(T)
 			P = mk(0)
 			T = P
-			return v
 		}
 		return 0
 	}
@@ -97,109 +96,88 @@ func J(x uint32) uint32 {
 	T = pcat(T, 4|(x-33)<<3)
 	return 0
 }
-func Exec(stk, q uint32) uint32 {
+func Exec(q uint32) {
 	if nn(q) == 0 {
 		dx(q)
-		return stk
-	} else if q&7 != 0 {
+		return
+	}
+	if q&7 != 0 {
 		panic("exec: not a quotation")
 	}
 	//fmt.Println("rc stk", I(stk), "q", I(q))
 	r := uint32(0)
 	p := q + 8
 	l := lastp(q)
-	tailcall := func(x uint32) {
-		fmt.Println("tailcall")
+	tailcall := func() { //fmt.Println("tailcall")
 		dx(q)
-		q = x
+		q = pop()
 		p = q + 4
 		l = lastp(q)
 	}
 	for p <= l {
 		x := I(p)
 		if tail := p == l; tail && x&3 == 2 { // symbol
-			tailcall(lup(x))
-		} else if tail && x == 93 { // "."
-			t := rx(last(stk))
-			stk = pop(stk)
-			tailcall(t)
-		} else if tail && x == 127 { // "?" branch last
-			e := rx(last(stk))
-			stk = pop(stk)
-			t := rx(last(stk))
-			stk = pop(stk)
-			c := lasti(stk)
-			stk = pop(stk)
-			if c == 0 {
+			push(lup(x))
+			tailcall()
+		} else if tail && x == 93 { // .
+			tailcall()
+		} else if tail && x == 127 { // ?
+			e := pop()
+			t := pop()
+			if ipo() == 0 {
 				dx(t)
-				tailcall(e)
+				push(e)
+				tailcall()
 			} else {
 				dx(e)
-				tailcall(t)
+				push(t)
+				tailcall()
 			}
 		} else if x&3 == 2 { // symbol
-			stk = Exec(stk, lup((x)))
+			Exec(lup(x))
 		} else if x&7 != 4 { // no operator but (list or number)
-			stk = lcat(stk, rx(x))
+			push(rx(x))
 		} else if x == 740 { // } push to reg
-			if r == 0 {
-				r = mk(0)
-			}
-			r = lcat(r, rx(last(stk)))
-			stk = pop(stk)
+			t := pop()
+			r = swap(r)
+			push(t)
+			r = swap(r)
 		} else if x == 724 { // { pop from reg
-			x := rx(last(r))
-			r = pop(r)
-			stk = lcat(stk, x)
+			r = swap(r)
+			t := pop()
+			r = swap(r)
+			push(t)
 		} else {
 			//fmt.Println(x)
-			stk = F[x>>3](stk)
+			F[x>>3]()
 		}
 		p += 4
 	}
 	dx(q)
 	dx(r)
-	return stk
 }
-func exe(s uint32) uint32 { // [q]. exec
-	q := rx(last(s))
-	return Exec(pop(s), q)
+func swap(r uint32) uint32 { // swap register and stack
+	if r == 0 {
+		r = mk(0)
+	}
+	s := I(4)
+	sI(4, r)
+	return s
 }
-func ife(s uint32) uint32 { // c[t][e]?  (if c then t else e)
-	e := rx(last(s))
-	s = pop(s)
-	t := rx(last(s))
-	s = pop(s)
-	c := lasti(s)
-	if c == 0 {
+func exe() { Exec(lpo()) } // [q]. exec
+func ife() { // c[t][e]?  (if c then t else e)
+	e := pop()
+	t := pop()
+	if ipo() == 0 {
 		dx(t)
-		return Exec(pop(s), e)
+		Exec(e)
 	} else {
 		dx(e)
-		return Exec(pop(s), t)
+		Exec(t)
 	}
 }
-func whl(s uint32) uint32 { // [c][d]' (while c do d)
-	panic("while")
-	d := rx(last(s))
-	s = pop(s)
-	c := rx(last(s))
-	s = pop(s)
-	for {
-		s = Exec(s, rx(c))
-		i := lasti(s)
-		// fmt.Println("whl", X(s))
-		s = pop(s)
-		if i == 0 {
-			dx(c)
-			dx(d)
-			return s
-		} else {
-			s = Exec(s, rx(d))
-		}
-	}
-}
-
+func I(x uint32) uint32 { return M[x>>2] }
+func sI(x, y uint32)    { M[x>>2] = y }
 func bk(n uint32) (r uint32) { // bucket type
 	r = uint32(32 - bits.LeadingZeros32(7+4*n))
 	if r < 4 {
@@ -258,11 +236,9 @@ func fr(x uint32) {
 	sI(p, x)
 }
 func nn(x uint32) uint32 { return I(4 + x) }
-func cat(s uint32) uint32 {
-	y := rx(last(s))
-	s = pop(s)
-	p := lastp(s)
-	x := I(p)
+func cat() { // ,
+	y := pop()
+	x := pop()
 	if x&7 != 0 {
 		x = lcat(mk(0), x)
 	}
@@ -276,11 +252,15 @@ func cat(s uint32) uint32 {
 		}
 		dx(y)
 	}
-	sI(p, x)
-	return s
+	push(x)
 }
 func lcat(x uint32, y uint32) (r uint32) {
+	x = use(x)
 	n := nn(x)
+	if bk(n) == bk(1+n) {
+		sI(lastp(x), y)
+		return x
+	}
 	r = mk(1 + n)
 	xp, rp := x+8, r+8
 	for i := uint32(0); i < n; i++ {
@@ -302,6 +282,18 @@ func pcat(x, y uint32) (r uint32) {
 	sI(lastp(p), r)
 	return r
 }
+func parent(x, y uint32) (r uint32) {
+	for {
+		if x&7 != 0 {
+			panic("parent")
+		}
+		l := last(x)
+		if l == y || l == 0 || x == y {
+			return x
+		}
+		x = l
+	}
+}
 func lastp(x uint32) uint32 {
 	n := nn(x)
 	if n == 0 {
@@ -309,6 +301,9 @@ func lastp(x uint32) uint32 {
 	}
 	return 4 + x + 4*n
 }
+func last(x uint32) uint32 { return I(lastp(x)) }
+
+/*
 func lasti(x uint32) (r uint32) {
 	r = last(x)
 	if r&1 == 0 {
@@ -338,54 +333,32 @@ func last2(x uint32) (a, b uint32) {
 	x += 4 * n
 	return I(x), I(x + 4)
 }
-func parent(x, y uint32) (r uint32) {
-	if x&7 != 0 {
-		panic("parent")
-	}
-	l := last(x)
-	if l == y || l == 0 || x == y {
-		return x
-	}
-	return parent(l, y)
-}
+*/
 
-func I(x uint32) uint32 { return M[x>>2] }
-func sI(x, y uint32)    { M[x>>2] = y }
-
-func stk(s uint32) uint32 { // !
-	fmt.Println("(stk) " + X(s))
-	return s
+func stk() { fmt.Println("(stk) " + X(I(4))) } // !
+func swp() { // ~
+	x := pop()
+	y := pop()
+	push(x)
+	push(y)
 }
-
-func swp(s uint32) uint32 { // ~
-	x := lastp(s)
-	if x < s+12 {
-		panic("swp underflow")
-	}
-	t := I(x)
-	sI(x, I(x-4))
-	sI(x-4, t)
-	return s
+func dup() { x := pop(); push(x); push(x) } // "
+func rol() { // |
+	a := pop()
+	b := pop()
+	c := pop()
+	push(a)
+	push(b)
+	push(c)
 }
-func dup(s uint32) uint32 { p := last(s); return lcat(s, rx(p)) }
-func rol(s uint32) uint32 {
-	p := lastp(s)
-	if p < s+16 {
-		panic("rol underflow")
-	}
-	a := I(p)
-	sI(p, I(p-4))
-	sI(p-4, I(p-8))
-	sI(p-8, a)
-	return s
-}
-func cnt(s uint32) uint32 {
-	x := last(s)
+func cnt() { // #
+	x := pop()
 	r := uint32(0xffffffff)
 	if x&7 == 0 {
 		r = 1 + 2*nn(x)
 	}
-	return v1(s, r)
+	push(x)
+	push(r)
 }
 func use(x uint32) uint32 {
 	if I(x) == 1 {
@@ -403,65 +376,93 @@ func use(x uint32) uint32 {
 	dx(x)
 	return r
 }
-func amd(s uint32) uint32 { // [a]i v$ amend (set array at index i to v)
-	v := rx(last(s))
-	s = pop(s)
-	i := lasti(s)
-	s = pop(s)
-	p := lastp(s)
-	a := use(I(p))
-	n := nn(a)
+func atx() { // [..]i@
+	i := ipo()
+	l := lpo()
+	if i < 0 || i >= int32(nn(l)) {
+		panic("atx: range")
+	}
+	push(rx(I(8 + 4*uint32(i) + l)))
+	dx(l)
+}
+func amd(s uint32) { // [a]i v$ amend (set array at index i to v)
+	v := pop()
+	i := ipo()
+	a := use(lpo())
+	n := int32(nn(a))
 	if i == n {
 		a = lcat(a, v)
 	} else if i < 0 || i > n {
 		panic("amd: range")
 	} else {
-		ap := 8 + a + 4*i
+		ap := 8 + a + 4*uint32(i)
 		rx(I(ap))
 		sI(ap, v)
 	}
-	sI(p, a)
-	return s
+	push(a)
 }
-func v1(s, x uint32) uint32 {
-	sp := s + 4 + 4*nn(s)
-	dx(I(sp))
-	sI(sp, x)
-	return s
-}
-func ints(s uint32) (j, k int32) {
-	b := pop()
-	a := pop()
-	if a&1 == 0 || b&1 == 0 {
-		panic("ints")
+func ipo() int32 {
+	x := pop()
+	if x&1 == 0 {
+		panic("int expected")
 	}
-	return int32(a) >> 1, int32(b) >> 1
+	return int32(x) >> 1
 }
-func add() { push(pop() + pop()) }
-func sub() { push(pop() - pop()) }
-func mul() { push(pop() * pop()) }
-func div() { push(pop() / pop()) }
-func mod() { push(pop() % pop()) }
-func eql() { push(ib(pop() == pop())) }
-func gti() { push(ib(pop() > pop())) }
-func lti() { push(ib(pop() < pop())) }
-func max() {
-	a, b := ints(s)
-	if a > b {
-		return i2(s, a)
+func lpo() uint32 {
+	x := pop()
+	if x&7 != 0 {
+		panic("list expected")
 	}
-	return i2(s, b)
+	return x
 }
-func min(s uint32) uint32 {
-	a, b := ints(s)
-	if a < b {
-		return i2(s, a)
-	}
-	return i2(s, b)
-}
-func ib(b bool) int32 {
+func add() { push(uint32(ipo() + ipo())) }
+func sub() { push(uint32(ipo() - ipo())) }
+func mul() { push(uint32(ipo() * ipo())) }
+func div() { push(uint32(ipo() / ipo())) }
+func mod() { push(uint32(ipo() % ipo())) }
+func eql() { push(ib(ipo() == ipo())) }
+func gti() { push(ib(ipo() > ipo())) }
+func lti() { push(ib(ipo() < ipo())) }
+func ib(b bool) uint32 {
 	if b {
-		return 1
+		return 3
+	}
+	return 1
+}
+func drp() { pop() } // x _ -- (pop)
+func asn() { // [q][s]: -- (assign)
+	y := pop()
+	if y&3 != 2 {
+		panic("asn: not a symbol")
+	}
+	v := pop()
+	if v&7 != 0 {
+		v = lcat(mk(0), v) // enlist atoms
+	}
+	p := fns(I(8), y)
+	if p == 0 {
+		sI(8, lcat(I(8), y))
+		sI(12, lcat(I(12), 1))
+		p = 4 + 4*nn(I(8))
+	}
+	dx(I(I(12) + p))
+	sI(I(12)+p, v)
+}
+func lup(x uint32) uint32 {
+	p := fns(I(8), x)
+	if p == 0 {
+		panic("undefined: " + X(x))
+	}
+	return rx(I(I(12) + p))
+}
+func fns(x, y uint32) uint32 {
+	n := nn(x)
+	p := uint32(8)
+	for i := uint32(0); i < n; i++ {
+		if I(x+p) == y {
+			return p
+		}
+		p += 4
 	}
 	return 0
 }
@@ -485,69 +486,14 @@ func push(x uint32) {
 	sI(p, x)
 	sI(s+12, p)
 }
-func drp(x uint32) { pop(x) } // x _ -- (pop)
-func asn(s uint32) uint32 { // [q][s]: -- (assign)
-	y := pop(s)
-	if y&3 != 2 {
-		panic("asn: not a symbol")
-	}
-	v := pop(s)
-	if v&7 != 0 {
-		v = lcat(mk(0), v) // enlist atoms
-	}
-	p := fns(I(8), y)
-	if p == 0 {
-		sI(8, lcat(I(8), y))
-		sI(12, lcat(I(12), 1))
-		p = 4 + 4*nn(I(8))
-	}
-	dx(I(I(12) + p))
-	sI(I(12)+p, v)
-	return pop(s)
-}
-func lup(x uint32) uint32 {
-	p := fns(I(8), x)
-	if p == 0 {
-		panic("undefined: " + X(x))
-	}
-	return rx(I(I(12) + p))
-}
-func fns(x, y uint32) uint32 {
-	n := nn(x)
-	p := uint32(8)
-	for i := uint32(0); i < n; i++ {
-		if I(x+p) == y {
-			return p
-		}
-		p += 4
-	}
-	return 0
-}
-func atx(s uint32) uint32 { // [..]i@
-	l := prev(s)
-	if l&7 != 0 {
-		panic("atx: not a list")
-	}
-	i := lasti(s)
-	s = pop(s)
-	if i < 0 || i >= nn(l) {
-		panic("atx: range")
-	}
-	sI(lastp(s), rx(I(8+4*i+l)))
-	dx(l)
-	return s
-}
-
 func finit() {
-	f := func(c byte, g func(uint32) uint32) { F[c-33] = g }
-	F = make([]func(uint32) uint32, 128)
+	f := func(c byte, g func()) { F[c-33] = g }
+	F = make([]func(), 128)
 	f('!', stk) // 0
 	f('"', dup) // 1
 	f('#', cnt) // 2
 	f('$', amd) // 3
 	f('%', mod) // 4
-	f('&', min) // 5
-	f(3_9, whl) // 6 `
 	f('*', mul) // 9
 	f('+', add) // 10
 	f(',', cat) // 11
@@ -560,7 +506,6 @@ func finit() {
 	f('>', gti) // 29
 	f('?', ife) // 30
 	f('@', atx) // 31
-	f('^', max) // 61
 	f('_', drp) // 62
 	f('|', rol) // 91
 	f('~', swp) // 93
