@@ -257,8 +257,8 @@ func cat() { // ,
 func lcat(x uint32, y uint32) (r uint32) {
 	x = use(x)
 	n := nn(x)
-	if bk(n) == bk(1+n) {
-		sI(lastp(x), y)
+	if nn(x) > 0 && bk(n) == bk(1+n) {
+		sI(4+lastp(x), y)
 		return x
 	}
 	r = mk(1 + n)
@@ -286,6 +286,9 @@ func parent(x, y uint32) (r uint32) {
 	for {
 		if x&7 != 0 {
 			panic("parent")
+		}
+		if nn(x) == 0 {
+			return x
 		}
 		l := last(x)
 		if l == y || l == 0 || x == y {
@@ -385,7 +388,7 @@ func atx() { // [..]i@
 	push(rx(I(8 + 4*uint32(i) + l)))
 	dx(l)
 }
-func amd(s uint32) { // [a]i v$ amend (set array at index i to v)
+func amd() { // [a]i v$ amend (set array at index i to v)
 	v := pop()
 	i := ipo()
 	a := use(lpo())
