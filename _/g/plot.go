@@ -76,8 +76,10 @@ func plot2(x, y uint32) (r uint32) { // plot with caption(table)
 			col.Data = Ik(vi)
 		case 3:
 			col.Data = Fk(vi)
+			col.Format = lupString("FFMT")
 		case 4:
 			col.Data = Zk(vi)
+			col.Format = lupString("ZFMT")
 		case 5:
 			col.Data = Sk(vi)
 		default:
