@@ -43,7 +43,7 @@ func runtest(t *testing.T, b []byte) string {
 	if r == 0 {
 		t.Fatal("zero result")
 	}
-	s := X(r)
+	s := X(I(4))
 	s = "(" + s[1:len(s)-1] + ")"
 	Leak()
 	return s

@@ -49,44 +49,6 @@ func X(x uint32) string {
 	}
 	panic("XX")
 }
-func annotate(est, rst, p uint32) {
-	n := nn(est)
-	ep := 8 + est
-	r := make([]uint32, n)
-	for i := uint32(0); i < n-1; i++ {
-		r[i] = I(12+rst+4*i) >> 1
-	}
-	r[n-1] = p + 4
-
-	e := "(est) "
-	o := "(rst) "
-	for i := uint32(0); i < n; i++ {
-		de, do := anno(I(ep), r[i])
-		e, o = e+de, o+do
-		ep += 4
-	}
-	fmt.Printf("%s\n%s\n", e, o)
-}
-func anno(e, p uint32) (string, string) {
-	n := nn(e)
-	ep := e + 8
-	s, o := "[", " "
-	if ep == p {
-		o = "^"
-	}
-	for i := uint32(0); i < n; i++ {
-		ds := X(I(ep)) + " "
-		if ep+4 == p {
-			o += "^"
-		} else {
-			o += " "
-		}
-		o += strings.Repeat(" ", len(ds)-1)
-		s += ds
-		ep += 4
-	}
-	return s + "] ", o + "  "
-}
 
 func sy(x uint32) string {
 	var b []byte
@@ -110,22 +72,14 @@ func reverse(b []byte) []byte {
 	return r
 }
 
-func Leak() { leak(P, 0) }
-func leak(a, b uint32) {
-	if a != 0 && I(a) != 1 {
-		panic(fmt.Errorf("leak stk=%d", I(a)))
-	}
-	if b != 0 && I(b) != 1 {
-		panic(fmt.Errorf("leak est=%d", I(b)))
-	}
+func Leak() {
 	B := make([]uint32, len(M))
 	copy(B, M)
 	defer func() { copy(M, B) }()
-	dx(a)
-	dx(b)
+	dx(M[1])
 	dx(M[2])
 	dx(M[3])
-	//dx(P)
+	dx(P)
 	//dump(200)
 	mark()
 	//dump(200)

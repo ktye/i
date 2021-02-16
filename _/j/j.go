@@ -28,12 +28,11 @@ func ini() {
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-	M[1] = mk(8) // max stack size
-	M[2] = mk(0)
-	M[3] = mk(0)
+	sI(4, mk(0))  // stack
+	sI(8, mk(0))  // symbol list
+	sI(12, mk(0)) // value list
 	P = mk(0)
 	T = P
-	//dump(127)
 }
 
 func J(x uint32) uint32 {
@@ -78,6 +77,7 @@ func J(x uint32) uint32 {
 			Exec(T)
 			P = mk(0)
 			T = P
+			return 1
 		}
 		return 0
 	}
@@ -255,9 +255,8 @@ func cat() { // ,
 	push(x)
 }
 func lcat(x uint32, y uint32) (r uint32) {
-	x = use(x)
 	n := nn(x)
-	if nn(x) > 0 && bk(n) == bk(1+n) {
+	if nn(x) > 0 && I(x) == 1 && bk(n) == bk(1+n) {
 		sI(4+lastp(x), y)
 		return x
 	}
@@ -305,38 +304,6 @@ func lastp(x uint32) uint32 {
 	return 4 + x + 4*n
 }
 func last(x uint32) uint32 { return I(lastp(x)) }
-
-/*
-func lasti(x uint32) (r uint32) {
-	r = last(x)
-	if r&1 == 0 {
-		panic("int expected")
-	}
-	return r >> 1
-}
-func last(x uint32) (r uint32) {
-	n := nn(x)
-	if n == 0 {
-		return 0
-	}
-	return I(lastp(x))
-}
-func prev(x uint32) (r uint32) {
-	n := nn(x)
-	if n < 2 {
-		panic("prev: underflow")
-	}
-	return I(x + 4*n)
-}
-func last2(x uint32) (a, b uint32) {
-	n := nn(x)
-	if n < 2 {
-		panic("stack-underflow")
-	}
-	x += 4 * n
-	return I(x), I(x + 4)
-}
-*/
 
 func stk() { fmt.Println("(stk) " + X(I(4))) } // !
 func swp() { // ~
@@ -471,23 +438,36 @@ func fns(x, y uint32) uint32 {
 }
 func pop() (r uint32) {
 	s := I(4)
-	p := I(s + 12)
-	if p == s+12 {
+	n := nn(s)
+	if n == 0 {
 		panic("stack underflow")
 	}
-	r = I(p)
+	if I(s) != 1 {
+		panic("stack rc")
+	}
+	p := lastp(s)
+	r = I(lastp(s))
 	sI(p, 0)
-	sI(s+12, p-4)
+
+	if bk(n-1) != bk(n) {
+		n--
+		q := mk(n)
+		qp := q + 8
+		sp := s + 8
+		for i := uint32(0); i < n; i++ {
+			sI(qp, rx(I(sp)))
+		}
+		dx(s)
+		sI(4, q)
+	}
 	return r
 }
 func push(x uint32) {
 	s := I(4)
-	p := I(s+12) + 4
-	if p == s+4*nn(s) {
-		panic("stack overflow")
+	if I(s) != 1 {
+		panic("stack rc")
 	}
-	sI(p, x)
-	sI(s+12, p)
+	sI(4, lcat(s, x))
 }
 func finit() {
 	f := func(c byte, g func()) { F[c-33] = g }
