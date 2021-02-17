@@ -1,0 +1,35 @@
+<head><meta charset="utf-8"><title>j</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABSSURBVDhPY/wPBAwUACYozcDAyAjBhACaOoQBZAKCBjACbQNhXID2LgCFMb5wHgJeIARoYwAhfyMD2nqBGFdgNQA93slKB7AEhE8zCFCYnRkYAOS/HR/UGSYjAAAAAElFTkSuQmCC'>
+<style>
+
+ html{font-family:monospace;}
+ body{overflow:hidden}
+ textarea{background:black;color:#cccccc;resize:none;border:none}textarea:focus{color:white;}
+ #term{position:absolute;width:40%;height:100%;left:0;top:0;background:#ffffea;color:black}
+ #run{position:absolute;top:0;right:60%;font-family:monospace}
+ #cnv{position:absolute;width:60%;height:70%;right:0;top:0}
+ #deb{position:absolute;width:60%;height:30%;right:0;bottom:0}
+ 
+</style>
+<script>
+
+function ge(x){return document.getElementById(x)};
+function run(w,h){deb.value=term.value
+ w=cnv.clientWidth;h=cnv.clientHeight;cnv.width=w;cnv.height=h
+ ctx.fillStyle="green";ctx.fillRect(5,5,w-10,h-10);
+}
+
+
+
+
+</script>
+
+
+<body>
+<textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
+<button   id="run" onclick="run()">run</button>
+<canvas   id="cnv"></canvas>
+<textarea id="deb" class="term" wrap="off" spellcheck="false" readonly></textarea>
+<script>term=ge("term");cnv=ge("cnv");deb=ge("deb");ctx=cnv.getContext('2d')</script>
+</body></html>
+

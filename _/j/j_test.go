@@ -17,6 +17,9 @@ func TestJ(t *testing.T) {
 		if len(b) == 0 || b[0] == '(' { // (section)
 			continue
 		}
+		if string(b) == `\` {
+			break
+		}
 		fmt.Println(string(b))
 		i := bytes.IndexByte(b, '(')
 		if i < 0 {

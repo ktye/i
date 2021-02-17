@@ -37,7 +37,9 @@ func main() {
 	var localsyms []string
 	for _, b := range v {
 		s := string(b)
-		if strings.HasPrefix(s, "(-") {
+		if s == `\` {
+			break
+		} else if strings.HasPrefix(s, "(-") {
 			s = btrim(s)[1:]
 			id = s
 			fmt.Fprintf(&o, "<h1 id=\"%s\">%s</h1>\n ", s, s)

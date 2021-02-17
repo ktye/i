@@ -20,7 +20,6 @@
 1 2_        (1)     (pop/drop)
 1 2 3|      (3 1 2) (roll)
 
-
 (-catenate)
 (catenate, append, cons, enlist)
 1 2,            ([1 2])         (make a list from two atoms)
@@ -52,7 +51,7 @@
 2 1 1[<][2+]iff           (2)
 2 1 2[<][3*]iff           (6)
 
-
+\
 (-loop)
 (loop, recurse or call)
 [ ... ][while]:      () ([c][d]while  "while c do d")
