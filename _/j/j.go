@@ -74,7 +74,7 @@ func J(x uint32) uint32 {
 			if T != P {
 				panic("unclosed]")
 			}
-			Exec(T)
+			Exec(P)
 			P = mk(0)
 			T = P
 			return 1
@@ -97,6 +97,7 @@ func J(x uint32) uint32 {
 	return 0
 }
 func Exec(q uint32) {
+	//fmt.Println("Exec", q, XX(q))
 	if nn(q) == 0 {
 		dx(q)
 		return
@@ -116,6 +117,7 @@ func Exec(q uint32) {
 	}
 	for p <= l {
 		x := I(p)
+		//fmt.Println("p", p, "l", l, "x", X(x), refcount(x), "s", X(I(4)))
 		if tail := p == l; tail && x&3 == 2 { // symbol
 			push(lup(x))
 			tailcall()
@@ -135,7 +137,7 @@ func Exec(q uint32) {
 			}
 		} else if x&3 == 2 { // symbol
 			Exec(lup(x))
-		} else if x&7 != 4 { // no operator but (list or number)
+		} else if x&7 != 4 { // no operator but list or number
 			push(rx(x))
 		} else if x == 740 { // } push to reg
 			t := pop()
@@ -148,6 +150,7 @@ func Exec(q uint32) {
 			r = swap(r)
 			push(t)
 		} else {
+			//fmt.Println("execop", x>>3)
 			//fmt.Println(x)
 			F[x>>3]()
 		}
@@ -217,8 +220,9 @@ func dx(x uint32) uint32 {
 		if I(x) == 0 {
 			panic("dx on free")
 		}
-		sI(x, I(x)-1)
-		if I(x) == 0 {
+		r := I(x) - 1
+		sI(x, r)
+		if r == 0 {
 			n := I(x + 4)
 			p := x + 8
 			for i := uint32(0); i < n; i++ {
@@ -255,9 +259,27 @@ func cat() { // ,
 	push(x)
 }
 func lcat(x uint32, y uint32) (r uint32) {
+	/*
+		rs := fmt.Sprint("lcat", X(x), refcount(x), X(y), refcount(y))
+		defer func() {
+			fmt.Printf("%s => r=%s %s", rs, X(r), refcount(r))
+			if nn(r) > 0 {
+				fmt.Printf(" *%s", refcount(I(8+r)))
+			}
+			fmt.Println()
+
+		}()
+	*/
 	n := nn(x)
-	if nn(x) > 0 && I(x) == 1 && bk(n) == bk(1+n) {
+	if n == 0 {
+		dx(x)
+		r = mk(1)
+		sI(8+r, y)
+		return r
+	}
+	if I(x) == 1 && bk(n) == bk(1+n) {
 		sI(4+lastp(x), y)
+		sI(4+x, 1+I(4+x))
 		return x
 	}
 	r = mk(1 + n)
@@ -279,6 +301,7 @@ func pcat(x, y uint32) (r uint32) {
 		return r
 	}
 	sI(lastp(p), r)
+
 	return r
 }
 func parent(x, y uint32) (r uint32) {
@@ -304,6 +327,14 @@ func lastp(x uint32) uint32 {
 	return 4 + x + 4*n
 }
 func last(x uint32) uint32 { return I(lastp(x)) }
+func first(x uint32) (r uint32) {
+	if nn(x) == 0 {
+		panic("empty")
+	}
+	r = rx(I(x + 8))
+	dx(x)
+	return r
+}
 
 func stk() { fmt.Println("(stk) " + X(I(4))) } // !
 func swp() { // ~
@@ -318,8 +349,8 @@ func rol() { // |
 	b := pop()
 	c := pop()
 	push(a)
-	push(b)
 	push(c)
+	push(b)
 }
 func cnt() { // #
 	x := pop()
@@ -332,8 +363,10 @@ func cnt() { // #
 }
 func use(x uint32) uint32 {
 	if I(x) == 1 {
+		//fmt.Println("reuse")
 		return x
 	}
+	//fmt.Println("use: new rc", I(x), X(x))
 	n := nn(x)
 	r := mk(n)
 	rp := r + 8
@@ -385,23 +418,25 @@ func lpo() uint32 {
 	}
 	return x
 }
-func add() { push(uint32(ipo() + ipo())) }
-func sub() { push(uint32(ipo() - ipo())) }
-func mul() { push(uint32(ipo() * ipo())) }
-func div() { push(uint32(ipo() / ipo())) }
-func mod() { push(uint32(ipo() % ipo())) }
-func eql() { push(ib(ipo() == ipo())) }
-func gti() { push(ib(ipo() > ipo())) }
-func lti() { push(ib(ipo() < ipo())) }
-func ib(b bool) uint32 {
+func add()       { pi(ipo() + ipo()) }
+func sub()       { pi(-ipo() + ipo()) }
+func mul()       { pi(ipo() * ipo()) }
+func div()       { swp(); pi(ipo() / ipo()) }
+func mod()       { swp(); pi(ipo() % ipo()) }
+func eql()       { pb(ipo() == ipo()) }
+func gti()       { pb(ipo() < ipo()) }
+func lti()       { pb(ipo() > ipo()) }
+func pi(i int32) { push(1 + 2*uint32(i)) }
+func pb(b bool) {
 	if b {
-		return 3
+		push(3)
+	} else {
+		push(1)
 	}
-	return 1
 }
 func drp() { pop() } // x _ -- (pop)
 func asn() { // [q][s]: -- (assign)
-	y := pop()
+	y := first(lpo())
 	if y&3 != 2 {
 		panic("asn: not a symbol")
 	}
@@ -448,18 +483,21 @@ func pop() (r uint32) {
 	p := lastp(s)
 	r = I(lastp(s))
 	sI(p, 0)
-
-	if bk(n-1) != bk(n) {
-		n--
-		q := mk(n)
-		qp := q + 8
-		sp := s + 8
-		for i := uint32(0); i < n; i++ {
-			sI(qp, rx(I(sp)))
-		}
-		dx(s)
-		sI(4, q)
+	n--
+	if bk(n) == bk(1+n) {
+		sI(4+s, n)
+		return r
 	}
+	q := mk(n)
+	qp := q + 8
+	sp := s + 8
+	for i := uint32(0); i < n; i++ {
+		sI(qp, rx(I(sp)))
+		qp += 4
+		sp += 4
+	}
+	dx(s)
+	sI(4, q)
 	return r
 }
 func push(x uint32) {

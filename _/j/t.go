@@ -16,11 +16,13 @@ func XX(x uint32) string {
 	for i := uint32(0); i < n; i++ {
 		xi := I(xp)
 		if xi == 0 {
-			panic("Y0")
+			s += "<NULL> "
 		} else if xi&7 == 0 {
 			s += fmt.Sprintf("L(%d %d/%d) ", xi, I(xi), I(xi+4))
 		} else if xi&1 != 0 {
 			s += fmt.Sprintf("I(%d) ", xi>>1)
+		} else if xi&2 != 0 {
+			s += fmt.Sprintf("<%d> ", xi>>2)
 		} else {
 			s += fmt.Sprintf("E(%d) ", xi)
 		}
@@ -71,7 +73,15 @@ func reverse(b []byte) []byte {
 	}
 	return r
 }
-
+func refcount(x uint32) string {
+	rc := func() int {
+		if x&7 == 0 {
+			return int(I(x))
+		}
+		return -1
+	}
+	return fmt.Sprintf("rc(%d)", rc())
+}
 func Leak() {
 	B := make([]uint32, len(M))
 	copy(B, M)
