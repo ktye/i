@@ -50,7 +50,7 @@ func J(x uint32) uint32 {
 	if x >= '0' && x <= '9' { // parse number
 		x -= '0'
 		if x|n == 0 {
-			T = pcat(1)
+			T = pc(1)
 			return 0
 		}
 		n *= 10
@@ -59,7 +59,7 @@ func J(x uint32) uint32 {
 		return 0
 	}
 	if n != 0 {
-		T = pcat(1 | n<<1)
+		T = pc(1 | n<<1)
 		sI(s+16, 0)
 	}
 	y := I(s + 20)
@@ -70,7 +70,7 @@ func J(x uint32) uint32 {
 		return 0
 	}
 	if y != 0 {
-		T = pcat(2 | y<<2)
+		T = pc(2 | y<<2)
 		sI(s+20, 0)
 	}
 	if x < 33 {
@@ -86,19 +86,19 @@ func J(x uint32) uint32 {
 		return 0
 	}
 	if x == 91 { // '['
-		T = pcat(mk(0))
-		sI(s+12, last(T))
+		T = pc(mk(0))
+		sI(s+12, ls(T))
 		return 0
 	}
 	if x == 93 {
-		T = parent(P, T)
+		T = pa(T)
 		if T == 0 {
 			panic("parse]")
 		}
 		sI(s+12, T)
 		return 0
 	}
-	T = pcat(4 | (x-33)<<3)
+	T = pc(4 | (x-33)<<3)
 	return 0
 }
 func Exec(q uint32) {
@@ -113,12 +113,12 @@ func Exec(q uint32) {
 	//fmt.Println("rc stk", I(stk), "q", I(q))
 	r := uint32(0)
 	p := q + 8
-	l := lastp(q)
+	l := lp(q)
 	tailcall := func() { //fmt.Println("tailcall")
 		dx(q)
 		q = pop()
 		p = q + 4
-		l = lastp(q)
+		l = lp(q)
 	}
 	for p <= l {
 		x := I(p)
@@ -249,32 +249,21 @@ func cat() { // ,
 	y := pop()
 	x := pop()
 	if x&7 != 0 {
-		x = lcat(mk(0), x)
+		x = lc(mk(0), x)
 	}
 	if y&7 != 0 {
-		x = lcat(x, y)
+		x = lc(x, y)
 	} else {
 		yp := y + 8
 		for i := uint32(0); i < nn(y); i++ {
-			x = lcat(x, rx(I(yp)))
+			x = lc(x, rx(I(yp)))
 			yp += 4
 		}
 		dx(y)
 	}
 	push(x)
 }
-func lcat(x uint32, y uint32) (r uint32) {
-	/*
-		rs := fmt.Sprint("lcat", X(x), refcount(x), X(y), refcount(y))
-		defer func() {
-			fmt.Printf("%s => r=%s %s", rs, X(r), refcount(r))
-			if nn(r) > 0 {
-				fmt.Printf(" *%s", refcount(I(8+r)))
-			}
-			fmt.Println()
-
-		}()
-	*/
+func lc(x uint32, y uint32) (r uint32) { // list cat (append a single element)
 	n := nn(x)
 	if n == 0 {
 		dx(x)
@@ -283,7 +272,7 @@ func lcat(x uint32, y uint32) (r uint32) {
 		return r
 	}
 	if I(x) == 1 && bk(n) == bk(1+n) {
-		sI(4+lastp(x), y)
+		sI(4+lp(x), y)
 		sI(4+x, 1+I(4+x))
 		return x
 	}
@@ -298,42 +287,43 @@ func lcat(x uint32, y uint32) (r uint32) {
 	dx(x)
 	return r
 }
-func pcat(y uint32) (r uint32) {
+func pc(x uint32) (r uint32) { // cat to top list
 	s := I(8)
 	p, t := I(8+s), I(12+s)
-	q := parent(p, t)
-	r = lcat(t, y)
+	q := pa(t)
+	r = lc(t, x)
 	sI(12+s, r)
 	if t == p {
 		sI(8+s, r)
 		return r
 	}
-	sI(lastp(q), r)
+	sI(lp(q), r)
 	return r
 }
-func parent(x, y uint32) (r uint32) {
+func pa(x uint32) (r uint32) { // parent
+	p := I(8 + I(8))
 	for {
-		if x&7 != 0 {
+		if p&7 != 0 {
 			panic("parent")
 		}
-		if nn(x) == 0 {
-			return x
+		if nn(p) == 0 {
+			return p
 		}
-		l := last(x)
-		if l == y || l == 0 || x == y {
-			return x
+		l := ls(p)
+		if l == x || l == 0 || p == x {
+			return p
 		}
-		x = l
+		p = l
 	}
 }
-func lastp(x uint32) uint32 {
+func lp(x uint32) uint32 {
 	n := nn(x)
 	if n == 0 {
 		panic("empty")
 	}
 	return 4 + x + 4*n
 }
-func last(x uint32) uint32 { return I(lastp(x)) }
+func ls(x uint32) uint32 { return I(lp(x)) }
 func first(x uint32) (r uint32) {
 	if nn(x) == 0 {
 		panic("empty")
@@ -401,7 +391,7 @@ func amd() { // [a]i v$ amend (set array at index i to v)
 	a := use(lpo())
 	n := int32(nn(a))
 	if i == n {
-		a = lcat(a, v)
+		a = lc(a, v)
 	} else if i < 0 || i > n {
 		panic("amd: range")
 	} else {
@@ -449,14 +439,14 @@ func asn() { // [q][s]: -- (assign)
 	}
 	v := pop()
 	if v&7 != 0 {
-		v = lcat(mk(0), v) // enlist atoms
+		v = lc(mk(0), v) // enlist atoms
 	}
 	s := I(12)
 	p := fns(s, y)
 	if p == 0 {
-		s = lcat(s, y)
-		s = lcat(s, 1)
-		p = lastp(s)
+		s = lc(s, y)
+		s = lc(s, 1)
+		p = lp(s)
 	}
 	dx(I(p))
 	sI(p, v)
@@ -489,8 +479,8 @@ func pop() (r uint32) {
 	if I(s) != 1 {
 		panic("stack rc")
 	}
-	p := lastp(s)
-	r = I(lastp(s))
+	p := lp(s)
+	r = I(lp(s))
 	sI(p, 0)
 	n--
 	if bk(n) == bk(1+n) {
@@ -514,7 +504,7 @@ func push(x uint32) {
 	if I(s) != 1 {
 		panic("stack rc")
 	}
-	sI(4, lcat(s, x))
+	sI(4, lc(s, x))
 }
 func finit() {
 	f := func(c byte, g func()) { F[c-33] = g }
