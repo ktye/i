@@ -87,9 +87,15 @@ func Leak() {
 	copy(B, M)
 	defer func() { copy(M, B) }()
 	dx(M[1])
-	dx(M[2])
 	dx(M[3])
-	dx(P)
+
+	s := I(8)
+	dx(I(s + 8)) // I(8) contains only 1 refcounted list
+	for i := uint32(0); i < 5; i++ {
+		sI(s+8+4*i, 0)
+	}
+	dx(s)
+
 	//dump(200)
 	mark()
 	//dump(200)

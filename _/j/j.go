@@ -10,15 +10,9 @@ import (
 
 //go:generate go run h.go
 
-var N uint32   // number
-var Y uint32   // symbol
-var P uint32   // parse root list
-var T uint32   // parse top list
-var C uint32   // parse comment
 var M []uint32 // heap
 var F []func() // function table
 func ini() {
-	N, Y, P, T, C = 0, 0, 0, 0, 0
 	finit()
 	x := uint32(16)
 	M = make([]uint32, 1<<(x-2)) // 64kB
@@ -28,46 +22,56 @@ func ini() {
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-	sI(4, mk(0))  // stack
-	sI(8, mk(0))  // symbol list
-	sI(12, mk(0)) // value list
-	P = mk(0)
-	T = P
+	sI(4, mk(0))     // stack
+	sI(12, mk(0))    // value list
+	s := mk(5)       // parse state
+	sI(s+8, mk(0))   // p(root list)
+	sI(s+12, I(s+8)) // t(top list)
+	sI(s+16, 0)      // n(number)
+	sI(s+20, 0)      // y(symbol)
+	sI(s+24, 0)      // c(comment)
+	sI(8, s)
 }
 
 func J(x uint32) uint32 {
-	if C == 1 {
+	s := I(8)
+	P, T := I(s+8), I(s+12)
+	if I(s+24) == 1 {
 		if x == ')' { // end comment
-			C = 0
+			sI(s+24, 0)
 		}
 		return 0
 	}
 	if x == '(' { // start comment
-		C = 1
+		sI(s+24, 1)
 		return 0
 	}
+	n := I(s + 16)
 	if x >= '0' && x <= '9' { // parse number
 		x -= '0'
-		if x|N == 0 {
-			T = pcat(T, 1)
+		if x|n == 0 {
+			T = pcat(1)
 			return 0
 		}
-		N *= 10
-		N += x
+		n *= 10
+		n += x
+		sI(s+16, n)
 		return 0
 	}
-	if N != 0 {
-		T = pcat(T, 1|N<<1)
-		N = 0
+	if n != 0 {
+		T = pcat(1 | n<<1)
+		sI(s+16, 0)
 	}
+	y := I(s + 20)
 	if x >= 'a' && x <= 'z' { // parse symbol
-		Y *= 32
-		Y += x - '`'
+		y *= 32
+		y += x - '`'
+		sI(s+20, y)
 		return 0
 	}
-	if Y != 0 {
-		T = pcat(T, 2|Y<<2)
-		Y = 0
+	if y != 0 {
+		T = pcat(2 | y<<2)
+		sI(s+20, 0)
 	}
 	if x < 33 {
 		if x == 10 {
@@ -75,15 +79,15 @@ func J(x uint32) uint32 {
 				panic("unclosed]")
 			}
 			Exec(P)
-			P = mk(0)
-			T = P
+			sI(s+8, mk(0))
+			sI(s+12, I(s+8))
 			return 1
 		}
 		return 0
 	}
 	if x == 91 { // '['
-		T = pcat(T, mk(0))
-		T = last(T)
+		T = pcat(mk(0))
+		sI(s+12, last(T))
 		return 0
 	}
 	if x == 93 {
@@ -91,9 +95,10 @@ func J(x uint32) uint32 {
 		if T == 0 {
 			panic("parse]")
 		}
+		sI(s+12, T)
 		return 0
 	}
-	T = pcat(T, 4|(x-33)<<3)
+	T = pcat(4 | (x-33)<<3)
 	return 0
 }
 func Exec(q uint32) {
@@ -293,15 +298,17 @@ func lcat(x uint32, y uint32) (r uint32) {
 	dx(x)
 	return r
 }
-func pcat(x, y uint32) (r uint32) {
-	p := parent(P, x)
-	r = lcat(x, y)
-	if x == P {
-		P = r
+func pcat(y uint32) (r uint32) {
+	s := I(8)
+	p, t := I(8+s), I(12+s)
+	q := parent(p, t)
+	r = lcat(t, y)
+	sI(12+s, r)
+	if t == p {
+		sI(8+s, r)
 		return r
 	}
-	sI(lastp(p), r)
-
+	sI(lastp(q), r)
 	return r
 }
 func parent(x, y uint32) (r uint32) {
@@ -444,30 +451,32 @@ func asn() { // [q][s]: -- (assign)
 	if v&7 != 0 {
 		v = lcat(mk(0), v) // enlist atoms
 	}
-	p := fns(I(8), y)
+	s := I(12)
+	p := fns(s, y)
 	if p == 0 {
-		sI(8, lcat(I(8), y))
-		sI(12, lcat(I(12), 1))
-		p = 4 + 4*nn(I(8))
+		s = lcat(s, y)
+		s = lcat(s, 1)
+		p = lastp(s)
 	}
-	dx(I(I(12) + p))
-	sI(I(12)+p, v)
+	dx(I(p))
+	sI(p, v)
+	sI(12, s)
 }
 func lup(x uint32) uint32 {
-	p := fns(I(8), x)
+	p := fns(I(12), x)
 	if p == 0 {
 		panic("undefined: " + X(x))
 	}
-	return rx(I(I(12) + p))
+	return rx(I(p))
 }
 func fns(x, y uint32) uint32 {
-	n := nn(x)
-	p := uint32(8)
+	n := nn(x) / 2
+	p := x + 8
 	for i := uint32(0); i < n; i++ {
-		if I(x+p) == y {
-			return p
+		if I(p) == y {
+			return p + 4
 		}
-		p += 4
+		p += 8
 	}
 	return 0
 }
