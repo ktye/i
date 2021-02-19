@@ -87,7 +87,7 @@ func J(x uint32) uint32 {
 	}
 	if x == 91 { // '['
 		T = pc(mk(0))
-		sI(s+12, ls(T))
+		sI(s+12, I(lp(T)))
 		return 0
 	}
 	if x == 93 {
@@ -124,7 +124,7 @@ func Exec(q uint32) {
 		x := I(p)
 		//fmt.Println("p", p, "l", l, "x", X(x), refcount(x), "s", X(I(4)))
 		if tail := p == l; tail && x&3 == 2 { // symbol
-			push(lup(x))
+			push(lu(x))
 			tailcall()
 		} else if tail && x == 93 { // .
 			tailcall()
@@ -141,7 +141,7 @@ func Exec(q uint32) {
 				tailcall()
 			}
 		} else if x&3 == 2 { // symbol
-			Exec(lup(x))
+			Exec(lu(x))
 		} else if x&7 != 4 { // no operator but list or number
 			push(rx(x))
 		} else if x == 740 { // } push to reg
@@ -196,7 +196,7 @@ func bk(n uint32) (r uint32) { // bucket type
 func mk(x uint32) (r uint32) { // allocate
 	t := bk(x)
 	i := 4 * t
-	m := 4 * M[0]
+	m := 4 * I(0)
 	for I(i) == 0 {
 		if i >= m {
 			panic("memory")
@@ -220,7 +220,7 @@ func rx(x uint32) uint32 {
 	}
 	return x
 }
-func dx(x uint32) uint32 {
+func dx(x uint32) {
 	if x != 0 && x&7 == 0 {
 		if I(x) == 0 {
 			panic("dx on free")
@@ -237,7 +237,6 @@ func dx(x uint32) uint32 {
 			fr(x)
 		}
 	}
-	return x
 }
 func fr(x uint32) {
 	p := 4 * bk(I(4+x))
@@ -245,24 +244,6 @@ func fr(x uint32) {
 	sI(p, x)
 }
 func nn(x uint32) uint32 { return I(4 + x) }
-func cat() { // ,
-	y := pop()
-	x := pop()
-	if x&7 != 0 {
-		x = lc(mk(0), x)
-	}
-	if y&7 != 0 {
-		x = lc(x, y)
-	} else {
-		yp := y + 8
-		for i := uint32(0); i < nn(y); i++ {
-			x = lc(x, rx(I(yp)))
-			yp += 4
-		}
-		dx(y)
-	}
-	push(x)
-}
 func lc(x uint32, y uint32) (r uint32) { // list cat (append a single element)
 	n := nn(x)
 	if n == 0 {
@@ -309,7 +290,7 @@ func pa(x uint32) (r uint32) { // parent
 		if nn(p) == 0 {
 			return p
 		}
-		l := ls(p)
+		l := I(lp(p))
 		if l == x || l == 0 || p == x {
 			return p
 		}
@@ -323,40 +304,13 @@ func lp(x uint32) uint32 {
 	}
 	return 4 + x + 4*n
 }
-func ls(x uint32) uint32 { return I(lp(x)) }
-func first(x uint32) (r uint32) {
+func fi(x uint32) (r uint32) {
 	if nn(x) == 0 {
 		panic("empty")
 	}
 	r = rx(I(x + 8))
 	dx(x)
 	return r
-}
-
-func stk() { fmt.Println("(stk) " + X(I(4))) } // !
-func swp() { // ~
-	x := pop()
-	y := pop()
-	push(x)
-	push(y)
-}
-func dup() { x := pop(); push(x); push(x) } // "
-func rol() { // |
-	a := pop()
-	b := pop()
-	c := pop()
-	push(a)
-	push(c)
-	push(b)
-}
-func cnt() { // #
-	x := pop()
-	r := uint32(0xffffffff)
-	if x&7 == 0 {
-		r = 1 + 2*nn(x)
-	}
-	push(x)
-	push(r)
 }
 func use(x uint32) uint32 {
 	if I(x) == 1 {
@@ -375,31 +329,6 @@ func use(x uint32) uint32 {
 	}
 	dx(x)
 	return r
-}
-func atx() { // [..]i@
-	i := ipo()
-	l := lpo()
-	if i < 0 || i >= int32(nn(l)) {
-		panic("atx: range")
-	}
-	push(rx(I(8 + 4*uint32(i) + l)))
-	dx(l)
-}
-func amd() { // [a]i v$ amend (set array at index i to v)
-	v := pop()
-	i := ipo()
-	a := use(lpo())
-	n := int32(nn(a))
-	if i == n {
-		a = lc(a, v)
-	} else if i < 0 || i > n {
-		panic("amd: range")
-	} else {
-		ap := 8 + a + 4*uint32(i)
-		rx(I(ap))
-		sI(ap, v)
-	}
-	push(a)
 }
 func ipo() int32 {
 	x := pop()
@@ -431,9 +360,79 @@ func pb(b bool) {
 		push(1)
 	}
 }
+func cat() { // ,
+	y := pop()
+	x := pop()
+	if x&7 != 0 {
+		x = lc(mk(0), x)
+	}
+	if y&7 != 0 {
+		x = lc(x, y)
+	} else {
+		yp := y + 8
+		for i := uint32(0); i < nn(y); i++ {
+			x = lc(x, rx(I(yp)))
+			yp += 4
+		}
+		dx(y)
+	}
+	push(x)
+}
+func stk() { fmt.Println("(stk) " + X(I(4))) } // !
+func dup() { x := pop(); push(x); push(x) }    // "
+func swp() { // ~
+	x := pop()
+	y := pop()
+	push(x)
+	push(y)
+}
+func rol() { // |
+	a := pop()
+	b := pop()
+	c := pop()
+	push(a)
+	push(c)
+	push(b)
+}
+func cnt() { // #
+	x := pop()
+	r := uint32(0xffffffff)
+	if x&7 == 0 {
+		r = 1 + 2*nn(x)
+	}
+	push(x)
+	push(r)
+}
+func amd() { // [a]i v$ amend (set array at index i to v)
+	v := pop()
+	i := ipo()
+	a := use(lpo())
+	n := int32(nn(a))
+	if i == n {
+		a = lc(a, v)
+	} else if i < 0 || i > n {
+		panic("amd: range")
+	} else {
+		ap := 8 + a + 4*uint32(i)
+		rx(I(ap))
+		sI(ap, v)
+	}
+	push(a)
+}
+
+func atx() { // [..]i@
+	i := ipo()
+	l := lpo()
+	if i < 0 || i >= int32(nn(l)) {
+		panic("atx: range")
+	}
+	push(rx(I(8 + 4*uint32(i) + l)))
+	dx(l)
+}
+
 func drp() { pop() } // x _ -- (pop)
 func asn() { // [q][s]: -- (assign)
-	y := first(lpo())
+	y := fi(lpo())
 	if y&3 != 2 {
 		panic("asn: not a symbol")
 	}
@@ -442,7 +441,7 @@ func asn() { // [q][s]: -- (assign)
 		v = lc(mk(0), v) // enlist atoms
 	}
 	s := I(12)
-	p := fns(s, y)
+	p := fn(s, y)
 	if p == 0 {
 		s = lc(s, y)
 		s = lc(s, 1)
@@ -452,14 +451,14 @@ func asn() { // [q][s]: -- (assign)
 	sI(p, v)
 	sI(12, s)
 }
-func lup(x uint32) uint32 {
-	p := fns(I(12), x)
+func lu(x uint32) uint32 {
+	p := fn(I(12), x)
 	if p == 0 {
 		panic("undefined: " + X(x))
 	}
 	return rx(I(p))
 }
-func fns(x, y uint32) uint32 {
+func fn(x, y uint32) uint32 {
 	n := nn(x) / 2
 	p := x + 8
 	for i := uint32(0); i < n; i++ {
