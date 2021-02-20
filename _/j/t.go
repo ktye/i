@@ -82,19 +82,35 @@ func refcount(x uint32) string {
 	}
 	return fmt.Sprintf("rc(%d)", rc())
 }
+func cls() {
+	s := I(4)
+	n := nn(s)
+	for i := uint32(0); i < n; i++ {
+		dx(I(s + 8 + 4*i))
+	}
+	sI(4+s, 0)
+}
 func Leak() {
 	B := make([]uint32, len(M))
 	copy(B, M)
 	defer func() { copy(M, B) }()
-	dx(M[1])
-	dx(M[3])
 
-	s := I(8)
-	dx(I(s + 8)) // I(8) contains only 1 refcounted list
-	for i := uint32(0); i < 5; i++ {
-		sI(s+8+4*i, 0)
+	blank := func(x, n uint32) {
+		sI(x+4, n)
+		p := x + 8
+		for i := uint32(0); i < n; i++ {
+			sI(p, 0)
+			p += 4
+		}
+		dx(x)
 	}
-	dx(s)
+	cls()
+	blank(M[1], sz)
+	parse := M[2]
+	root := I(parse + 8)
+	dx(root) // I(8) contains only 1 refcounted list
+	blank(parse, 5)
+	dx(M[3])
 
 	//dump(200)
 	mark()

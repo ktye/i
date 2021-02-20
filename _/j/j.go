@@ -227,15 +227,9 @@ func fr(x uint32) {
 func nn(x uint32) uint32 { return I(4 + x) }
 func lc(x uint32, y uint32) (r uint32) { // list cat (append a single element)
 	n := nn(x)
-	if n == 0 {
-		dx(x)
-		r = mk(1)
-		sI(8+r, y)
-		return r
-	}
 	if I(x) == 1 && bk(n) == bk(1+n) {
-		sI(4+pl(x), y)
-		sI(4+x, 1+I(4+x))
+		sI(8+x+4*n, y)
+		sI(4+x, 1+n)
 		return x
 	}
 	r = mk(1 + n)
@@ -448,41 +442,24 @@ func fn(x, y uint32) uint32 {
 	}
 	return 0
 }
+func push(x uint32) {
+	s := I(4)
+	n := nn(s)
+	if n == sz {
+		panic("stack overflow")
+	}
+	sI(s+4, 1+n)
+	sI(pl(s), x)
+}
 func pop() (r uint32) {
 	s := I(4)
 	n := nn(s)
 	if n == 0 {
 		panic("stack underflow")
 	}
-	if I(s) != 1 {
-		panic("stack rc")
-	}
-	p := pl(s)
 	r = I(pl(s))
-	sI(p, 0)
-	n--
-	if bk(n) == bk(1+n) {
-		sI(4+s, n)
-		return r
-	}
-	q := mk(n)
-	qp := q + 8
-	sp := s + 8
-	for i := uint32(0); i < n; i++ {
-		sI(qp, rx(I(sp)))
-		qp += 4
-		sp += 4
-	}
-	dx(s)
-	sI(4, q)
+	sI(s+4, n-1)
 	return r
-}
-func push(x uint32) {
-	s := I(4)
-	if I(s) != 1 {
-		panic("stack rc")
-	}
-	sI(4, lc(s, x))
 }
 func finit() {
 	f := func(c byte, g func()) { F[c-33] = g }
@@ -517,8 +494,8 @@ func ii(x uint32) uint32 { // ini(16): 64kB
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-	sI(4, mk(0))     // stack
-	sI(12, mk(0))    // value list
+	sI(4, mk(sz)) // stack
+	sI(4+I(4), 0)
 	s := mk(5)       // parse state
 	sI(s+8, mk(0))   // p(root list)
 	sI(s+12, I(s+8)) // t(top list)
@@ -526,5 +503,8 @@ func ii(x uint32) uint32 { // ini(16): 64kB
 	sI(s+20, 0)      // y(symbol)
 	sI(s+24, 0)      // c(comment)
 	sI(8, s)
+	sI(12, mk(0)) // value list
 	return x
 }
+
+const sz uint32 = 126

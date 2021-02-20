@@ -31,13 +31,10 @@ func TestJ(t *testing.T) {
 			t.Fatal("no )")
 		}
 		exp := string(b[i : 1+e])
-		r := runtest(t, b[:i])
-		if r != exp {
-			t.Fatalf("got %q\nexp %q\n", r, exp)
-		}
+		runtest(t, b[:i], exp)
 	}
 }
-func runtest(t *testing.T, b []byte) string {
+func runtest(t *testing.T, b []byte, exp string) {
 	for _, c := range b {
 		if J(uint32(c)) != 0 {
 			t.Fatal("early value")
@@ -49,8 +46,9 @@ func runtest(t *testing.T, b []byte) string {
 	}
 	s := X(I(4))
 	s = "(" + s[1:len(s)-1] + ")"
+	if s != exp {
+		t.Fatalf("got %q\nexp %q\n", r, exp)
+	}
 	Leak()
-	dx(I(4))
-	sI(4, mk(0))
-	return s
+	cls()
 }
