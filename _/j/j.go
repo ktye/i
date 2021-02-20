@@ -12,45 +12,28 @@ import (
 
 var M []uint32 // heap
 var F []func() // function table
-func ini() {
-	finit()
-	x := uint32(16)
-	M = make([]uint32, 1<<(x-2)) // 64kB
-	M[0] = uint32(x)
-	p := uint32(128)
-	for i := uint32(7); i < x; i++ {
-		sI(4*i, p) // free pointer
-		p *= 2
-	}
-	sI(4, mk(0))     // stack
-	sI(12, mk(0))    // value list
-	s := mk(5)       // parse state
-	sI(s+8, mk(0))   // p(root list)
-	sI(s+12, I(s+8)) // t(top list)
-	sI(s+16, 0)      // n(number)
-	sI(s+20, 0)      // y(symbol)
-	sI(s+24, 0)      // c(comment)
-	sI(8, s)
-}
 
 func J(x uint32) uint32 {
+	if M == nil {
+		return ii(x)
+	}
 	s := I(8)
-	P, T := I(s+8), I(s+12)
+	p, t := I(s+8), I(s+12)
 	if I(s+24) == 1 {
-		if x == ')' { // end comment
+		if x == ')' { // 41 end comment
 			sI(s+24, 0)
 		}
 		return 0
 	}
-	if x == '(' { // start comment
+	if x == '(' { // 40 start comment
 		sI(s+24, 1)
 		return 0
 	}
 	n := I(s + 16)
-	if x >= '0' && x <= '9' { // parse number
+	if x >= '0' && x <= '9' { // 48 57 parse number
 		x -= '0'
 		if x|n == 0 {
-			T = pc(1)
+			t = pc(1)
 			return 0
 		}
 		n *= 10
@@ -59,117 +42,115 @@ func J(x uint32) uint32 {
 		return 0
 	}
 	if n != 0 {
-		T = pc(1 | n<<1)
+		t = pc(1 | n<<1)
 		sI(s+16, 0)
 	}
 	y := I(s + 20)
-	if x >= 'a' && x <= 'z' { // parse symbol
+	if x >= 'a' && x <= 'z' { // 97 122 parse symbol
 		y *= 32
-		y += x - '`'
+		y += x - '`' // 96
 		sI(s+20, y)
 		return 0
 	}
 	if y != 0 {
-		T = pc(2 | y<<2)
+		t = pc(2 | y<<2)
 		sI(s+20, 0)
 	}
 	if x < 33 {
 		if x == 10 {
-			if T != P {
+			if t != p {
 				panic("unclosed]")
 			}
-			Exec(P)
+			Exec(p)
 			sI(s+8, mk(0))
 			sI(s+12, I(s+8))
 			return 1
 		}
 		return 0
 	}
-	if x == 91 { // '['
-		T = pc(mk(0))
-		sI(s+12, I(lp(T)))
+	if x == '[' { // 91
+		t = pc(mk(0))
+		sI(s+12, I(pl(t)))
 		return 0
 	}
-	if x == 93 {
-		T = pa(T)
-		if T == 0 {
+	if x == ']' { // 93
+		t = pa(t)
+		if t == 0 {
 			panic("parse]")
 		}
-		sI(s+12, T)
+		sI(s+12, t)
 		return 0
 	}
-	T = pc(4 | (x-33)<<3)
+	t = pc(4 | (x-33)<<3)
 	return 0
 }
-func Exec(q uint32) {
-	//fmt.Println("Exec", q, XX(q))
-	if nn(q) == 0 {
-		dx(q)
+func Exec(x uint32) {
+	if nn(x) == 0 {
+		dx(x)
 		return
 	}
-	if q&7 != 0 {
+	if x&7 != 0 {
 		panic("exec: not a quotation")
 	}
-	//fmt.Println("rc stk", I(stk), "q", I(q))
 	r := uint32(0)
-	p := q + 8
-	l := lp(q)
-	tailcall := func() { //fmt.Println("tailcall")
-		dx(q)
-		q = pop()
-		p = q + 4
-		l = lp(q)
+	p := x + 8
+	l := pl(x)
+	tc := func() { //fmt.Println("tailcall")
+		dx(x)
+		x = pop()
+		p = x + 4
+		l = pl(x)
 	}
 	for p <= l {
-		x := I(p)
-		//fmt.Println("p", p, "l", l, "x", X(x), refcount(x), "s", X(I(4)))
-		if tail := p == l; tail && x&3 == 2 { // symbol
-			push(lu(x))
-			tailcall()
-		} else if tail && x == 93 { // .
-			tailcall()
-		} else if tail && x == 127 { // ?
+		c := I(p)
+		t := p == l
+		if t && c&3 == 2 { // symbol
+			push(lu(c))
+			tc()
+		} else if t && c == 93 { // .
+			tc()
+		} else if t && c == 127 { // ?
 			e := pop()
-			t := pop()
-			if ipo() == 0 {
-				dx(t)
-				push(e)
-				tailcall()
-			} else {
+			h := pop()
+			if ipo() != 0 {
 				dx(e)
-				push(t)
-				tailcall()
+				push(h)
+				tc()
+			} else {
+				dx(h)
+				push(e)
+				tc()
 			}
-		} else if x&3 == 2 { // symbol
-			Exec(lu(x))
-		} else if x&7 != 4 { // no operator but list or number
-			push(rx(x))
-		} else if x == 740 { // } push to reg
-			t := pop()
-			r = swap(r)
-			push(t)
-			r = swap(r)
-		} else if x == 724 { // { pop from reg
-			r = swap(r)
-			t := pop()
-			r = swap(r)
-			push(t)
+		} else if c&3 == 2 { // symbol
+			Exec(lu(c))
+		} else if c&7 != 4 { // no operator but list or number
+			push(rx(c))
+		} else if c == 740 { // } push to reg
+			h := pop()
+			r = sw(r)
+			push(h)
+			r = sw(r)
+		} else if c == 724 { // { pop from reg
+			r = sw(r)
+			h := pop()
+			r = sw(r)
+			push(h)
 		} else {
 			//fmt.Println("execop", x>>3)
 			//fmt.Println(x)
-			F[x>>3]()
+			F[c>>3]()
 		}
 		p += 4
 	}
-	dx(q)
+	dx(x)
 	dx(r)
 }
-func swap(r uint32) uint32 { // swap register and stack
-	if r == 0 {
-		r = mk(0)
+func sw(x uint32) uint32 { // swap register and stack
+	if x == 0 {
+		x = mk(0)
 	}
 	s := I(4)
-	sI(4, r)
+	sI(4, x)
 	return s
 }
 func exe() { Exec(lpo()) } // [q]. exec
@@ -253,7 +234,7 @@ func lc(x uint32, y uint32) (r uint32) { // list cat (append a single element)
 		return r
 	}
 	if I(x) == 1 && bk(n) == bk(1+n) {
-		sI(4+lp(x), y)
+		sI(4+pl(x), y)
 		sI(4+x, 1+I(4+x))
 		return x
 	}
@@ -278,7 +259,7 @@ func pc(x uint32) (r uint32) { // cat to top list
 		sI(8+s, r)
 		return r
 	}
-	sI(lp(q), r)
+	sI(pl(q), r)
 	return r
 }
 func pa(x uint32) (r uint32) { // parent
@@ -290,14 +271,14 @@ func pa(x uint32) (r uint32) { // parent
 		if nn(p) == 0 {
 			return p
 		}
-		l := I(lp(p))
+		l := I(pl(p))
 		if l == x || l == 0 || p == x {
 			return p
 		}
 		p = l
 	}
 }
-func lp(x uint32) uint32 {
+func pl(x uint32) uint32 { // pointer of last element in list
 	n := nn(x)
 	if n == 0 {
 		panic("empty")
@@ -312,7 +293,7 @@ func fi(x uint32) (r uint32) {
 	dx(x)
 	return r
 }
-func use(x uint32) uint32 {
+func us(x uint32) uint32 {
 	if I(x) == 1 {
 		//fmt.Println("reuse")
 		return x
@@ -360,26 +341,9 @@ func pb(b bool) {
 		push(1)
 	}
 }
-func cat() { // ,
-	y := pop()
-	x := pop()
-	if x&7 != 0 {
-		x = lc(mk(0), x)
-	}
-	if y&7 != 0 {
-		x = lc(x, y)
-	} else {
-		yp := y + 8
-		for i := uint32(0); i < nn(y); i++ {
-			x = lc(x, rx(I(yp)))
-			yp += 4
-		}
-		dx(y)
-	}
-	push(x)
-}
 func stk() { fmt.Println("(stk) " + X(I(4))) } // !
 func dup() { x := pop(); push(x); push(x) }    // "
+func drp() { pop() }                           // x _ -- (pop)
 func swp() { // ~
 	x := pop()
 	y := pop()
@@ -406,7 +370,7 @@ func cnt() { // #
 func amd() { // [a]i v$ amend (set array at index i to v)
 	v := pop()
 	i := ipo()
-	a := use(lpo())
+	a := us(lpo())
 	n := int32(nn(a))
 	if i == n {
 		a = lc(a, v)
@@ -419,7 +383,6 @@ func amd() { // [a]i v$ amend (set array at index i to v)
 	}
 	push(a)
 }
-
 func atx() { // [..]i@
 	i := ipo()
 	l := lpo()
@@ -429,8 +392,24 @@ func atx() { // [..]i@
 	push(rx(I(8 + 4*uint32(i) + l)))
 	dx(l)
 }
-
-func drp() { pop() } // x _ -- (pop)
+func cat() { // ,
+	y := pop()
+	x := pop()
+	if x&7 != 0 {
+		x = lc(mk(0), x)
+	}
+	if y&7 != 0 {
+		x = lc(x, y)
+	} else {
+		yp := y + 8
+		for i := uint32(0); i < nn(y); i++ {
+			x = lc(x, rx(I(yp)))
+			yp += 4
+		}
+		dx(y)
+	}
+	push(x)
+}
 func asn() { // [q][s]: -- (assign)
 	y := fi(lpo())
 	if y&3 != 2 {
@@ -445,7 +424,7 @@ func asn() { // [q][s]: -- (assign)
 	if p == 0 {
 		s = lc(s, y)
 		s = lc(s, 1)
-		p = lp(s)
+		p = pl(s)
 	}
 	dx(I(p))
 	sI(p, v)
@@ -478,8 +457,8 @@ func pop() (r uint32) {
 	if I(s) != 1 {
 		panic("stack rc")
 	}
-	p := lp(s)
-	r = I(lp(s))
+	p := pl(s)
+	r = I(pl(s))
 	sI(p, 0)
 	n--
 	if bk(n) == bk(1+n) {
@@ -529,4 +508,23 @@ func finit() {
 	f('|', rol) // 91
 	f('~', swp) // 93
 }
-func init() { ini() }
+func ii(x uint32) uint32 { // ini(16): 64kB
+	finit()
+	M = make([]uint32, 1<<(x-2))
+	M[0] = uint32(x)
+	p := uint32(128)
+	for i := uint32(7); i < x; i++ {
+		sI(4*i, p) // free pointer
+		p *= 2
+	}
+	sI(4, mk(0))     // stack
+	sI(12, mk(0))    // value list
+	s := mk(5)       // parse state
+	sI(s+8, mk(0))   // p(root list)
+	sI(s+12, I(s+8)) // t(top list)
+	sI(s+16, 0)      // n(number)
+	sI(s+20, 0)      // y(symbol)
+	sI(s+24, 0)      // c(comment)
+	sI(8, s)
+	return x
+}

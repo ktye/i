@@ -8,6 +8,7 @@ import (
 )
 
 func TestJ(t *testing.T) {
+	J(16)
 	b, err := ioutil.ReadFile("t")
 	if err != nil {
 		t.Fatal(err)

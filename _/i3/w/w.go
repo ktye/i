@@ -358,10 +358,11 @@ func (p *parser) indicate(pos int, e s) expr {
 	lines := strings.Split(s, "\n")
 	for _, l := range lines {
 		if pos < len(l) {
+			sp := ""
 			if pos > 0 {
-				//pos--
+				sp = strings.Repeat(" ", pos)
 			}
-			return p.err("\n" + l + "\n" + strings.Repeat(" ", pos) + "^" + e)
+			return p.err("\n" + l + "\n" + sp + "^" + e)
 		}
 		pos -= len(l) + 1
 	}
