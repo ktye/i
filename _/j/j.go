@@ -19,61 +19,65 @@ func J(x uint32) uint32 {
 	}
 	s := I(8)
 	p, t := I(s+8), I(s+12)
-	if I(s+24) == 1 {
-		if x == ')' { // 41 end comment
+	if 1 == I(s+24) {
+		if 41 == x { // ) end comment
 			sI(s+24, 0)
 		}
 		return 0
 	}
-	if x == '(' { // 40 start comment
+	if 40 == x { // ( start comment
 		sI(s+24, 1)
 		return 0
 	}
 	n := I(s + 16)
-	if x >= '0' && x <= '9' { // 48 57 parse number
-		x -= '0'
-		if x|n == 0 {
-			t = pc(1)
+	if 47 < x { // x >= '0'
+		if 58 > x { // x <= '9' parse number
+			x -= '0'
+			if x|n == 0 {
+				t = pc(1)
+				return 0
+			}
+			n *= 10
+			n += x
+			sI(s+16, n)
 			return 0
 		}
-		n *= 10
-		n += x
-		sI(s+16, n)
-		return 0
 	}
 	if n != 0 {
 		t = pc(1 | n<<1)
 		sI(s+16, 0)
 	}
 	y := I(s + 20)
-	if x >= 'a' && x <= 'z' { // 97 122 parse symbol
-		y *= 32
-		y += x - '`' // 96
-		sI(s+20, y)
-		return 0
+	if 96 < x { // x >= 'a'
+		if 123 > x { // x <= 'z' parse symbol
+			y *= 32
+			y += x - '`' // 96
+			sI(s+20, y)
+			return 0
+		}
 	}
 	if y != 0 {
 		t = pc(2 | y<<2)
 		sI(s+20, 0)
 	}
-	if x < 33 {
-		if x == 10 {
+	if 33 > x {
+		if 10 == x {
 			if t != p {
 				panic("unclosed]")
 			}
-			Exec(p)
+			ex(p)
 			sI(s+8, mk(0))
 			sI(s+12, I(s+8))
 			return 1
 		}
 		return 0
 	}
-	if x == '[' { // 91
+	if 91 == x { // [
 		t = pc(mk(0))
 		sI(s+12, I(pl(t)))
 		return 0
 	}
-	if x == ']' { // 93
+	if 93 == x { // ]
 		t = pa(t)
 		if t == 0 {
 			panic("parse]")
@@ -84,17 +88,16 @@ func J(x uint32) uint32 {
 	t = pc(4 | (x-33)<<3)
 	return 0
 }
-func Exec(x uint32) {
-	if nn(x) == 0 {
-		dx(x)
-		return
-	}
+func ex(x uint32) {
 	if x&7 != 0 {
 		panic("exec: not a quotation")
 	}
 	r := uint32(0)
 	p := x + 8
-	l := pl(x)
+	l := x
+	if nn(x) != 0 {
+		l = pl(x)
+	}
 	tc := func() { //fmt.Println("tailcall")
 		dx(x)
 		x = pop()
@@ -122,7 +125,7 @@ func Exec(x uint32) {
 				tc()
 			}
 		} else if c&3 == 2 { // symbol
-			Exec(lu(c))
+			ex(lu(c))
 		} else if c&7 != 4 { // no operator but list or number
 			push(rx(c))
 		} else if c == 740 { // } push to reg
@@ -136,8 +139,6 @@ func Exec(x uint32) {
 			r = sw(r)
 			push(h)
 		} else {
-			//fmt.Println("execop", x>>3)
-			//fmt.Println(x)
 			F[c>>3]()
 		}
 		p += 4
@@ -153,16 +154,16 @@ func sw(x uint32) uint32 { // swap register and stack
 	sI(4, x)
 	return s
 }
-func exe() { Exec(lpo()) } // [q]. exec
+func exe() { ex(lpo()) } // [q]. exec
 func ife() { // c[t][e]?  (if c then t else e)
 	e := pop()
 	t := pop()
 	if ipo() == 0 {
 		dx(t)
-		Exec(e)
+		ex(e)
 	} else {
 		dx(e)
-		Exec(t)
+		ex(t)
 	}
 }
 func I(x uint32) uint32 { return M[x>>2] }

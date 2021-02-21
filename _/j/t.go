@@ -145,7 +145,7 @@ func mark() {
 		free(M[i], i)
 	}
 }
-func dump(n uint32) uint32 { // type: cifzsld -> 2468ace
+func Dump(n uint32) uint32 { // type: cifzsld -> 2468ace
 	fmt.Printf("%.8x ", 0)
 	for i := uint32(0); i < n; i++ {
 		x := M[i]

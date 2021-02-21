@@ -2,4 +2,4 @@ module j
 
 go 1.16
 
-require golang.org/x/tools v0.1.0 // indirect
+require github.com/go-interpreter/wagon v0.6.0 // indirect
