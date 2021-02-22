@@ -115,7 +115,7 @@ func ex(x uint32) {
 		} else if t && c == 127 { // ?
 			e := pop()
 			h := pop()
-			if ipo() != 0 {
+			if ip() != 0 {
 				dx(e)
 				push(h)
 				tc()
@@ -154,11 +154,11 @@ func sw(x uint32) uint32 { // swap register and stack
 	sI(4, x)
 	return s
 }
-func exe() { ex(lpo()) } // [q]. exec
+func exe() { ex(lp()) } // [q]. exec
 func ife() { // c[t][e]?  (if c then t else e)
 	e := pop()
 	t := pop()
-	if ipo() == 0 {
+	if ip() == 0 {
 		dx(t)
 		ex(e)
 	} else {
@@ -234,14 +234,18 @@ func lc(x uint32, y uint32) (r uint32) { // list cat (append a single element)
 		return x
 	}
 	r = mk(1 + n)
-	xp, rp := x+8, r+8
-	for i := uint32(0); i < n; i++ {
-		sI(rp, rx(I(xp)))
-		rp += 4
-		xp += 4
-	}
-	sI(rp, y)
+	sI(cp(x, r, n), y)
 	dx(x)
+	return r
+}
+func cp(x, r, n uint32) (rp uint32) {
+	x += 8
+	r += 8
+	for i := uint32(0); i < n; i++ {
+		sI(r, rx(I(x)))
+		r += 4
+		x += 4
+	}
 	return r
 }
 func pc(x uint32) (r uint32) { // cat to top list
@@ -293,41 +297,34 @@ func us(x uint32) uint32 {
 		//fmt.Println("reuse")
 		return x
 	}
-	//fmt.Println("use: new rc", I(x), X(x))
 	n := nn(x)
 	r := mk(n)
-	rp := r + 8
-	xp := x + 8
-	for i := uint32(0); i < n; i++ {
-		sI(rp, rx(I(xp)))
-		xp += 4
-		rp += 4
-	}
+	cp(x, r, n)
 	dx(x)
 	return r
 }
-func ipo() int32 {
+func ip() int32 {
 	x := pop()
 	if x&1 == 0 {
 		panic("int expected")
 	}
 	return int32(x) >> 1
 }
-func lpo() uint32 {
+func lp() uint32 {
 	x := pop()
 	if x&7 != 0 {
 		panic("list expected")
 	}
 	return x
 }
-func add()       { pi(ipo() + ipo()) }
-func sub()       { pi(-ipo() + ipo()) }
-func mul()       { pi(ipo() * ipo()) }
-func div()       { swp(); pi(ipo() / ipo()) }
-func mod()       { swp(); pi(ipo() % ipo()) }
-func eql()       { pb(ipo() == ipo()) }
-func gti()       { pb(ipo() < ipo()) }
-func lti()       { pb(ipo() > ipo()) }
+func add()       { pi(ip() + ip()) }
+func sub()       { pi(-ip() + ip()) }
+func mul()       { pi(ip() * ip()) }
+func div()       { swp(); pi(ip() / ip()) }
+func mod()       { swp(); pi(ip() % ip()) }
+func eql()       { pb(ip() == ip()) }
+func gti()       { pb(ip() < ip()) }
+func lti()       { pb(ip() > ip()) }
 func pi(i int32) { push(1 + 2*uint32(i)) }
 func pb(b bool) {
 	if b {
@@ -338,7 +335,7 @@ func pb(b bool) {
 }
 func stk() { fmt.Println("(stk) " + X(I(4))) } // !
 func dup() { x := pop(); push(x); push(x) }    // "
-func drp() { pop() }                           // x _ -- (pop)
+func drp() { dx(pop()) }                       // x _ -- (pop)
 func swp() { // ~
 	x := pop()
 	y := pop()
@@ -364,8 +361,8 @@ func cnt() { // #
 }
 func amd() { // [a]i v$ amend (set array at index i to v)
 	v := pop()
-	i := ipo()
-	a := us(lpo())
+	i := ip()
+	a := us(lp())
 	n := int32(nn(a))
 	if i == n {
 		a = lc(a, v)
@@ -379,8 +376,8 @@ func amd() { // [a]i v$ amend (set array at index i to v)
 	push(a)
 }
 func atx() { // [..]i@
-	i := ipo()
-	l := lpo()
+	i := ip()
+	l := lp()
 	if i < 0 || i >= int32(nn(l)) {
 		panic("atx: range")
 	}
@@ -406,7 +403,7 @@ func cat() { // ,
 	push(x)
 }
 func asn() { // [q][s]: -- (assign)
-	y := fi(lpo())
+	y := fi(lp())
 	if y&3 != 2 {
 		panic("asn: not a symbol")
 	}

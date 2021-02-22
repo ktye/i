@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"j/jgo"
+	"os"
 	"testing"
 
 	"github.com/go-interpreter/wagon/exec"
@@ -14,12 +15,13 @@ import (
 
 func TestJ(t *testing.T) {
 	ms := uint32(16)
-	jjj := jj{}
-	jgo := jgo.J{}
-	jwa := newWagon(t)
-	jjj.J(ms)
-	jgo.J(ms)
-	jwa.J(ms)
+	js := []jer{jj{}, jgo.J{}, newWagon(t)}
+	all := func(js []jer, x uint32) {
+		for _, j := range js {
+			j.J(x)
+		}
+	}
+	all(js, ms)
 	b, err := ioutil.ReadFile("t")
 	if err != nil {
 		t.Fatal(err)
@@ -32,7 +34,6 @@ func TestJ(t *testing.T) {
 		if string(b) == `\` {
 			break
 		}
-		fmt.Println(string(b))
 		i := bytes.IndexByte(b, '(')
 		if i < 0 {
 			t.Fatal("no (")
@@ -44,15 +45,32 @@ func TestJ(t *testing.T) {
 		in := b[:i]
 		exp := string(b[i : 1+e])
 
-		runtest(t, jjj, in, exp)
-		runtest(t, jgo, in, exp)
-		runtest(t, jwa, in, exp)
+		os.Stdout.Write(in)
+		os.Stdout.WriteString(exp)
+		for i, j := range js {
+			runtest(t, j, in, exp)
+			if i > 0 {
+				memcompare(t, js[0], js[i])
+			}
+		}
+		os.Stdout.WriteString("\n")
+	}
+}
+func memcompare(t *testing.T, aj, bj jer) {
+	a, b := aj.M(), bj.M()
+	if len(a) != len(b) {
+		t.Fatalf("memory#: %d != %d", len(a), len(b))
+	}
+	for i, u := range a {
+		if u != b[i] {
+			fmt.Println()
+			Dump(aj, 100)
+			Dump(bj, 100)
+			t.Fatalf("mem differs at %d (%x): %x %x\n", i, i, u, b[i])
+		}
 	}
 }
 func runtest(t *testing.T, j jer, b []byte, exp string) {
-	B := M
-	defer func() { M = B }()
-
 	for _, c := range b {
 		if j.J(uint32(c)) != 0 {
 			t.Fatal("early value")
@@ -62,24 +80,20 @@ func runtest(t *testing.T, j jer, b []byte, exp string) {
 	if r == 0 {
 		t.Fatal("zero")
 	}
-	M = j.M()
-	s := X(I(4))
+	m := j.M()
+	s := SX(m, m[1])
 	s = "(" + s[1:len(s)-1] + ")"
-	if s != exp {
-		t.Fatalf("got %q\nexp %q\n", r, exp)
+	if s == exp {
+		os.Stdout.WriteString(" ok")
+	} else {
+		t.Fatalf("got %q\nexp %q\n", s, exp)
 	}
-	Leak()
-	cls()
-}
-
-type jj struct{}
-
-func (o jj) J(x uint32) uint32 { return J(x) }
-func (o jj) M() []uint32       { return M }
-
-type jer interface {
-	J(x uint32) uint32
-	M() []uint32
+	n := ln(m, m[1])
+	for i := uint32(0); i < n; i++ {
+		j.J('_')
+	}
+	j.J(10)
+	Leak(j)
 }
 
 func newWagon(t *testing.T) wk {

@@ -7,7 +7,7 @@ type SI = int32
 
 var MI []I
 
-func init() { MI = make([]I, 1<<16); mt_init() }
+func init() { MI = make([]I, 1<<16>>2); mt_init() }
 
 type J struct{}
 

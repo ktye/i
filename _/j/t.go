@@ -6,6 +6,16 @@ import (
 	"strings"
 )
 
+type jj struct{}
+
+func (o jj) J(x uint32) uint32 { return J(x) }
+func (o jj) M() []uint32       { return M }
+
+type jer interface {
+	J(x uint32) uint32
+	M() []uint32
+}
+
 func XX(x uint32) string {
 	if x&7 != 0 {
 		return fmt.Sprintf("nolist(%d)", x)
@@ -30,21 +40,20 @@ func XX(x uint32) string {
 	}
 	return s
 }
-func X(x uint32) string {
-	//fmt.Printf("xx %d(%x) %b\n", x, x, x)
+func X(x uint32) string { return SX(M, x) }
+func SX(m []uint32, x uint32) string {
 	if x == 0 {
 		panic("XX0")
 	} else if x&7 == 0 {
-		n := nn(x)
+		n := ln(m, x)
 		v := make([]string, n)
 		for i := uint32(0); i < n; i++ {
-			v[i] = X(M[2+i+x>>2])
+			v[i] = SX(m, m[2+i+x>>2])
 		}
 		return "[" + strings.Join(v, " ") + "]"
 	} else if x&1 != 0 {
 		return strconv.Itoa(int(int32(x) >> 1))
 	} else if x&2 != 0 {
-		// return "<" + strconv.Itoa(int(x)) + ">"
 		return sy(x)
 	} else if x&4 != 0 {
 		return string([]byte{33 + byte(x>>3)})
@@ -52,6 +61,7 @@ func X(x uint32) string {
 	panic("XX")
 }
 
+func ln(m []uint32, x uint32) uint32 { return m[1+(x>>2)] }
 func sy(x uint32) string {
 	var b []byte
 	x >>= 2
@@ -90,10 +100,12 @@ func cls() {
 	}
 	sI(4+s, 0)
 }
-func Leak() {
-	B := make([]uint32, len(M))
-	copy(B, M)
-	defer func() { copy(M, B) }()
+func Leak(j jer) {
+	B := M
+	m := j.M()
+	M = make([]uint32, len(m))
+	copy(M, m)
+	defer func() { M = B }()
 
 	blank := func(x, n uint32) {
 		sI(x+4, n)
@@ -104,7 +116,9 @@ func Leak() {
 		}
 		dx(x)
 	}
-	cls()
+	if n := nn(M[1]); n != 0 {
+		panic("stack is not clear: #" + strconv.Itoa(int(n)))
+	}
 	blank(M[1], sz)
 	parse := M[2]
 	root := I(parse + 8)
@@ -112,13 +126,10 @@ func Leak() {
 	blank(parse, 5)
 	dx(M[3])
 
-	//dump(200)
 	mark()
-	//dump(200)
 	p := uint32(32)
 	for p < uint32(len(M)) {
 		if M[p] != 0 {
-			// fmt.Println(X(4 * p))
 			panic(fmt.Errorf("non-free block: %d(%x) rc=%d #=%d", 4*p, 4*p, M[p], M[1+p]))
 		}
 		n := uint32(1 << bk(M[1+p]))
@@ -145,10 +156,11 @@ func mark() {
 		free(M[i], i)
 	}
 }
-func Dump(n uint32) uint32 { // type: cifzsld -> 2468ace
+func Dump(j jer, n uint32) uint32 { // type: cifzsld -> 2468ace
+	m := j.M()
 	fmt.Printf("%.8x ", 0)
 	for i := uint32(0); i < n; i++ {
-		x := M[i]
+		x := m[i]
 		fmt.Printf(" %.8x", x)
 		if i > 0 && (i+1)%8 == 0 {
 			fmt.Printf("\n%.8x ", i+1)

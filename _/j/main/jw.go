@@ -25,5 +25,5 @@ func main() {
 		}
 	}
 	j.M = jg.M()
-	j.Leak()
+	j.Leak(jg)
 }
