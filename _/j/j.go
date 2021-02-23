@@ -1,10 +1,9 @@
-//  go:embed j.j
-//  var j []byte
 package j
 
 import (
 	_ "embed"
 	"fmt"
+	"j/x"
 	"math/bits"
 )
 
@@ -333,9 +332,9 @@ func pb(b bool) {
 		push(1)
 	}
 }
-func stk() { fmt.Println("(stk) " + X(I(4))) } // !
-func dup() { x := pop(); push(x); push(x) }    // "
-func drp() { dx(pop()) }                       // x _ -- (pop)
+func stk() { fmt.Println(x.X(M, I(4))) }    // !
+func dup() { x := pop(); push(x); push(x) } // "
+func drp() { dx(pop()) }                    // x _ -- (pop)
 func swp() { // ~
 	x := pop()
 	y := pop()
@@ -422,10 +421,10 @@ func asn() { // [q][s]: -- (assign)
 	sI(p, v)
 	sI(12, s)
 }
-func lu(x uint32) uint32 {
-	p := fn(I(12), x)
+func lu(y uint32) uint32 {
+	p := fn(I(12), y)
 	if p == 0 {
-		panic("undefined: " + X(x))
+		panic("undefined: " + x.X(M, y))
 	}
 	return rx(I(p))
 }

@@ -19,11 +19,11 @@ func main() {
 
 	t, e := ioutil.ReadFile("readme")
 	fatal(e)
-	fmt.Fprintf(&o, "<pre id=\"ref\">\n%s</pre>\n", string(t))
+	fmt.Fprintf(&o, "<pre id=\"ref\">\n%s</pre>\n", hs(string(t)))
 
 	t, e = ioutil.ReadFile("j.w")
 	fatal(e)
-	fmt.Fprintf(&o, "<h1 id=\"src\">j.w source of the wasm module</h1> <span style='color:blue' onclick=\"toggle('jw')\">(show/hide)</span><br/>\n<pre id='jw' style='display:none'>\n%s</pre>\n", string(t))
+	fmt.Fprintf(&o, "<h1 id=\"src\">j.w source of the wasm module</h1> <span style='color:blue' onclick=\"toggle('jw')\">(show/hide)</span><br/>\n<pre id='jw' style='display:none'>\n%s</pre>\n", hs(string(t)))
 
 	b, e := ioutil.ReadFile("t")
 	fatal(e)

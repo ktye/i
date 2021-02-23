@@ -13,5 +13,4 @@ heap memory               numeric operators (dyadic)  a       lookup symbol a an
   3     key/val list                                  c[t][e]?      (if c then t else e)
   4..32 free list         stack operators             ;  tail recurse(nyi)              
   33... data(buckets)       ~"_|  swap dup pop roll   }  pop from stack push to register
-                                                      {  pop from register push to stack
-(nyi ;print? trap? `chars` ;tail-recurse)                                               
+                               !  print stack         {  pop from register push to stack

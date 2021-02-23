@@ -2,10 +2,11 @@ set -e
 set -x
 
  w          < j.w  > j.wasm
+cp j.wasm        jwa/j.wasm
 
 echo "package jgo" > jgo/j_.go
  w -go      < j.w >> jgo/j_.go
 go fmt               jgo/*.go
 
-
-#w<j.w>j.wasm && go test && go run h.go 
+go test
+go run h.go          #writes j.html

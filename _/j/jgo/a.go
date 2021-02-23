@@ -1,6 +1,10 @@
 package jgo
 
-import "math/bits"
+import (
+	"fmt"
+	"j/x"
+	"math/bits"
+)
 
 type I = uint32
 type SI = int32
@@ -9,10 +13,17 @@ var MI []I
 
 func init() { MI = make([]I, 1<<16>>2); mt_init() }
 
-type J struct{}
+func New() interface {
+	J(x I) I
+	M() []I
+} {
+	return jJ{}
+}
 
-func (o J) J(x I) I { return j(x) }
-func (o J) M() []I  { return MI }
+type jJ struct{}
+
+func (o jJ) J(x I) I { return j(x) }
+func (o jJ) M() []I  { return MI }
 
 func n32(x I) I {
 	if x == 0 {
@@ -29,4 +40,5 @@ func i32b(x bool) I {
 	}
 }
 func clz32(x I) I { return I(bits.LeadingZeros32(x)) }
+func stk(y I)     { fmt.Println(x.X(MI, MI[1])) }
 func xxx(x I)     { panic("xxx") }

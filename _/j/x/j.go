@@ -1,54 +1,25 @@
-package j
+package x
 
 import (
 	"fmt"
+	"math/bits"
 	"strconv"
 	"strings"
 )
 
-type jj struct{}
-
-func (o jj) J(x uint32) uint32 { return J(x) }
-func (o jj) M() []uint32       { return M }
-
-type jer interface {
+type J interface {
 	J(x uint32) uint32
 	M() []uint32
 }
 
-func XX(x uint32) string {
-	if x&7 != 0 {
-		return fmt.Sprintf("nolist(%d)", x)
-	}
-	n := nn(x)
-	xp := 8 + x
-	s := ""
-	for i := uint32(0); i < n; i++ {
-		xi := I(xp)
-		if xi == 0 {
-			s += "<NULL> "
-		} else if xi&7 == 0 {
-			s += fmt.Sprintf("L(%d %d/%d) ", xi, I(xi), I(xi+4))
-		} else if xi&1 != 0 {
-			s += fmt.Sprintf("I(%d) ", xi>>1)
-		} else if xi&2 != 0 {
-			s += fmt.Sprintf("<%d> ", xi>>2)
-		} else {
-			s += fmt.Sprintf("E(%d) ", xi)
-		}
-		xp += 4
-	}
-	return s
-}
-func X(x uint32) string { return SX(M, x) }
-func SX(m []uint32, x uint32) string {
+func X(m []uint32, x uint32) string {
 	if x == 0 {
 		panic("XX0")
 	} else if x&7 == 0 {
 		n := ln(m, x)
 		v := make([]string, n)
 		for i := uint32(0); i < n; i++ {
-			v[i] = SX(m, m[2+i+x>>2])
+			v[i] = X(m, m[2+i+x>>2])
 		}
 		return "[" + strings.Join(v, " ") + "]"
 	} else if x&1 != 0 {
@@ -83,50 +54,32 @@ func reverse(b []byte) []byte {
 	}
 	return r
 }
-func refcount(x uint32) string {
-	rc := func() int {
-		if x&7 == 0 {
-			return int(I(x))
-		}
-		return -1
-	}
-	return fmt.Sprintf("rc(%d)", rc())
-}
-func cls() {
-	s := I(4)
-	n := nn(s)
-	for i := uint32(0); i < n; i++ {
-		dx(I(s + 8 + 4*i))
-	}
-	sI(4+s, 0)
-}
-func Leak(j jer) {
-	B := M
+
+func Leak(j J) {
 	m := j.M()
-	M = make([]uint32, len(m))
+	M := make([]uint32, len(m))
 	copy(M, m)
-	defer func() { M = B }()
 
 	blank := func(x, n uint32) {
-		sI(x+4, n)
+		sI(M, x+4, n)
 		p := x + 8
 		for i := uint32(0); i < n; i++ {
-			sI(p, 0)
+			sI(M, p, 0)
 			p += 4
 		}
-		dx(x)
+		dx(M, x)
 	}
-	if n := nn(M[1]); n != 0 {
+	if n := nn(M, M[1]); n != 0 {
 		panic("stack is not clear: #" + strconv.Itoa(int(n)))
 	}
-	blank(M[1], sz)
+	blank(M[1], M[0])
 	parse := M[2]
-	root := I(parse + 8)
-	dx(root) // I(8) contains only 1 refcounted list
+	root := I(M, parse+8)
+	dx(M, root) // I(8) contains only 1 refcounted list
 	blank(parse, 5)
-	dx(M[3])
+	dx(M, M[3])
 
-	mark()
+	mark(M)
 	p := uint32(32)
 	for p < uint32(len(M)) {
 		if M[p] != 0 {
@@ -136,7 +89,40 @@ func Leak(j jer) {
 		p += n >> 2
 	}
 }
-func mark() {
+func nn(m []uint32, x uint32) uint32 { return I(m, 4+x) }
+func sI(m []uint32, x, y uint32)     { m[x>>2] = y }
+func I(m []uint32, x uint32) uint32  { return m[x>>2] }
+func dx(m []uint32, x uint32) {
+	if x != 0 && x&7 == 0 {
+		if I(m, x) == 0 {
+			panic("dx on free")
+		}
+		r := I(m, x) - 1
+		sI(m, x, r)
+		if r == 0 {
+			n := I(m, x+4)
+			p := x + 8
+			for i := uint32(0); i < n; i++ {
+				dx(m, I(m, p))
+				p += 4
+			}
+			fr(m, x)
+		}
+	}
+}
+func bk(n uint32) (r uint32) {
+	r = uint32(32 - bits.LeadingZeros32(7+4*n))
+	if r < 4 {
+		return 4
+	}
+	return r
+}
+func fr(m []uint32, x uint32) {
+	p := 4 * bk(I(m, 4+x))
+	sI(m, x, I(m, p))
+	sI(m, p, x)
+}
+func mark(m []uint32) {
 	free := func(x, t uint32) {
 		for {
 			if x == 0 {
@@ -146,17 +132,17 @@ func mark() {
 			if bk(n) != t {
 				panic("mark")
 			}
-			next := I(x)
-			sI(x, 0)
-			sI(x+4, n)
+			next := I(m, x)
+			sI(m, x, 0)
+			sI(m, x+4, n)
 			x = next
 		}
 	}
 	for i := uint32(4); i < 32; i++ {
-		free(M[i], i)
+		free(m[i], i)
 	}
 }
-func Dump(j jer, n uint32) uint32 { // type: cifzsld -> 2468ace
+func Dump(j J, n uint32) uint32 { // type: cifzsld -> 2468ace
 	m := j.M()
 	fmt.Printf("%.8x ", 0)
 	for i := uint32(0); i < n; i++ {

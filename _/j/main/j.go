@@ -1,24 +1,54 @@
-// +build ignore
 package main
 
-// go build j.go
-
 import (
-	"fmt"
-	. "j"
+	"bufio"
+	"flag"
+	"j"
+	"j/jgo"
+	"j/jwa"
 	"os"
-	"strings"
 )
 
 func main() {
-	J(16)
-	// Dump(100)
-	b := []byte(strings.Join(os.Args[1:], " ") + "\n")
-	for _, c := range b {
-		r := J(uint32(c))
-		if r != 0 {
-			fmt.Println(X(M[1]))
-		}
+	var jj jer = jj{}
+	var impl string
+	var sz int
+	flag.StringVar(&impl, "j", "go", "implementation: go|jgo|jwa")
+	flag.IntVar(&sz, "sz", 16, "log2 mem size")
+	flag.Parse()
+
+	switch impl {
+	case "go":
+	case "jgo":
+		jj = jgo.New()
+	case "jwa":
+		jj = jwa.New()
+	default:
+		panic("-j flag")
 	}
-	Leak()
+
+	jj.J(uint32(sz))
+
+	p()
+	s := bufio.NewScanner(os.Stdin)
+	for s.Scan() {
+		b := []byte(s.Text())
+		for _, u := range b {
+			jj.J(uint32(u))
+		}
+		jj.J(10)
+		p()
+	}
 }
+
+func p() { os.Stdout.WriteString("j) ") }
+
+type jer interface {
+	J(x uint32) uint32
+	M() []uint32
+}
+
+type jj struct{}
+
+func (o jj) J(x uint32) uint32 { return j.J(x) }
+func (o jj) M() []uint32       { return j.M }

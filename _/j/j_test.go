@@ -2,21 +2,28 @@ package j
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"j/jgo"
+	"j/jwa"
+	"j/x"
 	"os"
 	"testing"
-
-	"github.com/go-interpreter/wagon/exec"
-	"github.com/go-interpreter/wagon/wasm"
 )
 
+type jj struct{}
+
+func (o jj) J(x uint32) uint32 { return J(x) }
+func (o jj) M() []uint32       { return M }
+
+// this tests 3 implementations:
+// jj:  native go from ./j.go
+// jgo: generated go   by w -go < j.w > jgo/j_.go
+// jwa: generated wasm by w     < j.w > jwa/j.wasm interpreted with wagon
 func TestJ(t *testing.T) {
 	ms := uint32(16)
-	js := []jer{jj{}, jgo.J{}, newWagon(t)}
-	all := func(js []jer, x uint32) {
+	js := []x.J{jj{}, jgo.New(), jwa.New()}
+	all := func(js []x.J, x uint32) {
 		for _, j := range js {
 			j.J(x)
 		}
@@ -56,7 +63,7 @@ func TestJ(t *testing.T) {
 		os.Stdout.WriteString("\n")
 	}
 }
-func memcompare(t *testing.T, aj, bj jer) {
+func memcompare(t *testing.T, aj, bj x.J) {
 	a, b := aj.M(), bj.M()
 	if len(a) != len(b) {
 		t.Fatalf("memory#: %d != %d", len(a), len(b))
@@ -64,13 +71,13 @@ func memcompare(t *testing.T, aj, bj jer) {
 	for i, u := range a {
 		if u != b[i] {
 			fmt.Println()
-			Dump(aj, 100)
-			Dump(bj, 100)
+			x.Dump(aj, 100)
+			x.Dump(bj, 100)
 			t.Fatalf("mem differs at %d (%x): %x %x\n", i, i, u, b[i])
 		}
 	}
 }
-func runtest(t *testing.T, j jer, b []byte, exp string) {
+func runtest(t *testing.T, j x.J, b []byte, exp string) {
 	for _, c := range b {
 		if j.J(uint32(c)) != 0 {
 			t.Fatal("early value")
@@ -81,7 +88,7 @@ func runtest(t *testing.T, j jer, b []byte, exp string) {
 		t.Fatal("zero")
 	}
 	m := j.M()
-	s := SX(m, m[1])
+	s := x.X(m, m[1])
 	s = "(" + s[1:len(s)-1] + ")"
 	if s == exp {
 		os.Stdout.WriteString(" ok")
@@ -93,43 +100,6 @@ func runtest(t *testing.T, j jer, b []byte, exp string) {
 		j.J('_')
 	}
 	j.J(10)
-	Leak(j)
+	x.Leak(j)
 }
-
-func newWagon(t *testing.T) wk {
-	fatal := func(e error) {
-		if e != nil {
-			t.Fatal(e)
-		}
-	}
-	b, e := ioutil.ReadFile("j.wasm")
-	fatal(e)
-	m, e := wasm.ReadModule(bytes.NewReader(b), nil)
-	fatal(e)
-	vm, e := exec.NewVM(m)
-	fatal(e)
-	return wk{m, vm}
-}
-
-type wk struct {
-	m  *wasm.Module
-	vm *exec.VM
-}
-
-func (k wk) J(a uint32) uint32 {
-	x, ok := k.m.Export.Entries["j"]
-	if !ok {
-		panic("no j")
-	}
-	res, e := k.vm.ExecCode(int64(x.Index), uint64(a))
-	if e != nil {
-		panic(e)
-	}
-	return res.(uint32)
-}
-func (k wk) M() []uint32 {
-	b := k.vm.Memory()
-	r := make([]uint32, len(b)>>2)
-	binary.Read(bytes.NewReader(b), binary.LittleEndian, &r)
-	return r
-}
+func ln(m []uint32, x uint32) uint32 { return m[1+(x>>2)] }
