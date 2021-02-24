@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"html"
 	"io/ioutil"
-	"regexp"
 	"strings"
 )
 
@@ -27,19 +26,19 @@ func main() {
 
 	b, e := ioutil.ReadFile("t")
 	fatal(e)
+	if idx := bytes.Index(b, []byte("\n\\\n")); idx > 0 {
+		b = b[:idx+1]
+	}
+	b = append(b, canvas()...)
 
-	words := regexp.MustCompile(`[a-z]+`)
 	toc := []string{"ref", "src"}
 	var te *bytes.Buffer
 	nl := []byte("\n")
 	v := bytes.Split(b, nl)
 	var id string
-	var localsyms []string
 	for _, b := range v {
 		s := string(b)
-		if s == `\` {
-			break
-		} else if strings.HasPrefix(s, "(-") {
+		if strings.HasPrefix(s, "(-") {
 			s = btrim(s)[1:]
 			id = s
 			fmt.Fprintf(&o, "<h1 id=\"%s\">%s</h1>\n ", s, s)
@@ -48,16 +47,13 @@ func main() {
 			te = bytes.NewBuffer(nil)
 		} else if strings.HasPrefix(s, "(") {
 			fmt.Fprintf(&o, "%s<br>\n", hs(btrim(s)))
+			te = bytes.NewBuffer(nil)
 		} else if s == "" {
 			if te != nil {
 				b := te.Bytes()
 				rows := bytes.Count(b, nl)
 				s := string(b)
-
-				fmt.Fprintf(&o, "</p>\n<img src='javascript:favi()' onclick='run(\"%s\")'/>\n", id)
-				fmt.Fprintf(&o, "%s\n", strings.Join(uniq(localsyms), " "))
-				fmt.Fprintf(&o, "\n<textarea rows=\"%d\" name='%s'>%s</textarea>\n<button onclick='run(\"%s\")'>run</button>", rows, id, s, id)
-				localsyms = nil
+				fmt.Fprintf(&o, "\n<textarea rows=\"%d\" name='%s'>%s</textarea>\n<br/>\n", rows, id, s)
 				te = nil
 			}
 		} else if te != nil {
@@ -67,26 +63,22 @@ func main() {
 				y := strings.LastIndex(x, "[")
 				n := strings.TrimSpace(x[y+1:])
 				v := strings.TrimSpace(x[:y])
-				v = v[1 : len(v)-2]
+				v = v[1 : len(v)-1]
 				def = append(def, struct{ name, value string }{name: n, value: v})
-			}
-			c := s
-			if idx := strings.Index(s, "("); idx != -1 {
-				c = s[:idx]
-			}
-			v := words.FindAllString(c, -1)
-			for _, sym := range v {
-				localsyms = append(localsyms, fmt.Sprintf("<a href='#%s'>%s</a>", sym, sym))
 			}
 		}
 	}
 
 	toc = append(toc, "definitions")
+	var jj bytes.Buffer
 	fmt.Fprintf(&o, "<h1 id='definitions'>definitions</h1>\n")
 	fmt.Fprintf(&o, "<table><tr><th>symbol</th><th>quotation</th></tr>\n")
 	for _, d := range def {
 		fmt.Fprintf(&o, "<tr><td id='%s'>%s</td><td>%s</tr>\n", d.name, hs(d.name), hs(d.value))
+		fmt.Fprintf(&jj, "[%s][%s]:", d.value, d.name)
 	}
+	jj.Write([]byte{32})
+	fatal(ioutil.WriteFile("j.j", jj.Bytes(), 0644))
 
 	fmt.Fprintf(&o, "<ul>\n")
 	for _, s := range toc {
@@ -97,7 +89,6 @@ func main() {
 	o.WriteString(tail)
 
 	fatal(ioutil.WriteFile("j.html", o.Bytes(), 0744))
-	//io.Copy(os.Stdout, &o)
 }
 func hs(s string) string    { return html.EscapeString(s) }
 func btrim(s string) string { return strings.TrimSuffix(strings.TrimPrefix(s, "("), ")") }
@@ -116,38 +107,89 @@ func uniq(x []string) (r []string) {
 	}
 	return r
 }
+func canvas() []byte {
+	var buf bytes.Buffer
+	buf.WriteString("(-canvas api)\n")
+	v := strings.Split(cnvapi, "\n")
+	for _, p := range v {
+		if len(p) > 0 {
+			idx := strings.Index(p, " ")
+			long := p[:idx]
+			def := p[idx+1:]
+			idx = strings.Index(def, "]")
+			sym := def[idx+1:]
+			o := "[" + fmt.Sprint([]byte(long)) + "&][" + sym + "]:"
+			buf.WriteString(o)
+			sp := strings.Repeat(" ", 87-len(o))
+			buf.WriteString(sp)
+			buf.WriteString("() (" + long + ": " + def + ")\n")
+		}
+	}
+	return buf.Bytes()
+}
 
 const head = `<head><meta charset="utf-8"><title>j</title></head>
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABSSURBVDhPY/wPBAwUACYozcDAyAjBhACaOoQBZAKCBjACbQNhXID2LgCFMb5wHgJeIARoYwAhfyMD2nqBGFdgNQA93slKB7AEhE8zCFCYnRkYAOS/HR/UGSYjAAAAAElFTkSuQmCC'>
 <style>
  html{font-family:monospace}
  pre{background:#ffffea}
- textarea{background:black;color:#cccccc;width:100%;resize:none;overflow-y:hidden}textarea:focus{color:white;}
+ textarea{background:black;color:white;width:100%;resize:none;overflow-y:hidden}
  ul{position:fixed;top:0;right:10}
- button{background:#ffffea;border:1px solid black;float:left}
  img{float:right}
  th{text-align:left;}
 </style>
 <script>
 function ge(x){return document.getElementById(x)}
 function toggle(id,e){e=ge(id);e.style.display=(e.style.display=='block')?'none':'block'}
-function favi(){var f=undefined;var l=document.getElementsByTagName("link");for(var i=0;i<l.length;i++)if(l[i].getAttribute("rel")=="icon"){f=l[i].getAttribute("href");}return f;}
-function run(x){console.log(run,x)}
 
 </script>
 <body>
 `
 const tail = `
-<script>
-var l=document.getElementsByTagName("img");for(var i=0;i<l.length;i++)l[i].src=favi();
-</script>
 </body></html>
 `
 
-/*
- html,body,textarea,input,select{margin:0;padding:0;overflow:hidden;font-family:monospace;overflow-x:hidden}
- table{position:absolute;width:100%;height:100%;border-collapse:collapse;}td{width:50%;}
- textarea{top:0;left:0;width:100%;height:100%;background:black;color:#cccccc;border:none;resize:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
- ::-webkit-scrollbar{width:0;height:0;}
- textarea:focus{color:white;}.hold{background:#666666}
-*/
+// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D
+const cnvapi = `arc [x y r sa ea]arc
+arcTo [xa ya xb yb r]arcto
+beginPath []bpath
+bezierCurveTo [cxa cya cxb cyb x y]bezito
+clearRect [x y w h]crect
+clip []clip
+closePath []cpath
+createLinearGradient [xa ya xb yb]lingrd
+createRadialGradient [xa ya ra xb yb rb]radgrd
+ellipse [x y rx ry rot sa ea]ellips
+fill []fill
+fillRect [x y w h]frect
+fillStyle [color|gradient]fstyle
+fillText [s x y]ftext
+font [name]font
+lineCap [butt|round|square]lcap
+lineDashOffset [i]ldoff
+lineJoin [bevel|round|miter]ljoin
+lineto [x y]lineto
+lineWidth [i]lwidth
+moveTo [x y]moveto
+quadraticCurveTo [cx cy x y]qcto
+rect [x y w h]rect
+resetTransform []rstra
+restore []rstore
+rotate [a]rotate
+save []save
+scale [x y]scale
+setLineDash [segments]sldash
+setTransform [a b c d e f]setra
+shadowBlur [i]shblur
+shadowColor [c]shcol
+shadowOffsetX [i]shoffx
+shadowOffsetY [i]shoffy
+stroke []stroke
+strokeRect [x y w h]srect
+strokeStyle [color|gradient]sstyle
+strokeText [s x y]stext
+textAlign [left|right|center|start|end]talign
+textBaseline [b]tbline
+transform [a b c d e f]transf
+translate [x y]transl
+`

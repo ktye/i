@@ -9,4 +9,4 @@ echo "package jgo" > jgo/j_.go
 go fmt               jgo/*.go
 
 go test
-go run h.go          #writes j.html
+go run h.go          #writes j.html, j.j

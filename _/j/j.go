@@ -421,6 +421,7 @@ func asn() { // [q][s]: -- (assign)
 	sI(p, v)
 	sI(12, s)
 }
+func drw() { dx(lp()); dx(lp()) }
 func lu(y uint32) uint32 {
 	p := fn(I(12), y)
 	if p == 0 {
@@ -466,6 +467,7 @@ func finit() {
 	f('#', cnt) // 2
 	f('$', amd) // 3
 	f('%', mod) // 4
+	f('&', drw) // 5
 	f('*', mul) // 9
 	f('+', add) // 10
 	f(',', cat) // 11

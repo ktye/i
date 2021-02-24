@@ -33,5 +33,5 @@ cnt.V:I{x:po;r:-1;xl?r:1+2*nx;px;pu r}atx.V:I{i:ip;l:lp;((i<0)+i>='nn l)?!;pu rx
 amd.V:I{v:po;i:ip;a:us lp;n:nn a;$[i~n;a:a lc v;(i<'0)+i>'n;!;(ap:8+a+4*i;x:rx I ap;ap::v)];pu a}
 cat.V:I{y:po;x:po;(7&x)?x:(mk 0)lc x;$[7&y;x:x lc y;(yp:y+8;(nn y)/(x:x lc rx I yp;yp+:4);dx y)];px}
 asn.V:I{y:fi lp;(~2~y&3)?!;v:po;(v&7)?(v:(mk 0)lc v);s:I 12;p:s fn y;(~p)?(s:s lc y;s:s lc 1;p:pl s);dx I p;p::v;12::s}
-ife.V:I{e:po;t:po;$[~ip;(dx t;ex e);(dx e;ex t)]}exe.V:I{ex lp}
-0:{stk;dup;cnt;amd;mod;xxx;xxx;xxx;xxx;mul;add;cat;sub;exe;div}25:{asn;xxx;lti;eql;gti;ife;atx}62:{drp}91:{rol;xxx;swp}
+ife.V:I{e:po;t:po;$[~ip;(dx t;ex e);(dx e;ex t)]}exe.V:I{ex lp}drw.V:I{y:lp;x:lp;x draw y;dx x;dx y}
+0:{stk;dup;cnt;amd;mod;drw;xxx;xxx;xxx;mul;add;cat;sub;exe;div}25:{asn;xxx;lti;eql;gti;ife;atx}62:{drp}91:{rol;xxx;swp}

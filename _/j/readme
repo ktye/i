@@ -1,16 +1,16 @@
-j stack language            !trace                  list operators                      
-                                                      #     length/non-list: -1         
-32-bit type system        parse                       ,     cat                         
-  ..000 list[quotation]     (comment)                []i@   index                       
-  ....1 int  x>>1           abc   symbol (max 6)     [a]i v$store       [a]"#v$ (append)
-  ...10 symbol x>>2         123   int (max 31 bit)                                      
-  ..100 operator x>>3       [..]  list/quote        assign/quote/exec                   
-                                                      [p][a]: assign [p] to symbol a    
-heap memory               numeric operators (dyadic)  a       lookup symbol a and exec  
-  0     total memory(log)    +-*/% arith              [p].    exec                      
-  1     stack                <=>   compare                                              
-  2                                                 control                             
-  3     key/val list                                  c[t][e]?      (if c then t else e)
-  4..32 free list         stack operators             ;  tail recurse(nyi)              
-  33... data(buckets)       ~"_|  swap dup pop roll   }  pop from stack push to register
-                               !  print stack         {  pop from register push to stack
+j stack language          parse                      list operators                      
+                            (comment)                  #     length/non-list: -1         
+32-bit type system          abc   symbol (max 6)       ,     cat                         
+  ..000 list[quotation]     123   int (max 31 bit)    []i@   index                       
+  ....1 int  x>>1           [..]  list/quote          [a]i v$store       [a]"#v$ (append)
+  ...10 symbol x>>2                                                                      
+  ..100 operator x>>3     numeric operators (dyadic) assign/quote/exec                   
+                             +-*/% arith               [p][a]: assign [p] to symbol a    
+heap memory                  <=>   compare             a       lookup symbol a and exec  
+  0     total memory(log)                              [p].    exec                      
+  1     stack                                                                            
+  2                       stack operators            control                             
+  3     key/val list        ~"_|  swap dup pop roll    c[t][e]?      (if c then t else e)
+  4..32 free list              !  print stack          ;  tail recurse(nyi)              
+  33... data(buckets)                                  }  pop from stack push to register
+                          unused '();\^`               {  pop from register push to stack

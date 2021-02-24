@@ -41,4 +41,5 @@ func i32b(x bool) I {
 }
 func clz32(x I) I { return I(bits.LeadingZeros32(x)) }
 func stk(y I)     { fmt.Println(x.X(MI, MI[1])) }
+func draw(x, y I) { fmt.Println("draw", x, y) }
 func xxx(x I)     { panic("xxx") }

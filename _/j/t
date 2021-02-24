@@ -14,7 +14,7 @@
 1 2<        (1)
 1 2>        (0)
 
-(stack-operators)
+(-stack-operators)
 1 2~        (2 1)   (swap/exchange)
 1"          (1 1)   (duplicate)
 1 2_        (1)     (pop/drop)
@@ -28,9 +28,11 @@
 [1][2 3],       ([1 2 3])       (two lists are merged)
 [][1 2],        ([1 2])         (this does not enlist)
 
+(set list index)
 [1 2 3]0 5$     ([5 2 3])       (set list at index 0 to 5)
 [1 2 3]3 5$     ([1 2 3 5])     (amend to # appends)
 
+(enlist and cat)
 [[]~0~$][enlist]:    ()
 [1 2]enlist          ([[1 2]])
 [enlist,][cat]:      ()
@@ -43,10 +45,10 @@
 1 1[=][2][3]ifte          (2)
 1 5[=][2][3]ifte          (3)
 
+(if)
 [[]?][if]:                ()  (if has no then clause)
 2 1[2+]if                 (4)
 2 0[3*]if                 (2)
-
 [}.{[]?][iff]:            ()  (iff expects a quotation)
 2 1 1[<][2+]iff           (2)
 2 1 2[<][3*]iff           (6)
