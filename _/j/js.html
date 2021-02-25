@@ -11,6 +11,7 @@
  #deb{position:absolute;width:60%;height:30%;right:0;bottom:0}
  
 </style>
+<script src=pako.min.js></script><!--zip/unzip url-->
 <script>
 
 var J,JJ,C,U,I,B,jj,ctx
@@ -19,7 +20,11 @@ function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return new TextDecoder("utf-8").decode(u)}
 function sy(x,u){console.log(sy,x);u=[];x>>>=2;while(x>0){u.push(96+x%32);x>>>=5};return su(new Uint8Array(u.reverse()))}
 function input(t,a,b,s){a=t.selectionStart;b=t.selectionEnd;s=t.value;return (b-a)>0?s.substring(a,b):s}
-function run(w,h){
+function surl(){window.location.hash=btoa(c1(pako.deflate(us(term.value))))}
+function gurl(x){x=window.location.hash.slice(1);try{return x?su(pako.inflate(c0(atob(x)))):''}catch(x){return''}}
+function c1(x,r,i){r='';for(i=0;i<x.length;i++)r+=chr(x[i]);return r};var chr=String.fromCharCode;
+function c0(x,r,i){r=new Uint8Array(x.length);for(i=0;i<x.length;i++)r[i]=x.charCodeAt(i);return r}
+function run(w,h){surl();
  w=cnv.clientWidth;h=cnv.clientHeight;cnv.width=w;cnv.height=h;
  jtry(us(input(term).replaceAll("\n"," ")),w,h)
  // deb.value=term.value
@@ -31,7 +36,7 @@ function jtry(u,w,h){C.set(B);asi("w",w);asi("h",h);jju(jj);
  catch(e){console.log(e);deb.value="!"}}
 function jju(u){for(var i=0;i<u.length;i++)JJ(u[i])}
 function stk(x){deb.value=X(U[1])}
-function X(x){return(x==0)?"!!":(!(x&7))?LX(x):(x&1)?(x>>1).toString():(x&2)?sy(x):(x&4)?String.fromCharCode(33+(x>>>3)):"!!!"}
+function X(x){return(x==0)?"!!":(!(x&7))?LX(x):(x&1)?(x>>1).toString():(x&2)?sy(x):(x&4)?chr(33+(x>>>3)):"!!!"}
 function LX(x,n){n=nn(x);x=2+(x>>>2);var r=new Array(n);for(var i=0;i<n;i++)r[i]=X(U[x+i]);return "["+r.join(" ")+"]"}
 function SX(x,n){n=nn(x);x=2+(x>>>2);var r=new Uint8Array(n);for(var i=0;i<n;i++)r[i]=U[x+i]>>1;return su(r)}
 function AX(x,n,u){n=nn(x);x=2+(x>>>2);var r=new Array(n);for(var i=0;i<n;i++){u=U[x+i];r[i]=(u&1)?u>>1:sy(u)};return r}
@@ -59,7 +64,8 @@ function jload(){fetch('j.j').then(r=>r.arrayBuffer()).then(u=>jj=new Uint8Array
 function msl(){var b=J.exports.mem.buffer;C=new Uint8Array(b);U=new Uint32Array(b);I=new Int32Array(b);JJ=J.exports.j;JJ(16);B=C.slice(0);jload()}
 fetch('j.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,{"ext":{"stk":stk,"draw":draw} })).then(r=>{J=r.instance;msl();})
 
-term.value=window.location.hash.slice(1)
+term.value=gurl()
 deb.value=""
 </script>
+
 </body></html>
