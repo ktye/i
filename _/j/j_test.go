@@ -71,8 +71,8 @@ func memcompare(t *testing.T, aj, bj x.J) {
 	for i, u := range a {
 		if u != b[i] {
 			fmt.Println()
-			x.Dump(aj, 100)
-			x.Dump(bj, 100)
+			x.Dump(a, 100)
+			x.Dump(b, 100)
 			t.Fatalf("mem differs at %d (%x): %x %x\n", i, i, u, b[i])
 		}
 	}
@@ -90,16 +90,20 @@ func runtest(t *testing.T, j x.J, b []byte, exp string) {
 	m := j.M()
 	s := x.X(m, m[1])
 	s = "(" + s[1:len(s)-1] + ")"
+	exp = exp[:len(exp)-1] + " [])" // add empty stack
+	if exp == "( [])" {
+		exp = "([])"
+	}
 	if s == exp {
 		os.Stdout.WriteString(" ok")
 	} else {
 		t.Fatalf("got %q\nexp %q\n", s, exp)
 	}
-	n := ln(m, m[1])
+	x.Leak(j)
+	n := ln(m, m[1]) - 1 // last is new parse list
 	for i := uint32(0); i < n; i++ {
 		j.J('_')
 	}
 	j.J(10)
-	x.Leak(j)
 }
 func ln(m []uint32, x uint32) uint32 { return m[1+(x>>2)] }

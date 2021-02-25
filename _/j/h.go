@@ -20,9 +20,13 @@ func main() {
 	fatal(e)
 	fmt.Fprintf(&o, "<pre id=\"ref\">\n%s</pre>\n", hs(string(t)))
 
+	t, e = ioutil.ReadFile("j.wasm")
+	fatal(e)
+	cnt := len(t)
+
 	t, e = ioutil.ReadFile("j.w")
 	fatal(e)
-	fmt.Fprintf(&o, "<h1 id=\"src\">j.w source of the wasm module</h1> <span style='color:blue' onclick=\"toggle('jw')\">(show/hide)</span><br/>\n<pre id='jw' style='display:none'>\n%s</pre>\n", hs(string(t)))
+	fmt.Fprintf(&o, "<h1 id=\"src\">j.w source of the wasm module</h1> <span style='color:blue' onclick=\"toggle('jw')\">(show/hide)</span><br/>\n<pre id='jw' style='display:none'>\n%s</pre>\n<code>w < j.w > j.wasm(%d byte)</code>\n", hs(string(t)), cnt)
 
 	b, e := ioutil.ReadFile("t")
 	fatal(e)

@@ -9,8 +9,8 @@ j stack language          parse                      list operators
 heap memory                  <=>   compare             a       lookup symbol a and exec  
   0     total memory(log)                              [p].    exec                      
   1     stack                                                                            
-  2                       stack operators            control                             
+  2     stack(swap)       stack operators            control                             
   3     key/val list        ~"_|  swap dup pop roll    c[t][e]?      (if c then t else e)
   4..32 free list              !  print stack          ;  tail recurse(nyi)              
-  33... data(buckets)                                  }  pop from stack push to register
-                          unused '();\^`               {  pop from register push to stack
+  33... data(buckets)                                  }  pop/push to swap stack
+                          unused ';\^`                 {  pop/push from swap stack

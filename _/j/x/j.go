@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const SZ = 126 // stack size (#elements)
+
 type J interface {
 	J(x uint32) uint32
 	M() []uint32
@@ -16,7 +18,7 @@ func X(m []uint32, x uint32) string {
 	if x == 0 {
 		panic("XX0")
 	} else if x&7 == 0 {
-		n := ln(m, x)
+		n := nn(m, x)
 		v := make([]string, n)
 		for i := uint32(0); i < n; i++ {
 			v[i] = X(m, m[2+i+x>>2])
@@ -32,7 +34,6 @@ func X(m []uint32, x uint32) string {
 	panic("XX")
 }
 
-func ln(m []uint32, x uint32) uint32 { return m[1+(x>>2)] }
 func sy(x uint32) string {
 	var b []byte
 	x >>= 2
@@ -54,38 +55,51 @@ func reverse(b []byte) []byte {
 	}
 	return r
 }
-
+func cpy(x []uint32) (r []uint32) { r = make([]uint32, len(x)); copy(r, x); return r }
 func Leak(j J) {
-	m := j.M()
-	M := make([]uint32, len(m))
-	copy(M, m)
+	m := cpy(j.M())
 
-	blank := func(x, n uint32) {
-		sI(M, x+4, n)
-		p := x + 8
+	drp := func(x uint32) {
+		n := nn(m, x)
 		for i := uint32(0); i < n; i++ {
-			sI(M, p, 0)
-			p += 4
+			dx(m, m[2+i+x>>2])
 		}
-		dx(M, x)
+		m[1+x>>2] = 0
 	}
-	if n := nn(M, M[1]); n != 0 {
-		panic("stack is not clear: #" + strconv.Itoa(int(n)))
+	cls := func(x uint32) {
+		if n := nn(m, x); n != 0 {
+			panic(fmt.Errorf("stack %d is not empty: #%d", x, n))
+		}
+		for i := uint32(0); i < SZ; i++ {
+			sI(m, x+8+4*i, 0)
+		}
+		sI(m, x+4, SZ)
+		dx(m, x)
 	}
-	blank(M[1], M[0])
-	parse := M[2]
-	root := I(M, parse+8)
-	dx(M, root) // I(8) contains only 1 refcounted list
-	blank(parse, 5)
-	dx(M, M[3])
+	drp(m[1])
+	cls(m[1])
+	cls(m[2])
 
-	mark(M)
-	p := uint32(32)
-	for p < uint32(len(M)) {
-		if M[p] != 0 {
-			panic(fmt.Errorf("non-free block: %d(%x) rc=%d #=%d", 4*p, 4*p, M[p], M[1+p]))
+	clear := func(n uint32, y uint32) {
+		x := 8 + m[3]
+		if I(m, x+8*n) != y {
+			panic("clear wrong symbol")
 		}
-		n := uint32(1 << bk(M[1+p]))
+		sI(m, x+4+8*n, 0)
+	}
+	clear(0, N)
+	clear(1, Y)
+	clear(2, C)
+	dx(m, m[3])
+
+	mark(m)
+	p := uint32(32)
+	for p < uint32(len(m)) {
+		if m[p] != 0 {
+			Dump(m, 200)
+			panic(fmt.Errorf("non-free block: %d(%x) rc=%d #=%d", p, p, m[p], m[1+p]))
+		}
+		n := uint32(1 << bk(m[1+p]))
 		p += n >> 2
 	}
 }
@@ -142,8 +156,7 @@ func mark(m []uint32) {
 		free(m[i], i)
 	}
 }
-func Dump(j J, n uint32) uint32 { // type: cifzsld -> 2468ace
-	m := j.M()
+func Dump(m []uint32, n uint32) uint32 { // type: cifzsld -> 2468ace
 	fmt.Printf("%.8x ", 0)
 	for i := uint32(0); i < n; i++ {
 		x := m[i]
@@ -157,3 +170,23 @@ func Dump(j J, n uint32) uint32 { // type: cifzsld -> 2468ace
 	fmt.Println()
 	return 0
 }
+func lu(m []uint32, y uint32) uint32 {
+	p := fn(m, I(m, 12), y)
+	if p == 0 {
+		panic("undefined: " + X(m, y))
+	}
+	return I(m, p)
+}
+func fn(m []uint32, x, y uint32) uint32 {
+	n := nn(m, x) / 2
+	p := x + 8
+	for i := uint32(0); i < n; i++ {
+		if I(m, p) == y {
+			return p + 4
+		}
+		p += 8
+	}
+	return 0
+}
+
+const N, Y, C uint32 = 110, 114, 118

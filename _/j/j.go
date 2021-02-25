@@ -4,10 +4,9 @@ import (
 	_ "embed"
 	"fmt"
 	"j/x"
+	jx "j/x"
 	"math/bits"
 )
-
-//go:generate go run h.go
 
 var M []uint32 // heap
 var F []func() // function table
@@ -16,154 +15,110 @@ func J(x uint32) uint32 {
 	if M == nil {
 		return ii(x)
 	}
-	s := I(8)
-	p, t := I(s+8), I(s+12)
-	if 1 == I(s+24) {
+	if 1 == lu(C) {
 		if 41 == x { // ) end comment
-			sI(s+24, 0)
+			as(C, 0)
 		}
 		return 0
 	}
 	if 40 == x { // ( start comment
-		sI(s+24, 1)
+		as(C, 1)
 		return 0
 	}
-	n := I(s + 16)
+	n := lu(N)
 	if 47 < x { // x >= '0'
 		if 58 > x { // x <= '9' parse number
 			x -= '0'
 			if x|n == 0 {
-				t = pc(1)
+				pc(1) // number 0
 				return 0
 			}
 			n *= 10
 			n += x
-			sI(s+16, n)
+			as(N, n)
 			return 0
 		}
 	}
 	if n != 0 {
-		t = pc(1 | n<<1)
-		sI(s+16, 0)
+		pc(1 | n<<1)
+		as(N, 0)
 	}
-	y := I(s + 20)
+	y := lu(Y)
 	if 96 < x { // x >= 'a'
 		if 123 > x { // x <= 'z' parse symbol
 			y *= 32
 			y += x - '`' // 96
-			sI(s+20, y)
+			as(Y, y)
 			return 0
 		}
 	}
 	if y != 0 {
-		t = pc(2 | y<<2)
-		sI(s+20, 0)
+		pc(2 | y<<2)
+		as(Y, 0)
 	}
 	if 33 > x {
 		if 10 == x {
-			if t != p {
-				panic("unclosed]")
-			}
-			ex(p)
-			sI(s+8, mk(0))
-			sI(s+12, I(s+8))
+			exe()
+			push(mk(0))
 			return 1
 		}
-		return 0
+	} else if 91 == x { // [
+		push(mk(0))
+	} else if 93 == x { // ]
+		pc(lp())
+	} else {
+		pc(4 | (x-33)<<3) // operator
 	}
-	if 91 == x { // [
-		t = pc(mk(0))
-		sI(s+12, I(pl(t)))
-		return 0
-	}
-	if 93 == x { // ]
-		t = pa(t)
-		if t == 0 {
-			panic("parse]")
-		}
-		sI(s+12, t)
-		return 0
-	}
-	t = pc(4 | (x-33)<<3)
 	return 0
 }
-func ex(x uint32) {
-	if x&7 != 0 {
-		panic("exec: not a quotation")
-	}
-	r := uint32(0)
+func exe() { // [q]. exec
+	x := lp()
 	p := x + 8
 	l := x
 	if nn(x) != 0 {
 		l = pl(x)
 	}
-	tc := func() { //fmt.Println("tailcall")
-		dx(x)
-		x = pop()
-		p = x + 4
-		l = pl(x)
-	}
 	for p <= l {
 		c := I(p)
-		t := p == l
-		if t && c&3 == 2 { // symbol
-			push(lu(c))
-			tc()
-		} else if t && c == 93 { // .
-			tc()
-		} else if t && c == 127 { // ?
-			e := pop()
-			h := pop()
-			if ip() != 0 {
-				dx(e)
-				push(h)
-				tc()
-			} else {
-				dx(h)
-				push(e)
-				tc()
-			}
-		} else if c&3 == 2 { // symbol
-			ex(lu(c))
-		} else if c&7 != 4 { // no operator but list or number
+		if 2 == c&3 { // symbol
+			push(rx(lu(c)))
+			exe()
+		} else if 4 != c&7 { // list or number
 			push(rx(c))
-		} else if c == 740 { // } push to reg
-			h := pop()
-			r = sw(r)
-			push(h)
-			r = sw(r)
-		} else if c == 724 { // { pop from reg
-			r = sw(r)
-			h := pop()
-			r = sw(r)
-			push(h)
+		} else if 740 == c { // } push to swap
+			pp()
+			sw()
+		} else if 724 == c { // { pop from swap
+			sw()
+			pp()
 		} else {
 			F[c>>3]()
 		}
 		p += 4
 	}
 	dx(x)
-	dx(r)
 }
-func sw(x uint32) uint32 { // swap register and stack
-	if x == 0 {
-		x = mk(0)
-	}
-	s := I(4)
-	sI(4, x)
-	return s
+func pp() {
+	t := pop()
+	sw()
+	push(t)
 }
-func exe() { ex(lp()) } // [q]. exec
+func sw() { // swap stacks
+	t := I(4)
+	sI(4, I(8))
+	sI(8, t)
+}
 func ife() { // c[t][e]?  (if c then t else e)
 	e := pop()
 	t := pop()
 	if ip() == 0 {
 		dx(t)
-		ex(e)
+		push(e)
 	} else {
 		dx(e)
-		ex(t)
+		push(t)
 	}
+	exe()
 }
 func I(x uint32) uint32 { return M[x>>2] }
 func sI(x, y uint32)    { M[x>>2] = y }
@@ -247,35 +202,7 @@ func cp(x, r, n uint32) (rp uint32) {
 	}
 	return r
 }
-func pc(x uint32) (r uint32) { // cat to top list
-	s := I(8)
-	p, t := I(8+s), I(12+s)
-	q := pa(t)
-	r = lc(t, x)
-	sI(12+s, r)
-	if t == p {
-		sI(8+s, r)
-		return r
-	}
-	sI(pl(q), r)
-	return r
-}
-func pa(x uint32) (r uint32) { // parent
-	p := I(8 + I(8))
-	for {
-		if p&7 != 0 {
-			panic("parent")
-		}
-		if nn(p) == 0 {
-			return p
-		}
-		l := I(pl(p))
-		if l == x || l == 0 || p == x {
-			return p
-		}
-		p = l
-	}
-}
+func pc(x uint32) { push(lc(lp(), x)) } // cat to top list
 func pl(x uint32) uint32 { // pointer of last element in list
 	n := nn(x)
 	if n == 0 {
@@ -410,30 +337,39 @@ func asn() { // [q][s]: -- (assign)
 	if v&7 != 0 {
 		v = lc(mk(0), v) // enlist atoms
 	}
+	p := ps(y)
+	dx(I(p))
+	sI(p, v)
+}
+func ps(x uint32) uint32 {
 	s := I(12)
-	p := fn(s, y)
+	p := fn(x)
 	if p == 0 {
-		s = lc(s, y)
+		s = lc(s, x)
 		s = lc(s, 1)
 		p = pl(s)
 	}
-	dx(I(p))
-	sI(p, v)
 	sI(12, s)
+	return p
+}
+func as(x, y uint32) { // no dx
+	p := ps(x)
+	sI(p, y)
 }
 func drw() { dx(lp()); dx(lp()) }
-func lu(y uint32) uint32 {
-	p := fn(I(12), y)
+func lu(x uint32) uint32 {
+	p := fn(x)
 	if p == 0 {
-		panic("undefined: " + x.X(M, y))
+		panic("undefined: " + jx.X(M, x))
 	}
-	return rx(I(p))
+	return I(p)
 }
-func fn(x, y uint32) uint32 {
-	n := nn(x) / 2
-	p := x + 8
+func fn(x uint32) uint32 {
+	s := I(12)
+	n := nn(s) / 2
+	p := s + 8
 	for i := uint32(0); i < n; i++ {
-		if I(p) == y {
+		if I(p) == x {
 			return p + 4
 		}
 		p += 8
@@ -443,7 +379,7 @@ func fn(x, y uint32) uint32 {
 func push(x uint32) {
 	s := I(4)
 	n := nn(s)
-	if n == sz {
+	if n == jx.SZ {
 		panic("stack overflow")
 	}
 	sI(s+4, 1+n)
@@ -493,17 +429,21 @@ func ii(x uint32) uint32 { // ini(16): 64kB
 		sI(4*i, p) // free pointer
 		p *= 2
 	}
-	sI(4, mk(sz)) // stack
+	sI(4, mk(jx.SZ)) // stack
+	sI(8, mk(jx.SZ)) // swap stack
 	sI(4+I(4), 0)
-	s := mk(5)       // parse state
-	sI(s+8, mk(0))   // p(root list)
-	sI(s+12, I(s+8)) // t(top list)
-	sI(s+16, 0)      // n(number)
-	sI(s+20, 0)      // y(symbol)
-	sI(s+24, 0)      // c(comment)
-	sI(8, s)
-	sI(12, mk(0)) // value list
+	sI(4+I(8), 0)
+	push(mk(0))
+	sI(12, mk(0)) // key/value list
+
+	// parse state is stored in hidden symbols
+	// values 110 114 118 are symbols but cannot be entered
+	as(N, 0) // number
+	as(Y, 0) // symbol
+	as(C, 0) // comment
 	return x
 }
 
-const sz uint32 = 126
+var N, Y, C uint32 = jx.N, jx.Y, jx.C // 110,114,118
+
+//const sz uint32 = 126
