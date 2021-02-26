@@ -91,6 +91,10 @@ func exe() { // [q]. exec
 		} else if 724 == c { // { pop from swap
 			sw()
 			pp()
+		} else if 212 == c {
+			if ip() != 0 { // ; recurse
+				p = x + 4
+			}
 		} else {
 			F[c>>3]()
 		}

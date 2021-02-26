@@ -5,12 +5,12 @@ j stack language          parse                      list operators
   ....1 int  x>>1           [..]  list/quote          [a]i v$store       [a]"#v$ (append)
   ...10 symbol x>>2                                                                      
   ..100 operator x>>3     numeric operators (dyadic) assign/quote/exec                   
-                             +-*/% arith               [p][a]: assign [p] to symbol a    
-heap memory                  <=>   compare             a       lookup symbol a and exec  
-  0     total memory(log)                              [p].    exec                      
-  1     stack                                                                            
-  2     stack(swap)       stack operators            control                             
-  3     key/val list        ~"_|  swap dup pop roll    c[t][e]?      (if c then t else e)
-  4..32 free list              !  print stack          ;  tail recurse(nyi)              
-  33... data(buckets)                                  }  pop/push to swap stack
-                          unused ';\^`                 {  pop/push from swap stack
+heap memory                  +-*/% arith               [p][a]: assign [p] to symbol a    
+  0     total memory(log)    <=>   compare             a       lookup symbol a and exec  
+  1     stack                                          [p].    exec                      
+  2     stack(swap)                                                                      
+  3     key/val list      stack operators            control                             
+  4..32 free list           ~"_|  swap dup pop roll    c[t][e]?      (if c then t else e)
+  33... data(buckets)          !  print stack          c;  recurse   (if c)              
+                                                       }  pop/push to swap stack         
+unused '\^`               canvas draw [arg][func]&     {  pop/push from swap stack       

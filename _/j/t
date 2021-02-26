@@ -55,6 +55,15 @@
 
 \
 (-loop)
+(recurse, while, do)
+0;                        () (recurse if 1)
+[".}"}.{{||;][while]:     () ([c][d]while: do d while c)
+5["][1-]while             (0)
+
+5["][1-] "}}"}.{{~}!.{{|;
+
+\
+(-loop)
 (loop, recurse or call)
 [ ... ][while]:      () ([c][d]while  "while c do d")
 1[5<][1+]while             (1 2 4 5)
