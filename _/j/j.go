@@ -91,10 +91,6 @@ func exe() { // [q]. exec
 		} else if 724 == c { // { pop from swap
 			sw()
 			pp()
-		} else if 212 == c {
-			if ip() != 0 { // ; recurse
-				p = x + 4
-			}
 		} else {
 			F[c>>3]()
 		}
@@ -263,9 +259,9 @@ func pb(b bool) {
 		push(1)
 	}
 }
-func stk() { fmt.Println(x.X(M, I(4))) }    // !
-func dup() { x := pop(); push(x); push(x) } // "
-func drp() { dx(pop()) }                    // x _ -- (pop)
+func stk() { fmt.Println(x.X(M, I(4)) + " -- " + x.X(M, I(8))) } // !
+func dup() { x := pop(); push(rx(x)); push(x) }                  // "
+func drp() { dx(pop()) }                                         // x _ -- (pop)
 func swp() { // ~
 	x := pop()
 	y := pop()
@@ -286,7 +282,7 @@ func cnt() { // #
 	if x&7 == 0 {
 		r = 1 + 2*nn(x)
 	}
-	push(x)
+	dx(x)
 	push(r)
 }
 func amd() { // [a]i v$ amend (set array at index i to v)

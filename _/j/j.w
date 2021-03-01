@@ -20,11 +20,11 @@ fn.I:I{s:I 12;n:(nn s)>>1;p:s+8;n/((x~I p)? :4+p;p+:8);0}lu.I:I{p:fn x;(~p)?!;I 
 ps.I:I{s:I 12;p:fn x;(~p)?(s:s lc x;s:s lc 1;p:pl s);12::s;p}as.V:II{(ps x)::y}
 po:{(pop x)}pop.I:I{x:I 4;n:nx;(~n)?!;r:I x+4*1+n;(4+x)::n-1;r}
 
-exe.V:I{x:lp;p:x+8;l:x;nx?l:pl x;(p<=l)?/(c:I p;$[2~c&3;(pu rx lu c;exe x);~4~c&7;pu rx c;740~c;x:sw pp x;724~c;x:pp sw x;212~c;ip?p:x+4;(V.c>>3)(x)];p+:4);dx x}
+exe.V:I{x:lp;p:x+8;l:x;nx?l:pl x;(p<=l)?/(c:I p;$[2~c&3;(pu rx lu c;exe x);~4~c&7;pu rx c;740~c;x:sw pp x;724~c;x:pp sw x;(V.c>>3)(x)];p+:4);dx x}
 add.V:I{pi ip+ip}sub.V:I{pi(-ip)+ip}mul.V:I{pi ip*ip}div.V:I{swp x;pi ip%ip}
 mod.V:I{swp x;pi I?ip\'ip}lti.V:I{pi ip>'ip}eql.V:I{pi ip~ip}gti.V:I{pi ip<'ip}
-dup.V:I{x:po;px;px}drp.V:I{dx po}swp.V:I{x:po;y:po;px;pu y}rol.V:I{x:po;y:po;z:po;px;pu z;pu y}
-cnt.V:I{x:po;r:-1;xl?r:1+2*nx;px;pu r}atx.V:I{i:ip;l:lp;((i<0)+i>='nn l)?!;pu rx I 8+l+4*i;dx l}
+dup.V:I{x:po;pu rx x;px}drp.V:I{dx po}swp.V:I{x:po;y:po;px;pu y}rol.V:I{x:po;y:po;z:po;px;pu z;pu y}
+cnt.V:I{x:po;r:-1;xl?r:1+2*nx;dx x;pu r}atx.V:I{i:ip;l:lp;((i<0)+i>='nn l)?!;pu rx I 8+l+4*i;dx l}
 amd.V:I{v:po;i:ip;a:us lp;n:nn a;$[i~n;a:a lc v;(i<'0)+i>'n;!;(ap:8+a+4*i;x:rx I ap;ap::v)];pu a}
 cat.V:I{y:po;x:po;(7&x)?x:(mk 0)lc x;$[7&y;x:x lc y;(yp:y+8;(nn y)/(x:x lc rx I yp;yp+:4);dx y)];px}
 asn.V:I{y:fi lp;(~2~y&3)?!;v:po;(v&7)?(v:(mk 0)lc v);p:ps y;dx I p;p::v}

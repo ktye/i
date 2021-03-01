@@ -11,6 +11,5 @@ heap memory                  +-*/% arith               [p][a]: assign [p] to sym
   2     stack(swap)                                                                      
   3     key/val list      stack operators            control                             
   4..32 free list           ~"_|  swap dup pop roll    c[t][e]?      (if c then t else e)
-  33... data(buckets)          !  print stack          c;  recurse   (if c)              
-                                                       }  pop/push to swap stack         
-unused '\^`               canvas draw [arg][func]&     {  pop/push from swap stack       
+  33... data(buckets)          !  print stack          }  pop/push to swap stack         
+unused '\^`;              canvas draw [arg][func]&     {  pop/push from swap stack       
