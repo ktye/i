@@ -1,7 +1,6 @@
 package j
 
 import (
-	_ "embed"
 	"fmt"
 	"j/x"
 	jx "j/x"

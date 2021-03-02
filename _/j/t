@@ -13,6 +13,7 @@
 3 3=        (1)
 1 2<        (1)
 1 2>        (0)
+01-0<       (1)
 
 (-stack-operators)
 1 2~        (2 1)   (swap/exchange)
@@ -57,9 +58,15 @@
 
 (-loop)
 (while)
-[{"}.{{"}~}[{{__]?][whl]: ()
-[[whl],}}whl][while]:     ()  ([c][d]while  "while c do d")
-5["][1-]while             (0)
+[}"}.{{"|}cat{cat[while],[]?][while]:  () ([C][D]while "while C do D)
+5["][1-]while                          (0)
+[}"1-}{{"|}cat{cat[times],[]?][times]: () (n[P]times do P n times)
+1 4[2*]times                           (16)
+
+(-recursion)
+(tail recursion: exec P. if true, exec T, else exec R recurse)
+[}}"}.{{"|{"}|}cat{cat{cat[tailrc],?][tailrc]: ()  ([P][T][R]tailrc)
+1["5=][10*][1+]tailrc                          (50)
 
 (-array)
 [[]~["][1-"},{]while_][ntil]:   () (til n downwards)
@@ -70,13 +77,6 @@
 [1 2 3]first                    (1)
 ["#1-@][last]:                  ()
 [1 2 3]last                     (3)
-
-(til)
-["[1-~"#,~tils][_]?][tils]:     ()
-[[]~tils][til]:                 ()
-5 til                           ([0 1 2 3 4])
-["[1-"|,~ntils][_]?][ntils]:    ()
-5 ntil                          ([4 3 2 1 0])
 
 (-each)
 (each/map: apply f to each element of A)
@@ -101,9 +101,30 @@
 
 (-extend)
 (atomic extension, vectorize)
-["#0<2*} ~"#0<}~ {{+ [each eachl eachr .]~@,][atomxt]: () ([f]atomext)
-[[+]atomxt][add]: ()
+[}"#0<2*} ~"#0<}~ {{+ [[eachd] [eachr] [eachl] [.]]~@{~.][atomx]: () ([f]atomx)
+[[+]atomx][add]:                                                  ()
+[[-]atomx][sub]:                                                  ()
+[[*]atomx][mul]:                                                  ()
+[[/]atomx][div]:                                                  ()
+[[<]atomx][lt]:                                                   ()
+[[>]atomx][gt]:                                                   ()
+[[=]atomx][eq]:                                                   ()
+[[=0=]atomx][neq]:                                                ()
+[0eq][not]:                                                       ()
+1[2 3 4]add                                                       ([3 4 5])
+
+\
+
+[}"#0<2*} ~"#0<}~ {{+ [[eachd] [eachr] [eachl] [.]]~@{~!.][atomx]:[[+]atomx][add]:1[2 3 4]add
+
+
 1[2 3 4]add ([3 4 5])
+
+aB[+]
+AB 	2bn [+]
+aB 	an 2bn [+]
+aB an2bn+	[+]
+aB p [each eachl eachr .]~@{
 
 \
 x y	"#0<2*}

@@ -7,7 +7,11 @@ import (
 	"j/jgo"
 	"j/jwa"
 	"os"
+	_ "embed"
 )
+
+//go:embed j_.j
+var lib []byte
 
 func main() {
 	var jj jer = jj{}
@@ -28,6 +32,10 @@ func main() {
 	}
 
 	jj.J(uint32(sz))
+	for _, b := range lib {
+		jj.J(uint32(b))
+	}
+	jj.J(10)
 
 	p()
 	s := bufio.NewScanner(os.Stdin)

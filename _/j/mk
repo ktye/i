@@ -10,3 +10,4 @@ go fmt               jgo/*.go
 
 go test
 go run h.go          #writes j.html, j.j
+cp j.j               main/j_.j

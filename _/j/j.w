@@ -14,7 +14,7 @@ sw.I:I{s:I 4;4::I 8;8::s;x}pp.I:I{t:po;x:sw x;pu t;x}
 lc.I:II{n:nx;(1~I x)?((bk 1+n)~bk n)?((8+x+4*n)::y;(4+x)::1+n; :x);r:mk 1+n;(cp(x;r;n))::y;dx x;r}
 cp.I:III{x+:8;y+:8;z/(y::rx I x;x+:4;y+:4);y}pc.V:I{pu lp lc x}
 pl.I:I{4+x+4*nx}fi.I:I{(~nx)?!;r:rx I x+8;dx x;r}us.I:I{(1~I x)? :x;n:nx;r:mk n;n:cp(x;r;n);dx x;r}
-ip:{(ipop x)}ipop.I:I{x:po;(~x&1)?!;I?x%'2}lp:{(lpop x)}lpop.I:I{x:po;(7&x)?!;x}
+ip:{(ipop x)}ipop.I:I{x:po;(~x&1)?!;r:x>>1;(0>'x)?r|:2147483648;r}lp:{(lpop x)}lpop.I:I{x:po;(7&x)?!;x}
 pi.V:I{pu 1+2*x}ln.I:I{p:fn x;(~p)?!;rx I p}pu.V:I{s:I 4;n:nn s;(n~sz)?!;(4+s)::1+n;(pl s)::x}px:{pu x}
 fn.I:I{s:I 12;n:(nn s)>>1;p:s+8;n/((x~I p)? :4+p;p+:8);0}lu.I:I{p:fn x;(~p)?!;I p}
 ps.I:I{s:I 12;p:fn x;(~p)?(s:s lc x;s:s lc 1;p:pl s);12::s;p}as.V:II{(ps x)::y}
