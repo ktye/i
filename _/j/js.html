@@ -14,25 +14,28 @@
 <script src=pako.min.js></script><!--zip/unzip url-->
 <script>
 
-var J,JJ,C,U,I,B,jj,ctx
+var J,JJ,C,U,I,B,jj,ctx,ani
 function ge(x){return document.getElementById(x)};
 function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return new TextDecoder("utf-8").decode(u)}
-function sy(x,u){console.log(sy,x);u=[];x>>>=2;while(x>0){u.push(96+x%32);x>>>=5};return su(new Uint8Array(u.reverse()))}
+function sy(x,u){u=[];x>>>=2;while(x>0){u.push(96+x%32);x>>>=5};return su(new Uint8Array(u.reverse()))}
+function ys(s,y,i){y=0;for(i=0;i<s.length;i++){y*=32;y+=s.charCodeAt(i)-96};return 2+4*y}
 function input(t,a,b,s){a=t.selectionStart;b=t.selectionEnd;s=t.value;return (b-a)>0?s.substring(a,b):s}
 function surl(){window.location.hash=btoa(c1(pako.deflate(us(term.value))))}
 function gurl(x){x=window.location.hash.slice(1);try{return x?su(pako.inflate(c0(atob(x)))):''}catch(x){return''}}
 function c1(x,r,i){r='';for(i=0;i<x.length;i++)r+=chr(x[i]);return r};var chr=String.fromCharCode;
 function c0(x,r,i){r=new Uint8Array(x.length);for(i=0;i<x.length;i++)r[i]=x.charCodeAt(i);return r}
-function run(w,h){surl();
+function start(w,h){surl()
  w=cnv.clientWidth;h=cnv.clientHeight;cnv.width=w;cnv.height=h;
  jtry(us(input(term).replaceAll("\n"," ")),w,h)
  // deb.value=term.value
  // 
  //ctx.fillStyle="green";ctx.fillRect(5,5,w-10,h-10);}
 }
+function stop(){window.cancelAnimationFrame(ani);run.innerText="run";run.onclick=start}
+function started(){run.innerText="stop";run.onclick=stop}
 function jtry(u,w,h){C.set(B);asi("w",w);asi("h",h);jju(jj);
- try     {jju(u);JJ(33);JJ(10);}
+ try     {jju(u);JJ(33);JJ(10);ani=window.requestAnimationFrame(animate)}
  catch(e){console.log(e);deb.value="!"}}
 function jju(u){for(var i=0;i<u.length;i++)JJ(u[i])}
 function stk(x){deb.value=X(U[1])}
@@ -42,10 +45,11 @@ function SX(x,n){n=nn(x);x=2+(x>>>2);var r=new Uint8Array(n);for(var i=0;i<n;i++
 function AX(x,n,u){n=nn(x);x=2+(x>>>2);var r=new Array(n);for(var i=0;i<n;i++){u=U[x+i];r[i]=(u&1)?u>>1:sy(u)};return r}
 function nn(x){return U[1+(x>>>2)]}
 function asi(s,v){JJ(91);jju(us((v).toString()));JJ(93);JJ(91);jju(us(s));JJ(93);JJ(58)}
-function draw(x,y){console.log("draw",x,y,nn(x),nn(y));if((0!=(x&7))||(0!=(y&7)))return;var a=AX(x);var s=SX(y);
- console.log("s",s,"a",a)
- if(typeof(ctx[s])==="function")ctx[s](...a);else ctx[s]=a
-}
+function draw(x,y){if((0!=(x&7))||(0!=(y&7)))return;var a=AX(x);var s=SX(y);
+ if(typeof(ctx[s])==="function")ctx[s](...a);else ctx[s]=a}
+function animate(t){
+ try     {JJ(102);JJ(114);JJ(97);JJ(109);JJ(101);JJ(10);ani=window.requestAnimationFrame(animate);started()}
+ catch(e){window.cancelAnimationFrame(ani)}}
 
 
 </script>
@@ -53,10 +57,10 @@ function draw(x,y){console.log("draw",x,y,nn(x),nn(y));if((0!=(x&7))||(0!=(y&7))
 
 <body>
 <textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
-<button   id="run" onclick="run()">run</button>
+<button   id="run">run</button>
 <canvas   id="cnv"></canvas>
 <textarea id="deb" class="term" wrap="off" spellcheck="false" readonly></textarea>
-<script>term=ge("term");cnv=ge("cnv");deb=ge("deb");ctx=cnv.getContext('2d')
+<script>term=ge("term");cnv=ge("cnv");deb=ge("deb");ctx=cnv.getContext('2d');run=ge("run")
 
 //var jjb;function jstr(){var r=new TextDecoder("utf-8").decode(new Uint8Array(jjb.slice(1)));jjb=[];return r}
 //JJ=function(x){jjb.push(x);J.exports.j(x)}
@@ -66,6 +70,7 @@ fetch('j.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,{"ext
 
 term.value=gurl()
 deb.value=""
+run.onclick=start
 </script>
 
 </body></html>

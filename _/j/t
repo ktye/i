@@ -99,50 +99,28 @@
 [[~]~,|~[]eachrs][eachl]:  ()
 [1 2 3]1[-]eachl           ([0 1 2])
 
+(at/index)
+[[@]eachr][at]: ()
+[2 7 8 9][0 2]at ([2 8])
+
+(take/drop/reverse)
+[til at][take]:                    ()
+[3 5 0 2]3take                     ([3 5 0])
+["#ntil at][rev]:                  ()
+[~"#ntil~|"#||-take rev at][drop]: ()
+[3 2 1 0 5]2drop                   ([1 0 5])
+
 (-extend)
 (atomic extension, vectorize)
-[}"#0<2*} ~"#0<}~ {{+ [[eachd] [eachr] [eachl] [.]]~@{~.][atomx]: () ([f]atomx)
-[[+]atomx][add]:                                                  ()
-[[-]atomx][sub]:                                                  ()
-[[*]atomx][mul]:                                                  ()
-[[/]atomx][div]:                                                  ()
-[[<]atomx][lt]:                                                   ()
-[[>]atomx][gt]:                                                   ()
-[[=]atomx][eq]:                                                   ()
-[[=0=]atomx][neq]:                                                ()
-[0eq][not]:                                                       ()
-1[2 3 4]add                                                       ([3 4 5])
-
-\
-
-[}"#0<2*} ~"#0<}~ {{+ [[eachd] [eachr] [eachl] [.]]~@{~!.][atomx]:[[+]atomx][add]:1[2 3 4]add
-
-
-1[2 3 4]add ([3 4 5])
-
-aB[+]
-AB 	2bn [+]
-aB 	an 2bn [+]
-aB an2bn+	[+]
-aB p [each eachl eachr .]~@{
-
-\
-x y	"#0<2*}
-x y 	~"#0<}~	2ny
-x y nx	{{+
-
-[}][eachd]:                   () ([a][b][f]eachd)
-[}"#til[{"}@eachd{_]][each]: () ([a][f]each) 
-[1 2 3][0-]each                 ([-1 -2 -3])
-
-0                               (0)
-01-                             (-1)
-[0@]            [first ]:       ()
-["#1-@]         [last  ]:       ()
-[[]~,]          [enlist]:       ()
-["*]            [square]:       ()
-[~;;.0=1+}]     [ifte  ]:       ()
-[[1_]ifte]      [if    ]:       ()
-[~"|~"|]        [dups  ]:       ()
-
+[}"#0<2*}~"#0<}~{{+[[eachd][eachr][eachl][.]]~@{~.][atomx]: () ([f]atomx)
+[[+]atomx][add]:                                            ()
+[[-]atomx][sub]:                                            ()
+[[*]atomx][mul]:                                            ()
+[[/]atomx][div]:                                            ()
+[[<]atomx][lt]:                                             ()
+[[>]atomx][gt]:                                             ()
+[[=]atomx][eq]:                                             ()
+[[=0=]atomx][neq]:                                          ()
+[0eq][not]:                                                 ()
+1[2 3 4]add                                                 ([3 4 5])
 
