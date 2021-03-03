@@ -81,12 +81,14 @@ func main() {
 		fmt.Fprintf(&o, "<tr><td id='%s'>%s</td><td>%s</tr>\n", d.name, hs(d.name), hs(d.value))
 		fmt.Fprintf(&jj, "[%s][%s]:", d.value, d.name)
 	}
+	fmt.Fprintf(&o, "</table>\n")
 	jj.Write([]byte{32})
 	fatal(ioutil.WriteFile("j.j", jj.Bytes(), 0644))
 
 	toc = append(toc, "examples")
+	fmt.Fprintf(&o, "<h1 id='examples'>examples</h1>\n")
 	examples := []struct{ value, url string }{
-		{"ellipse", "eJyLNjEwUABhIyA2BGIQNDYziOWK5lKIjk0qSCzJ4FJQMnEwNNA2qVNRSs3JySwoBkkVlxTlZ6dyxUanFSXmpsZaAQB9ChO+"},
+		{"ellipse", "eJyLNjEwUABhIyA2BGIQNDYziOWK5lKIjk0qSCzJ4FJQMnEw0TapU1FKzcnJLCgGyRSXFOVnp3LFRqcVJeamxloBAG5mE5E="},
 	}
 	fmt.Fprintf(&o, "<p>\n")
 	for _, e := range examples {
