@@ -110,6 +110,13 @@
 [~"#ntil~|"#||-take rev at][drop]: ()
 [3 2 1 0 5]2drop                   ([1 0 5])
 
+(over/fold, over initial)
+["#}~"}~{{<["}~"1+}@~"}.{{{overs][___]?][overs]: ()
+[~0~overs][overi]:                               ()
+1[1 2 3][+]overi                                 (7)
+[}"first~1drop{overi][over]:                     ()
+[1 2 3][+]over                                   (6)
+
 (-extend)
 (atomic extension, vectorize)
 [}"#0<2*}~"#0<}~{{+[[eachd][eachr][eachl][.]]~@{~.][atomx]: () ([f]atomx)

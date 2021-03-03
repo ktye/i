@@ -84,6 +84,16 @@ func main() {
 	jj.Write([]byte{32})
 	fatal(ioutil.WriteFile("j.j", jj.Bytes(), 0644))
 
+	toc = append(toc, "examples")
+	examples := []struct{ value, url string }{
+		{"ellipse", "eJyLNjEwUABhIyA2BGIQNDYziOWK5lKIjk0qSCzJ4FJQMnEwNNA2qVNRSs3JySwoBkkVlxTlZ6dyxUanFSXmpsZaAQB9ChO+"},
+	}
+	fmt.Fprintf(&o, "<p>\n")
+	for _, e := range examples {
+		fmt.Fprintf(&o, "<a href=\"https://ktye.github.io/js.html#%s\">%s</a>\n", e.url, hs(e.value))
+	}
+	fmt.Fprintf(&o, "<p>\n")
+
 	fmt.Fprintf(&o, "<ul>\n")
 	for _, s := range toc {
 		fmt.Fprintf(&o, "<li><a href=\"#%s\">%s</a></li>\n", s, s)

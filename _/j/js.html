@@ -25,13 +25,7 @@ function surl(){window.location.hash=btoa(c1(pako.deflate(us(term.value))))}
 function gurl(x){x=window.location.hash.slice(1);try{return x?su(pako.inflate(c0(atob(x)))):''}catch(x){return''}}
 function c1(x,r,i){r='';for(i=0;i<x.length;i++)r+=chr(x[i]);return r};var chr=String.fromCharCode;
 function c0(x,r,i){r=new Uint8Array(x.length);for(i=0;i<x.length;i++)r[i]=x.charCodeAt(i);return r}
-function start(w,h){surl()
- w=cnv.clientWidth;h=cnv.clientHeight;cnv.width=w;cnv.height=h;
- jtry(us(input(term).replaceAll("\n"," ")),w,h)
- // deb.value=term.value
- // 
- //ctx.fillStyle="green";ctx.fillRect(5,5,w-10,h-10);}
-}
+function start(w,h){surl();w=cnv.clientWidth;h=cnv.clientHeight;cnv.width=w;cnv.height=h;jtry(us(input(term).replaceAll("\n"," ")),w,h)}
 function stop(){window.cancelAnimationFrame(ani);run.innerText="run";run.onclick=start}
 function started(){run.innerText="stop";run.onclick=stop}
 function jtry(u,w,h){C.set(B);asi("w",w);asi("h",h);jju(jj);
@@ -45,8 +39,10 @@ function SX(x,n){n=nn(x);x=2+(x>>>2);var r=new Uint8Array(n);for(var i=0;i<n;i++
 function AX(x,n,u){n=nn(x);x=2+(x>>>2);var r=new Array(n);for(var i=0;i<n;i++){u=U[x+i];r[i]=(u&1)?u>>1:sy(u)};return r}
 function nn(x){return U[1+(x>>>2)]}
 function asi(s,v){JJ(91);jju(us((v).toString()));JJ(93);JJ(91);jju(us(s));JJ(93);JJ(58)}
-function draw(x,y){if((0!=(x&7))||(0!=(y&7)))return;var a=AX(x);var s=SX(y);
+function draw(x,y){if((0!=(x&7))||(0!=(y&7)))return;var a=AX(x);var s=SX(y);a=rad(s,a)
  if(typeof(ctx[s])==="function")ctx[s](...a);else ctx[s]=a}
+function rad(s,a){var r=function(...i){for(var k=0;k<i.length;k++){a[i[k]]*=Math.PI/180};return a};
+ return(s=="arc")?r(3,4):(s=="ellipse")?r(4,5,6):(s=="rotate")?r(0):a} //degree to radians (j has only ints)
 function animate(t){
  try     {JJ(102);JJ(114);JJ(97);JJ(109);JJ(101);JJ(10);ani=window.requestAnimationFrame(animate);started()}
  catch(e){window.cancelAnimationFrame(ani)}}
@@ -60,10 +56,8 @@ function animate(t){
 <button   id="run">run</button>
 <canvas   id="cnv"></canvas>
 <textarea id="deb" class="term" wrap="off" spellcheck="false" readonly></textarea>
-<script>term=ge("term");cnv=ge("cnv");deb=ge("deb");ctx=cnv.getContext('2d');run=ge("run")
 
-//var jjb;function jstr(){var r=new TextDecoder("utf-8").decode(new Uint8Array(jjb.slice(1)));jjb=[];return r}
-//JJ=function(x){jjb.push(x);J.exports.j(x)}
+<script>term=ge("term");cnv=ge("cnv");deb=ge("deb");ctx=cnv.getContext('2d');run=ge("run")
 function jload(){fetch('j.j').then(r=>r.arrayBuffer()).then(u=>jj=new Uint8Array(u))}
 function msl(){var b=J.exports.mem.buffer;C=new Uint8Array(b);U=new Uint32Array(b);I=new Int32Array(b);JJ=J.exports.j;JJ(16);B=C.slice(0);jload()}
 fetch('j.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,{"ext":{"stk":stk,"draw":draw} })).then(r=>{J=r.instance;msl();})
