@@ -88,11 +88,13 @@ func main() {
 	toc = append(toc, "examples")
 	fmt.Fprintf(&o, "<h1 id='examples'>examples</h1>\n")
 	examples := []struct{ value, url string }{
-		{"ellipse", "eJyLNjEwUABhIyA2BGIQNDYziOWK5lKIjk0qSCzJ4FJQMnEw0TapU1FKzcnJLCgGyRSXFOVnp3LFRqcVJeamxloBAG5mE5E="},
+		{"ellipse", "eJyLNjEwUABhIyA2BGIQNDYziOWKTipILMlQUDJxMNE2qVNRSs3JySwoViguKcrPTo2NTitKzE2NtQIA6qoR2Q=="},
+		{"roll", "eJx1j8EKwjAMhu99irCjdpBuVGGvEnKos8Nht0oX5s1ntzIUD90tf778fxJCaBBZkpuXAJeHkxshIE9x9RLhCajDOH/KRVK8e0XbTAsI7Qm5dwIu9TCMITBdo3CnUJECIAPf3KzMsSJ+6RTFic867zCItYZfks7mDZxt7peAxR3Q7DlyF0qgsboMLO6AfK0ugApNffj7jGlIbvLcvQGyg1bT"},
+		{"koch", "eJxFjs1Ow0AMhO9+ihEnqlK6ragQHBCnXNo3sHxwWreJSHZhu+rPpc+OE0BoZMn6xmP7ftPGncVer5bn67RtUGH2hmpazVzTakLEvAgIUrLGY8dD27XRShK+yKu7WD4HyaloMWH9QXj5R7UjZ3LjB0kny63wvtMyDgYsELD8Le/FzcG5C/aFc2PZsIf2FncYQ3wYthGvAp5Wf09R/amlwfhb7ydKIgJfoKiFPH8Y5ORdTLdNfiQ6lpw+7Bvl1Uvo"},
 	}
 	fmt.Fprintf(&o, "<p>\n")
 	for _, e := range examples {
-		fmt.Fprintf(&o, "<a href=\"https://ktye.github.io/js.html#%s\">%s</a>\n", e.url, hs(e.value))
+		fmt.Fprintf(&o, "<a href=\"/js.html#%s\">%s</a>\n", e.url, hs(e.value))
 	}
 	fmt.Fprintf(&o, "<p>\n")
 
@@ -134,7 +136,12 @@ func canvas() []byte {
 			def := p[idx+1:]
 			idx = strings.Index(def, "]")
 			sym := def[idx+1:]
-			o := "[" + fmt.Sprint([]byte(long)) + "&][" + sym + "]:"
+			e := ""
+			if idx == 1 {
+				e = "[]"
+				def = def[2:]
+			}
+			o := "[" + e + fmt.Sprint([]byte(long)) + "&][" + sym + "]:"
 			buf.WriteString(o)
 			sp := strings.Repeat(" ", 87-len(o))
 			buf.WriteString(sp)
@@ -184,7 +191,7 @@ font [name]font
 lineCap [butt|round|square]lcap
 lineDashOffset [i]ldoff
 lineJoin [bevel|round|miter]ljoin
-lineto [x y]lineto
+lineTo [x y]lineto
 lineWidth [i]lwidth
 moveTo [x y]moveto
 quadraticCurveTo [cx cy x y]qcto
