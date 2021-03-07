@@ -59,8 +59,9 @@ function animate(t){
 
 <script>term=ge("term");cnv=ge("cnv");deb=ge("deb");ctx=cnv.getContext('2d');run=ge("run")
 function jload(){fetch('j.j').then(r=>r.arrayBuffer()).then(u=>jj=new Uint8Array(u))}
-function msl(){var b=J.exports.mem.buffer;C=new Uint8Array(b);U=new Uint32Array(b);I=new Int32Array(b);JJ=J.exports.j;JJ(16);B=C.slice(0);jload()}
+function msl(b){J.exports.mem.grow(3);b=J.exports.mem.buffer;C=new Uint8Array(b);U=new Uint32Array(b);I=new Int32Array(b);JJ=J.exports.j;JJ(18);B=C.slice(0);jload()}
 fetch('j.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,{"ext":{"stk":stk,"draw":draw} })).then(r=>{J=r.instance;msl();})
+cnv.addEventListener('click', function(e){jju(us(" ["+String(e.pageX-cnv.offsetLeft)+" "+String(e.clientY)+"]click "));JJ(10)}, true)
 
 term.value=gurl()
 deb.value=""
