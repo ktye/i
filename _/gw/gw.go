@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mathetake/gasm/wasm"
+	"github.com/go-interpreter/wagon/wasm"
 )
 
 func main() {
@@ -23,35 +23,49 @@ func Go(r io.Reader, w io.Writer) {
 	fatal(e)
 	w.Write([]byte(head))
 
-	ftyps := m.SecFunctions // SecFunctions does not contain typs for imports
-	for _, i := range m.SecImports {
-		if i.Desc.Kind == 0 {
-			ftyps = append([]uint32{*i.Desc.TypeIndexPtr}, ftyps...)
+	w.Write([]byte("func init() {"))
+	var buf bytes.Buffer
+	max := 0
+	for _, e := range m.Elements.Entries {
+		off := decodeOffset(e.Offset)
+		for k, u := range e.Elems {
+			idx := k + int(off)
+			if idx > max {
+				max = idx
+			}
+			fmt.Fprintf(&buf, "F[%d]=f%d;", idx, u)
+		}
+	}
+	fmt.Fprintf(w, "F = make([]interface{}, %d);", 1+max)
+	io.Copy(w, &buf)
+	w.Write([]byte("}\n"))
+
+	ext := 0
+	for _, im := range m.Import.Entries {
+		if im.Type.Kind() == wasm.ExternalFunction {
+			extfn(ext, m, w)
+			ext++
 		}
 	}
 
-	/*
-		w.Write([]byte("func init() {\n"))
-		if m.IndexSpace == nil {
-			panic("nil-table")
-		}
-		for i, t := range m.IndexSpace.Table {
-			for j, v := range t {
-				fmt.Fprintf(w, "[%d][%d] = %v\n", i, j, v)
-			}
-		}
-	*/
-
-	w.Write([]byte("}\n"))
-
-	for i := range m.SecCodes {
-		fn(m, i, ftyps, w)
+	for i, body := range m.Code.Bodies {
+		fn(i+ext, m, body, w)
 	}
 }
 func fatal(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+func decodeOffset(b []byte) (i int32) {
+	if b[0] != 0x41 {
+		panic("offset is not a constant")
+	}
+	b = immi32(b[1:], &i)
+	if len(b) != 1 || b[0] != 0x0b {
+		panic("offset has remaining bytes")
+	}
+	return i
 }
 
 type stringer interface{ String() string }
@@ -85,7 +99,6 @@ func boolean(s stringer) string {
 	}
 }
 
-type u32const uint32
 type i32const uint32
 type i32load struct {
 	s             stringer
@@ -119,8 +132,7 @@ type icall struct {
 }
 type ret []stringer
 
-func (u u32const) String() string { return strconv.FormatUint(uint64(u), 10) }
-func (i i32const) String() string { return strconv.FormatInt(int64(i), 10) }
+func (i i32const) String() string { return "uint32(" + strconv.FormatUint(uint64(i), 10) + ")" }
 func (l i32load) String() string  { return fmt.Sprintf("i32load(%s, %d, %d)", l.s, l.align, l.offset) }
 func (l i32store) String() string {
 	return fmt.Sprintf("i32store(%s, %s, %d, %d)", l.s, l.v, l.align, l.offset)
@@ -138,7 +150,7 @@ func (i i32eqz) Bool() string   { return "(!" + boolean(i.x) + ")" }
 func (i i32clz) String() string { return "uint32(bits.LeadingZeros32(" + i.x.String() + "))" }
 func (i i32op2) String() string { return "uint32(" + i.x.String() + i.op + i.y.String() + ")" }
 func (i i32cmp) String() string { return "ub(" + i.x.String() + i.op + i.y.String() + ")" }
-func (i i32cmp) Bool() string   { return "uint32(" + i.x.String() + "==" + i.y.String() + ")" }
+func (i i32cmp) Bool() string   { return "(" + i.x.String() + i.op + i.y.String() + ")" }
 
 func (l localget) String() string { return "x" + strconv.Itoa(int(l)) }
 func (c call) String() string {
@@ -162,11 +174,14 @@ func (r ret) String() string {
 	}
 	return "return " + strings.Join(v, ", ") + "\n"
 }
-func typelist(v []wasm.ValueType, in bool) string {
+func typestr(b byte) string {
 	tp := map[byte]string{0x7f: "uint32", 0x7e: "uint64", 0x7d: "float32", 0x7c: "float64"}
+	return tp[b]
+}
+func typelist(v []wasm.ValueType, in bool) string {
 	var s []string
 	for i, t := range v {
-		u := tp[byte(t)]
+		u := typestr(byte(t))
 		if in {
 			u = "x" + strconv.Itoa(i) + " " + u
 		}
@@ -174,28 +189,33 @@ func typelist(v []wasm.ValueType, in bool) string {
 	}
 	return strings.Join(s, ", ")
 }
+func extfn(idx int, m *wasm.Module, w io.Writer) {
+	sig, e := m.GetFunctionSig(uint32(idx))
+	fatal(e)
+	fmt.Fprintf(w, "func f%d(%s) (%s) {fmt.Println(\"f%d\"); return}\n", idx, typelist(sig.ParamTypes, true), typelist(sig.ReturnTypes, false), idx)
+}
+func fn(idx int, m *wasm.Module, body wasm.FunctionBody, w io.Writer) {
+	sig, e := m.GetFunctionSig(uint32(idx))
+	fatal(e)
+	nret := len(sig.ReturnTypes)
 
-func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
-	c := m.SecCodes[idx]
-	//t := m.SecTypes[ftyps[idx]]
-	t := m.SecTypes[m.SecFunctions[idx]]
-
-	//for i, u := range m.SecTypes {
-	//	fmt.Printf("SecTypes[%d] = %v\n", i, u)
-	//}
-	//for i, u := range ftyps {
-	//	fmt.Printf("ftyps[%d] = %d\n", i, u)
-	//}
-
-	nret := len(t.ReturnTypes)
-
-	fmt.Fprintf(w, "func f%d(%s) (%s) {\n", idx, typelist(t.InputTypes, true), typelist(t.ReturnTypes, false))
-	s := stack{}
-	r := c.Body[0:]
-	locs := make(map[int32]bool)
-	for i := range t.InputTypes {
-		locs[int32(i)] = true
+	fmt.Fprintf(w, "func f%d(%s) (%s) {\n", idx, typelist(sig.ParamTypes, true), typelist(sig.ReturnTypes, false))
+	lidx := int32(len(sig.ParamTypes))
+	unused := make(map[int32]bool)
+	for _, l := range body.Locals {
+		s := ""
+		for k := uint32(0); k < l.Count; k++ {
+			if k > 0 {
+				s += ", "
+			}
+			s += "x" + strconv.Itoa(int(lidx))
+			unused[lidx] = true
+			lidx++
+		}
+		fmt.Fprintf(w, "var %s %s\n", s, typestr(byte(l.Type)))
 	}
+	s := stack{}
+	r := body.Code[0:]
 	blocks := 0
 	var labels []string
 	for len(r) > 0 {
@@ -221,12 +241,7 @@ func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
 		}
 		localset := func() (i int32) {
 			r = immi32(r[1:], &i)
-			if locs[i] == false {
-				fmt.Fprintf(w, "x%d := %s\n", i, s.pop().String())
-				locs[i] = true
-			} else {
-				fmt.Fprintf(w, "x%d = %s\n", i, s.pop().String())
-			}
+			fmt.Fprintf(w, "x%d = %s\n", i, s.pop().String())
 			return i
 		}
 
@@ -291,11 +306,10 @@ func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
 		case 0x10: // call
 			var i int32
 			r = immi32(r[1:], &i)
-			//t := ftyps[i]
-			//fmt.Println("idx", i, "t", t, m.SecTypes[t])
-			//fmt.Println("func: ", typelist(m.SecTypes[ftyps[i]].InputTypes, true))
-			t := m.SecTypes[ftyps[i]]
-			c := call{int(i), s.pops(len(t.InputTypes))}
+			t, e := m.GetFunctionSig(uint32(i))
+			fatal(e)
+
+			c := call{int(i), s.pops(len(t.ParamTypes))}
 			if nr := len(t.ReturnTypes); nr == 0 {
 				w.Write([]byte(c.String() + ";\n"))
 			} else if nr == 1 {
@@ -306,8 +320,9 @@ func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
 		case 0x11: // call indirect
 			var i int32
 			r = immi32(r[1:], &i)
-			t := m.SecTypes[ftyps[i]]
-			c := icall{int(i), t.InputTypes, t.ReturnTypes, s.pops(len(t.InputTypes))}
+			t, e := m.GetFunctionSig(uint32(i))
+			fatal(e)
+			c := icall{int(i), t.ParamTypes, t.ReturnTypes, s.pops(len(t.ParamTypes))}
 			if nr := len(t.ReturnTypes); nr == 0 {
 				w.Write([]byte(c.String() + ";\n"))
 			} else if nr == 1 {
@@ -318,6 +333,9 @@ func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
 		case 0x20: // local.get
 			var i int32
 			r = immi32(r[1:], &i)
+			if _, ok := unused[i]; ok {
+				unused[i] = false
+			}
 			s.push(localget(i))
 		case 0x21: // local.set
 			localset()
@@ -333,11 +351,10 @@ func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
 			var align, offset int32
 			r = immi32(r[1:], &align)
 			r = immi32(r, &offset)
-			s.push(i32store{s.pop(), s.pop(), align, offset})
+			w.Write([]byte(i32store{s.pop(), s.pop(), align, offset}.String() + "\n"))
 		case 0x41: // i32.const
 			var i int32
 			r = immi32(r[1:], &i)
-			//fmt.Println("const ", i)
 			s.push(i32const(i))
 		case 0x45: // i32.eqz
 			r = r[1:]
@@ -415,6 +432,11 @@ func fn(m *wasm.Module, idx int, ftyps []uint32, w io.Writer) {
 			panic(fmt.Sprintf("unknown %x\n", b))
 		}
 	}
+	for i, b := range unused {
+		if b {
+			fmt.Fprintf(w, "_ = x%d\n", i)
+		}
+	}
 	if nret > 0 {
 		s.push(ret(s.pops(nret)))
 		w.Write([]byte(s.pop().String()))
@@ -467,9 +489,16 @@ const head = `//+build ignore
 
 package main
 
+import (
+	"encoding/binary"
+	"math/bits"
+	"fmt"
+)
+
 var M []byte
 var F []interface{}
+func main() {}
 func i32load(addr, align, offset uint32) uint32 { return binary.LittleEndian.Uint32(M[addr+offset:]) }
 func i32store(addr, value, align, offset uint32) { binary.LittleEndian.PutUint32(M[addr+offset:], value) }
-
+func ub(b bool) uint32 { if b { return 1 } else { return 0 } }
 `
