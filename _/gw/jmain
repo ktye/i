@@ -1,0 +1,102 @@
+func main() {
+	F[0] = stk
+        j := f2
+        j(16)
+	for i := range jj {
+		j(uint32(jj[i]))
+	}
+	j(10)
+        var c byte
+	fmt.Printf("j) ")
+        for {
+                fmt.Scanf("%c", &c)
+                j(uint32(c))
+		if c == 10 {
+			stk(4)
+			fmt.Printf("j) ")
+		}
+        }
+}
+const jj = `[[]~0~$][enlist]:[enlist,][cat]:[}}.{{?][ifte]:[[]?][if]:[}.{[]?][iff]:[}"}.{{"|}cat{cat[while],[]?][while]:[}"1-}{{"|}cat{cat[times],[]?][times]:[}}"}.{{"|{"}|}cat{cat{cat[tailrc],?][tailrc]:[[]~["][1-"},{]while_][ntil]:[}[]["#]{,[<],["#,]while][til]:[0@][first]:["#1-@][last]:["}#~"}#<{{||][balt]:[balt["|#~"|~@|}|~"}.~"#||${~{~eachs][|__]?][eachs]:[~[]eachs][each]:[balt["}#~"}~"|@|~"}~@|~"}.{~{~{~{"#||$eachds][}___{]?][eachds]:[|[]eachds][eachd]:[balt["}#~"}~@~"}~||"}.{~{~{~{~,eachrs][}___{]?][eachrs]:[|[]eachrs][eachr]:[[~]~,|~[]eachrs][eachl]:[[@]eachr][at]:[til at][take]:["#ntil at][rev]:[~"#ntil~|"#||-take rev at][drop]:[~"#["1 drop}first ~"}${{~amend][__]?][amend]:["#}~"}~{{<["}~"1+}@~"}.{{{overs][___]?][overs]:[~0~overs][overi]:[}"first~1drop{overi][over]:[[]~0~ [~"}~[,][_]?{1+]overi_][where]:[}"#0<2*}~"#0<}~{{+[[eachd][eachr][eachl][.]]~@{~.][atomx]:[[+]atomx][add]:[[-]atomx][sub]:[[*]atomx][mul]:[[/]atomx][div]:[[<]atomx][lt]:[[>]atomx][gt]:[[=]atomx][eq]:[[=0=]atomx][neq]:[0eq][not]:[[97 114 99]&][arc]:[[97 114 99 84 111]&][arcto]:[[][98 101 103 105 110 80 97 116 104]&][bpath]:[[98 101 122 105 101 114 67 117 114 118 101 84 111]&][bezito]:[[99 108 101 97 114 82 101 99 116]&][crect]:[[][99 108 105 112]&][clip]:[[][99 108 111 115 101 80 97 116 104]&][cpath]:[[99 114 101 97 116 101 76 105 110 101 97 114 71 114 97 100 105 101 110 116]&][lingrd]:[[99 114 101 97 116 101 82 97 100 105 97 108 71 114 97 100 105 101 110 116]&][radgrd]:[[101 108 108 105 112 115 101]&][ellips]:[[][102 105 108 108]&][fill]:[[102 105 108 108 82 101 99 116]&][frect]:[[102 105 108 108 83 116 121 108 101]&][fstyle]:[[102 105 108 108 84 101 120 116]&][ftext]:[[102 111 110 116]&][font]:[[108 105 110 101 67 97 112]&][lcap]:[[108 105 110 101 68 97 115 104 79 102 102 115 101 116]&][ldoff]:[[108 105 110 101 74 111 105 110]&][ljoin]:[[108 105 110 101 84 111]&][lineto]:[[108 105 110 101 87 105 100 116 104]&][lwidth]:[[109 111 118 101 84 111]&][moveto]:[[113 117 97 100 114 97 116 105 99 67 117 114 118 101 84 111]&][qcto]:[[114 101 99 116]&][rect]:[[][114 101 115 101 116 84 114 97 110 115 102 111 114 109]&][rstra]:[[][114 101 115 116 111 114 101]&][rstore]:[[114 111 116 97 116 101]&][rotate]:[[][115 97 118 101]&][save]:[[115 99 97 108 101]&][scale]:[[115 101 116 76 105 110 101 68 97 115 104]&][sldash]:[[115 101 116 84 114 97 110 115 102 111 114 109]&][setra]:[[115 104 97 100 111 119 66 108 117 114]&][shblur]:[[115 104 97 100 111 119 67 111 108 111 114]&][shcol]:[[115 104 97 100 111 119 79 102 102 115 101 116 88]&][shoffx]:[[115 104 97 100 111 119 79 102 102 115 101 116 89]&][shoffy]:[[][115 116 114 111 107 101]&][stroke]:[[115 116 114 111 107 101 82 101 99 116]&][srect]:[[115 116 114 111 107 101 83 116 121 108 101]&][sstyle]:[[115 116 114 111 107 101 84 101 120 116]&][stext]:[[116 101 120 116 65 108 105 103 110]&][talign]:[[116 101 120 116 66 97 115 101 108 105 110 101]&][tbline]:[[116 114 97 110 115 102 111 114 109]&][transf]:[[116 114 97 110 115 108 97 116 101]&][transl]:`
+
+func mem() []uint32 {
+	m := make([]uint32, len(M) / 4)
+	for i := range m {
+		m[i] = binary.LittleEndian.Uint32(M[4*i:])
+	}
+	return m
+}
+func stk(x uint32) {
+	m := mem()
+	fmt.Println(X(m, m[1]))
+}
+func X(m []uint32, x uint32) string {
+	if x == 0 {
+		panic("XX0")
+	} else if x&7 == 0 {
+		n := nn(m, x)
+		v := make([]string, n)
+		for i := uint32(0); i < n; i++ {
+			v[i] = X(m, m[2+i+x>>2])
+		}
+		return "[" + join(v, " ") + "]"
+	} else if x&1 != 0 {
+		return fmt.Sprintf("%d", int(int32(x) >> 1))
+	} else if x&2 != 0 {
+		return sy(x)
+	} else if x&4 != 0 {
+		return string([]byte{33 + byte(x>>3)})
+	}
+	panic("XX")
+}
+
+func sy(x uint32) string {
+	var b []byte
+	x >>= 2
+	for x > 0 {
+		b = append(b, '`'+byte(x%32))
+		x >>= 5
+	}
+	return string(reverse(b))
+}
+func reverse(b []byte) []byte {
+	n := len(b)
+	r := make([]byte, n)
+	if n == 0 {
+		return r
+	}
+	n--
+	for i := 0; i < len(b); i++ {
+		r[i] = b[n-i]
+	}
+	return r
+}
+func join(v []string, sep string) (r string) {
+	for i, s := range v {
+		if i > 0 {
+			r += sep
+		}
+		r += s
+	}
+	return r
+}
+func nn(m []uint32, x uint32) uint32 { return I(m, 4+x) }
+func I(m []uint32, x uint32) uint32  { return m[x>>2] }
+
+func Dump(m []uint32, n uint32) uint32 {
+	fmt.Printf("%.8x ", 0)
+	for i := uint32(0); i < n; i++ {
+		x := m[i]
+		fmt.Printf(" %.8x", x)
+		if i > 0 && (i+1)%8 == 0 {
+			fmt.Printf("\n%.8x ", i+1)
+		} else if i > 0 && (i+1)%4 == 0 {
+			fmt.Printf(" ")
+		}
+	}
+	fmt.Println()
+	return 0
+}
+
+
+
