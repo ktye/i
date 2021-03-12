@@ -1,0 +1,4 @@
+go run gen.go > out_test.go
+w < t.w | gw > out.go
+go fmt
+go test

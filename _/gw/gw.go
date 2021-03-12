@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,7 +16,13 @@ import (
 )
 
 func main() {
-	b, e := ioutil.ReadFile(os.Args[1])
+	var b []byte
+	var e error
+	if len(os.Args) == 1 {
+		b, e = ioutil.ReadAll(os.Stdin)
+	} else {
+		b, e = ioutil.ReadFile(os.Args[1])
+	}
 	fatal(e)
 	Go(bytes.NewReader(b), os.Stdout)
 }
@@ -30,7 +37,7 @@ func Go(r io.Reader, w io.Writer) {
 	initMemory(m, w)
 	w.Write([]byte("}\n"))
 
-	ext := writeImports(m, w)
+	ext := countImports(m, w)
 
 	for i, body := range m.Code.Bodies {
 		fn(i+ext, m, body, w)
@@ -52,38 +59,49 @@ func decodeOffset(b []byte) (i int32) {
 	return i
 }
 func initFuncTable(m *wasm.Module, w io.Writer) {
-	var buf bytes.Buffer
-	max := 0
-	for _, e := range m.Elements.Entries {
-		off := decodeOffset(e.Offset)
-		for k, u := range e.Elems {
-			idx := k + int(off)
-			if idx > max {
-				max = idx
+	if m.Elements != nil {
+		var buf bytes.Buffer
+		max := 0
+		for _, e := range m.Elements.Entries {
+			off := decodeOffset(e.Offset)
+			for k, u := range e.Elems {
+				idx := k + int(off)
+				if idx > max {
+					max = idx
+				}
+				fmt.Fprintf(&buf, "F[%d]=f%d;", idx, u)
 			}
-			fmt.Fprintf(&buf, "F[%d]=f%d;", idx, u)
 		}
+		fmt.Fprintf(w, "F = make([]interface{}, %d);", 1+max)
+		io.Copy(w, &buf)
 	}
-	fmt.Fprintf(w, "F = make([]interface{}, %d);", 1+max)
-	io.Copy(w, &buf)
 }
 func initMemory(m *wasm.Module, w io.Writer) {
 	if m.Memory == nil {
 		fmt.Fprintf(w, "M = make([]byte, 64 * 1024)\n")
-		return
+	} else {
+		if n := len(m.Memory.Entries); n != 1 {
+			panic(fmt.Errorf("number of memory entries: %d (not 1)", n))
+		}
+		n := m.Memory.Entries[0].Limits.Initial
+		fmt.Fprintf(w, "M = make([]byte, 64 * 1024 * %d)\n", n)
 	}
-	if n := len(m.Memory.Entries); n != 1 {
-		panic(fmt.Errorf("number of memory entries: %d (not 1)", n))
+	if m.Data != nil {
+		for _, e := range m.Data.Entries {
+			if e.Index != 0 {
+				panic("data section memory index != 0")
+			}
+			off := decodeOffset(e.Offset)
+			fmt.Fprintf(w, "initData(%d, %q)\n", off, hex.EncodeToString(e.Data))
+		}
 	}
-	n := m.Memory.Entries[0].Limits.Initial
-	fmt.Fprintf(w, "M = make([]byte, 64 * 1024 * %d)\n", n)
 }
-func writeImports(m *wasm.Module, w io.Writer) int {
+func countImports(m *wasm.Module, w io.Writer) int {
 	ext := 0
 	if m.Import != nil {
 		for _, im := range m.Import.Entries {
 			if im.Type.Kind() == wasm.ExternalFunction {
-				extfn(ext, m, w)
+				//extfn(ext, m, w)
 				ext++
 			}
 		}
@@ -871,11 +889,11 @@ func immi64(r []byte, i *int64) []byte {
 	return r[num-1:]
 }
 
-const head = `//+build ignore
-
+const head = `
 package main
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"math"
 	"math/bits"
 	"fmt"
@@ -910,4 +928,6 @@ func lf32(addr, align, offset uint32) float32 { return math.Float32frombits(li32
 func lf64(addr, align, offset uint32) float64 { return math.Float64frombits(li64u64(addr, align, offset)) }
 
 func ub(b bool) uint32 { if b { return 1 } else { return 0 } }
+func initData(off int, b string) { hex.Decode(M[off:], []byte(b)) }
+func dummy__(){ fmt.Println(bits.LeadingZeros32(16)) } // import fmt,bits
 `
