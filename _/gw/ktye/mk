@@ -1,0 +1,7 @@
+set -e
+set -x
+w < ../../i3/k.w | gw | gofmt > k_.go
+go build
+
+# func names: w -fout < ../../i3/k.w
+# f152 is fxp

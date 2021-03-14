@@ -52,10 +52,11 @@ var alin = map[T]c{C: 0, I: 2, J: 3, F: 3}
 
 func main() {
 	var stdin io.Reader = os.Stdin
-	var cout, kout, gout bool
+	var cout, kout, gout, fout bool
 	flag.BoolVar(&cout, "c", false, "c output")
 	flag.BoolVar(&kout, "k", false, "k output")
 	flag.BoolVar(&gout, "go", false, "go output")
+	flag.BoolVar(&fout, "fout", false, "list function names")
 	flag.Parse()
 	m, tab, data := run(stdin)
 	if cout {
@@ -64,6 +65,8 @@ func main() {
 		os.Stdout.Write(m.kout(tab, data))
 	} else if gout {
 		os.Stdout.Write(m.gout(tab, data))
+	} else if fout {
+		m.fout()
 	} else {
 		os.Stdout.Write(m.wasm(tab, data))
 	}
@@ -1825,6 +1828,13 @@ func init() {
 		for s := range t {
 			allops[s] = true
 		}
+	}
+}
+
+// list function names
+func (m module) fout() {
+	for i, f := range m {
+		fmt.Println(i, f.name)
 	}
 }
 
