@@ -3,7 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math/big"
+	"math"
+	"math/cmplx"
 	"os"
 	"strconv"
 	"time"
@@ -19,59 +20,65 @@ const (
 	NW             // 64 nonwhite    33..126
 )
 
-func pUint(b []byte) (int, []byte) {
-	a := 0
-	i := 0
-	for i < len(b) {
-		if is(b[i], NM) == false {
-			if i == 0 {
-				return -1, b
-			} else {
-				break
+// 1 → 1
+// 0.0 → 0
+// 0. → 0
+// .0 → 0
+func pFloat(b []byte) (A, []byte) {
+	if n := sFloat(b); n > 0 {
+		f, _ := strconv.ParseFloat(string(b[:n]), 64)
+		return f, b[n:]
+	}
+	return nil, b
+}
+
+// 1a30 → (0.8660254037844387+0.49999999999999994i)
+func pComplex(b []byte) (A, []byte) {
+	f, b := pFloat(b)
+	if f == nil {
+		return nil, b
+	}
+	r := f.(float64)
+	a := 0.0
+	if len(b) > 0 && b[0] == 'a' {
+		b = b[1:]
+		if len(b) > 0 {
+			f, b = pFloat(b)
+			if f != nil {
+				a = f.(float64)
 			}
 		}
-		a *= 10
-		a += int(b[i] - '0')
-		i++
 	}
-	return a, b[i:]
+	return cmplx.Rect(r, math.Pi*a/180.0), b
 }
-func pInt(b []byte) (A, []byte) { // atom -3 234
-	neg := 1
-	if b[0] == '-' && len(b) > 1 {
-		neg = -1
-		b = b[1:]
+func pTime(b []byte) (A, []byte) {
+	if len(b) > 1 && b[0] == '0' && b[1] == 'T' {
+		return time.Time{}, b[2:]
 	}
-	if u, r := pUint(b); u >= 0 {
-		return Int(neg * u), r
+	if len(b) < 19 {
+		return nil, b
 	}
-	return nil, b
-}
-func pFloat(b []byte) (A, []byte) {
-	if n, ok := sFloat(b); ok {
-		f, _ := strconv.ParseFloat(string(b[:n]), 64)
-		return Float(f), b[n:]
-	}
-	return nil, b
-}
-func pBigInt(b []byte) (A, []byte) {
-	for i := range b {
-		if b[i] == 'i' {
-			var u big.Int
-			u.SetString(string(b[:i]), 10)
-			return &Big{Int: &u}, b[1+i:]
+	t := 10
+	if b[19] == '.' {
+		for i := 20; i < len(b); i++ {
+			if !is(b[i], NM) {
+				break
+			}
+			t = i
 		}
 	}
-	return nil, b
+	d, e := time.Parse("2006.01.02T15:14:05", string(b[:t]))
+	if e != nil {
+		panic(e)
+	}
+	return d, b[:t]
 }
-func pBigFloat(b []byte) (A, []byte) { return nil, b }
-func pComplex(b []byte) (A, []byte)  { return nil, b }
 func pDuration(b []byte) (A, []byte) {
-	var d Duration
+	var d time.Duration
 	var r A
 	for len(b) > 0 {
-		if a, t := pDurationPart(b); a != nil {
-			d += a.(Duration)
+		if dt, o, t := pDurationPart(b); o {
+			d += dt
 			r = d
 			b = t
 		} else {
@@ -80,8 +87,8 @@ func pDuration(b []byte) (A, []byte) {
 	}
 	return r, b
 }
-func pDurationPart(b []byte) (A, []byte) {
-	if n, ok := sFloat(b); ok && len(b) > n { // ns us ms s m h
+func pDurationPart(b []byte) (time.Duration, bool, []byte) {
+	if n := sFloat(b); n > 0 && len(b) > n { // ns us ms s m h
 		c := b[n]
 		if c == 'n' || c == 'u' || c == 'm' {
 			if len(b) > n+1 && b[1+n] == 's' {
@@ -89,36 +96,37 @@ func pDurationPart(b []byte) (A, []byte) {
 			}
 		}
 		if d, e := time.ParseDuration(string(b[:1+n])); e == nil {
-			return Duration(d), b[1+n:]
+			return d, true, b[1+n:]
 		}
 	}
-	return nil, b
+	return 0, false, b
 }
 func pNum(b []byte) (A, []byte) { // atom 12 -3 1.2e-12
-	x, r := pInt(b)
-	if x == nil {
+	n := sFloat(b)
+	if n == 0 {
 		return nil, b
 	}
-	if len(r) == 0 {
-		return x, r
+	if len(b) > n {
+		switch b[n] {
+		case 'a':
+			return pComplex(b)
+		case '.', 'T':
+			return pTime(b)
+		case 'n', 'u', 'm', 's', 'h':
+			return pDuration(b)
+		}
 	}
-	switch r[0] {
-	case '.', 'e', 'E':
-		return pFloat(b)
-	case 'f':
-		return pBigFloat(b)
-	case 'i':
-		return pBigInt(b)
-	case 'a':
-		return pComplex(b)
-	case 'n', 'u', 'm', 's', 'h':
-		return pDuration(b)
-	}
-	return x, r
+	return pFloat(b)
 }
 func pVrb(b []byte) (A, []byte) {
 	if is(b[0], VB) {
-		return V(b[0]), b[1:]
+		return Verb(b[0]), b[1:]
+	}
+	if is(b[0], AD) {
+		if len(b) > 1 && b[1] == ':' {
+			return Verb(b[:2]), b[2:]
+		}
+		return Verb(b[0]), b[1:]
 	}
 	return nil, b
 }
@@ -179,7 +187,7 @@ func init() {
 	}
 }
 
-func sFloat(s []byte) (i int, ok bool) {
+func sFloat(s []byte) (i int) {
 	lower := func(c byte) byte { return c | ('x' - 'X') }
 	var mantissa uint64
 	if i >= len(s) {
@@ -228,20 +236,11 @@ loop:
 				ndMant++
 			}
 			continue
-		case base == 16 && 'a' <= lower(c) && lower(c) <= 'f':
-			sawdigits = true
-			nd++
-			if ndMant < maxMantDigits {
-				mantissa *= 16
-				mantissa += uint64(lower(c) - 'a' + 10)
-				ndMant++
-			}
-			continue
 		}
 		break
 	}
 	if !sawdigits {
-		return
+		return 0
 	}
 	if !sawdot {
 		dp = nd
@@ -273,6 +272,5 @@ loop:
 		}
 		dp += e * esign
 	}
-	ok = true
 	return
 }
