@@ -7,7 +7,6 @@ import (
 	"math/cmplx"
 	"os"
 	"strconv"
-	"time"
 )
 
 const (
@@ -51,56 +50,6 @@ func pComplex(b []byte) (A, []byte) {
 	}
 	return cmplx.Rect(r, math.Pi*a/180.0), b
 }
-func pTime(b []byte) (A, []byte) {
-	if len(b) > 1 && b[0] == '0' && b[1] == 'T' {
-		return time.Time{}, b[2:]
-	}
-	if len(b) < 19 {
-		return nil, b
-	}
-	t := 10
-	if b[19] == '.' {
-		for i := 20; i < len(b); i++ {
-			if !is(b[i], NM) {
-				break
-			}
-			t = i
-		}
-	}
-	d, e := time.Parse("2006.01.02T15:14:05", string(b[:t]))
-	if e != nil {
-		panic(e)
-	}
-	return d, b[:t]
-}
-func pDuration(b []byte) (A, []byte) {
-	var d time.Duration
-	var r A
-	for len(b) > 0 {
-		if dt, o, t := pDurationPart(b); o {
-			d += dt
-			r = d
-			b = t
-		} else {
-			break
-		}
-	}
-	return r, b
-}
-func pDurationPart(b []byte) (time.Duration, bool, []byte) {
-	if n := sFloat(b); n > 0 && len(b) > n { // ns us ms s m h
-		c := b[n]
-		if c == 'n' || c == 'u' || c == 'm' {
-			if len(b) > n+1 && b[1+n] == 's' {
-				n++
-			}
-		}
-		if d, e := time.ParseDuration(string(b[:1+n])); e == nil {
-			return d, true, b[1+n:]
-		}
-	}
-	return 0, false, b
-}
 func pNum(b []byte) (A, []byte) { // atom 12 -3 1.2e-12
 	n := sFloat(b)
 	if n == 0 {
@@ -110,10 +59,6 @@ func pNum(b []byte) (A, []byte) { // atom 12 -3 1.2e-12
 		switch b[n] {
 		case 'a':
 			return pComplex(b)
-		case '.', 'T':
-			return pTime(b)
-		case 'n', 'u', 'm', 's', 'h':
-			return pDuration(b)
 		}
 	}
 	return pFloat(b)
