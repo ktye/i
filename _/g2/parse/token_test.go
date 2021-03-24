@@ -34,8 +34,8 @@ func tcFile(t *testing.T, f string) (tc []testCase) {
 	return tc
 }
 func TestToken(t *testing.T) {
-	for _, tc := range tcFile(t, "parse.go") {
-		tok := token([]byte(tc.in))
+	for _, tc := range tcFile(t, "token.go") {
+		tok, _ := token([]byte(tc.in))
 		fmt.Printf("%s → ", tc.in)
 		var r string
 		if len(tok) == 1 {

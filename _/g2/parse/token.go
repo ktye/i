@@ -19,6 +19,81 @@ const (
 	NW             // 64 nonwhite    33..126
 )
 
+// "a" → 97
+// "\n" → 10
+// "abc" → [97 98 99]
+// "a\nb" → [97 10 98]
+// 0x → []
+// 0xa0 → [16]
+// 0x01fF → [1 255]
+func pChr(b []byte, l byte) (A, []byte) {
+	if b[0] == '"' {
+		r, b := pQuote(b[1:])
+		if len(r) == 1 {
+			return r[0], b
+		}
+		return r, b
+	}
+	if len(b) > 1 && b[0] == '0' && b[1] == 'x' {
+		return pHex(b[2:])
+	}
+	return nil, b
+}
+func pQuote(b []byte) ([]byte, []byte) {
+	r := make([]byte, 0)
+	q := false
+	for i, c := range b {
+		if c == '\\' && !q {
+			q = true
+		} else {
+			if q {
+				q = false
+				switch c {
+				case 'r':
+					c = '\r'
+				case 'n':
+					c = '\n'
+				case 't':
+					c = '\t'
+				}
+			} else if c == '"' {
+				return r, b[1+i:]
+			}
+			r = append(r, c)
+		}
+	}
+	panic(`unmatched "`)
+}
+func pHex(b []byte) (r []byte, t []byte) {
+	hc := func(c byte) byte {
+		if is(NM, c) {
+			return c - '0'
+		}
+		if is(az, c) {
+			return c - 'a'
+		}
+		if is(AZ, c) {
+			return c - 'A'
+		}
+		return 16
+	}
+	r = make([]byte, 0)
+	for len(b) > 1 {
+		c := hc(b[0])
+		if c == 16 {
+			break
+		}
+		x := 16 * c
+		c = hc(b[1])
+		if c == 16 {
+			break
+		}
+		r = append(r, x+c)
+		b = b[2:]
+	}
+	return r, b
+}
+
 // 1 → 1
 // 0.0 → 0
 // 0. → 0
@@ -50,9 +125,12 @@ func pComplex(b []byte) (A, []byte) {
 	}
 	return cmplx.Rect(r, math.Pi*a/180.0), b
 }
-func pNum(b []byte) (A, []byte) { // atom 12 -3 1.2e-12
+func pNum(b []byte, l byte) (A, []byte) { // atom 12 -3 1.2e-12
 	n := sFloat(b)
 	if n == 0 {
+		return nil, b
+	}
+	if b[0] == '-' && is(l, az|AZ|NM) || l == ')' || l == ']' || l == '"' {
 		return nil, b
 	}
 	if len(b) > n {
@@ -63,7 +141,7 @@ func pNum(b []byte) (A, []byte) { // atom 12 -3 1.2e-12
 	}
 	return pFloat(b)
 }
-func pVrb(b []byte) (A, []byte) {
+func pVrb(b []byte, l byte) (A, []byte) {
 	if is(b[0], VB) {
 		return Verb(b[0]), b[1:]
 	}
@@ -75,24 +153,39 @@ func pVrb(b []byte) (A, []byte) {
 	}
 	return nil, b
 }
-func token(b []byte) (r []A) {
+func token(b []byte) (r List, sp []int) {
+	var parsers = []func([]byte, byte) (A, []byte){pChr, pNum, pVrb}
+	o := b
+	q := 0
+	n := len(b)
+	l := byte(0)
+	pos := func(b []byte) {
+		q += n - len(b)
+		n = len(b)
+		if q > 0 {
+			l = o[q]
+		}
+	}
 	for len(b) > 0 {
-		for i, p := range Parsers {
+		for i, p := range parsers {
 			b = ws(b)
+			pos(b)
 			if len(b) == 0 {
 				break
 			}
-			if x, t := p(b); x != nil {
+			if x, t := p(b, l); x != nil {
 				r = append(r, x)
 				b = t
+				pos(b)
+				sp = append(sp, q)
 				break
 			}
-			if i == len(Parsers)-1 {
-				panic(fmt.Errorf("parse:%s", string(b)))
+			if i == len(parsers)-1 {
+				panic(fmt.Errorf("token:%s", string(b)))
 			}
 		}
 	}
-	return r
+	return r, sp
 }
 func ws(b []byte) []byte {
 	for i, u := range b {
@@ -110,12 +203,10 @@ func main() {
 	}
 }
 
-var Parsers []func([]byte) (A, []byte)
 var c_ [256]byte
 
 func is(x, m byte) bool { return (m & c_[x]) != 0 }
 func init() {
-	Parsers = []func([]byte) (A, []byte){pNum, pVrb}
 	m := func(s string, b byte) {
 		for i := range s {
 			c_[s[i]] |= b
