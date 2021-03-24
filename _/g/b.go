@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -20,7 +19,8 @@ var nyi = errors.New("nyi")
 var plotKeys uint32
 var symbols = make(map[string]uint32)
 var xfile string
-var xline int
+
+//var xline int
 
 func eval(s string) uint32 { return val(kC([]byte(s))) }
 func ginit() {
@@ -203,7 +203,8 @@ func Loadfile(file string) error {
 		}
 		defer f.Close()
 		xfile = file
-		_, err = runscript(f)
+		v, err := runscript(f)
+		dx(v)
 		return err
 	}
 	return fmt.Errorf("loadfile: unknown file type: %s\n", file)
@@ -269,23 +270,15 @@ func LoadDataFile(file, sym string) error {
 	return nil
 }
 func runscript(r io.Reader) (uint32, error) {
-	xline = 0
-	scn := bufio.NewScanner(includes(r))
-	var x uint32
-	for scn.Scan() {
-		xline++
-		s := strings.TrimSpace(scn.Text())
-		if s == "" || strings.HasPrefix(s, "/") {
-			continue
-		}
-		if idx := strings.Index(s, " /"); idx != -1 {
-			s = s[:idx]
-		}
-		dx(x)
-		x = val(kC([]byte(" " + s)))
+	b, e := ioutil.ReadAll(r)
+	if e != nil {
+		return 0, e
 	}
-	xline = 0
-	return x, nil
+	b = bytes.Replace(b, []byte{13, 10}, []byte{10}, -1)
+	if n := bytes.Index(b, []byte("\n\\")); n != -1 {
+		b = b[:n+1]
+	}
+	return val(kC(b)), nil
 }
 
 // clip to COLUMNS/LINES if interactive
