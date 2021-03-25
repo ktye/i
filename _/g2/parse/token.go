@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
 	"math"
 	"math/cmplx"
-	"os"
 	"strconv"
 )
 
@@ -26,20 +25,20 @@ const (
 // 0x → []
 // 0xa0 → [16]
 // 0x01fF → [1 255]
-func pChr(b []byte, l byte) (A, []byte) {
+func pChr(b []byte, l byte) (A, []byte, error) {
 	if b[0] == '"' {
-		r, b := pQuote(b[1:])
+		r, b, err := pQuote(b[1:])
 		if len(r) == 1 {
-			return r[0], b
+			return r[0], b, err
 		}
-		return r, b
+		return r, b, err
 	}
 	if len(b) > 1 && b[0] == '0' && b[1] == 'x' {
 		return pHex(b[2:])
 	}
-	return nil, b
+	return nil, b, nil
 }
-func pQuote(b []byte) ([]byte, []byte) {
+func pQuote(b []byte) ([]byte, []byte, error) {
 	r := make([]byte, 0)
 	q := false
 	for i, c := range b {
@@ -57,14 +56,14 @@ func pQuote(b []byte) ([]byte, []byte) {
 					c = '\t'
 				}
 			} else if c == '"' {
-				return r, b[1+i:]
+				return r, b[1+i:], nil
 			}
 			r = append(r, c)
 		}
 	}
-	panic(`unmatched "`)
+	return nil, b, errors.New(`unmatched "`)
 }
-func pHex(b []byte) (r []byte, t []byte) {
+func pHex(b []byte) (r []byte, t []byte, e error) {
 	hc := func(c byte) byte {
 		if is(NM, c) {
 			return c - '0'
@@ -91,47 +90,47 @@ func pHex(b []byte) (r []byte, t []byte) {
 		r = append(r, x+c)
 		b = b[2:]
 	}
-	return r, b
+	return r, b, nil
 }
 
 // 1 → 1
 // 0.0 → 0
 // 0. → 0
 // .0 → 0
-func pFloat(b []byte) (A, []byte) {
+func pFloat(b []byte) (A, []byte, error) {
 	if n := sFloat(b); n > 0 {
-		f, _ := strconv.ParseFloat(string(b[:n]), 64)
-		return f, b[n:]
+		f, e := strconv.ParseFloat(string(b[:n]), 64)
+		return f, b[n:], e
 	}
-	return nil, b
+	return nil, b, nil
 }
 
 // 1a30 → (0.8660254037844387+0.49999999999999994i)
-func pComplex(b []byte) (A, []byte) {
-	f, b := pFloat(b)
-	if f == nil {
-		return nil, b
+func pComplex(b []byte) (A, []byte, error) {
+	f, b, e := pFloat(b)
+	if f == nil || e != nil {
+		return f, b, e
 	}
 	r := f.(float64)
 	a := 0.0
 	if len(b) > 0 && b[0] == 'a' {
 		b = b[1:]
 		if len(b) > 0 {
-			f, b = pFloat(b)
-			if f != nil {
+			f, b, e = pFloat(b)
+			if f != nil && e == nil {
 				a = f.(float64)
 			}
 		}
 	}
-	return cmplx.Rect(r, math.Pi*a/180.0), b
+	return cmplx.Rect(r, math.Pi*a/180.0), b, e
 }
-func pNum(b []byte, l byte) (A, []byte) { // atom 12 -3 1.2e-12
+func pNum(b []byte, l byte) (A, []byte, error) { // atom 12 -3 1.2e-12
 	n := sFloat(b)
 	if n == 0 {
-		return nil, b
+		return nil, b, nil
 	}
 	if b[0] == '-' && is(l, az|AZ|NM) || l == ')' || l == ']' || l == '"' {
-		return nil, b
+		return nil, b, nil
 	}
 	if len(b) > n {
 		switch b[n] {
@@ -141,20 +140,20 @@ func pNum(b []byte, l byte) (A, []byte) { // atom 12 -3 1.2e-12
 	}
 	return pFloat(b)
 }
-func pVrb(b []byte, l byte) (A, []byte) {
+func pVrb(b []byte, l byte) (A, []byte, error) {
 	if is(b[0], VB) {
-		return Verb(b[0]), b[1:]
+		return Verb(b[0]), b[1:], nil
 	}
 	if is(b[0], AD) {
 		if len(b) > 1 && b[1] == ':' {
-			return Verb(b[:2]), b[2:]
+			return Verb(b[:2]), b[2:], nil
 		}
-		return Verb(b[0]), b[1:]
+		return Verb(b[0]), b[1:], nil
 	}
-	return nil, b
+	return nil, b, nil
 }
-func token(b []byte) (r List, sp []int) {
-	var parsers = []func([]byte, byte) (A, []byte){pChr, pNum, pVrb}
+func token(b []byte) (r List, sp []int, e error) {
+	var parsers = []func([]byte, byte) (A, []byte, error){pChr, pNum, pVrb}
 	o := b
 	q := 0
 	n := len(b)
@@ -173,7 +172,9 @@ func token(b []byte) (r List, sp []int) {
 			if len(b) == 0 {
 				break
 			}
-			if x, t := p(b, l); x != nil {
+			if x, t, e := p(b, l); e != nil {
+				return nil, nil, SrcError{Src: o, Pos: q, Err: e}
+			} else if x != nil {
 				r = append(r, x)
 				b = t
 				pos(b)
@@ -185,7 +186,7 @@ func token(b []byte) (r List, sp []int) {
 			}
 		}
 	}
-	return r, sp
+	return r, sp, nil
 }
 func ws(b []byte) []byte {
 	for i, u := range b {
@@ -194,13 +195,6 @@ func ws(b []byte) []byte {
 		}
 	}
 	return nil
-}
-
-func main() {
-	scn := bufio.NewScanner(os.Stdin)
-	for scn.Scan() {
-		fmt.Println(token([]byte(scn.Text())))
-	}
 }
 
 var c_ [256]byte
