@@ -1,1 +1,1 @@
-cat *.aw | awk -f aw
+cat *.w | awk -f awk
