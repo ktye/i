@@ -51,7 +51,7 @@ function replace(s,  i)
 }
 
 BEGIN{ print "(module" }
-
+/^$/   { next }
 /^def /{
 	sym = $2
 	repl = ""

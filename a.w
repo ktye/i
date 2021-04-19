@@ -1,8 +1,11 @@
 def //* ;; %
 def ! unreachable
 def ret return
-def 0i i32.const 0
-def 1i i32.const 1
+def con i32.const
+def 0i con 0
+def 1i con 1
+def 4i con 4
+def 32i con 32
 def i. i32.load
 def i: i32.store
 def = i32.eq
@@ -21,7 +24,9 @@ def / i32.div_u
 def /s i32.div_s
 def % i32.rem_u
 def %s i32.rem_s
-def do* $n eqz if loop % $n 1 sub tee $n if_br 0 end end
+def while* block loop % br_if 1
+def do* % br 0 end end
+def ndo* $n eqz if loop % $n 1 sub tee $n if_br 0 end end
 def & i32.and
 def | i32.or
 def ^ i32.xor
