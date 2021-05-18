@@ -1,6 +1,6 @@
 <details><summary><code>+</code>flip add</summary>
-<a href="../master/numeric.go#L280"><code>(1;2) /1 2</code></a><br>
-<a href="../master/numeric.go#L281"><code>(1;2 3) /(1;2 3)</code></a><br>
+<a href="./master/numeric.go#L280"><code>(1;2) /1 2</code></a><br>
+<a href="./numeric.go#L281"><code>(1;2 3) /(1;2 3)</code></a><br>
 <a href="../master/numeric.go#L282"><code>(1)+2 /3</code></a><br>
 <a href="../master/numeric.go#L283"><code>(1+2;4)+3 /6 7</code></a><br>
 <a href="../master/numeric.go#L284"><code>1+1 /2</code></a><br>
