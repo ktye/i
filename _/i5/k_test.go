@@ -59,7 +59,7 @@ func writeReadme(t *testing.T, refs []ref) {
 		}
 		fmt.Fprintf(&buf, "<details><summary><code>%s</code>%s %s</summary>\n", h(r.name), h(r.mon), h(r.dya))
 		for _, tc := range r.tc {
-			fmt.Fprintf(&buf, "<a href=\"../master/%s#L%d\"><code>%s /%s</code>%s</a><br>\n", tc.file, 1+tc.line, h(tc.i), h(tc.e), h(tc.comment))
+			fmt.Fprintf(&buf, "<a href=\"./%s#L%d\"><code>%s /%s</code>%s</a><br>\n", tc.file, 1+tc.line, h(tc.i), h(tc.e), h(tc.comment))
 		}
 		fmt.Fprintf(&buf, "</details>\n")
 	}
