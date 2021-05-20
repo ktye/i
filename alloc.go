@@ -2,9 +2,6 @@ package k
 
 import . "github.com/ktye/wg/module"
 
-func init() {
-	Memory(1)
-}
 func minit(a, b int32) {
 	p := int32(1 << a)
 	for i := a; i < b; i++ {
@@ -46,18 +43,27 @@ func bucket(size int32) (r int32) {
 }
 
 func mk(t T, n int32) (r K) {
-	r = K(uint64(t) << uint64(57))
-	x := alloc(n * sz(r))
+	if t < 17 {
+		trap(Value)
+	}
+	r = K(uint64(t) << uint64(59))
+	x := alloc(n * sz(t))
 	SetI32(x, 1)
 	SetI32(x+4, n)
 	return r | K(x+8)
 }
-func tp(x K) T         { return T(x >> 57) }
-func nn(x K) int32     { return I32(int32(x) - 4) }
-func sz(x K) int32     { return 1 << I32clz(uint32(x)) }
-func nocount(x K) bool { return x < 64 || (((1 & x >> 56) != 0) && (T(x>>57) != ft)) }
+func tp(x K) T     { return T(x >> 59) }
+func nn(x K) int32 { return I32(int32(x) - 4) }
+func sz(t T) int32 {
+	if t < 19 {
+		return 1
+	} else if t < 21 {
+		return 4
+	}
+	return 8
+}
 func rx(x K) K {
-	if nocount(x) {
+	if tp(x) < 5 {
 		return x
 	}
 	p := int32(x)
@@ -65,7 +71,8 @@ func rx(x K) K {
 	return x
 }
 func dx(x K) {
-	if nocount(x) {
+	t := tp(x)
+	if t < 5 {
 		return
 	}
 	a := int32(x - 8)
@@ -75,14 +82,25 @@ func dx(x K) {
 		trap(Unref)
 	}
 	if rc == 1 {
-		xt := tp(x)
-		if xt <= tt {
+		n := nn(x)
+		if t > 5 {
+			if t == 6 || t == 22 || t == 24 || t == 25 {
+				n = 2
+			}
 			p := int32(x)
-			for n := nn(x); n != 0; n-- {
+			for i := int32(0); i < n; i++ {
 				dx(K(I64(p)))
 				p += 8
 			}
 		}
-		free(a, bucket(sz(x)*nn(x)))
+		free(a, bucket(sz(t)*n))
+	}
+}
+func rl(x K) { // ref list elements
+	xp := int32(x)
+	xn := nn(x)
+	for i := int32(0); i < xn; i++ {
+		rx(K(I64(xp)))
+		xp += 8
 	}
 }

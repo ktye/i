@@ -1,25 +1,37 @@
 package k
 
 import (
-	"fmt"
+	"math"
 	"testing"
 
 	. "github.com/ktye/wg/module"
 )
 
-//
-
-func TestAlloc(t *testing.T) {
-	n := 64 * 1024
-	if len(Bytes) != 64*1024 {
-		t.Fatal("memory size")
-	}
-
-	copy(Bytes, make([]byte, n))
+func newtest() {
+	Bytes = make([]byte, 64*1024)
 	minit(10, 16)
-	fmt.Println("g20", I32(20))
-	fmt.Println(alloc(10))
-	fmt.Println("g20", I32(20))
+}
+func intvalue(x K) int32     { return int32(x) }
+func floatvalue(x K) float64 { return F64(int32(x)) }
+func TestTypes(t *testing.T) {
+	newtest()
+	xi := Ki(5)
+	if v := intvalue(xi); v != 5 {
+		t.Fatalf("got v=%d expected %d\n", v, 5)
+	}
+	if r := tp(xi); r != it {
+		t.Fatalf("got t=%d expected %d\n", r, it)
+	}
+	if n := intvalue(Count(xi)); n != 1 {
+		t.Fatalf("got n=%d expected %d\n", n, 1)
+	}
+	xf := Kf(math.Pi)
+	if f := floatvalue(xf); f != math.Pi {
+		t.Fatalf("got f=%v expected %v\n", f, math.Pi)
+	}
+	if r := tp(xf); r != ft {
+		t.Fatalf("got t=%d expected %d\n", r, ft)
+	}
 }
 func TestBucket(t *testing.T) {
 	tc := []struct{ in, exp int32 }{
@@ -34,5 +46,12 @@ func TestBucket(t *testing.T) {
 		if got := bucket(tc.in); got != tc.exp {
 			t.Fatalf("bucket %d => %d (exp %d)\n", tc.in, got, tc.exp)
 		}
+	}
+}
+func TestVerbs(t *testing.T) {
+	newtest()
+	x := Til(Ki(3))
+	if r := iK(Count(x)); r != 3 {
+		t.Fatalf("got %d expected %d", r, 3)
 	}
 }
