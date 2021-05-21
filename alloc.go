@@ -1,6 +1,8 @@
 package k
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
 func minit(a, b int32) {
 	p := int32(1 << a)
@@ -66,8 +68,8 @@ func rx(x K) K {
 	if tp(x) < 5 {
 		return x
 	}
-	p := int32(x)
-	SetI32(p-8, 1+I32(p-8))
+	p := int32(x) - 8
+	SetI32(p, 1+I32(p))
 	return x
 }
 func dx(x K) {
@@ -75,15 +77,15 @@ func dx(x K) {
 	if t < 5 {
 		return
 	}
-	a := int32(x - 8)
-	rc := I32(a)
-	SetI32(a, rc-1)
+	p := int32(x) - 8
+	rc := I32(p)
+	SetI32(p, rc-1)
 	if rc == 0 {
 		trap(Unref)
 	}
 	if rc == 1 {
 		n := nn(x)
-		if t > 5 {
+		if t&15 >= 5 {
 			if t == 6 || t == 22 || t == 24 || t == 25 {
 				n = 2
 			}
@@ -93,7 +95,7 @@ func dx(x K) {
 				p += 8
 			}
 		}
-		free(a, bucket(sz(t)*n))
+		free(p, bucket(sz(t)*n))
 	}
 }
 func rl(x K) { // ref list elements
