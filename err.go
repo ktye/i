@@ -9,6 +9,7 @@ const (
 	Length
 	Rank
 	Parse
+	Stack
 	Grow
 	Unref
 	Nyi

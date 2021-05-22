@@ -4,19 +4,28 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-var cvb K
-var src, pp, pe int32
+var src K
+var pp, pe, sp int32 //parse or execution position/end, stack position
 
 func init() {
 	Memory(1)
+	Data(132, "\x10A`AAAAI@pAAAAAIddddddddddAPAAAAAbbbbbbbbbbbbbbbbbbbbbbbbbb@IpAA@bbbbbbbbbbbbbbbbbbbbbbbbbb@ApA")
+	Data(228, ":+-*%!&|<>=~,^#_$?@.'/\\")
 	Export(ktest, kinit, Ki, iK, Til, Count, At)
-	Functions(0, tnum, tvrb)
+	//            :    +    -    *    %    !    &    |  <>=~,^#_$?@.'/\\
+	Functions(41, nil, Flp, Neg, Fst, Sqr, Til, Wer, Rev)
+	Functions(81, Dex, Add, Sub, Mul, Div, Key, Min, Max)
+	Functions(120, tnum, tvrb)
 }
+
+//  16..127  free list
+// 128..131  memsize log2
+// 132..227  char map (starts at 100)
+// 228..250  verbs :+-*%!&|<>=~,^#_$?@.'/\
+// 256..511  stack
 func kinit() {
 	minit(10, 16)
-	cvb = ucat(mk(Ct, 0), Ku(8945874153323178810)) // :+-*%!&|   0...7
-	cvb = ucat(cvb, Ku(6855426602977541692))       // <>=~,^#_   7..15
-	cvb = ucat(cvb, Ku(25947543183572772))         // $?@.'/\   15..21
+	sp = 256
 }
 func ktest(x int32) int32 {
 	minit(10, 16)
@@ -84,7 +93,7 @@ func Kz(x, y K) (z K) {
 	return K(int32(z)) | K(zt)<<59
 }
 func l1(x K) (r K) {
-	r = mk(lt+16, 1)
+	r = mk(Lt, 1)
 	SetI64(int32(r), int64(x))
 	return r
 }

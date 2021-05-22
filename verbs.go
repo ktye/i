@@ -2,14 +2,21 @@ package k
 
 import . "github.com/ktye/wg/module"
 
-func First(x K) K {
+func Dex(x, y K) K { // x:y
+	dx(x)
+	return y
+}
+func Flp(x K) K { // +x
+	trap(Nyi)
+	return x
+}
+func Fst(x K) K {
 	t := tp(x)
 	if t < 16 {
 		return x
 	}
 	return ati(x, 0)
 }
-
 func Count(x K) (r K) { // #x
 	t := tp(x)
 	dx(x)
@@ -18,7 +25,6 @@ func Count(x K) (r K) { // #x
 	}
 	return Ki(nn(x))
 }
-
 func Til(x K) (r K) {
 	if tp(x) != it {
 		trap(Type)
@@ -119,6 +125,63 @@ func ntake(n int32, y K) (r K) {
 	return At(y, seq(nn(y)))
 }
 
+func Rev(x K) (r K) { // |x
+	t := tp(x)
+	if t < 16 {
+		return x
+	}
+	if t >= Ft {
+		panic(Nyi)
+	}
+	xn := nn(x)
+	r = mk(It, xn)
+	rp := int32(r) + 4*xn
+	for i := int32(r); i < xn; i++ {
+		SetI32(rp, i)
+		i -= 4
+	}
+	return atv(x, r)
+}
+
+func Wer(x K) (r K) { // &x
+	t := tp(x)
+	if t < 16 {
+		x = enl(x)
+		t = tp(x)
+	}
+	var n, rp int32
+	xn := nn(x)
+	xp := int32(x)
+	if t == Bt {
+		n = sumb(x)
+		r = mk(It, n)
+		rp = int32(r)
+		for i := int32(0); i < xn; i++ {
+			if I8(xp) != 0 {
+				SetI32(rp, i)
+				rp += 4
+			}
+			xp++
+		}
+	} else if t == It {
+		n = sumi(x)
+		r = mk(It, n)
+		rp = int32(r)
+		for i := int32(0); i < xn; i++ {
+			j := I32(xp)
+			for k := int32(0); k < j; k++ {
+				SetI32(rp, i)
+				rp += 4
+			}
+			xp += 4
+		}
+	} else {
+		trap(Type)
+	}
+	dx(x)
+	return r
+}
+
 func mini(x, y int32) int32 {
 	if x < y {
 		return x
@@ -130,4 +193,22 @@ func maxi(x, y int32) int32 {
 		return x
 	}
 	return y
+}
+func sumb(x K) (r int32) {
+	p := int32(x)
+	e := p + nn(x)
+	for p < e {
+		r += I8(p)
+		p++
+	}
+	return r
+}
+func sumi(x K) (r int32) {
+	p := int32(x)
+	e := p + 4*nn(x)
+	for p < e {
+		r += I8(p)
+		p += 4
+	}
+	return r
 }

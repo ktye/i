@@ -3,6 +3,7 @@ package k
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"strconv"
 	"strings"
@@ -11,9 +12,18 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
+var save []byte
+
 func newtest() {
-	Bytes = make([]byte, 64*1024)
-	kinit()
+	if save == nil {
+		kinit()
+		save := make([]byte, len(Bytes))
+		copy(save, Bytes)
+	} else {
+		Bytes = make([]byte, len(save))
+		copy(Bytes, save)
+		src, pp, pe, sp = 0, 0, 0, 256
+	}
 }
 func mkchars(b []byte) (r K) {
 	r = mk(Ct, int32(len(b)))
@@ -40,9 +50,6 @@ func TestTypes(t *testing.T) {
 	}
 	if r := tp(xf); r != ft {
 		t.Fatalf("got t=%d expected %d\n", r, ft)
-	}
-	if s := sK(cvb); s != `":+-*%!&|<>=~,^#_$?@.'/\\"` {
-		t.Fatal(s)
 	}
 }
 func TestBucket(t *testing.T) {
@@ -77,11 +84,53 @@ func TestTok(t *testing.T) {
 	}
 	for _, tc := range tc {
 		newtest()
+		//fmt.Println(tc.in)
 		got := sK(tok(mkchars([]byte(tc.in))))
 		if got != tc.exp {
 			t.Fatalf("got %s expected %s", got, tc.exp)
 		}
 	}
+}
+func TestK(t *testing.T) {
+	b, err := ioutil.ReadFile("t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, v := range bytes.Split(b, []byte("\n")) {
+		s := string(v)
+		if len(s) == 0 {
+			continue
+		}
+		a := strings.Split(s, " /")
+		in := a[0]
+		exp := a[1]
+		fmt.Println(in, "/"+exp)
+		newtest()
+		x := mkchars([]byte(a[0]))
+		got := sK(exec(parse(x)))
+		if got != exp {
+			t.Fatalf("%s: expected\n%sgot\n%s", in, exp, got)
+		}
+	}
+}
+
+func TestClass(t *testing.T) {
+	c := make([]byte, 127)
+	cl := func(s string, n byte) {
+		for _, b := range []byte(s) {
+			c[b] |= n
+		}
+	}
+	cl(`:+-*%!&|<>=~,^#_$?@.'/\`, 1)
+	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ`, 2)
+	cl(`0123456789`, 4)
+	cl(`'/\\`, 8)
+	cl(`;)]} `, 16)
+	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 32)
+	for i := byte(33); i < 127; i++ {
+		c[i] |= 64
+	}
+	//fmt.Printf("%q\n", string(c[32:]))
 }
 
 func rc(x K) int32 { return I32(int32(x) - 8) }
@@ -93,7 +142,7 @@ func sK(x K) string {
 			return "<null>"
 		}
 		if x > 23 {
-			panic("verb " + strconv.FormatInt(int64(x), 10))
+			return fmt.Sprintf("<%d>", x)
 		} else {
 			s := []byte("0:+-*%!&|<>=~,^#_$?@.'/\\")
 			return string(s[x])
