@@ -23,20 +23,33 @@ func e(x K, xv int32) (r K) { // Lt
 	if yv != 0 && xv == 0 {
 		r = e(t())
 		r = ucat(r, x)
-		r = ucat(r, dyadic(y))
-		return r // todo dyadic
+		r = ucat(r, y)
+		return dyadic(r) // dyadic
 	}
 	r = e(y, yv)
-	r = ucat(r, monadic(x))
-	return r
+	r = ucat(r, x)
+	return monadic(r) // monadic
 }
 func t() (r K, verb int32) { // Lt
 	r = next()
 	if r == 0 {
 		return 0, 0
 	}
-	// ...
-	return l1(r), ib(tp(r) == 0)
+	r, verb = l1(r), ib(tp(r) == 0)
+	for {
+		n := next()
+		if n == 0 {
+			break
+		}
+		a := int32(n)
+		if tp(n) == 0 && a > 20 && a < 27 {
+			r, verb = cat1(cat1(r, n), 0), 1
+		} else {
+			pp -= 8
+			break
+		}
+	}
+	return r, verb
 }
 
 func next() (r K) {
@@ -47,13 +60,18 @@ func next() (r K) {
 	pp += 8
 	return r
 }
-func monadic(x K) K {
-	p := int32(x)
-	SetI64(p, 40+I64(p))
-	return x
-}
+func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x K) K {
-	p := int32(x)
-	SetI64(p, 80+I64(p))
-	return x
+	l := lastp(x)
+	if l < 2 {
+		x = cat1(x, 20) // .
+	}
+	return cat1(x, 1)
+}
+func monadic(x K) K {
+	l := lastp(x)
+	if l < 2 {
+		return cat1(cat1(x, 19), 1) // @
+	}
+	return cat1(x, 0)
 }

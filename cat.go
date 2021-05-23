@@ -4,50 +4,96 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func enl(x K) K {
+func Cat(x, y K) (r K) {
+	xt, yt := tp(x), tp(y)
+	if xt&15 == yt&15 {
+		if xt < 16 {
+			x = enl(x)
+		}
+		if yt < 16 {
+			return cat1(x, y)
+		} else {
+			return ucat(x, y)
+		}
+	}
 	trap(Nyi)
 	return x
 }
-func ucat(x, y K) (r K) { // Bt,Bt .. Lt,Lt
-	t, nx, ny := tp(x), nn(x), nn(y)
-	if t == Zt {
-		trap(Nyi)
-	}
-	s := sz(t)
-	var rp int32
-	if I32(int32(x)-8) == 1 && bucket(s*nx) == bucket(s*(nx+ny)) {
-		r = rx(x)
-		rp = int32(r)
-	} else {
-		r = mk(t, nx+ny)
-		rp = int32(r)
-		Memorycopy(rp, int32(x), s*nx)
-		if t == Lt {
-			rl(x)
+func enl(x K) (r K) {
+	t := tp(x)
+	if t < 16 {
+		t += 16
+		r = mk(t, 1)
+		rp := int32(r)
+		xp := int32(x)
+		s := sz(t)
+		if s == 1 {
+			SetI8(rp, xp)
+		} else if s == 4 {
+			SetI32(rp, xp)
+		} else {
+			SetI64(rp, I64(xp))
+			if t == Zt {
+				SetI64(4+rp, I64(4+xp))
+			}
 		}
+	} else {
+		r = l1(x)
 	}
-	Memorycopy(rp+s*nx, int32(y), s*ny)
-	if t == Lt {
-		rl(y)
-	}
-	dx(x)
-	dx(y)
-	SetI32(rp-4, nx+ny)
 	return r
 }
-
-func lcat(x, y K) (r K) {
+func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
+	xt := tp(x)
+	ny := nn(y)
+	r, rp, s := uspc(x, xt, ny)
+	if xt == Lt {
+		rl(y)
+	}
+	Memorycopy(rp, int32(y), s*ny)
+	dx(y)
+	return r
+}
+func cat1(x, y K) K {
+	xt := tp(x)
+	r, rp, s := uspc(x, xt, 1)
+	yp := int32(y)
+	if s == 1 {
+		SetI8(rp, yp)
+	} else if s == 4 {
+		SetI32(rp, yp)
+	} else if s == 8 {
+		if xt == Zt {
+			trap(Nyi)
+		} else if xt == Ft {
+			SetI64(rp, I64(yp))
+			dx(y)
+		} else {
+			SetI64(rp, int64(y))
+		}
+	}
+	return r
+}
+func uspc(x K, xt T, ny int32) (K, int32, int32) {
+	var r K
 	nx := nn(x)
-	n8 := nx * 8
-	if I32(int32(x)-8) == 1 && bucket(n8) == bucket(8+n8) {
+	s := sz(xt)
+	if I32(int32(x)-8) == 1 && bucket(s*nx) == bucket(s*nx+ny) {
 		r = x
 	} else {
-		r = mk(Lt, 1+nx)
-		Memorycopy(int32(r), int32(x), n8)
-		rl(x)
+		r = mk(xt, nx+ny)
+		Memorycopy(int32(r), int32(x), s*nx)
+		if xt == Lt {
+			rl(x)
+		}
 		dx(x)
 	}
-	SetI64(int32(r)+n8, int64(y))
-	SetI32(int32(r)-4, 1+nx)
-	return r
+	SetI32(int32(r)-4, nx+ny)
+	return r, int32(r) + s*nx, s
+}
+func ncat(x, y K) (r K) {
+	xt := tp(x)
+	if xt < 16 {
+		x = enl(x)
+	}
+	return cat1(uptypes(x, y))
 }

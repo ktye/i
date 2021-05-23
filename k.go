@@ -5,31 +5,27 @@ import (
 )
 
 var src K
-var pp, pe, sp int32 //parse or execution position/end, stack position
+var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
 
 func init() {
 	Memory(1)
 	Data(132, "\x10A`AAAAI@pAAAAAIddddddddddAPAAAAAbbbbbbbbbbbbbbbbbbbbbbbbbb@IpAA@bbbbbbbbbbbbbbbbbbbbbbbbbb@ApA")
-	Data(228, ":+-*%!&|<>=~,^#_$?@.'/\\")
-	Export(ktest, kinit, Ki, iK, Til, Count, At)
-	//            :    +    -    *    %    !    &    |  <>=~,^#_$?@.'/\\
-	Functions(41, nil, Flp, Neg, Fst, Sqr, Til, Wer, Rev)
-	Functions(81, Dex, Add, Sub, Mul, Div, Key, Min, Max)
-	Functions(120, tnum, tvrb)
+	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
+	Export(kinit, Ki, iK, Til, Cnt, Atx)
+	//            :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
+	Functions(0000002, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl)
+	Functions(65, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl)
+	Functions(192, tnms, tvrb)
 }
 
 //  16..127  free list
 // 128..131  memsize log2
 // 132..227  char map (starts at 100)
-// 228..250  verbs :+-*%!&|<>=~,^#_$?@.'/\
+// 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
 // 256..511  stack
 func kinit() {
 	minit(10, 16)
 	sp = 256
-}
-func ktest(x int32) int32 {
-	minit(10, 16)
-	return iK(Count(Til(Ki(x))))
 }
 
 type K uint64
@@ -70,8 +66,8 @@ const ( //base t&15          bytes  atom  vector
 
 // func t=0
 // basic x < 64 (triadic/tetradic)
-// xn=2: composition string funclist
-// xn=3: derived     string func symb
+// xn=2: composition funclist
+// xn=3: derived     func symb
 // xn=4: projection  string func arglist emptylist
 // xn=5: lambda      string code locals arity save
 
@@ -89,20 +85,27 @@ func Kf(x float64) (r K) {
 	return K(int32(r)) | K(ft)<<59
 }
 func Kz(x, y K) (z K) {
-	z = l2(x, y)
-	return K(int32(z)) | K(zt)<<59
+	z = l2t(x, y, zt)
+	SetI32(int32(z)-4, 1)
+	return z
+}
+func KZ(x, y K) (z K) {
+	z = l2t(x, y, Zt)
+	SetI32(int32(z)-4, nn(x))
+	return z
 }
 func l1(x K) (r K) {
 	r = mk(Lt, 1)
 	SetI64(int32(r), int64(x))
 	return r
 }
-func l2(x, y K) (r K) {
-	r = mk(lt+16, 2)
+func l2t(x, y K, t T) (r K) {
+	r = mk(Lt, 2)
 	SetI64(int32(r), int64(x))
 	SetI64(8+int32(r), int64(y))
-	return r
+	return K(int32(r)) | K(t)<<59
 }
+func l2(x, y K) (r K) { return l2t(x, y, Lt) }
 func Ku(x uint64) (r K) { // Ct
 	r = mk(Ct, 0)
 	p := int32(r)

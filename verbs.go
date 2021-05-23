@@ -2,6 +2,7 @@ package k
 
 import . "github.com/ktye/wg/module"
 
+func nyi(x K) K { trap(Nyi); return x }
 func Dex(x, y K) K { // x:y
 	dx(x)
 	return y
@@ -10,14 +11,30 @@ func Flp(x K) K { // +x
 	trap(Nyi)
 	return x
 }
-func Fst(x K) K {
+func Fst(x K) K { // *x
 	t := tp(x)
 	if t < 16 {
 		return x
 	}
+	n := nn(x)
+	if n == 0 {
+		trap(Nyi)
+	}
 	return ati(x, 0)
 }
-func Count(x K) (r K) { // #x
+func Lst(x K) K { // *|x
+	t := tp(x)
+	if t < 16 {
+		return x
+	}
+	n := nn(x)
+	if n == 0 {
+		return Fst(x)
+	}
+	return ati(x, n-1)
+}
+
+func Cnt(x K) (r K) { // #x
 	t := tp(x)
 	dx(x)
 	if t < 16 {
@@ -66,7 +83,7 @@ func Key(x, y K) (r K) { // x!y
 	return K(int32(r)) | K(dt)<<59
 }
 
-func Take(x, y K) (r K) { // x#y
+func Tak(x, y K) (r K) { // x#y
 	xt := tp(x)
 	if xt == it {
 		return ntake(int32(x), y)
@@ -122,7 +139,7 @@ func ntake(n int32, y K) (r K) {
 		dx(y)
 		return r
 	}
-	return At(y, seq(nn(y)))
+	return Atx(y, seq(nn(y)))
 }
 
 func Rev(x K) (r K) { // |x
@@ -178,6 +195,12 @@ func Wer(x K) (r K) { // &x
 	} else {
 		trap(Type)
 	}
+	dx(x)
+	return r
+}
+
+func Typ(x K) (r K) { // @x
+	r = Ki(int32(tp(x)))
 	dx(x)
 	return r
 }

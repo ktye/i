@@ -11,28 +11,40 @@ func tok(x K) (r K) {
 	src = x
 	pp = int32(x)
 	pe = pp + nn(x)
+	p := pp - 1 //force srcp > 0
 	r = mk(Lt, 0)
 	for {
 		// todo ws
 		if pp == pe {
 			break
 		}
-		p := pp
-		for i := int32(120); i < 122; i++ { // tnum, tvrb
+		for i := int32(192); i < 194; i++ { // tnum, tvrb
 			y = Func[i].(ftok)()
 			if y != 0 {
-				y |= K(p << 32)
-				r = lcat(r, y)
+				y |= K(int64(pp-p) << 32)
+				//fmt.Println("mark", (int64(pp-p) << 32), pp-p, y)
+				r = cat1(r, y)
 				break
 			}
-			if i == 121 { // todo last-1
+			if i == 193 { // todo last-1
 				trap(Parse)
 			}
 		}
 	}
 	return r
 }
-
+func tnms() (r K) {
+	r = tnum()
+	for pp < pe-1 && I8(pp) == ' ' {
+		pp++
+		x := tnum()
+		if x == 0 {
+			break
+		}
+		r = ncat(r, x)
+	}
+	return r
+}
 func tnum() K {
 	p := pp
 	c := I8(p)
@@ -80,6 +92,7 @@ func tvrb() (r K) {
 		return 0
 	}
 	pp++
-	return K(1 + index(c, 228, 250))
+	// todo ': /: \:
+	return K(1 + index(c, 228, 253))
 }
 func is(x, m int32) bool { return m&I8(100+x) != 0 }

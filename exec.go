@@ -13,24 +13,28 @@ func exec(x K) K {
 	pe = pp + 8*nn(x)
 	for pp < pe {
 		u := K(I64(pp))
+		// fmt.Println("exec", tp(u), int32(u), sK(u))
 		pp += 8
-		//fmt.Println("exec", sK(u))
-		if tp(u) != 0 {
-			push(u)
-			continue
-		}
-		t := int32(u)
-
-		if t < 80 {
-			push(Func[t].(f1)(pop()))
-		} else if t < 120 {
-			a = pop()
-			push(Func[t].(f2)(a, pop()))
+		if u > 2 {
+			push(a)
+			a = u
 		} else {
-			push(u)
+			switch int32(u) {
+			case 0:
+				a = Func[marksrc(a)].(f1)(pop())
+			case 1:
+				a = Func[64+marksrc(a)].(f2)(pop(), pop())
+			default:
+				panic(Nyi)
+			}
 		}
 	}
-	return pop()
+	return a
+}
+func marksrc(x K) int32 {
+	srcp = 0xffffff & int32(x>>32)
+	// fmt.Println("call func", int32(x))
+	return int32(x)
 }
 func push(x K) {
 	SetI64(sp, int64(x))

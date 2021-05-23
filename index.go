@@ -1,9 +1,16 @@
 package k
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
-func At(x, y K) K { // x@y
+func Atx(x, y K) K { // x@y
 	xt, yt := tp(x), tp(y)
+	if xt < 16 {
+		if xt == 0 || xt > tt {
+			return cal1(x, y)
+		}
+	}
 	if xt > lt {
 		trap(Nyi) // d@ t@
 	}
@@ -55,7 +62,7 @@ func atv(x, y K) (r K) { // x BT..LT
 		}
 		r = atv(rx(K(int32(x))), y)
 		dx(x)
-		return K(int32(l2(r, im))) | K(Zt)<<59
+		return KZ(r, im)
 	}
 	xn, yn := nn(x), nn(y)
 	r = mk(t, yn)

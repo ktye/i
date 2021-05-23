@@ -41,7 +41,7 @@ func TestTypes(t *testing.T) {
 	if r := tp(xi); r != it {
 		t.Fatalf("got t=%d expected %d\n", r, it)
 	}
-	if n := intvalue(Count(xi)); n != 1 {
+	if n := intvalue(Cnt(xi)); n != 1 {
 		t.Fatalf("got n=%d expected %d\n", n, 1)
 	}
 	xf := Kf(math.Pi)
@@ -70,7 +70,7 @@ func TestBucket(t *testing.T) {
 func TestVerbs(t *testing.T) {
 	newtest()
 	x := Til(Ki(3))
-	if r := iK(Count(x)); r != 3 {
+	if r := iK(Cnt(x)); r != 3 {
 		t.Fatalf("got %d expected %d", r, 3)
 	}
 }
@@ -141,11 +141,11 @@ func sK(x K) string {
 		if x == 0 {
 			return "<null>"
 		}
-		if x > 23 {
-			return fmt.Sprintf("<%d>", x)
-		} else {
+		if xp < 23 {
 			s := []byte("0:+-*%!&|<>=~,^#_$?@.'/\\")
-			return string(s[x])
+			return string(s[xp])
+		} else {
+			return fmt.Sprintf("<%d>", x)
 		}
 	case bt:
 		if int32(x) != 0 {
@@ -163,6 +163,14 @@ func sK(x K) string {
 		return strconv.FormatFloat(F64(xp), 'g', -1, 64)
 	case zt:
 		panic("nyi-zt")
+	case cf:
+		return "<comp>"
+	case df:
+		return "<drv>"
+	case pf:
+		return "<prj>"
+	case lf:
+		return "<lambda>"
 	case Bt:
 		r := bytes.Repeat([]byte{'0'}, int(nn(x)))
 		for i := range r {
@@ -170,15 +178,15 @@ func sK(x K) string {
 				r[i] = '1'
 			}
 		}
-		return string(r) + "b"
+		return comma(1 == nn(x)) + string(r) + "b"
 	case Ct:
-		return strconv.Quote(string(Bytes[xp : xp+nn(x)]))
+		return comma(1 == nn(x)) + strconv.Quote(string(Bytes[xp:xp+nn(x)]))
 	case It:
 		r := make([]string, nn(x))
 		for i := range r {
 			r[i] = strconv.Itoa(int(I32(xp + 4*int32(i))))
 		}
-		return strings.Join(r, " ")
+		return comma(1 == nn(x)) + strings.Join(r, " ")
 	case St:
 		panic("nyi-St")
 	case Ft:
@@ -186,7 +194,7 @@ func sK(x K) string {
 		for i := range r {
 			r[i] = strconv.FormatFloat(F64(xp+8*int32(i)), 'g', -1, 64)
 		}
-		return strings.Join(r, " ")
+		return comma(1 == nn(x)) + strings.Join(r, " ")
 	case Zt:
 		panic("nyi-Zt")
 	case Lt:
@@ -202,5 +210,12 @@ func sK(x K) string {
 	default:
 		fmt.Println("type ", tp(x))
 		panic("type")
+	}
+}
+func comma(x bool) string {
+	if x {
+		return ","
+	} else {
+		return ""
 	}
 }
