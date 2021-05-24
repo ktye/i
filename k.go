@@ -9,13 +9,13 @@ var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, sr
 
 func init() {
 	Memory(1)
-	Data(132, "\x10A`AAAAI@pAAAAAIddddddddddAPAAAAAbbbbbbbbbbbbbbbbbbbbbbbbbb@IpAA@bbbbbbbbbbbbbbbbbbbbbbbbbb@ApA")
+	Data(132, " A@AAAAIP`AAAAAIDDDDDDDDDDA`AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBPI`AA@BBBBBBBBBBBBBBBBBBBBBBBBBBPA`A")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Export(kinit, Ki, iK, Til, Cnt, Atx)
 	//            :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
-	Functions(0000002, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl)
+	Functions(0000002, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst)
 	Functions(65, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl)
-	Functions(192, tnms, tvrb)
+	Functions(192, tnms, tvrb, tpct)
 }
 
 //  16..127  free list

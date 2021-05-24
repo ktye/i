@@ -1,6 +1,8 @@
 package k
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
@@ -8,6 +10,7 @@ type f1 = func(K) K
 type f2 = func(K, K) K
 
 func exec(x K) K {
+	fmt.Println("exec", sK(x))
 	var a K
 	pp = int32(x)
 	pe = pp + 8*nn(x)
@@ -49,4 +52,14 @@ func pop() (r K) {
 		trap(Stack)
 	}
 	return K(I64(sp))
+}
+func lst(n K) (r K) {
+	rn := int32(n)
+	r = mk(Lt, rn)
+	rp := int32(r)
+	for i := int32(0); i < rn; i++ {
+		SetI64(rp, int64(pop()))
+		rp += 8
+	}
+	return r
 }

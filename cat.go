@@ -1,6 +1,8 @@
 package k
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
@@ -54,6 +56,7 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	return r
 }
 func cat1(x, y K) K {
+	fmt.Println("cat1", "xp/yp", int32(x), int32(y), "x/y", sK(x), sK(y))
 	xt := tp(x)
 	r, rp, s := uspc(x, xt, 1)
 	yp := int32(y)
@@ -73,6 +76,13 @@ func cat1(x, y K) K {
 	}
 	return r
 }
+func cat3(x, a, b, c K) K { // Lt
+	r, rp, _ := uspc(x, Lt, 3)
+	SetI64(rp, int64(a))
+	SetI64(rp+8, int64(b))
+	SetI64(rp+16, int64(c))
+	return r
+}
 func uspc(x K, xt T, ny int32) (K, int32, int32) {
 	var r K
 	nx := nn(x)
@@ -80,7 +90,9 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 	if I32(int32(x)-8) == 1 && bucket(s*nx) == bucket(s*nx+ny) {
 		r = x
 	} else {
+		fmt.Println("new", s, nx, ny)
 		r = mk(xt, nx+ny)
+		fmt.Println("memorycopy", int32(r), int32(x), s*nx)
 		Memorycopy(int32(r), int32(x), s*nx)
 		if xt == Lt {
 			rl(x)

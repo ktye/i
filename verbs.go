@@ -147,10 +147,13 @@ func Rev(x K) (r K) { // |x
 	if t < 16 {
 		return x
 	}
-	if t >= Ft {
+	if t >= Ft && t != Lt {
 		panic(Nyi)
 	}
 	xn := nn(x)
+	if xn < 2 {
+		return x
+	}
 	r = mk(It, xn)
 	rp := int32(r) + 4*xn
 	for i := int32(r); i < xn; i++ {

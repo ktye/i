@@ -1,6 +1,8 @@
 package k
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
@@ -31,11 +33,25 @@ func e(x K, xv int32) (r K) { // Lt
 	return monadic(r) // monadic
 }
 func t() (r K, verb int32) { // Lt
+	var ln int32
 	r = next()
 	if r == 0 {
 		return 0, 0
 	}
-	r, verb = l1(r), ib(tp(r) == 0)
+	if r < 127 && is(int32(r), 32) {
+		pp -= 8
+		return 0, 0
+	}
+	if r == K('(') {
+		r, ln = plist(41)
+		if ln == 1 {
+			r = Fst(r)
+		} else {
+			r = cat3(Rev(r), Ki(ln), 27, 0)
+		}
+	} else {
+		r, verb = l1(r), ib(tp(r) == 0)
+	}
 	for {
 		n := next()
 		if n == 0 {
@@ -50,6 +66,32 @@ func t() (r K, verb int32) { // Lt
 		}
 	}
 	return r, verb
+}
+
+func plist(c K) (r K, n int32) {
+	r = mk(Lt, 0)
+	fmt.Println("r", r, int32(r), tp(r))
+	b := next()
+	if b == 0 || b == c {
+		return r, 0
+	}
+	pp -= 8
+	for {
+		n++
+		xx := e(t())
+		fmt.Println("xx", sK(xx))
+		r = cat1(r, xx)
+		fmt.Println("l?", sK(r))
+		b = next()
+		if b == c {
+			break
+		}
+		if b != 59 { // ;
+			trap(Parse)
+		}
+	}
+	fmt.Println("plist", sK(r))
+	return r, n
 }
 
 func next() (r K) {

@@ -125,12 +125,13 @@ func TestClass(t *testing.T) {
 	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ`, 2)
 	cl(`0123456789`, 4)
 	cl(`'/\\`, 8)
-	cl(`;)]} `, 16)
-	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 32)
+	cl(`([{`, 16)
+	cl("\n;)]}", 32)
+	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 64)
 	for i := byte(33); i < 127; i++ {
 		c[i] |= 64
 	}
-	//fmt.Printf("%q\n", string(c[32:]))
+	fmt.Printf("%q\n", string(c[32:]))
 }
 
 func rc(x K) int32 { return I32(int32(x) - 8) }
