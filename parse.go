@@ -1,6 +1,8 @@
 package k
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
@@ -46,6 +48,7 @@ func t() (r K, verb int32) { // Lt
 			r = Fst(r)
 		} else {
 			r = cat3(flat(Rev(r)), Ki(ln), 27, 0)
+			fmt.Println("r?", sK(r))
 		}
 	} else {
 		r, verb = l1(r), ib(tp(r) == 0)
@@ -58,6 +61,16 @@ func t() (r K, verb int32) { // Lt
 		a := int32(n)
 		if tp(n) == 0 && a > 20 && a < 27 {
 			r, verb = cat1(cat1(r, n), 0), 1
+		} else if n == 91 { // [
+			n, ln = plist(93)
+			fmt.Println("r", sK(r))
+			verb = 0
+			if ln == 1 {
+				r = cat1(cat1(Cat(Fst(n), r), 19), 1)
+			} else {
+				n = cat3(flat(Rev(n)), Ki(ln), 27, 0)
+				r = cat1(cat1(Cat(n, r), 20), 1)
+			}
 		} else {
 			pp -= 8
 			break

@@ -1,8 +1,13 @@
 package k
 
-import . "github.com/ktye/wg/module"
+import (
+	"fmt"
+
+	. "github.com/ktye/wg/module"
+)
 
 func Cal(x, y K) K {
+	fmt.Println("Cal", sK(x), sK(y))
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if xt == 0 || xt > tt {

@@ -11,14 +11,14 @@ func Atx(x, y K) K { // x@y
 			return cal1(x, y)
 		}
 	}
-	if xt > lt {
+	if xt > Lt {
 		trap(Nyi) // d@ t@
 	}
-	if yt == It && yt > 16 {
+	if yt == It && xt > 16 {
 		return atv(x, y)
 	}
-	if yt == it && yt > 16 {
-		return ati(x, int32(x))
+	if yt == it && xt > 16 {
+		return ati(x, int32(y))
 	}
 	trap(Nyi) // f@
 	return x
@@ -51,7 +51,7 @@ func ati(x K, i int32) (r K) { // x BT..LT
 		return r
 	}
 	dx(x)
-	return r | K((t-16)<<59)
+	return r | K(t-16)<<59
 }
 func atv(x, y K) (r K) { // x BT..LT
 	t := tp(x)

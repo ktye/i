@@ -15,6 +15,8 @@ func Cat(x, y K) (r K) {
 		} else {
 			return ucat(x, y)
 		}
+	} else if xt == Lt && yt < 16 {
+		return cat1(x, y)
 	}
 	trap(Nyi)
 	return x
