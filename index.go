@@ -79,7 +79,7 @@ func atv(x, y K) (r K) { // x BT..LT
 				SetI8(rp, I8(xp+xi))
 			}
 			rp++
-			yp++
+			yp += 4
 		}
 	} else if s == 4 {
 		for i := int32(0); i < yn; i++ {
@@ -87,7 +87,7 @@ func atv(x, y K) (r K) { // x BT..LT
 			if xi < 0 || xi >= xn {
 				SetI32(rp, 0)
 			} else {
-				SetI32(rp, I32(xp+xi))
+				SetI32(rp, I32(xp+4*xi))
 			}
 			rp += 4
 			yp += 4
@@ -98,10 +98,10 @@ func atv(x, y K) (r K) { // x BT..LT
 			if xi < 0 || xi >= xn {
 				SetI64(rp, 0)
 			} else {
-				SetI64(rp, I64(xp+xi))
+				SetI64(rp, I64(xp+8*xi))
 			}
 			rp += 8
-			yp += 8
+			yp += 4
 		}
 	}
 	if t == Lt {

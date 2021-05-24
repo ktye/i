@@ -1,8 +1,6 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -47,7 +45,7 @@ func t() (r K, verb int32) { // Lt
 		if ln == 1 {
 			r = Fst(r)
 		} else {
-			r = cat3(Rev(r), Ki(ln), 27, 0)
+			r = cat3(flat(Rev(r)), Ki(ln), 27, 0)
 		}
 	} else {
 		r, verb = l1(r), ib(tp(r) == 0)
@@ -70,7 +68,6 @@ func t() (r K, verb int32) { // Lt
 
 func plist(c K) (r K, n int32) {
 	r = mk(Lt, 0)
-	fmt.Println("r", r, int32(r), tp(r))
 	b := next()
 	if b == 0 || b == c {
 		return r, 0
@@ -78,10 +75,8 @@ func plist(c K) (r K, n int32) {
 	pp -= 8
 	for {
 		n++
-		xx := e(t())
-		fmt.Println("xx", sK(xx))
-		r = cat1(r, xx)
-		fmt.Println("l?", sK(r))
+		x := e(t())
+		r = cat1(r, x)
 		b = next()
 		if b == c {
 			break
@@ -90,7 +85,6 @@ func plist(c K) (r K, n int32) {
 			trap(Parse)
 		}
 	}
-	fmt.Println("plist", sK(r))
 	return r, n
 }
 

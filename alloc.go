@@ -1,8 +1,6 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -15,12 +13,6 @@ func minit(a, b int32) {
 	SetI32(128, b)
 }
 func alloc(size int32) int32 {
-	for i := int32(4); i < 16; i++ {
-		if a := I32(4 * i); a > 0 && a < 1024 {
-			fmt.Println("alloc[i/a]", i, a)
-			panic("alloc!!")
-		}
-	}
 	t := bucket(size)
 	i := 4 * t
 	m := 4 * I32(128)
@@ -31,17 +23,12 @@ func alloc(size int32) int32 {
 		i += 4
 	}
 	a := I32(i)
-	if a < 1024 {
-		fmt.Println("alloc size/t", size, t, "i/a", i, a, I32(a))
-		panic("alloc!")
-	}
 	SetI32(i, I32(a))
 	for j := i - 4; j >= 4*t; j -= 4 {
 		u := a + 1<<(j>>2)
 		SetI32(u, I32(j))
 		SetI32(j, u)
 	}
-	fmt.Println("alloc ", size, "=>", a)
 	return a
 }
 func free(x, bs int32) {

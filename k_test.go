@@ -17,7 +17,7 @@ var save []byte
 func newtest() {
 	if save == nil {
 		kinit()
-		save := make([]byte, len(Bytes))
+		save = make([]byte, len(Bytes))
 		copy(save, Bytes)
 	} else {
 		Bytes = make([]byte, len(save))
@@ -109,7 +109,7 @@ func TestK(t *testing.T) {
 		x := mkchars([]byte(a[0]))
 		got := sK(exec(parse(x)))
 		if got != exp {
-			t.Fatalf("%s: expected\n%sgot\n%s", in, exp, got)
+			t.Fatalf("%s:\nexp: %s\ngot: %s", in, exp, got)
 		}
 	}
 }
@@ -131,7 +131,7 @@ func TestClass(t *testing.T) {
 	for i := byte(33); i < 127; i++ {
 		c[i] |= 64
 	}
-	fmt.Printf("%q\n", string(c[32:]))
+	//fmt.Printf("%q\n", string(c[32:]))
 }
 
 func rc(x K) int32 { return I32(int32(x) - 8) }

@@ -1,8 +1,6 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -10,13 +8,13 @@ type f1 = func(K) K
 type f2 = func(K, K) K
 
 func exec(x K) K {
-	fmt.Println("exec", sK(x))
+	//fmt.Println("exec", sK(x))
 	var a K
 	pp = int32(x)
 	pe = pp + 8*nn(x)
 	for pp < pe {
 		u := K(I64(pp))
-		// fmt.Println("exec", tp(u), int32(u), sK(u))
+		//fmt.Println("exec", tp(u), int32(u), sK(u))
 		pp += 8
 		if u > 2 {
 			push(a)

@@ -1,6 +1,8 @@
 package k
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
 func nyi(x K) K { trap(Nyi); return x }
 func Dex(x, y K) K { // x:y
@@ -156,9 +158,9 @@ func Rev(x K) (r K) { // |x
 	}
 	r = mk(It, xn)
 	rp := int32(r) + 4*xn
-	for i := int32(r); i < xn; i++ {
+	for i := int32(0); i < xn; i++ {
+		rp -= 4
 		SetI32(rp, i)
-		i -= 4
 	}
 	return atv(x, r)
 }
