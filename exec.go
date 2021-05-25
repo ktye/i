@@ -1,8 +1,6 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -16,7 +14,7 @@ func exec(x K) K {
 	pe = pp + 8*nn(x)
 	for pp < pe {
 		u := K(I64(pp))
-		fmt.Println("exec", tp(u), int32(u), sK(u))
+		//fmt.Println("exec", tp(u), int32(u), sK(u))
 		pp += 8
 		if u > 2 {
 			push(a)

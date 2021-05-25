@@ -1,8 +1,6 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -29,6 +27,9 @@ func e(x K, xv int32) (r K) { // Lt
 		return dyadic(r) // dyadic
 	}
 	r = e(y, yv)
+	if xv == 0 {
+		return cat1(cat1(ucat(r, x), 19), 1) // juxtaposition
+	}
 	r = ucat(r, x)
 	return monadic(r) // monadic
 }
@@ -48,7 +49,6 @@ func t() (r K, verb int32) { // Lt
 			r = Fst(r)
 		} else {
 			r = cat3(flat(Rev(r)), Ki(ln), 27, 0)
-			fmt.Println("r?", sK(r))
 		}
 	} else {
 		r, verb = l1(r), ib(tp(r) == 0)
@@ -63,7 +63,6 @@ func t() (r K, verb int32) { // Lt
 			r, verb = cat1(cat1(r, n), 0), 1
 		} else if n == 91 { // [
 			n, ln = plist(93)
-			fmt.Println("r", sK(r))
 			verb = 0
 			if ln == 1 {
 				r = cat1(cat1(Cat(Fst(n), r), 19), 1)
