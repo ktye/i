@@ -18,7 +18,7 @@ func tok(x K) (r K) {
 		if pp == pe {
 			break
 		}
-		for i := int32(192); i < 195; i++ { // tnum, tvrb
+		for i := int32(192); i < 196; i++ { // tnum, tvrb, tpct, tvar
 			y = Func[i].(ftok)()
 			if y != 0 {
 				if i == 193 {
@@ -28,7 +28,7 @@ func tok(x K) (r K) {
 				r = cat1(r, y)
 				break
 			}
-			if i == 194 { // todo last-1
+			if i == 195 { // todo last-1
 				trap(Parse)
 			}
 		}
@@ -94,8 +94,16 @@ func tvrb() (r K) {
 		return 0
 	}
 	pp++
-	// todo ': /: \:
-	return K(1 + index(c, 228, 253))
+	o := int32(1)
+	if pp < pe && I8(pp) == 58 { // :
+		pp++
+		if is(c, 8) {
+			o = 2 // ':
+		} else {
+			o = 97 // +:
+		}
+	}
+	return K(o + index(c, 228, 253))
 }
 func tpct() (r K) {
 	c := I8(pp)
@@ -104,5 +112,22 @@ func tpct() (r K) {
 		return K(c)
 	}
 	return 0
+}
+func tvar() (r K) {
+	c := I8(pp)
+	if !is(c, 2) {
+		return 0
+	}
+	pp++
+	r = Ku(uint64(c))
+	for pp < pe {
+		c = I8(pp)
+		if !is(c, 6) {
+			break
+		}
+		r = cat1(r, K(c)|K(ct)<<59)
+		pp++
+	}
+	return sc(r)
 }
 func is(x, m int32) bool { return m&I8(100+x) != 0 }

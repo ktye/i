@@ -1,8 +1,6 @@
 package k
 
-import (
-	. "github.com/ktye/wg/module"
-)
+import . "github.com/ktye/wg/module"
 
 func nyi(x K) K { trap(Nyi); return x }
 func Dex(x, y K) K { // x:y
@@ -141,7 +139,7 @@ func ntake(n int32, y K) (r K) {
 		dx(y)
 		return r
 	}
-	return Atx(y, seq(nn(y)))
+	return Atx(y, seq(n))
 }
 
 func Rev(x K) (r K) { // |x

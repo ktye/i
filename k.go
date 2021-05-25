@@ -12,12 +12,15 @@ func init() {
 	Data(132, " A@AAAAIP`AAAAAIDDDDDDDDDDA`AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBPI`AA@BBBBBBBBBBBBBBBBBBBBBBBBBBPA`A")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Export(kinit, Ki, iK, Til, Cnt, Atx)
-	//            :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
-	Functions(0000002, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst)
-	Functions(65, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl)
-	Functions(192, tnms, tvrb, tpct)
+	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
+	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl)
+	Functions(192, tnms, tvrb, tpct, tvar)
+	Functions(211, Amd, Dmd)
 }
 
+//   0....7  key
+//   8...15  val
 //  16..127  free list
 // 128..131  memsize log2
 // 132..227  char map (starts at 100)
@@ -26,6 +29,8 @@ func init() {
 func kinit() {
 	minit(10, 16)
 	sp = 256
+	SetI64(0, int64(mk(St, 0)))
+	SetI64(8, int64(mk(Lt, 0)))
 }
 
 type K uint64
@@ -129,6 +134,22 @@ func enc(x []byte) (r uint64) {
 }
 */
 
+func sc(c K) K {
+	s := K(I64(0))
+	sp := int32(s)
+	sn := nn(s)
+	for i := int32(0); i < sn; i++ {
+		if eqc(c, K(I64(sp))) != 0 {
+			dx(c)
+			return K(sp-int32(s)) | K(st)<<59
+		}
+		sp += 8
+	}
+	SetI64(0, int64(cat1(s, c)))
+	SetI64(8, int64(cat1(K(I64(8)), 0)))
+	return K(8*sn) | K(st)<<59
+}
+func cs(x K) (r K) { return rx(K(I64(I32(0) + int32(x)))) }
 func ib(x bool) int32 {
 	if x {
 		return 1

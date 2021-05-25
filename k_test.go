@@ -159,7 +159,10 @@ func sK(x K) string {
 	case it:
 		return strconv.Itoa(int(xp))
 	case st:
-		panic("nyi-st")
+		x = cs(x)
+		dx(x)
+		xp = int32(x)
+		return "`" + string(Bytes[xp:xp+nn(x)])
 	case ft:
 		return strconv.FormatFloat(F64(xp), 'g', -1, 64)
 	case zt:
