@@ -66,7 +66,7 @@ const ( //base t&15          bytes  atom  vector
 
 // func t=0
 // basic x < 64 (triadic/tetradic)
-// xn=2: composition funclist
+// composition .. f2 f1 f0
 // xn=3: derived     func symb
 // xn=4: projection  string func arglist emptylist
 // xn=5: lambda      string code locals arity save

@@ -27,8 +27,8 @@ func e(x K, xv int32) (r K) { // Lt
 		return dyadic(r) // dyadic
 	}
 	r = e(y, yv)
-	if xv == 0 {
-		return cat1(cat1(ucat(r, x), 19), 1) // juxtaposition
+	if xv == 0 || (r == y && xv+yv == 2) {
+		return cat1(cat1(ucat(r, x), 19), 1) // juxtaposition or train
 	}
 	r = ucat(r, x)
 	return monadic(r) // monadic

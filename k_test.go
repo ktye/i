@@ -163,9 +163,16 @@ func sK(x K) string {
 	case ft:
 		return strconv.FormatFloat(F64(xp), 'g', -1, 64)
 	case zt:
-		panic("nyi-zt")
+		return "<cmplx>"
 	case cf:
-		return "<comp>"
+		xn := nn(x)
+		xp = int32(x) + 8*xn
+		s := ""
+		for i := int32(0); i < xn; i++ {
+			xp -= 8
+			s += sK(K(I64(xp)))
+		}
+		return s
 	case df:
 		return "<drv>"
 	case pf:

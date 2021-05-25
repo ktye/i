@@ -4,7 +4,22 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Neg(x K) K { return Ki(-int32(x)) }
+func Neg(x K) (r K) {
+	if tp(x) == It {
+		nx := nn(x)
+		r = mk(It, nx)
+		rp := int32(r)
+		xp := int32(x)
+		for i := int32(0); i < nx; i++ {
+			SetI32(rp, -I32(xp))
+			xp += 4
+			rp += 4
+		}
+		dx(x)
+		return r
+	}
+	return Ki(-int32(x))
+}
 
 func Sqr(x K) K { trap(Nyi); return x }
 

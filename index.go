@@ -37,11 +37,11 @@ func ati(x K, i int32) (r K) { // x BT..LT
 		return Kz(r, im)
 	}
 	if s == 1 {
-		r = K(I8(p))
+		r = K(U8(p))
 	} else if s == 4 {
-		r = K(I32(p))
+		r = K(U32(p))
 	} else {
-		r = K(I64(p))
+		r = K(U64(p))
 	}
 	if t == Ft {
 		r = Kf(F64reinterpret_i64(uint64(r)))
