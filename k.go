@@ -14,7 +14,7 @@ func init() {
 	Export(kinit, Ki, iK, Til, Cnt, Atx)
 	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
 	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose)
 	Functions(192, tnms, tvrb, tpct, tvar)
 	Functions(211, Amd, Dmd)
 }

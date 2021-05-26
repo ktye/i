@@ -53,8 +53,10 @@ func e(x K, xv int32) (r K) { // Lt
 		return dyadic(r) // dyadic
 	}
 	r = e(y, yv)
-	if xv == 0 || (r == y && xv+yv == 2) {
-		return cat1(cat1(ucat(r, x), 19), 2) // juxtaposition or train
+	if xv == 0 {
+		return cat1(cat1(ucat(r, x), 19), 2) // juxtaposition
+	} else if r == y && xv+yv == 2 {
+		return cat1(cat1(ucat(r, x), 27), 2) // composition
 	}
 	r = ucat(r, x)
 	return monadic(r) // monadic

@@ -1,80 +1,86 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
 func Cal(x, y K) (r K) {
-	fmt.Println("Cal", sK(x), sK(y))
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if xt == 0 || xt > tt {
 			if yt != Lt {
 				trap(Nyi)
 			}
-			if nn(y) != 2 {
-				trap(Rank)
-			}
 			r = project(x, y)
 			if r != 0 {
 				return r
 			}
-			yp := int32(y)
-			r = cal2(x, rx(K(I64(yp))), rx(K(I64(8+yp))))
-			dx(y)
-			return r
+			return cal(x, y)
 		}
 	}
 	panic(Nyi)
 	return x
 }
-
-func cal1(f, x K) (r K) {
-	t, xt := tp(f), tp(x)
-	if xt == 0 || (xt > tt && xt < 16) {
-		return compose(f, x, xt)
-	}
-	if t != 0 {
-		t -= 9
-	}
-	switch t {
-	case 0:
-		r = Func[int32(f)].(f1)(x)
-	case 1: // cf
-		r = calltrain(f, x, 0)
-	case 2: // df
-		fp := int32(f)
-		d := K(I64(fp))
-		a := int32(I64(fp + 8))
-		r = Func[85+int32(a)].(f2)(d, x)
-		dx(f)
-	case 3: // pf
-		r = callprj(f, x, 0)
-	case 4: // lf
-		r = lambda(f, l1(x))
-	default:
-		trap(Nyi)
-	}
-	return r
-}
-func cal2(f, x, y K) (r K) {
+func cal(f, x K) (r K) {
 	t := tp(f)
+	fp := int32(f)
+	xn := nn(x)
+	xp := int32(x)
+	var z K
+	if t < pf {
+		switch xn - 1 {
+		case 0:
+			x = Fst(x)
+		case 1:
+			x, r = spl2(x)
+		case 2:
+			x, r, z = spl3(x)
+		default:
+		}
+	}
 	if t != 0 {
 		t -= 9
 	}
 	switch t {
-	case 0:
-		r = Func[int32(f)+64].(f2)(x, y)
+	case 0: // basic
+		switch xn - 1 {
+		case 0:
+			r = Func[int32(f)].(f1)(x)
+		case 1:
+			r = Func[fp+64].(f2)(x, r)
+		case 2:
+			r = Func[fp+192].(f4)(x, r, 1, z)
+		case 3:
+			z := rx(K(I64(xp + 24)))
+			x, r, f = spl3(x)
+			r = Func[fp+192].(f4)(x, r, z, f)
+		default:
+			trap(Rank)
+		}
 	case 1: // cf
-		r = calltrain(f, x, y)
+		switch xn - 1 {
+		case 0:
+			r = calltrain(f, x, 0)
+		case 1:
+			r = calltrain(f, x, r)
+		default:
+			trap(Rank)
+		}
 	case 2: // df
-		trap(Nyi)
+		d := K(I64(fp))
+		a := 85 + int32(I64(fp+8))
+		switch xn - 1 {
+		case 0:
+			r = Func[a].(f2)(d, x)
+		case 1:
+			r = Func[64+a].(f3)(d, x, r)
+		default:
+			trap(Rank)
+		}
 	case 3: // pf
-		trap(Nyi)
+		r = callprj(f, x)
 	case 4: // lf
-		r = lambda(f, l2(x, y))
+		r = lambda(f, x)
 	default:
 		trap(Type)
 	}
@@ -84,43 +90,33 @@ func calltrain(f, x, y K) (r K) {
 	n := nn(f)
 	fp := int32(f)
 	if y == 0 {
-		r = cal1(rx(K(I64(fp))), x)
+		r = cal(rx(K(I64(fp))), l1(x))
 	} else {
-		r = cal2(rx(K(I64(fp))), x, y)
+		r = cal(rx(K(I64(fp))), l2(x, y))
 	}
 	for i := int32(1); i < n; i++ {
 		fp += 8
-		r = cal1(rx(K(I64(fp))), r)
+		r = cal(rx(K(I64(fp))), l1(r))
 	}
 	dx(f)
 	return r
 }
-func callprj(f, x, y K) (r K) {
-	ar := nn(f)
-	fp := int32(f)
-	if y == 0 && ar > 1 {
-		return project(f, l1(x))
-	} else if ar > 2 {
-		return project(f, l2(x, y))
+func callprj(f, x K) K {
+	n := nn(x)
+	if nn(f) != n {
+		trap(Rank)
 	}
-	p := rx(K(I64(fp)))
-	l := rx(K(I64(fp + 8)))
-	i := rx(K(I64(fp + 16)))
-	if y == 0 {
-		dx(i)
-		r = sti(l, I32(int32(i)), x)
-	} else {
-		r = stv(l, i, l2(x, y))
-	}
-	r = Cal(p, r)
+	var l, i K
+	p, fp := nxl(int32(f))
+	l, fp = nxl(fp)
+	i, fp = nxl(fp)
+	x = stv(rx(l), rx(i), x)
+	x = Cal(p, x)
 	dx(f)
-	return r
+	return x
 }
 func lambda(f K, x K) (r K) {
 	fn := nn(f)
-	if nn(x) > fn {
-		return project(f, x)
-	}
 	fp := int32(f)
 	c := K(I64(fp))
 	lo := K(I64(fp + 8))
@@ -158,8 +154,8 @@ func lambda(f K, x K) (r K) {
 	pp, pe = spp, spe
 	return r
 }
-func compose(x, y K, yt T) (r K) {
-	if yt == ct {
+func compose(x, y K) (r K) {
+	if tp(y) == ct {
 		r = cat1(K(int32(y))|K(Lt)<<59, x)
 	} else {
 		r = l2(y, x)

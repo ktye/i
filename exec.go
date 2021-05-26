@@ -94,7 +94,7 @@ func Asn(x, y K) K {
 }
 func Amd(x, i, v, y K) (r K) {
 	if tp(v) != 0 || int32(v) != 1 {
-		y = cal2(v, Atx(rx(x), rx(i)), y)
+		y = cal(v, l2(Atx(rx(x), rx(i)), y))
 	}
 	if tp(x) == It && tp(i) == it && tp(y) == it {
 		r = ucat(x, mk(It, 0))

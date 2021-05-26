@@ -8,7 +8,7 @@ func Atx(x, y K) K { // x@y
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if xt == 0 || xt > tt {
-			return cal1(x, y)
+			return cal(x, l1(y))
 		}
 	}
 	if xt > Lt {
@@ -111,12 +111,76 @@ func atv(x, y K) (r K) { // x BT..LT
 	dx(y)
 	return r
 }
-func sti(x K, i int32, y K) K {
-	xt, yt := tp(x), tp(y)
+func use(x K) (K, T) {
+	xt := tp(x)
 	if xt < 16 {
 		trap(Type)
 	}
-	x = ucat(x, mk(xt, 0)) // use
+	x = ucat(x, mk(xt, 0))
+	return x, xt
+}
+func stv(x, i, y K) (r K) {
+	var xt T
+	x, xt = use(x)
+	if It != tp(i) {
+		trap(Type)
+	}
+	if xt != tp(y) {
+		trap(Type)
+	}
+	xn := nn(x)
+	n := nn(i)
+	if n != nn(y) {
+		trap(Length)
+	}
+	s := sz(xt)
+	xp := int32(x)
+	yp := int32(y)
+	ip := int32(i)
+	for j := int32(0); j < n; j++ {
+		xi := I32(ip + 4*j)
+		if xi < 0 || xi >= xn {
+			trap(Value)
+		}
+	}
+	if s == 1 {
+		for j := int32(0); j < n; j++ {
+			SetI8(xp+I32(ip), I8(yp))
+			ip += 4
+			yp++
+		}
+	} else if s == 4 {
+		for j := int32(0); j < n; j++ {
+			SetI32(xp+4*I32(ip), I32(yp))
+			ip += 4
+			yp += 4
+		}
+	} else if s == 8 {
+		if xt == Ft || xt == Zt {
+			trap(Nyi)
+		}
+		if xt == Lt {
+			rl(y)
+			for j := int32(0); j < n; j++ {
+				dx(K(I64(xp + 8*I32(ip))))
+				ip += 4
+			}
+			ip = int32(i)
+		}
+		for j := int32(0); j < n; j++ {
+			SetI64(xp+8*I32(ip), I64(yp))
+			ip += 4
+			yp += 8
+		}
+	}
+	dx(i)
+	dx(y)
+	return x
+}
+func sti(x K, i int32, y K) K {
+	var xt, yt T
+	x, xt = use(x)
+	yt = tp(y)
 	if xt < Lt && yt != xt-16 {
 		trap(Type)
 	}
@@ -140,9 +204,5 @@ func sti(x K, i int32, y K) K {
 		}
 		SetI64(xp, int64(y))
 	}
-	return x
-}
-func stv(x, i, y K) (r K) {
-	trap(Nyi)
 	return x
 }

@@ -117,3 +117,19 @@ func ncat(x, y K) (r K) {
 	}
 	return cat1(uptypes(x, y))
 }
+func spl2(l K) (x, y K) {
+	var lp int32
+	x, lp = nxl(int32(l))
+	y, lp = nxl(lp)
+	dx(l)
+	return x, y
+}
+func spl3(l K) (x, y, z K) {
+	var lp int32
+	x, lp = nxl(int32(l))
+	y, lp = nxl(lp)
+	z, lp = nxl(lp)
+	dx(l)
+	return x, y, z
+}
+func nxl(lp int32) (K, int32) { return K(I64(lp)), lp + 8 }
