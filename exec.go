@@ -1,8 +1,6 @@
 package k
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -105,7 +103,7 @@ func Amd(x, i, v, y K) (r K) {
 	return x
 }
 func Dmd(x, i, v, y K) K {
-	fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+	//fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
 	trap(Nyi)
 	return y
 }

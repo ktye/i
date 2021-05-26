@@ -1,0 +1,13 @@
+<head><meta charset="utf-8"><title>k</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+<style>
+ html{font-family:monospace}
+</style>
+<script>
+function ge(x){return document.getElementById(x)}
+var K, U
+fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r)).then(r=>{K=r.instance.exports;U=new Uint32Array(K.memory.buffer)})
+
+</script>
+<body>
+</body></html>

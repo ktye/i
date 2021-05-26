@@ -191,7 +191,7 @@ func next() (r K, s int32) {
 	}
 	r = K(I64(pp))
 	s = 0xffffff & int32(r>>32)
-	r = r &^ (0xffffff << 32)
+	r = r &^ (K(0xffffff) << 32)
 	pp += 8
 	return r, s
 }
