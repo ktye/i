@@ -140,7 +140,7 @@ func sK(x K) string {
 	switch tp(x) {
 	case 0:
 		if x == 0 {
-			return "<null>"
+			return ""
 		}
 		if xp < 23 {
 			s := []byte("0:+-*%!&|<>=~,^#_$?@.'/\\")
@@ -162,6 +162,9 @@ func sK(x K) string {
 		x = cs(x)
 		dx(x)
 		xp = int32(x)
+		if nn(x) == 0 {
+			return "`"
+		}
 		return "`" + string(Bytes[xp:xp+nn(x)])
 	case ft:
 		return strconv.FormatFloat(F64(xp), 'g', -1, 64)
@@ -179,6 +182,12 @@ func sK(x K) string {
 	case df:
 		return "<drv>"
 	case pf:
+		f := K(I64(xp))
+		l := K(I64(xp + 8))
+		i := K(I64(xp + 16))
+		if tp(f) == 0 && nn(i) == 1 && I32(int32(i)) == 1 {
+			return sK(K(I64(int32(l)))) + sK(f) // 1+
+		}
 		return "<prj>"
 	case lf:
 		return "<lambda>"
@@ -199,7 +208,15 @@ func sK(x K) string {
 		}
 		return comma(1 == nn(x)) + strings.Join(r, " ")
 	case St:
-		panic("nyi-St")
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = sK(K(I32(xp)) | K(st)<<59)
+			xp += 4
+		}
+		if nn(x) == 0 {
+			return "0#`"
+		}
+		return strings.Join(r, "")
 	case Ft:
 		r := make([]string, nn(x))
 		for i := range r {
@@ -211,7 +228,8 @@ func sK(x K) string {
 	case Lt:
 		r := make([]string, nn(x))
 		for i := range r {
-			r[i] = sK(K(I64(xp + 8*int32(i))))
+			r[i] = sK(K(I64(xp)))
+			xp += 8
 		}
 		return "(" + strings.Join(r, ";") + ")"
 	case Dt:

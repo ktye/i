@@ -18,7 +18,7 @@ func exec(x K) K {
 	pe = pp + 8*nn(x)
 	for pp < pe {
 		u := K(I64(pp))
-		// fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
+		//fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
 		pp += 8
 		if u > 4 {
 			push(a)

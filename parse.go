@@ -22,6 +22,11 @@ func e(x K, xv int32) (r K) { // Lt
 	}
 	if yv != 0 && xv == 0 {
 		r = e(t())
+		if r == 0 { // 1+ (projection)
+			r = l2(K(st)<<59, 0)
+			x = cat3(x, Ki(2), 27, 1)
+			y = cat1(y, 20)
+		}
 		x, y = pasn(x, y)
 		r = ucat(r, x)
 		r = ucat(r, y)
@@ -120,6 +125,9 @@ func plist(c K) (r K, n int32) {
 		n++
 		x := e(t())
 		r = cat1(r, x)
+		if x == 0 {
+			r = cat1(r, K(st)<<59) // <null> is ` 0(lup) (Rev)
+		}
 		b = next()
 		if b == c {
 			break

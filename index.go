@@ -111,3 +111,38 @@ func atv(x, y K) (r K) { // x BT..LT
 	dx(y)
 	return r
 }
+func sti(x K, i int32, y K) K {
+	xt, yt := tp(x), tp(y)
+	if xt < 16 {
+		trap(Type)
+	}
+	x = ucat(x, mk(xt, 0)) // use
+	if xt < Lt && yt != xt-16 {
+		trap(Type)
+	}
+	xn := nn(x)
+	if i < 0 || i >= xn {
+		trap(Length)
+	}
+	s := sz(xt)
+	xp := int32(x)
+	if xt == Ft || xt == Zt {
+		trap(Nyi)
+	}
+	if s == 1 {
+		SetI8(xp+i, int32(y))
+	} else if s == 4 {
+		SetI32(xp+4*i, int32(y))
+	} else {
+		xp += 8 * i
+		if xt == Lt {
+			dx(K(I64(xp)))
+		}
+		SetI64(xp, int64(y))
+	}
+	return x
+}
+func stv(x, i, y K) (r K) {
+	trap(Nyi)
+	return x
+}

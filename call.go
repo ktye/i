@@ -17,6 +17,10 @@ func Cal(x, y K) (r K) {
 			if nn(y) != 2 {
 				trap(Rank)
 			}
+			r = project(x, y)
+			if r != 0 {
+				return r
+			}
 			yp := int32(y)
 			r = cal2(x, rx(K(I64(yp))), rx(K(I64(8+yp))))
 			dx(y)
@@ -46,6 +50,8 @@ func cal1(f, x K) (r K) {
 		a := int32(I64(fp + 8))
 		r = Func[85+int32(a)].(f2)(d, x)
 		dx(f)
+	case 3: // pf
+		r = callprj(f, x, 0)
 	default:
 		trap(Nyi)
 	}
@@ -84,6 +90,27 @@ func calltrain(f, x, y K) (r K) {
 	dx(f)
 	return r
 }
+func callprj(f, x, y K) (r K) {
+	ar := nn(f)
+	fp := int32(f)
+	if y == 0 && ar > 1 {
+		return project(f, l1(x))
+	} else if ar > 2 {
+		return project(f, l2(x, y))
+	}
+	p := rx(K(I64(fp)))
+	l := rx(K(I64(fp + 8)))
+	i := rx(K(I64(fp + 16)))
+	if y == 0 {
+		dx(i)
+		r = sti(l, I32(int32(i)), x)
+	} else {
+		r = stv(l, i, l2(x, y))
+	}
+	r = Cal(p, r)
+	dx(f)
+	return r
+}
 func compose(x, y K, yt T) (r K) {
 	if yt == ct {
 		r = cat1(K(int32(y))|K(Lt)<<59, x)
@@ -91,4 +118,35 @@ func compose(x, y K, yt T) (r K) {
 		r = l2(y, x)
 	}
 	return K(int32(r)) | K(cf)<<59
+}
+func project(f, x K) (r K) {
+	xn := nn(x)
+	xp := int32(x)
+	a := mk(It, 0)
+	for i := int32(0); i < xn; i++ {
+		if I64(xp) == 0 {
+			a = cat1(a, Ki(i))
+		}
+		xp += 8
+	}
+	ar := arity(f)
+	for i := xn; i < ar; i++ {
+		a = cat1(a, Ki(i))
+		x = cat1(x, 0)
+	}
+	an := nn(a)
+	if an == 0 {
+		dx(a)
+		return 0
+	}
+	r = l3(f, x, a)
+	SetI32(int32(r)-4, an)
+	return K(int32(r)) | K(pf)<<59
+}
+func arity(f K) int32 {
+	t := tp(f)
+	if t > df {
+		return nn(f)
+	}
+	return 2
 }

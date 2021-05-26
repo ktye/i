@@ -29,8 +29,12 @@ func init() {
 func kinit() {
 	minit(10, 16)
 	sp = 256
-	SetI64(0, int64(mk(St, 0)))
+	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
+	sc(Ku(0))   // `
+	sc(Ku(120)) // `x
+	sc(Ku(121)) // `y
+	sc(Ku(122)) // `z
 }
 
 type K uint64
@@ -73,8 +77,8 @@ const ( //base t&15          bytes  atom  vector
 // basic x < 64 (triadic/tetradic)
 // composition .. f2 f1 f0
 // xn=3: derived     func symb
-// xn=4: projection  string func arglist emptylist
-// xn=5: lambda      string code locals arity save
+// xn=4: projection  func arglist emptylist
+// xn=5: lambda      string code locals save
 
 // ptr: int32(x)
 // p-8       p-4     p
@@ -110,7 +114,9 @@ func l2t(x, y K, t T) (r K) {
 	SetI64(8+int32(r), int64(y))
 	return K(int32(r)) | K(t)<<59
 }
-func l2(x, y K) (r K) { return l2t(x, y, Lt) }
+func l2(x, y K) (r K)    { return l2t(x, y, Lt) }
+func l3(x, y, z K) (r K) { return cat1(l2(x, y), z) }
+
 func Ku(x uint64) (r K) { // Ct
 	r = mk(Ct, 0)
 	p := int32(r)
