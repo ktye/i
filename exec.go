@@ -80,7 +80,8 @@ func Lup(x K) K {
 		trap(Type)
 	}
 	vp := I32(8) + int32(x)
-	return rx(K(I64(vp)))
+	r := rx(K(I64(vp)))
+	return r
 }
 func Asn(x, y K) K {
 	if tp(x) != st {

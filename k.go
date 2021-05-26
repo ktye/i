@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-var src, loc K
+var src, loc, xyz K
 var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
 
 func init() {
@@ -31,10 +31,11 @@ func kinit() {
 	sp = 256
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-	sc(Ku(0))   // `
-	sc(Ku(120)) // `x
-	sc(Ku(121)) // `y
-	sc(Ku(122)) // `z
+	sc(Ku(0))        // `
+	x := sc(Ku(120)) // `x
+	y := sc(Ku(121)) // `y
+	z := sc(Ku(122)) // `z
+	xyz = cat1(Cat(x, y), z)
 }
 
 type K uint64
@@ -78,7 +79,7 @@ const ( //base t&15          bytes  atom  vector
 // composition .. f2 f1 f0
 // xn=3: derived     func symb
 // xn=4: projection  func arglist emptylist
-// xn=5: lambda      string code locals
+// xn=5: lambda      code locals save string
 
 // ptr: int32(x)
 // p-8       p-4     p

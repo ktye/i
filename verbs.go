@@ -58,7 +58,9 @@ func seq(n int32) (r K) {
 	}
 	return r
 }
-
+func Unq(x K) (r K) { // ?x
+	return x // todo
+}
 func Key(x, y K) (r K) { // x!y
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {

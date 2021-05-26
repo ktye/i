@@ -117,21 +117,46 @@ func callprj(f, x, y K) (r K) {
 	return r
 }
 func lambda(f K, x K) (r K) {
-	/*
-		fn := nn(f)
-		if nn(x) > fn {
-			return project(f, x)
+	fn := nn(f)
+	if nn(x) > fn {
+		return project(f, x)
+	}
+	fp := int32(f)
+	c := K(I64(fp))
+	lo := K(I64(fp + 8))
+	sa := K(I64(fp + 16))
+	sp := int32(sa)
+	nl := nn(sa)
+	vp := I32(8)
+	lp := int32(lo)
+	xp := int32(x)
+	for i := int32(0); i < nl; i++ {
+		p := vp + I32(lp)
+		SetI64(sp, I64(p))
+		if i < fn {
+			SetI64(p, I64(xp))
+			xp += 8
+		} else {
+			SetI64(p, 0)
 		}
-		c := K(I64(fp))
-		lo := K(I64(fp + 16))
-		nl := nn(lo)
-		save := mk(L, nl)
-		for i := int32(0); i<nl; i++ {
-
+		sp += 8
+		lp += 4
+	}
+	spp, spe := pp, pe
+	r = exec(c)
+	vp = I32(8)
+	sp = int32(sa)
+	for i := int32(0); i < nl; i++ {
+		p := vp + I32(lp)
+		if i < fn {
+			dx(K(I64(p)))
 		}
-	*/
-	trap(Nyi)
-	return x
+		SetI64(p, I64(sp))
+		lp += 4
+		sp += 8
+	}
+	pp, pe = spp, spe
+	return r
 }
 func compose(x, y K, yt T) (r K) {
 	if yt == ct {

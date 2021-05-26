@@ -190,7 +190,7 @@ func sK(x K) string {
 		}
 		return "<prj>"
 	case lf:
-		x = K(I64(xp + 16))
+		x = K(I64(xp + 24))
 		xp = int32(x)
 		return string(Bytes[xp : xp+nn(x)])
 	case Bt:
