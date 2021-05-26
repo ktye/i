@@ -88,10 +88,8 @@ func dx(x K) {
 		if t&15 >= 5 {
 			if t == 6 || t == 22 || t == 24 || t == 25 {
 				n = 2
-			} else if t == 12 {
+			} else if t == 12 || t == 13 { // prj|lam
 				n = 3 // prj
-			} else if t == 13 {
-				n = 4 // lambda
 			}
 			p := int32(x)
 			for i := int32(0); i < n; i++ {

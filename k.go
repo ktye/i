@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-var src K
+var src, loc K
 var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
 
 func init() {
@@ -78,7 +78,7 @@ const ( //base t&15          bytes  atom  vector
 // composition .. f2 f1 f0
 // xn=3: derived     func symb
 // xn=4: projection  func arglist emptylist
-// xn=5: lambda      string code locals save
+// xn=5: lambda      string code locals
 
 // ptr: int32(x)
 // p-8       p-4     p

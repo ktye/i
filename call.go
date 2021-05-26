@@ -52,6 +52,8 @@ func cal1(f, x K) (r K) {
 		dx(f)
 	case 3: // pf
 		r = callprj(f, x, 0)
+	case 4: // lf
+		r = lambda(f, l1(x))
 	default:
 		trap(Nyi)
 	}
@@ -67,9 +69,12 @@ func cal2(f, x, y K) (r K) {
 		r = Func[int32(f)+64].(f2)(x, y)
 	case 1: // cf
 		r = calltrain(f, x, y)
-	//case 2: // df
-	//case 3: // pf
-	//case 4: // lf
+	case 2: // df
+		trap(Nyi)
+	case 3: // pf
+		trap(Nyi)
+	case 4: // lf
+		r = lambda(f, l2(x, y))
 	default:
 		trap(Type)
 	}
@@ -110,6 +115,23 @@ func callprj(f, x, y K) (r K) {
 	r = Cal(p, r)
 	dx(f)
 	return r
+}
+func lambda(f K, x K) (r K) {
+	/*
+		fn := nn(f)
+		if nn(x) > fn {
+			return project(f, x)
+		}
+		c := K(I64(fp))
+		lo := K(I64(fp + 16))
+		nl := nn(lo)
+		save := mk(L, nl)
+		for i := int32(0); i<nl; i++ {
+
+		}
+	*/
+	trap(Nyi)
+	return x
 }
 func compose(x, y K, yt T) (r K) {
 	if yt == ct {

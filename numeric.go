@@ -23,7 +23,24 @@ func Neg(x K) (r K) {
 
 func Sqr(x K) K { trap(Nyi); return x }
 
-func Add(x, y K) K { return Ki(int32(x) + int32(y)) }
+func Add(x, y K) (r K) {
+	xt, yt := tp(x), tp(y)
+	if xt == It && yt == it {
+		xn := nn(x)
+		r = mk(It, xn)
+		rp := int32(r)
+		xp := int32(x)
+		yp := int32(y)
+		for i := int32(0); i < xn; i++ {
+			SetI32(rp, I32(xp)+yp)
+			rp += 4
+			xp += 4
+		}
+		dx(x)
+		return r
+	}
+	return Ki(int32(x) + int32(y))
+}
 func Sub(x, y K) K { return Ki(int32(x) - int32(y)) }
 func Mul(x, y K) K { return Ki(int32(x) * int32(y)) }
 func Div(x, y K) K { return Ki(int32(x) / int32(y)) }

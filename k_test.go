@@ -190,7 +190,9 @@ func sK(x K) string {
 		}
 		return "<prj>"
 	case lf:
-		return "<lambda>"
+		x = K(I64(xp + 16))
+		xp = int32(x)
+		return string(Bytes[xp : xp+nn(x)])
 	case Bt:
 		r := bytes.Repeat([]byte{'0'}, int(nn(x)))
 		for i := range r {

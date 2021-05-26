@@ -8,8 +8,28 @@ func parse(x K) (r K) {
 	x = tok(x)
 	pp = int32(x)
 	pe = pp + 8*nn(x)
-
-	r = e(t())
+	return es()
+}
+func es() (r K) {
+	r = mk(Lt, 0)
+	for {
+		n, _ := next()
+		if n == 0 {
+			break
+		}
+		if n == 59 {
+			continue
+		}
+		pp -= 8
+		x := e(t())
+		if x == 0 {
+			break
+		}
+		if nn(r) != 0 {
+			r = cat1(r, 5)
+		}
+		r = Cat(r, x)
+	}
 	return r
 }
 func e(x K, xv int32) (r K) { // Lt
@@ -40,8 +60,8 @@ func e(x K, xv int32) (r K) { // Lt
 	return monadic(r) // monadic
 }
 func t() (r K, verb int32) { // Lt
-	var ln int32
-	r = next()
+	var ln, s int32
+	r, s = next()
 	if r == 0 {
 		return 0, 0
 	}
@@ -50,21 +70,19 @@ func t() (r K, verb int32) { // Lt
 		return 0, 0
 	}
 	if r == K('(') {
-		r, ln = plist(41)
-		if ln == 1 {
-			r = Fst(r)
-		} else {
-			r = cat3(flat(Rev(r)), Ki(ln), 27, 1)
-		}
+		r, _ = plist(41)
 	} else if r == K('{') {
-		r = plam()
+		r = plam(s)
 	} else if tp(r) == st {
 		r = l2(r, 0)
 	} else {
-		r, verb = l1(r), ib(tp(r) == 0)
+		if tp(r) == 0 {
+			r, verb = r|K(s)<<32, 1
+		}
+		r = l1(r)
 	}
 	for {
-		n := next()
+		n, _ := next()
 		if n == 0 {
 			break
 		}
@@ -74,13 +92,7 @@ func t() (r K, verb int32) { // Lt
 			r, verb = cat1(cat1(r, n), 1), 1
 		} else if n == 91 { // [
 			n, ln = plist(93)
-			verb = 0
-			if ln == 1 {
-				r = cat1(cat1(Cat(Fst(n), r), 19), 2)
-			} else {
-				n = cat3(flat(Rev(n)), Ki(ln), 27, 1)
-				r = cat1(cat1(Cat(n, r), 20), 2)
-			}
+			r = cat1(cat1(Cat(n, r), K(19+ln)), 2)
 		} else {
 			pp -= 8
 			break
@@ -105,47 +117,79 @@ func pasn(x, y K) (K, K) {
 			y = l2(s, l-K(int32(l)))
 			//fmt.Println("=>", sK(x), sK(y))
 		} else if v == 1 {
-			x = ntake(nn(x)-1, x) // (`x;0) 0:Lup
-			y = l1(l - 1)         // l-1 is 0|srcmark
+			s := Fst(x) // (`x;0) 0:Lup
+			if loc != 0 {
+				loc = cat1(loc, s)
+			}
+			x = l1(s)
+			y = l1(l - 1) // l-1 is 0|srcmark
 		} else { // modified
 			y = cat1(cat1(l2(l-96, 2), Fst(rx(x))), l-K(int32(l)))
 		}
 	}
 	return x, y
 }
-func plam() K { trap(Nyi); return 0 }
+func plam(s0 int32) (r K) {
+	loc = mk(St, 0)
+	c := es() // todo: translate srcp
+	n, s1 := next()
+	if n != 125 {
+		trap(Parse)
+	}
+	cn := nn(c)
+	cp := int32(c)
+	ar := int32(0)
+	for i := int32(0); i < cn; i++ {
+		if I64(cp) == 0 {
+			if y := I32(cp-8) >> 3; y > 1 && y < 4 {
+				ar = maxi(ar, y)
+			}
+		}
+		cp += 8
+	}
+	i := Add(seq(1+s1-s0), Ki(s0-1))
+	s := atv(rx(src), i)
+	r = l3(c, loc, s)
+	loc = 0
+	rp := int32(r)
+	SetI32(rp-4, ar)
+	return l1(K(rp) | K(lf)<<59)
+}
 func plist(c K) (r K, n int32) {
 	r = mk(Lt, 0)
-	b := next()
-	if b == 0 || b == c {
-		return r, 0
-	}
-	pp -= 8
 	for {
+		b, _ := next()
+		if b == 0 || b == c {
+			break
+		}
+		if n == 0 {
+			pp -= 8
+		}
+		if n != 0 && b != 59 {
+			trap(Parse)
+		}
 		n++
 		x := e(t())
 		r = cat1(r, x)
 		if x == 0 {
 			r = cat1(r, K(st)<<59) // <null> is ` 0(lup) (Rev)
 		}
-		b = next()
-		if b == c {
-			break
-		}
-		if b != 59 { // ;
-			trap(Parse)
-		}
 	}
-	return r, n
+	if n == 1 {
+		return Fst(r), 0
+	}
+	return cat3(flat(Rev(r)), Ki(n), 27, 1), 1
 }
 
-func next() (r K) {
+func next() (r K, s int32) {
 	if pp == pe {
-		return 0
+		return 0, 0
 	}
 	r = K(I64(pp))
+	s = 0xffffff & int32(r>>32)
+	r = r &^ (0xffffff << 32)
 	pp += 8
-	return r
+	return r, s
 }
 func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x K) K {

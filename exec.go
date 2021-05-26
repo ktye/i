@@ -20,7 +20,7 @@ func exec(x K) K {
 		u := K(I64(pp))
 		//fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
 		pp += 8
-		if u > 4 {
+		if u > 5 {
 			push(a)
 			a = u
 		} else {
@@ -35,6 +35,9 @@ func exec(x K) K {
 				a = Func[128+marksrc(a)].(f3)(pop(), pop(), pop())
 			case 4:
 				a = Func[192+marksrc(a)].(f4)(pop(), pop(), pop(), pop())
+			case 5:
+				dx(a)
+				a = pop()
 			default:
 				panic(Nyi)
 			}

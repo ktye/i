@@ -11,7 +11,7 @@ func tok(x K) (r K) {
 	src = x
 	pp = int32(x)
 	pe = pp + nn(x)
-	p := pp - 1 //force srcp > 0
+	p := pp // srcp > 0
 	r = mk(Lt, 0)
 	for {
 		// todo ws
@@ -21,10 +21,7 @@ func tok(x K) (r K) {
 		for i := int32(192); i < 196; i++ { // tnum, tvrb, tpct, tvar
 			y = Func[i].(ftok)()
 			if y != 0 {
-				if i == 193 {
-					y |= K(int64(pp-p) << 32)
-				}
-				//fmt.Println("mark", (int64(pp-p) << 32), pp-p, y)
+				y |= K(int64(pp-p) << 32)
 				r = cat1(r, y)
 				break
 			}
