@@ -17,27 +17,27 @@ func Kst(x K) (r K) {
 		xn := nn(x)
 		if xn == 0 {
 			dx(x)
-			return kst0(xt - 16)
+			return kst0(xt - 17)
 		}
 		if xt == Lt {
 			x = Ech(28, x) // Kst
 		} else if xt != ct {
 			x = Str(x)
 		}
-		switch xt - 16 {
-		case bt:
+		switch xt - 17 {
+		case 0:
 			r = cat1(Ech(4, x), Kc('b'))
-		case ct:
+		case 1:
 			r = emb(34, 34, x)
-		case it:
+		case 2:
 			r = join(Kc(' '), x)
-		case st:
+		case 3:
 			r = ucat(Kc(96), join(Kc('`'), x))
-		case ft:
+		case 4:
 			r = join(Kc(' '), x)
-		case zt:
+		case 5:
 			r = join(Kc(' '), x)
-		case lt:
+		case 6:
 			r = emb(40, 41, join(Kc(';'), x))
 		default:
 			trap(Nyi)
@@ -50,19 +50,19 @@ func Kst(x K) (r K) {
 }
 func kst0(t T) (r K) {
 	switch t {
-	case bt:
+	case 0:
 		r = 1647321904 // 0#0b
-	case ct:
+	case 1:
 		r = 8738 // ""
-	case it:
+	case 2:
 		r = 12321 // !0
-	case st:
+	case 3:
 		r = 6300464 // 0#`
-	case ft:
+	case 4:
 		r = 774906672 // 0#0.
-	case zt:
+	case 5:
 		r = 1630544688 // 0#0a
-	case lt:
+	case 6:
 		r = 10536 // ()
 	default:
 		trap(Nyi)
@@ -119,6 +119,7 @@ func Str(x K) (r K) {
 	dx(x)
 	return r
 }
+func Out(x K) K                 { return x }
 func emb(a, b int32, x K) (r K) { return cat1(Cat(Kc(a), x), Kc(b)) }
 func join(x K, y K) (r K) {
 	yn := nn(y)

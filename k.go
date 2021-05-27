@@ -11,11 +11,11 @@ func init() {
 	Memory(1)
 	Data(132, " A@AAAAIP`AAAAAIDDDDDDDDDDA`AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBPI`AA@BBBBBBBBBBBBBBBBBBBBBBBBBBPA`A")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
-	Export(kinit, Ki, iK, Til, Cnt, Atx)
+	Export(kinit, mk, nn, Val, Kst)
 	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
-	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst, Kst)
+	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose)
-	Functions(192, tnms, tvrb, tpct, tvar, tsym)
+	Functions(192, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 }
 

@@ -18,14 +18,14 @@ func tok(x K) (r K) {
 		if pp == pe {
 			break
 		}
-		for i := int32(192); i < 197; i++ { // tnum, tvrb, tpct, tvar, tsym
+		for i := int32(192); i < 198; i++ { // tnum, tvrb, tpct, tvar, tsym, tchr
 			y = Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-p) << 32)
 				r = cat1(r, y)
 				break
 			}
-			if i == 196 { // todo last-1
+			if i == 197 { // todo last-1
 				trap(Parse)
 			}
 		}
@@ -145,6 +145,28 @@ func tsym() (r K) {
 		if pp == pe {
 			break
 		}
+	}
+	return r
+}
+func tchr() (r K) {
+	if I8(pp) != 34 {
+		return 0
+	}
+	pp++
+	r = mk(Ct, 0)
+	for {
+		if pp == pe {
+			trap(Parse)
+		}
+		c := I8(pp)
+		pp++
+		if c == 34 {
+			break
+		}
+		r = cat1(r, Kc(c))
+	}
+	if nn(r) == 1 {
+		return Fst(r)
 	}
 	return r
 }

@@ -12,12 +12,12 @@ type f4 = func(K, K, K, K) K
 func exec(x K) K {
 	//fmt.Println("exec", sK(x))
 	var a K
-	pp = int32(x)
-	pe = pp + 8*nn(x)
-	for pp < pe {
-		u := K(I64(pp))
-		// fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
-		pp += 8
+	p := int32(x)
+	e := p + 8*nn(x)
+	for p < e {
+		u := K(I64(p))
+		//fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
+		p += 8
 		if u > 5 {
 			push(a)
 			a = u

@@ -4,9 +4,35 @@
  html{font-family:monospace}
 </style>
 <script>
+
+var K, C, U
+fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r)).then(r=>{
+ K=r.instance.exports
+ K.kinit()
+ C=new Uint8Array(K.memory.buffer)
+ U=new Uint32Array(K.memory.buffer)
+})
+
 function ge(x){return document.getElementById(x)}
-var K, U
-fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r)).then(r=>{K=r.instance.exports;U=new Uint32Array(K.memory.buffer)})
+function us(s){return new TextEncoder("utf-8").encode(s)}
+function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function lo(x){return Number(BigInt.asUintN(32,x))}
+function ks(s){s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
+function sk(x){var xp=lo(x);return su(C.slice(xp,xp+K.nn(x)))}
+
+function O(s){console.log(s)}
+function L(x){console.log(x);return x}
+
+function ktry(s){
+ s=K.Val(ks(s));
+ O((s==0)?"":sk(K.Kst(s)))
+}
+/*
+function ktry(s){
+ try     {s=K.Val(L(ks(s)));O((s==0)?"":sk(K.Kst(s)))}
+ catch(e){O("!")}
+}
+*/
 
 </script>
 <body>

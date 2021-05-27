@@ -209,6 +209,29 @@ func Typ(x K) (r K) { // @x
 	dx(x)
 	return r
 }
+func Val(x K) (r K) {
+	xt := tp(x)
+	if xt == Ct {
+		return val(x)
+	}
+	trap(Nyi)
+	return x
+}
+func val(x K) (r K) {
+	x = parse(x)
+	xn := nn(x)
+	xp := int32(x) + 8*(xn-1)
+	a := int32(0)
+	if xn > 2 && I64(xp) == 2 && I64(xp-8) == 0 {
+		a = 1
+	}
+	x = exec(x)
+	if a != 0 {
+		dx(x)
+		return 0
+	}
+	return x
+}
 
 func mini(x, y int32) int32 {
 	if x < y {
