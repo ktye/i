@@ -16,7 +16,7 @@ func exec(x K) K {
 	pe = pp + 8*nn(x)
 	for pp < pe {
 		u := K(I64(pp))
-		//fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
+		// fmt.Println("exec", tp(u), int32(u), sK(u), u > 2)
 		pp += 8
 		if u > 5 {
 			push(a)
@@ -78,7 +78,7 @@ func Lup(x K) K {
 		trap(Type)
 	}
 	vp := I32(8) + int32(x)
-	r := rx(K(I64(vp)))
+	r := x0(vp)
 	return r
 }
 func Asn(x, y K) K {

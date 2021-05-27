@@ -49,7 +49,7 @@ func flat(x K) (r K) { // ((..);(..)) -> (...)
 	xn := nn(x)
 	xp := int32(x)
 	for i := int32(0); i < xn; i++ {
-		r = Cat(r, rx(K(I64(xp))))
+		r = Cat(r, x0(xp))
 		xp += 8
 	}
 	dx(x)

@@ -98,12 +98,12 @@ func ntake(n int32, y K) (r K) {
 		trap(Value)
 	}
 	t := tp(y)
+	yp := int32(y)
 	if t < 5 {
 		t += 16
 		r = mk(t, n)
 		s := sz(t)
 		rp := int32(r)
-		yp := int32(y)
 		if s == 1 {
 			Memoryfill(rp, yp, n)
 		} else {
@@ -116,7 +116,7 @@ func ntake(n int32, y K) (r K) {
 	} else if t == ft {
 		r = mk(Ft, n)
 		rp := int32(r)
-		f := F64(int32(y))
+		f := F64(yp)
 		for i := int32(0); i < n; i++ {
 			SetF64(rp, f)
 			rp += 8
@@ -124,8 +124,8 @@ func ntake(n int32, y K) (r K) {
 		dx(y)
 		return r
 	} else if t == zt {
-		r = ntake(n, rx(K(I64(int32(y)))))
-		im := K(I64(8 + int32(y)))
+		r = ntake(n, x0(yp))
+		im := x1(yp)
 		if im != 0 {
 			im = ntake(n, im)
 		}

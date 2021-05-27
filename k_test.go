@@ -218,7 +218,7 @@ func sK(x K) string {
 		if nn(x) == 0 {
 			return "0#`"
 		}
-		return strings.Join(r, "")
+		return comma(1 == nn(x)) + strings.Join(r, "")
 	case Ft:
 		r := make([]string, nn(x))
 		for i := range r {

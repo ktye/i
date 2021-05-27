@@ -51,7 +51,7 @@ func cal(f, x K) (r K) {
 		case 2:
 			r = Func[fp+192].(f4)(x, r, 1, z)
 		case 3:
-			z := rx(K(I64(xp + 24)))
+			z := x3(xp)
 			x, r, f = spl3(x)
 			r = Func[fp+192].(f4)(x, r, z, f)
 		default:
@@ -90,13 +90,13 @@ func calltrain(f, x, y K) (r K) {
 	n := nn(f)
 	fp := int32(f)
 	if y == 0 {
-		r = cal(rx(K(I64(fp))), l1(x))
+		r = cal(x0(fp), l1(x))
 	} else {
-		r = cal(rx(K(I64(fp))), l2(x, y))
+		r = cal(x0(fp), l2(x, y))
 	}
 	for i := int32(1); i < n; i++ {
 		fp += 8
-		r = cal(rx(K(I64(fp))), l1(r))
+		r = cal(x0(fp), l1(r))
 	}
 	dx(f)
 	return r

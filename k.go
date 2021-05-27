@@ -13,9 +13,9 @@ func init() {
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Export(kinit, Ki, iK, Til, Cnt, Atx)
 	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
-	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, nyi, nyi, Cnt, nyi, nyi, nyi, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst)
+	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, nyi, ech, ecp, rdc, ecr, scn, ecl, lst, Kst)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose)
-	Functions(192, tnms, tvrb, tpct, tvar)
+	Functions(192, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
 }
 
@@ -31,10 +31,11 @@ func kinit() {
 	sp = 256
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-	sc(Ku(0))        // `
-	x := sc(Ku(120)) // `x
-	y := sc(Ku(121)) // `y
-	z := sc(Ku(122)) // `z
+	sc(Ku(0))        // `   0
+	x := sc(Ku(120)) // `x  8
+	y := sc(Ku(121)) // `y 16
+	z := sc(Ku(122)) // `z 24
+	sc(Ku(107))      // `k 32
 	xyz = cat1(Cat(x, y), z)
 }
 
@@ -117,7 +118,10 @@ func l2t(x, y K, t T) (r K) {
 }
 func l2(x, y K) (r K)    { return l2t(x, y, Lt) }
 func l3(x, y, z K) (r K) { return cat1(l2(x, y), z) }
-
+func x0(x int32) K       { return rx(K(I64(x))) }
+func x1(x int32) K       { return x0(x + 8) }
+func x2(x int32) K       { return x0(x + 16) }
+func x3(x int32) K       { return x0(x + 24) }
 func Ku(x uint64) (r K) { // Ct
 	r = mk(Ct, 0)
 	p := int32(r)
@@ -156,7 +160,7 @@ func sc(c K) K {
 	SetI64(8, int64(cat1(K(I64(8)), 0)))
 	return K(8*sn) | K(st)<<59
 }
-func cs(x K) (r K) { return rx(K(I64(I32(0) + int32(x)))) }
+func cs(x K) (r K) { return x0(I32(0) + int32(x)) }
 func ib(x bool) int32 {
 	if x {
 		return 1

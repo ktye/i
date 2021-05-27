@@ -106,7 +106,7 @@ func rl(x K) { // ref list elements
 	xp := int32(x)
 	xn := nn(x)
 	for i := int32(0); i < xn; i++ {
-		rx(K(I64(xp)))
+		x0(xp)
 		xp += 8
 	}
 }

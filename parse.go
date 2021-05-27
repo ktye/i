@@ -78,8 +78,11 @@ func t() (r K, verb int32) { // Lt
 	} else if tp(r) == st {
 		r = l2(r, 0)
 	} else {
-		if tp(r) == 0 {
+		rt := tp(r)
+		if rt == 0 {
 			r, verb = r|K(s)<<32, 1
+		} else if rt == St && nn(r) == 1 {
+			r = Fst(r)
 		}
 		r = l1(r)
 	}
