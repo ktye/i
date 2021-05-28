@@ -9,12 +9,12 @@ var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, sr
 
 func init() {
 	Memory(1)
-	Data(132, " A@AAAAIP`AAAAAIDDDDDDDDDDA`AAAAABBBBBBBBBBBBBBBBBBBBBBBBBBPI`AA@BBBBBBBBBBBBBBBBBBBBBBBBBBPA`A")
+	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Export(kinit, mk, nn, Val, Kst)
 	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
-	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose)
+	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
 	Functions(192, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 }
@@ -26,6 +26,7 @@ func init() {
 // 132..227  char map (starts at 100)
 // 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
 // 256..511  stack
+// 512..519  wasi iovec
 func kinit() {
 	minit(10, 16)
 	sp = 256

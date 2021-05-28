@@ -45,7 +45,6 @@ func exec(x K) K {
 }
 func marksrc(x K) int32 {
 	srcp = 0xffffff & int32(x>>32)
-	// fmt.Println("call func", int32(x))
 	return int32(x)
 }
 func push(x K) {

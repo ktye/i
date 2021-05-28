@@ -21,7 +21,7 @@ func Kst(x K) (r K) {
 		}
 		if xt == Lt {
 			x = Ech(28, x) // Kst
-		} else if xt != ct {
+		} else if xt != Ct {
 			x = Str(x)
 		}
 		switch xt - 17 {
@@ -119,7 +119,6 @@ func Str(x K) (r K) {
 	dx(x)
 	return r
 }
-func Out(x K) K                 { return x }
 func emb(a, b int32, x K) (r K) { return cat1(Cat(Kc(a), x), Kc(b)) }
 func join(x K, y K) (r K) {
 	yn := nn(y)

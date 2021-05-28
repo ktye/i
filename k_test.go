@@ -128,9 +128,6 @@ func TestClass(t *testing.T) {
 	cl(`([{`, 16)
 	cl("\n;)]}", 32)
 	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 64)
-	for i := byte(33); i < 127; i++ {
-		c[i] |= 64
-	}
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 

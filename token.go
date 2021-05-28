@@ -14,7 +14,7 @@ func tok(x K) (r K) {
 	p := pp // srcp > 0
 	r = mk(Lt, 0)
 	for {
-		// todo ws
+		ws()
 		if pp == pe {
 			break
 		}
@@ -91,6 +91,9 @@ func tvrb() (r K) {
 		return 0
 	}
 	pp++
+	if c == 92 && I8(pp-2) == 32 { // \out
+		return K(29)
+	}
 	o := int32(1)
 	if pp < pe && I8(pp) == 58 { // :
 		pp++
@@ -169,5 +172,15 @@ func tchr() (r K) {
 		return Fst(r)
 	}
 	return r
+}
+func ws() {
+	for pp < pe {
+		c := I8(pp)
+		if c == 10 || c > 32 {
+			break
+		}
+		pp++
+	}
+	return
 }
 func is(x, m int32) bool { return m&I8(100+x) != 0 }
