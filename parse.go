@@ -49,8 +49,8 @@ func e(x K, xv int32) (r K) { // Lt
 		}
 		x, y = pasn(x, y)
 		r = ucat(r, x)
-		r = ucat(r, y)
-		return dyadic(r) // dyadic
+		// r = ucat(r, y)
+		return dyadic(r, y) // dyadic
 	}
 	r = e(y, yv)
 	if xv == 0 {
@@ -201,12 +201,13 @@ func next() (r K, s int32) {
 	return r, s
 }
 func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
-func dyadic(x K) K {
-	l := lastp(x)
+func dyadic(x, y K) K {
+	l := lastp(y)
 	if l < 2 {
-		x = cat1(x, 20) // .
+		x = cat3(x, Ki(2), 27, 1)
+		y = cat1(y, 20) // .
 	}
-	return cat1(x, 2)
+	return cat1(ucat(x, y), 2)
 }
 func monadic(x K) K {
 	l := lastp(x)

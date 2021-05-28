@@ -20,13 +20,13 @@ func Kst(x K) (r K) {
 			return kst0(xt - 17)
 		}
 		if xt == Lt {
-			x = Ech(28, x) // Kst
+			x = Ech(28, l1(x)) // Kst
 		} else if xt != Ct {
 			x = Str(x)
 		}
 		switch xt - 17 {
 		case 0:
-			r = cat1(Ech(4, x), Kc('b'))
+			r = cat1(Ech(4, l1(x)), Kc('b'))
 		case 1:
 			r = emb(34, 34, x)
 		case 2:
@@ -72,7 +72,7 @@ func kst0(t T) (r K) {
 func Str(x K) (r K) {
 	xt := tp(x)
 	if xt > 16 {
-		return Ech(17, x)
+		return Ech(17, l1(x))
 	}
 	xp := int32(x)
 	if xt > dt {

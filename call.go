@@ -27,7 +27,7 @@ func cal(f, x K) (r K) {
 	xn := nn(x)
 	xp := int32(x)
 	var z K
-	if t < pf {
+	if t < df {
 		switch xn - 1 {
 		case 0:
 			x = Fst(x)
@@ -69,14 +69,7 @@ func cal(f, x K) (r K) {
 	case 2: // df
 		d := K(I64(fp))
 		a := 85 + int32(I64(fp+8))
-		switch xn - 1 {
-		case 0:
-			r = Func[a].(f2)(d, x)
-		case 1:
-			r = Func[64+a].(f3)(d, x, r)
-		default:
-			trap(Rank)
-		}
+		r = Func[a].(f2)(d, x)
 	case 3: // pf
 		r = callprj(f, x)
 	case 4: // lf

@@ -44,12 +44,15 @@ func enl(x K) (r K) {
 	}
 	return r
 }
-func cats(x K) (r K) { // ,/
-	if tp(x) == Lt {
-		return flat(x)
+func cats(x, y K) (r K) { // ,/
+	if tp(y) == Lt {
+		y = flat(y)
 	}
 	trap(Nyi)
-	return x
+	if x != 0 {
+		y = Cat(x, y)
+	}
+	return y
 }
 func flat(x K) (r K) { // ((..);(..)) -> (...)
 	r = mk(Lt, 0)

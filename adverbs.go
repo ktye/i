@@ -12,6 +12,11 @@ func scn(x K) K { return l2t(x, 4, df) } // \
 func ecl(x K) K { return l2t(x, 5, df) } // \:
 
 func Ech(f, x K) (r K) {
+	if nn(x) == 1 {
+		x = Fst(x)
+	} else {
+		return ecn(f, x)
+	}
 	if tp(x) < 16 {
 		x = enl(x)
 	}
@@ -30,78 +35,108 @@ func Ech(f, x K) (r K) {
 	dx(x)
 	return uf(r)
 }
+func ecn(f, x K) K { trap(Nyi); return x }
 func Ecp(f, x K) K { trap(Nyi); return x }
-func Rdc(f, x K) (r K) { // f/x
-	xt := tp(x)
-	if xt < 16 {
-		dx(f)
-		return x
+func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
+	var y K
+	if xn := nn(x); xn == 1 {
+		y = Fst(x)
+		x = 0
+	} else if xn == 2 {
+		x, y = spl2(x)
+	} else {
+		trap(Rank)
 	}
-	xn := nn(x)
-	if xn == 0 {
-		return zero(xt - 16)
+	yt := tp(y)
+	if yt < 16 {
+		if x == 0 {
+			dx(f)
+			return x
+		} else {
+			return cal(f, l2(x, y))
+		}
 	}
-	if xt > Lt {
+	yn := nn(y)
+	if yn == 0 {
+		if x == 0 {
+			return zero(yt - 16)
+		} else {
+			dx(f)
+			dx(y)
+			return x
+		}
+	}
+	if yt > Lt {
 		trap(Nyi)
 	}
+	xt := tp(x)
 	if tp(f) == 0 {
 		fp := int32(f)
 		if fp == 1 {
-			return lst(x)
+			dx(x)
+			return lst(y)
 		}
 		if fp == 13 {
-			return cats(x)
+			return cats(x, y)
 		}
-		if xt != Lt && fp < 9 {
-			return rdx(fp, x, xn) // +-*% &|
+		if yt != Lt && fp < 9 && (xt == yt-16 || xt == 0) {
+			return rdx(fp, x, y, yn) // +-*% &|
 		}
 	}
-	r = ati(rx(x), 0)
-	for i := int32(1); i < xn; i++ {
-		r = cal(f, l2(r, ati(rx(x), i)))
+	i := int32(0)
+	if x == 0 {
+		x, i = ati(rx(y), 0), 1
 	}
-	dx(x)
+	for i < yn {
+		x = cal(rx(f), l2(x, ati(rx(y), i)))
+		i++
+	}
+	dx(y)
 	dx(f)
-	return r
+	return x
 }
-func rdx(fp int32, x K, n int32) (r K) { // (+-*% &|)/
-	xt := tp(x)
-	s := sz(xt)
+
+func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
+	yt := tp(y)
+	s := sz(yt)
+	yp := int32(y)
+	i := int32(0)
+	if x == 0 {
+		x, i = Fst(rx(y)), 1
+	}
 	xp := int32(x)
-	xn := nn(x)
 	if s == 1 {
-		xi := I8(xp)
 		fp = 214 + 3*fp
-		for i := int32(1); i < xn; i++ {
-			xp++
-			xi = Func[fp].(f2i)(xi, I8(xp))
+		for i < n {
+			xp = Func[fp].(f2i)(xp, I8(yp+i))
+			i++
 		}
-		if xt == bt {
-			r = Ki(xi)
+		if yt == Bt {
+			r = Ki(xp)
 		} else {
-			r = Kc(xi)
+			r = Kc(xp)
 		}
 	} else if s == 4 {
-		xi := I32(xp)
 		fp = 214 + 3*fp
-		for i := int32(1); i < xn; i++ {
-			xp += 4
-			xi = Func[fp].(f2i)(xi, I32(xp))
+		for i < n {
+			xp = Func[fp].(f2i)(xp, I32(yp+4*i))
+			i++
 		}
-		r = Ki(xi)
+		r = Ki(xp)
 	} else {
-		if xt == Zt {
+		if yt == Zt {
 			trap(Nyi)
 		}
-		xi := F64(xp)
+		xf := F64(xp)
 		fp = 214 + 3*fp
-		for i := int32(1); i < xn; i++ {
-			xp += 8
-			xi = Func[fp].(f2f)(xi, F64(xp))
+		for i < n {
+			xf = Func[fp].(f2f)(xf, F64(yp+8*i))
+			i++
 		}
-		r = Kf(xi)
+		r = Kf(xf)
 	}
 	dx(x)
+	dx(y)
 	return r
 }
 func Ecr(f, x K) K { trap(Nyi); return x }
