@@ -1,4 +1,4 @@
-package k
+package main
 
 import (
 	. "github.com/ktye/wg/module"
@@ -14,9 +14,11 @@ func init() {
 	Export(kinit, mk, nn, Val, Kst)
 	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
 	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, nyi, nyi, nyi, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
-	Functions(192, tnms, tvrb, tpct, tvar, tsym, tchr)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, nyi, Cat, nyi, Tak, nyi, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
+	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
+	//                                                                229                             235                               241                           247
+	Functions(220, addi, addf, nyi, subi, subf, nyi, muli, mulf, nyi, divi, divf, nyi, nyi, nyi, nyi, mini, minf, nyi, maxi, maxf, nyi, lti, ltf, nyi, gti, gtf, nyi, eqi, eqf, eqz)
 }
 
 //   0....7  key
@@ -27,6 +29,7 @@ func init() {
 // 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
 // 256..511  stack
 // 512..519  wasi iovec
+// 520..
 func kinit() {
 	minit(10, 16)
 	sp = 256
@@ -87,8 +90,8 @@ const ( //base t&15          bytes  atom  vector
 // p-8       p-4     p
 // [refcount][length][data]
 
-func Kb(x bool) K  { return K(ib(x)) | K(bt)<<59 }
-func Kc(x int32) K { return K(x) | K(ct)<<59 }
+func Kb(x int32) K { return K(uint32(x)) | K(bt)<<59 }
+func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }
 func Ki(x int32) K { return K(uint32(x)) | K(it)<<59 }
 func iK(x K) int32 { return int32(x) }
 func Kf(x float64) (r K) {
@@ -167,4 +170,12 @@ func ib(x bool) int32 {
 		return 1
 	}
 	return 0
+}
+func zero(t T) (r K) {
+	if t == Ft {
+		return Kf(0)
+	} else if t == zt {
+		return Kz(0, 0)
+	}
+	return K(t) << 59
 }

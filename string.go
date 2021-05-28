@@ -1,4 +1,4 @@
-package k
+package main
 
 import (
 	. "github.com/ktye/wg/module"
@@ -101,9 +101,9 @@ func Str(x K) (r K) {
 		case 0:
 			r = Ku(uint64(I8(227 + xp)))
 		case bt:
-			r = Ku(uint64(25136) + uint64(I8(xp))<<8) // 0b 1b
+			r = Ku(uint64(25136 + xp)) // 0b 1b
 		case ct:
-			r = Ku(uint64(I8(xp)))
+			r = Ku(uint64(xp))
 		case it:
 			r = si(xp)
 		case st:

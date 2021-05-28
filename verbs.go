@@ -1,6 +1,8 @@
-package k
+package main
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
 func nyi(x K) K { trap(Nyi); return x }
 func Dex(x, y K) K { // x:y
@@ -18,7 +20,8 @@ func Fst(x K) K { // *x
 	}
 	n := nn(x)
 	if n == 0 {
-		trap(Nyi)
+		dx(x)
+		return zero(t - 16)
 	}
 	return ati(x, 0)
 }
@@ -233,18 +236,6 @@ func val(x K) (r K) {
 	return x
 }
 
-func mini(x, y int32) int32 {
-	if x < y {
-		return x
-	}
-	return y
-}
-func maxi(x, y int32) int32 {
-	if x > y {
-		return x
-	}
-	return y
-}
 func sumb(x K) (r int32) {
 	p := int32(x)
 	e := p + nn(x)

@@ -1,4 +1,4 @@
-package k
+package main
 
 import (
 	. "github.com/ktye/wg/module"
@@ -18,17 +18,43 @@ func tok(x K) (r K) {
 		if pp == pe {
 			break
 		}
-		for i := int32(192); i < 198; i++ { // tnum, tvrb, tpct, tvar, tsym, tchr
+		for i := int32(192); i < 199; i++ { // tbln, tnum, tvrb, tpct, tvar, tsym, tchr
 			y = Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-p) << 32)
 				r = cat1(r, y)
 				break
 			}
-			if i == 197 { // todo last-1
+			if i == 198 { // todo last-1
 				trap(Parse)
 			}
 		}
+	}
+	return r
+}
+func tbln() (r K) {
+	n := pe - pp
+	for i := int32(0); i < n; i++ {
+		c := I8(pp + i)
+		if c != '0' && c != '1' {
+			if i < 1 || c != 'b' {
+				return 0
+			}
+			return pbln(i)
+		}
+	}
+	return 0
+}
+func pbln(n int32) (r K) {
+	r = mk(Bt, n)
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		SetI8(rp, I8(pp+i)-'0')
+		rp++
+	}
+	pp += 1 + n
+	if n == 1 {
+		return Fst(r)
 	}
 	return r
 }

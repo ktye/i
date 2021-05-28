@@ -1,4 +1,4 @@
-package k
+package main
 
 import (
 	. "github.com/ktye/wg/module"
@@ -43,6 +43,13 @@ func enl(x K) (r K) {
 		r = l1(x)
 	}
 	return r
+}
+func cats(x K) (r K) { // ,/
+	if tp(x) == Lt {
+		return flat(x)
+	}
+	trap(Nyi)
+	return x
 }
 func flat(x K) (r K) { // ((..);(..)) -> (...)
 	r = mk(Lt, 0)
