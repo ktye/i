@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
@@ -35,8 +37,130 @@ func Ech(f, x K) (r K) {
 	dx(x)
 	return uf(r)
 }
-func ecn(f, x K) K { trap(Nyi); return x }
-func Ecp(f, x K) K { trap(Nyi); return x }
+func ecn(f, x K) K { return Ech(20, Flp(x)) }
+func Ecp(f, x K) (r K) {
+	xn := nn(x)
+	var y K
+	if xn == 1 {
+		x = Fst(x)
+		y = Fst(rx(x))
+	} else if xn == 2 {
+		y, x = spl2(x)
+	} else {
+		trap(Rank)
+	}
+	xt := tp(x)
+	if xt < 16 {
+		trap(Type)
+	}
+	if xt > Lt {
+		trap(Nyi)
+	}
+	xn = nn(x)
+	if 2 > xn+ib(y != 0) {
+		fmt.Println("short")
+		dx(f)
+		return x
+	}
+
+	yt := tp(y)
+	if tp(f) == 0 && xt != Lt && yt == xt-16 {
+		fp := int32(f)
+		if fp > 2 && fp < 6 || fp == 7 || fp == 8 {
+			return epx(fp, x, y, xn) // +-*% &|
+		}
+		if fp == 12 {
+			fp = 11 // ~ =
+		}
+		if fp > 8 && fp < 12 {
+			return epc(fp, x, y, xn) // <>= (~)
+		}
+	}
+	r = mk(Lt, xn)
+	rp := int32(r)
+	SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), 0), y))))
+	for i := int32(1); i < xn; i++ {
+		rp += 8
+		SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), i), ati(rx(x), i-1)))))
+	}
+	dx(f)
+	dx(x)
+	return uf(r)
+}
+func epx(f int32, x, y K, n int32) (r K) { // ( +-*% &| )':
+	xt := tp(x)
+	xp := int32(x)
+	s := sz(xt)
+	r = mk(xt, n)
+	rp := int32(r)
+	f = 214 + 3*f
+	switch s >> 2 {
+	case 0:
+		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		for i := int32(1); i < n; i++ {
+			xp++
+			rp++
+			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-1)))
+		}
+	case 1:
+		SetI32(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		for i := int32(1); i < n; i++ {
+			xp += 4
+			rp += 4
+			SetI32(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
+		}
+	case 2:
+		f++
+		SetF64(rp, Func[f].(f2f)(F64(xp), F64(int32(y))))
+		for i := int32(1); i < n; i++ {
+			xp += 8
+			rp += 8
+			SetF64(rp, Func[f].(f2f)(F64(xp), F64(xp-8)))
+		}
+	default:
+		trap(Nyi)
+	}
+	dx(x)
+	dx(y)
+	return r
+}
+func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
+	xt := tp(x)
+	xp := int32(x)
+	s := sz(xt)
+	r = mk(Bt, n)
+	rp := int32(r)
+	f = 214 + 3*f
+	switch s >> 2 {
+	case 0:
+		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		for i := int32(1); i < n; i++ {
+			xp++
+			rp++
+			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-1)))
+		}
+	case 1:
+		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		for i := int32(1); i < n; i++ {
+			xp += 4
+			rp++
+			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
+		}
+	case 2:
+		f++
+		SetI8(rp, Func[f].(f2c)(F64(xp), F64(int32(y))))
+		for i := int32(1); i < n; i++ {
+			xp += 8
+			rp++
+			SetI8(rp, Func[f].(f2c)(F64(xp), F64(xp-8)))
+		}
+	default:
+		trap(Nyi)
+	}
+	dx(x)
+	dx(y)
+	return r
+}
 func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	var y K
 	if xn := nn(x); xn == 1 {
@@ -79,7 +203,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		if fp == 13 {
 			return cats(x, y)
 		}
-		if yt != Lt && fp < 9 && (xt == yt-16 || xt == 0) {
+		if yt != Lt && fp < 9 && fp != 6 && (xt == yt-16 || xt == 0) {
 			return rdx(fp, x, y, yn) // +-*% &|
 		}
 	}
@@ -95,7 +219,6 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	dx(f)
 	return x
 }
-
 func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	yt := tp(y)
 	s := sz(yt)
@@ -105,8 +228,8 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 		x, i = Fst(rx(y)), 1
 	}
 	xp := int32(x)
+	fp = 214 + 3*fp
 	if s == 1 {
-		fp = 214 + 3*fp
 		for i < n {
 			xp = Func[fp].(f2i)(xp, I8(yp+i))
 			i++
@@ -117,7 +240,6 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 			r = Kc(xp)
 		}
 	} else if s == 4 {
-		fp = 214 + 3*fp
 		for i < n {
 			xp = Func[fp].(f2i)(xp, I32(yp+4*i))
 			i++
@@ -128,7 +250,7 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 			trap(Nyi)
 		}
 		xf := F64(xp)
-		fp = 214 + 3*fp
+		fp++
 		for i < n {
 			xf = Func[fp].(f2f)(xf, F64(yp+8*i))
 			i++
