@@ -99,10 +99,7 @@ func callprj(f, x K) K {
 	if nn(f) != n {
 		trap(Rank)
 	}
-	var l, i K
-	p, fp := nxl(int32(f))
-	l, fp = nxl(fp)
-	i, fp = nxl(fp)
+	p, l, i := spl3(f)
 	x = stv(rx(l), rx(i), x)
 	x = Cal(p, x)
 	dx(f)

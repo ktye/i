@@ -127,7 +127,6 @@ func pasn(x, y K) (K, K) {
 			lp := int32(x) + 8*(nn(x)-1)
 			SetI64(lp, 2+I64(lp))
 			y = l2(s, l-K(int32(l)))
-			//fmt.Println("=>", sK(x), sK(y))
 		} else if v == 1 {
 			s := Fst(x) // (`x;0) 0:Lup
 			if loc != 0 {
@@ -170,14 +169,39 @@ func plam(s0 int32) (r K) {
 	return l1(K(rp) | K(lf)<<59)
 }
 func pspec(r, n K, ln int32) (K, int32) {
-	if nn(r) == 1 && ln > 2 {
-		v := K(I64(int32(r)))
+	v := K(I64(int32(r)))
+	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 17 {
 			dx(r)
 			return cond(n, ln), -1
 		}
 	}
+	if nn(r) == 2 && ln > 1 && int32(v) == 40 { // while[..]
+		dx(r)
+		return whl(n, ln-1), -1
+	}
 	return n, ln
+}
+func whl(x K, xn int32) (r K) {
+	r = cat1(Fst(rx(x)), 0)
+	p := nn(r) - 1
+	r = cat1(r, 7) // jif
+	r = cat1(r, 5) // drop
+	xp := int32(x)
+	sum := int32(16)
+	for i := int32(0); i < xn; i++ {
+		if i != 0 {
+			r = cat1(r, 5)
+		}
+		xp += 8
+		y := x0(xp)
+		sum += 1 + nn(y)
+		r = ucat(r, y)
+	}
+	r = cat1(cat1(r, Ki(-8*(2+nn(r)))), 6) // jmp back
+	SetI64(int32(r)+8*p, int64(Ki(8*sum))) // jif
+	dx(x)
+	return ucat(cat1(l1(K(st)<<59), 0), r) // <null> for empty while
 }
 func cond(x K, xn int32) (r K) {
 	xp := int32(x) + 8*xn

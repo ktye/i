@@ -35,11 +35,12 @@ func kinit() {
 	sp = 256
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-	sc(Ku(0))        // `   0
-	x := sc(Ku(120)) // `x  8
-	y := sc(Ku(121)) // `y 16
-	z := sc(Ku(122)) // `z 24
-	sc(Ku(107))      // `k 32
+	sc(Ku(0))            // `   0
+	x := sc(Ku(120))     // `x  8
+	y := sc(Ku(121))     // `y 16
+	z := sc(Ku(122))     // `z 24
+	sc(Ku(107))          // `k 32
+	sc(Ku(435610544247)) // `while 40
 	xyz = cat1(Cat(x, y), z)
 }
 

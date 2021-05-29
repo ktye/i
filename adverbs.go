@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -58,7 +56,6 @@ func Ecp(f, x K) (r K) {
 	}
 	xn = nn(x)
 	if 2 > xn+ib(y != 0) {
-		fmt.Println("short")
 		dx(f)
 		return x
 	}
