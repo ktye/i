@@ -72,7 +72,7 @@ func t() (r K, verb int32) { // Lt
 		return 0, 0
 	}
 	if r == K('(') {
-		r, _ = plist(41)
+		r = rlist(plist(41))
 	} else if r == K('{') {
 		r = plam(s)
 	} else if tp(r) == st {
@@ -99,7 +99,12 @@ func t() (r K, verb int32) { // Lt
 			r, verb = cat1(cat1(r, n), 1), 1
 		} else if n == 91 { // [
 			n, ln = plist(93)
-			r = cat1(cat1(Cat(n, r), K(19+ln)), 2)
+			n, ln = pspec(r, n, ln)
+			if ln < 0 {
+				return n, 0
+			}
+			n = rlist(n, ln)
+			r = cat1(cat1(Cat(n, r), K(19+ib(ln != 1))), 2)
 		} else {
 			pp -= 8
 			break
@@ -164,6 +169,37 @@ func plam(s0 int32) (r K) {
 	SetI32(rp-4, ar)
 	return l1(K(rp) | K(lf)<<59)
 }
+func pspec(r, n K, ln int32) (K, int32) {
+	if nn(r) == 1 && ln > 2 {
+		v := K(I64(int32(r)))
+		if tp(v) == 0 && int32(v) == 17 {
+			dx(r)
+			return cond(n, ln), -1
+		}
+	}
+	return n, ln
+}
+func cond(x K, xn int32) (r K) {
+	xp := int32(x) + 8*xn
+	var next, sum int32
+	state := int32(1)
+	for xp != int32(x) {
+		xp -= 8
+		r = K(I64(xp))
+		if sum > 0 {
+			state = 1 - state
+			if state != 0 {
+				r = cat1(cat1(r, Ki(next)), 7) // jif
+			} else {
+				r = cat1(cat1(r, Ki(sum)), 6) // j
+			}
+			SetI64(xp, int64(r))
+		}
+		next = 8 * nn(r)
+		sum += next
+	}
+	return flat(x)
+}
 func plist(c K) (r K, n int32) {
 	r = mk(Lt, 0)
 	for {
@@ -184,10 +220,19 @@ func plist(c K) (r K, n int32) {
 			r = cat1(r, K(st)<<59) // <null> is ` 0(lup) (Rev)
 		}
 	}
+	return r, n
+	/*
+		if n == 1 {
+			return Fst(r), 1
+		}
+		return r, n // cat3(flat(Rev(r)), Ki(n), 27, 1), 1
+	*/
+}
+func rlist(x K, n int32) K {
 	if n == 1 {
-		return Fst(r), 0
+		return Fst(x)
 	}
-	return cat3(flat(Rev(r)), Ki(n), 27, 1), 1
+	return cat3(flat(Rev(x)), Ki(n), 27, 1)
 }
 
 func next() (r K, s int32) {
