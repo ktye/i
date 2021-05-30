@@ -35,21 +35,16 @@ func ati(x K, i int32) (r K) { // x BT..LT
 	t := tp(x)
 	s := sz(t)
 	p := int32(x) + i*s
-	if t == Zt {
-		var im K
-		if ip := I64(8 + int32(x)); ip != 0 {
-			im = ati(rx(K(ip)), i)
-		}
-		r = ati(rx(K(int32(x))), i)
-		dx(x)
-		return Kz(r, im)
-	}
-	if s == 1 {
+	switch s >> 2 {
+	case 0:
 		r = K(U8(p))
-	} else if s == 4 {
+	case 1:
 		r = K(U32(p))
-	} else {
+	case 2:
 		r = K(U64(p))
+	default:
+		dx(x)
+		return Kz(F64(p), F64(p+8))
 	}
 	if t == Ft {
 		r = Kf(F64reinterpret_i64(uint64(r)))
@@ -63,22 +58,14 @@ func ati(x K, i int32) (r K) { // x BT..LT
 }
 func atv(x, y K) (r K) { // x BT..LT
 	t := tp(x)
-	if t == Zt {
-		var im K
-		if ip := I64(8 + int32(x)); ip != 0 {
-			im = atv(rx(K(ip)), rx(y))
-		}
-		r = atv(rx(K(int32(x))), y)
-		dx(x)
-		return KZ(r, im)
-	}
 	xn, yn := nn(x), nn(y)
 	r = mk(t, yn)
 	s := sz(t)
 	rp := int32(r)
 	xp := int32(x)
 	yp := int32(y)
-	if s == 1 {
+	switch s >> 2 {
+	case 0:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
@@ -89,7 +76,7 @@ func atv(x, y K) (r K) { // x BT..LT
 			rp++
 			yp += 4
 		}
-	} else if s == 4 {
+	case 1:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
@@ -100,7 +87,7 @@ func atv(x, y K) (r K) { // x BT..LT
 			rp += 4
 			yp += 4
 		}
-	} else {
+	case 2:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
@@ -109,6 +96,20 @@ func atv(x, y K) (r K) { // x BT..LT
 				SetI64(rp, I64(xp+8*xi))
 			}
 			rp += 8
+			yp += 4
+		}
+	default:
+		for i := int32(0); i < yn; i++ {
+			xi := I32(yp)
+			if xi < 0 || xi >= xn {
+				SetI64(rp, 0)
+				SetI64(rp+8, 0)
+			} else {
+				xi *= 16
+				SetI64(rp, I64(xp+xi))
+				SetI64(rp+8, I64(8+xp+xi))
+			}
+			rp += 16
 			yp += 4
 		}
 	}
@@ -151,20 +152,21 @@ func stv(x, i, y K) (r K) {
 			trap(Value)
 		}
 	}
-	if s == 1 {
+	switch s >> 2 {
+	case 0:
 		for j := int32(0); j < n; j++ {
 			SetI8(xp+I32(ip), I8(yp))
 			ip += 4
 			yp++
 		}
-	} else if s == 4 {
+	case 1:
 		for j := int32(0); j < n; j++ {
 			SetI32(xp+4*I32(ip), I32(yp))
 			ip += 4
 			yp += 4
 		}
-	} else if s == 8 {
-		if xt == Ft || xt == Zt {
+	case 2:
+		if xt == Ft {
 			trap(Nyi)
 		}
 		if xt == Lt {
@@ -180,6 +182,8 @@ func stv(x, i, y K) (r K) {
 			ip += 4
 			yp += 8
 		}
+	default:
+		trap(Nyi)
 	}
 	dx(i)
 	dx(y)
@@ -201,16 +205,27 @@ func sti(x K, i int32, y K) K {
 	if xt == Ft || xt == Zt {
 		trap(Nyi)
 	}
-	if s == 1 {
-		SetI8(xp+i, int32(y))
-	} else if s == 4 {
-		SetI32(xp+4*i, int32(y))
-	} else {
+	yp := int32(y)
+	switch s >> 2 {
+	case 0:
+		SetI8(xp+i, yp)
+	case 1:
+		SetI32(xp+4*i, yp)
+	case 2:
 		xp += 8 * i
 		if xt == Lt {
 			dx(K(I64(xp)))
+			SetI64(xp, int64(x0(yp)))
+		} else if xt != Ft {
+			trap(Nyi)
+		} else {
+			SetI64(xp, I64(yp))
 		}
-		SetI64(xp, int64(y))
+	default:
+		xp += 16 * i
+		SetI64(xp, I64(yp))
+		SetI64(xp+8, I64(yp+8))
 	}
+	dx(y)
 	return x
 }

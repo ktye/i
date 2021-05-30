@@ -166,7 +166,7 @@ func sK(x K) string {
 	case ft:
 		return sflt(F64(xp))
 	case zt:
-		return "<cmplx>"
+		return sflz(F64(xp), F64(xp+8))
 	case cf:
 		xn := nn(x)
 		xp = int32(x) + 8*xn
@@ -226,7 +226,12 @@ func sK(x K) string {
 		}
 		return comma(1 == nn(x)) + strings.Join(r, " ")
 	case Zt:
-		panic("nyi-Zt")
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = sflz(F64(xp), F64(xp+8))
+			xp += 16
+		}
+		return comma(1 == nn(x)) + strings.Join(r, " ")
 	case Lt:
 		r := make([]string, nn(x))
 		for i := range r {
@@ -247,6 +252,15 @@ func sflt(x float64) string {
 	s := strconv.FormatFloat(x, 'g', -1, 64)
 	if strings.Index(s, ".") < 0 {
 		s += "."
+	}
+	return s
+}
+func sflz(x, y float64) (s string) {
+	phi := 180.0 / math.Pi * math.Atan2(y, x)
+	r := math.Hypot(x, y)
+	s = strconv.FormatFloat(r, 'g', -1, 64) + "a"
+	if phi != 0 {
+		s += sflt(phi)
 	}
 	return s
 }

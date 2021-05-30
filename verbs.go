@@ -134,13 +134,16 @@ func ntake(n int32, y K) (r K) {
 		dx(y)
 		return r
 	} else if t == zt {
-		r = ntake(n, x0(yp))
-		im := x1(yp)
-		if im != 0 {
-			im = ntake(n, im)
+		r = mk(Zt, n)
+		rp := int32(r)
+		re, im := F64(yp), F64(yp+8)
+		for i := int32(0); i < n; i++ {
+			SetF64(rp, re)
+			SetF64(rp+8, im)
+			rp += 16
 		}
 		dx(y)
-		return Kz(r, im)
+		return r
 	} else if t < 16 {
 		r = mk(Lt, n)
 		rp := int32(r)

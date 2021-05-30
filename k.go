@@ -17,8 +17,8 @@ func init() {
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, nyi, Cat, nyi, Tak, Drp, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
-	//                                                                229                             235                               241                           247
-	Functions(220, addi, addf, nyi, subi, subf, nyi, muli, mulf, nyi, divi, divf, nyi, nyi, nyi, nyi, mini, minf, nyi, maxi, maxf, nyi, lti, ltf, nyi, gti, gtf, nyi, eqi, eqf, eqz)
+	//                                                                   229                              235                                 241                           247
+	Functions(220, addi, addf, addz, subi, subf, subz, muli, mulf, mulz, divi, divf, divz, nyi, nyi, nyi, mini, minf, minz, maxi, maxf, maxz, lti, ltf, ltz, gti, gtf, gtz, eqi, eqf, eqz, nyi, nyi, rot)
 }
 
 //   0....7  key
@@ -96,19 +96,16 @@ func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }
 func Ki(x int32) K { return K(uint32(x)) | K(it)<<59 }
 func iK(x K) int32 { return int32(x) }
 func Kf(x float64) (r K) {
-	r = mk(ft+16, 1)
+	r = mk(Ft, 1)
 	SetF64(int32(r), x)
 	return K(int32(r)) | K(ft)<<59
 }
-func Kz(x, y K) (z K) {
-	z = l2t(x, y, zt)
-	SetI32(int32(z)-4, 1)
-	return z
-}
-func KZ(x, y K) (z K) {
-	z = l2t(x, y, Zt)
-	SetI32(int32(z)-4, nn(x))
-	return z
+func Kz(x, y float64) (r K) {
+	r = mk(Zt, 1)
+	rp := int32(r)
+	SetF64(rp, x)
+	SetF64(rp+8, y)
+	return K(rp) | K(zt)<<59
 }
 func l1(x K) (r K) {
 	r = mk(Lt, 1)

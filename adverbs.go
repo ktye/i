@@ -226,7 +226,8 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	}
 	xp := int32(x)
 	fp = 214 + 3*fp
-	if s == 1 {
+	switch s >> 2 {
+	case 0:
 		for i < n {
 			xp = Func[fp].(f2i)(xp, I8(yp+i))
 			i++
@@ -236,16 +237,13 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 		} else {
 			r = Kc(xp)
 		}
-	} else if s == 4 {
+	case 1:
 		for i < n {
 			xp = Func[fp].(f2i)(xp, I32(yp+4*i))
 			i++
 		}
 		r = Ki(xp)
-	} else {
-		if yt == Zt {
-			trap(Nyi)
-		}
+	case 2:
 		xf := F64(xp)
 		fp++
 		for i < n {
@@ -253,6 +251,14 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 			i++
 		}
 		r = Kf(xf)
+	default:
+		re, im := F64(xp), F64(xp+8)
+		for i < n {
+			re, im = Func[fp].(f2z)(re, im, F64(yp), F64(yp+8))
+			i++
+			yp += 16
+		}
+		r = Kz(re, im)
 	}
 	dx(x)
 	dx(y)
@@ -286,19 +292,20 @@ func uf(x K) (r K) {
 	s := sz(rt)
 	rp := int32(r)
 	xp = int32(x)
-	if s == 1 {
+	switch s >> 2 {
+	case 0:
 		for i := int32(0); i < xn; i++ {
 			SetI8(rp, I32(xp))
 			xp += 8
 			rp++
 		}
-	} else if s == 4 {
+	case 1:
 		for i := int32(0); i < xn; i++ {
 			SetI32(rp, I32(xp))
 			xp += 8
 			rp += 4
 		}
-	} else {
+	default:
 		trap(Nyi)
 	}
 	dx(x)

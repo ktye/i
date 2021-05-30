@@ -29,15 +29,16 @@ func enl(x K) (r K) {
 		rp := int32(r)
 		xp := int32(x)
 		s := sz(t)
-		if s == 1 {
+		switch s >> 2 {
+		case 0:
 			SetI8(rp, xp)
-		} else if s == 4 {
+		case 1:
 			SetI32(rp, xp)
-		} else {
+		case 2:
 			SetI64(rp, I64(xp))
-			if t == Zt {
-				SetI64(4+rp, I64(4+xp))
-			}
+		case 3:
+			SetI64(rp, I64(xp))
+			SetI64(rp+8, I64(xp+8))
 		}
 	} else {
 		r = l1(x)

@@ -111,7 +111,7 @@ func Str(x K) (r K) {
 		case ft:
 			r = sf(F64(xp))
 		case zt:
-			trap(Nyi)
+			r = sfz(F64(xp), F64(xp+8))
 		default:
 			trap(Err)
 		}
@@ -178,4 +178,31 @@ func sf(x float64) (r K) {
 		rp++
 	}
 	return ndrop(-c, r)
+}
+func sfz(re, im float64) (r K) {
+	z := abz(re, im)
+	var a float64
+	if im == 0 {
+		if re < 0 {
+			a = 180
+		}
+	} else if re == 0 {
+		if im > 0 {
+			a = 90
+		} else if im < 0 {
+			a = 270
+		}
+	} else {
+		trap(Nyi)
+	}
+	r = sf(z)
+	rn := nn(r)
+	if I8(int32(r)+rn-1) == '.' {
+		r = ndrop(-1, r)
+	}
+	r = cat1(r, Kc('a'))
+	if a != 0.0 {
+		r = cat1(r, sf(a))
+	}
+	return r
 }

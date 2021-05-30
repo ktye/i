@@ -90,6 +90,9 @@ func tnum() K {
 	if pp < pe && I8(pp) == '.' {
 		return pflt(r)
 	}
+	if pp < pe && I8(pp) == 'a' {
+		return pflz(float64(r))
+	}
 	return Ki(int32(r))
 }
 func pi() (r int64) {
@@ -129,8 +132,12 @@ func pflt(i int64) K {
 		f += d * float64(c-'0')
 		pp++
 	}
+	if pp < pe && I8(pp) == 'a' {
+		return pflz(f)
+	}
 	return Kf(f)
 }
+func pflz(f float64) K { return Rot(Kf(f), pflt(0)) }
 
 func tvrb() (r K) {
 	c := I8(pp)
