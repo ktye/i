@@ -31,9 +31,11 @@ func nd(x, y K, f int32) (r K) {
 		r = ndc(x, y, f, n, av)
 	case 1: // it
 		r = ndi(x, y, f, n, av)
-	case 2: // ft
+	case 2: // st
+		trap(Type)
+	case 3: // ft
 		r = ndf(x, y, 1+f, n, av)
-	case 3: // zt
+	case 4: // zt
 		r = ndz(x, y, 2+f, n, av)
 	default:
 		trap(Type)
@@ -53,9 +55,11 @@ func nc(x, y K, f int32) (r K) {
 		}
 	case 1: // it
 		r = nci(x, y, f, n, av)
-	case 2: // ft
+	case 2: // st
+		trap(Type)
+	case 3: // ft
 		r = ncf(x, y, 1+f, n, av)
-	case 3: // zt
+	case 4: // zt
 		r = ncz(x, y, 2+f, n, av)
 	default:
 		trap(Type)
@@ -169,7 +173,33 @@ func nci(x, y K, f, n, av int32) (r K) {
 	dx(y)
 	return r
 }
-func ndf(x, y K, f, n, av int32) (r K) { trap(Nyi); return x }
+func ndf(x, y K, f, n, av int32) (r K) {
+	xp, yp := int32(x), int32(y)
+	xd, yd := int32(0), int32(0)
+	switch av {
+	case 0:
+		xd, yd = 8, 8
+		r = use2(x, y)
+	case 1:
+		yd = 8
+		r = use1(y)
+	case 2:
+		xd = 8
+		r = use1(x)
+	case 3:
+		r = Kf(0)
+	}
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		SetF64(rp, Func[f].(f2f)(F64(xp), F64(yp)))
+		xp += xd
+		yp += yd
+		rp += 8
+	}
+	dx(x)
+	dx(y)
+	return r
+}
 func ndz(x, y K, f, n, av int32) (r K) { trap(Nyi); return x }
 func ncf(x, y K, f, n, av int32) (r K) { trap(Nyi); return x }
 func ncz(x, y K, f, n, av int32) (r K) { trap(Nyi); return x }
