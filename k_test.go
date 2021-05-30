@@ -164,7 +164,7 @@ func sK(x K) string {
 		}
 		return "`" + string(Bytes[xp:xp+nn(x)])
 	case ft:
-		return strconv.FormatFloat(F64(xp), 'g', -1, 64)
+		return sflt(F64(xp))
 	case zt:
 		return "<cmplx>"
 	case cf:
@@ -201,6 +201,9 @@ func sK(x K) string {
 	case Ct:
 		return comma(1 == nn(x)) + strconv.Quote(string(Bytes[xp:xp+nn(x)]))
 	case It:
+		if nn(x) == 0 {
+			return "!0"
+		}
 		r := make([]string, nn(x))
 		for i := range r {
 			r[i] = strconv.Itoa(int(I32(xp + 4*int32(i))))
@@ -219,7 +222,7 @@ func sK(x K) string {
 	case Ft:
 		r := make([]string, nn(x))
 		for i := range r {
-			r[i] = strconv.FormatFloat(F64(xp+8*int32(i)), 'g', -1, 64)
+			r[i] = sflt(F64(xp + 8*int32(i)))
 		}
 		return comma(1 == nn(x)) + strings.Join(r, " ")
 	case Zt:
@@ -239,6 +242,13 @@ func sK(x K) string {
 		fmt.Println("type ", tp(x))
 		panic("type")
 	}
+}
+func sflt(x float64) string {
+	s := strconv.FormatFloat(x, 'g', -1, 64)
+	if strings.Index(s, ".") < 0 {
+		s += "."
+	}
+	return s
 }
 func comma(x bool) string {
 	if x {

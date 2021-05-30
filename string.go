@@ -147,6 +147,35 @@ func si(x int32) (r K) {
 	return Rev(r)
 }
 func sf(x float64) (r K) {
-	trap(Nyi)
-	return 0
+	if x < 0 {
+		return ucat(Ku(uint64('-')), sf(-x))
+	}
+	r = mk(Ct, 0)
+	u := uint64(x)
+	if u == 0 {
+		r = cat1(r, Kc('0'))
+	}
+	for u > 0 {
+		r = cat1(r, Kc(int32('0'+u%10)))
+		u /= 10
+	}
+	r = Rev(r)
+	r = cat1(r, '.')
+	x -= float64(u)
+	for i := int32(0); i < 6; i++ {
+		x *= 10
+		r = cat1(r, Kc('0'+(int32(x)%10)))
+	}
+	n := nn(r)
+	rp := int32(r)
+	var c int32
+	for i := int32(0); i < n; i++ {
+		if I8(rp) == '0' {
+			c++
+		} else {
+			c = 0
+		}
+		rp++
+	}
+	return ndrop(-c, r)
 }

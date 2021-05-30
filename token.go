@@ -82,7 +82,13 @@ func tnum() K {
 	}
 	r := pi()
 	if r == 0 && p == pp {
+		if c == '.' && is(I8(1+pp), 4) {
+			return pflt(r)
+		}
 		return 0
+	}
+	if pp < pe && I8(pp) == '.' {
+		return pflt(r)
 	}
 	return Ki(int32(r))
 }
@@ -109,6 +115,21 @@ func pu() (r int64) {
 		pp++
 	}
 	return r
+}
+func pflt(i int64) K {
+	f := float64(i)
+	d := 1.0
+	pp++ // .
+	for pp < pe {
+		c := I8(pp)
+		if is(c, 4) == false {
+			break
+		}
+		d /= 10.0
+		f += d * float64(c-'0')
+		pp++
+	}
+	return Kf(f)
 }
 
 func tvrb() (r K) {

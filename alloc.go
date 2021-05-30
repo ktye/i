@@ -85,7 +85,7 @@ func dx(x K) {
 	}
 	if rc == 1 {
 		n := nn(x)
-		if t&15 >= 5 {
+		if t&15 > 5 {
 			if t == 6 || t == 22 || t == 24 || t == 25 {
 				n = 2
 			} else if t == 12 {

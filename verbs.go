@@ -97,10 +97,17 @@ func Tak(x, y K) (r K) { // x#y
 	return 0
 }
 func ntake(n int32, y K) (r K) {
-	if n < 0 {
-		trap(Value)
-	}
 	t := tp(y)
+	if n < 0 {
+		if tp(y) < 16 {
+			trap(Type)
+		}
+		n += nn(y)
+		if n < 0 {
+			return ucat(ntake(-n, zero(t-16)), y)
+		}
+		return ndrop(n, y)
+	}
 	yp := int32(y)
 	if t < 5 {
 		t += 16
@@ -145,6 +152,44 @@ func ntake(n int32, y K) (r K) {
 		return r
 	}
 	return Atx(y, seq(n))
+}
+func Drp(x, y K) (r K) { // x_y
+	xt := tp(x)
+	if xt == it {
+		return ndrop(int32(x), y)
+	}
+	trap(Nyi) // set drop
+	return 0
+}
+func ndrop(n int32, y K) (r K) {
+	yt := tp(y)
+	if yt < 16 {
+		trap(Type)
+	}
+	if yt > Lt {
+		trap(Nyi)
+	}
+	yn := nn(y)
+	if n < 0 {
+		return ntake(maxi(0, yn+n), y)
+	}
+	rn := yn - n
+	if rn < 0 {
+		dx(y)
+		return mk(yt, 0)
+	}
+	s := sz(yt)
+	yp := int32(y)
+	if I32(yp-8) == 1 && bucket(s*yn) == bucket(s*rn) {
+		r = rx(y)
+		SetI32(yp-4, rn)
+	} else {
+		r = mk(yt, rn)
+	}
+	rp := int32(r)
+	Memorycopy(rp, yp+s*n, s*rn)
+	dx(y)
+	return r
 }
 
 func Rev(x K) (r K) { // |x
