@@ -275,13 +275,13 @@ type f2c = func(float64, float64) int32
 type f2d = func(float64, float64, float64, float64) int32
 
 func use2(x, y K) K {
-	if I64(int32(y)-8) == 1 {
+	if I64(int32(y)-16) == 1 {
 		return rx(y)
 	}
 	return use1(x)
 }
 func use1(x K) K {
-	if I64(int32(x)-8) == 1 {
+	if I64(int32(x)-16) == 1 {
 		return rx(x)
 	}
 	return mk(tp(x), nn(x))

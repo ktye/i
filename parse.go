@@ -165,7 +165,7 @@ func plam(s0 int32) (r K) {
 	r = cat1(l3(c, loc, mk(Lt, cn)), s)
 	loc = 0
 	rp := int32(r)
-	SetI32(rp-4, ar)
+	SetI32(rp-12, ar)
 	return l1(K(rp) | K(lf)<<59)
 }
 func pspec(r, n K, ln int32) (K, int32) {

@@ -183,9 +183,9 @@ func ndrop(n int32, y K) (r K) {
 	}
 	s := sz(yt)
 	yp := int32(y)
-	if I32(yp-8) == 1 && bucket(s*yn) == bucket(s*rn) {
+	if I32(yp-16) == 1 && bucket(s*yn) == bucket(s*rn) {
 		r = rx(y)
-		SetI32(yp-4, rn)
+		SetI32(yp-12, rn)
 	} else {
 		r = mk(yt, rn)
 	}

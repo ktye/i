@@ -37,9 +37,9 @@ func free(x, bs int32) {
 	SetI32(t, x)
 }
 func bucket(size int32) (r int32) {
-	r = 32 - I32clz(uint32(7+size))
-	if r < 4 {
-		r = 4
+	r = 32 - I32clz(uint32(15+size))
+	if r < 5 {
+		r = 5
 	}
 	return r
 }
@@ -52,10 +52,10 @@ func mk(t T, n int32) (r K) {
 	x := alloc(n * sz(t))
 	SetI32(x, 1)
 	SetI32(x+4, n)
-	return r | K(x+8)
+	return r | K(x+16)
 }
 func tp(x K) T     { return T(x >> 59) }
-func nn(x K) int32 { return I32(int32(x) - 4) }
+func nn(x K) int32 { return I32(int32(x) - 12) }
 func sz(t T) int32 {
 	if t < 19 {
 		return 1
@@ -70,7 +70,7 @@ func rx(x K) K {
 	if tp(x) < 5 {
 		return x
 	}
-	p := int32(x) - 8
+	p := int32(x) - 16
 	SetI32(p, 1+I32(p))
 	return x
 }
@@ -79,7 +79,7 @@ func dx(x K) {
 	if t < 5 {
 		return
 	}
-	p := int32(x) - 8
+	p := int32(x) - 16
 	rc := I32(p)
 	SetI32(p, rc-1)
 	if rc == 0 {

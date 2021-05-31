@@ -23,7 +23,7 @@ func init() {
 
 //   0....7  key
 //   8...15  val
-//  16..127  free list
+//  20..127  free list
 // 128..131  memsize log2
 // 132..227  char map (starts at 100)
 // 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
@@ -132,7 +132,7 @@ func Ku(x uint64) (r K) { // Ct
 		x >>= uint64(8)
 		p++
 	}
-	SetI32(int32(r)-4, p-int32(r))
+	SetI32(int32(r)-12, p-int32(r))
 	return r
 }
 

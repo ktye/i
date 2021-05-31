@@ -173,7 +173,7 @@ func project(f, x K) (r K) {
 		return 0
 	}
 	r = l3(f, x, a)
-	SetI32(int32(r)-4, an)
+	SetI32(int32(r)-12, an)
 	return K(int32(r)) | K(pf)<<59
 }
 func arity(f K) int32 {

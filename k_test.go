@@ -54,17 +54,32 @@ func TestTypes(t *testing.T) {
 }
 func TestBucket(t *testing.T) {
 	tc := []struct{ in, exp int32 }{
-		{0, 4},
-		{4, 4},
-		{8, 4},
-		{9, 5},
-		{24, 5},
+		{0, 5},
+		{4, 5},
+		{8, 5},
+		{16, 5},
+		{17, 6},
 		{25, 6},
 	}
 	for _, tc := range tc {
 		if got := bucket(tc.in); got != tc.exp {
 			t.Fatalf("bucket %d => %d (exp %d)\n", tc.in, got, tc.exp)
 		}
+	}
+}
+func TestMk(t *testing.T) {
+	r := mk(It, 2)
+	if rc := I32(int32(r) - 16); rc != 1 {
+		t.Fatalf("rc is %d not 1\n", rc)
+	}
+	if n := I32(int32(r) - 12); n != 2 {
+		t.Fatalf("n is %d not 2\n", n)
+	}
+	if tx := tp(r); tx != It {
+		t.Fatalf("t is %d not %d\n", tx, It)
+	}
+	if n := nn(r); n != 2 {
+		t.Fatalf("nn(x) is %d not 2\n", n)
 	}
 }
 func TestVerbs(t *testing.T) {
@@ -131,7 +146,7 @@ func TestClass(t *testing.T) {
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 
-func rc(x K) int32 { return I32(int32(x) - 8) }
+func rc(x K) int32 { return I32(int32(x) - 16) }
 func sK(x K) string {
 	xp := int32(x)
 	switch tp(x) {

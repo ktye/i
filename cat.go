@@ -108,7 +108,7 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 	var r K
 	nx := nn(x)
 	s := sz(xt)
-	if I32(int32(x)-8) == 1 && bucket(s*nx) == bucket(s*(nx+ny)) {
+	if I32(int32(x)-16) == 1 && bucket(s*nx) == bucket(s*(nx+ny)) {
 		r = x
 	} else {
 		r = mk(xt, nx+ny)
@@ -118,7 +118,7 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 		}
 		dx(x)
 	}
-	SetI32(int32(r)-4, nx+ny)
+	SetI32(int32(r)-12, nx+ny)
 	return r, int32(r) + s*nx, s
 }
 func ncat(x, y K) (r K) {
