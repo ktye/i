@@ -180,7 +180,7 @@ func sf(x float64) (r K) {
 	return ndrop(-c, r)
 }
 func sfz(re, im float64) (r K) {
-	z := abz(re, im)
+	z := hypot(re, im)
 	var a float64
 	if im == 0 {
 		if re < 0 {

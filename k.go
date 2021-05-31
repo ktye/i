@@ -18,7 +18,11 @@ func init() {
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 	//                                                                   229                              235                                 241                           247
-	Functions(220, addi, addf, addz, subi, subf, subz, muli, mulf, mulz, divi, divf, divz, nyi, nyi, nyi, mini, minf, minz, maxi, maxf, maxz, lti, ltf, ltz, gti, gtf, gtz, eqi, eqf, eqz, nyi, nyi, rot)
+	//Functions(220, addi, addf, addz, subi, subf, subz, muli, mulf, mulz, divi, divf, divz, nyi, nyi, nyi, mini, minf, minz, maxi, maxf, maxz, lti, ltf, ltz, gti, gtf, gtz, eqi, eqf, eqz, nyi, nyi, rot)
+	Functions(220, negc, negi, negf, negz, negC, negI, negF, negZ)
+	Functions(228, absc, absi, absf, nyi, absF, absI, absF, absZ)
+	Functions(236, addi, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
+	//Functions(248, subi, subi, subf, subz, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
 }
 
 //   0....7  key
@@ -107,6 +111,7 @@ func Kz(x, y float64) (r K) {
 	SetF64(rp+8, y)
 	return K(rp) | K(zt)<<59
 }
+func ZF(x K) K { xp := int32(x); SetI32(xp-12, I32(xp-12)/2); return K(uint32(x)) | K(Zt)<<59 }
 func l1(x K) (r K) {
 	r = mk(Lt, 1)
 	SetI64(int32(r), int64(x))
