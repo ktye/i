@@ -22,7 +22,16 @@ func init() {
 	Functions(220, negc, negi, negf, negz, negC, negI, negF, negZ)
 	Functions(228, absc, absi, absf, nyi, absF, absI, absF, absZ)
 	Functions(236, addi, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
-	//Functions(248, subi, subi, subf, subz, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
+	Functions(248, subi, subi, subf, subz, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
+	Functions(260, muli, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
+	Functions(272, divi, divi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
+	Functions(284, mini, mini, minf, minz, mincC, miniI, minfF, minzZ, minC, minI, minF, minZ)
+	Functions(296, maxi, maxi, maxf, maxz, maxcC, maxiI, maxfF, maxzZ, maxC, maxI, maxF, maxZ)
+
+	Functions(308, eqi, eqf, eqz, eqcC, eqiI, eqfF, eqzZ, eqCc, eqIi, eqFf, eqZz, eqC, eqI, eqF, eqZ)
+	Functions(323, lti, ltf, ltz, ltcC, ltiI, ltfF, ltzZ, ltCc, ltIi, ltFf, ltZz, ltC, ltI, ltF, ltZ)
+	Functions(338, gti, gtf, gtz, gtcC, gtiI, gtfF, gtzZ, gtCc, gtIi, gtFf, gtZz, gtC, gtI, gtF, gtZ)
+
 }
 
 //   0....7  key

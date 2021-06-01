@@ -126,7 +126,7 @@ func ncat(x, y K) (r K) {
 	if xt < 16 {
 		x = enl(x)
 	}
-	return cat1(uptypes(x, y))
+	return cat1(uptypes(x, y, 0))
 }
 func spl2(l K) (x, y K) {
 	lp := int32(l)

@@ -90,7 +90,7 @@ func epx(f int32, x, y K, n int32) (r K) { // ( +-*% &| )':
 	s := sz(xt)
 	r = mk(xt, n)
 	rp := int32(r)
-	f = 214 + 3*f
+	f = 212 + 12*f
 	switch s >> 2 {
 	case 0:
 		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
@@ -127,7 +127,7 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 	s := sz(xt)
 	r = mk(Bt, n)
 	rp := int32(r)
-	f = 214 + 3*f
+	f = 143 + 15*f
 	switch s >> 2 {
 	case 0:
 		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
@@ -216,7 +216,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	dx(f)
 	return x
 }
-func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
+func rdx(f int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	yt := tp(y)
 	s := sz(yt)
 	yp := int32(y)
@@ -225,11 +225,12 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 		x, i = Fst(rx(y)), 1
 	}
 	xp := int32(x)
-	fp = 214 + 3*fp
+	f = 212 + 12*f
+
 	switch s >> 2 {
 	case 0:
 		for i < n {
-			xp = Func[fp].(f2i)(xp, I8(yp+i))
+			xp = Func[f].(f2i)(xp, I8(yp+i))
 			i++
 		}
 		if yt == Bt {
@@ -239,22 +240,22 @@ func rdx(fp int32, x, y K, n int32) (r K) { // (+-*% &|)/
 		}
 	case 1:
 		for i < n {
-			xp = Func[fp].(f2i)(xp, I32(yp+4*i))
+			xp = Func[f].(f2i)(xp, I32(yp+4*i))
 			i++
 		}
 		r = Ki(xp)
 	case 2:
 		xf := F64(xp)
-		fp++
+		f++
 		for i < n {
-			xf = Func[fp].(f2f)(xf, F64(yp+8*i))
+			xf = Func[f].(f2f)(xf, F64(yp+8*i))
 			i++
 		}
 		r = Kf(xf)
 	default:
 		re, im := F64(xp), F64(xp+8)
 		for i < n {
-			re, im = Func[fp].(f2z)(re, im, F64(yp), F64(yp+8))
+			re, im = Func[f].(f2z)(re, im, F64(yp), F64(yp+8))
 			i++
 			yp += 16
 		}
