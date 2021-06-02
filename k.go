@@ -12,8 +12,8 @@ func init() {
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Export(kinit, mk, nn, Val, Kst)
-	//           :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
-	Functions(1, Lup, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out)
+	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
+	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, nyi, Cat, nyi, Tak, Drp, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
@@ -96,9 +96,9 @@ const ( //base t&15          bytes  atom  vector
 // func t=0
 // basic x < 64 (triadic/tetradic)
 // composition .. f2 f1 f0
-// xn=3: derived     func symb
-// xn=4: projection  func arglist emptylist
-// xn=5: lambda      code locals save string
+// derived     func symb
+// projection  func arglist emptylist
+// lambda      code locals save string
 
 // ptr: int32(x)
 // p-8       p-4     p

@@ -12,6 +12,9 @@ func Atx(x, y K) K { // x@y
 			return cal(x, l1(y))
 		}
 		if xt == st {
+			if xp == 0 && yt == it { // `123 (quoted verb)
+				return K(int32(y))
+			}
 			if xp == 32 {
 				return Kst(y)
 			} else {

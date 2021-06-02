@@ -146,7 +146,13 @@ func TestClass(t *testing.T) {
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 
-func rc(x K) int32 { return I32(int32(x) - 16) }
+func rc(x K) int32 {
+	xt := tp(x)
+	if xt < 16 {
+		return -1
+	}
+	return I32(int32(x) - 16)
+}
 func sK(x K) string {
 	xp := int32(x)
 	switch tp(x) {
@@ -154,11 +160,32 @@ func sK(x K) string {
 		if x == 0 {
 			return ""
 		}
-		if xp < 23 {
-			s := []byte("0:+-*%!&|<>=~,^#_$?@.'/\\")
-			return string(s[xp])
-		} else {
-			return fmt.Sprintf("<%d>", x)
+		s := []byte("0:+-*%!&|<>=~,^#_$?@.'/\\")
+		var r string
+		itoa := func(x int32) string { return strconv.Itoa(int(x)) }
+		switch {
+		case xp < 64:
+			if xp < 23 {
+				r = string(s[xp])
+			} else {
+				r = itoa(xp)
+			}
+			return r
+		case xp < 128:
+			if xp-64 < 23 {
+				r = string(s[xp-64])
+			} else {
+				r = itoa(xp)
+			}
+			return r
+		case xp == 211:
+			return "@"
+		case xp == 212:
+			return "."
+		case xp >= 448 && xp-448 < 23:
+			return string(s[xp-448])
+		default:
+			return "`" + itoa(xp)
 		}
 	case bt:
 		if int32(x) != 0 {

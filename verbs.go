@@ -262,8 +262,20 @@ func Typ(x K) (r K) { // @x
 }
 func Val(x K) (r K) {
 	xt := tp(x)
+	if xt == st {
+		return lup(x)
+	}
 	if xt == Ct {
 		return val(x)
+	}
+	if xt == lf {
+		xp := int32(x)
+		r = cat1(l3(x0(xp), x1(xp), x0(xp+24)), Ki(nn(x))) // (code;locals;string;arity)
+		dx(x)
+		return r
+	}
+	if xt == Lt {
+		return exec(x) // .L e.g. 1+2 is (1;2;`66)
 	}
 	trap(Nyi)
 	return x

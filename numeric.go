@@ -271,7 +271,7 @@ func nd(f int32, x, y K) (r K) {
 			dx(y)
 			return r
 		}
-		e := ep(y)
+		e := ep(r)
 		yp, rp := int32(y), int32(r)
 		switch t - 2 {
 		case 0: // ct
