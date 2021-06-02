@@ -56,6 +56,9 @@ func mk(t T, n int32) (r K) {
 }
 func tp(x K) T     { return T(x >> 59) }
 func nn(x K) int32 { return I32(int32(x) - 12) }
+func ep(x K) int32 { return int32(x) + sz(tp(x))*nn(x) }
+
+/*
 func vn(x K) (m int32) { // v128 size
 	s := sz(tp(x))
 	n := nn(x)
@@ -74,6 +77,7 @@ func vn(x K) (m int32) { // v128 size
 	}
 	return 1 + m
 }
+*/
 func sz(t T) int32 {
 	if t < 19 {
 		return 1
