@@ -13,7 +13,7 @@ func main() { // _start
 	for {
 		write(Ku(8202)) // "\n "
 		x := read()
-		if eqc(x, xx) != 0 {
+		if match(x, xx) != 0 {
 			wasi_unstable.Proc_exit(0)
 		}
 		x = val(x)

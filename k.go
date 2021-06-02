@@ -14,7 +14,7 @@ func init() {
 	Export(kinit, mk, nn, Val, Kst)
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
 	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, nyi, Cat, nyi, Tak, Drp, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, nyi, Tak, Drp, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 	//                                                                   229                              235                                 241                           247
@@ -166,7 +166,7 @@ func sc(c K) K {
 	sp := int32(s)
 	sn := nn(s)
 	for i := int32(0); i < sn; i++ {
-		if eqc(c, K(I64(sp))) != 0 {
+		if match(c, K(I64(sp))) != 0 {
 			dx(c)
 			return K(sp-int32(s)) | K(st)<<59
 		}
