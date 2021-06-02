@@ -830,7 +830,7 @@ func miniI(x I32x4, yp, rp, e int32) {
 }
 func minfF(x F64x2, yp, rp, e int32) {
 	for rp < e {
-		F64x2store(rp, x.Min(F64x2load(yp)))
+		F64x2store(rp, x.Pmin(F64x2load(yp)))
 		yp += 16
 		rp += 16
 		continue
@@ -866,7 +866,7 @@ func minI(xp, yp, rp, e int32) {
 }
 func minF(xp, yp, rp, e int32) {
 	for rp < e {
-		F64x2store(rp, F64x2load(xp).Min(F64x2load(yp)))
+		F64x2store(rp, F64x2load(xp).Pmin(F64x2load(yp)))
 		xp += 16
 		yp += 16
 		rp += 16
@@ -929,7 +929,7 @@ func maxiI(x I32x4, yp, rp, e int32) {
 }
 func maxfF(x F64x2, yp, rp, e int32) {
 	for rp < e {
-		F64x2store(rp, x.Max(F64x2load(yp)))
+		F64x2store(rp, x.Pmax(F64x2load(yp)))
 		yp += 16
 		rp += 16
 		continue
@@ -965,7 +965,7 @@ func maxI(xp, yp, rp, e int32) {
 }
 func maxF(xp, yp, rp, e int32) {
 	for rp < e {
-		F64x2store(rp, F64x2load(xp).Max(F64x2load(yp)))
+		F64x2store(rp, F64x2load(xp).Pmax(F64x2load(yp)))
 		xp += 16
 		yp += 16
 		rp += 16
