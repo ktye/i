@@ -120,3 +120,107 @@ func mtF(xp, yp, e int32) (r int32) {
 	}
 	return 1
 }
+func any(x K) (r K) {
+	if tp(x) != Bt {
+		trap(Type)
+	}
+	xp := int32(x)
+	e := ep(x)
+	m := maxi(xp, e-16)
+	for xp < m {
+		if I8x16load(xp).Any_true() != 0 {
+			return Kb(1)
+		}
+		xp += 16
+		continue
+	}
+	for xp < e {
+		if I8(xp) != 0 {
+			return Kb(1)
+		}
+		xp++
+	}
+	return Kb(0)
+}
+func In(x, y K) (r K) {
+	xt, yt := tp(x), tp(y)
+	if xt+16 != yt {
+		trap(Type)
+	}
+	xp, yp := int32(x), int32(y)
+	e := ep(y)
+	switch xt - 1 {
+	case 0: //bt
+		e = inC(xp, yp, e)
+	case 1: //ct
+		e = inC(xp, yp, e)
+	case 2: //it
+		e = inI(xp, yp, e)
+	case 3: //st
+		e = inI(xp, yp, e)
+	case 4: //ft
+		dx(x)
+		e = inF(F64(xp), yp, e)
+	case 5: //zt
+		dx(x)
+		e = inZ(F64(xp), F64(xp+8), yp, e)
+	default:
+		trap(Type)
+	}
+	dx(y)
+	return Kb(e)
+}
+func inC(x, yp, e int32) int32 {
+	m := maxi(yp, e-16)
+	v := I8x16splat(x)
+	for yp < m {
+		if v.Eq(I8x16load(yp)).Any_true() != 0 {
+			return 1
+		}
+		yp += 16
+		continue
+	}
+	for yp < e {
+		if x == I8(yp) {
+			return 1
+		}
+		yp++
+	}
+	return 0
+}
+func inI(x, yp, e int32) int32 {
+	m := maxi(yp, e-16)
+	v := I32x4splat(x)
+	for yp < m {
+		if v.Eq(I32x4load(yp)).Any_true() != 0 {
+			return 1
+		}
+		yp += 16
+		continue
+	}
+	for yp < e {
+		if x == I32(yp) {
+			return 1
+		}
+		yp += 4
+	}
+	return 0
+}
+func inF(x float64, yp int32, e int32) int32 {
+	for yp < e {
+		if eqf(x, F64(yp)) != 0 {
+			return 1
+		}
+		yp += 8
+	}
+	return 0
+}
+func inZ(re, im float64, yp int32, e int32) int32 {
+	for yp < e {
+		if eqz(re, im, F64(yp), F64(yp+8)) != 0 {
+			return 1
+		}
+		yp += 16
+	}
+	return 0
+}

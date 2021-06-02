@@ -335,7 +335,7 @@ func nc(f int32, x, y K) (r K) {
 		case 2: // it
 			r = Kb(Func[f].(f2i)(xp, yp))
 		case 3: // st
-			trap(Type)
+			r = Kb(Func[f].(f2i)(xp, yp))
 		case 4:
 			dx(x)
 			r = Kb(Func[1+f].(f2c)(F64(xp), F64(yp)))
@@ -366,7 +366,7 @@ func nc(f int32, x, y K) (r K) {
 		case 2: // it
 			Func[4+f].(f2ii)(xp, yp, rp, e)
 		case 3: // st
-			trap(Type)
+			Func[4+f].(f2ii)(xp, yp, rp, e)
 		case 4: // ft
 			dx(x)
 			Func[5+f].(f2fF)(F64(xp), yp, rp, e)
@@ -398,7 +398,7 @@ func nc(f int32, x, y K) (r K) {
 		case 2: // it
 			Func[8+f].(f2ii)(xp, yp, rp, e)
 		case 3: // st
-			trap(Type)
+			Func[8+f].(f2ii)(xp, yp, rp, e)
 		case 4: // ft
 			dx(y)
 			Func[9+f].(f2Ff)(xp, F64(yp), rp, e)
@@ -433,7 +433,7 @@ func nc(f int32, x, y K) (r K) {
 		case 2: // it
 			Func[12+f].(f2v)(xp, yp, rp, e)
 		case 3: // st
-			trap(Type)
+			Func[12+f].(f2v)(xp, yp, rp, e)
 		case 4: // ft
 			Func[13+f].(f2v)(xp, yp, rp, e)
 		case 5: // zt
