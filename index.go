@@ -15,7 +15,7 @@ func Atx(x, y K) K { // x@y
 			if xp == 0 && yt == it { // `123 (quoted verb)
 				return K(int32(y))
 			}
-			if xp == 32 {
+			if xp == 32 { // `k@
 				return Kst(y)
 			} else {
 				trap(Value)

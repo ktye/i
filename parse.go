@@ -85,10 +85,11 @@ func t() (r K, verb int32) { // Lt
 		}
 		r = l1(r)
 	}
+f:
 	for {
 		n, _ := next()
 		if n == 0 {
-			break
+			break f
 		}
 		a := int32(n)
 		tn := tp(n)
@@ -109,7 +110,7 @@ func t() (r K, verb int32) { // Lt
 			}
 		} else {
 			pp -= 8
-			break
+			break f // within else-if
 		}
 	}
 	return r, verb

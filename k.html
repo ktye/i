@@ -1,45 +1,68 @@
 <head><meta charset="utf-8"><title>k</title></head>
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
 <style>
- html{font-family:monospace}
+ html,body,textarea{margin:0;padding:0;overflow:hidden;font-family:monospace;}
+ textarea{top:0;left:0;width:100%;height:100%;background:black;color:#cccccc;border:none;resize:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}::-webkit-scrollbar{width:0;height:0;}
+ textarea:focus{color:white;}.hold{background:#666666}
 </style>
+<body>
+<textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
 <script>
 
-var K, C, U
-var env={wasi_unstable:{ 
- proc_exit:function(x){console.log("exit", x)},
- fd_read:  function(a,b,c,d){console.log("read",a,b,c,d);return 0},
- fd_write: function(a,b,c,d){console.log("write",a,b,c,d);return 0}
-}}
-
-fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,env)).then(r=>{
- K=r.instance.exports
- K.kinit()
- C=new Uint8Array(K.memory.buffer)
- U=new Uint32Array(K.memory.buffer)
-})
-
+var term = ge("term")
+window.addEventListener('unhandledrejection', function(e) {term.value+=String(e.reason)})
 function ge(x){return document.getElementById(x)}
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function banner(x){term.value = "ktye/k "+x.byteLength+"b\n ";return x}
+
+
+var K, C, U
 function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function lo(x){return Number(BigInt.asUintN(32,x))}
 function ks(s){s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
 function sk(x){var xp=lo(x);return su(C.slice(xp,xp+K.nn(x)))}
 
-function O(s){console.log(s)}
-function L(x){console.log(x);return x}
+
+var env={wasi_unstable:{ 
+// l32:function(x){console.log(x);return x},
+// l64:function(x){console.log(BigInt.asUintN(64,x));return x},
+ proc_exit:function(x){console.log("exit", x)},
+ fd_read:  function(a,b,c,d){console.log("read",a,b,c,d);return 0},
+ fd_write: function(fd,p,nio,nw){var x=U[p>>>2]; var n=U[(4+p)>>>2];term.O(su(C.slice(x,x+n)));return 0}
+}}
+
+
+
+fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
+ K=r.instance.exports
+ K.kinit()
+ C=new Uint8Array(K.memory.buffer)
+ U=new Uint32Array(K.memory.buffer)
+})
+
+
 
 function ktry(s){
- s=K.Val(ks(s));
- O((s==0)?"":sk(K.Kst(s)))
+ try { s=K.Val(ks(s));return (s==0)?"":sk(K.Kst(s)) }
+ catch(e){console.log(e);return ""}
 }
-/*
-function ktry(s){
- try     {s=K.Val(L(ks(s)));O((s==0)?"":sk(K.Kst(s)))}
- catch(e){O("!")}
+
+
+function kd(e){var N="\n";var t=e.srcElement;
+ if(e.which===27){pd(e);if(t.hold){t.className="";t.selectionStart=t.hold;t.hold=0}else{t.hold=t.selectionStart;t.className="hold"}}
+ if(e.which===13&&!t.hold){pd(e);let s=t.value,p=t.selectionStart,q=t.selectionEnd;if(p===q){p=s.slice(0,p).lastIndexOf(N)+1;q+=s.slice(q).indexOf(N)+1}else{t.value+=s.slice(p,q)}S=s.slice(p,q);exec(S,t)}
 }
-*/
+function out(t,s){return function(s){t.value+=s;t.scrollTo(0,t.scrollHeight)}}
+function exec(s,t) {s=s.trim();
+ if(s=="\\c"){t.value=" ";return}
+ if((s=="\\")||(s=="\\h")){t.value+="\n"+t.help+"\n ";t.scrollTo(0,t.scrollHeight);return}
+ t.exec(s)
+}
+term.onkeydown=kd
+term.O=out(term)
+term.exec = function(s){term.value+="\n";var s=ktry(s);term.O(s.length?s+"\n ":" ")}
+term.help = "...\n"
 
 </script>
-<body>
 </body></html>
