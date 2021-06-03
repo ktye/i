@@ -6,7 +6,13 @@
 <script>
 
 var K, C, U
-fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r)).then(r=>{
+var env={wasi_unstable:{ 
+ proc_exit:function(x){console.log("exit", x)},
+ fd_read:  function(a,b,c,d){console.log("read",a,b,c,d);return 0},
+ fd_write: function(a,b,c,d){console.log("write",a,b,c,d);return 0}
+}}
+
+fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,env)).then(r=>{
  K=r.instance.exports
  K.kinit()
  C=new Uint8Array(K.memory.buffer)

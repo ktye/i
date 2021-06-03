@@ -1355,6 +1355,9 @@ func expi(deg float64) (c float64, s float64) {
 func uptypes(x, y K, b2i int32) (K, K) {
 	xt, yt := tp(x)&15, tp(y)&15
 	rt := T(maxi(int32(xt), int32(yt)))
+	if rt == 0 {
+		rt = it
+	}
 	if rt == bt && b2i != 0 {
 		rt = it
 	}
