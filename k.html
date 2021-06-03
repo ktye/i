@@ -54,10 +54,11 @@ function kd(e){var N="\n";var t=e.srcElement;
  if(e.which===13&&!t.hold){pd(e);let s=t.value,p=t.selectionStart,q=t.selectionEnd;if(p===q){p=s.slice(0,p).lastIndexOf(N)+1;q+=s.slice(q).indexOf(N)+1}else{t.value+=s.slice(p,q)}S=s.slice(p,q);exec(S,t)}
 }
 function out(t,s){return function(s){t.value+=s;t.scrollTo(0,t.scrollHeight)}}
-function exec(s,t) {s=s.trim();
+function exec(s,t) {s=s.trim();var t0=0;var t1=0
  if(s=="\\c"){t.value=" ";return}
  if((s=="\\")||(s=="\\h")){t.value+="\n"+t.help+"\n ";t.scrollTo(0,t.scrollHeight);return}
- t.exec(s)
+ if(s.startsWith("\\t")){s=s.slice(2);t0=performance.now()}
+ t.exec(s);t1=performance.now();if(t0!=0){term.O((t1-t0)+"ms\n ")}
 }
 term.onkeydown=kd
 term.O=out(term)
