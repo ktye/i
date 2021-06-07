@@ -77,6 +77,7 @@ func cal(f, x K) (r K) {
 	default:
 		trap(Type)
 	}
+	dx(f)
 	return r
 }
 func calltrain(f, x, y K) (r K) {
@@ -91,7 +92,6 @@ func calltrain(f, x, y K) (r K) {
 		fp += 8
 		r = cal(x0(fp), l1(r))
 	}
-	dx(f)
 	return r
 }
 func callprj(f, x K) K {
@@ -99,10 +99,9 @@ func callprj(f, x K) K {
 	if nn(f) != n {
 		trap(Rank)
 	}
-	p, l, i := spl3(f)
-	x = stv(rx(l), rx(i), x)
+	p, l, i := spl3(rx(f))
+	x = stv(l, i, x)
 	x = Cal(p, x)
-	dx(f)
 	return x
 }
 func lambda(f K, x K) (r K) {
@@ -172,6 +171,7 @@ func project(f, x K) (r K) {
 		dx(a)
 		return 0
 	}
+
 	r = l3(f, x, a)
 	SetI32(int32(r)-12, an)
 	return K(int32(r)) | K(pf)<<59

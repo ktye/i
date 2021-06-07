@@ -16,7 +16,6 @@ func match(x, y K) int32 {
 	if xt != yt {
 		return 0
 	}
-
 	var xn, yn int32
 	if xt > 16 {
 		xn, yn = nn(x), nn(y)
@@ -77,7 +76,6 @@ func mtC(xp, yp, ve, e int32) (r int32) {
 		}
 		xp += 16
 		yp += 16
-		continue
 	}
 	for yp < e {
 		if I8(xp) != I8(yp) {
@@ -95,7 +93,6 @@ func mtI(xp, yp, ve, e int32) (r int32) {
 		}
 		xp += 16
 		yp += 16
-		continue
 	}
 	for yp < e {
 		if I32(xp) != I32(yp) {
@@ -129,7 +126,6 @@ func any(x K) (r K) {
 			return Kb(1)
 		}
 		xp += 16
-		continue
 	}
 	for xp < e {
 		if I8(xp) != 0 {
@@ -175,7 +171,6 @@ func inC(x, yp, ve, e int32) int32 {
 			return 1
 		}
 		yp += 16
-		continue
 	}
 	for yp < e {
 		if x == I8(yp) {
@@ -192,7 +187,6 @@ func inI(x, yp, ve, e int32) int32 {
 			return 1
 		}
 		yp += 16
-		continue
 	}
 	for yp < e {
 		if x == I32(yp) {

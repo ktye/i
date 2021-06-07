@@ -24,7 +24,7 @@ func exec(x K) K {
 	e := p + 8*xn
 	for p < e {
 		u := K(I64(p))
-		// fmt.Printf("exec p=%d tp=%d int32=%d case(%d) %s\n", p, tp(u), int32(u), int32(u)>>6, sK(u))
+		//fmt.Printf("exec p=%d tp=%d int32=%d case(%d) %s\n", p, tp(u), int32(u), int32(u)>>6, sK(u))
 		if tp(u) != 0 {
 			push(a)
 			a = rx(u)
@@ -58,6 +58,8 @@ func exec(x K) K {
 		p += 8
 		continue
 	}
+	dx(pop())
+	dx(x)
 	return a
 }
 

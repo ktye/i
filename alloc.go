@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
@@ -18,6 +20,8 @@ func alloc(size int32) int32 {
 	m := 4 * I32(128)
 	for I32(i) == 0 {
 		if i >= m {
+			//pfree()
+			//fmt.Println("no free size", size)
 			trap(Grow)
 		}
 		i += 4
@@ -29,9 +33,34 @@ func alloc(size int32) int32 {
 		SetI32(u, I32(j))
 		SetI32(j, u)
 	}
+	if a&31 != 0 {
+		fmt.Printf("a=%d a&31=%d (must be 0)\n", a, a&31)
+		panic("alloc")
+	}
 	return a
 }
+
+func mcount() (r uint32) {
+	for i := int32(5); i < 31; i++ {
+		n := fcount(4 * i)
+		r += uint32(n) * (1 << uint32(i))
+	}
+	return r
+}
+func fcount(x int32) (r int32) {
+	for {
+		if I32(x) == 0 {
+			return r
+		}
+		r++
+		x = I32(x)
+	}
+}
+
 func free(x, bs int32) {
+	if x&31 != 0 {
+		panic("alloc")
+	}
 	t := 4 * bs
 	SetI32(x, I32(t))
 	SetI32(t, x)
@@ -45,12 +74,15 @@ func bucket(size int32) (r int32) {
 }
 
 func mk(t T, n int32) (r K) {
+	//defer func(t T, n int32) {
+	//	fmt.Println("mk", t, n, int32(r))
+	//}(t, n)
 	if t < 17 {
 		trap(Value)
 	}
 	r = K(uint64(t) << uint64(59))
 	x := alloc(n * sz(t))
-	SetI32(x, 1)
+	SetI32(x+12, 1) //rc
 	SetI32(x+4, n)
 	return r | K(x+16)
 }
@@ -79,7 +111,9 @@ func vn(x K) (m int32) { // v128 size
 }
 */
 func sz(t T) int32 {
-	if t < 19 {
+	if t < 16 {
+		return 8
+	} else if t < 19 {
 		return 1
 	} else if t < 21 {
 		return 4
@@ -92,7 +126,7 @@ func rx(x K) K {
 	if tp(x) < 5 {
 		return x
 	}
-	p := int32(x) - 16
+	p := int32(x) - 4
 	SetI32(p, 1+I32(p))
 	return x
 }
@@ -102,15 +136,15 @@ func dx(x K) {
 		return
 	}
 	p := int32(x) - 16
-	rc := I32(p)
-	SetI32(p, rc-1)
+	rc := I32(p + 12)
+	SetI32(p+12, rc-1)
 	if rc == 0 {
 		trap(Unref)
 	}
 	if rc == 1 {
 		n := nn(x)
 		if t&15 > 6 {
-			if t == 22 || t == 24 || t == 25 {
+			if t == 24 || t == 25 { // D, T
 				n = 2
 			} else if t == 12 {
 				n = 3 // prj
@@ -133,4 +167,7 @@ func rl(x K) { // ref list elements
 		x0(xp)
 		xp += 8
 	}
+}
+func lfree(x K) { // free list non-recursive
+	free(int32(x)-16, bucket(8*nn(x)))
 }

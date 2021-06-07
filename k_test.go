@@ -33,6 +33,7 @@ func mkchars(b []byte) (r K) {
 func intvalue(x K) int32     { return int32(x) }
 func floatvalue(x K) float64 { return F64(int32(x)) }
 func TestTypes(t *testing.T) {
+	t.Skip()
 	newtest()
 	xi := Ki(-5)
 	if v := intvalue(xi); v != -5 {
@@ -68,8 +69,10 @@ func TestBucket(t *testing.T) {
 	}
 }
 func TestMk(t *testing.T) {
+	t.Skip()
+	newtest()
 	r := mk(It, 2)
-	if rc := I32(int32(r) - 16); rc != 1 {
+	if rc := I32(int32(r) - 4); rc != 1 {
 		t.Fatalf("rc is %d not 1\n", rc)
 	}
 	if n := I32(int32(r) - 12); n != 2 {
@@ -83,6 +86,7 @@ func TestMk(t *testing.T) {
 	}
 }
 func TestVerbs(t *testing.T) {
+	t.Skip()
 	newtest()
 	x := Til(Ki(3))
 	if r := iK(Cnt(x)); r != 3 {
@@ -90,6 +94,7 @@ func TestVerbs(t *testing.T) {
 	}
 }
 func TestTok(t *testing.T) {
+	t.Skip()
 	tc := []struct {
 		in, exp string
 	}{
@@ -121,10 +126,83 @@ func TestK(t *testing.T) {
 		exp := a[1]
 		fmt.Println(in, "/"+exp)
 		newtest()
+		//fmt.Println("newtest")
 		x := mkchars([]byte(a[0]))
-		got := sK(exec(parse(x)))
+		x = exec(parse(x))
+		//fmt.Println("parse")
+		//x = parse(x)
+		got := sK(x)
 		if got != exp {
 			t.Fatalf("%s:\nexp: %s\ngot: %s", in, exp, got)
+		}
+		dx(x)
+		check(t)
+	}
+}
+func check(t *testing.T) {
+	if sp != 256 {
+		t.Fatalf("nonempty stack: sp=%d", sp)
+	}
+	if n := rc(src); n > 1 {
+		t.Fatalf("src: rc %d\n", n)
+	}
+	dx(src)
+	dx(xyz)
+	dx(K(I64(0)))
+	dx(K(I64(8)))
+	m := mcount()
+	u := (uint32(1) << uint32(I32(128))) - 1024
+	d := int32(u - m)
+	mark()
+	scan()
+	if d != 0 {
+		t.Fatalf("m %d, diff %d", m, int32(u-m))
+	}
+}
+func mark() {
+	for i := int32(5); i < 31; i++ {
+		marki(i)
+	}
+}
+func marki(i int32) {
+	p := I32(4 * i)
+	l := int32(0)
+	for p != 0 {
+		if p&31 != 0 {
+			panic(fmt.Errorf("illegal block in free list: %d type %d (last=%d)", p, i, l))
+		}
+		n := I32(p)
+		SetI32(p, i)
+		SetI32(4+p, 1<<uint32(i))
+		l = p
+		p = n
+	}
+}
+func scan() {
+	p := int32(1024)
+	a := I32(128)
+	if a < 10 || a > 32 {
+		panic(fmt.Errorf("illegal total alloc %d", a))
+	}
+	e := int32(1) << I32(128)
+	for {
+		if p == e {
+			return
+		}
+		k := p + 16
+		t := I32(p)
+		if t < 5 || t > 31 {
+			panic(fmt.Errorf("%d: illegal block type=%d at %d", k, t, p))
+		}
+		s := I32(4 + p)
+		if s&31 != 0 {
+			panic(fmt.Errorf("%d: illegal size=%d type=%d at %d", k, s, t, p))
+		}
+		p += s
+		if p == e {
+			return
+		} else if p > e {
+			panic(fmt.Errorf("%d: illegal block %d > e(%d)", k, p, e))
 		}
 	}
 }
@@ -151,7 +229,7 @@ func rc(x K) int32 {
 	if xt < 16 {
 		return -1
 	}
-	return I32(int32(x) - 16)
+	return I32(int32(x) - 4)
 }
 func sK(x K) string {
 	xp := int32(x)

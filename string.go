@@ -161,7 +161,7 @@ func sf(x float64) (r K) {
 	}
 	r = Rev(r)
 	r = cat1(r, '.')
-	x -= float64(u)
+	x -= F64floor(x)
 	for i := int32(0); i < 6; i++ {
 		x *= 10
 		r = cat1(r, Kc('0'+(int32(x)%10)))
@@ -205,4 +205,47 @@ func sfz(re, im float64) (r K) {
 		r = cat1(r, sf(a))
 	}
 	return r
+}
+
+func Cst(x, y K) (r K) { // x$y
+	if tp(y) == Ct {
+		return prs(ts(x), y)
+	}
+	trap(Nyi) // todo conversions
+	return x
+}
+func prs(t T, y K) (r K) { // s$C
+	yp, yn := int32(y), nn(y)
+	p, e := pp, pe
+	pp = yp
+	pe = yp + yn
+	if t > 2 && t < 6 {
+		r = tnum()
+		if tp(r) < t {
+			r = uptype(r, t)
+		}
+	}
+	if t > Ct && t < Lt {
+		r = tnms()
+		if tp(r) < t {
+			r = uptype(r, t-16)
+		}
+	}
+	pp, pe = p, e
+	if r == 0 {
+		trap(Err)
+	}
+	dx(y)
+	return r
+}
+func ts(x K) T {
+	c := int32(Fst(cs(x)))
+	for i := int32(520); i < 546; i++ {
+		if I8(i) == c {
+			return T(i - 520)
+		}
+		continue
+	}
+	trap(Value)
+	return 0
 }

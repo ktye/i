@@ -79,6 +79,9 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 }
 func cat1(x, y K) K {
 	xt := tp(x)
+	if x == 0 {
+		panic("cat1")
+	}
 	r, rp, s := uspc(x, xt, 1)
 	yp := int32(y)
 	if s == 1 {
@@ -108,7 +111,7 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 	var r K
 	nx := nn(x)
 	s := sz(xt)
-	if I32(int32(x)-16) == 1 && bucket(s*nx) == bucket(s*(nx+ny)) {
+	if I32(int32(x)-4) == 1 && bucket(s*nx) == bucket(s*(nx+ny)) {
 		r = x
 	} else {
 		r = mk(xt, nx+ny)

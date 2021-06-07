@@ -11,11 +11,12 @@ func init() {
 	Memory(1)
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
+	Data(520, "vbcisfzldtcdpl000BCISFZLDT")
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:
 	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, nyi, nyi, Cat, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, nyi, Tak, Drp, nyi, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, nyi, Tak, Drp, Cst, nyi, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 	//                                                                   229                              235                                 241                           247
@@ -43,7 +44,8 @@ func init() {
 // 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
 // 256..511  stack
 // 512..519  wasi iovec
-// 520..
+// 520..545  "vbcisfzldtcdpl000BCISFZLDT"
+
 func kinit() {
 	minit(10, 16)
 	sp = 256
@@ -102,8 +104,8 @@ const ( //base t&15          bytes  atom  vector
 // lambda      code locals save string
 
 // ptr: int32(x)
-// p-8       p-4     p
-// [refcount][length][data]
+//  p-12    p-4 p
+// [length][rc][data]
 
 func Kb(x int32) K { return K(uint32(x)) | K(bt)<<59 }
 func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }

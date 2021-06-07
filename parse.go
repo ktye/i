@@ -1,14 +1,21 @@
 package main
 
 import (
+	"fmt"
+
 	. "github.com/ktye/wg/module"
 )
 
 func parse(x K) (r K) {
-	x = tok(x)
-	pp = int32(x)
-	pe = pp + 8*nn(x)
-	return es()
+	l := tok(x)
+	pp = int32(l)
+	pe = pp + 8*nn(l)
+	r = es()
+	if pp != pe {
+		trap(Parse)
+	}
+	lfree(l)
+	return r
 }
 func es() (r K) {
 	r = mk(Lt, 0)
@@ -146,6 +153,7 @@ func pasn(x, y K) (K, K) {
 	return x, y
 }
 func plam(s0 int32) (r K) {
+	fmt.Println("plam")
 	loc = mk(St, 0)
 	c := es() // todo: translate srcp
 	n, s1 := next()

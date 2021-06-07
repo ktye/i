@@ -183,7 +183,7 @@ func ndrop(n int32, y K) (r K) {
 	}
 	s := sz(yt)
 	yp := int32(y)
-	if I32(yp-16) == 1 && bucket(s*yn) == bucket(s*rn) {
+	if I32(yp-4) == 1 && bucket(s*yn) == bucket(s*rn) {
 		r = rx(y)
 		SetI32(yp-12, rn)
 	} else {
@@ -256,9 +256,8 @@ func Wer(x K) (r K) { // &x
 }
 
 func Typ(x K) (r K) { // @x
-	r = Ki(int32(tp(x)))
 	dx(x)
-	return r
+	return sc(enl(Kc(I8(520 + int32(tp(x))))))
 }
 func Val(x K) (r K) {
 	xt := tp(x)
@@ -281,6 +280,7 @@ func Val(x K) (r K) {
 	return x
 }
 func val(x K) (r K) {
+	s := src
 	x = parse(x)
 	xn := nn(x)
 	xp := int32(x) + 8*(xn-1)
@@ -289,6 +289,8 @@ func val(x K) (r K) {
 		a = 1
 	}
 	x = exec(x)
+	dx(src)
+	src = s
 	if a != 0 {
 		dx(x)
 		return 0

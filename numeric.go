@@ -29,13 +29,13 @@ type f2c = func(float64, float64) int32
 type f2d = func(float64, float64, float64, float64) int32
 
 func use2(x, y K) K {
-	if I32(int32(y)-16) == 1 {
+	if I32(int32(y)-4) == 1 {
 		return rx(y)
 	}
 	return use1(x)
 }
 func use1(x K) K {
-	if I32(int32(x)-16) == 1 {
+	if I32(int32(x)-4) == 1 {
 		return rx(x)
 	}
 	return mk(tp(x), nn(x))
@@ -256,9 +256,11 @@ func nd(f int32, x, y K) (r K) {
 			trap(Type)
 		case 3:
 			dx(x)
+			dx(y)
 			r = Kf(Func[2+f].(f2f)(F64(xp), F64(yp)))
 		case 4:
 			dx(x)
+			dx(y)
 			r = Kz(Func[3+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
 		default:
 			trap(Type)
@@ -721,6 +723,7 @@ func Div(x, y K) (r K) {
 	if yt < 16 {
 		if yt == ft && xt > 16 {
 			s := 1.0 / F64(int32(y))
+			dx(y)
 			return scale(s, x)
 		}
 	}
