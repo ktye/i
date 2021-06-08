@@ -16,7 +16,7 @@ var save []byte
 
 func newtest() {
 	if save == nil {
-		kinit()
+		kinit(1)
 		save = make([]byte, len(Bytes))
 		copy(save, Bytes)
 	} else {

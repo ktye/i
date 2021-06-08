@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -20,11 +18,10 @@ func alloc(size int32) int32 {
 	m := 4 * I32(128)
 	for I32(i) == 0 {
 		if i >= m {
-			//pfree()
-			//fmt.Println("no free size", size)
-			trap(Grow)
+			m = 4 * grow()
+		} else {
+			i += 4
 		}
-		i += 4
 	}
 	a := I32(i)
 	SetI32(i, I32(a))
@@ -34,10 +31,19 @@ func alloc(size int32) int32 {
 		SetI32(j, u)
 	}
 	if a&31 != 0 {
-		fmt.Printf("a=%d a&31=%d (must be 0)\n", a, a&31)
-		panic("alloc")
+		trap(Unref)
 	}
 	return a
+}
+func grow() int32 {
+	i := I32(128)
+	if i == 32 {
+		trap(Grow)
+	}
+	SetI32(4*i, int32(uint32(1)<<uint32(i)))
+	i++
+	SetI32(128, i)
+	return i
 }
 
 func mcount() (r uint32) {
@@ -50,17 +56,18 @@ func mcount() (r uint32) {
 func fcount(x int32) (r int32) {
 	for {
 		if I32(x) == 0 {
-			return r
+			break
 		}
 		r++
 		x = I32(x)
 	}
+	return r
 }
 
 func free(x, bs int32) {
 	//fmt.Println("free ", x+16)
 	if x&31 != 0 {
-		panic("alloc")
+		trap(Unref)
 	}
 	t := 4 * bs
 	SetI32(x, I32(t))

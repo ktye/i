@@ -36,7 +36,7 @@ var env={wasi_unstable:{
 
 fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
  K=r.instance.exports
- K.kinit()
+ K.kinit(1)
  C=new Uint8Array(K.memory.buffer)
  U=new Uint32Array(K.memory.buffer)
 })

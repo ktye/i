@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/ktye/wg/wasi_unstable"
 
 	. "github.com/ktye/wg/module"
@@ -11,34 +9,37 @@ import (
 //func LK(x K) K         { return K(wasi_unstable.L64(uint64(x))) }
 //func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
-	kinit()
-	write(Ku(117851310093419)) // "ktye/k"
+	kinit(1)
+	write(Ku(2932601077199979)) // "ktye/k\n"
 	for {
-		write(Ku(8202)) // "\n "
+		write(Ku(32))
 		x := read()
 		repl(x)
 	}
 }
 func repl(x K) {
-	m := mcount()
 	n := nn(x)
 	xp := int32(x)
 	if n > 0 && I8(xp) == 92 { // \
 		if n == 1 {
 			help()
-		} else if I8(1+xp) == 92 { // \\
-			wasi_unstable.Proc_exit(0)
-		} else if I8(1+xp) == 116 { // \t
-			bench(ndrop(2, x))
+		} else {
+			c := I8(1 + xp)
+			if I8(1+xp) == '\\' {
+				wasi_unstable.Proc_exit(0)
+			} else if c == 't' {
+				bench(ndrop(2, x))
+			} else if c == 'c' {
+				dx(x)
+				reset()
+			}
 		}
 		return
 	}
-
 	x = val(x)
 	if x != 0 {
 		dx(Out(x))
 	}
-	fmt.Println("diff", int32(m)-int32(mcount()))
 }
 func bench(x K) {
 	i := fndc(x, 32)
