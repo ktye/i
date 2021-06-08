@@ -297,7 +297,7 @@ func val(x K) (r K) {
 	xn := nn(x)
 	xp := int32(x) + 8*(xn-1)
 	a := int32(0)
-	if xn > 2 && I64(xp) == 2 && I64(xp-8) == 0 {
+	if xn > 2 && I64(xp) == 64 {
 		a = 1
 	}
 	x = exec(x)

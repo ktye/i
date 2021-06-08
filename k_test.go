@@ -33,7 +33,6 @@ func mkchars(b []byte) (r K) {
 func intvalue(x K) int32     { return int32(x) }
 func floatvalue(x K) float64 { return F64(int32(x)) }
 func TestTypes(t *testing.T) {
-	t.Skip()
 	newtest()
 	xi := Ki(-5)
 	if v := intvalue(xi); v != -5 {
@@ -69,7 +68,7 @@ func TestBucket(t *testing.T) {
 	}
 }
 func TestMk(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
 	r := mk(It, 2)
 	if rc := I32(int32(r) - 4); rc != 1 {
@@ -86,7 +85,7 @@ func TestMk(t *testing.T) {
 	}
 }
 func TestVerbs(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
 	x := Til(Ki(3))
 	if r := iK(Cnt(x)); r != 3 {
@@ -94,7 +93,7 @@ func TestVerbs(t *testing.T) {
 	}
 }
 func TestTok(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	tc := []struct {
 		in, exp string
 	}{
@@ -111,7 +110,24 @@ func TestTok(t *testing.T) {
 		}
 	}
 }
+func TestMultiline(t *testing.T) {
+	//t.Skip()
+	tc := []struct {
+		in, exp string
+	}{
+		{"1+2\n3*4", "12"},
+	}
+	for _, tc := range tc {
+		newtest()
+		//fmt.Println(tc.in)
+		got := sK(Val(mkchars([]byte(tc.in))))
+		if got != tc.exp {
+			t.Fatalf("got %s expected %s", got, tc.exp)
+		}
+	}
+}
 func TestK(t *testing.T) {
+	//t.Skip()
 	b, err := ioutil.ReadFile("t")
 	if err != nil {
 		t.Fatal(err)
@@ -128,7 +144,7 @@ func TestK(t *testing.T) {
 		newtest()
 		//fmt.Println("newtest")
 		x := mkchars([]byte(a[0]))
-		x = exec(parse(x))
+		x = val(x)
 		got := sK(x)
 		if got != exp {
 			t.Fatalf("%s:\nexp: %s\ngot: %s", in, exp, got)

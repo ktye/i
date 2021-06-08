@@ -37,7 +37,7 @@ func alloc(size int32) int32 {
 }
 func grow() int32 {
 	i := I32(128)
-	if i == 32 {
+	if i == 28 { // 256mb
 		trap(Grow)
 	}
 	SetI32(4*i, int32(uint32(1)<<uint32(i)))

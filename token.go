@@ -161,9 +161,13 @@ func tvrb() (r K) {
 }
 func tpct() (r K) {
 	c := I8(pp)
-	if is(c, 48) { // ([{}]);
+	if is(c, 48) { // ([{}]); \n
 		pp++
 		return K(c)
+	}
+	if c == 10 {
+		pp++
+		return K(';')
 	}
 	return 0
 }

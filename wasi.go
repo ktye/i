@@ -55,7 +55,7 @@ func bench(x K) {
 		continue
 	}
 	t = time() - t
-	dx(Out(Kf(float64(t))))
+	dx(Out(Kf(1e-6 * float64(t))))
 }
 
 func Out(x K) K {
