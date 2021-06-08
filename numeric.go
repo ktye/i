@@ -340,9 +340,11 @@ func nc(f int32, x, y K) (r K) {
 			r = Kb(Func[f].(f2i)(xp, yp))
 		case 4:
 			dx(x)
+			dx(y)
 			r = Kb(Func[1+f].(f2c)(F64(xp), F64(yp)))
 		case 5:
 			dx(x)
+			dx(y)
 			r = Kb(Func[2+f].(f2d)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
 		default:
 			trap(Type)

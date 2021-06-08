@@ -115,6 +115,7 @@ func lambda(f K, x K) (r K) {
 	vp := I32(8)
 	lp := int32(lo)
 	xp := int32(x)
+	rl(x)
 	for i := int32(0); i < nl; i++ {
 		p := vp + I32(lp)
 		SetI64(sp, I64(p))
@@ -128,7 +129,7 @@ func lambda(f K, x K) (r K) {
 		lp += 4
 	}
 	spp, spe := pp, pe
-	r = exec(c)
+	r = exec(rx(c))
 	vp = I32(8)
 	sp = int32(sa)
 	for i := int32(0); i < nl; i++ {
@@ -137,9 +138,11 @@ func lambda(f K, x K) (r K) {
 			dx(K(I64(p)))
 		}
 		SetI64(p, I64(sp))
+		SetI64(sp, 0)
 		lp += 4
 		sp += 8
 	}
+	dx(x)
 	pp, pe = spp, spe
 	return r
 }

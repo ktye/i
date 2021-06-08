@@ -129,8 +129,6 @@ func TestK(t *testing.T) {
 		//fmt.Println("newtest")
 		x := mkchars([]byte(a[0]))
 		x = exec(parse(x))
-		//fmt.Println("parse")
-		//x = parse(x)
 		got := sK(x)
 		if got != exp {
 			t.Fatalf("%s:\nexp: %s\ngot: %s", in, exp, got)
@@ -147,6 +145,7 @@ func check(t *testing.T) {
 		t.Fatalf("src: rc %d\n", n)
 	}
 	dx(src)
+	src = 0
 	dx(xyz)
 	dx(K(I64(0)))
 	dx(K(I64(8)))

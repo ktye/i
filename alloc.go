@@ -58,6 +58,7 @@ func fcount(x int32) (r int32) {
 }
 
 func free(x, bs int32) {
+	//fmt.Println("free ", x+16)
 	if x&31 != 0 {
 		panic("alloc")
 	}

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -153,7 +151,6 @@ func pasn(x, y K) (K, K) {
 	return x, y
 }
 func plam(s0 int32) (r K) {
-	fmt.Println("plam")
 	loc = mk(St, 0)
 	c := es() // todo: translate srcp
 	n, s1 := next()
@@ -165,7 +162,7 @@ func plam(s0 int32) (r K) {
 	ar := int32(0)
 	for i := int32(0); i < cn; i++ {
 		if I64(cp) == 20 {
-			if y := I32(cp-8) >> 3; y > 1 && y < 4 {
+			if y := I32(cp-8) >> 3; y > 0 && y < 4 {
 				ar = maxi(ar, y)
 			}
 		}
@@ -173,9 +170,11 @@ func plam(s0 int32) (r K) {
 	}
 	i := Add(seq(1+s1-s0), Ki(s0-1))
 	s := atv(rx(src), i)
-	loc = Cat(ntake(ar, xyz), Unq(loc))
+	loc = Cat(ntake(ar, rx(xyz)), Unq(loc))
 	cn = nn(loc)
-	r = cat1(l3(c, loc, mk(Lt, cn)), s)
+	r = mk(Lt, cn) // save
+	Memoryfill(int32(r), 0, 8*cn)
+	r = cat1(l3(c, loc, r), s)
 	loc = 0
 	rp := int32(r)
 	SetI32(rp-12, ar)
@@ -214,7 +213,7 @@ func whl(x K, xn int32) (r K) {
 	r = cat1(cat1(r, Ki(-8*(2+nn(r)))), 320) // jmp back
 	SetI64(int32(r)+8*p, int64(Ki(8*sum)))   // jif
 	dx(x)
-	return ucat(cat1(l1(K(st)<<59), 0), r) // <null> for empty while
+	return ucat(l1(0), r) // null for empty while
 }
 func cond(x K, xn int32) (r K) {
 	xp := int32(x) + 8*xn
