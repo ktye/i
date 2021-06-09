@@ -8,8 +8,7 @@ var src, loc, xyz K
 var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
 
 func init() {
-	Memory(4) // go uses only the first
-	//Memory(4096) // wasm the last call to Memory 4096(256mb) 65536(4g)
+	Memory(1)
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Data(520, "vbcisfzldtcdpl000BCISFZLDT")
@@ -47,11 +46,11 @@ func init() {
 // 512..519  wasi iovec
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
 
-func kinit(m int32) {
-	if m != 0 {
-		minit(10, 16)
-	}
+func kinit() {
+	minit(10, 16)
 	sp = 256
+	src = 0
+	loc = 0
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
 	sc(Ku(0))            // `   0
@@ -67,14 +66,16 @@ func reset() {
 		panic(Stack)
 	}
 	dx(src)
-	src = 0
 	dx(xyz)
 	dx(K(I64(0)))
 	dx(K(I64(8)))
 	if (uint32(1)<<uint32(I32(128)))-(1024+mcount()) != 0 {
 		trap(Err)
 	}
-	kinit(0)
+	for i := int32(5); i < 31; i++ {
+		SetI32(4*i, 0)
+	}
+	kinit()
 }
 
 type K uint64

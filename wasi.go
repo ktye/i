@@ -9,8 +9,8 @@ import (
 //func LK(x K) K         { return K(wasi_unstable.L64(uint64(x))) }
 //func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
-	kinit(1)
-	getargs()
+	kinit()
+	//getargs()
 	write(Ku(2932601077199979)) // "ktye/k\n"
 	for {
 		write(Ku(32))
@@ -30,6 +30,9 @@ func repl(x K) {
 				wasi_unstable.Proc_exit(0)
 			} else if c == 't' {
 				bench(ndrop(2, x))
+			} else if c == 'm' {
+				dx(x)
+				dx(Out(Ki(I32(128))))
 			} else if c == 'c' {
 				dx(x)
 				reset()

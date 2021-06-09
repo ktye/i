@@ -16,7 +16,7 @@ var save []byte
 
 func newtest() {
 	if save == nil {
-		kinit(1)
+		kinit()
 		save = make([]byte, len(Bytes))
 		copy(save, Bytes)
 	} else {
@@ -150,7 +150,9 @@ func TestK(t *testing.T) {
 			t.Fatalf("%s:\nexp: %s\ngot: %s", in, exp, got)
 		}
 		dx(x)
-		check(t)
+		//check(t)
+		reset()
+		reset()
 	}
 }
 func check(t *testing.T) {

@@ -8,6 +8,7 @@ func minit(a, b int32) {
 	p := int32(1 << a)
 	for i := a; i < b; i++ {
 		SetI32(4*i, p)
+		SetI32(p, 0)
 		p *= 2
 	}
 	SetI32(128, b)
@@ -18,7 +19,7 @@ func alloc(size int32) int32 {
 	m := 4 * I32(128)
 	for I32(i) == 0 {
 		if i >= m {
-			m = 4 * grow()
+			m = 4 * grow(i)
 		} else {
 			i += 4
 		}
@@ -35,20 +36,23 @@ func alloc(size int32) int32 {
 	}
 	return a
 }
-func grow() int32 {
-	i := I32(128)
-	if i == 28 { // 256mb
-		trap(Grow)
+func grow(p int32) int32 {
+	m := I32(128)                        // old total memory (log2)
+	n := 1 + (p >> 2)                    // required total mem (log2)
+	g := ((1 << n) >> 16) - Memorysize() // grow by 64k blocks
+	if g > 0 {
+		if Memorygrow(g) < 0 {
+			trap(Grow)
+		}
 	}
-	SetI32(4*i, int32(uint32(1)<<uint32(i)))
-	i++
-	SetI32(128, i)
-	return i
+	minit(m, n)
+	return n
 }
 
 func mcount() (r uint32) {
 	for i := int32(5); i < 31; i++ {
 		n := fcount(4 * i)
+		//fmt.Println("m", i, n)
 		r += uint32(n) * (1 << uint32(i))
 	}
 	return r
@@ -139,6 +143,7 @@ func rx(x K) K {
 	return x
 }
 func dx(x K) {
+	//fmt.Println("dx", int32(x), tp(x), x == src)
 	t := tp(x)
 	if t < 5 {
 		return
@@ -146,6 +151,7 @@ func dx(x K) {
 	p := int32(x) - 16
 	rc := I32(p + 12)
 	SetI32(p+12, rc-1)
+	//fmt.Printf("dx %d %d/%d rc %d\n", int32(x), tp(x), nn(x), rc)
 	if rc == 0 {
 		trap(Unref)
 	}
