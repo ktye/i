@@ -8,7 +8,7 @@ func Cat(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
 	if xt&15 == yt&15 {
 		if xt < 16 {
-			x = enl(x)
+			x = Enl(x)
 		}
 		if yt < 16 {
 			return cat1(x, y)
@@ -21,7 +21,7 @@ func Cat(x, y K) (r K) {
 	trap(Nyi)
 	return x
 }
-func enl(x K) (r K) {
+func Enl(x K) (r K) {
 	t := tp(x)
 	if t < 16 {
 		t += 16
@@ -124,7 +124,7 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 func ncat(x, y K) (r K) {
 	xt := tp(x)
 	if xt < 16 {
-		x = enl(x)
+		x = Enl(x)
 	}
 	return cat1(uptypes(x, y, 0))
 }

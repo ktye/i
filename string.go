@@ -120,19 +120,6 @@ func Str(x K) (r K) {
 	return r
 }
 func emb(a, b int32, x K) (r K) { return cat1(Cat(Kc(a), x), Kc(b)) }
-func join(x K, y K) (r K) {
-	yn := nn(y)
-	yp := int32(y)
-	r = mk(Ct, 0)
-	for i := int32(0); i < yn; i++ {
-		if i > 0 {
-			r = cat1(r, x)
-		}
-		r = ucat(r, x0(yp))
-		yp += 8
-	}
-	return r
-}
 func si(x int32) (r K) {
 	if x == 0 {
 		return Ku(uint64('0'))

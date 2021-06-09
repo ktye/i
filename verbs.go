@@ -79,11 +79,11 @@ func Unq(x K) (r K) { // ?x
 func Key(x, y K) (r K) { // x!y
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
-		x = enl(x)
+		x = Enl(x)
 		xt = tp(x)
 	}
 	if yt < 16 {
-		y = enl(y)
+		y = Enl(y)
 		yt = tp(y)
 	}
 	nx, ny := nn(x), nn(y)
@@ -207,6 +207,71 @@ func ndrop(n int32, y K) (r K) {
 	return r
 }
 
+func Cut(x, y K) K { // x^y
+	if tp(x) == It {
+		return cuts(x, y)
+	}
+	trap(Nyi) // todo i^
+	return x
+}
+func cuts(x, y K) K { return rcut(y, rx(x), cat1(ndrop(1, x), Ki(nn(y)))) }
+func rcut(x, a, b K) (r K) { // a, b start-stop ranges
+	n := nn(a)
+	ap, bp := int32(a), int32(b)
+	r = mk(Lt, n)
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		o := I32(ap)
+		n := I32(bp) - o
+		if n < 0 {
+			trap(Value)
+		}
+		SetI64(rp, int64(atv(rx(x), Add(Ki(o), seq(n)))))
+		rp += 8
+		ap += 4
+		bp += 4
+	}
+	dx(a)
+	dx(b)
+	dx(x)
+	return r
+}
+func split(x, y K) K {
+	xt, yt := tp(x), tp(y)
+	if 16+xt != yt {
+		trap(Nyi)
+	}
+	x = Wer(Eql(x, rx(y)))
+	return rcut(y, Cat(Ki(0), Add(Ki(1), rx(x))), cat1(x, Ki(nn(y))))
+}
+func join(x, y K) (r K) {
+	xt := tp(x)
+	if xt > 16 {
+		trap(Type)
+	}
+	yt := tp(y)
+	if yt != Lt {
+		trap(Type)
+	}
+	yp := int32(y)
+	yn := nn(y)
+	r = mk(xt+16, 0)
+	for i := int32(0); i < yn; i++ {
+		v := x0(yp)
+		if tp(v) != xt+16 {
+			trap(Type)
+		}
+		if i > 0 {
+			r = cat1(r, rx(x))
+		}
+		r = ucat(r, v)
+		yp += 8
+	}
+	dx(x)
+	dx(y)
+	return r
+}
+
 func Rev(x K) (r K) { // |x
 	t := tp(x)
 	if t < 16 {
@@ -231,7 +296,7 @@ func Rev(x K) (r K) { // |x
 func Wer(x K) (r K) { // &x
 	t := tp(x)
 	if t < 16 {
-		x = enl(x)
+		x = Enl(x)
 		t = tp(x)
 	}
 	var n, rp int32
@@ -269,7 +334,7 @@ func Wer(x K) (r K) { // &x
 
 func Typ(x K) (r K) { // @x
 	dx(x)
-	return sc(enl(Kc(I8(520 + int32(tp(x))))))
+	return sc(Enl(Kc(I8(520 + int32(tp(x))))))
 }
 func Val(x K) (r K) {
 	xt := tp(x)

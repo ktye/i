@@ -10,6 +10,7 @@ import (
 //func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
 	kinit(1)
+	getargs()
 	write(Ku(2932601077199979)) // "ktye/k\n"
 	for {
 		write(Ku(32))
@@ -87,6 +88,15 @@ func write(x K) {
 		trap(Io)
 	}
 	dx(x)
+}
+func getargs() int32 {
+	wasi_unstable.Args_sizes_get(512, 516)
+	n := I32(516)
+	r := mk(Ct, n)
+	SetI32(512, 516)
+	wasi_unstable.Args_get(512, int32(r))
+	dx(Asn(sc(Ku(24878)), split(Kc(0), ndrop(-1, r)))) //.a
+	return n
 }
 func help() {
 	trap(Nyi)

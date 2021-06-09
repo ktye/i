@@ -197,7 +197,14 @@ func tsym() (r K) {
 		}
 		s = 0
 		if pp < pe {
-			s = tvar()
+			s = tchr()
+			if tp(s) == ct {
+				s = sc(Enl(s))
+			} else if s != 0 {
+				s = sc(s)
+			} else {
+				s = tvar()
+			}
 		}
 		if s == 0 {
 			s = K(st) << 59

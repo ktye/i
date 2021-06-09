@@ -18,7 +18,7 @@ func Ech(f, x K) (r K) {
 		return ecn(f, x)
 	}
 	if tp(x) < 16 {
-		x = enl(x)
+		x = Enl(x)
 	}
 	xt := tp(x)
 	if xt > Lt {
@@ -265,9 +265,29 @@ func rdx(f int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	dx(y)
 	return r
 }
-func Ecr(f, x K) K { trap(Nyi); return x }
+func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
+	t := tp(f)
+	if isfunc(t) == 0 {
+		if nn(x) != 1 {
+			trap(Rank)
+		}
+		return join(f, Fst(x))
+	}
+	trap(Nyi)
+	return x
+}
 func Scn(f, x K) K { trap(Nyi); return x }
-func Ecl(f, x K) K { trap(Nyi); return x }
+func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
+	t := tp(f)
+	if isfunc(t) == 0 {
+		if nn(x) != 1 {
+			trap(Rank)
+		}
+		return split(f, Fst(x))
+	}
+	trap(Nyi)
+	return x
+}
 
 func uf(x K) (r K) {
 	xn := nn(x)

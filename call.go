@@ -6,21 +6,21 @@ import (
 
 func Cal(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
-	if xt < 16 {
-		if xt == 0 || xt > tt {
-			if yt != Lt {
-				trap(Nyi)
-			}
-			r = project(x, y)
-			if r != 0 {
-				return r
-			}
-			return cal(x, y)
+	if isfunc(xt) != 0 {
+		if yt != Lt {
+			trap(Nyi)
 		}
+		r = project(x, y)
+		if r != 0 {
+			return r
+		}
+		return cal(x, y)
 	}
 	panic(Nyi)
 	return x
 }
+func isfunc(t T) int32 { return ib(t == 0 || (t < 16 && t > tt)) }
+
 func cal(f, x K) (r K) {
 	t := tp(f)
 	fp := int32(f)
