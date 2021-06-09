@@ -128,6 +128,7 @@ const ( //base t&15          bytes  atom  vector
 func Kb(x int32) K { return K(uint32(x)) | K(bt)<<59 }
 func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }
 func Ki(x int32) K { return K(uint32(x)) | K(it)<<59 }
+func Ks(x int32) K { return K(uint32(x)) | K(st)<<59 }
 func iK(x K) int32 { return int32(x) }
 func Kf(x float64) (r K) {
 	r = mk(Ft, 1)
