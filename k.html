@@ -18,13 +18,37 @@
 <button id="runb" onclick="run()">run</button>
 <script>
 
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+
 var ed = CodeMirror.fromTextArea(edit, {"lineNumbers":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true})
 ed.setValue(decodeURIComponent(window.location.hash.substr(1)))
+
+// search selected: middle-button(all), right(next) (bug: mouseup(chrome), ff ok)
+document.addEventListener('contextmenu',function(e){e.preventDefault()})
+ed.on('mousedown', function(cm, e) {
+ if     (e.button==2 && (ed.getSelection().length>0)){search(ed.getSelection(),false);pd(e)}
+ else if(e.button==1 && (ed.getSelection().length>0)){search(ed.getSelection(),true );pd(e)}
+})
+function indexAll(a, s) { var r = [], i = -1; while ((i = a.indexOf(s, i+1)) != -1){ r.push(i); }; return r; }
+function search(t, all){
+ var v = ed.getValue()
+ var p = ed.getCursor()
+ if(all) {
+  var n = indexAll(v,t)
+  for(var i=0; i<n.length; i++) ed.addSelection(ed.posFromIndex(n[i]), ed.posFromIndex(n[i]+t.length), {"scroll":true})
+ } else {
+  var c = ed.indexFromPos(ed.getCursor())
+  c = (p.sticky == "after") ? c+t.length : c
+  var n = v.indexOf(t, c)
+  if (n == -1) { n = v.indexOf(t, 0) }
+  ed.setSelection(ed.posFromIndex(n), ed.posFromIndex(n+t.length), {"scroll":true})
+ }
+}
+
 
 var term = ge("term")
 window.addEventListener('unhandledrejection', function(e) {term.value+=String(e.reason)})
 function ge(x){return document.getElementById(x)}
-function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function banner(x){term.value = "ktye/k "+x.byteLength+"b\n ";return x}
 
 
@@ -66,7 +90,7 @@ function msl() {
 function ksave(){ msl();bak=C.slice(0,1<<U[32]) }
 
 function ktry(s) { 
- try      { K.repl(ks(s)); ksave(); return 0 } 
+ try      { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0}
  catch(e) { console.log(e); C.set(bak); return K.Srcp() }}
 // function ktry(s) { K.repl(ks(s)); return 0 } //unprotected
 
@@ -90,8 +114,28 @@ term.O=out(term)
 term.exec = function(s){term.value+="\n";ktry(s);term.O(" ")}
 term.help = "...\n"
 
-function run(){var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";
+function run(){
+ if(runb.value!=""){assign(runb.value,ed.getValue());return} //after datafile-drop
+ var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";
  var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p), ed.posFromIndex(p+1), {"scroll":true})}
+}
+function assign(x,y){
+ ktry(function(){K.dx(K.Asn(K.sc(ks(x)),ks(y)))})
+ runb.value="";runb.innerText="run";ed.setValue("")
+}
+
+
+// drop file (execute *.k, or store in variable)
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){
+ var r = new FileReader()
+ r.onload = function(){
+  var u = new Uint8Array(r.result)
+  ed.setValue(su(u))
+  if(x.name.endsWith(".k")==false){runb.value=x.name;runb.innerText=x.name+":"}
+ }
+ r.readAsArrayBuffer(x)
 }
 
 </script>

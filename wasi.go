@@ -56,15 +56,14 @@ func doargs() {
 		if match(x, ee) != 0 { // -e (exit)
 			wasi_unstable.Proc_exit(0)
 		}
-		dofile(x)
+		dofile(x, readfile(rx(x)))
 		ap += 8
 	}
 	dx(ee)
 	dx(a)
 }
-func dofile(x K) {
+func dofile(x K, c K) {
 	kk := Ku(27438) // .k
-	c := readfile(rx(x))
 	xe := ntake(-2, rx(x))
 	if match(xe, kk) != 0 { // file.k (execute)
 		dx(val(c))
