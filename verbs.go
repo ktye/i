@@ -195,7 +195,7 @@ func ndrop(n int32, y K) (r K) {
 	}
 	s := sz(yt)
 	yp := int32(y)
-	if I32(yp-4) == 1 && bucket(s*yn) == bucket(s*rn) {
+	if I32(yp-4) == 1 && bucket(s*yn) == bucket(s*rn) && yt < Lt {
 		r = rx(y)
 		SetI32(yp-12, rn)
 	} else {
@@ -203,6 +203,9 @@ func ndrop(n int32, y K) (r K) {
 	}
 	rp := int32(r)
 	Memorycopy(rp, yp+s*n, s*rn)
+	if yt == Lt {
+		rl(r)
+	}
 	dx(y)
 	return r
 }

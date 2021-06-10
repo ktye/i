@@ -97,9 +97,9 @@ func TestTok(t *testing.T) {
 	tc := []struct {
 		in, exp string
 	}{
-		{"1234567", "(1234567)"},
-		{"-1234567", "(-1234567)"},
-		{"*", "(*)"},
+		{"1234567", ",1234567"},
+		{"-1234567", ",-1234567"},
+		{"*", ",*"},
 	}
 	for _, tc := range tc {
 		newtest()
@@ -375,7 +375,11 @@ func sK(x K) string {
 			r[i] = sK(K(I64(xp)))
 			xp += 8
 		}
-		return "(" + strings.Join(r, ";") + ")"
+		if len(r) == 1 {
+			return "," + r[0]
+		} else {
+			return "(" + strings.Join(r, ";") + ")"
+		}
 	case Dt:
 		panic("nyi-Dt")
 	case Tt:

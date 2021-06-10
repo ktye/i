@@ -11,7 +11,7 @@ import (
 func main() { // _start
 	kinit()
 	// dx(Asn(Ks(8), readfile(Ku(500237086328)))) // x.txt
-	getargs()
+	doargs()
 	write(Ku(2932601077199979)) // "ktye/k\n"
 	for {
 		write(Ku(32))
@@ -45,6 +45,35 @@ func repl(x K) {
 	if x != 0 {
 		dx(Out(x))
 	}
+}
+func doargs() {
+	a := ndrop(1, getargs())
+	an := nn(a)
+	ap := int32(a)
+	ee := Ku(25901) // -e
+	for i := int32(0); i < an; i++ {
+		x := x0(ap)
+		if match(x, ee) != 0 { // -e (exit)
+			wasi_unstable.Proc_exit(0)
+		}
+		dofile(x)
+		ap += 8
+	}
+	dx(ee)
+	dx(a)
+}
+func dofile(x K) {
+	kk := Ku(27438) // .k
+	c := readfile(rx(x))
+	xe := ntake(-2, rx(x))
+	if match(xe, kk) != 0 { // file.k (execute)
+		dx(val(c))
+	} else { // file (assign file:bytes..)
+		dx(Asn(sc(rx(x)), c))
+	}
+	dx(xe)
+	dx(x)
+	dx(kk)
 }
 func bench(x K) {
 	i := fndc(x, 32)
@@ -93,16 +122,15 @@ func write(x K) {
 	}
 	dx(x)
 }
-func getargs() int32 {
+func getargs() K {
 	wasi_unstable.Args_sizes_get(512, 516)
 	n := I32(516)
 	r := mk(Ct, n)
 	SetI32(512, 516)
 	wasi_unstable.Args_get(512, int32(r))
-	dx(Asn(sc(Ku(24878)), split(Kc(0), ndrop(-1, r)))) //.a
-	return n
+	return split(Kc(0), ndrop(-1, r))
 }
-func readfile(x K) (r K) { // single-read max 504
+func readfile(x K) (r K) {
 	// fd=3 is root directory, e.g. wavm run --mount-root . k.wat
 	if wasi_unstable.Path_open(3, 0, int32(x), nn(x), 0, 31, 31, 0, 512) != 0 {
 		trap(Io)
