@@ -44,6 +44,9 @@ var env={wasi_unstable:{
  proc_exit:function(x){console.log("exit", x)},
  fd_read:  function(a,b,c,d){console.log("read",a,b,c,d);return 0},
  fd_write: function(fd,p,nio,nw){msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];term.O(su(C.slice(x,x+n)));return 0},
+ fd_seek:  function(fd,o,w,r){return 0},
+ fd_close: function(fd){return 0},
+ path_open:function(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){return 0},
  clock_time_get:function(a,b,p){msl();J[p>>>3]=BigInt.asIntN(64, BigInt(Math.floor(1e6*performance.now())));return 0}
 }}
 
@@ -65,6 +68,7 @@ function ksave(){ msl();bak=C.slice(0,1<<U[32]) }
 function ktry(s) { 
  try      { K.repl(ks(s)); ksave(); return 0 } 
  catch(e) { console.log(e); C.set(bak); return K.Srcp() }}
+// function ktry(s) { K.repl(ks(s)); return 0 } //unprotected
 
 
 function kd(e){var N="\n";var t=e.srcElement;

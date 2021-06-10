@@ -69,9 +69,11 @@ func t() (r K, verb int32) { // Lt
 	if r == 0 {
 		return 0, 0
 	}
-	if r < 127 && is(int32(r), 32) {
-		pp -= 8
-		return 0, 0
+	if r < 127 {
+		if is(int32(r), 32) {
+			pp -= 8
+			return 0, 0
+		}
 	}
 	if r == K('(') {
 		r = rlist(plist(41))

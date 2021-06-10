@@ -104,36 +104,30 @@ func getargs() int32 {
 }
 func readfile(x K) (r K) { // single-read max 504
 	// fd=3 is root directory, e.g. wavm run --mount-root . k.wat
-	// rights(11) is read|seek|tell
 	if wasi_unstable.Path_open(3, 0, int32(x), nn(x), 0, 31, 31, 0, 512) != 0 {
 		trap(Io)
 	}
 	fd := I32(512)
 
-	// if wasi_unstable.Fd_seek(fd, 0, 2, 512) != 0 {
-	// 	trap(Io)
-	// }
-	// n = I32(512)
-	// iwrite(n) // wrong result: always 2
-	// if wasi_unstable.Fd_seek(fd, 0, 0, 512) != 0 {
-	// 	trap(Io)
-	// }
-	// iwrite(n)
+	if wasi_unstable.Fd_seek(fd, 0, 2, 512) != 0 {
+		trap(Io)
+	}
+	n := I32(512)
+	if wasi_unstable.Fd_seek(fd, 0, 0, 512) != 0 {
+		trap(Io)
+	}
 
-	r = mk(Ct, 504)
+	r = mk(Ct, n)
 	rp := int32(r)
 	SetI32(512, rp)
-	SetI32(516, 504)
+	SetI32(516, n)
 	if wasi_unstable.Fd_read(fd, 512, 1, 512) != 0 {
 		trap(Io)
 	}
-	// iwrite(I32(512)) result is always 2, not the expected length.
-	wasi_unstable.Fd_close(fd)
-
-	c := fndc(r, 0)
-	if c >= 0 {
-		r = ntake(maxi(c, 0), r)
+	if I32(512) != n {
+		trap(Io)
 	}
+	wasi_unstable.Fd_close(fd)
 	return r
 }
 func iwrite(x int32) { write(cat1(Kst(Ki(x)), Kc(10))) }
