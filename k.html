@@ -80,7 +80,12 @@ fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(
  K=r.instance.exports
  K.kinit()
  ksave()
+ gettests()
 })
+
+function gettests(){
+ //fetch('t').then(r=>{return r.text()}).then(s=>E(strip(s)))
+}
 
 var bak
 function msl() {
