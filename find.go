@@ -145,3 +145,40 @@ func fndc(x K, c int32) int32 {
 	}
 	return -1
 }
+
+func Find(x, y K) (r K) { // find[pattern;string] returns all matches (It)
+	xt, yt := tp(x), tp(y)
+	if xt != yt && xt != Ct {
+		trap(Type)
+	}
+	xn, yn := nn(x), nn(y)
+	if xn == 0 {
+		trap(Length)
+	}
+	if yn == 0 {
+		return mk(It, 0)
+	}
+	r = mk(It, 0)
+	xp, yp := int32(x), int32(y)
+	y0 := yp
+	e := yp + yn - xn
+	for yp < e { // todo rabin-karp / knuth-morris / boyes-moore..
+		if findat(xp, yp, xn) != 0 {
+			r = cat1(r, Ki(yp-y0))
+		}
+		yp++
+		continue
+	}
+	dx(x)
+	dx(y)
+	return r
+}
+func findat(xp, yp, n int32) int32 {
+	for i := int32(0); i < n; i++ {
+		if I8(xp+i) != I8(yp+i) {
+			return 0
+		}
+		continue
+	}
+	return 1
+}

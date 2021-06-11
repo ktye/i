@@ -143,7 +143,6 @@ func rx(x K) K {
 	return x
 }
 func dx(x K) {
-	//fmt.Println("dx", int32(x), tp(x), x == src)
 	t := tp(x)
 	if t < 5 {
 		return

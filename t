@@ -42,7 +42,11 @@
 1_("ab";"cd") /,"cd"
 2 5^"alphabeta" /("pha";"beta")
 "b"\:"abc" /(,"a";,"c")
+"x"\:"abxdexfg" /("ab";"de";"fg")
+"xd"\:"abxdexfg" /("ab";"exfg")
+"xy"\:"abcdx" /,"abcdx"
 "x"/:("ab";,"c";"ef") /"abxcxef"
+"xy"/:("ab";,"c";"ef") /"abxycxyef"
 1 2 2 1?2 /1
 0001001b?1b /3
 1 2 2 1?1 2 3 /0 1 4

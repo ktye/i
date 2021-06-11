@@ -271,7 +271,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		return join(f, Fst(x))
+		return join(rx(f), Fst(x))
 	}
 	xt := tp(x)
 	if xt != Lt {
@@ -309,7 +309,7 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		return split(f, Fst(x))
+		return split(rx(f), Fst(x))
 	}
 	xn := nn(x)
 	switch xn - 1 {

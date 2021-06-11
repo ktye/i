@@ -239,18 +239,31 @@ func rcut(x, a, b K) (r K) { // a, b start-stop ranges
 	dx(x)
 	return r
 }
-func split(x, y K) K {
+func split(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
+	xn := int32(1)
 	if 16+xt != yt {
-		trap(Nyi)
+		if xt == Ct && yt == Ct {
+			xn = nn(x)
+			x = Find(x, rx(y))
+		} else {
+			trap(Nyi)
+		}
+	} else {
+		x = Wer(Eql(x, rx(y)))
 	}
-	x = Wer(Eql(x, rx(y)))
-	return rcut(y, Cat(Ki(0), Add(Ki(1), rx(x))), cat1(x, Ki(nn(y))))
+	return rcut(y, Cat(Ki(0), Add(Ki(xn), rx(x))), cat1(x, Ki(nn(y))))
+}
+func splits(x, y K) (r K) { // yC\:yC
+	xn, yn := nn(x), nn(y)
+	x = Find(x, rx(y))
+	return rcut(y, Cat(Ki(0), Add(Ki(xn), rx(x))), cat1(x, Ki(yn)))
 }
 func join(x, y K) (r K) {
 	xt := tp(x)
-	if xt > 16 {
-		trap(Type)
+	if xt < 16 {
+		x = Enl(x)
+		xt = tp(x)
 	}
 	yt := tp(y)
 	if yt != Lt {
@@ -258,14 +271,14 @@ func join(x, y K) (r K) {
 	}
 	yp := int32(y)
 	yn := nn(y)
-	r = mk(xt+16, 0)
+	r = mk(xt, 0)
 	for i := int32(0); i < yn; i++ {
 		v := x0(yp)
-		if tp(v) != xt+16 {
+		if tp(v) != xt {
 			trap(Type)
 		}
 		if i > 0 {
-			r = cat1(r, rx(x))
+			r = ucat(r, rx(x))
 		}
 		r = ucat(r, v)
 		yp += 8
