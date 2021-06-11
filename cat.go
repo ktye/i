@@ -17,6 +17,8 @@ func Cat(x, y K) (r K) {
 		}
 	} else if xt == Lt && yt < 16 {
 		return cat1(x, y)
+		//} else if xt < Dt && yt < Dt {
+		//	return Cat(explode(x), explode(y))
 	}
 	trap(Nyi)
 	return x
@@ -45,16 +47,6 @@ func Enl(x K) (r K) {
 	}
 	return r
 }
-func cats(x, y K) (r K) { // ,/
-	if tp(y) == Lt {
-		y = flat(y)
-	}
-	trap(Nyi)
-	if x != 0 {
-		y = Cat(x, y)
-	}
-	return y
-}
 func flat(x K) (r K) { // ((..);(..)) -> (...)
 	r = mk(Lt, 0)
 	xn := nn(x)
@@ -75,6 +67,39 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	}
 	Memorycopy(rp, int32(y), s*ny)
 	dx(y)
+	return r
+}
+func ucats(x K) (r K) { // ,/ unitype-list
+	xn := nn(x)
+	if xn == 0 {
+		return x
+	}
+	xp := int32(x)
+	var rt T
+	var rn int32
+	for i := int32(0); i < xn; i++ {
+		xi := K(I64(xp))
+		t := tp(xi)
+		if i == 0 {
+			rt = t
+		} else if rt != t || t < 16 || t > Zt {
+			trap(Type)
+		}
+		rn += nn(xi)
+		xp += 8
+	}
+	r = mk(rt, rn)
+	s := sz(rt)
+	rp := int32(r)
+	xp = int32(x)
+	for i := int32(0); i < xn; i++ {
+		xi := K(I64(xp))
+		rn = s * nn(xi)
+		Memorycopy(rp, int32(xi), rn)
+		rp += rn
+		xp += 8
+	}
+	dx(x)
 	return r
 }
 func cat1(x, y K) K {

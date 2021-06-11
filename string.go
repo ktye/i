@@ -32,13 +32,17 @@ func Kst(x K) (r K) {
 		case 2:
 			r = join(Kc(' '), x)
 		case 3:
-			r = ucat(Kc(96), join(Kc('`'), x))
+			r = ucat(Ku(96), join(Kc('`'), x))
 		case 4:
 			r = join(Kc(' '), x)
 		case 5:
 			r = join(Kc(' '), x)
 		case 6:
-			r = emb(40, 41, join(Kc(';'), x))
+			if xn == 1 {
+				r = Fst(x)
+			} else {
+				r = emb(40, 41, join(Kc(';'), x))
+			}
 		default:
 			trap(Nyi)
 		}
@@ -79,7 +83,7 @@ func Str(x K) (r K) {
 		switch xt - cf {
 		case 0: // cf
 			rx(x)
-			r = flat(Str(K(xp) | K(Lt)<<59))
+			r = ucats(Rev(Str(K(xp) | K(Lt)<<59)))
 		case 1: // df
 			r = Str(x0(xp))
 			p := x1(xp)
@@ -90,7 +94,13 @@ func Str(x K) (r K) {
 			}
 			r = ucat(r, p)
 		case 2: //pf
-			r = ucat(Str(x0(xp)), emb('[', ']', join(Kc(';'), Str(x1(xp)))))
+			f, l, i := spl3(rx(x))
+			f = Str(f)
+			dx(i)
+			if nn(i) == 1 && I32(int32(i)) == 1 {
+				return ucat(Str(Fst(l)), f)
+			}
+			r = ucat(f, emb('[', ']', join(Kc(';'), Str(l))))
 		case 3: // lf
 			r = x3(xp)
 		}
@@ -99,6 +109,20 @@ func Str(x K) (r K) {
 	} else {
 		switch xt {
 		case 0:
+			if xp > 448 {
+				return Str(K(xp) - 448)
+			}
+			switch xp >> 6 {
+			case 0: //  0..63  monadic
+			case 1: // 64..127 dyadic
+				xp -= 64
+			case 2: // 128     dyadic indirect
+				xp -= 128
+			case 3: // 192     tetradic
+				xp -= 192
+			default:
+				return ucat(Ku('`'), Ki(xp))
+			}
 			r = Ku(uint64(I8(227 + xp)))
 		case bt:
 			r = Ku(uint64(25136 + xp)) // 0b 1b

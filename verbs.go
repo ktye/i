@@ -254,11 +254,6 @@ func split(x, y K) (r K) {
 	}
 	return rcut(y, Cat(Ki(0), Add(Ki(xn), rx(x))), cat1(x, Ki(nn(y))))
 }
-func splits(x, y K) (r K) { // yC\:yC
-	xn, yn := nn(x), nn(y)
-	x = Find(x, rx(y))
-	return rcut(y, Cat(Ki(0), Add(Ki(xn), rx(x))), cat1(x, Ki(yn)))
-}
 func join(x, y K) (r K) {
 	xt := tp(x)
 	if xt < 16 {

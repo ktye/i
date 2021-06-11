@@ -197,9 +197,6 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 			dx(x)
 			return lst(y)
 		}
-		if fp == 13 {
-			return cats(x, y)
-		}
 		if yt != Lt && fp < 9 && fp != 6 && (xt == yt-16 || xt == 0) {
 			return rdx(fp, x, y, yn) // +-*% &|
 		}

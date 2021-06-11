@@ -26,7 +26,7 @@ func es() (r K) {
 			continue
 		}
 		pp -= 8
-		x := e(t())
+		x, _ := e(t())
 		if x == 0 {
 			break
 		}
@@ -37,31 +37,35 @@ func es() (r K) {
 	}
 	return r
 }
-func e(x K, xv int32) (r K) { // Lt
+func e(x K, xv int32) (r K, ev int32) { // Lt
 	if x == 0 {
-		return 0
+		return 0, 0
 	}
 	y, yv := t()
 	if y == 0 {
-		return x
+		return x, xv
 	}
 	if yv != 0 && xv == 0 {
-		r = e(t())
-		if r == 0 { // 1+ (projection)
-			return cat1(ucat(ucat(l1(0), x), y), 128)
+		r, ev = e(t())
+		if r == 0 || ev == 1 { // 1+ (projection)
+			x = cat1(ucat(ucat(l1(0), x), y), 128)
+			if ev == 1 { // 1+-
+				return cat1(ucat(r, x), 91), 1
+			}
+			return x, 1
 		}
 		x, y = pasn(x, y)
 		r = ucat(r, x)
-		return dyadic(r, y) // dyadic
+		return dyadic(r, y), 0 // dyadic
 	}
-	r = e(y, yv)
+	r, ev = e(y, yv)
 	if xv == 0 {
-		return cat1(ucat(r, x), 83) // juxtaposition
-	} else if r == y && xv+yv == 2 {
-		return cat1(ucat(r, x), 91) // composition
+		return cat1(ucat(r, x), 83), 0 // juxtaposition
+	} else if (r == y && xv+yv == 2) || ev == 1 {
+		return cat1(ucat(r, x), 91), 1 // composition
 	}
 	r = ucat(r, x)
-	return monadic(r) // monadic
+	return monadic(r), 0 // monadic
 }
 func t() (r K, verb int32) { // Lt
 	var ln, s int32
@@ -252,7 +256,7 @@ func plist(c K) (r K, n int32) {
 			trap(Parse)
 		}
 		n++
-		x := e(t())
+		x, _ := e(t())
 		r = cat1(r, x)
 		if x == 0 {
 			// r = cat1(r, 448) // in reverse: 448 0 return null

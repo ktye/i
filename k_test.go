@@ -68,7 +68,7 @@ func TestBucket(t *testing.T) {
 	}
 }
 func TestMk(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	newtest()
 	r := mk(It, 2)
 	if rc := I32(int32(r) - 4); rc != 1 {
@@ -126,8 +126,18 @@ func TestMultiline(t *testing.T) {
 		}
 	}
 }
-func TestK(t *testing.T) {
+func TestKT(t *testing.T) {
 	//t.Skip()
+	newtest()
+	b, err := ioutil.ReadFile("t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	x := mkchars(b)
+	test(x, 0)
+}
+func TestK(t *testing.T) {
+	t.Skip()
 	b, err := ioutil.ReadFile("t")
 	if err != nil {
 		t.Fatal(err)
@@ -314,12 +324,16 @@ func sK(x K) string {
 		}
 		return s
 	case df:
-		return "<drv>"
+		a := []string{"'", "':", "/", "/:", "\\", "\\:"}
+		r := sK(K(I64(xp)))
+		p := I64(xp + 8)
+		return r + a[int(p)]
 	case pf:
 		f := K(I64(xp))
 		l := K(I64(xp + 8))
 		i := K(I64(xp + 16))
-		if tp(f) == 0 && nn(i) == 1 && I32(int32(i)) == 1 {
+		// if tp(f) == 0 && nn(i) == 1 && I32(int32(i)) == 1 {
+		if nn(i) == 1 && I32(int32(i)) == 1 {
 			return sK(K(I64(int32(l)))) + sK(f) // 1+
 		}
 		return "<prj>"
