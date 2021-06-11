@@ -52,6 +52,12 @@
 1 2 2 1?1 2 3 /0 1 4
 ("abc";"de")?"de" /1
 ("abc";"de")?("de";"gh") /1 2
+3 in 0 1 2 /0b
+3 in !5 /1b
+in 000b /0b
+in 010b /1b
+"ab" find "aaabcabca" /2 5
+"aa" find "aaaaaaa" /0 2 4
 3=3 /1b
 $1b /"1b"
 3 4 5=4 /010b

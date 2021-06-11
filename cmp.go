@@ -1,6 +1,8 @@
 package main
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
 func Mtc(x, y K) (r K) {
 	r = Kb(match(x, y))
@@ -114,10 +116,11 @@ func mtF(xp, yp, e int32) (r int32) {
 	}
 	return 1
 }
-func any(x K) (r K) {
+func Any(x K) (r K) {
 	if tp(x) != Bt {
 		trap(Type)
 	}
+	dx(x)
 	xp := int32(x)
 	e := ep(x)
 	ve := e &^ 15

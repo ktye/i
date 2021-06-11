@@ -142,6 +142,16 @@ func pflz(f float64) K { return Rot(Kf(f), pflt(0)) }
 func tvrb() (r K) {
 	c := I8(pp)
 	if !is(c, 1) {
+		p := pp
+		r = tvar()
+		if r != 0 { // builtins
+			rp := int32(r)
+			if rp > 40 && rp < 64 { // `in`find
+				return K(24 + rp>>3)
+			} else {
+				pp = p
+			}
+		}
 		return 0
 	}
 	pp++

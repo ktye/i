@@ -165,8 +165,10 @@ func Find(x, y K) (r K) { // find[pattern;string] returns all matches (It)
 	for yp < e { // todo rabin-karp / knuth-morris / boyes-moore..
 		if findat(xp, yp, xn) != 0 {
 			r = cat1(r, Ki(yp-y0))
+			yp += xn
+		} else {
+			yp++
 		}
-		yp++
 		continue
 	}
 	dx(x)
