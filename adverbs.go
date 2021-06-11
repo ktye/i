@@ -265,7 +265,7 @@ func rdx(f int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	dx(y)
 	return r
 }
-func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
+func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -273,11 +273,37 @@ func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
 		}
 		return join(f, Fst(x))
 	}
-	trap(Nyi)
-	return x
+	xt := tp(x)
+	if xt != Lt {
+		trap(Type)
+	}
+	xn := nn(x)
+	switch xn - 1 {
+	case 0: // fixed-point
+		trap(Nyi)
+	case 1:
+		var y K
+		x, y = spl2(x)
+		if tp(y) < 16 {
+			y = Enl(y)
+		}
+		yn := nn(y)
+		r = mk(Lt, yn)
+		rp := int32(r)
+		for i := int32(0); i < yn; i++ {
+			SetI64(rp, int64(cal(rx(f), l2(rx(x), ati(rx(y), i)))))
+			rp += 8
+		}
+		dx(x)
+		dx(y)
+		r = uf(r)
+	default:
+		trap(Rank)
+	}
+	return r
 }
 func Scn(f, x K) K { trap(Nyi); return x }
-func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
+func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -285,8 +311,30 @@ func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
 		}
 		return split(f, Fst(x))
 	}
-	trap(Nyi)
-	return x
+	xn := nn(x)
+	switch xn - 1 {
+	case 0: // fixed-point-scan
+		trap(Nyi)
+	case 1:
+		var y K
+		x, y = spl2(x)
+		if tp(x) < 16 {
+			x = Enl(x)
+		}
+		xn := nn(x)
+		r = mk(Lt, xn)
+		rp := int32(r)
+		for i := int32(0); i < xn; i++ {
+			SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), i), rx(y)))))
+			rp += 8
+		}
+		dx(x)
+		dx(y)
+		r = uf(r)
+	default:
+		trap(Rank)
+	}
+	return r
 }
 
 func uf(x K) (r K) {
