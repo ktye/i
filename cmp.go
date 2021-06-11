@@ -162,19 +162,19 @@ func In(x, y K) (r K) {
 		trap(Type)
 	}
 	dx(y)
-	return Kb(e)
+	return Kb(ib(e != 0))
 }
 func inC(x, yp, ve, e int32) int32 {
 	v := I8x16splat(x)
 	for yp < ve {
 		if v.Eq(I8x16load(yp)).Any_true() != 0 {
-			return 1
+			return yp
 		}
 		yp += 16
 	}
 	for yp < e {
 		if x == I8(yp) {
-			return 1
+			return yp
 		}
 		yp++
 	}
@@ -184,13 +184,13 @@ func inI(x, yp, ve, e int32) int32 {
 	v := I32x4splat(x)
 	for yp < ve {
 		if v.Eq(I32x4load(yp)).Any_true() != 0 {
-			return 1
+			return yp
 		}
 		yp += 16
 	}
 	for yp < e {
 		if x == I32(yp) {
-			return 1
+			return yp
 		}
 		yp += 4
 	}
@@ -199,7 +199,7 @@ func inI(x, yp, ve, e int32) int32 {
 func inF(x float64, yp int32, e int32) int32 {
 	for yp < e {
 		if eqf(x, F64(yp)) != 0 {
-			return 1
+			return yp
 		}
 		yp += 8
 	}
@@ -208,7 +208,7 @@ func inF(x float64, yp int32, e int32) int32 {
 func inZ(re, im float64, yp int32, e int32) int32 {
 	for yp < e {
 		if eqz(re, im, F64(yp), F64(yp+8)) != 0 {
-			return 1
+			return yp
 		}
 		yp += 16
 	}
