@@ -105,7 +105,11 @@ func Tak(x, y K) (r K) { // x#y
 	if xt == it {
 		return ntake(int32(x), y)
 	}
-	trap(Nyi) // set take
+	yt := tp(y)
+	if xt > 16 && xt == yt {
+		return atv(y, Wer(In(rx(y), x))) // set take
+	}
+	trap(Nyi) // f take
 	return 0
 }
 func ntake(n int32, y K) (r K) {
@@ -173,7 +177,11 @@ func Drp(x, y K) (r K) { // x_y
 	if xt == it {
 		return ndrop(int32(x), y)
 	}
-	trap(Nyi) // set drop
+	yt := tp(y)
+	if xt > 16 && xt == yt {
+		return atv(y, Wer(Not(In(rx(y), x)))) // set drop
+	}
+	trap(Nyi) // f drop
 	return 0
 }
 func ndrop(n int32, y K) (r K) {
@@ -211,10 +219,16 @@ func ndrop(n int32, y K) (r K) {
 }
 
 func Cut(x, y K) (r K) { // x^y
-	if tp(x) == It {
+	xt := tp(x)
+	if xt == It {
 		return cuts(x, y)
 	}
-	if tp(x) != it || tp(y) < 16 {
+	yt := tp(y)
+	if xt == Ct && yt == Ct { // "set"^"abc"
+		x = Wer(In(rx(y), x))
+		return rcut(y, Cat(Ki(0), Add(Ki(1), rx(x))), Cat(x, Ki(nn(y))))
+	}
+	if xt != it || yt < 16 {
 		trap(Type)
 	}
 	xp := int32(x)

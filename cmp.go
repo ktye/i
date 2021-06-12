@@ -140,9 +140,16 @@ func Any(x K) (r K) {
 }
 func In(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
-	if xt+16 != yt {
+	if xt == yt && xt > 16 {
+		return Ecl(30, l2(x, y))
+	} else if xt+16 != yt {
 		trap(Type)
 	}
+	r = in(x, y, xt)
+	dx(y)
+	return r
+}
+func in(x, y K, xt T) K {
 	xp, yp := int32(x), int32(y)
 	e := ep(y)
 	ve := e &^ 15
@@ -164,7 +171,6 @@ func In(x, y K) (r K) {
 	default:
 		trap(Type)
 	}
-	dx(y)
 	return Kb(ib(e != 0))
 }
 func inC(x, yp, ve, e int32) int32 {
@@ -216,4 +222,29 @@ func inZ(re, im float64, yp int32, e int32) int32 {
 		yp += 16
 	}
 	return 0
+}
+
+func Not(x K) (r K) { // ^x
+	xt := tp(x)
+	xp := int32(x)
+	if xt == bt {
+		r = Kb(1 - xp)
+	} else if xt == Bt {
+		r = use1(x)
+		rp := int32(r)
+		e := ep(r)
+		w := I8x16splat(1)
+		for rp < e {
+			I8x16store(rp, I8x16load(xp).Not().And(w))
+			xp += 16
+			rp += 16
+			continue
+		}
+		dx(x)
+	} else if xt&15 == st {
+		r = Eql(Ks(0), x)
+	} else {
+		r = Eql(Ki(0), x)
+	}
+	return r
 }

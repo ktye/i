@@ -22,7 +22,7 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 < *** les           while[c;a;b;..]        D dict     `a`b!1 2
 > *** mor                                  T table    +`a`b!.. 
 = *** eql                                  v verb     +
-~ *** mtc                                  c comp     1+/*%  
+~ not mtc                                  c comp     1+/*%  
 , enl cat                                  d derived  +/
 ^ *** cut                                  l lambda   {x+y}
 # cnt tak

@@ -1,3 +1,6 @@
+~1 0 2 /010b
+~```a`b /1100b
+~" ab" /000b
 1. /1.
 .1 /0.1
 1.1 /1.1
@@ -35,13 +38,16 @@
 -3#!5 /2 3 4
 6#!3 /0 1 2 0 0 0
 -6#!3 /0 0 0 0 1 2
+"ab"#"abc" /"ab"
 3_!5 /3 4
 -3_!5 /0 1
 6_!3 /!0
 -6_!3 /!0
 1_("ab";"cd") /,"cd"
+"ab"_"abc" /,"c"
 2 5^"alphabeta" /("pha";"beta")
 3^!8 /(0 1;2 3;4 5)
+"ABC"^"abcCdeAgh" /("abc";"de";"gh")
 "b"\:"abc" /(,"a";,"c")
 "x"\:"abxdexfg" /("ab";"de";"fg")
 "xd"\:"abxdexfg" /("ab";"exfg")
@@ -55,6 +61,8 @@
 ("abc";"de")?("de";"gh") /1 2
 3 in 0 1 2 /0b
 3 in !5 /1b
+"a"in"abc" /1b
+"ad"in"abc" /10b
 in 000b /0b
 in 010b /1b
 "ab" find "aaabcabca" /2 5
