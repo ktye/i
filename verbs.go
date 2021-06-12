@@ -210,12 +210,31 @@ func ndrop(n int32, y K) (r K) {
 	return r
 }
 
-func Cut(x, y K) K { // x^y
+func Cut(x, y K) (r K) { // x^y
 	if tp(x) == It {
 		return cuts(x, y)
 	}
-	trap(Nyi) // todo i^
-	return x
+	if tp(x) != it || tp(y) < 16 {
+		trap(Type)
+	}
+	xp := int32(x)
+	if xp <= 0 {
+		trap(Value)
+	}
+	r = mk(Lt, xp)
+	rp := int32(r)
+	e := ep(r)
+	n := nn(y) / xp
+	x = seq(n)
+	for rp < e {
+		SetI64(rp, int64(atv(rx(y), rx(x))))
+		x = Add(Ki(n), x)
+		rp += 8
+		continue
+	}
+	dx(x)
+	dx(y)
+	return r
 }
 func cuts(x, y K) K { return rcut(y, rx(x), cat1(ndrop(1, x), Ki(nn(y)))) }
 func rcut(x, a, b K) (r K) { // a, b start-stop ranges

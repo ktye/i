@@ -41,6 +41,7 @@
 -6_!3 /!0
 1_("ab";"cd") /,"cd"
 2 5^"alphabeta" /("pha";"beta")
+3^!8 /(0 1;2 3;4 5)
 "b"\:"abc" /(,"a";,"c")
 "x"\:"abxdexfg" /("ab";"de";"fg")
 "xd"\:"abxdexfg" /("ab";"exfg")
