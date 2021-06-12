@@ -21,7 +21,7 @@ func Kst(x K) (r K) {
 		}
 		if xt == Lt {
 			x = Ech(28, l1(x)) // Kst
-		} else if xt != Ct {
+		} else if xt < Lt && xt != Ct {
 			x = Str(x)
 		}
 		switch xt - 17 {
@@ -43,6 +43,10 @@ func Kst(x K) (r K) {
 			} else {
 				r = emb(40, 41, join(Kc(';'), x))
 			}
+		case 7: // Dt
+			x, r = spl2(x)
+			//fmt.Println(sK(x), "!", sK(r))
+			r = ucat(cat1(Kst(x), Kc('!')), Kst(r)) // todo ()!..
 		default:
 			trap(Nyi)
 		}

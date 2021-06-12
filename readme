@@ -21,7 +21,7 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 | rev max                                  L list     (1;2 3)      
 < *** les           while[c;a;b;..]        D dict     `a`b!1 2
 > *** mor                                  T table    +`a`b!.. 
-= *** eql                                  v verb     +
+= grp eql                                  v verb     +
 ~ not mtc                                  c comp     1+/*%  
 , enl cat                                  d derived  +/
 ^ *** cut                                  l lambda   {x+y}

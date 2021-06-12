@@ -21,6 +21,12 @@ func Ech(f, x K) (r K) {
 		x = Enl(x)
 	}
 	xt := tp(x)
+	if xt == Dt {
+		x, r = spl2(x)
+		x = Out(x)
+		r = Out(r)
+		return Key(x, Ech(f, l1(r)))
+	}
 	if xt > Lt {
 		panic(Nyi)
 	}

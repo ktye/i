@@ -98,6 +98,18 @@ func unqs(x K) (r K) { // ?^x
 	}
 	return Atx(x, Wer(Ecp(12, l1(rx(x))))) // x(&~':x)
 }
+func Grp(x K) (r K) { // =x
+	u := Unq(rx(x))
+	n := nn(u)
+	r = mk(Lt, n)
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		SetI64(rp, int64(Wer(Eql(ati(rx(u), i), rx(x)))))
+		rp += 8
+	}
+	dx(x)
+	return Key(u, r)
+}
 func Key(x, y K) (r K) { // x!y
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
@@ -119,7 +131,7 @@ func Key(x, y K) (r K) { // x!y
 		}
 	}
 	r = l2(x, y)
-	return K(int32(r)) | K(dt)<<59
+	return K(int32(r)) | K(Dt)<<59
 }
 
 func Tak(x, y K) (r K) { // x#y
