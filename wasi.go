@@ -10,7 +10,6 @@ import (
 //func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
 	kinit()
-	// dx(Asn(Ks(8), readfile(Ku(500237086328)))) // x.txt
 	doargs()
 	write(Ku(2932601077199979)) // "ktye/k\n"
 	for {
@@ -54,6 +53,13 @@ func doargs() {
 	for i := int32(0); i < an; i++ {
 		x := x0(ap)
 		if match(x, ee) != 0 { // -e (exit)
+			if i < an-1 {
+				dx(x)
+				x = x1(ap)
+				dx(ee)
+				dx(a)
+				repl(x)
+			}
 			wasi_unstable.Proc_exit(0)
 		}
 		dofile(x, readfile(rx(x)))
@@ -64,14 +70,18 @@ func doargs() {
 }
 func dofile(x K, c K) {
 	kk := Ku(27438) // .k
+	tt := Ku(29742) // .t
 	xe := ntake(-2, rx(x))
 	if match(xe, kk) != 0 { // file.k (execute)
 		dx(val(c))
+	} else if match(xe, tt) != 0 { // file.t (test)
+		test(c, 0)
 	} else { // file (assign file:bytes..)
 		dx(Asn(sc(rx(x)), c))
 	}
 	dx(xe)
 	dx(x)
+	dx(tt)
 	dx(kk)
 }
 func bench(x K) {
@@ -124,9 +134,11 @@ func write(x K) {
 func getargs() K {
 	wasi_unstable.Args_sizes_get(512, 516)
 	n := I32(516)
+	a := mk(It, I32(512))
 	r := mk(Ct, n)
-	SetI32(512, 516)
-	wasi_unstable.Args_get(512, int32(r))
+	//SetI32(512, int32(a))
+	wasi_unstable.Args_get(int32(a), int32(r))
+	dx(a)
 	return split(Kc(0), ndrop(-1, r))
 }
 func readfile(x K) (r K) {
@@ -155,6 +167,7 @@ func readfile(x K) (r K) {
 		trap(Io)
 	}
 	wasi_unstable.Fd_close(fd)
+	dx(x)
 	return r
 }
 func iwrite(x int32) { write(cat1(Kst(Ki(x)), Kc(10))) }

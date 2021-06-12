@@ -129,14 +129,14 @@ func TestMultiline(t *testing.T) {
 func TestKT(t *testing.T) {
 	//t.Skip()
 	newtest()
-	b, err := ioutil.ReadFile("t")
+	b, err := ioutil.ReadFile("k.t")
 	if err != nil {
 		t.Fatal(err)
 	}
 	test(mkchars(b), 1)
 	reset()
 	reset()
-	test(mkchars(b), 0)
+	dofile(mkchars([]byte("k.t")), mkchars(b))
 	reset()
 	reset()
 }

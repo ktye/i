@@ -80,11 +80,13 @@ fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(
  K=r.instance.exports
  K.kinit()
  ksave()
- gettests()
+ gettest()
 })
 
-function gettests(){
- //fetch('t').then(r=>{return r.text()}).then(s=>E(strip(s)))
+function settest(){runb.value="test";runb.innerText="test"}
+function gettest(){
+ if(window.location.hash.substr(1)==="test")
+  fetch('k.t').then(r=>{return r.text()}).then(r=>{ed.setValue(r);settest()})
 }
 
 var bak
@@ -120,13 +122,17 @@ term.exec = function(s){term.value+="\n";ktry(s);term.O(" ")}
 term.help = "...\n"
 
 function run(){
- if(runb.value!=""){assign(runb.value,ed.getValue());return} //after datafile-drop
+ if(runb.value=="test"){test(ed.getValue());return}               //after drop file.t
+ else if(runb.value!=""){assign(runb.value,ed.getValue());return} //after drop data file
  var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";
  var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p), ed.posFromIndex(p+1), {"scroll":true})}
 }
 function assign(x,y){
  ktry(function(){K.dx(K.Asn(K.sc(ks(x)),ks(y)))})
  runb.value="";runb.innerText="run";ed.setValue("")
+}
+function test(x){
+  ktry(function(){K.test(ks(x),0);runb.value="";runb.innerText="run";ed.setValue("ok")})
 }
 
 
@@ -138,7 +144,8 @@ function addfile(x){
  r.onload = function(){
   var u = new Uint8Array(r.result)
   ed.setValue(su(u))
-  if(x.name.endsWith(".k")==false){runb.value=x.name;runb.innerText=x.name+":"}
+  if(x.name.endsWith(".t")) settest()
+  else if(x.name.endsWith(".k")==false){runb.value=x.name;runb.innerText=x.name+":"}
  }
  r.readAsArrayBuffer(x)
 }
