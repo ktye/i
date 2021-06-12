@@ -98,9 +98,10 @@ func Str(x K) (r K) {
 			f = Str(f)
 			dx(i)
 			if nn(i) == 1 && I32(int32(i)) == 1 {
-				return ucat(Str(Fst(l)), f)
+				r = ucat(Str(Fst(l)), f)
+			} else {
+				r = ucat(f, emb('[', ']', join(Kc(';'), Str(l))))
 			}
-			r = ucat(f, emb('[', ']', join(Kc(';'), Str(l))))
 		case 3: // lf
 			r = x3(xp)
 		}

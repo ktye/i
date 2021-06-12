@@ -1,15 +1,25 @@
 package main
 
-func test(x K, clr int32) {
+import . "github.com/ktye/wg/module"
+
+func test(x K, clr int32) { // clr=1(reset after each line)
 	if tp(x) != Ct {
 		trap(Type)
 	}
-	// xp, xn := tp(x), nn(x)
+	xn := nn(x)
+	y := x
 	l := split(Kc(10), rx(x))
 	n := nn(l)
 	dx(l)
 	for i := int32(0); i < n; i++ {
 		testi(rx(x), i)
+		if clr != 0 {
+			dx(x)
+			reset()
+			x = mk(Ct, xn)
+			Memorycopy(int32(x), int32(y), xn)
+			y = x
+		}
 	}
 	dx(x)
 }

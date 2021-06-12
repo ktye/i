@@ -133,107 +133,13 @@ func TestKT(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	x := mkchars(b)
-	test(x, 0)
+	test(mkchars(b), 1)
+	reset()
+	reset()
+	test(mkchars(b), 0)
+	reset()
+	reset()
 }
-func TestK(t *testing.T) {
-	t.Skip()
-	b, err := ioutil.ReadFile("t")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, v := range bytes.Split(b, []byte("\n")) {
-		s := string(v)
-		if len(s) == 0 {
-			continue
-		}
-		a := strings.Split(s, " /")
-		in := a[0]
-		exp := a[1]
-		fmt.Println(in, "/"+exp)
-		newtest()
-		//fmt.Println("newtest")
-		x := mkchars([]byte(a[0]))
-		x = val(x)
-		got := sK(x)
-		if got != exp {
-			t.Fatalf("%s:\nexp: %s\ngot: %s", in, exp, got)
-		}
-		dx(x)
-		//check(t)
-		reset()
-		reset()
-	}
-}
-func check(t *testing.T) {
-	if sp != 256 {
-		t.Fatalf("nonempty stack: sp=%d", sp)
-	}
-	if n := rc(src); n > 1 {
-		t.Fatalf("src: rc %d\n", n)
-	}
-	dx(src)
-	src = 0
-	dx(xyz)
-	dx(K(I64(0)))
-	dx(K(I64(8)))
-	m := mcount()
-	u := (uint32(1) << uint32(I32(128))) - 1024
-	d := int32(u - m)
-	mark()
-	scan()
-	if d != 0 {
-		t.Fatalf("m %d, diff %d", m, int32(u-m))
-	}
-}
-func mark() {
-	for i := int32(5); i < 31; i++ {
-		marki(i)
-	}
-}
-func marki(i int32) {
-	p := I32(4 * i)
-	l := int32(0)
-	for p != 0 {
-		if p&31 != 0 {
-			panic(fmt.Errorf("illegal block in free list: %d type %d (last=%d)", p, i, l))
-		}
-		n := I32(p)
-		SetI32(p, i)
-		SetI32(4+p, 1<<uint32(i))
-		l = p
-		p = n
-	}
-}
-func scan() {
-	p := int32(1024)
-	a := I32(128)
-	if a < 10 || a > 32 {
-		panic(fmt.Errorf("illegal total alloc %d", a))
-	}
-	e := int32(1) << I32(128)
-	for {
-		if p == e {
-			return
-		}
-		k := p + 16
-		t := I32(p)
-		if t < 5 || t > 31 {
-			panic(fmt.Errorf("%d: illegal block type=%d at %d", k, t, p))
-		}
-		s := I32(4 + p)
-		if s&31 != 0 {
-			panic(fmt.Errorf("%d: illegal size=%d type=%d at %d", k, s, t, p))
-		}
-		p += s
-		if p == e {
-			return
-		} else if p > e {
-			panic(fmt.Errorf("%d: illegal block %d > e(%d)", k, p, e))
-		}
-	}
-}
-
 func TestClass(t *testing.T) {
 	c := make([]byte, 127)
 	cl := func(s string, n byte) {

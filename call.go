@@ -132,6 +132,7 @@ func lambda(f K, x K) (r K) {
 	r = exec(rx(c))
 	vp = I32(8)
 	sp = int32(sa)
+	lp = int32(lo)
 	for i := int32(0); i < nl; i++ {
 		p := vp + I32(lp)
 		if i < fn {
