@@ -19,9 +19,10 @@
 <script>
 
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function hash(){return decodeURIComponent(window.location.hash.substr(1))}
 
 var ed = CodeMirror.fromTextArea(edit, {"lineNumbers":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true})
-ed.setValue(decodeURIComponent(window.location.hash.substr(1)))
+ed.setValue(hash()); if(hash()==="")fetch('readme').then(r=>{return r.text()}).then(r=>ed.setValue(r))
 
 // search selected: middle-button(all), right(next) (bug: mouseup(chrome), ff ok)
 document.addEventListener('contextmenu',function(e){e.preventDefault()})
@@ -85,7 +86,7 @@ fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(
 
 function settest(){runb.value="test";runb.innerText="test"}
 function gettest(){
- if(window.location.hash.substr(1)==="test")
+ if(hash()==="test")
   fetch('k.t').then(r=>{return r.text()}).then(r=>{ed.setValue(r);settest()})
 }
 

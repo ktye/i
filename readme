@@ -1,0 +1,36 @@
+online:ktye.github.io  (wasm needs multi-value/bulk-memory/simd128)
+test:  ktye.github.io/#test
+src:   github.com/ktye/i
+jit:   wavm run --mount-root . k.wat [args]  (github.com/WAVM/WAVM)
+build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
+       wg . > k.wat         (wat2wasm: github.com/WebAssembly/wabt)
+       wat2wasm --enable-bulk-memory --enable-simd k.wat  -o k.wasm
+
+
+args:     data file.k file.t                  (assign/execute/test)
+web(drop) data file.k file.t
+
+repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
+
++ flp add           '  ech                 b bool     1b    110b   
+- neg sub           /  rdc                 c char     "x"   "ab"        
+* fst mul           \  scn                 i int      2     1 2         
+% sqr div           ': ecp                 s symbol   `a    ``c`d       
+! til wer           /: ecr  split  fixed   f float    2.    1. 2.    
+& wer min           \: ecl  join   fixed   z complex  1a    1a20 2a     
+| rev max                                  L list     (1;2 3)      
+< *** les           while[c;a;b;..]        D dict     `a`b!1 2
+> *** mor                                  T table    +`a`b!.. 
+= *** eql                                  v verb     +
+~ *** mtc                                  c comp     1+/*%  
+, enl cat                                  d derived  +/
+^ *** cut                                  l lambda   {x+y}
+# cnt tak
+_ *** drp                                  exec: t~`v: push
+$ str cst  $[a;b;...] cond                 v:  0..63   monadic
+? unq fnd                                     64..127  dyadic
+@ typ atx  @[x;i;+;y] `@i(verb) (+)~`2       128       pop + dyadic
+. val cal  .[x;i;+;y] .(1;2;`64+(+))         129..255  tetradic
+(any) in   built-ins (monadic)               256       drop
+(nul) find                                   320/384   jmp, jmp-ifz
+                                             448..     quoted verb
