@@ -74,7 +74,29 @@ func seq(n int32) (r K) {
 	return r
 }
 func Unq(x K) (r K) { // ?x
-	return x // todo
+	xt := tp(x)
+	if xt < 16 || xt >= Lt {
+		trap(Type)
+	}
+	xn := nn(x)
+	r = mk(xt, 0)
+	for i := int32(0); i < xn; i++ {
+		xi := ati(rx(x), i)
+		if int32(In(xi, rx(r))) == 0 {
+			r = cat1(r, xi)
+		} else {
+			dx(xi)
+		}
+	}
+	dx(x)
+	return r
+}
+func unqs(x K) (r K) { // ?^x
+	xt := tp(x)
+	if xt < 16 {
+		trap(Type)
+	}
+	return Atx(x, Wer(Ecp(12, l1(rx(x))))) // x(&~':x)
 }
 func Key(x, y K) (r K) { // x!y
 	xt, yt := tp(x), tp(y)
