@@ -19,12 +19,12 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 ! til wer           /: ecr  split  fixed   f float    2.    1. 2.    
 & wer min           \: ecl  join   fixed   z complex  1a    1a20 2a     
 | rev max                                  L list     (1;2 3)      
-< *** les           while[c;a;b;..]        D dict     `a`b!1 2
-> *** mor                                  T table    +`a`b!.. 
+< asc les           while[c;a;b;..]        D dict     `a`b!1 2
+> dsc mor                                  T table    +`a`b!.. 
 = grp eql                                  v verb     +
 ~ not mtc                                  c comp     1+/*%  
 , enl cat                                  d derived  +/
-^ *** cut                                  l lambda   {x+y}
+^ srt cut                                  l lambda   {x+y}
 # cnt tak
 _ *** drp                                  exec: t~`v: push
 $ str cst  $[a;b;...] cond                 v:  0..63   monadic

@@ -15,7 +15,7 @@ func init() {
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30
-	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, nyi, nyi, Grp, Not, Enl, nyi, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi)
+	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, nyi, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
@@ -34,6 +34,7 @@ func init() {
 	Functions(323, lti, ltf, ltz, ltcC, ltiI, ltfF, ltzZ, ltCc, ltIi, ltFf, ltZz, ltC, ltI, ltF, ltZ)
 	Functions(338, gti, gtf, gtz, gtcC, gtiI, gtfF, gtzZ, gtCc, gtIi, gtFf, gtZz, gtC, gtI, gtF, gtZ)
 
+	Functions(353, guC, guC, guI, guI, guF, guZ, guS, gdC, gdC, gdI, gdI, gdF, gdZ, gdS)
 }
 
 //   0....7  key

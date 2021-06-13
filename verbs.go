@@ -381,7 +381,7 @@ func Wer(x K) (r K) { // &x
 	xn := nn(x)
 	xp := int32(x)
 	if t == Bt {
-		n = sumb(x)
+		n = sumb(xp, xn)
 		r = mk(It, n)
 		rp = int32(r)
 		for i := int32(0); i < xn; i++ {
@@ -392,7 +392,7 @@ func Wer(x K) (r K) { // &x
 			xp++
 		}
 	} else if t == It {
-		n = sumi(x)
+		n = sumi(xp, xn)
 		r = mk(It, n)
 		rp = int32(r)
 		for i := int32(0); i < xn; i++ {
@@ -453,21 +453,19 @@ func val(x K) (r K) {
 	return x
 }
 
-func sumb(x K) (r int32) {
-	p := int32(x)
-	e := p + nn(x)
-	for p < e {
-		r += I8(p)
-		p++
+func sumb(xp, xn int32) (r int32) {
+	e := xp + xn
+	for xp < e {
+		r += I8(xp)
+		xp++
 	}
 	return r
 }
-func sumi(x K) (r int32) {
-	p := int32(x)
-	e := p + 4*nn(x)
-	for p < e {
-		r += I8(p)
-		p += 4
+func sumi(xp, xn int32) (r int32) {
+	e := xp + 4*xn
+	for xp < e {
+		r += I8(xp)
+		xp += 4
 	}
 	return r
 }
