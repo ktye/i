@@ -22,7 +22,9 @@ func Srt(x K) (r K) { // ^x
 		r = srtI(x, xn)
 	case 3:
 		r = srtI(x, xn)
-	default: // todo radix-F
+	case 4:
+		r = srtF(x, xn)
+	default:
 		r = atv(x, Asc(rx(x)))
 	}
 	return r
@@ -85,20 +87,17 @@ func srtC(x K, n int32) (r K) {
 	return r
 }
 func srtI(x K, n int32) (r K) {
-	xp := int32(x)
-	if n < 16 {
-		if I32(xp-4) == 1 {
-			isrtsI(xp, n)
-			return x
-		} else {
-			r = mk(tp(x), n)
-			Memorycopy(int32(r), xp, 4*n)
-			isrtsI(int32(r), n)
-			dx(x)
-			return r
-		}
+	if n < 32 {
+		x = use(x)
+		isrtsI(int32(x), n)
+		return x
 	}
-	return atv(x, Asc(rx(x))) // todo radix-I
+	// return atv(x, Asc(rx(x))) // merge?
+	return radixI(x, n)
+}
+func srtF(x K, n int32) (r K) {
+	// todo n < 32 ?
+	return radixF(x, n)
 }
 func isrtsI(xp, n int32) { // insertion sort ints inplace
 	for i := int32(1); i < n; i++ {
@@ -158,6 +157,129 @@ func igrd(rp, xp, n, s, f int32) { // insertion grade with comparison
 		continue
 	}
 }
+
+func radixI(x K, n int32) K { // ^I  see:shawnsmithdev/zermelo
+	x = use(x)
+	b := ntake(n, Ki(0))
+	o := mk(It, 256)
+	n *= 4
+	op := int32(o)
+	fr := int32(x)
+	to := int32(b)
+	for ko := int32(0); ko < 32; ko += 8 {
+		s := int32(1)
+		var prev int32 = -2147483648
+		Memoryfill(op, 0, 1024)
+		for i := int32(0); i < n; i += 4 {
+			e := I32(fr + i)
+			ok := op + 4*(255&(e>>ko))
+			SetI32(ok, 1+I32(ok))
+			if s != 0 {
+				s = ib(e >= prev)
+				prev = e
+			}
+			continue
+		}
+		if s != 0 {
+			if (ko>>3)%2 == 1 {
+				Memorycopy(to, fr, n)
+			}
+			break
+		}
+		w := int32(0)
+		if ko == 24 {
+			w = radixp(op, 0, 128, radixp(op, 128, 256, w))
+		} else {
+			w = radixp(op, 0, 256, w)
+		}
+		for i := int32(0); i < n; i += 4 {
+			e := I32(fr + i)
+			ok := op + 4*(255&(e>>ko))
+			SetI32(to+4*I32(ok), e)
+			SetI32(ok, 1+I32(ok))
+			continue
+		}
+		to, fr = swap(to, fr)
+	}
+	dx(o)
+	dx(b)
+	return x
+}
+func radixp(op, a, b, w int32) int32 {
+	op += 4 * a
+	for i := a; i < b; i++ {
+		c := I32(op)
+		SetI32(op, w)
+		w += c
+		op += 4
+		continue
+	}
+	return w
+}
+func radixF(x K, n int32) K { // ^F
+	x = use(x)
+	b := ntake(n, Kf(0))
+	o := mk(It, 256)
+	n *= 8
+	op := int32(o)
+
+	xp := int32(x)
+	na := int32(0)
+	for i := int32(0); i < n; i += 8 {
+		v := F64(xp + i)
+		if isnan(v) {
+			SetF64(xp+i, F64(xp+na))
+			SetF64(xp+na, v)
+			na += 8
+		}
+	}
+	fr := int32(x) + na
+	to := int32(b)
+	n -= na
+
+	var u uint64
+	for ko := int32(0); ko < 64; ko += 8 {
+		s := int32(1)
+		prev := float64(0)
+		Memoryfill(op, 0, 1024)
+		for i := int32(0); i < n; i += 8 {
+			u = floatflp(uint64(I64(fr + i)))
+			ok := op + 4*int32(255&(u>>uint64(ko)))
+			SetI32(ok, 1+I32(ok))
+			if s != 0 {
+				v := F64(fr + i)
+				s = ib(v >= prev)
+				prev = v
+			}
+		}
+		if s != 0 {
+			if (ko>>3)%2 == 1 {
+				Memorycopy(to, fr, n)
+			}
+			break
+		}
+		radixp(op, 0, 256, 0)
+		for i := int32(0); i < n; i += 8 {
+			v := I64(fr + i)
+			u = floatflp(uint64(v))
+			ok := op + 4*int32(255&(u>>uint64(ko)))
+			SetI64(to+8*I32(ok), v)
+			SetI32(ok, 1+I32(ok))
+		}
+		to, fr = swap(to, fr)
+	}
+	dx(o)
+	dx(b)
+	return x
+}
+func floatflp(x uint64) uint64 {
+	if (x & 0x8000000000000000) == 0x8000000000000000 {
+		return x ^ 0xFFFFFFFFFFFFFFFF
+	}
+	return x ^ 0x8000000000000000
+}
+
+func swap(x, y int32) (int32, int32) { return y, x }
 
 func guC(xp, yp int32) int32 { return ib(I8(xp) < I8(yp)) }
 func guI(xp, yp int32) int32 { return ib(I32(xp) < I32(yp)) }

@@ -87,11 +87,25 @@ func tnum() K {
 		}
 		return 0
 	}
-	if pp < pe && I8(pp) == '.' {
-		return pflt(r)
-	}
-	if pp < pe && I8(pp) == 'a' {
-		return pflz(float64(r))
+	if pp < pe {
+		c = I8(pp)
+		if c == '.' {
+			return pflt(r)
+		}
+		if c == 'a' {
+			return pflz(float64(r))
+		}
+		if r == 0 {
+			if c == 'n' || c == 'w' {
+				q := Kf(0)
+				SetI64(int32(q), int64(0x7FF8000000000001)) // 0n
+				if c == 'w' {
+					SetI64(int32(q), int64(0x7FF0000000000000)) // 0w
+				}
+				pp++
+				return q
+			}
+		}
 	}
 	return Ki(int32(r))
 }
@@ -122,6 +136,9 @@ func pu() (r int64) {
 func pflt(i int64) K {
 	f := float64(i)
 	d := 1.0
+	if f < 0 {
+		d = -1.0
+	}
 	pp++ // .
 	for pp < pe {
 		c := I8(pp)

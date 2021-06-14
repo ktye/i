@@ -123,17 +123,9 @@ func atv(x, y K) (r K) { // x BT..LT
 	dx(y)
 	return r
 }
-func use(x K) (K, T) {
-	xt := tp(x)
-	if xt < 16 {
-		trap(Type)
-	}
-	x = ucat(x, mk(xt, 0))
-	return x, xt
-}
 func stv(x, i, y K) (r K) {
-	var xt T
-	x, xt = use(x)
+	x = use(x)
+	xt := tp(x)
 	if It != tp(i) {
 		trap(Type)
 	}
@@ -193,9 +185,8 @@ func stv(x, i, y K) (r K) {
 	return x
 }
 func sti(x K, i int32, y K) K {
-	var xt, yt T
-	x, xt = use(x)
-	yt = tp(y)
+	x = use(x)
+	xt, yt := tp(x), tp(y)
 	if xt < Lt && yt != xt-16 {
 		trap(Type)
 	}

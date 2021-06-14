@@ -163,11 +163,20 @@ func si(x int32) (r K) {
 	return Rev(r)
 }
 func sf(x float64) (r K) {
+	if x != x {
+		return Ku(28208) // 0n
+	}
+	u := uint64(I64reinterpret_f64(x))
+	if u == uint64(0x7FF0000000000000) {
+		return Ku(30512) // 0w
+	} else if u == uint64(0xFFF0000000000000) {
+		return Ku(7811117) // -0w
+	}
 	if x < 0 {
 		return ucat(Ku(uint64('-')), sf(-x))
 	}
 	r = mk(Ct, 0)
-	u := uint64(x)
+	u = uint64(x)
 	if u == 0 {
 		r = cat1(r, Kc('0'))
 	}
@@ -181,6 +190,7 @@ func sf(x float64) (r K) {
 	for i := int32(0); i < 6; i++ {
 		x *= 10
 		r = cat1(r, Kc('0'+(int32(x)%10)))
+		continue
 	}
 	n := nn(r)
 	rp := int32(r)

@@ -69,7 +69,9 @@ func fcount(x int32) (r int32) {
 }
 
 func free(x, bs int32) {
-	//fmt.Println("free ", x+16)
+	//if x == 15840 {
+	//	fmt.Println("free ", x+16)
+	//}
 	if x&31 != 0 {
 		trap(Unref)
 	}
@@ -87,7 +89,12 @@ func bucket(size int32) (r int32) {
 
 func mk(t T, n int32) (r K) {
 	//defer func(t T, n int32) {
-	//	fmt.Println("mk", t, n, int32(r))
+	//	if int32(r) == 15840+16 {
+	//		if t == 21 && n == 1 {
+	//			panic("!")
+	//		}
+	//		fmt.Println("mk", t, n, int32(r))
+	//	}
 	//}(t, n)
 	if t < 17 {
 		trap(Value)
@@ -101,27 +108,6 @@ func mk(t T, n int32) (r K) {
 func tp(x K) T     { return T(x >> 59) }
 func nn(x K) int32 { return I32(int32(x) - 12) }
 func ep(x K) int32 { return int32(x) + sz(tp(x))*nn(x) }
-
-/*
-func vn(x K) (m int32) { // v128 size
-	s := sz(tp(x))
-	n := nn(x)
-	if n == 0 {
-		return 0
-	}
-	switch s >> 2 {
-	case 0:
-		m = n / 16
-	case 1:
-		m = n / 4
-	case 2:
-		m = n / 2
-	default:
-		return n
-	}
-	return 1 + m
-}
-*/
 func sz(t T) int32 {
 	if t < 16 {
 		return 8

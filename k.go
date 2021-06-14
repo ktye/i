@@ -72,6 +72,7 @@ func reset() {
 	dx(xyz)
 	dx(K(I64(0)))
 	dx(K(I64(8)))
+	// check() // k_test.go
 	if (uint32(1)<<uint32(I32(128)))-(1024+mcount()) != 0 {
 		trap(Err)
 	}

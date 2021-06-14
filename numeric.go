@@ -43,6 +43,23 @@ func use1(x K) K {
 	}
 	return mk(tp(x), nn(x))
 }
+func use(x K) (r K) {
+	xt := tp(x)
+	if xt < 16 || xt > Lt {
+		trap(Type)
+	}
+	if I32(int32(x)-4) == 1 {
+		return x
+	}
+	nx := nn(x)
+	r = mk(xt, nx)
+	Memorycopy(int32(r), int32(x), sz(xt)*nx)
+	if xt == Lt {
+		rl(r)
+	}
+	dx(x)
+	return r
+}
 
 func nm(f int32, x K) (r K) {
 	xt := tp(x)

@@ -42,6 +42,7 @@ func Enl(x K) (r K) {
 			SetI64(rp, I64(xp))
 			SetI64(rp+8, I64(xp+8))
 		}
+		dx(x)
 	} else {
 		r = l1(x)
 	}
