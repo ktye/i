@@ -96,7 +96,9 @@ func srtI(x K, n int32) (r K) {
 	return radixI(x, n)
 }
 func srtF(x K, n int32) (r K) {
-	// todo n < 32 ?
+	if n < 32 { // todo limit?
+		return atv(x, Asc(rx(x)))
+	}
 	return radixF(x, n)
 }
 func isrtsI(xp, n int32) { // insertion sort ints inplace

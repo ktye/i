@@ -1112,7 +1112,7 @@ func eqZ(xp, yp, rp, e int32) {
 
 func Les(x, y K) (r K)       { return nc(323, x, y) }
 func lti(x, y int32) int32   { return ib(x < y) }
-func ltf(x, y float64) int32 { return ib(x < y) }
+func ltf(x, y float64) int32 { return ib(x < y || x != x) }
 func ltz(xr, xi, yr, yi float64) int32 {
 	if eqf(xr, yr) != 0 {
 		return ltf(xi, yi)
@@ -1230,7 +1230,7 @@ func ltZ(xp, yp, rp, e int32) {
 
 func Mor(x, y K) (r K)       { return nc(338, x, y) }
 func gti(x, y int32) int32   { return ib(x > y) }
-func gtf(x, y float64) int32 { return ib(x > y) }
+func gtf(x, y float64) int32 { return ib(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {
 	if eqf(xr, yr) != 0 {
 		return gtf(xi, yi)
