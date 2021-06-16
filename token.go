@@ -70,25 +70,37 @@ func tnms() (r K) {
 	}
 	return r
 }
-func tnum() K {
-	p := pp
-	c := I8(p)
-	if p > int32(src) {
+func tnum() (r K) {
+	c := I8(pp)
+	if pp > int32(src) {
 		if c == '-' || c == '.' {
-			if is(I8(p-1), 64) {
+			if is(I8(pp-1), 64) {
 				return 0 // e.g. x-1 is (x - 1) not (x -1)
 			}
 		}
 	}
-	r := pi()
+	if c == '-' && pp < 1+pe {
+		pp++
+		r = tunm()
+		if r == 0 {
+			pp--
+			return 0
+		}
+		return Neg(r)
+	}
+	return tunm()
+}
+func tunm() K {
+	p := pp
+	r := pu()
 	if r == 0 && p == pp {
-		if c == '.' && is(I8(1+pp), 4) {
+		if I8(p) == '.' && is(I8(1+p), 4) {
 			return pflt(r)
 		}
 		return 0
 	}
 	if pp < pe {
-		c = I8(pp)
+		c := I8(pp)
 		if c == '.' {
 			return pflt(r)
 		}
@@ -109,19 +121,6 @@ func tnum() K {
 	}
 	return Ki(int32(r))
 }
-func pi() (r int64) {
-	if I8(pp) == '-' {
-		pp++
-		p := pp
-		r = -pu()
-		if r == 0 {
-			pp = p - 1
-		}
-	} else {
-		r = pu()
-	}
-	return r
-}
 func pu() (r int64) {
 	for pp < pe {
 		c := I8(pp)
@@ -136,9 +135,6 @@ func pu() (r int64) {
 func pflt(i int64) K {
 	f := float64(i)
 	d := 1.0
-	if f < 0 {
-		d = -1.0
-	}
 	pp++ // .
 	for pp < pe {
 		c := I8(pp)

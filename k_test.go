@@ -85,12 +85,13 @@ func TestMk(t *testing.T) {
 	}
 }
 func TestFloat(t *testing.T) {
+	t.Skip()
 	newtest()
 	dx(val(Ku(35382781554225)))
 	reset()
 }
 func TestVerbs(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	newtest()
 	x := Til(Ki(3))
 	if r := iK(Cnt(x)); r != 3 {
@@ -98,7 +99,7 @@ func TestVerbs(t *testing.T) {
 	}
 }
 func TestTok(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	tc := []struct {
 		in, exp string
 	}{
@@ -116,7 +117,7 @@ func TestTok(t *testing.T) {
 	}
 }
 func TestMultiline(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	tc := []struct {
 		in, exp string
 	}{
