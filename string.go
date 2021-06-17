@@ -207,20 +207,7 @@ func sf(x float64) (r K) {
 }
 func sfz(re, im float64) (r K) {
 	z := hypot(re, im)
-	var a float64
-	if im == 0 {
-		if re < 0 {
-			a = 180
-		}
-	} else if re == 0 {
-		if im > 0 {
-			a = 90
-		} else if im < 0 {
-			a = 270
-		}
-	} else {
-		trap(Nyi)
-	}
+	a := ang2(im, re)
 	r = cat1(trdot(sf(z)), Kc('a'))
 	if a != 0.0 {
 		r = ucat(r, trdot(sf(a)))

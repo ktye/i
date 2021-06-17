@@ -174,26 +174,6 @@ func absi(x int32) int32 {
 	return x
 }
 func absf(x float64) float64 { return F64abs(x) }
-func hypot(p, q float64) float64 {
-	//todo
-	//switch {
-	//case IsInf(p, 0) || IsInf(q, 0):
-	//	return Inf(1)
-	//case IsNaN(p) || IsNaN(q):
-	//	return NaN()
-	//}
-	p, q = F64abs(p), F64abs(q)
-	if p < q {
-		t := p
-		p = q
-		q = t
-	}
-	if p == 0.0 {
-		return 0.0
-	}
-	q = q / p
-	return p * F64sqrt(1+q*q)
-}
 func absC(xp, rp, e int32) {
 	for rp < e {
 		SetI8(rp, absc(I8(xp)))
@@ -1359,24 +1339,8 @@ func Rot(x, y K) (r K) { // r angle deg
 	}
 	deg := F64(int32(y))
 	dx(y)
-	r = Mul(Kz(expi(deg)), x)
-	return r
+	return Mul(Kz(cosin(deg)), x)
 }
-func expi(deg float64) (c float64, s float64) {
-	if deg == 0 {
-		c = 1.0
-	} else if deg == 90 {
-		s = 1.0
-	} else if deg == 180 {
-		c = -1.0
-	} else if deg == 270 {
-		s = -1.0
-	} else {
-		trap(Nyi)
-	}
-	return c, s
-}
-
 func uptypes(x, y K, b2i int32) (K, K) {
 	xt, yt := tp(x)&15, tp(y)&15
 	rt := T(maxi(int32(xt), int32(yt)))

@@ -195,7 +195,7 @@ func scan() {
 	for {
 		t := I32(p + 4)
 		if t < 5 || t > 31 {
-			fmt.Printf("illegal type at p=%d, bt=%d\n", p, t)
+			fmt.Printf("illegal type at p+8=%d, bt=%d\n", p+16, t)
 			panic("scan")
 		}
 		if r := I32(p + 12); r != 0 {

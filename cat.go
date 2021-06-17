@@ -39,6 +39,7 @@ func Enl(x K) (r K) {
 		case 2:
 			SetI64(rp, I64(xp))
 		case 3:
+		case 4:
 			SetI64(rp, I64(xp))
 			SetI64(rp+8, I64(xp+8))
 		}
@@ -112,14 +113,15 @@ func cat1(x, y K) K {
 	} else if s == 4 {
 		SetI32(rp, yp)
 	} else if s == 8 {
-		if xt == Zt {
-			trap(Nyi)
-		} else if xt == Ft {
+		if xt == Ft {
 			SetI64(rp, I64(yp))
 			dx(y)
 		} else {
 			SetI64(rp, int64(y))
 		}
+	} else if s == 16 {
+		F64x2store(rp, F64x2load(yp))
+		dx(y)
 	}
 	return r
 }
