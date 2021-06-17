@@ -350,6 +350,65 @@ func join(x, y K) (r K) {
 	return r
 }
 
+func Flr(x K) (r K) { // _x
+	xt := tp(x)
+	xp := int32(x)
+	if xt < 16 {
+		switch xt - 3 {
+		case 0: // i
+			r = Kc(xp)
+		case 1: // s
+			trap(Type)
+			r = 0
+		case 2: // f
+			dx(x)
+			r = Ki(int32(F64floor(F64(xp))))
+		case 3: // z
+			dx(x)
+			r = Kf(F64(xp))
+		default:
+			trap(Type)
+			r = 0
+		}
+		return r
+	}
+	xn := nn(x)
+	var rp int32
+	switch xt - 19 {
+	case 0: //I
+		r = mk(Ct, xn)
+		rp = int32(r)
+		for i := int32(0); i < xn; i++ {
+			SetI8(rp, I32(xp))
+			xp += 4
+		}
+	case 1: //S
+		trap(Type)
+	case 2: //F
+		r = mk(It, xn)
+		rp = int32(r)
+		for i := int32(0); i < xn; i++ {
+			SetI32(rp, int32(F64floor(F64(xp))))
+			xp += 8
+			rp += 4
+		}
+	case 3: // Z
+		r = mk(Ft, xn)
+		rp = int32(r)
+		for i := int32(0); i < xn; i++ {
+			SetI64(rp, I64(xp))
+			xp += 16
+			rp += 8
+		}
+	case 4: // L
+		return Ech(16, l1(x))
+	default: // todo D/T
+		trap(Type)
+	}
+	dx(x)
+	return r
+}
+
 func Rev(x K) (r K) { // |x
 	t := tp(x)
 	if t < 16 {

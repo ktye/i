@@ -1350,13 +1350,17 @@ func isnan(x float64) bool { return x != x }
 
 func Rot(x, y K) (r K) { // r angle deg
 	x = uptype(x, zt)
+	if y == 0 {
+		return x
+	}
 	y = uptype(y, ft)
 	if tp(y) != ft {
 		panic(Type) // only atom
 	}
 	deg := F64(int32(y))
 	dx(y)
-	return Mul(Kz(expi(deg)), x)
+	r = Mul(Kz(expi(deg)), x)
+	return r
 }
 func expi(deg float64) (c float64, s float64) {
 	if deg == 0 {

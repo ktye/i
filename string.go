@@ -221,16 +221,18 @@ func sfz(re, im float64) (r K) {
 	} else {
 		trap(Nyi)
 	}
-	r = sf(z)
-	rn := nn(r)
-	if I8(int32(r)+rn-1) == '.' {
-		r = ndrop(-1, r)
-	}
-	r = cat1(r, Kc('a'))
+	r = cat1(trdot(sf(z)), Kc('a'))
 	if a != 0.0 {
-		r = cat1(r, sf(a))
+		r = ucat(r, trdot(sf(a)))
 	}
 	return r
+}
+func trdot(x K) K {
+	n := nn(x)
+	if I8(int32(x)+n-1) == '.' {
+		return ndrop(-1, x)
+	}
+	return x
 }
 
 func Cst(x, y K) (r K) { // x$y

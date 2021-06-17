@@ -126,7 +126,7 @@ function run(){
  if(runb.value=="test"){test(ed.getValue());return}               //after drop file.t
  else if(runb.value!=""){assign(runb.value,ed.getValue());return} //after drop data file
  var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";
- var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p), ed.posFromIndex(p+1), {"scroll":true})}
+ var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p-1), ed.posFromIndex(p), {"scroll":true})}
 }
 function assign(x,y){
  ktry(function(){K.dx(K.Asn(K.sc(ks(x)),ks(y)))})

@@ -150,7 +150,13 @@ func pflt(i int64) K {
 	}
 	return Kf(f)
 }
-func pflz(f float64) K { return Rot(Kf(f), pflt(0)) }
+func pflz(f float64) (r K) {
+	pp++
+	if pp < pe {
+		r = tunm()
+	}
+	return Rot(Kf(f), r)
+}
 
 func tvrb() (r K) {
 	c := I8(pp)

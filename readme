@@ -26,7 +26,7 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 , enl cat                                  d derived  +/
 ^ srt cut                                  l lambda   {x+y}
 # cnt tak
-_ *** drp                                  exec: t~`v: push
+_ flr drp                                  exec: t~`v: push
 $ str cst  $[a;b;...] cond                 v:  0..63   monadic
 ? unq fnd                                     64..127  dyadic
 @ typ atx  @[x;i;+;y] `@i(verb) (+)~`2       128       pop + dyadic
