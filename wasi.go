@@ -124,12 +124,15 @@ func read() (r K) {
 	return ntake(maxi(0, I32(512)-1), r)
 }
 func write(x K) {
-	SetI32(512, int32(x))
-	SetI32(516, nn(x))
-	if wasi_unstable.Fd_write(1, 512, 1, 512) != 0 {
+	if writepn(int32(x), nn(x)) != 0 {
 		trap(Io)
 	}
 	dx(x)
+}
+func writepn(p, n int32) int32 {
+	SetI32(512, p)
+	SetI32(516, n)
+	return wasi_unstable.Fd_write(1, 512, 1, 512)
 }
 func getargs() K {
 	wasi_unstable.Args_sizes_get(512, 516)

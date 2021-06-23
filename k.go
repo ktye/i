@@ -1,8 +1,6 @@
 package main
 
-import (
-	. "github.com/ktye/wg/module"
-)
+import . "github.com/ktye/wg/module"
 
 var src, loc, xyz K
 var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
