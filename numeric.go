@@ -1090,7 +1090,12 @@ func eqZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Les(x, y K) (r K)       { return nc(323, x, y) }
+func Les(x, y K) (r K) { // x<y   `file<c
+	if tp(x) == st && tp(y) == Ct {
+		return writefile(cs(x), y)
+	}
+	return nc(323, x, y)
+}
 func lti(x, y int32) int32   { return ib(x < y) }
 func ltf(x, y float64) int32 { return ib(x < y || x != x) }
 func ltz(xr, xi, yr, yi float64) int32 {

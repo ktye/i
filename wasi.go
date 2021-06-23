@@ -144,7 +144,7 @@ func getargs() K {
 	dx(a)
 	return split(Kc(0), ndrop(-1, r))
 }
-func readfile(x K) (r K) {
+func readfile(x K) (r K) { // x C
 	// fd=3 is root directory, e.g. wavm run --mount-root . k.wat
 	if wasi_unstable.Path_open(3, 0, int32(x), nn(x), 0, 31, 31, 0, 512) != 0 {
 		trap(Io)
@@ -172,6 +172,22 @@ func readfile(x K) (r K) {
 	wasi_unstable.Fd_close(fd)
 	dx(x)
 	return r
+}
+func writefile(x, y K) K { // x, y C
+	if wasi_unstable.Path_open(3, 0, int32(x), nn(x), 9, 2047, 2047, 0, 512) != 0 {
+		trap(Io)
+	}
+	fd := I32(512)
+
+	yp := int32(y)
+	SetI32(512, yp)
+	SetI32(516, nn(y))
+	if wasi_unstable.Fd_write(fd, 512, 1, 512) != 0 {
+		trap(Io)
+	}
+	wasi_unstable.Fd_close(fd)
+	dx(x)
+	return y
 }
 func iwrite(x int32) { write(cat1(Kst(Ki(x)), Kc(10))) }
 func help() {

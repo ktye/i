@@ -29,7 +29,12 @@ func Srt(x K) (r K) { // ^x
 	}
 	return r
 }
-func Asc(x K) K { return grade(x, 343) } // <x
+func Asc(x K) K { // <x  <`file
+	if tp(x) == st {
+		return readfile(cs(x))
+	}
+	return grade(x, 343)
+}
 func Dsc(x K) K { return grade(x, 336) } // >x
 func grade(x K, f int32) (r K) { // <x >x
 	xt := tp(x)

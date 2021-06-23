@@ -8,7 +8,7 @@ build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
 
 
 args:     data file.k file.t                  (assign/execute/test)
-web(drop) data file.k file.t
+web(drop) data file.k file.t                     `file<c (download)
 
 repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 
@@ -21,8 +21,8 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 | rev max                                  L list     (1;2 3)      
 < asc les           while[c;a;b;..]        D dict     `a`b!1 2
 > dsc mor                                  T table    +`a`b!.. 
-= grp eql                                  v verb     +
-~ not mtc                                  c comp     1+/*%  
+= grp eql           c:<`file(read)         v verb     +
+~ not mtc           `file<c(write)         c comp     1+/*%  
 , enl cat                                  d derived  +/
 ^ srt cut                                  l lambda   {x+y}
 # cnt tak

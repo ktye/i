@@ -16,6 +16,7 @@
 <textarea id="edit"></textarea>
 <textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
 <button id="runb" onclick="run()">run</button>
+<a id="dl" style:"display:none"></a>
 <script>
 
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
@@ -60,7 +61,13 @@ function lo(x){return Number(BigInt.asUintN(32,x))}
 function ks(s){s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
 function sk(x){var xp=lo(x);return su(C.slice(xp,xp+K.nn(x)))}
 
-
+var filename="" 
+function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
+ msl();filename=su(C.slice(path,path+pathlen));if(oflags==0)return 1;U[res>>2]=3;return 0 //no read in js.
+} 
+function fd_write(fd,p,nio,nw){
+ msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){term.O(su(u))}else{download(filename,u)};return 0
+}
 var env={wasi_unstable:{ 
 // l32:function(x){console.log(x);return x},
 // l64:function(x){console.log(BigInt.asUintN(64,x));return x},
@@ -68,14 +75,17 @@ var env={wasi_unstable:{
  args_sizes_get: function(a,b){return 0},
  proc_exit:function(x){console.log("exit", x)},
  fd_read:  function(a,b,c,d){console.log("read",a,b,c,d);return 0},
- fd_write: function(fd,p,nio,nw){msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];term.O(su(C.slice(x,x+n)));return 0},
+ fd_write: fd_write,
  fd_seek:  function(fd,o,w,r){return 0},
  fd_close: function(fd){return 0},
- path_open:function(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){return 0},
+ path_open:path_open,
  clock_time_get:function(a,b,p){msl();J[p>>>3]=BigInt.asIntN(64, BigInt(Math.floor(1e6*performance.now())));return 0}
 }}
 
 
+function download(name,u){
+ var dl=ge("dl");var b=new Blob([u],{type:"application/octet-stream"})
+ dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
 
 fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
  K=r.instance.exports
