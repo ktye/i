@@ -116,27 +116,47 @@ func mtF(xp, yp, e int32) (r int32) {
 	}
 	return 1
 }
+func all(x, n int32) int32 {
+	e := x + n
+	ve := e &^ 15
+	for x < ve {
+		if I8x16load(x).All_true() == 0 {
+			return 0
+		}
+		x += 16
+	}
+	for x < e {
+		if I8(x) != 0 {
+			return 0
+		}
+		x++
+	}
+	return 1
+}
+func any(x, n int32) int32 {
+	e := x + n
+	ve := e &^ 15
+	for x < ve {
+		if I8x16load(x).Any_true() != 0 {
+			return 1
+		}
+		x += 16
+	}
+	for x < e {
+		if I8(x) != 0 {
+			return 1
+		}
+		x++
+	}
+	return 0
+}
 func Any(x K) (r K) {
 	if tp(x) != Bt {
 		trap(Type)
 	}
+	xn := nn(x)
 	dx(x)
-	xp := int32(x)
-	e := ep(x)
-	ve := e &^ 15
-	for xp < ve {
-		if I8x16load(xp).Any_true() != 0 {
-			return Kb(1)
-		}
-		xp += 16
-	}
-	for xp < e {
-		if I8(xp) != 0 {
-			return Kb(1)
-		}
-		xp++
-	}
-	return Kb(0)
+	return Kb(any(int32(x), xn))
 }
 func In(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
@@ -224,7 +244,7 @@ func inZ(re, im float64, yp int32, e int32) int32 {
 	return 0
 }
 
-func Not(x K) (r K) { // ^x
+func Not(x K) (r K) { // ~x
 	xt := tp(x)
 	xp := int32(x)
 	if xt == bt {

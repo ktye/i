@@ -33,6 +33,8 @@ func init() {
 	Functions(338, gti, gtf, gtz, gtcC, gtiI, gtfF, gtzZ, gtCc, gtIi, gtFf, gtZz, gtC, gtI, gtF, gtZ)
 
 	Functions(353, guC, guC, guI, guI, guF, guZ, guS, gdC, gdC, gdI, gdI, gdF, gdZ, gdS)
+
+	Functions(369, sum, rd0, prd, rd0, rd0, min, max)
 }
 
 //   0....7  key

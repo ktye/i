@@ -511,20 +511,3 @@ func val(x K) (r K) {
 	}
 	return x
 }
-
-func sumb(xp, xn int32) (r int32) {
-	e := xp + xn
-	for xp < e {
-		r += I8(xp)
-		xp++
-	}
-	return r
-}
-func sumi(xp, xn int32) (r int32) {
-	e := xp + 4*xn
-	for xp < e {
-		r += I8(xp)
-		xp += 4
-	}
-	return r
-}

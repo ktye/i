@@ -183,7 +183,21 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 			return cal(f, l2(x, y))
 		}
 	}
+
+	xt := tp(x)
 	yn := nn(y)
+	if tp(f) == 0 {
+		fp := int32(f)
+		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
+			r = Func[367+fp].(rdf)(x, int32(y), yt, yn)
+			if r != 0 {
+				dx(x)
+				dx(y)
+				return r
+			}
+		}
+	}
+
 	if yn == 0 {
 		if x == 0 {
 			return zero(yt - 16)
@@ -196,17 +210,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	if yt > Lt {
 		trap(Nyi)
 	}
-	xt := tp(x)
-	if tp(f) == 0 {
-		fp := int32(f)
-		if fp == 1 {
-			dx(x)
-			return lst(y)
-		}
-		if yt != Lt && fp < 9 && fp != 6 && (xt == yt-16 || xt == 0) {
-			return rdx(fp, x, y, yn) // +-*% &|
-		}
-	}
+
 	i := int32(0)
 	if x == 0 {
 		x, i = ati(rx(y), 0), 1
@@ -219,6 +223,8 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	dx(f)
 	return x
 }
+
+/*
 func rdx(f int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	yt := tp(y)
 	s := sz(yt)
@@ -268,6 +274,7 @@ func rdx(f int32, x, y K, n int32) (r K) { // (+-*% &|)/
 	dx(y)
 	return r
 }
+*/
 func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	t := tp(f)
 	if isfunc(t) == 0 {
