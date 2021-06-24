@@ -110,19 +110,60 @@ func Asn(x, y K) K {
 	return y
 }
 func Amd(x, i, v, y K) (r K) {
-	if tp(v) != 0 || int32(v) != 1 {
+	//fmt.Printf("amend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+	if tp(v) != 0 || v != 1 {
 		y = cal(v, l2(Atx(rx(x), rx(i)), y))
 	}
-	if tp(x) == It && tp(i) == it && tp(y) == it {
-		r = ucat(x, mk(It, 0))
-		SetI32(int32(r)+4*int32(i), int32(y))
-		return r
+	xt, ti, yt := tp(x), tp(i), tp(y)
+	if xt&15 != yt&15 {
+		x, xt = explode(x), Lt
 	}
-	trap(Nyi)
-	return x
+	if ti == it {
+		if xt != yt+16 {
+			x = explode(x)
+			y = l1(y)
+		}
+		return sti(x, int32(i), y)
+	}
+	if yt < 16 {
+		y = ntake(nn(i), y)
+		yt = tp(y)
+	}
+	if xt == Lt {
+		y = explode(y)
+	}
+	return stv(x, i, y)
 }
 func Dmd(x, i, v, y K) K {
 	//fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
-	trap(Nyi)
-	return y
+	if tp(i) < 16 {
+		return Amd(x, i, v, y)
+	}
+	i = uf(i)
+	a := Fst(rx(i))
+	i = ndrop(1, i)
+	l := int32(0)
+	if nn(i) == 1 {
+		l = 1
+		i = Fst(i)
+	}
+	if a == 0 {
+		a = seq(nn(x))
+	}
+
+	if tp(a) < 16 {
+		t := Atx(rx(x), a)
+		if l != 0 {
+			y = Amd(t, i, v, y)
+		} else {
+			y = Dmd(t, i, v, y)
+		}
+		x = Amd(x, a, 1, y)
+	} else {
+		trap(Nyi)
+		// .[2^!6;(;1);*;10] /(0 10 2;3 40 5)
+		// .[2^!6;(;1);9 8] /(0 9 2;3 8 5)
+		// .[3^!9;(1 2;0 2);(0 1;2 3)] /(0 1 2;0 4 1;2 7 3)
+	}
+	return x
 }

@@ -17,11 +17,9 @@ func Cat(x, y K) (r K) {
 		}
 	} else if xt == Lt && yt < 16 {
 		return cat1(x, y)
-		//} else if xt < Dt && yt < Dt {
-		//	return Cat(explode(x), explode(y))
 	}
-	trap(Nyi)
-	return x
+	// todo D/T
+	return Cat(explode(x), explode(y))
 }
 func Enl(x K) (r K) {
 	t := tp(x)
@@ -46,6 +44,72 @@ func Enl(x K) (r K) {
 		dx(x)
 	} else {
 		r = l1(x)
+	}
+	return r
+}
+func explode(x K) (r K) {
+	xt := tp(x)
+	if xt < 16 {
+		r = l1(x)
+	} else if xt < Lt {
+		xn := nn(x)
+		r = mk(Lt, xn)
+		if xn == 0 {
+			return r
+		}
+		xp, rp := int32(x), int32(r)
+		e := ep(x)
+		switch xt - 17 {
+		case 0: //Bt
+			for xp < e {
+				SetI64(rp, int64(Kb(I8(xp))))
+				rp += 8
+				xp++
+				continue
+			}
+		case 1: //Ct
+			for xp < e {
+				SetI64(rp, int64(Kc(I8(xp))))
+				rp += 8
+				xp++
+				continue
+			}
+		case 2: //It
+			for xp < e {
+				SetI64(rp, int64(Ki(I32(xp))))
+				rp += 8
+				xp += 4
+				continue
+			}
+		case 3: //St
+			for xp < e {
+				SetI64(rp, int64(Ks(I32(xp))))
+				rp += 8
+				xp += 4
+				continue
+			}
+		case 4: //Ft
+			for xp < e {
+				SetI64(rp, int64(Kf(F64(xp))))
+				rp += 8
+				xp += 8
+				continue
+			}
+		case 5: //Zt
+			for xp < e {
+				SetI64(rp, int64(Kz(F64(xp), F64(xp+8))))
+				rp += 8
+				xp += 16
+				continue
+			}
+		default:
+			trap(Type)
+		}
+		dx(x)
+	} else if xt == Lt {
+		r = x
+	} else {
+		trap(Type) // T->L(D)?
 	}
 	return r
 }

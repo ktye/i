@@ -132,16 +132,15 @@ func pasn(x, y K) (K, K) {
 	if nn(y) == 1 && tp(l) == 0 && v == 449 || (v > 544 && v < 565) {
 		dx(y)
 		xn := nn(x)
-		if xn > 2 { // indexed
+		if xn > 2 { // indexed amd/dmd
 			if v > 544 { // indexed-modified
 				l -= 96
 			}
 			s := ati(rx(x), xn-3)
-			if lastp(x) == 83 { // (+;.i.;`x;.@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;0;211)
-				x = cat1(cat1(ucat(l1(l), ndrop(-2, x)), 20), 211)
-			} else {
-				trap(Nyi) // indexed-modified-in-depth
-			}
+			lp := lastp(x)
+			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
+			// lp+128 is @[amd..] or .[dmd..]
+			x = cat1(cat1(ucat(l1(l), ndrop(-2, x)), 20), lp+128)
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
 			s := Fst(x) // (`x;.)

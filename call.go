@@ -36,6 +36,7 @@ func cal(f, x K) (r K) {
 		case 2:
 			x, r, z = spl3(x)
 		default:
+			Nop()
 		}
 	}
 	if t != 0 {
@@ -53,7 +54,7 @@ func cal(f, x K) (r K) {
 		case 3:
 			z := x3(xp)
 			x, r, f = spl3(x)
-			r = Func[fp+192].(f4)(x, r, z, f)
+			r = Func[fp+192].(f4)(x, r, f, z)
 		default:
 			trap(Rank)
 		}
