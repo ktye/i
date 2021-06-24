@@ -12,25 +12,25 @@ web(drop) data file.k file.t                     `file<c (download)
 
 repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 
-+ flp add           '  ech                 b bool     1b    110b   
-- neg sub           /  rdc                 c char     "x"   "ab"        
-* fst mul           \  scn                 i int      2     1 2         
-% sqr div           ': ecp                 s symbol   `a    ``c`d       
-! til wer           /: ecr  split  fixed   f float    2.    1. 2.    
-& wer min           \: ecl  join   fixed   z complex  1a    1a20 2a     
++ flp add       '  ech                     b bool     1b    110b   
+- neg sub       /  rdc                     c char     "x"   "ab"        
+* fst mul       \  scn                     i int      2     1 2         
+% sqr div       ': ecp                     s symbol   `a    ``c`d       
+! til wer       /: ecr  split   fixed      f float    2.    1. 2.    
+& wer min       \: ecl  join    fixed      z complex  1a    1a20 2a     
 | rev max                                  L list     (1;2 3)      
-< asc les           while[c;a;b;..]        D dict     `a`b!1 2
+< asc les       while[c;a;b;..]            D dict     `a`b!1 2
 > dsc mor                                  T table    +`a`b!.. 
-= grp eql           c:<`file(read)         v verb     +
-~ not mtc           `file<c(write)         c comp     1+/*%  
-, enl cat                                  d derived  +/
+= grp eql       $[a;b;...]      cond       v verb     +
+~ not mtc       @[x;i;+;y]                 c comp     1+/*%  
+, enl cat       .[x;i;+;y]                 d derived  +/
 ^ srt cut                                  l lambda   {x+y}
-# cnt tak
-_ flr drp                                  exec: t~`v: push
-$ str cst  $[a;b;...] cond                 v:  0..63   monadic
+# cnt tak       c:<`file(read) 
+_ flr drp       `file<c(write)             exec: t~`v: push
+$ str cst                                  v:  0..63   monadic
 ? unq fnd                                     64..127  dyadic
-@ typ atx  @[x;i;+;y] `@i(verb) (+)~`2       128       pop + dyadic
-. val cal  .[x;i;+;y] .(1;2;`64+(+))         129..255  tetradic
-(any) in   built-ins (monadic)               256       drop
-(nul) find                                   320/384   jmp, jmp-ifz
-                                             448..     quoted verb
+@ typ atx       `@i(verb) (+)~`2             128       pop + dyadic
+. val cal       .(1;2;`64+(+))  exec         129..255  tetradic
+                                             256       drop
+built-ins(monadic):                          320/384   jmp, jmp-ifz
+(any)in (nul)find                            448..     quoted verb
