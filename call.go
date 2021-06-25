@@ -16,8 +16,7 @@ func Cal(x, y K) (r K) {
 		}
 		return cal(x, y)
 	}
-	panic(Nyi)
-	return x
+	return atdepth(x, explode(y))
 }
 func isfunc(t T) int32 { return ib(t == 0 || (t < 16 && t > tt)) }
 
@@ -35,8 +34,6 @@ func cal(f, x K) (r K) {
 			x, r = spl2(x)
 		case 2:
 			x, r, z = spl3(x)
-		default:
-			Nop()
 		}
 	}
 	if t != 0 {

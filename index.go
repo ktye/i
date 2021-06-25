@@ -223,3 +223,33 @@ func sti(x K, i int32, y K) K {
 	dx(y)
 	return x
 }
+
+func atdepth(x, y K) (r K) {
+	xt := tp(x)
+	if xt < 16 {
+		trap(Type)
+	}
+	f := Fst(rx(y))
+	if f == 0 {
+		f = seq(nn(x))
+	}
+	m := 0
+	if tp(f) > 16 {
+		if nn(f) != 1 {
+			m = 1 // matrix-index
+		}
+	}
+	x = Atx(x, f)
+	if nn(y) == 1 {
+		dx(y)
+		return x
+	}
+	y = ndrop(1, y)
+	if m != 0 {
+		if nn(y) != 1 {
+			trap(Rank)
+		}
+		return Ecl(19, l2(x, Fst(y)))
+	}
+	return atdepth(x, y)
+}
