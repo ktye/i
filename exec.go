@@ -111,10 +111,24 @@ func Asn(x, y K) K {
 }
 func Amd(x, i, v, y K) (r K) {
 	//fmt.Printf("amend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+	xt := tp(x)
+	if xt < 16 {
+		trap(Type)
+	}
+	if i == 0 {
+		if v == 1 {
+			if tp(y) < 16 {
+				y = ntake(nn(x), y)
+			}
+			dx(x)
+			return y
+		}
+		return Cal(v, l2(x, y))
+	}
 	if tp(v) != 0 || v != 1 {
 		y = cal(v, l2(Atx(rx(x), rx(i)), y))
 	}
-	xt, ti, yt := tp(x), tp(i), tp(y)
+	ti, yt := tp(i), tp(y)
 	if xt&15 != yt&15 {
 		x, xt = explode(x), Lt
 	}
@@ -136,34 +150,38 @@ func Amd(x, i, v, y K) (r K) {
 }
 func Dmd(x, i, v, y K) K {
 	//fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
-	if tp(i) < 16 {
-		return Amd(x, i, v, y)
-	}
-	i = uf(i)
-	a := Fst(rx(i))
-	i = ndrop(1, i)
-	l := int32(0)
+	i = explode(i)
+	f := Fst(rx(i))
 	if nn(i) == 1 {
-		l = 1
-		i = Fst(i)
-	}
-	if a == 0 {
-		a = seq(nn(x))
+		dx(i)
+		return Amd(x, f, v, y)
 	}
 
-	if tp(a) < 16 {
-		t := Atx(rx(x), a)
-		if l != 0 {
-			y = Amd(t, i, v, y)
-		} else {
-			y = Dmd(t, i, v, y)
-		}
-		x = Amd(x, a, 1, y)
-	} else {
-		trap(Nyi)
-		// .[2^!6;(;1);*;10] /(0 10 2;3 40 5)
-		// .[2^!6;(;1);9 8] /(0 9 2;3 8 5)
-		// .[3^!9;(1 2;0 2);(0 1;2 3)] /(0 1 2;0 4 1;2 7 3)
+	if f == 0 {
+		f = seq(nn(x))
 	}
-	return x
+	i = ndrop(1, i)
+
+	if tp(f) > 16 { // matrix-assign
+		n := nn(f)
+		if nn(i) != 1 {
+			trap(Rank)
+		}
+		i = Fst(i)
+		if tp(f) != It || tp(x) != Lt {
+			trap(Nyi) // Dt
+		}
+		r := use(x)
+		for j := int32(0); j < n; j++ {
+			rj := int32(r) + 8*I32(int32(f)+4*j)
+			SetI64(rj, int64(Amd(K(I64(rj)), rx(i), rx(v), ati(rx(y), j))))
+		}
+		dx(f)
+		dx(i)
+		dx(v)
+		dx(y)
+		return r
+	}
+
+	return Amd(x, f, 1, Dmd(Atx(rx(x), f), i, v, y))
 }

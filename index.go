@@ -25,7 +25,7 @@ func Atx(x, y K) K { // x@y
 	if xt > Lt {
 		trap(Nyi) // d@ t@
 	}
-	if yt == It && xt > 16 {
+	if yt == It {
 		return atv(x, y)
 	}
 	if yt == it && xt > 16 {
@@ -36,6 +36,9 @@ func Atx(x, y K) K { // x@y
 }
 func ati(x K, i int32) (r K) { // x BT..LT
 	t := tp(x)
+	if t < 16 {
+		return x
+	}
 	s := sz(t)
 	p := int32(x) + i*s
 	switch s >> 2 {
@@ -61,7 +64,12 @@ func ati(x K, i int32) (r K) { // x BT..LT
 }
 func atv(x, y K) (r K) { // x BT..LT
 	t := tp(x)
-	xn, yn := nn(x), nn(y)
+	yn := nn(y)
+	if t < 16 {
+		dx(y)
+		return ntake(yn, x)
+	}
+	xn := nn(x)
 	r = mk(t, yn)
 	s := sz(t)
 	rp := int32(r)
@@ -233,7 +241,7 @@ func atdepth(x, y K) (r K) {
 	if f == 0 {
 		f = seq(nn(x))
 	}
-	m := 0
+	m := int32(0)
 	if tp(f) > 16 {
 		if nn(f) != 1 {
 			m = 1 // matrix-index
