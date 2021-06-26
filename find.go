@@ -57,7 +57,7 @@ func fnd(x, y K, t T) (r int32) {
 	case 5: // zt
 		r = idxz(F64(xp), F64(xp+8), yp, xe)
 	default:
-		trap(Type)
+		r = int32(trap(Type))
 	}
 	if r < 0 {
 		return xn

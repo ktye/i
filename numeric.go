@@ -67,23 +67,24 @@ func nm(f int32, x K) (r K) {
 	if xt < 16 {
 		switch xt - 1 {
 		case 0:
-			r = Ki(Func[f].(f1i)(xp))
+			return Ki(Func[f].(f1i)(xp))
 		case 1:
-			r = Kc(Func[f].(f1i)(xp))
+			return Kc(Func[f].(f1i)(xp))
 		case 2:
-			r = Ki(Func[1+f].(f1i)(xp))
+			return Ki(Func[1+f].(f1i)(xp))
 		case 3:
-			trap(Type)
+			return trap(Type)
 		case 4:
 			r = Kf(Func[2+f].(f1f)(F64(xp)))
 			dx(x)
+			return r
 		case 5:
 			r = Kz(Func[3+f].(f1z)(F64(xp), F64(xp)))
 			dx(x)
+			return r
 		default:
-			trap(Type)
+			return trap(Type)
 		}
-		return r
 	}
 	if xt == Bt {
 		x, xt = uptype(x, it), It
@@ -249,23 +250,22 @@ func nd(f int32, x, y K) (r K) {
 	if av == 0 { // atom-atom
 		switch t - 2 {
 		case 0: // ct
-			r = Kc(Func[f].(f2i)(xp, yp))
+			return Kc(Func[f].(f2i)(xp, yp))
 		case 1: // it
-			r = Ki(Func[1+f].(f2i)(xp, yp))
+			return Ki(Func[1+f].(f2i)(xp, yp))
 		case 2: // st
-			trap(Type)
+			return trap(Type)
 		case 3:
 			dx(x)
 			dx(y)
-			r = Kf(Func[2+f].(f2f)(F64(xp), F64(yp)))
+			return Kf(Func[2+f].(f2f)(F64(xp), F64(yp)))
 		case 4:
 			dx(x)
 			dx(y)
-			r = Kz(Func[3+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
+			return Kz(Func[3+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
 		default:
-			trap(Type)
+			return trap(Type)
 		}
-		return r
 	} else if av == 1 { // atom-vector
 		r = use1(y)
 		if nn(r) == 0 {
@@ -331,25 +331,24 @@ func nc(f int32, x, y K) (r K) {
 	if av == 0 { // atom-atom
 		switch t - 1 {
 		case 0: // bt
-			r = Kb(Func[f].(f2i)(xp, yp))
+			return Kb(Func[f].(f2i)(xp, yp))
 		case 1: // ct
-			r = Kb(Func[f].(f2i)(xp, yp))
+			return Kb(Func[f].(f2i)(xp, yp))
 		case 2: // it
-			r = Kb(Func[f].(f2i)(xp, yp))
+			return Kb(Func[f].(f2i)(xp, yp))
 		case 3: // st
-			r = Kb(Func[f].(f2i)(xp, yp))
+			return Kb(Func[f].(f2i)(xp, yp))
 		case 4:
 			dx(x)
 			dx(y)
-			r = Kb(Func[1+f].(f2c)(F64(xp), F64(yp)))
+			return Kb(Func[1+f].(f2c)(F64(xp), F64(yp)))
 		case 5:
 			dx(x)
 			dx(y)
-			r = Kb(Func[2+f].(f2d)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
+			return Kb(Func[2+f].(f2d)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
 		default:
-			trap(Type)
+			return trap(Type)
 		}
-		return r
 	} else if av == 1 { // atom-vector
 		yn := nn(y)
 		r = mk(Bt, yn)

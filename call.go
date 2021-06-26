@@ -53,8 +53,9 @@ func cal(f, x K) (r K) {
 			x, r, f = spl3(x)
 			r = Func[fp+192].(f4)(x, r, f, z)
 		default:
-			trap(Rank)
+			r = trap(Rank)
 		}
+		r = r
 	case 1: // cf
 		switch xn - 1 {
 		case 0:
@@ -62,8 +63,9 @@ func cal(f, x K) (r K) {
 		case 1:
 			r = calltrain(f, x, r)
 		default:
-			trap(Rank)
+			r = trap(Rank)
 		}
+		r = r
 	case 2: // df
 		d := K(I64(fp))
 		a := 85 + int32(I64(fp+8))
@@ -73,7 +75,7 @@ func cal(f, x K) (r K) {
 	case 4: // lf
 		r = lambda(f, x)
 	default:
-		trap(Type)
+		r = trap(Type)
 	}
 	dx(f)
 	return r

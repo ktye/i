@@ -68,8 +68,9 @@ func match(x, y K) int32 {
 		return eqf(F64(xp), F64(yp))
 	case 1: // zt
 		return eqz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
+	default:
+		return 0 // no deep comparision for comp, derived, proj, lambda
 	}
-	return 0 // no deep comparision for comp, derived, proj, lambda
 }
 func mtC(xp, yp, ve, e int32) (r int32) {
 	for yp < ve {
@@ -189,7 +190,7 @@ func in(x, y K, xt T) K {
 		dx(x)
 		e = inZ(F64(xp), F64(xp+8), yp, e)
 	default:
-		trap(Type)
+		e = int32(trap(Type))
 	}
 	return Kb(I32B(e != 0))
 }

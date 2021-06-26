@@ -5,14 +5,14 @@ import . "github.com/ktye/wg/module"
 type rdf = func(K, int32, T, int32) K
 
 func rd0(x K, yp int32, t T, n int32) K { return 0 }
-func min(x K, yp int32, t T, n int32) (r K) { // &/x
+func min(x K, yp int32, t T, n int32) K { // &/x
 	xp := int32(x)
 	switch t - 17 {
 	case 0: // Bt
 		if x == 0 {
 			xp = 1
 		}
-		r = Kb(mini(xp, all(yp, n)))
+		return Kb(mini(xp, all(yp, n)))
 	case 1: // Ct
 		if x == 0 {
 			xp = 127
@@ -20,7 +20,7 @@ func min(x K, yp int32, t T, n int32) (r K) { // &/x
 		for i := int32(0); i < n; i++ {
 			xp = mini(xp, I8(yp+i))
 		}
-		r = Kc(xp)
+		return Kc(xp)
 	case 2: // It
 		if x == 0 {
 			xp = 2147483647
@@ -29,9 +29,9 @@ func min(x K, yp int32, t T, n int32) (r K) { // &/x
 			xp = mini(xp, I32(yp))
 			yp += 4
 		}
-		r = Ki(xp)
+		return Ki(xp)
 	case 3: // St
-		r = 0
+		return 0
 	case 4: // Ft
 		f := F64(xp)
 		if x == 0 {
@@ -41,17 +41,16 @@ func min(x K, yp int32, t T, n int32) (r K) { // &/x
 			f = F64min(f, F64(yp))
 			yp += 8
 		}
-		r = Kf(f)
+		return Kf(f)
 	default:
-		r = 0
+		return 0
 	}
-	return r
 }
-func max(x K, yp int32, t T, n int32) (r K) { // |/x
+func max(x K, yp int32, t T, n int32) K { // |/x
 	xp := int32(x)
 	switch t - 17 {
 	case 0: // Bt
-		r = Kb(maxi(xp, any(yp, n)))
+		return Kb(maxi(xp, any(yp, n)))
 	case 1: // Ct
 		if x == 0 {
 			xp = -128
@@ -59,7 +58,7 @@ func max(x K, yp int32, t T, n int32) (r K) { // |/x
 		for i := int32(0); i < n; i++ {
 			xp = maxi(xp, I8(yp+i))
 		}
-		r = Kc(xp)
+		return Kc(xp)
 	case 2: // It
 		if x == 0 {
 			xp = -2147483648
@@ -68,9 +67,9 @@ func max(x K, yp int32, t T, n int32) (r K) { // |/x
 			xp = mini(xp, I32(yp))
 			yp += 4
 		}
-		r = Ki(xp)
+		return Ki(xp)
 	case 3: // St
-		r = 0
+		return 0
 	case 4: // Ft
 		f := F64(xp)
 		if x == 0 {
@@ -80,26 +79,25 @@ func max(x K, yp int32, t T, n int32) (r K) { // |/x
 			f = F64max(f, F64(yp))
 			yp += 8
 		}
-		r = Kf(f)
+		return Kf(f)
 	default:
-		r = 0
+		return 0
 	}
-	return r
 }
-func sum(x K, yp int32, t T, n int32) (r K) { // +/x
+func sum(x K, yp int32, t T, n int32) K { // +/x
 	xp := int32(x)
 	switch t - 17 {
 	case 0: // Bt
-		r = Ki(xp + sumb(yp, n))
+		return Ki(xp + sumb(yp, n))
 	case 1: // Ct
 		for i := int32(0); i < n; i++ {
 			xp += I8(yp + i)
 		}
-		r = Kc(xp)
+		return Kc(xp)
 	case 2: // It
-		r = Ki(xp + sumi(yp, n))
+		return Ki(xp + sumi(yp, n))
 	case 3: // St
-		r = 0
+		return 0
 	case 4: // Ft
 		f := F64(xp)
 		if x == 0 {
@@ -113,9 +111,8 @@ func sum(x K, yp int32, t T, n int32) (r K) { // +/x
 		}
 		return Kz(re+sumf(yp, n, 16), im+sumf(yp+8, n, 16))
 	default:
-		r = 0
+		return 0
 	}
-	return r
 }
 func sumb(xp, xn int32) (r int32) {
 	e := xp + xn
@@ -151,14 +148,14 @@ func sumf(xp, n, s int32) (r float64) {
 	m := n / 2
 	return sumf(xp, m, s) + sumf(xp+s*m, n-m, s)
 }
-func prd(x K, yp int32, t T, n int32) (r K) { // */x
+func prd(x K, yp int32, t T, n int32) K { // */x
 	xp := int32(x)
 	switch t - 17 {
 	case 0: // Bt
 		if x == 0 {
 			xp = 1
 		}
-		r = Kb(mini(xp, all(yp, n)))
+		return Kb(mini(xp, all(yp, n)))
 	case 1: // Ct
 		if x == 0 {
 			xp = 1
@@ -166,7 +163,7 @@ func prd(x K, yp int32, t T, n int32) (r K) { // */x
 		for i := int32(0); i < n; i++ {
 			xp *= I8(yp + i)
 		}
-		r = Kc(xp)
+		return Kc(xp)
 	case 2: // It
 		if x == 0 {
 			xp = 1
@@ -177,7 +174,7 @@ func prd(x K, yp int32, t T, n int32) (r K) { // */x
 		}
 		return Ki(xp)
 	case 3: // St
-		r = 0
+		return 0
 	case 4: // Ft
 		f := F64(xp)
 		if x == 0 {
@@ -189,7 +186,6 @@ func prd(x K, yp int32, t T, n int32) (r K) { // */x
 		}
 		return Kf(f)
 	default:
-		r = 0
+		return 0
 	}
-	return r
 }

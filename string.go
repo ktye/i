@@ -43,12 +43,13 @@ func Kst(x K) (r K) {
 			} else {
 				r = emb(40, 41, join(Kc(';'), x))
 			}
+			r = r
 		case 7: // Dt
 			x, r = spl2(x)
 			//fmt.Println(sK(x), "!", sK(r))
 			r = ucat(cat1(Kst(x), Kc('!')), Kst(r)) // todo ()!..
 		default:
-			trap(Nyi)
+			r = trap(Nyi)
 		}
 		if xn == 1 {
 			r = ucat(Ku(44), r)
@@ -73,7 +74,7 @@ func kst0(t T) (r K) {
 	case 6:
 		r = 10536 // ()
 	default:
-		trap(Nyi)
+		r = trap(Nyi)
 	}
 	return Ku(uint64(r))
 }
@@ -142,7 +143,7 @@ func Str(x K) (r K) {
 		case zt:
 			r = sfz(F64(xp), F64(xp+8))
 		default:
-			trap(Err)
+			r = trap(Err)
 		}
 	}
 	dx(x)

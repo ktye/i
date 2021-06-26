@@ -290,7 +290,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point
-		trap(Nyi)
+		return trap(Nyi)
 	case 1:
 		var y K
 		x, y = spl2(x)
@@ -306,11 +306,10 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		}
 		dx(x)
 		dx(y)
-		r = uf(r)
+		return uf(r)
 	default:
-		trap(Rank)
+		return trap(Rank)
 	}
-	return r
 }
 func Scn(f, x K) K { trap(Nyi); return x }
 func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
@@ -324,7 +323,7 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point-scan
-		trap(Nyi)
+		return trap(Nyi)
 	case 1:
 		var y K
 		x, y = spl2(x)
@@ -340,11 +339,10 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 		}
 		dx(x)
 		dx(y)
-		r = uf(r)
+		return uf(r)
 	default:
-		trap(Rank)
+		return trap(Rank)
 	}
-	return r
 }
 
 func uf(x K) (r K) {

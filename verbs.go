@@ -356,21 +356,18 @@ func Flr(x K) (r K) { // _x
 	if xt < 16 {
 		switch xt - 3 {
 		case 0: // i
-			r = Kc(xp)
+			return Kc(xp)
 		case 1: // s
-			trap(Type)
-			r = 0
+			return trap(Type)
 		case 2: // f
 			dx(x)
-			r = Ki(int32(F64floor(F64(xp))))
+			return Ki(int32(F64floor(F64(xp))))
 		case 3: // z
 			dx(x)
-			r = Kf(F64(xp))
+			return Kf(F64(xp))
 		default:
-			trap(Type)
-			r = 0
+			return trap(Type)
 		}
-		return r
 	}
 	xn := nn(x)
 	var rp int32

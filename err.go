@@ -16,7 +16,7 @@ const (
 	Nyi
 )
 
-func trap(x int32) {
+func trap(x int32) K {
 	if src != 0 {
 
 		a := maxi(srcp-30, 0)
@@ -44,5 +44,6 @@ func trap(x int32) {
 		srcp += a
 	}
 	panic(x)
+	return 0
 }
 func Srcp() int32 { return srcp }
