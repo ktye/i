@@ -986,8 +986,8 @@ func maxZ(xp, yp, rp, e int32) {
 }
 
 func Eql(x, y K) K                     { return nc(308, x, y) }
-func eqi(x, y int32) int32             { return ib(x == y) }
-func eqf(x, y float64) int32           { return ib(isnan(x) && isnan(y) || x == y) }
+func eqi(x, y int32) int32             { return I32B(x == y) }
+func eqf(x, y float64) int32           { return I32B(isnan(x) && isnan(y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
 func eqcC(v, w I8x16, yp, rp, e int32) {
 	for rp < e {
@@ -1096,8 +1096,8 @@ func Les(x, y K) (r K) { // x<y   `file<c
 	}
 	return nc(323, x, y)
 }
-func lti(x, y int32) int32   { return ib(x < y) }
-func ltf(x, y float64) int32 { return ib(x < y || x != x) }
+func lti(x, y int32) int32   { return I32B(x < y) }
+func ltf(x, y float64) int32 { return I32B(x < y || x != x) }
 func ltz(xr, xi, yr, yi float64) int32 {
 	if eqf(xr, yr) != 0 {
 		return ltf(xi, yi)
@@ -1214,8 +1214,8 @@ func ltZ(xp, yp, rp, e int32) {
 }
 
 func Mor(x, y K) (r K)       { return nc(338, x, y) }
-func gti(x, y int32) int32   { return ib(x > y) }
-func gtf(x, y float64) int32 { return ib(x > y || y != y) }
+func gti(x, y int32) int32   { return I32B(x > y) }
+func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {
 	if eqf(xr, yr) != 0 {
 		return gtf(xi, yi)

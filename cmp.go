@@ -61,7 +61,7 @@ func match(x, y K) int32 {
 	}
 	xp, yp := int32(x), int32(y)
 	if xt < ft {
-		return ib(xp == yp)
+		return I32B(xp == yp)
 	}
 	switch xt - ft {
 	case 0: // ft
@@ -191,7 +191,7 @@ func in(x, y K, xt T) K {
 	default:
 		trap(Type)
 	}
-	return Kb(ib(e != 0))
+	return Kb(I32B(e != 0))
 }
 func inC(x, yp, ve, e int32) int32 {
 	v := I8x16splat(x)

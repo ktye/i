@@ -182,7 +182,7 @@ func radixI(x K, n int32) K { // ^I  see:shawnsmithdev/zermelo
 			ok := op + 4*(255&(e>>ko))
 			SetI32(ok, 1+I32(ok))
 			if s != 0 {
-				s = ib(e >= prev)
+				s = I32B(e >= prev)
 				prev = e
 			}
 			continue
@@ -255,7 +255,7 @@ func radixF(x K, n int32) K { // ^F
 			SetI32(ok, 1+I32(ok))
 			if s != 0 {
 				v := F64(fr + i)
-				s = ib(v >= prev)
+				s = I32B(v >= prev)
 				prev = v
 			}
 		}
@@ -288,14 +288,14 @@ func floatflp(x uint64) uint64 {
 
 func swap(x, y int32) (int32, int32) { return y, x }
 
-func guC(xp, yp int32) int32 { return ib(I8(xp) < I8(yp)) }
-func guI(xp, yp int32) int32 { return ib(I32(xp) < I32(yp)) }
+func guC(xp, yp int32) int32 { return I32B(I8(xp) < I8(yp)) }
+func guI(xp, yp int32) int32 { return I32B(I32(xp) < I32(yp)) }
 func guF(xp, yp int32) int32 { return ltf(F64(xp), F64(yp)) }
 func guZ(xp, yp int32) int32 { return ltz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)) }
 func guS(xp, yp int32) int32 { return ltS(K(I64(xp)), K(I64(yp))) }
 
-func gdC(xp, yp int32) int32 { return ib(I8(xp) > I8(yp)) }
-func gdI(xp, yp int32) int32 { return ib(I32(xp) > I32(yp)) }
+func gdC(xp, yp int32) int32 { return I32B(I8(xp) > I8(yp)) }
+func gdI(xp, yp int32) int32 { return I32B(I32(xp) > I32(yp)) }
 func gdF(xp, yp int32) int32 { return gtf(F64(xp), F64(yp)) }
 func gdZ(xp, yp int32) int32 { return gtz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)) }
 func gdS(xp, yp int32) int32 { return gtS(K(I64(xp)), K(I64(yp))) }
@@ -308,10 +308,10 @@ func ltS(x, y K) int32 {
 	for i := int32(0); i < n; i++ {
 		xi, yi := I8(xp+i), I8(yp+i)
 		if xi != yi {
-			return ib(xi < yi)
+			return I32B(xi < yi)
 		}
 	}
-	return ib(xn < yn)
+	return I32B(xn < yn)
 }
 func gtS(x, y K) int32 {
 	xp, yp := int32(x), int32(y)
@@ -321,8 +321,8 @@ func gtS(x, y K) int32 {
 	for i := int32(0); i < n; i++ {
 		xi, yi := I8(xp+i), I8(yp+i)
 		if xi != yi {
-			return ib(xi > yi)
+			return I32B(xi > yi)
 		}
 	}
-	return ib(xn > yn)
+	return I32B(xn > yn)
 }

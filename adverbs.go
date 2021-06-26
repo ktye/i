@@ -61,7 +61,7 @@ func Ecp(f, x K) (r K) {
 		trap(Nyi)
 	}
 	xn = nn(x)
-	if 2 > xn+ib(y != 0) {
+	if 2 > xn+I32B(y != 0) {
 		dx(f)
 		return x
 	}

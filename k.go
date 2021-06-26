@@ -203,12 +203,6 @@ func sc(c K) K {
 	return K(8*sn) | K(st)<<59
 }
 func cs(x K) (r K) { return x0(I32(0) + int32(x)) }
-func ib(x bool) int32 {
-	if x {
-		return 1
-	}
-	return 0
-}
 func zero(t T) (r K) {
 	if t == Ft {
 		return Kf(0)

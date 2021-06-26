@@ -47,7 +47,7 @@ func exec(x K) K {
 				a = pop()
 			case 6: // 384       jump if not
 				u = pop()
-				p += int32(a) * ib(int32(u) == 0)
+				p += int32(a) * I32B(int32(u) == 0)
 				a = pop()
 				dx(u)
 			default: //448..     quoted verb

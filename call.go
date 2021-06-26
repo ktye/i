@@ -18,7 +18,7 @@ func Cal(x, y K) (r K) {
 	}
 	return atdepth(x, explode(y))
 }
-func isfunc(t T) int32 { return ib(t == 0 || (t < 16 && t > tt)) }
+func isfunc(t T) int32 { return I32B(t == 0 || (t < 16 && t > tt)) }
 
 func cal(f, x K) (r K) {
 	t := tp(f)
