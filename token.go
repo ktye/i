@@ -94,8 +94,10 @@ func tunm() K {
 	p := pp
 	r := pu()
 	if r == 0 && p == pp {
-		if I8(p) == '.' && is(I8(1+p), 4) {
-			return pflt(r)
+		if I8(p) == '.' {
+			if is(I8(1+p), 4) {
+				return pflt(r)
+			}
 		}
 		return 0
 	}
@@ -145,8 +147,10 @@ func pflt(i int64) K {
 		f += d * float64(c-'0')
 		pp++
 	}
-	if pp < pe && I8(pp) == 'a' {
-		return pflz(f)
+	if pp < pe {
+		if I8(pp) == 'a' {
+			return pflz(f)
+		}
 	}
 	return Kf(f)
 }
@@ -178,12 +182,14 @@ func tvrb() (r K) {
 		return K(29)
 	}
 	o := int32(1)
-	if pp < pe && I8(pp) == 58 { // :
-		pp++
-		if is(c, 8) {
-			o = 2 // ':
-		} else {
-			o = 97 // +:
+	if pp < pe {
+		if I8(pp) == 58 { // :
+			pp++
+			if is(c, 8) {
+				o = 2 // ':
+			} else {
+				o = 97 // +:
+			}
 		}
 	}
 	return K(o + index(c, 228, 253))
@@ -277,4 +283,6 @@ func ws() {
 	}
 	return
 }
-func is(x, m int32) bool { return m&I8(100+x) != 0 }
+func is(x, m int32) bool {
+	return m&I8(100+x) != 0
+}
