@@ -46,7 +46,13 @@ func Cnt(x K) (r K) { // #x
 	return Ki(nn(x))
 }
 func Til(x K) (r K) {
-	if tp(x) != it {
+	xt := tp(x)
+	if xt > Lt {
+		r = x0(int32(x))
+		dx(x)
+		return r
+	}
+	if xt != it {
 		trap(Type)
 	}
 	return seq(int32(x))
@@ -513,6 +519,11 @@ func Val(x K) (r K) {
 	}
 	if xt == Lt {
 		return exec(x) // .L e.g. 1+2 is (1;2;`66)
+	}
+	if xt > Lt {
+		r = x1(int32(x))
+		dx(x)
+		return r
 	}
 	trap(Nyi)
 	return x

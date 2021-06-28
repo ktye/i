@@ -31,6 +31,9 @@ func Atx(x, y K) K { // x@y
 	if yt == it && xt > 16 {
 		return ati(x, int32(y))
 	}
+	if yt == Lt {
+		return Ecr(19, l2(x, y))
+	}
 	trap(Nyi) // f@
 	return x
 }

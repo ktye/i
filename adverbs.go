@@ -41,7 +41,36 @@ func Ech(f, x K) (r K) {
 	dx(x)
 	return uf(r)
 }
-func ecn(f, x K) K { return Ech(20, Flp(x)) }
+func ecn(f, x K) (r K) {
+	if nn(x) == 2 {
+		r, x = spl2(x)
+		return ec2(f, r, x)
+	}
+	return Ech(20, Flp(x))
+}
+func ec2(f, x, y K) (r K) {
+	n, _ := conform(x, y)
+	switch n {
+	case 0: // a-a
+		return Cal(f, l2(x, y))
+	case 1: // a-v
+		n = nn(y)
+	case 2: // v-v
+		n = nn(x)
+	default: // v-a
+		n = nn(x)
+	}
+	r = mk(Lt, n)
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		SetI64(rp, int64(Cal(rx(f), l2(ati(rx(x), i), ati(rx(y), i)))))
+		rp += 8
+	}
+	dx(f)
+	dx(x)
+	dx(y)
+	return r
+}
 func Ecp(f, x K) (r K) {
 	xn := nn(x)
 	var y K

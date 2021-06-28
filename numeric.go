@@ -63,7 +63,25 @@ func use(x K) (r K) {
 
 func nm(f int32, x K) (r K) {
 	xt := tp(x)
+	if xt > Lt {
+		r, x = spl2(x)
+		r = Key(r, nm(f, x))
+		r = K(int32(r)) | K(xt)<<59
+		return r
+	}
 	xp := int32(x)
+	if xt == Lt {
+		n := nn(x)
+		r = mk(Lt, n)
+		rp := int32(r)
+		for i := int32(0); i < n; i++ {
+			SetI64(rp, int64(nm(f, x0(xp))))
+			xp += 8
+			rp += 8
+		}
+		dx(x)
+		return uf(r)
+	}
 	if xt < 16 {
 		switch xt - 1 {
 		case 0:
@@ -243,10 +261,21 @@ func sqrF(x K) (r K) {
 	return r
 }
 
-func nd(f int32, x, y K) (r K) {
+func nd(f, ff int32, x, y K) (r K) {
+	var av int32
+	var t T
+	r, t, x, y = dctypes(x, y)
+	if r != 0 {
+		r = Key(r, nd(f, ff, x, y))
+		r = K(int32(r)) | K(t)<<59
+		return r
+	}
+	if t == Lt {
+		return Ech(K(ff), l2(x, y))
+	}
 	x, y = uptypes(x, y, 1)
 	xp, yp := int32(x), int32(y)
-	av, t := conform(x, y)
+	av, t = conform(x, y)
 	if av == 0 { // atom-atom
 		switch t - 2 {
 		case 0: // ct
@@ -324,10 +353,21 @@ func nd(f int32, x, y K) (r K) {
 	}
 	return r
 }
-func nc(f int32, x, y K) (r K) {
+func nc(f, ff int32, x, y K) (r K) {
+	var av int32
+	var t T
+	r, t, x, y = dctypes(x, y)
+	if r != 0 {
+		r = Key(r, nc(f, ff, x, y))
+		r = K(int32(r)) | K(t)<<59
+		return r
+	}
+	if t == Lt {
+		return Ech(K(ff), l2(x, y))
+	}
 	x, y = uptypes(x, y, 0)
 	xp, yp := int32(x), int32(y)
-	av, t := conform(x, y)
+	av, t = conform(x, y)
 	if av == 0 { // atom-atom
 		switch t - 1 {
 		case 0: // bt
@@ -466,9 +506,9 @@ func conform(x, y K) (av int32, r T) { // 0:atom-atom 1:atom-vector, 2:vector-ve
 }
 func Add(x, y K) (r K) {
 	if tp(y) < 16 {
-		return nd(236, y, x)
+		return nd(236, 2, y, x)
 	}
-	return nd(236, x, y)
+	return nd(236, 2, x, y)
 }
 func addi(x, y int32) int32                          { return x + y }
 func addf(x, y float64) float64                      { return x + y }
@@ -532,9 +572,9 @@ func addZ(xp, yp, rp, e int32) { addF(xp, yp, rp, e) }
 
 func Sub(x, y K) (r K) {
 	if tp(y) < 16 {
-		return nd(236, Neg(y), x)
+		return nd(236, 2, Neg(y), x)
 	}
-	return nd(248, x, y)
+	return nd(248, 3, x, y)
 }
 func subi(x, y int32) int32                          { return x - y }
 func subf(x, y float64) float64                      { return x - y }
@@ -605,9 +645,9 @@ func Mul(x, y K) (r K) {
 		return scalez(y, x)
 	}
 	if yt < 16 {
-		return nd(260, y, x)
+		return nd(260, 4, y, x)
 	}
-	return nd(260, x, y)
+	return nd(260, 4, x, y)
 }
 func muli(x, y int32) int32                          { return x * y }
 func mulf(x, y float64) float64                      { return x * y }
@@ -727,7 +767,7 @@ func Div(x, y K) (r K) {
 	if xt&15 < ft && yt&15 < ft {
 		return idiv(x, y) // no simd for ints
 	}
-	return nd(272, x, y)
+	return nd(272, 5, x, y)
 }
 func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x * y }
@@ -795,9 +835,9 @@ func Min(x, y K) (r K) {
 		return K(tp(r)-1)<<59 | K(uint32(r))
 	}
 	if tp(y) < 16 {
-		return nd(284, y, x)
+		return nd(284, 7, y, x)
 	}
-	return nd(284, x, y)
+	return nd(284, 7, x, y)
 }
 func mini(x, y int32) int32 {
 	if x < y {
@@ -894,15 +934,16 @@ func Max(x, y K) (r K) {
 		return K(tp(r)-1)<<59 | K(uint32(r))
 	}
 	if tp(y) < 16 {
-		return nd(296, y, x)
+		return nd(296, 8, y, x)
 	}
-	return nd(296, x, y)
+	return nd(296, 8, x, y)
 }
 func maxi(x, y int32) int32 {
 	if x > y {
 		return x
+	} else {
+		return y
 	}
-	return y
 }
 func maxf(x, y float64) float64 { return F64max(x, y) }
 func maxz(xr, xi, yr, yi float64) (float64, float64) {
@@ -984,7 +1025,7 @@ func maxZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Eql(x, y K) K                     { return nc(308, x, y) }
+func Eql(x, y K) K                     { return nc(308, 11, x, y) }
 func eqi(x, y int32) int32             { return I32B(x == y) }
 func eqf(x, y float64) int32           { return I32B(isnan(x) && isnan(y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
@@ -1093,7 +1134,7 @@ func Les(x, y K) (r K) { // x<y   `file<c
 	if tp(x) == st && tp(y) == Ct {
 		return writefile(cs(x), y)
 	}
-	return nc(323, x, y)
+	return nc(323, 9, x, y)
 }
 func lti(x, y int32) int32   { return I32B(x < y) }
 func ltf(x, y float64) int32 { return I32B(x < y || x != x) }
@@ -1212,7 +1253,7 @@ func ltZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Mor(x, y K) (r K)       { return nc(338, x, y) }
+func Mor(x, y K) (r K)       { return nc(338, 10, x, y) }
 func gti(x, y int32) int32   { return I32B(x > y) }
 func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {
@@ -1344,6 +1385,29 @@ func Rot(x, y K) (r K) { // r angle deg
 	deg := F64(int32(y))
 	dx(y)
 	return Mul(Kz(cosin(deg)), x)
+}
+
+func dctypes(x, y K) (K, T, K, K) {
+	xt, yt := tp(x), tp(y)
+	t := T(maxi(int32(xt), int32(yt)))
+	if xt < Dt && yt < Dt {
+		return 0, t, x, y
+	}
+	var k K
+	if xt > Lt {
+		k, x = spl2(x)
+		if yt > Lt {
+			var yk K
+			yk, y = spl2(y)
+			if match(k, yk) == 0 {
+				trap(Value)
+			}
+			dx(yk)
+		}
+	} else if yt > Lt {
+		k, y = spl2(y)
+	}
+	return k, t, x, y
 }
 func uptypes(x, y K, b2i int32) (K, K) {
 	xt, yt := tp(x)&15, tp(y)&15
