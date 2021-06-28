@@ -1,6 +1,8 @@
 package main
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
 type rdf = func(K, int32, T, int32) K
 
@@ -187,5 +189,78 @@ func prd(x K, yp int32, t T, n int32) K { // */x
 		return Kf(f)
 	default:
 		return 0
+	}
+}
+
+func sums(x K, yp int32, t T, n int32) (r K) {
+	if t != Bt && t != It {
+		return 0
+	}
+	r = mk(It, n)
+	rp := int32(r)
+	s := int32(x)
+	e := yp
+	if t == Bt {
+		e += n
+		for yp < e {
+			s += I8(yp)
+			SetI32(rp, s)
+			rp += 4
+			yp++
+			continue
+		}
+	} else {
+		e += 4 * n
+		for yp < e {
+			s += I32(yp)
+			SetI32(rp, s)
+			rp += 4
+			yp += 4
+			continue
+		}
+	}
+	return r
+}
+func prds(x K, yp int32, t T, n int32) (r K) {
+	if t != It {
+		return 0
+	}
+	r = mk(It, n)
+	rp := int32(r)
+	s := int32(x)
+	if x == 0 {
+		s = 1
+	}
+	e := yp + 4*n
+	for yp < e {
+		s *= I32(yp)
+		SetI32(rp, s)
+		rp += 4
+		yp += 4
+		continue
+	}
+	return r
+}
+func mins(x K, yp int32, t T, n int32) K {
+	if t != Bt {
+		return 0
+	} else {
+		return 0
+	}
+
+}
+func maxs(x K, yp int32, t T, n int32) K {
+	if t != Bt || x != 0 {
+		return 0
+	} else {
+		i := int32(firstWhereB(yp, n))
+		r := mk(Bt, n)
+		rp := int32(r)
+		if i < 0 {
+			i = n
+		}
+		Memoryfill(rp, 0, i)
+		Memoryfill(rp+i, 1, n-i)
+		return r
 	}
 }

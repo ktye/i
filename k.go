@@ -35,6 +35,7 @@ func init() {
 	Functions(353, guC, guC, guI, guI, guF, guZ, guS, gdC, gdC, gdI, gdI, gdF, gdZ, gdS)
 
 	Functions(369, sum, rd0, prd, rd0, rd0, min, max)
+	Functions(376, sums, rd0, prds, rd0, rd0, mins, maxs)
 }
 
 //   0....7  key

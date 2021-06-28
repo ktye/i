@@ -465,6 +465,33 @@ func Wer(x K) (r K) { // &x
 	dx(x)
 	return r
 }
+func firstWhere(x K) K { // *&x (todo idiom)
+	t := tp(x)
+	if t == Bt {
+		dx(x)
+		return Ki(maxi(0, firstWhereB(int32(x), nn(x))))
+	}
+	return Fst(Wer(x))
+}
+func firstWhereB(xp, n int32) int32 { // *&B
+	e := xp + n
+	ve := e &^ 15
+	p := xp
+f:
+	for p < ve {
+		if I8x16load(p).Any_true() != 0 {
+			break f
+		}
+		p += 16
+	}
+	for p < e {
+		if I8(p) != 0 {
+			return p - xp
+		}
+		p++
+	}
+	return -1
+}
 
 func Typ(x K) (r K) { // @x
 	dx(x)

@@ -224,57 +224,6 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	return x
 }
 
-/*
-func rdx(f int32, x, y K, n int32) (r K) { // (+-*% &|)/
-	yt := tp(y)
-	s := sz(yt)
-	yp := int32(y)
-	i := int32(0)
-	if x == 0 {
-		x, i = Fst(rx(y)), 1
-	}
-	xp := int32(x)
-	f = 212 + 12*f
-
-	switch s >> 2 {
-	case 0:
-		for i < n {
-			xp = Func[f].(f2i)(xp, I8(yp+i))
-			i++
-		}
-		if yt == Bt {
-			r = Ki(xp)
-		} else {
-			r = Kc(xp)
-		}
-	case 1:
-		for i < n {
-			xp = Func[f].(f2i)(xp, I32(yp+4*i))
-			i++
-		}
-		r = Ki(xp)
-	case 2:
-		xf := F64(xp)
-		f++
-		for i < n {
-			xf = Func[f].(f2f)(xf, F64(yp+8*i))
-			i++
-		}
-		r = Kf(xf)
-	default:
-		re, im := F64(xp), F64(xp+8)
-		for i < n {
-			re, im = Func[f].(f2z)(re, im, F64(yp), F64(yp+8))
-			i++
-			yp += 16
-		}
-		r = Kz(re, im)
-	}
-	dx(x)
-	dx(y)
-	return r
-}
-*/
 func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	t := tp(f)
 	if isfunc(t) == 0 {
@@ -311,7 +260,69 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		return trap(Rank)
 	}
 }
-func Scn(f, x K) K { trap(Nyi); return x }
+
+func Scn(f, x K) (r K) {
+	var y K
+	if xn := nn(x); xn == 1 {
+		y = Fst(x)
+		x = 0
+	} else if xn == 2 {
+		x, y = spl2(x)
+	} else {
+		trap(Rank)
+	}
+	yn := nn(y)
+	if yn == 0 {
+		dx(f)
+		dx(x)
+		return y
+	}
+	yt := tp(y)
+	if yt < 16 {
+		if x == 0 {
+			dx(f)
+			return x
+		} else {
+			return cal(f, l2(x, y))
+		}
+	}
+
+	xt := tp(x)
+	if tp(f) == 0 {
+		fp := int32(f)
+		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sums,prds,mins,maxs (reduce.go)
+			r = Func[374+fp].(rdf)(x, int32(y), yt, yn)
+			if r != 0 {
+				dx(x)
+				dx(y)
+				return r
+			}
+		}
+	}
+
+	if yt > Lt {
+		trap(Nyi)
+	}
+
+	r = mk(Lt, yn)
+	rp := int32(r)
+	i := int32(0)
+	if x == 0 {
+		x, i = ati(rx(y), 0), 1
+		SetI64(rp, int64(rx(x)))
+		rp += 8
+	}
+	for i < yn {
+		x = cal(rx(f), l2(x, ati(rx(y), i)))
+		SetI64(rp, int64(rx(x)))
+		rp += 8
+		i++
+	}
+	dx(y)
+	dx(x)
+	dx(f)
+	return uf(r)
+}
 func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	t := tp(f)
 	if isfunc(t) == 0 {
