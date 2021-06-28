@@ -61,6 +61,8 @@
 2 5^"alphabeta" /("pha";"beta")
 3^!8 /(0 1;2 3;4 5)
 "ABC"^"abcCdeAgh" /("abc";"de";"gh")
++(1;2 3;4 5 6.) /((1;2;4.);(1;3;5.);(1;0;6.))
++("abc";"def") /("ad";"be";"cf")
 "b"\:"abc" /(,"a";,"c")
 "x"\:"abxdexfg" /("ab";"de";"fg")
 "xd"\:"abxdexfg" /("ab";"exfg")

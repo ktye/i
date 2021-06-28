@@ -9,9 +9,34 @@ func Dex(x, y K) K { // x:y
 	dx(x)
 	return y
 }
-func Flp(x K) K { // +x
-	trap(Nyi)
-	return x
+func Flp(x K) (r K) { // +x
+	xt := tp(x)
+	switch xt - Lt {
+	case 0: // Lt   n:#x;  m:|/#x (,/m#/:x)[(!m)+\:m*!n]
+		n := nn(x)
+		xp := int32(x)
+		m := Ki(maxcount(xp, n))
+		x = Atx(Rdc(13, l1(Ecr(15, l2(m, x)))), Ecl(2, l2(Til(m), Mul(m, Til(Ki(n))))))
+		return x
+	case 1: // Dt
+		return trap(Nyi) // to table
+	case 2: // Tt
+		return Key(spl2(x))
+	default:
+		return Abs(x)
+	}
+}
+func maxcount(xp int32, n int32) (r int32) { // |/#l
+	for i := int32(0); i < n; i++ {
+		x := K(I64(xp))
+		xp += 8
+		if tp(x) < 16 {
+			r = maxi(1, r)
+		} else {
+			r = maxi(nn(x), r)
+		}
+	}
+	return r
 }
 func Fst(x K) K { // *x
 	t := tp(x)
