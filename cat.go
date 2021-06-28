@@ -148,8 +148,9 @@ func ucats(x K) (r K) { // ,/ unitype-list
 		t := tp(xi)
 		if i == 0 {
 			rt = t
-		} else if rt != t || t < 16 || t > Zt {
-			trap(Type)
+		}
+		if rt != t || rt < 16 || t > Zt {
+			return 0
 		}
 		rn += nn(xi)
 		xp += 8
