@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 
 <style>
- html,body,textarea{margin:0;padding:0;overflow:hidden;font-family:monospace;}
+ html,body,textarea,input{margin:0;padding:0;overflow:hidden;font-family:monospace;}
  #term{position:absolute;top:0;right:0;width:50%;height:100%;background:black;color:#cccccc;border:none;resize:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}::-webkit-scrollbar{width:0;height:0;}
  #term:focus{color:white;}.hold{background:#666666}
  .codemirror{position:absolute;top:0;left:0;width:50%;height:100%;border:none;resize:none;background:#ffffea}
@@ -13,14 +13,20 @@
 <script src="codemirror/codemirror.min.js"></script>
 
 <body>
-<textarea id="edit"></textarea>
-<textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
-<button id="runb" onclick="run()">run</button>
+<div id="ide">
+ <textarea id="edit"></textarea>
+ <textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
+ <button id="runb" onclick="run()">run</button>
+</div><div id="uid"">empty-ui</div>
 <a id="dl" style:"display:none"></a>
 <script>
 
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function hash(){return decodeURIComponent(window.location.hash.substr(1))}
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+function toggle(x){x.style.display=(x.style.display=="none")?"block":"none"}
+var ide=ge("ide");ide.style.display="block"
 
 var ed = CodeMirror.fromTextArea(edit, {"lineNumbers":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true})
 ed.setValue(hash()); if(hash()==="")fetch('readme').then(r=>{return r.text()}).then(r=>ed.setValue(r))
@@ -50,16 +56,16 @@ function search(t, all){
 
 var term = ge("term")
 window.addEventListener('unhandledrejection', function(e) {term.value+=String(e.reason)})
-function ge(x){return document.getElementById(x)}
 function banner(x){term.value = "ktye/k "+x.byteLength+"b\n ";return x}
 
 
-var K, C, U, bak
+var K, C, U, F, bak
 function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function lo(x){return Number(BigInt.asUintN(32,x))}
 function ks(s){s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
 function sk(x){var xp=lo(x);return su(C.slice(xp,xp+K.nn(x)))}
+function sy(x){return sk(K.cs(x))}
 
 var filename="" 
 function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
@@ -104,7 +110,8 @@ var bak
 function msl() {
  C=new Uint8Array(K.memory.buffer)
  U=new Uint32Array(K.memory.buffer)
- J=new BigInt64Array(K.memory.buffer)}
+ J=new BigInt64Array(K.memory.buffer)
+ F=new Float64Array(K.memory.buffer)}
 function ksave(){ msl();bak=C.slice(0,1<<U[32]) }
 
 function ktry(s) { 
@@ -136,7 +143,7 @@ function run(){
  if(runb.value=="test"){test(ed.getValue());return}               //after drop file.t
  else if(runb.value!=""){assign(runb.value,ed.getValue());return} //after drop data file
  var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";
- var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p-1), ed.posFromIndex(p), {"scroll":true})}
+ var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p-1), ed.posFromIndex(p), {"scroll":true})} else ui()
 }
 function assign(x,y){
  ktry(function(){K.dx(K.Asn(K.sc(ks(x)),ks(y)))})
@@ -160,6 +167,54 @@ function addfile(x){
  }
  r.readAsArrayBuffer(x)
 }
+
+
+/*                              $[`s~@*x; show x; layout x]
+  ui:((symbol;[options])        //leaf-node: symbol references a variable
+      (children;[options]);..)  //tree-node: children is a list, options defines layout
+ */
+
+// ui (toggle with cntrl-K)
+var uid = ge("uid");uid.style.display="none"
+window.onkeydown=function(e){if(e.ctrlKey&&e.key=="k"){toggle(ide);toggle(uid);return false}}
+function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(uid);ktry(function(){showui(u,uid)});K.dx(u)}
+
+function showui(x,p,s,o){
+ s=K.Fst(K.rx(x));o=(K.tp(x)<16)?0:K.ndrop(1,x)
+ x=K.tp(s);if(x==4)  show(p,s,o)          // symbol (node)
+ else      if(x==23) layout(p,x)          // list (container)
+ else      throw     "first ui element must be symbol or list"
+ ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
+function layout(p,x){ K.dx(x) }                 // todo
+function show(p,s,o){var x=K.Val(s);var e;    K.dx(o) // todo options
+ switch(K.tp(x)){
+  case 0:  break //func    -> button
+  case 1:  break //bool    -> checkbox
+  case 2:  break //char    -> input text (maxlength 1)
+  case 3:        //int     -> input number step=1
+   e=document.createElement("input");e.type="number";e.value=lo(x);e.title=sy(s);e.min=-2147483648;e.max=2147483647;e.step=1
+   p.appendChild(e)
+   break
+  case 4:  break //symbol  -> input string
+  case 5:        //float   -> number edit
+   e=document.createElement("input");e.type="number";e.value=F[lo(x)>>>3];e.title=sy(s);
+   p.appendChild(e)
+   break
+  case 6:  break //complex -> validate 1a30
+  case 17: break //bools   -> validate 1001b
+  case 18: break //chars   -> input text
+  case 19: break //ints    -> validate 1 2 3
+  case 20: break //symbols -> `a`b`c or dropdowns
+  case 21: break //floats  -> validate 1 2 3.
+  case 22: break //complex -> validate 1 2 3a
+  case 24: break //list    -> listbox?
+  case 25: break //dict    -> key-value table?
+  case 26: break //table   -> table?
+ }
+}
+ 
+ 
+function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
 
 </script>
 </body></html>
