@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Atx(x, y K) K { // x@y
+func Atx(x, y K) (r K) { // x@y
 	xt, yt := tp(x), tp(y)
 	xp := int32(x)
 	if xt < 16 {
@@ -23,7 +23,11 @@ func Atx(x, y K) K { // x@y
 		}
 	}
 	if xt > Lt {
-		trap(Nyi) // d@ t@
+		x, r = spl2(x)
+		if xt == Tt && yt&15 == it {
+			trap(Nyi) // table-row-indexing
+		}
+		return Atx(r, Fnd(x, y))
 	}
 	if yt == It {
 		return atv(x, y)

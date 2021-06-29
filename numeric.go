@@ -65,9 +65,7 @@ func nm(f int32, x K) (r K) {
 	xt := tp(x)
 	if xt > Lt {
 		r, x = spl2(x)
-		r = Key(r, nm(f, x))
-		r = K(int32(r)) | K(xt)<<59
-		return r
+		return key(r, nm(f, x), xt)
 	}
 	xp := int32(x)
 	if xt == Lt {
@@ -266,9 +264,7 @@ func nd(f, ff int32, x, y K) (r K) {
 	var t T
 	r, t, x, y = dctypes(x, y)
 	if r != 0 {
-		r = Key(r, nd(f, ff, x, y))
-		r = K(int32(r)) | K(t)<<59
-		return r
+		return key(r, nd(f, ff, x, y), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
@@ -358,9 +354,7 @@ func nc(f, ff int32, x, y K) (r K) {
 	var t T
 	r, t, x, y = dctypes(x, y)
 	if r != 0 {
-		r = Key(r, nc(f, ff, x, y))
-		r = K(int32(r)) | K(t)<<59
-		return r
+		return key(r, nc(f, ff, x, y), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))

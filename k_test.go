@@ -356,9 +356,9 @@ func sK(x K) string {
 			return "(" + strings.Join(r, ";") + ")"
 		}
 	case Dt:
-		panic("nyi-Dt")
+		return sK(K(I64(xp))) + "!" + sK(K(I64(xp+8)))
 	case Tt:
-		panic("nyi-Tt")
+		return "+" + sK(K(I64(xp))) + "!" + sK(K(I64(xp+8)))
 	default:
 		fmt.Println("type ", tp(x))
 		panic("type")

@@ -115,6 +115,13 @@ func Amd(x, i, v, y K) (r K) {
 	if xt < 16 {
 		trap(Type)
 	}
+	if xt > Lt {
+		if xt == Tt && tp(y)&15 == it {
+			return trap(Nyi) // table-assign-rows
+		}
+		r, x = spl2(x)
+		return key(r, Amd(x, Fnd(rx(r), i), v, y), xt)
+	}
 	if i == 0 {
 		if v == 1 {
 			if tp(y) < 16 {
@@ -148,7 +155,7 @@ func Amd(x, i, v, y K) (r K) {
 	}
 	return stv(x, i, y)
 }
-func Dmd(x, i, v, y K) K {
+func Dmd(x, i, v, y K) (r K) {
 	//fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
 	i = explode(i)
 	f := Fst(rx(i))
@@ -168,10 +175,11 @@ func Dmd(x, i, v, y K) K {
 			trap(Rank)
 		}
 		i = Fst(i)
+		// todo table-matrix-assign
 		if tp(f) != It || tp(x) != Lt {
 			trap(Nyi) // Dt
 		}
-		r := use(x)
+		r = use(x)
 		for j := int32(0); j < n; j++ {
 			rj := int32(r) + 8*I32(int32(f)+4*j)
 			SetI64(rj, int64(Amd(K(I64(rj)), rx(i), rx(v), ati(rx(y), j))))
@@ -183,5 +191,5 @@ func Dmd(x, i, v, y K) K {
 		return r
 	}
 
-	return Amd(x, f, 1, Dmd(Atx(rx(x), f), i, v, y))
+	return Amd(x, f, 1, Dmd(Atx(rx(x), Out(f)), i, v, y))
 }

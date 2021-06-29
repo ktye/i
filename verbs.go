@@ -164,6 +164,7 @@ func Key(x, y K) (r K) { // x!y
 	r = l2(x, y)
 	return K(int32(r)) | K(Dt)<<59
 }
+func key(x, y K, t T) K { return K(int32(Key(x, y))) | K(t)<<59 } // Dt or Tt
 
 func Tak(x, y K) (r K) { // x#y
 	xt := tp(x)
