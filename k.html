@@ -8,6 +8,7 @@
  #term:focus{color:white;}.hold{background:#666666}
  .codemirror{position:absolute;top:0;left:0;width:50%;height:100%;border:none;resize:none;background:#ffffea}
  #runb{position:absolute;top:0;right:50%;font-family:monospace;z-Index:10}
+ input:invalid{border:2px solid red}
 </style>
 <script src="codemirror/jquery.min.js"></script>
 <script src="codemirror/codemirror.min.js"></script>
@@ -17,7 +18,7 @@
  <textarea id="edit"></textarea>
  <textarea id="term" class="term" wrap="off" spellcheck="false"></textarea>
  <button id="runb" onclick="run()">run</button>
-</div><div id="uid"">empty-ui</div>
+</div><div id="uid""><form id="uiform">empty-ui</form></div>
 <a id="dl" style:"display:none"></a>
 <script>
 
@@ -59,13 +60,26 @@ window.addEventListener('unhandledrejection', function(e) {term.value+=String(e.
 function banner(x){term.value = "ktye/k "+x.byteLength+"b\n ";return x}
 
 
-var K, C, U, F, bak
+var K, C, I, U, F, bak
 function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function lo(x){return Number(BigInt.asUintN(32,x))}
-function ks(s){s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
-function sk(x){var xp=lo(x);return su(C.slice(xp,xp+K.nn(x)))}
+function ks(s){msl();s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
+function sk(x){msl();var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
 function sy(x){return sk(K.cs(x))}
+function sz(re,im){var p=Math.atan2(im,re)*180.0/Math.PI;p=(p<0)?p+360.0:p;return String(Math.hypot(re,im))+"a"+String(p)}
+function zs(s){var v=s.split("a");if(v.length!=2)return false;v[1]=(v[1].trim().length>0)?v[1]:"0"
+               var a=Number(v[0]);var b=Number(v[1]);if(isNaN(a)||isNaN(b))return false;
+               var p=Math.PI*b/180.0;return [a*Math.cos(p),a*Math.sin(p)]}                        // false or [re,im]
+function sB(x){msl();return su(C.slice(lo(x),lo(x)+K.nn(x)).map(x=>48+x)) + "b"}
+function Bs(s){msl();s=s.slice(0,-1);var r=K.mk(17,s.length);if(s.length==0)return r;C.set(us(s).map(x=>x-48),lo(r));return r}
+function sI(x){msl();K.dx(x);return String(I.slice(lo(x)>>>2,(lo(x)>>>2)+K.nn(x))).replaceAll(","," ")}
+function Is(s){msl();var i=new Int32Array(s.split(" ").map(x=>Number(x)));var r=K.mk(19,i.length);I.set(i, lo(r)>>>2);return r}
+function Ys(s){msl();if(s.startsWith("`")==false)return K.mk(20,0);s=s.split("`").slice(1).map(x=>lo(K.sc(ks(x))));var r=K.mk(20,s.length);U.set(new Uint32Array(s),lo(r)>>>2);return r}
+function sF(x){msl();K.dx(x);return String(F.slice(lo(x)>>>3,(lo(x)>>>3)+K.nn(x))).replaceAll(",", " ")}
+function Fs(s){msl();s=new Float64Array(s.split(" ").map(x=>Number(x)));var r=K.mk(21,s.length);F.set(s,lo(r)>>>3);return r}
+function sZ(x){msl();K.dx(x);x=F.slice(lo(x)>>>3,(lo(x)>>>3)+2*K.nn(x));var r="";for(var i=0;i<x.length;i+=2){r+=((i>0)?" ":"")+sz(x[i],x[i+1])};return r}
+function Zs(s){msl();s=L(new Float64Array(s.split(" ").map(x=>zs(x)).flat()));var r=K.mk(22,s.length/2);F.set(s,lo(r)>>>3);return r}
 
 var filename="" 
 function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
@@ -109,6 +123,7 @@ function gettest(){
 var bak
 function msl() {
  C=new Uint8Array(K.memory.buffer)
+ I=new Int32Array(K.memory.buffer)
  U=new Uint32Array(K.memory.buffer)
  J=new BigInt64Array(K.memory.buffer)
  F=new Float64Array(K.memory.buffer)}
@@ -117,7 +132,7 @@ function ksave(){ msl();bak=C.slice(0,1<<U[32]) }
 function ktry(s) { 
  try      { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0}
  catch(e) { console.log(e); C.set(bak); return K.Srcp() }}
-// function ktry(s) { K.repl(ks(s)); return 0 } //unprotected
+function ktry(s) { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0 } //unprotected
 
 
 function kd(e){var N="\n";var t=e.srcElement;
@@ -175,45 +190,111 @@ function addfile(x){
  */
 
 // ui (toggle with cntrl-K)
-var uid = ge("uid");uid.style.display="none"
+var uid = ge("uid");uid.style.display="none"; var uiform = ge("uiform")
 window.onkeydown=function(e){if(e.ctrlKey&&e.key=="k"){toggle(ide);toggle(uid);return false}}
-function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(uid);ktry(function(){showui(u,uid)});K.dx(u)}
+function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(uiform);ktry(function(){showui(u,uiform)});K.dx(u)}
+
+var ee                                 //todo rm
+function L(x){console.log(x);return x} //todo rm
 
 function showui(x,p,s,o){
- s=K.Fst(K.rx(x));o=(K.tp(x)<16)?0:K.ndrop(1,x)
- x=K.tp(s);if(x==4)  show(p,s,o)          // symbol (node)
- else      if(x==23) layout(p,x)          // list (container)
+ s=K.Fst(K.rx(x));o=(K.tp(x)<16)?BigInt(0):K.ndrop(1,x)
+ x=K.tp(s);if(x==4)    show(p,s,o)        // symbol (node)
+ else      if(x==23) layout(p,s,o)        // list (container)
  else      throw     "first ui element must be symbol or list"
  ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
-function layout(p,x){ K.dx(x) }                 // todo
+function layout(p,x,o){var e;     o=K.Lst(o);              // `col~o
+ e=ce("div");e.style.display="flex";e.style.flexDirection=(K.match(K.sc(K.Ku(BigInt(7106403))),o)!=0)?"column":"row"
+ ee = e
+ K.dx(o);var n=K.nn(x);var xp=lo(x);for(var i=0;i<n;i++)showui(BigInt(K.rx(J[i+(xp>>>3)])),e)
+ p.appendChild(e)
+}
 function show(p,s,o){var x=K.Val(s);var e;    K.dx(o) // todo options
  switch(K.tp(x)){
-  case 0:  break //func    -> button
-  case 1:  break //bool    -> checkbox
-  case 2:  break //char    -> input text (maxlength 1)
+  case 1:        //bool    -> checkbox
+   e=ce("input");e.type="checkbox";e.checked=lo(x)!=0;e.title=sy(s)+"(bool)"
+   e.onchange=function(){set(e,s,K.Kb(Number(e.checked)))}
+   p.appendChild(e) 
+   break
+  case 2:        //char    -> input text (maxlength 1)
+   e=ce("input");e.value=String.fromCharCode(lo(x));e.minLength=1;e.maxLength=1;e.required=true;e.title=sy(s)+"(char)"
+   e.onchange=function(){set(e,s,K.Kc(e.value.charCodeAt()))}
+   p.appendChild(e) 
+   break
   case 3:        //int     -> input number step=1
-   e=document.createElement("input");e.type="number";e.value=lo(x);e.title=sy(s);e.min=-2147483648;e.max=2147483647;e.step=1
+   e=ce("input");e.type="number";e.value=lo(x);e.title=sy(s)+"(int)";e.min=-2147483648;e.max=2147483647
+   e.onchange=function(){set(e,s,K.Ki(Number(e.value)))}
    p.appendChild(e)
    break
-  case 4:  break //symbol  -> input string
+  case 4:        //symbol  -> input string
+   e=ce("input");e.value=sy(x);e.title=sy(s)+"(symbol)"
+   e.onchange=function(){set(e,s,K.sc(ks(e.value)))}
+   p.appendChild(e) 
+   break
   case 5:        //float   -> number edit
-   e=document.createElement("input");e.type="number";e.value=F[lo(x)>>>3];e.title=sy(s);
+   e=ce("input");e.type="number";e.value=F[lo(x)>>>3];e.title=sy(s)+"(float)";e.step="any"
+   e.onchange=function(){set(e,s,K.Kf(Number(e.value)))}
+   p.appendChild(e)
+   K.dx(x);break
+  case 6:        //complex -> validate 1a30
+   e=ce("input");e.value=sz(F[lo(x)>>>3],F[1+(lo(x)>>>3)]);e.title=sy(s)+"(complex)"
+   e.oninput=function(){e.setCustomValidity((zs(e.value)===false)?"expect complex number, e.g. 1.2a45":"")}
+   e.onchange=function(){var z=zs(e.value);if(e!==false){set(e,s,K.Kz(z[0],z[1]))}}
+   p.appendChild(e)
+   K.dx(x);break
+  case 13:       //lambda  -> button
+   e=ce("button");e.textContent=sy(s)
+   e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
+   p.appendChild(e); K.dx(x)
+   break
+  case 17:       //bools   -> validate 1001b
+   e=ce("input");e.value=sB(x);e.title=sy(s)+"(bools)";e.pattern="[01]*b"
+   e.onchange=function(){if(e.validity.valid)set(e,s,Bs(e.value))}
+   p.appendChild(e); K.dx(x)
+   break
+  case 18:       //chars   -> input text
+   e=ce("input");e.value=sk(x);e.title=sy(s)+"(chars)"
+   e.onchange=function(){set(e,s,ks(e.value))}
    p.appendChild(e)
    break
-  case 6:  break //complex -> validate 1a30
-  case 17: break //bools   -> validate 1001b
-  case 18: break //chars   -> input text
-  case 19: break //ints    -> validate 1 2 3
-  case 20: break //symbols -> `a`b`c or dropdowns
-  case 21: break //floats  -> validate 1 2 3.
-  case 22: break //complex -> validate 1 2 3a
-  case 24: break //list    -> listbox?
-  case 25: break //dict    -> key-value table?
-  case 26: break //table   -> table?
+  case 19:       //ints    -> validate 1 2 3
+   e=ce("input");e.value=sI(x);e.title=sy(s)+"(ints)";e.pattern="(\\d+ ?)*"
+   e.onchange=function(){set(e,s,Is(e.value))}
+   p.appendChild(e)
+   break
+  case 20:       //symbols -> `a`b`c
+   x=sk(K.Kst(x));x=x.startsWith("0#")?"":x
+   e=ce("input");e.value=x;e.title=sy(s)+"(symbols)";e.pattern="^`.*"
+   e.onchange=function(){set(e,s,Ys(e.value))}
+   p.appendChild(e)
+   break
+  case 21:       //floats  -> validate 1 2 3.
+   e=ce("input");e.value=sF(x);e.title=sy(s)+"(floats)"
+   e.oninput=function(){e.setCustomValidity((isfloats(e.value)===false)?"expect floats, e.g. 1.2 3.4 5.6":"")}
+   e.onchange=function(){if(e.validity.valid)set(e,s,Fs(e.value))}
+   p.appendChild(e)
+   break
+  case 22:       //complex -> validate 1 2 3a
+   e=ce("input");e.value=sZ(x);e.title=sy(s)+"(complex vector)"
+   e.oninput=function(){e.setCustomValidity((iscmplxs(e.value)===false)?"expect complex vector, e.g. 1.2a30 2a45":"")}
+   e.onchange=function(){if(e.validity.valid)set(e,s,Zs(e.value))}
+   p.appendChild(e)
+   break
+  case 23: break //list    -> listbox?
+  case 24: break //dict    -> key-value table?
+  case 25: break //table   -> table?
  }
 }
- 
- 
+
+function set(e,s,v){ // ui-assign callback
+ if(e.validity.valid){
+  console.log("set", s, v)
+  K.dx(K.Asn(s,v))
+ }else{console.log("invalid")}}
+
+
+function isfloats(s){return s.split(" ").map(x=>(x.length>0)?Number(x):NaN).some(isNaN)==false}
+function iscmplxs(s){return s.split(" ").map(x=>zs(x)).some(x=>x===false)==false}
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
 
 </script>
