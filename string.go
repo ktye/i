@@ -224,35 +224,56 @@ func trdot(x K) K {
 }
 
 func Cst(x, y K) (r K) { // x$y
-	if tp(y) == Ct {
+	yt := tp(y)
+	if yt == ct {
+		y, yt = Enl(y), Ct
+	}
+	if yt == Ct {
+		if tp(x) != st {
+			trap(Type)
+		}
+		if int32(x) == 0 { // `$"sym"
+			return sc(y)
+		}
 		return prs(ts(x), y)
 	}
-	trap(Nyi) // todo conversions
-	return x
+	return trap(Nyi) // todo conversions
 }
 func prs(t T, y K) (r K) { // s$C
 	yp, yn := int32(y), nn(y)
 	p, e := pp, pe
 	pp = yp
 	pe = yp + yn
-	if t > 2 && t < 6 {
+	tt := t & 15
+	if tt == 1 {
+		r = tbln()
+	}
+	if tt == 2 && nn(y) == 1 {
+		return Fst(y)
+	}
+	if t == 4 {
+		r = Fst(tsym())
+	} else if t > 2 && t < 6 {
 		r = tnum()
-		if tp(r) < t {
+		if tp(r) < t && r != 0 {
 			r = uptype(r, t)
 		}
 	}
-	if t > Ct && t < Lt {
+	if t == 20 {
+		r = tsym()
+	} else if t > Ct && t < Lt {
 		r = tnms()
-		if tp(r) < t {
+		if tp(r) < t && r != 0 {
 			r = uptype(r, t-16)
 		}
 	}
-	pp, pe = p, e
-	if r == 0 {
-		trap(Err)
+	if tp(r) != t || pp < pe {
+		dx(r)
+		r = 0
 	}
+	pp, pe = p, e
 	dx(y)
-	return r
+	return r //0(parse error)
 }
 func ts(x K) T {
 	c := int32(Fst(cs(x)))
