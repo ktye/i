@@ -67,19 +67,6 @@ function lo(x){return Number(BigInt.asUintN(32,x))}
 function ks(s){msl();s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
 function sk(x){msl();var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
 function sy(x){return sk(K.cs(x))}
-function sz(re,im){var p=Math.atan2(im,re)*180.0/Math.PI;p=(p<0)?p+360.0:p;return String(Math.hypot(re,im))+"a"+String(p)}
-function zs(s){var v=s.split("a");if(v.length!=2)return false;v[1]=(v[1].trim().length>0)?v[1]:"0"
-               var a=Number(v[0]);var b=Number(v[1]);if(isNaN(a)||isNaN(b))return false;
-               var p=Math.PI*b/180.0;return [a*Math.cos(p),a*Math.sin(p)]}                        // false or [re,im]
-function sB(x){msl();return su(C.slice(lo(x),lo(x)+K.nn(x)).map(x=>48+x)) + "b"}
-function Bs(s){msl();s=s.slice(0,-1);var r=K.mk(17,s.length);if(s.length==0)return r;C.set(us(s).map(x=>x-48),lo(r));return r}
-function sI(x){msl();K.dx(x);return String(I.slice(lo(x)>>>2,(lo(x)>>>2)+K.nn(x))).replaceAll(","," ")}
-function Is(s){msl();var i=new Int32Array(s.split(" ").map(x=>Number(x)));var r=K.mk(19,i.length);I.set(i, lo(r)>>>2);return r}
-function Ys(s){msl();if(s.startsWith("`")==false)return K.mk(20,0);s=s.split("`").slice(1).map(x=>lo(K.sc(ks(x))));var r=K.mk(20,s.length);U.set(new Uint32Array(s),lo(r)>>>2);return r}
-function sF(x){msl();K.dx(x);return String(F.slice(lo(x)>>>3,(lo(x)>>>3)+K.nn(x))).replaceAll(",", " ")}
-function Fs(s){msl();s=new Float64Array(s.split(" ").map(x=>Number(x)));var r=K.mk(21,s.length);F.set(s,lo(r)>>>3);return r}
-function sZ(x){msl();K.dx(x);x=F.slice(lo(x)>>>3,(lo(x)>>>3)+2*K.nn(x));var r="";for(var i=0;i<x.length;i+=2){r+=((i>0)?" ":"")+sz(x[i],x[i+1])};return r}
-function Zs(s){msl();s=L(new Float64Array(s.split(" ").map(x=>zs(x)).flat()));var r=K.mk(22,s.length/2);F.set(s,lo(r)>>>3);return r}
 
 var filename="" 
 function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
@@ -209,92 +196,45 @@ function layout(p,x,o){var e;     o=K.Lst(o);              // `col~o
  K.dx(o);var n=K.nn(x);var xp=lo(x);for(var i=0;i<n;i++)showui(BigInt(K.rx(J[i+(xp>>>3)])),e)
  p.appendChild(e)
 }
-function show(p,s,o){var x=K.Val(s);var e;    K.dx(o) // todo options
- switch(K.tp(x)){
-  case 1:        //bool    -> checkbox
-   e=ce("input");e.type="checkbox";e.checked=lo(x)!=0;e.title=sy(s)+"(bool)"
-   e.onchange=function(){set(e,s,K.Kb(Number(e.checked)))}
-   p.appendChild(e) 
-   break
-  case 2:        //char    -> input text (maxlength 1)
-   e=ce("input");e.value=String.fromCharCode(lo(x));e.minLength=1;e.maxLength=1;e.required=true;e.title=sy(s)+"(char)"
-   e.onchange=function(){set(e,s,K.Kc(e.value.charCodeAt()))}
-   p.appendChild(e) 
-   break
-  case 3:        //int     -> input number step=1
-   e=ce("input");e.type="number";e.value=lo(x);e.title=sy(s)+"(int)";e.min=-2147483648;e.max=2147483647
-   e.onchange=function(){set(e,s,K.Ki(Number(e.value)))}
-   p.appendChild(e)
-   break
-  case 4:        //symbol  -> input string
-   e=ce("input");e.value=sy(x);e.title=sy(s)+"(symbol)"
-   e.onchange=function(){set(e,s,K.sc(ks(e.value)))}
-   p.appendChild(e) 
-   break
-  case 5:        //float   -> number edit
-   e=ce("input");e.type="number";e.value=F[lo(x)>>>3];e.title=sy(s)+"(float)";e.step="any"
-   e.onchange=function(){set(e,s,K.Kf(Number(e.value)))}
-   p.appendChild(e)
-   K.dx(x);break
-  case 6:        //complex -> validate 1a30
-   e=ce("input");e.value=sz(F[lo(x)>>>3],F[1+(lo(x)>>>3)]);e.title=sy(s)+"(complex)"
-   e.oninput=function(){e.setCustomValidity((zs(e.value)===false)?"expect complex number, e.g. 1.2a45":"")}
-   e.onchange=function(){var z=zs(e.value);if(e!==false){set(e,s,K.Kz(z[0],z[1]))}}
-   p.appendChild(e)
-   K.dx(x);break
-  case 13:       //lambda  -> button
-   e=ce("button");e.textContent=sy(s)
-   e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
-   p.appendChild(e); K.dx(x)
-   break
-  case 17:       //bools   -> validate 1001b
-   e=ce("input");e.value=sB(x);e.title=sy(s)+"(bools)";e.pattern="[01]*b"
-   e.onchange=function(){if(e.validity.valid)set(e,s,Bs(e.value))}
-   p.appendChild(e); K.dx(x)
-   break
-  case 18:       //chars   -> input text
-   e=ce("input");e.value=sk(x);e.title=sy(s)+"(chars)"
-   e.onchange=function(){set(e,s,ks(e.value))}
-   p.appendChild(e)
-   break
-  case 19:       //ints    -> validate 1 2 3
-   e=ce("input");e.value=sI(x);e.title=sy(s)+"(ints)";e.pattern="(\\d+ ?)*"
-   e.onchange=function(){set(e,s,Is(e.value))}
-   p.appendChild(e)
-   break
-  case 20:       //symbols -> `a`b`c
-   x=sk(K.Kst(x));x=x.startsWith("0#")?"":x
-   e=ce("input");e.value=x;e.title=sy(s)+"(symbols)";e.pattern="^`.*"
-   e.onchange=function(){set(e,s,Ys(e.value))}
-   p.appendChild(e)
-   break
-  case 21:       //floats  -> validate 1 2 3.
-   e=ce("input");e.value=sF(x);e.title=sy(s)+"(floats)"
-   e.oninput=function(){e.setCustomValidity((isfloats(e.value)===false)?"expect floats, e.g. 1.2 3.4 5.6":"")}
-   e.onchange=function(){if(e.validity.valid)set(e,s,Fs(e.value))}
-   p.appendChild(e)
-   break
-  case 22:       //complex -> validate 1 2 3a
-   e=ce("input");e.value=sZ(x);e.title=sy(s)+"(complex vector)"
-   e.oninput=function(){e.setCustomValidity((iscmplxs(e.value)===false)?"expect complex vector, e.g. 1.2a30 2a45":"")}
-   e.onchange=function(){if(e.validity.valid)set(e,s,Zs(e.value))}
-   p.appendChild(e)
-   break
-  case 23: break //list    -> listbox?
-  case 24: break //dict    -> key-value table?
-  case 25: break //table   -> table?
- }
+function show(p,s,o){var x=lookup(s);var e;    K.dx(o) // todo options
+ var t=K.tp(x)
+ if(t==13 && typeof(s)!=="object"){ //lambda (button)
+  e=ce("button");e.textContent=pathname(s)
+  e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
+  K.dx(x);p.appendChild(e)
+ }else if(t>0&&t<23){var T="vbcisfzldtcdpl000BCISFZLDT"  //b..Z
+  e=ce("input");e.title=pathname(s)
+  var get=function(e){return e.value}; var set=function(e,s){e.value=s}
+  if(t==1){        e.type="checkbox";get=function(e){return e.checked?"1b":"0b"}; set=function(e,s){e.checked=s=="1b"};
+  }else if(t==3){  e.type="number";  get=function(e){return String(e.value)};     e.min=-2147483648;e.max=2147483647;
+  }else if(t==5){  e.type="number";  get=function(e){return String(e.value)};     e.step="any"
+  }
+  set(e,sk(K.Kst(x)))
+  e.onchange=function(){update(e,s,T[t],get(e))}
+  p.appendChild(e)
+ }else if(t==24){ // dict
+  var k=K.x0(lo(x));var v=K.x1(lo(x));K.dx(x);var n=K.nn(k);if(K.tp(k)!=20){K.dx(k);K.dx(v);return} // only `s!..
+  var te=ce("table");
+  for(var i=0;i<n;i++){var ki=K.ati(K.rx(k),i);
+   var tr=ce("tr");var th=ce("th");th.innerText=sy(ki);tr.appendChild(th);
+   var td=ce("td");show(td,[s,ki],K.ati(K.rx(v),i));tr.appendChild(td);te.appendChild(tr)}
+  p.appendChild(te);K.dx(k);K.dx(v)
+ }else K.dx(x)
 }
 
-function set(e,s,v){ // ui-assign callback
- if(e.validity.valid){
-  console.log("set", s, v)
-  K.dx(K.Asn(s,v))
- }else{console.log("invalid")}}
+function lookup(s){ //symbol or path: [symbol;symbol;..]
+ if(typeof s=="object"){ var r=K.Val(s[0]);s=s.slice(1);for(var i=0;i<s.length;i++)r=K.Atx(r,s[i]); return r }
+ else return K.Val(s) }
 
+function pathname(s) { return (typeof s=="object") ? s.map(x=>sy(x)).join(".") : sy(s) }
+ 
+function update(e,symbol,t,s){ // ui-assign callback
+ console.log("update", symbol, t, s)
+ var x=K.Cst(K.sc(ks(t)), ks(s)) // x:t$s
+ e.setCustomValidity((x==0)?"invalid type "+t:""); if(x==0)return
+ K.dx(K.Asn(symbol,x))}
 
-function isfloats(s){return s.split(" ").map(x=>(x.length>0)?Number(x):NaN).some(isNaN)==false}
-function iscmplxs(s){return s.split(" ").map(x=>zs(x)).some(x=>x===false)==false}
+ 
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
 
 </script>
