@@ -191,5 +191,5 @@ func Dmd(x, i, v, y K) (r K) {
 		return r
 	}
 
-	return Amd(x, f, 1, Dmd(Atx(rx(x), Out(f)), i, v, y))
+	return Amd(x, f, 1, Dmd(Atx(rx(x), f), i, v, y))
 }
