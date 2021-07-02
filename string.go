@@ -248,23 +248,36 @@ func prs(t T, y K) (r K) { // s$C
 	if tt == 1 {
 		r = tbln()
 	}
-	if tt == 2 && nn(y) == 1 {
-		return Fst(y)
+	if tt == 2 {
+		if t == Ct {
+			return y // `C$
+		} else {
+			return Fst(y) // `c$"x"
+		}
 	}
 	if t == 4 {
-		r = Fst(tsym())
+		r = Fst(tsym()) // `s$"`a"
 	} else if t > 2 && t < 6 {
 		r = tnum()
 		if tp(r) < t && r != 0 {
-			r = uptype(r, t)
+			r = uptype(r, t) // `f$"1"
 		}
 	}
-	if t == 20 {
-		r = tsym()
-	} else if t > Ct && t < Lt {
-		r = tnms()
-		if tp(r) < t && r != 0 {
-			r = uptype(r, t-16)
+	if t > Ct && t < Lt {
+		if pp == pe {
+			r = mk(t, 0) // `I$"" -> !0
+		} else {
+			if t == 20 {
+				r = tsym() // `S$"`a`b"
+			} else {
+				r = tnms()
+				if tp(r)&15 < t&15 && r != 0 {
+					r = uptype(r, t&15) // `F$"1 2"
+				}
+			}
+			if tp(r) == t-16 {
+				r = Enl(r) // `I$"1" -> ,1
+			}
 		}
 	}
 	if tp(r) != t || pp < pe {

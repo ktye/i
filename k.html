@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 
 <style>
- html,body,textarea,input{margin:0;padding:0;overflow:hidden;font-family:monospace;}
+ html,body,textarea,input{overflow:hidden;font-family:monospace;}
  #term{position:absolute;top:0;right:0;width:50%;height:100%;background:black;color:#cccccc;border:none;resize:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}::-webkit-scrollbar{width:0;height:0;}
  #term:focus{color:white;}.hold{background:#666666}
  .codemirror{position:absolute;top:0;left:0;width:50%;height:100%;border:none;resize:none;background:#ffffea}
@@ -12,6 +12,7 @@
 </style>
 <script src="codemirror/jquery.min.js"></script>
 <script src="codemirror/codemirror.min.js"></script>
+<script src="codemirror/matchbrackets.js"></script>
 
 <body>
 <div id="ide">
@@ -29,7 +30,7 @@ function ce(x){return document.createElement(x)}
 function toggle(x){x.style.display=(x.style.display=="none")?"block":"none"}
 var ide=ge("ide");ide.style.display="block"
 
-var ed = CodeMirror.fromTextArea(edit, {"lineNumbers":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true})
+var ed = CodeMirror.fromTextArea(edit, {"lineNumbers":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true,"matchBrackets":true})
 ed.setValue(hash()); if(hash()==="")fetch('readme').then(r=>{return r.text()}).then(r=>ed.setValue(r))
 
 // search selected: middle-button(all), right(next) (bug: mouseup(chrome), ff ok)
@@ -65,8 +66,9 @@ function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function lo(x){return Number(BigInt.asUintN(32,x))}
 function ks(s){msl();s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
-function sk(x){msl();var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
+function sk(x){msl();x=(4==K.tp(x))?x=K.cs(x):x;var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
 function sy(x){return sk(K.cs(x))}
+function la(a){msl();var r=K.mk(23,a.length);for(var i=0;i<a.length;i++)J[i+(lo(r)>>>3)]=a[i];return r}
 
 var filename="" 
 function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
@@ -171,45 +173,49 @@ function addfile(x){
 }
 
 
-/*                              $[`s~@*x; show x; layout x]
-  ui:((symbol;[options])        //leaf-node: symbol references a variable
-      (children;[options]);..)  //tree-node: children is a list, options defines layout
+
+
+/*  
+  x:1   /variable with type
+ ui:`x  /ui references variables (double-binding)
+ ui:("label";`x)   /add a label
+ ui:`x`y`z         /container of 3 widgets (default: row direction)
+ ui:("v";`x;`y;`z) /container with vertical layout (flexDirection:"column")
  */
 
 // ui (toggle with cntrl-K)
 var uid = ge("uid");uid.style.display="none"; var uiform = ge("uiform")
 window.onkeydown=function(e){if(e.ctrlKey&&e.key=="k"){toggle(ide);toggle(uid);return false}}
-function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(uiform);ktry(function(){showui(u,uiform)});K.dx(u)}
+function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(uiform);ktry(function(){showui(u,uiform)})}
 
 var ee                                 //todo rm
 function L(x){console.log(x);return x} //todo rm
 
-function showui(x,p,s,o){
- s=K.Fst(K.rx(x));o=(K.tp(x)<16)?BigInt(0):K.ndrop(1,x)
- x=K.tp(s);if(x==4)    show(p,s,o)        // symbol (node)
- else      if(x==23) layout(p,s,o)        // list (container)
- else      throw     "first ui element must be symbol or list"
- ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
-function layout(p,x,o){var e;     o=K.Lst(o);              // `col~o
- e=ce("div");e.style.display="flex";e.style.flexDirection=(K.match(K.sc(K.Ku(BigInt(7106403))),o)!=0)?"column":"row"
- ee = e
- K.dx(o);var n=K.nn(x);var xp=lo(x);for(var i=0;i<n;i++)showui(BigInt(K.rx(J[i+(xp>>>3)])),e)
- p.appendChild(e)
-}
-function show(p,s,o){var x=lookup(s);var e;    K.dx(o) // todo options
+function showui(x,p){var e=p;var ver=false
+ var t=K.tp(x);if(t< 16){x=K.Enl(x);t+=16}
+ else          if(t==18||t==24){x=K.Enl(x);t=23} //char/dict
+ var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){ver=lo(h)==118;x=K.ndrop(1,x);n--}else{K.dx(h)}}
+ if(n > 1){e=ce("div");e.style.display="flex";e.style.flexDirection=ver?"column":"row"}
+ for(var i=0;i<n;i++){var xi=K.ati(K.rx(x),i);t=K.tp(xi)
+  switch(t){
+  case  4: show(e,xi);               break // symbol (variable-binding)
+  case 18: showText(e,sk(K.rx(xi))); break // char   (text node)\
+  case 24: showCustom(e,K.rx(xi));   break // dict   (custom element)
+  default: console.log(sk(K.Kst(K.rx(xi))));showui(K.rx(xi),e);       break // list   (nested row/column)
+  }K.dx(xi)};K.dx(x)
+ if(e!=p)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
+
+function show(p,s){var x=lookup(s);var e;
  var t=K.tp(x)
  if(t==13 && typeof(s)!=="object"){ //lambda (button)
   e=ce("button");e.textContent=pathname(s)
   e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
   K.dx(x);p.appendChild(e)
  }else if(t>0&&t<23){var T="vbcisfzldtcdpl000BCISFZLDT"  //b..Z
-  e=ce("input");e.title=pathname(s)
+  e=ce("input");e.title=pathname(s)+"("+T[t]+")"
   var get=function(e){return e.value}; var set=function(e,s){e.value=s}
-  if(t==1){        e.type="checkbox";get=function(e){return e.checked?"1b":"0b"}; set=function(e,s){e.checked=s=="1b"};
-  }else if(t==3){  e.type="number";  get=function(e){return String(e.value)};     e.min=-2147483648;e.max=2147483647;
-  }else if(t==5){  e.type="number";  get=function(e){return String(e.value)};     e.step="any"
-  }
-  set(e,sk(K.Kst(x)))
+  if(t==1){ e.type="checkbox";get=function(e){return e.checked?"1b":"0b"}; set=function(e,s){e.checked=s=="1b"}; }
+  set(e,kstr(x))
   e.onchange=function(){update(e,s,T[t],get(e))}
   p.appendChild(e)
  }else if(t==24){ // dict
@@ -217,22 +223,34 @@ function show(p,s,o){var x=lookup(s);var e;    K.dx(o) // todo options
   var te=ce("table");
   for(var i=0;i<n;i++){var ki=K.ati(K.rx(k),i);
    var tr=ce("tr");var th=ce("th");th.innerText=sy(ki);tr.appendChild(th);
-   var td=ce("td");show(td,[s,ki],K.ati(K.rx(v),i));tr.appendChild(td);te.appendChild(tr)}
+   var td=ce("td");show(td,pushpath(s,ki),K.ati(K.rx(v),i));tr.appendChild(td);te.appendChild(tr)}
   p.appendChild(te);K.dx(k);K.dx(v)
  }else K.dx(x)
 }
+
+function showText(p,s){var e=ce("span");e.textContent=s;p.appendChild(e)}
+
+function showCustom(p,x){if(20!=K.tp(K.Key(K.rx(x))))return;var k=K.Key(K.rx(x));x=K.Val(x);var n=K.nn(k)
+ var a={};for(i=0;i<n;i++){var v=K.ati(rx(x),i);var t=tp(v);a[sk(K.ati(rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
+ K.dx(k);K.dx(x);n=a[""];if(n==undefined){return};delete a[""];
+ var e=document.createNode(n);for(let k in a)e[k]=a;p.appendChild(a)}
+
+function kstr(x){var t=K.tp(x);if(t==2)return String.fromCharCode(lo(x));if(t==18)return sk(x);if(t>16&&t<23){
+ var n=K.nn(x);if(n==0){K.dx(x);return ""}else if(n==1){x=K.Fst(x)}};return sk(K.Kst(x))}
 
 function lookup(s){ //symbol or path: [symbol;symbol;..]
  if(typeof s=="object"){ var r=K.Val(s[0]);s=s.slice(1);for(var i=0;i<s.length;i++)r=K.Atx(r,s[i]); return r }
  else return K.Val(s) }
 
-function pathname(s) { return (typeof s=="object") ? s.map(x=>sy(x)).join(".") : sy(s) }
+function pathname(s)   { return (typeof s=="object") ? s.map(x=>sy(x)).join(".") : sy(s) }
+function pushpath(s,a) { return (typeof s=="object") ? s.concat(a) : [s,a] }
  
-function update(e,symbol,t,s){ // ui-assign callback
- console.log("update", symbol, t, s)
+function update(e,path,t,s){ // ui-assign callback
+ console.log("update", path, t, s)
  var x=K.Cst(K.sc(ks(t)), ks(s)) // x:t$s
  e.setCustomValidity((x==0)?"invalid type "+t:""); if(x==0)return
- K.dx(K.Asn(symbol,x))}
+ if(typeof path=="object") K.dx(K.Asn(path[0], K.Dmd(K.Val(path[0]),la(path.slice(1)),BigInt(1),x)))
+ else K.dx(K.Asn(path,x))}
 
  
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}

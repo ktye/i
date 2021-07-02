@@ -43,6 +43,10 @@ func Fst(x K) K { // *x
 	if t < 16 {
 		return x
 	}
+	if t > Lt {
+		x = Val(x)
+		t = tp(x)
+	}
 	n := nn(x)
 	if n == 0 {
 		dx(x)
