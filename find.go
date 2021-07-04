@@ -9,25 +9,34 @@ func Fnd(x, y K) (r K) { // x?y
 	if xt < 16 {
 		trap(Type)
 	}
-	if xt == Lt {
-		if yt == Lt {
-			return Ecr(18, l2(x, y))
-		} else {
-			return fndl(x, y)
-		}
-	}
-	if xt == yt+16 {
-		r = Ki(fnd(x, y, yt))
+	if xt == Dt {
+		r, x = spl2(x)
+		return Atx(r, Fnd(x, y))
 	} else if xt == yt {
 		yn := nn(y)
 		r = mk(It, yn)
 		rp := int32(r)
-		for i := int32(0); i < yn; i++ {
-			yi := ati(rx(y), i)
-			SetI32(rp, fnd(x, yi, xt-16))
-			dx(yi)
-			rp += 4
+		if xt == Lt {
+			yp := int32(y)
+			for i := int32(0); i < yn; i++ {
+				SetI32(rp, fndl(x, x0(int32(yp))))
+				rp += 4
+				yp += 8
+			}
+		} else {
+			for i := int32(0); i < yn; i++ {
+				yi := ati(rx(y), i)
+				SetI32(rp, fnd(x, yi, xt-16))
+				dx(yi)
+				rp += 4
+			}
 		}
+	} else if xt == yt+16 {
+		r = Ki(fnd(x, y, yt))
+	} else if xt == Lt {
+		r = Ki(fndl(x, rx(y)))
+	} else if yt == Lt {
+		return Ecr(18, l2(x, y))
 	} else {
 		trap(Type)
 	}
@@ -108,22 +117,18 @@ func idxz(re, im float64, p, e int32) (r int32) {
 	}
 	return (r - p) >> 4
 }
-func fndl(x, y K) (r K) {
+func fndl(x, y K) (r int32) {
 	xn := nn(x)
 	xp := int32(x)
-	for i := int32(0); i < xn; i++ {
+	dx(y)
+	for r < xn {
 		if match(K(I64(xp)), y) != 0 {
-			r = Ki(i)
-			break
+			return r
 		}
+		r++
 		xp += 8
 	}
-	if r == 0 {
-		r = Ki(xn)
-	}
-	dx(x)
-	dx(y)
-	return r
+	return xn
 }
 
 func index(x, a, b int32) int32 {
