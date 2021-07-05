@@ -211,9 +211,6 @@ func sti(x K, i int32, y K) K {
 	}
 	s := sz(xt)
 	xp := int32(x)
-	if xt == Ft || xt == Zt {
-		trap(Nyi)
-	}
 	yp := int32(y)
 	switch s >> 2 {
 	case 0:
@@ -224,7 +221,7 @@ func sti(x K, i int32, y K) K {
 		xp += 8 * i
 		if xt == Lt {
 			dx(K(I64(xp)))
-			SetI64(xp, int64(x0(yp)))
+			SetI64(xp, int64(rx(y)))
 		} else if xt != Ft {
 			trap(Nyi)
 		} else {

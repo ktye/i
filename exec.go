@@ -116,7 +116,7 @@ func Amd(x, i, v, y K) (r K) {
 		trap(Type)
 	}
 	if xt > Lt {
-		if xt == Tt && tp(y)&15 == it {
+		if xt == Tt && tp(i)&15 == it {
 			return trap(Nyi) // table-assign-rows
 		}
 		r, x = spl2(x)
@@ -142,7 +142,6 @@ func Amd(x, i, v, y K) (r K) {
 	if ti == it {
 		if xt != yt+16 {
 			x = explode(x)
-			y = l1(y)
 		}
 		return sti(x, int32(i), y)
 	}

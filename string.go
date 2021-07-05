@@ -46,9 +46,14 @@ func Kst(x K) (r K) {
 			r = r
 		case 7: // Dt
 			x, r = spl2(x)
-			//fmt.Println(sK(x), "!", sK(r))
-			r = ucat(cat1(Kst(x), Kc('!')), Kst(r)) // todo ()!..
+			x = Kst(x)
+			if xn == 1 {
+				x = emb(40, 41, x)
+				xn = 0
+			}
+			r = ucat(cat1(x, Kc('!')), Kst(r)) // todo ()!..
 		default:
+			xn = 0
 			r = ucat(Ku(43), Kst(Flp(x)))
 		}
 		if xn == 1 {

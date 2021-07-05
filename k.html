@@ -9,6 +9,8 @@
  .codemirror{position:absolute;top:0;left:0;width:50%;height:100%;border:none;resize:none;background:#ffffea}
  #runb{position:absolute;top:0;right:50%;font-family:monospace;z-Index:10}
  input:invalid{border:2px solid red}
+ td:hover{background-color:#ccc}
+ .sel{background-color:#0078d7;color:white}
 </style>
 <script src="codemirror/jquery.min.js"></script>
 <script src="codemirror/codemirror.min.js"></script>
@@ -66,8 +68,7 @@ function us(s){return new TextEncoder("utf-8").encode(s)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function lo(x){return Number(BigInt.asUintN(32,x))}
 function ks(s){msl();s=us(s);var x=K.mk(18,s.length);C.set(s,lo(x));return x}
-function sk(x){msl();x=(4==K.tp(x))?x=K.cs(x):x;var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
-function sy(x){return sk(K.cs(x))}
+function sk(x){msl();var t=K.tp(x);x=(4==t)?x=K.cs(x):(18==t)?x:K.Kst(x);var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
 function la(a){msl();var r=K.mk(23,a.length);for(var i=0;i<a.length;i++)J[i+(lo(r)>>>3)]=a[i];return r}
 
 var filename="" 
@@ -201,12 +202,11 @@ function showui(x,p){var e=p;var ver=false
   case  4: show(e,xi);               break // symbol (variable-binding)
   case 18: showText(e,sk(K.rx(xi))); break // char   (text node)\
   case 24: showCustom(e,K.rx(xi));   break // dict   (custom element)
-  default: console.log(sk(K.Kst(K.rx(xi))));showui(K.rx(xi),e);       break // list   (nested row/column)
+  default: showui(K.rx(xi),e);       break // list   (nested row/column)
   }K.dx(xi)};K.dx(x)
  if(e!=p)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
 
-function show(p,s){var x=lookup(s);var e;
- var t=K.tp(x)
+function show(p,s){var x=lookup(s);var e;var t=K.tp(x)
  if(t==13 && typeof(s)!=="object"){ //lambda (button)
   e=ce("button");e.textContent=pathname(s)
   e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
@@ -216,41 +216,72 @@ function show(p,s){var x=lookup(s);var e;
   var get=function(e){return e.value}; var set=function(e,s){e.value=s}
   if(t==1){ e.type="checkbox";get=function(e){return e.checked?"1b":"0b"}; set=function(e,s){e.checked=s=="1b"}; }
   set(e,kstr(x))
-  e.onchange=function(){update(e,s,T[t],get(e))}
+  e.onchange=function(){var v=get(e);var r=update(e,s,T[t],v);if(r)e.value=v;return r}
   p.appendChild(e)
  }else if(t==24){ // dict
   var k=K.x0(lo(x));var v=K.x1(lo(x));K.dx(x);var n=K.nn(k);if(K.tp(k)!=20){K.dx(k);K.dx(v);return} // only `s!..
   var te=ce("table");
   for(var i=0;i<n;i++){var ki=K.ati(K.rx(k),i);
-   var tr=ce("tr");var th=ce("th");th.innerText=sy(ki);tr.appendChild(th);
+   var tr=ce("tr");var th=ce("th");th.innerText=sk(ki);tr.appendChild(th);
    var td=ce("td");show(td,pushpath(s,ki),K.ati(K.rx(v),i));tr.appendChild(td);te.appendChild(tr)}
   p.appendChild(te);K.dx(k);K.dx(v)
- }else K.dx(x)
-}
+ }else if(t==25) showTable(p,x,s); else K.dx(x)}
+
+function showTable(p,x,s){var ta=ce("table");var n=K.nn(x);var [k,x]=K.spl2(x);var m=K.nn(k);var ks=[]
+ var tr=ce("tr");for(var i=0;i<m;i++){var th=ce("th");ks[i]=K.ati(K.rx(k),i);th.textContent=sk(ks[i]);
+  th.onclick=function(evt){selectColumn(ta,evt.target,evt.target.classList.toggle("sel"))}
+  tr.appendChild(th)};ta.appendChild(tr);K.dx(k)
+ for(var j=0;j<n;j++){
+  var tr=ce("tr");for(var i=0;i<m;i++){var xi=K.x0(lo(x)+8*i);var ki=K.ati(K.rx(k),i);
+   var td=ce("td");td.textContent=sk(K.ati(xi,j));
+   td.ondblclick=cellUpdate(ta,s,ks[i],tr,j,i);
+   td.onclick=function(evt){evt.target.classList.toggle("sel")}
+   tr.appendChild(td)
+  };ta.appendChild(tr)
+ };p.appendChild(ta)}
 
 function showText(p,s){var e=ce("span");e.textContent=s;p.appendChild(e)}
 
-function showCustom(p,x){if(20!=K.tp(K.Key(K.rx(x))))return;var k=K.Key(K.rx(x));x=K.Val(x);var n=K.nn(k)
- var a={};for(i=0;i<n;i++){var v=K.ati(rx(x),i);var t=tp(v);a[sk(K.ati(rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
+function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
+ var a={};for(i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
  K.dx(k);K.dx(x);n=a[""];if(n==undefined){return};delete a[""];
- var e=document.createNode(n);for(let k in a)e[k]=a;p.appendChild(a)}
+ var e=ce(n);for(let k in a)e[k]=a[k];p.appendChild(e)}
 
-function kstr(x){var t=K.tp(x);if(t==2)return String.fromCharCode(lo(x));if(t==18)return sk(x);if(t>16&&t<23){
+function kstr(x){var t=K.tp(x);if(t==2)return String.fromCharCode(lo(x));if(t==18||t==4)return sk(x);if(t>16&&t<23){
  var n=K.nn(x);if(n==0){K.dx(x);return ""}else if(n==1){x=K.Fst(x)}};return sk(K.Kst(x))}
 
 function lookup(s){ //symbol or path: [symbol;symbol;..]
  if(typeof s=="object"){ var r=K.Val(s[0]);s=s.slice(1);for(var i=0;i<s.length;i++)r=K.Atx(r,s[i]); return r }
  else return K.Val(s) }
 
-function pathname(s)   { return (typeof s=="object") ? s.map(x=>sy(x)).join(".") : sy(s) }
+function pathname(s)   { return (typeof s=="object") ? s.map(x=>sk(x)).join(".") : sk(s) }
 function pushpath(s,a) { return (typeof s=="object") ? s.concat(a) : [s,a] }
  
 function update(e,path,t,s){ // ui-assign callback
- console.log("update", path, t, s)
- var x=K.Cst(K.sc(ks(t)), ks(s)) // x:t$s
- e.setCustomValidity((x==0)?"invalid type "+t:""); if(x==0)return
+ var x=K.Cst(K.sc(ks(t=="s"?"":t)), ks(s)) // x:t$s or `$s
+ e.setCustomValidity((x==0)?"invalid type "+t:""); if(x==0)return false;
  if(typeof path=="object") K.dx(K.Asn(path[0], K.Dmd(K.Val(path[0]),la(path.slice(1)),BigInt(1),x)))
- else K.dx(K.Asn(path,x))}
+ else K.dx(K.Asn(path,x)); return true}
+
+function cellUpdate(ta,s,ki,tr,j,i){
+ return function(){unselect(ta,i)
+ var td=tr.childNodes[i];var t=td.textContent;td.textContent="";  show(td,pushpath(pushpath(s,ki),K.Ki(j)))
+ var e=td.firstChild;
+ var totext=function(){var t=e.value;td.removeChild(e);td.textContent=t}
+ var f=e.onchange;e.onchange=function(){if(f()){totext();extendToSel(pushpath(s,ki),ta,j,i)}}
+ e.onkeydown=function(evt){if(evt.key=="Escape"&&e.validity.valid)totext()}}}
+
+function extendToSel(s,ta,row,col){
+ var idx=[];var r=ta.children;for(var i=1;i<r.length;i++){var c=r[i].children;if(c[col].className=="sel")idx.push(i-1)}
+ var c=lookup(s);var v=lookup(pushpath(s,K.Ki(row)));var t=kstr(K.rx(v))
+ for(var i=0;i<idx.length;i++){c=K.sti(c,idx[i],K.rx(v));r[1+idx[i]].children[col].innerText=t}
+ K.dx(K.Asn(s[0], K.Dmd(K.Val(s[0]),la(s.slice(1)),BigInt(1),c)))}
+
+function unselect(ta,j){var r=ta.children;for(var i=0;i<r.length;i++){var c=r[i].children;for(var k=0;k<c.length;k++)if(k!=j)c[k].className=""}}
+
+function selectColumn(ta,th,v){
+ function colidx(){var c=ta.firstChild.children;for(var i=0;i<c.length;i++)if(c[i]==th)return i}
+ var j=colidx();var r=ta.children;for(var i=0;i<r.length;i++){var c=r[i].children[j].className=v?"sel":""}}
 
  
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
