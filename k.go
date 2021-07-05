@@ -204,6 +204,27 @@ func sc(c K) K {
 	return K(8*sn) | K(st)<<59
 }
 func cs(x K) (r K) { return x0(I32(0) + int32(x)) }
+func td(x K) (r K) { // table from dict
+	r, x = spl2(x)
+	if tp(r) != St || tp(x) != Lt {
+		trap(Type)
+	}
+	n := nn(x)
+	m := int32(0)
+	xp := int32(x)
+	for i := int32(0); i < n; i++ {
+		ni := nn(K(I64(xp)))
+		if i == 0 {
+			m = ni
+		} else if m != ni {
+			trap(Length)
+		}
+		xp += 8
+	}
+	r = l2(r, x)
+	SetI32(int32(r)-12, m)
+	return K(int32(r)) | K(Tt)<<59
+}
 func zero(t T) (r K) {
 	if t == Ft {
 		return Kf(0)

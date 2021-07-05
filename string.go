@@ -49,7 +49,7 @@ func Kst(x K) (r K) {
 			//fmt.Println(sK(x), "!", sK(r))
 			r = ucat(cat1(Kst(x), Kc('!')), Kst(r)) // todo ()!..
 		default:
-			r = trap(Nyi)
+			r = ucat(Ku(43), Kst(Flp(x)))
 		}
 		if xn == 1 {
 			r = ucat(Ku(44), r)

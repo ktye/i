@@ -19,7 +19,7 @@ func Flp(x K) (r K) { // +x
 		x = Atx(Rdc(13, l1(Ecr(15, l2(m, x)))), Ecl(2, l2(Til(m), Mul(m, Til(Ki(n))))))
 		return x
 	case 1: // Dt
-		return trap(Nyi) // to table
+		return td(x)
 	case 2: // Tt
 		return Key(spl2(x))
 	default:
@@ -166,6 +166,7 @@ func Key(x, y K) (r K) { // x!y
 		}
 	}
 	r = l2(x, y)
+	SetI32(int32(r)-12, nn(x))
 	return K(int32(r)) | K(Dt)<<59
 }
 func key(x, y K, t T) K { return K(int32(Key(x, y))) | K(t)<<59 } // Dt or Tt
