@@ -1,5 +1,0 @@
-set -x
-set -e
-go install
-wg . > b.wat
-/c/local/wabt/wat2wasm --enable-simd b.wat
