@@ -3,14 +3,20 @@
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 
 <style>
- html,body,textarea,input{overflow:hidden;font-family:monospace;}
+ html,body,textarea,input,select{overflow:hidden;font-family:monospace;}
  #term{position:absolute;top:0;right:0;width:50%;height:100%;background:black;color:#cccccc;border:none;resize:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}::-webkit-scrollbar{width:0;height:0;}
  #term:focus{color:white;}.hold{background:#666666}
  .codemirror{position:absolute;top:0;left:0;width:50%;height:100%;border:none;resize:none;background:#ffffea}
  #runb{position:absolute;top:0;right:50%;font-family:monospace;z-Index:10}
- input:invalid{border:2px solid red}
  td:hover{background-color:#ccc}
  .sel{background-color:#0078d7;color:white}
+ input{border:none} 
+ .c{background-color:#fafafa} .C{background-color:#f5f5f5}
+ .i{background-color:#e8f5e9} .I{background-color:#c8e6c9}
+ .s{background-color:#fff8e1} .S{background-color:#ffecb3}
+ .f{background-color:#fff3e0} .F{background-color:#ffe0b2}
+ .z{background-color:#fbe9e7} .Z{background-color:#ffccbc}
+ input:invalid{border:2px solid red}
 </style>
 <script src="codemirror/jquery.min.js"></script>
 <script src="codemirror/codemirror.min.js"></script>
@@ -182,6 +188,7 @@ function addfile(x){
  ui:("label";`x)   /add a label
  ui:`x`y`z         /container of 3 widgets (default: row direction)
  ui:("v";`x;`y;`z) /container with vertical layout (flexDirection:"column")
+ ui:("c";`x;vec)   /combobox, vec is a list of options (vector type of x)
  */
 
 // ui (toggle with cntrl-K)
@@ -195,28 +202,33 @@ function L(x){console.log(x);return x} //todo rm
 function showui(x,p){var e=p;var ver=false
  var t=K.tp(x);if(t< 16){x=K.Enl(x);t+=16}
  else          if(t==18||t==24){x=K.Enl(x);t=23} //char/dict
- var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){ver=lo(h)==118;x=K.ndrop(1,x);n--}else{K.dx(h)}}
- if(n > 1){e=ce("div");e.style.display="flex";e.style.flexDirection=ver?"column":"row"}
+ var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){
+  switch(lo(h)){
+  case  99: display(showCombo(K.ndrop(1,x)),p,x); return
+  case 118: ver=true; x=K.ndrop(1,x); n--; break
+  }}else{K.dx(h)}}
+ if(n>1){e=ce("div");e.style.display="flex";e.style.flexDirection=ver?"column":"row"}
  for(var i=0;i<n;i++){var xi=K.ati(K.rx(x),i);t=K.tp(xi)
   switch(t){
   case  4: show(e,xi);               break // symbol (variable-binding)
-  case 18: showText(e,sk(K.rx(xi))); break // char   (text node)\
+  case 18: showText(e,sk(K.rx(xi))); break // char   (text node)
   case 24: showCustom(e,K.rx(xi));   break // dict   (custom element)
   default: showui(K.rx(xi),e);       break // list   (nested row/column)
   }K.dx(xi)};K.dx(x)
- if(e!=p)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
+ display(e,p,x)}
+function display(e,p,x){if(e!=p&&e!=undefined)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
 
 function show(p,s){var x=lookup(s);var e;var t=K.tp(x)
  if(t==13 && typeof(s)!=="object"){ //lambda (button)
   e=ce("button");e.textContent=pathname(s)
   e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
   K.dx(x);p.appendChild(e)
- }else if(t>0&&t<23){var T="vbcisfzldtcdpl000BCISFZLDT"  //b..Z
-  e=ce("input");e.title=pathname(s)+"("+T[t]+")"
+ }else if(t>0&&t<23){
+  e=ce("input");e.className=tstr(t);e.title=pathname(s)+"("+tstr(t)+")"
   var get=function(e){return e.value}; var set=function(e,s){e.value=s}
   if(t==1){ e.type="checkbox";get=function(e){return e.checked?"1b":"0b"}; set=function(e,s){e.checked=s=="1b"}; }
   set(e,kstr(x))
-  e.onchange=function(){var v=get(e);var r=update(e,s,T[t],v);if(r)e.value=v;return r}
+  e.onchange=function(){var v=get(e);var r=update(e,s,tstr(t),v);if(r)e.value=v;return r}
   p.appendChild(e)
  }else if(t==24){ // dict
   var k=K.x0(lo(x));var v=K.x1(lo(x));K.dx(x);var n=K.nn(k);if(K.tp(k)!=20){K.dx(k);K.dx(v);return} // only `s!..
@@ -242,6 +254,12 @@ function showTable(p,x,s){var ta=ce("table");var n=K.nn(x);var [k,x]=K.spl2(x);v
 
 function showText(p,s){var e=ce("span");e.textContent=s;p.appendChild(e)}
 
+function showCombo(x){var s=K.Fst(K.rx(x));if(K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;options)
+ var o=K.ati(K.rx(x),1);K.dx(x);x=K.Val(s);var t=K.tp(x);x=kstr(x);
+ var e=ce("select");e.className=tstr(t);e.onchange=function(){update(e,s,tstr(t),e.value)};var n=K.nn(o)
+ for(var i=0;i<n;i++){var oe=ce("option");oe.className=tstr(t);var si=kstr(K.ati(K.rx(o),i));oe.selected=si==x;oe.value=si;oe.innerText=si;e.appendChild(oe)}
+ K.dx(o);return e}
+
 function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
  var a={};for(i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
  K.dx(k);K.dx(x);n=a[""];if(n==undefined){return};delete a[""];
@@ -249,6 +267,8 @@ function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);ret
 
 function kstr(x){var t=K.tp(x);if(t==2)return String.fromCharCode(lo(x));if(t==18||t==4)return sk(x);if(t>16&&t<23){
  var n=K.nn(x);if(n==0){K.dx(x);return ""}else if(n==1){x=K.Fst(x)}};return sk(K.Kst(x))}
+ 
+function tstr(t){const T="vbcisfzldtcdpl000BCISFZLDT";console.log("tstr",t,T[t]);return T[t]}
 
 function lookup(s){ //symbol or path: [symbol;symbol;..]
  if(typeof s=="object"){ var r=K.Val(s[0]);s=s.slice(1);for(var i=0;i<s.length;i++)r=K.Atx(r,s[i]); return r }
