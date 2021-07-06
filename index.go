@@ -48,6 +48,10 @@ func ati(x K, i int32) (r K) { // x BT..LT
 	if t < 16 {
 		return x
 	}
+	if i < 0 || i >= nn(x) {
+		dx(x)
+		return missing(t - 16)
+	}
 	s := sz(t)
 	p := int32(x) + i*s
 	switch s >> 2 {
@@ -84,12 +88,13 @@ func atv(x, y K) (r K) { // x BT..LT
 	rp := int32(r)
 	xp := int32(x)
 	yp := int32(y)
+	na := missing(t - 16)
 	switch s >> 2 {
 	case 0:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
-				SetI8(rp, 0)
+				SetI8(rp, int32(na))
 			} else {
 				SetI8(rp, I8(xp+xi))
 			}
@@ -100,7 +105,7 @@ func atv(x, y K) (r K) { // x BT..LT
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
-				SetI32(rp, 0)
+				SetI32(rp, int32(na))
 			} else {
 				SetI32(rp, I32(xp+4*xi))
 			}
@@ -111,7 +116,11 @@ func atv(x, y K) (r K) { // x BT..LT
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
-				SetI64(rp, 0)
+				if t == Lt {
+					SetI64(rp, int64(rx(na)))
+				} else {
+					SetI64(rp, I64(int32(na)))
+				}
 			} else {
 				SetI64(rp, I64(xp+8*xi))
 			}
@@ -122,8 +131,8 @@ func atv(x, y K) (r K) { // x BT..LT
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
-				SetI64(rp, 0)
-				SetI64(rp+8, 0)
+				SetI64(rp, I64(int32(na)))
+				SetI64(rp+8, I64(int32(na)))
 			} else {
 				xi *= 16
 				SetI64(rp, I64(xp+xi))
@@ -136,6 +145,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	if t == Lt {
 		rl(r)
 	}
+	dx(na)
 	dx(x)
 	dx(y)
 	return r

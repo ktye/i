@@ -189,8 +189,8 @@ function addfile(x){
  ui:`x`y`z         /container of 3 widgets (default: row direction)
  ui:("v";`x;`y;`z) /container with vertical layout (flexDirection:"column")
  ui:("c";`x;vec)   /combobox, vec is a list of options (vector type of x)
- ui:("l";`x)       /listbox(single-select) x maybe list/vector/dict/table
- ui:("L";`x)       /listbox(multi-select)
+ ui:("l";`x;`sel)  /listbox x maybe list/vector/dict/table; sel atom(single-select) vector(multi-select)
+ ui:("e";`x)       /textarea
  */
 
 // ui (toggle with cntrl-K)
@@ -200,16 +200,17 @@ function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(uiform);ktry(f
 
 var ee                                 //todo rm
 function L(x){console.log(x);return x} //todo rm
+function LK(x){console.log(sk(K.rx(x)));return x}
 
 function showui(x,p){var e=p;var ver=false
  var t=K.tp(x);if(t< 16){x=K.Enl(x);t+=16}
  else          if(t==18||t==24){x=K.Enl(x);t=23} //char/dict
  var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){
   switch(lo(h)){
-  case  99: display(showCombo(K.ndrop(1,x)),p,x);         return
-  case  76: display(showListbox(K.ndrop(1,x),true),p,x);  return
-  case 108: display(showListbox(K.ndrop(1,x),false),p,x); return
-  case 118: ver=true; x=K.ndrop(1,x); n--; break
+  case  99: display(showCombo(K.ndrop(1,x)),p,x);    return  // ("c";`x;options)
+  case 101: display(showEditor(K.Last(x)),p,x);      return  // ("e";`x)
+  case 108: display(showListbox(K.ndrop(1,x)),p,x);  return  // ("l";`x;`sel)
+  case 118: ver=true; x=K.ndrop(1,x); n--; break             // ("v";...)
   }}else{K.dx(h)}}
  if(n>1){e=ce("div");e.style.display="flex";e.style.flexDirection=ver?"column":"row"}
  for(var i=0;i<n;i++){var xi=K.ati(K.rx(x),i);t=K.tp(xi)
@@ -257,6 +258,7 @@ function showTable(p,x,s){var ta=ce("table");var n=K.nn(x);var [k,x]=K.spl2(x);v
  };p.appendChild(ta)}
 
 function showText(p,s){var e=ce("span");e.textContent=s;p.appendChild(e)}
+function showEditor(x){var s=x;x=K.Val(x);var e=ce("textarea");e.value=sk(K.rx(x));e.onchange=function(){K.dx(K.Asn(s,ks(e.value)))};K.dx(x);return e}
 
 function showCombo(x){var s=K.Fst(K.rx(x));if(K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;options)
  var o=K.ati(K.rx(x),1);K.dx(x);x=K.Val(s);var t=K.tp(x);x=kstr(x);
@@ -264,13 +266,15 @@ function showCombo(x){var s=K.Fst(K.rx(x));if(K.tp(s)!=4){K.dx(x);K.dx(s);return
  for(var i=0;i<n;i++){var oe=ce("option");oe.className=tstr(t);var si=kstr(K.ati(K.rx(o),i));oe.selected=si==x;oe.value=si;oe.innerText=si;e.appendChild(oe)}
  K.dx(o);return e}
  
-function showListbox(x,multi){var f=BigInt(0);if(K.nn(x)==2)f=K.ati(K.rx(x),1);var x=K.Fst(x);if(K.tp(x)!=4){K.dx(x);K.dx(f);return}
- x=K.Val(x);var t=K.tp(x);x=K.Lst(x);var n=K.nn(x);var e=ce("select");e.multiple=multi;if(!multi)e.size=n
- if(f!=0)e.onchange=function(){K.dx(K.Atx(K.Val(f),multi?selectedIndexes(e):K.Ki(e.selectedIndex)))}
- for(var i=0;i<n;i++){var oe=ce("option");var si=kstr(K.ati(K.rx(x),i));oe.value=si;oe.innerText=si;e.appendChild(oe)}
+function showListbox(x){var s=K.Last(K.rx(x));var x=K.Fst(x);if(K.tp(x)!=4||K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;`sel)
+ var ss=s;var s=K.Val(s);var xs=x;x=K.Val(x);var t=K.tp(x);if(t==24){s=K.Fnd(K.Til(K.rx(x)),s)};var multi=K.tp(s)>16
+ x=K.Lst(x);var n=K.nn(x);var e=ce("select");e.multiple=multi;if(!multi)e.size=n
+ e.onchange=function(){var i=multi?selectedIndexes(e):K.Ki(e.selectedIndex);K.dx(K.Asn(ss,(t==24)?K.Atx(K.Til(K.Val(xs)),i):i))}
+ for(var i=0;i<n;i++){var oe=ce("option");var si=kstr(K.ati(K.rx(x),i));oe.selected=inSelection(i,s,t);oe.value=si;oe.innerText=si;e.appendChild(oe)}
  K.dx(x);return e}
 
-function selectedIndexes(e){var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
+function inSelection(i,sel,t){if(K.tp(sel)==3){return (i-((t==25)?1:0))==lo(sel)}else{return lo(K.in(K.Ki(i),sel,3))!=0}}
+function selectedIndexes(e)  {var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
 
 function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
  var a={};for(i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}

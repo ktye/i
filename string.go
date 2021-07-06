@@ -104,7 +104,8 @@ func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
 		}
 		return r
 	case 1: // Dt
-		return trap(Nyi)
+		r, x = spl2(x)
+		return Ech(13, l2(Ecl(13, l2(pads(Lst(r)), Kc('|'))), Lst(x)))
 	default: // Tt
 		return trap(Nyi)
 	}
@@ -180,10 +181,26 @@ func Str(x K) (r K) {
 	dx(x)
 	return r
 }
+func pads(x K) (r K) { // padl
+	n := nn(x)
+	r = mk(Lt, n)
+	rp := int32(r)
+	xp := int32(x)
+	m := maxcount(xp, n)
+	for i := int32(0); i < n; i++ {
+		SetI64(rp, int64(ntake(m, x0(xp))))
+		rp += 8
+		xp += 8
+	}
+	dx(x)
+	return r
+}
 func emb(a, b int32, x K) (r K) { return cat1(Cat(Kc(a), x), Kc(b)) }
 func si(x int32) (r K) {
 	if x == 0 {
 		return Ku(uint64('0'))
+	} else if x == -2147483648 {
+		return Ku(20016) // 0N
 	} else if x < 0 {
 		return ucat(Ku(uint64('-')), si(-x))
 	}

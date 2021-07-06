@@ -3,6 +3,7 @@ package main
 import . "github.com/ktye/wg/module"
 
 var src, loc, xyz K
+var nan float64
 var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
 
 func init() {
@@ -53,6 +54,7 @@ func kinit() {
 	sp = 256
 	src = 0
 	loc = 0
+	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
 	sc(Ku(0))            // `   0
@@ -227,10 +229,28 @@ func td(x K) (r K) { // table from dict
 	return K(int32(r)) | K(Tt)<<59
 }
 func zero(t T) (r K) {
-	if t == Ft {
+	if t == ft {
 		return Kf(0)
 	} else if t == zt {
 		return Kz(0, 0)
 	}
 	return K(t) << 59
+}
+func missing(t T) (r K) {
+	switch t - 2 {
+	case 0: // ct
+		return Kc(32)
+	case 1: // it
+		return Ki(-2147483648)
+	case 2: // st
+		return Ks(0)
+	case 3: // ft
+		return Kf(nan)
+	case 4: // zt
+		return Kz(nan, nan)
+	case 5: // lt
+		return Kb(0)
+	default:
+		return K(t) << 59
+	}
 }

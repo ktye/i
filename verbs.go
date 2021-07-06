@@ -191,7 +191,7 @@ func ntake(n int32, y K) (r K) {
 		}
 		n += nn(y)
 		if n < 0 {
-			return ucat(ntake(-n, zero(t-16)), y)
+			return ucat(ntake(-n, missing(t-16)), y)
 		}
 		return ndrop(n, y)
 	}

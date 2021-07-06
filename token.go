@@ -110,6 +110,10 @@ func tunm() K {
 			return pflz(float64(r))
 		}
 		if r == 0 {
+			if c == 'N' {
+				pp++
+				return missing(it)
+			}
 			if c == 'n' || c == 'w' {
 				q := Kf(0)
 				SetI64(int32(q), int64(0x7FF8000000000001)) // 0n

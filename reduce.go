@@ -66,7 +66,7 @@ func max(x K, yp int32, t T, n int32) K { // |/x
 			xp = -2147483648
 		}
 		for i := int32(0); i < n; i++ {
-			xp = mini(xp, I32(yp))
+			xp = maxi(xp, I32(yp))
 			yp += 4
 		}
 		return Ki(xp)
