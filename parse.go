@@ -193,7 +193,7 @@ func pspec(r, n K, ln int32) (K, int32) {
 			return cond(n, ln), -1
 		}
 	}
-	if nn(r) == 2 && ln > 1 && int32(v) == 40 { // while[..]
+	if nn(r) == 2 && ln > 1 && int32(v) == 48 { // while[..]
 		dx(r)
 		return whl(n, ln-1), -1
 	}

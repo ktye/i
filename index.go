@@ -17,6 +17,8 @@ func Atx(x, y K) (r K) { // x@y
 			}
 			if xp == 32 { // `k@
 				return Kst(y)
+			} else if xp == 40 { // `l@
+				return Lst(y)
 			} else {
 				trap(Value)
 			}

@@ -83,6 +83,32 @@ func kst0(t T) (r K) {
 	}
 	return Ku(uint64(r))
 }
+func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
+	xt := tp(x)
+	if xt < Lt {
+		return Str(x)
+	}
+	n := nn(x)
+	switch xt - Lt {
+	case 0: // Lt
+		r = mk(Lt, n)
+		for i := int32(0); i < n; i++ {
+			xi := x0(int32(x) + 8*i)
+			ti := tp(xi)
+			if ti == ct {
+				xi = Enl(xi)
+			} else if ti != Ct {
+				xi = Kst(xi)
+			}
+			SetI64(int32(r)+8*i, int64(xi))
+		}
+		return r
+	case 1: // Dt
+		return trap(Nyi)
+	default: // Tt
+		return trap(Nyi)
+	}
+}
 func Str(x K) (r K) {
 	xt := tp(x)
 	if xt > 16 {

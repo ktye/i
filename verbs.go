@@ -54,7 +54,7 @@ func Fst(x K) K { // *x
 	}
 	return ati(x, 0)
 }
-func Lst(x K) K { // *|x
+func Last(x K) K { // *|x
 	t := tp(x)
 	if t < 16 {
 		return x

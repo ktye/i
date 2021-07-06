@@ -60,9 +60,10 @@ func kinit() {
 	y := sc(Ku(121))     // `y 16
 	z := sc(Ku(122))     // `z 24
 	sc(Ku(107))          // `k 32
-	sc(Ku(435610544247)) // `while 40
-	sc(Ku(28265))        // `in 48
-	sc(Ku(1684957542))   // `find 56
+	sc(Ku(108))          // `l 40
+	sc(Ku(435610544247)) // `while 48
+	sc(Ku(28265))        // `in    56
+	sc(Ku(1684957542))   // `find  64
 	xyz = cat1(Cat(x, y), z)
 }
 func reset() {

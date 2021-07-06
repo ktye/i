@@ -169,8 +169,8 @@ func tvrb() (r K) {
 		r = tvar()
 		if r != 0 { // builtins
 			rp := int32(r)
-			if rp > 40 && rp < 64 { // `in`find
-				return K(24 + rp>>3)
+			if rp > 48 && rp < 72 { // `in`find
+				return K(23 + rp>>3)
 			} else {
 				pp = p
 			}
