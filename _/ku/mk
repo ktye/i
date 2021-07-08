@@ -1,0 +1,8 @@
+mkdir www
+cp -r /c/k/ktye.github.io/codemirror www/
+cp    /c/k/ktye.github.io/index.html www/
+cp    /c/k/ktye.github.io/k.wasm     www/
+cp    /c/k/ktye.github.io/k.t        www/
+cp    /c/k/ktye.github.io/readme     www/
+
+go build
