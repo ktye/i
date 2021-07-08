@@ -8,6 +8,7 @@ type ftok = func() K
 
 func tok(x K) (r K) {
 	var y K
+	x = cmt(x)
 	src = x
 	pp = int32(x)
 	pe = pp + nn(x)
@@ -286,6 +287,34 @@ func ws() {
 		pp++
 	}
 	return
+}
+func cmt(x K) (r K) {
+	n := nn(x)
+	r = mk(Ct, n)
+	b := int32(1)
+	h := int32(0)
+	for i := int32(0); i < n; i++ {
+		c := I8(int32(x) + i)
+		if h != 0 {
+			if c == 10 {
+				h = 0
+			}
+		} else {
+			if c == 47 && b != 0 {
+				h = 1
+			} else if c < 33 {
+				b = 1
+			} else {
+				b = 0
+			}
+		}
+		if h != 0 {
+			c = 32
+		}
+		SetI8(int32(r)+i, c)
+	}
+	dx(x)
+	return r
 }
 func is(x, m int32) bool {
 	return m&I8(100+x) != 0
