@@ -46,15 +46,17 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 		return x, xv
 	}
 	if yv != 0 && xv == 0 {
+		a := int32(0)
+		x, y, a = pasn(x, y)
 		r, ev = e(t())
-		if r == 0 || ev == 1 { // 1+ (projection)
+		if (r == 0 || ev == 1) && a == 0 { // 1+ (projection)
 			x = cat1(ucat(ucat(l1(0), x), y), 128)
 			if ev == 1 { // 1+-
 				return cat1(ucat(r, x), 91), 1
 			}
 			return x, 1
 		}
-		x, y = pasn(x, y)
+		//x, y = pasn(x, y)
 		r = ucat(r, x)
 		return dyadic(r, y), 0 // dyadic
 	}
@@ -126,7 +128,7 @@ f:
 	}
 	return r, verb
 }
-func pasn(x, y K) (K, K) {
+func pasn(x, y K) (K, K, int32) {
 	l := K(I64(int32(y)))
 	v := int32(l)
 	if nn(y) == 1 && tp(l) == 0 && v == 449 || (v > 544 && v < 565) {
@@ -152,8 +154,9 @@ func pasn(x, y K) (K, K) {
 		} else { // modified
 			y = cat1(l2(unquote(l-32), Fst(rx(x))), 448)
 		}
+		return x, y, 1
 	}
-	return x, y
+	return x, y, 0
 }
 func plam(s0 int32) (r K) {
 	slo := loc
