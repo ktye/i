@@ -407,9 +407,6 @@ func uf(x K) (r K) {
 	if rt == 0 || rt > zt {
 		return x
 	}
-	if rt > st {
-		trap(Nyi)
-	}
 	rt += 16
 	r = mk(rt, xn)
 	s := sz(rt)
@@ -428,8 +425,20 @@ func uf(x K) (r K) {
 			xp += 8
 			rp += 4
 		}
+	case 2:
+		for i := int32(0); i < xn; i++ {
+			SetI64(rp, I64(I32(xp)))
+			xp += 8
+			rp += 8
+		}
 	default:
-		trap(Nyi)
+		for i := int32(0); i < xn; i++ {
+			s := I32(xp)
+			SetI64(rp, I64(s))
+			SetI64(rp+8, I64(s+8))
+			xp += 8
+			rp += 16
+		}
 	}
 	dx(x)
 	return r

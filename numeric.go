@@ -95,7 +95,7 @@ func nm(f int32, x K) (r K) {
 			dx(x)
 			return r
 		case 5:
-			r = Kz(Func[3+f].(f1z)(F64(xp), F64(xp)))
+			r = Kz(Func[3+f].(f1z)(F64(xp), F64(xp+8)))
 			dx(x)
 			return r
 		default:
@@ -237,6 +237,9 @@ func Hypot(x, y K) (r K) { // e.g.  norm:0. abs/x
 	yt := tp(y)
 	if xt > Zt || yt > Zt {
 		return Ech(32, l2(x, y))
+	}
+	if xt == zt {
+		x, xt = Abs(x), ft
 	}
 	if xt == ft {
 		xp := int32(x)

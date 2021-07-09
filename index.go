@@ -188,9 +188,6 @@ func stv(x, i, y K) (r K) {
 			yp += 4
 		}
 	case 2:
-		if xt == Ft {
-			trap(Nyi)
-		}
 		if xt == Lt {
 			rl(y)
 			for j := int32(0); j < n; j++ {
@@ -205,7 +202,13 @@ func stv(x, i, y K) (r K) {
 			yp += 8
 		}
 	default:
-		trap(Nyi)
+		for j := int32(0); j < n; j++ {
+			xp = int32(x) + 16*I32(ip)
+			SetI64(xp, I64(yp))
+			SetI64(xp+8, I64(yp+8))
+			ip += 4
+			yp += 16
+		}
 	}
 	dx(i)
 	dx(y)

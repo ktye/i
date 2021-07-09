@@ -18,8 +18,7 @@ func init() {
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find, Hypot, Cmpl, nyi, Rot)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
-	//                                                                   229                              235                                 241                           247
-	//Functions(220, addi, addf, addz, subi, subf, subz, muli, mulf, mulz, divi, divf, divz, nyi, nyi, nyi, mini, minf, minz, maxi, maxf, maxz, lti, ltf, ltz, gti, gtf, gtz, eqi, eqf, eqz, nyi, nyi, rot)
+
 	Functions(220, negc, negi, negf, negz, negC, negI, negF, negZ)
 	Functions(228, absc, absi, absf, nyi, absF, absI, absF, absZ)
 	Functions(236, addi, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)

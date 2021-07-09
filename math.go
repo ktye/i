@@ -81,17 +81,17 @@ func cosin_(x float64) (c, s float64) {
 	return c, s
 }
 func ang2(y, x float64) (deg float64) {
-	if x == 0 {
-		if y > 0 {
-			return 90.0
-		}
-		return 270.0
-	}
 	if y == 0 {
-		if x > 0 {
-			return 0.
+		if x < 0 {
+			return 180.0
 		}
-		return 180.0
+		return 0.
+	}
+	if x == 0 {
+		if y < 0 {
+			return 270.0
+		}
+		return 90.0
 	}
 	deg = 57.29577951308232 * atan2(y, x)
 	if deg < 0 {
