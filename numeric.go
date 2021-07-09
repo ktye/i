@@ -169,10 +169,13 @@ func negZ(xp, rp, e int32) { negF(xp, rp, e) }
 
 func Abs(x K) K {
 	xt := tp(x)
+	if xt > Zt {
+		return Ech(32, l1(x))
+	}
 	if xt == zt {
 		xp := int32(x)
 		dx(x)
-		return Kf(hypot(F64(xp), F64(xp+4)))
+		return Kf(hypot(F64(xp), F64(xp+8)))
 	} else if xt == Zt {
 		return absZ(x)
 	}
@@ -231,6 +234,76 @@ func absZ(x K) (r K) {
 }
 
 func Sqr(x K) (r K) {
+	if tp(x)&15 != ft {
+		x = Add(Kf(0), x)
+	}
+	return nm(383, x)
+}
+func sqrf(x float64) float64 { return F64sqrt(x) }
+func sqrF(xp, rp, e int32) {
+	for rp < e {
+		F64x2store(rp, F64x2load(xp).Sqrt())
+		xp += 16
+		rp += 16
+		continue
+	}
+}
+
+func Imag(x K) (r K) { // imag x
+	xt := tp(x)
+	if xt > Zt {
+		return Ech(33, l1(x))
+	}
+	if xt < zt {
+		return zero(xt)
+	}
+	if xt == zt {
+		dx(x)
+		return Kf(F64(int32(x) + 8))
+	}
+	if xt < Zt {
+		x = uptype(x, zt)
+	}
+	xp := 8 + int32(x)
+	n := nn(x)
+	r = mk(Ft, n)
+	rp := int32(r)
+	e := rp + 8*n
+	for rp < e {
+		SetI64(rp, I64(xp))
+		xp += 16
+		rp += 8
+	}
+	dx(x)
+	return r
+}
+func Cmpl(x, y K) (r K) { return Add(x, Mul(Kz(0.0, 1.0), y)) } // x imag y
+func Conj(x K) (r K) { // conj x
+	xt := tp(x)
+	if xt > Zt {
+		return Ech(34, l1(x))
+	}
+	if xt&15 < zt {
+		x = uptype(x, zt)
+	}
+	xt = tp(x)
+	xp := int32(x)
+	if xt == zt {
+		dx(x)
+		return Kz(F64(xp), -F64(xp+8))
+	}
+	x = use(x)
+	xp = 8 + int32(x)
+	e := xp + 16*nn(x)
+	for xp < e {
+		SetF64(xp, -F64(xp))
+		xp += 16
+	}
+	return x
+}
+
+/*
+func Sqr(x K) (r K) {
 	xt := tp(x)
 	xp := int32(x)
 	if xt == ft {
@@ -258,6 +331,7 @@ func sqrF(x K) (r K) {
 	dx(x)
 	return r
 }
+*/
 
 func nd(f, ff int32, x, y K) (r K) {
 	var av int32
@@ -764,7 +838,7 @@ func Div(x, y K) (r K) {
 	return nd(272, 5, x, y)
 }
 func divi(x, y int32) int32     { return x / y }
-func divf(x, y float64) float64 { return x * y }
+func divf(x, y float64) float64 { return x / y }
 func divz(xr, xi, yr, yi float64) (e float64, f float64) {
 	var r, d float64
 	if F64abs(yr) >= F64abs(yi) {
@@ -818,7 +892,53 @@ func divZ(xp, yp, rp, e int32) { // todo simd
 		continue
 	}
 }
-func idiv(x, y K) (r K) { trap(Nyi); return x }
+func idiv(x, y K) (r K) {
+	av, t := conform(x, y)
+	if t != it {
+		trap(Type)
+	}
+	xp := int32(x)
+	yp := int32(y)
+	switch av {
+	case 0: //a%a
+		return Ki(xp / yp)
+	case 1: //a%v
+		r = use1(y)
+		rp := int32(r)
+		e := rp + 4*nn(r)
+		for rp < e {
+			SetI32(rp, xp/I32(yp))
+			xp += 4
+			rp += 4
+		}
+		dx(y)
+		return r
+	case 2: //v%v
+		r = use2(x, y)
+		rp := int32(r)
+		e := rp + 4*nn(r)
+		for rp < e {
+			SetI32(rp, I32(xp)/I32(yp))
+			xp += 4
+			yp += 4
+			rp += 4
+		}
+		dx(x)
+		dx(y)
+		return r
+	default: // v%a
+		r = use1(x)
+		rp := int32(r)
+		e := rp + 4*nn(r)
+		for rp < e {
+			SetI32(rp, I32(xp)/yp)
+			xp += 4
+			rp += 4
+		}
+		dx(x)
+		return r
+	}
+}
 
 func Min(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)

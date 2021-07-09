@@ -174,7 +174,7 @@ func tvrb() (r K) {
 		r = tvar()
 		if r != 0 { // builtins
 			rp := int32(r)
-			if rp > 48 && rp < 72 { // `in`find
+			if rp > 48 && rp < 96 { // `in`find`abs`imag`conj
 				return K(23 + rp>>3)
 			} else {
 				pp = p

@@ -156,6 +156,7 @@ func pasn(x, y K) (K, K) {
 	return x, y
 }
 func plam(s0 int32) (r K) {
+	slo := loc
 	loc = mk(St, 0)
 	c := es() // todo: translate srcp
 	n, s1 := next()
@@ -180,7 +181,7 @@ func plam(s0 int32) (r K) {
 	r = mk(Lt, cn) // save
 	Memoryfill(int32(r), 0, 8*cn)
 	r = cat1(l3(c, loc, r), s)
-	loc = 0
+	loc = slo
 	rp := int32(r)
 	SetI32(rp-12, ar)
 	return l1(K(rp) | K(lf)<<59)

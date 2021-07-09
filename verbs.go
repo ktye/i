@@ -434,10 +434,8 @@ func Flr(x K) (r K) { // _x
 			xp += 16
 			rp += 8
 		}
-	case 4: // L
+	default: // L/D/T
 		return Ech(16, l1(x))
-	default: // todo D/T
-		trap(Type)
 	}
 	dx(x)
 	return r

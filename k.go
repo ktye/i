@@ -14,8 +14,8 @@ func init() {
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30
-	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find)
+	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi, Abs, Imag, Conj)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find, nyi, Cmpl, nyi)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 	//                                                                   229                              235                                 241                           247
@@ -37,6 +37,7 @@ func init() {
 
 	Functions(369, sum, rd0, prd, rd0, rd0, min, max)
 	Functions(376, sums, rd0, prds, rd0, rd0, mins, maxs)
+	Functions(383, nyi, nyi, sqrf, nyi, nyi, nyi, negF, nyi)
 }
 
 //   0....7  key
@@ -66,6 +67,10 @@ func kinit() {
 	sc(Ku(435610544247)) // `while 48
 	sc(Ku(28265))        // `in    56
 	sc(Ku(1684957542))   // `find  64
+	sc(Ku(7561825))      // `abs   72
+	sc(Ku(1734438249))   // `imag  80
+	sc(Ku(1785622371))   // `conj  88
+
 	xyz = cat1(Cat(x, y), z)
 }
 func reset() {
