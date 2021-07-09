@@ -1487,7 +1487,39 @@ func gtZ(xp, yp, rp, e int32) {
 
 func isnan(x float64) bool { return x != x }
 
+func Angle(x K) (r K) { // angle x
+	xt := tp(x)
+	if xt > Zt {
+		return Ech(35, l1(x))
+	}
+	if xt < zt {
+		return Ki(0)
+	}
+	xp := int32(x)
+	if xt == zt {
+		dx(x)
+		return Kf(ang2(F64(xp+8), F64(xp)))
+	}
+	n := nn(x)
+	if xt == Zt {
+		r = mk(Ft, n)
+		rp := int32(r)
+		e := rp + 8*n
+		for rp < e {
+			SetF64(rp, ang2(F64(xp+8), F64(xp)))
+			xp += 16
+			rp += 8
+		}
+	} else {
+		r = ntake(n, Ki(0))
+	}
+	dx(x)
+	return r
+}
 func Rot(x, y K) (r K) { // r angle deg
+	if tp(x) > Zt {
+		return Ech(35, l2(x, y))
+	}
 	x = uptype(x, zt)
 	if y == 0 {
 		return x

@@ -14,8 +14,8 @@ func init() {
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30
-	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi, Abs, Imag, Conj)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find, nyi, Cmpl, nyi)
+	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi, Abs, Imag, Conj, Angle)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find, nyi, Cmpl, nyi, Rot)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 	//                                                                   229                              235                                 241                           247
@@ -70,6 +70,7 @@ func kinit() {
 	sc(Ku(7561825))      // `abs   72
 	sc(Ku(1734438249))   // `imag  80
 	sc(Ku(1785622371))   // `conj  88
+	sc(Ku(435610414689)) // `angle 96
 
 	xyz = cat1(Cat(x, y), z)
 }
