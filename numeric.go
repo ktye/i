@@ -232,6 +232,25 @@ func absZ(x K) (r K) {
 	dx(x)
 	return r
 }
+func Hypot(x, y K) (r K) { // e.g.  norm:0. abs/x
+	xt := tp(x)
+	yt := tp(y)
+	if xt > Zt || yt > Zt {
+		return Ech(32, l2(x, y))
+	}
+	if xt == ft {
+		xp := int32(x)
+		yp := int32(y)
+		dx(x)
+		dx(y)
+		if yt == ft {
+			return Kf(hypot(F64(xp), F64(yp)))
+		} else if yt == zt {
+			return Kf(hypot(F64(xp), hypot(F64(yp), F64(yp+8))))
+		}
+	}
+	return trap(Nyi)
+}
 
 func Sqr(x K) (r K) {
 	if tp(x)&15 != ft {
@@ -301,37 +320,6 @@ func Conj(x K) (r K) { // conj x
 	}
 	return x
 }
-
-/*
-func Sqr(x K) (r K) {
-	xt := tp(x)
-	xp := int32(x)
-	if xt == ft {
-		r = Kf(F64sqrt(F64(xp)))
-	} else if xt == Ft {
-		r = sqrF(x)
-	} else {
-		trap(Type)
-	}
-	return r
-}
-func sqrF(x K) (r K) {
-	r = use1(x)
-	if nn(r) == 0 {
-		dx(x)
-		return r
-	}
-	e := ep(r)
-	xp, rp := int32(x), int32(r)
-	for rp < e {
-		F64x2store(rp, F64x2load(xp).Sqrt())
-		rp += 16
-		continue
-	}
-	dx(x)
-	return r
-}
-*/
 
 func nd(f, ff int32, x, y K) (r K) {
 	var av int32
