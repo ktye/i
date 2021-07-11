@@ -260,12 +260,7 @@ func atdepth(x, y K) (r K) {
 	if f == 0 {
 		f = seq(nn(x))
 	}
-	m := int32(0)
-	if tp(f) > 16 {
-		if nn(f) != 1 {
-			m = 1 // matrix-index
-		}
-	}
+	m := I32B(tp(f)>16)
 	x = Atx(x, f)
 	if nn(y) == 1 {
 		dx(y)
