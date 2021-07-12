@@ -209,7 +209,7 @@ func whl(x K, xn int32) (r K) {
 	r = cat1(r, 384) // jif
 	r = cat1(r, 256) // drop
 	xp := int32(x)
-	sum := int32(16)
+	sum := int32(2)
 	for i := int32(0); i < xn; i++ {
 		if i != 0 {
 			r = cat1(r, 256)

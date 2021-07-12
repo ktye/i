@@ -260,14 +260,13 @@ func atdepth(x, y K) (r K) {
 	if f == 0 {
 		f = seq(nn(x))
 	}
-	m := I32B(tp(f)>16)
 	x = Atx(x, f)
 	if nn(y) == 1 {
 		dx(y)
 		return x
 	}
 	y = ndrop(1, y)
-	if m != 0 {
+	if tp(f) > 16 {
 		if nn(y) != 1 {
 			trap(Rank)
 		}
