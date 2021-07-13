@@ -64,7 +64,9 @@ func exec(x K) K {
 }
 
 func marksrc(x K) int32 {
-	srcp = 0xffffff & int32(x>>32)
+	if p := 0xffffff & int32(x>>32); p != 0 {
+		srcp = p
+	}
 	return int32(x)
 }
 func push(x K) {
