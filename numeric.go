@@ -219,7 +219,7 @@ func absF(xp, rp, e int32) {
 	}
 }
 func absZ(x K) (r K) {
-	n := nn(r)
+	n := nn(x)
 	r = mk(Ft, n)
 	rp := int32(r)
 	xp := int32(x)

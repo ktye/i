@@ -18,7 +18,7 @@ func pz(z complex128) string {
 	if a < 0 {
 		a += 360
 	}
-	return fmt.Sprintf("  %va%.1f", r, a)
+	return fmt.Sprintf("  %va%.5f", r, a)
 }
 func pm(m [][]complex128) {
 	for _, v := range m {
@@ -41,27 +41,21 @@ func NewQR(H [][]complex128) QR { // QR reusing H in column major format.
 	Rdiag := make([]complex128, n)
 	for j := 0; j < n; j++ {
 		s := vectorNorm(H[j][j:])
-		fmt.Println("s:", s)
 		if s == 0 {
 			panic("matrix contains zero-columns")
 		}
 		Rdiag[j] = -complex(s, 0) * cmplx.Rect(1, cmplx.Phase(H[j][j])) // Diagonal element.
-		fmt.Println("r", p(Rdiag))
 		f := complex(math.Sqrt(s*(s+cmplx.Abs(H[j][j]))), 0)
-		fmt.Println("f", pz(f))
 		H[j][j] -= Rdiag[j]
 		for k := j; k < m; k++ {
 			H[j][k] /= f
 		}
-		pm(H)
 		for i := j + 1; i < n; i++ {
 			var sum complex128
 			for k := j; k < m; k++ {
 				sum += cmplx.Conj(H[j][k]) * H[i][k]
 			}
-			fmt.Printf("sum[%d/%d] = %s\n", j, i, pz(sum))
 			for k := j; k < m; k++ {
-				//fmt.Printf("sum*H[%d/%d]=%s\n", j, k, pz(sum*H[j][k]))
 				H[i][k] -= H[j][k] * sum
 			}
 		}
@@ -96,6 +90,7 @@ func (D QR) qMul(y []complex128) []complex128 {
 			y[k] -= D.H[j][k] * sum
 		}
 	}
+	fmt.Println("qmul y", p(y))
 	return y
 }
 func (D QR) rSolve(b []complex128) []complex128 {
@@ -107,9 +102,13 @@ func (D QR) rSolve(b []complex128) []complex128 {
 		x[i] = b[i]
 	}
 	for i := D.N - 1; i >= 0; i-- {
+		var sum complex128
 		for j := i + 1; j < D.N; j++ {
-			x[i] -= D.H[j][i] * x[j]
+			//x[i] -= D.H[j][i] * x[j]
+			sum += D.H[j][i] * x[j]
 		}
+		fmt.Println("sum", sum)
+		x[i] -= sum
 		x[i] /= D.Rdiag[i]
 	}
 	return x[0:D.N]

@@ -31,7 +31,11 @@ func Atx(x, y K) (r K) { // x@y
 		}
 		return Atx(r, Fnd(x, y))
 	}
-	if yt == It {
+	if yt < It {
+		y = uptype(y, it)
+		yt = tp(y)
+	}
+	if yt == It || yt == Bt {
 		return atv(x, y)
 	}
 	if yt == it && xt > 16 {

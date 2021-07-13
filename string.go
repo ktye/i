@@ -159,7 +159,7 @@ func Str(x K) (r K) {
 			case 3: // 192     tetradic
 				xp -= 192
 			default:
-				return ucat(Ku('`'), Ki(xp))
+				return ucat(Ku('`'), si(xp))
 			}
 			r = Ku(uint64(I8(227 + xp)))
 		case bt:
