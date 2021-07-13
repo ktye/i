@@ -33,6 +33,7 @@ func mkchars(b []byte) (r K) {
 func intvalue(x K) int32     { return int32(x) }
 func floatvalue(x K) float64 { return F64(int32(x)) }
 func TestTypes(t *testing.T) {
+	t.Skip()
 	newtest()
 	xi := Ki(-5)
 	if v := intvalue(xi); v != -5 {
@@ -51,6 +52,8 @@ func TestTypes(t *testing.T) {
 	if r := tp(xf); r != ft {
 		t.Fatalf("got t=%d expected %d\n", r, ft)
 	}
+	dx(xf)
+	reset()
 }
 func TestBucket(t *testing.T) {
 	tc := []struct{ in, exp int32 }{
@@ -214,7 +217,7 @@ func scan() {
 
 func rc(x K) int32 {
 	xt := tp(x)
-	if xt < 16 {
+	if xt < ft {
 		return -1
 	}
 	return I32(int32(x) - 4)

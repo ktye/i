@@ -148,25 +148,21 @@ func Grp(x K) (r K) { // =x
 func Key(x, y K) (r K) { // x!y
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
-		x = Enl(x)
-		xt = tp(x)
-	}
-	if yt < 16 {
-		y = Enl(y)
-		yt = tp(y)
-	}
-	nx, ny := nn(x), nn(y)
-	if nx != ny {
-		if nx == 1 && ny > 1 {
-			x = ntake(ny, x)
-		} else if ny == 1 && nx > 1 {
-			y = ntake(ny, x)
+		if yt < 16 {
+			return Key(Enl(x), Enl(y))
 		} else {
-			trap(Length)
+			x = ntake(nn(y), x)
 		}
 	}
+	xn := nn(x)
+	if yt < 16 {
+		y = ntake(nn(x), y)
+	}
+	if xn != nn(y) {
+		trap(Length)
+	}
 	r = l2(x, y)
-	SetI32(int32(r)-12, nn(x))
+	SetI32(int32(r)-12, xn)
 	return K(int32(r)) | K(Dt)<<59
 }
 func key(x, y K, t T) K { return K(int32(Key(x, y))) | K(t)<<59 } // Dt or Tt
