@@ -2,6 +2,18 @@ package main
 
 import . "github.com/ktye/wg/module"
 
+/*
+`".kst":{t:@x;n:#x;k:.(`".kst")
+ q:{c,x,c:_34}
+ a:{x:$x;$[`c~t;q x;`s~t;"`",x;x]}
+ d:{r:"!",k@.x;x:k@!x;$[1~n;"(",x,")";x],r}
+ v:{x:$[`L~t;k'x;t in `D`C;x;$x]
+  x:$[`B~t;(*'x),"b";`C~t;q x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];`D~t;d x;`T~t;"+",d@+x;" "/:x]
+  (("";",")1~n),x}
+ $[x~*x;a x;n~0;(.`".kst0")@t;v x]}
+`".kst0":`B`C`I`S`F`Z`L!("0#0b";c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
+*/
+
 var src, loc, xyz K
 var nan float64
 var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer

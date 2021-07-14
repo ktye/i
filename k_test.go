@@ -165,55 +165,6 @@ func TestClass(t *testing.T) {
 	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 64)
 	//fmt.Printf("%q\n", string(c[32:]))
 }
-func check() {
-	t := int32(0)
-	for i := int32(5); i < 31; i++ {
-		t += mark(i) * (int32(1) << i)
-	}
-	if t != 1<<I32(128) {
-		total := (int32(1) << I32(128)) - 1024
-		if total-t != 0 {
-			fmt.Printf("free %d of %d (+%d)\n", t, total, total-t)
-		}
-	}
-	scan()
-}
-func mark(i int32) (r int32) {
-	p := I32(4 * i)
-	for p != 0 {
-		r++
-		SetI32(p+12, 0) // rc
-		if r := I32(p + 12); r != 0 {
-			//fmt.Printf("mark: p=%d rc=%d\n", p, r)
-			//panic("mark")
-		}
-		SetI32(p+4, i) // bt
-		p = I32(p)
-	}
-	return r
-}
-func scan() {
-	total := int32(1) << I32(128)
-	p := int32(1024)
-	for {
-		t := I32(p + 4)
-		if t < 5 || t > 31 {
-			fmt.Printf("illegal type at p+8=%d, bt=%d\n", p+16, t)
-			panic("scan")
-		}
-		if r := I32(p + 12); r != 0 {
-			fmt.Printf("non-free block at p=%d, bt=%d rc=%d\n", p, t, r)
-			panic("scan")
-		}
-		p += 1 << t
-		if p == total {
-			return
-		}
-		if p > total {
-			panic("scan/p>total")
-		}
-	}
-}
 
 func rc(x K) int32 {
 	xt := tp(x)

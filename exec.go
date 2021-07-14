@@ -91,7 +91,7 @@ func lst(n K) (r K) {
 		SetI64(rp, int64(pop()))
 		rp += 8
 	}
-	return r
+	return uf(r)
 }
 func nul(x K) K { push(x); return 0 }
 func lup(x K) K {

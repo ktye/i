@@ -5,18 +5,16 @@ import (
 )
 
 func Cal(x, y K) (r K) {
-	xt, yt := tp(x), tp(y)
+	xt := tp(x)
+	y = explode(y)
 	if isfunc(xt) != 0 {
-		if yt != Lt {
-			trap(Nyi)
-		}
 		r = project(x, y)
 		if r != 0 {
 			return r
 		}
 		return cal(x, y)
 	}
-	return atdepth(x, explode(y))
+	return atdepth(x, y)
 }
 func isfunc(t T) int32 { return I32B(t == 0 || (t < 16 && t > tt)) }
 
@@ -67,7 +65,8 @@ func cal(f, x K) (r K) {
 		}
 		r = r
 	case 2: // df
-		d := K(I64(fp))
+		//d := K(I64(fp))
+		d := x0(fp)
 		a := 85 + int32(I64(fp+8))
 		r = Func[a].(f2)(d, x)
 	case 3: // pf

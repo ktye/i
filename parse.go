@@ -179,7 +179,7 @@ func plam(s0 int32) (r K) {
 	}
 	i := Add(seq(1+s1-s0), Ki(s0-1))
 	s := atv(rx(src), i)
-	loc = Cat(ntake(ar, rx(xyz)), Unq(loc))
+	loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
 	cn = nn(loc)
 	r = mk(Lt, cn) // save
 	Memoryfill(int32(r), 0, 8*cn)

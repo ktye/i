@@ -12,6 +12,8 @@ func scn(x K) K { return l2t(x, 4, df) } // \
 func ecl(x K) K { return l2t(x, 5, df) } // \:
 
 func Ech(f, x K) (r K) {
+	//fmt.Printf("each f %s rc=%d\n", sK(f), rc(f))
+
 	if nn(x) == 1 {
 		x = Fst(x)
 	} else {
@@ -39,6 +41,7 @@ func Ech(f, x K) (r K) {
 	}
 	dx(f)
 	dx(x)
+	//fmt.Printf("<ech f %s rc=%d\n", sK(f), rc(f))
 	return uf(r)
 }
 func ecn(f, x K) (r K) {
@@ -265,7 +268,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		return join(rx(f), Fst(x))
+		return join(f, Fst(x))
 	}
 	xt := tp(x)
 	if xt != Lt {
@@ -288,6 +291,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 			SetI64(rp, int64(cal(rx(f), l2(rx(x), ati(rx(y), i)))))
 			rp += 8
 		}
+		dx(f)
 		dx(x)
 		dx(y)
 		return uf(r)
@@ -364,7 +368,7 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		return split(rx(f), Fst(x))
+		return split(f, Fst(x))
 	}
 	xn := nn(x)
 	switch xn - 1 {
@@ -383,6 +387,7 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 			SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), i), rx(y)))))
 			rp += 8
 		}
+		dx(f)
 		dx(x)
 		dx(y)
 		return uf(r)
