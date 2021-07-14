@@ -135,9 +135,7 @@ func lambda(f K, x K) (r K) {
 	lp = int32(lo)
 	for i := int32(0); i < nl; i++ {
 		p := vp + I32(lp)
-		if i < fn {
-			dx(K(I64(p)))
-		}
+		dx(K(I64(p)))
 		SetI64(p, I64(sp))
 		SetI64(sp, 0)
 		lp += 4

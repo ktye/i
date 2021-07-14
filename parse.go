@@ -146,7 +146,7 @@ func pasn(x, y K) (K, K, int32) {
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
 			s := Fst(x) // (`x;.)
-			if loc != 0 && v == 494 {
+			if loc != 0 && v == 449 {
 				loc = cat1(loc, s)
 			}
 			x = l1(s)

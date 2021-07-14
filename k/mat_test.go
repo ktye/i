@@ -7,7 +7,20 @@ import (
 	"testing"
 )
 
+func TestReal(t *testing.T) {
+	A := [][]float64{
+		[]float64{3, 5, -8, 12},
+		[]float64{-2, 3, 3, 0},
+		[]float64{7, -8, 2, 1},
+	}
+
+	qr := NewRQ(A)
+	fmt.Println("qr A:", qr)
+	r := qr.Solve([]float64{2, 3, 1, -5})
+	fmt.Println("r:", r)
+}
 func TestMat(t *testing.T) {
+	t.Skip()
 	H := [][]complex128{
 		[]complex128{1, 5i, 2, 4},
 		[]complex128{-2i, 3, 3, -1},

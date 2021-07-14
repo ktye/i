@@ -391,7 +391,7 @@ func Flr(x K) (r K) { // _x
 		case 0: // i
 			return Kc(xp)
 		case 1: // s
-			return trap(Type)
+			return Ki(int32(xp))
 		case 2: // f
 			dx(x)
 			return Ki(int32(F64floor(F64(xp))))
@@ -413,7 +413,7 @@ func Flr(x K) (r K) { // _x
 			xp += 4
 		}
 	case 1: //S
-		trap(Type)
+		return Ech(16, l1(x))
 	case 2: //F
 		r = mk(It, xn)
 		rp = int32(r)
@@ -571,3 +571,6 @@ func val(x K) (r K) {
 	}
 	return x
 }
+func Qr(x K) K     { return kx(7500078, x) }        //.qr
+func Slv(x, y K) K { return kxy(1986818862, x, y) } //.slv
+func Dot(x, y K) K { return kxy(1953457198, x, y) } //.dot

@@ -306,7 +306,7 @@ func Conj(x K) (r K) { // conj x
 		return Ech(34, l1(x))
 	}
 	if xt&15 < zt {
-		x = uptype(x, zt)
+		return x
 	}
 	xt = tp(x)
 	xp := int32(x)

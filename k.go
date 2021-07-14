@@ -10,12 +10,12 @@ func init() {
 	Memory(1)
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
-	Data(520, "vbcisfzldtcdpl000BCISFZLDT")
+	Data(520, "vbcisfzldtcdpl000BCISFZLDT") //546
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30
-	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi, Abs, Imag, Conj, Angle)
-	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find, Hypot, Cmpl, nyi, Rot)
+	Functions(0, nul, nyi, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi, Abs, Imag, Conj, Angle, Qr, nyi)
+	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, compose, nyi, Otu, In, Find, Hypot, Cmpl, nyi, Rot, Slv, Dot)
 	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
 	Functions(211, Amd, Dmd)
 
@@ -50,28 +50,20 @@ func init() {
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
 
 func kinit() {
-	minit(10, 16)
+	minit(11, 16) //2k..64k
 	sp = 256
 	src = 0
 	loc = 0
 	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-	sc(Ku(0))            // `   0
-	x := sc(Ku(120))     // `x  8
-	y := sc(Ku(121))     // `y 16
-	z := sc(Ku(122))     // `z 24
-	sc(Ku(107))          // `k 32
-	sc(Ku(108))          // `l 40
-	sc(Ku(435610544247)) // `while 48
-	sc(Ku(28265))        // `in    56
-	sc(Ku(1684957542))   // `find  64
-	sc(Ku(7561825))      // `abs   72
-	sc(Ku(1734438249))   // `imag  80
-	sc(Ku(1785622371))   // `conj  88
-	sc(Ku(435610414689)) // `angle 96
 
+	sc(Ku(0))        // `   0
+	x := sc(Ku(120)) // `x  8
+	y := sc(Ku(121)) // `y 16
+	z := sc(Ku(122)) // `z 24
 	xyz = cat1(Cat(x, y), z)
+	zk()
 }
 func reset() {
 	if sp != 256 {
@@ -82,7 +74,7 @@ func reset() {
 	dx(K(I64(0)))
 	dx(K(I64(8)))
 	//check() // k_test.go
-	if (uint32(1)<<uint32(I32(128)))-(1024+mcount()) != 0 {
+	if (uint32(1)<<uint32(I32(128)))-(2048+mcount()) != 0 {
 		trap(Err)
 	}
 	for i := int32(5); i < 31; i++ {
@@ -184,6 +176,8 @@ func Ku(x uint64) (r K) { // Ct
 	SetI32(int32(r)-12, p-int32(r))
 	return r
 }
+func kx(u uint64, x K) K     { return cal(Val(sc(Ku(u))), l1(x)) }
+func kxy(u uint64, x, y K) K { return cal(Val(sc(Ku(u))), l2(x, y)) }
 
 /* encode bytes with: https://play.golang.org/p/4ethx6OEVCR
 func enc(x []byte) (r uint64) {
