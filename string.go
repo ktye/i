@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Kst(x K) K { return kx(1953721134, x) }
+func Kst(x K) K { return kx(200, x) }
 
 /*
 func Kst(x K) (r K) {

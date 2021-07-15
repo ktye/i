@@ -571,6 +571,6 @@ func val(x K) (r K) {
 	}
 	return x
 }
-func Qr(x K) K     { return kx(7500078, x) }        //.qr
-func Slv(x, y K) K { return kxy(1986818862, x, y) } //.slv
-func Dot(x, y K) K { return kxy(1953457198, x, y) } //.dot
+func Qr(x K) K     { return kx(208, x) }     //.qr
+func Slv(x, y K) K { return kxy(216, x, y) } //.slv
+func Dot(x, y K) K { return kxy(224, x, y) } //.dot

@@ -176,8 +176,8 @@ func Ku(x uint64) (r K) { // Ct
 	SetI32(int32(r)-12, p-int32(r))
 	return r
 }
-func kx(u uint64, x K) K     { return cal(Val(sc(Ku(u))), l1(x)) }
-func kxy(u uint64, x, y K) K { return cal(Val(sc(Ku(u))), l2(x, y)) }
+func kx(u int32, x K) K     { return cal(Val(Ks(u)), l1(x)) }
+func kxy(u int32, x, y K) K { return cal(Val(Ks(u)), l2(x, y)) }
 
 /* encode bytes with: https://play.golang.org/p/4ethx6OEVCR
 func enc(x []byte) (r uint64) {
