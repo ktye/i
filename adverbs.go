@@ -12,8 +12,6 @@ func scn(x K) K { return l2t(x, 4, df) } // \
 func ecl(x K) K { return l2t(x, 5, df) } // \:
 
 func Ech(f, x K) (r K) {
-	//fmt.Printf("each f %s rc=%d\n", sK(f), rc(f))
-
 	if nn(x) == 1 {
 		x = Fst(x)
 	} else {
@@ -41,7 +39,6 @@ func Ech(f, x K) (r K) {
 	}
 	dx(f)
 	dx(x)
-	//fmt.Printf("<ech f %s rc=%d\n", sK(f), rc(f))
 	return uf(r)
 }
 func ecn(f, x K) (r K) {

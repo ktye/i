@@ -142,9 +142,11 @@ func TestKT(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	test(mkchars(b), 1)
-	reset()
-	reset()
+	v := bytes.Split(b, []byte{10})
+	for i := range v {
+		test(mkchars(v[i]))
+		reset()
+	}
 	dofile(mkchars([]byte("k.t")), mkchars(b))
 	reset()
 	reset()
@@ -166,6 +168,77 @@ func TestClass(t *testing.T) {
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 
+/*
+func memck() {
+	icheck := func(i int32) {
+		p := I32(4 * i)
+		for p != 0 {
+			if p < 2048 {
+				fmt.Println("memck ", i, p)
+				panic("memck")
+			}
+			p = I32(p)
+		}
+	}
+	for i := int32(5); i < 32; i++ {
+		icheck(i)
+	}
+}
+*/
+
+func check() { // debug in reset()
+	for i := int32(5); i < 31; i++ {
+		//fmt.Printf("[%d %d]: %d\n", i, 4*i, I32(4*i))
+	}
+	t := int32(0)
+	for i := int32(5); i < 31; i++ {
+		t += mark(i) * (int32(1) << i)
+	}
+	if t != 1<<I32(128) {
+		total := (int32(1) << I32(128)) - 2048
+		if total-t != 0 {
+			fmt.Printf("free %d of %d (+%d)\n", t, total, total-t)
+		}
+	}
+	scan()
+}
+func mark(i int32) (r int32) {
+	p := I32(4 * i)
+	for p != 0 {
+		r++
+		SetI32(p+12, 0) // rc
+		if r := I32(p + 12); r != 0 {
+			//fmt.Printf("mark: p=%d rc=%d\n", p, r)
+			//panic("mark")
+		}
+		SetI32(p+4, i) // bt
+		p = I32(p)
+	}
+	return r
+}
+func scan() {
+	total := int32(1) << I32(128)
+	p := int32(2048)
+	for {
+		t := I32(p + 4)
+		if t < 5 || t > 31 {
+			fmt.Printf("illegal type at p+16=%d, bt=%d\n", p+16, t)
+			fmt.Printf("p=%d Ip=%d Ip+4=%d Ip+8=%d Ip+12=%d\n", p, I32(p), I32(p+4), I32(p+8), I32(p+12))
+			panic("scan")
+		}
+		if r := I32(p + 12); r != 0 {
+			fmt.Printf("non-free block at p=%d, bt=%d rc=%d\n", p, t, r)
+			panic("scan")
+		}
+		p += 1 << t
+		if p == total {
+			return
+		}
+		if p > total {
+			panic("scan/p>total")
+		}
+	}
+}
 func rc(x K) int32 {
 	xt := tp(x)
 	if xt < ft {

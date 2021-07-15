@@ -75,7 +75,7 @@ func dofile(x K, c K) {
 	if match(xe, kk) != 0 { // file.k (execute)
 		dx(val(c))
 	} else if match(xe, tt) != 0 { // file.t (test)
-		test(c, 0)
+		test(c)
 	} else { // file (assign file:bytes..)
 		dx(Asn(sc(rx(x)), c))
 	}

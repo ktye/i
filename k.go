@@ -1,18 +1,13 @@
 package main
 
-import . "github.com/ktye/wg/module"
-
 /*
-`".kst":{t:@x;n:#x;k:.(`".kst")
- q:{c,x,c:_34}
- a:{x:$x;$[`c~t;q x;`s~t;"`",x;x]}
- d:{r:"!",k@.x;x:k@!x;$[1~n;"(",x,")";x],r}
- v:{x:$[`L~t;k'x;t in `D`C;x;$x]
-  x:$[`B~t;(*'x),"b";`C~t;q x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];`D~t;d x;`T~t;"+",d@+x;" "/:x]
-  (("";",")1~n),x}
- $[x~*x;a x;n~0;(.`".kst0")@t;v x]}
-`".kst0":`B`C`I`S`F`Z`L!("0#0b";c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
+v:{$[`L~@x;j'x;x]}
+j:{v x}
+
+ \j(1;2 3)
 */
+
+import . "github.com/ktye/wg/module"
 
 var src, loc, xyz K
 var nan float64
@@ -136,7 +131,7 @@ const ( //base t&15          bytes  atom  vector
 // composition .. f2 f1 f0
 // derived     func symb
 // projection  func arglist emptylist
-// lambda      code locals save string
+// lambda      code locals string
 
 // ptr: int32(x)
 //  p-12    p-4 p

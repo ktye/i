@@ -538,7 +538,7 @@ func Val(x K) (r K) {
 	}
 	if xt == lf {
 		xp := int32(x)
-		r = cat1(l3(x0(xp), x1(xp), x0(xp+24)), Ki(nn(x))) // (code;locals;string;arity)
+		r = cat1(l3(x0(xp), x1(xp), x2(xp)), Ki(nn(x))) // (code;locals;string;arity)
 		dx(x)
 		return r
 	}

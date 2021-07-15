@@ -56,7 +56,6 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 			}
 			return x, 1
 		}
-		//x, y = pasn(x, y)
 		r = ucat(r, x)
 		return dyadic(r, y), 0 // dyadic
 	}
@@ -180,10 +179,14 @@ func plam(s0 int32) (r K) {
 	i := Add(seq(1+s1-s0), Ki(s0-1))
 	s := atv(rx(src), i)
 	loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
-	cn = nn(loc)
-	r = mk(Lt, cn) // save
-	Memoryfill(int32(r), 0, 8*cn)
-	r = cat1(l3(c, loc, r), s)
+
+	//cn = nn(loc)
+	//r = mk(Lt, cn) // save
+	//Memoryfill(int32(r), 0, 8*cn)
+	//r = cat1(l3(c, loc, r), s)
+
+	r = l3(c, loc, s)
+
 	loc = slo
 	rp := int32(r)
 	SetI32(rp-12, ar)
@@ -261,17 +264,8 @@ func plist(c K) (r K, n int32) {
 		n++
 		x, _ := e(t())
 		r = cat1(r, x)
-		if x == 0 {
-			// r = cat1(r, 448) // in reverse: 448 0 return null
-		}
 	}
 	return r, n
-	/*
-		if n == 1 {
-			return Fst(r), 1
-		}
-		return r, n // cat3(flat(Rev(r)), Ki(n), 27, 1), 1
-	*/
 }
 func rlist(x K, n int32) K {
 	if n == 1 {

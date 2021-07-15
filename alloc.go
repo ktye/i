@@ -69,7 +69,7 @@ func fcount(x int32) (r int32) {
 }
 
 func free(x, bs int32) {
-	//if x == 16112-16 {
+	//if x == 2608-16 {
 	//	fmt.Println("free ", x+16)
 	//}
 	if x&31 != 0 {
@@ -89,8 +89,11 @@ func bucket(size int32) (r int32) {
 
 func mk(t T, n int32) (r K) {
 	//defer func(t T, n int32) {
-	//	if int32(r) == 16112 {
+	//	if int32(r) == 2224 {
 	//		fmt.Println("mk", t, n, int32(r))
+	//		if t == 19 {
+	//			//panic("!")
+	//		}
 	//	}
 	//}(t, n)
 	if t < 17 {
@@ -133,19 +136,16 @@ func dx(x K) {
 	p := int32(x) - 16
 	rc := I32(p + 12)
 	SetI32(p+12, rc-1)
-	//fmt.Printf("dx %d %d/%d rc %d\n", int32(x), tp(x), nn(x), rc)
 	if rc == 0 {
 		trap(Unref)
 	}
 	if rc == 1 {
 		n := nn(x)
 		if t&15 > 6 {
-			if t == 24 || t == 25 { // D, T
-				n = 2
-			} else if t == 12 {
-				n = 3 // prj
-			} else if t == 13 {
-				n = 4 // lam
+			if t == 24 || t == 25 {
+				n = 2 // D | T
+			} else if t == 12 || t == 13 {
+				n = 3 // prj | lam
 			}
 			p := int32(x)
 			for i := int32(0); i < n; i++ {
