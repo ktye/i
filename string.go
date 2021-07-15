@@ -5,6 +5,7 @@ import (
 )
 
 func Kst(x K) K { return kx(200, x) }
+func Lst(x K) K { return kx(208, x) }
 
 /*
 func Kst(x K) (r K) {
@@ -86,8 +87,6 @@ func kst0(t T) (r K) {
 	}
 	return Ku(uint64(r))
 }
-*/
-
 func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
 	xt := tp(x)
 	if xt < Lt {
@@ -115,6 +114,7 @@ func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
 		return trap(Nyi)
 	}
 }
+*/
 func Str(x K) (r K) {
 	xt := tp(x)
 	if xt > 16 {
