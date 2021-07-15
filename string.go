@@ -4,8 +4,9 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-//func Kst(x K) K { return kx(1953721134, x) }
+func Kst(x K) K { return kx(1953721134, x) }
 
+/*
 func Kst(x K) (r K) {
 	xt := tp(x)
 	if xt < 16 {
@@ -85,6 +86,7 @@ func kst0(t T) (r K) {
 	}
 	return Ku(uint64(r))
 }
+*/
 
 func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
 	xt := tp(x)

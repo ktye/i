@@ -1,12 +1,5 @@
 package main
 
-/*
-v:{$[`L~@x;j'x;x]}
-j:{v x}
-
- \j(1;2 3)
-*/
-
 import . "github.com/ktye/wg/module"
 
 var src, loc, xyz K
@@ -17,7 +10,7 @@ func init() {
 	Memory(1)
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
-	Data(520, "vbcisfzldtcdpl000BCISFZLDT") //546
+	Data(520, "vbcisfzldtmdpl000BCISFZLDT") //546
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30
