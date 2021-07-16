@@ -14,11 +14,11 @@
 `".kstm":`B`C`I`S`F`Z`L!100 100 30 30 20 10 20
 
 `".lst":{t:@x;pad:{(|/#'x)#'x};lst:.`".lst";k:(.`".kst")[;1]
- d:{r:!x;x:.x;,'[,'[pad lst r;"|"];lst x]}
+ d:{r:!x;x:.x;,'[,'[pad(k'r);"|"];k'x]}
  T:{`nyi}
- dd:(();,"..")20<#x
- x:$[x~*x;x;(20&#x)#x]
- $[`L~t;k'x;`D~t;d x;`T~t;T x;$x],dd}
+ dd:("";,"..")20<#x
+ /x:$[x~*x;x;(20&#x)#x]
+ $[`L~t;k'x;`D~t;d x;`T~t;T x;,k x],dd}
 
 `".dotmv":{{+/x*y}\:[x;y]}
 `".dot":{f:.`".dotmv";f[x;y]}

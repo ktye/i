@@ -139,7 +139,7 @@ function kd(e){var N="\n";var t=e.srcElement;
   }else{t.value+=s.slice(p,q)} S=s.slice(p,q);exec(S,t)}
 }
 function out(t,s){return function(s){t.value+=s;t.scrollTo(0,t.scrollHeight)}}
-function exec(s,t) {s=s.trim();var t0=0;var t1=0
+function exec(s,t) {s=(s.startsWith("  "))?" "+s.trim():s.trim();var t0=0;var t1=0
  if(s=="\\c"){t.value="ktye/k";t.exec(s)}
  if((s=="\\")||(s=="\\h")){t.value+="\n"+t.help+"\n ";t.scrollTo(0,t.scrollHeight);return}
  //if(s.startsWith("\\t")){s=s.slice(2);t0=performance.now()}
