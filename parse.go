@@ -38,8 +38,6 @@ func es() (r K) {
 	return r
 }
 func e(x K, xv int32) (r K, ev int32) { // Lt
-	//fmt.Println("e", sK(x), "xv", xv)
-	//defer func() { fmt.Println("er>", sK(r), "ev", ev) }()
 	if x == 0 {
 		return 0, 0
 	}
@@ -47,16 +45,15 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 	if y == 0 {
 		return x, xv
 	}
-	//fmt.Println("y", sK(y))
-	//fmt.Println("xv/yv", xv, yv, "x", sK(x), "y", sK(y))
 	if yv != 0 && xv == 0 {
 		a := int32(0)
 		x, y, a = pasn(x, y)
 		r, ev = e(t())
 		if (r == 0 || ev == 1) && a == 0 { // 1+ (projection)
-			x = cat1(ucat(ucat(l1(0), x), y), 128)
+			x = cat1(ucat(cat1(ucat(l1(0), x), 77), y), 92)
 			if ev == 1 { // 1+-
-				return cat1(ucat(r, x), 91), 1
+				r = cat1(ucat(r, x), 91)
+				return r, 1
 			}
 			return x, 1
 		}
@@ -113,7 +110,8 @@ f:
 			r, verb = cat1(r, n), 1
 		} else if n == 91 { // [
 			verb = 0
-			n, ln = plist(93)
+			p := int32(0) // 92(project) or call(84)
+			n, ln, p = plist(93)
 			n, ln = pspec(r, n, ln)
 			if ln < 0 {
 				return n, 0
@@ -121,8 +119,8 @@ f:
 			if ln == 1 {
 				r = cat1(ucat(Fst(n), r), 83)
 			} else {
-				n = rlist(n, ln)
-				r = cat1(Cat(n, r), 84)
+				n = rlist(n, ln, 0)
+				r = cat1(Cat(n, r), K(p))
 			}
 		} else {
 			pp -= 8
@@ -183,14 +181,7 @@ func plam(s0 int32) (r K) {
 	i := Add(seq(1+s1-s0), Ki(s0-1))
 	s := atv(rx(src), i)
 	loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
-
-	//cn = nn(loc)
-	//r = mk(Lt, cn) // save
-	//Memoryfill(int32(r), 0, 8*cn)
-	//r = cat1(l3(c, loc, r), s)
-
 	r = l3(c, loc, s)
-
 	loc = slo
 	rp := int32(r)
 	SetI32(rp-12, ar)
@@ -252,8 +243,9 @@ func cond(x K, xn int32) (r K) {
 	}
 	return flat(x)
 }
-func plist(c K) (r K, n int32) {
+func plist(c K) (r K, n, p int32) {
 	r = mk(Lt, 0)
+	p = 84
 	for {
 		b, _ := next()
 		if b == 0 || b == c {
@@ -267,11 +259,14 @@ func plist(c K) (r K, n int32) {
 		}
 		n++
 		x, _ := e(t())
+		if x == 0 {
+			p = 92
+		}
 		r = cat1(r, x)
 	}
-	return r, n
+	return r, n, p
 }
-func rlist(x K, n int32) K {
+func rlist(x K, n, p int32) K {
 	if n == 1 {
 		return Fst(x)
 	}

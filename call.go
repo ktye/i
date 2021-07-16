@@ -8,10 +8,6 @@ func Cal(x, y K) (r K) {
 	xt := tp(x)
 	y = explode(y)
 	if isfunc(xt) != 0 {
-		r = project(x, y)
-		if r != 0 {
-			return r
-		}
 		return cal(x, y)
 	}
 	return atdepth(x, y)
@@ -145,7 +141,7 @@ func lambda(f K, x K) (r K) {
 	pp, pe = spp, spe
 	return r
 }
-func compose(x, y K) (r K) {
+func com(x, y K) (r K) { // compose
 	if tp(y) == ct {
 		r = cat1(K(int32(y))|K(Lt)<<59, x)
 	} else {
@@ -153,7 +149,10 @@ func compose(x, y K) (r K) {
 	}
 	return K(int32(r)) | K(cf)<<59
 }
-func project(f, x K) (r K) {
+func prj(f, x K) (r K) { // project
+	if isfunc(tp(f)) == 0 {
+		return atdepth(f, x)
+	}
 	xn := nn(x)
 	xp := int32(x)
 	a := mk(It, 0)
