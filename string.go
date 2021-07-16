@@ -8,7 +8,6 @@ func Kst(x K) K { return kx(200, x) }
 func Lst(x K) K { return kx(208, x) }
 
 /*
-
 func Kst(x K) (r K) {
 	xt := tp(x)
 	if xt < 16 {
@@ -115,6 +114,20 @@ func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
 		return trap(Nyi)
 	}
 }
+func pads(x K) (r K) { // padl
+	n := nn(x)
+	r = mk(Lt, n)
+	rp := int32(r)
+	xp := int32(x)
+	m := maxcount(xp, n)
+	for i := int32(0); i < n; i++ {
+		SetI64(rp, int64(ntake(m, x0(xp))))
+		rp += 8
+		xp += 8
+	}
+	dx(x)
+	return r
+}
 */
 
 func Str(x K) (r K) {
@@ -184,20 +197,6 @@ func Str(x K) (r K) {
 		default:
 			r = trap(Err)
 		}
-	}
-	dx(x)
-	return r
-}
-func pads(x K) (r K) { // padl
-	n := nn(x)
-	r = mk(Lt, n)
-	rp := int32(r)
-	xp := int32(x)
-	m := maxcount(xp, n)
-	for i := int32(0); i < n; i++ {
-		SetI64(rp, int64(ntake(m, x0(xp))))
-		rp += 8
-		xp += 8
 	}
 	dx(x)
 	return r

@@ -69,7 +69,7 @@ func fcount(x int32) (r int32) {
 }
 
 func free(x, bs int32) {
-	//if x == 2608-16 {
+	//if x == 6128-16 {
 	//	fmt.Println("free ", x+16)
 	//}
 	if x&31 != 0 {
@@ -89,11 +89,8 @@ func bucket(size int32) (r int32) {
 
 func mk(t T, n int32) (r K) {
 	//defer func(t T, n int32) {
-	//	if int32(r) == 2224 {
+	//	if int32(r) == 6128 {
 	//		fmt.Println("mk", t, n, int32(r))
-	//		if t == 19 {
-	//			//panic("!")
-	//		}
 	//	}
 	//}(t, n)
 	if t < 17 {

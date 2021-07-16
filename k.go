@@ -248,7 +248,7 @@ func missing(t T) (r K) {
 	case 4: // zt
 		return Kz(nan, nan)
 	case 5: // lt
-		return Kb(0)
+		return mk(Ct, 0) //Kb(0)
 	default:
 		return K(t) << 59
 	}

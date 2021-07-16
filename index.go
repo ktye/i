@@ -121,7 +121,7 @@ func atv(x, y K) (r K) { // x BT..LT
 			xi := I32(yp)
 			if xi < 0 || xi >= xn {
 				if t == Lt {
-					SetI64(rp, int64(rx(na)))
+					SetI64(rp, int64(na))
 				} else {
 					SetI64(rp, I64(int32(na)))
 				}
