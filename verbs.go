@@ -231,6 +231,9 @@ func ntake(n int32, y K) (r K) {
 		}
 		dx(y)
 		return r
+	} else if t == Dt {
+		r, y = spl2(y)
+		return Key(ntake(n, r), ntake(n, y))
 	}
 	return Atx(y, seq(n))
 }

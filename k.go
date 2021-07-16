@@ -50,7 +50,7 @@ func init() {
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
 
 func kinit() {
-	minit(11, 16) //2k..64k
+	minit(12, 16) //4k..64k
 	sp = 256
 	src = 0
 	loc = 0
@@ -74,7 +74,7 @@ func reset() {
 	dx(K(I64(0)))
 	dx(K(I64(8)))
 	//check() // k_test.go
-	if (uint32(1)<<uint32(I32(128)))-(2048+mcount()) != 0 {
+	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
 		trap(Err)
 	}
 	for i := int32(5); i < 31; i++ {

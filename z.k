@@ -1,21 +1,24 @@
 /32 40 48   56 64   72  80   88   96    104   112                       200   208    216    224    232
  `k`l`while`in`find`abs`imag`conj`angle`solve`dot`a`b`c`d`e`f`g`h`i`j`".kst"`".lst"`".qr"`".slv"`".dot"
 
-`".kst":{t:@x;n:#x;k:.(`".kst")
+`".kst":{t:@x;n:#x;k:(.`".kst")[;y];m:y
  q:{c,x,c:_34}
  a:{x:$x;$[`c~t;q x;`s~t;"`",x;x]}
  d:{r:"!",k@.x;x:k@!x;$[1~n;"(",x,")";x],r}
- v:{x:$[`L~t;k'x;t in `D`C;x;$x]
-  x:$[`B~t;(*'x),"b";`C~t;q x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];`D~t;d x;" "/:x]
-  (("";",")(1~n)&~`D~t),x}
- $[n~0;(.`".kst0")@t;`T~t;"+",k@+x;x~*x;a x;v x]}
+ v:{m*:(.`".kstm")t;  dd:("";"..")m<#x;x:(m&#x)#x
+  x:$[`L~t;k'x;`C~t;x;$x]
+  x:$[`B~t;(*'x),"b";`C~t;q x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
+  (("";",")(1~n)),x,dd}
+ $[n~0;(.`".kst0")@t;`T~t;"+",d@+x;`D~t;d x;x~*x;a x;v x]}
 `".kst0":`B`C`I`S`F`Z`L!("0#0b";c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
+`".kstm":`B`C`I`S`F`Z`L!100 100 30 30 20 10 20
 
-`".lst":{t:@x;pad:{(|/#'x)#'x};lst:.`".lst"
- l:{(.`".kst")'x}
+`".lst":{t:@x;pad:{(|/#'x)#'x};lst:.`".lst";k:(.`".kst")[;1]
  d:{r:!x;x:.x;,'[,'[pad lst r;"|"];lst x]}
  T:{`nyi}
- $[`L~t;l x;`D~t;d x;`T~t;T x;$x]}
+ dd:(();,"..")20<#x
+ x:$[x~*x;x;(20&#x)#x]
+ $[`L~t;k'x;`D~t;d x;`T~t;T x;$x],dd}
 
 `".dotmv":{{+/x*y}\:[x;y]}
 `".dot":{f:.`".dotmv";f[x;y]}

@@ -173,7 +173,7 @@ func memck() {
 	icheck := func(i int32) {
 		p := I32(4 * i)
 		for p != 0 {
-			if p < 2048 {
+			if p < 4096 {
 				fmt.Println("memck ", i, p)
 				panic("memck")
 			}
@@ -195,7 +195,7 @@ func check() { // debug in reset()
 		t += mark(i) * (int32(1) << i)
 	}
 	if t != 1<<I32(128) {
-		total := (int32(1) << I32(128)) - 2048
+		total := (int32(1) << I32(128)) - 4096
 		if total-t != 0 {
 			fmt.Printf("free %d of %d (+%d)\n", t, total, total-t)
 		}
@@ -218,7 +218,7 @@ func mark(i int32) (r int32) {
 }
 func scan() {
 	total := int32(1) << I32(128)
-	p := int32(2048)
+	p := int32(4096)
 	for {
 		t := I32(p + 4)
 		if t < 5 || t > 31 {

@@ -21,28 +21,36 @@ func main() { // _start
 func repl(x K) {
 	n := nn(x)
 	xp := int32(x)
-	if n > 0 && I8(xp) == 92 { // \
-		if n == 1 {
-			help()
-		} else {
-			c := I8(1 + xp)
-			if I8(1+xp) == '\\' {
-				wasi_unstable.Proc_exit(0)
-			} else if c == 't' {
-				bench(ndrop(2, x))
-			} else if c == 'm' {
-				dx(x)
-				dx(Out(Ki(I32(128))))
-			} else if c == 'c' {
-				dx(x)
-				reset()
+	s := int32(0)
+	if n > 0 {
+		s = I8(xp)
+		if I8(xp) == 92 { // \
+			if n == 1 {
+				help()
+			} else {
+				c := I8(1 + xp)
+				if I8(1+xp) == '\\' {
+					wasi_unstable.Proc_exit(0)
+				} else if c == 't' {
+					bench(ndrop(2, x))
+				} else if c == 'm' {
+					dx(x)
+					dx(Out(Ki(I32(128))))
+				} else if c == 'c' {
+					dx(x)
+					reset()
+				}
 			}
+			return
 		}
-		return
 	}
 	x = val(x)
 	if x != 0 {
-		dx(Out(x))
+		if s == 32 {
+			dx(Out(x))
+		} else {
+			write(cat1(join(Kc(10), Lst(x)), Kc(10)))
+		}
 	}
 }
 func doargs() {
