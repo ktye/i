@@ -17,7 +17,7 @@
  d:{r:!x;x:.x;,'[,'[pad(k'r);"|"];k'x]}
  T:{`nyi}
  dd:("";,"..")20<#x
- /x:$[x~*x;x;(20&#x)#x]
+ x:$[x~*x;x;(20&#x)#x]
  $[`L~t;k'x;`D~t;d x;`T~t;T x;,k x],dd}
 
 `".dotmv":{{+/x*y}\:[x;y]}

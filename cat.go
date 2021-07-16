@@ -55,6 +55,7 @@ func explode(x K) (r K) {
 		xn := nn(x)
 		r = mk(Lt, xn)
 		if xn == 0 {
+			dx(x)
 			return r
 		}
 		xp, rp := int32(x), int32(r)
