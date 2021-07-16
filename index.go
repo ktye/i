@@ -148,6 +148,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	}
 	if t == Lt {
 		rl(r)
+		r = uf(r)
 	}
 	dx(na)
 	dx(x)

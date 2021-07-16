@@ -38,6 +38,8 @@ func es() (r K) {
 	return r
 }
 func e(x K, xv int32) (r K, ev int32) { // Lt
+	//fmt.Println("e", sK(x), "xv", xv)
+	//defer func() { fmt.Println("er>", sK(r), "ev", ev) }()
 	if x == 0 {
 		return 0, 0
 	}
@@ -45,6 +47,8 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 	if y == 0 {
 		return x, xv
 	}
+	//fmt.Println("y", sK(y))
+	//fmt.Println("xv/yv", xv, yv, "x", sK(x), "y", sK(y))
 	if yv != 0 && xv == 0 {
 		a := int32(0)
 		x, y, a = pasn(x, y)
@@ -59,14 +63,14 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 		r = ucat(r, x)
 		return dyadic(r, y), 0 // dyadic
 	}
-	r, ev = e(y, yv)
+	r, ev = e(rx(y), yv)
+	dx(y)
 	if xv == 0 {
 		return cat1(ucat(r, x), 83), 0 // juxtaposition
 	} else if (r == y && xv+yv == 2) || ev == 1 {
 		return cat1(ucat(r, x), 91), 1 // composition
 	}
-	r = ucat(r, x)
-	return monadic(r), 0 // monadic
+	return monadic(ucat(r, x)), 0 // monadic
 }
 func t() (r K, verb int32) { // Lt
 	var ln, s int32
@@ -141,7 +145,7 @@ func pasn(x, y K) (K, K, int32) {
 			lp := lastp(x)
 			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
 			// lp+128 is @[amd..] or .[dmd..]
-			x = cat1(cat1(ucat(l1(l), ndrop(-2, x)), 20), lp+128)
+			x = cat1(cat1(ucat(l1(l), ldrop(-2, x)), 20), lp+128)
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
 			s := Fst(x) // (`x;.)
@@ -288,14 +292,15 @@ func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x, y K) K {
 	l := lastp(y)
 	if quoted(l) {
-		return cat1(ucat(x, ndrop(-1, y)), 64+unquote(l))
+		return cat1(ucat(x, ldrop(-1, y)), 64+unquote(l))
 	}
 	return cat1(ucat(x, y), 128)
 }
 func monadic(x K) K {
 	l := lastp(x)
 	if quoted(l) {
-		return cat1(ndrop(-1, x), unquote(l))
+		return cat1(ldrop(-1, x), unquote(l))
 	}
 	return cat1(x, 83) // dyadic-@
 }
+func ldrop(n int32, x K) (r K) { return explode(ndrop(n, x)) }

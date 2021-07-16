@@ -8,6 +8,7 @@ func Kst(x K) K { return kx(200, x) }
 func Lst(x K) K { return kx(208, x) }
 
 /*
+
 func Kst(x K) (r K) {
 	xt := tp(x)
 	if xt < 16 {
@@ -115,6 +116,7 @@ func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
 	}
 }
 */
+
 func Str(x K) (r K) {
 	xt := tp(x)
 	if xt > 16 {
@@ -239,7 +241,7 @@ func sf(x float64) (r K) {
 		u /= 10
 	}
 	r = Rev(r)
-	r = cat1(r, '.')
+	r = cat1(r, Kc('.'))
 	x -= F64floor(x)
 	for i := int32(0); i < 6; i++ {
 		x *= 10

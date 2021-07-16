@@ -1,6 +1,6 @@
 /32 40 48   56 64   72  80   88   96    104   112                       200   208    216    224    232
  `k`l`while`in`find`abs`imag`conj`angle`solve`dot`a`b`c`d`e`f`g`h`i`j`".kst"`".lst"`".qr"`".slv"`".dot"
- 
+
 `".kst":{t:@x;n:#x;k:.(`".kst")
  q:{c,x,c:_34}
  a:{x:$x;$[`c~t;q x;`s~t;"`",x;x]}
@@ -27,7 +27,7 @@
  i:n-1;J:!n;y[i]%:r@i
  while[i;j:i_J;i-:1;y[i]:(y[i]-+/H[j;i]*y@j)%r@i]
  n#y}
- 
+
 `".qr":{K:!m:#*x;I:!n:#x;j:0;r:n#0a;turn:$[`Z~@*x;{(-x)angle angle y};{x*1. -1@y>0}]
  while[j<n;I:1_I
   r[j]:turn[s:0. abs/j_x j;xx:x[j;j]]

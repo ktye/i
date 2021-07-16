@@ -47,11 +47,6 @@ func Fst(x K) K { // *x
 		x = Val(x)
 		t = tp(x)
 	}
-	n := nn(x)
-	if n == 0 {
-		dx(x)
-		return zero(t - 16)
-	}
 	return ati(x, 0)
 }
 func Last(x K) K { // *|x
