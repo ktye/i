@@ -24,10 +24,10 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 = grp eql       $[a;b;...]      cond       v verb     +
 ~ not mtc       @[x;i;+;y]                 c comp     1+/*%  
 , enl cat       .[x;i;+;y]                 d derived  +/
-^ srt cut                                  l lambda   {x+y}
-# cnt tak       c:<`file(read) 
-_ flr drp       `file<c(write)             exec: t~`v: push
-$ str cst                                  v:  0..63   monadic
+^ srt cut       {a+b}.d         env        l lambda   {x+y}
+# cnt tak       t{a>5}          where
+_ flr drp       c:<`file(read)             exec: t~`v: push
+$ str cst       `file<c(write)             v:  0..63   monadic
 ? unq fnd                                     64..127  dyadic
 @ typ atx       `@i(verb) (+)~`2             128       pop + dyadic
 . val cal       .(1;2;`64+(+))  exec         129..255  tetradic

@@ -183,9 +183,12 @@ func plam(s0 int32) (r K) {
 	loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
 	r = l3(c, loc, s)
 	loc = slo
+	return l1(slam(r, ar))
+}
+func slam(r K, ar int32) K {
 	rp := int32(r)
 	SetI32(rp-12, ar)
-	return l1(K(rp) | K(lf)<<59)
+	return K(rp) | K(lf)<<59
 }
 func pspec(r, n K, ln int32) (K, int32) {
 	v := K(I64(int32(r)))

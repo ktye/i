@@ -5,7 +5,11 @@ import (
 )
 
 func Cat(x, y K) (r K) {
+	//fmt.Println("cat?", sK(x), ",", sK(y))
 	xt, yt := tp(x), tp(y)
+	if xt == Tt && yt == Dt {
+		y, yt = Enl(y), Tt
+	}
 	if xt&15 == yt&15 {
 		if xt < 16 {
 			x = Enl(x)
@@ -18,7 +22,6 @@ func Cat(x, y K) (r K) {
 	} else if xt == Lt && yt < 16 {
 		return cat1(x, y)
 	}
-	// todo D/T
 	return Cat(explode(x), explode(y))
 }
 func Enl(x K) (r K) {
@@ -42,6 +45,8 @@ func Enl(x K) (r K) {
 			SetI64(rp+8, I64(xp+8))
 		}
 		dx(x)
+	} else if t == Dt {
+		r = Flp(Ech(13, l1(x)))
 	} else {
 		r = l1(x)
 	}
@@ -146,6 +151,9 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	//if xt != tp(y) {
 	//	panic("ucat")
 	//}
+	if xt > Lt {
+		return dcat(x, y)
+	}
 	ny := nn(y)
 	r, rp, s := uspc(x, xt, ny)
 	if xt == Lt {
@@ -154,6 +162,22 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	Memorycopy(rp, int32(y), s*ny)
 	dx(y)
 	return r
+}
+func dcat(x, y K) (r K) { // d,d  t,t
+	var q K
+	t := tp(x)
+	r, x = spl2(x)
+	q, y = spl2(y)
+	if t == Dt {
+		return Key(Cat(r, q), Cat(x, y))
+	} else {
+		if match(r, q) == 0 {
+			trap(Value)
+		}
+		dx(q)
+		x = Ech(13, l2(x, y))
+		return key(r, x, t)
+	}
 }
 func ucats(x K) (r K) { // ,/ unitype-list
 	xn := nn(x)

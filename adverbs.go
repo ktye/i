@@ -45,6 +45,16 @@ func ecn(f, x K) (r K) {
 		if r == 0 {
 			return Ech(f, l1(x))
 		}
+		if tp(f) == 0 && int32(f) == 13 {
+			if tp(r) == Tt && tp(x) == Tt { // T,'T (horcat)
+				if nn(r) != nn(x) {
+					trap(Length)
+				}
+				p, q := spl2(r)
+				r, x = spl2(x)
+				return key(Cat(p, r), Cat(q, x), Tt)
+			}
+		}
 		return ec2(f, r, x)
 	}
 	return Ech(20, Flp(x))

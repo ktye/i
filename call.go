@@ -6,6 +6,10 @@ import (
 
 func Cal(x, y K) (r K) {
 	xt := tp(x)
+	yt := tp(y)
+	if tp(x) == lf && yt > Lt {
+		return callenv(x, y)
+	}
 	y = explode(y)
 	if isfunc(xt) != 0 {
 		return cal(x, y)
@@ -98,6 +102,17 @@ func callprj(f, x K) K {
 	x = stv(l, i, x)
 	x = Cal(p, x)
 	return x
+}
+func callenv(f, x K) (r K) { // {..}.d  {..}.t
+	r, x = spl2(x)
+	if tp(r) != St {
+		trap(Type)
+	}
+	n := nn(r)
+	fp := int32(f)
+	r = slam(l3(x0(fp), Unq(ucat(r, x1(fp))), x2(fp)), n)
+	dx(f)
+	return cal(r, explode(x))
 }
 func lambda(f K, x K) (r K) {
 	fn := nn(f)
