@@ -28,9 +28,9 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 # cnt tak       t{a>5}          where
 _ flr drp       c:<`file(read)             exec: t~`v: push
 $ str cst       `file<c(write)             v:  0..63   monadic
-? unq fnd                                     64..127  dyadic
+? unq fnd       k?t             group         64..127  dyadic
 @ typ atx       `@i(verb) (+)~`2             128       pop + dyadic
 . val cal       .(1;2;`64+(+))  exec         129..255  tetradic
                                              256       drop
 built-ins(monadic):                          320/384   jmp, jmp-ifz
-(any)in (nul)find                            448..     quoted verb
+in find abs imag conj angle solve dot        448..     quoted verb
