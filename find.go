@@ -7,7 +7,11 @@ import (
 func Fnd(x, y K) (r K) { // x?y
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
-		trap(Type)
+		if yt == Tt {
+			return grp(x, y)
+		} else {
+			return trap(Type)
+		}
 	}
 	if xt == Dt {
 		r, x = spl2(x)

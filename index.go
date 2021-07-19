@@ -24,12 +24,14 @@ func Atx(x, y K) (r K) { // x@y
 			}
 		}
 	}
-	if xt > Lt {
-		x, r = spl2(x)
-		if xt == Tt && yt&15 == it {
-			trap(Nyi) // table-row-indexing
+	if xt > Lt && yt < Lt {
+		r, x = spl2(x)
+		if xt == Tt {
+			if yt&15 == it {
+				return key(r, Ecl(19, l2(x, y)), Dt+T(I32B(yt == It)))
+			}
 		}
-		return Atx(r, Fnd(x, y))
+		return Atx(x, Fnd(r, y))
 	}
 	if yt < It {
 		y = uptype(y, it)
@@ -43,6 +45,10 @@ func Atx(x, y K) (r K) { // x@y
 	}
 	if yt == Lt {
 		return Ecr(19, l2(x, y))
+	}
+	if yt == Dt {
+		r, y = spl2(y)
+		return Key(r, Atx(x, y))
 	}
 	trap(Nyi) // f@
 	return x
@@ -275,7 +281,11 @@ func atdepth(x, y K) (r K) {
 		if nn(y) != 1 {
 			trap(Rank)
 		}
-		return Ecl(19, l2(x, Fst(y)))
+		y = Fst(y)
+		if xt == Tt {
+			return Atx(x, y)
+		}
+		return Ecl(19, l2(x, y))
 	}
 	return atdepth(x, y)
 }

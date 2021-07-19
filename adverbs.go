@@ -23,12 +23,10 @@ func Ech(f, x K) (r K) {
 	xt := tp(x)
 	if xt == Dt {
 		x, r = spl2(x)
-		x = Out(x)
-		r = Out(r)
 		return Key(x, Ech(f, l1(r)))
 	}
-	if xt > Lt {
-		panic(Nyi)
+	if xt == Tt {
+		x = explode(x)
 	}
 	xn := nn(x)
 	r = mk(Lt, xn)
@@ -44,11 +42,19 @@ func Ech(f, x K) (r K) {
 func ecn(f, x K) (r K) {
 	if nn(x) == 2 {
 		r, x = spl2(x)
+		if r == 0 {
+			return Ech(f, l1(x))
+		}
 		return ec2(f, r, x)
 	}
 	return Ech(20, Flp(x))
 }
 func ec2(f, x, y K) (r K) {
+	var t T
+	r, t, x, y = dctypes(x, y)
+	if r != 0 {
+		return key(r, ec2(f, x, y), t)
+	}
 	n, _ := conform(x, y)
 	switch n {
 	case 0: // a-a
@@ -69,7 +75,7 @@ func ec2(f, x, y K) (r K) {
 	dx(f)
 	dx(x)
 	dx(y)
-	return r
+	return uf(r)
 }
 func Ecp(f, x K) (r K) {
 	xn := nn(x)
@@ -204,6 +210,13 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		trap(Rank)
 	}
 	yt := tp(y)
+	if yt == Dt {
+		y = Val(y)
+		yt = tp(y)
+	}
+	if yt == Tt {
+		return Ech(rdc(f), l2(x, Flp(y))) // f/'[x;+y]
+	}
 	if yt < 16 {
 		if x == 0 {
 			dx(f)
@@ -279,8 +292,14 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	case 1:
 		var y K
 		x, y = spl2(x)
-		if tp(y) < 16 {
+		yt := tp(y)
+		if yt < 16 {
 			y = Enl(y)
+		}
+		if yt > Lt {
+			var t T
+			r, t, x, y = dctypes(x, y)
+			return key(r, Ecr(f, l2(x, y)), t)
 		}
 		yn := nn(y)
 		r = mk(Lt, yn)
@@ -315,6 +334,14 @@ func Scn(f, x K) (r K) {
 		return y
 	}
 	yt := tp(y)
+	if yt > Lt {
+		if yt == Dt {
+			r, y = spl2(y)
+			return Key(r, Scn(f, l2(x, y)))
+		} else {
+			return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
+		}
+	}
 	if yt < 16 {
 		if x == 0 {
 			dx(f)

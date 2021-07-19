@@ -109,6 +109,22 @@ func explode(x K) (r K) {
 		dx(x)
 	} else if xt == Lt {
 		r = x
+	} else if xt == Tt {
+		var k K
+		xn := nn(x)
+		k, x = spl2(x)
+		r = mk(Lt, xn)
+		rp := int32(r)
+		x = Flp(x)
+		xp := int32(x)
+		for i := int32(0); i < xn; i++ {
+			SetI64(rp, int64(Key(rx(k), x0(xp))))
+			xp += 8
+			rp += 8
+		}
+		dx(x)
+		dx(k)
+		return r
 	} else {
 		trap(Type) // T->L(D)?
 	}
