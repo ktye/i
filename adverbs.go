@@ -217,6 +217,13 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 	return r
 }
 func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
+	t := tp(f)
+	if isfunc(t) == 0 {
+		if nn(x) != 1 {
+			trap(Rank)
+		}
+		return Mod(f, Fst(x))
+	}
 	var y K
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
@@ -335,6 +342,13 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 }
 
 func Scn(f, x K) (r K) {
+	t := tp(f)
+	if isfunc(t) == 0 {
+		if nn(x) != 1 {
+			trap(Rank)
+		}
+		return Div(Fst(x), f)
+	}
 	var y K
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)

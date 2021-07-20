@@ -930,6 +930,31 @@ func idiv(x, y K) (r K) {
 		return r
 	}
 }
+func Mod(x, y K) (r K) {
+	if tp(x) != it {
+		trap(Type)
+	}
+	yt := tp(y)
+	if yt >= Lt {
+		return Ecr(38, l2(x, y))
+	}
+	y = uptype(y, it)
+	xp := int32(x)
+	yp := int32(y)
+	if tp(y) == it {
+		return Ki(yp % xp)
+	}
+	yn := nn(y)
+	r = mk(It, yn)
+	rp := int32(r)
+	for i := int32(0); i < yn; i++ {
+		SetI32(rp, I32(yp)%xp)
+		yp += 4
+		rp += 4
+	}
+	dx(y)
+	return r
+}
 
 func Min(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
