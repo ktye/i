@@ -39,3 +39,5 @@
   x[j;K]%:%s*(s+abs xx)
   x[I;K]-:{+/x*y}/:[(conj x[j;K]);x[I;K]]*\:x[j;K]
   K:1_K;j+:1];(x;r;n;m)}
+
+ej:{(y j),'x_z i j:&(#z)>i:(z x)?y x} /sym t1 t2
