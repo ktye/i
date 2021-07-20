@@ -61,6 +61,9 @@ func ati(x K, i int32) (r K) { // x BT..LT
 	if t < 16 {
 		return x
 	}
+	if t > Lt {
+		return Atx(x, Ki(i))
+	}
 	if i < 0 || i >= nn(x) {
 		dx(x)
 		return missing(t - 16)
@@ -90,6 +93,9 @@ func ati(x K, i int32) (r K) { // x BT..LT
 }
 func atv(x, y K) (r K) { // x BT..LT
 	t := tp(x)
+	if t == Tt {
+		return Atx(x, y)
+	}
 	yn := nn(y)
 	if t < 16 {
 		dx(y)

@@ -141,35 +141,16 @@ func Grp(x K) (r K) { // =x
 	return Key(u, r)
 }
 func grp(x, y K) K { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
-func Key(x, y K) K { // x!y
-	/*
-		xt, yt := tp(x), tp(y)
-		if xt < 16 {
-			if yt < 16 {
-				return Key(Enl(x), Enl(y))
-			} else {
-				x = ntake(nn(y), x)
-			}
-		}
-		xn := nn(x)
-		if yt < 16 {
-			y = ntake(nn(x), y)
-		}
-		if xn != nn(y) {
-			trap(Length)
-		}
-		r = l2(x, y)
-		SetI32(int32(r)-12, xn)
-		return K(int32(r)) | K(Dt)<<59
-	*/
-	return key(x, y, Dt)
-}
+func Key(x, y K) K { return key(x, y, Dt) }                          // x!y
 func key(x, y K, t T) (r K) { // Dt or Tt
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if yt < 16 {
 			return Key(Enl(x), Enl(y))
 		} else {
+			if xt == st && yt == Tt {
+				return keyt(x, y)
+			}
 			x = ntake(nn(y), x)
 		}
 	}
@@ -189,16 +170,27 @@ func key(x, y K, t T) (r K) { // Dt or Tt
 	SetI32(int32(r)-12, xn)
 	return K(int32(r)) | K(t)<<59
 }
+func keyt(x, y K) (r K) { return Key(Tak(rx(x), rx(y)), Drp(x, y)) } // `s!t (key table: (`s#t)!`s_t)
 
 func Tak(x, y K) (r K) { // x#y
+	xt := tp(x)
 	yt := tp(y)
 	if yt == Dt {
 		r, y = spl2(y)
-		return Key(Tak(rx(x), r), Tak(x, y))
+		r = Tak(rx(x), r)
+		y = Tak(x, y)
+		r = Key(r, y)
+		return r
 	} else if yt == Tt {
-		return Ecr(15, l2(x, y))
+		if xt&15 == st {
+			if xt == st {
+				x = Enl(x)
+			}
+			return key(rx(x), Atx(y, x), yt)
+		} else {
+			return Ecr(15, l2(x, y))
+		}
 	}
-	xt := tp(x)
 	if xt == it {
 		return ntake(int32(x), y)
 	}
@@ -278,7 +270,11 @@ func Drp(x, y K) (r K) { // x_y
 				x = Enl(x)
 			}
 			x = Wer(Not(In(rx(r), x)))
-			return key(Atx(r, rx(x)), Atx(y, x), yt)
+			r = key(Atx(r, rx(x)), Atx(y, x), yt)
+			//x = K(I64(int32(r)))
+			//y = K(I64(int32(r) + 8))
+			//fmt.Println("Drp", sK(x), "rc", rc(x), "y", sK(y), "rc", rc(y), "nn", nn(x), nn(y), nn(r))
+			return r
 		} else {
 			return Ecr(16, l2(x, y))
 		}

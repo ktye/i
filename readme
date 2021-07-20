@@ -18,17 +18,17 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 % sqr div       ': ecp                     s symbol   `a    ``c`d       
 ! til wer       /: ecr  split   fixed      f float    2.    1. 2.    
 & wer min       \: ecl  join    fixed      z complex  1a    1a20 2a     
-| rev max                                  L list     (1;2 3)      
-< asc les       while[c;a;b;..]            D dict     `a`b!1 2
-> dsc mor                                  T table    +`a`b!.. 
-= grp eql       $[a;b;...]      cond       v verb     +
-~ not mtc       @[x;i;+;y]                 c comp     1+/*%  
-, enl cat       .[x;i;+;y]                 d derived  +/
-^ srt cut       {a+b}.d         env        l lambda   {x+y}
-# cnt tak       t{a>5}          where
-_ flr drp       c:<`file(read)             exec: t~`v: push
-$ str cst       `file<c(write)             v:  0..63   monadic
-? unq fnd       k?t             group         64..127  dyadic
+| rev max       while[c;a;b;..]            L list     (1;2 3)      
+< asc les       $[a;b;...]      cond       D dict     `a`b!1 2
+> dsc mor       @[x;i;+;y]      amend      T table    +`a`b!.. 
+= grp eql       .[x;i;+;y]      dmend      v verb     +
+~ not mtc       {a+b}.d         env        c comp     1+/*%  
+, enl cat       k?t             group      d derived  +/
+^ srt cut       k!t             key        l lambda   {x+y}
+# cnt tak       t,d t,t  t,'t(h)join t,k!t(inner)
+_ flr drp       t{a>5}          where     exec: t~`v: push
+$ str cst       c:<`file(read)             v:  0..63   monadic
+? unq fnd       `file<c(write)                64..127  dyadic
 @ typ atx       `@i(verb) (+)~`2             128       pop + dyadic
 . val cal       .(1;2;`64+(+))  exec         129..255  tetradic
                                              256       drop
