@@ -16,8 +16,8 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 - neg sub       /  rdc  mod                c char     "x"   "ab"        
 * fst mul       \  scn  div                i int      2     1 2         
 % sqr div       ': ecp                     s symbol   `a    ``c`d       
-! til wer       /: ecr  split   fixed      f float    2.    1. 2.    
-& wer min       \: ecl  join    fixed      z complex  1a    1a20 2a     
+! til wer       /: ecr  split   fix        f float    2.    1. 2.    
+& wer min       \: ecl  join    fix        z complex  1a    1a20 2a     
 | rev max       while[c;a;b;..]            L list     (1;2 3)      
 < asc les       $[a;b;...]      cond       D dict     `a`b!1 2
 > dsc mor       @[x;i;+;y]      amend      T table    +`a`b!.. 

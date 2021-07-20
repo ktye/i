@@ -312,7 +312,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point
-		return trap(Nyi)
+		return fix(f, Fst(x))
 	case 1:
 		var y K
 		x, y = spl2(x)
@@ -339,6 +339,45 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	default:
 		return trap(Rank)
 	}
+}
+func fix(f, x K) (r K) {
+	y := rx(x)
+	for {
+		r = Atx(rx(f), rx(x))
+		if match(r, x) != 0 {
+			break
+		}
+		if match(r, y) != 0 {
+			break
+		}
+		dx(x)
+		x = r
+	}
+	dx(x)
+	dx(y)
+	dx(f)
+	return r
+}
+func fixs(f, x K) (r K) {
+	l := Enl(rx(x))
+	y := rx(x)
+	for {
+		r = Atx(rx(f), rx(x))
+		if match(r, x) != 0 {
+			break
+		}
+		if match(r, y) != 0 {
+			break
+		}
+		dx(x)
+		x = r
+		l = Cat(l, rx(x)) // todo: 1,2,3 4 5 should be (1;2;3 4 5)
+	}
+	dx(x)
+	dx(y)
+	dx(f)
+	dx(r)
+	return l
 }
 
 func Scn(f, x K) (r K) {
@@ -429,7 +468,7 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point-scan
-		return trap(Nyi)
+		return fixs(f, Fst(x))
 	case 1:
 		var y K
 		x, y = spl2(x)
