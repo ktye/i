@@ -12,6 +12,13 @@ func scn(x K) K { return l2t(x, 4, df) } // \
 func ecl(x K) K { return l2t(x, 5, df) } // \:
 
 func Ech(f, x K) (r K) {
+	t := tp(f)
+	if isfunc(t) == 0 {
+		if nn(x) != 1 {
+			trap(Rank)
+		}
+		return Bin(f, Fst(x))
+	}
 	if nn(x) == 1 {
 		x = Fst(x)
 	} else {

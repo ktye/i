@@ -269,11 +269,7 @@ func Drp(x, y K) (r K) { // x_y
 				x = Enl(x)
 			}
 			x = Wer(Not(In(rx(r), x)))
-			r = key(Atx(r, rx(x)), Atx(y, x), yt)
-			//x = K(I64(int32(r)))
-			//y = K(I64(int32(r) + 8))
-			//fmt.Println("Drp", sK(x), "rc", rc(x), "y", sK(y), "rc", rc(y), "nn", nn(x), nn(y), nn(r))
-			return r
+			return key(Atx(r, rx(x)), Atx(y, x), yt)
 		} else {
 			return Ecr(16, l2(x, y))
 		}
@@ -416,6 +412,72 @@ func join(x, y K) (r K) {
 	dx(x)
 	dx(y)
 	return r
+}
+func Bin(x, y K) (r K) { // x'y
+	xt := tp(x)
+	yt := tp(y)
+	if xt < 16 || xt > Ft {
+		trap(Type)
+	}
+
+	if xt == yt {
+		return Ecr(34, l2(x, y))
+	} else if xt == yt+16 {
+		r = Ki(ibin(x, y, xt))
+	} else {
+		trap(Type)
+	}
+	dx(x)
+	dx(y)
+	return r
+}
+func ibin(x, y K, t T) int32 {
+	var k, j, h int32
+	n := nn(x)
+	xp := int32(x)
+	yp := int32(y)
+	j = n - 1
+	s := sz(t)
+	switch s >> 2 {
+	case 0:
+		for {
+			if k > j {
+				return k - 1
+			}
+			h = (k + j) >> 1
+			if I8(xp+h) > yp {
+				j = h - 1
+			} else {
+				k = h + 1
+			}
+		}
+	case 1:
+		for {
+			if k > j {
+				return k - 1
+			}
+			h = (k + j) >> 1
+			if I32(xp+4*h) > yp {
+				j = h - 1
+			} else {
+				k = h + 1
+			}
+		}
+	default:
+		f := F64(yp)
+		for {
+			if k > j {
+				return k - 1
+			}
+			h = (k + j) >> 1
+			if F64(xp+8*h) > f {
+				j = h - 1
+			} else {
+				k = h + 1
+			}
+		}
+	}
+	return 0 // not reached
 }
 
 func Flr(x K) (r K) { // _x
