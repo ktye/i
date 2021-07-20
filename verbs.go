@@ -197,8 +197,7 @@ func Tak(x, y K) (r K) { // x#y
 	if xt > 16 && xt == yt {
 		return atv(y, Wer(In(rx(y), x))) // set take
 	}
-	trap(Nyi) // f take
-	return 0
+	return Atx(rx(y), Wer(Cal(x, l1(y)))) // f#
 }
 func ntake(n int32, y K) (r K) {
 	t := tp(y)
@@ -285,8 +284,7 @@ func Drp(x, y K) (r K) { // x_y
 	if xt > 16 && xt == yt {
 		return atv(y, Wer(Not(In(rx(y), x)))) // set drop
 	}
-	trap(Nyi) // f drop
-	return 0
+	return Atx(rx(y), Wer(Not(Cal(x, l1(y))))) // f#
 }
 func ndrop(n int32, y K) (r K) {
 	yt := tp(y)
