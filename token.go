@@ -107,6 +107,9 @@ func tunm() K {
 		if c == '.' {
 			return pflt(r)
 		}
+		if c == 'p' {
+			return ppi(float64(r))
+		}
 		if c == 'a' {
 			return pflz(float64(r))
 		}
@@ -156,6 +159,9 @@ func pflt(i int64) K {
 		if I8(pp) == 'a' {
 			return pflz(f)
 		}
+		if I8(pp) == 'p' {
+			return ppi(f)
+		}
 	}
 	return Kf(f)
 }
@@ -165,6 +171,10 @@ func pflz(f float64) (r K) {
 		r = tunm()
 	}
 	return Rot(Kf(f), r)
+}
+func ppi(f float64) (r K) {
+	pp++
+	return Kf(pi * f)
 }
 
 func tvrb() (r K) {

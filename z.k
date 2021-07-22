@@ -1,5 +1,5 @@
-/32 40 48   56 64   72  80   88   96    104   112                       200   208    216    224    232
- `k`l`while`in`find`abs`imag`conj`angle`solve`dot`a`b`c`d`e`f`g`h`i`j`".kst"`".lst"`".qr"`".slv"`".dot"
+/32 40 48   56 64   72  80   88   96    104   112 120 128 136 144               200   208    216    224    232
+ `k`l`while`in`find`abs`imag`conj`angle`solve`dot`sin`cos`exp`log`a`b`c`d`e`f`".kst"`".lst"`".qr"`".slv"`".dot"
 
 `".kst":{t:@x;n:#x;k:(.`".kst")[;y];m:y
  q:{c,x,c:_34}
