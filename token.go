@@ -122,7 +122,7 @@ func tunm() K {
 				q := Kf(0)
 				SetI64(int32(q), int64(0x7FF8000000000001)) // 0n
 				if c == 'w' {
-					SetI64(int32(q), int64(0x7FF0000000000000)) // 0w
+					SetF64(int32(q), inf) // 0w
 				}
 				pp++
 				return q
@@ -184,7 +184,7 @@ func tvrb() (r K) {
 		r = tvar()
 		if r != 0 { // builtins
 			rp := int32(r)
-			if rp > 48 && rp < 113 { // `in`find`abs`imag`conj`angle`solve`dot
+			if rp > 48 && rp < 161 { // `in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`exp`log
 				return K(23 + rp>>3)
 			} else {
 				pp = p

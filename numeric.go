@@ -936,7 +936,7 @@ func Mod(x, y K) (r K) {
 	}
 	yt := tp(y)
 	if yt >= Lt {
-		return Ecr(38, l2(x, y))
+		return Ecr(41, l2(x, y))
 	}
 	y = uptype(y, it)
 	xp := int32(x)
@@ -1547,6 +1547,103 @@ func Rot(x, y K) (r K) { // r angle deg
 	deg := F64(int32(y))
 	dx(y)
 	return Mul(Kz(cosin(deg)), x)
+}
+func Sin(x K) K    { return nf(38, x, 0) }  // sin x
+func Cos(x K) K    { return nf(39, x, 0) }  // cos x
+func Exp(x K) K    { return nf(42, x, 0) }  // Exp x
+func Log(x K) K    { return nf(43, x, 0) }  // Log x
+func Pow(x, y K) K { return nf(106, y, x) } // x pow y (y**x)
+func Lgn(x, y K) K { // n log y
+	xf := fk(x)
+	if xf == 10.0 {
+		xf = 0.4342944819032518
+	} else if xf == 2.0 {
+		xf = 1.4426950408889634
+	} else {
+		xf = 1.0 / log(xf)
+	}
+	return Mul(Kf(xf), Log(y))
+}
+func fk(x K) float64 {
+	t := tp(x)
+	if t == it {
+		return float64(int32(x))
+	} else if t == ft {
+		dx(x)
+		return F64(int32(x))
+	}
+	trap(Type)
+	return 0.0
+}
+func nf(f int32, x, y K) (r K) {
+	xt := tp(x)
+	if xt > Lt {
+		if y == 0 {
+			return Ech(K(f), l1(x))
+		} else {
+			return Ech(K(f), l2(x, y))
+		}
+	}
+	var yf float64
+	if y != 0 {
+		yf = fk(y)
+	}
+	if xt&15 < ft {
+		x = uptype(x, ft)
+		xt = tp(x)
+	}
+	xp := int32(x)
+	if xt == ft {
+		r = Kf(0)
+		ff(f, int32(r), xp, 1, yf)
+	} else {
+		xn := nn(x)
+		r = mk(Ft, xn)
+		if xn > 0 {
+			ff(f, int32(r), xp, xn, yf)
+		}
+	}
+	dx(x)
+	return r
+}
+func ff(f, rp, xp, n int32, yf float64) {
+	e := xp + 8*n
+	switch f - 42 {
+	case 0:
+		for xp < e {
+			SetF64(rp, exp(F64(xp)))
+			rp += 8
+			xp += 8
+			continue
+		}
+	case 1:
+		for xp < e {
+			SetF64(rp, log(F64(xp)))
+			rp += 8
+			xp += 8
+			continue
+		}
+	default:
+		if f == 106 { // pow 42+64
+			for xp < e {
+				SetF64(rp, pow(yf, F64(xp)))
+				rp += 8
+				xp += 8
+				continue
+			}
+		} else { // sin cos
+			for xp < e {
+				c, s := cosin_(F64(xp))
+				SetF64(rp, s)
+				if f == 39 {
+					SetF64(rp, c)
+				}
+				rp += 8
+				xp += 8
+				continue
+			}
+		}
+	}
 }
 
 func dctypes(x, y K) (K, T, K, K) {

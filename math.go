@@ -5,6 +5,7 @@ import (
 )
 
 const pi float64 = 3.141592653589793
+const maxfloat float64 = 1.797693134862315708145274237317043567981e+308
 
 func hypot(p, q float64) float64 {
 	//todo
@@ -135,6 +136,299 @@ func xatan(x float64) float64 {
 	return z
 }
 func signbit(x float64) int32 { return int32(I64reinterpret_f64(x) >> 63) }
+func exp(x float64) float64 {
+	if isnan(x) {
+		return x
+	}
+	if x > 7.09782712893383973096e+02 {
+		return inf
+	}
+	if x < -7.45133219101941108420e+02 {
+		return 0.0
+	}
+	if -3.725290298461914e-09 < x && x < 3.725290298461914e-09 {
+		return 1.0 + x
+	}
+	var k int64
+	if x < 0 {
+		k = int64(1.44269504088896338700*x - 0.5)
+	} else {
+		k = int64(1.44269504088896338700*x + 0.5)
+	}
+	hi := x - float64(k)*6.93147180369123816490e-01
+	lo := float64(k) * 1.90821492927058770002e-10
+	return expmulti(hi, lo, k)
+}
+func expmulti(hi, lo float64, k int64) float64 {
+	r := hi - lo
+	t := r * r
+	c := r - t*(1.66666666666666657415e-01+t*(-2.77777777770155933842e-03+t*(6.61375632143793436117e-05+t*(-1.65339022054652515390e-06+t*4.13813679705723846039e-08))))
+	y := 1 - ((lo - (r*c)/(2-c)) - hi)
+	return ldexp(y, k)
+}
+func ldexp(frac float64, exp int64) float64 {
+	if frac == 0 || frac > maxfloat || frac < -maxfloat || isnan(frac) {
+		return frac
+	}
+	var e int64
+	frac, e = normalize(frac)
+	exp += e
+	x := uint64(I64reinterpret_f64(frac))
+	exp += int64(x>>52)&2047 - 1023
+	if exp < int64(-1075) {
+		return F64copysign(0, frac)
+	}
+	if exp > int64(1023) {
+		if frac < 0 {
+			return -inf
+		}
+		return inf
+	}
+	var m float64 = 1.0
+	if exp < int64(-1022) {
+		exp += 53
+		m = 1.1102230246251565e-16
+	}
+	x &^= 9218868437227405312
+	x |= uint64(exp+1023) << 52
+	return m * F64reinterpret_i64(uint64(x))
+}
+func frexp(f float64) (frac float64, exp int64) {
+	if f == 0.0 {
+		return f, 0
+	}
+	if f < -maxfloat || f > maxfloat || isnan(f) {
+		return f, 0
+	}
+	f, exp = normalize(f)
+	x := I64reinterpret_f64(f)
+	exp += int64((x>>52)&2047) - 1022
+	x &^= 9218868437227405312
+	x |= 4602678819172646912
+	return F64reinterpret_i64(x), exp
+}
+
+func normalize(x float64) (y float64, exp int64) {
+	if F64abs(x) < 2.2250738585072014e-308 {
+		return x * 4.503599627370496e+15, int64(-52)
+	}
+	return x, 0
+}
+
+func log(x float64) float64 {
+	if isnan(x) || x > maxfloat {
+		return x
+	}
+	if x < 0 {
+		return nan
+	}
+	if x == 0 {
+		return -inf
+	}
+	f1, ki := frexp(x)
+	if f1 < 0.7071067811865476 {
+		f1 *= 2
+		ki--
+	}
+	f := f1 - 1
+	k := float64(ki)
+	s := f / (2 + f)
+	s2 := s * s
+	s4 := s2 * s2
+	t1 := s2 * (6.666666666666735130e-01 + s4*(2.857142874366239149e-01+s4*(1.818357216161805012e-01+s4*1.479819860511658591e-01)))
+	t2 := s4 * (3.999999999940941908e-01 + s4*(2.222219843214978396e-01+s4*1.531383769920937332e-01))
+	R := t1 + t2
+	hfsq := 0.5 * f * f
+	return k*6.93147180369123816490e-01 - ((hfsq - (s*(hfsq+R) + k*1.90821492927058770002e-10)) - f)
+}
+func lgn(x, y float64) float64 {
+
+	return log(y) * 1.0 / log(x)
+}
+
+func modf(f float64) (i float64, frac float64) {
+	if f < 1.0 {
+		if f < 0.0 {
+			i, f = modf(-f)
+			return -i, -f
+		}
+		if f == 0.0 {
+			return f, f
+		}
+		return 0, f
+	}
+	x := I64reinterpret_f64(f)
+	e := (x>>52)&2047 - 1023
+	if e < 52 {
+		x &^= 1<<(52-e) - 1
+	}
+	i = F64reinterpret_i64(x)
+	frac = f - i
+	return i, frac
+}
+func pow(x, y float64) float64 {
+	if y == 0.0 || x == 1.0 {
+		return 1.0
+	}
+	if y == 1.0 {
+		return x
+	}
+	if isnan(x) || isnan(y) || y > maxfloat || y < -maxfloat { // simplified
+		return nan
+	}
+	if x == 0 {
+		if y < 0 {
+			if isOddInt(y) {
+				return F64copysign(inf, x)
+			} else {
+				return inf
+			}
+		} else {
+			if isOddInt(y) {
+				return x
+			} else {
+				return 0.0
+			}
+		}
+	}
+	if y == 0.5 {
+		return F64sqrt(x)
+	}
+	if y == -0.5 {
+		return 1.0 / F64sqrt(x)
+	}
+
+	yi, yf := modf(F64abs(y))
+	if yf != 0.0 && x < 0.0 {
+		return nan
+	}
+	if yi >= 9.223372036854776e+18 {
+		if x == -1.0 {
+			return 1.0
+		} else if (F64abs(x) < 1.0) == (y > 0.0) {
+			return 0.0
+		} else {
+			return inf
+		}
+	}
+	a1 := 1.0
+	ae := int64(0)
+	if yf != 0 {
+		if yf > 0.5 {
+			yf -= 1.0
+			yi += 1.0
+		}
+		a1 = exp(yf * log(x))
+	}
+	x1, xe := frexp(x)
+	for i := int64(yi); i != 0; i >>= int64(1) {
+		if xe < int64(-4096) || 4096 < xe {
+			ae += xe
+			break
+		}
+		if i&1 == 1 {
+			a1 *= x1
+			ae += xe
+		}
+		x1 *= x1
+		xe <<= int64(1)
+		if x1 < 0.5 {
+			x1 += x1
+			xe--
+		}
+	}
+	if y < 0.0 {
+		a1 = 1.0 / a1
+		ae = -ae
+	}
+	return ldexp(a1, ae)
+}
+func isOddInt(x float64) bool {
+	xi, xf := modf(x)
+	return xf == 0 && int64(xi)&1 == 1
+}
+
+/*
+func exp(x float64) float64 {
+	const (
+		Ln2Hi = 6.93147180369123816490e-01
+		Ln2Lo = 1.90821492927058770002e-10
+		Log2e = 1.44269504088896338700e+00
+
+		Overflow  = 7.09782712893383973096e+02
+		Underflow = -7.45133219101941108420e+02
+		NearZero  = 1.0 / (1 << 28) // 2**-28
+	)
+	switch {
+	case IsNaN(x) || IsInf(x, 1):
+		return x
+	case IsInf(x, -1):
+		return 0
+	case x > Overflow:
+		return Inf(1)
+	case x < Underflow:
+		return 0
+	case -NearZero < x && x < NearZero:
+		return 1 + x
+	}
+	var k int
+	switch {
+	case x < 0:
+		k = int(Log2e*x - 0.5)
+	case x > 0:
+		k = int(Log2e*x + 0.5)
+	}
+	hi := x - float64(k)*Ln2Hi
+	lo := float64(k) * Ln2Lo
+	return expmulti(hi, lo, k)
+}
+func expmulti(hi, lo float64, k int) float64 {
+	const (
+		P1 = 1.66666666666666657415e-01
+		P2 = -2.77777777770155933842e-03
+		P3 = 6.61375632143793436117e-05
+		P4 = -1.65339022054652515390e-06
+		P5 = 4.13813679705723846039e-08
+	)
+
+	r := hi - lo
+	t := r * r
+	c := r - t*(P1+t*(P2+t*(P3+t*(P4+t*P5))))
+	y := 1 - ((lo - (r*c)/(2-c)) - hi)
+	return Ldexp(y, k)
+}
+func ldexp(frac float64, exp int) float64 {
+	// special cases
+	switch {
+	case frac == 0:
+		return frac // correctly return -0
+	case IsInf(frac, 0) || IsNaN(frac):
+		return frac
+	}
+	frac, e := normalize(frac)
+	exp += e
+	x := Float64bits(frac)
+	exp += int(x>>shift)&mask - bias
+	if exp < -1075 {
+		return Copysign(0, frac) // underflow
+	}
+	if exp > 1023 { // overflow
+		if frac < 0 {
+			return Inf(-1)
+		}
+		return Inf(1)
+	}
+	var m float64 = 1
+	if exp < -1022 { // denormal
+		exp += 53
+		m = 1.0 / (1 << 53) // 2**-53
+	}
+	x &^= mask << shift
+	x |= uint64(exp+bias) << shift
+	return m * Float64frombits(x)
+}
+
+*/
 
 /*
 package sincos (from go pkg math)

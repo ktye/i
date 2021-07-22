@@ -422,7 +422,7 @@ func Bin(x, y K) (r K) { // x'y
 	}
 
 	if xt == yt {
-		return Ecr(34, l2(x, y))
+		return Ecr(40, l2(x, y))
 	} else if xt == yt+16 {
 		r = Ki(ibin(x, y, xt))
 	} else {
