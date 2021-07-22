@@ -294,10 +294,15 @@ func dyadic(x, y K) K {
 	}
 	return cat1(ucat(x, y), 128)
 }
-func monadic(x K) K {
+func monadic(x K) (r K) {
 	l := lastp(x)
 	if quoted(l) {
-		return cat1(ldrop(-1, x), unquote(l))
+		r = cat1(ldrop(-1, x), unquote(l))
+		if int32(l) == 449 { // :x (return: identity+jump)
+			return cat1(cat1(r, Ki(1048576)), 320)
+		} else {
+			return r
+		}
 	}
 	return cat1(x, 83) // dyadic-@
 }

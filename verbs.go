@@ -5,6 +5,7 @@ import (
 )
 
 func nyi(x K) K { trap(Nyi); return x }
+func Idy(x K) K { return x } // :x
 func Dex(x, y K) K { // x:y
 	dx(x)
 	return y
