@@ -15,6 +15,7 @@ import (
 var save []byte
 
 func newtest() {
+	rand = 0x70883142
 	if save == nil {
 		kinit()
 		save = make([]byte, len(Bytes))

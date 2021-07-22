@@ -4,7 +4,7 @@ import . "github.com/ktye/wg/module"
 
 var src, loc, xyz K
 var nan, inf float64
-var pp, pe, sp, srcp int32 //parse or execution position/end, stack position, src pointer
+var pp, pe, sp, srcp, rand int32 //parse or execution position/end, stack position, src pointer
 
 func init() {
 	Memory(1)
@@ -56,6 +56,7 @@ func kinit() {
 	loc = 0
 	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
+	rand = 0x70883142
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
 

@@ -106,7 +106,10 @@ func seq(n int32) (r K) {
 }
 func Unq(x K) (r K) { // ?x
 	xt := tp(x)
-	if xt < 16 || xt >= Lt {
+	if xt < 16 {
+		return roll(x)
+	}
+	if xt >= Lt {
 		trap(Type)
 	}
 	xn := nn(x)

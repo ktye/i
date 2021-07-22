@@ -41,3 +41,7 @@
   K:1_K;j+:1];(x;r;n;m)}
 
 ej:{(y j),'x_z i j:&(#z)>i:(z x)?y x} /sym t1 t2
+
+avg:{(+/x)%0.+#x}
+var:{(+/x*x:(x-avg x))%-1+#x}
+std:{%var x}

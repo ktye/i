@@ -10,7 +10,7 @@ func Fnd(x, y K) (r K) { // x?y
 		if yt == Tt {
 			return grp(x, y)
 		} else {
-			return trap(Type)
+			return deal(x, y)
 		}
 	}
 	if xt == Dt {
