@@ -83,7 +83,7 @@ func nm(f int32, x K) (r K) {
 	if xt < 16 {
 		switch xt - 1 {
 		case 0:
-			return Ki(Func[f].(f1i)(xp))
+			return Ki(Func[1+f].(f1i)(xp))
 		case 1:
 			return Kc(Func[f].(f1i)(xp))
 		case 2:
@@ -133,7 +133,7 @@ func nm(f int32, x K) (r K) {
 
 func Neg(x K) K { return nm(220, x) }
 func negc(x int32) int32 { // lower
-	if x > 'A' && x < 'Z' {
+	if x >= 'A' && x <= 'Z' {
 		x += 32
 	}
 	return x
@@ -143,7 +143,7 @@ func negf(x float64) float64               { return -x }
 func negz(x, y float64) (float64, float64) { return -x, -y }
 func negC(xp, rp, e int32) {
 	for rp < e {
-		SetI8(rp, absc(I8(xp)))
+		SetI8(rp, negc(I8(xp)))
 		xp++
 		rp++
 		continue
@@ -182,7 +182,7 @@ func Abs(x K) K {
 	return nm(228, x)
 }
 func absc(x int32) int32 { // upper
-	if x > 'a' && x < 'z' {
+	if x >= 'a' && x <= 'z' {
 		x -= 32
 	}
 	return x
@@ -1262,6 +1262,10 @@ func eqZ(xp, yp, rp, e int32) {
 
 func Les(x, y K) (r K) { // x<y   `file<c
 	if tp(x) == st && tp(y) == Ct {
+		if int32(x) == 0 {
+			write(rx(y))
+			return y
+		}
 		return writefile(cs(x), y)
 	}
 	return nc(323, 9, x, y)
@@ -1541,12 +1545,26 @@ func Rot(x, y K) (r K) { // r angle deg
 		return x
 	}
 	y = uptype(y, ft)
-	if tp(y) != ft {
-		panic(Type) // only atom
+	yt := tp(y)
+	yp := int32(y)
+	if yt == ft {
+		r = Kz(cosin(F64(yp)))
+	} else if yt == Ft {
+		yn := nn(y)
+		r = mk(Zt, yn)
+		rp := int32(r)
+		for i := int32(0); i < yn; i++ {
+			c, s := cosin(F64(yp))
+			SetF64(rp, c)
+			SetF64(rp+8, s)
+			yp += 8
+			rp += 16
+		}
+	} else {
+		panic(Type)
 	}
-	deg := F64(int32(y))
 	dx(y)
-	return Mul(Kz(cosin(deg)), x)
+	return Mul(r, x)
 }
 func Sin(x K) K    { return nf(38, x, 0) }  // sin x
 func Cos(x K) K    { return nf(39, x, 0) }  // cos x

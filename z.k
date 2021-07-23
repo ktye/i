@@ -1,5 +1,5 @@
-/32 40 48   56 64   72  80   88   96    104   112 120 128 136  144 152  160           200   208    216    224    232
- `k`l`while`in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`".)"`exp`log`a`b`c`d`".kst"`".lst"`".qr"`".slv"`".dot"
+/32 40 48   56 64   72  80   88   96    104   112 120 128 136  144 152  160 168          200   208    216    224    232   240    248   256
+ `k`l`while`in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`".)"`exp`log`plot`a`b`c`".kst"`".lst"`".qr"`".slv"`".dot"`".rf"`".rf1"`".rz"
 
 `".kst":{t:@x;n:#x;k:(.`".kst")[;y];m:y
  q:{c,x,c:_34}
@@ -45,3 +45,7 @@ ej:{(y j),'x_z i j:&(#z)>i:(z x)?y x} /sym t1 t2
 avg:{(+/x)%0.+#x}
 var:{(+/x*x:(x-avg x))%-1+#x}
 std:{%var x}
+
+`".rf": {.5+(x?0)%4294967295.}
+`".rf1":{.5+(1.+x?0)%4294967295.}
+`".rz": {(%-2*log(.`".rf1")x)angle 360*(.`".rf")x}

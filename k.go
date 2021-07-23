@@ -20,7 +20,7 @@ func init() {
 	Functions(211, Amd, Dmd)
 
 	Functions(220, negc, negi, negf, negz, negC, negI, negF, negZ)
-	Functions(228, absc, absi, absf, nyi, absF, absI, absF, absZ)
+	Functions(228, absc, absi, absf, nyi, absC, absI, absF, absZ)
 	Functions(236, addi, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
 	Functions(248, subi, subi, subf, subz, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
 	Functions(260, muli, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
@@ -36,7 +36,7 @@ func init() {
 
 	Functions(369, sum, rd0, prd, rd0, rd0, min, max)
 	Functions(376, sums, rd0, prds, rd0, rd0, mins, maxs)
-	Functions(383, nyi, nyi, sqrf, nyi, nyi, nyi, negF, nyi)
+	Functions(383, nyi, nyi, sqrf, nyi, nyi, nyi, sqrF, nyi)
 }
 
 //   0....7  key
@@ -56,7 +56,7 @@ func kinit() {
 	loc = 0
 	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
-	rand = 0x70883142
+	rand = 1592653589
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
 

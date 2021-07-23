@@ -15,7 +15,7 @@ import (
 var save []byte
 
 func newtest() {
-	rand = 0x70883142
+	rand = 1592653589
 	if save == nil {
 		kinit()
 		save = make([]byte, len(Bytes))
@@ -135,6 +135,12 @@ func TestMultiline(t *testing.T) {
 			t.Fatalf("got %s expected %s", got, tc.exp)
 		}
 	}
+}
+func TestShuffle(t *testing.T) {
+	t.Skip()
+	newtest()
+	shuffle(seq(8), 5)
+	reset()
 }
 func TestKT(t *testing.T) {
 	//t.Skip()
@@ -262,14 +268,14 @@ func sK(x K) string {
 			if xp < 23 {
 				r = string(s[xp])
 			} else {
-				r = itoa(xp)
+				r = "`" + itoa(xp)
 			}
 			return r
 		case xp < 128:
 			if xp-64 < 23 {
 				r = string(s[xp-64])
 			} else {
-				r = itoa(xp)
+				r = "`" + itoa(xp)
 			}
 			return r
 		case xp == 211:
