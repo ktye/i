@@ -25,7 +25,7 @@ func Ech(f, x K) (r K) {
 		return ecn(f, x)
 	}
 	if tp(x) < 16 {
-		x = Enl(x)
+		trap(Type)
 	}
 	xt := tp(x)
 	if xt == Dt {
@@ -64,7 +64,7 @@ func ecn(f, x K) (r K) {
 		}
 		return ec2(f, r, x)
 	}
-	return Ech(20, Flp(x))
+	return Ech(20, l2(f, Flp(x)))
 }
 func ec2(f, x, y K) (r K) {
 	var t T
@@ -97,9 +97,11 @@ func ec2(f, x, y K) (r K) {
 func Ecp(f, x K) (r K) {
 	xn := nn(x)
 	var y K
+	var m int32
 	if xn == 1 {
 		x = Fst(x)
-		y = Fst(rx(x))
+		y = Fst(rx(x)) // could be missing(xt)
+		m = 1
 	} else if xn == 2 {
 		y, x = spl2(x)
 	} else {
@@ -113,15 +115,15 @@ func Ecp(f, x K) (r K) {
 		trap(Nyi)
 	}
 	xn = nn(x)
-	if 2 > xn+I32B(y != 0) {
+	if 1 > xn-m {
 		dx(f)
 		return x
 	}
 
 	yt := tp(y)
-	if tp(f) == 0 && xt != Lt && yt == xt-16 {
+	if tp(f) == 0 && xt < Zt && yt == xt-16 {
 		fp := int32(f)
-		if fp > 2 && fp < 6 || fp == 7 || fp == 8 {
+		if fp > 2 && xt != St && fp < 6 || fp == 7 || fp == 8 {
 			return epx(fp, x, y, xn) // +-*% &|
 		}
 		if fp == 12 {
@@ -144,36 +146,32 @@ func Ecp(f, x K) (r K) {
 }
 func epx(f int32, x, y K, n int32) (r K) { // ( +-*% &| )':
 	xt := tp(x)
+	if xt < It {
+		x, xt = uptype(x, it), It
+	}
 	xp := int32(x)
-	s := sz(xt)
 	r = mk(xt, n)
 	rp := int32(r)
-	f = 212 + 12*f
-	switch s >> 2 {
-	case 0:
-		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
-		for i := int32(1); i < n; i++ {
-			xp++
-			rp++
-			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-1)))
-		}
-	case 1:
-		SetI32(rp, Func[f].(f2i)(I32(xp), int32(y)))
+	if f > 6 {
+		f--
+	}
+	f = 213 + 12*f
+	yp := int32(y)
+	if xt == It {
+		SetI32(rp, Func[f].(f2i)(I32(xp), yp))
 		for i := int32(1); i < n; i++ {
 			xp += 4
 			rp += 4
 			SetI32(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
 		}
-	case 2:
+	} else {
 		f++
-		SetF64(rp, Func[f].(f2f)(F64(xp), F64(int32(y))))
+		SetF64(rp, Func[f].(f2f)(F64(xp), F64(yp)))
 		for i := int32(1); i < n; i++ {
 			xp += 8
 			rp += 8
 			SetF64(rp, Func[f].(f2f)(F64(xp), F64(xp-8)))
 		}
-	default:
-		trap(Nyi)
 	}
 	dx(x)
 	dx(y)
@@ -185,14 +183,14 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 	s := sz(xt)
 	r = mk(Bt, n)
 	rp := int32(r)
-	f = 143 + 15*f
+	f = 173 + 15*f
 	switch s >> 2 {
 	case 0:
-		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		SetI8(rp, Func[f].(f2i)(I8(xp), int32(y)))
 		for i := int32(1); i < n; i++ {
 			xp++
 			rp++
-			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-1)))
+			SetI8(rp, Func[f].(f2i)(I8(xp), I8(xp-1)))
 		}
 	case 1:
 		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
@@ -201,7 +199,7 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 			rp++
 			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
 		}
-	case 2:
+	default:
 		f++
 		SetI8(rp, Func[f].(f2c)(F64(xp), F64(int32(y))))
 		for i := int32(1); i < n; i++ {
@@ -209,8 +207,6 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 			rp++
 			SetI8(rp, Func[f].(f2c)(F64(xp), F64(xp-8)))
 		}
-	default:
-		trap(Nyi)
 	}
 	dx(x)
 	dx(y)

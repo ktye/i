@@ -1155,7 +1155,7 @@ func maxZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Eql(x, y K) K                     { return nc(308, 11, x, y) }
+func Eql(x, y K) K                     { return nc(338, 11, x, y) }
 func eqi(x, y int32) int32             { return I32B(x == y) }
 func eqf(x, y float64) int32           { return I32B(isnan(x) && isnan(y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
@@ -1268,7 +1268,7 @@ func Les(x, y K) (r K) { // x<y   `file<c
 		}
 		return writefile(cs(x), y)
 	}
-	return nc(323, 9, x, y)
+	return nc(308, 9, x, y)
 }
 func lti(x, y int32) int32   { return I32B(x < y) }
 func ltf(x, y float64) int32 { return I32B(x < y || x != x) }
@@ -1387,7 +1387,7 @@ func ltZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Mor(x, y K) (r K)       { return nc(338, 10, x, y) }
+func Mor(x, y K) (r K)       { return nc(323, 10, x, y) }
 func gti(x, y int32) int32   { return I32B(x > y) }
 func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {

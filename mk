@@ -19,6 +19,12 @@ func zk() {
 EOF
 
 go install
+
+if [ "$1" = "cover" ]; then
+	go test -coverprofile=cov.out
+	go tool cover -html=cov.out -o cov.html
+fi
+
 wg . > k.wat
 /c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd k.wat
 

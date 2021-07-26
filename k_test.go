@@ -158,6 +158,40 @@ func TestKT(t *testing.T) {
 	reset()
 	reset()
 }
+func TestKE(t *testing.T) {
+	b, err := ioutil.ReadFile("k.e")
+	if err != nil {
+		t.Fatal(err)
+	}
+	v := bytes.Split(b, []byte{10})
+	for i := range v {
+		newtest()
+		e := try(mkchars(v[i]))
+		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
+		if e != exp {
+			t.Fatalf("expected error %d got %d", exp, e)
+		}
+	}
+}
+func try(c K) (err int32) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("recover", r)
+			err = r.(int32)
+		}
+	}()
+	test(c)
+	return -1
+}
+func parseError(s string) int32 {
+	errs := []string{"Err", "Type", "Value", "Length", "Rank", "Parse", "Stack", "Grow", "Unref", "Io", "Nyi"} // err.go
+	for i, x := range errs {
+		if s == x {
+			return int32(i)
+		}
+	}
+	panic("unknown error: " + s)
+}
 func TestClass(t *testing.T) {
 	c := make([]byte, 127)
 	cl := func(s string, n byte) {
