@@ -71,14 +71,23 @@ func tchr() (r K) {
 	}
 	pp++
 	r = mk(Ct, 0)
+	var q int32
 	for {
 		if pp == pe {
 			trap(Parse)
 		}
 		c := I8(pp)
 		pp++
-		if c == 34 {
+		if c == 34 && q == 0 {
 			break
+		}
+		if c == '\\' && q == 0 {
+			q = 1
+			continue
+		}
+		if q != 0 {
+			c = cq(c)
+			q = 0
 		}
 		r = cat1(r, Kc(c))
 	}
@@ -86,6 +95,18 @@ func tchr() (r K) {
 		return Fst(r)
 	}
 	return r
+}
+func cq(c int32) int32 { // \t \n \r \" \\   -> 9 10 13 34 92
+	if c == 116 {
+		return 9
+	}
+	if c == 110 {
+		return 10
+	}
+	if c == 114 {
+		return 13
+	}
+	return c
 }
 func thex() (r K) {
 	r = mk(Ct, 0)
