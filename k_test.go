@@ -206,7 +206,8 @@ func TestClass(t *testing.T) {
 	cl(`([{`, 16)
 	cl("\n;)]}", 32)
 	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 64)
-	//fmt.Printf("%q\n", string(c[32:]))
+	cl(`0123456789abcdef`, 128)
+	fmt.Printf("%q\n", string(c[32:]))
 }
 
 /*

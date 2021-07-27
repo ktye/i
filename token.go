@@ -19,7 +19,7 @@ func tok(x K) (r K) {
 		if pp == pe {
 			break
 		}
-		for i := int32(192); i < 199; i++ { // tbln, tnum, tvrb, tpct, tvar, tsym, tchr
+		for i := int32(192); i < 199; i++ { // tbln, tchr, tnms, tvrb, tpct, tvar, tsym
 			y = Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-p) << 32)
@@ -58,6 +58,53 @@ func pbln(n int32) (r K) {
 		return Fst(r)
 	}
 	return r
+}
+func tchr() (r K) {
+	if I8(pp) == '0' && pp < pe { // 0x01ab (lower case only)
+		if I8(1+pp) == 'x' {
+			pp += 2
+			return thex()
+		}
+	}
+	if I8(pp) != 34 {
+		return 0
+	}
+	pp++
+	r = mk(Ct, 0)
+	for {
+		if pp == pe {
+			trap(Parse)
+		}
+		c := I8(pp)
+		pp++
+		if c == 34 {
+			break
+		}
+		r = cat1(r, Kc(c))
+	}
+	if nn(r) == 1 {
+		return Fst(r)
+	}
+	return r
+}
+func thex() (r K) {
+	r = mk(Ct, 0)
+	for pp < pe-1 {
+		c := I8(pp)
+		if !is(c, 128) {
+			break
+		}
+		r = cat1(r, Kc((hx(c)<<4)+hx(I8(1+pp))))
+		pp += 2
+	}
+	return r
+}
+func hx(c int32) int32 {
+	if is(c, 4) {
+		return c - '0'
+	} else {
+		return c - 'a'
+	}
 }
 func tnms() (r K) {
 	r = tnum()
@@ -263,28 +310,6 @@ func tsym() (r K) {
 		if pp == pe {
 			break
 		}
-	}
-	return r
-}
-func tchr() (r K) {
-	if I8(pp) != 34 {
-		return 0
-	}
-	pp++
-	r = mk(Ct, 0)
-	for {
-		if pp == pe {
-			trap(Parse)
-		}
-		c := I8(pp)
-		pp++
-		if c == 34 {
-			break
-		}
-		r = cat1(r, Kc(c))
-	}
-	if nn(r) == 1 {
-		return Fst(r)
 	}
 	return r
 }

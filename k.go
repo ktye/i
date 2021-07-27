@@ -8,7 +8,7 @@ var pp, pe, sp, srcp, rand int32 //parse or execution position/end, stack positi
 
 func init() {
 	Memory(1)
-	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\tDDDDDDDDDD\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\x01`\x01")
+	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\t\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00\xc2\xc2\xc2\xc2\xc2\xc2BBBBBBBBBBBBBBBBBBBB\x10\x01`\x01") // k_test.go: TestClass
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Data(520, "vbcisfzldtmdpl000BCISFZLDT") //546
 	Export(kinit, mk, nn, Val, Kst)
@@ -16,7 +16,7 @@ func init() {
 	//           0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                         35                        40
 	Functions(0, nul, Idy, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, nyi, Abs, Imag, Conj, Angle, Qr, nyi, Sin, Cos, nyi, nyi, Exp, Log)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, com, prj, Otu, In, Find, Hypot, Cmpl, nyi, Rot, Slv, Dot, nyi, nyi, Bin, Mod, Pow, Lgn)
-	Functions(192, tbln, tnms, tvrb, tpct, tvar, tsym, tchr)
+	Functions(192, tbln, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
 
 	Functions(220, negc, negi, negf, negz, negC, negI, negF, negZ)
