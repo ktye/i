@@ -509,9 +509,11 @@ func Flr(x K) (r K) { // _x
 	case 0: //I
 		r = mk(Ct, xn)
 		rp = int32(r)
-		for i := int32(0); i < xn; i++ {
+		e := rp + xn
+		for rp < e {
 			SetI8(rp, I32(xp))
 			xp += 4
+			rp++
 		}
 	case 1: //S
 		return Ech(16, l1(x))

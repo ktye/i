@@ -34,4 +34,5 @@ $ str cst       c:<`file(read)             v:  0..63   monadic
                                              256       drop
 built-ins(monadic):                          320/384   jmp, jmp-ifz
 in find abs imag conj angle solve dot        448..     quoted verb
+predefined:ej avg var std
 rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L

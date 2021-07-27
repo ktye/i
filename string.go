@@ -4,8 +4,8 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Kst(x K) K { return kxy(200, x, Ki(1000000)) }
-func Lst(x K) K { return kx(208, x) }
+func Kst(x K) K { return Atx(Ks(32), x) } // `k@
+func Lst(x K) K { return Atx(Ks(40), x) } // `l@
 
 /*
 func Kst(x K) (r K) {

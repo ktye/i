@@ -118,6 +118,9 @@ func thex() (r K) {
 		r = cat1(r, Kc((hx(c)<<4)+hx(I8(1+pp))))
 		pp += 2
 	}
+	if nn(r) == 1 {
+		return Fst(r)
+	}
 	return r
 }
 func hx(c int32) int32 {

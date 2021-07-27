@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	. "github.com/ktye/wg/module"
+	"github.com/ktye/wg/wasi_unstable"
 )
 
 var save []byte
 
 func newtest() {
+	wasi_unstable.Stdout = os.Stdout
 	rand = 1592653589
 	if save == nil {
 		kinit()
@@ -159,6 +162,7 @@ func TestKT(t *testing.T) {
 	reset()
 }
 func TestKE(t *testing.T) {
+	t.Skip()
 	b, err := ioutil.ReadFile("k.e")
 	if err != nil {
 		t.Fatal(err)
@@ -166,8 +170,11 @@ func TestKE(t *testing.T) {
 	v := bytes.Split(b, []byte{10})
 	for i := range v {
 		newtest()
+		var buf bytes.Buffer
+		wasi_unstable.Stdout = &buf
 		e := try(mkchars(v[i]))
 		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
+		fmt.Println(string(v[i]))
 		if e != exp {
 			t.Fatalf("expected error %d got %d", exp, e)
 		}
@@ -176,7 +183,6 @@ func TestKE(t *testing.T) {
 func try(c K) (err int32) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("recover", r)
 			err = r.(int32)
 		}
 	}()
@@ -191,6 +197,17 @@ func parseError(s string) int32 {
 		}
 	}
 	panic("unknown error: " + s)
+}
+func TestSymbols(t *testing.T) { // list symbols
+	newtest()
+	s := K(I32(8)) | K(St)<<59
+	n := nn(s)
+	for i := int32(0); i < n; i++ {
+		y := 8 * i
+		_ = y
+		//fmt.Printf("%d %s\n", y, sK(Ks(y)))
+	}
+	reset()
 }
 func TestClass(t *testing.T) {
 	c := make([]byte, 127)
@@ -207,7 +224,7 @@ func TestClass(t *testing.T) {
 	cl("\n;)]}", 32)
 	cl(`abcdefghijklmnopqrstuvxwyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)]}"`, 64)
 	cl(`0123456789abcdef`, 128)
-	fmt.Printf("%q\n", string(c[32:]))
+	//fmt.Printf("%q\n", string(c[32:]))
 }
 
 /*
