@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"os"
@@ -172,7 +173,7 @@ func TestKE(t *testing.T) {
 		newtest()
 		var buf bytes.Buffer
 		wasi_unstable.Stdout = &buf
-		e := try(mkchars(v[i]))
+		e := try(func() { test(mkchars(v[i])) })
 		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
 		fmt.Println(string(v[i]))
 		if e != exp {
@@ -180,13 +181,25 @@ func TestKE(t *testing.T) {
 		}
 	}
 }
-func try(c K) (err int32) {
+func TestUnref(t *testing.T) {
+	newtest()
+	wasi_unstable.Stdout = io.Discard
+	e := try(func() {
+		x := mk(It, 0)
+		dx(x)
+		dx(x)
+	})
+	if e != Unref {
+		t.Fatalf("expected %d(unref) got %d", Unref, e)
+	}
+}
+func try(f func()) (err int32) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(int32)
 		}
 	}()
-	test(c)
+	f()
 	return -1
 }
 func parseError(s string) int32 {

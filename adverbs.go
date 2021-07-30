@@ -342,10 +342,10 @@ func fix(f, x K) (r K) {
 		dx(x)
 		x = r
 	}
-	dx(x)
+	dx(r)
 	dx(y)
 	dx(f)
-	return r
+	return x
 }
 func fixs(f, x K) (r K) {
 	l := Enl(rx(x))
@@ -386,27 +386,27 @@ func Scn(f, x K) (r K) {
 	} else {
 		trap(Rank)
 	}
+	yt := tp(y)
+	if yt < 16 {
+		if x == 0 {
+			dx(f)
+			return y
+		} else {
+			return cal(f, l2(x, y))
+		}
+	}
 	yn := nn(y)
 	if yn == 0 {
 		dx(f)
 		dx(x)
 		return y
 	}
-	yt := tp(y)
 	if yt > Lt {
 		if yt == Dt {
 			r, y = spl2(y)
 			return Key(r, Scn(f, l2(x, y)))
 		} else {
 			return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
-		}
-	}
-	if yt < 16 {
-		if x == 0 {
-			dx(f)
-			return x
-		} else {
-			return cal(f, l2(x, y))
 		}
 	}
 
@@ -421,10 +421,6 @@ func Scn(f, x K) (r K) {
 				return r
 			}
 		}
-	}
-
-	if yt > Lt {
-		trap(Nyi)
 	}
 
 	r = mk(Lt, yn)
@@ -462,7 +458,7 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 		var y K
 		x, y = spl2(x)
 		if tp(x) < 16 {
-			x = Enl(x)
+			return cal(f, l2(x, y))
 		}
 		xn := nn(x)
 		r = mk(Lt, xn)
