@@ -240,7 +240,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	if yt < 16 {
 		if x == 0 {
 			dx(f)
-			return x
+			return y
 		} else {
 			return cal(f, l2(x, y))
 		}
@@ -276,9 +276,6 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 			return x
 		}
 	}
-	if yt > Lt {
-		trap(Nyi)
-	}
 
 	i := int32(0)
 	if x == 0 {
@@ -301,10 +298,6 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		}
 		return join(f, Fst(x))
 	}
-	xt := tp(x)
-	if xt != Lt {
-		trap(Type)
-	}
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point
@@ -314,7 +307,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		x, y = spl2(x)
 		yt := tp(y)
 		if yt < 16 {
-			y = Enl(y)
+			return cal(f, l2(x, y))
 		}
 		if yt > Lt {
 			var t T

@@ -162,7 +162,7 @@ func TestKT(t *testing.T) {
 	reset()
 }
 func TestKE(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	b, err := ioutil.ReadFile("k.e")
 	if err != nil {
 		t.Fatal(err)
