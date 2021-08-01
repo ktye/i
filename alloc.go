@@ -13,8 +13,12 @@ func minit(a, b int32) {
 	}
 	SetI32(128, b)
 }
-func alloc(size int32) int32 {
+func alloc(n, s int32) int32 {
+	size := n * s
 	t := bucket(size)
+	if int64(n)*int64(s) > 2147483647 /*|| t > 31*/ {
+		trap(Grow)
+	}
 	i := 4 * t
 	m := 4 * I32(128)
 	for I32(i) == 0 {
@@ -37,9 +41,13 @@ func alloc(size int32) int32 {
 	return a
 }
 func grow(p int32) int32 {
+	// todo: 2000000000#"a" /?
+	// rework..
 	m := I32(128)                        // old total memory (log2)
 	n := 1 + (p >> 2)                    // required total mem (log2)
 	g := ((1 << n) >> 16) - Memorysize() // grow by 64k blocks
+	//fmt.Println("grow m/p4/n/g Msz", m, p>>2, n, g, Memorysize())
+	//fmt.Println("len Bytes", len(Bytes))
 	if g > 0 {
 		if Memorygrow(g) < 0 {
 			trap(Grow)
@@ -97,7 +105,7 @@ func mk(t T, n int32) (r K) {
 		trap(Value)
 	}
 	r = K(uint64(t) << uint64(59))
-	x := alloc(n * sz(t))
+	x := alloc(n, sz(t))
 	SetI32(x+12, 1) //rc
 	SetI32(x+4, n)
 	return r | K(x+16)

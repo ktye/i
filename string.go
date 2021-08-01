@@ -152,9 +152,10 @@ func Str(x K) (r K) {
 			r = ucat(r, p)
 		case 2: //pf
 			f, l, i := spl3(rx(x))
+			ft := tp(f)
 			f = Str(f)
 			dx(i)
-			if nn(i) == 1 && I32(int32(i)) == 1 {
+			if nn(i) == 1 && I32(int32(i)) == 1 && (ft == 0 || ft == df) {
 				r = ucat(Str(Fst(l)), f)
 			} else {
 				r = ucat(f, emb('[', ']', join(Kc(';'), Str(l))))

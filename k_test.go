@@ -181,16 +181,22 @@ func TestKE(t *testing.T) {
 		}
 	}
 }
-func TestUnref(t *testing.T) {
-	newtest()
-	wasi_unstable.Stdout = io.Discard
-	e := try(func() {
-		x := mk(It, 0)
-		dx(x)
-		dx(x)
-	})
-	if e != Unref {
-		t.Fatalf("expected %d(unref) got %d", Unref, e)
+func TestTraps(t *testing.T) {
+	testCases := []struct {
+		f func()
+		e int32
+	}{
+		{func() { x := mk(It, 0); dx(x); dx(x) }, Unref},
+		{func() { mk(2, 3) }, Value},
+		{func() { cal(mk(It, 0), seq(3)) }, Type},
+	}
+	for _, tc := range testCases {
+		newtest()
+		wasi_unstable.Stdout = io.Discard
+		e := try(tc.f)
+		if e != tc.e {
+			t.Fatalf("expected %d got %d", tc.e, e)
+		}
 	}
 }
 func try(f func()) (err int32) {

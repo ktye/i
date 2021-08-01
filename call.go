@@ -95,7 +95,12 @@ func calltrain(f, x, y K) (r K) {
 }
 func callprj(f, x K) K {
 	n := nn(x)
-	if nn(f) != n {
+	fn := nn(f)
+	if fn != n {
+		if n < fn {
+			rx(f)
+			return prj(f, x)
+		}
 		trap(Rank)
 	}
 	p, l, i := spl3(rx(f))
@@ -116,6 +121,14 @@ func callenv(f, x K) (r K) { // {..}.d  {..}.t
 }
 func lambda(f K, x K) (r K) {
 	fn := nn(f)
+	xn := nn(x)
+	if xn < fn {
+		rx(f)
+		return prj(f, x)
+	}
+	if xn != fn {
+		trap(Rank)
+	}
 	fp := int32(f)
 	c := K(I64(fp))
 	lo := K(I64(fp + 8))
@@ -156,14 +169,7 @@ func lambda(f K, x K) (r K) {
 	pp, pe = spp, spe
 	return r
 }
-func com(x, y K) (r K) { // compose
-	if tp(y) == ct {
-		r = cat1(K(int32(y))|K(Lt)<<59, x)
-	} else {
-		r = l2(y, x)
-	}
-	return K(int32(r)) | K(cf)<<59
-}
+func com(x, y K) K { return K(int32(l2(y, x))) | K(cf)<<59 } // compose
 func prj(f, x K) (r K) { // project
 	if isfunc(tp(f)) == 0 {
 		return atdepth(f, x)
@@ -183,11 +189,12 @@ func prj(f, x K) (r K) { // project
 		x = cat1(x, 0)
 	}
 	an := nn(a)
-	if an == 0 {
-		dx(a)
-		return 0
+	if tp(f) == pf { // collapse
+		var y K
+		f, r, y = spl3(f)
+		x = stv(r, rx(y), x)
+		a = Drp(a, y)
 	}
-
 	r = l3(f, x, a)
 	SetI32(int32(r)-12, an)
 	return K(int32(r)) | K(pf)<<59
