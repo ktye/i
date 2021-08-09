@@ -918,16 +918,25 @@ func idiv(x, y K) (r K) {
 		dx(y)
 		return r
 	default: // v%a
-		r = use1(x)
-		rp := int32(r)
-		e := rp + 4*nn(r)
-		for rp < e {
-			SetI32(rp, I32(xp)/yp)
-			xp += 4
-			rp += 4
+		x = use(x)
+		xp = int32(x)
+		xn := nn(x)
+		e := xp + 4*xn
+		if yp > 0 && xn > 0 { // x % powers of 2
+			s := int32(31) - I32clz(uint32(yp))
+			if yp == int32(1)<<s {
+				for xp < e {
+					I32x4store(xp, I32x4load(xp).Shr_s(s))
+					xp += 16
+					continue
+				}
+			}
 		}
-		dx(x)
-		return r
+		for xp < e {
+			SetI32(xp, I32(xp)/yp)
+			xp += 4
+		}
+		return x
 	}
 }
 func Mod(x, y K) (r K) {

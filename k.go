@@ -2,6 +2,7 @@ package main
 
 import . "github.com/ktye/wg/module"
 
+const nai int32 = -2147483648 // 0N
 var src, loc, xyz K
 var nan, inf float64
 var pp, pe, sp, srcp, rand int32 //parse or execution position/end, stack position, src pointer
@@ -243,7 +244,7 @@ func missing(t T) (r K) {
 	case 0: // ct
 		return Kc(32)
 	case 1: // it
-		return Ki(-2147483648)
+		return Ki(nai)
 	case 2: // st
 		return Ks(0)
 	case 3: // ft

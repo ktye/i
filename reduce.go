@@ -33,7 +33,14 @@ func min(x K, yp int32, t T, n int32) K { // &/x
 		}
 		return Ki(xp)
 	case 3: // St
-		return 0
+		if x == 0 {
+			xp = (nn(K(I64(8))) << 3) - 8
+		}
+		for i := int32(0); i < n; i++ {
+			xp = mini(xp, I32(yp))
+			yp += 4
+		}
+		return Ks(xp)
 	case 4: // Ft
 		f := F64(xp)
 		if x == 0 {
@@ -63,7 +70,7 @@ func max(x K, yp int32, t T, n int32) K { // |/x
 		return Kc(xp)
 	case 2: // It
 		if x == 0 {
-			xp = -2147483648
+			xp = nai
 		}
 		for i := int32(0); i < n; i++ {
 			xp = maxi(xp, I32(yp))
@@ -71,7 +78,11 @@ func max(x K, yp int32, t T, n int32) K { // |/x
 		}
 		return Ki(xp)
 	case 3: // St
-		return 0
+		for i := int32(0); i < n; i++ {
+			xp = maxi(xp, I32(yp))
+			yp += 4
+		}
+		return Ks(xp)
 	case 4: // Ft
 		f := F64(xp)
 		if x == 0 {

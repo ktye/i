@@ -175,7 +175,7 @@ func radixI(x K, n int32) K { // ^I  see:shawnsmithdev/zermelo
 	to := int32(b)
 	for ko := int32(0); ko < 32; ko += 8 {
 		s := int32(1)
-		var prev int32 = -2147483648
+		var prev int32 = nai
 		Memoryfill(op, 0, 1024)
 		for i := int32(0); i < n; i += 4 {
 			e := I32(fr + i)

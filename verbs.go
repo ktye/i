@@ -516,7 +516,9 @@ func Flr(x K) (r K) { // _x
 			rp++
 		}
 	case 1: //S
-		return Ech(16, l1(x))
+		x = use(x)
+		return K(int32(x)) | K(It)<<59
+		//return Ech(16, l1(x))
 	case 2: //F
 		r = mk(It, xn)
 		rp = int32(r)

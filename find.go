@@ -18,6 +18,17 @@ func Fnd(x, y K) (r K) { // x?y
 		return Atx(r, Fnd(x, y))
 	} else if xt == yt {
 		yn := nn(y)
+		if xt < Ft && yn > 2 {
+			if xt == Bt {
+				return fndBs(x, y)
+			}
+			if yn > 4 && xt == Ct || yn > 8 {
+				r = fndXs(x, y, xt, yn)
+				if r != 0 {
+					return r
+				}
+			}
+		}
 		r = mk(It, yn)
 		rp := int32(r)
 		if xt == Lt {
@@ -74,6 +85,51 @@ func fnd(x, y K, t T) (r int32) {
 	}
 	if r < 0 {
 		return xn
+	}
+	return r
+}
+func fndBs(x, y K) K {
+	a := fnd(x, Kb(0), 1)
+	b := fnd(x, Kb(1), 1) - a
+	dx(x)
+	return Add(Ki(a), Mul(Ki(b), y))
+}
+func fndXs(x, y K, t T, yn int32) (r K) {
+	xn := nn(x)
+	a := int32(min(0, int32(x), t, xn))
+	b := 1 + (int32(max(0, int32(x), t, xn))-a)>>(3*I32B(t == St))
+	if b > 256 && b > yn {
+		return 0
+	}
+	if t == St {
+		x, y = Div(Flr(x), Ki(8)), Div(Flr(y), Ki(8))
+		a >>= 3
+	}
+	r = ntake(b, Ki(xn))
+	rp := int32(r) - 4*a
+	x0 := int32(x)
+	xp := ep(x)
+	if t == Ct {
+		for xp > x0 {
+			xp--
+			SetI8(rp+4*I8(xp), xp-x0)
+		}
+	} else {
+		for xp > x0 {
+			xp -= 4
+			SetI32(rp+4*I32(xp), (xp-x0)>>2)
+		}
+	}
+	dx(x)
+	r = Atx(r, Add(Ki(-a), y))
+	rp = int32(r)
+	xp = rp + 4*yn
+	for rp < xp {
+		if I32(rp) == nai {
+			SetI32(rp, xn)
+		}
+		rp += 4
+		continue
 	}
 	return r
 }
