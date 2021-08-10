@@ -679,7 +679,7 @@ func val(x K) (r K) {
 
 func Xpt(x K) K { // fill x
 	xt := tp(x)
-	if xt > 16 {
+	if xt >= Lt {
 		return Ech(44, l1(x))
 	} else {
 		return Eql(missing(xt-T(16*I32B(xt > 16))), x)
@@ -687,8 +687,8 @@ func Xpt(x K) K { // fill x
 }
 func Fil(x, y K) (r K) { // x fill y
 	xt, yt := tp(x), tp(y)
-	if yt > Lt {
-		return Ecr(108, l2(x, y))
+	if yt >= Lt {
+		return Ecr(44, l2(x, y))
 	}
 	if xt == yt && xt < 16 {
 		if int32(Xpt(y)) != 0 {
