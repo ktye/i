@@ -676,6 +676,37 @@ func val(x K) (r K) {
 	}
 	return x
 }
-func Qr(x K) K     { return kx(216, x) }     //.qr
+
+func Xpt(x K) K { // fill x
+	xt := tp(x)
+	if xt > 16 {
+		return Ech(44, l1(x))
+	} else {
+		return Eql(missing(xt-T(16*I32B(xt > 16))), x)
+	}
+}
+func Fil(x, y K) (r K) { // x fill y
+	xt, yt := tp(x), tp(y)
+	if yt > Lt {
+		return Ecr(108, l2(x, y))
+	}
+	if xt == yt && xt < 16 {
+		if int32(Xpt(y)) != 0 {
+			return x
+		} else {
+			return y
+		}
+	}
+	r = Wer(Xpt(rx(y)))
+	if xt == yt-16 {
+		return Amd(y, r, 1, x)
+	}
+	if xt == yt {
+		return stv(y, r, atv(x, rx(r)))
+	} else {
+		return trap(Type)
+	}
+}
+func Qrd(x K) K    { return kx(216, x) }     //.qr
 func Slv(x, y K) K { return kxy(224, x, y) } //.slv
 func Dot(x, y K) K { return kxy(232, x, y) } //.dot

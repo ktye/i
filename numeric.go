@@ -232,7 +232,7 @@ func absZ(x K) (r K) {
 	dx(x)
 	return r
 }
-func Hypot(x, y K) (r K) { // e.g.  norm:0. abs/x
+func Hyp(x, y K) (r K) { // e.g.  norm:0. abs/x
 	xt := tp(x)
 	yt := tp(y)
 	if xt > Zt || yt > Zt {
@@ -271,7 +271,7 @@ func sqrF(xp, rp, e int32) {
 	}
 }
 
-func Imag(x K) (r K) { // imag x
+func Img(x K) (r K) { // imag x
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(33, l1(x))
@@ -299,8 +299,8 @@ func Imag(x K) (r K) { // imag x
 	dx(x)
 	return r
 }
-func Cmpl(x, y K) (r K) { return Add(x, Mul(Kz(0.0, 1.0), y)) } // x imag y
-func Conj(x K) (r K) { // conj x
+func Cpx(x, y K) (r K) { return Add(x, Mul(Kz(0.0, 1.0), y)) } // x imag y
+func Cnj(x K) (r K) { // conj x
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(34, l1(x))
@@ -1516,7 +1516,7 @@ func gtZ(xp, yp, rp, e int32) {
 
 func isnan(x float64) bool { return x != x }
 
-func Angle(x K) (r K) { // angle x
+func Ang(x K) (r K) { // angle x
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(35, l1(x))
