@@ -84,7 +84,7 @@ func fnd(x, y K, t T) (r int32) {
 		r = int32(trap(Type))
 	}
 	if r < 0 {
-		return xn
+		return nai
 	}
 	return r
 }
@@ -105,14 +105,14 @@ func fndXs(x, y K, t T, yn int32) (r K) {
 		x, y = Div(Flr(x), Ki(8)), Div(Flr(y), Ki(8))
 		a >>= 3
 	}
-	r = ntake(b, Ki(xn))
+	r = ntake(b, Ki(nai))
 	rp := int32(r) - 4*a
 	x0 := int32(x)
 	xp := ep(x)
 	if t == Ct {
 		for xp > x0 {
 			xp--
-			SetI8(rp+4*I8(xp), xp-x0)
+			SetI32(rp+4*I8(xp), xp-x0)
 		}
 	} else {
 		for xp > x0 {
@@ -121,17 +121,7 @@ func fndXs(x, y K, t T, yn int32) (r K) {
 		}
 	}
 	dx(x)
-	r = Atx(r, Add(Ki(-a), y))
-	rp = int32(r)
-	xp = rp + 4*yn
-	for rp < xp {
-		if I32(rp) == nai {
-			SetI32(rp, xn)
-		}
-		rp += 4
-		continue
-	}
-	return r
+	return Atx(r, Add(Ki(-a), y))
 }
 func idxc(x, p, ve, e int32) (r int32) {
 	r = inC(x, p, ve, e)
@@ -188,7 +178,7 @@ func fndl(x, y K) (r int32) {
 		r++
 		xp += 8
 	}
-	return xn
+	return nai
 }
 
 func index(x, a, b int32) int32 {
