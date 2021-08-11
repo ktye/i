@@ -5,14 +5,16 @@ import (
 )
 
 func parse(x K) (r K) {
-	l := tok(x)
-	pp = int32(l)
-	pe = pp + 8*nn(l)
+	if tp(x) != Lt {
+		trap(Type)
+	}
+	pp = int32(x)
+	pe = pp + 8*nn(x)
 	r = es()
 	if pp != pe {
 		trap(Parse)
 	}
-	lfree(l)
+	lfree(x)
 	return r
 }
 func es() (r K) {
@@ -198,7 +200,7 @@ func pspec(r, n K, ln int32) (K, int32) {
 			return cond(n, ln), -1
 		}
 	}
-	if nn(r) == 2 && ln > 1 && int32(v) == 48 { // while[..]
+	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]
 		dx(r)
 		return whl(n, ln-1), -1
 	}

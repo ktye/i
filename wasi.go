@@ -98,7 +98,7 @@ func bench(x K) {
 		trap(Parse)
 	}
 	n := maxi(1, int32(prs(it, ntake(i, rx(x)))))
-	x = parse(ndrop(i, x))
+	x = parse(tok(ndrop(i, x)))
 	t := time()
 	for n > 0 {
 		dx(exec(rx(x)))

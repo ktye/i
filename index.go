@@ -16,18 +16,18 @@ func Atx(x, y K) (r K) { // x@y
 				if yt == it { // `123 (quoted verb)
 					return K(int32(y))
 				}
-				if yt == Ct { // ` "1+2" (token)
-					s := src
-					r = tok(y)
-					dx(src)
-					src = s
-					return r
-				}
 			}
 			if xp < 48 { // `x`y`z`k`l
 				return kx(312+xp, y)
 			} else {
-				return reinterp(ts(x), y)
+				switch (xp - 48) >> 3 {
+				case 0: // `t@"src" (token)
+					return Tok(y)
+				case 1: // `p@"src" `p@(token-list)
+					return parse(Tok(y))
+				default:
+					return reinterp(ts(x), y)
+				}
 			}
 		}
 	}
@@ -60,8 +60,7 @@ func Atx(x, y K) (r K) { // x@y
 		r, y = spl2(y)
 		return Key(r, Atx(x, y))
 	}
-	trap(Nyi) // f@
-	return x
+	return trap(Type) // f@
 }
 func ati(x K, i int32) (r K) { // x BT..LT
 	t := tp(x)
@@ -119,7 +118,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	case 0:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if xi < 0 || xi >= xn {
+			if uint32(xi) >= uint32(xn) {
 				SetI8(rp, int32(na))
 			} else {
 				SetI8(rp, I8(xp+xi))
@@ -130,7 +129,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	case 1:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if xi < 0 || xi >= xn {
+			if uint32(xi) >= uint32(xn) {
 				SetI32(rp, int32(na))
 			} else {
 				SetI32(rp, I32(xp+4*xi))
@@ -141,7 +140,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	case 2:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if xi < 0 || xi >= xn {
+			if uint32(xi) >= uint32(xn) {
 				if t == Lt {
 					SetI64(rp, int64(na))
 				} else {
@@ -156,7 +155,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	default:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if xi < 0 || xi >= xn {
+			if uint32(xi) >= uint32(xn) {
 				SetI64(rp, I64(int32(na)))
 				SetI64(rp+8, I64(int32(na)))
 			} else {

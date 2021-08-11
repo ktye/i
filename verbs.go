@@ -633,6 +633,17 @@ func Typ(x K) (r K) { // @x
 	dx(x)
 	return sc(Enl(Kc(I8(520 + int32(tp(x))))))
 }
+func Tok(x K) (r K) { // `t@"src"
+	if tp(x) == Ct {
+		s := src
+		r = tok(x)
+		dx(src)
+		src = s
+		return r
+	} else {
+		return x
+	}
+}
 func Val(x K) (r K) {
 	xt := tp(x)
 	if xt == st {
@@ -660,7 +671,7 @@ func Val(x K) (r K) {
 }
 func val(x K) (r K) {
 	s := src
-	x = parse(x)
+	x = parse(tok(x))
 	xn := nn(x)
 	xp := int32(x) + 8*(xn-1)
 	a := int32(0)

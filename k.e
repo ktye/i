@@ -22,6 +22,7 @@
 (+`a`b!(1 2;3 4))?5 /Nyi
 1 2 3 find 4 5 /Type
 "abc" find "b" /Type
+1.2@3 /Type
 (+`a`b!(1 2;3 4)),+`b`a!(4 5;6 7) /Value
 ) /Parse
 "a /Parse

@@ -255,8 +255,8 @@ func tvrb() (r K) {
 		r = tvar()
 		if r != 0 { // builtins
 			rp := int32(r)
-			if rp > 48 && rp < 169 { // `in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`exp`log`fill
-				return K(23 + rp>>3)
+			if rp > 64 && rp < 185 { // `in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`exp`log`fill
+				return K(21 + rp>>3)
 			} else {
 				pp = p
 			}

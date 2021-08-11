@@ -262,6 +262,9 @@ func sf(x float64) (r K) {
 	return ndrop(-c, r)
 }
 func sfz(re, im float64) (r K) {
+	if isnan(re) || isnan(im) {
+		return Ku(6385200) // 0na
+	}
 	z := hypot(re, im)
 	a := ang2(im, re)
 	r = cat1(trdot(sf(z)), Kc('a'))
