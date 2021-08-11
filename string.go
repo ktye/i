@@ -354,3 +354,23 @@ func ts(x K) T {
 	trap(Value)
 	return 0
 }
+
+func reinterp(t T, x K) K { // `b@ `c@ `i@ `s@ `f@ `z@ (reinterpret data)
+	xt := tp(x)
+	t += T(16 * I32B(t < 16))
+	if xt < 16 || t < 17 || t > Zt {
+		trap(Type)
+	}
+	n := nn(x) * sz(xt)
+	s := sz(t)
+	if n%s != 0 {
+		trap(Length)
+	}
+	x = use(x)
+	SetI32(int32(x)-12, n/s)
+	x = K(t)<<59 | K(int32(x))
+	if t == Bt {
+		return Not(Eql(Kb(0), x))
+	} // todo: St may contain non-multiples of 8 or out-of-range values
+	return x
+}

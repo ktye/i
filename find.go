@@ -62,7 +62,7 @@ func Fnd(x, y K) (r K) { // x?y
 func fnd(x, y K, t T) (r int32) {
 	xn := nn(x)
 	if xn == 0 {
-		return 0
+		return nai
 	}
 	xp, yp := int32(x), int32(y)
 	xe := ep(x)
@@ -77,9 +77,9 @@ func fnd(x, y K, t T) (r int32) {
 	case 3: // st
 		r = idxi(yp, xp, ve, xe)
 	case 4: // ft
-		r = idxf(F64(xp), yp, xe)
+		r = idxf(F64(yp), xp, xe)
 	case 5: // zt
-		r = idxz(F64(xp), F64(xp+8), yp, xe)
+		r = idxz(F64(yp), F64(yp+8), xp, xe)
 	default:
 		r = int32(trap(Type))
 	}

@@ -18,7 +18,7 @@ func Atx(x, y K) (r K) { // x@y
 			if xp < 48 { // `x`y`z`k`l
 				return kx(312+xp, y)
 			} else {
-				trap(Value)
+				return reinterp(ts(x), y)
 			}
 		}
 	}
