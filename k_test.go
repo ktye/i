@@ -189,6 +189,9 @@ func TestTraps(t *testing.T) {
 		{func() { x := mk(It, 0); dx(x); dx(x) }, Unref},
 		{func() { mk(2, 3) }, Value},
 		{func() { cal(mk(It, 0), seq(3)) }, Type},
+		{func() { test(seq(3)) }, Type},
+		{func() { test(mkchars([]byte("1 2 /1 /2"))) }, Length},
+		{func() { test(mkchars([]byte("1 /2"))) }, Err},
 	}
 	for _, tc := range testCases {
 		newtest()
