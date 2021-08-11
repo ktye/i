@@ -19,3 +19,6 @@
 {x+y}.1 2!3 4 /Type
 {x+y}[1;2;3] /Rank
 1 2 3?4. /Type
+(+`a`b!(1 2;3 4))?5 /Nyi
+1 2 3 find 4 5 /Type
+"abc" find "b" /Type

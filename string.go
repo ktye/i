@@ -280,19 +280,19 @@ func trdot(x K) K {
 
 func Cst(x, y K) (r K) { // x$y
 	yt := tp(y)
+	if yt > Zt {
+		return Ecl(18, l2(x, y))
+	}
 	if yt == ct {
 		y, yt = Enl(y), Ct
 	}
-	if yt == Ct {
-		if tp(x) != st {
-			trap(Type)
-		}
-		if int32(x) == 0 { // `$"sym"
-			return sc(y)
-		}
-		return prs(ts(x), y)
+	if tp(x) != st || yt != Ct {
+		trap(Type)
 	}
-	return trap(Nyi) // todo conversions
+	if int32(x) == 0 { // `$"sym"
+		return sc(y)
+	}
+	return prs(ts(x), y)
 }
 func prs(t T, y K) (r K) { // s$C
 	yp, yn := int32(y), nn(y)

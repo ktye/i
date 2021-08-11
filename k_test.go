@@ -228,6 +228,18 @@ func TestSymbols(t *testing.T) { // list symbols
 	}
 	reset()
 }
+func TestIndex(t *testing.T) {
+	newtest()
+	x := Flr(seq(5))
+	dx(x)
+	if index(2, int32(x), int32(x)+5) != 2 {
+		t.Fatal()
+	}
+	if index(6, int32(x), int32(x)+5) != -1 {
+		t.Fatal()
+	}
+	reset()
+}
 func TestClass(t *testing.T) {
 	c := make([]byte, 127)
 	cl := func(s string, n byte) {

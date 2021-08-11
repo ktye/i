@@ -1,6 +1,3 @@
-(!0)?1 /0N
-1 2 3.?2. /1
-1a20 2a30?2a30 4a50 /1 0N
 1 /1
 1.1 -0w /1.1 -0w
 1. 0n 0w -1.1 /1. 0n 0w -1.1
@@ -144,6 +141,14 @@ _(97;-2.3 2.3;2a90) /("a";-3 2;0.)
 "abc"?"al" /0 0N
 "abc"?"alphabeta" /0 0N 0N 0N 0 1 0N 0N 0
 "abc"?"xxxbc" /0N 0N 0N 1 2
+"abcdefghijklmnopqrstuvxwyz"?"f" /5
+"abcdefghijklmnopqrstuvxwyz"?"z" /25
+(!20)?3 /3
+(!20)?17 /17
+1 2 1024?!10 /0N 0 1 0N 0N 0N 0N 0N 0N 0N
+(!0)?1 /0N
+1 2 3.?2 4. /1 0N
+1a20 2a30?2a30 4a50 /1 0N
 `z`x`y?`a`b`c`x`y`z`a`b`c`x`y`z /0N 0N 0N 1 2 0 0N 0N 0N 1 2 0
 ("abc";"de")?"de" /1
 ("abc";"de")?("de";"gh") /1 0N
@@ -159,6 +164,8 @@ in 010b /1b
 "ab" find "aaabcabca" /2 5
 "aa" find "aaaaaaa" /0 2 4
 "ab" find "xab" /,1
+"ab" find "" /!0
+"" find "ab" /!0
 abs(1;2a30) /(1;2.)
 (1%%2)~imag 1a45 /1b
 imag -conj 1 2 imag(3 4.;5 6) /(3. 4.;5. 6.)

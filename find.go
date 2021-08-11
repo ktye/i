@@ -13,7 +13,10 @@ func Fnd(x, y K) (r K) { // x?y
 			return deal(x, y)
 		}
 	}
-	if xt == Dt {
+	if xt > Lt {
+		if xt == Tt {
+			trap(Nyi) // t?..
+		}
 		r, x = spl2(x)
 		return Atx(r, Fnd(x, y))
 	} else if xt == yt {
@@ -78,10 +81,8 @@ func fnd(x, y K, t T) (r int32) {
 		r = idxi(yp, xp, ve, xe)
 	case 4: // ft
 		r = idxf(F64(yp), xp, xe)
-	case 5: // zt
+	default: // zt
 		r = idxz(F64(yp), F64(yp+8), xp, xe)
-	default:
-		r = int32(trap(Type))
 	}
 	if r < 0 {
 		return nai
@@ -135,8 +136,7 @@ func idxc(x, p, ve, e int32) (r int32) {
 		}
 		continue
 	}
-	trap(Err)
-	return r //not reached
+	return 0 //not reached
 }
 func idxi(x, p, ve, e int32) (r int32) {
 	r = inI(x, p, ve, e)
@@ -150,8 +150,7 @@ func idxi(x, p, ve, e int32) (r int32) {
 		}
 		continue
 	}
-	trap(Err)
-	return r //not reached
+	return 0 //not reached
 }
 func idxf(x float64, p, e int32) (r int32) {
 	r = inF(x, p, e)
@@ -189,28 +188,16 @@ func index(x, a, b int32) int32 {
 	}
 	return -1
 }
-func fndc(x K, c int32) int32 {
-	xp := int32(x)
-	xn := nn(x)
-	for i := int32(0); i < xn; i++ {
-		if I8(xp) == c {
-			return i
-		}
-		xp++
-	}
-	return -1
-}
 
 func Find(x, y K) (r K) { // find[pattern;string] returns all matches (It)
 	xt, yt := tp(x), tp(y)
-	if xt != yt && xt != Ct {
+	if xt != yt || xt != Ct {
 		trap(Type)
 	}
 	xn, yn := nn(x), nn(y)
-	if xn == 0 {
-		trap(Length)
-	}
-	if yn == 0 {
+	if xn == 0 || yn == 0 {
+		dx(x)
+		dx(y)
 		return mk(It, 0)
 	}
 	r = mk(It, 0)

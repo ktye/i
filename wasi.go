@@ -93,8 +93,8 @@ func dofile(x K, c K) {
 	dx(kk)
 }
 func bench(x K) {
-	i := fndc(x, 32)
-	if i < 0 {
+	i := fnd(x, Kc(32), ct)
+	if i == nai {
 		trap(Parse)
 	}
 	n := maxi(1, int32(prs(it, ntake(i, rx(x)))))
