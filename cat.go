@@ -5,7 +5,6 @@ import (
 )
 
 func Cat(x, y K) (r K) {
-	//fmt.Println("cat?", sK(x), ",", sK(y))
 	xt, yt := tp(x), tp(y)
 	if xt == Tt && yt == Dt {
 		y, yt = Enl(y), Tt
@@ -101,15 +100,13 @@ func explode(x K) (r K) {
 				xp += 8
 				continue
 			}
-		case 5: //Zt
+		default: //Zt
 			for xp < e {
 				SetI64(rp, int64(Kz(F64(xp), F64(xp+8))))
 				rp += 8
 				xp += 16
 				continue
 			}
-		default:
-			trap(Type)
 		}
 		dx(x)
 	} else if xt == Lt {
@@ -130,8 +127,6 @@ func explode(x K) (r K) {
 		dx(x)
 		dx(k)
 		return r
-	} else {
-		trap(Type) // T->L(D)?
 	}
 	return r
 }
@@ -179,7 +174,7 @@ func dcat(x, y K) (r K) { // d,d  t,t
 		return key(r, x, t)
 	}
 }
-func ucats(x K) (r K) { // ,/ unitype-list
+func ucats(x K) (r K) { // ,/ unitype-lists
 	xn := nn(x)
 	if xn == 0 {
 		return x
@@ -236,13 +231,6 @@ func cat1(x, y K) K {
 		F64x2store(rp, F64x2load(yp))
 		dx(y)
 	}
-	return r
-}
-func cat3(x, a, b, c K) K { // Lt
-	r, rp, _ := uspc(x, Lt, 3)
-	SetI64(rp, int64(a))
-	SetI64(rp+8, int64(b))
-	SetI64(rp+16, int64(c))
 	return r
 }
 func uspc(x K, xt T, ny int32) (K, int32, int32) {
