@@ -210,10 +210,6 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 }
 func cat1(x, y K) K {
 	xt := tp(x)
-	//if xt != Lt && tp(y) != xt-16 {
-	//	fmt.Println("cat1", xt, tp(y))
-	//	panic("cat1")
-	//}
 	r, rp, s := uspc(x, xt, 1)
 	yp := int32(y)
 	if s == 1 {

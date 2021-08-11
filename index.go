@@ -12,8 +12,17 @@ func Atx(x, y K) (r K) { // x@y
 			return cal(x, l1(y))
 		}
 		if xt == st {
-			if xp == 0 && yt == it { // `123 (quoted verb)
-				return K(int32(y))
+			if xp == 0 {
+				if yt == it { // `123 (quoted verb)
+					return K(int32(y))
+				}
+				if yt == Ct { // ` "1+2" (token)
+					s := src
+					r = tok(y)
+					dx(src)
+					src = s
+					return r
+				}
 			}
 			if xp < 48 { // `x`y`z`k`l
 				return kx(312+xp, y)

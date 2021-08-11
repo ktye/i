@@ -26,7 +26,7 @@ func tok(x K) (r K) {
 				r = cat1(r, y)
 				break
 			}
-			if i == 198 { // todo last-1
+			if i == 198 { // last-1
 				trap(Parse)
 			}
 		}
@@ -127,7 +127,7 @@ func hx(c int32) int32 {
 	if is(c, 4) {
 		return c - '0'
 	} else {
-		return c - 'a'
+		return c - 'W'
 	}
 }
 func tnms() (r K) {
