@@ -25,6 +25,9 @@
 1.2@3 /Type
 (+`a`b!(1 2;3 4)),+`b`a!(4 5;6 7) /Value
 ) /Parse
+{x+1] /Parse
+(1;2] /Parse
+{[1;2]x} /Parse
 "a /Parse
 in 0b /Type
 in 1 2 /Type
@@ -36,3 +39,4 @@ in 1 2 /Type
 @[+`a`b!(1 2;3 4);0 1;(4 5;6 7)] /Nyi
 .[3^!9;(0 1;0 1;0 1);9] /Rank
 .[+`a`b!(1 2;3 4);(`a`b;1);5] /Nyi
+`p 0b /Type

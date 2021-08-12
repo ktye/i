@@ -163,26 +163,43 @@ func pasn(x, y K) (K, K, int32) {
 }
 func plam(s0 int32) (r K) {
 	slo := loc
-	loc = mk(St, 0)
+	loc = 0
+	ar := int32(-1)
+	n, _ := next()
+	if n == 91 { // argnames
+		n, ln, _ := plist(93)
+		loc = Ech(4, l1(n)) // [a]->,(`a;.)  [a;b]->((`a;.);(`b;.))
+		if ln > 0 && tp(loc) != St {
+			trap(Parse)
+		}
+		ar = nn(loc)
+	} else {
+		pp -= 8
+		loc = mk(St, 0)
+	}
 	c := es() // todo: translate srcp
-	n, s1 := next()
+	var s1 int32
+	n, s1 = next()
 	if n != 125 {
 		trap(Parse)
 	}
 	cn := nn(c)
 	cp := int32(c)
-	ar := int32(0)
-	for i := int32(0); i < cn; i++ {
-		if I64(cp) == 20 {
-			if y := I32(cp-8) >> 3; y > 0 && y < 4 {
-				ar = maxi(ar, y)
+	if ar < 0 {
+		ar = 0
+		for i := int32(0); i < cn; i++ {
+			if I64(cp) == 20 {
+				if y := I32(cp-8) >> 3; y > 0 && y < 4 {
+					ar = maxi(ar, y)
+				}
 			}
+			cp += 8
 		}
-		cp += 8
+		loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
 	}
 	i := Add(seq(1+s1-s0), Ki(s0-1))
 	s := atv(rx(src), i)
-	loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
+	//loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
 	r = l3(c, loc, s)
 	loc = slo
 	return l1(slam(r, ar))
