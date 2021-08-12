@@ -63,14 +63,27 @@ func match(x, y K) int32 {
 	if xt < ft {
 		return I32B(xp == yp)
 	}
-	switch xt - ft {
+	switch int32(xt-ft) - 3*I32B(xt > 9) {
 	case 0: // ft
 		return eqf(F64(xp), F64(yp))
 	case 1: // zt
 		return eqz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
-	default:
-		return 0 // no deep comparision for comp, derived, proj, lambda
+	case 2: // composition
+		yn = 8 * nn(y)
+	case 3: // derived
+		yn = 16
+	case 4: // projection
+		yn = 24
+	case 5: // lambda
+		return match(K(I64(xp+16)), K(I64(yp+16))) // compare strings
 	}
+	for yn > 0 { // composition, derived, projection
+		yn -= 8
+		if match(K(I64(xp+yn)), K(I64(yp+yn))) == 0 {
+			return 0
+		}
+	}
+	return 1
 }
 func mtC(xp, yp, ve, e int32) (r int32) {
 	for yp < ve {
