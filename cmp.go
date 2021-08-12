@@ -130,17 +130,19 @@ func mtF(xp, yp, e int32) (r int32) {
 	}
 	return 1
 }
+
 func all(x, n int32) int32 {
+	t := I8x16splat(1)
 	e := x + n
 	ve := e &^ 15
 	for x < ve {
-		if I8x16load(x).All_true() == 0 {
+		if I8x16load(x).Eq(t).All_true() != 1 {
 			return 0
 		}
 		x += 16
 	}
 	for x < e {
-		if I8(x) != 0 {
+		if I8(x) == 0 {
 			return 0
 		}
 		x++
@@ -179,9 +181,8 @@ func In(x, y K) (r K) {
 	} else if xt+16 != yt {
 		trap(Type)
 	}
-	r = in(x, y, xt)
 	dx(y)
-	return r
+	return in(x, y, xt)
 }
 func in(x, y K, xt T) K {
 	xp, yp := int32(x), int32(y)
@@ -199,11 +200,9 @@ func in(x, y K, xt T) K {
 	case 4: //ft
 		dx(x)
 		e = inF(F64(xp), yp, e)
-	case 5: //zt
+	default: //zt
 		dx(x)
 		e = inZ(F64(xp), F64(xp+8), yp, e)
-	default:
-		e = int32(trap(Type))
 	}
 	return Kb(I32B(e != 0))
 }

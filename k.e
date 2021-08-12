@@ -26,3 +26,6 @@
 (+`a`b!(1 2;3 4)),+`b`a!(4 5;6 7) /Value
 ) /Parse
 "a /Parse
+in 0b /Type
+in 1 2 /Type
+3. in 1 2 3 /Type
