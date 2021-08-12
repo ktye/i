@@ -196,6 +196,11 @@ func tunm() K {
 					SetF64(int32(q), inf) // 0w
 				}
 				pp++
+				if pp < pe && I8(pp) == 'a' {
+					//pp++
+					dx(q)
+					return pflz(F64(int32(q))) //Kz(F64(int32(q)), 0)
+				}
 				return q
 			}
 		}
