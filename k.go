@@ -138,7 +138,6 @@ func Kb(x int32) K { return K(uint32(x)) | K(bt)<<59 }
 func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }
 func Ki(x int32) K { return K(uint32(x)) | K(it)<<59 }
 func Ks(x int32) K { return K(uint32(x)) | K(st)<<59 }
-func iK(x K) int32 { return int32(x) }
 func Kf(x float64) (r K) {
 	r = mk(Ft, 1)
 	SetF64(int32(r), x)
@@ -151,7 +150,6 @@ func Kz(x, y float64) (r K) {
 	SetF64(rp+8, y)
 	return K(rp) | K(zt)<<59
 }
-func ZF(x K) K { xp := int32(x); SetI32(xp-12, I32(xp-12)/2); return K(uint32(x)) | K(Zt)<<59 }
 func l1(x K) (r K) {
 	r = mk(Lt, 1)
 	SetI64(int32(r), int64(x))
@@ -230,14 +228,6 @@ func td(x K) (r K) { // table from dict
 	r = l2(r, x)
 	SetI32(int32(r)-12, m)
 	return K(int32(r)) | K(Tt)<<59
-}
-func zero(t T) (r K) {
-	if t == ft {
-		return Kf(0)
-	} else if t == zt {
-		return Kz(0, 0)
-	}
-	return K(t) << 59
 }
 func missing(t T) (r K) {
 	switch t - 2 {

@@ -277,7 +277,8 @@ func Img(x K) (r K) { // imag x
 		return Ech(33, l1(x))
 	}
 	if xt < zt {
-		return zero(xt)
+		//return zero(xt)
+		return Kf(0.0)
 	}
 	if xt == zt {
 		dx(x)

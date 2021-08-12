@@ -102,7 +102,7 @@ func TestVerbs(t *testing.T) {
 	t.Skip()
 	newtest()
 	x := Til(Ki(3))
-	if r := iK(Cnt(x)); r != 3 {
+	if r := int32(Cnt(x)); r != 3 {
 		t.Fatalf("got %d expected %d", r, 3)
 	}
 }
@@ -192,6 +192,8 @@ func TestTraps(t *testing.T) {
 		{func() { test(seq(3)) }, Type},
 		{func() { test(mkchars([]byte("1 2 /1 /2"))) }, Length},
 		{func() { test(mkchars([]byte("1 /2"))) }, Err},
+		{func() { sp = 0; reset() }, Stack},
+		{func() { mk(It, 0); reset() }, Err},
 	}
 	for _, tc := range testCases {
 		newtest()
