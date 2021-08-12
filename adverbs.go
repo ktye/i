@@ -258,15 +258,13 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 				return r
 			}
 		}
-		if x == 0 && fp == 13 {
-			if yt == Lt {
-				r = ucats(y)
-				if r != 0 {
-					return r
-				}
-			}
-			if yn == 0 { // ,/0#..
+		if x == 0 && fp == 13 { // ,/
+			if yn == 0 || yt < Lt {
 				return y
+			}
+			r = ucats(y)
+			if r != 0 {
+				return r
 			}
 		}
 	}
