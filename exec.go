@@ -95,9 +95,6 @@ func lst(n K) (r K) {
 }
 func nul(x K) K { push(x); return 0 }
 func lup(x K) K {
-	if tp(x) != st {
-		trap(Type)
-	}
 	vp := I32(8) + int32(x)
 	r := x0(vp)
 	return r
@@ -157,7 +154,7 @@ func Amd(x, i, v, y K) (r K) {
 	return stv(x, i, y)
 }
 func Dmd(x, i, v, y K) (r K) {
-	//fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+	// fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
 	i = explode(i)
 	f := Fst(rx(i))
 	if nn(i) == 1 {
@@ -176,8 +173,7 @@ func Dmd(x, i, v, y K) (r K) {
 			trap(Rank)
 		}
 		i = Fst(i)
-		// todo table-matrix-assign
-		if tp(f) != It || tp(x) != Lt {
+		if tp(f) != It || tp(x) != Lt { // todo table-matrix-assign
 			trap(Nyi) // Dt
 		}
 		r = use(x)
