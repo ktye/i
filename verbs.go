@@ -24,7 +24,7 @@ func Flp(x K) (r K) { // +x
 	case 2: // Tt
 		return Key(spl2(x))
 	default:
-		return Abs(x)
+		return x
 	}
 }
 func maxcount(xp int32, n int32) (r int32) { // |/#l
@@ -50,7 +50,7 @@ func Fst(x K) K { // *x
 	}
 	return ati(x, 0)
 }
-func Last(x K) K { // *|x
+func Las(x K) K { // *|x
 	t := tp(x)
 	if t < 16 {
 		return x
@@ -125,12 +125,12 @@ func Unq(x K) (r K) { // ?x
 	dx(x)
 	return r
 }
-func unqs(x K) (r K) { // ?^x
+func Uqs(x K) (r K) { // ?^x
 	xt := tp(x)
 	if xt < 16 {
 		trap(Type)
 	}
-	return Atx(x, Wer(Ecp(12, l1(rx(x))))) // x(&~':x)
+	return kx(264, x)
 }
 func Grp(x K) (r K) { // =x
 	u := Unq(rx(x))
@@ -601,7 +601,7 @@ func Wer(x K) (r K) { // &x
 	dx(x)
 	return r
 }
-func firstWhere(x K) K { // *&x (todo idiom)
+func Fwh(x K) K { // *&x (todo idiom)
 	t := tp(x)
 	if t == Bt {
 		dx(x)
@@ -687,7 +687,7 @@ func val(x K) (r K) {
 	}
 	return x
 }
-
+func Fin(x K) K { return Wer(Not(Xpt(x))) } // find x (index of non-missing)
 func Xpt(x K) K { // fill x
 	xt := tp(x)
 	if xt >= Lt {

@@ -69,7 +69,7 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 	} else if (r == y && xv+yv == 2) || ev == 1 {
 		return cat1(ucat(r, x), 91), 1 // composition
 	}
-	return monadic(ucat(r, x)), 0 // monadic
+	return idiom(monadic(ucat(r, x))), 0 // monadic
 }
 func t() (r K, verb int32) { // Lt
 	var ln, s int32
@@ -326,3 +326,21 @@ func monadic(x K) (r K) {
 	return cat1(x, 83) // dyadic-@
 }
 func ldrop(n int32, x K) (r K) { return explode(ndrop(n, x)) }
+func svrb(p int32) int32 {
+	x := K(I64(p))
+	return I32B(tp(x) == 0) * int32(x)
+}
+func idiom(x K) K {
+	l := int32(x) + 8*(nn(x)-2)
+	i := svrb(l) + svrb(l+8)<<6
+	//fmt.Println("idiom:", svrb(l), svrb(l+8), i)
+	if i == 263 || i == 264 { // *& 7 4 -> 40
+		i = 33 // 7->40(Fwh)  8->41(Las)
+	} else if i == 1166 { // ?^ 14 18
+		i = 23 // 14->37(Uqs)
+	} else {
+		return x
+	}
+	SetI64(l, I64(l)+int64(i))
+	return ndrop(-1, x)
+}

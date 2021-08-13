@@ -1,5 +1,5 @@
-/               64   72  80   88   96    104   112 120 128 136  144 152  160 168 176 184          216    224    232   240    248   256            312
-``x`y`z`k`l`t`p`while`in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`".)"`exp`log`fill`a`b`c`".qr"`".slv"`".dot"`".rf"`".rf1"`".rz"`f`g`h`i`j`m`n
+/               64   72  80   88   96    104   112 120 128 136  144 152  160 168 176 184          216    224    232   240    248   256    264          312
+``x`y`z`k`l`t`p`while`in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`".)"`exp`log`fill`a`b`c`".qr"`".slv"`".dot"`".rf"`".rf1"`".rz"`".uqs"`g`h`i`j`m`n
 `".x"`".y"`".z"`".k"`".l" /320..352
 
 `".x":{,/+"0123456789abcdef"@(x%16;16/x:0+x)} /`x@ (hex) 320(index.go Atx)
@@ -27,7 +27,7 @@
   (("";",")(1~n)),x,dd}
  $[n~0;(.`".kst0")@t;`T~t;"+",d@+x;`D~t;d x;x~*x;a x;v x]} /344
 
- 
+`".uqs":{x@&~0b~':x:^x} 
 `".kst0":`B`C`I`S`F`Z`L!("0#0b";c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
 `".kstm":`B`C`I`S`F`Z`L!100 100 30 30 20 10 20
 
