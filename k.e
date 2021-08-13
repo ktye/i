@@ -42,3 +42,17 @@ in 1 2 /Type
 `p 0b /Type
 +`a`b!(1 2;3 4 5) /Length
 +1 2!3 4 /Type
+2 abs 3 /Nyi
+`a+`b /Type
+`a+`b`c /Type
+`a`b+`c`d /Type
+-`a /Type
+-`a`b /Type
+-(-) /Type
+1 2+3 4 5 /Length
+1b\01b /Type
+2a45 angle 1a /Type
+2a45 log 3 /Type
+3.5/4 /Type
+`a`b+1 2 /Type
+(`a`b!1 2)+`a`c!3 4 /Value

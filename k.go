@@ -20,16 +20,16 @@ func init() {
 	Functions(192, tbln, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
 
-	Functions(220, negc, negi, negf, negz, negC, negI, negF, negZ)
-	Functions(228, absc, absi, absf, nyi, absC, absI, absF, absZ)
-	Functions(236, addi, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
-	Functions(248, subi, subi, subf, subz, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
-	Functions(260, muli, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
-	Functions(272, divi, divi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
-	Functions(284, mini, mini, minf, minz, mincC, miniI, minfF, minzZ, minC, minI, minF, minZ)
-	Functions(296, maxi, maxi, maxf, maxz, maxcC, maxiI, maxfF, maxzZ, maxC, maxI, maxF, maxZ)
+	Functions(220, negi, negf, negz, negC, negI, negF, negZ)
+	Functions(227, absi, absf, nyi, absC, absI, absF, absZ)
+	Functions(234, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
+	Functions(245, subi, nyi, nyi, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
+	Functions(256, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
+	Functions(267, nyi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
+	Functions(278, mini, minf, minz, mincC, miniI, minfF, minzZ, minC, minI, minF, minZ)
+	Functions(289, maxi, maxf, maxz, maxcC, maxiI, maxfF, maxzZ, maxC, maxI, maxF, maxZ)
+	Functions(300, nyi, sqrf, nyi, nyi, nyi, sqrF, nyi)
 
-	// 308 323 338
 	Functions(308, lti, ltf, ltz, ltcC, ltiI, ltfF, ltzZ, ltCc, ltIi, ltFf, ltZz, ltC, ltI, ltF, ltZ)
 	Functions(323, gti, gtf, gtz, gtcC, gtiI, gtfF, gtzZ, gtCc, gtIi, gtFf, gtZz, gtC, gtI, gtF, gtZ)
 	Functions(338, eqi, eqf, eqz, eqcC, eqiI, eqfF, eqzZ, eqCc, eqIi, eqFf, eqZz, eqC, eqI, eqF, eqZ)
@@ -38,7 +38,6 @@ func init() {
 
 	Functions(369, sum, rd0, prd, rd0, rd0, min, max)
 	Functions(376, sums, rd0, prds, rd0, rd0, mins, maxs)
-	Functions(383, nyi, nyi, sqrf, nyi, nyi, nyi, sqrF, nyi)
 }
 
 //   0....7  key

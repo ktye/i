@@ -83,19 +83,19 @@ func nm(f int32, x K) (r K) {
 	if xt < 16 {
 		switch xt - 1 {
 		case 0:
-			return Ki(Func[1+f].(f1i)(xp))
+			return Ki(Func[f].(f1i)(xp))
 		case 1:
 			return Kc(Func[f].(f1i)(xp))
 		case 2:
-			return Ki(Func[1+f].(f1i)(xp))
+			return Ki(Func[f].(f1i)(xp))
 		case 3:
 			return trap(Type)
 		case 4:
-			r = Kf(Func[2+f].(f1f)(F64(xp)))
+			r = Kf(Func[1+f].(f1f)(F64(xp)))
 			dx(x)
 			return r
 		case 5:
-			r = Kz(Func[3+f].(f1z)(F64(xp), F64(xp+8)))
+			r = Kz(Func[2+f].(f1z)(F64(xp), F64(xp+8)))
 			dx(x)
 			return r
 		default:
@@ -115,37 +115,29 @@ func nm(f int32, x K) (r K) {
 	}
 	switch xt - 18 {
 	case 0:
-		Func[4+f].(f1_)(xp, rp, e)
+		Func[3+f].(f1_)(xp, rp, e)
 	case 1:
-		Func[5+f].(f1_)(xp, rp, e)
+		Func[4+f].(f1_)(xp, rp, e)
 	case 2:
 		trap(Type)
 	case 3:
-		Func[6+f].(f1_)(xp, rp, e)
-	case 4:
-		Func[7+f].(f1_)(xp, rp, e)
+		Func[5+f].(f1_)(xp, rp, e)
 	default:
-		trap(Type)
+		Func[6+f].(f1_)(xp, rp, e)
 	}
 	dx(x)
 	return r
 }
 
-func Neg(x K) K { return nm(220, x) }
-func negc(x int32) int32 { // lower
-	if x >= 'A' && x <= 'Z' {
-		x += 32
-	}
-	return x
-}
+func Neg(x K) K                            { return nm(220, x) }
 func negi(x int32) int32                   { return -x }
 func negf(x float64) float64               { return -x }
 func negz(x, y float64) (float64, float64) { return -x, -y }
 func negC(xp, rp, e int32) {
 	for rp < e {
-		SetI8(rp, negc(I8(xp)))
-		xp++
-		rp++
+		I8x16store(rp, I8x16load(xp).Neg())
+		xp += 16
+		rp += 16
 		continue
 	}
 }
@@ -179,13 +171,7 @@ func Abs(x K) K {
 	} else if xt == Zt {
 		return absZ(x)
 	}
-	return nm(228, x)
-}
-func absc(x int32) int32 { // upper
-	if x >= 'a' && x <= 'z' {
-		x -= 32
-	}
-	return x
+	return nm(227, x)
 }
 func absi(x int32) int32 {
 	if x < 0 {
@@ -196,9 +182,9 @@ func absi(x int32) int32 {
 func absf(x float64) float64 { return F64abs(x) }
 func absC(xp, rp, e int32) {
 	for rp < e {
-		SetI8(rp, absc(I8(xp)))
-		xp++
-		rp++
+		I8x16store(rp, I8x16load(xp).Abs())
+		xp += 16
+		rp += 16
 		continue
 	}
 }
@@ -259,7 +245,7 @@ func Sqr(x K) (r K) {
 	if tp(x)&15 != ft {
 		x = Add(Kf(0), x)
 	}
-	return nm(383, x)
+	return nm(300, x)
 }
 func sqrf(x float64) float64 { return F64sqrt(x) }
 func sqrF(xp, rp, e int32) {
@@ -276,29 +262,29 @@ func Img(x K) (r K) { // imag x
 	if xt > Zt {
 		return Ech(33, l1(x))
 	}
-	if xt < zt {
-		//return zero(xt)
-		return Kf(0.0)
-	}
-	if xt == zt {
+	if xt == Zt {
+		xp := 8 + int32(x)
+		n := nn(x)
+		r = mk(Ft, n)
+		rp := int32(r)
+		e := rp + 8*n
+		for rp < e {
+			SetI64(rp, I64(xp))
+			xp += 16
+			rp += 8
+		}
 		dx(x)
-		return Kf(F64(int32(x) + 8))
-	}
-	if xt < Zt {
-		x = uptype(x, zt)
-	}
-	xp := 8 + int32(x)
-	n := nn(x)
-	r = mk(Ft, n)
-	rp := int32(r)
-	e := rp + 8*n
-	for rp < e {
-		SetI64(rp, I64(xp))
-		xp += 16
-		rp += 8
+		return r
 	}
 	dx(x)
-	return r
+	if xt == zt {
+		return Kf(F64(int32(x) + 8))
+	}
+	if xt < zt {
+		return Kf(0.0)
+	} else {
+		return ntake(nn(x), Kf(0.0))
+	}
 }
 func Cpx(x, y K) (r K) { return Add(x, Mul(Kz(0.0, 1.0), y)) } // x imag y
 func Cnj(x K) (r K) { // conj x
@@ -343,21 +329,20 @@ func nd(f, ff int32, x, y K) (r K) {
 		case 0: // ct
 			return Kc(Func[f].(f2i)(xp, yp))
 		case 1: // it
-			return Ki(Func[1+f].(f2i)(xp, yp))
+			return Ki(Func[f].(f2i)(xp, yp))
 		case 2: // st
 			return trap(Type)
 		case 3:
 			dx(x)
 			dx(y)
-			return Kf(Func[2+f].(f2f)(F64(xp), F64(yp)))
-		case 4:
+			return Kf(Func[1+f].(f2f)(F64(xp), F64(yp)))
+		default:
 			dx(x)
 			dx(y)
-			return Kz(Func[3+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
-		default:
-			return trap(Type)
+			return Kz(Func[2+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
 		}
-	} else if av == 1 { // atom-vector
+	}
+	if av == 1 { // atom-vector
 		r = use1(y)
 		if nn(r) == 0 {
 			dx(x)
@@ -369,19 +354,17 @@ func nd(f, ff int32, x, y K) (r K) {
 		switch t - 2 {
 		case 0: // ct
 			v := I8x16splat(xp)
-			Func[4+f].(f2cC)(v, yp, rp, e)
+			Func[3+f].(f2cC)(v, yp, rp, e)
 		case 1: // it
 			v := I32x4splat(xp)
-			Func[5+f].(f2iI)(v, yp, rp, e)
+			Func[4+f].(f2iI)(v, yp, rp, e)
 		case 2: // st
 			trap(Type)
 		case 3: // ft
 			v := F64x2splat(F64(xp))
-			Func[6+f].(f2vF)(v, yp, rp, e)
-		case 4: // zt
-			Func[7+f].(f2zZ)(F64(xp), F64(xp+8), yp, rp, e)
-		default:
-			trap(Type)
+			Func[5+f].(f2vF)(v, yp, rp, e)
+		default: // zt
+			Func[6+f].(f2zZ)(F64(xp), F64(xp+8), yp, rp, e)
 		}
 		dx(x)
 		dx(y)
@@ -397,23 +380,20 @@ func nd(f, ff int32, x, y K) (r K) {
 		e := ep(r)
 		switch t - 2 {
 		case 0: // ct
-			Func[8+f].(f2v)(xp, yp, rp, e)
+			Func[7+f].(f2v)(xp, yp, rp, e)
 		case 1: // it
-			Func[9+f].(f2v)(xp, yp, rp, e)
+			Func[8+f].(f2v)(xp, yp, rp, e)
 		case 2: // st
 			trap(Type)
 		case 3: // ft
+			Func[9+f].(f2v)(xp, yp, rp, e)
+		default: // zt
 			Func[10+f].(f2v)(xp, yp, rp, e)
-		case 4: // zt
-			Func[11+f].(f2v)(xp, yp, rp, e)
-		default:
-			trap(Type)
 		}
 		dx(x)
 		dx(y)
 		return r
 	}
-	return r
 }
 func nc(f, ff int32, x, y K) (r K) {
 	var av int32
@@ -442,12 +422,10 @@ func nc(f, ff int32, x, y K) (r K) {
 			dx(x)
 			dx(y)
 			return Kb(Func[1+f].(f2c)(F64(xp), F64(yp)))
-		case 5:
+		default:
 			dx(x)
 			dx(y)
 			return Kb(Func[2+f].(f2d)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
-		default:
-			return trap(Type)
 		}
 	} else if av == 1 { // atom-vector
 		yn := nn(y)
@@ -471,15 +449,14 @@ func nc(f, ff int32, x, y K) (r K) {
 		case 4: // ft
 			dx(x)
 			Func[5+f].(f2fF)(F64(xp), yp, rp, e)
-		case 5: // zt
+		default: // zt
 			dx(x)
 			Func[6+f].(f2zZ)(F64(xp), F64(xp+8), yp, rp, e)
-		default:
-			trap(Type)
 		}
 		dx(y)
 		return r
-	} else if av == 3 {
+	}
+	if av == 3 {
 		xn := nn(x)
 		r = mk(Bt, xn)
 		if xn == 0 {
@@ -501,17 +478,15 @@ func nc(f, ff int32, x, y K) (r K) {
 		case 4: // ft
 			dx(y)
 			Func[9+f].(f2Ff)(xp, F64(yp), rp, e)
-		case 5: // zt
+		default: // zt
 			dx(y)
 			Func[10+f].(f2Zz)(xp, F64(yp), F64(yp+8), rp, e)
-		default:
-			trap(Type)
 		}
 		dx(x)
 		return r
 	} else { // vector-vector
 		n := nn(x)
-		if t == Bt || t == Ct {
+		if t == bt || t == ct {
 			r = use2(x, y)
 			r = K(Bt)<<59 | K(uint32(r))
 		} else {
@@ -535,16 +510,13 @@ func nc(f, ff int32, x, y K) (r K) {
 			Func[12+f].(f2v)(xp, yp, rp, e)
 		case 4: // ft
 			Func[13+f].(f2v)(xp, yp, rp, e)
-		case 5: // zt
+		default: // zt
 			Func[14+f].(f2v)(xp, yp, rp, e)
-		default:
-			trap(Type)
 		}
 		dx(x)
 		dx(y)
 		return r
 	}
-	return r
 }
 func conform(x, y K) (av int32, r T) { // 0:atom-atom 1:atom-vector, 2:vector-vector, 3:vector-atom
 	xt, yt := tp(x), tp(y)
@@ -566,9 +538,9 @@ func conform(x, y K) (av int32, r T) { // 0:atom-atom 1:atom-vector, 2:vector-ve
 }
 func Add(x, y K) (r K) {
 	if tp(y) < 16 {
-		return nd(236, 2, y, x)
+		return nd(234, 2, y, x)
 	}
-	return nd(236, 2, x, y)
+	return nd(234, 2, x, y)
 }
 func addi(x, y int32) int32                          { return x + y }
 func addf(x, y float64) float64                      { return x + y }
@@ -632,13 +604,14 @@ func addZ(xp, yp, rp, e int32) { addF(xp, yp, rp, e) }
 
 func Sub(x, y K) (r K) {
 	if tp(y) < 16 {
-		return nd(236, 2, Neg(y), x)
+		return nd(234, 2, Neg(y), x)
 	}
-	return nd(248, 3, x, y)
+	return nd(245, 3, x, y)
 }
-func subi(x, y int32) int32                          { return x - y }
-func subf(x, y float64) float64                      { return x - y }
-func subz(xr, xi, yr, yi float64) (float64, float64) { return xr - yr, xi - yi }
+func subi(x, y int32) int32 { return x - y }
+
+//func subf(x, y float64) float64                      { return x - y }
+//func subz(xr, xi, yr, yi float64) (float64, float64) { return xr - yr, xi - yi }
 func subcC(x I8x16, yp, rp, e int32) {
 	for rp < e {
 		I8x16store(rp, x.Sub(I8x16load(yp)))
@@ -705,9 +678,9 @@ func Mul(x, y K) (r K) {
 		return scalez(y, x)
 	}
 	if yt < 16 {
-		return nd(260, 4, y, x)
+		return nd(256, 4, y, x)
 	}
-	return nd(260, 4, x, y)
+	return nd(256, 4, x, y)
 }
 func muli(x, y int32) int32                          { return x * y }
 func mulf(x, y float64) float64                      { return x * y }
@@ -827,9 +800,8 @@ func Div(x, y K) (r K) {
 	if xt&15 < ft && yt&15 < ft {
 		return idiv(x, y) // no simd for ints
 	}
-	return nd(272, 5, x, y)
+	return nd(267, 5, x, y)
 }
-func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x / y }
 func divz(xr, xi, yr, yi float64) (e float64, f float64) {
 	var r, d float64
@@ -895,15 +867,13 @@ func idiv(x, y K) (r K) {
 	case 0: //a%a
 		return Ki(xp / yp)
 	case 1: //a%v
-		r = use1(y)
+		r = use(y)
 		rp := int32(r)
 		e := rp + 4*nn(r)
 		for rp < e {
-			SetI32(rp, xp/I32(yp))
-			xp += 4
+			SetI32(rp, xp/I32(rp))
 			rp += 4
 		}
-		dx(y)
 		return r
 	case 2: //v%v
 		r = use2(x, y)
@@ -975,9 +945,9 @@ func Min(x, y K) (r K) {
 		return K(tp(r)-1)<<59 | K(uint32(r))
 	}
 	if tp(y) < 16 {
-		return nd(284, 7, y, x)
+		return nd(278, 7, y, x)
 	}
-	return nd(284, 7, x, y)
+	return nd(278, 7, x, y)
 }
 func mini(x, y int32) int32 {
 	if x < y {
@@ -1074,9 +1044,9 @@ func Max(x, y K) (r K) {
 		return K(tp(r)-1)<<59 | K(uint32(r))
 	}
 	if tp(y) < 16 {
-		return nd(296, 8, y, x)
+		return nd(289, 8, y, x)
 	}
-	return nd(296, 8, x, y)
+	return nd(289, 8, x, y)
 }
 func maxi(x, y int32) int32 {
 	if x > y {
@@ -1317,7 +1287,7 @@ func ltzZ(re, im float64, yp, rp, e int32) {
 		if re == F64(yp) {
 			SetI8(rp, ltf(im, F64(yp+8)))
 		} else {
-			SetI8(rp, ltf(re, F64(yp+8)))
+			SetI8(rp, ltf(re, F64(yp)))
 		}
 		yp += 16
 		rp++
@@ -1328,7 +1298,7 @@ func ltCc(xp int32, v, w I8x16, rp, e int32) {
 	for rp < e {
 		I8x16store(rp, I8x16load(xp).Lt_s(v).And(w))
 		xp += 16
-		rp++
+		rp += 16
 		continue
 	}
 }
@@ -1435,7 +1405,7 @@ func gtzZ(re, im float64, yp, rp, e int32) {
 		if re == F64(yp) {
 			SetI8(rp, gtf(im, F64(yp+8)))
 		} else {
-			SetI8(rp, gtf(re, F64(yp+8)))
+			SetI8(rp, gtf(re, F64(yp)))
 		}
 		yp += 16
 		rp++
@@ -1446,7 +1416,7 @@ func gtCc(xp int32, v, w I8x16, rp, e int32) {
 	for rp < e {
 		I8x16store(rp, I8x16load(xp).Gt_s(v).And(w))
 		xp += 16
-		rp++
+		rp += 16
 		continue
 	}
 }
@@ -1523,7 +1493,8 @@ func Ang(x K) (r K) { // angle x
 		return Ech(35, l1(x))
 	}
 	if xt < zt {
-		return Ki(0)
+		dx(x)
+		return Kf(0)
 	}
 	xp := int32(x)
 	if xt == zt {
@@ -1541,7 +1512,7 @@ func Ang(x K) (r K) { // angle x
 			rp += 8
 		}
 	} else {
-		r = ntake(n, Ki(0))
+		r = ntake(n, Kf(0))
 	}
 	dx(x)
 	return r
@@ -1554,12 +1525,15 @@ func Rot(x, y K) (r K) { // r angle deg
 	if y == 0 {
 		return x
 	}
+	if tp(y)&15 > ft {
+		trap(Type)
+	}
 	y = uptype(y, ft)
 	yt := tp(y)
 	yp := int32(y)
 	if yt == ft {
 		r = Kz(cosin(F64(yp)))
-	} else if yt == Ft {
+	} else {
 		yn := nn(y)
 		r = mk(Zt, yn)
 		rp := int32(r)
@@ -1570,8 +1544,6 @@ func Rot(x, y K) (r K) { // r angle deg
 			yp += 8
 			rp += 16
 		}
-	} else {
-		panic(Type)
 	}
 	dx(y)
 	return Mul(r, x)
@@ -1596,20 +1568,20 @@ func fk(x K) float64 {
 	t := tp(x)
 	if t == it {
 		return float64(int32(x))
-	} else if t == ft {
-		dx(x)
-		return F64(int32(x))
 	}
-	trap(Type)
-	return 0.0
+	if t != ft {
+		trap(Type)
+	}
+	dx(x)
+	return F64(int32(x))
 }
 func nf(f int32, x, y K) (r K) {
 	xt := tp(x)
-	if xt > Lt {
+	if xt >= Lt {
 		if y == 0 {
 			return Ech(K(f), l1(x))
 		} else {
-			return Ech(K(f), l2(x, y))
+			return Ech(K(f-64), l2(y, x))
 		}
 	}
 	var yf float64
@@ -1735,8 +1707,6 @@ func uptype(x K, dst T) (r K) {
 				f = float64(xp)
 			}
 			return Kz(f, 0)
-		} else {
-			trap(Type)
 		}
 	}
 	if xt < It && dst == ft {

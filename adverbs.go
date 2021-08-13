@@ -155,7 +155,7 @@ func epx(f int32, x, y K, n int32) (r K) { // ( +-*% &| )':
 	if f > 6 {
 		f--
 	}
-	f = 213 + 12*f
+	f = 212 + 11*f
 	yp := int32(y)
 	if xt == It {
 		SetI32(rp, Func[f].(f2i)(I32(xp), yp))
