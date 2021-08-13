@@ -56,3 +56,8 @@ in 1 2 /Type
 3.5/4 /Type
 `a`b+1 2 /Type
 (`a`b!1 2)+`a`c!3 4 /Value
+!"x" /Type
+?^3 /Type
+?`a`b!1 2 /Type
+`a`b`c!1 2 /Length
+3_5 /Type

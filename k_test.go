@@ -195,6 +195,8 @@ func TestTraps(t *testing.T) {
 		{func() { sp = 0; reset() }, Stack},
 		{func() { mk(It, 0); reset() }, Err},
 		{func() { use(Key(seq(2), seq(2))) }, Type},
+		{func() { nyi(Ki(0)) }, Nyi},
+		{func() { ndrop(5, Key(seq(2), seq(2))) }, Type},
 	}
 	for _, tc := range testCases {
 		newtest()

@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func nyi(x K) K { trap(Nyi); return x }
+func nyi(x K) K { return trap(Nyi) }
 func Idy(x K) K { return x } // :x
 func Dex(x, y K) K { // x:y
 	dx(x)
@@ -110,7 +110,14 @@ func Unq(x K) (r K) { // ?x
 		return roll(x)
 	}
 	if xt >= Lt {
-		trap(Type)
+		if xt == Dt {
+			trap(Type)
+		}
+		if xt == Tt {
+			r, x = spl2(x)
+			return key(r, Flp(Unq(Flp(x))), xt)
+		}
+		return kx(272, x) // uqf
 	}
 	xn := nn(x)
 	r = mk(xt, 0)
@@ -207,7 +214,7 @@ func ntake(n int32, y K) (r K) {
 	t := tp(y)
 	if n < 0 {
 		if tp(y) < 16 {
-			trap(Type)
+			return ntake(-n, y)
 		}
 		n += nn(y)
 		if n < 0 {
@@ -267,7 +274,7 @@ func Drp(x, y K) (r K) { // x_y
 	xt := tp(x)
 	yt := tp(y)
 	if yt > Lt {
-		if yt == Dt || xt&15 == st {
+		if yt == Dt || (yt == Tt && xt&15 == st) {
 			r, y = spl2(y)
 			if xt < 16 {
 				x = Enl(x)
@@ -288,11 +295,8 @@ func Drp(x, y K) (r K) { // x_y
 }
 func ndrop(n int32, y K) (r K) {
 	yt := tp(y)
-	if yt < 16 {
+	if yt < 16 || yt > Lt {
 		trap(Type)
-	}
-	if yt > Lt {
-		trap(Nyi)
 	}
 	yn := nn(y)
 	if n < 0 {
