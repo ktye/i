@@ -251,7 +251,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	if tp(f) == 0 {
 		fp := int32(f)
 		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
-			r = Func[367+fp].(rdf)(x, int32(y), yt, yn)
+			r = Func[365+fp].(rdf)(x, int32(y), yt, yn)
 			if r != 0 {
 				dx(x)
 				dx(y)
@@ -417,7 +417,7 @@ func Scn(f, x K) (r K) {
 	if tp(f) == 0 {
 		fp := int32(f)
 		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sums,prds,mins,maxs (reduce.go)
-			r = Func[374+fp].(rdf)(x, int32(y), yt, yn)
+			r = Func[372+fp].(rdf)(x, int32(y), yt, yn)
 			if r != 0 {
 				dx(x)
 				dx(y)

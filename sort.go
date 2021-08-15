@@ -38,10 +38,17 @@ func Asc(x K) K { // <x  <`file
 func Dsc(x K) K { return grade(x, 336) } // >x
 func grade(x K, f int32) (r K) { // <x >x
 	xt := tp(x)
-	if xt < 16 || xt > Lt {
+	if xt < 16 {
 		trap(Type)
 	}
+	if xt == Dt {
+		r, x = spl2(x)
+		return Atx(r, grade(x, f))
+	}
 	n := nn(x)
+	if xt == Tt {
+		return kxy(280, x, K(9+I32B(f == 336)))
+	}
 	if n < 2 {
 		dx(x)
 		return seq(n)
@@ -292,37 +299,107 @@ func guC(xp, yp int32) int32 { return I32B(I8(xp) < I8(yp)) }
 func guI(xp, yp int32) int32 { return I32B(I32(xp) < I32(yp)) }
 func guF(xp, yp int32) int32 { return ltf(F64(xp), F64(yp)) }
 func guZ(xp, yp int32) int32 { return ltz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)) }
-func guS(xp, yp int32) int32 { return ltS(K(I64(xp)), K(I64(yp))) }
+func guL(xp, yp int32) int32 { return ltL(K(I64(xp)), K(I64(yp))) }
 
 func gdC(xp, yp int32) int32 { return I32B(I8(xp) > I8(yp)) }
 func gdI(xp, yp int32) int32 { return I32B(I32(xp) > I32(yp)) }
-func gdF(xp, yp int32) int32 { return gtf(F64(xp), F64(yp)) }
-func gdZ(xp, yp int32) int32 { return gtz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)) }
-func gdS(xp, yp int32) int32 { return gtS(K(I64(xp)), K(I64(yp))) }
+func gdF(xp, yp int32) int32 { return guF(yp, xp) }
+func gdZ(xp, yp int32) int32 { return guZ(yp, xp) }
+func gdL(xp, yp int32) int32 { return guL(yp, xp) }
 
-func ltS(x, y K) int32 {
-	xp, yp := int32(x), int32(y)
-	xn, yn := nn(x), nn(y)
-	nn(y)
-	n := mini(xn, yn)
-	for i := int32(0); i < n; i++ {
-		xi, yi := I8(xp+i), I8(yp+i)
-		if xi != yi {
-			return I32B(xi < yi)
-		}
+func ltL(x, y K) (r int32) { // sort lists lexically
+	xt := tp(x)
+	if xt != tp(y) {
+		return I32B(xt < tp(y))
 	}
-	return I32B(xn < yn)
+	if xt < 16 {
+		return int32(Les(rx(x), rx(y)))
+	}
+	xp, yp := int32(x), int32(y)
+	if xt > Lt {
+		a, b := K(I64(xp)), K(I64(yp))
+		if match(a, b) == 0 {
+			return ltL(a, b)
+		}
+		return ltL(K(I64(xp+8)), K(I64(yp+8)))
+	}
+	xn, yn := nn(x), nn(y)
+	n := mini(xn, yn)
+	switch sz(xt) >> 2 {
+	case 0:
+		r = taoC(xp, yp, n)
+	case 1:
+		r = taoI(xp, yp, n)
+	case 2:
+		if xt == Lt {
+			r = taoL(xp, yp, n)
+		} else {
+			r = taoF(xp, yp, n)
+		}
+	default:
+		r = taoZ(xp, yp, n)
+	}
+	if r == 2 {
+		return I32B(xn < yn)
+	} else {
+		return r
+	}
 }
-func gtS(x, y K) int32 {
-	xp, yp := int32(x), int32(y)
-	xn, yn := nn(x), nn(y)
-	nn(y)
-	n := mini(xn, yn)
-	for i := int32(0); i < n; i++ {
-		xi, yi := I8(xp+i), I8(yp+i)
-		if xi != yi {
-			return I32B(xi > yi)
+func taoC(xp, yp, n int32) int32 {
+	e := xp + n
+	for xp < e {
+		if I8(xp) != I8(yp) {
+			return I32B(I8(xp) < I8(yp))
 		}
+		yp++
+		xp++
 	}
-	return I32B(xn > yn)
+	return 2
+}
+func taoI(xp, yp, n int32) int32 {
+	e := xp + 4*n
+	for xp < e {
+		if I32(xp) != I32(yp) {
+			return I32B(I32(xp) < I32(yp))
+		}
+		yp += 4
+		xp += 4
+	}
+	return 2
+}
+func taoL(xp, yp, n int32) int32 {
+	e := xp + 8*n
+	for xp < e {
+		x, y := K(I64(xp)), K(I64(yp))
+		if match(x, y) == 0 {
+			return ltL(x, y)
+		}
+		yp += 8
+		xp += 8
+	}
+	return 2
+}
+func taoF(xp, yp, n int32) int32 {
+	e := xp + 8*n
+	for xp < e {
+		x, y := F64(xp), F64(yp)
+		if eqf(x, y) == 0 {
+			return ltf(x, y)
+		}
+		yp += 8
+		xp += 8
+	}
+	return 2
+}
+func taoZ(xp, yp, n int32) int32 {
+	e := xp + 16*n
+	for xp < e {
+		xr, xi, yr, yi := F64(xp), F64(xp+8), F64(yp), F64(yp+8)
+		if eqz(xr, xi, yr, yi) == 0 {
+			return ltz(xr, xi, yr, yi)
+		}
+		yp += 16
+		xp += 16
+	}
+	return 2
 }

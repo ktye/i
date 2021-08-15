@@ -608,9 +608,9 @@ func Sub(x, y K) (r K) {
 	}
 	return nd(245, 3, x, y)
 }
-func subi(x, y int32) int32 { return x - y }
+func subi(x, y int32) int32     { return x - y }
+func subf(x, y float64) float64 { return x - y }
 
-//func subf(x, y float64) float64                      { return x - y }
 //func subz(xr, xi, yr, yi float64) (float64, float64) { return xr - yr, xi - yi }
 func subcC(x I8x16, yp, rp, e int32) {
 	for rp < e {
@@ -802,6 +802,7 @@ func Div(x, y K) (r K) {
 	}
 	return nd(267, 5, x, y)
 }
+func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x / y }
 func divz(xr, xi, yr, yi float64) (e float64, f float64) {
 	var r, d float64

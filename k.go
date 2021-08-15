@@ -23,9 +23,9 @@ func init() {
 	Functions(220, negi, negf, negz, negC, negI, negF, negZ)
 	Functions(227, absi, absf, nyi, absC, absI, absF, absZ)
 	Functions(234, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
-	Functions(245, subi, nyi, nyi, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
+	Functions(245, subi, subf, nyi, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
 	Functions(256, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
-	Functions(267, nyi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
+	Functions(267, divi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
 	Functions(278, mini, minf, minz, mincC, miniI, minfF, minzZ, minC, minI, minF, minZ)
 	Functions(289, maxi, maxf, maxz, maxcC, maxiI, maxfF, maxzZ, maxC, maxI, maxF, maxZ)
 	Functions(300, nyi, sqrf, nyi, nyi, nyi, sqrF, nyi)
@@ -34,10 +34,10 @@ func init() {
 	Functions(323, gti, gtf, gtz, gtcC, gtiI, gtfF, gtzZ, gtCc, gtIi, gtFf, gtZz, gtC, gtI, gtF, gtZ)
 	Functions(338, eqi, eqf, eqz, eqcC, eqiI, eqfF, eqzZ, eqCc, eqIi, eqFf, eqZz, eqC, eqI, eqF, eqZ)
 
-	Functions(353, guC, guC, guI, guI, guF, guZ, guS, gdC, gdC, gdI, gdI, gdF, gdZ, gdS)
+	Functions(353, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL)
 
-	Functions(369, sum, rd0, prd, rd0, rd0, min, max)
-	Functions(376, sums, rd0, prds, rd0, rd0, mins, maxs)
+	Functions(367, sum, rd0, prd, rd0, rd0, min, max)
+	Functions(374, sums, rd0, prds, rd0, rd0, mins, maxs)
 }
 
 //   0....7  key
