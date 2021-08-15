@@ -381,15 +381,15 @@ func rcut(x, a, b K) (r K) { // a, b start-stop ranges
 func split(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
 	xn := int32(1)
-	if 16+xt != yt {
-		if xt == Ct && yt == Ct {
+	if yt == xt+16 {
+		x = Wer(Eql(x, rx(y)))
+	} else {
+		if xt == yt && xt == Ct {
 			xn = nn(x)
 			x = Find(x, rx(y))
 		} else {
-			trap(Nyi)
+			trap(Type)
 		}
-	} else {
-		x = Wer(Eql(x, rx(y)))
 	}
 	return rcut(y, Cat(Ki(0), Add(Ki(xn), rx(x))), cat1(x, Ki(nn(y))))
 }
@@ -424,10 +424,13 @@ func join(x, y K) (r K) {
 func Bin(x, y K) (r K) { // x'y
 	xt := tp(x)
 	yt := tp(y)
-	if xt < 16 || xt > Ft {
-		trap(Type)
+	if xt < 16 || xt > Ft { // n' win?
+		if xt == it && yt > 16 {
+			return win(int32(x), y)
+		} else {
+			return trap(Type)
+		}
 	}
-
 	if xt == yt {
 		return Ecr(40, l2(x, y))
 	} else if xt == yt+16 {
@@ -487,30 +490,46 @@ func ibin(x, y K, t T) int32 {
 	}
 	return 0 // not reached
 }
+func win(n int32, x K) (r K) {
+	y := seq(n)
+	r = mk(Lt, 0)
+	m := 1 + nn(x) - n
+	for i := int32(0); i < m; i++ {
+		r = ucat(r, l1(atv(rx(x), rx(y))))
+		y = Add(Ki(1), y)
+	}
+	dx(x)
+	dx(y)
+	return r
+}
 
 func Flr(x K) (r K) { // _x
 	xt := tp(x)
 	xp := int32(x)
 	if xt < 16 {
-		switch xt - 3 {
-		case 0: // i
+		switch xt - 2 {
+		case 0: // c
+			return Kc(lc(xp))
+		case 1: // i
 			return Kc(xp)
-		case 1: // s
+		case 2: // s
 			return Ki(int32(xp))
-		case 2: // f
+		case 3: // f
 			dx(x)
 			return Ki(int32(F64floor(F64(xp))))
-		case 3: // z
+		case 4: // z
 			dx(x)
 			return Kf(F64(xp))
 		default:
-			return trap(Type)
+			return x
 		}
 	}
 	xn := nn(x)
 	var rp int32
-	switch xt - 19 {
-	case 0: //I
+	switch xt - 18 {
+	case 0: //C
+		return lower(x)
+	case 1: //I
 		r = mk(Ct, xn)
 		rp = int32(r)
 		e := rp + xn
@@ -519,11 +538,11 @@ func Flr(x K) (r K) { // _x
 			xp += 4
 			rp++
 		}
-	case 1: //S
+	case 2: //S
 		x = use(x)
 		return K(int32(x)) | K(It)<<59
 		//return Ech(16, l1(x))
-	case 2: //F
+	case 3: //F
 		r = mk(It, xn)
 		rp = int32(r)
 		for i := int32(0); i < xn; i++ {
@@ -531,7 +550,7 @@ func Flr(x K) (r K) { // _x
 			xp += 8
 			rp += 4
 		}
-	case 3: // Z
+	case 4: // Z
 		r = mk(Ft, xn)
 		rp = int32(r)
 		for i := int32(0); i < xn; i++ {
@@ -545,14 +564,32 @@ func Flr(x K) (r K) { // _x
 	dx(x)
 	return r
 }
+func lower(x K) (r K) {
+	r = use(x)
+	p := int32(r)
+	e := p + nn(r)
+	for p < e {
+		SetI8(p, lc(I8(p)))
+		p++
+	}
+	return r
+}
+func lc(x int32) int32 {
+	if x >= 'A' && x <= 'Z' {
+		return x + 32
+	} else {
+		return x
+	}
+}
 
 func Rev(x K) (r K) { // |x
 	t := tp(x)
 	if t < 16 {
 		return x
 	}
-	if t >= Ft && t != Lt {
-		panic(Nyi)
+	if t == Dt {
+		r, x = spl2(x)
+		return Key(Rev(r), Rev(x))
 	}
 	xn := nn(x)
 	if xn < 2 {
@@ -605,15 +642,15 @@ func Wer(x K) (r K) { // &x
 	dx(x)
 	return r
 }
-func Fwh(x K) K { // *&x (todo idiom)
+func Fwh(x K) K { // *&x
 	t := tp(x)
 	if t == Bt {
 		dx(x)
-		return Ki(maxi(0, firstWhereB(int32(x), nn(x))))
+		return Ki(maxi(0, fwh(int32(x), nn(x))))
 	}
 	return Fst(Wer(x))
 }
-func firstWhereB(xp, n int32) int32 { // *&B
+func fwh(xp, n int32) int32 { // *&B
 	e := xp + n
 	ve := e &^ 15
 	p := xp
@@ -669,9 +706,9 @@ func Val(x K) (r K) {
 		r = x1(int32(x))
 		dx(x)
 		return r
+	} else {
+		return trap(Type)
 	}
-	trap(Nyi)
-	return x
 }
 func val(x K) (r K) {
 	s := src

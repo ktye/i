@@ -61,3 +61,16 @@ in 1 2 /Type
 ?`a`b!1 2 /Type
 `a`b`c!1 2 /Length
 3_5 /Type
+3.0_1 2 /Type
+3.0^1 2 /Type
+-3^1 2 /Value
+&1 2 3. /Type
+. 1 /Type
+3.0 fill 2 3 /Type
+3.0'1 2 /Type
+1 2 3'3. /Type
+1 2a'3a /Type
+1 -2 3^!10 /Value
+3 4\:1 2 3 4 /Type
+"a"/:"alpha" /Type
+"a"/:("alpha";1 2) /Type

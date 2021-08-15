@@ -264,7 +264,7 @@ func maxs(x K, yp int32, t T, n int32) K {
 	if t != Bt || x != 0 {
 		return 0
 	} else {
-		i := int32(firstWhereB(yp, n))
+		i := int32(fwh(yp, n))
 		r := mk(Bt, n)
 		rp := int32(r)
 		if i < 0 {
