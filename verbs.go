@@ -319,6 +319,7 @@ func ndrop(n int32, y K) (r K) {
 	Memorycopy(rp, yp+s*n, s*rn)
 	if yt == Lt {
 		rl(r)
+		r = uf(r)
 	}
 	dx(y)
 	return r
