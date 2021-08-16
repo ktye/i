@@ -1627,7 +1627,7 @@ func ff(f, rp, xp, n int32, yf float64) {
 	default:
 		if f == 106 { // pow 42+64
 			for xp < e {
-				SetF64(rp, pow(yf, F64(xp)))
+				SetF64(rp, pow(F64(xp), yf))
 				rp += 8
 				xp += 8
 				continue
