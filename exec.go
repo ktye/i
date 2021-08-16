@@ -114,6 +114,11 @@ func Amd(x, i, v, y K) (r K) {
 	if xt < 16 {
 		trap(Type)
 	}
+	if tp(i) == Lt {
+		i = Rdc(13, l1(i))
+		y = Rdc(13, l1(y))
+	}
+
 	if xt > Lt {
 		if xt == Tt && tp(i)&15 == it {
 			return trap(Nyi) // table-assign-rows
