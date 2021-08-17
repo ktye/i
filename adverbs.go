@@ -215,8 +215,13 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	t := tp(f)
 	if isfunc(t) == 0 {
-		if nn(x) != 1 {
-			trap(Rank)
+		if nn(x) == 2 {
+			r, x = spl2(x)
+			if t == it && isfunc(tp(r)) != 0 {
+				return ndo(int32(f), r, x)
+			} else {
+				trap(Type)
+			}
 		}
 		return Mod(f, Fst(x))
 	}
@@ -370,6 +375,14 @@ func fixs(f, x K) (r K) {
 	dx(f)
 	dx(r)
 	return l
+}
+func ndo(n int32, f, x K) K {
+	for n > 0 {
+		x = cal(rx(f), l1(x))
+		n--
+	}
+	dx(f)
+	return x
 }
 
 func Scn(f, x K) (r K) {
