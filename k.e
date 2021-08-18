@@ -77,3 +77,6 @@ in 1 2 /Type
 "a"/:("alpha";1 2) /Type
 ^3 /Type
 <3 /Type
+?`a /Type
+3.?1 2 3 /Type
+10?3. /Type

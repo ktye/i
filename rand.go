@@ -49,6 +49,12 @@ func deal(x, y K) (r K) { // x?y (x atom) n?n(with replacement) -n?n(without) n?
 			return atv(y, randI(nn(y), xp)) // n?L
 		}
 	}
+	if yt == ct {
+		return Add(Kc(97), Flr(deal(x, Ki(int32(y)-96))))
+	}
+	if yt == st {
+		return Ech(17, l2(Ks(0), deal(x, Fst(cs(y))))) // `$'x?*$y
+	}
 	if yt != it {
 		trap(Type)
 	}
