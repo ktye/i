@@ -80,3 +80,5 @@ in 1 2 /Type
 ?`a /Type
 3.?1 2 3 /Type
 10?3. /Type
++/`a`b`c /Type
+*/`a`b`c /Type
