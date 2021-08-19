@@ -197,6 +197,7 @@ func TestTraps(t *testing.T) {
 		{func() { use(Key(seq(2), seq(2))) }, Type},
 		{func() { nyi(Ki(0)) }, Nyi},
 		{func() { ndrop(5, Key(seq(2), seq(2))) }, Type},
+		{func() { free(int32(seq(1)), 5) }, Unref},
 	}
 	for _, tc := range testCases {
 		newtest()
@@ -217,7 +218,7 @@ func try(f func()) (err int32) {
 	return -1
 }
 func parseError(s string) int32 {
-	errs := []string{"Err", "Type", "Value", "Length", "Rank", "Parse", "Stack", "Grow", "Unref", "Io", "Nyi"} // err.go
+	errs := []string{"Err", "Type", "Value", "Index", "Length", "Rank", "Parse", "Stack", "Grow", "Unref", "Io", "Nyi"} // err.go
 	for i, x := range errs {
 		if s == x {
 			return int32(i)
@@ -235,6 +236,24 @@ func TestSymbols(t *testing.T) { // list symbols
 		//fmt.Printf("%d %s\n", y, sK(Ks(y)))
 	}
 	reset()
+}
+func TestRepl(t *testing.T) {
+	testCases := [][2]string{
+		[2]string{"1+1", "2\n"},
+		[2]string{"x:!10", ""},
+		[2]string{"\\c", ""},
+		[2]string{"\\m", "16\n"},
+	}
+	for _, tc := range testCases {
+		newtest()
+		var buf bytes.Buffer
+		wasi_unstable.Stdout = &buf
+		repl(mkchars([]byte(tc[0])))
+		if r := string(buf.Bytes()); r != tc[1] {
+			t.Fatalf("expected %q got %q\n", tc[1], r)
+		}
+		reset()
+	}
 }
 func TestIndex(t *testing.T) {
 	newtest()

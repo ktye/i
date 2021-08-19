@@ -8,6 +8,7 @@ const (
 	Err int32 = iota
 	Type
 	Value
+	Index
 	Length
 	Rank
 	Parse

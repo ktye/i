@@ -35,19 +35,15 @@ func alloc(n, s int32) int32 {
 		SetI32(u, I32(j))
 		SetI32(j, u)
 	}
-	if a&31 != 0 {
+	if a&31 != 0 { // memory corruption
 		trap(Unref)
 	}
 	return a
 }
 func grow(p int32) int32 {
-	// todo: 2000000000#"a" /?
-	// rework..
-	m := I32(128)                        // old total memory (log2)
-	n := 1 + (p >> 2)                    // required total mem (log2)
-	g := ((1 << n) >> 16) - Memorysize() // grow by 64k blocks
-	//fmt.Println("grow m/p4/n/g Msz", m, p>>2, n, g, Memorysize())
-	//fmt.Println("len Bytes", len(Bytes))
+	m := I32(128)                       // old total memory (log2)
+	n := 1 + (p >> 2)                   // required total mem (log2)
+	g := (1 << (n - 16)) - Memorysize() // grow by 64k blocks
 	if g > 0 {
 		if Memorygrow(g) < 0 {
 			trap(Grow)

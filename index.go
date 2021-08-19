@@ -182,9 +182,9 @@ func stv(x, i, y K) (r K) {
 	if It != tp(i) {
 		trap(Type)
 	}
-	if xt != tp(y) {
-		trap(Type)
-	}
+	//if xt != tp(y) {
+	//	trap(Type)
+	//}
 	xn := nn(x)
 	n := nn(i)
 	if n != nn(y) {
@@ -195,9 +195,9 @@ func stv(x, i, y K) (r K) {
 	yp := int32(y)
 	ip := int32(i)
 	for j := int32(0); j < n; j++ {
-		xi := I32(ip + 4*j)
-		if xi < 0 || xi >= xn {
-			trap(Value)
+		xi := uint32(I32(ip + 4*j))
+		if xi >= uint32(xn) {
+			trap(Index)
 		}
 	}
 	switch s >> 2 {
@@ -227,6 +227,7 @@ func stv(x, i, y K) (r K) {
 			ip += 4
 			yp += 8
 		}
+		x = uf(x)
 	default:
 		for j := int32(0); j < n; j++ {
 			xp = int32(x) + 16*I32(ip)
@@ -242,13 +243,13 @@ func stv(x, i, y K) (r K) {
 }
 func sti(x K, i int32, y K) K {
 	x = use(x)
-	xt, yt := tp(x), tp(y)
-	if xt < Lt && yt != xt-16 {
-		trap(Type)
-	}
+	xt := tp(x)
+	//if xt < Lt && yt != xt-16 {
+	//	trap(Type)
+	//}
 	xn := nn(x)
 	if i < 0 || i >= xn {
-		trap(Length)
+		trap(Index)
 	}
 	s := sz(xt)
 	xp := int32(x)
@@ -263,8 +264,7 @@ func sti(x K, i int32, y K) K {
 		if xt == Lt {
 			dx(K(I64(xp)))
 			SetI64(xp, int64(rx(y)))
-		} else if xt != Ft {
-			trap(Nyi)
+			x = uf(x)
 		} else {
 			SetI64(xp, I64(yp))
 		}
