@@ -65,7 +65,7 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 	r, ev = e(rx(y), yv)
 	dx(y)
 	if xv == 0 {
-		return cat1(ucat(r, x), 83), 0 // juxtaposition
+		return cat1(ucat(r, x), 83|juxsrc(x)), 0 // juxtaposition
 	} else if (r == y && xv+yv == 2) || ev == 1 {
 		return cat1(ucat(r, x), 91), 1 // composition
 	}
@@ -88,7 +88,7 @@ func t() (r K, verb int32) { // Lt
 	} else if r == K('{') {
 		r = plam(s)
 	} else if tp(r) == st {
-		r = l2(r, 20) // .`x (lookup)
+		r = l2(r, 20|(K(s)<<32)) // .`x (lookup)
 	} else {
 		rt := tp(r)
 		if rt == 0 {
@@ -188,8 +188,11 @@ func plam(s0 int32) (r K) {
 	if ar < 0 {
 		ar = 0
 		for i := int32(0); i < cn; i++ {
-			if I64(cp) == 20 {
-				if y := I32(cp-8) >> 3; y > 0 && y < 4 {
+			r = K(I64(cp))
+			if tp(r) == 0 && int32(r) == 20 {
+				r = K(I64(cp - 8))
+				y := int32(r) >> 3
+				if tp(r) == st && y > 0 && y < 4 {
 					ar = maxi(ar, y)
 				}
 			}
@@ -304,6 +307,17 @@ func next() (r K, s int32) {
 	r = r &^ (K(0xffffff) << 32)
 	pp += 8
 	return r, s
+}
+func juxsrc(x K) (r K) { // max src of x
+	p := int32(x)
+	e := p + 8*nn(x)
+	for p < e {
+		if s := K(0xffffff & (I64(p) >> 32)); s > r {
+			r = s
+		}
+		p += 8
+	}
+	return (r + 1) << 32
 }
 func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x, y K) K {

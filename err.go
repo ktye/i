@@ -20,6 +20,7 @@ const (
 )
 
 func trap(x int32) K {
+	//fmt.Println("src", int32(src), "srcp", srcp)
 	if src != 0 {
 		a := maxi(srcp-30, 0)
 		for i := a; i < srcp; i++ {
@@ -38,6 +39,7 @@ func trap(x int32) K {
 		write(src)
 
 		if srcp > a {
+			//fmt.Println("srcp", srcp, "a", a)
 			write(ntake(srcp-a-1, Kc(32)))
 		}
 		write(Ku(2654)) // ^\n
