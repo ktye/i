@@ -21,7 +21,7 @@ func Cat(x, y K) (r K) {
 	} else if xt == Lt && yt < 16 {
 		return cat1(x, y)
 	}
-	return Cat(explode(x), explode(y))
+	return uf(Cat(explode(x), explode(y)))
 }
 func Enl(x K) (r K) {
 	t := tp(x)
