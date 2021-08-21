@@ -39,11 +39,11 @@ func es() (r K) {
 	}
 	return r
 }
-func e(x K, xv int32) (r K, ev int32) { // Lt
+func e(x K, xv, xs int32) (r K, ev int32) { // Lt
 	if x == 0 {
 		return 0, 0
 	}
-	y, yv := t()
+	y, yv, _ := t()
 	if y == 0 {
 		return x, xv
 	}
@@ -62,29 +62,29 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 		r = ucat(r, x)
 		return dyadic(r, y), 0 // dyadic
 	}
-	r, ev = e(rx(y), yv)
+	r, ev = e(rx(y), yv, 0)
 	dx(y)
 	if xv == 0 {
-		return cat1(ucat(r, x), 83|juxsrc(x)), 0 // juxtaposition
+		return cat1(ucat(r, x), 83|K(xs)<<32), 0 // juxtaposition
 	} else if (r == y && xv+yv == 2) || ev == 1 {
 		return cat1(ucat(r, x), 91), 1 // composition
 	}
 	return idiom(monadic(ucat(r, x))), 0 // monadic
 }
-func t() (r K, verb int32) { // Lt
-	var ln, s int32
+func t() (r K, verb, s int32) { // Lt
+	var ln int32
 	r, s = next()
 	if r == 0 {
-		return 0, 0
+		return 0, 0, s
 	}
 	if r < 127 {
 		if is(int32(r), 32) {
 			pp -= 8
-			return 0, 0
+			return 0, 0, s
 		}
 	}
 	if r == K('(') {
-		r = rlist(plist(41))
+		r, s = rlist(plist(41))
 	} else if r == K('{') {
 		r = plam(s)
 	} else if tp(r) == st {
@@ -102,7 +102,8 @@ func t() (r K, verb int32) { // Lt
 	}
 f:
 	for {
-		n, _ := next()
+		var n K
+		n, s = next()
 		if n == 0 {
 			break f
 		}
@@ -113,15 +114,15 @@ f:
 		} else if n == 91 { // [
 			verb = 0
 			p := int32(0) // 92(project) or call(84)
-			n, ln, p = plist(93)
+			n, ln, p, s = plist(93)
 			n, ln = pspec(r, n, ln)
 			if ln < 0 {
-				return n, 0
+				return n, 0, s
 			}
 			if ln == 1 {
 				r = cat1(ucat(Fst(n), r), 83)
 			} else {
-				n = rlist(n, ln, 0)
+				n, _ = rlist(n, ln, 0, 0)
 				r = cat1(Cat(n, r), K(p))
 			}
 		} else {
@@ -129,7 +130,7 @@ f:
 			break f // within else-if
 		}
 	}
-	return r, verb
+	return r, verb, s
 }
 func pasn(x, y K) (K, K, int32) {
 	l := K(I64(int32(y)))
@@ -167,7 +168,7 @@ func plam(s0 int32) (r K) {
 	ar := int32(-1)
 	n, _ := next()
 	if n == 91 { // argnames
-		n, ln, _ := plist(93)
+		n, ln, _, _ := plist(93)
 		loc = Ech(4, l1(n)) // [a]->,(`a;.)  [a;b]->((`a;.);(`b;.))
 		if ln > 0 && tp(loc) != St {
 			trap(Parse)
@@ -268,11 +269,12 @@ func cond(x K, xn int32) (r K) {
 	}
 	return flat(x)
 }
-func plist(c K) (r K, n, p int32) {
+func plist(c K) (r K, n, p, s int32) {
 	r = mk(Lt, 0)
 	p = 84
 	for {
-		b, _ := next()
+		var b K
+		b, s = next()
 		if b == 0 || b == c {
 			break
 		}
@@ -289,13 +291,13 @@ func plist(c K) (r K, n, p int32) {
 		}
 		r = cat1(r, x)
 	}
-	return r, n, p
+	return r, n, p, s
 }
-func rlist(x K, n, p int32) K {
+func rlist(x K, n, p, s int32) (K, int32) {
 	if n == 1 {
-		return Fst(x)
+		return Fst(x), s
 	}
-	return cat1(cat1(flat(Rev(x)), Ki(n)), 27)
+	return cat1(cat1(flat(Rev(x)), Ki(n)), 27), s
 }
 
 func next() (r K, s int32) {
@@ -307,17 +309,6 @@ func next() (r K, s int32) {
 	r = r &^ (K(0xffffff) << 32)
 	pp += 8
 	return r, s
-}
-func juxsrc(x K) (r K) { // max src of x
-	p := int32(x)
-	e := p + 8*nn(x)
-	for p < e {
-		if s := K(0xffffff & (I64(p) >> 32)); s > r {
-			r = s
-		}
-		p += 8
-	}
-	return (r + 1) << 32
 }
 func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x, y K) K {
