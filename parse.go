@@ -90,6 +90,12 @@ func t() (r K, verb int32) { // Lt
 		r = rlist(plist(41))
 	} else if r == K('{') {
 		r = plam(ps)
+	} else if r == K('[') {
+		r = es()
+		if next() != K(']') {
+			trap(Parse)
+		}
+		return r, 0
 	} else if tp(r) == st {
 		r = l2(r, 20|(K(ps)<<32)) // .`x (lookup)
 	} else {
