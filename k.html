@@ -208,7 +208,8 @@ function showui(x,p){var e=p;var ver=false
  var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){
   switch(lo(h)){
   case  99: display(showCombo(K.ndrop(1,x)),p,x);    return  // ("c";`x;options)
-  case 101: display(showEditor(K.Last(x)),p,x);      return  // ("e";`x)
+  case 101: display(showEditor(K.Las(x)),p,x);       return  // ("e";`x)
+  case 103: display(showCanvas(K.Las(x)),p,x);       return  // ("g";d) ("g";d;[w h (nyi)])
   case 108: display(showListbox(K.ndrop(1,x)),p,x);  return  // ("l";`x;`sel)
   case 118: ver=true; x=K.ndrop(1,x); n--; break             // ("v";...)
   }}else{K.dx(h)}}
@@ -266,7 +267,7 @@ function showCombo(x){var s=K.Fst(K.rx(x));if(K.tp(s)!=4){K.dx(x);K.dx(s);return
  for(var i=0;i<n;i++){var oe=ce("option");oe.className=tstr(t);var si=kstr(K.ati(K.rx(o),i));oe.selected=si==x;oe.value=si;oe.innerText=si;e.appendChild(oe)}
  K.dx(o);return e}
  
-function showListbox(x){var s=K.Last(K.rx(x));var x=K.Fst(x);if(K.tp(x)!=4||K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;`sel)
+function showListbox(x){var s=K.Las(K.rx(x));var x=K.Fst(x);if(K.tp(x)!=4||K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;`sel)
  var ss=s;var s=K.Val(s);var xs=x;x=K.Val(x);var t=K.tp(x);if(t==24){s=K.Fnd(K.Til(K.rx(x)),s)};var multi=K.tp(s)>16
  x=K.Lst(x);var n=K.nn(x);var e=ce("select");e.multiple=multi;if(!multi)e.size=n
  e.onchange=function(){var i=multi?selectedIndexes(e):K.Ki(e.selectedIndex);K.dx(K.Asn(ss,(t==24)?K.Atx(K.Til(K.Val(xs)),i):i))}
@@ -276,8 +277,25 @@ function showListbox(x){var s=K.Last(K.rx(x));var x=K.Fst(x);if(K.tp(x)!=4||K.tp
 function inSelection(i,sel,t){if(K.tp(sel)==3){return (i-((t==25)?1:0))==lo(sel)}else{return lo(K.in(K.Ki(i),sel,3))!=0}}
 function selectedIndexes(e)  {var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
 
+function showCanvas(x){var c=ce("canvas");c.style="border:1px solid red";var z=c.getContext('2d');
+ var [k,x]=K.spl2(x);var n=K.nn(k);for(var i=0;i<n;i++){
+  var s=sk(K.ati(K.rx(k),i));var a=jk(K.ati(K.rx(x),i))
+  if(typeof(z[s])==="function")z[s](...a);else z[s]=a   }return c}
+
+function jk(x,t,n,p){t=K.tp(x);if(t>16)n=K.nn(x);p=lo(x);switch(t){
+ case  1: return p==1
+ case  3: return p
+ case  4: return sk(x)
+ case  5: return F[p>>>3]
+ case 18: return sk(x)
+ case 19: var r=[];for(var i=0;i<n;i++) r.push(lo(K.ati(K.rx(x),i))); K.dx(x);return r
+ case 21: var r=[];for(var i=0;i<n;i++) r.push(F[(p>>>3)+8*i]);       K.dx(x);return r
+ case 23: var r=[];for(var i=0;i<n;i++){r.push(jk(K.ati(K.rx(x),i)))};K.dx(x);return r
+}}
+ 
+
 function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
- var a={};for(i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
+ var a={};for(var i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
  K.dx(k);K.dx(x);n=a[""];if(n==undefined){return};delete a[""];
  var e=ce(n);for(let k in a)e[k]=a[k];p.appendChild(e)}
 
