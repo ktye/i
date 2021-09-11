@@ -41,7 +41,6 @@ in 1 2 /Type
 .[3^!9;(0 1;0 1;0 1);9] /Rank
 .[+`a`b!(1 2;3 4);(`a`b;1);5] /Nyi
 `p 0b /Type
-+`a`b!(1 2;3 4 5) /Length
 +1 2!3 4 /Type
 2 abs 3 /Nyi
 `a+`b /Type

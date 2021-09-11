@@ -212,18 +212,8 @@ func td(x K) (r K) { // table from dict
 	if tp(r) != St || tp(x) != Lt {
 		trap(Type)
 	}
-	n := nn(x)
-	m := int32(0)
-	xp := int32(x)
-	for i := int32(0); i < n; i++ {
-		ni := nn(K(I64(xp)))
-		if i == 0 {
-			m = ni
-		} else if m != ni {
-			trap(Length)
-		}
-		xp += 8
-	}
+	m := maxcount(int32(x), nn(x))
+	x = Ech(15, l2(Ki(m), x)) // (|/#'x)#'x
 	r = l2(r, x)
 	SetI32(int32(r)-12, m)
 	return K(int32(r)) | K(Tt)<<59
