@@ -44,12 +44,14 @@ func Enl(x K) (r K) {
 			SetI64(rp+8, I64(xp+8))
 		}
 		dx(x)
-	} else if t == Dt {
-		r = Flp(Ech(13, l1(x)))
-	} else {
-		r = l1(x)
+		return r
 	}
-	return r
+	if t == Dt {
+		if tp(K(I64(int32(x)))) == St {
+			return Flp(Ech(13, l1(x))) // +,'x
+		}
+	}
+	return l1(x)
 }
 func explode(x K) (r K) {
 	xt := tp(x)
