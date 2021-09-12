@@ -207,11 +207,11 @@ function showui(x,p){var e=p;var ver=false
  else          if(t==18||t==24){x=K.Enl(x);t=23} //char/dict
  var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){
   switch(lo(h)){
-  case  99: display(showCombo(K.ndrop(1,x)),p,x);    return  // ("c";`x;options)
-  case 101: display(showEditor(K.Las(x)),p,x);       return  // ("e";`x)
-  case 103: display(showCanvas(K.Las(x)),p,x);       return  // ("g";d) ("g";d;[w h (nyi)])
-  case 108: display(showListbox(K.ndrop(1,x)),p,x);  return  // ("l";`x;`sel)
-  case 118: ver=true; x=K.ndrop(1,x); n--; break             // ("v";...)
+  case  99: display(showCombo(K.ndrop(1,x)),p,x);      return  // ("c";`x;options)
+  case 101: display(showEditor(K.Las(x)),p,x);         return  // ("e";`x)
+  case 103: display(showCanvas(K.Las(x),300,200),p,x); return  // ("g";d) ("g";d;[w h (nyi)])
+  case 108: display(showListbox(K.ndrop(1,x)),p,x);    return  // ("l";`x;`sel)
+  case 118: ver=true; x=K.ndrop(1,x); n--; break               // ("v";...)
   }}else{K.dx(h)}}
  if(n>1){e=ce("div");e.style.display="flex";e.style.flexDirection=ver?"column":"row"}
  for(var i=0;i<n;i++){var xi=K.ati(K.rx(x),i);t=K.tp(xi)
@@ -277,10 +277,12 @@ function showListbox(x){var s=K.Las(K.rx(x));var x=K.Fst(x);if(K.tp(x)!=4||K.tp(
 function inSelection(i,sel,t){if(K.tp(sel)==3){return (i-((t==25)?1:0))==lo(sel)}else{return lo(K.in(K.Ki(i),sel,3))!=0}}
 function selectedIndexes(e)  {var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
 
-function showCanvas(x){var c=ce("canvas");c.style="border:1px solid red";var z=c.getContext('2d');
- var [k,x]=K.spl2(x);var n=K.nn(k);for(var i=0;i<n;i++){
+function showCanvas(x,w,h){x=K.Val(x);var c=ce("canvas");c.width=w;c.height=h;c.style="border:1px solid red";var z=c.getContext('2d');
+ if(K.tp(x)==19){var d=new ImageData(new Uint8ClampedArray(C.slice(lo(x),lo(x)+4*K.nn(x))),w,h);for(var i=3;i<d.data.length;i+=4)d.data[i]=255;z.putImageData(d,0,0)}
+ else{var [k,x]=K.spl2(x);var n=K.nn(k);for(var i=0;i<n;i++){
   var s=sk(K.ati(K.rx(k),i));var a=jk(K.ati(K.rx(x),i))
-  if(typeof(z[s])==="function")z[s](...a);else z[s]=a   }return c}
+  if(typeof(z[s])==="function")z[s](...a);else z[s]=a       }}return c}
+
 
 function jk(x,t,n,p){t=K.tp(x);if(t>16)n=K.nn(x);p=lo(x);switch(t){
  case  1: return p==1
