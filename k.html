@@ -202,6 +202,27 @@ var ee                                 //todo rm
 function L(x){console.log(x);return x} //todo rm
 function LK(x){console.log(sk(K.rx(x)));return x}
 
+
+/*nyi:
+   html-element k-type
+   input        bcifzBCIFZ
+   checkbox     b
+   table        DT
+   listbox      LDT
+   textarea     CL
+   pre          `l@ (2d-display)
+   button       l  (niladic)
+   canvas       ID (I:pixels, D:2d-api-calls)
+   default      `k@
+*/
+
+/* (append html from a k string and fill elements by id from k values) */
+function showui(x,p){var e=p;if(K.tp(x)!=18){K.dx(x);return};
+ p.insertAdjacentHTML("beforeend",sk(x))
+ ide.style.display=x?"none":block;uid.style.display=x?"block":"none"
+ }
+
+/* (generate html elements from a k-list)
 function showui(x,p){var e=p;var ver=false
  var t=K.tp(x);if(t< 16){x=K.Enl(x);t+=16}
  else          if(t==18||t==24){x=K.Enl(x);t=23} //char/dict
@@ -223,6 +244,8 @@ function showui(x,p){var e=p;var ver=false
   }K.dx(xi)};K.dx(x)
  display(e,p,x)}
 function display(e,p,x){if(e!=p&&e!=undefined)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
+*/
+
 
 function show(p,s){var x=lookup(s);var e;var t=K.tp(x)
  if(t==13 && typeof(s)!=="object"){ //lambda (button)
