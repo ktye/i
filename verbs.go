@@ -140,6 +140,10 @@ func Uqs(x K) (r K) { // ?^x
 	return kx(264, x)
 }
 func Grp(x K) (r K) { // =x
+	if tp(x) == Dt {
+		r, x = spl2(x)
+		return Atx(r, Grp(x))
+	}
 	u := Unq(rx(x))
 	n := nn(u)
 	r = mk(Lt, n)
@@ -610,6 +614,10 @@ func Wer(x K) (r K) { // &x
 	if t < 16 {
 		x = Enl(x)
 		t = tp(x)
+	}
+	if t == Dt {
+		r, x = spl2(x)
+		return Atx(r, Wer(x))
 	}
 	var n, rp int32
 	xn := nn(x)
