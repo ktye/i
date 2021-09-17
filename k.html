@@ -27,7 +27,7 @@
 <div id="_box">
  <div id="_edt"></div>
  <textarea id="_con" wrap="off" spellcheck="false"></textarea>
- <div id="_uid""><form id="uiform">empty-ui</form></div>
+ <div id="_uid""><pre id="_uihelp"></pre></div>
 </div>
 <footer class="_ftr"><button class="_fbt" id="_bed">edit</button><button class="_fbt" id="_bcn">console</button><button class="_fbt" id="_brn">run</button><button class="_fbt" id="_bui">ui</button></footer>
 <a id="_dl" style:"display:none"></a>
@@ -181,31 +181,30 @@ function addfile(x){
 
 
 
-// ui (toggle with cntrl-K)
-//var uid = ge("uid");uid.style.display="none"; var uiform = ge("uiform")
-//window.onkeydown=function(e){if(e.ctrlKey&&e.key=="k"){toggle(ide);toggle(uid);return false}}
+// ui
+ge("_uihelp").textContent=`/ui-example:
+
+ ui:"int list <input id='X'>
+ <button id='f'>push</button>"
+ X:1 2 3
+ f:{X+:1}
+
+variables are bound to html elements with the same id, value contain their type.
+
+ html-element k-type
+ input        bcifzBCIFZ
+ checkbox     b
+ table        DT
+ listbox      LDT
+ textarea     CL
+ pre          (2d-display)
+ button       l  (niladic)
+ canvas       ID (I:pixels, D:2d-api-calls)
+ default      k-string
+`
+
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
-
-var ee                                 //todo rm
-function L(x){console.log(x);return x} //todo rm
-function LK(x){console.log(sk(K.rx(x)));return x}
-
-
-/*nyi:
-   html-element k-type
-   input        bcifzBCIFZ
-   checkbox     b
-   table        DT
-   listbox      LDT
-   textarea     CL
-   pre          `l@ (2d-display)
-   button       l  (niladic)
-   canvas       ID (I:pixels, D:2d-api-calls)
-   default      `k@
-*/
-
-/* (append html from a k string and fill elements by id from k values) */
 function showui(x,p){var e=p;if(K.tp(x)!=18){K.dx(x);return};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
 function glueAll(p){var nodes=p.childNodes;
  for(var i=0;i<nodes.length;i++){var c=nodes[i];if(c){glue(c);var cn=c.childNodes;var n=cn.length;for(var j=0;j<n;j++)glueAll(cn[j])}}}
@@ -271,9 +270,7 @@ function showui(x,p){var e=p;var ver=false
   }K.dx(xi)};K.dx(x)
  display(e,p,x)}
 function display(e,p,x){if(e!=p&&e!=undefined)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
-*/
 
-/*
 
 function show(p,s){var x=lookup(s);var e;var t=K.tp(x)
  if(t==13 && typeof(s)!=="object"){ //lambda (button)
@@ -335,7 +332,6 @@ function showCanvas(x,w,h){x=K.Val(x);var c=ce("canvas");c.width=w;c.height=h;c.
   if(typeof(z[s])==="function")z[s](...a);else z[s]=a       }}return c}
   
 
-
 function jk(x,t,n,p){t=K.tp(x);if(t>16)n=K.nn(x);p=lo(x);switch(t){
  case  1: return p==1
  case  3: return p
@@ -347,13 +343,10 @@ function jk(x,t,n,p){t=K.tp(x);if(t>16)n=K.nn(x);p=lo(x);switch(t){
  case 23: var r=[];for(var i=0;i<n;i++){r.push(jk(K.ati(K.rx(x),i)))};K.dx(x);return r
 }}
  
-
 function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
  var a={};for(var i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
  K.dx(k);K.dx(x);n=a[""];if(n==undefined){return};delete a[""];
  var e=ce(n);for(let k in a)e[k]=a[k];p.appendChild(e)}
-
-
 
 function lookup(s){ //symbol or path: [symbol;symbol;..]
  if(typeof s=="object"){ var r=K.Val(s[0]);s=s.slice(1);for(var i=0;i<s.length;i++)r=K.Atx(r,s[i]); return r }
@@ -361,7 +354,6 @@ function lookup(s){ //symbol or path: [symbol;symbol;..]
 
 function pathname(s)   { return (typeof s=="object") ? s.map(x=>sk(x)).join(".") : sk(s) }
 function pushpath(s,a) { return (typeof s=="object") ? s.concat(a) : [s,a] }
- 
 
 function cellUpdate(ta,s,ki,tr,j,i){
  return function(){unselect(ta,i)
@@ -382,7 +374,6 @@ function unselect(ta,j){var r=ta.children;for(var i=0;i<r.length;i++){var c=r[i]
 function selectColumn(ta,th,v){
  function colidx(){var c=ta.firstChild.children;for(var i=0;i<c.length;i++)if(c[i]==th)return i}
  var j=colidx();var r=ta.children;for(var i=0;i<r.length;i++){var c=r[i].children[j].className=v?"sel":""}}
-
 */
 
 </script>
