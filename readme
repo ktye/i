@@ -1,14 +1,13 @@
-online:ktye.github.io  (wasm needs multi-value/bulk-memory/simd128)
-test:  ktye.github.io/#test
-src:   github.com/ktye/i
+src:   github.com/ktye/i                            (public domain)
 jit:   wavm run --mount-root . k.wat [args]  (github.com/WAVM/WAVM)
 build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
        wg . > k.wat         (wat2wasm: github.com/WebAssembly/wabt)
        wat2wasm --enable-bulk-memory --enable-simd k.wat  -o k.wasm
+online:ktye.github.io  (wasm needs multi-value/bulk-memory/simd128)
 
 
 args:     data file.k file.t                  (assign/execute/test)
-web(drop) data file.k file.t                     `file<c (download)
+web:      drop file assigns                      `file<c (download)
 
 repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 
