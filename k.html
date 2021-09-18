@@ -201,6 +201,7 @@ variables are bound to html elements with the same id, value contain their type.
  button       l  (niladic)
  canvas       ID (I:pixels, D:2d-api-calls)
  default      k-string
+ 
 `
 
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
@@ -223,8 +224,11 @@ function glueInput(e,s,x,t){
  default: e.value="type "+t+"?";K.dx(x)}}
 
 function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.height;
- if(t=="I"){var d=new ImageData(new Uint8ClampedArray(C.slice(lo(x),lo(x)+4*K.nn(x))),w,h);for(var i=3;i<d.data.length;i+=4)d.data[i]=255;z.putImageData(d,0,0)}
- else K.dx(x)}
+ if(t=="I"){K.alpha(x);var d = z.createImageData(w,h);d.data.set(C.slice(lo(x),lo(x)+4*K.nn(x)));z.putImageData(d,0,0)}
+ else K.dx(x)
+ mouse(e,'click');mouse(e,'mousemove');mouse(e,'mousedown');mouse(e,'mouseup')}
+function mouse(e,t){var s=e.getAttribute(t);if(s==null)return
+ e["on"+t]=function(ev){var f=K.Val(K.sc(ks(s)));if(lo(f)==0)return;K.dx(K.Cal(f,K.l3(K.Ki(ev.offsetX),K.Ki(ev.offsetY),K.Ki(ev.button))))}}
 
 function glueButton(e,s,x,t){if(t!="l")return;e.onclick=function(){ktry(function(){K.Cal(x,K.mk(23,0)); ui()})}}
 

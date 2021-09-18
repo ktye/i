@@ -1747,3 +1747,15 @@ func uptype(x K, dst T) (r K) {
 	dx(x)
 	return r
 }
+func alpha(x K) { // set alpha byte opaque (pixbuffers)
+	if tp(x) == It {
+		m := I32x4splat(-16777216)
+		p := int32(x)
+		e := ep(x)
+		for p < e {
+			I32x4store(p, I32x4load(p).Add(m))
+			p += 16
+			continue
+		}
+	}
+}
