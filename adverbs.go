@@ -14,10 +14,12 @@ func ecl(x K) K { return l2t(x, 5, df) } // \:
 func Ech(f, x K) (r K) {
 	t := tp(f)
 	if isfunc(t) == 0 {
-		if nn(x) != 1 {
-			trap(Rank)
+		if nn(x) == 2 {
+			//x, r = spl2(x)
+			//return Lin(x, f, r)
+			return trap(Nyi)
 		}
-		return In(f, Fst(x))
+		return Bin(f, Fst(x))
 	}
 	if nn(x) == 1 {
 		x = Fst(x)
@@ -100,7 +102,7 @@ func Ecp(f, x K) (r K) {
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		return Bin(f, Fst(x))
+		return In(f, Fst(x))
 	}
 	xn := nn(x)
 	var y K
