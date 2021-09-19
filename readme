@@ -31,7 +31,7 @@ $ str cst       c:<`file(read)             v:  0..63   monadic
 @ typ atx       `@i(verb) (+)~`2             128       pop + dyadic
 . val cal       .(1;2;`64+(+))  exec         129..255  tetradic
                                              256       drop
-built-ins(monadic):                          320/384   jmp, jmp-ifz
-in find abs imag conj angle solve dot        448..     quoted verb
-predefined:ej avg var std
+abs sin cos exp log any find fill            320/384   jmp, jmp-ifz
+imag conj angle qr ej avg var std            448..     quoted verb
+abs find fill imag conj angle log dot solve               (dyadic)
 rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
