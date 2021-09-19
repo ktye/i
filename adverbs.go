@@ -17,7 +17,7 @@ func Ech(f, x K) (r K) {
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		return Bin(f, Fst(x))
+		return In(f, Fst(x))
 	}
 	if nn(x) == 1 {
 		x = Fst(x)
@@ -95,6 +95,13 @@ func ec2(f, x, y K) (r K) {
 	return uf(r)
 }
 func Ecp(f, x K) (r K) {
+	t := tp(f)
+	if isfunc(t) == 0 {
+		if nn(x) != 1 {
+			trap(Rank)
+		}
+		return Bin(f, Fst(x))
+	}
 	xn := nn(x)
 	var y K
 	var m int32

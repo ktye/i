@@ -21,8 +21,8 @@
 {x+y}[1;2;3] /Rank
 1 2 3?4. /Type
 (+`a`b!(1 2;3 4))?5 /Nyi
-1 2 3 find 4 5 /Type
-"abc" find "b" /Type
+find[1 2 3;4 5] /Type
+find["abc";"b"] /Type
 1.2@3 /Type
 (+`a`b!(1 2;3 4)),+`b`a!(4 5;6 7) /Value
 ) /Parse
@@ -30,9 +30,9 @@
 (1;2] /Parse
 {[1;2]x} /Parse
 "a /Parse
-in 0b /Type
-in 1 2 /Type
-3. in 1 2 3 /Type
+any 0b /Type
+any 1 2 /Type
+3.'1 2 3 /Type
 .(1;`66) /Stack
 ((((((((((((((((((((((((((((((1+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1 /Stack
 (`0).("x";5) /Type
@@ -42,7 +42,7 @@ in 1 2 /Type
 .[+`a`b!(1 2;3 4);(`a`b;1);5] /Nyi
 `p 0b /Type
 +1 2!3 4 /Type
-2 abs 3 /Nyi
+abs[2;3] /Nyi
 `a+`b /Type
 `a+`b`c /Type
 `a`b+`c`d /Type
@@ -51,8 +51,8 @@ in 1 2 /Type
 -(-) /Type
 1 2+3 4 5 /Length
 1b\01b /Type
-2a45 angle 1a /Type
-2a45 log 3 /Type
+angle[2a45;1a] /Type
+log[2a45;3] /Type
 3.5/4 /Type
 `a`b+1 2 /Type
 (`a`b!1 2)+`a`c!3 4 /Value
@@ -66,7 +66,7 @@ in 1 2 /Type
 -3^1 2 /Value
 &1 2 3. /Type
 . 1 /Type
-3.0 fill 2 3 /Type
+fill[3.0;2 3] /Type
 3.0'1 2 /Type
 1 2 3'3. /Type
 1 2a'3a /Type

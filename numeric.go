@@ -1518,7 +1518,7 @@ func Ang(x K) (r K) { // angle x
 	dx(x)
 	return r
 }
-func Rot(x, y K) (r K) { // r angle deg
+func Rot(x, y K) (r K) { // r@deg
 	if tp(x) > Zt {
 		return Ech(35, l2(x, y))
 	}
@@ -1549,11 +1549,20 @@ func Rot(x, y K) (r K) { // r angle deg
 	dx(y)
 	return Mul(r, x)
 }
-func Sin(x K) K    { return nf(38, x, 0) }  // sin x
-func Cos(x K) K    { return nf(39, x, 0) }  // cos x
-func Exp(x K) K    { return nf(42, x, 0) }  // Exp x
-func Log(x K) K    { return nf(43, x, 0) }  // Log x
-func Pow(x, y K) K { return nf(106, y, x) } // x pow y (y**x)
+func Sin(x K) K { return nf(44, x, 0) } // sin x
+func Cos(x K) K { return nf(39, x, 0) } // cos x
+func Exp(x K) K { return nf(42, x, 0) } // exp x
+func Log(x K) K { return nf(43, x, 0) } // log x
+func Pow(y, x K) K { // x^y
+	if tp(x)&15 == it {
+		if tp(y) == it {
+			if int32(y) >= 0 {
+				return ipow(x, int32(y))
+			}
+		}
+	}
+	return nf(106, x, y)
+}
 func Lgn(x, y K) K { // n log y
 	xf := fk(x)
 	if xf == 10.0 {

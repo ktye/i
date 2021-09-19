@@ -11,10 +11,10 @@ web:      drop file assigns                      `file<c (download)
 
 repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 
-+ flp add       '  ech  bin                b bool     1b    110b   
++ flp add       '  ech   in                b bool     1b    110b   
 - neg sub       /  rdc  mod                c char     "x"   "ab"        
 * fst mul       \  scn  div                i int      2     1 2         
-% sqr div       ': ecp        f n/:ndo     s symbol   `a    ``c`d       
+% sqr div       ': ecp  bin   f n/:ndo     s symbol   `a    ``c`d       
 ! til wer       /: ecr  split   f/:fix     f float    2.    1. 2.    
 & wer min       \: ecl  join    f\:fix     z complex  1a    1a20 2a     
 | rev max       while[c;a;b;..]            L list     (1;2 3)      

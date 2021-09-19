@@ -244,7 +244,7 @@ function glueCombo(e,s,x,t){var o=lup(e.dataset.options);if(o==0){K.dx(x);return
  K.dx(o);K.dx(x);e.onchange=function(){K.dx(K.Asn(s,K.Atx(lup(e.dataset.options),K.Ki(e.selectedIndex))))}}
 
 function glueListbox(e,s,x,t){var y=lup(e.dataset.index);if(x==0||y==0){K.dx(x);K.dx(y);return}
- var n=K.nn(x);if(e.size==0)e.size=n;e.multiple=K.tp(y)==19;
+ var n=K.nn(x);if(e.size==0)e.size=n;e.multiple=K.tp(y)==19;if(t==25){x=K.Drp(K.Enl(K.Ki(1)),K.Atx(K.sc(ks("l")),x))};
  for(var i=0;i<n;i++){var o=ce("option");o.innerText=kstr(K.Atx(K.rx(x),K.Ki(i)));o.selected=e.multiple?lo(K.In(K.Ki(i),K.rx(y)))==1:lo(y)==i;e.appendChild(o)}
  var selectedIndexes=function(){var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
  K.dx(x);K.dx(y);e.onchange=function(){var si=e.dataset.index;if(e.multiple){asn(si,selectedIndexes())}else{

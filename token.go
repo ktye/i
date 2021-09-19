@@ -256,16 +256,6 @@ func ppi(f float64) (r K) {
 func tvrb() (r K) {
 	c := I8(pp)
 	if !is(c, 1) {
-		p := pp
-		r = tvar()
-		if r != 0 { // builtins
-			rp := int32(r)
-			if rp > 64 && rp < 185 { // `in`find`abs`imag`conj`angle`solve`dot`sin`cos`".("`exp`log`fill
-				return K(21 + rp>>3)
-			} else {
-				pp = p
-			}
-		}
 		return 0
 	}
 	pp++

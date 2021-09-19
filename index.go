@@ -18,7 +18,7 @@ func Atx(x, y K) (r K) { // x@y
 				}
 			}
 			if xp < 48 { // `x`y`z`k`l
-				return kx(312+xp, y)
+				return kx(104+xp, y)
 			} else {
 				switch (xp - 48) >> 3 {
 				case 0: // `t@"src" (token)
@@ -42,6 +42,9 @@ func Atx(x, y K) (r K) { // x@y
 			}
 		}
 		return Atx(x, Fnd(r, y))
+	}
+	if yt&15 == ft {
+		return Rot(x, y)
 	}
 	if yt < It {
 		y = uptype(y, it)

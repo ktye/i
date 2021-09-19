@@ -17,16 +17,16 @@ func roll(x K) (r K) { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
 	xp := int32(x)
 	if xt == it {
 		if xp > 0 {
-			return kx(240, x) // .rf uniform
+			return kx(72, x) // .rf uniform
 		} else {
-			r = kx(256, Ki((1+-xp)/2))
+			r = kx(80, Ki((1+-xp)/2))
 			SetI32(int32(r)-12, -xp)
 			return K(int32(r)) | K(Ft)<<59 // normal
 		}
 	}
 	if xt == zt {
 		dx(x)
-		return kx(256, Ki(int32(F64floor(F64(xp))))) //.rz binormal
+		return kx(80, Ki(int32(F64floor(F64(xp))))) //.rz binormal
 	}
 	return trap(Type)
 }

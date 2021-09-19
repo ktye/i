@@ -117,7 +117,7 @@ func Unq(x K) (r K) { // ?x
 			r, x = spl2(x)
 			return key(r, Flp(Unq(Flp(x))), xt)
 		}
-		return kx(272, x) // uqf
+		return kx(96, x) // .uqf
 	}
 	xn := nn(x)
 	r = mk(xt, 0)
@@ -137,7 +137,7 @@ func Uqs(x K) (r K) { // ?^x
 	if xt < 16 {
 		trap(Type)
 	}
-	return kx(264, x)
+	return kx(88, x) // .uqs
 }
 func Grp(x K) (r K) { // =x
 	if tp(x) == Dt {
@@ -330,11 +330,14 @@ func ndrop(n int32, y K) (r K) {
 }
 
 func Cut(x, y K) (r K) { // x^y
+	yt := tp(y)
+	if yt == it || yt == ft {
+		return Pow(y, x)
+	}
 	xt := tp(x)
 	if xt == It {
 		return cuts(x, y)
 	}
-	yt := tp(y)
 	if xt == Ct && yt == Ct { // "set"^"abc"
 		x = Wer(In(rx(y), x))
 		return rcut(y, Cat(Ki(0), Add(Ki(1), rx(x))), Cat(x, Ki(nn(y))))
@@ -741,7 +744,7 @@ func Fin(x K) K { return Wer(Not(Xpt(x))) } // find x (index of non-missing)
 func Xpt(x K) K { // fill x
 	xt := tp(x)
 	if xt >= Lt {
-		return Ech(44, l1(x))
+		return Ech(38, l1(x))
 	} else {
 		return Eql(missing(xt-T(16*I32B(xt > 16))), x)
 	}
@@ -749,7 +752,7 @@ func Xpt(x K) K { // fill x
 func Fil(x, y K) (r K) { // x fill y
 	xt, yt := tp(x), tp(y)
 	if yt >= Lt {
-		return Ecr(44, l2(x, y))
+		return Ecr(38, l2(x, y))
 	}
 	if xt == yt && xt < 16 {
 		if int32(Xpt(y)) != 0 {
@@ -768,6 +771,3 @@ func Fil(x, y K) (r K) { // x fill y
 		return trap(Type)
 	}
 }
-func Qrd(x K) K    { return kx(216, x) }     //.qr
-func Slv(x, y K) K { return kxy(224, x, y) } //.slv
-func Dot(x, y K) K { return kxy(232, x, y) } //.dot

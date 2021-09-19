@@ -325,3 +325,35 @@ func pow(x, y float64) float64 {
 	}
 	return ldexp(a1, ae)
 }
+func ipow(x K, y int32) (r K) {
+	if tp(x) == It {
+		n := nn(x)
+		r = mk(It, n)
+		rp := int32(r)
+		xp := int32(x)
+		e := rp + 4*n
+		for rp < e {
+			SetI32(rp, iipow(I32(xp), y))
+			xp += 4
+			rp += 4
+		}
+		dx(x)
+		return r
+	} else {
+		return Ki(iipow(int32(x), y))
+	}
+}
+func iipow(x, y int32) (r int32) {
+	r = 1
+	for {
+		if y&1 == 1 {
+			r *= x
+		}
+		y >>= 1
+		if y == 0 {
+			break
+		}
+		x *= x
+	}
+	return r
+}
