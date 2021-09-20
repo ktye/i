@@ -27,7 +27,7 @@
 <div id="_box">
  <div id="_edt"></div>
  <textarea id="_con" wrap="off" spellcheck="false"></textarea>
- <div id="_uid""><pre id="_uihelp"></pre></div>
+ <div id="_uid""><pre id="_uihelp"></pre><canvas id="_icv" style="border:1px solid red"></canvas></div>
 </div>
 <footer class="_ftr"><button class="_fbt" id="_bed">edit</button><button class="_fbt" id="_bcn">console</button><button class="_fbt" id="_brn">run</button><button class="_fbt" id="_bui">ui</button></footer>
 <a id="_dl" style:"display:none"></a>
@@ -119,6 +119,8 @@ function download(name,u){
 fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
  K=r.instance.exports
  K.kinit()
+ asn("WIDTH",K.Ki(window.innerWidth));asn("HEIGHT",K.Ki(window.innerHeight-40));
+ var z=ge("_icv").getContext('2d');z.font="20px monospace";asn("FH",K.Ki(20));asn("FW",K.Ki(z.measureText("M").width))
  ksave()
 })
 
@@ -202,14 +204,14 @@ variables are bound to html elements with the same id, value contain their type.
  textarea     CL
  pre          (2d-display)
  button       l  (niladic)
- canvas       ID (I:pixels, D:2d-api-calls)
+ canvas       ID (I:pixels, D:2d-api-calls) <canvas id='X' data-click='c' data-zoom='z'/>  c,z: callbacks
  default      k-string
  
 `
 
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
-function showui(x,p){var e=p;if(K.tp(x)!=18){K.dx(x);return};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
+function showui(x,p){var e=p;/*if(K.tp(x)==19){return framebuffer(x)};*/if(K.tp(x)!=18){K.dx(x);return};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
 function glueAll(p){var nodes=p.childNodes;
  for(var i=0;i<nodes.length;i++){var c=nodes[i];if(c){glue(c);var cn=c.childNodes;var n=cn.length;for(var j=0;j<n;j++)glueAll(cn[j])}}}
 function glue(e){if(e.id===undefined)return;var s=K.sc(ks(e.id));var x=K.Val(s);if(lo(s)==0)return;var t=tstr(K.tp(x))
@@ -229,11 +231,24 @@ function glueInput(e,s,x,t){
  default: e.value="type "+t+"?";K.dx(x)}}
 
 function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.height;
- if(t=="I"){K.alpha(x);var d = z.createImageData(w,h);d.data.set(C.slice(lo(x),lo(x)+4*K.nn(x)));z.putImageData(d,0,0)}
+ if(t=="I"){x=K.alpha(x);var d=z.createImageData(w,h);d.data.set(C.slice(lo(x),lo(x)+4*K.nn(x)));z.putImageData(d,0,0)}
  else K.dx(x)
- mouse(e,'click');mouse(e,'mousemove');mouse(e,'mousedown');mouse(e,'mouseup')}
-function mouse(e,t){var s=e.getAttribute(t);if(s==null)return
- e["on"+t]=function(ev){var f=lup(s);if(lo(f)==0)return;K.dx(K.Cal(f,K.l3(K.Ki(ev.offsetX),K.Ki(ev.offsetY),K.Ki(ev.button))))}}
+ if(e.dataset.click){e.ondblclick=function(ev){var f=lup(e.dataset.click);if(lo(f)==0)return;K.dx(K.Cal(f,K.l2(K.Ki(ev.offsetX),K.Ki(ev.offsetY))));ui()}}
+ if(e.dataset.zoom){
+  var zoom=false; var bg=z.getImageData(0,0,e.width,e.height)
+  var zs=function(ev){e.onmousemove=zm;zoom=[ev.clientX,ev.clientY,0,0];e.style.cursor="crosshair"}
+  var zm=function(ev){if(zoom!==false){zoom=[zoom[0],zoom[1],ev.clientX-zoom[0],ev.clientY-zoom[1]];z.putImageData(bg,0,0);z.beginPath();z.rect(...zoom);z.strokeStyle='red';z.stroke()}}
+  var ze=function(ev){z.putImageData(bg,0,0);e.style.cursor="";if(Math.abs(zoom[2])< 5||Math.abs(zoom[3])<5){zoom=false;return}
+   console.log("zoom",zoom);
+   var f=lup(e.dataset.zoom);if(lo(f)!=0){K.dx(K.Cal(f,K.l1(K.Cat(K.Cat(K.Ki(zoom[0]),K.Ki(zoom[1])),K.Cat(K.Ki(zoom[2]),K.Ki(zoom[3]))))));ui()}
+   zoom=false;e.onmousemove=null}
+  e.onmousedown=zs;e.onmouseup=ze}}
+
+
+
+//mouse(e,'click');mouse(e,'mousemove');mouse(e,'mousedown');mouse(e,'mouseup')}
+//function mouse(e,t){var s=e.getAttribute(t);if(s==null)return
+// e["on"+t]=function(ev){}
 
 function glueButton(e,s,x,t){if(t!="l")return;e.onclick=function(){ktry(function(){K.Cal(x,K.mk(23,0)); ui()})}}
 
@@ -264,6 +279,27 @@ function lstr(x){return sk(K.join(K.Kc(10),K.Atx(K.sc(ks("l")),x)))}
 function tstr(t){const T="vbcisfzldtcdpl000BCISFZLDT";return T[t]}
 
 
+/*
+function framebuffer(x){if(K.nn(x)!=2){K.dx(x);return};
+ var c=ce("canvas");c.id="_fb";c.width=lo(K.ati(K.rx(x),0));c.height=lo(K.ati(K.rx(x),1));c.tabIndex=1; //triggers keydown
+ ge("_uid").appendChild(c)
+ var z=c.getContext("2d");z.fillStyle='grey';z.fillRect(0,0,c.width,c.height);
+ var m=K.Val(K.sc(ks("click")));var k=K.Val(K.sc(ks("key")));var f=K.Val(K.sc(ks("frame")))
+ if(m!=0)c.addEventListener("click",function(e){K.dx(K.Cal(K.rx(m),K.l2(K.Ki(e.offsetX),K.Ki(e.offsetY))))},true);
+ if(k!=0)c.addEventListener("keydown",function(e){K.dx(K.Cal(K.rx(k),K.l1(K.Ki((e.key.length==1)?e.key.charCodeAt():e.keyCode))))},true)
+ if(f!=0){
+  var loop=function(t){
+   var x=K.alpha(K.Cal(K.rx(f),K.l1(K.Kf(t))));
+   var d = new ImageData(new Uint8ClampedArray(K.memory.buffer, lo(x), 4*c.width*c.height), c.width, c.height)
+   z.putImageData(d,0,0)
+   K.dx(x)
+   window.requestAnimationFrame(loop)
+  }
+  window.requestAnimationFrame(loop)
+ }
+ showtab(udiv)
+}
+*/
 
 /* (generate html elements from a k-list)
    //  x:1   /variable with type
