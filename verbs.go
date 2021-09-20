@@ -440,7 +440,7 @@ func Bin(x, y K) (r K) { // x'y
 			return trap(Type)
 		}
 	}
-	if xt == yt {
+	if xt == yt || yt == Lt {
 		return Ecr(40, l2(x, y))
 	} else if xt == yt+16 {
 		r = Ki(ibin(x, y, xt))
