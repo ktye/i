@@ -429,58 +429,7 @@ func join(x, y K) (r K) {
 	dx(y)
 	return r
 }
-
-/*
-func Lin(X, Y, x K) (r K) { // X Y'x
-	a, _ := conform(X, Y)
-	if a != 2 {
-		trap(Type)
-	}
-	x = uptype(x, ft)
-	X = uptype(X, ft)
-	if tp(Y) < Ft {
-		Y = uptype(Y, ft)
-	}
-	f := 0
-	if tp(x) < 16 {
-		f = 1
-		x = Enl(x)
-	}
-	xn := nn(X)
-	xp := int32(x)
-	r = mk(tp(Y), nn(x))
-	rp := int32(r)
-	e := ep(r)
-	for rp < e {
-		fmt.Println("lin")
-		lin(rp, xp, xn, X, Y)
-		xp += 8
-		rp += 8
-	}
-	dx(X)
-	dx(Y)
-	dx(x)
-	if f != 0 {
-		return Fst(r)
-	} else {
-		return r
-	}
-}
-func lin(rp, xp, xn int32, X, Y K) {
-	i := ibin(X, K(xp), ft)
-	if i < 0 {
-		i = 0
-	}
-	if i == xn {
-		i--
-	}
-	p := int32(X) + 8*i
-	x0, x1 := F64(p), F64(8+p)
-	p += int32(Y) - int32(X)
-	y0, y1 := F64(p), F64(8+p)
-	SetF64(rp, y0+(y1-y0)*((F64(xp)-x0)/(x1-x0)))
-}
-*/
+func lin(x, y, z K) (r K) { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
 func Bin(x, y K) (r K) { // x'y
 	xt := tp(x)
 	yt := tp(y)

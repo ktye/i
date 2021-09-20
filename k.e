@@ -1,5 +1,4 @@
 -'3 /Type Ech atom
-1'[2;3] /Nyi
 (+`a`b!(1 2;3 4)),'+`a`b!(1 2 3;4 5 6) /Length
 -':[1;2;3] /Rank
 -':1 /Type

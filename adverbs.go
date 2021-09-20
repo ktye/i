@@ -15,9 +15,8 @@ func Ech(f, x K) (r K) {
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			//x, r = spl2(x)
-			//return Lin(x, f, r)
-			return trap(Nyi)
+			x, r = spl2(x)
+			return lin(x, f, r)
 		}
 		return Bin(f, Fst(x))
 	}
