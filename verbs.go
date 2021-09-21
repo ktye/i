@@ -77,10 +77,13 @@ func Til(x K) (r K) {
 		dx(x)
 		return r
 	}
-	if xt != it {
-		trap(Type)
+	if xt == it {
+		return seq(int32(x))
 	}
-	return seq(int32(x))
+	if xt == It {
+		return kx(120, x)
+	}
+	return trap(Type)
 }
 func seq(n int32) (r K) {
 	n = maxi(n, 0)

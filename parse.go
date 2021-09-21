@@ -55,7 +55,7 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 		x, y, a = pasn(x, y)
 		r, ev = e(t())
 		if (r == 0 || ev == 1) && a == 0 { // 1+ (projection)
-			x = cat1(ucat(cat1(ucat(l1(0), x), 77), y), 92)
+			x = cat1(ucat(cat1(cat1(ucat(l1(0), x), Ki(2)), 27), y), 92)
 			if ev == 1 { // 1+-
 				r = cat1(ucat(r, x), 91)
 				return r, 1

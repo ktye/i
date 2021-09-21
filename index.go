@@ -18,7 +18,7 @@ func Atx(x, y K) (r K) { // x@y
 				}
 			}
 			if xp < 48 { // `x`y`z`k`l
-				return kx(112+xp, y)
+				return kx(120+xp, y)
 			} else {
 				switch (xp - 48) >> 3 {
 				case 0: // `t@"src" (token)
