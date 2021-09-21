@@ -207,6 +207,12 @@ variables are bound to html elements with the same id, value contain their type.
  canvas       ID (I:pixels, D:2d-api-calls) <canvas id='X' data-click='c' data-zoom='z'/>  c,z: callbacks
  default      k-string
  
+ 
+c:|-1 -2+2. 3*(!n)%0.+n:200 300
+s:{(-/x*x;2*/x)}
+m:{+/x*x}
+X:((+/1 256 65536*)'!256)@+/(exp 0.01*!255)<\\:m(c+s@)10/0 0 
+ui:"<canvas width=300 height=200 id='X'/>" 
 `
 
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
