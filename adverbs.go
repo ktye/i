@@ -231,7 +231,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 				trap(Type)
 			}
 		}
-		return Mod(f, Fst(x))
+		return Mod(Fst(x), f)
 	}
 	var y K
 	if xn := nn(x); xn == 1 {

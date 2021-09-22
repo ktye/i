@@ -316,7 +316,7 @@ func nd(f, ff int32, x, y K) (r K) {
 	var t T
 	r, t, x, y = dctypes(x, y)
 	if r != 0 {
-		return key(r, nd(f, ff, x, y), t)
+		return key(r, Func[64+ff].(f2)(x, y), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
@@ -798,7 +798,7 @@ func Div(x, y K) (r K) {
 		}
 	}
 	if xt&15 < ft && yt&15 < ft {
-		return idiv(x, y) // no simd for ints
+		return idiv(x, y, 0) // no simd for ints
 	}
 	return nd(267, 5, x, y)
 }
@@ -857,7 +857,8 @@ func divZ(xp, yp, rp, e int32) { // todo simd
 		continue
 	}
 }
-func idiv(x, y K) (r K) {
+func idiv(x, y K, mod int32) (r K) {
+	x, y = uptypes(x, y, 1)
 	av, t := conform(x, y)
 	if t != it {
 		trap(Type)
@@ -866,25 +867,46 @@ func idiv(x, y K) (r K) {
 	yp := int32(y)
 	switch av {
 	case 0: //a%a
-		return Ki(xp / yp)
+		if mod != 0 {
+			r = Ki(xp % yp)
+		} else {
+			r = Ki(xp / yp)
+		}
+		return r
 	case 1: //a%v
 		r = use(y)
 		rp := int32(r)
 		e := rp + 4*nn(r)
-		for rp < e {
-			SetI32(rp, xp/I32(rp))
-			rp += 4
+		if mod != 0 {
+			for rp < e {
+				SetI32(rp, xp%I32(rp))
+				rp += 4
+			}
+		} else {
+			for rp < e {
+				SetI32(rp, xp/I32(rp))
+				rp += 4
+			}
 		}
 		return r
 	case 2: //v%v
 		r = use2(x, y)
 		rp := int32(r)
 		e := rp + 4*nn(r)
-		for rp < e {
-			SetI32(rp, I32(xp)/I32(yp))
-			xp += 4
-			yp += 4
-			rp += 4
+		if mod != 0 {
+			for rp < e {
+				SetI32(rp, I32(xp)%I32(yp))
+				xp += 4
+				yp += 4
+				rp += 4
+			}
+		} else {
+			for rp < e {
+				SetI32(rp, I32(xp)/I32(yp))
+				xp += 4
+				yp += 4
+				rp += 4
+			}
 		}
 		dx(x)
 		dx(y)
@@ -894,7 +916,7 @@ func idiv(x, y K) (r K) {
 		xp = int32(x)
 		xn := nn(x)
 		e := xp + 4*xn
-		if yp > 0 && xn > 0 { // x % powers of 2
+		if yp > 0 && xn > 0 && mod == 0 { // x % powers of 2
 			s := int32(31) - I32clz(uint32(yp))
 			if yp == int32(1)<<s {
 				for xp < e {
@@ -904,37 +926,30 @@ func idiv(x, y K) (r K) {
 				}
 			}
 		}
-		for xp < e {
-			SetI32(xp, I32(xp)/yp)
-			xp += 4
+		if mod != 0 {
+			for xp < e {
+				SetI32(xp, I32(xp)%yp)
+				xp += 4
+			}
+		} else {
+			for xp < e {
+				SetI32(xp, I32(xp)/yp)
+				xp += 4
+			}
 		}
 		return x
 	}
 }
 func Mod(x, y K) (r K) {
-	if tp(x) != it {
-		trap(Type)
+	xt, yt := tp(x), tp(y)
+	if xt&15 < ft && yt&15 < ft {
+		return idiv(x, y, 1)
 	}
-	yt := tp(y)
-	if yt >= Lt {
-		return Ecr(41, l2(x, y))
+	if xt >= Lt || yt >= Lt {
+		return nd(0, 41, x, y)
+	} else {
+		return trap(Type)
 	}
-	y = uptype(y, it)
-	xp := int32(x)
-	yp := int32(y)
-	if tp(y) == it {
-		return Ki(yp % xp)
-	}
-	yn := nn(y)
-	r = mk(It, yn)
-	rp := int32(r)
-	for i := int32(0); i < yn; i++ {
-		SetI32(rp, I32(yp)%xp)
-		yp += 4
-		rp += 4
-	}
-	dx(y)
-	return r
 }
 
 func Min(x, y K) (r K) {

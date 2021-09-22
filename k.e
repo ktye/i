@@ -49,7 +49,6 @@ abs[2;3] /Nyi
 -`a`b /Type
 -(-) /Type
 1 2+3 4 5 /Length
-1b\01b /Type
 angle[2a45;1a] /Type
 log[2a45;3] /Type
 3.5/4 /Type
