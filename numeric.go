@@ -790,15 +790,18 @@ func scalez(x, z K) (r K) { // xt<=ft, z:Zt
 
 func Div(x, y K) (r K) {
 	xt, yt := tp(x), tp(y)
-	if yt < 16 {
-		if yt == ft && xt > 16 {
-			s := 1.0 / F64(int32(y))
-			dx(y)
-			return scale(s, x)
-		}
-	}
 	if xt&15 < ft && yt&15 < ft {
 		return idiv(x, y, 0) // no simd for ints
+	}
+	if yt < 16 && xt > 16 && xt < Lt {
+		if yt < ft {
+			y = uptype(y, ft)
+		} else if yt == zt {
+			return Mul(Div(Kz(1.0, 0.0), y), x)
+		}
+		s := 1.0 / F64(int32(y))
+		dx(y)
+		return scale(s, x)
 	}
 	return nd(267, 5, x, y)
 }
