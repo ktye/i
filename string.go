@@ -231,6 +231,9 @@ func sf(x float64) (r K) {
 	if x < 0 {
 		return ucat(Ku(uint64('-')), sf(-x))
 	}
+	if x > 0 && (x >= 1e6 || x <= 1e-6) {
+		return se(x)
+	}
 	r = mk(Ct, 0)
 	u = uint64(x)
 	if u == 0 {
@@ -260,6 +263,13 @@ func sf(x float64) (r K) {
 		rp++
 	}
 	return ndrop(-c, r)
+}
+func se(x float64) (r K) {
+	f, e := frexp(x)
+	x = 0.3010299956639812 * float64(e) // log10(2)*
+	ei := int32(F64floor(x))
+	x = x - float64(ei)
+	return ucat(cat1(sf(f*pow(10.0, x)), Kc('e')), si(ei))
 }
 func sfz(re, im float64) (r K) {
 	if isnan(re) || isnan(im) {
