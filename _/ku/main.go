@@ -1,9 +1,7 @@
 package main
 
 import (
-	"embed"
 	"fmt"
-	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -12,9 +10,6 @@ import (
 
 	"github.com/zserge/lorca"
 )
-
-//go:embed www
-var fsys embed.FS
 
 func main() {
 	args := []string{}
@@ -29,11 +24,9 @@ func main() {
 	fatal(err)
 
 	defer ln.Close()
-	sub, err := fs.Sub(fsys, "www")
-	fatal(err)
 
-	go http.Serve(ln, http.FileServer(http.FS(sub)))
-	ui.Load(fmt.Sprintf("http://%s", ln.Addr()))
+	go http.Serve(ln, http.FileServer(http.Dir("c:/k/ktye.github.io")))
+	ui.Load(fmt.Sprintf("http://%s/index.html", ln.Addr()))
 
 	sigc := make(chan os.Signal)
 	signal.Notify(sigc, os.Interrupt)
