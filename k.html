@@ -211,16 +211,17 @@ variables are bound to html elements with the same id, value contain their type.
 s:{(-/x*x;2*/x)}
 m:{+/x*x}
 C:(3*!85),(255+768*!85),(65535+196608*!86)
-O:-1 -2.
-S:1.
+W:600;H:400
+O:0 -.5
+S:2*2 3.
 f:{ 
- \(`click;x;y;O)
- dO:S*0.01*(y;x)-100 150
- O::O+dO
- c:|S*O+(2. 3)*(!n)%0.+n:200 300
- X::C@+/(exp 0.01*!255)<\:m(c+s@)10/0 0}
-X:f[150;100]
-ui:"<canvas width=300 height=200 data-click='f' id='X'/>"
+ d:S*((y;x)-n%2.)%n:(H;W)
+ O::O+d
+ S::S%2
+ c:|(O-S%2)+S*(!n)%0.+n
+ X::C@+/(.001*!255)<\\:m(c+s@)10/0 0}
+X:f[W%2;H%2]
+ui:"<canvas width=",($W)," height=",($H)," data-click='f' id='X'/>"
 `
 
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
