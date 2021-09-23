@@ -184,6 +184,9 @@ func tunm() K {
 		if c == 'a' {
 			return pflz(float64(r))
 		}
+		if c == 'e' || c == 'E' {
+			return Kf(pexp(float64(r)))
+		}
 		if r == 0 {
 			if c == 'N' {
 				pp++
@@ -197,9 +200,8 @@ func tunm() K {
 				}
 				pp++
 				if pp < pe && I8(pp) == 'a' {
-					//pp++
 					dx(q)
-					return pflz(F64(int32(q))) //Kz(F64(int32(q)), 0)
+					return pflz(F64(int32(q)))
 				}
 				return q
 			}
@@ -218,12 +220,28 @@ func pu() (r int64) {
 	}
 	return r
 }
+func pexp(f float64) float64 {
+	pp++
+	e := int64(1)
+	if pp < pe {
+		c := I8(pp)
+		if c == '-' || c == '+' {
+			if c == '-' {
+				e = int64(-1)
+			}
+			pp++
+		}
+	}
+	e *= pu()
+	return f * pow(10.0, float64(e))
+}
 func pflt(i int64) K {
 	f := float64(i)
 	d := 1.0
 	pp++ // .
+	var c int32
 	for pp < pe {
-		c := I8(pp)
+		c = I8(pp)
 		if is(c, 4) == false {
 			break
 		}
@@ -232,10 +250,17 @@ func pflt(i int64) K {
 		pp++
 	}
 	if pp < pe {
-		if I8(pp) == 'a' {
+		c = I8(pp)
+		if c == 'e' || c == 'E' {
+			f = pexp(f)
+		}
+	}
+	if pp < pe {
+		c = I8(pp)
+		if c == 'a' {
 			return pflz(f)
 		}
-		if I8(pp) == 'p' {
+		if c == 'p' {
 			return ppi(f)
 		}
 	}
