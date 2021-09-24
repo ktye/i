@@ -298,6 +298,9 @@ func Drp(x, y K) (r K) { // x_y
 	if xt > 16 && xt == yt {
 		return atv(y, Wer(Not(In(rx(y), x)))) // set drop
 	}
+	if yt == it {
+		return atv(x, Wer(Not(Eql(y, seq(nn(x))))))
+	}
 	return Atx(rx(y), Wer(Not(Cal(x, l1(y))))) // f#
 }
 func ndrop(n int32, y K) (r K) {
