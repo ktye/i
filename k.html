@@ -236,6 +236,7 @@ function glue(e){if(e.id===undefined)return;var s=K.sc(ks(e.id));var x=K.Val(s);
  case "BUTTON": glueButton(e,s,x,t); break;
  case "PRE":    e.textContent=lstr(x);break;
  case "SELECT": glueSelect(e,s,x,t);break;
+ case "TABLE":  glueTable(e,s,x,t);break;
  default:e.textContent = kstr(x)}}
  
 function glueInput(e,s,x,t){
@@ -260,11 +261,6 @@ function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.heig
   e.onmousedown=zs;e.onmouseup=ze}}
 
 
-
-//mouse(e,'click');mouse(e,'mousemove');mouse(e,'mousedown');mouse(e,'mouseup')}
-//function mouse(e,t){var s=e.getAttribute(t);if(s==null)return
-// e["on"+t]=function(ev){}
-
 function glueButton(e,s,x,t){if(t!="l")return;e.onclick=function(){ktry(function(){K.Cal(x,K.mk(23,0)); ui()})}}
 
 function glueSelect(e,s,x,t){if(e.dataset.options){glueCombo(e,s,x,t)}else{glueListbox(e,s,x,t)}}
@@ -273,15 +269,33 @@ function glueCombo(e,s,x,t){var o=lup(e.dataset.options);if(o==0){K.dx(x);return
  var n=K.nn(o);for(var i=0;i<n;i++){var oe=ce("option");var oi=K.Atx(K.rx(o),K.Ki(i));oe.selected=(K.match(oi,x)==1);oe.innerText=kstr(oi);e.appendChild(oe)}
  K.dx(o);K.dx(x);e.onchange=function(){K.dx(K.Asn(s,K.Atx(lup(e.dataset.options),K.Ki(e.selectedIndex))))}}
 
-function glueListbox(e,s,x,t){var y=lup(e.dataset.index);if(x==0||y==0){K.dx(x);K.dx(y);return}
- var n=K.nn(x);if(e.size==0)e.size=n;e.multiple=K.tp(y)==19;if(t==25){x=K.Drp(K.Enl(K.Ki(1)),K.Atx(K.sc(ks("l")),x))};
+function glueListbox(e,s,x,t){var y=lup(e.dataset.index);if(x==0||y==0){K.dx(x);K.dx(y);return}; console.log("listbox", t)
+ var n=K.nn(x);if(e.size==0)e.size=n;e.multiple=K.tp(y)==19;if(t=="T"){x=K.Drp(K.Enl(K.Ki(1)),K.Atx(K.sc(ks("l")),x))};
  for(var i=0;i<n;i++){var o=ce("option");o.innerText=kstr(K.Atx(K.rx(x),K.Ki(i)));o.selected=e.multiple?lo(K.In(K.Ki(i),K.rx(y)))==1:lo(y)==i;e.appendChild(o)}
  var selectedIndexes=function(){var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
  K.dx(x);K.dx(y);e.onchange=function(){var si=e.dataset.index;if(e.multiple){asn(si,selectedIndexes())}else{
  asn(si,K.Ki(e.selectedIndex))}}}
  
+function glueTable(e,s,x,t){if(t!="T"){K.dx(x);return};var n=K.nn(x);var [k,x]=K.spl2(x);var m=K.nn(k);
+ var tr=ce("tr");var th=ce("th");th.textContent="#";tr.appendChild(th);var h=[];var ti=[];var ts=K.Ech(BigInt(19),K.l1(K.rx(x)));
+ for(var i=0;i<m;i++){var th=ce("th");h[i]=sk(K.ati(K.rx(k),i));ti[i]=sk(K.ati(K.rx(ts),i)).toLowerCase();th.textContent=h[i];tr.appendChild(th)};e.appendChild(tr);K.dx(k);K.dx(ts)
+ for(var j=0;j<n;j++){var tr=ce("tr");var td=ce("td");td.textContent=j;tr.appendChild(td);
+  for(var i=0;i<m;i++){var td=ce("td");td.textContent=sk(K.ati(K.ati(K.rx(x),i),j));td.dataset.i=i;td.dataset.j=j;td.v=td.textContent
+   td.ondblclick=function(ev){
+    var td=ev.target;var tr=td.parentNode;
+    var restore=function(s,ed){td.textContent=s;tr.insertBefore(td,ed);tr.removeChild(ed)}
+    var c=td.textContent;var ed=ce("input");ed.dataset.i=td.dataset.i;ed.dataset.j=td.dataset.j;ed.dataset.v=c;ed.value=c;tr.insertBefore(ed,td);tr.removeChild(td)
+    ed.onchange=function(ev){var ed=ev.target;var rs=ed.value;var i=Number(ed.dataset.i);var j=Number(ed.dataset.j); var r=update(ed,[s,K.sc(ks(h[i])),K.Ki(j)],ti[i],ed.value);if(r){restore(rs,ed)}else{ed.style.backgroundColor="orange"};return r}
+    ed.onkeydown=function(ev){if(ev.keyCode!=27)return;var ed=ev.target;var rs=ed.value;restore(ed.dataset.v,ed)}
+  }
+   tr.appendChild(td)
+  };e.appendChild(tr)};K.dx(x)}
+
+
+ 
 
 function update(e,path,t,s){ // ui-assign callback
+ console.log("update",e,"path",path,"t",t,"s",s)
  var x=K.Cst(K.sc(ks(t=="s"?"":t)), ks(s)) // x:t$s or `$s
  e.setCustomValidity((x==0)?"invalid type "+t:""); if(x==0)return false;
  if(typeof path=="object") K.dx(K.Asn(path[0], K.Dmd(K.Val(path[0]),la(path.slice(1)),BigInt(1),x)))
