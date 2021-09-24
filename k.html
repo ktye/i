@@ -196,14 +196,14 @@ ge("_uihelp").textContent=`/ui-example:
 variables are bound to html elements with the same id, value contain their type.
 
  html-element k-type
- input        bcifzBCIFZ
- checkbox     b
- table        DT
- select       BCFIZL  <select id='X' data-options='o'/>    selection assigns X
- listbox      LDT     <select id='X' data-index='i'/>      selection assigns i (single/multiple)
- textarea     CL
- pre          (2d-display)
- button       l  (niladic)
+ input        bcifzBCIFZ   <input id='X'/>
+ checkbox     b            <input type='checkbox' id='X'/>
+ table        DT           <table id='X'/>
+ select       BCFIZL       <select id='X' data-options='o'/>    selection assigns X
+ listbox      LDT          <select id='X' data-index='i'/>      selection assigns i (single/multiple)
+ textarea     CL           <textarea id='X'/>
+ pre          (2d-display) <pre id='X'/>
+ button       l  (niladic) <button id='X'/>
  canvas       ID (I:pixels, D:2d-api-calls) <canvas id='X' data-click='c' data-zoom='z'/>  c,z: callbacks
  default      k-string
  
@@ -226,25 +226,27 @@ ui:"<canvas width=",($W)," height=",($H)," data-click='f' id='X'/>"
 
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
-function showui(x,p){var e=p;/*if(K.tp(x)==19){return framebuffer(x)};*/if(K.tp(x)!=18){K.dx(x);return};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
-function glueAll(p){var nodes=p.childNodes;
- for(var i=0;i<nodes.length;i++){var c=nodes[i];if(c){glue(c);var cn=c.childNodes;var n=cn.length;for(var j=0;j<n;j++)glueAll(cn[j])}}}
-function glue(e){if(e.id===undefined)return;var s=K.sc(ks(e.id));var x=K.Val(s);if(lo(s)==0)return;var t=tstr(K.tp(x))
+function showui(x,p){var e=p;/*if(K.tp(x)==19){return framebuffer(x)};*/if(K.tp(x)!=18){x=K.Atx(K.Val(K.sc(ks(".html"))),x)};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
+function glueAll(p){var nodes=p.childNodes;if(nodes.length==0)glue(p);for(var i=0;i<nodes.length;i++){glueAll(nodes[i])}}
+function glue(e){if(e.id===undefined)return; console.log("glue",e.id,e); var s=K.sc(ks(e.id));var x=K.Val(s);if(lo(s)==0)return;var t=tstr(K.tp(x))
  switch(e.nodeName){
- case "INPUT":  glueInput(e,s,x,t); break;
- case "CANVAS": glueCanvas(e,s,x,t); break;
- case "BUTTON": glueButton(e,s,x,t); break;
- case "PRE":    e.textContent=lstr(x);break;
- case "SELECT": glueSelect(e,s,x,t);break;
- case "TABLE":  glueTable(e,s,x,t);break;
+ case "INPUT":    glueInput(e,s,x,t); break;
+ case "CANVAS":   glueCanvas(e,s,x,t); break;
+ case "BUTTON":   glueButton(e,s,x,t); break;
+ case "PRE":      e.textContent=lstr(x);break;
+ case "SELECT":   glueSelect(e,s,x,t);break;
+ case "TABLE":    glueTable(e,s,x,t);break;
+ case "TEXTAREA": glueTextarea(e,s,x,t);break;
  default:e.textContent = kstr(x)}}
  
-function glueInput(e,s,x,t){
+function glueInput(e,s,x,t){if(e.type=="checkbox"){glueCheckbox(e,s,x,t);return}
  switch(t){
  case"b":case"c":case"i":case"f":case"z":case"B":case"C":case"I":case"F":case"Z":
   e.onchange=function(){var v=e.value;var r=update(e,s,t,v);e.style.backgroundColor=r?"white":"orange";if(r)e.value=v;return r}
   e.value=kstr(x);break
  default: e.value="type "+t+"?";K.dx(x)}}
+
+function glueCheckbox(e,s,x,t){if(t!="b")return;e.checked=lo(x)!=0;e.onchange=function(){K.dx(K.Asn(s,K.Kb(e.checked?1:0)))}}
 
 function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.height;
  if(t=="I"){x=K.alpha(x);var d=z.createImageData(w,h);d.data.set(C.slice(lo(x),lo(x)+4*K.nn(x)));z.putImageData(d,0,0)}
@@ -269,8 +271,8 @@ function glueCombo(e,s,x,t){var o=lup(e.dataset.options);if(o==0){K.dx(x);return
  var n=K.nn(o);for(var i=0;i<n;i++){var oe=ce("option");var oi=K.Atx(K.rx(o),K.Ki(i));oe.selected=(K.match(oi,x)==1);oe.innerText=kstr(oi);e.appendChild(oe)}
  K.dx(o);K.dx(x);e.onchange=function(){K.dx(K.Asn(s,K.Atx(lup(e.dataset.options),K.Ki(e.selectedIndex))))}}
 
-function glueListbox(e,s,x,t){var y=lup(e.dataset.index);if(x==0||y==0){K.dx(x);K.dx(y);return}; console.log("listbox", t)
- var n=K.nn(x);if(e.size==0)e.size=n;e.multiple=K.tp(y)==19;if(t=="T"){x=K.Drp(K.Enl(K.Ki(1)),K.Atx(K.sc(ks("l")),x))};
+function glueListbox(e,s,x,t){var y=lup(e.dataset.index);if(x==0||y==0){K.dx(x);K.dx(y);return};
+ var n=K.nn(x);if(e.size==0)e.size=n;e.multiple=K.tp(y)==19;if(t=="T"){x=K.Drp(K.Atx(K.sc(ks("l")),x), K.Ki(1))};
  for(var i=0;i<n;i++){var o=ce("option");o.innerText=kstr(K.Atx(K.rx(x),K.Ki(i)));o.selected=e.multiple?lo(K.In(K.Ki(i),K.rx(y)))==1:lo(y)==i;e.appendChild(o)}
  var selectedIndexes=function(){var o=e.selectedOptions;var r=K.mk(3+16,o.length);for(var i=0;i<o.length;i++)K.sti(r,i,K.Ki(o[i].index));return r}
  K.dx(x);K.dx(y);e.onchange=function(){var si=e.dataset.index;if(e.multiple){asn(si,selectedIndexes())}else{
@@ -291,11 +293,9 @@ function glueTable(e,s,x,t){if(t!="T"){K.dx(x);return};var n=K.nn(x);var [k,x]=K
    tr.appendChild(td)
   };e.appendChild(tr)};K.dx(x)}
 
-
- 
+function glueTextarea(e,s,x,t){if(t=="L"){x=K.join(K.Kc(10),x)}else if(t!="C"){K.dx(x);return};e.value=sk(x);e.onchange=function(){x=ks(e.value);K.dx(K.Asn(s,t=="L"?K.split(K.Kc(10),x):x))}}
 
 function update(e,path,t,s){ // ui-assign callback
- console.log("update",e,"path",path,"t",t,"s",s)
  var x=K.Cst(K.sc(ks(t=="s"?"":t)), ks(s)) // x:t$s or `$s
  e.setCustomValidity((x==0)?"invalid type "+t:""); if(x==0)return false;
  if(typeof path=="object") K.dx(K.Asn(path[0], K.Dmd(K.Val(path[0]),la(path.slice(1)),BigInt(1),x)))
