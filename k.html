@@ -37,7 +37,7 @@ function hide(x){x.style.display="none"}function unhide(x){x.style.display="bloc
 var runb=ge("_brn");var bui=ge("_bui")
 var edit=ge("_edt");ge("_bed").onclick=function(e){showtab(edit);hide(bui);unhide(runb)}
 var term=ge("_con");ge("_bcn").onclick=function(e){showtab(term);hide(runb);unhide(bui)}
-var udiv=ge("_uid");ge("_brn").onclick=function(e){run()};ge("_bui").onclick=function(e){showtab(udiv)}
+var udiv=ge("_uid");ge("_brn").onclick=function(e){run()};ge("_bui").onclick=function(e){ui()}
 var runb=ge("_brn");
 function showtab(x){hide(term);hide(edit);hide(udiv);unhide(x)}
 
@@ -206,7 +206,10 @@ variables are bound to html elements with the same id, value contain their type.
  button       l  (niladic) <button id='X'/>
  canvas       ID (I:pixels, D:2d-api-calls) <canvas id='X' data-click='c' data-zoom='z'/>  c,z: callbacks
  default      k-string
- 
+
+/vector graphics
+d:\`fillStyle\`fillRect!("green";10 20 50 60)
+ui:"<canvas width=300 height=200 id='d'></canvas>"
  
 s:{(-/x*x;2*/x)}
 m:{+/x*x}
@@ -250,7 +253,11 @@ function glueCheckbox(e,s,x,t){if(t!="b")return;e.checked=lo(x)!=0;e.onchange=fu
 
 function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.height;
  if(t=="I"){x=K.alpha(x);var d=z.createImageData(w,h);d.data.set(C.slice(lo(x),lo(x)+4*K.nn(x)));z.putImageData(d,0,0)}
- else K.dx(x)
+ else if(t=="D"){var [k,x]=K.spl2(x);var n=K.nn(k);for(var i=0;i<n;i++){
+  var s=sk(K.ati(K.rx(k),i));var a=jk(K.ati(K.rx(x),i));
+  console.log(s,a)
+  if(typeof(z[s])==="function")z[s](...a);else z[s]=a}
+ }else{K.dx(x);return}
  if(e.dataset.click){e.ondblclick=function(ev){var f=lup(e.dataset.click);if(lo(f)==0)return;K.dx(K.Cal(f,K.l2(K.Ki(ev.offsetX),K.Ki(ev.offsetY))));ui()}}
  if(e.dataset.zoom){
   var zoom=false; var bg=z.getImageData(0,0,e.width,e.height)
@@ -307,6 +314,16 @@ function kstr(x){var t=K.tp(x);if(t==2)return String.fromCharCode(lo(x));if(t==1
 function lstr(x){return sk(K.join(K.Kc(10),K.Atx(K.sc(ks("l")),x)))}
 function tstr(t){const T="vbcisfzldtcdpl000BCISFZLDT";return T[t]}
 
+function jk(x,t,n,p){msl();t=K.tp(x);if(t>16)n=K.nn(x);p=lo(x);switch(t){
+ case  1: return p==1
+ case  3: return p
+ case  4: return sk(x)
+ case  5: return F[p>>>3]
+ case 18: return sk(x)
+ case 19: var r=[];for(var i=0;i<n;i++) r.push(lo(K.ati(K.rx(x),i))); K.dx(x);return r
+ case 21: var r=[];for(var i=0;i<n;i++) r.push(F[(p>>>3)+i]);         K.dx(x);return r
+ case 23: var r=[];for(var i=0;i<n;i++){r.push(jk(K.ati(K.rx(x),i)))};K.dx(x);return r
+}}
 
 /*
 function framebuffer(x){if(K.nn(x)!=2){K.dx(x);return};
@@ -420,17 +437,6 @@ function showCanvas(x,w,h){x=K.Val(x);var c=ce("canvas");c.width=w;c.height=h;c.
   var s=sk(K.ati(K.rx(k),i));var a=jk(K.ati(K.rx(x),i))
   if(typeof(z[s])==="function")z[s](...a);else z[s]=a       }}return c}
   
-
-function jk(x,t,n,p){t=K.tp(x);if(t>16)n=K.nn(x);p=lo(x);switch(t){
- case  1: return p==1
- case  3: return p
- case  4: return sk(x)
- case  5: return F[p>>>3]
- case 18: return sk(x)
- case 19: var r=[];for(var i=0;i<n;i++) r.push(lo(K.ati(K.rx(x),i))); K.dx(x);return r
- case 21: var r=[];for(var i=0;i<n;i++) r.push(F[(p>>>3)+8*i]);       K.dx(x);return r
- case 23: var r=[];for(var i=0;i<n;i++){r.push(jk(K.ati(K.rx(x),i)))};K.dx(x);return r
-}}
  
 function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
  var a={};for(var i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
