@@ -368,7 +368,8 @@ func ts(x K) T {
 	return 0
 }
 
-func reinterp(t T, x K) K { // `b@ `c@ `i@ `s@ `f@ `z@ (reinterpret data)
+func Rtp(y K, x K) K { // `b@ `c@ `i@ `s@ `f@ `z@ (reinterpret data)
+	t := ts(y)
 	xt := tp(x)
 	t += T(16 * I32B(t < 16))
 	if xt < 16 || t < 17 || t > Zt {

@@ -1,12 +1,17 @@
 /               64      72    80    88     96     104    112    120                          
-``x`y`z`k`l`t`p`while`".rf"`".rz"`".uqs"`".uqf"`".gdt"`".lin"`".odo"
-`".x"`".y"`".z"`".k"`".l"          /128.. (index.go:Atx)
-`".x":{,/+"0123456789abcdef"@(x%16;16/x:0+x)} /`x@ (hex)
-`".y":{x}                          /132
-`".z":{`Z@x}                       /140
-`".k":{(.`".kxy")[x;1000000]}      /148
+``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."
 
-`".l":{t:@x;pad:{(|/#'x)#'x};lst:.`".l";k:(.`".kxy")[;1]
+`"x.":{,/+"0123456789abcdef"@(x%16;16/x:0+x)} /`x@ (hex)
+`"t.":`45         /`t@ token
+`"p.":`46         /`p@ parse
+`"b.":(`46)[`b;]  /`b@ reinterpret
+`"c.":(`46)[`c;]
+`"i.":(`46)[`i;]
+`"s.":(`46)[`s;]
+`"f.":(`46)[`f;]
+`"z.":(`46)[`z;]
+
+`"l.":{t:@x;pad:{(|/#'x)#'x};k:`kxy 1
  kt:{x:$[`T~@x;T x;pad ("";"-"),$x];(x,'"|"),'T y}
  d:{r:!x;x:.x;$[`T~@x;kt[r;x];,'[,'[pad(k'r);"|"];k'x]]}
  T:{$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+pad'$(!x),'.x]}
@@ -14,27 +19,28 @@
  x:$[x~*x;x;(20&#x)#x]
  $[`L~t;k'x;`D~t;d x;`T~t;T x;,k x],dd} /352
 
-`".kxy":{t:@x;n:#x;k:(.`".kxy")[;y];m:y
+`"kxy.":{t:@y;n:#y;k:`kxy x;m:x
  q:{c,("\\"/:(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x':qs:"\t\n\r\"\\"]),c:_34}
  s:{$[|/x':"\t\n\r"__!31;"0x",`x@x;q x]}
- /s:{q x}
  a:{x:$x;$[`c~t;s x;`s~t;"`",x;x]}
  d:{r:"!",k@.x;n:#!x;x:k@!x;$[(1~n)|(@.x)':`D`T;"(",x,")";x],r}
  v:{m*:(.`".kstm")t;  dd:("";"..")m<#x;x:(m&#x)#x
   x:$[`L~t;k'x;`C~t;x;$x]
   x:$[`B~t;(*'x),"b";`C~t;s x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
   (("";",")(1~n)),x,dd}
- $[n~0;(.`".kst0")@t;`T~t;"+",d@+x;`D~t;d x;x~*x;a x;v x]} /344
+ $[n~0;(.`".kst0")@t;`T~t;"+",d@+y;`D~t;d y;y~*y;a y;v y]} /344
+ 
+`"k.":`kxy 1000000
 
-`".uqs":{x@&~0b~':x:^x} 
-`".uqf":{x@&(!#x)=x?x}
-`".gdt":{[t;g](!#t){x g y x}/|.t}
+`"uqs.":{x@&~0b~':x:^x} 
+`"uqf.":{x@&(!#x)=x?x}
+`"gdt.":{[t;g](!#t){x g y x}/|.t}
 
 `".kst0":`B`C`I`S`F`Z`L!("0#0b";c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
 `".kstm":`B`C`I`S`F`Z`L!100 100 30 30 20 10 20
 
-`".lin":{$[`L~@z;(.`".lin")[x;y]'z;[dx:0.+1_-':x;dy:0.+1_-':y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
-`".odo":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}
+`"lin.":{$[`L~@z;(.`"lin.")[x;y]'z;[dx:0.+1_-':x;dy:0.+1_-':y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
+`"odo.":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}
 
 dot:{dotmv:{{+/x*y}\:[x;y]};dotmv[x;y]}
 
@@ -60,9 +66,9 @@ avg:{(+/x)%0.+#x}
 var:{(+/x*x:(x-avg x))%-1+#x}
 std:{%var x}
 
-`".rf": {.5+(x?0)%4294967295.}
-`".rf1":{.5+(1.+x?0)%4294967295.}
-`".rz": {(%-2*log(.`".rf1")x)@360.*(.`".rf")x}
+`"rf.": {.5+(x?0)%4294967295.}
+`"rf1.":{.5+(1.+x?0)%4294967295.}
+`"rz.": {(%-2*log `rf1 x)@360.*`rf x}
 
 `".html":{$[`L~@x;"<div style='display:flex;flex-direction:column'>",(,/(.`".html")'x),"</div>";`S~@x;"<div style='display:flex;flex-direction:row'>",(,/(.`".html")'x),"</div>";~`s~@x;"";{{"<",y," id='",x,"'></",y,">"}[x;$[y':`i`c`f`z`s`I`B`C`F`Z`S;"input";`b~y;"input type='checkbox'";`T~y;"table";`l~t;"button";"pre"]]}[$x;@.x]]}
 

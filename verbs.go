@@ -81,7 +81,7 @@ func Til(x K) (r K) {
 		return seq(int32(x))
 	}
 	if xt == It {
-		return kx(120, x)
+		return kx(120, x) // odo
 	}
 	return trap(Type)
 }

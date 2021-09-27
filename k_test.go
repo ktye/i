@@ -242,7 +242,7 @@ func TestRepl(t *testing.T) {
 		[2]string{"1+1", "2\n"},
 		[2]string{"x:!10", ""},
 		[2]string{"\\c", ""},
-		[2]string{"\\m", "16\n"},
+		[2]string{"\\m", "17\n"},
 	}
 	for _, tc := range testCases {
 		newtest()

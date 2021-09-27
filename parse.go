@@ -6,6 +6,7 @@ import (
 
 var ps int32
 
+func Prs(x K) (r K) { return parse(Tok(x)) } // `p"src"  `p(token list)
 func parse(x K) (r K) {
 	if tp(x) != Lt {
 		trap(Type)

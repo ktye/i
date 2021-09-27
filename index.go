@@ -17,18 +17,7 @@ func Atx(x, y K) (r K) { // x@y
 					return K(int32(y))
 				}
 			}
-			if xp < 48 { // `x`y`z`k`l
-				return kx(120+xp, y)
-			} else {
-				switch (xp - 48) >> 3 {
-				case 0: // `t@"src" (token)
-					return Tok(y)
-				case 1: // `p@"src" `p@(token-list)
-					return parse(Tok(y))
-				default:
-					return reinterp(ts(x), y)
-				}
-			}
+			return cal(Val(sc(cat1(cs(x), Kc('.')))), l1(y))
 		}
 	}
 	if xt > Lt && yt < Lt {
