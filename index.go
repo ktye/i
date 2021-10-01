@@ -285,14 +285,10 @@ func atdepth(x, y K) (r K) {
 	}
 	y = ndrop(1, y)
 	if tp(f) > 16 {
-		if nn(y) != 1 {
-			trap(Rank)
+		if nn(y) == 1 && xt == Tt {
+			return Atx(x, Fst(y))
 		}
-		y = Fst(y)
-		if xt == Tt {
-			return Atx(x, y)
-		}
-		return Ecl(19, l2(x, y))
+		return Ecl(20, l2(x, y))
 	}
 	return atdepth(x, y)
 }
