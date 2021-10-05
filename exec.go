@@ -111,6 +111,9 @@ func Asn(x, y K) K {
 func Amd(x, i, v, y K) (r K) {
 	//fmt.Printf("amend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
 	xt := tp(x)
+	if xt == st {
+		return Asn(x, Amd(Val(x), i, v, y))
+	}
 	if xt < 16 {
 		trap(Type)
 	}
@@ -160,6 +163,9 @@ func Amd(x, i, v, y K) (r K) {
 }
 func Dmd(x, i, v, y K) (r K) {
 	// fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+	if tp(x) == st {
+		return Asn(x, Dmd(Val(x), i, v, y))
+	}
 	i = explode(i)
 	f := Fst(rx(i))
 	if nn(i) == 1 {
