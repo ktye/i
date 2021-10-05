@@ -265,7 +265,7 @@ function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.heig
   var zm=function(ev){if(zoom!==false){zoom=[zoom[0],zoom[1],ev.clientX-zoom[0],ev.clientY-zoom[1]];z.putImageData(bg,0,0);z.beginPath();z.rect(...zoom);z.strokeStyle='red';z.stroke()}}
   var ze=function(ev){z.putImageData(bg,0,0);e.style.cursor="";if(Math.abs(zoom[2])< 5||Math.abs(zoom[3])<5){zoom=false;return}
    console.log("zoom",zoom);
-   var f=lup(e.dataset.zoom);if(lo(f)!=0){K.dx(K.Cal(f,K.l1(K.Cat(K.Cat(K.Ki(zoom[0]),K.Ki(zoom[1])),K.Cat(K.Ki(zoom[2]),K.Ki(zoom[3]))))));ui()}
+   var f=lup(e.dataset.zoom);if(lo(f)!=0){K.dx(K.Cal(f,K.l1(K.Cat(K.Cat(K.Ki(zoom[0]),K.Ki(zoom[1])),K.Cat(K.Ki(zoom[0]+zoom[2]),K.Ki(zoom[1]+zoom[3]))))));ui()}
    zoom=false;e.onmousemove=null}
   e.onmousedown=zs;e.onmouseup=ze}}
 
@@ -345,130 +345,6 @@ function framebuffer(x){if(K.nn(x)!=2){K.dx(x);return};
  }
  showtab(udiv)
 }
-*/
-
-/* (generate html elements from a k-list)
-   //  x:1   /variable with type
-   // ui:`x  /ui references variables (double-binding)
-   // ui:("label";`x)   /add a label
-   // ui:`x`y`z         /container of 3 widgets (default: row direction)
-   // ui:("v";`x;`y;`z) /container with vertical layout (flexDirection:"column")
-   // ui:("c";`x;vec)   /combobox, vec is a list of options (vector type of x)
-   // ui:("l";`x;`sel)  /listbox x maybe list/vector/dict/table; sel atom(single-select) vector(multi-select)
-   // ui:("e";`x)       /textarea
-function showui(x,p){var e=p;var ver=false
- var t=K.tp(x);if(t< 16){x=K.Enl(x);t+=16}
- else          if(t==18||t==24){x=K.Enl(x);t=23} //char/dict
- var n=K.nn(x);if((n>1)&&t==23){var h=K.Fst(K.rx(x));if(K.tp(h)==2){
-  switch(lo(h)){
-  case  99: display(showCombo(K.ndrop(1,x)),p,x);      return  // ("c";`x;options)
-  case 101: display(showEditor(K.Las(x)),p,x);         return  // ("e";`x)
-  case 103: display(showCanvas(K.Las(x),300,200),p,x); return  // ("g";d) ("g";d;[w h (nyi)])
-  case 108: display(showListbox(K.ndrop(1,x)),p,x);    return  // ("l";`x;`sel)
-  case 118: ver=true; x=K.ndrop(1,x); n--; break               // ("v";...)
-  }}else{K.dx(h)}}
- if(n>1){e=ce("div");e.style.display="flex";e.style.flexDirection=ver?"column":"row"}
- for(var i=0;i<n;i++){var xi=K.ati(K.rx(x),i);t=K.tp(xi)
-  switch(t){
-  case  4: show(e,xi);               break // symbol (variable-binding)
-  case 18: showText(e,sk(K.rx(xi))); break // char   (text node)
-  case 24: showCustom(e,K.rx(xi));   break // dict   (custom element)
-  default: showui(K.rx(xi),e);       break // list   (nested row/column)
-  }K.dx(xi)};K.dx(x)
- display(e,p,x)}
-function display(e,p,x){if(e!=p&&e!=undefined)p.appendChild(e);ide.style.display=x?"none":block;uid.style.display=x?"block":"none"}
-
-
-function show(p,s){var x=lookup(s);var e;var t=K.tp(x)
- if(t==13 && typeof(s)!=="object"){ //lambda (button)
-  e=ce("button");e.textContent=pathname(s)
-  e.onclick=function(){ktry(function(){K.Cal(K.Val(s),K.mk(23,0)); ui()})}
-  K.dx(x);p.appendChild(e)
- }else if(t>0&&t<23){
-  e=ce("input");e.className=tstr(t);e.title=pathname(s)+"("+tstr(t)+")"
-  var get=function(e){return e.value}; var set=function(e,s){e.value=s}
-  if(t==1){ e.type="checkbox";get=function(e){return e.checked?"1b":"0b"}; set=function(e,s){e.checked=s=="1b"}; }
-  set(e,kstr(x))
-  e.onchange=function(){var v=get(e);var r=update(e,s,tstr(t),v);if(r)e.value=v;return r}
-  p.appendChild(e)
- }else if(t==24){ // dict
-  var k=K.x0(lo(x));var v=K.x1(lo(x));K.dx(x);var n=K.nn(k);if(K.tp(k)!=20){K.dx(k);K.dx(v);return} // only `s!..
-  var te=ce("table");
-  for(var i=0;i<n;i++){var ki=K.ati(K.rx(k),i);
-   var tr=ce("tr");var th=ce("th");th.innerText=sk(ki);tr.appendChild(th);
-   var td=ce("td");show(td,pushpath(s,ki),K.ati(K.rx(v),i));tr.appendChild(td);te.appendChild(tr)}
-  p.appendChild(te);K.dx(k);K.dx(v)
- }else if(t==25) showTable(p,x,s); else K.dx(x)}
-
-function showTable(p,x,s){var ta=ce("table");var n=K.nn(x);var [k,x]=K.spl2(x);var m=K.nn(k);var ks=[]
- var tr=ce("tr");for(var i=0;i<m;i++){var th=ce("th");ks[i]=K.ati(K.rx(k),i);th.textContent=sk(ks[i]);
-  th.onclick=function(evt){selectColumn(ta,evt.target,evt.target.classList.toggle("sel"))}
-  tr.appendChild(th)};ta.appendChild(tr);K.dx(k)
- for(var j=0;j<n;j++){
-  var tr=ce("tr");for(var i=0;i<m;i++){var xi=K.x0(lo(x)+8*i);var ki=K.ati(K.rx(k),i);
-   var td=ce("td");td.textContent=sk(K.ati(xi,j));
-   td.ondblclick=cellUpdate(ta,s,ks[i],tr,j,i);
-   td.onclick=function(evt){evt.target.classList.toggle("sel")}
-   tr.appendChild(td)
-  };ta.appendChild(tr)
- };p.appendChild(ta)}
-
-function showText(p,s){var e=ce("span");e.textContent=s;p.appendChild(e)}
-function showEditor(x){var s=x;x=K.Val(x);var e=ce("textarea");e.value=sk(K.rx(x));e.onchange=function(){K.dx(K.Asn(s,ks(e.value)))};K.dx(x);return e}
-
-function showCombo(x){var s=K.Fst(K.rx(x));if(K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;options)
- var o=K.ati(K.rx(x),1);K.dx(x);x=K.Val(s);var t=K.tp(x);x=kstr(x);
- var e=ce("select");e.className=tstr(t);e.onchange=function(){update(e,s,tstr(t),e.value)};var n=K.nn(o)
- for(var i=0;i<n;i++){var oe=ce("option");oe.className=tstr(t);var si=kstr(K.ati(K.rx(o),i));oe.selected=si==x;oe.value=si;oe.innerText=si;e.appendChild(oe)}
- K.dx(o);return e}
- 
-function showListbox(x){var s=K.Las(K.rx(x));var x=K.Fst(x);if(K.tp(x)!=4||K.tp(s)!=4){K.dx(x);K.dx(s);return} //(`s;`sel)
- var ss=s;var s=K.Val(s);var xs=x;x=K.Val(x);var t=K.tp(x);if(t==24){s=K.Fnd(K.Til(K.rx(x)),s)};var multi=K.tp(s)>16
- x=K.Lst(x);var n=K.nn(x);var e=ce("select");e.multiple=multi;if(!multi)e.size=n
- e.onchange=function(){var i=multi?selectedIndexes(e):K.Ki(e.selectedIndex);K.dx(K.Asn(ss,(t==24)?K.Atx(K.Til(K.Val(xs)),i):i))}
- for(var i=0;i<n;i++){var oe=ce("option");var si=kstr(K.ati(K.rx(x),i));oe.selected=inSelection(i,s,t);oe.value=si;oe.innerText=si;e.appendChild(oe)}
- K.dx(x);return e}
-
-function inSelection(i,sel,t){if(K.tp(sel)==3){return (i-((t==25)?1:0))==lo(sel)}else{return lo(K.in(K.Ki(i),sel,3))!=0}}
-
-function showCanvas(x,w,h){x=K.Val(x);var c=ce("canvas");c.width=w;c.height=h;c.style="border:1px solid red";var z=c.getContext('2d');
- if(K.tp(x)==19){var d=new ImageData(new Uint8ClampedArray(C.slice(lo(x),lo(x)+4*K.nn(x))),w,h);for(var i=3;i<d.data.length;i+=4)d.data[i]=255;z.putImageData(d,0,0)}
- else{var [k,x]=K.spl2(x);var n=K.nn(k);for(var i=0;i<n;i++){
-  var s=sk(K.ati(K.rx(k),i));var a=jk(K.ati(K.rx(x),i))
-  if(typeof(z[s])==="function")z[s](...a);else z[s]=a       }}return c}
-  
- 
-function showCustom(p,x){var [k,x]=K.spl2(x);if(20!=K.tp(k)){K.dx(x);K.dx(k);return};var n=K.nn(k)
- var a={};for(var i=0;i<n;i++){var v=K.ati(K.rx(x),i);var t=K.tp(v);a[sk(K.ati(K.rx(k),i))]=(t==18||t==4)?sk(v):sk(K.Kst(v))}
- K.dx(k);K.dx(x);n=a[""];if(n==undefined){return};delete a[""];
- var e=ce(n);for(let k in a)e[k]=a[k];p.appendChild(e)}
-
-function lookup(s){ //symbol or path: [symbol;symbol;..]
- if(typeof s=="object"){ var r=K.Val(s[0]);s=s.slice(1);for(var i=0;i<s.length;i++)r=K.Atx(r,s[i]); return r }
- else return K.Val(s) }
-
-function pathname(s)   { return (typeof s=="object") ? s.map(x=>sk(x)).join(".") : sk(s) }
-function pushpath(s,a) { return (typeof s=="object") ? s.concat(a) : [s,a] }
-
-function cellUpdate(ta,s,ki,tr,j,i){
- return function(){unselect(ta,i)
- var td=tr.childNodes[i];var t=td.textContent;td.textContent="";  show(td,pushpath(pushpath(s,ki),K.Ki(j)))
- var e=td.firstChild;
- var totext=function(){var t=e.value;td.removeChild(e);td.textContent=t}
- var f=e.onchange;e.onchange=function(){if(f()){totext();extendToSel(pushpath(s,ki),ta,j,i)}}
- e.onkeydown=function(evt){if(evt.key=="Escape"&&e.validity.valid)totext()}}}
-
-function extendToSel(s,ta,row,col){
- var idx=[];var r=ta.children;for(var i=1;i<r.length;i++){var c=r[i].children;if(c[col].className=="sel")idx.push(i-1)}
- var c=lookup(s);var v=lookup(pushpath(s,K.Ki(row)));var t=kstr(K.rx(v))
- for(var i=0;i<idx.length;i++){c=K.sti(c,idx[i],K.rx(v));r[1+idx[i]].children[col].innerText=t}
- K.dx(K.Asn(s[0], K.Dmd(K.Val(s[0]),la(s.slice(1)),BigInt(1),c)))}
-
-function unselect(ta,j){var r=ta.children;for(var i=0;i<r.length;i++){var c=r[i].children;for(var k=0;k<c.length;k++)if(k!=j)c[k].className=""}}
-
-function selectColumn(ta,th,v){
- function colidx(){var c=ta.firstChild.children;for(var i=0;i<c.length;i++)if(c[i]==th)return i}
- var j=colidx();var r=ta.children;for(var i=0;i<r.length;i++){var c=r[i].children[j].className=v?"sel":""}}
 */
 
 </script>
