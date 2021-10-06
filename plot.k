@@ -37,12 +37,13 @@ Plot:{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
  po:{[]c,:`fillText!((s;2\W-w*#s:(x`l)0;h);($(x`a)3;W%2;H))
        c,:`strokeStyle`lineWidth`beginPath`arc`stroke`clip!("black";2;();(W%2;H%2;(H%2)-h;0;2p);();())
        c,:`strokeStyle`lineWidth`moveTo`lineTo`stroke`moveTo`lineTo`stroke!("lightgrey";1;(h;H%2);(W-h;H%2);();(W%2;h);(W%2;H-h);())
+       c,:d@,/{(`beginPath;();`arc;(W%2;H%2;x;0;2p);`stroke;())}'(xs`tics 0.,x[`a;3])-W%2
  };$[`xy~x`t;xy[];po[]]
  
  c,:d@,/line'x`L
  back:{[a;dst;x;y]((dst 0 1)(a 0 1)'x;(dst 2 3)(a 2 3)'y)}[a;dst]  /transform canvas to axis
- click:{[b;s;x;y];(`0)[s;"\n"/:("x:";"y:"),'$b[x;y]]}[back;`$($sym),".d"]
- zoom:{[b;s;x]a:b[x 0;x 1],b[x 2;x 3];.[s;(`a;0 2 1 3);@[(^a 0 2),^a 1 3;0 2 1 3]];Plot s}[back;sym]
+ click:{[b;s;t;x;y];(`0)[s;$[t~`xy;"\n"/:("x:";"y:"),'$b[x;y]; $imag/|b[x;y]]]}[back;`$($sym),".d";x`t]
+ zoom:{[b;s;x]a:b[x 0;x 1],b[x 2;x 3];.[s;(`a;0 2 1 3);@[(^a 0 2),^a 1 3;0 2 1 3]];.[s;`t;`xy];Plot s}[back;sym]
  (`0)[`$($sym),".c";c]     /assign to dynamic symbol
  (`0)[`$($sym),".k";click]
  (`0)[`$($sym),".d";""]
@@ -58,5 +59,6 @@ x:(0 9)(0 4p)'!10
 y:(sin x;cos x)
 /p:plot `xtitle`ytitle!(x;y)
 p:plot `title!,(2a30+?10a;3a270+?10a)
+
 
 
