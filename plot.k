@@ -9,11 +9,11 @@ PW:600;PH:400
 plot:{plt::`plot x;Plot`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  ui::"<canvas width=",($PW)," height=",($PH)," id='",(s`c),"' data-click='",(s`k),"' data-zoom='",(s`z),"'></canvas><div id='",(s`d),"'></div>"}
 
-`"plot.":{[d];l:$!d;v:.d; t:$[2~#l;`xy;`polar];
- y:$[t~`xy; $[`L~@y:v 1;y;,y];              _v]
- x:$[t~`xy; $[`L~@x:v 0;x;(,x)@(#y)#0]; imag v]
+`"plot.":{[d];l:$!d;v:.d; t:$[2~#d;`xy;`polar];
+ y:$[t~`xy; $[`L~@y:v 1;y;,y];          $[`L~@y:_*v;y;,y]]
+ x:$[t~`xy; $[`L~@x:v 0;x;(,x)@(#y)#0]; $[`L~@x:imag@*v;x;,x]]
  xt:`tics(&/&/x;|/|/x);yt:`tics(&/&/y;|/|/y)
- a:(xt 0;*-1#xt;yt 0;*-1#yt)
+ a:$[t~`xy;(xt 0;*-1#xt;yt 0;*-1#yt);(-a;a;-a;a:*|`tics@0.,|/|/abs@*v)]
  c:c@(#c:","\:"#1f77b4,#ff7f0e,#2ca02c,#d62728,#9467bd,#8c564b,#e377c2,#7f7f7f,#bcbd22,#17becf")/!#x
  style:$[t~`xy;"--";".."] / -.| line points bar
  size: $[t~`xy;2;5]
@@ -28,12 +28,17 @@ Plot:{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
  d:{(x i)!x 1+i:2*!2\#x}
  line:{[l](`lineWidth;l`size;`strokeStyle;l`color;`beginPath;()),(,/(`moveTo,(-1+#l`x)#`lineTo),','+(xs l`x;ys l`y)),(`stroke;())}
  c:`font`textBaseline!(x`f;"bottom")
- c,:`fillText!(($a 0;w;H);(s;2\W-w*#s:(x`l)0;PH);(s;W-w*1+#s:$a 1;H))
- c,:`fillText!((("[",(", "/:$a 2 3),"]");w;h);(s;2\W-w*#s:(x`l)1;h))
- c,:`rect`strokeStyle`lineWidth`stroke`clip!(rdst;"black";2;();())
- c,:`strokeStyle`lineWidth!("lightgrey";1)
- c,:d@,/{(`moveTo;(x;dst 2);`lineTo;(x;dst 3);`stroke;())}'xs`tics x[`a;0 1]
- c,:d@,/{(`moveTo;(dst 0;x);`lineTo;(dst 1;x);`stroke;())}'ys`tics x[`a;2 3]
+ xy:{[]c,:`fillText!(($a 0;w;H);(s;2\W-w*#s:(x`l)0;PH);(s;W-w*1+#s:$a 1;H))
+       c,:`fillText!((("[",(", "/:$a 2 3),"]");w;h);(s;2\W-w*#s:(x`l)1;h))
+       c,:`rect`strokeStyle`lineWidth`stroke`clip!(rdst;"black";2;();())
+       c,:`strokeStyle`lineWidth!("lightgrey";1)
+       c,:d@,/{(`moveTo;(x;dst 2);`lineTo;(x;dst 3);`stroke;())}'xs`tics x[`a;0 1]
+       c,:d@,/{(`moveTo;(dst 0;x);`lineTo;(dst 1;x);`stroke;())}'ys`tics x[`a;2 3]}
+ po:{[]c,:`fillText!((s;2\W-w*#s:(x`l)0;h);($(x`a)3;W%2;H))
+       c,:`strokeStyle`lineWidth`beginPath`arc`stroke`clip!("black";2;();(W%2;H%2;(H%2)-h;0;2p);();())
+       c,:`strokeStyle`lineWidth`moveTo`lineTo`stroke`moveTo`lineTo`stroke!("lightgrey";1;(h;H%2);(W-h;H%2);();(W%2;h);(W%2;H-h);())
+ };$[`xy~x`t;xy[];po[]]
+ 
  c,:d@,/line'x`L
  back:{[a;dst;x;y]((dst 0 1)(a 0 1)'x;(dst 2 3)(a 2 3)'y)}[a;dst]  /transform canvas to axis
  click:{[b;s;x;y];(`0)[s;"\n"/:("x:";"y:"),'$b[x;y]]}[back;`$($sym),".d"]
@@ -51,50 +56,7 @@ Plot:{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
 
 x:(0 9)(0 4p)'!10
 y:(sin x;cos x)
-p:plot `xtitle`ytitle!(x;y)
+/p:plot `xtitle`ytitle!(x;y)
+p:plot `title!,(2a30+?10a;3a270+?10a)
 
 
-
-*&x<1.5 3 7 0w
-
-/n := int(math.Ceil(extent/spacing + 0.5))
-
-/`"tics.":{[minmax]nice:{[x;r]f:x%10^ex:_log[10;x];(1 2 5 10.@1+(1 2 5.;1.5 3 7)[r]'f)*10^ex}
-
-/func NiceLimits(min, max float64) (niceMin, niceMax, spacing float64) {
-/	maxTicks := 5
-/
-/	extent := NiceNumber(max-min, false)
-/	spacing = NiceNumber(extent/float64(maxTicks-1), true)
-/	niceMin = math.Floor(min/spacing) * spacing
-/	niceMax = math.Ceil(max/spacing) * spacing
-/
-/	return niceMin, niceMax, spacing
-/}
-/func NiceNumber(extent float64, round bool) float64 {
-/	exponent := math.Floor(math.Log10(extent))
-/	fraction := extent / math.Pow10(int(exponent))
-/	var niceFraction float64
-/	if round {
-/		if fraction < 1.5 {
-/			niceFraction = 1
-/		} else if fraction < 3 {
-/			niceFraction = 2
-/		} else if fraction < 7 {
-/			niceFraction = 5
-/		} else {
-/			niceFraction = 10
-/		}
-/	} else {
-/		if fraction <= 1 {
-/			niceFraction = 1
-/		} else if fraction <= 2 {
-/			niceFraction = 2
-/		} else if fraction <= 5 {
-/			niceFraction = 5
-/		} else {
-/			niceFraction = 10
-/		}
-/	}
-/	return niceFraction * math.Pow10(int(exponent))
-/}
