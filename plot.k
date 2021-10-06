@@ -31,9 +31,10 @@ Plot:{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
  c,:`fillText!(($a 0;w;H);(s;2\W-w*#s:(x`l)0;PH);(s;W-w*1+#s:$a 1;H))
  c,:`fillText!((("[",(", "/:$a 2 3),"]");w;h);(s;2\W-w*#s:(x`l)1;h))
  c,:`rect`strokeStyle`lineWidth`stroke`clip!(rdst;"black";2;();())
+ c,:`strokeStyle`lineWidth!("lightgrey";1)
+ c,:d@,/{(`moveTo;(x;dst 2);`lineTo;(x;dst 3);`stroke;())}'xs`tics x[`a;0 1]
+ c,:d@,/{(`moveTo;(dst 0;x);`lineTo;(dst 1;x);`stroke;())}'ys`tics x[`a;2 3]
  c,:d@,/line'x`L
- xt:`xt \`tics x[`a;0 1]
- yt:`yt \`tics x[`a;2 3]
  back:{[a;dst;x;y]((dst 0 1)(a 0 1)'x;(dst 2 3)(a 2 3)'y)}[a;dst]  /transform canvas to axis
  click:{[b;s;x;y];(`0)[s;"\n"/:("x:";"y:"),'$b[x;y]]}[back;`$($sym),".d"]
  zoom:{[b;s;x]a:b[x 0;x 1],b[x 2;x 3];.[s;(`a;0 2 1 3);@[(^a 0 2),^a 1 3;0 2 1 3]];Plot s}[back;sym]
@@ -44,18 +45,21 @@ Plot:{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
 }
 
 
-`"tics.":{[minmax]nice:{[x;r]f:x%10^ex:_log[10;x];(1 2 5 10.@1+(1 2 5.;1.5 3 7)[r]'f)*10^ex}
- e:nice[-/|`minmax \minmax;0];s:nice[e%4.;1];n:_1.5+e%s;s*(_(*minmax)%s)+!n}
+
+`"tics.":{[minmax]nice:{[x;r]f:x%10^ex:_log[10;x];(1 2 5 10.@*&(f<1.5 3 7 0w;~f>1 2 5 0w)[r])*10^ex}
+ e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;s*(_(*minmax)%s)+!n}
 
 x:(0 9)(0 4p)'!10
 y:(sin x;cos x)
 p:plot `xtitle`ytitle!(x;y)
 
- 
 
+
+*&x<1.5 3 7 0w
 
 /n := int(math.Ceil(extent/spacing + 0.5))
 
+/`"tics.":{[minmax]nice:{[x;r]f:x%10^ex:_log[10;x];(1 2 5 10.@1+(1 2 5.;1.5 3 7)[r]'f)*10^ex}
 
 /func NiceLimits(min, max float64) (niceMin, niceMax, spacing float64) {
 /	maxTicks := 5
