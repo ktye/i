@@ -69,7 +69,7 @@ std:{%var x}
 `"rf.": {.5+(x?0)%4294967295.}
 `"rf1.":{.5+(1.+x?0)%4294967295.}
 `"rz.": {(%-2*log `rf1 x)@360.*`rf x}
-
+`"split.":{$[`L~@x;`split@'x;" "\:$[" "=x@-1+#x:x@&~i&~':i:" "=x;-1_x;x]]} /multiple whitespace/leading/trailing
 `".html":{$[`L~@x;"<div style='display:flex;flex-direction:column'>",(,/(.`".html")'x),"</div>";`S~@x;"<div style='display:flex;flex-direction:row'>",(,/(.`".html")'x),"</div>";~`s~@x;"";{{"<",y," id='",x,"'></",y,">"}[x;$[y':`i`c`f`z`s`I`B`C`F`Z`S;"input";`b~y;"input type='checkbox'";`T~y;"table";`l~t;"button";"pre"]]}[$x;@.x]]}
 
 PW:600;PH:400

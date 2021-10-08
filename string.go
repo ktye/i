@@ -294,7 +294,7 @@ func trdot(x K) K {
 func Cst(x, y K) (r K) { // x$y
 	yt := tp(y)
 	if yt > Zt {
-		return Ecl(18, l2(x, y))
+		return Ecr(17, l2(x, y))
 	}
 	if yt == ct {
 		y, yt = Enl(y), Ct
@@ -325,7 +325,7 @@ func prs(t T, y K) (r K) { // s$C
 	}
 	if t == 4 {
 		r = Fst(tsym()) // `s$"`a"
-	} else if t > 2 && t < 6 {
+	} else if t > 2 && t <= 6 {
 		r = tnum()
 		if tp(r) < t && r != 0 {
 			r = uptype(r, t) // `f$"1"
