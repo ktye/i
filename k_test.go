@@ -38,7 +38,7 @@ func mkchars(b []byte) (r K) {
 func intvalue(x K) int32     { return int32(x) }
 func floatvalue(x K) float64 { return F64(int32(x)) }
 func TestTypes(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
 	xi := Ki(-5)
 	if v := intvalue(xi); v != -5 {
@@ -76,7 +76,7 @@ func TestBucket(t *testing.T) {
 	}
 }
 func TestMk(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
 	r := mk(It, 2)
 	if rc := I32(int32(r) - 4); rc != 1 {
@@ -93,13 +93,13 @@ func TestMk(t *testing.T) {
 	}
 }
 func TestFloat(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
 	dx(val(Ku(35382781554225)))
 	reset()
 }
 func TestVerbs(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
 	x := Til(Ki(3))
 	if r := int32(Cnt(x)); r != 3 {
@@ -107,7 +107,7 @@ func TestVerbs(t *testing.T) {
 	}
 }
 func TestTok(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	tc := []struct {
 		in, exp string
 	}{
@@ -125,7 +125,7 @@ func TestTok(t *testing.T) {
 	}
 }
 func TestMultiline(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	tc := []struct {
 		in, exp string
 	}{
@@ -141,9 +141,9 @@ func TestMultiline(t *testing.T) {
 	}
 }
 func TestShuffle(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	newtest()
-	shuffle(seq(8), 5)
+	dx(shuffle(seq(8), 5))
 	reset()
 }
 func TestKT(t *testing.T) {
@@ -182,6 +182,7 @@ func TestKE(t *testing.T) {
 	}
 }
 func TestTraps(t *testing.T) {
+	//t.Skip()
 	testCases := []struct {
 		f func()
 		e int32
@@ -242,7 +243,7 @@ func TestRepl(t *testing.T) {
 		[2]string{"1+1", "2\n"},
 		[2]string{"x:!10", ""},
 		[2]string{"\\c", ""},
-		[2]string{"\\m", "17\n"},
+		[2]string{"\\m", "18\n"},
 	}
 	for _, tc := range testCases {
 		newtest()
@@ -312,7 +313,7 @@ func check() { // debug in reset()
 		t += mark(i) * (int32(1) << i)
 	}
 	if t != 1<<I32(128) {
-		total := (int32(1) << I32(128)) - 4096
+		total := (int32(1) << I32(128)) - 8192
 		if total-t != 0 {
 			fmt.Printf("free %d of %d (+%d)\n", t, total, total-t)
 		}
@@ -335,7 +336,7 @@ func mark(i int32) (r int32) {
 }
 func scan() {
 	total := int32(1) << I32(128)
-	p := int32(4096)
+	p := int32(8192)
 	for {
 		t := I32(p + 4)
 		if t < 5 || t > 31 {

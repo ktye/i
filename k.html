@@ -231,7 +231,7 @@ function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(fun
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
 function showui(x,p){var e=p;/*if(K.tp(x)==19){return framebuffer(x)};*/if(K.tp(x)!=18){x=K.Atx(K.Val(K.sc(ks(".html"))),x)};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
 function glueAll(p){var nodes=p.childNodes;if(nodes.length==0)glue(p);for(var i=0;i<nodes.length;i++){glueAll(nodes[i])}}
-function glue(e){if(e.id===undefined)return; console.log("glue",e.id,e); var s=K.sc(ks(e.id));var x=K.Val(s);if(lo(s)==0)return;var t=tstr(K.tp(x))
+function glue(e){if(e.id===undefined)return;var s=K.sc(ks(e.id));var x=K.Val(s);if(lo(s)==0)return;var t=tstr(K.tp(x))
  switch(e.nodeName){
  case "INPUT":    glueInput(e,s,x,t); break;
  case "CANVAS":   glueCanvas(e,s,x,t); break;
@@ -255,7 +255,6 @@ function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.heig
  if(t=="I"){x=K.alpha(x);var d=z.createImageData(w,h);d.data.set(C.slice(lo(x),lo(x)+4*K.nn(x)));z.putImageData(d,0,0)}
  else if(t=="D"){var [k,x]=K.spl2(x);var n=K.nn(k);for(var i=0;i<n;i++){
   var s=sk(K.ati(K.rx(k),i));var a=jk(K.ati(K.rx(x),i));
-  console.log(s,a)
   if(typeof(z[s])==="function")z[s](...a);else z[s]=a}
  }else{K.dx(x);return}
  if(e.dataset.click){e.ondblclick=function(ev){var f=lup(e.dataset.click);if(lo(f)==0)return;K.dx(K.Cal(f,K.l2(K.Ki(ev.offsetX),K.Ki(ev.offsetY))));ui()}}
@@ -264,7 +263,6 @@ function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.heig
   var zs=function(ev){e.onmousemove=zm;zoom=[ev.clientX,ev.clientY,0,0];e.style.cursor="crosshair"}
   var zm=function(ev){if(zoom!==false){zoom=[zoom[0],zoom[1],ev.clientX-zoom[0],ev.clientY-zoom[1]];z.putImageData(bg,0,0);z.beginPath();z.rect(...zoom);z.strokeStyle='red';z.stroke()}}
   var ze=function(ev){z.putImageData(bg,0,0);e.style.cursor="";if(Math.abs(zoom[2])< 5||Math.abs(zoom[3])<5){zoom=false;return}
-   console.log("zoom",zoom);
    var f=lup(e.dataset.zoom);if(lo(f)!=0){K.dx(K.Cal(f,K.l1(K.Cat(K.Cat(K.Ki(zoom[0]),K.Ki(zoom[1])),K.Cat(K.Ki(zoom[0]+zoom[2]),K.Ki(zoom[1]+zoom[3]))))));ui()}
    zoom=false;e.onmousemove=null}
   e.onmousedown=zs;e.onmouseup=ze}}

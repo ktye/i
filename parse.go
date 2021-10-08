@@ -184,6 +184,10 @@ func plam(s0 int32) (r K) {
 			trap(Parse)
 		}
 		ar = nn(loc)
+		if ar == 0 {
+			dx(loc)
+			loc = mk(St, 0)
+		}
 	} else {
 		pp -= 8
 		loc = mk(St, 0)
@@ -208,7 +212,7 @@ func plam(s0 int32) (r K) {
 			}
 			cp += 8
 		}
-		loc = Unq(Cat(ntake(ar, rx(xyz)), loc))
+		loc = Cat(ntake(ar, rx(xyz)), loc)
 	}
 	i := Add(seq(1+ps-s0), Ki(s0-1))
 	s := atv(rx(src), i)

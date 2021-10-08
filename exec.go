@@ -25,6 +25,7 @@ func exec(x K) K {
 	for p < e {
 		u := K(I64(p))
 		//fmt.Printf("exec p=%d tp=%d int32=%d case(%d) %s\n", p, tp(u), int32(u), int32(u)>>6, sK(u))
+		//fmt.Printf("exec p=%d tp=%d int32=%d case(%d)\n", p, tp(u), int32(u), int32(u)>>6)
 		if tp(u) != 0 {
 			push(a)
 			a = rx(u)

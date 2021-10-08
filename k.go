@@ -1,6 +1,8 @@
 package main
 
-import . "github.com/ktye/wg/module"
+import (
+	. "github.com/ktye/wg/module"
+)
 
 const nai int32 = -2147483648 // 0N
 var src, loc, xyz K
@@ -51,7 +53,7 @@ func init() {
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
 
 func kinit() {
-	minit(12, 16) //4k..64k
+	minit(13, 16) //8k..64k
 	sp = 256
 	src = 0
 	loc = 0
@@ -77,7 +79,7 @@ func reset() {
 	dx(K(I64(0)))
 	dx(K(I64(8)))
 	//check() // k_test.go
-	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
+	if (uint32(1)<<uint32(I32(128)))-(8192+mcount()) != 0 {
 		trap(Err)
 	}
 	for i := int32(5); i < 31; i++ {
