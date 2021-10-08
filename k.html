@@ -95,7 +95,7 @@ function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdfl
  msl();filename=su(C.slice(path,path+pathlen));if(oflags==0)return 1;U[res>>2]=3;return 0 //no read in js.
 } 
 function fd_write(fd,p,nio,nw){
- msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){term.O(su(u))}else{download(filename,u)};return 0
+ msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){term.O(su(u))}else if(fd==2){ed.setValue(su(u));showtab(edit);ed.refresh()}else{download(filename,u)};return 0
 }
 var env={wasi_unstable:{ 
 // l32:function(x){console.log(x);return x},
@@ -158,14 +158,14 @@ term.O=out(term)
 term.exec = function(s){term.value+="\n";ktry(s);term.O(" ")}
 term.help = "...\n"
 
-function run(){showtab(term);
- var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";
+function run(s){showtab(term);
+ if(s==undefined){var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";}
  var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p-1), ed.posFromIndex(p), {"scroll":true}) } else {term.value+=" ";ui()}
 }
-function assign(s,u){
- term.value+=" /"+s+":.. ("+u.length+" bytes)\n "
- ktry(function(){K.dx(K.Asn(K.sc(ks(s)),ku(u)))})
-}
+//function assign(s,u){
+// term.value+=" /"+s+":.. ("+u.length+" bytes)\n "
+// ktry(function(){K.dx(K.Asn(K.sc(ks(s)),ku(u)))})
+//}
 
 
 // drop file in console (store in variable)
@@ -175,9 +175,8 @@ function addfile(x){
  var r = new FileReader()
  r.onload = function(){
   var u = new Uint8Array(r.result)
-  assign(x.name,u)
-  ed.setValue(su(u))
-  if(x.name.endsWith(".k")==false){runb.value=x.name;runb.innerText=x.name+":"}
+  if(x.name.endsWith(".k")) run(su(u))
+  else ktry(function(){term.value+=" /"+x.name+":.. ("+u.length+" bytes)\n ";asn(x.name,ku(u))})
  }
  r.readAsArrayBuffer(x)
 }

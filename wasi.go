@@ -39,6 +39,9 @@ func repl(x K) {
 				} else if c == 'c' {
 					dx(x)
 					reset()
+				} else if c == 'e' { // \e var (edit)
+					s := sc(ndrop(3, x))
+					write2(Atx(Atx(sc(Ku(1953064037)), s), Val(s))) // (`edit@`var)@.`var
 				}
 			}
 			return
@@ -132,15 +135,19 @@ func read() (r K) {
 	return ntake(maxi(0, I32(512)-1), r)
 }
 func write(x K) {
-	if writepn(int32(x), nn(x)) != 0 {
+	if writepn(int32(x), nn(x), 1) != 0 {
 		trap(Io)
 	}
 	dx(x)
 }
-func writepn(p, n int32) int32 {
+func write2(x K) {
+	writepn(int32(x), nn(x), 2)
+	dx(x)
+}
+func writepn(p, n, d int32) int32 {
 	SetI32(512, p)
 	SetI32(516, n)
-	return wasi_unstable.Fd_write(1, 512, 1, 512)
+	return wasi_unstable.Fd_write(d, 512, 1, 512)
 }
 func getargs() K {
 	wasi_unstable.Args_sizes_get(512, 516)
