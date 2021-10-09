@@ -305,11 +305,38 @@ func plist(c K) (r K, n, p int32) {
 	}
 	return r, n, p
 }
-func rlist(x K, n, p int32) K {
+func rlist(x K, n, p int32) (r K) {
+	if n == 0 {
+		return l1(x)
+	}
 	if n == 1 {
 		return Fst(x)
 	}
+	if p != 0 {
+		r = clist(x, n)
+		if r != 0 {
+			return l1(r)
+		}
+	}
 	return cat1(cat1(flat(Rev(x)), Ki(n)), 27)
+}
+func clist(x K, n int32) K {
+	p := int32(x)
+	for i := int32(0); i < n; i++ {
+		xi := K(I64(p))
+		t := tp(xi)
+		if t != Lt {
+			return 0
+		}
+		if nn(xi) != 1 {
+			return 0
+		}
+		if tp(K(I64(int32(xi)))) == 0 {
+			return 0
+		}
+		p += 8
+	}
+	return uf(flat(x))
 }
 
 func next() (r K) {
