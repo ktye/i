@@ -3,20 +3,9 @@
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 <style>
  html{font-family:monospace;}
- ._ftr{position:fixed;bottom:0;left:0;right:0;height:40px}
- ._fbt{width:33.3%;height:40px;border-color:black;font-family:monospace;float:left}
- #_bed{background-color:#ffffea}#_bcn{color:white;background-color:black}#_brn{background-color:#89D1FE}#_bui{background-color:#89D1FE;display:none}
- #_edt{top:0;left:0;right:0;display:block}
- #_con{top:0;left:0;width:100%;height:100%;color:white;background-color:black;resize:none;display:none}
- #_uid{top:0;left:0;right:0;display:none;}
- #_box{position:absolute;top:0;left:0;width:100%;height:calc(100% - 40px)}
- .codemirror{height:100%;border:none;resize:none;background:#ffffea}
- .c{background-color:#fafafa} .C{background-color:#f5f5f5}
- .i{background-color:#e8f5e9} .I{background-color:#c8e6c9}
- .s{background-color:#fff8e1} .S{background-color:#ffecb3}
- .f{background-color:#fff3e0} .F{background-color:#ffe0b2}
- .z{background-color:#fbe9e7} .Z{background-color:#ffccbc}
- .sel{background-color:#0078d7;color:white}
+ .codemirror{height:100%;border:none;resize:none}
+ .cm-fat-cursor .CodeMirror-cursor{width:auto;border:0!important;background:black}
+ #_uid{position:absolute;right:0;top:0;z-index:10}
 </style>
 
 <script src="codemirror/jquery.min.js"></script>
@@ -24,59 +13,76 @@
 <script src="codemirror/matchbrackets.js"></script>
 
 <body>
-<div id="_box">
- <div id="_edt"></div>
- <textarea id="_con" wrap="off" spellcheck="false"></textarea>
- <div id="_uid""><pre id="_uihelp"></pre><canvas id="_icv" style="border:1px solid red"></canvas></div>
-</div>
-<footer class="_ftr"><button class="_fbt" id="_bed">edit</button><button class="_fbt" id="_bcn">console</button><button class="_fbt" id="_brn">run</button><button class="_fbt" id="_bui">ui</button></footer>
+<div id="_edt" class="cm.fat-cursor"></div>
+<div id="_uid""></pre><canvas id="_icv"></canvas></div>
 <a id="_dl" style:"display:none"></a>
+
 <script>
-
-function hide(x){x.style.display="none"}function unhide(x){x.style.display="block"}
-var runb=ge("_brn");var bui=ge("_bui")
-var edit=ge("_edt");ge("_bed").onclick=function(e){showtab(edit);hide(bui);unhide(runb)}
-var term=ge("_con");ge("_bcn").onclick=function(e){showtab(term);hide(runb);unhide(bui)}
-var udiv=ge("_uid");ge("_brn").onclick=function(e){run()};ge("_bui").onclick=function(e){ui()}
-var runb=ge("_brn");
-function showtab(x){hide(term);hide(edit);hide(udiv);unhide(x)}
-
-var ed = CodeMirror(_edt, {"lineNumbers":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true,"matchBrackets":true})
-ed.setValue(hash()); if(hash()===""){fetch('readme').then(r=>{return r.text()}).then(r=>ed.setValue(r))}
 
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function hash(){return decodeURIComponent(window.location.hash.substr(1))}
 function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
 
-function toggle(x){x.style.display=(x.style.display=="none")?"block":"none"}
-
+var _edt=ge("_edt")
+var _ed = CodeMirror(_edt, {"dark":true,"lineNumbers":false,"dragDrop":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":false,"matchBrackets":true,"extraKeys":{"Enter": enter, "Up":function(){return updown(-1)}, "Down": function(){return updown(1)}}})
 
 // search selected: middle-button(all), right(next) (bug: mouseup(chrome), ff ok)
-document.addEventListener('contextmenu',function(e){e.preventDefault()})
-ed.on('mousedown', function(cm, e) {
- if     (e.button==2 && (ed.getSelection().length>0)){search(ed.getSelection(),false);pd(e)}
- else if(e.button==1 && (ed.getSelection().length>0)){search(ed.getSelection(),true );pd(e)}
+_edt.addEventListener('contextmenu',function(e){console.log("click");pd(e);})
+_ed.on('mousedown', function(cm, e) {
+ if     (e.button==2 && (_ed.getSelection().length>0)){search(_ed.getSelection(),false);pd(e)}
+ else if(e.button==1 && (_ed.getSelection().length>0)){search(_ed.getSelection(),true );pd(e)}
 })
 function indexAll(a, s) { var r = [], i = -1; while ((i = a.indexOf(s, i+1)) != -1){ r.push(i); }; return r; }
 function search(t, all){
- var v = ed.getValue()
- var p = ed.getCursor()
- if(all) {
-  var n = indexAll(v,t)
-  for(var i=0; i<n.length; i++) ed.addSelection(ed.posFromIndex(n[i]), ed.posFromIndex(n[i]+t.length), {"scroll":true})
- } else {
-  var c = ed.indexFromPos(ed.getCursor())
-  c = (p.sticky == "after") ? c+t.length : c
-  var n = v.indexOf(t, c)
-  if (n == -1) { n = v.indexOf(t, 0) }
-  ed.setSelection(ed.posFromIndex(n), ed.posFromIndex(n+t.length), {"scroll":true})
- }
+ var v=_ed.getValue();var p=_ed.getCursor();if(all){
+  var n=indexAll(v,t);for(var i=0; i<n.length; i++)_ed.addSelection(_ed.posFromIndex(n[i]),_ed.posFromIndex(n[i]+t.length),{"scroll":true})
+ }else{
+  var c=_ed.indexFromPos(_ed.getCursor());c=(p.sticky=="after")?c+t.length:c
+  var n=v.indexOf(t,c);if(n==-1){n=v.indexOf(t,0)};_ed.setSelection(_ed.posFromIndex(n), _ed.posFromIndex(n+t.length), {"scroll":true})}}
+
+window.addEventListener('unhandledrejection', function(e) {_ed.setValue(String(e.reason))})
+function banner(x){_ed.setValue("ktye/k "+x.byteLength+"\n ");return x}
+
+function fatCursor(x){
+ if(x)CodeMirror.addClass(_ed.getWrapperElement(),"cm-fat-cursor")
+ else CodeMirror.rmClass (_ed.getWrapperElement(),"cm-fat-cursor")
 }
 
+// atEOF: block cursor. console(execute) editor(exit-at-\)
+function atEOF(){var c=_ed.getCursor();var l=_ed.lastLine();return ((c.line==l)&&(_ed.getLine(l).length==c.ch)&&(_ed.getSelection().length==0))}
+_ed.on("cursorActivity", function(e){ fatCursor(atEOF()) })
+function O(s){_ed.replaceRange(s,{line:Infinity});_ed.scrollIntoView()}
 
-window.addEventListener('unhandledrejection', function(e) {term.value+=String(e.reason)})
-function banner(x){term.value = "ktye/k "+x.byteLength+"b\n ";return x}
+var editor=false
+var _hist=[""];_histn=1
+var _buf="\\"
+var cons=""
+function setEditor(b){editor=b;if(b){cons=_ed.getValue();_ed.setValue(_buf)}else{_ed.setValue(cons)};_ed.setCursor(_ed.lineCount(),0,{"scroll":true})}
+function enter(){if(!atEOF())return CodeMirror.Pass;var l=_ed.getLine(_ed.lastLine())
+ if(!editor){
+  if(l==" \\e"){
+   setEditor(true);return
+  }else if(l.startsWith(" \\e ")){
+   console.log("E?")
+   l=l.slice(4); _buf=l+":"+sk(K.Atx(K.sc(ks("edit")),lup(l)))+"\n\\"; setEditor(true);return
+  }else{exec(l);_hist.push(l);_histn=_hist.length}
+ }else{
+  switch(l){
+  case "\\":
+  case "\\\\":
+   var s=_ed.getValue()
+   setEditor(false)
+   if(l=="\\"){_buf=s.slice(0,-2);if(_buf.startsWith("\\c\n")){reset();_buf.slice(3)};window.location.hash=encodeURIComponent(_buf);exec(_buf)} break;
+  default: return CodeMirror.Pass
+  }}}
+function updown(d){if(editor||!atEOF())return CodeMirror.Pass; _histn=Math.min(Math.max(0,_histn+d),_hist.length-1);var l=_ed.lastLine();_ed.replaceRange(_hist[_histn],{"line":l,"ch":0},{"line":l,"ch":Infinity}) }
+
+function exec(s){s=(s.startsWith("  "))?" "+s.trim():s.trim()
+ var l=_ed.lastLine()
+ _ed.markText({line:l,ch:0},{line:l,ch:Infinity},{css:"color: darkred"})
+ _ed.replaceRange("\n", {line:l})
+ ktry(s);O(" ");ui()}
 
 
 var K, C, I, U, F, bak
@@ -95,7 +101,7 @@ function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdfl
  msl();filename=su(C.slice(path,path+pathlen));if(oflags==0)return 1;U[res>>2]=3;return 0 //no read in js.
 } 
 function fd_write(fd,p,nio,nw){
- msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){term.O(su(u))}else if(fd==2){ed.setValue(su(u));showtab(edit);ed.refresh()}else{download(filename,u)};return 0
+ msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){O(su(u))}else{download(filename,u)};return 0
 }
 var env={wasi_unstable:{ 
 // l32:function(x){console.log(x);return x},
@@ -118,11 +124,16 @@ function download(name,u){
 
 fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
  K=r.instance.exports
- K.kinit()
+ K.kinit();reset()
+ var s=hash();if(s.length!=0){_buf=s+"\n\\";setEditor(true)}
+})
+
+function reset(){
+ K.reset()
  asn("WIDTH",K.Ki(window.innerWidth));asn("HEIGHT",K.Ki(window.innerHeight-40));
  var z=ge("_icv").getContext('2d');z.font="20px monospace";asn("FH",K.Ki(20));asn("FW",K.Ki(z.measureText("M").width))
  ksave()
-})
+}
 
 var bak
 function msl() {
@@ -133,60 +144,28 @@ function msl() {
  F=new Float64Array(K.memory.buffer)}
 function ksave(){ msl();bak=C.slice(0,1<<U[32]) }
 
-function ktry(s) { 
+var E
+function ktry(s){ 
  try      { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0}
- catch(e) { console.log(e); C.set(bak); return K.Srcp() }}
-function ktry(s) { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0 } //unprotected
-
-
-function kd(e){var N="\n";var t=e.srcElement;
- if(e.which===27){pd(e);if(t.hold){t.className="";t.selectionStart=t.hold;t.hold=0}else{t.hold=t.selectionStart;t.className="hold"}}
- if(e.which===13&&!t.hold){pd(e);let s=t.value,p=t.selectionStart,q=t.selectionEnd;
-  if(p===q){
-   p=s.slice(0,p).lastIndexOf(N)+1;q+=s.slice(q).indexOf(N)+1;t.value+=(q==t.value.length)?"":s.slice(1+p,q-1)
-  }else{t.value+=s.slice(p,q)} S=s.slice(p,q);exec(S,t)}
-}
-function out(t,s){return function(s){t.value+=s;t.scrollTo(0,t.scrollHeight)}}
-function exec(s,t) {s=(s.startsWith("  "))?" "+s.trim():s.trim();var t0=0;var t1=0
- if(s=="\\c"){t.value="ktye/k";t.exec(s)}
- if((s=="\\")||(s=="\\h")){t.value+="\n"+t.help+"\n ";t.scrollTo(0,t.scrollHeight);return}
- //if(s.startsWith("\\t")){s=s.slice(2);t0=performance.now()}
- t.exec(s);t1=performance.now();if(t0!=0){term.O((t1-t0)+"ms\n ")}
-}
-term.onkeydown=kd
-term.O=out(term)
-term.exec = function(s){term.value+="\n";ktry(s);term.O(" ")}
-term.help = "...\n"
-
-function run(s){showtab(term);
- if(s==undefined){var s=ed.getValue();window.location.hash=encodeURIComponent(s);term.value="";}
- var p = ktry(s); if(p!=0){ ed.setSelection(ed.posFromIndex(p-1), ed.posFromIndex(p), {"scroll":true}) } else {term.value+=" ";ui()}
-}
-//function assign(s,u){
-// term.value+=" /"+s+":.. ("+u.length+" bytes)\n "
-// ktry(function(){K.dx(K.Asn(K.sc(ks(s)),ku(u)))})
-//}
+ catch(e) { console.log(e); if(e.message!="unreachable executed")O(e.name+": "+e.message+"\n"); C.set(bak); return K.Srcp() }}
+//function ktry(s) { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0 } //unprotected
 
 
 // drop file in console (store in variable)
-term.ondragover=function(e){pd(e)}
-term.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
 function addfile(x){
  var r = new FileReader()
  r.onload = function(){
   var u = new Uint8Array(r.result)
-  if(x.name.endsWith(".k")) run(su(u))
-  else ktry(function(){term.value+=" /"+x.name+":.. ("+u.length+" bytes)\n ";asn(x.name,ku(u))})
+  //if(x.name.endsWith(".k")) run(su(u))
+  //else ktry(function(){term.value+=" /"+x.name+":.. ("+u.length+" bytes)\n ";asn(x.name,ku(u))})
+  asn(x.name,ku(u))
  }
  r.readAsArrayBuffer(x)
 }
 
-
-
-
-// ui
-ge("_uihelp").textContent=`/ui-example:
-
+/*
  ui:"int list <input id='X'>
  <button id='f'>push</button>"
  X:1 2 3
@@ -210,7 +189,7 @@ variables are bound to html elements with the same id, value contain their type.
 d:\`fillStyle\`fillRect!("green";10 20 50 60)
 ui:"<canvas width=300 height=200 id='d'></canvas>"
  
-s:{(-/x*x;2*/x)}
+s:{(-/x*x;2(*)/x)}
 m:{+/x*x}
 C:(3*!85),(255+768*!85),(65535+196608*!86)
 W:600;H:400
@@ -221,14 +200,15 @@ f:{
  O::O+d
  S::S%2
  c:|(O-S%2)+S*(!n)%0.+n
- X::C@+/(.001*!255)<\\:m(c+s@)10/0 0}
+ X::C@+/(.001*!255)<\:m(c+s@)10/0 0}
 X:f[W%2;H%2]
 ui:"<canvas width=",($W)," height=",($H)," data-click='f' id='X'/>"
-`
+*/
 
+var udiv=ge("_uid")
 function ui(){var u=K.Val(K.Ku(BigInt(26997)));if(u==0)return;clr(udiv);ktry(function(){showui(u,udiv)})}
 function clr(p){while(p.firstChild)p.removeChild(p.firstChild)}
-function showui(x,p){var e=p;/*if(K.tp(x)==19){return framebuffer(x)};*/if(K.tp(x)!=18){x=K.Atx(K.Val(K.sc(ks(".html"))),x)};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);showtab(udiv)}
+function showui(x,p){var e=p;/*if(K.tp(x)==19){return framebuffer(x)};*/if(K.tp(x)!=18){x=K.Atx(K.Val(K.sc(ks(".html"))),x)};p.insertAdjacentHTML("beforeend",sk(x));glueAll(udiv);}
 function glueAll(p){var nodes=p.childNodes;if(nodes.length==0)glue(p);for(var i=0;i<nodes.length;i++){glueAll(nodes[i])}}
 function glue(e){if(e.id===undefined)return;var s=K.sc(ks(e.id));var x=K.Val(s);if(lo(s)==0)return;var t=tstr(K.tp(x))
  switch(e.nodeName){
@@ -259,8 +239,8 @@ function glueCanvas(e,s,x,t){var z=e.getContext('2d');var w=e.width;var h=e.heig
  if(e.dataset.click){e.ondblclick=function(ev){var f=lup(e.dataset.click);if(lo(f)==0)return;K.dx(K.Cal(f,K.l2(K.Ki(ev.offsetX),K.Ki(ev.offsetY))));ui()}}
  if(e.dataset.zoom){
   var zoom=false; var bg=z.getImageData(0,0,e.width,e.height)
-  var zs=function(ev){e.onmousemove=zm;zoom=[ev.clientX,ev.clientY,0,0];e.style.cursor="crosshair"}
-  var zm=function(ev){if(zoom!==false){zoom=[zoom[0],zoom[1],ev.clientX-zoom[0],ev.clientY-zoom[1]];z.putImageData(bg,0,0);z.beginPath();z.rect(...zoom);z.strokeStyle='red';z.stroke()}}
+  var zs=function(ev){e.onmousemove=zm;zoom=[ev.offsetX,ev.offsetY,0,0];e.style.cursor="crosshair"}
+  var zm=function(ev){if(zoom!==false){zoom=[zoom[0],zoom[1],ev.offsetX-zoom[0],ev.offsetY-zoom[1]];z.putImageData(bg,0,0);z.beginPath();z.rect(...zoom);z.strokeStyle='red';z.stroke()}}
   var ze=function(ev){z.putImageData(bg,0,0);e.style.cursor="";if(Math.abs(zoom[2])< 5||Math.abs(zoom[3])<5){zoom=false;return}
    var f=lup(e.dataset.zoom);if(lo(f)!=0){K.dx(K.Cal(f,K.l1(K.Cat(K.Cat(K.Ki(zoom[0]),K.Ki(zoom[1])),K.Cat(K.Ki(zoom[0]+zoom[2]),K.Ki(zoom[1]+zoom[3]))))));ui()}
    zoom=false;e.onmousemove=null}
@@ -340,9 +320,9 @@ function framebuffer(x){if(K.nn(x)!=2){K.dx(x);return};
   }
   window.requestAnimationFrame(loop)
  }
- showtab(udiv)
 }
 */
 
 </script>
 </body></html>
+
