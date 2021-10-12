@@ -80,7 +80,7 @@ std:{%var x}
 `"rz.": {(%-2*log `rf1 x)@360.*`rf x}
 `".html":{$[`L~@x;"<div style='display:flex;flex-direction:column'>",(,/(.`".html")'x),"</div>";`S~@x;"<div style='display:flex;flex-direction:row'>",(,/(.`".html")'x),"</div>";~`s~@x;"";{{"<",y," id='",x,"'></",y,">"}[x;$[y':`i`c`f`z`s`I`B`C`F`Z`S;"input";`b~y;"input type='checkbox'";`T~y;"table";`l~t;"button";"pre"]]}[$x;@.x]]}
 
-csv:{c:{s:`$'x@i:i@&~0N=i:x?"ifzs";n:`i$-1_" "\:@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'"\n"\:y;$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
+csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
 
 PW:600;PH:400
 

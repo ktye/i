@@ -5,7 +5,6 @@ build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
        wat2wasm --enable-bulk-memory --enable-simd k.wat  -o k.wasm
 online:ktye.github.io  (wasm needs multi-value/bulk-memory/simd128)
 
-
 args:     data file.k file.t                  (assign/execute/test)
 web:      drop file assigns                      `file<c (download)
 

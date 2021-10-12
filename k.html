@@ -50,23 +50,23 @@ function fatCursor(x){
 }
 
 // atEOF: block cursor. console(execute) editor(exit-at-\)
-function atEOF(){var c=_ed.getCursor();var l=_ed.lastLine();return ((c.line==l)&&(_ed.getLine(l).length==c.ch)&&(_ed.getSelection().length==0))}
+function atEOF(){var c=_ed.getCursor();var l=_ed.lastLine();return ((c.line==l)&&(true/*_ed.getLine(l).length==c.ch*/)&&(_ed.getSelection().length==0))}
 _ed.on("cursorActivity", function(e){ fatCursor(atEOF()) })
-function O(s){_ed.replaceRange(s,{line:Infinity});_ed.scrollIntoView()}
+function O(s){_ed.replaceRange(s,{line:Infinity});_ed.setCursor(_ed.lineCount(),0,{"scroll":true});/*_ed.scrollIntoView()*/}
 
 var editor=false
 var _hist=[""];_histn=1
 var _buf="\\"
 var cons=""
 function setEditor(b){editor=b;if(b){cons=_ed.getValue();_ed.setValue(_buf)}else{_ed.setValue(cons)};_ed.setCursor(_ed.lineCount(),0,{"scroll":true})}
-function enter(){if(!atEOF())return CodeMirror.Pass;var l=_ed.getLine(_ed.lastLine())
+function enter(){if(!atEOF())return CodeMirror.Pass;var l=_ed.getLine(_ed.lastLine()).trim()
  if(!editor){
-  if(l==" \\e"){
+  if(l=="\\e"){
    setEditor(true);return
-  }else if(l.startsWith(" \\e ")){
-   console.log("E?")
-   l=l.slice(4); _buf=l+":"+sk(K.Atx(K.sc(ks("edit")),lup(l)))+"\n\\"; setEditor(true);return
-  }else{exec(l);_hist.push(l);_histn=_hist.length}
+  }else if(l.startsWith("\\e ")){
+   l=l.slice(3); _buf=l+":"+sk(K.Atx(K.sc(ks("edit")),lup(l)))+"\n\\"; setEditor(true);return
+  }else if(l=="\\"){help()
+  }else{exec(l);l=" "+l;if(l!=" "&&_hist[_hist.length-1]!=l)_hist.push(l);_histn=_hist.length;return}
  }else{
   switch(l){
   case "\\":
@@ -164,6 +164,8 @@ function addfile(x){
  }
  r.readAsArrayBuffer(x)
 }
+
+function help(){fetch('readme').then(r=>r.text()).then(r=>O("\n"+r+" "))}
 
 /*
  ui:"int list <input id='X'>
