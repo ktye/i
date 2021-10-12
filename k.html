@@ -59,21 +59,21 @@ var _hist=[""];_histn=1
 var _buf="\\"
 var cons=""
 function setEditor(b){editor=b;if(b){cons=_ed.getValue();_ed.setValue(_buf)}else{_ed.setValue(cons)};_ed.setCursor(_ed.lineCount(),0,{"scroll":true})}
-function enter(){if(!atEOF())return CodeMirror.Pass;var l=_ed.getLine(_ed.lastLine()).trim()
+function enter(){if(!atEOF())return CodeMirror.Pass;var l=_ed.getLine(_ed.lastLine());var t=l.trim()
  if(!editor){
-  if(l=="\\e"){
+  if(t=="\\e"){
    setEditor(true);return
-  }else if(l.startsWith("\\e ")){
-   l=l.slice(3); _buf=l+":"+sk(K.Atx(K.sc(ks("edit")),lup(l)))+"\n\\"; setEditor(true);return
-  }else if(l=="\\"){help()
-  }else{exec(l);l=" "+l;if(l!=" "&&_hist[_hist.length-1]!=l)_hist.push(l);_histn=_hist.length;return}
+  }else if(t.startsWith("\\e ")){
+   t=t.slice(3); _buf=t+":"+sk(K.Atx(K.sc(ks("edit")),lup(t)))+"\n\\"; setEditor(true);return
+  }else if(t=="\\"){help()
+  }else{exec(l);if(l!=" "&&_hist[_hist.length-1]!=l)_hist.push(l);_histn=_hist.length;return}
  }else{
-  switch(l){
+  switch(t){
   case "\\":
   case "\\\\":
    var s=_ed.getValue()
    setEditor(false)
-   if(l=="\\"){_buf=s.slice(0,-2);if(_buf.startsWith("\\c\n")){reset();_buf.slice(3)};window.location.hash=encodeURIComponent(_buf);exec(_buf)} break;
+   if(t=="\\"){_buf=s.slice(0,-2);if(_buf.startsWith("\\c\n")){reset();_buf.slice(3)};window.location.hash=encodeURIComponent(_buf);exec(_buf)} break;
   default: return CodeMirror.Pass
   }}}
 function updown(d){if(editor||!atEOF())return CodeMirror.Pass; _histn=Math.min(Math.max(0,_histn+d),_hist.length-1);var l=_ed.lastLine();_ed.replaceRange(_hist[_histn],{"line":l,"ch":0},{"line":l,"ch":Infinity}) }

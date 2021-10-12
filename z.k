@@ -1,7 +1,7 @@
 /               64     72    80    88     96     104    112    120                          
 ``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."
 
-`"x.":{,/+"0123456789abcdef"@(x%16;16/x:0+x)} /`x@ (hex)
+`"x.":{,/+"0123456789abcdef"@(x%16;16/x:256/256+x)} /`x@ (hex)
 `"t.":`45         /`t@ token
 `"p.":`46         /`p@ parse
 `"b.":(`46)[`b;]  /`b@ reinterpret
@@ -80,9 +80,12 @@ std:{%var x}
 `"rz.": {(%-2*log `rf1 x)@360.*`rf x}
 `".html":{$[`L~@x;"<div style='display:flex;flex-direction:column'>",(,/(.`".html")'x),"</div>";`S~@x;"<div style='display:flex;flex-direction:row'>",(,/(.`".html")'x),"</div>";~`s~@x;"";{{"<",y," id='",x,"'></",y,">"}[x;$[y':`i`c`f`z`s`I`B`C`F`Z`S;"input";`b~y;"input type='checkbox'";`T~y;"table";`l~t;"button";"pre"]]}[$x;@.x]]}
 
+`"pack.":{w:{(`c@,#x),x};($t),$[`s~t:@x;`pack@$x;x~*x;w `c@,x;`L~@x;(`c@,#x),,/`pack@'x;(@x)':`D`T;(`pack@.x),`pack@!x;`S~t;,/`pack@$x;w `c x]}
+`"unpack.":{s:x;g:{[n]r:n#s;s::n_s;r};n:{*`i@g 4};u:{x;$[(t:*g 1)':"bcifz";*(`$t)g n[];t~"s";`$u 0;t~"S";`$u 0;t~"L";u'!n[];t~"D";(u 0)!u 0;t~"T";+(u 0)!u 0;(`$_t+32)g n[]]};u 0}
+
 csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
 
-PW:600;PH:400
+PW:800;PH:600
 
 plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  ui::"<canvas width=",($PW)," height=",($PH)," id='",(s`c),"' data-click='",(s`k),"' data-zoom='",(s`z),"'></canvas><div id='",(s`d),"'></div>"}
@@ -128,3 +131,6 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  (`0)[`$($sym),".z";zoom]}
 
  `"tics.":{[minmax]nice:{[x;r]f:x%10^ex:_log[10;x];(1 2 5 10.@*&(f<1.5 3 7 0w;~f>1 2 5 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;s*(_(*minmax)%s)+!n}
+
+/hist:{x:$[`i~@x;(&/y;|/y;i);x]}
+

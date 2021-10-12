@@ -688,3 +688,9 @@ x:?-10000;0.02>abs(0 1)-(avg x;std x) /11b
 #10?2000000000 /10
 #10?`z /10
 (&/x;|/x:1000?"z") /"az"
+`pack 1 /0x690400000001000000
+`unpack 0x690400000002000000 /2
+x~`unpack `pack x:1.2 3.4 /1b
+x~`unpack `pack x:(1;2 3;`beta) /1b
+x~`unpack `pack x:`a`b!2 3 /1b
+x~`unpack `pack x:+`a`b!(1 2;3 4.) /1b
