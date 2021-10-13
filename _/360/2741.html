@@ -1,0 +1,149 @@
+<head><meta charset="utf-8"><title>.</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+<link rel="stylesheet" href="codemirror/codemirror.min.css">
+<style>
+ @font-face{font-family:'apl385'; src:url('apl385.woff2') format('woff2');}
+ html{font-family:apl385;}
+ .codemirror{height:100%;border:none;resize:none;font-family:apl385}
+ .CodeMirror-cursor{border-left:none;border-bottom:3px solid black;border-right:none;width:auto;}
+ #_uid{position:absolute;right:0;top:0;z-index:10}
+</style>
+
+<script src="codemirror/jquery.min.js"></script>
+<script src="codemirror/codemirror.min.js"></script>
+<script src="codemirror/matchbrackets.js"></script>
+
+<body>
+<div id="_edt"></div>
+<script>
+
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function hash(){return decodeURIComponent(window.location.hash.substr(1))}
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+
+var _edt=ge("_edt")
+var _ed = CodeMirror(_edt, {"dark":true,"lineNumbers":false,"dragDrop":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true,"matchBrackets":true})
+
+/* × ÷ ∘ ∣ ∼ ≠ ≤ ≥ ≬ ⌶ ⋆ ⌾ ⍟ ⌽ ⍉ ⍝ ⍦ ⍧ ⍪ ⍫ ⍬ ⍭ ← ↑ → ↓ ∆ ∇   ∩ ∪ ⌈ ⌊ ⊤ ⊥ ⊂ ⊃ ⌿ ⍀ ⍅ ⍆ ⍏ ⍖ ⍊ ⍑ ⍋ ⍒ ⍎ ⍕ ⍱ ⍲ ○ ⍳ ⍴ ⍵ ⍺ ¨ */
+var keyboard=`╔════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦═════════╗
+║    ║ ¨  ║ ¯  ║ <  ║ ≤  ║ =  ║ ≥  ║ >  ║ ≠  ║ ∨  ║ ∧  ║ -  ║ ÷  ║         ║
+║    ║ 1  ║ 2  ║ 3  ║ 4  ║ 5  ║ 6  ║ 7  ║ 8  ║ 9  ║ 0  ║ +  ║ ×  ║ BACKSP  ║
+╠════╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦══════╣
+║       ║ ?  ║ ⍵  ║ ∊  ║ ⍴  ║ ~  ║ ↑  ║ ↓  ║ ⍳  ║ ○  ║ *  ║ →  ║    ║      ║
+║       ║ Q  ║ W  ║ E  ║ R  ║ T  ║ Y  ║ U  ║ I  ║ O  ║ P  ║ ←  ║    ║      ║
+╠═══════╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩══════╣
+║         ║ ⍺  ║ ⌈  ║ ⌊  ║ _  ║ ∇  ║ ∆  ║ ∘  ║ '  ║ ⎕  ║ (  ║ )  ║         ║
+║         ║ A  ║ S  ║ D  ║ F  ║ G  ║ H  ║ J  ║ K  ║ L  ║ [  ║ ]  ║ RETURN  ║
+╠═════════╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═════════╣
+║             ║ ⊂  ║ ⊃  ║ ∩  ║ ∪  ║ ⊥  ║ ⊤  ║ |  ║ ;  ║ :  ║ \\  ║          ║
+║  SHIFT      ║ Z  ║ X  ║ C  ║ V  ║ B  ║ N  ║ M  ║ ,  ║ .  ║ /  ║  SHIFT   ║
+╚═════════════╩════╩════╩════╩════╩════╩════╩════╩════╩════╩════╩══════════╝`
+function strike(cm,c){var u=cm.getCursor();var b=cm.getLine(u.line)[u.ch];if(b!=undefined){c=overstrike(b,c)};  cm.replaceRange(c,{"line":u.line,"ch":u.ch}, {"line":u.line,"ch":1+u.ch}) }
+function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
+var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
+var extraKeys={}
+var a="1234567890QWERTYUIOPASDFGHJKLZXCVBNM".split("");for(var i=0;i<a.length;i++){var c=a[i];extraKeys[c]=function(c){return function(cm){strike(cm,c)}}(c)}
+var a="1234567890QWERTYUIOPASDFGHJKLZXCVBNM-=[;',./".split("")
+var b="¨¯<≤=≥>≠∨∧?⍵∊⍴~↑↓⍳○*⍺⌈⌊_∇∆∘'⎕⊂⊃∩∪⊥⊤|-÷→();:\\".split("");for(var i=0;i<a.length;i++){extraKeys["Shift-"+a[i]]=function(c){return function(cm){strike(cm,c)}}(b[i])}
+var a="-=[;'"
+var b="+×←[]";for(var i=0;i<a.length;i++){extraKeys[a[i]]=function(c){return function(cm){strike(cm,c)}}(b[i])}
+extraKeys["Backspace"]=function(cm){cm.toggleOverwrite(true);cm.execCommand("goColumnLeft")}
+extraKeys["Delete"]=function(cm){cm.execCommand("delWrappedLineRight")}
+extraKeys["Enter"]=function(cm){var l=_ed.lastLine();APL(_ed.getLine(_ed.lastLine()).trim())}
+_ed.setOption("extraKeys", extraKeys)
+
+function APL(s){
+ var sk=function(x){msl();var t=K.tp(x);if(t!=18){K.dx(x);return "RETURN TYPE ERROR"}var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
+ O("\n");var r=sk(K.Atx(lup("APL"),ks(s)));if(r!="")O(r+"\n");O("      ")}
+
+function O(s){_ed.replaceRange(s,{line:Infinity});_ed.setCursor(_ed.lineCount(),0,{"scroll":true})}
+
+window.addEventListener('unhandledrejection', function(e) {_ed.setValue(String(e.reason))})
+function banner(x){_ed.setValue(keyboard+"\n");return x}
+
+
+function exec(s){s=(s.startsWith("  "))?" "+s.trim():s.trim()
+ var l=_ed.lastLine()
+ _ed.markText({line:l,ch:0},{line:l,ch:Infinity},{css:"color: darkred"})
+ _ed.replaceRange("\n", {line:l})
+ ktry(s);O(" ");ui()}
+
+
+var K, C, I, U, F, bak
+function us(s){return new TextEncoder("utf-8").encode(s)}
+function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function lo(x){return Number(BigInt.asUintN(32,x))}
+function ku(u){msl();var x=K.mk(18,u.length);C.set(u,lo(x));return x}
+function ks(s){return ku(us(s))}
+function sk(x){msl();var t=K.tp(x);x=(4==t)?x=K.cs(x):(18==t)?x:K.Kst(x);var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
+function la(a){msl();var r=K.mk(23,a.length);for(var i=0;i<a.length;i++)J[i+(lo(r)>>>3)]=a[i];return r}
+function lup(s){return K.Val(K.sc(ks(s)))}
+function asn(s,x){K.dx(K.Asn(K.sc(ks(s)),x))}
+
+var filename="" 
+function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
+ msl();filename=su(C.slice(path,path+pathlen));if(oflags==0)return 1;U[res>>2]=3;return 0 //no read in js.
+} 
+function fd_write(fd,p,nio,nw){
+ msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){O(su(u))}else{download(filename,u)};return 0
+}
+var env={wasi_unstable:{ 
+// l32:function(x){console.log(x);return x},
+// l64:function(x){console.log(BigInt.asUintN(64,x));return x},
+ args_get: function(a,b){return 0},
+ args_sizes_get: function(a,b){return 0},
+ proc_exit:function(x){console.log("exit", x)},
+ fd_read:  function(a,b,c,d){console.log("read",a,b,c,d);return 0},
+ fd_write: fd_write,
+ fd_seek:  function(fd,o,w,r){return 0},
+ fd_close: function(fd){return 0},
+ path_open:path_open,
+ clock_time_get:function(a,b,p){msl();J[p>>>3]=BigInt.asIntN(64, BigInt(Math.floor(1e6*performance.now())));return 0}
+}}
+
+
+function download(name,u){
+ var dl=ge("_dl");var b=new Blob([u],{type:"application/octet-stream"})
+ dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
+
+fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
+ K=r.instance.exports
+ K.kinit()
+ fetch('36∘.k').then(r=>r.text()).then(s=>{K.dx(K.Val(ks(s))); ksave()})
+})
+
+
+var bak
+function msl() {
+ C=new Uint8Array(K.memory.buffer)
+ I=new Int32Array(K.memory.buffer)
+ U=new Uint32Array(K.memory.buffer)
+ J=new BigInt64Array(K.memory.buffer)
+ F=new Float64Array(K.memory.buffer)}
+function ksave(){ msl();bak=C.slice(0,1<<U[32]) }
+
+var E
+function ktry(s){ 
+ try      { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0}
+ catch(e) { console.log(e); if(e.message!="unreachable executed")O(e.name+": "+e.message+"\n"); C.set(bak); return K.Srcp() }}
+//function ktry(s) { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0 } //unprotected
+
+
+// drop file
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (var i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){var file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(vari=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){
+ var r = new FileReader()
+ r.onload = function(){
+  var u = new Uint8Array(r.result)
+  //if(x.name.endsWith(".k")) run(su(u))
+  //else ktry(function(){term.value+=" /"+x.name+":.. ("+u.length+" bytes)\n ";asn(x.name,ku(u))})
+  asn(x.name,ku(u))
+ }
+ r.readAsArrayBuffer(x)
+}
+
+
+</script>
+</body></html>
