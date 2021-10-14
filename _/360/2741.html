@@ -1,10 +1,10 @@
-<head><meta charset="utf-8"><title>.</title></head>
-<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+<head><meta charset="utf-8"><title>↓</title></head>
+<link rel=icon href="log.png">
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 <style>
- @font-face{font-family:'apl385'; src:url('apl385.woff2') format('woff2');}
- html{font-family:apl385;}
- .codemirror{height:100%;border:none;resize:none;font-family:apl385}
+ @font-face{font-family:'apl2741'; src:url('apl2741.woff2') format('woff2');}
+ html{font-family:apl2741;}
+ .codemirror{height:100%;border:none;resize:none;font-family:apl2741}
  .CodeMirror-cursor{border-left:none;border-bottom:3px solid black;border-right:none;width:auto;}
  #_uid{position:absolute;right:0;top:0;z-index:10}
 </style>
@@ -26,19 +26,19 @@ var _edt=ge("_edt")
 var _ed = CodeMirror(_edt, {"dark":true,"lineNumbers":false,"dragDrop":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":true,"matchBrackets":true})
 
 /* × ÷ ∘ ∣ ∼ ≠ ≤ ≥ ≬ ⌶ ⋆ ⌾ ⍟ ⌽ ⍉ ⍝ ⍦ ⍧ ⍪ ⍫ ⍬ ⍭ ← ↑ → ↓ ∆ ∇   ∩ ∪ ⌈ ⌊ ⊤ ⊥ ⊂ ⊃ ⌿ ⍀ ⍅ ⍆ ⍏ ⍖ ⍊ ⍑ ⍋ ⍒ ⍎ ⍕ ⍱ ⍲ ○ ⍳ ⍴ ⍵ ⍺ ¨ */
-var keyboard=`╔════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦════╦═════════╗
-║    ║ ¨  ║ ¯  ║ <  ║ ≤  ║ =  ║ ≥  ║ >  ║ ≠  ║ ∨  ║ ∧  ║ -  ║ ÷  ║         ║
-║    ║ 1  ║ 2  ║ 3  ║ 4  ║ 5  ║ 6  ║ 7  ║ 8  ║ 9  ║ 0  ║ +  ║ ×  ║ BACKSP  ║
-╠════╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦═╩══╦══════╣
-║       ║ ?  ║ ⍵  ║ ∊  ║ ⍴  ║ ~  ║ ↑  ║ ↓  ║ ⍳  ║ ○  ║ *  ║ →  ║    ║      ║
-║       ║ Q  ║ W  ║ E  ║ R  ║ T  ║ Y  ║ U  ║ I  ║ O  ║ P  ║ ←  ║    ║      ║
-╠═══════╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩═╦══╩══════╣
-║         ║ ⍺  ║ ⌈  ║ ⌊  ║ _  ║ ∇  ║ ∆  ║ ∘  ║ '  ║ ⎕  ║ (  ║ )  ║         ║
-║         ║ A  ║ S  ║ D  ║ F  ║ G  ║ H  ║ J  ║ K  ║ L  ║ [  ║ ]  ║ RETURN  ║
-╠═════════╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═══╦╩═════════╣
-║             ║ ⊂  ║ ⊃  ║ ∩  ║ ∪  ║ ⊥  ║ ⊤  ║ |  ║ ;  ║ :  ║ \\  ║          ║
-║  SHIFT      ║ Z  ║ X  ║ C  ║ V  ║ B  ║ N  ║ M  ║ ,  ║ .  ║ /  ║  SHIFT   ║
-╚═════════════╩════╩════╩════╩════╩════╩════╩════╩════╩════╩════╩══════════╝`
+var keyboard=`┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬─────────┐
+│    │ ¨  │ ¯  │ <  │ ≤  │ =  │ ≥  │ >  │ ≠  │ ∨  │ ^  │ -  │ ÷  │         │
+│    │ 1  │ 2  │ 3  │ 4  │ 5  │ 6  │ 7  │ 8  │ 9  │ 0  │ +  │ ×  │ BACKSP  │
+├────┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬─┴──┬──────┤
+│       │ ?  │ ⍵  │ ∊  │ ⍴  │ ~  │ ↑  │ ↓  │ ⍳  │ ○  │ *  │ →  │    │      │
+│       │ Q  │ W  │ E  │ R  │ T  │ Y  │ U  │ I  │ O  │ P  │ ←  │    │      │
+├───────┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴─┬──┴──────┤
+│         │ ⍺  │ ⌈  │ ⌊  │ _  │ ∇  │ ∆  │ ∘  │ '  │ ⎕  │ (  │ )  │         │
+│         │ A  │ S  │ D  │ F  │ G  │ H  │ J  │ K  │ L  │ [  │ ]  │ RETURN  │
+├─────────┴───┬┴───┬┴───┬┴───┬┴───┬┴───┬┴───┬┴───┬┴───┬┴───┬┴───┬┴─────────┤
+│             │ ⊂  │ ⊃  │ ∩  │ ∪  │ ⊥  │ ⊤  │ |  │ ;  │ :  │ \\  │          │
+│  SHIFT      │ Z  │ X  │ C  │ V  │ B  │ N  │ M  │ ,  │ .  │ /  │  SHIFT   │
+└─────────────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴──────────┘`
 function strike(cm,c){var u=cm.getCursor();var b=cm.getLine(u.line)[u.ch];if(b!=undefined){c=overstrike(b,c)};  cm.replaceRange(c,{"line":u.line,"ch":u.ch}, {"line":u.line,"ch":1+u.ch}) }
 function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
 var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
