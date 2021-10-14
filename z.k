@@ -96,9 +96,9 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  xt:`tics(&/&/x;|/|/x);yt:`tics(&/&/y;|/|/y)
  a:$[t~`xy;(xt 0;*-1#xt;yt 0;*-1#yt);(-a;a;-a;a:*|`tics@0.,|/|/abs@*v)]
  c:c@(#c:","\:"#1f77b4,#ff7f0e,#2ca02c,#d62728,#9467bd,#8c564b,#e377c2,#7f7f7f,#bcbd22,#17becf")/!#x
- style:$[t~`xy;"--";".."] / -.| line points bar
- size: $[t~`xy;2;2]
- lines:{`style`size`color`x`y!(style;size;z;x;y)}'[x;y;c]
+ style:$[t~`polar;"..";`i~@**y;"||";"--"] / -.| line points bar
+ size: $[t~`polar;2;style~"||";(--/((**x),-1#*x))%-1+#*x ;2]
+ lines:{`style`size`color`x`y!(style;size;z;x;0.+y)}'[x;y;c]
  `L`t`l`a`f`fw`fh`pw`ph!(lines;t;l;a;"20px monospace";FW;FH;$[t~`xy;PW;PH];PH)}
 
 `"Plot.":{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
@@ -106,6 +106,7 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  xs:(a 0 1)(dst 0 1)' /transform axis to canvas
  ys:(a 2 3)(dst 2 3)'
  d:{(x i)!x 1+i:2*!2\#x}
+ bars:{[l]$["|"':l`style;(`fillStyle;l`color),,/{(`fillRect;((-dx%2)+xs x;ys y;dx:-/xs(l`size;0.);(ys a 2)-ys y))}'[l`x;l`y];()]}
  line:{[l]$["-"':l`style;(`lineWidth;l`size;`strokeStyle;l`color;`beginPath;()),(,/(`moveTo,(-1+#l`x)#`lineTo),','+(xs l`x;ys l`y)),(`stroke;());()]}
  dots:{[l]$["."':l`style;(`fillStyle;l`color),,/{(`beginPath;();`arc;(xs x;ys y;1.5*l`size;0;2p);`fill;())}'[l`x;l`y];()]}
  c:`font`textBaseline!(x`f;"bottom")
@@ -120,6 +121,7 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
        c,:`strokeStyle`lineWidth`moveTo`lineTo`stroke`moveTo`lineTo`stroke!("lightgrey";1;(h;H%2);(W-h;H%2);();(W%2;h);(W%2;H-h);())
        c,:d@,/{(`beginPath;();`arc;(W%2;H%2;x;0;2p);`stroke;())}'(xs`tics 0.,x[`a;3])-W%2
  };$[`xy~x`t;xy[];po[]]
+ c,:d@,/bars'x`L
  c,:d@,/line'x`L
  c,:d@,/dots'x`L
  back:{[a;dst;x;y]((dst 0 1)(a 0 1)'x;(dst 2 3)(a 2 3)'y)}[a;dst]  /transform canvas to axis
@@ -130,7 +132,6 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  (`0)[`$($sym),".d";""]
  (`0)[`$($sym),".z";zoom]}
 
- `"tics.":{[minmax]nice:{[x;r]f:x%10^ex:_log[10;x];(1 2 5 10.@*&(f<1.5 3 7 0w;~f>1 2 5 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;s*(_(*minmax)%s)+!n}
+ `"tics.":{[minmax]nice:{[x;r]f:x%0.+10^ex:_log[10;x];(1 2 5 10.@*&(~f>1 2 5 0w;f<1.5 3 7 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;$[~(minmax 1)>*-2#r:s*(_(*minmax)%s)+!n;-1_r;r]}
 
-/hist:{x:$[`i~@x;(&/y;|/y;i);x]}
-
+hist:{$[`i~@x;hist[(x;&/y;|/y);y];(Y;(`38)[0;(#'=1+((d%2.0)+-1_Y:(x 1)+(d:(--/1_x)%-1.+n)*!n)'y)@!n:_0.+*x])]} /[xn;y] [xn xmin xmax;y] e.g. plot `x`y!hist[10 -4 4.;?-1000]
