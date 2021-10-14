@@ -110,7 +110,7 @@ function download(name,u){
 fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
  K=r.instance.exports
  K.kinit()
- fetch('36∘.k').then(r=>r.text()).then(s=>{K.dx(K.Val(ks(s))); ksave()})
+ fetch('∘.k').then(r=>r.text()).then(s=>{K.dx(K.Val(ks(s))); ksave()})
 })
 
 
