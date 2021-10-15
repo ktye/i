@@ -22,6 +22,7 @@
 
 <script>
 
+
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function hash(){return decodeURIComponent(window.location.hash.substr(1))}
 function ge(x){return document.getElementById(x)}
@@ -108,11 +109,12 @@ _ibm.addEventListener('keydown',function(e){ var t=_ibm
  if(c==32){emit(" ")}
  if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
  if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
- if(c==13){var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
+ if(c==13){new channel("ret.m4a").play();var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
  pd(e)})
 emits=async function emits(s){var a=s.split("");for(var i=0;i<a.length;i++){await sleep(50);emit(a[i])}}
 emit =async function emit(c){var t=_ibm;var h=(c!=" ")
  if(h)t.classList.add("hit");
+ new channel((c==" ")?"spc.m4a":"key.m4a").play()
  var o=t.value[t.selectionStart];if(o!=undefined)c=overstrike(o,c)
  var p=t.selectionStart;t.value=t.value.slice(0,p)+c+t.value.slice(1+p)
  t.selectionStart=1+p;t.selectionEnd=1+p
@@ -121,6 +123,7 @@ emit =async function emit(c){var t=_ibm;var h=(c!=" ")
 var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
 function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
 function sleep(x){return new Promise(r=>setTimeout(r,x))}
+function channel(u){this.u=u;this.r=new Audio(u)};channel.prototype.play = function(){this.r.play()}
 
 function setIcon(w){var l=document.querySelector("link[rel~='icon']");
  l.href=(w=="apl")?'log.png':'data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'
