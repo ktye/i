@@ -4,7 +4,7 @@ I:""
 P:0
 
 APL:{I::x;$[")"~*x;SYS 1_x;$[#i:&x':"@&`\"",(_!32),_"a"+!26;*(ERR`chr;P::*i);RUN TOK x]]}
-SYS:{$[x~"ORIGIN";$O;x~"ORIGIN 1";[O::1;,"1"];x~"ORIGIN 0";[O::0;,"0"];"INCORRECT COMMAND"]}
+SYS:{$[x~"ORIGIN 1";*|(O::1;"WAS ",$O);x~"ORIGIN 0";*|(O::0;"WAS ",$O);"INCORRECT COMMAND"]}
 UTF:{(&x>-65)^x}
 TOK:{}
 RUN:{}
