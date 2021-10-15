@@ -2,7 +2,9 @@
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 <style>
+ @font-face{font-family:'apl2741'; src:url('apl2741.woff2') format('woff2');}
  html{font-family:monospace;}
+ .ibm2741{width:100%;height:100%;resize:none;padding:1px;border:none;outline:none;font-family:apl2741;position:absolute;top:0;left:0;z-index:8;display:none};.hit{paddint-top:0px}
  .codemirror{height:100%;border:none;resize:none}
  .cm-fat-cursor .CodeMirror-cursor{width:auto;border:0!important;background:black}
  #_uid{position:absolute;right:0;top:0;z-index:10}
@@ -14,6 +16,7 @@
 
 <body>
 <div id="_edt" class="cm.fat-cursor"></div>
+<textarea id="_ibm" class="ibm2741"></textarea>
 <div id="_uid""></pre><canvas id="_icv"></canvas></div>
 <a id="_dl" style:"display:none"></a>
 
@@ -52,7 +55,8 @@ function fatCursor(x){
 // atEOF: block cursor. console(execute) editor(exit-at-\)
 function atEOF(){var c=_ed.getCursor();var l=_ed.lastLine();return ((c.line==l)&&(true/*_ed.getLine(l).length==c.ch*/)&&(_ed.getSelection().length==0))}
 _ed.on("cursorActivity", function(e){ fatCursor(atEOF()) })
-function O(s){_ed.replaceRange(s,{line:Infinity});_ed.setCursor(_ed.lineCount(),0,{"scroll":true});/*_ed.scrollIntoView()*/}
+function KO(s){_ed.replaceRange(s,{line:Infinity});_ed.setCursor(_ed.lineCount(),0,{"scroll":true});}
+var O=KO
 
 var editor=false
 var _hist=[""];_histn=1
@@ -66,6 +70,7 @@ function enter(){if(!atEOF())return CodeMirror.Pass;var l=_ed.getLine(_ed.lastLi
   }else if(t.startsWith("\\e ")){
    t=t.slice(3); _buf=t+":"+sk(K.Atx(K.sc(ks("edit")),lup(t)))+"\n\\"; setEditor(true);return
   }else if(t=="\\"){help()
+  }else if(t=="\\\\"){_ed.execCommand("deleteLine");_ed.replaceRange(" ",{"line":_ed.lastLine()});if(!system360up)bootSystem360();else SWTCH("APL")
   }else{exec(l);if(l!=" "&&_hist[_hist.length-1]!=l)_hist.push(l);_histn=_hist.length;return}
  }else{
   switch(t){
@@ -83,6 +88,43 @@ function exec(s){s=(s.startsWith("  "))?" "+s.trim():s.trim()
  _ed.markText({line:l,ch:0},{line:l,ch:Infinity},{css:"color: darkred"})
  _ed.replaceRange("\n", {line:l})
  ktry(s);O(" ");ui()}
+
+function apl(s){if(s==")"){_ibm.value=_ibm.value.slice(0,_ibm.value.lastIndexOf("\n"))+"\n      ";SWTCH("k");return}
+ var sk=function(x){msl();var t=K.tp(x);if(t!=18){K.dx(x);return "RETURN TYPE ERROR"}var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
+ var r=sk(K.Atx(lup("APL"),ks(s)));r="\n"+r;if(r.length>1)r+="\n";O(r+"      ")}
+ 
+//IBM2741
+var _ibm=ge("_ibm");_ibm.value=""
+_ibm.value=""
+_ibm.addEventListener('keydown',function(e){ var t=_ibm
+ var u={49:"¨",50:"¯",51:"<",52:"≤",53:"=",54:"≥",55:">",56:"≠",57:"∨",48:"^",173:"-",61:"÷",81:"?",87:"⍵",69:"∊",82:"⍴",84:"~",89:"↑",85:"↓",73:"⍳",79:"○",80:"*",219:"→",65:"⍺",83:"⌈",68:"⌊",70:"_",71:"∇",72:"∆",74:"∘",75:"'",76:"⎕",59:"(",222:")",90:"⊂",88:"⊃",67:"∩",86:"∪",66:"⊥",78:"⊤",77:"|",188:";",190:":",191:"\\"}
+ var w={219:"←",59:"[",222:"]",188:",",190:".",191:"/"}
+ var c=e.keyCode;var s=e.getModifierState("Shift");//console.log(c, s)
+ var n=t.value.length;var p=t.selectionStart
+ if(c==8){t.selectionStart=(p>0)?p-1:0;t.selectionEnd=t.selectionStart}
+ if(c==46){t.value=t.value.slice(0,p)}
+ if(!s&&(c>=65&&c<=90)){emit(String.fromCharCode(c))} //AZ
+ if(!s&&(c>=48&&c<=57))emit(String.fromCharCode(c))   //09
+ if(c==32){emit(" ")}
+ if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
+ if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
+ if(c==13){var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
+ pd(e)})
+emits=async function emits(s){var a=s.split("");for(var i=0;i<a.length;i++){await sleep(50);emit(a[i])}}
+emit =async function emit(c){var t=_ibm;var h=(c!=" ")
+ if(h)t.classList.add("hit");
+ var o=t.value[t.selectionStart];if(o!=undefined)c=overstrike(o,c)
+ var p=t.selectionStart;t.value=t.value.slice(0,p)+c+t.value.slice(1+p)
+ t.selectionStart=1+p;t.selectionEnd=1+p
+ await sleep(200)
+ if(h)t.classList.remove("hit")}
+var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
+function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
+function sleep(x){return new Promise(r=>setTimeout(r,x))}
+
+function setIcon(w){var l=document.querySelector("link[rel~='icon']");
+ l.href=(w=="apl")?'log.png':'data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'
+ document.title=(w=="apl")?"↓":"."}
 
 
 var K, C, I, U, F, bak
@@ -125,7 +167,7 @@ function download(name,u){
 fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(banner(r),env)).then(r=>{
  K=r.instance.exports
  K.kinit();reset()
- var s=hash();if(s.length!=0){_buf=s+"\n\\";setEditor(true)}
+ var s=hash();if(s=="2741"){bootSystem360()}else if(s.length!=0){_buf=s+"\n\\";setEditor(true)}
 })
 
 function reset(){
@@ -150,6 +192,17 @@ function ktry(s){
  catch(e) { console.log(e); if(e.message!="unreachable executed")O(e.name+": "+e.message+"\n"); C.set(bak); return K.Srcp() }}
 //function ktry(s) { if(typeof(s)==="function"){s()}else{K.repl(ks(s))}; ksave();return 0 } //unprotected
 
+var system360up=false
+function bootSystem360(){SWTCH("APL")
+ keyboard = `┌────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐\n│    │ ¨ │ ¯ │ < │ ≤ │ = │ ≥ │ > │ ≠ │ ∨ │ ^ │ - │ ÷ │        │\n│    │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ + │ × │ BACKSP │\n├────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬──────┤\n│      │ ? │ ⍵ │ ∊ │ ⍴ │ ~ │ ↑ │ ↓ │ ⍳ │ ○ │ * │ → │   │      │\n│      │ Q │ W │ E │ R │ T │ Y │ U │ I │ O │ P │ ← │   │      │\n├──────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴──────┤\n│        │ ⍺ │ ⌈ │ ⌊ │ _ │ ∇ │ ∆ │ ∘ │ ' │ ⎕ │ ( │ ) │        │\n│        │ A │ S │ D │ F │ G │ H │ J │ K │ L │ [ │ ] │ RETURN │\n───────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴────────┤\n│           │ ⊂ │ ⊃ │ ∩ │ ∪ │ ⊥ │ ⊤ │ | │ ; │ : │ \\ │         │\n│  SHIFT    │ Z │ X │ C │ V │ B │ N │ M │ , │ . │ / │  SHIFT  │\n└───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴─────────┘`
+ fetch('∘.k').then(r=>r.text()).then(s=>{K.dx(K.Val(ks(s))); ksave();system360up=true})
+}
+function SWTCH(w){var APL=w=="APL"
+ var l=document.querySelector("link[rel~='icon']");
+ l.href=APL?'log.png':'data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'
+ document.title=APL?"↓":"."
+ O=APL?emits:KO;_ibm.style.display=APL?"block":"none"
+ if(APL){_ibm.focus()}else{_ed.setCursor(_ed.lineCount(),0,{"scroll":true});_ed.focus()}}
 
 // drop file in console (store in variable)
 window.ondragover=function(e){pd(e)}
@@ -166,6 +219,7 @@ function addfile(x){
 }
 
 function help(){fetch('readme').then(r=>r.text()).then(r=>O("\n"+r+" "))}
+
 
 /*
  ui:"int list <input id='X'>
