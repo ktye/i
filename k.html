@@ -4,7 +4,7 @@
 <style>
  @font-face{font-family:'apl2741'; src:url('apl2741.woff2') format('woff2');}
  html{font-family:monospace;}
- .ibm2741{width:100%;height:100%;resize:none;padding:1px;border:none;outline:none;font-family:apl2741;position:absolute;top:0;left:0;z-index:8;display:none};.hit{paddint-top:0px}
+ .ibm2741{width:100%;height:100%;resize:none;padding:1px;border:none;outline:none;font-family:apl2741;position:absolute;top:0;left:0;overflow:hidden;display:none};.hit{paddint-top:0px}
  .codemirror{height:100%;border:none;resize:none}
  .cm-fat-cursor .CodeMirror-cursor{width:auto;border:0!important;background:black}
  #_uid{position:absolute;right:0;top:0;z-index:10}
@@ -16,7 +16,7 @@
 
 <body>
 <div id="_edt" class="cm.fat-cursor"></div>
-<textarea id="_ibm" class="ibm2741"></textarea>
+<textarea id="_ibm" class="ibm2741" spellcheck="false"></textarea>
 <div id="_uid""></pre><canvas id="_icv"></canvas></div>
 <a id="_dl" style:"display:none"></a>
 
@@ -95,29 +95,29 @@ function apl(s){if(s==")"){_ibm.value=_ibm.value.slice(0,_ibm.value.lastIndexOf(
  var r=sk(K.Atx(lup("APL"),ks(s)));r="\n"+r;if(r.length>1)r+="\n";O(r+"      ")}
  
 //IBM2741
-var _ibm=ge("_ibm");_ibm.value=""
-_ibm.value=""
-_ibm.addEventListener('keydown',function(e){ var t=_ibm
- var u={49:"¨",50:"¯",51:"<",52:"≤",53:"=",54:"≥",55:">",56:"≠",57:"∨",48:"^",173:"-",61:"÷",81:"?",87:"⍵",69:"∊",82:"⍴",84:"~",89:"↑",85:"↓",73:"⍳",79:"○",80:"*",219:"→",65:"⍺",83:"⌈",68:"⌊",70:"_",71:"∇",72:"∆",74:"∘",75:"'",76:"⎕",59:"(",222:")",90:"⊂",88:"⊃",67:"∩",86:"∪",66:"⊥",78:"⊤",77:"|",188:";",190:":",191:"\\"}
- var w={219:"←",59:"[",222:"]",188:",",190:".",191:"/"}
- var c=e.keyCode;var s=e.getModifierState("Shift");//console.log(c, s)
+var _ibm=ge("_ibm");_ibm.value="\n".repeat(100);
+_ibm.addEventListener('keydown',function(e){var t=_ibm;
+ var u={Digit1:"¨",Digit2:"¯",Digit3:"<",Digit4:"≤",Digit5:"=",Digit6:"≥",Digit7:">",Digit8:"≠",Digit9:"∨",Digit0:"^",Minus:"-",Equal:"÷",KeyQ:"?",KeyW:"⍵",KeyE:"∊",KeyR:"⍴",KeyT:"~",KeyY:"↑",KeyU:"↓",KeyI:"⍳",KeyO:"○",KeyP:"*",BracketLeft:"→",KeyA:"⍺",KeyS:"⌈",KeyD:"⌊",KeyF:"_",KeyG:"∇",KeyH:"∆",KeyJ:"∘",KeyK:"'",KeyL:"⎕",Semicolon:"(",Quote:")",KeyZ:"⊂",KeyX:"⊃",KeyC:"∩",KeyV:"∪",KeyB:"⊥",KeyN:"⊤",KeyM:"|",Comma:";",Period:":",Slash:"\\"}
+ var w={Minus:"+",Equal:"×",BracketLeft:"←",Semicolon:"[",Quote:"]",Comma:",",Period:".",Slash:"/"}
+ var c=e.code;var s=e.getModifierState("Shift");//console.log(c, s)
  var n=t.value.length;var p=t.selectionStart
- if(c==8){t.selectionStart=(p>0)?p-1:0;t.selectionEnd=t.selectionStart}
- if(c==46){t.value=t.value.slice(0,p)}
- if(!s&&(c>=65&&c<=90)){emit(String.fromCharCode(c))} //AZ
- if(!s&&(c>=48&&c<=57))emit(String.fromCharCode(c))   //09
- if(c==32){emit(" ")}
+ if(c=="Backspace"){t.selectionStart=(p>0)?p-1:0;t.selectionEnd=t.selectionStart}
+ if(c=="Delete"){t.value=t.value.slice(0,p)}
+ if(!s&&c.startsWith("Key"))emit(c.slice(3)) //AZ
+ if(!s&&c.startsWith("Digit"))emit(c.slice(5)) //09
+ if(c=="Space"){emit(" ")}
  if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
  if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
- if(c==13){new channel("ret.m4a").play();var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
+ if(c=="Enter"){new channel("ret.m4a").play();var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
  pd(e)})
-emits=async function emits(s){var a=s.split("");for(var i=0;i<a.length;i++){await sleep(50);emit(a[i])}}
+emits=async function emits(s){_ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){await sleep(50);emit(a[i])}}
 emit =async function emit(c){var t=_ibm;var h=(c!=" ")
  if(h)t.classList.add("hit");
  new channel((c==" ")?"spc.m4a":"key.m4a").play()
  var o=t.value[t.selectionStart];if(o!=undefined)c=overstrike(o,c)
  var p=t.selectionStart;t.value=t.value.slice(0,p)+c+t.value.slice(1+p)
  t.selectionStart=1+p;t.selectionEnd=1+p
+ t.scroll(0,t.scrollHeight)
  await sleep(200)
  if(h)t.classList.remove("hit")}
 var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
@@ -204,7 +204,7 @@ function SWTCH(w){var APL=w=="APL"
  var l=document.querySelector("link[rel~='icon']");
  l.href=APL?'log.png':'data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'
  document.title=APL?"↓":"."
- O=APL?emits:KO;_ibm.style.display=APL?"block":"none"
+ O=APL?emits:KO;_ibm.style.display=APL?"block":"none";_ed.getWrapperElement().style.display=APL?"none":"block"
  if(APL){_ibm.focus()}else{_ed.setCursor(_ed.lineCount(),0,{"scroll":true});_ed.focus()}}
 
 // drop file in console (store in variable)
