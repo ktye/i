@@ -17,18 +17,17 @@ MAP:{,/@[r;&(r:UTF z)~\:x;y]}
 
 
 TOK:{[x]x:MAP["¯";"_";x]
- c:"_+uc'ae1"
+ c:"_+u'ace1"
  a:256#                       "e"   /illegal or quoted
  @[`a;32;                     "_"] 
- @[`a;0+"~+_*<>?,/()[]";      "+"]
+ @[`a;0+"~+-*<>^?,/()[]";     "+"]
  @[`a;192+!64;                "u"]  /utf8 start
- @[`a;128+!64;                "c"]  /utf8 continuation
  @[`a;39;                     "'"]
  @[`a;0+"_.",_(48+!10),65+!26;"a"]
+ @[`a;128+!64;                "c"]  /utf8 continuation
  
- /state matrix _+uc'ae  _+uc'ae  _+uc'ae  _+uc'ae  _+uc'ae; _+uc'ae  _+uc'ae  _+uc'ae
- M:c?1_'";"\:"__+ue'ae;+_+uc'ae;ueeeceee;c_+uc'ae;'''''_'';a_+ue'1e;eeeeeeee;1_+uc'1e"
- (&6>0{M[x;y]}\(c?a)@256/256+x)^x
+ /state matrix _+u'ace  _+u'ace  _+u'ace  _+u'ace; _+u'ace  _+u'ace  _+u'ace  _+u'ace
+ M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;''''_''';a_+u'1ee;c_+u'ace;eeeeeeee;1_+u'1ce"
+ (&5>0{M[x;y]}\(c?a)@256/256+x)^x
 }
-
 
