@@ -353,7 +353,7 @@ func Cut(x, y K) (r K) { // x^y
 	}
 	xp := int32(x)
 	if xp <= 0 {
-		trap(Value)
+		xp = nn(y) / -xp
 	}
 	r = mk(Lt, xp)
 	rp := int32(r)
