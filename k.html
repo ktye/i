@@ -197,7 +197,6 @@ function ktry(s){
 
 var system360up=false
 function bootSystem360(){SWTCH("APL")
- keyboard = `┌────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐\n│    │ ¨ │ ¯ │ < │ ≤ │ = │ ≥ │ > │ ≠ │ ∨ │ ^ │ - │ ÷ │        │\n│    │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ + │ × │ BACKSP │\n├────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬──────┤\n│      │ ? │ ⍵ │ ∊ │ ⍴ │ ~ │ ↑ │ ↓ │ ⍳ │ ○ │ * │ → │   │      │\n│      │ Q │ W │ E │ R │ T │ Y │ U │ I │ O │ P │ ← │   │      │\n├──────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴──────┤\n│        │ ⍺ │ ⌈ │ ⌊ │ _ │ ∇ │ ∆ │ ∘ │ ' │ ⎕ │ ( │ ) │        │\n│        │ A │ S │ D │ F │ G │ H │ J │ K │ L │ [ │ ] │ RETURN │\n───────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴────────┤\n│           │ ⊂ │ ⊃ │ ∩ │ ∪ │ ⊥ │ ⊤ │ | │ ; │ : │ \\ │         │\n│  SHIFT    │ Z │ X │ C │ V │ B │ N │ M │ , │ . │ / │  SHIFT  │\n└───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴─────────┘`
  fetch('∘.k').then(r=>r.text()).then(s=>{K.dx(K.Val(ks(s))); ksave();system360up=true})
 }
 function SWTCH(w){var APL=w=="APL"
@@ -224,7 +223,7 @@ function addfile(x){
 function help(){fetch('readme').then(r=>r.text()).then(r=>O("\n"+r+" "))}
 
 
-/*
+/* the electric!
  ui:"int list <input id='X'>
  <button id='f'>push</button>"
  X:1 2 3
