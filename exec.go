@@ -128,7 +128,8 @@ func Amd(x, i, v, y K) (r K) {
 			return trap(Nyi) // table-assign-rows
 		}
 		r, x = spl2(x)
-		return key(r, Amd(x, Fnd(rx(r), i), v, y), xt)
+		r = Unq(Cat(r, rx(i)))
+		return key(r, Amd(ntake(nn(r), x), Fnd(rx(r), i), v, y), xt)
 	}
 	if i == 0 {
 		if v == 1 {
