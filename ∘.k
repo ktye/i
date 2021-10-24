@@ -25,9 +25,10 @@ MAP:{,/@[r;&(r:UTF z)~\:x;y]}
 err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK SYNTAX SYMBOL VALUE"
 ERR:{(err x)," ERROR\n      ",C,"\n",((6+P)#" "),"^"}
 
-NM:"_.0123456789"               /¯ will be mapped to _
+NM:"_.0123456789"                                       /¯ is mapped to _
 AZ:_"A"+!26
-OP:"¨<≤=≥>≠∨^-÷+×?⍵∊⍴~↑↓⍳○*→←⌈⌊∇∆∘⎕⊂⊃∩∪⊥⊤|;:,/\\()[]"
+OP:"¨<≤=≥>≠∨^-÷+×?⍵∊⍴~↑↓⍳○*→⌈⌊∇∆∘⎕⊂⊃∩∪⊥⊤|,;:./\\()[]"   /← is mapped to :
+SY:UTF OP;                        SE:SY?,";"
 
 A:256#                    "e"   /illegal but allowed in quotation
 @[`A;32;                  "_"]  /blank
@@ -37,7 +38,8 @@ A:256#                    "e"   /illegal but allowed in quotation
 @[`A;0+NM,AZ;             "a"]  /alphanum
 @[`A;128+!64;             "c"]  /utf8 continuation
 
-TOK:{[x]x:MAP["¯";"_";x]; c:"_+u'aceqb1"    /q,b(start,stop quotation) 1(continue alphanum)
+TOK:{[x]x:MAP["¯";"_";MAP["←";":";x]];
+ c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
  M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqq_qqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b___q___;1_+u'1ce"  /state matrix
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
  P::0,+\#'r                                 /save token start positions within input C
@@ -47,11 +49,11 @@ TOK:{[x]x:MAP["¯";"_";x]; c:"_+u'aceqb1"    /q,b(start,stop quotation) 1(contin
 
 VEC:{f:{(*x)':NM};x:{$[(f x)&f y;x," ",y;y]}\x;i:-1+&b&0b~':b:f'x;@[x;i;(,," ")@&,#i]}
  
-PRS:{                                                   / apl token           k value             k-type
- ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"    C
-  {$[r:`F$" "/:x@&~""~/:x:" "\:x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0     F
-  `$                                                    / "X1"              → `X1                 s  
-  {(#x;x:"'"/:v@&~""~/:v:"'"\:1_-1_x)}                  / "'⍺ isn''t ⍵'"    → (14;"⍺ isn't ⍵")    L
+PRS:{                                                   / apl token           k value              k-type
+ ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"     C
+  {$[r:`F$" "/:x@&~""~/:x:" "\:x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0      F
+  `$                                                    / "X1"              → `X1                  s  
+  {(#x;x:"'"/:v@&~""~/:v:"'"\:1_-1_x)}                  / "'⍺ isn''t ⍵'"    → ("1";14;"⍺ isn't ⍵") L
  )[*&~0N=(OP;NM;AZ;,"'")?\:*x]x}
 
 
@@ -64,19 +66,41 @@ SHAPE:  {(#*x;*x)}                       /     ⍴ X
 IOTA:   {(#x;x:O+!**|x)}                 /     ⍳ X
 RESHAPE:{(s;(*/s:$[0~#s:*x;,s;s])#*|y)}  /   X ⍴ Y
 OVER:   {[f;x]REDUCE[f;x;-1+#*x]}        /    F/ X
-REDUCE: {[f;x;a](*x;1#*|x)}              / F[a]/ X  nyi
+REDUCE: {[f;a;x](*x;1#*|x)}              / F[a]/ X  nyi
 DOT:    {[f;g;x;y]x}                     / X F.G Y
 
-RUN:{q:s:-1+#x                                  /x[q] last queue token, x[s] stack top value (gap buffer)
- lu:{$[""~r:V x;`val;r]}                        /lookup symbol
 
 
+/ RUN:{q:s:-1+#x                                  /x[q] last queue token, x[s] stack top value (gap buffer)
+/  lu:{$[""~r:V x;`val;r]}                        /lookup name
+/ 
+/  mv:{[]x[1+s-:1]:ev x 1+q-:1}                   /move token from queue to stack
+/  co:{[]0b}                                      /top stack is assign or index assign
+/  ev:{                                           /evaluate token on the move
+/   $[`s~t:@x;$[co[];,x;lu x]                     /lookup name if it's not an assignment
+/     `F~t   ;("1";$[1~#x;!0;#x];x)               /array from numeric literal, single number is atom
+/     `C~t   ;$[SE>i:UTF?x;("+";i);*x]];x}        /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
+/  ma:{                                           /match parse state
+/    PC~PN#/:*'r_x
+/  }
+/ }
+/ 
+/ mo:{("+";REDUCE@1_*x)}
+/ vi:{("+";((*x)1)1_x 1)}
+/ ix:{("1";INDEX@1_x 0)}
+/ df:{("1";(2_x 1)[1_*x;1_x 2])}
+/ do:{("+";;DOT[1_*x;1_x 2])}
+/ as:{("1";ASSIGN[1_*x;1_x 2]}
+/ pa:{x 1}
+/ mf:{("i";(1_x 1)1_x 2)}
+/ ax:{("i";ASSIGNAT[1_*x;1_x 1;1_x 3])}
+/ 
+/ PF:     (mo;mo;vi;ix;df; do; as; pa; mf; ax;  br)
+/ PC:" "\:"+/ 1/ +i 1i 1+1 +.+ s:1 (1) ++1 si:1 ["
+/ PN:#'PC
+/ PO:@[&#PC;8;1]
 
- mv:{[]x[1+s-:1]:ev x 1+q-:1}                   /move token from queue to stack
- co:{[]0b}                                      /top stack is assign or index assign
- ev:{$[co[]&`s~t:@x;$[`val~x:lu x;*(x:l::0);x]  /evaluate token on the move, l::0 ends execution on error
-       `f~t; (!0;,x); `F~t; (#x;x) ];x}
-}
+
 RUN:{$[`C~@x;x;`k x]}
 
  
@@ -95,42 +119,46 @@ RUN:{$[`C~@x;x;`k x]}
 / - finally there must be two tokens remaining: $ 1 
 /   otherwise it's a SYNTAX ERROR
 /
-/ INPUT CLASSES (from the left queue) $ / . ← + 1 s ( ) [ ; ]
+/ INPUT CLASSES (from the left queue) $ / . : + 1 s ( ) [ ; ]
 /  $ start of the sentence
 /  / monadic operator (only /)
 /  . dyadic operator  (only .)
 /  + any function symbol
 /  1 array(noun)
 /  s symbol
-/  ; ( ) [ ] / . ←    tokens represented by themselves
-/  ⌷ index specification results from resolving [..;..]
+/  ; ( ) [ ] / . :    tokens represented by themselves
+/  i index specification results from resolving [..;..]
 /  ? anything
 /
 / TABLE
 /   0     1     2     3     ACTION     TO       REPLACE BY
-/   +1    /     ?     ?     mo         0,1   →  + (monadic)
-/   +     ⌷     ?     ?     fix        0,1   →  + (monadic)
-/   1     ⌷     ?     ?     idx        0,1   →  1
-/   $     +     1     ?     mf         1,2   →  1
-/   1     +     1     ?     df         0,2   →  1
-/   +     .     +     ?     do         0,2   →  + (dyadic)
-/   s     ←     1     ?     asn        0,2   →  1
-/   (     1     )     ?     inp        0,2   →  1
-/   ?     +     +     1     mf         2,3   →  1
-/   s     ⌷     ←     1     asi        0,3   →  1
-/   [     ?     ?     ?     ma         0,n   →  ⌷ 
+/   +     /                 mo         0,1   →  + (monadic)
+/   1     /                 mo         0,1   →  + (monadic)
+/   +     i                 vi         0,1   →  + (monadic)
+/   1     i                 ix         0,1   →  1
+/   1     +     1           df         0,2   →  1
+/   +     .     +           do         0,2   →  + (dyadic)
+/   s     :     1           as         0,2   →  1
+/   (     1     )           pa         0,2   →  1
+/   +     +     1           mf         1,2   →  1
+/   s     i     :     1     ax         0,3   →  1
+/   [                       br         0,n   →  ⌷ 
+/   $     +     1           mf         1,2   →  1 (handled later)
+/
+/   " "\:"+/  1/ +i 1i 1+1 +.+ s:1 (1) ++1 si:1 ["
+/         0   0  0  0  0   0   0   0   1   0    1
 /
 / ACTIONS
 /  mf  apply monadic function
 /  df  apply dyadic  function
 /  mo  apply monadic operator
 /  do  apply dyadic  operator
-/  asn assign
-/  asi indexed assign
+/  as  assign
+/  ax  indexed assign
 /  pa  remove parens
-/  ma  match closing bracket, count semicolons
-/  fix specify axis to a verb(transpose,grade), reduction or compression
-/  idx index array
+/  br  match closing bracket, count semicolons
+/  vi  specify axis to a verb(transpose,grade), reduction or compression
+/  ix  index array
 / 
 / REF
 /  rapl  rationlized apl - iversion 83
