@@ -43,11 +43,11 @@ TOK:{[x]x:MAP["¯";"_";MAP["←";":";x]];
  M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqq_qqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b___q___;1_+u'1ce"  /state matrix
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
  P::0,+\#'r                                 /save token start positions within input C
- b:{P::P i:&~x~\:," ";x i}                  /blanks result in their own tokens, remove them
+ b:{P::P i:&~" "=*'x;x i}                   /blanks result in their own tokens, remove them
  r:b VEC b r                                /merge successive numbers (strong vector binding)   
  $[(!0)~e:&s=6;$[+/p:0N~/:r:PRS'r;ERR@*(`val;P::P@*&p);r];ERR@*(`cha;P::*e)]}
 
-VEC:{f:{(*x)':NM};x:{$[(f x)&f y;x," ",y;y]}\x;i:-1+&b&0b~':b:f'x;@[x;i;(,," ")@&,#i]}
+VEC:{x:,/|'{x," ",y}\'(&~b&0b~':b:{(*x)':NM}'x)^x;x[i]:(#i:&b&0b~':b)#,""}
  
 PRS:{                                                   / apl token           k value              k-type
  ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"     C
