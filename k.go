@@ -11,6 +11,7 @@ var pp, pe, sp, srcp, rand int32 //parse or execution position/end, stack positi
 
 func init() {
 	Memory(1)
+	Memory2(1)
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\t\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00\xc2\xc2\xc2\xc2\xc2\xc2BBBBBBBBBBBBBBBBBBBB\x10\x01`\x01") // k_test.go: TestClass
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
 	Data(520, "vbcisfzldtmdpl000BCISFZLDT") //546

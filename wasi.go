@@ -15,8 +15,20 @@ func main() { // _start
 	for {
 		write(Ku(32))
 		x := read()
-		repl(x)
+		try(x)
 	}
+}
+func catch() {
+	Memorycopy3(0, 0, int32(65536)*Memorysize2())
+}
+func try(x K) {
+	defer Catch(catch)
+	repl(x)
+	g := (1 << (I32(128) - 16)) - Memorysize2()
+	if g > 0 {
+		Memorygrow2(g)
+	}
+	Memorycopy2(0, 0, 1<<I32(128))
 }
 func repl(x K) {
 	n := nn(x)

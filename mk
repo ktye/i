@@ -25,7 +25,8 @@ if [ "$1" = "cover" ]; then
 	go tool cover -html=cov.out -o cov.html
 fi
 
-wg . > k.wat
+wg             . > k.wat
+wg -try -multi . > k-wavm.wat
 /c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd k.wat
 
 cp k.html /c/k/ktye.github.io/index.html
