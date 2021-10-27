@@ -173,7 +173,7 @@ func TestKE(t *testing.T) {
 		newtest()
 		var buf bytes.Buffer
 		wasi_unstable.Stdout = &buf
-		e := try(func() { test(mkchars(v[i])) })
+		e := tryf(func() { test(mkchars(v[i])) })
 		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
 		fmt.Println(string(v[i]))
 		if e != exp {
@@ -203,13 +203,13 @@ func TestTraps(t *testing.T) {
 	for _, tc := range testCases {
 		newtest()
 		wasi_unstable.Stdout = io.Discard
-		e := try(tc.f)
+		e := tryf(tc.f)
 		if e != tc.e {
 			t.Fatalf("expected %d got %d", tc.e, e)
 		}
 	}
 }
-func try(f func()) (err int32) {
+func tryf(f func()) (err int32) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(int32)

@@ -665,7 +665,7 @@ func Fwh(x K) K { // *&x
 	t := tp(x)
 	if t == Bt {
 		dx(x)
-		return Ki(maxi(0, fwh(int32(x), nn(x))))
+		return Ki(fwh(int32(x), nn(x)))
 	}
 	return Fst(Wer(x))
 }
@@ -686,7 +686,7 @@ f:
 		}
 		p++
 	}
-	return -1
+	return nai
 }
 
 func Typ(x K) (r K) { // @x
