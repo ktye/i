@@ -15,7 +15,7 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 - neg sub       /  rdc  mod   f n/ ndo     c char     "x"   "ab"        
 * fst mul       \  scn  div                i int      2     1 2         
 % sqr div       ': ecp  in                 s symbol   `a    ``c`d       
-! til wer       /: ecr  split   f/:fix     f float    2.    1. 2.    
+! til key       /: ecr  split   f/:fix     f float    2.    1. 2.    
 & wer min       \: ecl  join    f\:fix     z complex  1a    1a20 2a     
 | rev max       while[c;a;b;..]            L list     (1;2 3)      
 < asc les       $[a;b;...]      cond       D dict     `a`b!1 2
@@ -33,5 +33,5 @@ $ str cst       c:<`file(read)             v:  0..63   monadic
                                              256       drop
 abs sin cos exp log any find fill            320/384   jmp, jmp-ifz
 imag conj angle qr ej avg var std            448..     quoted verb
-abs find fill imag conj angle log dot solve               (dyadic)
+qr solve dot plot hist (unpack) csv
 rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
