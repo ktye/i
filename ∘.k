@@ -27,17 +27,17 @@ ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^"}
 
 NM:"_.0123456789"                                       /¯ is mapped to _
 AZ:_"A"+!26
-OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○*⍟→⌈⌊∇∆∘⎕⊂⊃∩∪⊥⊤!|,;:./\\()[]"   /← is mapped to :
-SY:UTF OP;                            SE:SY?,";"
+OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,;:./\\()[]"   /← is mapped to :
+SY:UTF OP;                                SE:SY?,";"
 
 
-A:256#                    "e"   /illegal but allowed in quotation
-@[`A;32;                  "_"]  /blank
-@[`A;0+"~+-*<>^?!,:/()[]";"+"]  /ascii punctuation
-@[`A;192+!64;             "u"]  /utf8 start
-@[`A;39;                  "'"]  /quote
-@[`A;0+NM,AZ;             "a"]  /alphanum
-@[`A;128+!64;             "c"]  /utf8 continuation
+A:256#                     "e"   /illegal but allowed in quotation
+@[`A;32;                   "_"]  /blank
+@[`A;0+"~+-*<>^?!,:;/()[]";"+"]  /ascii punctuation
+@[`A;192+!64;              "u"]  /utf8 start
+@[`A;39;                   "'"]  /quote
+@[`A;0+NM,AZ;              "a"]  /alphanum
+@[`A;128+!64;              "c"]  /utf8 continuation
 
 TOK:{[x]x:MAP["¯";"_";MAP["←";":";x]];
  c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
@@ -61,7 +61,7 @@ PRS:{                                                   / apl token           k 
 
 F1:{[f;x](*x;f x 1)}
 F2:{[f;x;y]$[(!0)~a:*x;(*y;f[*x 1;y 1]);(!0)~b:*y;(a;f[x 1;*y 1]);a~b;(a;f[x 1;y 1]);[L::-1;`len]]}
-F:SE#"";f:{F[SY?*x]:(F1 x 1;F2 x 2)}
+F:(#OP)#"";f:{F[SY?*x]:(F1 x 1;F2 x 2)}
 binom:{f:*/1+!;(f y)%(f x)*f y-x}
 
 / scalar functions
@@ -87,14 +87,49 @@ f( "≥";    ""     ;  ~<   )     /            not less
 f(,">";    ""     ;   >   )     /            greater
 f( "≠";    ""     ;  ~=   )     /            not equal
 
+/ mixed functions
+IOTA:    {$[(!0)~*x;(,n;O+!n:_0.+*x 1);[L::0;`ran]]}
+RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
+COMPRESS:{(,#i;(y 1)@i:&(_0.+x 1))}
+
+f:{F[SY?*x]:1_x}
+f(  "⍴";{(,#*x;*x)}    ; RESHAPE                         )
+f( ,",";{(,#(x 1);x 1)}; CAT                             )
+f(  "⍳"; IOTA          ; INDEXOF                         )
+f(  "↑"; ""            ; TAKE                            )
+f(  "↓"; ""            ; DROP                            )
+f(  "⍋"; GRADEUP       ;         ; GRADEUPAX             )
+f(  "⍒"; GRADEDOWN     ;         ; GRADEDOWNAX           )
+f( ,"/"; ""            ; COMPRESS; ""       ; COMPRESSAX )
+f(,"\\"; ""            ; EXPAND  ; ""       ; EXPANDAX   )
+f(  "⌽"; REVERSE       ; ROTATE  ; REVERSEAX; ROTATEAX   )
+f(  "⍉"; TRANSPOSE     ; TRANSPOSE2                      )
+f(  "∊"; ""            ; MEMBER                          )
+f(  "⊥"; ""            ; DECODE                          )
+f(  "⊤"; ""            ; ENCODE                          )
+f( ,"?"; ""            ; DEAL                            )
+
+
+DOT:{[f;g;x]x}
+AXIS:{[f;i](f;i)}
+INDEX:{[x;y]x}
+AMEND:{[s;i;y]y}
+REDUCE:{[f;x](,1;,+/x 1)}
 
 
 /   case   action       PARSE TABLE
-PT:( ,"x"; {*x}                                        /no match
-    "1+1"; {("1",(((x 1)1)1)[1_x 0;1_x 2])}            /apply dyadic function
-    "++1"; {[y]n-:1;x[2+R]:("1",(((y 1)1)0)1_y 2);*y}  /apply monadic function (correct stack for leading +)
-    "(1)"; {x 1}                                       /unbrace
-    "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))})              /assign
+PT:( ,"x"; {*x}                                            /no match, keep shifting
+    "1+1"; {("1",((x 1)2)[1_x 0;1_x 2])}                   /apply dyadic function
+    "++1"; {[y]n-:1;x[2+R]:("1",((y 1)1)1_y 2);*y}         /apply monadic function (correct stack for leading +)
+     "+/"; {("+",REDUCE[(*x)2])}                           /derive reduction
+     "1/"; {("+",COMPRESS[1_*x])}                         /project compress
+     "1i"; {("1",INDEX[1_*x;1_x 1])}                       /index array
+     "+i"; {("+",AXIS[(x 1)1;1_x 2])}                      /fix axis to (monadic) function
+    "(1)"; {x 1}                                           /unbrace
+     ,"["; {[y]n::1+(s:R_x)?"]";("i",1_'s@&~`c=@'(n-1)#s)} /indexing expression: count to ], remove brackets and semicolons
+    "+.+"; {("+",(DOT[((*x)2);((x 2)2)];`val))}            /dyadic operator
+    "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                   /assign
+   "si:1"; {("1",AMEND[(*x)1;1_x 1;x 3])})                 /indexed assignment
 
 PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
@@ -102,82 +137,33 @@ PF:     PT[1+i]
 
 RUN:{L:-1+R:#x                                                  /gap buffer: x[L] right most input token, x[R] stack top
  lu:{$[""~r:V x;`val;("1",r)]}                                  /lookup variable
- co:{[]":"~*x R}                                                /top stack is assign or index assign
+ co:{[](":"~*c)|"i:"~c:*'x 0 1+R}                               /top stack is assign or index assign
  ev:{[y]                                                        /evaluate token on the move
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;#y];y)                               /array from numeric literal, single number is atom
-    `C~t   ;$[SE>i:SY?y;mo("+";F@i);*y];y]}                     /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
+    `C~t   ;$[SE>i:SY?y;("+",F i);*y];y]}                       /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
  s:{x[R-:1]:ev x 1+L-:1}                                        /shift from left(queue) to right(stack) within x
- r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
+ r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:`c \*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
- $[~1~#x:R_x;ERR`syn;$[`s~@x:*|*x;ERR x;x]]}
+ $["+1"~*'r:R_x;x[R+:1]:("1",((r 0)1)1_r 1);0]                  /apply monadic function, if that's left
+ $[~1~#x:R_x;ERR`syn;x]}                                        /return the single noun left on the stack otherwise a syntax error
 
-  \APL"2+3"
-  \APL"(1-2)"
-  \APL"1+-3"
-  \APL"A←4"
-  \APL"A+2+A←4"
+/ $[`s~@x:*|*x;ERR x;x]
 
- 
-/ RUN (parse and execute)
-/ - tokens are marked with $ on the left and form a queue
-/ - an empty stack is initialized
-/ - four top elements of the stack are matched against the columns
-/   of the parse TABLE below
-/   - for the first line that matches the action is applied to the
-/     columns and they are replaced by the result of the action
-/   - if no line matches, a token from right end of the the queue
-/     is pushed to top of the stack
-/     - while moving, variable names are resolved
-/       except if the top of the stack is an assignment,
-/       or the first two are an index-specification followed by an assignment
-/ - finally there must be two tokens remaining: $ 1 
-/   otherwise it's a SYNTAX ERROR
-/
-/ INPUT CLASSES (from the left queue) $ / . : + 1 s ( ) [ ; ]
-/  $ start of the sentence
-/  / monadic operator (only /)
-/  . dyadic operator  (only .)
-/  + any function symbol
-/  1 array(noun)
-/  s symbol
-/  ; ( ) [ ] / . :    tokens represented by themselves
-/  i index specification results from resolving [..;..]
-/  ? anything
-/
-/ TABLE
-/   0     1     2     3     ACTION     TO       REPLACE BY
-/   +     /                 mo         0,1   →  + (monadic)
-/   1     /                 mo         0,1   →  + (monadic)
-/   +     i                 vi         0,1   →  + (monadic)
-/   1     i                 ix         0,1   →  1
-/   1     +     1           df         0,2   →  1
-/   +     .     +           do         0,2   →  + (dyadic)
-/   s     :     1           as         0,2   →  1
-/   (     1     )           pa         0,2   →  1
-/   +     +     1           mf         1,2   →  1
-/   s     i     :     1     ax         0,3   →  1
-/   [                       br         0,n   →  ⌷ 
-/   $     +     1           mf         1,2   →  1 (handled later)
-/
-/   " "\:"+/  1/ +i 1i 1+1 +.+ s:1 (1) ++1 si:1 ["
-/         0   0  0  0  0   0   0   0   1   0    1
-/
-/ ACTIONS
-/  mf  apply monadic function
-/  df  apply dyadic  function
-/  mo  apply monadic operator
-/  do  apply dyadic  operator
-/  as  assign
-/  ax  indexed assign
-/  pa  remove parens
-/  br  match closing bracket, count semicolons
-/  vi  specify axis to a verb(transpose,grade), reduction or compression
-/  ix  index array
-/ 
-/ REF
-/  rapl  rationlized apl - iversion 83
-/  dapl  dicitionary of apl - iverson 87
-/  ioj   an implmentation of j - hui 9x
-/  jdict dictionary - hui/iverson 91
-/  2by2  pairwise reduction - bunda/gerth 84
+/  \APL"-7"
+/  \APL"2+3"
+/  \APL"⍳3"
+/  \APL"3⍴1"
+/  \APL"2 3⍴⍳6"
+/  \APL"2 3 4⍴⍳6"
+/  \APL"(1-2)"
+/  \APL"1+-3"
+/  \APL"A←4"
+/  \APL"A+2+A←4"
+/  \APL"[1;2]"
+/  \APL"A[1;2]←4"
+/  \APL"3 4[5]"
+/  \APL"+.×3 4 5"
+/  \APL"+/1 2 3"
+   \APL"0 1 0 1/⍳4"
+

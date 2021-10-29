@@ -120,7 +120,7 @@ emit =async function emit(c){var t=_ibm;var h=(c!=" ")
  t.scroll(0,t.scrollHeight)
  await sleep(200)
  if(h)t.classList.remove("hit")}
-var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
+var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹FLE";for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
 function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
 function sleep(x){return new Promise(r=>setTimeout(r,0/*x*/))}
 function channel(u){this.u=u;this.r=new Audio(u)};channel.prototype.play = function(){/*this.r.play()*/}
