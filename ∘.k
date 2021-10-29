@@ -115,14 +115,15 @@ AXIS:{[f;i](f;i)}
 INDEX:{[x;y]x}
 AMEND:{[s;i;y]y}
 REDUCE:{[f;x](,1;,+/x 1)}
-
+MF:{[f;x]  ($[`C~@f;F[SY?f;0];f]) x   }
+DF:{[f;x;y]($[`C~@f;F[SY?f;1];f])[x;y]}
 
 /   case   action       PARSE TABLE
 PT:( ,"x"; {*x}                                            /no match, keep shifting
-    "1+1"; {("1",((x 1)2)[1_x 0;1_x 2])}                   /apply dyadic function
-    "++1"; {[y]n-:1;x[2+R]:("1",((y 1)1)1_y 2);*y}         /apply monadic function (correct stack for leading +)
+    "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                    /apply dyadic function
+    "++1"; {[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}       /apply monadic function (correct stack for leading +)
      "+/"; {("+",REDUCE[(*x)2])}                           /derive reduction
-     "1/"; {("+",COMPRESS[1_*x])}                         /project compress
+     "1/"; {("+",COMPRESS[1_*x])}                          /project compress
      "1i"; {("1",INDEX[1_*x;1_x 1])}                       /index array
      "+i"; {("+",AXIS[(x 1)1;1_x 2])}                      /fix axis to (monadic) function
     "(1)"; {x 1}                                           /unbrace
@@ -141,11 +142,11 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  ev:{[y]                                                        /evaluate token on the move
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;#y];y)                               /array from numeric literal, single number is atom
-    `C~t   ;$[SE>i:SY?y;("+",F i);*y];y]}                       /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
+    `C~t   ;$[SE>SY?y;("+",y);*y];y]}                           /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
  s:{x[R-:1]:ev x 1+L-:1}                                        /shift from left(queue) to right(stack) within x
- r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:`c \*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
+ r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
- $["+1"~*'r:R_x;x[R+:1]:("1",((r 0)1)1_r 1);0]                  /apply monadic function, if that's left
+ $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
  $[~1~#x:R_x;ERR`syn;x]}                                        /return the single noun left on the stack otherwise a syntax error
 
 / $[`s~@x:*|*x;ERR x;x]
@@ -165,5 +166,5 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 /  \APL"3 4[5]"
 /  \APL"+.×3 4 5"
 /  \APL"+/1 2 3"
-   \APL"0 1 0 1/⍳4"
+/  \APL"0 1 0 1/⍳4"
 
