@@ -778,3 +778,37 @@ func Fil(x, y K) (r K) { // x fill y
 		return trap(Type)
 	}
 }
+func Enc(x, y K) (r K) { // x\\y
+	xt := tp(x)
+	n := int32(0)
+	if xt == It {
+		n = nn(x)
+	}
+	r = mk(It, 0)
+	yn := int32(Cnt(rx(y)))
+	for {
+		n--
+		xi := ati(rx(x), n)
+		r = Cat(r, Enl(idiv(rx(y), xi, 1)))
+		y = idiv(y, xi, 0)
+		if int32(y) == 0 || sumi(int32(y), yn) == 0 || n == 0 {
+			break
+		}
+	}
+	dx(x)
+	dx(y)
+	return Rev(r)
+}
+func Dec(x, y K) (r K) { // x//y   {z+x*y}/[0;x;y]
+	if tp(y) < 16 {
+		trap(Type)
+	}
+	r = Fst(rx(y))
+	n := nn(y)
+	for i := int32(1); i < n; i++ {
+		r = Add(ati(rx(y), i), Mul(ati(rx(x), i), r))
+	}
+	dx(x)
+	dx(y)
+	return r
+}

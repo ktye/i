@@ -233,6 +233,11 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		}
 		return Mod(Fst(x), f)
 	}
+	if t == df { // x//y
+		r = x0(int32(f))
+		dx(f)
+		return Dec(r, Fst(x))
+	}
 	var y K
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
@@ -400,6 +405,11 @@ func Scn(f, x K) (r K) {
 			trap(Rank)
 		}
 		return Div(Fst(x), f)
+	}
+	if t == df { // x\\y
+		r = x0(int32(f))
+		dx(f)
+		return Enc(r, Fst(x))
 	}
 	var y K
 	if xn := nn(x); xn == 1 {
