@@ -50,18 +50,19 @@ TOK:{[x]x:MAP["¯";"_";MAP["←";":";x]];
 
 VEC:{x:,/|'{x," ",y}\'(&~b&0b~':b:{(*x)':NM}'x)^x;x[i]:(#i:&b&0b~':b)#,""}
  
-PRS:{                                                   / apl token           k value              k-type
- ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"     C
-  {$[r:`F$" "/:x@&~""~/:x:" "\:x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0      F
-  `$                                                    / "X1"              → `X1                  s  
-  {(#x;x:"'"/:v@&~""~/:v:"'"\:1_-1_x)}                  / "'⍺ isn''t ⍵'"    → ("1";14;"⍺ isn't ⍵") L
+PRS:{                                                   / apl token           k value               k-type
+ ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"      C
+  {$[r:`F$" "/:x@&~""~/:x:" "\:x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0       F
+  `$                                                    / "X1"              → `X1                   s  
+  {(,#x;x:"'"/:v@&~""~/:v:"'"\:1_-1_x)}                 / "'⍺ isn''t ⍵'"    → ("1";,14;"⍺ isn't ⍵") L
  )[*&~0N=(OP;NM;AZ;,"'")?\:*x]x}
 
 
 
 F1:{[f;x](*x;f x 1)}
 F2:{[f;x;y]$[(!0)~a:*x;(*y;f[*x 1;y 1]);(!0)~b:*y;(a;f[x 1;*y 1]);a~b;(a;f[x 1;y 1]);[L::-1;`len]]}
-F:(#OP)#"";f:{F[SY?*x]:(F1 x 1;F2 x 2)}
+F:(#OP)#"";Q:(#OP)#"";J:(#OP)#""          /Q stores reductions and J outer product
+f:{F[SY?*x]:(F1 x 1;F2 x 2);Q[SY?*x]:(x 2)/;J[SY?*x]:,/(x 2)/:\:}
 binom:{f:*/1+!;(f y)%(f x)*f y-x}
 
 / scalar functions
@@ -110,25 +111,30 @@ f(  "⊤"; ""            ; ENCODE                          )
 f( ,"?"; ""            ; DEAL                            )
 
 
-DOT:{[f;g;x]x}
+DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
+JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
 AXIS:{[f;i](f;i)}
-INDEX:{[x;y]x}
+INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'ifill[y;*x];(*|x)@(*x)//i@'!#'i:((*|)'y)-O)]}
 AMEND:{[s;i;y]y}
-REDUCE:{[f;x](,1;,+/x 1)}
-MF:{[f;x]  ($[`C~@f;F[SY?f;0];f]) x   }
-DF:{[f;x;y]($[`C~@f;F[SY?f;1];f])[x;y]}
+REDUCE:{[f;x](!0;,Q[SY?f](x 1))}
+MF:{[f;x]  ($[`C~@f;F[SY?f;0];*f]) x    }
+DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
+
+split:{x[0,-1+#x]:";";x[&(0b~':s)&s:";"~/:x]:0;x@&~`c=@'x} /split index expression, fill 0s for empty index
+ifill:{[x;s]x[i]:{(,#x;x)}'!'s i:&x~\:0}                   /fill 0s in index vector, given shape s
+drop:{x[i]:_0.+1_'x i:&~0~/:x}
 
 /   case   action       PARSE TABLE
 PT:( ,"x"; {*x}                                            /no match, keep shifting
     "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                    /apply dyadic function
     "++1"; {[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}       /apply monadic function (correct stack for leading +)
-     "+/"; {("+",REDUCE[(*x)2])}                           /derive reduction
+     "+/"; {("+",REDUCE[1_*x])}                            /derive reduction
      "1/"; {("+",COMPRESS[1_*x])}                          /project compress
      "1i"; {("1",INDEX[1_*x;1_x 1])}                       /index array
      "+i"; {("+",AXIS[(x 1)1;1_x 2])}                      /fix axis to (monadic) function
     "(1)"; {x 1}                                           /unbrace
-     ,"["; {[y]n::1+(s:R_x)?"]";("i",1_'s@&~`c=@'(n-1)#s)} /indexing expression: count to ], remove brackets and semicolons
-    "+.+"; {("+",(DOT[((*x)2);((x 2)2)];`val))}            /dyadic operator
+     ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}      /indexing expression: count to ], remove brackets and semicolons
+    "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                  /dyadic operator
     "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                   /assign
    "si:1"; {("1",AMEND[(*x)1;1_x 1;x 3])})                 /indexed assignment
 
@@ -141,8 +147,8 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  co:{[](":"~*c)|"i:"~c:*'x 0 1+R}                               /top stack is assign or index assign
  ev:{[y]                                                        /evaluate token on the move
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
-    `F~t   ;("1";$[1~#y;!0;#y];y)                               /array from numeric literal, single number is atom
-    `C~t   ;$[SE>SY?y;("+",y);*y];y]}                           /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
+    `F~t   ;("1";$[1~#y;!0;,#y];y)                              /array from numeric literal, single number is atom
+    `C~t   ;$[SE>SY?y;("+",y);*y];"1",y]}                       /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
  s:{x[R-:1]:ev x 1+L-:1}                                        /shift from left(queue) to right(stack) within x
  r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
@@ -164,7 +170,11 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 /  \APL"[1;2]"
 /  \APL"A[1;2]←4"
 /  \APL"3 4[5]"
-/  \APL"+.×3 4 5"
 /  \APL"+/1 2 3"
 /  \APL"0 1 0 1/⍳4"
+/  \APL"2 3 4+.×5 6 7"
+/  \APL"2 3 4∘.×5 6 7"
+/  \APL"2 3"
+/  \APL"(2 3⍴'alphabeta')"
+ \APL"(2 3⍴'alphabeta')[1;2 3]"
 
