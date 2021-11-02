@@ -156,9 +156,9 @@ func Str(x K) (r K) {
 			f = Str(f)
 			dx(i)
 			if nn(i) == 1 && I32(int32(i)) == 1 && (ft == 0 || ft == df) {
-				r = ucat(Str(Fst(l)), f)
+				r = ucat(Kst(Fst(l)), f)
 			} else {
-				r = ucat(f, emb('[', ']', join(Kc(';'), Str(l))))
+				r = ucat(f, emb('[', ']', ndrop(-1, ndrop(1, Kst(l)))))
 			}
 		case 3: // lf
 			r = x2(xp)
