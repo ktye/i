@@ -1,5 +1,5 @@
-/               64     72    80    88     96     104    112    120                          
-``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."
+/               64     72    80    88     96     104    112    120    128                 
+``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp."
 
 `"x.":{,/+"0123456789abcdef"@(x%16;16/x:256/256+x)} /`x@ (hex)
 `"t.":`45         /`t@ token
@@ -50,6 +50,7 @@ t:+`alpha`beta`gamma!l
 
 `"lin.":{$[`L~@z;(.`"lin.")[x;y]'z;[dx:0.+1_-':x;dy:0.+1_-':y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
 `"odo.":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}
+`"grp.":{$[`D~@x;(!x)`grp@.x;u!&'(u:?x)~/:\:x]}
 
 dot:{dotmv:{{+/x*y}\:[x;y]};dotmv[x;y]}
 

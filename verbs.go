@@ -142,24 +142,9 @@ func Uqs(x K) (r K) { // ?^x
 	}
 	return kx(88, x) // .uqs
 }
-func Grp(x K) (r K) { // =x
-	if tp(x) == Dt {
-		r, x = spl2(x)
-		return Atx(r, Grp(x))
-	}
-	u := Unq(rx(x))
-	n := nn(u)
-	r = mk(Lt, n)
-	rp := int32(r)
-	for i := int32(0); i < n; i++ {
-		SetI64(rp, int64(Wer(Eql(ati(rx(u), i), rx(x)))))
-		rp += 8
-	}
-	dx(x)
-	return Key(u, r)
-}
-func grp(x, y K) K { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
-func Key(x, y K) K { return key(x, y, Dt) }                          // x!y
+func Grp(x K) (r K) { return kx(128, x) }                             // =x grp.
+func grp(x, y K) K  { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
+func Key(x, y K) K  { return key(x, y, Dt) }                          // x!y
 func key(x, y K, t T) (r K) { // Dt or Tt
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
