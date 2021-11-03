@@ -50,7 +50,7 @@ t:+`alpha`beta`gamma!l
 
 `"lin.":{$[`L~@z;(.`"lin.")[x;y]'z;[dx:0.+1_-':x;dy:0.+1_-':y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
 `"odo.":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}
-`"grp.":{$[`D~@x;(!x)`grp@.x;u!&'(u:?x)~/:\:x]}
+`"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}
 
 dot:{dotmv:{{+/x*y}\:[x;y]};dotmv[x;y]}
 

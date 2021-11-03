@@ -9,6 +9,11 @@ func Srt(x K) (r K) { // ^x
 	if xt < 16 {
 		trap(Type)
 	}
+	if xt == Dt {
+		r, x = spl2(x)
+		i := Asc(rx(x))
+		return Key(atv(r, rx(i)), atv(x, i))
+	}
 	xn := nn(x)
 	if xn < 2 {
 		return x
