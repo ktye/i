@@ -19,13 +19,12 @@ O:1; C:""; I:!0; E:0; P:!0; V:`!()
 APL:{C::x;$[")"~*x;SYS 1_x;RUN TOK x]}
 SYS:{$[x~"ORIGIN 1";*|(O::1;"WAS ",$O);x~"ORIGIN 0";*|(O::0;"WAS ",$O);"INCORRECT COMMAND"]}
 UTF:{(&x>-65)^x}
-MAP:{,/@[r;&(r:UTF z)~\:x;y]}
 
 
 err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK SYNTAX SYMBOL VALUE"
 ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^"}
 
-NM:"_.0123456789"                                       /¯ is mapped to _
+NM:"_.0123456789"                                               /¯ is mapped to _
 AZ:_"A"+!26
 OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,;:./\\()[]"   /← is mapped to :
 SY:UTF OP;                                SE:SY?,";"
@@ -39,7 +38,7 @@ A:256#                     "e"   /illegal but allowed in quotation
 @[`A;0+NM,AZ;              "a"]  /alphanum
 @[`A;128+!64;              "c"]  /utf8 continuation
 
-TOK:{[x]x:MAP["¯";"_";MAP["←";":";x]];
+TOK:{[x]m:{y/:x\:z};x:m["¯";"_"]m["←";":"]m["⌿";"/[",(_O+"0"),"]";x]
  c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
  M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqq_qqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b___q___;1_+u'1ce"  /state matrix
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
@@ -113,30 +112,33 @@ f( ,"?"; ""            ; DEAL                            )
 
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
 JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
-AXIS:{[f;i](f;i)}
+AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];"/"~*|f;REDAXE[-1_f;**|i];`nyi]}
 INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'ifill[y;*x];(*|x)@(*x)//i@'!#'i:((*|)'y)-O)]}
 AMEND:{[s;i;y]y}
-REDUCE:{[f;x](!0;,Q[SY?f](x 1))}
-MF:{[f;x]  ($[`C~@f;F[SY?f;0];*f]) x    }
+REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
+REDAXE:{[f;a;x]$[1~#*x;(!0;Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'(x 1)@.=+(!*x)_a)]}
+FN:{$[~`C~@x;*x;"/"~*|x;REDUCE[-1_x];F[SY?x;0]]}
+MF:{[f;x]FN[f]x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
 
-split:{x[0,-1+#x]:";";x[&(0b~':s)&s:";"~/:x]:0;x@&~`c=@'x} /split index expression, fill 0s for empty index
-ifill:{[x;s]x[i]:{(,#x;x)}'!'s i:&x~\:0}                   /fill 0s in index vector, given shape s
+
+split:{x[0,-1+#x]:";";x[&(0b~':s)&s:";"=*'x]:0;x@&~";"=*'x} /split index expression, fill space for empty index
+ifill:{[x;s]x[i]:{(,#x;x)}'!'s i:&x~\:0}                    /fill 0s in index vector, given shape s
 drop:{x[i]:_0.+1_'x i:&~0~/:x}
 
 /   case   action       PARSE TABLE
-PT:( ,"x"; {*x}                                            /no match, keep shifting
-    "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                    /apply dyadic function
-    "++1"; {[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}       /apply monadic function (correct stack for leading +)
-     "+/"; {("+",REDUCE[1_*x])}                            /derive reduction
-     "1/"; {("+",COMPRESS[1_*x])}                          /project compress
-     "1i"; {("1",INDEX[1_*x;1_x 1])}                       /index array
-     "+i"; {("+",AXIS[(x 1)1;1_x 2])}                      /fix axis to (monadic) function
-    "(1)"; {x 1}                                           /unbrace
-     ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}      /indexing expression: count to ], remove brackets and semicolons
-    "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                  /dyadic operator
-    "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                   /assign
-   "si:1"; {("1",AMEND[(*x)1;1_x 1;x 3])})                 /indexed assignment
+PT:( ,"x"; {*x}                                             /no match, keep shifting
+    "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                     /apply dyadic function
+    "++1"; {[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}        /apply monadic function (correct stack for leading +)
+     "+/"; {,/x}                                            /derive reduction
+     "1/"; {("+",COMPRESS[1_*x])}                           /project compress
+     "1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
+     "+i"; {("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
+    "(1)"; {x 1}                                            /unbrace
+     ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
+    "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                   /dyadic operator
+    "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                    /assign
+   "si:1"; {("1",AMEND[(*x)1;1_x 1;x 3])})                  /indexed assignment
 
 PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
@@ -171,10 +173,14 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 /  \APL"A[1;2]←4"
 /  \APL"3 4[5]"
 /  \APL"+/1 2 3"
+/  \APL"+/2 3⍴⍳6"
+/  \APL"+/[1]2 3⍴⍳6"
+/  \APL"+⌿2 3⍴⍳6"
+/  \APL"+/[2]2 4 3⍴⍳24"
 /  \APL"0 1 0 1/⍳4"
 /  \APL"2 3 4+.×5 6 7"
 /  \APL"2 3 4∘.×5 6 7"
 /  \APL"2 3"
 /  \APL"(2 3⍴'alphabeta')"
- \APL"(2 3⍴'alphabeta')[1;2 3]"
+/ \APL"(2 3⍴'alphabeta')[1;2 3]"
 
