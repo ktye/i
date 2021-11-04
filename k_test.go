@@ -285,6 +285,153 @@ func TestClass(t *testing.T) {
 	cl(`0123456789abcdef`, 128)
 	//fmt.Printf("%q\n", string(c[32:]))
 }
+func Test360(t *testing.T) {
+	Tx := []struct {
+		s     string
+		shape []int
+		r     interface{}
+	}{
+		{"-7", []int{}, []float64{-7}},
+		{"1+2", []int{}, []float64{3}},
+		{"3≤7", []int{}, []bool{true}},
+		{"7≤3", []int{}, []bool{false}},
+		{"1 2 3 4×4 3 2 1", []int{4}, []float64{4, 6, 6, 4}},
+		{"2+1 2 3 4", []int{4}, []float64{3, 4, 5, 6}},
+		{"1 2 3 4⌈2", []int{4}, []float64{2, 2, 3, 4}},
+		{"1 2 3", []int{3}, []float64{1, 2, 3}},
+		{"⍳3", []int{3}, []int{1, 2, 3}},
+		{"0)⍳3", []int{3}, []int{0, 1, 2}},
+		{"⍳0", []int{}, []int{}},
+		{"6-⍳6", []int{6}, []float64{5, 4, 3, 2, 1, 0}},
+		{"2×⍳0", []int{}, []float64{}},
+		{"2×⍳6", []int{6}, []float64{2, 4, 6, 8, 10, 12}},
+		{"X,X←2 3 5 7 11", []int{10}, []float64{2, 3, 5, 7, 11, 2, 3, 5, 7, 11}},
+		{",2 3⍴⍳6", []int{6}, []int{1, 2, 3, 4, 5, 6}},
+		{"⍴1", []int{0}, []int{}},
+		{"⍴⍴1", []int{1}, []int{0}},
+		{"⍴⍴⍴1", []int{1}, []int{1}},
+		{"⍴1 2 3", []int{1}, []int{3}},
+		{"⍴⍴1 2 3", []int{1}, []int{1}},
+		{"⍴⍴⍴1 2 3", []int{1}, []int{1}},
+		{"⍴2 3⍴⍳6", []int{2}, []int{2, 3}},
+		{"⍴⍴2 3⍴⍳6", []int{1}, []int{2}},
+		{"⍴⍴⍴2 3⍴⍳6", []int{1}, []int{1}},
+		{"⍴4 2 3⍴⍳6", []int{3}, []int{4, 2, 3}},
+		{"⍴⍴4 2 3⍴⍳6", []int{1}, []int{3}},
+		{"⍴⍴⍴4 2 3⍴⍳6", []int{1}, []int{1}},
+		{"2 3⍴1 2", []int{2, 3}, []float64{1, 2, 1, 2, 1, 2}},
+		{"⍴''", []int{1}, []int{0}},
+		{"''", []int{0}, ""},
+		{"'X'", []int{1}, "X"},
+		{"'CAN''T'", []int{5}, "CAN'T"},
+		{"A←'ABCDEFG'", []int{7}, "ABCDEFG"},
+		{"M←4 3⍴3 1 4 2 1 4 4 1 2 4 1 4", []int{4, 3}, []float64{3, 1, 4, 2, 1, 4, 4, 1, 2, 4, 1, 4}},
+		{"A[M]", []int{4, 3}, "CADBADDABDAD"},
+		{"(3 4⍴⍳12)[2;3]", []int{}, []int{7}},
+		{"(M←3 4⍴⍳12)[1 3;2 3 4]", []int{2, 3}, []int{2, 3, 4, 10, 11, 12}},
+		{"M[2;]", []int{4}, []int{5, 6, 7, 8}},
+		{"M[;2 1]", []int{3, 2}, []int{2, 1, 6, 5, 10, 9}},
+		{"M[M←4 3⍴3 1 4 2 1 4 4 1 2 4 1 4;]", []int{4, 3, 3}, []float64{4, 1, 2, 3, 1, 4, 4, 1, 4, 2, 1, 4, 3, 1, 4, 4, 1, 4, 4, 1, 4, 3, 1, 4, 2, 1, 4, 4, 1, 4, 3, 1, 4, 4, 1, 4}},
+		{"3 3⍴1 0 0 0", []int{3, 3}, []float64{1, 0, 0, 0, 1, 0, 0, 0, 1}},
+		{"3⍴1", []int{3}, []float64{1, 1, 1}},
+		{"2 3⍴⍳6", []int{2, 3}, []int{1, 2, 3, 4, 5, 6}},
+		{"2 3 4⍴⍳6", []int{2, 3, 4}, []int{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6}},
+		{"(1-2)", []int{}, []float64{-1}},
+		{"(⍳3)+4", []int{3}, []float64{5, 6, 7}},
+		{"1+-3", []int{}, []float64{-2}},
+		{"A←4", []int{}, []float64{4}},
+		{"A+2+A←4", []int{}, []float64{10}},
+		{"3 4[2]", []int{}, []float64{4}},
+		{"+/1 2 3", []int{}, []float64{6}},
+		{"+/2 3⍴⍳6", []int{2}, []int{6, 15}},
+		{"+/[1]2 3⍴⍳6", []int{3}, []int{5, 7, 9}},
+		{"+⌿2 3⍴⍳6", []int{3}, []int{5, 7, 9}},
+		{"+/[2]2 4 3⍴⍳24", []int{2, 3}, []int{22, 26, 30, 70, 74, 78}},
+		//{"0 1 0 1/⍳4", []int{}, []float64{}},
+		{"2 3 4+.×5 6 7", []int{}, []float64{56}},
+		{"1 2 3∘.×1 2 3 4", []int{3, 4}, []float64{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
+		{"(⍳3)∘.×⍳4", []int{3, 4}, []int{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
+	}
+	nt := func(x K, y int, xt T) {
+		if n := nn(x); int(n) != y {
+			t.Fatalf("length is %d should be %d", n, y)
+		}
+		if tp(x) != xt {
+			t.Fatalf("type is %v not %v", tp(x), xt)
+		}
+	}
+	chars := func(x K, y string) {
+		//fmt.Println("chars", sK(x), "|", y)
+		nt(x, len(y), Ct)
+		for i := 0; i < len(y); i++ {
+			if xi := I8(int32(x) + int32(i)); xi != int32(y[i]) {
+				t.Fatalf("x[%d] is %d not %d", i, xi, y[i])
+			}
+		}
+	}
+	bools := func(x K, y []bool) {
+		//fmt.Println("bools", sK(x), "|", y)
+		nt(x, len(y), Bt)
+		for i := 0; i < len(y); i++ {
+			if xi := I8(int32(x) + int32(i)); xi != I32B(y[i]) {
+				t.Fatalf("x[%d] is %d not %v", i, xi, y[i])
+			}
+		}
+	}
+	ints := func(x K, y []int) {
+		//fmt.Println("ints", sK(x), "|", y)
+		nt(x, len(y), It)
+		for i := 0; i < len(y); i++ {
+			if xi := I32(int32(x) + 4*int32(i)); xi != int32(y[i]) {
+				t.Fatalf("x[%d] is %d not %d", i, xi, y[i])
+			}
+		}
+	}
+	floats := func(x K, y []float64) {
+		//fmt.Println("floats", sK(x), "|", y)
+		nt(x, len(y), Ft)
+		for i := 0; i < len(y); i++ {
+			if xi := F64(int32(x) + 8*int32(i)); xi != y[i] {
+				t.Fatalf("x[%d] is %v not %v", i, xi, y[i])
+			}
+		}
+	}
+	newtest()
+	x := mkchars([]byte("∘.k"))
+	dofile(x, readfile(rx(x)))
+	apl := lup(sc(mkchars([]byte("APL"))))
+	o := sc(mkchars([]byte{'O'}))
+	for _, tc := range Tx {
+		fmt.Println(tc.s)
+		Asn(o, Ki(1))
+		if strings.HasPrefix(tc.s, "0)") {
+			tc.s = tc.s[2:]
+			Asn(o, Ki(0))
+		}
+		r := Atx(rx(apl), mkchars([]byte(tc.s)))
+		nt(r, 3, Lt)
+		shape := x1(int32(r))
+		ravel := x2(int32(r))
+		ints(shape, tc.shape)
+		switch v := tc.r.(type) {
+		case string:
+			chars(ravel, v)
+		case []bool:
+			bools(ravel, v)
+		case []int:
+			ints(ravel, v)
+		case []float64:
+			floats(ravel, v)
+		default:
+			t.Fatal("wrong r type")
+		}
+		dx(shape)
+		dx(ravel)
+		dx(r)
+	}
+	dx(apl)
+	reset()
+}
 
 /*
 func memck() {

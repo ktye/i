@@ -40,7 +40,7 @@ A:256#                     "e"   /illegal but allowed in quotation
 
 TOK:{[x]m:{y/:x\:z};x:m["¯";"_"]m["←";":"]m["⌿";"/[",(_O+"0"),"]";x]
  c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
- M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqq_qqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b___q___;1_+u'1ce"  /state matrix
+ M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b___q___;1_+u'1ce"  /state matrix
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
  P::0,+\#'r                                 /save token start positions within input C
  b:{P::P i:&~" "=*'x;x i}                   /blanks result in their own tokens, remove them
@@ -88,13 +88,14 @@ f(,">";    ""     ;   >   )     /            greater
 f( "≠";    ""     ;  ~=   )     /            not equal
 
 / mixed functions
-IOTA:    {$[(!0)~*x;(,n;O+!n:_0.+*x 1);[L::0;`ran]]}
+IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
 RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
+CATENATE:{((*x)+(*y);(x 1),y 1)}
 COMPRESS:{(,#i;(y 1)@i:&(_0.+x 1))}
 
 f:{F[SY?*x]:1_x}
 f(  "⍴";{(,#*x;*x)}    ; RESHAPE                         )
-f( ,",";{(,#(x 1);x 1)}; CAT                             )
+f( ,",";{(,#(x 1);x 1)}; CATENATE                        )
 f(  "⍳"; IOTA          ; INDEXOF                         )
 f(  "↑"; ""            ; TAKE                            )
 f(  "↓"; ""            ; DROP                            )
@@ -113,23 +114,26 @@ f( ,"?"; ""            ; DEAL                            )
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
 JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
 AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];"/"~*|f;REDAXE[-1_f;**|i];`nyi]}
-INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'ifill[y;*x];(*|x)@(*x)//i@'!#'i:((*|)'y)-O)]}
+INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
 AMEND:{[s;i;y]y}
 REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
-REDAXE:{[f;a;x]$[1~#*x;(!0;Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'(x 1)@.=+(!*x)_a)]}
+REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'(x 1)@.=+(!*x)_a)]}
 FN:{$[~`C~@x;*x;"/"~*|x;REDUCE[-1_x];F[SY?x;0]]}
 MF:{[f;x]FN[f]x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
 
 
 split:{x[0,-1+#x]:";";x[&(0b~':s)&s:";"=*'x]:0;x@&~";"=*'x} /split index expression, fill space for empty index
-ifill:{[x;s]x[i]:{(,#x;x)}'!'s i:&x~\:0}                    /fill 0s in index vector, given shape s
+ifill:{[x;s]x[i]:{(,#x;x)}'O+!'s i:&x~\:0}                  /fill 0s in index vector, given shape s
 drop:{x[i]:_0.+1_'x i:&~0~/:x}
+mo:{[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}                /apply monadic function (correct stack for leading +)
 
 /   case   action       PARSE TABLE
 PT:( ,"x"; {*x}                                             /no match, keep shifting
     "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                     /apply dyadic function
-    "++1"; {[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}        /apply monadic function (correct stack for leading +)
+    "++1"; mo                                               /apply monadic
+    "(+1"; mo                                               /apply monadic
+    "[+1"; mo                                               /apply monadic
      "+/"; {,/x}                                            /derive reduction
      "1/"; {("+",COMPRESS[1_*x])}                           /project compress
      "1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
@@ -155,32 +159,6 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
- $[~1~#x:R_x;ERR`syn;x]}                                        /return the single noun left on the stack otherwise a syntax error
+ $[~1~#x:R_x;ERR`syn;*x]}                                       /return the single noun left on the stack otherwise a syntax error
 
-/ $[`s~@x:*|*x;ERR x;x]
-
-/  \APL"-7"
 /  \APL"2+3"
-/  \APL"⍳3"
-/  \APL"3⍴1"
-/  \APL"2 3⍴⍳6"
-/  \APL"2 3 4⍴⍳6"
-/  \APL"(1-2)"
-/  \APL"1+-3"
-/  \APL"A←4"
-/  \APL"A+2+A←4"
-/  \APL"[1;2]"
-/  \APL"A[1;2]←4"
-/  \APL"3 4[5]"
-/  \APL"+/1 2 3"
-/  \APL"+/2 3⍴⍳6"
-/  \APL"+/[1]2 3⍴⍳6"
-/  \APL"+⌿2 3⍴⍳6"
-/  \APL"+/[2]2 4 3⍴⍳24"
-/  \APL"0 1 0 1/⍳4"
-/  \APL"2 3 4+.×5 6 7"
-/  \APL"2 3 4∘.×5 6 7"
-/  \APL"2 3"
-/  \APL"(2 3⍴'alphabeta')"
-/ \APL"(2 3⍴'alphabeta')[1;2 3]"
-
