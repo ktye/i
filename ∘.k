@@ -115,7 +115,7 @@ DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
 JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
 AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];"/"~*|f;REDAXE[-1_f;**|i];`nyi]}
 INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
-AMEND:{[s;i;y]y}
+AMEND:{[s;i;y]x:1_lu s;i:(*x)//i@'!#'i:((*|)'j:ifill[i;*x])-O;V[s]:r:(*x;@[$[t~`F;0.+*|x;*|x];i;*(*|y;t:@*|y)]);r}
 REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
 REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'(x 1)@.=+(!*x)_a)]}
 FN:{$[~`C~@x;*x;"/"~*|x;REDUCE[-1_x];F[SY?x;0]]}
@@ -134,6 +134,7 @@ PT:( ,"x"; {*x}                                             /no match, keep shif
     "++1"; mo                                               /apply monadic
     "(+1"; mo                                               /apply monadic
     "[+1"; mo                                               /apply monadic
+    ":+1"; mo                                               /apply monadic
      "+/"; {,/x}                                            /derive reduction
      "1/"; {("+",COMPRESS[1_*x])}                           /project compress
      "1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
@@ -142,7 +143,7 @@ PT:( ,"x"; {*x}                                             /no match, keep shif
      ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
     "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                   /dyadic operator
     "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                    /assign
-   "si:1"; {("1",AMEND[(*x)1;1_x 1;x 3])})                  /indexed assignment
+   "si:1"; {("1",AMEND[(*x)1;1_x 1;1_x 3])})                /indexed assignment
 
 PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
@@ -162,3 +163,5 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  $[~1~#x:R_x;ERR`syn;*x]}                                       /return the single noun left on the stack otherwise a syntax error
 
 /  \APL"2+3"
+/ \APL"X←⍳6"
+/ \APL"X[2 1]←4 5"
