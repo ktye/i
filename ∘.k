@@ -89,12 +89,19 @@ f( "≠";    ""     ;  ~=   )     /            not equal
 
 / mixed functions
 up:{[]$[`F':@'(*|x;*|y);0.;_0]}
+ls:{@[z;i;+;y i:&x]}
 IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
 RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
 COMPRESS:{(,#i;(y 1)@i:&(_0.+x 1))}
 INDEXOF: {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:  {o:up[];(*x;(o+*|x)':(o+*|y))}
+TAKEDROP:{[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
+TAKE:    {$[~(#*|x)~(#*y);[I::0;`ran];0=*/s:abs i:_0.+*|x;(s;0#*|y);TAKEDROP[(i<0)*i+*y;s;y]]}
+DROP:    {$[~(#*|x)~(#*y);[I::0;`ran];TAKEDROP[s*i>0;(*y)-s:abs i:_0.+*|x;y]]}
+
+ 
+ 
 
 
 f:{F[SY?*x]:1_x}
@@ -173,3 +180,9 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 / \APL"'ABCDEFGH'⍳'GAFFE'"
 / \APL"1 2 3 4⍳2 3⍴⍳6"
 / \APL"3 4 7∊⍳5"
+/ \APL"2↑3 4 5 6"
+/ \APL"2 3↑3 4⍴⍳12"
+/  \APL"2 ¯3↑3 4⍴⍳12"
+/ \APL"2↓3 4 5 6 7"
+/ \APL"2 ¯3↑3 4⍴⍳12"
+ 
