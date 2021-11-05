@@ -40,7 +40,7 @@ A:256#                     "e"   /illegal but allowed in quotation
 
 TOK:{[x]m:{y/:x\:z};x:m["¯";"_"]m["←";":"]m["⌿";"/[",(_O+"0"),"]";x]
  c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
- M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b___q___;1_+u'1ce"  /state matrix
+ M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b__uq___;1_+u'1ce"  /state matrix
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
  P::0,+\#'r                                 /save token start positions within input C
  b:{P::P i:&~" "=*'x;x i}                   /blanks result in their own tokens, remove them
@@ -89,8 +89,9 @@ f( "≠";    ""     ;  ~=   )     /            not equal
 
 / mixed functions
 IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
+INDEXOF: {$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r;#r:(*|x)?(*|y)])]}
 RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
-CATENATE:{((*x)+(*y);(x 1),y 1)}
+CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
 COMPRESS:{(,#i;(y 1)@i:&(_0.+x 1))}
 
 f:{F[SY?*x]:1_x}
@@ -164,4 +165,7 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 
 /  \APL"2+3"
 / \APL"X←⍳6"
-/ \APL"X[2 1]←4 5"
+/ \APL"2 3 4⍳3"
+/  \APL"1 2 3⍳3 4 5"
+/ \APL"'ABCDEFGH'⍳'GAFFE'"
+/ \APL"3 4⍳4"
