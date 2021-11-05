@@ -90,17 +90,19 @@ f( "≠";    ""     ;  ~=   )     /            not equal
 / mixed functions
 up:{[]$[`F':@'(*|x;*|y);0.;_0]}
 ls:{@[z;i;+;y i:&x]}
+PERAXIS: {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
 IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
 RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
-COMPRESS:{(,#i;(y 1)@i:&(_0.+x 1))}
+COMPRESS:{$[1<r:#*y;CMPRAXIS[x;O+r-1;y];(,#i;(y 1)@i:&(_0.+x 1))]}
+CMPRAXIS:{[x;a;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
 INDEXOF: {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:  {o:up[];(*x;(o+*|x)':(o+*|y))}
 TAKEDROP:{[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
 TAKE:    {$[~(#*|x)~(#*y);[I::0;`ran];0=*/s:abs i:_0.+*|x;(s;0#*|y);TAKEDROP[(i<0)*i+*y;s;y]]}
 DROP:    {$[~(#*|x)~(#*y);[I::0;`ran];TAKEDROP[s*i>0;(*y)-s:abs i:_0.+*|x;y]]}
-
- 
+GRADEUP: {(,#r;r:O+<PERAXIS[x;-1+#*x])}
+GRADEDN: {(,#r;r:O+>PERAXIS[x;-1+#*x])}
  
 
 
@@ -111,8 +113,8 @@ f(  "⍳"; IOTA          ; INDEXOF                         )
 f(  "↑"; ""            ; TAKE                            )
 f(  "↓"; ""            ; DROP                            )
 f(  "⍋"; GRADEUP       ;         ; GRADEUPAX             )
-f(  "⍒"; GRADEDOWN     ;         ; GRADEDOWNAX           )
-f( ,"/"; ""            ; COMPRESS; ""       ; COMPRESSAX )
+f(  "⍒"; GRADEDN       ;         ; GRADEDNAX             )
+f( ,"/"; ""            ; COMPRESS; ""       ; CMPRAXIS   )
 f(,"\\"; ""            ; EXPAND  ; ""       ; EXPANDAX   )
 f(  "⌽"; REVERSE       ; ROTATE  ; REVERSEAX; ROTATEAX   )
 f(  "⍉"; TRANSPOSE     ; TRANSPOSE2                      )
@@ -128,7 +130,7 @@ AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];"/"~*|f;REDAXE[-1_f;**|i];`nyi]}
 INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
 AMEND:{[s;i;y]x:1_lu s;i:(*x)//i@'!#'i:((*|)'j:ifill[i;*x])-O;V[s]:r:(*x;@[$[t~`F;0.+*|x;*|x];i;*(*|y;t:@*|y)]);r}
 REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
-REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'(x 1)@.=+(!*x)_a)]}
+REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'PERAXIS[x;a])]}
 FN:{$[~`C~@x;*x;"/"~*|x;REDUCE[-1_x];F[SY?x;0]]}
 MF:{[f;x]FN[f]x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
@@ -147,8 +149,9 @@ PT:( ,"x"; {*x}                                             /no match, keep shif
     "[+1"; mo                                               /apply monadic
     ":+1"; mo                                               /apply monadic
      "+/"; {,/x}                                            /derive reduction
-     "1/"; {("+",COMPRESS[1_*x])}                           /project compress
-     "1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
+    "1/i"; {("+";CMPRAXIS[1_*x;*x[2;1;1]])}                 /compress with axis
+     "1/"; {("+",COMPRESS[1_*x])})                          /project compress
+PT,:("1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
      "+i"; {("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
     "(1)"; {x 1}                                            /unbrace
      ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
@@ -158,7 +161,7 @@ PT:( ,"x"; {*x}                                             /no match, keep shif
 
 PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
-
+        
 
 RUN:{L:-1+R:#x                                                  /gap buffer: x[L] right most input token, x[R] stack top
  lu:{$[""~r:V x;`val;("1",r)]}                                  /lookup variable
@@ -185,4 +188,8 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 /  \APL"2 ¯3↑3 4⍴⍳12"
 / \APL"2↓3 4 5 6 7"
 / \APL"2 ¯3↑3 4⍴⍳12"
+/ \APL"⍋3 5 3 2"
+/ \APL"⍒3 5 3 2"
+/ \APL"1 0 1 0/3 4⍴⍳12"
+/ \APL"1 0 1/[1]3 4⍴⍳12"
  
