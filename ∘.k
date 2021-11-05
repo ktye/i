@@ -88,11 +88,14 @@ f(,">";    ""     ;   >   )     /            greater
 f( "≠";    ""     ;  ~=   )     /            not equal
 
 / mixed functions
+up:{[]$[`F':@'(*|x;*|y);0.;_0]}
 IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
-INDEXOF: {$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r;#r:(*|x)?(*|y)])]}
 RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
 COMPRESS:{(,#i;(y 1)@i:&(_0.+x 1))}
+INDEXOF: {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
+MEMBER:  {o:up[];(*x;(o+*|x)':(o+*|y))}
+
 
 f:{F[SY?*x]:1_x}
 f(  "⍴";{(,#*x;*x)}    ; RESHAPE                         )
@@ -168,4 +171,5 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 / \APL"2 3 4⍳3"
 /  \APL"1 2 3⍳3 4 5"
 / \APL"'ABCDEFGH'⍳'GAFFE'"
-/ \APL"3 4⍳4"
+/ \APL"1 2 3 4⍳2 3⍴⍳6"
+/ \APL"3 4 7∊⍳5"
