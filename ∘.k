@@ -26,8 +26,8 @@ ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^"}
 
 NM:"_.0123456789"                                               /¯ is mapped to _
 AZ:_"A"+!26
-OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,;:./\\()[]"   /← is mapped to :
-SY:UTF OP;                                SE:SY?,";"
+OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⊖⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,;:./\\()[]"   /← is mapped to :
+SY:UTF OP;                                 SE:SY?,";"
 
 
 A:256#                     "e"   /illegal but allowed in quotation
