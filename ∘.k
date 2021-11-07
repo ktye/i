@@ -16,7 +16,7 @@
 
 O:1; C:""; I:!0; E:0; P:!0; V:`!()
 
-APL:{C::x;$[")"~*x;SYS 1_x;RUN TOK x]}
+APL:{C::x;$[")"~*x;SYS 1_x;PRINT RUN TOK x]}
 SYS:{$[x~"ORIGIN 1";*|(O::1;"WAS ",$O);x~"ORIGIN 0";*|(O::0;"WAS ",$O);"INCORRECT COMMAND"]}
 UTF:{(&x>-65)^x}
 
@@ -25,9 +25,9 @@ err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK S
 ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^"}
 
 NM:"_.0123456789"                                               /¯ is mapped to _
-AZ:_"A"+!26
-OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⊖⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,;:./\\()[]"   /← is mapped to :
-SY:UTF OP;                                 SE:SY?,";"
+AZ:_("A"+!26),"a"+!26
+OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⊖⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,/⌿⍀{\\;:.()[]"   /← is mapped to :
+SY:UTF OP;                                       SE:SY?,";"
 
 
 A:256#                     "e"   /illegal but allowed in quotation
@@ -94,8 +94,8 @@ PERAXIS: {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
 IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
 RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
-COMPRESS:{$[1<r:#*y;CMPRAXIS[x;O+r-1;y];(,#i;(y 1)@i:&(_0.+x 1))]}
-CMPRAXIS:{[x;a;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
+COMPRESS:{$[1<r:#*y;CMPRAXIS[O+r-1;x;y];(,#i;(y 1)@i:&(_0.+x 1))]}
+CMPRAXIS:{[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
 INDEXOF: {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:  {o:up[];(*x;(o+*|x)':(o+*|y))}
 TAKEDROP:{[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
@@ -126,13 +126,12 @@ f( ,"?"; ""            ; DEAL                            )
 
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
 JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
-AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];"/"~*|f;REDAXE[-1_f;**|i];`nyi]}
+AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];(2_F[SY?f])@\:**|i]}
 INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
 AMEND:{[s;i;y]x:1_lu s;i:(*x)//i@'!#'i:((*|)'j:ifill[i;*x])-O;V[s]:r:(*x;@[$[t~`F;0.+*|x;*|x];i;*(*|y;t:@*|y)]);r}
 REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
 REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'PERAXIS[x;a])]}
-FN:{$[~`C~@x;*x;"/"~*|x;REDUCE[-1_x];F[SY?x;0]]}
-MF:{[f;x]FN[f]x}
+MF:{[f;x]($[~`C~@f;*f;F[SY?f;0]])x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
 
 
@@ -148,11 +147,10 @@ PT:( ,"x"; {*x}                                             /no match, keep shif
     "(+1"; mo                                               /apply monadic
     "[+1"; mo                                               /apply monadic
     ":+1"; mo                                               /apply monadic
-     "+/"; {,/x}                                            /derive reduction
-    "1/i"; {("+";CMPRAXIS[1_*x;*x[2;1;1]])}                 /compress with axis
-     "1/"; {("+",COMPRESS[1_*x])})                          /project compress
+    "+{1"; {("1",REDUCE[1_*x;1_x 2])}                       /reduction
+   "+{i1"; {("1",REDAXE[1_*x;**|*1_x 2;1_x 3])} )           /reduce with axis
 PT,:("1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
-     "+i"; {("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
+     "+i"; {`axis \x;("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
     "(1)"; {x 1}                                            /unbrace
      ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
     "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                   /dyadic operator
@@ -163,29 +161,34 @@ PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
         
 
-RUN:{L:-1+R:#x                                                  /gap buffer: x[L] right most input token, x[R] stack top
+RUN:{L:-1+R:#x   ;                                              /gap buffer: x[L] right most input token, x[R] stack top
  lu:{$[""~r:V x;`val;("1",r)]}                                  /lookup variable
  co:{[](":"~*c)|"i:"~c:*'x 0 1+R}                               /top stack is assign or index assign
+ ov:{[y]$[(`C~@s:x L)&("+/"~y);$[SE>SY?s;"{";y];y]}             /change / to { if next token is a verb (compress vs over)
  ev:{[y]                                                        /evaluate token on the move
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;,#y];y)                              /array from numeric literal, single number is atom
-    `C~t   ;$[SE>SY?y;("+",y);*y];"1",y]}                       /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
+    `C~t   ;$[SE>SY?y;ov("+",y);*y];"1",y]}                     /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
  s:{x[R-:1]:ev x 1+L-:1}                                        /shift from left(queue) to right(stack) within x
  r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
  $[~1~#x:R_x;ERR`syn;*x]}                                       /return the single noun left on the stack otherwise a syntax error
 
-/  \APL"2+3"
+PRINT:{`k x}
+
+/ \APL"2+3"
+/ \APL"+/1 2 3"
+/ \APL"+/[1]2 3⍴⍳6"
 / \APL"X←⍳6"
 / \APL"2 3 4⍳3"
-/  \APL"1 2 3⍳3 4 5"
+/ \APL"1 2 3⍳3 4 5"
 / \APL"'ABCDEFGH'⍳'GAFFE'"
 / \APL"1 2 3 4⍳2 3⍴⍳6"
 / \APL"3 4 7∊⍳5"
 / \APL"2↑3 4 5 6"
 / \APL"2 3↑3 4⍴⍳12"
-/  \APL"2 ¯3↑3 4⍴⍳12"
+/ \APL"2 ¯3↑3 4⍴⍳12"
 / \APL"2↓3 4 5 6 7"
 / \APL"2 ¯3↑3 4⍴⍳12"
 / \APL"⍋3 5 3 2"

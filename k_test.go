@@ -362,6 +362,7 @@ func Test360(t *testing.T) {
 		{"1 0 1 0/E", []int{3, 2}, []int{1, 3, 5, 7, 9, 11}},
 		{"1 0 1/[1]E", []int{2, 4}, []int{1, 2, 3, 4, 9, 10, 11, 12}},
 		{"1 0 1⌿E", []int{2, 4}, []int{1, 2, 3, 4, 9, 10, 11, 12}},
+		{"0 1 0 1/⍳4", []int{2}, []int{2, 4}},
 		{"1+-3", []int{}, []float64{-2}},
 		{"A←4", []int{}, []float64{4}},
 		{"A+2+A←4", []int{}, []float64{10}},
@@ -371,7 +372,6 @@ func Test360(t *testing.T) {
 		{"+/[1]2 3⍴⍳6", []int{3}, []int{5, 7, 9}},
 		{"+⌿2 3⍴⍳6", []int{3}, []int{5, 7, 9}},
 		{"+/[2]2 4 3⍴⍳24", []int{2, 3}, []int{22, 26, 30, 70, 74, 78}},
-		//{"0 1 0 1/⍳4", []int{}, []float64{}},
 		{"2 3 4+.×5 6 7", []int{}, []float64{56}},
 		{"1 2 3∘.×1 2 3 4", []int{3, 4}, []float64{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
 		{"(⍳3)∘.×⍳4", []int{3, 4}, []int{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
@@ -423,7 +423,7 @@ func Test360(t *testing.T) {
 	newtest()
 	x := mkchars([]byte("∘.k"))
 	dofile(x, readfile(rx(x)))
-	apl := lup(sc(mkchars([]byte("APL"))))
+	apl := val(mkchars([]byte("{RUN TOK x}"))) //lup(sc(mkchars([]byte("APL"))))
 	o := sc(mkchars([]byte{'O'}))
 	for _, tc := range Tx {
 		fmt.Println(tc.s)
