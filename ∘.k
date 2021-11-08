@@ -12,7 +12,7 @@
 / ├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴────────┤
 / │           │ ⊂ │ ⊃ │ ∩ │ ∪ │ ⊥ │ ⊤ │ | │ ; │ : │ \ │         │
 / │  SHIFT    │ Z │ X │ C │ V │ B │ N │ M │ , │ . │ / │  SHIFT  │
-/ └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴─────────┘ *&
+/ └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴─────────┘
 
 O:1; C:""; I:!0; E:0; P:!0; V:`!()
 
@@ -30,15 +30,15 @@ OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⊖⍉*⍟→⌈⌊�
 SY:UTF OP;                                       SE:SY?,";"
 
 
-A:256#                     "e"   /illegal but allowed in quotation
-@[`A;32;                   "_"]  /blank
-@[`A;0+"~+-*<>^?!,:;/()[]";"+"]  /ascii punctuation
-@[`A;192+!64;              "u"]  /utf8 start
-@[`A;39;                   "'"]  /quote
-@[`A;0+NM,AZ;              "a"]  /alphanum
-@[`A;128+!64;              "c"]  /utf8 continuation
+A:256#                       "e"   /illegal but allowed in quotation
+@[`A;32;                     "_"]  /blank
+@[`A;0+"~+-*<>^?!,:;/\\()[]";"+"]  /ascii punctuation
+@[`A;192+!64;                "u"]  /utf8 start
+@[`A;39;                     "'"]  /quote
+@[`A;0+NM,AZ;                "a"]  /alphanum
+@[`A;128+!64;                "c"]  /utf8 continuation
 
-TOK:{[x]m:{y/:x\:z};x:m["¯";"_"]m["←";":"]m["⌿";"/[",(_O+"0"),"]";x]
+TOK:{[x]m:{y/:x\:z};x:m["¯";"_"]m["←";":"]m["⍀";"\\[",(_O+"0"),"]"]m["⌿";"/[",(_O+"0"),"]";x]
  c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
  M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b__uq___;1_+u'1ce"  /state matrix
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
@@ -96,6 +96,8 @@ RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
 COMPRESS:{$[1<r:#*y;CMPRAXIS[O+r-1;x;y];(,#i;(y 1)@i:&(_0.+x 1))]}
 CMPRAXIS:{[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
+EXPAND:  {EXPANDAX[O+(#*y)-1;x;y]}
+EXPANDAX:{[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`C~t:@*|y;" ";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[e;r//@[i;a;(&v)(i:!s)a];*|y])]}
 INDEXOF: {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:  {o:up[];(*x;(o+*|x)':(o+*|y))}
 TAKEDROP:{[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
@@ -150,7 +152,7 @@ PT:( ,"x"; {*x}                                             /no match, keep shif
     "+{1"; {("1",REDUCE[1_*x;1_x 2])}                       /reduction
    "+{i1"; {("1",REDAXE[1_*x;**|*1_x 2;1_x 3])} )           /reduce with axis
 PT,:("1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
-     "+i"; {`axis \x;("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
+     "+i"; {("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
     "(1)"; {x 1}                                            /unbrace
      ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
     "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                   /dyadic operator
@@ -195,4 +197,6 @@ PRINT:{`k x}
 / \APL"⍒3 5 3 2"
 / \APL"1 0 1 0/3 4⍴⍳12"
 / \APL"1 0 1/[1]3 4⍴⍳12"
+/ \APL"1 0 1\\⍳2"
+/ \APL"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
  
