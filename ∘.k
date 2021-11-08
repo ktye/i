@@ -38,9 +38,10 @@ A:256#                       "e"   /illegal but allowed in quotation
 @[`A;0+NM,AZ;                "a"]  /alphanum
 @[`A;128+!64;                "c"]  /utf8 continuation
 
-TOK:{[x]m:{y/:x\:z};x:m["¯";"_"]m["←";":"]m["⍀";"\\[",(_O+"0"),"]"]m["⌿";"/[",(_O+"0"),"]";x]
+TOK:{[x]m:{y/:x\:z};m1:{m[x;y,"[",(_O+"0"),"]";z]};x:m["¯";"_"]m["←";":"]m1["⍀";"\\"]m1["⌿";"/"]m1["⊖";"⌽";x]
+ M:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b__uq___;1_+u'1ce"  /state matrix
  c:"_+u'aceqb1"                             /q,b(start,stop quotation) 1(continue alphanum)
- M:c?1_'";"\:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b__uq___;1_+u'1ce"  /state matrix
+ M:c?1_'";"\:M
  r:(&i:5>s:{M[x;y]}\(c?A)@256/256+x)^x      /r(token list): cut input at i (where token class is low, e.g. not a continuation
  P::0,+\#'r                                 /save token start positions within input C
  b:{P::P i:&~" "=*'x;x i}                   /blanks result in their own tokens, remove them
@@ -90,21 +91,25 @@ f( "≠";    ""     ;  ~=   )     /            not equal
 / mixed functions
 up:{[]$[`F':@'(*|x;*|y);0.;_0]}
 ls:{@[z;i;+;y i:&x]}
-PERAXIS: {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
-IOTA:    {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
-RESHAPE: {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
-CATENATE:{((*x)+(*y);(x 1),y 1)}                         /only vectors
-COMPRESS:{$[1<r:#*y;CMPRAXIS[O+r-1;x;y];(,#i;(y 1)@i:&(_0.+x 1))]}
-CMPRAXIS:{[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
-EXPAND:  {EXPANDAX[O+(#*y)-1;x;y]}
-EXPANDAX:{[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`C~t:@*|y;" ";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[e;r//@[i;a;(&v)(i:!s)a];*|y])]}
-INDEXOF: {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
-MEMBER:  {o:up[];(*x;(o+*|x)':(o+*|y))}
-TAKEDROP:{[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
-TAKE:    {$[~(#*|x)~(#*y);[I::0;`ran];0=*/s:abs i:_0.+*|x;(s;0#*|y);TAKEDROP[(i<0)*i+*y;s;y]]}
-DROP:    {$[~(#*|x)~(#*y);[I::0;`ran];TAKEDROP[s*i>0;(*y)-s:abs i:_0.+*|x;y]]}
-GRADEUP: {(,#r;r:O+<PERAXIS[x;-1+#*x])}
-GRADEDN: {(,#r;r:O+>PERAXIS[x;-1+#*x])}
+PERAXIS:  {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
+IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
+RESHAPE:  {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
+CATENATE: {((*x)+(*y);(x 1),y 1)}                         /only vectors
+COMPRESS: {$[1<r:#*y;CMPRAXIS[O+r-1;x;y];(,#i;(y 1)@i:&(_0.+x 1))]}
+CMPRAXIS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
+EXPAND:   {EXPANDAX[O+(#*y)-1;x;y]}
+EXPANDAX: {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`C~t:@*|y;" ";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[e;r//@[i;a;(&v)(i:!s)a];*|y])]}
+INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
+MEMBER:   {o:up[];(*x;(o+*|x)':(o+*|y))}
+TAKEDROP: {[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
+TAKE:     {$[~(#*|x)~(#*y);[I::0;`ran];0=*/s:abs i:_0.+*|x;(s;0#*|y);TAKEDROP[(i<0)*i+*y;s;y]]}
+DROP:     {$[~(#*|x)~(#*y);[I::0;`ran];TAKEDROP[s*i>0;(*y)-s:abs i:_0.+*|x;y]]}
+GRADEUP:  {(,#r;r:O+<PERAXIS[x;-1+#*x])}
+GRADEDN:  {(,#r;r:O+>PERAXIS[x;-1+#*x])}
+REVERSE:  {REVERSEAX[O+(#*x)-1;x]}
+REVERSEAX:{[a;x]a:a-O;s:*x;i:!s;(s;(*|x)@s//@[i;a;(|!s a)@i a])}
+ROTATE:   {[x;y]`nyi}
+ROTATEAX: {[a;x;y]`nyi}
  
 
 
@@ -198,5 +203,6 @@ PRINT:{`k x}
 / \APL"1 0 1 0/3 4⍴⍳12"
 / \APL"1 0 1/[1]3 4⍴⍳12"
 / \APL"1 0 1\\⍳2"
-/ \APL"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
- 
+/ APL"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
+/ APL"1+2"
+/ APL"⊖1 2 3"
