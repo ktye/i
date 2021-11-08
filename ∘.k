@@ -89,6 +89,7 @@ f(,">";    ""     ;   >   )     /            greater
 f( "≠";    ""     ;  ~=   )     /            not equal
 
 / mixed functions
+atom:{$[1~#x;*x;x]}
 up:{[]$[`F':@'(*|x;*|y);0.;_0]}
 ls:{@[z;i;+;y i:&x]}
 PERAXIS:  {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
@@ -108,10 +109,9 @@ GRADEUP:  {(,#r;r:O+<PERAXIS[x;-1+#*x])}
 GRADEDN:  {(,#r;r:O+>PERAXIS[x;-1+#*x])}
 REVERSE:  {REVERSEAX[O+(#*x)-1;x]}
 REVERSEAX:{[a;x]a:a-O;s:*x;i:!s;(s;(*|x)@s//@[i;a;(|!s a)@i a])}
-ROTATE:   {[x;y]`nyi}
-ROTATEAX: {[a;x;y]`nyi}
+ROTATE:   {ROTATEAX[O+(#*y)-1;x;y]}; rot:{(x_y),(x:n/x+n:#y)#y}
+ROTATEAX: {[a;x;y]a:a-O;s:*y;i:!s;(s;(*|y)@s//@[i;a;,/rot'[atom@_0.+*|x;((*/s)%s a)^i a]])}
  
-
 
 f:{F[SY?*x]:1_x}
 f(  "⍴";{(,#*x;*x)}    ; RESHAPE                         )
@@ -206,3 +206,8 @@ PRINT:{`k x}
 / APL"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
 / APL"1+2"
 / APL"⊖1 2 3"
+ \APL"3⌽2 3 5 7"
+ \APL"¯1⌽2 3 5 7"
+ \APL"1 0 ¯1⌽3 4⍴'ABCDEFGHIJKL'"
+ \APL"(2 4⍴0 1 ¯1 0 0 3  2 1)⌽[1]2 2 4⍴⍳16" / 2 2 4⍴1  6  7  4 5  2  3  8 9 14 11 16 13 10 15 12
+ 
