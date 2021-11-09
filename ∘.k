@@ -114,6 +114,8 @@ FLIP:     {TRANSPOSE[(#s;s:|O+!#*x);x]}
 TRANSPOSE:{(s;(*|y)@(*y)//(s\\!*/s:(*y)@?i)i:_0.+(*|x)-O)}
 DECODE:   {(!0;,($[(!0)~*x;**|x;*|x])//*|y)}
 ENCODE:   {(,#r;r:(_0.+*|x)\\_0.+**|y)}
+ROLL:     {(!0;,O+1?!_0.+**|x)}
+DEAL:     {(,#r;r:O+(-_0.+**|x)?_0.+**|y)}
  
 
 f:{F[SY?*x]:1_x}
@@ -131,7 +133,7 @@ f(  "⍉"; FLIP          ; TRANSPOSE                         )
 f(  "∊"; ""            ; MEMBER                            )
 f(  "⊥"; ""            ; DECODE                            )
 f(  "⊤"; ""            ; ENCODE                            )
-f( ,"?"; ""            ; DEAL                              )
+f( ,"?"; ROLL          ; DEAL                              )
 
 
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
