@@ -92,43 +92,44 @@ f( "≠";    ""     ;  ~=   )     /            not equal
 atom:{$[1~#x;*x;x]}
 up:{[]$[`F':@'(*|x;*|y);0.;_0]}
 ls:{@[z;i;+;y i:&x]}
+LX:       {[f;x]f[-1+O+#*x;x]}
+LY:       {[f;x;y]f[-1+O+#*y;x;y]}
 PERAXIS:  {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
 IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
 RESHAPE:  {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
-CATENATE: {((*x)+(*y);(x 1),y 1)}                         /only vectors
-COMPRESS: {$[1<r:#*y;CMPRAXIS[O+r-1;x;y];(,#i;(y 1)@i:&(_0.+x 1))]}
-CMPRAXIS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
-EXPAND:   {EXPANDAX[O+(#*y)-1;x;y]}
-EXPANDAX: {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`C~t:@*|y;" ";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[e;r//@[i;a;(&v)(i:!s)a];*|y])]}
+CATENATE: {((*x)+(*y);(x 1),y 1)}
+COMPRESS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
+EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`C~t:@*|y;" ";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[e;r//@[i;a;(&v)(i:!s)a];*|y])]}
 INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:   {o:up[];(*x;(o+*|x)':(o+*|y))}
 TAKEDROP: {[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
 TAKE:     {$[~(#*|x)~(#*y);[I::0;`ran];0=*/s:abs i:_0.+*|x;(s;0#*|y);TAKEDROP[(i<0)*i+*y;s;y]]}
 DROP:     {$[~(#*|x)~(#*y);[I::0;`ran];TAKEDROP[s*i>0;(*y)-s:abs i:_0.+*|x;y]]}
-GRADEUP:  {(,#r;r:O+<PERAXIS[x;-1+#*x])}
-GRADEDN:  {(,#r;r:O+>PERAXIS[x;-1+#*x])}
-REVERSE:  {REVERSEAX[O+(#*x)-1;x]}
-REVERSEAX:{[a;x]a:a-O;s:*x;i:!s;(s;(*|x)@s//@[i;a;(|!s a)@i a])}
-ROTATE:   {ROTATEAX[O+(#*y)-1;x;y]}; rot:{(x_y),(x:n/x+n:#y)#y}
-ROTATEAX: {[a;x;y]a:a-O;s:*y;i:!s;(s;(*|y)@s//@[i;a;,/rot'[atom@_0.+*|x;((*/s)%s a)^i a]])}
+GRADEUP:  {[a;x](,#r;r:O+<PERAXIS[x;a])}
+GRADEDN:  {[a;x](,#r;r:O+>PERAXIS[x;a])}
+REVERSE:  {[a;x]a:a-O;s:*x;i:!s;(s;(*|x)@s//@[i;a;(|!s a)@i a])}
+rot:      {(x_y),(x:$[0>x:n/x+n:#y;n+x;x])#y}
+ROTATE:   {[a;x;y]a:a-O;s:*y;x:(*/s_a)#_0.+*|x;(s;$[1~#s;rot[*x;*|y];@[v;,/i;(v:*|y)@,/j:rot'[x;i:{s//@[n#'x;a;!n:s a]}'+!@[s;a;1]]]])}
+FLIP:     {TRANSPOSE[(#s;s:|O+!#*x);x]}
+TRANSPOSE:{(s;(*|y)@(*y)//(s\\!*/s:(*y)@?i)i:_0.+(*|x)-O)}
  
 
 f:{F[SY?*x]:1_x}
-f(  "⍴";{(,#*x;*x)}    ; RESHAPE                         )
-f( ,",";{(,#(x 1);x 1)}; CATENATE                        )
-f(  "⍳"; IOTA          ; INDEXOF                         )
-f(  "↑"; ""            ; TAKE                            )
-f(  "↓"; ""            ; DROP                            )
-f(  "⍋"; GRADEUP       ;         ; GRADEUPAX             )
-f(  "⍒"; GRADEDN       ;         ; GRADEDNAX             )
-f( ,"/"; ""            ; COMPRESS; ""       ; CMPRAXIS   )
-f(,"\\"; ""            ; EXPAND  ; ""       ; EXPANDAX   )
-f(  "⌽"; REVERSE       ; ROTATE  ; REVERSEAX; ROTATEAX   )
-f(  "⍉"; TRANSPOSE     ; TRANSPOSE2                      )
-f(  "∊"; ""            ; MEMBER                          )
-f(  "⊥"; ""            ; DECODE                          )
-f(  "⊤"; ""            ; ENCODE                          )
-f( ,"?"; ""            ; DEAL                            )
+f(  "⍴";{(,#*x;*x)}    ; RESHAPE                           )
+f( ,",";{(,#(x 1);x 1)}; CATENATE                          )
+f(  "⍳"; IOTA          ; INDEXOF                           )
+f(  "↑"; ""            ; TAKE                              )
+f(  "↓"; ""            ; DROP                              )
+f(  "⍋"; LX GRADEUP    ;             ; GRADEUP             )
+f(  "⍒"; LX GRADEDN    ;             ; GRADEDN             )
+f( ,"/"; ""            ; LY COMPRESS ; ""       ; COMPRESS )
+f(,"\\"; ""            ; LY EXPAND   ; ""       ; EXPAND   )
+f(  "⌽"; LX REVERSE    ; LY ROTATE   ; REVERSE  ; ROTATE   )
+f(  "⍉"; FLIP          ; TRANSPOSE                         )
+f(  "∊"; ""            ; MEMBER                            )
+f(  "⊥"; ""            ; DECODE                            )
+f(  "⊤"; ""            ; ENCODE                            )
+f( ,"?"; ""            ; DEAL                              )
 
 
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
@@ -206,8 +207,14 @@ PRINT:{`k x}
 / APL"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
 / APL"1+2"
 / APL"⊖1 2 3"
- \APL"3⌽2 3 5 7"
- \APL"¯1⌽2 3 5 7"
- \APL"1 0 ¯1⌽3 4⍴'ABCDEFGHIJKL'"
- \APL"(2 4⍴0 1 ¯1 0 0 3  2 1)⌽[1]2 2 4⍴⍳16" / 2 2 4⍴1  6  7  4 5  2  3  8 9 14 11 16 13 10 15 12
+/ \APL"3⌽2 3 5 7"
+/ \APL"¯1⌽2 3 5 7"
+/ \APL"1 0 ¯1⌽3 4⍴'ABCDEFGHIJKL'"
+/ \APL"(2 4⍴0 1 ¯1 0 0 3  2 1)⌽[1]2 2 4⍴⍳16" / 2 2 4⍴1  6  7  4 5  2  3  8 9 14 11 16 13 10 15 12
+/ \APL"⍉2 3⍴⍳6"
+/ \APL"1 1⍉3 3⍴⍳9"
+/ \APL"(2 4⍴0 1 ¯1 0 0 3  2 1)⌽[1]2 2 4⍴⍳16"
+/ \APL"(2 2⍴0 ¯1 3 1)⌽[2]2 4 2⍴⍳16"
+/ \APL"5⌽'ABCDEF'"
+/ \APL"¯7⌽'ABCDEF'"
  

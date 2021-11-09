@@ -75,6 +75,7 @@ ej:{(y j),'x_z i j:&~0N=i:(z x)?y x} /sym t1 t2
 avg:{(+/x)%0.+#x}
 var:{(+/x*x:(x-avg x))%-1+#x}
 std:{%var x}
+rem:{x/x+x/y} /like apl for negative arguments
 
 `"rf.": {.5+(x?0)%4294967295.}
 `"rf1.":{.5+(1.+x?0)%4294967295.}
