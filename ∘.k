@@ -191,11 +191,14 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
 
 str:{$[(,".")~-1#s:$x;-1_s;s]}
 spc:{@[x;&x=" ";"_"]}
-tab:{[s;c]s:-1_s;j:&~0=i:1_+/<':'!s;c:,/'(*/s)^c;c[j]:c[j],'(i j)#\:"\n";"\n"/:c}
-PRINT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;" "/:str'0+v;`k x]),"\n      "}
+nlf:{[s;x]  j:&~0=i:1_+/<':'!s; x[j]:x[j],'(i j)#\:"\n"; "\n"/:x} /insert newlines for higher dimensions
+tab:{[s;c]s:-1_s;nlf[s;,/'(*/s)^c]}                               /format char arrays
+mat:{[s;c]s:-1_s;n:|/'+#''l:(*/s)^c;nlf[s;,/'((-2-n)#')'l]}       /format numeric arrays
+PRINT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n      "}
 
 / \APL"2+3"
 / APL"⍴''"
 / APL"2 3 2 3⍴'ALPH⍴⍳BETA'"
 / \RUN TOK"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
+/ APL"2 3 4⍴⍳24"
  
