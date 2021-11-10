@@ -116,6 +116,7 @@ DECODE:   {(!0;,($[(!0)~*x;**|x;*|x])//*|y)}
 ENCODE:   {(,#r;r:(_0.+*|x)\\_0.+**|y)}
 ROLL:     {(!0;,O+1?!_0.+**|x)}
 DEAL:     {(,#r;r:O+(-_0.+**|x)?_0.+**|y)}
+CIRCULAR: {x:_0.+**|x;v:*|y;(*y;$[1~x;sin v;2~x;cos v;3~x;(sin v)%cos v;-3~x;(1p%180)*imag[1;v];4~x;%1+v*v;5~x;.5*(exp v)-exp@-v;6~x;.5*(exp v)+exp@-v;7~x;1-2%1+exp 2*v;%1-v*v])}
  
 
 f:{F[SY?*x]:1_x}
@@ -134,6 +135,7 @@ f(  "∊"; ""            ; MEMBER                            )
 f(  "⊥"; ""            ; DECODE                            )
 f(  "⊤"; ""            ; ENCODE                            )
 f( ,"?"; ROLL          ; DEAL                              )
+f(  "○";{(*x;1p**|x)}  ; CIRCULAR                          )
 
 
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
@@ -190,3 +192,4 @@ RUN:{L:-1+R:#x   ;                                              /gap buffer: x[L
 PRINT:{`k x}
 
 / \APL"2+3"
+ \APL"1○2"
