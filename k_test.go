@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	. "github.com/ktye/wg/module"
 	"github.com/ktye/wg/wasi_unstable"
@@ -292,6 +293,7 @@ func Test360(t *testing.T) {
 		r     interface{}
 	}{
 		{"-7", []int{}, []float64{-7}},
+		{"'ALPHA⍴⍳'", []int{7}, "ALPHA⍴⍳"},
 		{"1+2", []int{}, []float64{3}},
 		{"3≤7", []int{}, []bool{true}},
 		{"7≤3", []int{}, []bool{false}},
@@ -406,13 +408,29 @@ func Test360(t *testing.T) {
 			t.Fatalf("type is %v not %v", tp(x), xt)
 		}
 	}
-	chars := func(x K, y string) {
+	chars := func(x K, y []byte) {
 		//fmt.Println("chars", sK(x), "|", y)
 		nt(x, len(y), Ct)
 		for i := 0; i < len(y); i++ {
-			if xi := I8(int32(x) + int32(i)); xi != int32(y[i]) {
+			if xi := I8(int32(x) + int32(i)); xi != int32(int8(y[i])) {
 				t.Fatalf("x[%d] is %d not %d", i, xi, y[i])
 			}
+		}
+	}
+	runes := func(x K, y string) {
+		//fmt.Println("runes", sK(x), "|", y)
+		ny := 0
+		for range y {
+			ny++
+		}
+		buf := make([]byte, 4)
+		nt(x, ny, Lt)
+		i := 0
+		for _, r := range y {
+			nr := utf8.EncodeRune(buf, r)
+			fmt.Println("i", string(buf[:nr]))
+			chars(K(I64(int32(x)+int32(8*i))), buf[:nr])
+			i++
 		}
 	}
 	bools := func(x K, y []bool) {
@@ -461,7 +479,7 @@ func Test360(t *testing.T) {
 		ints(shape, tc.shape)
 		switch v := tc.r.(type) {
 		case string:
-			chars(ravel, v)
+			runes(ravel, v)
 		case []bool:
 			bools(ravel, v)
 		case []int:

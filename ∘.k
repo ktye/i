@@ -54,7 +54,7 @@ PRS:{                                                   / apl token           k 
  ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"      C
   {$[r:`F$" "/:x@&~""~/:x:" "\:x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0       F
   `$                                                    / "X1"              → `X1                   s  
-  {(,#x;x:"'"/:v@&~""~/:v:"'"\:1_-1_x)}                 / "'⍺ isn''t ⍵'"    → ("1";,14;"⍺ isn't ⍵") L
+  {(,#x;x:UTF@"'"/:v@&~""~/:v:"'"\:1_-1_x)}              / "'⍺ isn''t ⍵'"    → ("1";,14;"⍺ isn't ⍵") L
  )[*&~0N=(OP;NM;AZ;,"'")?\:*x]x}
 
 
@@ -99,7 +99,7 @@ IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
 RESHAPE:  {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE: {((*x)+(*y);(x 1),y 1)}
 COMPRESS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
-EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`C~t:@*|y;" ";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[e;r//@[i;a;(&v)(i:!s)a];*|y])]}
+EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`L~t:@*|y;"";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[$[`L~t;,'e;e];r//@[i;a;(&v)(i:!s)a];*|y])]}
 INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:   {o:up[];(*x;(o+*|x)':(o+*|y))}
 TAKEDROP: {[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
@@ -175,7 +175,7 @@ PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
         
 
-RUN:{L:-1+R:#x   ;                                              /gap buffer: x[L] right most input token, x[R] stack top
+RUN:{L:-1+R:#x                                                  /gap buffer: x[L] right most input token, x[R] stack top
  lu:{$[""~r:V x;`val;("1",r)]}                                  /lookup variable
  co:{[](":"~*c)|"i:"~c:*'x 0 1+R}                               /top stack is assign or index assign
  ov:{[y]$[(`C~@s:x L)&("+/"~y);$[SE>SY?s;"{";y];y]}             /change / to { if next token is a verb (compress vs over)
@@ -189,7 +189,13 @@ RUN:{L:-1+R:#x   ;                                              /gap buffer: x[L
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
  $[~1~#x:R_x;ERR`syn;*x]}                                       /return the single noun left on the stack otherwise a syntax error
 
-PRINT:{`k x}
+str:{$[(,".")~-1#s:$x;-1_s;s]}
+spc:{@[x;&x=" ";"_"]}
+tab:{[s;c]s:-1_s;j:&~0=i:1_+/<':'!s;c:,/'(*/s)^c;c[j]:c[j],'(i j)#\:"\n";"\n"/:c}
+PRINT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;" "/:str'0+v;`k x]),"\n      "}
 
 / \APL"2+3"
- \APL"1○2"
+/ APL"⍴''"
+/ APL"2 3 2 3⍴'ALPH⍴⍳BETA'"
+/ \RUN TOK"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
+ 
