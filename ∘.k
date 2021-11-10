@@ -114,7 +114,7 @@ FLIP:     {TRANSPOSE[(#s;s:|O+!#*x);x]}
 TRANSPOSE:{(s;(*|y)@(*y)//(s\\!*/s:(*y)@?i)i:_0.+(*|x)-O)}
 DECODE:   {(!0;,($[(!0)~*x;**|x;*|x])//*|y)}
 ENCODE:   {(,#r;r:(_0.+*|x)\\_0.+**|y)}
-ROLL:     {(!0;,O+1?!_0.+**|x)}
+ROLL:     {(*x;O+(*1?!)'_0.+*|x)}
 DEAL:     {(,#r;r:O+(-_0.+**|x)?_0.+**|y)}
 CIRCULAR: {x:_0.+**|x;v:*|y;(*y;$[1~x;sin v;2~x;cos v;3~x;(sin v)%cos v;-3~x;(1p%180)*imag[1;v];4~x;%1+v*v;5~x;.5*(exp v)-exp@-v;6~x;.5*(exp v)+exp@-v;7~x;1-2%1+exp 2*v;%1-v*v])}
  
@@ -201,4 +201,6 @@ PRINT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0
 / APL"2 3 2 3⍴'ALPH⍴⍳BETA'"
 / \RUN TOK"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
 / APL"2 3 4⍴⍳24"
+/ APL"?4"
+/ APL"?2 3 4⍴100"
  
