@@ -93,7 +93,7 @@ function exec(s){s=(s.startsWith("  "))?" "+s.trim():s.trim()
 function apl(s){if(s==")"){_ibm.value=_ibm.value.slice(0,_ibm.value.lastIndexOf("\n"))+"\n      ";SWTCH("k");return}
  //var sk=function(x){msl();var t=K.tp(x);if(t!=18){K.dx(x);return "RETURN TYPE ERROR"}var xp=lo(x);var r=su(C.slice(xp,xp+K.nn(x)));K.dx(x);return r}
  //var r=sk(K.Atx(lup("APL"),ks(s)));r="\n"+r;if(r.length>1)r+="\n";O(r+"      ")}
- O("\n");K.dx(K.Atx(lup("APL"),ks(s)))}
+ O("\n");K.dx(K.Atx(lup("APL"),ks(s)));O("      ")}
  
 //IBM2741
 var _ibm=ge("_ibm");_ibm.value="\n".repeat(100);
@@ -110,16 +110,16 @@ _ibm.addEventListener('keydown',function(e){var t=_ibm;
  if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
  if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
  if(c=="Enter"){new channel("ret.m4a").play();var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
- pd(e)})
-emits=async function emits(s){_ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){await sleep(50);emit(a[i])}}
-emit =async function emit(c){var t=_ibm;var h=(c!=" ")
+ pd(e)}) 
+emits=/*async*/ function emits(s){_ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){/*await sleep(50);await*/ emit(a[i])};}
+emit =/*async*/ function emit(c){var t=_ibm;var h=(c!=" ")
  if(h)t.classList.add("hit");
  new channel((c==" ")?"spc.m4a":"key.m4a").play()
  var o=t.value[t.selectionStart];if(o!=undefined)c=overstrike(o,c)
  var p=t.selectionStart;t.value=t.value.slice(0,p)+c+t.value.slice(1+p)
  t.selectionStart=1+p;t.selectionEnd=1+p
  t.scroll(0,t.scrollHeight)
- await sleep(200)
+ //await sleep(200)
  if(h)t.classList.remove("hit")}
 var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹FLE";
 for(var i=0;i<26;i++)a+=String.fromCharCode(65+i)+"_"+String.fromCharCode(97+i);

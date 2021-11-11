@@ -22,7 +22,7 @@ UTF:{(&x>-65)^x}
 
 
 err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK SYNTAX SYMBOL VALUE"
-ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^\n      "}
+ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^\n"}
 
 NM:"_.0123456789"                                               /¯ is mapped to _
 AZ:_("A"+!26),"a"+!26
@@ -169,6 +169,7 @@ PT,:("1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
     "(1)"; {x 1}                                            /unbrace
      ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
     "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                   /dyadic operator
+    "::1"; {OUT x 2;x 2}
     "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                    /assign
    "si:1"; {("1",AMEND[(*x)1;1_x 1;1_x 3])})                /indexed assignment
 
@@ -183,7 +184,7 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  ev:{[y]                                                        /evaluate token on the move
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;,#y];y)                              /array from numeric literal, single number is atom
-    `C~t   ;$[SE>SY?y;ov("+",y);*y];"1",y]}                     /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
+    `C~t   ;$[y~"⎕";":";SE>SY?y;ov("+",y);*y];"1",y]}           /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
  s:{E::P L;x[R-:1]:ev x 1+L-:1}                                 /shift from left(queue) to right(stack) within x
  r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x}          /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
@@ -197,8 +198,8 @@ pad:{m:|/'n:dot''x;x,''(#''[(m-n);" "])}                            /rpad to ali
 nlf:{[s;x]  j:&~0=i:1_+/<':'!s; x[j]:x[j],'(i j)#\:"\n"; "\n"/:x}   /insert newlines for higher dimensions
 mat:{[s;c]s:-1_s;n:|/'#''l:pad@+(*/s)^c;nlf[s;,/'((-2-n)#')'+l]}    /format numeric arrays
 tab:{[s;c]s:-1_s;nlf[s;,/'(*/s)^c]}                                 /format char arrays
-out:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n      "}
-PRINT:{$[`s~@x;`<ERR x;out x]}
+OUT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n"}
+PRINT:{$[`s~@x;`<ERR x;OUT x]}
 
 / \APL"2+3" \
 / APL"⍴''"
@@ -209,4 +210,6 @@ PRINT:{$[`s~@x;`<ERR x;out x]}
 / APL"?2 3 4⍴100"
 / APL"2 3⍴0.123 123.2 2.4434 12.23"
 /  \RUN TOK"'ALPHA'='ALPHA'"
-/  \APL"1 2+2 3 4"
+/  \APL"1+⎕←2 3 4×10"
+
+  
