@@ -22,7 +22,7 @@ UTF:{(&x>-65)^x}
 
 
 err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK SYNTAX SYMBOL VALUE"
-ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^"}
+ERR:{(err x)," ERROR\n      ",C,"\n",((6+E)#" "),"^\n      "}
 
 NM:"_.0123456789"                                               /¯ is mapped to _
 AZ:_("A"+!26),"a"+!26
@@ -58,11 +58,12 @@ PRS:{                                                   / apl token           k 
  )[*&~0N=(OP;NM;AZ;,"'")?\:*x]x}
 
 
-
-F1:{[f;x](*x;f x 1)}
-F2:{[f;x;y]$[(!0)~a:*x;(*y;f[*x 1;y 1]);(!0)~b:*y;(a;f[x 1;*y 1]);a~b;(a;f[x 1;y 1]);[L::-1;`len]]}
+ER:{L::-1;x}
+F1:{[f;x]$[`L~@*|x;`dom;(*x;f x 1)]}
+F2:{[f;x;y]$[~0~e:ch[f;x;y];e;(!0)~a:*x;(*y;,/f[*x 1;y 1]);(!0)~b:*y;(a;,/f[x 1;*y 1]);a~b;(a;,/f[x 1;y 1]);ER`len]}
 F:(#OP)#"";Q:(#OP)#"";J:(#OP)#""          /Q stores reductions and J outer product
 f:{F[SY?*x]:(F1 x 1;F2 x 2);Q[SY?*x]:(x 2)/;J[SY?*x]:,/(x 2)/:\:}
+ch:{[f;x;y]$[0~n:+/(`L=@'(*|x;*|y));0;1~n;ER`dom;(f~(=))|f~(~=);0;ER`dom]}
 binom:{f:*/1+!;(f y)%(f x)*f y-x}
 
 / scalar functions
@@ -95,7 +96,7 @@ ls:{@[z;i;+;y i:&x]}
 LX:       {[f;x]f[-1+O+#*x;x]}
 LY:       {[f;x;y]f[-1+O+#*y;x;y]}
 PERAXIS:  {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
-IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);[L::0;`ran]]}
+IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);ER`ran]}
 RESHAPE:  {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE: {((*x)+(*y);(x 1),y 1)}
 COMPRESS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
@@ -140,11 +141,11 @@ f(  "○";{(*x;1p**|x)}  ; CIRCULAR                          )
 
 DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
 JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
-AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);[L::0;`dom];(2_F[SY?f])@\:**|i]}
-INDEX:{[x;y]$[~(#y)~#*x;*(`ran;L::0);(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
+AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);ER`dom;(2_F[SY?f])@\:**|i]}
+INDEX:{[x;y]$[~(#y)~#*x;ER`ran;(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
 AMEND:{[s;i;y]x:1_lu s;i:(*x)//i@'!#'i:((*|)'j:ifill[i;*x])-O;V[s]:r:(*x;@[$[t~`F;0.+*|x;*|x];i;*(*|y;t:@*|y)]);r}
 REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
-REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;[L::0;`ran];((*x)_a;Q[SY?f]'PERAXIS[x;a])]}
+REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;ER`ran;((*x)_a;Q[SY?f]'PERAXIS[x;a])]}
 MF:{[f;x]($[~`C~@f;*f;F[SY?f;0]])x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
 
@@ -183,24 +184,29 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;,#y];y)                              /array from numeric literal, single number is atom
     `C~t   ;$[SE>SY?y;ov("+",y);*y];"1",y]}                     /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
- s:{x[R-:1]:ev x 1+L-:1}                                        /shift from left(queue) to right(stack) within x
- r:{E::0|P L;x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x} /reduce right side: match case, call action, update R pointer
+ s:{E::P L;x[R-:1]:ev x 1+L-:1}                                 /shift from left(queue) to right(stack) within x
+ r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x}          /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
- $[~1~#x:R_x;ERR`syn;*x]}                                       /return the single noun left on the stack otherwise a syntax error
+ $[`s~@e:*|x R;e;~1~#x:R_x;`syn;*x]}                            /return the single noun left on the stack otherwise a syntax error
 
 str:{$[(,".")~-1#s:$x;-1_s;s]}
 spc:{@[x;&x=" ";"_"]}
-nlf:{[s;x]  j:&~0=i:1_+/<':'!s; x[j]:x[j],'(i j)#\:"\n"; "\n"/:x} /insert newlines for higher dimensions
-tab:{[s;c]s:-1_s;nlf[s;,/'(*/s)^c]}                               /format char arrays
-mat:{[s;c]s:-1_s;n:|/'+#''l:(*/s)^c;nlf[s;,/'((-2-n)#')'l]}       /format numeric arrays
-PRINT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n      "}
+dot:{0|(#x)-x?"."}
+pad:{m:|/'n:dot''x;x,''(#''[(m-n);" "])}                            /rpad to align dots
+nlf:{[s;x]  j:&~0=i:1_+/<':'!s; x[j]:x[j],'(i j)#\:"\n"; "\n"/:x}   /insert newlines for higher dimensions
+mat:{[s;c]s:-1_s;n:|/'#''l:pad@+(*/s)^c;nlf[s;,/'((-2-n)#')'+l]}    /format numeric arrays
+tab:{[s;c]s:-1_s;nlf[s;,/'(*/s)^c]}                                 /format char arrays
+out:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n      "}
+PRINT:{$[`s~@x;`<ERR x;out x]}
 
-/ \APL"2+3"
+/ \APL"2+3" \
 / APL"⍴''"
 / APL"2 3 2 3⍴'ALPH⍴⍳BETA'"
 / \RUN TOK"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
 / APL"2 3 4⍴⍳24"
 / APL"?4"
 / APL"?2 3 4⍴100"
- 
+/ APL"2 3⍴0.123 123.2 2.4434 12.23"
+/  \RUN TOK"'ALPHA'='ALPHA'"
+/  \APL"1 2+2 3 4"

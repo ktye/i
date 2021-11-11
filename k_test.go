@@ -428,7 +428,6 @@ func Test360(t *testing.T) {
 		i := 0
 		for _, r := range y {
 			nr := utf8.EncodeRune(buf, r)
-			fmt.Println("i", string(buf[:nr]))
 			chars(K(I64(int32(x)+int32(8*i))), buf[:nr])
 			i++
 		}
