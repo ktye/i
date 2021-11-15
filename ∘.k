@@ -14,11 +14,16 @@
 / │  SHIFT    │ Z │ X │ C │ V │ B │ N │ M │ , │ . │ / │  SHIFT  │
 / └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴─────────┘
 
-O:1; C:""; I:!0; E:0; P:!0; V:`!()
+O:1; C:""; I:!0; E:0; P:!0; V:`!(); D:(); S:()
 
-APL:{C::x;$[")"~*x;SYS 1_x;PRINT RUN TOK x]}
+APL:{C::x;n:{x;0};$[")"~*x;SYS 1_x;(0~#D)&"∇"~(3#x);n D::,3_x;"∇"~3#x;n DEF D;#D;n D,:,x;PRINT RUN TOK x]}
 SYS:{$[x~"ORIGIN 1";*|(O::1;"WAS ",$O);x~"ORIGIN 0";*|(O::0;"WAS ",$O);"INCORRECT COMMAND"]}
 UTF:{(&x>-65)^x}
+
+CAL:{[f;x]`call \(f;x);sv:PRO f;V[ \(f 1)#*f]:x;c:*|f;while[(1+#c)>N::1+N;RUN TOK c N];r:V f 2;EPI[f;sv];r}
+PRO:{[f]S,:,(C;P;N);C::"";P::!0;N::0;V[*f]}
+EPI:{[f;v]C::*l:*|S;P:l 1;N::l 2;S::1_S;V[*f]:v}
+
 
 
 err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK SYNTAX SYMBOL VALUE"
@@ -143,12 +148,11 @@ DOT:{[f;g;x;y]$[f~"∘";JOT[g;x;y];REDUCE[f;DF[g;x;y]]]}
 JOT:{[f;x;y]((*x),*y;J[SY?f][x 1;y 1])}
 AXIS:{[f;i]$[~((!0)~*i:*i)&(1~#i);ER`dom;(2_F[SY?f])@\:**|i]}
 INDEX:{[x;y]$[~(#y)~#*x;ER`ran;(,/*'y;(*|x)@(*x)//i@'!#'i:((*|)'y:ifill[y;*x])-O)]}
-AMEND:{[s;i;y]x:1_lu s;i:(*x)//i@'!#'i:((*|)'j:ifill[i;*x])-O;V[s]:r:(*x;@[$[t~`F;0.+*|x;*|x];i;*(*|y;t:@*|y)]);r}
+AMEND:{[s;i;y]x:1_lu s;i:(*x)//i@'!#'i:((*|)'j:ifill[i;*x])-O;V[s]:r:"1",(*x;@[$[t~`F;0.+*|x;*|x];i;[t:@v:*|y;$[(!0)~*y;*v;v]]]);r}
 REDUCE:{[f;x]REDAXE[f;-1+O+#*x;x]}
 REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;ER`ran;((*x)_a;Q[SY?f]'PERAXIS[x;a])]}
 MF:{[f;x]($[~`C~@f;*f;F[SY?f;0]])x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
-
 
 split:{x[0,-1+#x]:";";x[&(0b~':s)&s:";"=*'x]:0;x@&~";"=*'x} /split index expression, fill space for empty index
 ifill:{[x;s]x[i]:{(,#x;x)}'O+!'s i:&x~\:0}                  /fill 0s in index vector, given shape s
@@ -156,29 +160,31 @@ drop:{x[i]:_0.+1_'x i:&~0~/:x}
 mo:{[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}                /apply monadic function (correct stack for leading +)
 
 /   case   action       PARSE TABLE
-PT:( ,"x"; {*x}                                             /no match, keep shifting
-    "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                     /apply dyadic function
-    "++1"; mo                                               /apply monadic
-    "(+1"; mo                                               /apply monadic
-    "[+1"; mo                                               /apply monadic
-    ":+1"; mo                                               /apply monadic
-    "+{1"; {("1",REDUCE[1_*x;1_x 2])}                       /reduction
-   "+{i1"; {("1",REDAXE[1_*x;**|*1_x 2;1_x 3])} )           /reduce with axis
-PT,:("1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
+PT:(  ,"x"; {*x}                                            /no match, keep shifting
+      "g1"; {("1",CAL[2_*x;,x 1])}                          /call monadic user function
+     "1h1"; {("1",CAL[2_x 1;(*x;x 2)])}                     /call dyadic user function
+     "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                    /apply dyadic function
+     "++1"; mo                                              /apply monadic
+     "(+1"; mo                                              /apply monadic
+     "[+1"; mo                                              /apply monadic
+     ":+1"; mo)                                             /apply monadic
+PT,:("+{1"; {("1",REDUCE[1_*x;1_x 2])}                      /reduction
+    "+{i1"; {("1",REDAXE[1_*x;**|*1_x 2;1_x 3])}            /reduce with axis
+     "1i"; {("1",INDEX[1_*x;1_x 1])}                        /index array
      "+i"; {("+",AXIS[1_*x;1_x 1])}                         /fix axis to (monadic) function
     "(1)"; {x 1}                                            /unbrace
      ,"["; {[y]n::1+(s:R_x)?"]";("i",drop split n#s)}       /indexing expression: count to ], remove brackets and semicolons
     "+.+"; {("+",(`val;DOT[1_*x;1_x 2]))}                   /dyadic operator
     "::1"; {OUT x 2;x 2}
-    "s:1"; {("1",*(r;V[(*x)1]:r:1_x 2))}                    /assign
-   "si:1"; {("1",AMEND[(*x)1;1_x 1;1_x 3])})                /indexed assignment
+    "s:1"; {V[(*x)1]:r:("1",1_x 2);r}                       /assign
+   "si:1"; {AMEND[(*x)1;1_x 1;1_x 3]})                      /indexed assignment
 
 PN:#'PC:PT[i:2*!2\#PT]
 PF:     PT[1+i]
         
 
 RUN:{L:-1+R:#x                                                  /gap buffer: x[L] right most input token, x[R] stack top
- lu:{$[""~r:V x;`val;("1",r)]}                                  /lookup variable
+ lu:{$[""~r:V x;`val;r]}                                        /lookup variable
  co:{[](":"~*c)|"i:"~c:*'x 0 1+R}                               /top stack is assign or index assign
  ov:{[y]$[(`C~@s:x L)&("+/"~y);$[SE>SY?s;"{";y];y]}             /change / to { if next token is a verb (compress vs over)
  ev:{[y]                                                        /evaluate token on the move
@@ -192,24 +198,36 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  $[`s~@e:*|x R;e;~1~#x:R_x;`syn;*x]}                            /return the single noun left on the stack otherwise a syntax error
 
 str:{$[(,".")~-1#s:$x;-1_s;s]}
-spc:{@[x;&x=" ";"_"]}
 dot:{0|(#x)-x?"."}
 pad:{m:|/'n:dot''x;x,''(#''[(m-n);" "])}                            /rpad to align dots
 nlf:{[s;x]  j:&~0=i:1_+/<':'!s; x[j]:x[j],'(i j)#\:"\n"; "\n"/:x}   /insert newlines for higher dimensions
 mat:{[s;c]s:-1_s;n:|/'#''l:pad@+(*/s)^c;nlf[s;,/'((-2-n)#')'+l]}    /format numeric arrays
 tab:{[s;c]s:-1_s;nlf[s;,/'(*/s)^c]}                                 /format char arrays
-OUT:{x:1_x;t:@v:*|x;r:#s:*x;`<(spc$[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n"}
+OUT:{x:1_x;t:@v:*|x;r:#s:*x;`<($[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n"}
 PRINT:{$[`s~@x;`<ERR x;OUT x]}
 
-/ \APL"2+3" \
-/ APL"⍴''"
-/ APL"2 3 2 3⍴'ALPH⍴⍳BETA'"
-/ \RUN TOK"1 0 1 1 1\\3 4⍴'ABCDEFGHIJKL'"
-/ APL"2 3 4⍴⍳24"
-/ APL"?4"
-/ APL"?2 3 4⍴100"
-/ APL"2 3⍴0.123 123.2 2.4434 12.23"
-/  \RUN TOK"'ALPHA'='ALPHA'"
-/  \APL"1+⎕←2 3 4×10"
+DEF:{D::();n:`;a:0;
+ r:$[#i:find["←";h:*x];`$(*i)#h;`]
+ l:";"\:h
+ h:*l;l:`$1_l
+ s:`$" "\:$[#i;(3+*i)_h;h]
+ a:$[2~#s;1;3~#s;2;0]
+ l:($[1~a;s 1;2~a;s 0 2]),l,r
+ n:*(2~a)_s
+ V[n]:("fgh"@a;n;l;a;r;1_x)}
 
-  
+/ \APL"2+3"
+/ \APL"∇Z←X SPHERE5 Y;R;S;T"
+/ \APL"∇"
+/ \APL"X←⍳6"
+/ \APL"X[2 3]:5 6"
+/ \APL"X[2 3]:5"
+/ \APL"∇Z←G1 X"
+/ \APL"Z←1+X"
+/ \APL"∇"
+/ \APL"G1 8"
+/ \APL"∇Z←X H Y"
+/ \APL"Z←X+Y"
+/ \APL"∇"
+/ \APL"3 H 4"
+ 

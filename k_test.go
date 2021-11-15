@@ -342,6 +342,7 @@ func Test360(t *testing.T) {
 		{"(⍳3)+4", []int{3}, []float64{5, 6, 7}},
 		{"X←⍳6", []int{6}, []int{1, 2, 3, 4, 5, 6}},
 		{"X[2 1]←8 9", []int{6}, []float64{9, 8, 3, 4, 5, 6}},
+		{"X[2 1 3]←7", []int{6}, []float64{7, 7, 7, 4, 5, 6}},
 		{"3 4⍳4", []int{}, []int{2}},
 		{"1 2 3 4⍳2 3⍴⍳6", []int{2, 3}, []int{1, 2, 3, 4, 5, 5}},
 		{"'ABCDEFGH'⍳'GAFFE'", []int{5}, []int{7, 1, 6, 6, 5}},
@@ -399,6 +400,23 @@ func Test360(t *testing.T) {
 		{"2 3 4+.×5 6 7", []int{}, []float64{56}},
 		{"1 2 3∘.×1 2 3 4", []int{3, 4}, []float64{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
 		{"(⍳3)∘.×⍳4", []int{3, 4}, []int{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
+		//{"∇F0", nil, nil},
+		//{"∇", nil, nil},
+		//{"∇Z←F1", nil, nil},
+		//{"Z←1", nil, nil},
+		//{"∇", nil, nil},
+		//{"∇G0 X", nil, nil},
+		//{"∇", nil, nil},
+		//{"∇Z←G1 X", nil, nil},
+		//{"Z←1+X", nil, nil},
+		//{"∇", nil, nil},
+		//{"∇X H Y", nil, nil},
+		//{"∇", nil, nil},
+		//{"∇Z←X H Y", nil, nil},
+		//{"Z←X+Y", nil, nil},
+		//{"∇", nil, nil},
+		//{"1+2", []int{}, []float64{3}},
+		//{"G1 8", []int{}, []float64{9}},
 	}
 	nt := func(x K, y int, xt T) {
 		if n := nn(x); int(n) != y {
@@ -462,6 +480,7 @@ func Test360(t *testing.T) {
 	newtest()
 	x := mkchars([]byte("∘.k"))
 	dofile(x, readfile(rx(x)))
+	def := val(mkchars([]byte("APL")))
 	apl := val(mkchars([]byte("{RUN TOK x}"))) //lup(sc(mkchars([]byte("APL"))))
 	o := sc(mkchars([]byte{'O'}))
 	for _, tc := range Tx {
@@ -470,6 +489,13 @@ func Test360(t *testing.T) {
 		if strings.HasPrefix(tc.s, "0)") {
 			tc.s = tc.s[2:]
 			Asn(o, Ki(0))
+		}
+		if tc.shape == nil && tc.r == nil {
+			r := Atx(rx(def), mkchars([]byte(tc.s)))
+			if r != Ki(0) {
+				t.Fatalf("expected nil %s", sK(r))
+			}
+			continue
 		}
 		r := Atx(rx(apl), mkchars([]byte(tc.s)))
 		nt(r, 3, Lt)
@@ -493,6 +519,7 @@ func Test360(t *testing.T) {
 		dx(r)
 	}
 	dx(apl)
+	dx(def)
 	reset()
 }
 
