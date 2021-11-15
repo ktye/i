@@ -194,7 +194,7 @@ func Tak(x, y K) (r K) { // x#y
 			return Ecr(15, l2(x, y))
 		}
 	}
-	if xt == it {
+	if xt == it || xt == bt {
 		return ntake(int32(x), y)
 	}
 	if xt > 16 && xt == yt {
@@ -277,7 +277,7 @@ func Drp(x, y K) (r K) { // x_y
 			return Ecr(16, l2(x, y))
 		}
 	}
-	if xt == it {
+	if xt == it || xt == bt {
 		return ndrop(int32(x), y)
 	}
 	if xt > 16 && xt == yt {
