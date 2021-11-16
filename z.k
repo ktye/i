@@ -15,9 +15,9 @@
  kt:{x:$[`T~@x;T x;`pad("";"-"),$x];(x,'"|"),'T y}
  d:{r:!x;x:.x;$[`T~@x;kt[r;x];,'[,'[`pad(k'r);"|"];k'x]]}
  T:{$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+`pad@'$(!x),'.x]}
- dd:("";,"..")20<#x
+ dd:("";,"..")20<#x:$[(@x)':`L`D`T;x;x~*x;x;[t:`L;,x]]
  x:$[x~*x;x;(20&#x)#x]
- $[`L~t;k'x;`D~t;d x;`T~t;T x;,k x],dd} /352
+ $[`D~t;d x;`T~t;T x;x~*x;,k x;k'x],dd} /352
 
 `"pad.":{(|/#'x)#'x}
 `"split.":{$[`L~@x;`split@'x;" "\:$[" "=x@-1+#x:x@&~i&~':i:" "=x;-1_x;x]]} /multiple whitespace/leading/trailing
@@ -25,15 +25,12 @@
  el:{t:(`S`B`C`I`F`Z!``b`c`i`f`z)@@'x; (`k@t),"$'+`split@'\"\\n\"\\:-1_1_\"\n",("\n"/:" "/:'+`pad@'$x),"\n\""}
  $[`T~t:@x;et x;`L~t;el x;`C~t;"-1_1_\"\n",x,"\n\"";"*",el@,x]}
 
-l:(`a`b`c;1 22 3;1.5 6 7)
-t:+`alpha`beta`gamma!l
-
 `"kxy.":{t:@y;n:#y;k:`kxy x;m:x
  q:{c,("\\"/:(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x':qs:"\t\n\r\"\\"]),c:_34}
  s:{$[|/x':"\t\n\r"__!31;"0x",`x@x;q x]}
  a:{x:$x;$[`c~t;s x;`s~t;"`",x;x]}
  d:{r:"!",k@.x;n:#!x;x:k@!x;$[(1~n)|(@.x)':`D`T;"(",x,")";x],r}
- v:{m*:(.`".kstm")t;  dd:("";"..")m<#x;x:(m&#x)#x
+ v:{m*:(.`".kstm")t; dd:("";"..")m<#x;x:(m&#x)#x
   x:$[`L~t;k'x;`C~t;x;$x]
   x:$[`B~t;(*'x),"b";`C~t;s x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
   (("";",")(1~n)),x,dd}
