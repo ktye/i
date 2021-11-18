@@ -17,6 +17,7 @@ import (
 )
 
 var save []byte
+var srci K
 
 func newtest() {
 	wasi_unstable.Stdout = os.Stdout
@@ -25,10 +26,11 @@ func newtest() {
 		kinit()
 		save = make([]byte, len(Bytes))
 		copy(save, Bytes)
+		srci = src
 	} else {
 		Bytes = make([]byte, len(save))
 		copy(Bytes, save)
-		src, pp, pe, sp = 0, 0, 0, 256
+		pp, pe, sp, src = 0, 0, 256, srci
 	}
 }
 func mkchars(b []byte) (r K) {
@@ -287,6 +289,7 @@ func TestClass(t *testing.T) {
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 func Test360(t *testing.T) {
+	//t.Skip()
 	Tx := []struct {
 		s     string
 		shape []int
@@ -523,6 +526,7 @@ func Test360(t *testing.T) {
 	reset()
 }
 func TestDef(t *testing.T) {
+	//t.Skip()
 	Tx := []struct {
 		s string
 		f string

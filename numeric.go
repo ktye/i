@@ -1735,6 +1735,8 @@ func uptype(x K, dst T) (r K) {
 				f = float64(xp)
 			}
 			return Kz(f, 0)
+		} else {
+			return trap(Type)
 		}
 	}
 	if xt < It && dst == ft {

@@ -14,6 +14,7 @@ func quote(x K) K     { return x + 448 }
 func unquote(x K) K   { return x - 448 }
 
 func exec(x K) K {
+	srcp = 0
 	xn := nn(x)
 	if xn == 0 {
 		dx(x)

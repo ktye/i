@@ -56,7 +56,7 @@ func init() {
 func kinit() {
 	minit(13, 16) //8k..64k
 	sp = 256
-	src = 0
+	src = mk(Ct, 0)
 	loc = 0
 	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))

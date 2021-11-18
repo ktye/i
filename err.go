@@ -20,8 +20,7 @@ const (
 )
 
 func trap(x int32) K {
-	//fmt.Println("src", int32(src), "srcp", srcp)
-	if src != 0 {
+	if srcp < nn(src) {
 		a := maxi(srcp-30, 0)
 		for i := a; i < srcp; i++ {
 			if I8(int32(src)+i) == 10 {
@@ -35,15 +34,11 @@ func trap(x int32) K {
 				break
 			}
 		}
-		src = cat1(ntake(b-a, ndrop(a, src)), Kc(10))
-		write(src)
-
+		writepn(int32(src)+a, b-a)
 		if srcp > a {
-			//fmt.Println("srcp", srcp, "a", a)
-			write(ntake(srcp-a-1, Kc(32)))
+			write(Cat(Kc(10), ntake(srcp-a-1, Kc(32))))
 		}
 		write(Ku(2654)) // ^\n
-		srcp += a
 	}
 	panic(x)
 	return 0

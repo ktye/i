@@ -680,11 +680,7 @@ func Typ(x K) (r K) { // @x
 }
 func Tok(x K) (r K) { // `t@"src"
 	if tp(x) == Ct {
-		s := src
-		r = tok(x)
-		dx(src)
-		src = s
-		return r
+		return tok(x)
 	} else {
 		return x
 	}
@@ -715,7 +711,6 @@ func Val(x K) (r K) {
 	}
 }
 func val(x K) (r K) {
-	s := src
 	x = parse(tok(x))
 	xn := nn(x)
 	xp := int32(x) + 8*(xn-1)
@@ -724,8 +719,6 @@ func val(x K) (r K) {
 		a = 1
 	}
 	x = exec(x)
-	dx(src)
-	src = s
 	if a != 0 {
 		dx(x)
 		return 0
@@ -771,13 +764,19 @@ func Enc(x, y K) (r K) { // x\\y
 	}
 	r = mk(It, 0)
 	yn := int32(Cnt(rx(y)))
+l:
 	for {
 		n--
 		xi := ati(rx(x), n)
 		r = Cat(r, Enl(idiv(rx(y), xi, 1)))
 		y = idiv(y, xi, 0)
-		if int32(y) == 0 || sumi(int32(y), yn) == 0 || n == 0 {
+		if int32(y) == 0 || n == 0 {
 			break
+		}
+		if tp(y) > 16 {
+			if sumi(int32(y), yn) == 0 {
+				break l
+			}
 		}
 	}
 	dx(x)

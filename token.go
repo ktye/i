@@ -9,10 +9,11 @@ type ftok = func() K
 func tok(x K) (r K) {
 	var y K
 	x = cmt(x)
-	src = x
-	pp = int32(x)
+	src = cat1(src, Kc(10))
+	pp = nn(src)
+	src = Cat(src, x) // src contains all src
+	pp += int32(src)  // pp is the parser position within src
 	pe = pp + nn(x)
-	p := pp // srcp > 0
 	r = mk(Lt, 0)
 	for {
 		ws()
@@ -22,7 +23,7 @@ func tok(x K) (r K) {
 		for i := int32(192); i < 199; i++ { // tbln, tchr, tnms, tvrb, tpct, tvar, tsym
 			y = Func[i].(ftok)()
 			if y != 0 {
-				y |= K(int64(pp-p) << 32)
+				y |= K(int64(pp-int32(src)) << 32)
 				r = cat1(r, y)
 				break
 			}
@@ -144,11 +145,9 @@ func tnms() (r K) {
 }
 func tnum() (r K) {
 	c := I8(pp)
-	if pp > int32(src) {
-		if c == '-' || c == '.' {
-			if is(I8(pp-1), 64) {
-				return 0 // e.g. x-1 is (x - 1) not (x -1)
-			}
+	if c == '-' || c == '.' {
+		if is(I8(pp-1), 64) {
+			return 0 // e.g. x-1 is (x - 1) not (x -1)
 		}
 	}
 	if c == '-' && pp < 1+pe {

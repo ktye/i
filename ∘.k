@@ -225,8 +225,9 @@ DEF:{D::();n:`;a:0;
 / \APL"Z←1+X"
 / \APL"∇"
 / \APL"G1 8"
-/ \APL"∇Z←X H Y"
-/ \APL"Z←X+Y"
-/ \APL"∇"
+ \APL"∇Z←X H Y"
+ \APL"Z←X+Y"
+ \APL"∇"
 / \APL"3 H 4"
- 
+/ \APL"24 60 60⊤3723"
+/ \APL"60 60⊤3723"
