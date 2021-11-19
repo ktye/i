@@ -201,7 +201,7 @@ func TestTraps(t *testing.T) {
 		{func() { use(Key(seq(2), seq(2))) }, Type},
 		{func() { nyi(Ki(0)) }, Nyi},
 		{func() { ndrop(5, Key(seq(2), seq(2))) }, Type},
-		{func() { free(int32(seq(1)), 5) }, Unref},
+		{func() { mfree(int32(seq(1)), 5) }, Unref},
 	}
 	for _, tc := range testCases {
 		newtest()

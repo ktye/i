@@ -72,7 +72,7 @@ func fcount(x int32) (r int32) {
 	return r
 }
 
-func free(x, bs int32) {
+func mfree(x, bs int32) {
 	//if x == 8080-16 {
 	//	fmt.Println("free ", x+16)
 	//}
@@ -154,7 +154,7 @@ func dx(x K) {
 				p += 8
 			}
 		}
-		free(p, bucket(sz(t)*n))
+		mfree(p, bucket(sz(t)*n))
 	}
 }
 func rl(x K) { // ref list elements
@@ -166,5 +166,5 @@ func rl(x K) { // ref list elements
 	}
 }
 func lfree(x K) { // free list non-recursive
-	free(int32(x)-16, bucket(8*nn(x)))
+	mfree(int32(x)-16, bucket(8*nn(x)))
 }
