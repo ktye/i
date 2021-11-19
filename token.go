@@ -297,7 +297,7 @@ func tvrb() (r K) {
 			}
 		}
 	}
-	return K(o + index(c, 228, 253))
+	return K(o + idx(c, 228, 253))
 }
 func tpct() (r K) {
 	c := I8(pp)

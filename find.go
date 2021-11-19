@@ -179,8 +179,7 @@ func fndl(x, y K) (r int32) {
 	}
 	return nai
 }
-
-func index(x, a, b int32) int32 {
+func idx(x, a, b int32) int32 {
 	for i := a; i < b; i++ {
 		if x == I8(i) {
 			return i - a
