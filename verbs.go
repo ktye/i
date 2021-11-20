@@ -179,11 +179,14 @@ func Tak(x, y K) (r K) { // x#y
 	xt := tp(x)
 	yt := tp(y)
 	if yt == Dt {
-		r, y = spl2(y)
-		r = Tak(rx(x), r)
-		y = Tak(x, y)
-		r = Key(r, y)
-		return r
+		if xt == it {
+			r, y = spl2(y)
+			r = Tak(rx(x), r)
+			y = Tak(x, y)
+			return Key(r, y)
+		} else {
+			return Key(rx(x), Atx(y, x))
+		}
 	} else if yt == Tt {
 		if xt&15 == st {
 			if xt == st {
