@@ -29,6 +29,9 @@ wg             . > k.wat
 wg -try -multi . > k-wavm.wat
 /c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd k.wat
 
+# wc -c . > k.c
+# gcc -Wfatal-errors --no-builtin k.c
+
 cp k.html /c/k/ktye.github.io/index.html
 cp k.wasm /c/k/ktye.github.io/k.wasm
 cp k.t    /c/k/ktye.github.io/k.t
