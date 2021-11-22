@@ -226,7 +226,8 @@ func cat1(x, y K) K {
 			SetI64(rp, int64(y))
 		}
 	} else if s == 16 {
-		F64x2store(rp, F64x2load(yp))
+		//F64x2store(rp, F64x2load(yp))
+		Memorycopy(rp, yp, 16)
 		dx(y)
 	}
 	return r
