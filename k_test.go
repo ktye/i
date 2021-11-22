@@ -21,7 +21,7 @@ var srci K
 
 func newtest() {
 	wasi_unstable.Stdout = os.Stdout
-	rand = 1592653589
+	rand_ = 1592653589
 	if save == nil {
 		kinit()
 		save = make([]byte, len(Bytes))

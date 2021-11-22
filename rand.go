@@ -5,11 +5,11 @@ import (
 )
 
 func rnd() (r int32) {
-	r = rand
+	r = rand_
 	r ^= (r << 13)
 	r ^= (r >> 17)
 	r ^= (r << 5)
-	rand = r
+	rand_ = r
 	return r
 }
 func roll(x K) (r K) { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
