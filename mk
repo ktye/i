@@ -18,6 +18,12 @@ func zk() {
 }
 EOF
 
+if [ "$1" = "kc" ]; then
+	wg -c . > k.c
+	gcc -Wfatal-errors --no-builtin k.c
+	exit 0
+fi
+
 go install
 
 if [ "$1" = "cover" ]; then
@@ -29,8 +35,6 @@ wg             . > k.wat
 wg -try -multi . > k-wavm.wat
 /c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd k.wat
 
-# wg -c . > k.c
-# gcc -Wfatal-errors --no-builtin k.c
 
 cp k.html /c/k/ktye.github.io/index.html
 cp k.wasm /c/k/ktye.github.io/k.wasm

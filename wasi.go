@@ -111,13 +111,13 @@ func bench(x K) {
 	}
 	n := maxi(1, int32(prs(it, ntake(i, rx(x)))))
 	x = parse(tok(ndrop(i, x)))
-	t := time()
+	t := time_()
 	for n > 0 {
 		dx(exec(rx(x)))
 		n--
 		continue
 	}
-	t = time() - t
+	t = time_() - t
 	dx(Out(Kf(1e-6 * float64(t))))
 }
 
@@ -129,7 +129,7 @@ func Otu(x, y K) K {
 	write(cat1(Kst(x), Kc(':')))
 	return Out(y)
 }
-func time() int64 {
+func time_() int64 {
 	wasi_unstable.Clock_time_get(1, wasi_unstable.Timestamp(0), 512)
 	return I64(512)
 }
