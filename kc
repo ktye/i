@@ -9,15 +9,16 @@ K Ki(int);
 K Kf(double);
 
 // Create vectors (data, length) and copy values into the K value.
-K KC(char *,   int);
-K KS(char**,   int);
-K KI(int *,    int);
-K KF(double *, int);
+K KC(char *,   size_t);
+K KS(char**,   size_t);
+K KI(int *,    size_t);
+K KF(double *, size_t);
+K KL(K*,       size_t);
 
 // K to C:
 // Query type and length
-char TK(K);
-int  NK(K);
+char    TK(K);
+size_t  NK(K);
 // the return value of TK needs to be agreed on, e.g:
 // 'c' 'C'      chars
 // 'i' 'I'      all integers and booleans
@@ -33,10 +34,10 @@ double fK(K);
 
 // vectors size must be queried first with NK, values are copied into dst.
 // allocation for dst is the responsibility of the c side.
-CK(char   *dst, K x);
-IK(int    *dst, K x);
-FK(double *dst, K x);
-LK(K      *dst, K x);
+void CK(char   *dst, K x);
+void IK(int    *dst, K x);
+void FK(double *dst, K x);
+void LK(K      *dst, K x);
 
 // there could also be a no-copy interface, e.g:
 (void *)dK(K); 
@@ -60,8 +61,14 @@ K KR(void *fp, arity int, char *name); // R for register, F is already used.
 // The K implementation would need to support an external function type. Name is the display name.
 // External functions are never ambivalent, they have a fixed arity. Calling with less arguments projects as usual.
 // a triadic native function would have this interface:
-K tri(K x, K y, K z);
-// Alternatively it could be a single argument that is always a list, but then each function would need to do unpacking.
+//   K tri(K x, K y, K z);
+// it would be registered and assigned by
+//   KA("tri", KR(tri, 3, "tri"));
+// Alternatively c functions could have a single argument that is always a list, but then each function would need to do the unpacking.
+
+// ngn suggests the more general K K("...", x, y, ..) instead of K1, K2
+// e.g. implemented as #define K(s,a...) ({static K f;K0(&f,s,(K[]){a},sizeof((K[]){a})/sizeof(K));})
+// It parses the string, caches the result and applies the arguments if provided.
 
 // Refcounting
 // C functions, such as tri(..) need to consume K arguments.
