@@ -1,0 +1,80 @@
+// K(the data type) is implementation dependent. In my case k.h would start with:
+// #define K int64_t
+
+// Create K values from C data:
+// Atoms
+K Kc(char);
+K Ks(char *); // symbol from c-string 0 terminated
+K Ki(int);
+K Kf(double);
+
+// Create vectors (data, length) and copy values into the K value.
+K KC(char *,   int);
+K KS(char**,   int);
+K KI(int *,    int);
+K Kf(double *, int);
+
+// K to C:
+// Query type and length
+char TK(K);
+int  NK(K);
+// the return value of TK needs to be agreed on, e.g:
+// 'c' 'C'      chars
+// 'i' 'I'      all integers and booleans
+// 's' 'S'      symbols
+// 'f' 'F'      (float)
+// 'L' 'D' 'T'  general list/dict/table
+
+// convert data to C
+char   cK(K);
+int    iK(K);
+double fK(K);
+// there is no char *sK(K). convert symbols to char first with K1('$',x), see below.
+
+// vectors size must be queried first with NK, values are copied into dst.
+// allocation for dst is the responsibility of the c side.
+CK(char   *dst, K x);
+IK(int    *dst, K x);
+FK(double *dst, K x);
+LK(K      *dst, K x);
+
+// there could also be a no-copy interface, e.g:
+(void *)dK(K); 
+// returns a pointer to the underlying data. But how would that be used (across k implementations)?
+
+// Call standard k functions:
+K K1(char, K);
+K K2(char, K, K);
+// e.g. 1+!10 would be: 
+// K r = K2('+', Ki(1), K1('!', Ki(10)));
+
+// Lookup variables
+// K r = K1('.', Ks("name"));
+
+// Assign variables.
+void KA(K name, K value); // it could also return the value, but mostly that would need to be decremented i guess.
+
+// Extensions (that's the point of the api in the first place).
+// need to register native c functions to K.
+K KR(void *fp, arity int, char *name); // R for register, F is already used.
+// The K implementation would need to support an external function type. Name is the display name.
+// External functions are never ambivalent, they have a fixed arity. Calling with less arguments projects as usual.
+// a triadic native function would have this interface:
+K tri(K x, K y, K z);
+// Alternatively it could be a single argument that is always a list, but then each function would need to do unpacking.
+
+// Refcounting
+// C functions, such as tri(..) need to consume K arguments.
+// There must be a call to increment/decrement refcount and (query refcount for reuse is maybe less important).
+K ref(x K);
+K unref(x K);
+// both return their argument, maybe there are better names.
+
+// External state
+// C libraries might need to handle external state that should be bound to a K variable.
+// Lua has "userdata" and "light userdata" (a pointer) for these.
+K Kp(void *p); // store a c pointer in a K value.
+// K never modifies the pointer, just passes it around. Only the external library known what it means.
+
+// do we need initialization / packaging .. ?
+// as discussed, we could use int64_t instead of int as well.
