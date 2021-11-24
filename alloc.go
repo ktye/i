@@ -16,6 +16,7 @@ func minit(a, b int32) {
 func alloc(n, s int32) int32 {
 	size := n * s
 	t := bucket(size)
+	Printf("alloc %d %d %d %d\n", n, s, size, t)
 	if int64(n)*int64(s) > 2147483647 /*|| t > 31*/ {
 		trap(Grow)
 	}
@@ -85,6 +86,7 @@ func mfree(x, bs int32) {
 }
 func bucket(size int32) (r int32) {
 	r = 32 - I32clz(uint32(15+size))
+	Printf("bucket %d %d\n", size, r)
 	if r < 5 {
 		r = 5
 	}
@@ -92,6 +94,7 @@ func bucket(size int32) (r int32) {
 }
 
 func mk(t T, n int32) (r K) {
+	Printf("mk %d %d\n", t, n)
 	//defer func(t T, n int32) {
 	//	if int32(r) == 8080 {
 	//		fmt.Println("mk", t, n, int32(r))

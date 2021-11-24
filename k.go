@@ -54,10 +54,13 @@ func init() {
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
 
 func kinit() {
+	Printf("minit\n")
 	minit(13, 16) //8k..64k
 	sp = 256
+	Printf("mk src\n")
 	src = mk(Ct, 0)
 	loc = 0
+	Printf("nan..\n")
 	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
 	rand_ = 1592653589
