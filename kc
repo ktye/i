@@ -12,7 +12,7 @@ K Kf(double);
 K KC(char *,   int);
 K KS(char**,   int);
 K KI(int *,    int);
-K Kf(double *, int);
+K KF(double *, int);
 
 // K to C:
 // Query type and length
@@ -66,9 +66,9 @@ K tri(K x, K y, K z);
 // Refcounting
 // C functions, such as tri(..) need to consume K arguments.
 // There must be a call to increment/decrement refcount and (query refcount for reuse is maybe less important).
-K ref(x K);
-K unref(x K);
-// both return their argument, maybe there are better names.
+K ref(K x);
+K unref(K x);
+// both return their argument, maybe there are better names, or r0/r1?.
 
 // External state
 // C libraries might need to handle external state that should be bound to a K variable.
