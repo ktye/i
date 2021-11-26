@@ -73,8 +73,8 @@ K KR(void *fp, arity int, char *name); // R for register, F is already used.
 // Refcounting
 // C functions, such as tri(..) need to consume K arguments.
 // There must be a call to increment/decrement refcount and (query refcount for reuse is maybe less important).
-K ref(K x);
-K unref(K x);
+K    ref(K x);
+void unref(K x);
 // both return their argument, maybe there are better names, or r0/r1?.
 
 // External state
