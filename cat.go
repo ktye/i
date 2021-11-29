@@ -213,6 +213,7 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 func cat1(x, y K) K {
 	xt := tp(x)
 	r, rp, s := uspc(x, xt, 1)
+
 	yp := int32(y)
 	if s == 1 {
 		SetI8(rp, yp)

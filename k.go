@@ -54,24 +54,27 @@ func init() {
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
 
 func kinit() {
-	Printf("minit\n")
 	minit(13, 16) //8k..64k
 	sp = 256
-	Printf("mk src\n")
 	src = mk(Ct, 0)
 	loc = 0
-	Printf("nan..\n")
 	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
 	rand_ = 1592653589
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
 
+	Printf("sc\n")
 	sc(Ku(0))        // `   0
 	x := sc(Ku(120)) // `x  8
 	y := sc(Ku(121)) // `y 16
 	z := sc(Ku(122)) // `z 24
+	Printf("cat\n")
+	xt, yt, zt := tp(x), tp(y), tp(z) //rm
+	Printf("xt/yt/zt %d/%d/%d\n", xt, yt, zt)
+	trap(Nyi) //rm
 	xyz = cat1(Cat(x, y), z)
+	Printf("zk..\n")
 	zk()
 }
 func reset() {
