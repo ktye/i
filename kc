@@ -34,6 +34,7 @@ double fK(K);
 
 // vectors size must be queried first with NK, values are copied into dst.
 // allocation for dst is the responsibility of the c side.
+// these functions consume their argument.
 void CK(char   *dst, K x);
 void IK(int    *dst, K x);
 void FK(double *dst, K x);
