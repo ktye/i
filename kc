@@ -55,16 +55,17 @@ K K2(char, K, K);
 // Assign variables.
 void KA(K name, K value); // it could also return the value, but mostly that would need to be decremented i guess.
 
-// Extensions (that's the point of the api in the first place).
-// need to register native c functions to K.
-K KR(void *fp, arity int, char *name); // R for register, F is already used.
-// The K implementation would need to support an external function type. Name is the display name.
+// Extensions (that's the point of the api in the first place) need to register native c functions to K.
+K KR(const char *name, void *fp, arity int); // R for register, F is already used.
+// The K implementation would need to support an external function type.
+// The function is assigned to a global symbol name (which might be "pkg.f1") and used as a display name for $f.
+//
 // External functions are never ambivalent, they have a fixed arity. Calling with less arguments projects as usual.
-// a triadic native function would have this interface:
+// As an example, a triadic native function would have this interface:
 //   K tri(K x, K y, K z);
-// it would be registered and assigned by
-//   KA(Ks("tri"), KR(tri, 3, "tri"));
-// Alternatively c functions could have a single argument that is always a list, but then each function would need to do the unpacking.
+// and be registered by:
+//   KR("tri", tri, 3);
+// Alternatively c functions could always have a single argument (a generic list), but then each function would need to do the unpacking.
 
 // ngn suggests the more general K K("...", x, y, ..) instead of K1, K2
 // e.g. implemented as #define K(s,a...) ({static K f;K0(&f,s,(K[]){a},sizeof((K[]){a})/sizeof(K));})
