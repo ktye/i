@@ -37,7 +37,7 @@ double fK(K);
 void CK(char   *dst, K x);
 void IK(int    *dst, K x);
 void FK(double *dst, K x);
-void LK(K      *dst, K x);
+void LK(K      *dst, K x); //list arguments are consumed
 
 // there could also be a no-copy interface, e.g:
 (void *)dK(K); 
@@ -56,7 +56,7 @@ K K2(char, K, K);
 void KA(K name, K value); // it could also return the value, but mostly that would need to be decremented i guess.
 
 // Extensions (that's the point of the api in the first place) need to register native c functions to K.
-K KR(const char *name, void *fp, arity int); // R for register, F is already used.
+void KR(const char *name, void *fp, arity int); // R for register, F is already used.
 // The K implementation would need to support an external function type.
 // The function is assigned to a global symbol name (which might be "pkg.f1") and used as a display name for $f.
 //
