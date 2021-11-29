@@ -13,7 +13,7 @@ K KC(char *,   size_t);
 K KS(char**,   size_t);
 K KI(int *,    size_t);
 K KF(double *, size_t);
-K KL(K*,       size_t);
+K KL(K*,       size_t); //list arguments are consumed
 
 // K to C:
 // Query type and length
@@ -37,7 +37,7 @@ double fK(K);
 void CK(char   *dst, K x);
 void IK(int    *dst, K x);
 void FK(double *dst, K x);
-void LK(K      *dst, K x); //list arguments are consumed
+void LK(K      *dst, K x);
 
 // there could also be a no-copy interface, e.g:
 (void *)dK(K); 
