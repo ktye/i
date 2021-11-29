@@ -14,6 +14,7 @@ K KS(char**,   size_t);
 K KI(int *,    size_t);
 K KF(double *, size_t);
 K KL(K*,       size_t); //list arguments are consumed
+// KL also decomposes dicts and tables into two k-values (keys/values).
 
 // K to C:
 // Query type and length
@@ -25,6 +26,7 @@ size_t  NK(K);
 // 's' 'S'      symbols
 // 'f' 'F'      (float)
 // 'L' 'D' 'T'  general list/dict/table
+// NK returns 2 for dicts and tables instead of their vector size.
 
 // convert data to C
 char   cK(K);
