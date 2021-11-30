@@ -15,6 +15,7 @@ func tok(x K) (r K) {
 	pp += int32(src)  // pp is the parser position within src
 	pe = pp + nn(x)
 	r = mk(Lt, 0)
+	var nr, tl int32 //rm
 	for {
 		ws()
 		if pp == pe {
@@ -24,6 +25,7 @@ func tok(x K) (r K) {
 			y = Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-int32(src)) << 32)
+				tl = int32(tp(y)) //rm
 				r = cat1(r, y)
 				break
 			}
@@ -31,6 +33,8 @@ func tok(x K) (r K) {
 				trap(Parse)
 			}
 		}
+		nr = nn(r)                                   //rm
+		Printf("tok pp=%d nr=%d t=%d\n", pp, nr, tl) //rm
 	}
 	return r
 }
@@ -394,6 +398,4 @@ func cmt(x K) (r K) {
 	dx(x)
 	return r
 }
-func is(x, m int32) bool {
-	return m&I8(100+x) != 0
-}
+func is(x, m int32) (r bool) { return m&I8(100+x) != 0 }

@@ -9,6 +9,14 @@ var src, loc, xyz K
 var nan, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
+/* //rm
+func kprint(x K) { //rm
+	h := int32(x)
+	l := int32(x >> 32)
+	Printf("%d %d\n", h, l)
+}
+*/
+
 func init() {
 	Memory(1)
 	Memory2(1)
@@ -69,10 +77,6 @@ func kinit() {
 	x := sc(Ku(120)) // `x  8
 	y := sc(Ku(121)) // `y 16
 	z := sc(Ku(122)) // `z 24
-	Printf("cat\n")
-	xt, yt, zt := tp(x), tp(y), tp(z) //rm
-	Printf("xt/yt/zt %d/%d/%d\n", xt, yt, zt)
-	trap(Nyi) //rm
 	xyz = cat1(Cat(x, y), z)
 	Printf("zk..\n")
 	zk()
