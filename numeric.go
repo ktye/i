@@ -1698,7 +1698,6 @@ func dctypes(x, y K) (K, T, K, K) {
 }
 func uptypes(x, y K, b2i int32) (K, K) {
 	xt, yt := tp(x)&15, tp(y)&15
-	Printf("uptypes %d %d\n", xt, yt) //rm
 	rt := T(maxi(int32(xt), int32(yt)))
 	if rt == 0 {
 		rt = it
@@ -1712,7 +1711,6 @@ func uptypes(x, y K, b2i int32) (K, K) {
 	if yt < rt {
 		y = uptype(y, rt)
 	}
-	Printf("<uptypes\n") //rm
 	return x, y
 }
 func uptype(x K, dst T) (r K) {

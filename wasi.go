@@ -9,9 +9,14 @@ import (
 //func LK(x K) K         { return K(wasi_unstable.L64(uint64(x))) }
 //func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
+	Printf("kinit\n") //rm
 	kinit()
+	Printf("doargs\n") //rm
 	doargs()
+
+	Printf("banner\n")          //rm
 	write(Ku(2932601077199979)) // "ktye/k\n"
+	Printf("repl\n")            //rm
 	for {
 		write(Ku(32))
 		x := read()
@@ -69,10 +74,13 @@ func doargs() {
 	a := ndrop(1, getargs())
 	an := nn(a)
 	ap := int32(a)
-	ee := Ku(25901) // -e
+	Printf("doargs %d %d\n", an, ap) //rm
+	ee := Ku(25901)                  // -e
 	for i := int32(0); i < an; i++ {
 		x := x0(ap)
+		Printf("match?\n")     //rm
 		if match(x, ee) != 0 { // -e (exit)
+			Printf("doargs exit\n") //rm
 			if i < an-1 {
 				dx(x)
 				x = x1(ap)
@@ -89,6 +97,10 @@ func doargs() {
 	dx(a)
 }
 func dofile(x K, c K) {
+	Printf("dofile: ") //rm
+	kprint(x)          //rm
+	kprint(c)          //rm
+
 	kk := Ku(27438) // .k
 	tt := Ku(29742) // .t
 	xe := ntake(-2, rx(x))
@@ -159,7 +171,6 @@ func getargs() K {
 	n := I32(516)
 	a := mk(It, I32(512))
 	r := mk(Ct, n)
-	//SetI32(512, int32(a))
 	wasi_unstable.Args_get(int32(a), int32(r))
 	dx(a)
 	return split(Kc(0), ndrop(-1, r))
@@ -170,7 +181,6 @@ func readfile(x K) (r K) { // x C
 		trap(Io)
 	}
 	fd := I32(512)
-
 	if wasi_unstable.Fd_seek(fd, 0, 2, 512) != 0 {
 		trap(Io)
 	}

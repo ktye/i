@@ -105,6 +105,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	rp := int32(r)
 	xp := int32(x)
 	yp := int32(y)
+
 	na := missing(t - 16)
 	switch s >> 2 {
 	case 0:

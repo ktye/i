@@ -377,7 +377,6 @@ func svrb(p int32) int32 {
 func idiom(x K) K {
 	l := int32(x) + 8*(nn(x)-2)
 	i := svrb(l) + svrb(l+8)<<6
-	//fmt.Println("idiom:", svrb(l), svrb(l+8), i)
 	if i == 263 || i == 264 { // *& 7 4 -> 40
 		i = 33 // 7->40(Fwh)  8->41(Las)
 	} else if i == 1166 { // ?^ 14 18

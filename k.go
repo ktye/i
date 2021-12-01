@@ -9,13 +9,43 @@ var src, loc, xyz K
 var nan, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
-/* //rm
 func kprint(x K) { //rm
 	h := int32(x)
 	l := int32(x >> 32)
 	Printf("%d %d\n", h, l)
 }
-*/
+func printlist(x K) { //rm
+	n := nn(x)
+	var h, l int32
+	Printf("list:#%d ", n)
+	for i := int32(0); i < n; i++ {
+		xi := I64(int32(x) + 8*i)
+		h = int32(xi)
+		l = int32(xi >> 32)
+		Printf(" (%d,%d)\n", h, l)
+	}
+	Printf("\n")
+}
+func printints(x K) { //rm
+	n := nn(x)
+	Printf("ints[%d]", n)
+	var xi int32
+	for i := int32(0); i < n; i++ {
+		xi = I32(int32(x) + 4*i)
+		Printf(" %d", xi)
+	}
+	Printf("\n")
+}
+func printchars(x K) { //rm
+	n := nn(x)
+	Printf("bools/chars[%d]: ", n)
+	var xi int32
+	for i := int32(0); i < n; i++ {
+		xi = I8(int32(x) + i)
+		Printf(" %d", xi)
+	}
+	Printf("\n")
+}
 
 func init() {
 	Memory(1)

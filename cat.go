@@ -148,6 +148,7 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	//if xt != tp(y) {
 	//	panic("ucat")
 	//}
+
 	if xt > Lt {
 		return dcat(x, y)
 	}
@@ -212,12 +213,7 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 }
 func cat1(x, y K) K {
 	xt := tp(x)
-
-	yt := tp(y)                          //rm
-	Printf("cat1 xt/yt %d/%d\n", xt, yt) //rm
-
 	r, rp, s := uspc(x, xt, 1)
-
 	yp := int32(y)
 	if s == 1 {
 		SetI8(rp, yp)
@@ -255,7 +251,6 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 	return r, int32(r) + s*nx, s
 }
 func ncat(x, y K) (r K) {
-	Printf("ncat\n") //rm
 	xt := tp(x)
 	if xt < 16 {
 		x = Enl(x)

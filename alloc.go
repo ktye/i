@@ -45,7 +45,6 @@ func grow(p int32) int32 {
 	n := 1 + (p >> 2)                   // required total mem (log2)
 	g := (1 << (n - 16)) - Memorysize() // grow by 64k blocks
 	if g > 0 {
-		Printf("grow\n") //rm
 		if Memorygrow(g) < 0 {
 			trap(Grow)
 		}
@@ -95,9 +94,10 @@ func bucket(size int32) (r int32) {
 var nalloc int32 //rm
 func mk(t T, n int32) (r K) {
 
-	Printf("mk %d/%d\n", t, n) //rm
-	nalloc++                   //rm
-	//if nalloc == 20 {          //rm
+	nalloc++                                //rm
+	Printf("mk %d/%d [%d]\n", t, n, nalloc) //rm
+
+	//if nalloc == 10309 { //rm
 	//	Printf("quit nalloc\n") //rm
 	//	trap(Nyi)               //rm
 	//} //rm
