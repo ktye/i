@@ -6,9 +6,10 @@ import (
 
 const nai int32 = -2147483648 // 0N
 var src, loc, xyz K
-var nan, inf float64
+var na, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
+/* debug c vs go
 func kprint(x K) { //rm
 	h := int32(x)
 	l := int32(x >> 32)
@@ -36,6 +37,16 @@ func printints(x K) { //rm
 	}
 	Printf("\n")
 }
+func printfloats(x K) { //rm
+	n := nn(x)
+	Printf("floats[%d]", n)
+	var xi float64
+	for i := int32(0); i < n; i++ {
+		xi = F64(int32(x) + 8*i)
+		Printf(" %f", xi)
+	}
+	Printf("\n")
+}
 func printchars(x K) { //rm
 	n := nn(x)
 	Printf("bools/chars[%d]: ", n)
@@ -46,6 +57,7 @@ func printchars(x K) { //rm
 	}
 	Printf("\n")
 }
+*/
 
 func init() {
 	Memory(1)
@@ -96,19 +108,17 @@ func kinit() {
 	sp = 256
 	src = mk(Ct, 0)
 	loc = 0
-	nan = F64reinterpret_i64(uint64(0x7FF8000000000001))
+	na = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
 	rand_ = 1592653589
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
 
-	Printf("sc\n")
 	sc(Ku(0))        // `   0
 	x := sc(Ku(120)) // `x  8
 	y := sc(Ku(121)) // `y 16
 	z := sc(Ku(122)) // `z 24
 	xyz = cat1(Cat(x, y), z)
-	Printf("zk..\n")
 	zk()
 }
 func reset() {
@@ -270,9 +280,9 @@ func missing(t T) (r K) {
 	case 2: // st
 		return Ks(0)
 	case 3: // ft
-		return Kf(nan)
+		return Kf(na)
 	case 4: // zt
-		return Kz(nan, nan)
+		return Kz(na, na)
 	case 5: // lt
 		return mk(Ct, 0) //Kb(0)
 	default:

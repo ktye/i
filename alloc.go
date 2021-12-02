@@ -90,18 +90,7 @@ func bucket(size int32) (r int32) {
 	}
 	return r
 }
-
-var nalloc int32 //rm
 func mk(t T, n int32) (r K) {
-
-	nalloc++                                //rm
-	Printf("mk %d/%d [%d]\n", t, n, nalloc) //rm
-
-	//if nalloc == 10309 { //rm
-	//	Printf("quit nalloc\n") //rm
-	//	trap(Nyi)               //rm
-	//} //rm
-
 	//defer func(t T, n int32) {
 	//	if int32(r) == 8080 {
 	//		fmt.Println("mk", t, n, int32(r))

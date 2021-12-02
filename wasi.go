@@ -9,19 +9,22 @@ import (
 //func LK(x K) K         { return K(wasi_unstable.L64(uint64(x))) }
 //func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
-	Printf("kinit\n") //rm
 	kinit()
-	Printf("doargs\n") //rm
 	doargs()
-
-	Printf("banner\n")          //rm
 	write(Ku(2932601077199979)) // "ktye/k\n"
-	Printf("repl\n")            //rm
+	store()
 	for {
 		write(Ku(32))
 		x := read()
 		try(x)
 	}
+}
+func store() {
+	g := (1 << (I32(128) - 16)) - Memorysize2()
+	if g > 0 {
+		Memorygrow2(g)
+	}
+	Memorycopy2(0, 0, 1<<I32(128))
 }
 func catch() {
 	Memorycopy3(0, 0, int32(65536)*Memorysize2())
@@ -29,11 +32,7 @@ func catch() {
 func try(x K) {
 	defer Catch(catch)
 	repl(x)
-	g := (1 << (I32(128) - 16)) - Memorysize2()
-	if g > 0 {
-		Memorygrow2(g)
-	}
-	Memorycopy2(0, 0, 1<<I32(128))
+	store()
 }
 func repl(x K) {
 	n := nn(x)
@@ -74,13 +73,10 @@ func doargs() {
 	a := ndrop(1, getargs())
 	an := nn(a)
 	ap := int32(a)
-	Printf("doargs %d %d\n", an, ap) //rm
-	ee := Ku(25901)                  // -e
+	ee := Ku(25901) // -e
 	for i := int32(0); i < an; i++ {
 		x := x0(ap)
-		Printf("match?\n")     //rm
 		if match(x, ee) != 0 { // -e (exit)
-			Printf("doargs exit\n") //rm
 			if i < an-1 {
 				dx(x)
 				x = x1(ap)
@@ -97,10 +93,6 @@ func doargs() {
 	dx(a)
 }
 func dofile(x K, c K) {
-	Printf("dofile: ") //rm
-	kprint(x)          //rm
-	kprint(c)          //rm
-
 	kk := Ku(27438) // .k
 	tt := Ku(29742) // .t
 	xe := ntake(-2, rx(x))

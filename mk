@@ -20,7 +20,7 @@ EOF
 
 if [ "$1" = "kc" ]; then
 	wg -c . > k.c
-	gcc -Wfatal-errors --no-builtin -O2 k.c
+	gcc -O2 k.c
 	exit 0
 fi
 

@@ -221,7 +221,7 @@ func log(x float64) float64 {
 		return x
 	}
 	if x < 0 {
-		return nan
+		return na
 	}
 	if x == 0 {
 		return -inf
@@ -264,7 +264,7 @@ func pow(x, y float64) float64 {
 		return x
 	}
 	if isnan(x) || isnan(y) || y > maxfloat || y < -maxfloat { // simplified
-		return nan
+		return na
 	}
 	if x == 0 { // simplified
 		if y < 0 {
@@ -282,7 +282,7 @@ func pow(x, y float64) float64 {
 
 	yi, yf := modabsf(F64abs(y))
 	if yf != 0.0 && x < 0.0 {
-		return nan
+		return na
 	}
 	if yi >= 9.223372036854776e+18 {
 		if x == -1.0 {
