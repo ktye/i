@@ -4,19 +4,19 @@
 #include"k.h"
 
 // external libraries
-extern void loadlib(const char*);
+void loadlib(const char*);
 
 // ktye internal api
-extern  int args_;
-extern char **argv_;
-extern void **_F;
-extern void cinit();
-extern void kinit();
-extern void doargs();
-extern void store();
-extern void try();
-extern    K read();
-extern int32_t idx(int32_t, int32_t, int32_t);
+int args_;
+char **argv_;
+void **_F;
+void cinit();
+void kinit();
+void doargs();
+void store();
+void try();
+K read();
+int32_t idx(int32_t, int32_t, int32_t);
 
 // c-api implementation
 K K2(char v, K x, K y) { 
