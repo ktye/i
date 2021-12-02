@@ -1,5 +1,6 @@
 // K(the data type) is implementation dependent. In my case k.h would start with:
-// #define K int64_t
+#include<stdint.h>
+#define K uint64_t
 
 // Create K values from C data:
 // Atoms
@@ -43,7 +44,7 @@ void FK(double *dst, K x);
 void LK(K      *dst, K x);
 
 // there could also be a no-copy interface, e.g:
-(void *)dK(K); 
+void *dK(K); 
 // returns a pointer to the underlying data. But how would that be used (across k implementations)?
 
 // Call standard k functions:
@@ -59,7 +60,7 @@ K K2(char, K, K);
 void KA(K name, K value); // it could also return the value, but mostly that would need to be decremented i guess.
 
 // Extensions (that's the point of the api in the first place) need to register native c functions to K.
-void KR(const char *name, void *fp, arity int); // R for register, F is already used.
+void KR(const char *name, void *fp, int arity); // R for register, F is already used.
 // The K implementation would need to support an external function type.
 // The function is assigned to a global symbol name (which might be "pkg.f1") and used as a display name for $f.
 //
