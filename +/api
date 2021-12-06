@@ -1,0 +1,113 @@
+// c-api implementation
+#define K uint64_t
+
+// create atoms
+K Kc(char   x){ return ktye_Kc((int32_t)x);       }
+K Ks(char  *x){ return ktye_sc(KC(x, strlen(x))); }
+K Ki(int    x){ return ktye_Ki((int32_t)x);       }
+K Kf(double x){ return ktye_Kf(x);                }
+
+// create vectors
+K KC(char *x, size_t n){
+ K r = ktye_mk(18, (int32_t)n);
+ if(x)memcpy(_M+(int32_t)r, x, n);
+ return r;
+}
+K KS(char **x, size_t n) {
+ K r = ktye_mk(20, (int32_t)n);
+ int32_t *m = (int32_t*)(_M+(int32_t)r);
+ if(x)for(int32_t i=0;i<n;i++) m[i]=(int32_t)Ks(x[i]);
+ return r;
+}
+K KI(int *x, size_t n){
+ K r = ktye_mk(19, (int32_t)n);
+ if(x){
+  if(sizeof(int)==sizeof(int32_t)) memcpy(_M+(int32_t)r, (char *)x, 4*n);
+  else {
+   int32_t *m = (int32_t*)(_M+(int32_t)r);
+   for(int32_t i=0;i<n;i++) m[i]=x[i];
+  }
+ }
+ return r;
+}
+K KF(double *x, size_t n){
+ K r = ktye_mk(21, (int32_t)n);
+ if(x)memcpy(_M+(int32_t)r, (char *)x, 8*n);
+ return r;
+}
+K KL(K *x, size_t n){
+ K r = ktye_mk(23, (int32_t)n);
+ if(x){
+  int32_t *m = (int32_t*)(_M+(int32_t)r);
+  for(int32_t i=0;i<n;i++) m[i]=(int32_t)x[i];
+ }
+}
+
+
+// K to C
+
+char TK(K x){ // 012345678901234567890                     type
+ char *t =      "-icisff---------ICISFFLDT";
+ return t[ktye_tp(x)];
+}
+size_t NK(K x){ //                                         length
+ uint8_t t = (uint8_t)(x>>59);
+ if(t>23) return 2;
+ if(t<16) return 1;
+ return ktye_nn(x);
+}
+
+char   cK(K x){ return  (char)x;                   }
+int    iK(K x){ return  (int)(int32_t)x;           }
+double fK(K x){ return *(double *)(_M+(int32_t)x); }
+
+void CK(char *r, K x){ memcpy(r, _M+(int32_t)x, ktye_nn(x)); ktye_dx(x); }
+void IK(int *r, K x){
+ size_t n=(size_t)ktye_nn(x);
+ if(sizeof(int)==sizeof(int32_t)) memcpy((char *)r, _M+(int32_t)x, 4*n);
+ else {
+  int32_t *m=(int32_t *)(_M+(int32_t)x);
+  for(int32_t i=0;i<n;i++)r[i]=m[i];
+ }
+ ktye_dx(x);
+}
+void FK(double *r, K x){
+ size_t n=(size_t)ktye_nn(x);
+ memcpy(r, _M+(int32_t)x, 8*n);
+ ktye_dx(x);
+}
+void LK(K *r, K x){
+ size_t n=(size_t)ktye_nn(x);
+ K *m=(K*)(_M+(int32_t)x);
+ for(int32_t i=0;i<n;i++)r[i]=m[i];
+ ktye_rl(x);
+ ktye_dx(x);
+}
+
+void *dK(K x){ return (void *)(_M+(int32_t)x); } //        data pointer
+
+// call
+K K1(char v, K x){
+ int32_t p=1+ktye_idx(v,288,253);
+ return ((K(*)(K))_F[p])(x); 
+}
+K K2(char v, K x, K y){ 
+ int32_t p=1+ktye_idx(v,288,253);
+ return ((K(*)(K,K))_F[64+p])(x,y); 
+}
+
+// assign
+void KA(K name, K value){ ktye_dx(ktye_Asn(name, value)); }
+
+// extend (register external function)
+void KR(const char *name, void *fp, int arity) {
+ //todo
+}
+
+// refcount
+K      ref(K x){ return ktye_rx(x); }
+void unref(K x){        ktye_dx(x); }
+
+// embed
+void kinit(){ ktye_cinit();ktye_kinit(); }
+

@@ -1,6 +1,7 @@
 set -e
 set -x
 wg -c -lib ktye_ .. > ktye.h
+cat api            >> ktye.h
 gcc -O2 -s -c k.c lib/lib.c
 gcc -O2 -s -o k+ k.o lib.o
 rm *.o
