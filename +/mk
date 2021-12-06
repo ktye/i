@@ -1,6 +1,6 @@
 set -e
 set -x
-wg -c -nomain .. > k_.c
-gcc -O2 -c *.c lib/lib.c
-gcc -O2 -o k+ k.o k_.o lib.o
+wg -c -lib ktye_ .. > ktye.h
+gcc -O2 -s -c *.c lib/lib.c
+gcc -O2 -s -o k+ k.o lib.o
 rm *.o
