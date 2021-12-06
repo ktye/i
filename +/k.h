@@ -16,6 +16,7 @@ K KI(int *,    size_t);
 K KF(double *, size_t);
 K KL(K*,       size_t); //list arguments are consumed
 // KL also decomposes dicts and tables into two k-values (keys/values).
+// If the first argument is NULL, k should create but not initialize the array.
 
 // K to C:
 // Query type and length
