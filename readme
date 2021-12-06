@@ -1,4 +1,4 @@
-src:   github.com/ktye/i                            (public domain)
+src:   github.com/ktye/i          6#k               (public domain)
 jit:   wavm run --enable multi-memory --enable exception-handling 
                 --mount-root . k.wat [args]  (github.com/WAVM/WAVM)
 build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
