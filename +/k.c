@@ -28,7 +28,7 @@ int main(int args, char **argv){
  printf("ktye/k+\n");
  ktye_store();
  while(1){
-  printf(" ");
+  printf(" ");fflush(stdout);
   K x = ktye_read( );
   ktye_try(x);
  }
