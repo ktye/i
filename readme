@@ -24,7 +24,7 @@ repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
 ~ not mtc       {a+b}.d         env        c comp     1+/*%  
 , enl cat       k?t             group      d derived  +/
 ^ srt cut       k!t             key        l lambda   {x+y}
-# cnt tak       t,d t,t t,'t(h) join
+# cnt tak       t,d t,t t,'t(h) join       x native   c-extension
 _ flr drp       t{a>5}          where     exec: t~`v: push
 $ str cst       c:<`file(read)             v:  0..63   monadic
 ? unq fnd       `file<c(write)                64..127  dyadic

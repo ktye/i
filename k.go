@@ -64,13 +64,13 @@ func init() {
 	Memory2(1)
 	Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\t\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00\xc2\xc2\xc2\xc2\xc2\xc2BBBBBBBBBBBBBBBBBBBB\x10\x01`\x01") // k_test.go: TestClass
 	Data(228, ":+-*%!&|<>=~,^#_$?@.':/:\\:")
-	Data(520, "vbcisfzldtmdpl000BCISFZLDT") //546
+	Data(520, "vbcisfzldtmdplx00BCISFZLDT") //546
 	Export(kinit, mk, nn, Val, Kst)
 	ExportAll()
 	//            0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
 	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, Fin, Abs, Img, Cnj, Ang, nyi, Uqs, Xpt, Cos, Fwh, Las, Exp, Log, Sin, Tok, Prs)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, com, prj, Otu, In, Find, Hyp, Cpx, nyi, Rot, Enc, Dec, Fil, nyi, Bin, Mod, Pow, Lgn, nyi, nyi, Rtp)
-	Functions(192, tbln, tchr, tnms, tvrb, tpct, tvar, tsym)
+	Functions(192, tbln, tchr, tnms, tvrb, tpct, tvar, tsym) //                                                                                                                             ^ccal(94)
 	Functions(211, Amd, Dmd)
 
 	Functions(220, negi, negf, negz, negC, negI, negF, negZ)
@@ -164,6 +164,7 @@ const ( //base t&15          bytes  atom  vector
 	df T = 11 // derived(8)    11
 	pf T = 12 // proj   (8)    12
 	lf T = 13 // lambda (8)    13
+	xf T = 14 // native (8)    14
 	Bt T = bt + 16
 	Ct T = ct + 16
 	It T = it + 16
@@ -178,9 +179,10 @@ const ( //base t&15          bytes  atom  vector
 // func t=0
 // basic x < 64 (triadic/tetradic)
 // composition .. f2 f1 f0
-// derived     func symb
-// projection  func arglist emptylist
-// lambda      code locals string
+// derived     func    symb
+// projection  func    arglist  emptylist
+// lambda      code    locals   string
+// native      ptr(Ct) string
 
 // ptr: int32(x)
 //  p-12    p-4 p

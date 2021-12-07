@@ -73,6 +73,8 @@ func cal(f, x K) (r K) {
 		r = callprj(f, x)
 	case 4: // lf
 		r = lambda(f, x)
+	case 5: // xf
+		r = native(f, x)
 	default:
 		r = trap(Type)
 	}
@@ -118,6 +120,18 @@ func callenv(f, x K) (r K) { // {..}.d  {..}.t
 	r = slam(l3(x0(fp), Unq(ucat(r, x1(fp))), x2(fp)), n)
 	dx(f)
 	return cal(r, explode(x))
+}
+func native(f K, x K) (r K) {
+	fn := nn(f)
+	xn := nn(x)
+	if xn < fn {
+		rx(f)
+		return prj(f, x)
+	}
+	if xn != fn {
+		trap(Rank)
+	}
+	return Func[int32(94)].(f2)(x0(int32(f)), x) // +/api: KR
 }
 func lambda(f K, x K) (r K) {
 	fn := nn(f)

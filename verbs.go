@@ -696,9 +696,13 @@ func Val(x K) (r K) {
 	if xt == Ct {
 		return val(x)
 	}
-	if xt == lf {
-		xp := int32(x)
-		r = cat1(l3(x0(xp), x1(xp), x2(xp)), Ki(nn(x))) // (code;locals;string;arity)
+	if xt == lf || xt == xf { // lambda: (code;locals;string;arity)
+		xp := int32(x) //    native: (ptr;string;arity)
+		r = l2(x0(xp), x1(xp))
+		if xt == lf {
+			r = cat1(r, x2(xp))
+		}
+		r = cat1(r, Ki(nn(x)))
 		dx(x)
 		return r
 	}

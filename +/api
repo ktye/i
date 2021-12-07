@@ -100,14 +100,44 @@ K K2(char v, K x, K y){
 void KA(K name, K value){ ktye_dx(ktye_Asn(name, value)); }
 
 // extend (register external function)
-void KR(const char *name, void *fp, int arity) {
- //todo
+void KR(char *name, void *fp, int arity) {
+ K r = ktye_l2(KC((char*)fp,8), KC(name, strlen(name)));
+_M[-12+(int32_t)r] = (char)arity;
+ ktye_dx(ktye_Asn(Ks(name),((K)(int32_t)r)|(((K)xf)<<59)));
+}
+K ktye_ccall(K x, K y){
+ int32_t n=ktye_nn(x);
+ void *f=dK(x);
+ ktye_rl(y);
+ ktye_dx(y);
+ K *m=(K*)(_M+(int32_t)y);
+ // todo segfault..
+ switch(n){
+ case 0: return ((K(*)())f)();
+ case 1: return ((K(*)(K))f)(m[0]);
+ case 2: return ((K(*)(K,K))f)(m[0],m[1]);
+ case 3: return ((K(*)(K,K,K))f)(m[0],m[1],m[2]);
+ case 4: return ((K(*)(K,K,K,K))f)(m[0],m[1],m[2],m[3]);
+ case 5: return ((K(*)(K,K,K,K,K))f)(m[0],m[1],m[2],m[3],m[4]);
+ case 6: return ((K(*)(K,K,K,K,K,K))f)(m[0],m[1],m[2],m[3],m[4],m[5]);
+ case 7: return ((K(*)(K,K,K,K,K,K,K))f)(m[0],m[1],m[2],m[3],m[4],m[5],m[6]);
+ case 8: return ((K(*)(K,K,K,K,K,K,K,K))f)(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7]);
+ case 9: return ((K(*)(K,K,K,K,K,K,K,K,K))f)(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8]);
+ }
+ return KE("limit");
 }
 
 // refcount
 K      ref(K x){ return ktye_rx(x); }
 void unref(K x){        ktye_dx(x); }
 
+// errors
+K KE(char *s) { printf("error(c-api): %s\n", s); return 0; }
+
 // embed
-void kinit(){ ktye_cinit();ktye_kinit(); }
+void kinit(){
+ ktye_cinit();
+ _F[94]=ktye_ccall;
+ ktye_kinit();
+}
 

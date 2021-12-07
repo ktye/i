@@ -142,8 +142,8 @@ func dx(x K) {
 	if rc == 1 {
 		n := nn(x)
 		if t&15 > 6 {
-			if t == 24 || t == 25 {
-				n = 2 // D | T
+			if t == 14 || t == 24 || t == 25 {
+				n = 2 // nat | D | T
 			} else if t == 12 || t == 13 {
 				n = 3 // prj | lam
 			}

@@ -160,7 +160,7 @@ func Str(x K) (r K) {
 			} else {
 				r = ucat(f, emb('[', ']', ndrop(-1, ndrop(1, Kst(l)))))
 			}
-		case 3: // lf
+		default: // lf | native
 			r = x2(xp)
 		}
 		dx(x)
