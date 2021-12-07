@@ -61,7 +61,7 @@ K K2(char, K, K);
 void KA(K name, K value); // it could also return the value, but mostly that would need to be decremented i guess.
 
 // Extensions (that's the point of the api in the first place) need to register native c functions to K.
-void KR(const char *name, void *fp, int arity); // R for register, F is already used.
+void KR(char *name, void *fp, int arity); // R for register, F is already used.
 // The K implementation would need to support an external function type.
 // The function is assigned to a global symbol name (which might be "pkg.f1") and used as a display name for $f.
 //
@@ -82,6 +82,11 @@ void KR(const char *name, void *fp, int arity); // R for register, F is already 
 K    ref(K x);
 void unref(K x);
 // both return their argument, maybe there are better names, or r0/r1?.
+
+// Error handler.
+K KE(char *s);
+// c function can call KE on error and propagate it's return value.
+// What happends inside KE is implementation specific.
 
 // External state
 // C libraries might need to handle external state that should be bound to a K variable.
