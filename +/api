@@ -100,10 +100,16 @@ K K2(char v, K x, K y){
 void KA(K name, K value){ ktye_dx(ktye_Asn(name, value)); }
 
 // extend (register external function)
-void KR(char *name, void *fp, int arity) {
- K r = ktye_l2(KC((char*)fp,8), KC(name, strlen(name)));
-_M[-12+(int32_t)r] = (char)arity;
- ktye_dx(ktye_Asn(Ks(name),((K)(int32_t)r)|(((K)xf)<<59)));
+void KR(const char *name, void *fp, int arity) {
+ size_t n = strlen(name);
+ printf("register %s n=%d arity=%d\n", name, n, arity);
+ K s = KC(NULL, n);
+ memcpy((char *)dK(s), name, n);
+ K r = ktye_l2(KC((char*)fp,8), ktye_rx(s));
+ int32_t *m = (int32_t*)(_M+(int32_t)r);
+ m[-3] = (int32_t)arity;
+ printf("nn=%d\n", ktye_nn(r));
+ ktye_dx(ktye_Asn(ktye_sc(s),((K)(int32_t)r)|(((K)xf)<<59)));
 }
 K ktye_ccall(K x, K y){
  int32_t n=ktye_nn(x);
