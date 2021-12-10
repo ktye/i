@@ -86,38 +86,40 @@ void LK(K *r, K x){
 
 void *dK(K x){ return (void *)(_M+(int32_t)x); } //        data pointer
 
+int32_t verb(char v){
+ const char s[]=":+-*%!&|<>=~,^#_$?@.";
+ int32_t r = 0;
+ char  *c = strchr(s, v);
+ if(c)  r = 1+(int32_t)(c-s);
+ return r;
+}
+
 // call
-K K1(char v, K x){
- int32_t p=1+ktye_idx(v,288,253);
- return ((K(*)(K))_F[p])(x); 
-}
-K K2(char v, K x, K y){ 
- int32_t p=1+ktye_idx(v,288,253);
- return ((K(*)(K,K))_F[64+p])(x,y); 
-}
+K K1(char v, K x){      return ((K(*)(K  ))_F[   verb(v)])(x  ); }
+K K2(char v, K x, K y){ return ((K(*)(K,K))_F[64+verb(v)])(x,y); }
 
 // assign
 void KA(K name, K value){ ktye_dx(ktye_Asn(name, value)); }
 
+
 // extend (register external function)
 void KR(const char *name, void *fp, int arity) {
  size_t n = strlen(name);
- printf("register %s n=%d arity=%d\n", name, n, arity);
  K s = KC(NULL, n);
  memcpy((char *)dK(s), name, n);
- K r = ktye_l2(KC((char*)fp,8), ktye_rx(s));
+ K r = ktye_l2(KC((char *)&fp, 8), ktye_rx(s));
  int32_t *m = (int32_t*)(_M+(int32_t)r);
  m[-3] = (int32_t)arity;
- printf("nn=%d\n", ktye_nn(r));
  ktye_dx(ktye_Asn(ktye_sc(s),((K)(int32_t)r)|(((K)xf)<<59)));
 }
+
 K ktye_ccall(K x, K y){
- int32_t n=ktye_nn(x);
- void *f=dK(x);
+ int32_t n=ktye_nn(y);
+ void **p = (void **)(_M+(int32_t)x);
+ void *f=*p;
  ktye_rl(y);
  ktye_dx(y);
  K *m=(K*)(_M+(int32_t)y);
- // todo segfault..
  switch(n){
  case 0: return ((K(*)())f)();
  case 1: return ((K(*)(K))f)(m[0]);
@@ -138,12 +140,12 @@ K      ref(K x){ return ktye_rx(x); }
 void unref(K x){        ktye_dx(x); }
 
 // errors
-K KE(char *s) { printf("error(c-api): %s\n", s); return 0; }
+K KE(char *s) { printf("error(c-api): %s\n", s); return 0; } //todo trap
 
 // embed
 void kinit(){
  ktye_cinit();
- _F[94]=ktye_ccall;
+ _F[98]=ktye_ccall;
  ktye_kinit();
 }
 

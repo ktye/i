@@ -131,7 +131,7 @@ func native(f K, x K) (r K) {
 	if xn != fn {
 		trap(Rank)
 	}
-	return Func[int32(94)].(f2)(x0(int32(f)), x) // +/api: KR
+	return Func[int32(98)].(f2)(x0(int32(f)), x) // +/api: KR
 }
 func lambda(f K, x K) (r K) {
 	fn := nn(f)
