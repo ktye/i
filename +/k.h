@@ -58,9 +58,9 @@ K K2(char, K, K);
 #define Kx(s,a...) ({static K f;K0(&f,s,(K[]){a},sizeof((K[]){a})/sizeof(K));})
 K K0(K *f, const char *s, K*, size_t);
 // K0 evaluates the string and stores the result in f (usually a function value).
-// Parsing of s is done only once (if *f is 0), otherwise the result is cached in the static value.
+// Evaluation of s is done only once (if *f is 0), otherwise the result is cached in the static value.
 // If arguments are given, the arguments are applied to f.
-// Without arguments f is evaluated as an expression, but not called.
+// Without arguments s is evaluated as an expression, but not called.
 // e.g. 1+!10 could be:
 // K r = Kx("+", Ki(1), Kx("!", Ki(10)));
 

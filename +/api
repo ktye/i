@@ -89,12 +89,12 @@ void *dK(K x){ return (void *)(_M+(int32_t)x); } //        data pointer
 
 // eval/call
 K K0(K *f, const char *s, K *args, size_t n){
- if(*f==0){
+ if((*f==0)||n==0){
   K c = KC(NULL, strlen(s));
   memcpy(dK(c), s, strlen(s));
-  *f=ktye_parse(ktye_tok(c));
+  *f=ktye_val(c);
  }
- if(n)  return ktye_Cal(ktye_exec(ktye_rx(*f)), KL(args, n));
+ if(n)  return ktye_Cal(ktye_rx(*f), KL(args, n));
  return *f;
 }
 
