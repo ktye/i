@@ -38,9 +38,10 @@ K KF(double *x, size_t n){
 K KL(K *x, size_t n){
  K r = ktye_mk(23, (int32_t)n);
  if(x){
-  int32_t *m = (int32_t*)(_M+(int32_t)r);
-  for(int32_t i=0;i<n;i++) m[i]=(int32_t)x[i];
+  K *m = (K*)(_M+(int32_t)r);
+  for(int32_t i=0;i<n;i++) m[i]=x[i];
  }
+ return r;
 }
 
 
@@ -86,17 +87,16 @@ void LK(K *r, K x){
 
 void *dK(K x){ return (void *)(_M+(int32_t)x); } //        data pointer
 
-int32_t verb(char v){
- const char s[]=":+-*%!&|<>=~,^#_$?@.";
- int32_t r = 0;
- char  *c = strchr(s, v);
- if(c)  r = 1+(int32_t)(c-s);
- return r;
+// eval/call
+K K0(K *f, const char *s, K *args, size_t n){
+ if(*f==0){
+  K c = KC(NULL, strlen(s));
+  memcpy(dK(c), s, strlen(s));
+  *f=ktye_parse(ktye_tok(c));
+ }
+ if(n)  return ktye_Cal(ktye_exec(ktye_rx(*f)), KL(args, n));
+ return *f;
 }
-
-// call
-K K1(char v, K x){      return ((K(*)(K  ))_F[   verb(v)])(x  ); }
-K K2(char v, K x, K y){ return ((K(*)(K,K))_F[64+verb(v)])(x,y); }
 
 // assign
 void KA(K name, K value){ ktye_dx(ktye_Asn(name, value)); }

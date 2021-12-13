@@ -1,4 +1,4 @@
-// K(the data type) is implementation dependent. In my case k.h would start with:
+// K(the data type) is implementation dependent. In my case k.h starts with:
 #include<stdint.h>
 #define K uint64_t
 
@@ -44,9 +44,9 @@ void IK(int    *dst, K x);
 void FK(double *dst, K x);
 void LK(K      *dst, K x);
 
-// there could also be a no-copy interface, e.g:
-void *dK(K); 
-// returns a pointer to the underlying data. But how would that be used (across k implementations)?
+// data-pointer:
+void *dK(K);    // return a pointer to the underlying data of the K value.
+
 
 // Call standard k functions:
 K K1(char, K);
@@ -54,15 +54,26 @@ K K2(char, K, K);
 // e.g. 1+!10 would be: 
 // K r = K2('+', Ki(1), K1('!', Ki(10)));
 
-// Lookup variables
-// K r = K1('.', Ks("name"));
+// Evaluate k strings or call k functions:
+#define Kx(s,a...) ({static K f;K0(&f,s,(K[]){a},sizeof((K[]){a})/sizeof(K));})
+K K0(K *f, const char *s, K*, size_t);
+// K0 evaluates the string and stores the result in f (usually a function value).
+// Parsing of s is done only once (if *f is 0), otherwise the result is cached in the static value.
+// If arguments are given, the arguments are applied to f.
+// Without arguments f is evaluated as an expression, but not called.
+// e.g. 1+!10 could be:
+// K r = Kx("+", Ki(1), Kx("!", Ki(10)));
 
-// Assign variables.
-void KA(K name, K value); // it could also return the value, but mostly that would need to be decremented i guess.
+// Lookup variables
+// K r = Kx(".", Ks("name"));
+
+// Assign variables
+void KA(K symbol, K value);
+
 
 // Extensions (that's the point of the api in the first place) need to register native c functions to K.
 void KR(const char *name, void *fp, int arity); // R for register, F is already used.
-// The K implementation would need to support an external function type.
+// The K implementation needs to support an external function type.
 // The function is assigned to a global symbol name (which might be "pkg.f1") and used as a display name for $f.
 //
 // External functions are never ambivalent, they have a fixed arity. Calling with less arguments projects as usual.
@@ -70,11 +81,7 @@ void KR(const char *name, void *fp, int arity); // R for register, F is already 
 //   K tri(K x, K y, K z);
 // and be registered by:
 //   KR("tri", tri, 3);
-// Alternatively c functions could always have a single argument (a generic list), but then each function would need to do the unpacking.
 
-// ngn suggests the more general K K("...", x, y, ..) instead of K1, K2
-// e.g. implemented as #define K(s,a...) ({static K f;K0(&f,s,(K[]){a},sizeof((K[]){a})/sizeof(K));})
-// It parses the string, caches the result and applies the arguments if provided.
 
 // Refcounting
 // C functions, such as tri(..) need to consume K arguments.
@@ -98,6 +105,3 @@ K KE(char *s);
 void kinit(); // call once at startup
 // more generally kinit would return a pointer to an instance which requires that the implementation is able to handle multiple interpreters.
 // then all other calls would need an additional pointer to the instance as an argument.
-
-// do we need initialization / packaging .. ?
-// as discussed, we could use int64_t instead of int as well.
