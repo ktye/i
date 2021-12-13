@@ -48,12 +48,6 @@ void LK(K      *dst, K x);
 void *dK(K);    // return a pointer to the underlying data of the K value.
 
 
-// Call standard k functions:
-K K1(char, K);
-K K2(char, K, K);
-// e.g. 1+!10 would be: 
-// K r = K2('+', Ki(1), K1('!', Ki(10)));
-
 // Evaluate k strings or call k functions:
 #define Kx(s,a...) ({static K f;K0(&f,s,(K[]){a},sizeof((K[]){a})/sizeof(K));})
 K K0(K *f, const char *s, K*, size_t);
@@ -103,5 +97,3 @@ K KE(char *s);
 // Embedding
 // e.g. run k within python, jupyter, ... js/html frontend to k/wasm.
 void kinit(); // call once at startup
-// more generally kinit would return a pointer to an instance which requires that the implementation is able to handle multiple interpreters.
-// then all other calls would need an additional pointer to the instance as an argument.
