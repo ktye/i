@@ -3,7 +3,7 @@
 #include"ktye.h"  // ktye/k implementation
 
 // external libraries
-void loadlib(const char*);
+void loadmat();
 
 
 int main(int args, char **argv){
@@ -11,7 +11,7 @@ int main(int args, char **argv){
  argv_=argv;
  kinit();
 
- loadlib("lib");
+ loadmat();
 
  ktye_doargs();
  printf("ktye/k+\n");

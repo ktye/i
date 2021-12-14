@@ -47,8 +47,8 @@ K KL(K *x, size_t n){
 
 // K to C
 
-char TK(K x){ // 012345678901234567890                     type
- char *t =      "-icisff---------ICISFFLDT";
+char TK(K x){ // 01234567890123456789012345                type
+ char *t =      "-icisff----------ICISFFLDT";
  return t[ktye_tp(x)];
 }
 size_t NK(K x){ //                                         length
@@ -149,3 +149,4 @@ void kinit(){
  ktye_kinit();
 }
 
+int32_t rc(K x) { return *(int32_t*)(_M+(int32_t)x-4); } //debug-only
