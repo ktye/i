@@ -86,7 +86,7 @@ K dgels(K x, K y){
 		if(rl) {
 			K *l = (K*)malloc(nrhs * sizeof(K));
 			for(int i=0;i<nrhs;i++){
-				l[i] = KF((double *)(dK(r)+8*rows), cols);
+				l[i] = KF(B+i*rows, cols);
 			}
 			r = KL(l, nrhs);
 			free(l);
