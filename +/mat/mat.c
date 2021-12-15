@@ -5,35 +5,44 @@
 #include<stdio.h> //printf
 
 
-
-// dgels solve overdetermined system (real)
+// dgesv solve linear system (real)
 //  x: L columns (input matrix)
 //  y: F or L    (rhs or multi-rhs)
 //  r: F or L    (result)
-// zgels solve overdetermined system (complex)
+// zgesv                     (complex)
 //  x: L columns (input matrix)
 //  y: Z or L    (rhs or multi-rhs)
 //  r: Z or L    (result)
 //
-// complex numbers (for backends that do not support them)
-// functions that require complex arguments treat F vectors as
-// complex vectors with half length: r0 i0 r1 i1 ..
+// dgels solve overdetermined system (real)
+//  x: L columns (input matrix)
+//  y: F or L    (rhs or multi-rhs)
+//  r: F or L    (result)
+// zgels                             (complex)
+//  x: L columns (input matrix)
+//  y: Z or L    (rhs or multi-rhs)
+//  r: Z or L    (result)
+//
+// complex numbers
+//  backends that do not support complex types natively use F:
+//  r0 i0 r1 i1 ..
 
 // Example
 //  A:3^?12    /4x3 matrix col-major
 //  B:?4
-//  solve[A;B] /builtin z.k
-//  dgels[A;B] /lapack version
+//  dgels[A;B]
+// lapack versions dgesv zgesv dgels zgels should return the same as solve[x;y] from ktye/z.k
 
+// A:4^?16;b:?4;B:(?4;?4);dgesv[A;b];dgesv[A;B]
+// A:4^?32;b:?8;B:(?8;?8);zgesv[A;b];zgesv[A;B]
 // A:3^?12;b:?4;B:(?4;?4);dgels[A;b];dgels[A;B]
-// A:3^?12a;b:?4a;B:(?4a;?4a);zgels[A;b];zgels[A;B]
+// A:3^?24;b:?8;B:(?8;?8);zgels[A;b];zgels[A;B]
 
+int LAPACKE_dgesv(int, int, int, double*, int, int*, double*, int);
+int LAPACKE_zgesv(int, int, int, double*, int, int*, double*, int);
 int LAPACKE_dgels(int, char, int, int, int, double*, int, double*, int);
 int LAPACKE_zgels(int, char, int, int, int, double*, int, double*, int);
 
-#ifdef KTYE
-extern char *_M;
-#endif
 
 static K* Lk(K x, size_t *n){
 	  *n = NK(x);
@@ -53,6 +62,9 @@ static double *Fk(K x, size_t *n){
 	unref(x);
 	return r;
 }
+#ifdef KTYE
+extern char *_M;
+#endif
 static K KZ(double *x, size_t n, size_t z) {
 	K r = KF(x, n);
 #ifdef KTYE
@@ -78,7 +90,7 @@ static size_t rect(K *r, K x, size_t *cols){ // r:,/x  rows:#*x  cols:#x
 	return rows;
 }
 
-K gels(K x, K y, size_t z){
+K solve(K x, K y, size_t z, int square){
 	size_t rows, cols;
 	rows = rect(&x, x, &cols);
 	if(cols == 0){ unref(y); return KE("gels: rect A"); }
@@ -86,6 +98,7 @@ K gels(K x, K y, size_t z){
 	if(z*(rows/z) != rows){ unref(x); unref(y); return KE("gels: zlength A"); }
 	rows /= z;
 	if(rows < cols){ unref(x); unref(y); return KE("gels: length A"); }
+	if((rows != cols)&&square){ unref(x); unref(y); return KE("gesv: A square"); }
 	
 	double *A, *B;
 	size_t xn;
@@ -104,15 +117,22 @@ K gels(K x, K y, size_t z){
 		yt = TK(y);
 	}
 	K r;
-	if(yt == 'F') {
+	if(yt == 'F'){
 		size_t yn;
 		B = Fk(y, &yn);
 		if(B == NULL){ free(A); return KE("gels: type B"); }
 		yn /= z;
 		if(yn/nrhs != rows){ free(A); free(B); return KE("gels: length B"); }
 		int info;
-		if(z > 1) info = LAPACKE_zgels(102, 'N', (int)rows, (int)cols, (int)nrhs, A, (int)rows, B, (int)rows);
-		else      info = LAPACKE_dgels(102, 'N', (int)rows, (int)cols, (int)nrhs, A, (int)rows, B, (int)rows);
+		if(square){
+			int *ipiv = malloc(rows*sizeof(int));
+			if(z > 1) info = LAPACKE_zgesv(102, (int)rows, (int)nrhs, A, (int)rows, ipiv, B, (int)rows);
+			else      info = LAPACKE_dgesv(102, (int)rows, (int)nrhs, A, (int)rows, ipiv, B, (int)rows);
+			free(ipiv);
+		}else{
+			if(z > 1) info = LAPACKE_zgels(102, 'N', (int)rows, (int)cols, (int)nrhs, A, (int)rows, B, (int)rows);
+			else      info = LAPACKE_dgels(102, 'N', (int)rows, (int)cols, (int)nrhs, A, (int)rows, B, (int)rows);
+		}
 		if(info!=0){ free(A); free(B); return KE("lapack-dgels"); }
 		free(A);
 		if(rl) {
@@ -132,10 +152,14 @@ K gels(K x, K y, size_t z){
 		unref(y); free(A); return KE("type dgels-B?");
 	}
 }
-K dgels(K x, K y, int z){ return gels(x, y, 1); }
-K zgels(K x, K y, int z){ return gels(x, y, 2); }
+K dgesv(K x, K y){ return solve(x, y, 1, 1); }
+K zgesv(K x, K y){ return solve(x, y, 2, 1); }
+K dgels(K x, K y){ return solve(x, y, 1, 0); }
+K zgels(K x, K y){ return solve(x, y, 2, 0); }
 
 void loadmat(){
+ KR("dgesv", (void*)dgesv, 2);
+ KR("zgesv", (void*)zgesv, 2);
  KR("dgels", (void*)dgels, 2);
  KR("zgels", (void*)zgels, 2);
 }
