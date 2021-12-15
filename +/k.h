@@ -1,6 +1,7 @@
 // K(the data type) is implementation dependent. In my case k.h starts with:
 #include<stdint.h>
 #define K uint64_t
+#define KTYE
 
 // Create K values from C data:
 // Atoms

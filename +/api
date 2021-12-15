@@ -48,12 +48,14 @@ K KL(K *x, size_t n){
 // K to C
 
 char TK(K x){ // 01234567890123456789012345                type
- char *t =      "-icisff----------ICISFFLDT";
+ char *t =      "-icisfF----------ICISFFLDT";
  return t[ktye_tp(x)];
 }
 size_t NK(K x){ //                                         length
  uint8_t t = (uint8_t)(x>>59);
- if(t>23) return 2;
+ if(t==6) return 2;            //zt
+ if(t==22)return 2*ktye_nn(x); //Zt
+ if(t>23) return 2;            //Dt Tt
  if(t<16) return 1;
  return ktye_nn(x);
 }
