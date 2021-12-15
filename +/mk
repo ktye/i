@@ -1,7 +1,7 @@
 set -e
 set -x
 
-cc="gcc -O2 -s"
+cc="gcc -O2 -s -Werror -Wfatal-errors"
 MAT=
 
 # ktye/k
