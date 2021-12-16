@@ -24,16 +24,16 @@
 //  r: Z or L    (result)
 //
 // dsyev eigenvalues                 (real symmetric)
-//  x: L columns (square input matrix, using upper triag)
+//  x: L columns (square symmetrix input matrix)
 //  r: F eigenvalues
 // dsyeV eigenvalues and vectors     (real symmetric)
-//  x: L columns (square input matrix, using upper triag)
+//  x: L columns (square symmetrix matrix)
 //  r: (F eigenvalues;L eigenvectors)
 // zheev eigenvalues                 (complex hermitian)
-//  x: L columns (square input matrix, using upper triag)
+//  x: L columns (square hermitian input matrix)
 //  r: F eigenvalues
 // zheeV eigenvalues and vectors     (complex hermitian)
-//  x: L columns (square input matrix, using upper triag)
+//  x: L columns (square hermitian input matrix)
 //  r: (F eigenvalues;LZ eigenvectors)
 // dgeev eigenvalues                 (real unsymmetric)
 //  x: L columns (square input matrix)
@@ -54,20 +54,6 @@
 //  backends that do not support complex types natively use F:
 //  r0 i0 r1 i1 ..
 
-// Example
-//  A:3^?12    /4x3 matrix col-major
-//  B:?4
-//  dgels[A;B]
-// lapack versions dgesv zgesv dgels zgels should return the same as solve[x;y] from ktye/z.k
-
-/*
-A:4^?16;b:?4;B:(?4;?4);dgesv[A;b];dgesv[A;B]
-A:4^?32;b:?8;B:(?8;?8);zgesv[A;b];zgesv[A;B]
-A:3^?12;b:?4;B:(?4;?4);dgels[A;b];dgels[A;B]
-A:3^?24;b:?8;B:(?8;?8);zgels[A;b];zgels[A;B]
-A:+(1.96 -6.49 -0.47 -7.20 -0.65;-6.49 3.80 -6.39 1.50 -6.34;-0.47 -6.39 4.17 -1.51 2.67;-7.20 1.50 -1.51 5.70 1.80;-0.65 -6.34 2.67 1.80 -7.10)
-*/
-
 int LAPACKE_dgesv(int, int, int, double*, int, int*, double*, int);
 int LAPACKE_zgesv(int, int, int, double*, int, int*, double*, int);
 int LAPACKE_dgels(int, char, int, int, int, double*, int, double*, int);
@@ -75,7 +61,7 @@ int LAPACKE_zgels(int, char, int, int, int, double*, int, double*, int);
 int LAPACKE_dsyev(int, char, char, int, double*, int, double*);
 int LAPACKE_zheev(int, char, char, int, double*, int, double*);
 int LAPACKE_dgeev(int, char, char, int, double*, int, double*, double*, double*, int, double*, int);
-int LAPACKE_zgeev(int, char, char, int, double*, int, double*, double*, double*, int, double*, int);
+int LAPACKE_zgeev(int, char, char, int, double*, int, double*,          double*, int, double*, int);
 
 
 static K* Lk(K x, size_t *n){
@@ -102,10 +88,8 @@ extern char *_M;
 static K ZF(K x){
 #ifdef KTYE
 	size_t n = NK(x);
-	printf("ZF n=%d\n", n);
 	*(int32_t*)(_M + (int32_t)x - 12) = (int32_t)(n / 2);
 	x = (((K)22)<<59)|(K)(int32_t)x;
-	printf("ZF: xp=%d xt=%c x=%ld n=%d\n", (int32_t)x, TK(x), x, NK(x)); 
 #endif
 	return x;
 }
@@ -148,15 +132,45 @@ static size_t square(K *r, K x, size_t z){ // r:,/x cols:#x
 	if(rows != cols){ unref(x); return 0; }
 	return rows;
 }
-static K Ksq(double *x, size_t n, size_t z) {
+static K Ksq(double *x, size_t n, size_t z, double *im) {
 	K *l = (K*)malloc(n*sizeof(K));
-	for(int i=0;i<n;i++) l[i] = KZ(x+i*z*n, z*n, z); 
+	if(im){ //compact storage: conjugate complex if im[i]==0 (see dgeev)
+		double *f = (double*)malloc(16*n);
+		int i = 0;
+		for(i = 0;i<2*n;i++) f[i] = 0.0;
+		i = 0;
+		while(i < n){
+			if(im[i] == (double)0.0){
+				for(int j=0;j<n;j++) {
+					f[  2*j] = x[j];
+					f[1+2*j] = 0.0;
+				}
+				l[  i] = KZ(f, 2*n, 2);
+			}else{
+				for(int j=0;j<n;j++){
+					f[  2*j] =  x[  j];
+					f[1+2*j] =  x[n+j];
+				}
+				l[  i] = KZ(f, 2*n,   2); 
+				for(int j=0;j<n;j++){
+					f[1+2*j] = -x[n+j];
+				}
+				l[1+i] = KZ(f, 2*n,   2);
+				i++;
+				x += n;
+			}
+			i++;
+			x += n;
+		}
+		free(f);
+	}
+	else   for(int i=0;i<n;i++) l[i] = KZ(x+i*z*n, z*n, z); 
 	K r = KL(l, n);
 	free(l);
 	return r;
 }
 
-K solve(K x, K y, size_t z, int sq){
+K solve(K x, K y, size_t z, int sq){ //[dz]gesv [dz]gels
 	size_t rows, cols;
 	rows = rect(&x, x, &cols);
 	if(cols == 0){ unref(y); return KE("gels: rect A"); }
@@ -171,11 +185,11 @@ K solve(K x, K y, size_t z, int sq){
 	A = Fk(x, &xn);
 	if(A == NULL){ unref(y); return KE("gels: type A"); }
 
-	int rl = 0;
+	int multirhs = 0;
 	size_t nrhs = 1;
 	char yt = TK(y);
 	if(yt == 'L'){ //multi-rhs
-		rl = 1;
+		multirhs = 1;
 		size_t yn = rect(&y, y, &nrhs);
 		if(nrhs == 0) { return KE("gels: rect B"); }
 		yn /= z;
@@ -199,9 +213,9 @@ K solve(K x, K y, size_t z, int sq){
 			if(z > 1) info = LAPACKE_zgels(102, 'N', (int)rows, (int)cols, (int)nrhs, A, (int)rows, B, (int)rows);
 			else      info = LAPACKE_dgels(102, 'N', (int)rows, (int)cols, (int)nrhs, A, (int)rows, B, (int)rows);
 		}
-		if(info!=0){ free(A); free(B); return KE("lapack-dgels"); }
 		free(A);
-		if(rl) {
+		if(info!=0){ free(B); return KE("lapack-dgels"); }
+		if(multirhs){
 			K *l = (K*)malloc(nrhs * sizeof(K));
 			for(int i=0;i<nrhs;i++){
 				l[i] = KZ(B+i*z*rows, z*cols, z);
@@ -212,14 +226,14 @@ K solve(K x, K y, size_t z, int sq){
 			r = KZ(NULL, z*cols, z);
 			memcpy(dK(r), B, 8*z*cols);
 		}
-		free(A); free(B);
+		
+		free(B);
 		return r;
 	} else {
 		unref(y); free(A); return KE("type dgels-B?");
 	}
 }
-K eig(K x, size_t z, char jobz, int sym){
-	printf("eig x=%ld z=%d jobz=%c sym=%d\n", x, z, jobz, sym);
+K eig(K x, size_t z, char jobz, int sym){ // dsyev zheev [dz]geev
 	size_t cols = square(&x, x, z);
 	if(cols == 0){ return KE("eig A square"); }
 	
@@ -228,52 +242,49 @@ K eig(K x, size_t z, char jobz, int sym){
 	if(A == NULL){ return KE("eig: type A"); }
 	
 	int info;
-	double *wr = (double*)malloc(cols*sizeof(double));
+	double *wr = (double*)malloc(cols*z*sizeof(double));
 	double *wi = (double*)NULL;
 	double *vl = (double*)NULL;
 	double *vr = (double*)NULL;
 	int n = (int)cols;
 	if(sym){
-		if(z > 1) info = LAPACKE_zheev(102, jobz, 'U', n, A, n, wr);
+		if(z > 1) info = LAPACKE_zheev(102, jobz, 'L', n, A, n, wr);
 		else      info = LAPACKE_dsyev(102, jobz, 'U', n, A, n, wr);
 	}else{
 		if(jobz == 'V'){
-			printf("alloc vl/vr %d\n", 8*z*cols);fflush(stdout);
 			vl = (double*)malloc(8*z*cols*cols);
 			vr = (double*)malloc(8*z*cols*cols);
 		}
-		printf("eig unsym z=%d n=%d\n", z, n);fflush(stdout);
-		wi = (double*)malloc(8*cols);
-		if(z > 1) info = LAPACKE_zgeev(102, jobz, jobz, n, A, n, wr, wi, vl, n, vr, n);
-		else      info = LAPACKE_dgeev(102, jobz, jobz, n, A, n, wr, wi, vl, n, vr, n);
-		printf("lapack info=%d\n", info); fflush(stdout);
+		if(z > 1){ 
+			info = LAPACKE_zgeev(102, jobz, jobz, n, A, n, wr,     vl, n, vr, n);
+		}else{
+			wi = (double*)malloc(8*cols);
+			info = LAPACKE_dgeev(102, jobz, jobz, n, A, n, wr, wi, vl, n, vr, n);
+		}
 	}
 	
 	K r, rw;
 	if(sym){
-		K rw = KF(wr, cols);
+		rw = KF(wr, cols);
 		free(wr);
 	}else{
-		printf("assign rw nonsym\n");
-		rw = KZ2(wr, wi, cols);
-		printf("rw = %ld\n", rw);
+		if(z > 1) rw = KZ(wr, 2*cols, 2);
+		else      rw = KZ2(wr, wi, cols);
 		free(wr);
-		free(wi);
+		if(wi) free(wi);
 	}
 	if(jobz == 'V'){
-		printf("assign vectors\n");
 		if(sym){
-			K rl[2] = {rw, Ksq(A, cols, z)};
+			K rl[2] = {rw, Ksq(A, cols, z, NULL)};
 			r = KL(rl, 2);
 		}else{
-			K rl[3] = {rw, Ksq(vl, cols, z), Ksq(vr, cols, z)};
+			K rl[3] = {rw, Ksq(vl, cols, z, wi), Ksq(vr, cols, z, wi)};
 			free(vl);
 			free(vr);
 			r = KL(rl, 3);
 		}
 	} else  r = rw;
 	free(A);
-	printf("return r=%ld\n", r);
 	return r;
 }
 K dgesv(K x, K y){ return solve(x, y, 1, 1); }
@@ -283,7 +294,7 @@ K zgels(K x, K y){ return solve(x, y, 2, 0); }
 K dsyev(K x){ return eig(x, 1, 'N', 1); }
 K dsyeV(K x){ return eig(x, 1, 'V', 1); }
 K zheev(K x){ return eig(x, 2, 'N', 1); }
-K zheeV(K x){ return eig(x, 2, 'N', 1); }
+K zheeV(K x){ return eig(x, 2, 'V', 1); }
 K dgeev(K x){ return eig(x, 1, 'N', 0); }
 K dgeeV(K x){ return eig(x, 1, 'V', 0); }
 K zgeev(K x){ return eig(x, 2, 'N', 0); }
