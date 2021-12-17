@@ -4,6 +4,7 @@
 
 // external libraries
 void loadmat();
+void loadimg();
 
 
 int main(int args, char **argv){
@@ -12,6 +13,7 @@ int main(int args, char **argv){
  kinit();
 
  loadmat();
+ loadimg();
 
  ktye_doargs();
  printf("ktye/k+\n");
