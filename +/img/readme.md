@@ -1,4 +1,4 @@
-#img
+# img
 | Command | Description |
 | --- | --- |
 | `png x` | convert `(i height;I pixels)` to `C` (png bytes)  |
@@ -6,7 +6,7 @@
 | `rgb x` | convert `(r;g;b) 0-255` to I |
 | `draw x y`| rasterize draw calls x to image of size y (w;h) |
 
-#draw
+# draw
 
 Draw calls are a flat list of commands (symbols) with arguments.
 Numeric values may be int or float.
@@ -14,6 +14,7 @@ Numeric values may be int or float.
 Much of the api follows svg.
 
 | Command | Arguments | Description |
+| --- | --- | --- |
 | `M`|   2  | create new path and move to x y |
 | `L`|   2  | line to x y |
 | `l`|   2  | rel line to +x +y |
@@ -47,8 +48,6 @@ Much of the api follows svg.
 | `ro`|    1| rotate deg |
 | `sc`|    2| scale sx sy |
 
-draw is based on `github.com/memononen/nanosvg`
-
-and `nothings.org/stb/stb_truetype.h` for fonts
-
-png uses `nothings.org/stb/stb_image_write.h`
+draw is based on github.com/memononen/nanosvg
+and nothings.org/stb/stb_truetype.h for fonts.
+png uses nothings.org/stb/stb_image_write.h
