@@ -348,31 +348,36 @@ uint32_t *U32I(int *m, size_t n){
 	return u;
 }
 
-// convert pixels to png data.
-//  x: (i height;I pixels)
-//  r: C png bytes
-K png(K x){
-	if((TK(x) != 'L')||(NK(x) != 2)) { unref(x); return KE("png type x"); }
+static void imgk(K x, size_t *w, size_t *h, uint32_t **data){
+	*data = NULL;
+	if((TK(x) != 'L')||(NK(x) != 2)) { unref(x); return; }
 	K l[2];
 	LK(l, x);
 	  x = l[0];
 	K y = l[1];
-	if(TK(x) != 'i'){ unref(x); unref(y); return KE("png type *x"); }
-	if(TK(y) != 'I'){ unref(x); unref(y); return KE("png type x 1"); }
+	if((TK(x) != 'i') || (TK(y) != 'I')){ unref(x); unref(y); return; }
 	
-	uint8_t *data;
 	size_t height  = iK(x);
-	size_t n      = NK(y);
-	size_t width = n / height;
-	if(n != width * height){ unref(y); return KE("png length x 1"); }
+	size_t n       = NK(y);
+	size_t width   = n / height;
+	if(n != width * height){ unref(y); return; }
 	
-	//printf("png %d x %d\n", width, height);
-
 	int *I = malloc(n*sizeof(int));
 	IK(I, y);
-	uint32_t *u = U32I(I, n);
-	
-	for(int i=0;i<n;i++) u[i] |= 0xff000000; // always opaque
+	*data = U32I(I, n);
+	*w = width; *h = height;
+}
+
+// convert pixels to png data.
+//  x: (i height;I pixels)
+//  r: C png bytes
+K png(K x){
+	uint32_t *u;
+	size_t    width, height;
+	imgk(x, &width, &height, &u);
+	if(u == NULL) return KE("png: type img");
+
+	for(int i=0;i<width*height;i++) u[i] |= 0xff000000; // always opaque
 	
 	K r;
 	stbi_write_png_to_func(wpng, &r, (int)width, (int)height, 4, u, 4*width);
@@ -579,12 +584,28 @@ K drawtext(K x, K y, K z){
 
 */
 
+
+/*
+K show(K x){
+	size_t    width, height;
+	uint32_t *u;
+	printf("show\n");
+	imgk(x, &width, &height, &u);
+	if(u == NULL) return KE("png: type img");
+	printf("show width=%d height=%d u=%p\n", width, height, u);
+	draw0((int)width, (int)height, (char *)u);
+	free(u);
+	return iK(height);
+}
+*/
+
 void loadimg(){
 	KR("png", (void*)png, 1);
 	KR("ttf", (void*)ttf, 2);
 	KR("svg", (void*)svg, 1);
 	KR("setfont", (void*)setfont, 1);
 	KR("draw", (void*)draw, 2);
+	//KR("show", (void*)show, 1);
 	KR("rgb", (void*)rgb, 1);
 	draw_func_names = Kx(draw_api_symbols);
 }
