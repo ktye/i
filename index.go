@@ -220,7 +220,9 @@ func stv(x, i, y K) (r K) {
 			ip += 4
 			yp += 8
 		}
-		x = uf(x)
+		if xt == Lt {
+			x = uf(x)
+		}
 	default:
 		for j := int32(0); j < n; j++ {
 			xp = int32(x) + 16*I32(ip)

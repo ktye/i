@@ -60,7 +60,7 @@ solve:{qslv:{H:x 0;r:x 1;n:x 2;m:x 3;j:0;K:!m
 
 qr:{K:!m:#*x;I:!n:#x;j:0;r:n#0a;turn:$[`Z~@*x;{(-x)@angle y};{x*1. -1@y>0}]
  while[j<n;I:1_I
-  r[j]:turn[s:abs/j_x j;xx:x[j;j]]
+  r[j]:turn[s:abs@abs/j_x j;xx:x[j;j]]
   x[j;j]-:r[j]
   x[j;K]%:%s*(s+abs xx)
   x[I;K]-:{+/x*y}/:[(conj x[j;K]);x[I;K]]*\:x[j;K]
