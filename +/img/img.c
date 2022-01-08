@@ -6,7 +6,7 @@
 // http://nothings.org/stb/stb_image_write.h
 #define STBI_WRITE_NO_STDIO
 #define STBI_ONLY_PNG
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION (included in raylib: ../ray)
 #include "stb_image_write.h" 
 
 // http://nothings.org/stb/stb_truetype.h
@@ -375,6 +375,7 @@ K png(K x){
 	uint32_t *u;
 	size_t    width, height;
 	imgk(x, &width, &height, &u);
+	//printf("png: %d x %d\n", width, height);
 	if(u == NULL) return KE("png: type img");
 
 	for(int i=0;i<width*height;i++) u[i] |= 0xff000000; // always opaque

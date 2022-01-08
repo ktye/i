@@ -1,25 +1,34 @@
+#include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include"raylib.h"
 #include"../k.h"
 
-K raywin(K width, K height, K frame){
-	if('i' != TK(width)){  return KE("type raywin width");  }
-	if('i' != TK(height)){ return KE("type raywin height"); }
-	if('s' != TK(frame)){  return KE("type raywin frame");  }
-	InitWindow(iK(width), iK(height), "k");
-	unref(width);
-	unref(height);
+K png(K); // ../img/img.c
+
+K show(K x){
+	if(TK(x) == 'L') x = png(x);
+	if(TK(x) != 'C'){ return KE("show: type x"); }
+	Image m = LoadImageFromMemory(".png", (const unsigned char*)dK(x), (int)NK(x));
+	int w = m.width;
+	int h = m.height;
+	unref(x);
+	if(w*h <= 0){
+		UnloadImage(m);
+		return Ki(1);
+	}
+	InitWindow(w, h, "k+");
+	Texture2D t = LoadTextureFromImage(m);
+	UnloadImage(m);
 	while(!WindowShouldClose()){
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
-		DrawText("alpha", 190, 200, 20, LIGHTGRAY);
+            	DrawTexture(t, 0, 0, WHITE);
 		EndDrawing();
 	}
+	UnloadTexture(t);
 	CloseWindow();
-	unref(frame);
 	return Ki(0);
 }
 void loadray(){
-	KR("raywin", raywin, 3);
+	KR("show", (void*)show, 1);
 }
