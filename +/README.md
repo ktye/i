@@ -3,12 +3,14 @@
 k+ is a c build of k + wrappers around external c libraries.
 the interface is the c-api:
 
-# c-api
+# c-api (k.h)
 
-the ideas is to have a common k to c interface for multiple implementations of k.
+the idea is to have a common k to c interface for multiple implementations of k.
 currently ngn/k and ktye/k implement the interface.
 
 those who write bindings to c libraries only need to know how the interface works without having to learn all implementation details of the interpreter.
+
+the c-api is defined in [k.h](k.h)
 
 # ktye.h
 
