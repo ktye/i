@@ -10,7 +10,7 @@ RAY=
 # wg: go install github.com/ktye/wg/cmd/wg
 #wg -c -prefix ktye_ -nomain .. > ktye.h
 #cat api                       >> ktye.h
-$cc -c k.c 
+#$cc -c k.c 
 
 
 ## math/lapack
@@ -19,7 +19,7 @@ MAT="mat.o liblapacke.a liblapack.a librefblas.a -lgfortran -lquadmath -lm"
 
 # img/png,ttf
 IMG="img.o"
-$cc -c img/img.c
+#$cc -c img/img.c
 
 # raylib
 RAY="ray.o libraylib.a -lopengl32 -lgdi32 -lwinmm"
