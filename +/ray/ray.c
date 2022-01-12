@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include"raylib.h"
+#include"rgestures.h"
 #include"../k.h"
 
 
@@ -11,6 +12,8 @@ K png(K); // ../img/img.c
 K show(K x){
 	if(TK(x) == 'L') x = png(x);
 	if(TK(x) != 'C'){ return KE("show: type x"); }
+
+	SetTraceLogLevel(LOG_WARNING); // suppress info(raylib)
 	Image m = LoadImageFromMemory(".png", (const unsigned char*)dK(x), (int)NK(x));
 	int w = m.width;
 	int h = m.height;
@@ -21,42 +24,42 @@ K show(K x){
 	}
 
 	InitWindow(w, h, "k+");
+	SetGesturesEnabled(GESTURE_DOUBLETAP|GESTURE_DRAG);
 
 
-	int    mx=0, my=0, lx, ly, rw, rh;
-	double mt=0, lt;
+	int mx=0, my=0, rw=0, rh=0, dragging=0;
 
 
 	Texture2D t = LoadTextureFromImage(m);
 	UnloadImage(m);
 	while(!WindowShouldClose()){
-
 		if(IsMouseButtonPressed(0)){
-			lx=mx;          ly=my;          lt=mt;
-			mx=GetMouseX(); my=GetMouseY(); mt=GetTime();
-			//printf("pressed %f %f %f\n", mx, my, mt);
-			if((0.3>mt-lt)&&(10>(mx-lx)*(mx-lx))&&(10>(my-ly)*(my-ly))){
-				printf("double-click\n");
-			}
+			mx=GetMouseX(); my=GetMouseY();
 		}
-		if(IsMouseButtonDown(0)){
+
+		switch(GetGestureDetected()){
+		case GESTURE_DOUBLETAP: 
+			printf("doubleclick %d %d\n", mx, my);
+			break;
+		case GESTURE_DRAG: 
 			int x=GetMouseX();
 			int y=GetMouseY();
 			rw=x-mx;
 			rh=y-my;
 			SetMouseCursor(MOUSE_CURSOR_CROSSHAIR);
-		}
-		if(IsMouseButtonReleased(0)){
-			int x=GetMouseX();
-			int y=GetMouseY();
-			rw=0; rh=0;
-			SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-			//printf("released %f %f %f\n", GetMouseX(), GetMouseY(), GetTime());
-			if((10<(lx-x)*(lx-x))&&(10<(ly-y)*(ly-y))){
-				printf("zoom\n");
-			}
+			dragging = 1;
+			break;
+		default: break;
 		}
 
+		if(IsMouseButtonReleased(0)){
+			if(dragging){
+				SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+				dragging = 0;
+				printf("zoom %d %d+%d %d\n", mx, my, rw, rh);
+			}
+			rw=0; rh=0;
+		}
 
 		BeginDrawing();
 		DrawTexture(t, 0, 0, WHITE);
