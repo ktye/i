@@ -1,3 +1,18 @@
+/*
+
+show a window with an image:
+
+show m      
+showev[m;f;g]     /with callbacks
+
+image m is given as png bytes(C) or (height;dataI)
+
+callback functions f and g (both monadic) return a new image
+
+f x: double-click                x:xi yi
+g x: zoom(click hold and move)   x:xi yi wi hi
+
+*/
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
