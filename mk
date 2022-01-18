@@ -40,7 +40,7 @@ cp web/k.html /c/k/ktye.github.io/index.html
 cp k.wasm     /c/k/ktye.github.io/k.wasm
 cp k.t        /c/k/ktye.github.io/k.t
 cp readme     /c/k/ktye.github.io/readme
-cp ∘.k        /c/k/ktye.github.io/∘.k
+cp apl/∘.k    /c/k/ktye.github.io/∘.k
 
 
 # wavm:

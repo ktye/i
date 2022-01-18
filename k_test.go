@@ -481,7 +481,7 @@ func Test360(t *testing.T) {
 		}
 	}
 	newtest()
-	x := mkchars([]byte("∘.k"))
+	x := mkchars([]byte("apl/∘.k"))
 	dofile(x, readfile(rx(x)))
 	def := val(mkchars([]byte("APL")))
 	apl := val(mkchars([]byte("{RUN TOK x}"))) //lup(sc(mkchars([]byte("APL"))))
@@ -561,7 +561,7 @@ func TestDef(t *testing.T) {
 		return r
 	}
 	newtest()
-	x := mkchars([]byte("∘.k"))
+	x := mkchars([]byte("apl/∘.k"))
 	dofile(x, readfile(rx(x)))
 	apl := val(mkchars([]byte("APL")))
 	V := sc(mkchars([]byte("V")))
