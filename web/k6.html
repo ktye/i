@@ -10,7 +10,7 @@
 <input type=text   id="in"  style="width:100%"/>
 
 <script type="module">
-import {kinit,Kx} from './k.js'
+import {K} from './k.js'
 
 function ge(x){return document.getElementById(x)}
 
@@ -24,7 +24,7 @@ inp.onkeypress = function(ev){
 function O(s){out.value += "\n" + s}
 
 
-kinit(function(n){out.value = "k "+n})
+K.kinit(function(n){out.value = "k "+n})
 
 
 </script>
