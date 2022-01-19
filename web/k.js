@@ -14,6 +14,13 @@ function I(){ return new    Int32Array(_.memory.buffer) }
 function J(){ return new BigInt64Array(_.memory.buffer) }
 function F(){ return new  Float64Array(_.memory.buffer) }
 
+// type/length
+K.TK = function(x){ 
+ const t="-icisfF----------ICISFFLDT"; //like ../+/api
+ return t[_.tp(x)]
+}
+K.NK = function(x){ return _.nn(x) }
+
 // create k atoms
 K.Kc = function(x){ return _.Kc( ("string"===typeof(x)) ? x.charCodeAt(0) : x ) }
 K.Ks = function(x){ return _.sc(K.Kc(x)) }
@@ -46,20 +53,39 @@ K.KF = function(x){
 }
 K.KL = function(x){
  let n=x.length
+ console.log("KL", n)
  let r=_.mk(23,n)
- let p=J().slice(lo(r)>>>3)
- for(let i=0;i<n;i++)p[i]=x[i]
+ let j=J()
+ let p=lo(r)>>>3
+ for(let i=0;i<n;i++)j[i+p]=x[i]
  return r
 }
 
 K.cK = function(x){ return lo(x) << 24 >> 24 } // signed int8
- 
+K.iK = function(x){ return lo(x) << 0 } // signed int32
+K.fK = function(x){ 
+ let p=lo(x)>>>3;return dxr(x,F()[p])
+}
 
 K.CK = function(x){ return dxr(x, su(C().slice(lo(x),lo(x)+_.nn(x)))) }
-
-K.iK = function(x){ return lo(x) << 0 } // signed int32
-
 K.IK = function(x){ let p=lo(x)>>>2;return dxr(x,I().slice(p,p+_.nn(x))) }
+K.FK = function(x){
+ let t=_.tp(x); let n=(t==6) ? 2 : (t==22) ? 2*_.nn(x) : _.nn(x);
+ let p=lo(x)>>>3;return dxr(x,F().slice(p,p+n))
+}
+K.LK = function(x){
+ let n=(_.tp(x)==23) ? _.nn(x) : 2 // L vs D,T
+ let r=new Array(n); let p=lo(x)>>>3; let j=J()
+ for(let i=0;i<n;i++)r[i]=_.rx(J[p+i])
+ return dxr(x,r)
+}
+K.dK = lo
+
+K.Kx   = function(s,...args){ let f=_.Val(K.KC(s)); return (args.length>0) ? _.Cal(f,K.KL(args)) : f }
+K.ref  = function(x){return _.rx(x)}
+K.unref= function(x){       _.dx(x)}
+
+function xx(x){console.log(x);return x}
 
 function reset(){
  
@@ -96,6 +122,7 @@ K.kinit = function(f,r,w){ // f:onsuccess, r:read, w:write
   // todo
   // set WIDTH HEIGHT FH FW?
   // ksave()
+  K._=_
   f()
  })
  

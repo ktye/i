@@ -35,7 +35,7 @@ size_t  NK(K);
 char   cK(K);
 int    iK(K);
 double fK(K);
-// there is no char *sK(K). convert symbols to char first with K1('$',x), see below.
+// there is no char *sK(K). convert symbols to char first with Kx("$",x), see below.
 
 // vectors size must be queried first with NK, values are copied into dst.
 // allocation for dst is the responsibility of the c side.

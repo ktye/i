@@ -30,36 +30,63 @@ k values in ktye/k are 64bit integers, which are BigInt in js.
 | `"i"`, `"I"` | 32 bit int(s) |
 | `"s"`, `"S"` | symbol(s) |
 | `"f"`, `"F"` | 64 bit floats(s) |
-| `"F"`      | is also returned for complex in ktye/k |
-| `"L"`      | general list |
+| `"F"`        | is also returned for complex in ktye/k |
+| `"L"`        | general list |
 | `"D"`, `"T"` | dict and table |
-| not defined | otherwise, e.g. functions |
+| not defined  | otherwise, e.g. functions |
 
 
 
 `NK(x)` returns the number of elements for arrays and should only be called on those.
 
-### create K values (K from js)
+### k from js and js from k
 | call | description |
 | ---- | ----------- |
 |      | **create k atoms** |
-|Kc(x) |char atom, x is numeric or string(first char)|
-|Ks(x) |symbol from string|
-|Ki(x) |integer from a number|
-|Kf(x) |float64 from a number|
+|Kc(x) |c(char) from number or first char of a string|
+|Ks(x) |s(symbol) from string|
+|Ki(x) |i(integer) from number|
+|Kf(x) |f(float64) from number|
 |      | **create k vectors** |
-|KC(x) |chars, x is a string or utf8array|
-|KS(x) |symbols from strings|
-|KI(x) |ints from numeric array or Int32Array|
-|KF(x) |floats from numeric array of Float64Array|
-|KL(x) |k list from a js array of k values|
-|      | **js from atoms** |
-|cK(x) |returns a number -128..127|
-|CK(x) |returns a string|
-|iK(x) |returns a number int32 range|
-|IK(x) |returns an Int32Array|
-|      | **js from vectors** |
+|KC(x) |C(chars) from string or Uint8Array|
+|KS(x) |S(symbols) from array of strings|
+|KI(x) |I(ints) from numeric array or Int32Array|
+|KF(x) |F(floats) from numeric array or Float64Array|
+|KL(x) |L(general list) from a js array of k values|
+|      | **js from k atoms** |
+|cK(x) |number(-128..127) from c|
+|iK(x) |number(int32 range) from i|
+|fK(x) |number from f |
+|      | **js from k vectors** |
+|CK(x) |string from C|
+|IK(x) |Int32Array from I|
+|FK(x) |Float64Array from F or from complex atom or vector|
+|LK(x) |array of k values from L, 2-array from D(dict) and T(table)|
+|      | **data pointer**|
+|dK(x) |byte index (32bit range) into K.M|
 
+`K.M` is the Webassembly.Memory object, an ArrayBuffer.
+
+### calls
+`Kx(f,...args)` takes a string argument `f` and a variable number of k-value arguments.
+`f` is evaluated and should return a function value which is called with the supplied arguments. eg:
+
+```
+K.Kx("+", K.Ki(1), K.KF([1,2,3]))  /equivalent to 1+1 2 3.0
+```
+
+Without arguments `f` is evaluated as an expression, but not called.
+
+### external function (call js from k)
+todo..
+
+### refcounting
+Functions consume their arguments.
+
+- `x=ref(x)` increase refcount, return x
+- `unref(x)` decrease refcount and free memory if possible
+
+For chain calls use, e.g.: `f(ref(x), x)`
 
 ### example
 serve k6.html, k.js and k.wasm locally. open k6.html in a browser and type on the js console:
