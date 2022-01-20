@@ -10,6 +10,7 @@ function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function dxr(x,r){_.dx(x);return r}
 
 function C(){ return new     Int8Array(_.memory.buffer) }
+function U(){ return new   Uint32Array(_.memory.buffer) }
 function I(){ return new    Int32Array(_.memory.buffer) }
 function J(){ return new BigInt64Array(_.memory.buffer) }
 function F(){ return new  Float64Array(_.memory.buffer) }
@@ -53,7 +54,6 @@ K.KF = function(x){
 }
 K.KL = function(x){
  let n=x.length
- console.log("KL", n)
  let r=_.mk(23,n)
  let j=J()
  let p=lo(r)>>>3
@@ -85,21 +85,45 @@ K.Kx   = function(s,...args){ let f=_.Val(K.KC(s)); return (args.length>0) ? _.C
 K.ref  = function(x){return _.rx(x)}
 K.unref= function(x){       _.dx(x)}
 
-function xx(x){console.log(x);return x}
 
 function reset(){
  
 }
 
-var filename="" 
+// low-level wasi io functions
+let usr_write
+let usr_read
+let filename="" 
 function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
-// msl();filename=su(C.slice(path,path+pathlen));if(oflags==0)return 1;U[res>>2]=3;return 0 //no read in js.
+ filename=su(C().slice(path,path+pathlen));U()[res>>>2]=3;return 0
 } 
 function fd_write(fd,p,nio,nw){
-// msl();var x=U[p>>>2]; var n=U[(4+p)>>>2];var u=(C.slice(x,x+n));if(fd==1){O(su(u))}else{download(filename,u)};return 0
+ let u=U()
+ let x=u[p>>>2]
+ let n=u[(4+p)>>>2]
+ let b=new ArrayBuffer(n)
+ let d=new Uint8Array(b)
+ d.set(C().slice(x,x+n))
+ if(fd==1) usr_write("",      d)
+ else      usr_write(filename,d)
+ return 0
 }
 
-var env={wasi_unstable:{ 
+let xcal=[]
+function register(name, idx, arity){ // this is similar to the c-api's KR(..) implementation in ../+/api
+ // k representation of a native function: length-2 list, the arity is stored as the vector-length.
+ //   c uses: (pointer;string) where the pointer is stored in an 8-byte char vector; string is the function name (used by $f).
+ //  js uses: (,index;string) with the index into xcal.
+ 
+ console.log("register", name, idx, arity)
+ 
+ let f = K._.l2(K.Kx(",", K.Ki(idx)), K.KC(name))
+ I()[(lo(f)>>2)-3] = arity         // length-field at offset -3*32bit
+ K.unref(K.Kx(":", K.Ks(name), f)) // assign
+}
+let lenv={js:{ call:function(x,y){console.log("jscall",x,y);return xcal[x](y)}}}
+ 
+let kenv={wasi_unstable:{ 
 // l32:function(x){console.log(x);return x},
 // l64:function(x){console.log(BigInt.asUintN(64,x));return x},
  args_get: function(a,b){return 0},
@@ -113,18 +137,31 @@ var env={wasi_unstable:{
  clock_time_get:function(a,b,p){msl();J[p>>>3]=BigInt.asIntN(64, BigInt(Math.floor(1e6*performance.now())));return 0}
 }}
 
-K.kinit = function(f,r,w){ // f:onsuccess, r:read, w:write
- let n=0; function binsize(x){n=x.byteLength;return x}
- fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),env)).then(r=>{
+K.kinit = function(ext){
+ let init  = ext.init;  delete ext.init  // callback when k is loaded
+ usr_read  = ext.read;  delete ext.read  // file read  implementation for k: read(name)=>Uint8Array
+ usr_write = ext.write; delete ext.write // file write implementation for k: write(name,data_uint8array)
+ 
+ function binsize(x){K.n=x.byteLength;return x}
+ let link = {}
+  fetch('l.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(        r, lenv)).then(r=>{link=r.instance.exports}).then
+ (fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),kenv)).then(r=>{
   _=r.instance.exports
   _.kinit()
   _.reset()
-  // todo
-  // set WIDTH HEIGHT FH FW?
-  // ksave()
+  _.table.set(98,link.xcall) //insert xcall from l.wasm into k.wasm's function table at index 98.
   K._=_
-  f()
- })
+  
+  // todo
+  //  set WIDTH HEIGHT FH FW?
+  
+  let keys = Object.keys(ext)
+  for(let i=0;i<keys.length;i++){ let jsfn=ext[keys[i]]; xcal[i]=jsfn; register(keys[i],i,jsfn.length) }
+  
+  //  ksave()
+  
+  if(init !== undefined)init()
+ }))
  
 }
 

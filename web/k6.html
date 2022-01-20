@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <head><meta charset="utf-8"><title>+</title></head>
-<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
-<style>html,input{font-family:monospace;}</style>
+<style>html,input,textarea{font-family:monospace;}</style>
 
 <script type="module" src="k.js"></script>
 
 <body>
-<textarea readonly id="out" style="width:100%" ></textarea>
-<input type=text   id="in"  style="width:100%" placeholder="+/100" /><br>
+<textarea readonly id="out" style="width:100%" rows=5 ></textarea>
+<input type=text   id="in"  style="width:100%" placeholder="+/!100" /><br>
 files:
 
 <script type="module">
@@ -19,13 +18,32 @@ let out=ge("out");
 let inp=ge("in");
 inp.onkeypress = function(ev){
  if(("Enter"==ev.key)&&(0<inp.value.length)){
-  console.log("eval",inp.value)
+  out.value += " " + inp.value + "\n"
+  let x = K.Kx(inp.value)      
+  if(x) out.value += K.CK(K.Kx("`k@", x)) + "\n"
+  inp.value = ""
+  out.scrollTop = out.scrollHeight;
  }
 }
-function O(s){out.value += "\n" + s}
+
+let  ext = {}
+
+ext.init = function(){ out.value = "k "+K.n+"\n" } //print when ready, n: k.wasm binary size
+
+let files = {}
+
+//todo read
+
+ext.write= function(file,data){
+ if(file=="") out.value += new TextDecoder("utf-8").decode(data)  // stdout
+ else         console.log("write", file, data)
+}
 
 
-K.kinit(function(n){out.value = "k "+n})
+// pitimes is an extension function. it can be used from k: pitimes 1 2 3
+ext.pitimes = function(x){ return K.Kx("*", K.Kf(Math.pi), x) }
+
+K.kinit(ext)
 
 
 </script>
