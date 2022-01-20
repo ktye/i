@@ -7,9 +7,10 @@
 - l.wasm (see l.wat) is the link module, that imports a js function and provides it as a wasm function
 
 ## js interface
-`k.js` provides an api interface to k that does not e.g. include a filesystem or a repl.  
-k.wasm uses calls compatible to the webassembly system interface (wasi) for io/args/clock.
-This allows it to be used out of the box by compatible runtimes such as [wavm](https://github.com/WAVM/WAVM) as a k repl.
+`k.wasm` is the k core, which does not include a filesystem or a repl.
+It k.wasm uses calls compatible to the webassembly system interface (wasi) for io/args/clock.
+This allows it to be used out of the box by compatible runtimes such as [wavm](https://github.com/WAVM/WAVM) as a k repl.  
+`k.js` (a javascript module) provides an api to k, which allows custom read/write and extension functions.
 
 ### initialization
 In js: `import {K} from './k.js'`  
@@ -85,15 +86,15 @@ There are 3 special functions:
 - `init() ` is called after initializing k, which happens asynchronously
 - `read(x_string)` is called when k reads a from a file: ``` <`name ```
 - `write(x_string,y_uint8array)` is called when k wants to write a file: ``` `name<chars ```, e.g. to trigger a download.  
-   `x_string` is empty when k wants to write to _stdout_. There is no stdin equivalent.
+   `x_string` is empty when k wants to write to _stdout_, as in `1+ \2`. There is no _stdin_ equivalent.
 
-All other functions functions in `ext` are called by k.wasm with the signature `i64->i64`.  
-Both are k values. The first argument is a general list with all function arguments.
+All other functions functions in `ext` are called by k.wasm with the signature `i64:i64`.  
+Both are k values. The first argument is a general list with all arguments.
 The list's length always matches the number of arguments of the provided function signature, e.g. 3 for ```ext.f=function(x,y,z){return 0}```.  
-The extension functions (except for init, read and write) have to use the k-api (via the global `K`), consume their arguments and return a k value.  
+The extension functions (except for init, read and write) have to use the k-api (via global `K`), consume their arguments and return a k value.  
 They are stored as k variables under their name.
 
-_implementation:_ k.wasm only imports wasi functions, no user defined js functions.
+_Implementation:_ k.wasm only imports wasi functions, no user defined js functions.
 However it exports it's function table.
 K calls the indirect function at index 98 to do a native/extern function call.
 We cannot set the index with a js function directly. Only a wasm function can be put there by the js loader.
