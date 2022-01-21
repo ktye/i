@@ -33,11 +33,11 @@ fi
 
 wg             . > k.wat
 wg -try -multi . > k-wavm.wat
-/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd k.wat
+/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o web/k.wasm k.wat
 
 
 cp web/k.html /c/k/ktye.github.io/index.html
-cp k.wasm     /c/k/ktye.github.io/k.wasm
+cp web/k.wasm /c/k/ktye.github.io/k.wasm
 cp k.t        /c/k/ktye.github.io/k.t
 cp readme     /c/k/ktye.github.io/readme
 cp apl/∘.k    /c/k/ktye.github.io/∘.k

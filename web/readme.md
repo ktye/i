@@ -79,6 +79,15 @@ K.Kx("+", K.Ki(1), K.KF([1,2,3]))  /equivalent to 1+1 2 3.0
 
 Without arguments, `f` is evaluated as an expression, but not called.
 
+### Assignment / lookup
+`KA(sym,val)` assigns. Both `sym` and `val` are k objects.
+To lookup a variable use the equivalent to `. sym`:
+
+```
+K.KA(K.Ks("name"), K.Ki(314))         // KA consumes arguments, no return value.
+let i = K.iK(K.Kx(".", K.Ks("name"))) // lookup. In general we have to query the type.
+```
+
 ### external function (call js from k)
 
 The object passed to `K.kinit(ext)` contains js functions that are callable from k.  
@@ -109,6 +118,16 @@ Functions consume their arguments.
 
 For chain calls use, e.g.: `f(ref(x), x)`
 
+### error save restore
+All api calls are unprotected.
+k errors trigger wasm traps and memory is in undefined state.
+ktye/k does not have error values and does not rewind the state on errors.
+Instead you can take snapshots and recover.
+```
+try      { ... ; K.save() }     // save copies all k wasm memory to a back buffer
+catch(e) { ... ; K.restore() }  // restore resets k, grows the wasm memory and copies back
+```
+
 ### example
 serve k6.html, k.js and k.wasm locally. open k6.html in a browser and type in the js console:
 
@@ -120,3 +139,6 @@ serve k6.html, k.js and k.wasm locally. open k6.html in a browser and type in th
 ```
 
 see [k6.html](k6.html) for an extension example (pitimes).
+
+
+
