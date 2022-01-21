@@ -98,7 +98,7 @@ There are 3 special functions:
    `x_string` is empty when k wants to write to _stdout_, as in `1+ \2`. There is no _stdin_ equivalent.
 
 All other functions functions in `ext` are called by k.wasm with the signature `i64:i64`.  
-Both are k values. The first argument is a general list with all arguments.
+Both are k values. The argument is a general list with all arguments.
 The list's length always matches the number of arguments of the provided function signature, e.g. 3 for ```ext.f=function(x,y,z){return 0}```.  
 The extension functions (except for init, read and write) have to use the k-api (via global `K`), consume their arguments and return a k value.  
 They are stored as k variables under their name.
@@ -125,11 +125,11 @@ ktye/k does not have error values and does not rewind the state on errors.
 Instead you can take snapshots and recover.
 ```
 try      { ... ; K.save() }     // save copies all k wasm memory to a back buffer
-catch(e) { ... ; K.restore() }  // restore resets k, grows the wasm memory and copies back
+catch(e) { ... ; K.restore() }  // restore k memory from back buffer
 ```
 
 ### example
-serve k6.html, k.js and k.wasm locally. open k6.html in a browser and type in the js console:
+Serve `k6.html`, `k.js`, `k.wasm` and `l.wasm` locally. Open k6.html in a browser and type in the js console:
 
 ```
 > x=K.KC("alpha")
@@ -138,7 +138,6 @@ serve k6.html, k.js and k.wasm locally. open k6.html in a browser and type in th
 < 'alpha'
 ```
 
-see [k6.html](k6.html) for an extension example (pitimes).
-
+see [k6.html](k6.html) for an example providing custom read/write functions and an extension (pitimes).
 
 
