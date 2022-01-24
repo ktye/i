@@ -17,7 +17,6 @@ import (
 )
 
 var save []byte
-var srci K
 
 func newtest() {
 	wasi_unstable.Stdout = os.Stdout
@@ -26,11 +25,10 @@ func newtest() {
 		kinit()
 		save = make([]byte, len(Bytes))
 		copy(save, Bytes)
-		srci = src
 	} else {
 		Bytes = make([]byte, len(save))
 		copy(Bytes, save)
-		pp, pe, sp, src = 0, 0, 256, srci
+		pp, pe, sp = 0, 0, 256
 	}
 }
 func mkchars(b []byte) (r K) {

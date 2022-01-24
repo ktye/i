@@ -5,7 +5,7 @@ import (
 )
 
 const nai int32 = -2147483648 // 0N
-var src, loc, xyz K
+var loc, xyz K
 var na, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
@@ -95,6 +95,7 @@ func init() {
 
 //   0....7  key
 //   8...15  val
+//  16...19
 //  20..127  free list
 // 128..131  memsize log2
 // 132..227  char map (starts at 100)
@@ -102,11 +103,12 @@ func init() {
 // 256..511  stack
 // 512..519  wasi iovec
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
+// 548..563  src
 
 func kinit() {
 	minit(13, 16) //8k..64k
 	sp = 256
-	src = mk(Ct, 0)
+	SetI64(548, int64(mk(Ct, 0))) //src
 	loc = 0
 	na = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
@@ -125,7 +127,7 @@ func reset() {
 	if sp != 256 {
 		panic(Stack)
 	}
-	dx(src)
+	dx(src())
 	dx(xyz)
 	dx(K(I64(0)))
 	dx(K(I64(8)))

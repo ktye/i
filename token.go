@@ -9,7 +9,7 @@ type ftok = func() K
 func tok(x K) (r K) {
 	var y K
 	x = cmt(x)
-	src = cat1(src, Kc(10))
+	src := cat1(src(), Kc(10))
 	pp = nn(src)
 	src = Cat(src, x) // src contains all src
 	pp += int32(src)  // pp is the parser position within src
@@ -32,8 +32,10 @@ func tok(x K) (r K) {
 			}
 		}
 	}
+	SetI64(548, int64(src))
 	return r
 }
+func src() K { return K(I64(548)) }
 func tbln() (r K) {
 	n := pe - pp
 	for i := int32(0); i < n; i++ {

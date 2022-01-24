@@ -20,6 +20,7 @@ const (
 )
 
 func trap(x int32) K {
+	src := src()
 	if srcp < nn(src) {
 		a := maxi(srcp-30, 0)
 		for i := a; i < srcp; i++ {
