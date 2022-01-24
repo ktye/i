@@ -68,7 +68,8 @@ K.fK = function(x){
  let p=lo(x)>>>3;return dxr(x,F()[p])
 }
 
-K.CK = function(x){ return dxr(x, su(C().slice(lo(x),lo(x)+_.nn(x)))) }
+K.BK = function(x){ return dxr(x, C().slice(lo(x),lo(x)+_.nn(x))) }
+K.CK = function(x){ return su(K.BK(x)) }
 K.IK = function(x){ let p=lo(x)>>>2;return dxr(x,I().slice(p,p+_.nn(x))) }
 K.FK = function(x){
  let t=_.tp(x); let n=(t==6) ? 2 : (t==22) ? 2*_.nn(x) : _.nn(x);
@@ -77,11 +78,12 @@ K.FK = function(x){
 K.LK = function(x){
  let n=(_.tp(x)==23) ? _.nn(x) : 2 // L vs D,T
  let r=new Array(n); let p=lo(x)>>>3; let j=J()
- for(let i=0;i<n;i++)r[i]=_.rx(J[p+i])
+ for(let i=0;i<n;i++)r[i]=_.rx(j[p+i])
  return dxr(x,r)
 }
 K.dK = lo
 
+K.KE   = function(e){ console.log(e); _.trap(0); return 0 }
 K.Kx   = function(s,...args){ let f=_.Val(K.KC(s)); return (args.length>0) ? _.Cal(f,K.KL(args)) : f }
 K.KA   = function(sym,val){ K._.dx(K._.Asn(sym,val)) }
 K.ref  = function(x){return _.rx(x)}
@@ -159,7 +161,7 @@ let lenv={js:{
  call:function(x,y){    //x is I, an enlisted index into xcal; y the argument list.
   let i=I()[lo(x)>>>2]
   K._.dx(x)
-  return xcal[i](y)
+  return xcal[i](...K.LK(y)) //split y-list into arguments
  }
 }}
  
