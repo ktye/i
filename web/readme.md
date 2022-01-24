@@ -93,7 +93,7 @@ let i = K.iK(K.Kx(".", K.Ks("name"))) // lookup. In general we have to query the
 The object passed to `K.kinit(ext)` contains js functions that are callable from k.  
 There are 3 special functions:
 - `init() ` is called after initializing k, which happens asynchronously
-- `read(x_string)` is called when k reads a from a file: ``` <`name ```
+- `read(x_string)` is called when k reads a from a file: ``` <`name ```. It should return a Uint8Array.
 - `write(x_string,y_uint8array)` is called when k wants to write a file: ``` `name<chars ```, e.g. to trigger a download.  
    `x_string` is empty when k wants to write to _stdout_, as in `1+ \2`. There is no _stdin_ equivalent.
 

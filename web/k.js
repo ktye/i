@@ -167,7 +167,7 @@ let lenv={js:{
 let kenv={wasi_unstable:{ 
  args_get: function(a,b){return 0},
  args_sizes_get: function(a,b){return 0},
- proc_exit:function(x){console.log("exit", x)},
+ proc_exit:function(x){ console.log("exit",x) },
  fd_read:  fd_read,
  fd_write: fd_write,
  fd_seek:  fd_seek,

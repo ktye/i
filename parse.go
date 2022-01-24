@@ -215,7 +215,7 @@ func plam(s0 int32) (r K) {
 		loc = Cat(ntake(ar, rx(xyz)), loc)
 	}
 	i := Add(seq(1+ps-s0), Ki(s0-1))
-	s := atv(rx(src), i)
+	s := atv(rx(src()), i)
 	r = l3(c, Unq(loc), s)
 	loc = slo
 	return l1(slam(r, ar))
