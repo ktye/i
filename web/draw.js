@@ -1,6 +1,124 @@
 import { K } from './k.js'
 
-let D = {} // draw show
+let D = {} // show showev draw
+
+
+// draw L                 // draw[400 300;(`color;255*256;`rect;10;10;300;200)]
+// `color;rgb
+// `font;"20px monospace"
+// `linewidth;w
+// `rect;x;y;w;h
+// `fillrect;x;y;w;h
+// `circle;x;y;r  
+// `fillcircle;x;y;r
+// `line;x0;y0;x1;y1
+// `poly;X;Y
+// `fillpoly;X;Y
+// `text;x;y;"text"
+// `rtext;x;y;"text"      // rotated
+// numbers may be i or f, poly/fillpoly are F
+D.draw = function(x,y){
+ if(K.TK(x) != 'I') return KE("draw: x type")
+ if(K.TK(y) != 'L') return KE("draw: y type")
+ let l=K.LK(y)
+ let n=K.NK(y)
+ let wh=K.IK(x)
+ 
+ let cnv = ge("_cnv"); cnv.width=wh[0]; cnv.height=wh[1]
+ let ctx = cnv.getContext("2d")
+ 
+ let ck = function(s,c){ if(c==false) K.KE(s+" arg") }
+ 
+ let setcolor = function(i){ 
+  let s="rgb(" + i&255 + ", " + (i>>>8)&255 + ", " + (i>>>16)&255 + ")"
+  ctx.fillStyle=s; ctx.strokeStyle=s
+ }
+ 
+ let nums = function(x){
+  for(let i=0;i<x.length;i++){
+   let xi=x[i], t = K.TK(xi)
+   x[i] = (t=="i") ? K.iK(xi) : (t=="f") ? K.fK(xi) : K.KE("number-type") 
+  }
+  return x
+ }
+ let vec = function(x){ let t=K.TK(x); return (t=='F') ? K.FK(x) : (t=='I') ? K.IK(x) : KE("vec type") }
+ 
+ let cmd=function(s,a){
+  let n
+  switch(s){
+   case "color":
+    ck("color", (a.length==1) && (K.TK(a[0]) == 'i'))
+    setcolor(K.iK(i))
+    break
+   case "font":
+    ck("font", (a.length==1) && (K.TK(a[0]) == 'C'))
+    ctx.setfont( K.CK(e) )
+    break
+   case "linewidth":
+    n = nums(a); ck("linewidth", a.length==1)
+    ctx.lineWidth = n[0]
+    break
+   case "rect":
+   case "fillrect":
+    n = nums(a); ck("rect", n.length==4)
+    if(s=="rect") ctx.strokeRect(...n)
+    else          ctx.fillRect(...n)
+    break
+   case "circle":
+   case "fillcircle":
+    n = nums(a); ck("circ", a.length==3)
+    ctx.beginPath()
+    ctx.arc(n[0], n[1], n[2], 0, 2 * Math.PI)
+    if(s=="circle") ctx.fill()
+    else            ctx.stroke()
+    break
+   case "line":
+    n = num(s); ck("line", n.length==4)
+    ctx.beginPath()
+    ctx.moveTo(n[0], n[1])
+    ctx.lineTo(n[2], n[3])
+    ctx.stroke()
+    break
+   case "poly":
+   case "fillpoly":
+    ck(s, a.length==2)
+    let x = vec(a[0]), y = vec(a[1])
+    if((x.length>1)&&(x.length==y.length)){
+     ctx.moveTo(x[0], y[0])
+     for(let i=1;i<x.length;i++) ctx.lineTo(x[i], y[i])
+     if(s=="poly") ctx.stroke()
+     else         {ctx.closePath(); ctx.fill()}
+    }
+    break
+   case "text":
+   case "rtext":
+    ck(s, (a.length==3)&&(K.TK(a[2])=='C'))
+    n = nums(a.slice(0,2))
+    let nx=n[1], ny=n[2]
+    if(s=="rtext"){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(-Math.PI/2); nx=0; ny=0 }
+    ctx.fillText(K.CK(a[2]), nx, ny)
+    if(s=="rtext"){ ctx.restore() }
+    break
+   default:
+    K.KE("draw: command: "+s)
+    break
+   }
+ }
+ 
+ let s="", c=[]
+ for(let i=0;i<n;i++){
+  let e=K.TK(l[i])
+  if(K.TK(e) == 's'){
+   if(s != ""){
+    cmd(s, c)
+    c = []
+    s = K.sK(e)
+   }
+  } else c.push(e)
+ }
+ if(s != "") cmd(s, c)
+}
+
 
 // display an image on a canvas with id="_cnv"
 // show(20;(20*50)#255)
