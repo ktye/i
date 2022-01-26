@@ -3,28 +3,28 @@ set -x
 
 cc="gcc -O2 -s -Werror -Wfatal-errors"
 MAT=
-IMG=
+DRW=
 RAY=
 
 # ktye/k
 # wg: go install github.com/ktye/wg/cmd/wg
-wg -c -prefix ktye_ -nomain .. > ktye.h
-cat api                       >> ktye.h
-$cc -c k.c 
+#wg -c -prefix ktye_ -nomain .. > ktye.h
+#cat api                       >> ktye.h
+#$cc -c k.c 
 
 
 ## math/lapack
 MAT="mat.o liblapacke.a liblapack.a librefblas.a -lgfortran -lquadmath -lm"
 $cc -c mat/mat.c
 
-# img/png,ttf
-IMG="img.o"
-$cc -c img/img.c
+# draw/png,ttf
+DRW="draw.o"
+$cc -c draw/draw.c
 
 # raylib
 RAY="ray.o libraylib.a -lopengl32 -lgdi32 -lwinmm"
 $cc -c ray/ray.c
 
 # link everything to k+
-$cc -o k+ k.o $IMG $MAT $RAY
+$cc -o k+ k.o $DRW $MAT $RAY
 

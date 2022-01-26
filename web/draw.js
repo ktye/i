@@ -1,89 +1,91 @@
 import { K } from './k.js'
 
-let D = {} // show showev draw
+let D = {} // draw show showev
 
 
-// draw L                 // draw[400 300;(`color;255*256;`rect;10;10;300;200)]
-// `color;rgb
-// `font;"20px monospace"
-// `linewidth;w
-// `rect;x;y;w;h
-// `fillrect;x;y;w;h
-// `circle;x;y;r  
-// `fillcircle;x;y;r
-// `line;x0;y0;x1;y1
-// `poly;X;Y
-// `fillpoly;X;Y
-// `text;x;y;"text"
-// `rtext;x;y;"text"      // rotated
-// numbers may be i or f, poly/fillpoly are F
+// draw[wh;L]             // draw[400 300;(`color;255*256;`rect;10 10 300 200)]
+// `color;rgb             // i
+// `font;"20px monospace" // C
+// `linewidth;w           // i or f
+// `rect;(x;y;w;h)        // I or F        stroke
+// `Rect;(x;y;w;h)        // I or F        fill
+// `circle;(x;y;r)        // I or F        stroke
+// `Circle;(x;y;r)        // I or F        fill
+// `line;(x0;y0;x1;y1)    // I or F
+// `poly;(X;Y)            // X, Y: I or F  stroke
+// `Poly;(X;Y)            // I or F        close fill
+// `text;(x;y;"text")     // i,i,C
+// `Text;(x;y;"text")     // i,i,C         rotated
+// draw returns an image object (h;I)
 D.draw = function(x,y){
- if(K.TK(x) != 'I') return KE("draw: x type")
- if(K.TK(y) != 'L') return KE("draw: y type")
+ if(K.TK(x) != 'I') return K.KE("draw: x type")
+ if(K.TK(y) != 'L') return K.KE("draw: y type")
  let l=K.LK(y)
  let n=K.NK(y)
  let wh=K.IK(x)
+ if(n%2 != 0) return K.KE("draw: #y")
  
- let cnv = ge("_cnv"); cnv.width=wh[0]; cnv.height=wh[1]
+ let cnv = ce("canvas"); 
+ cnv.width=wh[0]; cnv.height=wh[1]
  let ctx = cnv.getContext("2d")
+ 
+ ctx.fillStyle = "white"
+ ctx.fillRect(0,0,wh[0],wh[1])
+ ctx.fillStyle = "black"
+ ctx.font = "20px monospace"
  
  let ck = function(s,c){ if(c==false) K.KE(s+" arg") }
  
  let setcolor = function(i){ 
-  let s="rgb(" + i&255 + ", " + (i>>>8)&255 + ", " + (i>>>16)&255 + ")"
+  let s="rgb(" + String(i&255) + ", " + String((i>>>8)&255) + ", " + String((i>>>16)&255) + ")"
   ctx.fillStyle=s; ctx.strokeStyle=s
  }
  
- let nums = function(x){
-  for(let i=0;i<x.length;i++){
-   let xi=x[i], t = K.TK(xi)
-   x[i] = (t=="i") ? K.iK(xi) : (t=="f") ? K.fK(xi) : K.KE("number-type") 
-  }
-  return x
- }
+ let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : KE("num type") }
  let vec = function(x){ let t=K.TK(x); return (t=='F') ? K.FK(x) : (t=='I') ? K.IK(x) : KE("vec type") }
  
  let cmd=function(s,a){
   let n
   switch(s){
    case "color":
-    ck("color", (a.length==1) && (K.TK(a[0]) == 'i'))
-    setcolor(K.iK(i))
+    setcolor(num(a))
     break
    case "font":
-    ck("font", (a.length==1) && (K.TK(a[0]) == 'C'))
+    ck(s, (K.TK(a) == 'C'))
     ctx.setfont( K.CK(e) )
     break
    case "linewidth":
-    n = nums(a); ck("linewidth", a.length==1)
-    ctx.lineWidth = n[0]
+    ctx.lineWidth = num(a)
     break
    case "rect":
-   case "fillrect":
-    n = nums(a); ck("rect", n.length==4)
-    if(s=="rect") ctx.strokeRect(...n)
-    else          ctx.fillRect(...n)
+   case "Rect":
+    if(s=="rect") ctx.strokeRect(...vec(a))
+    else          ctx.fillRect(...vec(a))
     break
    case "circle":
-   case "fillcircle":
-    n = nums(a); ck("circ", a.length==3)
+   case "Circle":
+    a = vec(a)
+    ck(s, a.length==3)
     ctx.beginPath()
-    ctx.arc(n[0], n[1], n[2], 0, 2 * Math.PI)
-    if(s=="circle") ctx.fill()
-    else            ctx.stroke()
+    ctx.arc(a[0], a[1], a[2], 0, 2 * Math.PI)
+    if(s=="circle") ctx.stroke()
+    else            ctx.fill()
     break
    case "line":
-    n = num(s); ck("line", n.length==4)
+    a = vec(a)
+    ck(s, a.length==4)
     ctx.beginPath()
-    ctx.moveTo(n[0], n[1])
-    ctx.lineTo(n[2], n[3])
+    ctx.moveTo(a[0], a[1])
+    ctx.lineTo(a[2], a[3])
     ctx.stroke()
     break
    case "poly":
-   case "fillpoly":
-    ck(s, a.length==2)
+   case "Poly":
+    ck(s, (K.TK(a)=="L" && K.NK(a) == 2))
+    a = K.LK(a)
     let x = vec(a[0]), y = vec(a[1])
     if((x.length>1)&&(x.length==y.length)){
+     ctx.beginPath()
      ctx.moveTo(x[0], y[0])
      for(let i=1;i<x.length;i++) ctx.lineTo(x[i], y[i])
      if(s=="poly") ctx.stroke()
@@ -91,13 +93,14 @@ D.draw = function(x,y){
     }
     break
    case "text":
-   case "rtext":
-    ck(s, (a.length==3)&&(K.TK(a[2])=='C'))
-    n = nums(a.slice(0,2))
-    let nx=n[1], ny=n[2]
-    if(s=="rtext"){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(-Math.PI/2); nx=0; ny=0 }
+   case "Text":
+    ck(s, ((K.TK(a)=="L") && (K.NK(a) == 3)))
+    a = K.LK(a)
+    let nx=num(a[0]), ny=num(a[1])
+    ck(s, K.TK(a[2]) == "C")
+    if(s=="Text"){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(-Math.PI/2); nx=0; ny=0 }
     ctx.fillText(K.CK(a[2]), nx, ny)
-    if(s=="rtext"){ ctx.restore() }
+    if(s=="Text"){ ctx.restore() }
     break
    default:
     K.KE("draw: command: "+s)
@@ -105,18 +108,15 @@ D.draw = function(x,y){
    }
  }
  
- let s="", c=[]
- for(let i=0;i<n;i++){
-  let e=K.TK(l[i])
-  if(K.TK(e) == 's'){
-   if(s != ""){
-    cmd(s, c)
-    c = []
-    s = K.sK(e)
-   }
-  } else c.push(e)
+ for(let i=0;i<n;i+=2){
+  if(K.TK(l[i]) != 's') return K.KE("draw cmd type")
+  cmd(K.CK(K.Kx("$",l[i])), l[1+i])
  }
- if(s != "") cmd(s, c)
+ 
+ let d = ctx.getImageData(0,0,wh[0],wh[1])
+ let r = K.KL([K.Ki(wh[1]), K.KI(new Int32Array(d.data.buffer))])
+ cnv.remove()
+ return r
 }
 
 
@@ -158,7 +158,6 @@ D.showev = function(x,y,z){
  
  let cnv = ge("_cnv");
  let ctx = cnv.getContext("2d")
- console.log("set ondblclick")
  cnv.ondblclick = function(ev){
   // console.log("dblclick", ev.offsetX, ev.offsetY)
   let x=K.Kx(".", K.ref(click), K.KI([ev.offsetX, ev.offsetY]))
@@ -190,8 +189,6 @@ D.showev = function(x,y,z){
   if(zd[2]<0){ zd[0]+=zd[2]; zd[2]=-zd[2] }
   if(zd[3]<0){ zd[1]+=zd[3]; zd[3]=-zd[3] }
   
-  console.log("zoom", zd)
-  
   let x=K.Kx(".", K.ref(zoom), K.KI(zd))
   K.unref( (K.TK(x)==="L") ? setimg(img(x)) : x )
   
@@ -222,9 +219,5 @@ function img(x){
 
 function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
-
-// cnv=document.getElementById("_cnv");ctx=cnv.getContext("2d")
-
-
 
 export { D }
