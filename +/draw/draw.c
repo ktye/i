@@ -35,6 +35,48 @@ static void fill(NSVGparser *p, unsigned int color);
 static void stroke(NSVGparser *p, unsigned int color, float lw, char close);
 
 
+#define MAXFONTS 8
+K fontnames;
+stbtt_fontinfo ttfinfo[MAXFONTS];
+
+
+K loadfont(K name, K ttfdata, float *scale){
+ static int nttf = 0;
+ if((TK(name) != 's')||(TK(ttfdata) != 'C')){ unref(name); unref(ttfdata); return KE("loadfont args"); }
+ if(nttf == MAXFONTS){ unref(ttfdata); return name; }
+ fontnames = Kx(",", fontnames, ref(name));
+ char *buf = malloc(NK(ttfdata));
+ CK(buf, ttfdata);
+ if(!stbtt_InitFont(&ttfinfo[nttf], buf, 0)){ unref(name); return KE("loadfont: load ttf"); }
+ nttf++;
+ return name;
+}
+static void setfont(K x){ // "20px monospace"
+ size_t n = NK(x);
+ char *p = dK(x);
+ unref(x);
+ int h;
+ if((n<4)||(n>99)) printf("setfont ignored (n)\n"); return;
+ if(p[1] == 'p'){       h = (int)p[0];           p+=4; n-=4; }
+ else if(p[2] == 'p'){  h = (int)(10*p[1]+p[0]); p+=5; n-=5; }
+ else {   printf("setfont ignored (px)\n"); return; }
+ 
+ char   b[100];
+ memcpy(b, p, n); b[n] = (char)0;
+ K name = Ks(b);
+ 
+ int i = iK(Kx("?", ref(fontnames), name));
+ if((i<0)||(i>=NK(fontnames))) { printf("setfont ignored (find)\n"); return; }
+ 
+ // float scale = stbtt_ScaleForPixelHeight(&ttfinfo[i], h);
+ // int ascent, descent, lineGap;
+ // stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
+ 
+ // https://github.com/justinmeiners/stb-truetype-example/blob/master/main.c
+ //todo..
+ 
+}
+
 
 // convert pixels to png data.
 //  x: (i height;I pixels)
@@ -98,7 +140,8 @@ K draw(K x, K y){
    co = 0xff000000 | (unsigned int)iK(a);
    break;
   case 1: //font
-   // todo
+   if(TK(a)!='C') return drawerr(l,1+i,n,p,"draw font");
+   setfont(a);
    break;
   case 2: //linewidth
    if(TK(a)!='i') return drawerr(l,i,1+n,p,"draw linewidth");
@@ -326,6 +369,8 @@ static void imgk(K x, size_t *w, size_t *h, uint32_t **data){
 
 void loadimg(){
  drawcmds = Kx("`color`font`linewidth`rect`Rect`circle`Circle`line`poly`Poly`text`Text");
+ fontnames = KS(NULL, 0);
  KR("png", (void*)png, 1);
  KR("draw", (void*)draw, 2);
+ KR("loadfont", (void*)loadfont, 2);
 }

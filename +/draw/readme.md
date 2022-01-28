@@ -30,7 +30,7 @@ red:255; green:255*256; blue:255*256*256
 |call|arg|return|description|
 |---|---|---|---|
 |`png`|`image`|C|encode image as png bytes|
-|`loadfont`|`(s name;i size;C ttfdata)`|0|decode ttf data|
+|`loadfont`|`(s name;C ttfdata)`|0|decode ttf data|
 |`draw`|L,wh|`image`|rasterize vector graphics|
 
 `png` and `loadfont` is available only in the c verions, not for js.
@@ -64,7 +64,7 @@ The first argument `d` is a general list with symbol-argument pairs:
 
 numeric arguments may be float or int.
 
-Before using fonts, use `loadfont` to register a font under a given name for a specific size.
+Before using fonts, use `loadfont` to register a font under a given name.
 
 example:
 

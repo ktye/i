@@ -218,6 +218,9 @@ D.showev = function(x,y,z){
  return r
 }
 
+// loadfont is ignored in js. it's only needed for the c version.
+D.loadfont = function(name, bytes) { K.unref(bytes); return name }
+
 function img(x){
  if(K.TK(x) != 'L') return K.KE("img: type")
  if(K.NK(x) != 2)   return K.KE("img: L2")
