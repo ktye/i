@@ -29,9 +29,10 @@ red:255; green:255*256; blue:255*256*256
 
 |call|arg|return|description|
 |---|---|---|---|
-|`png`|`image`|C|encode image as png bytes|
-|`loadfont`|`(s name;C ttfdata)`|0|decode ttf data|
-|`draw`|L,wh|`image`|rasterize vector graphics|
+|`png[image]`|`image`|C|encode image as png bytes|
+|`loadfont[name;ttfdata]`|`name:s;C ttfdata)`|`name`|decode ttf data|
+|`draw[d;wh]`|L, I|`image`|rasterize vector graphics|
+|`draw[d;image]`|L, L|`image`|draw over background image|
 
 `png` and `loadfont` is available only in the c verions, not for js.
 The web version uses system fonts, the c version needs to load fonts from ttf data.
