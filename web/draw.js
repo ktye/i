@@ -3,7 +3,8 @@ import { K } from './k.js'
 let D = {} // draw show showev
 
 
-// draw[wh;L]             // draw[400 300;(`color;255*256;`rect;10 10 300 200)]
+// draw[L;wh]             // draw[(`color;255*256;`rect;10 10 300 200);400 300]
+// draw[L;image]          // draw over bg image
 // `color;rgb             // i
 // `font;"20px monospace" // C
 // `linewidth;w           // i or f
@@ -18,21 +19,36 @@ let D = {} // draw show showev
 // `Text;(x;y;"text")     // i,i,C         rotated
 // draw returns an image object (h;I)
 D.draw = function(x,y){
- if(K.TK(x) != 'I') return K.KE("draw: x type")
- if(K.TK(y) != 'L') return K.KE("draw: y type")
- let l=K.LK(y)
- let n=K.NK(y)
- let wh=K.IK(x)
- if(n%2 != 0) return K.KE("draw: #y")
+ if(K.TK(x) != 'L'){ K.unref(x); K.unref(y); return K.KE("draw: x type") }
+ 
+ let wh, bg
+ if(K.TK(y)=='L'){
+  let m = img(y);
+  wh=[m.w, m.h]; bg=m.I;
+ } else if((K.TK(y)=='I')&&(K.NK(y) == 2)) wh=K.IK(y);
+ else {
+  console.log("yt", K.TK(y), K.NK(y))
+ K.unref(x); return K.KE("draw: y type"); }
+ 
+ let l=K.LK(x)
+ let n=K.NK(x)
+ if(n%2 != 0) return K.KE("draw: #x")
  
  let cnv = ce("canvas"); 
- cnv.width=wh[0]; cnv.height=wh[1]
+ cnv.width=wh[0]; cnv.height=wh[1];
  let ctx = cnv.getContext("2d")
  
  ctx.fillStyle = "white"
  ctx.fillRect(0,0,wh[0],wh[1])
  ctx.fillStyle = "black"
  ctx.font = "20px monospace"
+ 
+ if(bg !== undefined){
+  let d = ctx.createImageData(wh[0], wh[1])
+  let u = new Uint8Array(d.data.buffer)
+  u.set(new Uint8Array(bg.buffer))
+  ctx.putImageData(d,0,0)
+ }
  
  let ck = function(s,c){ if(c==false) K.KE(s+" arg") }
  

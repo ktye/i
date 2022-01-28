@@ -7,18 +7,20 @@
 /    `color;255;`Poly;(200 250 280;10 100 30)
 /    `color;0;`text;(200;120;"a b c")
 /    `Text;(180;120;"E F G"))
-/ show draw[300 200;d]
+/ show draw[d;300 200]
 
 
-d:(`color;255
-   `Rect;20 10 40 30
-   `linewidth;2
-   `color;255*255;`rect;10 10 100 50
-   `color;255*256*256
-   `Circle;100 100 20
-   `circle;100 100 50
-   `color;255;`line;5 60 10 5
-   `color;255*256*256;`poly;(0 10 20 30 40;190 100 180 110 190)
-   `color;255;`Poly;(100 150 180;10 100 30))
-m:draw[200 200;d]
-show m
+m:draw[(`color;255;`Rect;10 10 180 180);300 200]
+show draw[(`color;0;`circle;200 100 100);m]
+
+/d:(`color;255
+/   `Rect;20 10 40 30
+/   `linewidth;2
+/   `color;255*255;`rect;10 10 100 50
+/   `color;255*256*256
+/   `Circle;100 100 20
+/   `circle;100 100 50
+/   `color;255;`line;5 60 10 5
+/   `color;255*256*256;`poly;(0 10 20 30 40;190 100 180 110 190)
+/   `color;255;`Poly;(100 150 180;10 100 30))
+/show draw[d;m]

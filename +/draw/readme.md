@@ -31,16 +31,22 @@ red:255; green:255*256; blue:255*256*256
 |---|---|---|---|
 |`png`|`image`|C|encode image as png bytes|
 |`loadfont`|`(s name;i size;C ttfdata)`|0|decode ttf data|
-|`draw`|wh, L|`image`|rasterize vector graphics|
+|`draw`|L,wh|`image`|rasterize vector graphics|
 
 `png` and `loadfont` is available only in the c verions, not for js.
 The web version uses system fonts, the c version needs to load fonts from ttf data.
 
 ### draw
 
-`draw` takes 2 arguments, the image size `(w;h)` and vector graphics calls encoded in a list that comes in symbol argument pairs:
+```
+draw[d;image]
+draw[d;wh]
+```
 
-Before using fonts, use `loadfont` to register a font under a given name for a specific size.
+`draw` takes 2 arguments, vector graphics calls and the background `image`.
+If the seconds argument is `I (w;h)` instead of an `image`, a new all-white image is used as a background.  
+
+The first argument `d` is a general list with symbol-argument pairs:  
 
 |symbol|argument|description|
 |---|---|---|
@@ -56,7 +62,9 @@ Before using fonts, use `loadfont` to register a font under a given name for a s
 |`text`|`(x;y;text)`|draw text|
 |`Text`|`(x;y;text)`|draw rotated text|
 
-numeric arguments `n` may be float or int.
+numeric arguments may be float or int.
+
+Before using fonts, use `loadfont` to register a font under a given name for a specific size.
 
 example:
 
@@ -71,6 +79,6 @@ d:(`rect;0 0 300 200
    `color;0;`text;(200;120;"a b c")
    `Text;(180;120;"E F G"))
    
-show draw[300 200;d]  /show is defined in ../ray
+show draw[d;300 200]  /show is defined in ../ray
 ```
 

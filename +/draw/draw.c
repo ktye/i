@@ -26,6 +26,7 @@ static int vec(float *v, size_t n, K x);
 static int vecn(K x);
 static float *veca(K x, int n);
 static K drawerr(K *l, int i, size_t n, NSVGparser *p, char *s);
+static void drawOver(uint8_t *dst, uint8_t *src, size_t w, size_t h);
 static void drawRect(NSVGparser *p, float x, float y, float w, float h, unsigned int co, int lw, char dofill);
 static void drawCircle(NSVGparser *p, float cx, float cy, float r, unsigned int co, int lw, char dofill);	
 static void drawPoly(NSVGparser *p, float *px, float *py, int n, unsigned int co, int lw, char dofill);
@@ -54,20 +55,27 @@ K png(K x){
 }
 
 
-
-
 K drawcmds; // "`color`font`linewidth`rect`Rect`circle`Circle`line`poly`Poly`text`Text"
 
 K draw(K x, K y){
- if(TK(x) != 'I'){ unref(x); unref(y); return KE("draw type x"); }
- if(NK(x) !=  2 ){ unref(x); unref(y); return KE("draw length x"); }
- if(TK(y) != 'L'){ unref(x); unref(y); return KE("draw type y"); }
- int wh[2]; IK(wh, x); int w=wh[0]; int h=wh[1];
- size_t n = NK(y);
- if(n%2!=0){ unref(y); return KE("draw length y"); }
+ if(TK(x) != 'L'){ unref(x); unref(y); return KE("draw type x"); }
+ 
+ // y-arg: image(draw over) or wh(new all white)
+ size_t w, h;
+ uint32_t *bg = (uint32_t *)NULL;
+ if(TK(y) == 'L'){
+  imgk(y, &w, &h, &bg);
+  if(bg == NULL){ unref(x); return KE("draw y img"); }
+ } else {
+  if((TK(y) != 'I')||(NK(y) != 2)) { unref(x); return KE("draw y wh"); }
+  int wh[2]; IK(wh, y); w=(size_t)wh[0]; h=(size_t)wh[1];
+ }
+ 
+ size_t n = NK(x);
+ if(n%2!=0){ unref(x); return KE("draw length y"); }
  
  K *l = malloc(n*sizeof(K));
- LK(l, y);
+ LK(l, x);
  
  unsigned int co = 0xff000000;  //color
  int          lw = 1;           //linewidth
@@ -76,7 +84,7 @@ K draw(K x, K y){
  NSVGattrib *attr = nsvg__getAttr(p);
  
  
- drawRect(p, 0.0, 0.0, (float)w, (float)h, 0xffffffff, 1, 1); // fill white bg
+ if(bg == NULL) drawRect(p, 0.0, 0.0, (float)w, (float)h, 0xffffffff, 1, 1); // fill white bg
  
  float v[4];
  for(int i=0;i<n;i+=2){
@@ -139,10 +147,17 @@ K draw(K x, K y){
  uint8_t *dst = malloc(w*h*4);
  NSVGrasterizer *rst = nsvgCreateRasterizer();
  nsvgRasterize(rst, im, 0,0,1, dst, w, h, w*4);
-
+ 
+ // blend over background image. nsvgRasterize resets dst
+ if(bg != NULL){
+  drawOver((uint8_t *)bg, dst, w, h);
+  free(dst); dst=(uint8_t*)bg;
+ }
  
  //todo rasterize text over dst.
  
+ 
+ // return image
  K ri;
  if(4 == sizeof(int)){
   ri = KI((int*)dst, w*h);
@@ -158,6 +173,23 @@ K draw(K x, K y){
  free(dst);
  K rl[2] = {Ki(h), ri};
  return KL(rl, 2);
+}
+
+// draw src over dst. src contains alpha, dst is opaque.
+static void drawOver(uint8_t *dst, uint8_t *src, size_t w, size_t h){
+ uint32_t a, sr, sg, sb, sa;
+ size_t n = 4*w*h;
+ for (int i=0;i<n;i+=4) { // see golang.org/src/image/draw/draw.go drawCopyOver
+  sr = (uint32_t)(src[i+0]) * (uint32_t)0x101;
+  sg = (uint32_t)(src[i+1]) * (uint32_t)0x101;
+  sb = (uint32_t)(src[i+2]) * (uint32_t)0x101;
+  sa = (uint32_t)(src[i+3]) * (uint32_t)0x101;
+  a = (65535 - sa) * 0x101;
+  dst[i+0] = (uint8_t)(((uint32_t)(dst[i+0])*a/65535 + sr) >> 8);
+  dst[i+1] = (uint8_t)(((uint32_t)(dst[i+1])*a/65535 + sg) >> 8);
+  dst[i+2] = (uint8_t)(((uint32_t)(dst[i+2])*a/65535 + sb) >> 8);
+  dst[i+3] = (uint8_t)(((uint32_t)(dst[i+3])*a/65535 + sa) >> 8);
+ }
 }
 
 

@@ -140,4 +140,21 @@ Serve `k6.html`, `k.js`, `k.wasm` and `l.wasm` locally. Open k6.html in a browse
 
 see [k6.html](k6.html) for an example providing custom read/write functions and an extension (pitimes).
 
+### libraries
+(draw.js)[draw.js] extends `k.js` with additional functions.
+See (k.html)[k.html] how it is used:
+```
+import { K } from './k.js'
+import { D } from './draw.js'
+...
+var ext = {
+ init: function()         {...},
+ read: function(file)     {...},
+ write:function(file,data){...}},
+}
+Object.assign(ext, D)              //this adds draw.js functions to the import object
+K.kinit(ext)
+```
+
+`draw` adds functions `draw`, `show`, `showev` which are compatible to the [c-versions](../+/draw/readme.md)
 
