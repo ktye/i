@@ -55,6 +55,7 @@ D.draw = function(x,y){
  let setcolor = function(i){ 
   let s="rgb(" + String(i&255) + ", " + String((i>>>8)&255) + ", " + String((i>>>16)&255) + ")"
   ctx.fillStyle=s; ctx.strokeStyle=s
+  console.log("color", s)
  }
  
  let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : KE("num type") }
@@ -68,7 +69,7 @@ D.draw = function(x,y){
     break
    case "font":
     ck(s, (K.TK(a) == 'C'))
-    ctx.setfont( K.CK(e) )
+    ctx.font = K.CK(a)
     break
    case "linewidth":
     ctx.lineWidth = num(a)

@@ -27,6 +27,7 @@ static int vecn(K x);
 static float *veca(K x, int n);
 static K drawerr(K *l, int i, size_t n, NSVGparser *p, char *s);
 static void drawOver(uint8_t *dst, uint8_t *src, size_t w, size_t h);
+static void drawChar(uint8_t *dst, int x, int y, size_t w, size_t h, unsigned int co, uint8_t *bm, int cw, int ch, int x0, int y0);
 static void drawRect(NSVGparser *p, float x, float y, float w, float h, unsigned int co, int lw, char dofill);
 static void drawCircle(NSVGparser *p, float cx, float cy, float r, unsigned int co, int lw, char dofill);	
 static void drawPoly(NSVGparser *p, float *px, float *py, int n, unsigned int co, int lw, char dofill);
@@ -38,9 +39,11 @@ static void stroke(NSVGparser *p, unsigned int color, float lw, char close);
 #define MAXFONTS 8
 K fontnames;
 stbtt_fontinfo ttfinfo[MAXFONTS];
+stbtt_fontinfo *currentfont = NULL;
+float fontscale;
+int   fontascent;
 
-
-K loadfont(K name, K ttfdata, float *scale){
+K loadfont(K name, K ttfdata, float *scale){ //data persists
  static int nttf = 0;
  if((TK(name) != 's')||(TK(ttfdata) != 'C')){ unref(name); unref(ttfdata); return KE("loadfont args"); }
  if(nttf == MAXFONTS){ unref(ttfdata); return name; }
@@ -56,9 +59,9 @@ static void setfont(K x){ // "20px monospace"
  char *p = dK(x);
  unref(x);
  int h;
- if((n<4)||(n>99)) printf("setfont ignored (n)\n"); return;
- if(p[1] == 'p'){       h = (int)p[0];           p+=4; n-=4; }
- else if(p[2] == 'p'){  h = (int)(10*p[1]+p[0]); p+=5; n-=5; }
+ if((n<4)||(n>99)){ printf("setfont ignored (n)\n");  return;}
+ if(p[1] == 'p'){       h = (int)(p[0]-'0');                 p+=4; n-=4; }
+ else if(p[2] == 'p'){  h = (int)(10*(p[0]-'0')+(p[1]-'0')); p+=5; n-=5; }
  else {   printf("setfont ignored (px)\n"); return; }
  
  char   b[100];
@@ -67,14 +70,29 @@ static void setfont(K x){ // "20px monospace"
  
  int i = iK(Kx("?", ref(fontnames), name));
  if((i<0)||(i>=NK(fontnames))) { printf("setfont ignored (find)\n"); return; }
+ currentfont = &ttfinfo[i];
  
- // float scale = stbtt_ScaleForPixelHeight(&ttfinfo[i], h);
- // int ascent, descent, lineGap;
- // stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
+ // see: https://github.com/justinmeiners/stb-truetype-example/blob/master/main.c
+ fontscale = stbtt_ScaleForPixelHeight(&ttfinfo[i], h);
  
- // https://github.com/justinmeiners/stb-truetype-example/blob/master/main.c
- //todo..
+ int descent, lineGap;
+ stbtt_GetFontVMetrics(currentfont, &fontascent, &descent, &lineGap);
+ fontascent = roundf(fontascent * fontscale);
+ descent = roundf(descent * fontscale);
  
+ //printf("setfont %s size %d found at i=%d scale=%f ascent=%d descent=%d linegap=%d\n", b, h, i, fontscale, fontascent, descent, lineGap);
+}
+void drawText(uint8_t *dst, size_t w, size_t h, unsigned int co, int x, int y, char *cc, size_t nc){
+ if(currentfont==NULL){ printf("no current font\n"); return; }
+ for(int i=0;i<nc;i++){ //todo: decode utf8 (currently ascii-only)
+  int ax, lsb, cw, ch, x0, y0, kern;
+  stbtt_GetCodepointHMetrics(currentfont, cc[i], &ax, &lsb);
+  unsigned char *bm = stbtt_GetCodepointBitmap(currentfont, fontscale, fontscale, (int)cc[i], &cw, &ch, &x0, &y0);  
+  drawChar(dst, x, y, w, h, co, (uint8_t*)bm, cw, ch, x0, y0);
+  stbtt_FreeBitmap(bm, NULL);
+  kern = (i<nc-1) ? stbtt_GetCodepointKernAdvance(currentfont, (int)cc[i], (int)cc[1+i]) : 0;
+  x += (int)roundf(fontscale*(ax+kern));
+ }
 }
 
 
@@ -176,6 +194,15 @@ K draw(K x, K y){
    break;
   case 10: //text
   case 11: //Text
+   if(bg == NULL)               return drawerr(l,1+i,n,p,"draw text (no bg)");
+   if((TK(a)!='L')||(NK(a)!=3)) return drawerr(l,1+i,n,p,"draw text (arg)");
+   K  c = Kx("*|", ref(a));
+   if(vec(v,2,Kx("2#", a))){unref(c); return drawerr(l,2+i,n,p,"draw text (xy)");}
+   if(TK(c)!='C')          {unref(c); return drawerr(l,2+i,n,p,"draw text (text)");}
+   size_t nc = NK(c);
+   char *cc = (char*)malloc(nc); CK(cc,c);
+   drawText((uint8_t*)bg, w, h, co, (int)(roundf(v[0])), (int)(roundf(v[1])), cc, nc);
+   break;
   default:
    return drawerr(l,1+i,n,p,"draw cmd");
    break;
@@ -196,9 +223,6 @@ K draw(K x, K y){
   drawOver((uint8_t *)bg, dst, w, h);
   free(dst); dst=(uint8_t*)bg;
  }
- 
- //todo rasterize text over dst.
- 
  
  // return image
  K ri;
@@ -233,6 +257,42 @@ static void drawOver(uint8_t *dst, uint8_t *src, size_t w, size_t h){
   dst[i+2] = (uint8_t)(((uint32_t)(dst[i+2])*a/65535 + sb) >> 8);
   dst[i+3] = (uint8_t)(((uint32_t)(dst[i+3])*a/65535 + sa) >> 8);
  }
+}
+
+// draw char (8-bit alpha bitmap) with color co over dst.
+// x and y are the coordinates in dst.
+// x0, y0  are the coordinates of the glyph origin within the char bitmap bm.
+static void drawChar(uint8_t *dst, int x, int y, size_t w, size_t h, unsigned int co, uint8_t *bm, int cw, int ch, int x0, int y0){
+ //printf("drawChar x=%d y=%d w=%d h=%d co=%u   cw=%d ch=%d x0=%d y0=%d\n", x, y, w, h, co, cw, ch, x0, y0);
+ uint32_t a, sr, sg, sb, sa;
+ int o, p, X, Y;
+ sr = (uint32_t)( co     &0xff);
+ sg = (uint32_t)((co>> 8)&0xff);
+ sb = (uint32_t)((co>>16)&0xff);
+ int out = 0;
+ o = 0;
+ Y = y + y0;
+ for(int j=0;j<ch;j++){
+  if((Y>=0)&&(Y<h)){
+   X = x - x0;
+   p = 4*(X + w*Y);
+   for(int i=0;i<cw;i++){
+    if((X>=0)&&(X<w)){
+     if((o<0)||(o>cw*ch)) { printf("drawChar src[%d] out-of-bounds\n", o); return; }
+     sa = (uint32_t)(bm[o++]);
+     if(sa){
+      if((p<0)||(p+4>4*w*h)) { printf("drawChar dst[%d] out-of-bounds\n", p); return; }
+      a = 255 - sa;
+      dst[p+0] = (uint8_t) ( ( (uint32_t)dst[p+0] * a + sr*sa ) / (uint32_t)255 );
+      dst[p+1] = (uint8_t) ( ( (uint32_t)dst[p+1] * a + sg*sa ) / (uint32_t)255 );
+      dst[p+2] = (uint8_t) ( ( (uint32_t)dst[p+2] * a + sb*sa ) / (uint32_t)255 );
+     }
+    }
+    p += 4;
+   }
+  }
+  Y++;
+  }
 }
 
 
