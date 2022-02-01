@@ -5,6 +5,7 @@ cc="gcc -O2 -s -Werror -Wfatal-errors"
 MAT=
 DRW=
 RAY=
+SQL=
 
 # ktye/k
 # wg: go install github.com/ktye/wg/cmd/wg
@@ -25,6 +26,11 @@ $cc -c draw/draw.c
 RAY="ray.o libraylib.a -lopengl32 -lgdi32 -lwinmm"
 $cc -c ray/ray.c
 
+# sqlite
+SQL="sqlite.o sqlite3.dll"
+$cc -c sqlite/sqlite.c
+
+
 # link everything to k+
-$cc -o k+ k.o $DRW $MAT $RAY
+$cc -o k+ k.o $DRW $MAT $RAY $SQL
 

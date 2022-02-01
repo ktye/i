@@ -6,6 +6,7 @@
 void loadmat();
 void loadimg();
 void loadray();
+void loadsql();
 
 
 int main(int args, char **argv){
@@ -16,6 +17,7 @@ int main(int args, char **argv){
  loadmat();
  loadimg();
  loadray();
+ loadsql();
 
  ktye_doargs();
  printf("ktye/k+\n");
