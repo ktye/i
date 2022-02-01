@@ -26,8 +26,8 @@ static int vec(float *v, size_t n, K x);
 static int vecn(K x);
 static float *veca(K x, int n);
 static K drawerr(K *l, int i, size_t n, NSVGparser *p, char *s);
-static void drawOver(uint8_t *dst, uint8_t *src, size_t w, size_t h);
-static void drawChar(uint8_t *dst, int x, int y, size_t w, size_t h, unsigned int co, uint8_t *bm, int cw, int ch, int x0, int y0);
+static void drawOver(uint32_t *dst, uint32_t *src, size_t n);
+static void drawChar(uint32_t *dst, int x, int y, size_t w, size_t h, unsigned int co, uint8_t *bm, int cw, int ch, int x0, int y0);
 static void drawRect(NSVGparser *p, float x, float y, float w, float h, unsigned int co, int lw, char dofill);
 static void drawCircle(NSVGparser *p, float cx, float cy, float r, unsigned int co, int lw, char dofill);	
 static void drawPoly(NSVGparser *p, float *px, float *py, int n, unsigned int co, int lw, char dofill);
@@ -82,7 +82,7 @@ static void setfont(K x){ // "20px monospace"
  
  //printf("setfont %s size %d found at i=%d scale=%f ascent=%d descent=%d linegap=%d\n", b, h, i, fontscale, fontascent, descent, lineGap);
 }
-void drawText(uint8_t *dst, size_t w, size_t h, unsigned int co, int x, int y, char *cc, size_t nc){
+void drawText(uint32_t *dst, size_t w, size_t h, unsigned int co, int x, int y, char *cc, size_t nc){
  if(currentfont==NULL){ printf("no current font\n"); return; }
  for(int i=0;i<nc;i++){ //todo: decode utf8 (currently ascii-only)
   int ax, lsb, cw, ch, x0, y0, kern;
@@ -118,7 +118,7 @@ K png(K x){
 K drawcmds; // "`color`font`linewidth`rect`Rect`circle`Circle`line`poly`Poly`text`Text"
 
 K draw(K x, K y){
- if(TK(x) != 'L'){ unref(x); unref(y); return KE("draw type x"); }
+ if(TK(x) != 'L'){ unref(x); unref(y); return KE("draw type x"); } //dst
  
  // y-arg: image(draw over) or wh(new all white)
  size_t w, h;
@@ -193,7 +193,7 @@ K draw(K x, K y){
    free(xf); free(yf);
    break;
   case 10: //text
-  case 11: //Text
+  case 11: //Text     (todo)
    if(bg == NULL)               return drawerr(l,1+i,n,p,"draw text (no bg)");
    if((TK(a)!='L')||(NK(a)!=3)) return drawerr(l,1+i,n,p,"draw text (arg)");
    K  c = Kx("*|", ref(a));
@@ -201,7 +201,7 @@ K draw(K x, K y){
    if(TK(c)!='C')          {unref(c); return drawerr(l,2+i,n,p,"draw text (text)");}
    size_t nc = NK(c);
    char *cc = (char*)malloc(nc); CK(cc,c);
-   drawText((uint8_t*)bg, w, h, co, (int)(roundf(v[0])), (int)(roundf(v[1])), cc, nc);
+   drawText(bg, w, h, co, (int)(roundf(v[0])), (int)(roundf(v[1])), cc, nc);
    break;
   default:
    return drawerr(l,1+i,n,p,"draw cmd");
@@ -214,14 +214,14 @@ K draw(K x, K y){
  nsvg__deleteParser(p);
  
  // rasterize
- uint8_t *dst = malloc(w*h*4);
+ uint32_t *dst = malloc(w*h*4);
  NSVGrasterizer *rst = nsvgCreateRasterizer();
- nsvgRasterize(rst, im, 0,0,1, dst, w, h, w*4);
+ nsvgRasterize(rst, im, 0,0,1, (uint8_t*)dst, w, h, w*4);
  
  // blend over background image. nsvgRasterize resets dst
  if(bg != NULL){
-  drawOver((uint8_t *)bg, dst, w, h);
-  free(dst); dst=(uint8_t*)bg;
+  drawOver(bg, dst, w*h);
+  free(dst); dst=bg;
  }
  
  // return image
@@ -230,8 +230,7 @@ K draw(K x, K y){
   ri = KI((int*)dst, w*h);
  }else{
   int *I = (int*)malloc(w*h*sizeof(int));
-  uint32_t *u = (uint32_t *)dst;
-  for(int i=0;i<w*h;i++) I[i] = (int)u[i];
+  for(int i=0;i<w*h;i++) I[i] = (int)dst[i];
   ri = KI(I, w*h);
   free(I);
  }
@@ -242,53 +241,40 @@ K draw(K x, K y){
  return KL(rl, 2);
 }
 
-// draw src over dst. src contains alpha, dst is opaque.
-static void drawOver(uint8_t *dst, uint8_t *src, size_t w, size_t h){
- uint32_t a, sr, sg, sb, sa;
- size_t n = 4*w*h;
- for (int i=0;i<n;i+=4) { // see golang.org/src/image/draw/draw.go drawCopyOver
-  sr = (uint32_t)(src[i+0]) * (uint32_t)0x101;
-  sg = (uint32_t)(src[i+1]) * (uint32_t)0x101;
-  sb = (uint32_t)(src[i+2]) * (uint32_t)0x101;
-  sa = (uint32_t)(src[i+3]) * (uint32_t)0x101;
-  a = (65535 - sa) * 0x101;
-  dst[i+0] = (uint8_t)(((uint32_t)(dst[i+0])*a/65535 + sr) >> 8);
-  dst[i+1] = (uint8_t)(((uint32_t)(dst[i+1])*a/65535 + sg) >> 8);
-  dst[i+2] = (uint8_t)(((uint32_t)(dst[i+2])*a/65535 + sb) >> 8);
-  dst[i+3] = (uint8_t)(((uint32_t)(dst[i+3])*a/65535 + sa) >> 8);
- }
+
+static uint32_t blend(uint32_t dst, uint32_t src){ // draw src with alpha channel over dst.
+ uint32_t a = (src >> 24 ) &0xff;
+ uint32_t s = 255 - a;
+ uint32_t r = ((( dst     &0xff) * s) + a * ( src     &0xff)) / 255;
+ uint32_t g = ((((dst>> 8)&0xff) * s) + a * ((src>> 8)&0xff)) / 255;
+ uint32_t b = ((((dst>>16)&0xff) * s) + a * ((src>>16)&0xff)) / 255;
+ return 0xff000000|(b<<16)|(g<<8)|r;
 }
+
+// draw src over dst. src contains alpha, dst is opaque.
+static void drawOver(uint32_t *dst, uint32_t *src, size_t n){ for (int i=0;i<n;i++) dst[i] = blend(dst[i], src[i]); }
 
 // draw char (8-bit alpha bitmap) with color co over dst.
 // x and y are the coordinates in dst.
 // x0, y0  are the coordinates of the glyph origin within the char bitmap bm.
-static void drawChar(uint8_t *dst, int x, int y, size_t w, size_t h, unsigned int co, uint8_t *bm, int cw, int ch, int x0, int y0){
- //printf("drawChar x=%d y=%d w=%d h=%d co=%u   cw=%d ch=%d x0=%d y0=%d\n", x, y, w, h, co, cw, ch, x0, y0);
+static void drawChar(uint32_t *dst, int x, int y, size_t w, size_t h, unsigned int co, uint8_t *bm, int cw, int ch, int x0, int y0){
  uint32_t a, sr, sg, sb, sa;
  int o, p, X, Y;
- sr = (uint32_t)( co     &0xff);
- sg = (uint32_t)((co>> 8)&0xff);
- sb = (uint32_t)((co>>16)&0xff);
+ int wh = w*h;
+ co &= 0x00ffffff;
  int out = 0;
  o = 0;
  Y = y + y0;
  for(int j=0;j<ch;j++){
   if((Y>=0)&&(Y<h)){
    X = x - x0;
-   p = 4*(X + w*Y);
+   p = X + w*Y;
    for(int i=0;i<cw;i++){
     if((X>=0)&&(X<w)){
-     if((o<0)||(o>cw*ch)) { printf("drawChar src[%d] out-of-bounds\n", o); return; }
      sa = (uint32_t)(bm[o++]);
-     if(sa){
-      if((p<0)||(p+4>4*w*h)) { printf("drawChar dst[%d] out-of-bounds\n", p); return; }
-      a = 255 - sa;
-      dst[p+0] = (uint8_t) ( ( (uint32_t)dst[p+0] * a + sr*sa ) / (uint32_t)255 );
-      dst[p+1] = (uint8_t) ( ( (uint32_t)dst[p+1] * a + sg*sa ) / (uint32_t)255 );
-      dst[p+2] = (uint8_t) ( ( (uint32_t)dst[p+2] * a + sb*sa ) / (uint32_t)255 );
-     }
+     if((sa)&&((p>=0)&&(p<wh))) dst[p] = blend(dst[p], (sa<<24)|co);
     }
-    p += 4;
+    p++;
    }
   }
   Y++;

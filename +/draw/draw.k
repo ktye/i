@@ -9,9 +9,14 @@
 /    `Text;(180;120;"E F G"))
 / show draw[d;300 200]
 
+b:256*g:256*r:255
+
 loadfont[`monospace;<`"font.ttf"]
-m:draw[(`color;0;`linewidth;2;`rect;50 50 100 20);300 100]
-m:draw[(`color;255;`font;"20px monospace";`text;(50;50;"Mj`123g"));m]
+m:draw[(`linewidth;5;`color;0;`rect;1 1 398 298);400 300]
+m:draw[(`linewidth;5;`color;r;`circle;200 100 80);m]
+m:draw[(`linewidth;5;`color;g;`circle;130 200 80);m]
+m:draw[(`linewidth;5;`color;b;`circle;270 200 80);m]
+m:draw[(`color;255;`font;"20px monospace";`text;(0;20;"ABCDEFG"));m]
 show m
 
 /d:(`color;255
