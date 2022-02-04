@@ -19,8 +19,8 @@ MAT="mat.o liblapacke.a liblapack.a librefblas.a -lgfortran -lquadmath -lm"
 $cc -c mat/mat.c
 
 # draw/png,ttf
-DRW="draw.o"
-$cc -c draw/draw.c
+DRW="draw.o cairo.dll"
+$cc -Iinclude -c draw/draw.c
 
 # raylib
 RAY="ray.o libraylib.a -lopengl32 -lgdi32 -lwinmm"

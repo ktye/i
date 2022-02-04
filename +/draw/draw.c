@@ -1,13 +1,9 @@
 #include<stdlib.h>
+#include<cairo.h>
 #include"../k.h"
 
 #include<stdio.h>
 
-// http://nothings.org/stb/stb_image_write.h
-#define STBI_WRITE_NO_STDIO
-#define STBI_ONLY_PNG
-//#define STB_IMAGE_WRITE_IMPLEMENTATION (included in raylib: ../ray)
-#include "stb_image_write.h" 
 
 // http://nothings.org/stb/stb_truetype.h
 #define STB_TRUETYPE_IMPLEMENTATION 
@@ -19,7 +15,7 @@
 #include "nanosvg.h"
 #include "nanosvgrast.h"
 
-static void wpng(void *context, void *data, int size);
+//static void wpng(void *context, void *data, int size);
 static uint32_t *U32I(int *m, size_t n);
 static void imgk(K x, size_t *w, size_t *h, uint32_t **data);
 static int vec(float *v, size_t n, K x);
@@ -96,6 +92,14 @@ void drawText(uint32_t *dst, size_t w, size_t h, unsigned int co, int x, int y, 
 }
 
 
+
+static cairo_status_t wpng(void *p, const unsigned char *d, unsigned int n){
+ printf("wpng %d\n", n);
+ *(K*)p = Kx(",", *(K*)p, KC((char*)d, (size_t)n));
+ return CAIRO_STATUS_SUCCESS;
+}
+
+
 // convert pixels to png data.
 //  x: (i height;I pixels)
 //  r: C png bytes
@@ -103,13 +107,13 @@ K png(K x){
  uint32_t *u;
  size_t    width, height;
  imgk(x, &width, &height, &u);
- //printf("png: %d x %d\n", width, height);
  if(u == NULL) return KE("png: type img");
 
- for(int i=0;i<width*height;i++) u[i] |= 0xff000000; // always opaque
- 
- K r;
- stbi_write_png_to_func(wpng, &r, (int)width, (int)height, 4, u, 4*width);
+ for(int i=0;i<width*height;i++) u[i] = ((u[i]&0xff)<<16) | ((u[i]&0xff0000)>>16) | u[i]&0xff00; //rgb0 to bgr0
+ cairo_surface_t *s = cairo_image_surface_create_for_data((unsigned char *)u, CAIRO_FORMAT_RGB24, width, height, 4*width);
+ K r = KC(NULL, 0);
+ cairo_surface_write_to_png_stream(s, wpng, &r);
+ cairo_surface_destroy(s);
  free(u);
  return r;
 }
@@ -378,11 +382,13 @@ static uint8_t *svgRast(NSVGimage *im) { //(h;I)
 	
 }
 
+/*
 static void wpng(void *context, void *data, int size){
  K *x = (K*)context;
  K r = KC((char*)data, (size_t)size);
  *x = r;
 }
+*/
 
 static uint32_t *U32I(int *m, size_t n){
  if(4 == sizeof(int)) return (uint32_t*)m;

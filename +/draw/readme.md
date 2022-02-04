@@ -1,10 +1,6 @@
 ### draw library
 
-[draw.c](draw.c) is a library that draws 2d vector graphics as a software renderer.  
-It uses `stb_image_write.h`, `stb_truetype.h` from [nothings](http://nothings.org/stb)
-and [nanosvg](https://github.com/memononen/nanosvg) as a rasterizer.
-
-Besides the header files and the stdlib, no libaries are needed.
+[draw.c](draw.c) is a library that draws 2d vector graphics using [cairo](https://www.cairographics.org).
 
 Showing an image in a window and reacting to events is done in [another library](../ray).
 
