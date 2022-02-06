@@ -26,12 +26,10 @@ red:255; green:255*256; blue:255*256*256
 |call|arg|return|description|
 |---|---|---|---|
 |`png[image]`|`image`|C|encode image as png bytes|
-|`loadfont[name;ttfdata]`|`name:s;C ttfdata)`|`name`|decode ttf data|
 |`draw[d;wh]`|L, I|`image`|rasterize vector graphics|
 |`draw[d;image]`|L, L|`image`|draw over background image|
 
-`png` and `loadfont` is available only in the c verions, not for js.
-The web version uses system fonts, the c version needs to load fonts from ttf data.
+`png` is available only in the c verions, not for js.
 
 ### draw
 
@@ -48,7 +46,7 @@ The first argument `d` is a general list with symbol-argument pairs:
 |symbol|argument|description|
 |---|---|---|
 |`color`|`i`|for both filling and stroking|
-|`font`|`C`|"20px fontname"|
+|`font`|`C i`|name size|
 |`linewith`|`w`|for stroking|
 |`rect`|`x y w h`|stroke rectangle|
 |`Rect`|`x y w h`|fill rectangle|
@@ -59,9 +57,8 @@ The first argument `d` is a general list with symbol-argument pairs:
 |`text`|`(x;y;text)`|draw text|
 |`Text`|`(x;y;text)`|draw rotated text|
 
-numeric arguments may be float or int.
+Most numeric arguments may be float or int.
 
-Before using fonts, use `loadfont` to register a font under a given name.
 
 example:
 

@@ -68,8 +68,11 @@ D.draw = function(x,y){
     setcolor(num(a))
     break
    case "font":
+    ck(s, ((K.TK(a)=="L") && (K.NK(a) == 2)))
     ck(s, (K.TK(a) == 'C'))
-    ctx.font = K.CK(a)
+    a = K.LK(a)
+    ck(s, K.TK(a[0]) == "C")
+    ctx.font = num(a[1]) + "px " + K.CK(a)
     break
    case "linewidth":
     ctx.lineWidth = num(a)
