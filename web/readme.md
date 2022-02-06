@@ -8,7 +8,7 @@
 
 ## js interface
 `k.wasm` is the k core, which does not include a filesystem or a repl.
-It k.wasm uses calls compatible to the webassembly system interface (wasi) for io/args/clock.
+It uses calls compatible to the webassembly system interface (wasi) for io/args/clock.
 This allows it to be used out of the box by compatible runtimes such as [wavm](https://github.com/WAVM/WAVM) as a k repl.  
 `k.js` (a javascript module) provides an api to k, which allows custom read/write and extension functions.
 
@@ -116,7 +116,7 @@ Functions consume their arguments.
 - `x=ref(x)` increase refcount, return x
 - `unref(x)` decrease refcount or free memory
 
-For chain calls use, e.g.: `f(ref(x), x)`
+E.g. in a function call that uses an argument twice: `f(ref(x), x)`
 
 ### error save restore
 All api calls are unprotected.
@@ -141,8 +141,8 @@ Serve `k6.html`, `k.js`, `k.wasm` and `l.wasm` locally. Open k6.html in a browse
 see [k6.html](k6.html) for an example providing custom read/write functions and an extension (pitimes).
 
 ### libraries
-(draw.js)[draw.js] extends `k.js` with additional functions.
-See (k.html)[k.html] how it is used:
+[draw.js](draw.js) extends `k.js` with additional functions.
+See [k.html](k.html) how it is used:
 ```
 import { K } from './k.js'
 import { D } from './draw.js'
