@@ -10,6 +10,7 @@ static int     vec(double *v, size_t n, K x);
 static int     vecn(K x);
 static double *veca(K x, int n);
 static void    rgb24(uint32_t *u, size_t n);
+static void    align(cairo_t*, double *, int, int, cairo_text_extents_t*);
 
 
 
@@ -81,19 +82,19 @@ K draw(K x, K y){ //dst
  double v[4];
  int i=0;
  for(;i<n;i+=2){
-  if(TK(l[i])!='s') { i--; err="draw cmd type"; goto E; };
+  if(TK(l[i])!='s') { i--; err="draw cmd type"; goto E; }
   K a=l[1+i];
   int j=iK(Kx("?", ref(drawcmds), l[i]));
   // printf("drawcmd %d\n", j);
   switch(j){
   case 0: //color
-   if(TK(a)!='i') { err="draw color"; goto E; };
+   if(TK(a)!='i') { err="draw color"; goto E; }
    unsigned int co = (unsigned int)iK(a);
    cairo_set_source_rgb(cr, (double)(co&0xff)/255.0, (double)((co&0xff00)>>8)/255.0, (double)((co&0xff0000)>>24)/255.0);
    break;
   case 1: //font
    if(TK(a)!='C') { err="draw font"; goto E; };
-   if((TK(a)!='L')||(NK(a)!=2)) { err="draw font arg"; goto E; };
+   if((TK(a)!='L')||(NK(a)!=2)) { err="draw font arg"; goto E; }
    K l2[2]; LK(l2, ref(a));
    if((TK(l2[0])!='C')||(TK(l2[1]!='i'))){unref(l[0]);unref(l[1]);err="draw font args"; goto E; };
    unref(a);
@@ -108,32 +109,32 @@ K draw(K x, K y){ //dst
   case 2: //linewidth
    if(TK(a)=='i')      cairo_set_line_width(cr, (double)iK(a));
    else if(TK(a)=='f') cairo_set_line_width(cr, fK(a));
-   else { err="draw linewidth"; goto E; };
+   else { err="draw linewidth"; goto E; }
    break;
   case 3: //rect
   case 4: //Rect
-   if(vec(v,4,a)) { err="draw rect"; goto E; };
+   if(vec(v,4,a)) { err="draw rect"; goto E; }
    cairo_rectangle(cr, v[0], v[1], v[2], v[3]);
    fillstroke(cr, j==4);
    break;
   case 5: //circle
   case 6: //Circle
-   if(vec(v,3,a)) { err="draw circle"; goto E; };
+   if(vec(v,3,a)) { err="draw circle"; goto E; }
    cairo_arc(cr, v[0], v[1], v[3], 0, 6.283185307179586);
    fillstroke(cr, j==6);
    break;
   case 7: //line
-   if(vec(v,4,a)) { err="draw line"; goto E; };
+   if(vec(v,4,a)) { err="draw line"; goto E; }
    cairo_move_to(cr, v[0], v[1]);
    cairo_line_to(cr, v[2], v[3]);
    cairo_stroke(cr);
    break;
   case 8: //poly
   case 9: //Poly
-   if((TK(a)!='L')||(NK(a)!=2)) { err="draw poly"; goto E; };
+   if((TK(a)!='L')||(NK(a)!=2)) { err="draw poly"; goto E; }
    K xy[2]; LK(xy, a);
    int nx=vecn(xy[0]);
-   if((nx<2)||nx!=vecn(xy[1]))  { err="draw poly xy"; goto E; };
+   if((nx<2)||nx!=vecn(xy[1]))  { err="draw poly xy"; goto E; }
    double *xf = veca(xy[0], nx);
    double *yf = veca(xy[1], nx);
    cairo_move_to(cr, xf[0], yf[0]);
@@ -143,13 +144,17 @@ K draw(K x, K y){ //dst
    break;
   case 10: //text
   case 11: //Text
-   if((TK(a)!='L')||(NK(a)!=3)) { err="draw text arg"; goto E; };
-   K  c = Kx("*|", ref(a));
-   if(vec(v,2,Kx("2#", a))){unref(c); err="draw text xy"; goto E; };
-   if(TK(c)!='C')          {unref(c); err="draw text"; goto E; };
-   size_t nc = NK(c);
-   char *cc = (char*)malloc(1+nc); CK(cc,c);
+   if((TK(a)!='L')||(NK(a)!=4)) { err="draw text arg"; goto E; }
+   K l4[4]; LK(l4, ref(a));
+   if((TK(l4[3])!='C')||(TK(l4[2])!='i')){ err="draw text args"; goto E; }
+   if(vec(v,2,Kx(",", l4[0], l4[1]))){     err="draw text xy";   goto E; }
+   unref(a);
+   size_t nc = NK(l4[3]);
+   char *cc = (char*)malloc(1+nc); CK(cc,l4[3]);
    cc[nc] = 0;
+   cairo_text_extents_t ex;
+   cairo_text_extents(cr, cc, &ex);
+   align(cr, v, iK(l4[2]), j==11, &ex);
    cairo_move_to(cr, v[0], v[1]);
    if(j==11){ cairo_save(cr); cairo_rotate(cr,-1.5707963267948966); }
    cairo_show_text(cr, cc);
@@ -157,7 +162,7 @@ K draw(K x, K y){ //dst
    free(cc);
    break;
   default:
-   i--; err="draw draw text xy"; goto E;
+   i--; err="draw cmd"; goto E;
    break;
   }
  }
@@ -194,7 +199,19 @@ E:
  return r;
 }
 
-
+// 6   5   4
+// 7abc8def3
+// 0   1   2
+static void align(cairo_t *cr, double *v, int a, int rot, cairo_text_extents_t *ex){
+ double x = ex->x_bearing;
+ double y = ex->y_bearing;
+ double w = ex->width;
+ double h = ex->height; 
+ double X[9] = {0, w/2.0, w, w, w, w/2.0, 0, 0, w/2.0};
+ double Y[9] = {h, h, h, h/2.0, 0, 0, 0, h/2.0, h/2.0};
+ v[0] += X[a] - x;
+ v[1] += Y[a] - y;
+}
 
 
 static int vec(double *v, size_t n, K x){
