@@ -39,6 +39,14 @@ K png(K x){
 static void fillstroke(cairo_t *cr, int fill){ if(fill) cairo_fill(cr); else cairo_stroke(cr); }
 
 
+static char *c0K(K x){
+ size_t n = NK(x);
+ char *r = malloc(1+n);
+ CK(r, x);
+ r[n] = (char)0;
+ return r;
+}
+
 
 K drawcmds; // "`color`font`linewidth`rect`Rect`circle`Circle`line`poly`Poly`text`Text"
 
@@ -90,18 +98,14 @@ K draw(K x, K y){ //dst
   case 0: //color
    if(TK(a)!='i') { err="draw color"; goto E; }
    unsigned int co = (unsigned int)iK(a);
-   cairo_set_source_rgb(cr, (double)(co&0xff)/255.0, (double)((co&0xff00)>>8)/255.0, (double)((co&0xff0000)>>24)/255.0);
+   cairo_set_source_rgb(cr, (double)(co&0xff)/255.0, (double)((co&0xff00)>>8)/255.0, (double)((co&0xff0000)>>16)/255.0);
    break;
   case 1: //font
-   if(TK(a)!='C') { err="draw font"; goto E; };
    if((TK(a)!='L')||(NK(a)!=2)) { err="draw font arg"; goto E; }
    K l2[2]; LK(l2, ref(a));
-   if((TK(l2[0])!='C')||(TK(l2[1]!='i'))){unref(l[0]);unref(l[1]);err="draw font args"; goto E; };
+   if((TK(l2[0])!='C')||(TK(l2[1])!='i')){unref(l[0]);unref(l[1]);err="draw font args"; goto E; };
    unref(a);
-   size_t n = NK(l[0]);
-   char *family = (char *)malloc(1+n);
-   CK(family, l[0]);
-   family[n] = 0;
+   char *family = c0K(l2[0]);
    cairo_select_font_face(cr, family, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
    cairo_set_font_size(cr, (double)iK(l2[1]));
    free(family);
@@ -120,7 +124,7 @@ K draw(K x, K y){ //dst
   case 5: //circle
   case 6: //Circle
    if(vec(v,3,a)) { err="draw circle"; goto E; }
-   cairo_arc(cr, v[0], v[1], v[3], 0, 6.283185307179586);
+   cairo_arc(cr, v[0], v[1], v[2], 0, 6.283185307179586);
    fillstroke(cr, j==6);
    break;
   case 7: //line
@@ -144,17 +148,16 @@ K draw(K x, K y){ //dst
    break;
   case 10: //text
   case 11: //Text
-   if((TK(a)!='L')||(NK(a)!=4)) { err="draw text arg"; goto E; }
-   K l4[4]; LK(l4, ref(a));
-   if((TK(l4[3])!='C')||(TK(l4[2])!='i')){ err="draw text args"; goto E; }
-   if(vec(v,2,Kx(",", l4[0], l4[1]))){     err="draw text xy";   goto E; }
+   if((TK(a)!='L')||(NK(a)!=3)) { err="draw text arg"; goto E; }
+   K l3[3]; LK(l3, ref(a));
+   if(vec(v,2,l3[0])||(TK(l3[1])!='i')||(TK(l3[2])!='C')){
+    unref(l[1]);unref(l[2]);err="draw text args";goto E; 
+   }
    unref(a);
-   size_t nc = NK(l4[3]);
-   char *cc = (char*)malloc(1+nc); CK(cc,l4[3]);
-   cc[nc] = 0;
+   char *cc = c0K(l3[2]);
    cairo_text_extents_t ex;
    cairo_text_extents(cr, cc, &ex);
-   align(cr, v, iK(l4[2]), j==11, &ex);
+   align(cr, v, iK(l3[1]), j==11, &ex);
    cairo_move_to(cr, v[0], v[1]);
    if(j==11){ cairo_save(cr); cairo_rotate(cr,-1.5707963267948966); }
    cairo_show_text(cr, cc);
@@ -208,9 +211,12 @@ static void align(cairo_t *cr, double *v, int a, int rot, cairo_text_extents_t *
  double w = ex->width;
  double h = ex->height; 
  double X[9] = {0, w/2.0, w, w, w, w/2.0, 0, 0, w/2.0};
- double Y[9] = {h, h, h, h/2.0, 0, 0, 0, h/2.0, h/2.0};
- v[0] += X[a] - x;
- v[1] += Y[a] - y;
+ double Y[9] = {0, 0, 0, h/2.0, h, h, h, h/2.0, h/2.0};
+ double dx = X[a] + x;
+ double dy = (y+h) - Y[a];
+ if(rot){ double t=dx;dx=dy;dy=-t; }
+ v[0] -= dx;
+ v[1] -= dy;
 }
 
 
@@ -229,7 +235,6 @@ static int vecn(K x){ char t=TK(x); if(((t!='I')&&(t!='F'))) return -1; return (
 static double *veca(K x, int n){
  double *r = malloc(sizeof(double)*(size_t)n);
  if(TK(x)=='F'){ FK(r, x); return r; };
- 
  int *p = malloc(sizeof(int)*(size_t)n);
  IK(p, x);
  for(int i=0;i<n;i++) r[i]=(float)p[i];

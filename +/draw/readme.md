@@ -54,8 +54,8 @@ The first argument `d` is a general list with symbol-argument pairs:
 |`Circle`|`x y r`|fill circle|
 |`poly`|`X Y`|stroke poly line|
 |`Poly`|`X Y`|fill polygon|
-|`text`|`(x;y;a;text)`|draw text, a:alignment|
-|`Text`|`(x;y;a;text)`|draw rotated text|
+|`text`|`(xy;a;text)`|draw text, a:alignment|
+|`Text`|`(xy;a;text)`|draw rotated text|
 
 Most numeric arguments may be float or int.  
 Text alignment is an integer (0..8) that defines where the reference point x y is relative to the text:
