@@ -26,5 +26,5 @@ jobs:
     - name: setup go
       uses: actions/setup-go@v2
     
-    -name: install wg
+    - name: install wg
       run: cd wg && go install ./cmd/wg
