@@ -26,11 +26,11 @@ jobs:
     - name: install ktye/wg
       with:
         go-version: 1.17
-    - run: cd wg && go install ./cmd/wg
+      run: cd wg && go install ./cmd/wg
 
 
     - name: build ktye/i
-    - run: cd i && go build -v .
+      run: cd i && go build -v .
 
     - name: Test ktye/i
-    - run: cd i && go test -v .
+      run: cd i && go test -v .
