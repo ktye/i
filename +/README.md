@@ -32,5 +32,6 @@ other systems need different link flags.
 |dir|what|source|
 |---|---|---|
 |[mat](mat/mat.c)|solve,qr,eig,svd real+complex|lapack|
-|[img](img/img.c)|2d vector drawing,rw png,r svg,r ttf|[nothings](https://github.com/nothings/stb),[nanosvg](https://github.com/memononen/nanosvg)|
+|[draw](draw/draw.c)|2d vector drawing,rw png,r svg,r ttf|[cairo](https://www.cairographics.org/)|
 |[ray](ray/ray.c)|show image in a window with interaction|[raylib](https://www.raylib.com/)|
+|[sqlite](sqlite/sqlite.c)|convert to/from sqlite3 db|[sqlite](https://www.sqlite.org)|
