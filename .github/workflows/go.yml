@@ -23,8 +23,8 @@ jobs:
         repository: ktye/wg
         path: wg
         
-    - name: install wg
+    - name: setup go
       uses: actions/setup-go@v2
-      with:
-        go-version: '1.17'
+    
+    -name: install wg
       run: cd wg && go install ./cmd/wg
