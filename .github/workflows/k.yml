@@ -45,3 +45,10 @@ jobs:
     
     - name: test k.c
       run: cd i && ./kc k.t -e
+
+    - name: upload k.c
+        uses: actions/upload-artifact@v2
+        with:
+          name: k.c
+          path: i/k.c
+          
