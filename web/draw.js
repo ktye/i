@@ -28,7 +28,7 @@ D.draw = function(x,y){
  } else if((K.TK(y)=='I')&&(K.NK(y) == 2)) wh=K.IK(y);
  else {
   console.log("yt", K.TK(y), K.NK(y))
- K.unref(x); return K.KE("draw: y type"); }
+  K.unref(x); return K.KE("draw: y type"); }
  
  let l=K.LK(x)
  let n=K.NK(x)
@@ -55,7 +55,6 @@ D.draw = function(x,y){
  let setcolor = function(i){ 
   let s="rgb(" + String(i&255) + ", " + String((i>>>8)&255) + ", " + String((i>>>16)&255) + ")"
   ctx.fillStyle=s; ctx.strokeStyle=s
-  console.log("color", s)
  }
  
  let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : KE("num type") }
@@ -69,10 +68,10 @@ D.draw = function(x,y){
     break
    case "font":
     ck(s, ((K.TK(a)=="L") && (K.NK(a) == 2)))
-    ck(s, (K.TK(a) == 'C'))
     a = K.LK(a)
     ck(s, K.TK(a[0]) == "C")
-    ctx.font = num(a[1]) + "px " + K.CK(a)
+    let px = num(a[1])
+    ctx.font = String(px) + "px " + K.CK(a[0])
     break
    case "linewidth":
     ctx.lineWidth = num(a)
@@ -116,10 +115,13 @@ D.draw = function(x,y){
    case "Text":
     ck(s, ((K.TK(a)=="L") && (K.NK(a) == 3)))
     a = K.LK(a)
-    let nx=num(a[0]), ny=num(a[1])
-    ck(s, K.TK(a[2]) == "C")
-    if(s=="Text"){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(-Math.PI/2); nx=0; ny=0 }
-    ctx.fillText(K.CK(a[2]), nx, ny)
+    let xy = vec(a[0])
+    ck(s, xy.length==2)
+    ck(s, K.TK(a[1]) == 'i')
+    ck(s, K.TK(a[2]) == 'C')
+    align(ctx, num(a[1]))
+    if(s=="Text"){ ctx.save(); ctx.translate(xy[0], xy[1]); ctx.rotate(-Math.PI/2); xy[0]=0; xy[1]=0 }
+    ctx.fillText(K.CK(a[2]), xy[0], xy[1])
     if(s=="Text"){ ctx.restore() }
     break
    default:
@@ -139,6 +141,10 @@ D.draw = function(x,y){
  return r
 }
 
+function align(ctx, a){
+ ctx.textBaseline  = ["bottom","bottom","bottom","middle","top","top","top","middle","middle"][a]
+ ctx.textAlign     = ["left","center","right","right","right","center","left","left","center"][a]
+}
 
 // display an image on a canvas with id="_cnv"
 // show(20;(20*50)#255)
