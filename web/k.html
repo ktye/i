@@ -1,0 +1,132 @@
+<head><meta charset="utf-8"><title>.</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+<link rel="stylesheet" href="codemirror/codemirror.min.css">
+<style>
+ html{font-family:monospace;}
+ .codemirror{height:100%;border:none;resize:none}
+ .cm-fat-cursor .CodeMirror-cursor{width:auto;border:0!important;background:black}
+ #_uid{position:absolute;right:5;top:5;z-index:10}
+</style>
+
+<script src="codemirror/jquery.min.js"></script>
+<script src="codemirror/codemirror.min.js"></script>
+<script src="codemirror/matchbrackets.js"></script>
+
+<body>
+<div id="_edt" class="cm.fat-cursor"></div>
+<div id="_uid""></pre><canvas id="_cnv"></canvas></div>
+<a id="_dl" style:"display:none"></a>
+
+<script type="module">
+
+import { K } from './k.js'
+import { D } from './draw.js'
+
+
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function hash(){return decodeURIComponent(window.location.hash.substr(1))}
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function us(s){return new TextEncoder("utf-8").encode(s)}
+
+let _edt=ge("_edt")
+let _ed = CodeMirror(_edt, {"dark":true,"lineNumbers":false,"dragDrop":false,"tabSize":8,"indentUnit":8,"indentWithTabs":true,"smartIndent":false,"matchBrackets":true,"extraKeys":{"Enter": enter, "Up":function(){return updown(-1)}, "Down": function(){return updown(1)}}})
+
+// search selected: middle-button(all), right(next) (bug: mouseup(chrome), ff ok)
+_edt.addEventListener('contextmenu',function(e){console.log("click");pd(e);})
+_ed.on('mousedown', function(cm, e) {
+ if     (e.button==2 && (_ed.getSelection().length>0)){search(_ed.getSelection(),false);pd(e)}
+ else if(e.button==1 && (_ed.getSelection().length>0)){search(_ed.getSelection(),true );pd(e)}
+})
+function indexAll(a, s) { let r = [], i = -1; while ((i = a.indexOf(s, i+1)) != -1){ r.push(i); }; return r; }
+function search(t, all){
+ let v=_ed.getValue();let p=_ed.getCursor();if(all){
+  let n=indexAll(v,t);for(let i=0; i<n.length; i++)_ed.addSelection(_ed.posFromIndex(n[i]),_ed.posFromIndex(n[i]+t.length),{"scroll":true})
+ }else{
+  let c=_ed.indexFromPos(_ed.getCursor());c=(p.sticky=="after")?c+t.length:c
+  let n=v.indexOf(t,c);if(n==-1){n=v.indexOf(t,0)};_ed.setSelection(_ed.posFromIndex(n), _ed.posFromIndex(n+t.length), {"scroll":true})}}
+
+window.addEventListener('unhandledrejection', function(e) {_ed.setValue(String(e.reason))})
+
+function fatCursor(x){
+ if(x)CodeMirror.addClass(_ed.getWrapperElement(),"cm-fat-cursor")
+ else CodeMirror.rmClass (_ed.getWrapperElement(),"cm-fat-cursor")
+}
+
+// atEOF: block cursor. console(execute) editor(exit-at-\)
+function atEOF(){let c=_ed.getCursor();let l=_ed.lastLine();return ((c.line==l)&&(true/*_ed.getLine(l).length==c.ch*/)&&(_ed.getSelection().length==0))}
+_ed.on("cursorActivity", function(e){ fatCursor(atEOF()) })
+function O(s){_ed.replaceRange(s,{line:Infinity});_ed.setCursor(_ed.lineCount(),0,{"scroll":true});}
+
+let editor=false
+let _hist=[""];let _histn=1
+let _buf="\\"
+let cons=""
+function setEditor(b){editor=b;if(b){cons=_ed.getValue();_ed.setValue(_buf)}else{_ed.setValue(cons)};_ed.setCursor(_ed.lineCount(),0,{"scroll":true})}
+function enter(){if(!atEOF())return CodeMirror.Pass;let l=_ed.getLine(_ed.lastLine());let t=l.trim()
+ if(!editor){
+  if(t=="\\e"){
+   setEditor(true);return
+  }else if(t.startsWith("\\e ")){
+   t=t.slice(3); _buf=t+":"+K.CK(K.Kx("`edit@", K.Kx(".", K.Ks(t))))+"\n\\"; setEditor(true);return
+  }else if(t=="\\"){help()  
+  }else{exec(l);if(l!=" "&&_hist[_hist.length-1]!=l)_hist.push(l);_histn=_hist.length;return}
+ }else{
+  switch(t){
+  case "\\":
+  case "\\\\":
+   let s=_ed.getValue()
+   setEditor(false)
+   if(t=="\\"){_buf=s.slice(0,-2);if(_buf.startsWith("\\c\n")){reset();_buf.slice(3)};window.location.hash=encodeURIComponent(_buf);exec(_buf)} break;
+  default: return CodeMirror.Pass
+  }}}
+function updown(d){if(editor||!atEOF())return CodeMirror.Pass; _histn=Math.min(Math.max(0,_histn+d),_hist.length-1);let l=_ed.lastLine();_ed.replaceRange(_hist[_histn],{"line":l,"ch":0},{"line":l,"ch":Infinity}) }
+
+function exec(s){s=(s.startsWith("  "))?" "+s.trim():s.trim()
+ let l=_ed.lastLine()
+ _ed.markText({line:l,ch:0},{line:l,ch:Infinity},{css:"color: darkred"})
+ _ed.replaceRange("\n", {line:l})
+ ktry(s);O(" ")}
+ 
+
+function ktry(s){
+ try     { let x=K._.repl(K.KC(s)); K.save() }
+ catch(e){ console.log(e); K.restore() }
+}
+
+
+function download(name,u){
+ let dl=ge("_dl");let b=new Blob([u],{type:"application/octet-stream"})
+ dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
+
+var ext = {
+ init: function()         {_ed.setValue("ktye/k "+K.n+"\n ")},
+ read: function(file)     {return new Uint8Array(0)},
+ write:function(file,data){if(file===""){O(su(data))}else{download(name,u)}},
+}
+Object.assign(ext, D)
+K.kinit(ext)
+
+
+// drop file in console (store in variable)
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if (e.dataTransfer.items){for (let i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){let file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(let i=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){
+ let r = new FileReader()
+ r.onload = function(){
+  let u = new Uint8Array(r.result)
+  if(x.name.endsWith(".k")){ O("\\l "+x.name+"\n"); ktry(u) }
+  else{ K.KA(K.Ks(x.name),K.KC(u)); O(x.name+": "+u.length+"\n ") }
+  
+ }
+ r.readAsArrayBuffer(x)
+}
+
+
+function help(){fetch('readme').then(r=>r.text()).then(r=>O("\n"+r+" "))}
+
+
+</script>
+</body></html>
+
