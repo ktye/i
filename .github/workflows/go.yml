@@ -23,14 +23,4 @@ jobs:
         repository: https://github.com/ktye/wg
         path: wg
       
-    - name: install ktye/wg
-      with:
-        go-version: 1.17
-      run: cd wg && go install ./cmd/wg
-
-
-    - name: build ktye/i
-      run: cd i && go build -v .
-
-    - name: Test ktye/i
-      run: cd i && go test -v .
+ 
