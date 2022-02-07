@@ -20,7 +20,7 @@ jobs:
     - name: checkout wg
       uses: actions/checkout@v2
       with:
-        repository: https://github.com/ktye/wg
+        repository: ktye/wg
         path: wg
       
  
