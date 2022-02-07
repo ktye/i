@@ -41,7 +41,7 @@ jobs:
       run: | 
         cd i
         wg -c -prefix ktye_ . > k.c
-        gcc -o kc -O2 k.c
+        gcc -o kc -O2 k.c -lm
     
     - name: test k.c
       run: cd i && ./kc k.t -e
