@@ -40,7 +40,7 @@ jobs:
     - name: build k.c
       run: | 
         cd i
-        wg -c -prefix -ktye_c . > k.c
+        wg -c -prefix ktye_ . > k.c
         gcc -o kc -O2 k.c
     
     - name: test k.c
