@@ -30,3 +30,9 @@ jobs:
     
     - name: install wg
       run: cd wg && go install ./cmd/wg
+
+    - name: build i
+      run: cd i && go build -v ./
+      
+    - name: test i
+      run: cd i && go test
