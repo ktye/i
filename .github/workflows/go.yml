@@ -15,8 +15,9 @@ jobs:
     
     - name: checkout wg
       uses: actions/checkout@v2
-      repository: https://github.com/ktye/wg
-      path: wg
+      with:
+        repository: https://github.com/ktye/wg
+        path: wg
       
     - name: install ktye/wg
       with:
