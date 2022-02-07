@@ -1,4 +1,4 @@
-name: Go
+name: ktye/k
 
 on:
   push:
@@ -12,14 +12,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
+    
+    - name: checkout wg
+      uses: actions/checkout@v2
+      repository: ktye/wg
+      path: wg
+      
+    - name: install ktye/wg
       with:
         go-version: 1.17
+      working-directory: ./wg
+      run: go install ./cmd/wg
+      
+    - name: checkout ktye/i
+      uses: actions/setup-go@v2
+      with:
+        path: i
 
-    - name: Build
+    - name: build ktye/i
+      working-directory: ./i
       run: go build -v .
 
-    - name: Test
+    - name: Test ktye/i
+      working-directory: ./i
       run: go test -v .
