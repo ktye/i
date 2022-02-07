@@ -36,3 +36,12 @@ jobs:
       
     - name: test i
       run: cd i && go test
+
+    - name: build k.c
+      run: | 
+        cd i
+        wg -c -prefix -ktye_c . > k.c
+        gcc -o kc -O2 k.c
+    
+    - name: test k.c
+      run: cd i && ./kc k.t -e
