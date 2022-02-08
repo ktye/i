@@ -70,7 +70,7 @@ func repl(x K) {
 	}
 }
 func doargs() {
-	a := ndrop(1, getargs())
+	a := ndrop(1, getargv())
 	an := nn(a)
 	ap := int32(a)
 	ee := Ku(25901) // -e
@@ -158,7 +158,7 @@ func writepn(p, n int32) int32 {
 	SetI32(516, n)
 	return wasi_unstable.Fd_write(1, 512, 1, 512)
 }
-func getargs() K {
+func getargv() K {
 	wasi_unstable.Args_sizes_get(512, 516)
 	n := I32(516)
 	a := mk(It, I32(512))

@@ -1,0 +1,34 @@
+# build single file package k (k.go)
+
+set -e
+set -x
+
+cat << EOF > k.go
+package k
+
+import (
+	"encoding/binary"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"math"
+	"math/bits"
+	"os"
+	"time"
+)
+
+EOF
+ls ../*.go ../../wg/module/*.go ../../wg/wasi_unstable/*.go | grep -v _test | while read file; do
+	cat $file
+done | awk '
+BEGIN               {x=1}
+/^package /         {next}
+/^import \(/        {x=0}
+/^import /          {next}
+/\)/                {if(x){print}else{x=1};next}
+/^func main/        {print"func Main(){";next}
+                    {if(x)print}
+' $file | sed 's/wasi_unstable\.//g' >> k.go && go fmt k.go
+
+# todo api
+
