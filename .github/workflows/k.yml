@@ -73,3 +73,8 @@ jobs:
         sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev
         cd i/+
         sh mk.lin
+        
+    - name: test k+
+      run: |
+        ./k+ mat/mat.k -e
+        ./k+ draw/draw.k -e
