@@ -36,6 +36,9 @@ jobs:
       
     - name: test i
       run: cd i && go test
+    
+    - name: build k.go amalgamation
+      run: cd i/go && sh mk && go build k.go
 
     - name: build k.c
       run: | 
