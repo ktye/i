@@ -1,3 +1,9 @@
+d:(`color;123;`Rect;0 0 100 50)
+m:draw[d;100 50]
+
+ \"draw ",$[m~(50;(100*50)#123);"ok";"fail"]
+
+
 d:(`rect;0 0 300 200
    `color;255
    `Rect;20 10 40 30
@@ -8,6 +14,7 @@ d:(`rect;0 0 300 200
    `color;0;`text;(200 120;0;"a b c")
    `Text;(180 120;0;"E F G"))
 m:draw[d;300 200]
-show m
 
+
+/ show m
 
