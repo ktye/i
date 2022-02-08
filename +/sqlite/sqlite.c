@@ -1,8 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include"../k.h"
 #include"sqlite3.h"
+#include"../k.h"
 
 
 static K getTable(sqlite3 *db, K name){ // k table from sqlite table
@@ -55,7 +55,7 @@ static K getTable(sqlite3 *db, K name){ // k table from sqlite table
    case 'S':
     l[i] = Kx(",", l[i], Ks((char*)sqlite3_column_text(res, i)));
     break;
-   default:
+   default:;
     int nb = sqlite3_column_bytes(res, i);
     K c = KC((char *)sqlite3_column_blob(res, i), (size_t)nb);
     l[i] = Kx(",", l[i], Kx(",", c)); // l,,c

@@ -30,7 +30,7 @@ $cc -c ray/ray.c
 ## sqlite
 DEF="$DEF -DSQL"
 SQL="sqlite.o sqlite3.dll"
-$cc -c sqlite/sqlite.c
+$cc -c -std=c99 sqlite/sqlite.c
 
 
 ## ktye/k
