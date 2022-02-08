@@ -1,0 +1,41 @@
+# debian/ubuntu:
+#  apt-get install liblapacke-dev
+#  apt-get install libcairo2-dev
+#  apt-get install libsqlite3-dev
+
+set -e
+set -x
+
+DEF=""
+cc="gcc -O2 -s -Werror -Wfatal-errors"
+
+
+## math/lapack
+DEF="$DEF -DMAT"
+MAT="mat.o"
+LMAT="-llapacke -lblas"
+$cc -c mat/mat.c
+
+## draw/png,ttf
+DEF="$DEF -DDRW"
+DRW="draw.o"
+LDRW="-lcairo"
+$cc -I/usr/include/cairo -c draw/draw.c
+
+## raylib todo
+
+## sqlite
+DEF="$DEF -DSQL"
+SQL="sqlite.o"
+LSQL="-lsqlite3"
+$cc -c sqlite/sqlite.c
+
+## ktye.h & k.c
+wg -c -prefix ktye_ -nomain .. > ktye.h
+cat api                       >> ktye.h
+$cc -c $DEF k.c
+
+
+## link to k+
+$cc -o k+ k.o $MAT $DRW $SQL  $LMAT $LDRW $LSQL -lm
+
