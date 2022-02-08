@@ -286,7 +286,6 @@ K eig(K x, size_t z, char job, int sym){ // dsyev zheev [dz]geev
 		if(z > 1) rw = KZ(wr, 2*cols, 2);
 		else      rw = KZ2(wr, wi, cols);
 		free(wr);
-		if(wi) free(wi);
 	}
 	if(job == 'V'){
 		if(sym){
@@ -299,6 +298,7 @@ K eig(K x, size_t z, char job, int sym){ // dsyev zheev [dz]geev
 			r = KL(rl, 3);
 		}
 	} else  r = rw;
+	if(wi) free(wi);
 	free(A);
 	return r;
 }
