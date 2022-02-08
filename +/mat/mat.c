@@ -87,8 +87,7 @@ static double *Fk(K x, size_t *n){
 	if(TK(x) != 'F') return NULL;
 	*n=NK(x);
 	double *r = malloc(8**n);
-	memcpy(r, (double*)dK(x), 8**n);
-	unref(x);
+	FK(r, x);
 	return r;
 }
 #ifdef KTYE

@@ -11,7 +11,7 @@ set -e
 set -x
 
 DEF=""
-cc="gcc -O2 -s -Werror -Wfatal-errors"
+cc="gcc -O2 -s -Werror -Wfatal-errors -fsanitize=address"
 
 
 ## math/lapack
