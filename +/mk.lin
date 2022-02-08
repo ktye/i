@@ -1,7 +1,11 @@
 # debian/ubuntu:
 #  apt-get install liblapacke-dev
 #  apt-get install libcairo2-dev
-#  apt-get install libsqlite3-dev
+#  apt-get install libsqlite3-dev 
+#  sqlite needs serialize/deserialize, e.g. build current version (e.g. 3.37.2) from source:
+#   sqlite.org/src/doc/trunk/README.md
+#   -> Compiling for Unix-like systems
+#   cp sqlite3.c .
 
 set -e
 set -x
@@ -27,7 +31,8 @@ $cc -I/usr/include/cairo -c draw/draw.c
 ## sqlite
 DEF="$DEF -DSQL"
 SQL="sqlite.o"
-LSQL="-lsqlite3"
+LSQL="sqlite3.o"
+$cc -c sqlite3.c
 $cc -c sqlite/sqlite.c
 
 ## ktye.h & k.c
@@ -37,5 +42,5 @@ $cc -c $DEF k.c
 
 
 ## link to k+
-$cc -o k+ k.o $MAT $DRW $SQL  $LMAT $LDRW $LSQL -lm
+$cc -o k+ k.o $MAT $DRW $SQL $LSQL  $LMAT $LDRW -lm
 
