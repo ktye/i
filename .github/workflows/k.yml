@@ -76,5 +76,6 @@ jobs:
         
     - name: test k+
       run: |
+        cd i/+
         ./k+ mat/mat.k -e
         ./k+ draw/draw.k -e
