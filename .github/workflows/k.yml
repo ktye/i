@@ -52,3 +52,8 @@ jobs:
         name: k.c
         path: i/k.c
           
+    - name: build k+
+      run: |
+        sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev
+        cd i/+
+        sh mk.lin
