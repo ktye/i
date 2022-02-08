@@ -13,8 +13,8 @@ static K getTable(sqlite3 *db, K name){ // k table from sqlite table
  memcpy(c, q, sizeof(q));
  CK(c+sizeof(q)-1, name);
  
- printf("sizeof q = %d\n", sizeof(q));
- for(int i=0;i<n;i++) printf("i=%d c=%c\n", i, c[i]);
+ //printf("sizeof q = %d\n", sizeof(q));
+ //for(int i=0;i<n;i++) printf("i=%d c=%c\n", i, c[i]);
  
  sqlite3_stmt *res;
  int rc = sqlite3_prepare_v2(db, c, n, &res, 0);
