@@ -39,6 +39,12 @@ jobs:
     
     - name: build k.go amalgamation
       run: cd i/go && sh mk && go build k.go
+    
+    - name: upload k.go
+      uses: actions/upload-artifact@v2
+      with:
+        name: k.go
+        path: i/go/k.go
 
     - name: build k.c
       run: | 
