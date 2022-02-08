@@ -11,7 +11,10 @@ set -e
 set -x
 
 DEF=""
-cc="gcc -Werror -Wfatal-errors -fsanitize=address -O1 -fno-omit-frame-pointer -g"
+cc="gcc -O2 -s -Werror -Wfatal-errors"
+
+## with leak detection:
+#cc="gcc -Werror -Wfatal-errors -fsanitize=address -O1 -fno-omit-frame-pointer -g"
 
 
 ## math/lapack
