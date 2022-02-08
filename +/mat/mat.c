@@ -332,6 +332,7 @@ K svd(K x, size_t z, char job){ // [dz]gesvd
 	free(U);
 	free(V);
 	free(s);
+	free(A);
 	return r;
 }
 K dgesv(K x, K y){ return solve(x, y, 1, 1); }
