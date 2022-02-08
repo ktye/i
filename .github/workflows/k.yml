@@ -51,6 +51,22 @@ jobs:
       with:
         name: k.c
         path: i/k.c
+        
+    - name: checkout sqlite
+      uses: actions/checkout@v2
+      with:
+        repository: sqlite/sqlite
+        path: sqlite
+        ref: version-3.37.2
+
+    - name: build sqlite.c
+      run: |
+        mkdir sq
+        cd sq
+        ../sqlite/configure
+        make
+        make sqlite3.c
+        cp sqlite3.c ../i/+
           
     - name: build k+
       run: |
