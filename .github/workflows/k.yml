@@ -11,6 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    
+    - name: set date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
    
     - name: checkout ktye/i
       uses: actions/checkout@v2
@@ -88,3 +92,31 @@ jobs:
         cd i/+
         ./k+ mat/mat.k -e
         ./k+ draw/draw.k -e
+        
+    - name: release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.date.outputs.date }} ${{ github.ref }}
+        
+   - name: upload k.go
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./i/go/k.go
+          asset_name: k.go
+          
+    - name: upload k.c
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./i/k.c
+          asset_name: k.c
+          
