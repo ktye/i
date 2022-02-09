@@ -45,7 +45,7 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 |file|what|compile|
 |---|---|---
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|single file package k|`go build k.go`|
-[K.go](https://github.com/ktye/i/releases/download/latest/K.go)|single file main program|`go build K.go`|
+[kg.go](https://github.com/ktye/i/releases/download/latest/kg.go)|single file main program|`go build kg.go`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|single file c program|`gcc k.c -lm`|
 [ktye.h](https://github.com/ktye/i/releases/download/latest/ktye.h)|single header library|see [k+](https://github.com/ktye/i/tree/master/%2B)|
 [k+.tar.gz](https://github.com/ktye/i/releases/download/latest/k%2B.tar.gz)|k + extensions|linux: `sh mk.lin`|
