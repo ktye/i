@@ -39,7 +39,6 @@ wg -try -multi . > k-wavm.wat
 cp web/k.html /c/k/ktye.github.io/index.html
 cp web/k.wasm /c/k/ktye.github.io/k.wasm
 cp k.t        /c/k/ktye.github.io/k.t
-cp readme     /c/k/ktye.github.io/readme
 cp apl/∘.k    /c/k/ktye.github.io/∘.k
 
 
