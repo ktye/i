@@ -41,14 +41,11 @@ jobs:
     - name: test i
       run: cd i && go test
     
-    - name: build k.go amalgamation
+    - name: build k.go amalgamation package
       run: cd i/go && sh mk && go build k.go
-    
-    - name: upload k.go
-      uses: actions/upload-artifact@v2
-      with:
-        name: k.go
-        path: i/go/k.go
+      
+    - name: build K.go main program
+      run: cd i/go && sed -e 's/package k/package main/' -e 's/^func Main/func main/' k.go > K.go && go build K.go && ./K ../k.t -e
 
     - name: build k.c
       run: | 
@@ -123,6 +120,16 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./i/go/k.go
         asset_name: k.go
+        asset_content_type: text/plain
+    
+    - name: upload K.go
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/go/K.go
+        asset_name: K.go
         asset_content_type: text/plain
           
     - name: upload k.c
