@@ -38,9 +38,7 @@ LSQL="sqlite3.o"
 $cc -c -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION sqlite3.c
 $cc -c sqlite/sqlite.c
 
-## ktye.h & k.c
-wg -c -prefix ktye_ -nomain .. > ktye.h
-cat api                       >> ktye.h
+## k.c (run "sh mk ktye.h" before, to update ktye.h)
 $cc -c $DEF k.c
 
 

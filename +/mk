@@ -8,6 +8,13 @@
 set -e
 set -x
 
+if [ "$1" = "ktye.h" ]; then
+	wg -c -prefix ktye_ -nomain .. > ktye.h
+	cat api                       >> ktye.h
+	exit
+fi
+
+
 DEF=""
 cc="gcc -O2 -s -Werror -Wfatal-errors"
 
