@@ -55,50 +55,7 @@ jobs:
         cd i
         wg -c -prefix ktye_ . > k.c
         gcc -o kc -O2 k.c -lm
-        
-    
-    
-    - name: delete release
-      uses: dev-drprasad/delete-older-releases@v0.2.0
-      with:
-        keep_latest: 0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.date.outputs.date }} ${{ github.ref }}
-        
-    - name: upload k.go
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/go/k.go
-        asset_name: k.go
-        asset_content_type: text/plain
-          
-    - name: upload k.c
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/k.c
-        asset_name: k.c
-        asset_content_type: text/plain
-          
-    
-        
-        
-        
-    
+
     - name: test k.c
       run: cd i && ./kc k.t -e
 
@@ -136,4 +93,49 @@ jobs:
         ./k+ mat/mat.k -e
         ./k+ draw/draw.k -e
         
+    - name: delete release
+      uses: dev-drprasad/delete-older-releases@v0.2.0
+      with:
+        keep_latest: 0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.date.outputs.date }} ${{ github.ref }}
+        body_path: .github/workflows/readme.md
+        
+    - name: upload k.go
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/go/k.go
+        asset_name: k.go
+        asset_content_type: text/plain
+          
+    - name: upload k.c
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/k.c
+        asset_name: k.c
+        asset_content_type: text/plain
+    
+    - name: upload k.h
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/+/k.h
+        asset_name: k.h
+        asset_content_type: text/plain
