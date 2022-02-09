@@ -106,9 +106,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
+        tag_name: release
         release_name: Release ${{ steps.date.outputs.date }} ${{ github.ref }}
-        body_path: .github/workflows/readme.md
         
     - name: upload k.go
       uses: actions/upload-release-asset@v1
