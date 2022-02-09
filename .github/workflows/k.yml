@@ -56,7 +56,15 @@ jobs:
         wg -c -prefix ktye_ . > k.c
         gcc -o kc -O2 k.c -lm
         
-        
+    
+    
+    - name: delete release
+      uses: dev-drprasad/delete-older-releases@v0.2.0
+      with:
+        keep_latest: 0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     - name: release
       id: create_release
       uses: actions/create-release@v1
