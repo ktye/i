@@ -44,8 +44,8 @@ jobs:
     - name: build k.go amalgamation package
       run: cd i/go && sh mk && go build k.go
       
-    - name: build K.go main program
-      run: cd i/go && sed -e 's/package k/package main/' -e 's/^func Main/func main/' k.go > K.go && go build K.go && ./K ../k.t -e
+    - name: build kg.go main program
+      run: cd i/go && sed -e 's/package k/package main/' -e 's/^func Main/func main/' k.go > kg.go && go build kg.go && ./kg ../k.t -e
 
     - name: build k.c
       run: | 
@@ -122,14 +122,14 @@ jobs:
         asset_name: k.go
         asset_content_type: text/plain
     
-    - name: upload K.go
+    - name: upload kg.go
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/go/K.go
-        asset_name: K.go
+        asset_path: ./i/go/kg.go
+        asset_name: kg.go
         asset_content_type: text/plain
           
     - name: upload k.c
