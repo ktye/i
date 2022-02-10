@@ -34,6 +34,12 @@ jobs:
     
     - name: install wg
       run: cd wg && go install ./cmd/wg
+      
+    - name: install wabt
+      run: |
+        wget https://github.com/WebAssembly/wabt/releases/download/1.0.26/wabt-1.0.26-ubuntu.tar.gz
+        tar zxf wabt-1.0.26-ubuntu.tar.gz
+        cp wabt-1.0.26/bin/wat2wasm .
 
     - name: build i
       run: cd i && go build -v ./
@@ -41,6 +47,13 @@ jobs:
     - name: test i
       run: cd i && go test
     
+    - name: build k.wasm
+      run: |
+        cd i
+        wg             . > k.wat
+        wg -try -multi . > k-wavm.wat
+        ../wasm2wat --enable-bulk-memory --enable-simd -o k.wasm k.wat
+        
     - name: build k.go amalgamation package
       run: cd i/go && sh mk && go build k.go
       
@@ -106,6 +119,26 @@ jobs:
         tag_name: latest
         release_name: Release ${{ steps.date.outputs.date }} ${{ github.ref }}
         
+    - name: upload k.wasm
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/k.wasm
+        asset_name: k.wasm
+        asset_content_type: application/wasm
+    
+    - name: upload k-wavm.wat
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/k-wavm.wat
+        asset_name: k-wavm.wat
+        asset_content_type: text/plain
+    
     - name: upload k.go
       uses: actions/upload-release-asset@v1
       env:
