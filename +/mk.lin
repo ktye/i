@@ -32,7 +32,7 @@ $cc -I/usr/include/cairo -c draw/draw.c
 ## raylib
 DEF="$DEF -DRAY"
 RAY="ray.o libraylib.a"
-LRAY=""  #-lGL -lm -lpthread -ldl -lrt -lX11
+LRAY="-lGL -lm -lpthread -ldl -lrt -lX11"
 $cc -c ray/ray.c
 
 ## sqlite
@@ -47,5 +47,5 @@ $cc -c $DEF k.c
 
 
 ## link to k+
-$cc -o k+ k.o $MAT $DRW $RAY $SQL $LSQL  $LMAT $LDRW $LRAY -lm
+$cc -o k+ k.o $MAT $DRW $RAY $SQL $LSQL  $LMAT $LDRW $LRAY
 
