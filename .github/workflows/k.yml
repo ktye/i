@@ -52,7 +52,7 @@ jobs:
         cd i
         wg             . > k.wat
         wg -try -multi . > k-wavm.wat
-        ../wat2wasm --enable-bulk-memory --enable-simd -o k.wasm k.wat
+        ../wat2wasm -o k.wasm k.wat
         
     - name: build k.go amalgamation package
       run: cd i/go && sh mk && go build k.go
