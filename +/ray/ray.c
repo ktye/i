@@ -91,7 +91,7 @@ K showev(K x, K click, K zoom){
 				//printf("doubleclick %d %d\n", mx, my);
 				t = update_texture(t, Kx("@", ref(click), KI2(mx, my)));
 				break;
-			case GESTURE_DRAG: 
+			case GESTURE_DRAG:;
 				int x=GetMouseX();
 				int y=GetMouseY();
 				rw=x-mx;

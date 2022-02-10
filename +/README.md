@@ -25,8 +25,16 @@ k.c is the main application that includes all extensions.
 # building
 
 The file mk builds the k+ binary for windows. it is tested with mingw from [web64devkit](https://nullprogram.com/blog/2020/09/25/).  
+
 Linux (debian/ubuntu) can use mk.lin which needs ktye.h and sqlite3.c generated before.
 These are available in [k+.tar.gz](https://github.com/ktye/i/releases/download/latest/k%2B.tar.gz)
+Required packages:
+```
+# lapack, draw, sqlite
+apt install liblapacke-dev libcairo2-dev libsqlite3-dev 
+# raylib
+apt install libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
+```
 
 # libraries
 
