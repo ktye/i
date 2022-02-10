@@ -43,7 +43,9 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 # Build
 
 |file|what|compile|
-|---|---|---
+|---|---|---|
+[k.wasm](https://github.com/ktye/i/releases/download/latest/k.wasm)|webassembly binary module||
+[k-wavm.wat](https://github.com/ktye/i/releases/download/latest/k-wavm.wat)|webassembly text format (with try/catch)|`wavm run --enable multi-memory --enable exception-handling --mount-root . k-wavm.wat`|
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|single file package k|`go build k.go`|
 [kg.go](https://github.com/ktye/i/releases/download/latest/kg.go)|single file main program|`go build kg.go`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|single file c program|`gcc k.c -lm`|
