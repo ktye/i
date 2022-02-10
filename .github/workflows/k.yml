@@ -40,6 +40,20 @@ jobs:
         wget https://github.com/WebAssembly/wabt/releases/download/1.0.26/wabt-1.0.26-ubuntu.tar.gz
         tar zxf wabt-1.0.26-ubuntu.tar.gz
         cp wabt-1.0.26/bin/wat2wasm .
+        
+    - name: checkout raylib
+      uses: actions/checkout@v2
+      with:
+        repository: raysan5/raylib
+        ref: '4.0.0'
+        path: ray
+        
+    - name: build raylib
+      run: |
+        cd ray/src
+        sudo apt install -y libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
+        make PLATFORM=PLATFORM_DESKTOP
+        find .
 
     - name: build i
       run: cd i && go build -v ./
