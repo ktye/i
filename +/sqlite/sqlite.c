@@ -5,19 +5,10 @@
 #include"../k.h"
 
 
-static K getTable(sqlite3 *db, K name){ // k table from sqlite table
- name = Kx("$", name);
- const char q[] = "SELECT * FROM ";
- size_t n = sizeof(q) + NK(name) - 1;
- char *c = malloc(n);
- memcpy(c, q, sizeof(q));
- CK(c+sizeof(q)-1, name);
- 
- //printf("sizeof q = %d\n", sizeof(q));
- //for(int i=0;i<n;i++) printf("i=%d c=%c\n", i, c[i]);
- 
+static K getTable(sqlite3 *db, K q){ // k table from sqlite table
  sqlite3_stmt *res;
- int rc = sqlite3_prepare_v2(db, c, n, &res, 0);
+ int rc = sqlite3_prepare_v2(db, dK(q), NK(q), &res, 0);
+ unref(q);
  if(rc!=SQLITE_OK){ return KE("sqlite get-table"); }
  
  int cols = sqlite3_column_count(res);
@@ -91,33 +82,57 @@ static sqlite3 *newdb(){
  return db;
 }
 
-K rsql(K x){ // C
+static sqlite3 *dbC(K x){
  sqlite3 *db = newdb();
  sqlite3_int64 m = (sqlite3_int64)NK(x);
  int e = sqlite3_deserialize(db, "main", dK(x), m, m, SQLITE_DESERIALIZE_READONLY);
- if(e!=SQLITE_OK){ unref(x); return KE("sqlite read"); }
+ if(e!=SQLITE_OK){
+  unref(x);
+  return NULL;
+ }
+ return db;
+}
+
+static K rsql(K x){ // C
+ sqlite3 *db = dbC(x);
+ if(db==NULL){ return KE("sqlite read"); }
  K names = tableNames(db);
  size_t n= NK(names);
  K *l = malloc(sizeof(K)*n);
- for(int i=0;i<n;i++) l[i] = getTable(db, Kx("@", ref(names), Ki(i)));
+ K q = KC("select * from ", 14);
+ for(int i=0;i<n;i++) l[i] = getTable(db, Kx(",", ref(q), Kx("$", Kx("@", ref(names), Ki(i))))); // q,$names@i
  K r = Kx("!", names, KL(l, n));
+ unref(q);
  free(l);
  unref(x);
+ sqlite3_close(db);
  return r;
 }
 
-K wsql(K x){ // D
+static K wsql(K x){ // D
  printf("wsql\n");
+ // https://qastack.com.de/programming/1711631/improve-insert-per-second-performance-of-sqlite
  return x;
 }
 
-K sqlite(K x){
+static K sqlite(K x){
  char t=TK(x);
  if     (t=='C')  return rsql(x);
  else if(t=='D')  return wsql(x);
  else { unref(x); return KE("sqlite type"); }
 }
 
+static K sqlq(K x, K y){
+ if(TK(x) != 'C'){ unref(x); unref(y); return KE("sqlq type"); }
+ if(TK(y) != 'C'){ unref(x); unref(y); return KE("sqlq type"); }
+ sqlite3 *db = dbC(x);
+ if(db == NULL){ unref(y); return KE("sqlq read db"); }
+ K r = getTable(db, y);
+ sqlite3_close(db);
+ return r;
+}
+
 void loadsql(){
  KR("sqlite", (void*)sqlite, 1);
+ KR("sqlq",   (void*)sqlq,   2);
 }
