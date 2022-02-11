@@ -80,7 +80,7 @@ void FK(double *r, K x){
  ktye_dx(x);
 }
 void LK(K *r, K x){
- size_t n=(size_t)ktye_nn(x);
+ size_t n=(ktye_tp(x)>23) ? 2 : (size_t)ktye_nn(x);
  K *m=(K*)(_M+(int32_t)x);
  for(int32_t i=0;i<n;i++)r[i]=m[i];
  ktye_rl(x);

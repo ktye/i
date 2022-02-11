@@ -60,6 +60,80 @@ static K getTable(sqlite3 *db, K q){ // k table from sqlite table
  return t;
 }
 
+static K KC0(char *c) { return KC(c, strlen(c)); }
+
+static void addTable(sqlite3 *db, K name, K t){ // add k table to sqlite db (https://qastack.com.de/programming/1711631/improve-insert-per-second-performance-of-sqlite)
+ printf("addTable\n");
+ K l2[2]; LK(l2,t);
+ 
+ K p = Kx(",", KC0("INSERT INTO "), Kx("$", ref(name))); // p:"insert into tname values(?,?,..)"
+ p = Kx(",", p, KC0(" VALUES("));
+ 
+ K q = Kx(",", KC0("CREATE TABLE "), Kx("$", name));     // q:"create table tname(col1 type1, col2 type2, ...)"
+ q = Kx(",", q, KC0("("));
+ 
+ K *cols = malloc(sizeof(K)*NK(l2[1]));
+ LK(cols, NK(l2[1]));
+ 
+ size_t nc = NK(l2[0]);
+ for(int i=0;i<nc;i++){
+  p = Kx(",", p, Kc('?'));
+  q = Kx(",", q, Kx("$", Kx("@", ref(l2[0]), Ki(i))));
+  K ty;
+  switch(TK(cols[i])){
+  case 'I':  ty = KC0(" INTEGER"); break;
+  case 'F':  ty = KC0(" FLOAT");   break;
+  case 'S':  ty = KC0(" TEXT");    break;
+  default:   ty = KC0(" BLOB");    break;
+  }
+  q = Kx(",", q, ty);
+  q = Kx(",", q, Kc( (i==nc-1) ? ')' : ',' ));
+  p = Kx(",", q, Kc( (i==nc-1) ? ')' : ',' ));
+ }
+ q = Kx(",", q, Kc(0));
+ unref(l2[0]);
+ 
+ sqlite3_exec(db, dK(q), NULL, NULL, NULL);
+ unref(q);
+ 
+
+ sqlite3_stmt * stmt;
+ sqlite3_prepare_v2(db, dK(p), NK(p), &stmt, NULL);
+ 
+ sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
+ size_t nr = NK(cols[0]);
+ for(int j=0;j<nr;j++){
+ 
+  for(int i=0;i<nc;i++){
+   K v = Kx("@", ref(cols[i]), Ki(j));
+   
+   switch(TK(cols[i])){
+   case 'I': sqlite3_bind_int(stmt, 1+i, iK(v)); break;
+   case 'F': sqlite3_bind_double(stmt, 1+i, fK(v)); break;
+   case 'S': 
+    K s = Kx("$", v);
+    sqlite3_bind_text(stmt, 1+i, dK(s), NK(s), NULL);
+    unref(s);
+    break;
+   default:
+    if(TK(v)=='C') sqlite3_bind_blob(stmt, 1+i, dK(v), NK(v), NULL);
+    unref(v);
+   }
+  }
+  
+  sqlite3_step(stmt);
+  sqlite3_clear_bindings(stmt);
+  sqlite3_reset(stmt);
+ }
+ 
+ sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
+ sqlite3_finalize(stmt);
+ 
+ for(int i=0;i<nc;i++) unref(cols[i]);
+ free(cols);
+}
+
+
 static K tableNames(sqlite3 *db){ // all table names in db as symbols
  sqlite3_stmt *res;
  int rc = sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type='table'", -1, &res, 0);
@@ -109,10 +183,39 @@ static K rsql(K x){ // C
  return r;
 }
 
+extern int32_t ktye_tp(int64_t);
+
 static K wsql(K x){ // D
- printf("wsql\n");
- // https://qastack.com.de/programming/1711631/improve-insert-per-second-performance-of-sqlite
- return x;
+ if(TK(x) != 'D'){ unref(x); return KE("wsql type"); }
+ K l[2]; LK(l,x);
+ if((TK(l[0]) != 'S') || (TK(l[1]) != 'L')){ unref(l[0]); unref(l[1]); return KE("wsql type"); }
+ 
+ printf("newdb\n"); fflush(stdout);
+ sqlite3 *db = newdb();
+ size_t n = NK(l[0]);
+ printf("num tables: %d\n", n);fflush(stdout);
+ for(int i=0;i<n;i++) {
+  K t = Kx("@", ref(l[1]), Ki(i));
+  printf("t = %llu\n", t); // ??
+  if(TK(t) != 'T'){
+   unref(t); unref(l[0]); unref(l[1]);
+   sqlite3_close(db);
+   return KE("wsql type-ti");
+  }
+  printf("addtable\n"); fflush(stdout);
+  addTable(db, Kx("@", ref(l[0]), Ki(i)), t);
+ }
+ unref(l[0]);
+ unref(l[1]);
+ 
+ sqlite3_int64  sz;
+ unsigned char *c = sqlite3_serialize(db, "main", &sz, 0);
+ if(c==NULL) { return KE("wsql serialize"); }
+ 
+ K r = KC((char *)c, (size_t)sz);
+ sqlite3_free(c);
+ sqlite3_close(db);
+ return r;
 }
 
 static K sqlite(K x){
