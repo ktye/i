@@ -110,7 +110,7 @@ static void addTable(sqlite3 *db, K name, K t){ // add k table to sqlite db (htt
    switch(TK(cols[i])){
    case 'I': sqlite3_bind_int(stmt, 1+i, iK(v)); break;
    case 'F': sqlite3_bind_double(stmt, 1+i, fK(v)); break;
-   case 'S': 
+   case 'S':;
     K s = Kx("$", v);
     sqlite3_bind_text(stmt, 1+i, dK(s), NK(s), NULL);
     unref(s);
@@ -183,26 +183,21 @@ static K rsql(K x){ // C
  return r;
 }
 
-extern int32_t ktye_tp(int64_t);
 
 static K wsql(K x){ // D
  if(TK(x) != 'D'){ unref(x); return KE("wsql type"); }
  K l[2]; LK(l,x);
  if((TK(l[0]) != 'S') || (TK(l[1]) != 'L')){ unref(l[0]); unref(l[1]); return KE("wsql type"); }
- 
- printf("newdb\n"); fflush(stdout);
+
  sqlite3 *db = newdb();
  size_t n = NK(l[0]);
- printf("num tables: %d\n", n);fflush(stdout);
  for(int i=0;i<n;i++) {
   K t = Kx("@", ref(l[1]), Ki(i));
-  printf("t = %llu\n", t); // ??
   if(TK(t) != 'T'){
    unref(t); unref(l[0]); unref(l[1]);
    sqlite3_close(db);
    return KE("wsql type-ti");
   }
-  printf("addtable\n"); fflush(stdout);
   addTable(db, Kx("@", ref(l[0]), Ki(i)), t);
  }
  unref(l[0]);
