@@ -68,7 +68,10 @@ jobs:
 
     - name: test k.c
       run: cd i && ./kc k.t -e
-        
+  
+    - name: install k+ dependencies
+      run: sudo apt-get update && sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
+  
     - name: checkout sqlite
       uses: actions/checkout@v2
       with:
@@ -95,7 +98,6 @@ jobs:
     - name: build raylib
       run: |
         cd ray/src
-        sudo apt install -y libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
         make PLATFORM=PLATFORM_DESKTOP
         cp ../libraylib.a ../../i/+/
         cp raylib.h       ../../i/+/ray/
@@ -109,7 +111,6 @@ jobs:
           
     - name: build k+
       run: |
-        sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev
         cd i/+
         sh mk.lin
         
