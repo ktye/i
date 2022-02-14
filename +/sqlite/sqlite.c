@@ -15,27 +15,27 @@ static K getTable(sqlite3 *db, K q){ // k table from sqlite table
  K *l = malloc(cols*sizeof(K));
  
  K keys = KS(NULL, 0);
- for(int i=0;i<cols;i++){
-  char *s = (char *)sqlite3_column_name(res,i);
-  switch(sqlite3_column_type(res,i)){
-  case SQLITE_INTEGER:
-   l[i] = KI(NULL, 0);
-   break;
-  case SQLITE_FLOAT:
-   l[i] = KF(NULL, 0);
-   break;
-  case SQLITE_TEXT:
-   l[i] = KS(NULL, 0);
-   break;
-  default:
-   l[i] = KL(NULL, 0);
-  }
-  keys = Kx(",", keys, Ks(s));
- }
- 
- 
+ int row0 = 1;
  while(sqlite3_step(res)==SQLITE_ROW){
   for(int i=0;i<cols;i++){
+  
+   if(row0){
+    keys = Kx(",", keys, Ks((char *)sqlite3_column_name(res,i)));
+    switch(sqlite3_column_type(res,i)){
+    case SQLITE_INTEGER:
+     l[i] = KI(NULL, 0);
+     break;
+    case SQLITE_FLOAT:
+     l[i] = KF(NULL, 0);
+     break;
+    case SQLITE_TEXT:
+     l[i] = KS(NULL, 0);
+     break;
+    default:
+     l[i] = KL(NULL, 0);
+    }
+   }
+  
    switch(TK(l[i])){
    case 'I':
     l[i] = Kx(",", l[i], Ki(sqlite3_column_int(res, i)));
@@ -52,6 +52,7 @@ static K getTable(sqlite3 *db, K q){ // k table from sqlite table
     l[i] = Kx(",", l[i], Kx(",", c)); // l,,c
    }
   }
+  row0 = 0;
  }
  
  K t = Kx("+", Kx("!", keys, KL(l, cols)));
@@ -62,8 +63,8 @@ static K getTable(sqlite3 *db, K q){ // k table from sqlite table
 
 static K KC0(char *c) { return KC(c, strlen(c)); }
 
+
 static void addTable(sqlite3 *db, K name, K t){ // add k table to sqlite db (https://qastack.com.de/programming/1711631/improve-insert-per-second-performance-of-sqlite)
- printf("addTable\n");
  K l2[2]; LK(l2,t);
  
  K p = Kx(",", KC0("INSERT INTO "), Kx("$", ref(name))); // p:"insert into tname values(?,?,..)"
@@ -72,10 +73,10 @@ static void addTable(sqlite3 *db, K name, K t){ // add k table to sqlite db (htt
  K q = Kx(",", KC0("CREATE TABLE "), Kx("$", name));     // q:"create table tname(col1 type1, col2 type2, ...)"
  q = Kx(",", q, KC0("("));
  
- K *cols = malloc(sizeof(K)*NK(l2[1]));
- LK(cols, NK(l2[1]));
- 
  size_t nc = NK(l2[0]);
+ K *cols = malloc(sizeof(K)*nc);
+ LK(cols, l2[1]);
+ 
  for(int i=0;i<nc;i++){
   p = Kx(",", p, Kc('?'));
   q = Kx(",", q, Kx("$", Kx("@", ref(l2[0]), Ki(i))));
@@ -86,9 +87,10 @@ static void addTable(sqlite3 *db, K name, K t){ // add k table to sqlite db (htt
   case 'S':  ty = KC0(" TEXT");    break;
   default:   ty = KC0(" BLOB");    break;
   }
+  
   q = Kx(",", q, ty);
   q = Kx(",", q, Kc( (i==nc-1) ? ')' : ',' ));
-  p = Kx(",", q, Kc( (i==nc-1) ? ')' : ',' ));
+  p = Kx(",", p, Kc( (i==nc-1) ? ')' : ',' ));
  }
  q = Kx(",", q, Kc(0));
  unref(l2[0]);
