@@ -84,7 +84,7 @@ rem:{x/x+x/y} /like apl for negative arguments
 
 csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
 
-PW:800;PH:600
+PW:800;PH:600;FH:20;FONT:"monospace"
 
 plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  ui::"<canvas width=",($PW)," height=",($PH)," id='",(s`c),"' data-click='",(s`k),"' data-zoom='",(s`z),"'></canvas><div id='",(s`d),"'></div>"}
@@ -94,44 +94,44 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  x:$[t~`xy; $[`L~@x:v 0;x;(,x)@(#y)#0]; $[`L~@x:imag@*v;x;,x]]
  xt:`tics(&/&/x;|/|/x);yt:`tics(&/&/y;|/|/y)
  a:$[t~`xy;(xt 0;*-1#xt;yt 0;*-1#yt);(-a;a;-a;a:*|`tics@0.,|/|/abs@*v)]
- c:c@(#c:","\:"#1f77b4,#ff7f0e,#2ca02c,#d62728,#9467bd,#8c564b,#e377c2,#7f7f7f,#bcbd22,#17becf")/!#x
+ c:c@(#c:11826975 950271 2924588 2631638 12412820 4937356 12744675 8355711 2276796 13614615)/!#x
  style:$[t~`polar;"..";`i~@**y;"||";"--"] / -.| line points bar
  size: $[t~`polar;2;style~"||";(--/((**x),-1#*x))%-1+#*x ;2]
  lines:{`style`size`color`x`y!(style;size;z;x;0.+y)}'[x;y;c]
- `L`t`l`a`f`fw`fh`pw`ph!(lines;t;l;a;"20px monospace";FW;FH;$[t~`xy;PW;PH];PH)}
+ `L`t`l`a`f`fw`fh`pw`ph!(lines;t;l;a;FONT;FW;FH;$[t~`xy;PW;PH];PH)}
 
-`"Plot.":{[sym];x:.sym; w:x`fw; h:x`fh; W:x`pw; H:x`ph; a:x`a
+`"Plot.":{[x];w:x`fh; h:x`fh; W:x`pw; H:x`ph; a:x`a;T:"title";grey:13882323
  dst:(w;W-w;H-h;h);rdst:(w;h;W-2*w;H-2*h)
  xs:(a 0 1)(dst 0 1)' /transform axis to canvas
  ys:(a 2 3)(dst 2 3)'
  d:{(x i)!x 1+i:2*!2\#x}
- bars:{[l]$["|"':l`style;(`fillStyle;l`color),,/{(`fillRect;((-dx%2)+xs x;ys y;dx:-/xs(l`size;0.);(ys a 2)-ys y))}'[l`x;l`y];()]}
- line:{[l]$["-"':l`style;(`lineWidth;l`size;`strokeStyle;l`color;`beginPath;()),(,/(`moveTo,(-1+#l`x)#`lineTo),','+(xs l`x;ys l`y)),(`stroke;());()]}
- dots:{[l]$["."':l`style;(`fillStyle;l`color),,/{(`beginPath;();`arc;(xs x;ys y;1.5*l`size;0;2p);`fill;())}'[l`x;l`y];()]}
- c:`font`textBaseline!(x`f;"bottom")
- xy:{[]c,:`fillText!(($a 0;w;H);(s;2\W-w*#s:(x`l)0;PH);(s;W-w*1+#s:$a 1;H))
-       c,:`fillText!((("[",(", "/:$a 2 3),"]");w;h);(s;2\W-w*#s:(x`l)1;h))
-       c,:`rect`strokeStyle`lineWidth`stroke`clip!(rdst;"black";2;();())
-       c,:`strokeStyle`lineWidth!("lightgrey";1)
-       c,:d@,/{(`moveTo;(x;dst 2);`lineTo;(x;dst 3);`stroke;())}'xs`tics x[`a;0 1]
-       c,:d@,/{(`moveTo;(dst 0;x);`lineTo;(dst 1;x);`stroke;())}'ys`tics x[`a;2 3]}
- po:{[]c,:`fillText!((s;2\W-w*#s:(x`l)0;h);($(x`a)3;W%2;H))
-       c,:`strokeStyle`lineWidth`beginPath`arc`stroke`clip!("black";2;();(W%2;H%2;(H%2)-h;0;2p);();())
-       c,:`strokeStyle`lineWidth`moveTo`lineTo`stroke`moveTo`lineTo`stroke!("lightgrey";1;(h;H%2);(W-h;H%2);();(W%2;h);(W%2;H-h);())
-       c,:d@,/{(`beginPath;();`arc;(W%2;H%2;x;0;2p);`stroke;())}'(xs`tics 0.,x[`a;3])-W%2
- };$[`xy~x`t;xy[];po[]]
- c,:d@,/bars'x`L
- c,:d@,/line'x`L
- c,:d@,/dots'x`L
- back:{[a;dst;x;y]((dst 0 1)(a 0 1)'x;(dst 2 3)(a 2 3)'y)}[a;dst]  /transform canvas to axis
- click:{[b;s;t;x;y];(`0)[s;$[t~`xy;"\n"/:("x:";"y:"),'$b[x;y]; $imag/|b[x;y]]]}[back;`$($sym),".d";x`t]
- zoom:{[b;s;x]a:b[x 0;x 1],b[x 2;x 3];.[s;(`a;0 2 1 3);@[(^a 0 2),^a 1 3;0 2 1 3]];.[s;`t;`xy];`Plot s}[back;sym]
- (`0)[`$($sym),".c";c]     /assign to dynamic symbol
- (`0)[`$($sym),".k";click]
- (`0)[`$($sym),".d";""]
- (`0)[`$($sym),".z";zoom]}
+ bars:{[l]$["|"':l`style;(`color;l`color),,/{(`Rect;((-dx%2)+xs x;ys y;dx:-/xs(l`size;0.);(ys a 2)-ys y))}'[l`x;l`y];()]}
+ line:{[l]$["-"':l`style;(`linewidth;l`size;`color;l`color;`poly;(xs l`x;ys l`y));()]}
+ dots:{[l]$["."':l`style;(`color;l`color),,/{(`Circle;(xs x;ys y;1.5*l`size))}'[l`x;l`y];()]}
+ c:(`font;(x`f;x`fh);`text;((W%2;h);1;T))
+ xy:{[]c,:(`text;((w;H);0;$a 0);`text;((W%2;PH);1;(x`l)0);`text;((W-w;H);2;$a 1))
+       c,:(`Text;((w;H-h);0;$a 2);`Text;((w;H%2);2;(x`l)1);`Text;((w;h);2;$a 3))
+       c,:(`color;0;`linewidth;2;`rect;rdst)      /todo: clip rdst
+       c,:(`linewidth;1;`color;grey)
+       c,:,/{(`line;0.+(x;dst 2;x;dst 3))}'xs`tics x[`a;0 1]
+       c,:,/{(`line;0.+(dst 0;x;dst 1;x))}'ys`tics x[`a;2 3]}
+ po:{[]C:(W%2;H%2);R:(H%2)-h
+       c,:(`text;((C 0;H);1;(x`l)0);`text;(C+.75*R;6;$(x`a)3))
+       c,:,/{(`text;(C+R*(_;imag)@'x;y;z))}'[1@270.+a;0 0 6 6 4 4 2 2;$a:30 60 120 150 210 240 300 330]
+       c,:(`color;grey;`linewidth;1;`line;(h;C 1;W-h;C 1);`line;(*C;h;*C;H-h))
+       c,:,/{(`circle;0.+C,x)}'r:(xs`tics 0.,x[`a;3])-W%2
+       c,:(`color;0),/{(`line;,/+C+(R-w%2;R)*/:(_;imag)@'x)}'1@30.*!12
+       c,:(`linewidth;2;`circle;C,R)}
+ $[`xy~x`t;xy[];po[]]
+ c,:,/bars'x`L
+ c,:,/line'x`L
+ c,:,/dots'x`L
+ /back:{[a;dst;x;y]((dst 0 1)(a 0 1)'x;(dst 2 3)(a 2 3)'y)}[a;dst]  /transform canvas to axis
+ /click:{[b;s;t;x;y];(`0)[s;$[t~`xy;"\n"/:("x:";"y:"),'$b[x;y]; $imag/|b[x;y]]]}[back;`$($sym),".d";x`t]
+ /zoom:{[b;s;x]a:b[x 0;x 1],b[x 2;x 3];.[s;(`a;0 2 1 3);@[(^a 0 2),^a 1 3;0 2 1 3]];.[s;`t;`xy];`Plot s}[back;sym]
+ c}
 
- `"tics.":{[minmax]nice:{[x;r]f:x%0.+10^ex:_log[10;x];(1 2 5 10.@*&(~f>1 2 5 0w;f<1.5 3 7 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;$[~(minmax 1)>*-2#r:s*(_(*minmax)%s)+!n;-1_r;r]}
+`"tics.":{[minmax]nice:{[x;r]f:x%0.+10^ex:_log[10;x];(1 2 5 10.@*&(~f>1 2 5 0w;f<1.5 3 7 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;$[~(minmax 1)>*-2#r:s*(_(*minmax)%s)+!n;-1_r;r]}
 
 `"ceg.":{(x i)!0-':1+i:&(1_~~':x),1b} /#'= (^x)
 hist:{$[`i~@x;hist[(x;&/y;|/y);y];(Y;(`38)[0;(`ceg@^1+((d%2.0)+-1_Y:(x 1)+(d:(--/1_x)%-1.+n)*!n)'y)@!n:_0.+*x])]} /[xn;y] [xn xmin xmax;y] e.g. plot `x`y!hist[10 -4 4.;?-1000]

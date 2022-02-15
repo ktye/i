@@ -52,6 +52,7 @@ The first argument `d` is a general list with symbol-argument pairs:
 |`Rect`|`x y w h`|fill rectangle|
 |`circle`|`x y r`|stroke circle|
 |`Circle`|`x y r`|fill circle|
+|`line|`x0 y0 x1 y1`|stroke line|
 |`poly`|`X Y`|stroke poly line|
 |`Poly`|`X Y`|fill polygon|
 |`text`|`(xy;a;text)`|draw text, a:alignment|

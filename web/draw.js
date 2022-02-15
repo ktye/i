@@ -57,8 +57,8 @@ D.draw = function(x,y){
   ctx.fillStyle=s; ctx.strokeStyle=s
  }
  
- let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : KE("num type") }
- let vec = function(x){ let t=K.TK(x); return (t=='F') ? K.FK(x) : (t=='I') ? K.IK(x) : KE("vec type") }
+ let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : K.KE("num type") }
+ let vec = function(x){ let t=K.TK(x); return (t=='F') ? K.FK(x) : (t=='I') ? K.IK(x) : K.KE("vec type") }
  
  let cmd=function(s,a){
   let n
