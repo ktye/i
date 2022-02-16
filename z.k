@@ -86,8 +86,11 @@ csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s
 
 PW:800;PH:600;FH:20;FONT:"monospace"
 
-plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
- ui::"<canvas width=",($PW)," height=",($PH)," id='",(s`c),"' data-click='",(s`k),"' data-zoom='",(s`z),"'></canvas><div id='",(s`d),"'></div>"}
+pltcoords:{[p;x;y]w:p`fh;h:p`fh;W:p`pw;H:p`ph; d:(w;W-w;H-h;h);a:p`a; ((d 0 1)(a 0 1)'x;(d 2 3)(a 2 3)'y)}
+pltclick:{[x;y]xy:pltcoords[plt;x;y]; `<"x:",($xy 0), " y:",($xy 1),_10 32}
+pltzoom: {[x;y;w;h] xy0:pltcoords[plt;x;y+h]; xy1:pltcoords[plt;x+w;y];  plt[`a]:(xy0,xy1)0 2 1 3; plt[`t]:$[`polar~t:plt`t;`xy;t]; draw[`Plot@`plt;(PW;PH)]}
+
+plot:{plt::`plot x;showev[draw[`Plot@`plt;(PW;PH)];pltclick;pltzoom]}
 
 `"plot.":{[d];l:$!d;v:.d; t:$[2~#d;`xy;`polar];
  y:$[t~`xy; $[`L~@y:v 1;y;,y];          $[`L~@y:_*v;y;,y]]
@@ -100,7 +103,7 @@ plot:{plt::`plot x;`Plot@`plt;s:`c`k`z`d!"plt.",/:"ckzd"
  lines:{`style`size`color`x`y!(style;size;z;x;0.+y)}'[x;y;c]
  `L`t`l`a`f`fw`fh`pw`ph!(lines;t;l;a;FONT;FW;FH;$[t~`xy;PW;PH];PH)}
 
-`"Plot.":{[x];w:x`fh; h:x`fh; W:x`pw; H:x`ph; a:x`a;T:"title";grey:13882323
+`"Plot.":{[sym];x:.sym;w:x`fh; h:x`fh; W:x`pw; H:x`ph; a:x`a;T:"title";grey:13882323
  dst:(w;W-w;H-h;h);rdst:(w;h;W-2*w;H-2*h)
  xs:(a 0 1)(dst 0 1)' /transform axis to canvas
  ys:(a 2 3)(dst 2 3)'
