@@ -14,8 +14,8 @@ d:(`rect;0 0 300 200
    `color;0;`text;(200 120;0;"a b c")
    `Text;(180 120;0;"E F G"))
 d,:(`clip;200 150 20;`Rect;180 130 100 50)
-m:draw[d;300 200]
 
+m:draw[d;300 200]
 
 / show m
 

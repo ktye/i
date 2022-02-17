@@ -3,7 +3,7 @@
 show a window with an image:
 
 show m      
-showev[m;f;g]     /with callbacks
+Show[m;f;g]     /with callbacks
 
 image m is given as png bytes(C) or (height;dataI)
 
@@ -31,7 +31,7 @@ K KI2(int x, int y) {
 	return r;
 }
 K KI4(int x, int y, int u, int v) {
-	K r = KI(NULL, 2);
+	K r = KI(NULL, 4);
 	int *p = dK(r);
 	p[0] = x;
 	p[1] = y;
@@ -49,12 +49,11 @@ Texture2D update_texture(Texture2D t, K x){
 	int h = m.height;
 	unref(x);
 	if(w*h <= 0){ UnloadImage(m); return t; }
-
 	UnloadTexture(t);
 	return LoadTextureFromImage(m);
 }
 
-K showev(K x, K click, K zoom){
+K Show(K x, K click, K zoom){
 	if(TK(x) == 'L') x = png(x);
 	if(TK(x) != 'C'){ return KE("show: type x"); }
 
@@ -76,7 +75,7 @@ K showev(K x, K click, K zoom){
 	if(interactive) SetGesturesEnabled(GESTURE_DOUBLETAP|GESTURE_DRAG);
 
 
-	int mx=0, my=0, rw=0, rh=0, dragging=0;
+	int px=0, py=0, mx=0, my=0, rw=0, rh=0, dragging=0;
 
 	Texture2D t = LoadTextureFromImage(m);
 	UnloadImage(m);
@@ -89,9 +88,13 @@ K showev(K x, K click, K zoom){
 			switch(GetGestureDetected()){
 			case GESTURE_DOUBLETAP: 
 				//printf("doubleclick %d %d\n", mx, my);
-				t = update_texture(t, Kx("@", ref(click), KI2(mx, my)));
+				px=mx; py=my;
+				K im = Kx(".", ref(click), KI2(mx, my));
+				if(TK(im)=='L') t = update_texture(t, im);
+				else unref(im);
 				break;
 			case GESTURE_DRAG:;
+			        px=0;py=0;
 				int x=GetMouseX();
 				int y=GetMouseY();
 				rw=x-mx;
@@ -107,7 +110,9 @@ K showev(K x, K click, K zoom){
 					SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 					dragging = 0;
 					//printf("zoom %d %d+%d %d\n", mx, my, rw, rh);
-					t = update_texture(t, Kx("@", ref(zoom), KI4(mx, my, rw, rh)));
+					K im = Kx(".", ref(zoom), KI4(mx+((rw<0)?rw:0), my+((rh<0)?rh:0), (rw<0)?-rw:rw, (rh<0)?-rh:rh));
+					if(TK(im)=='L') t = update_texture(t, im);
+					else unref(im);
 				}
 				rw=0; rh=0;
 			}
@@ -115,7 +120,8 @@ K showev(K x, K click, K zoom){
 
 		BeginDrawing();
 		DrawTexture(t, 0, 0, WHITE);
-		if((rw!=0)&&(rh!=0)) DrawRectangleLines(mx, my, rw, rh, WHITE);
+		if((px!=0)&&(py!=0)) DrawCircle(mx, my, 3, RED);
+		if((rw!=0)&&(rh!=0)) DrawRectangleLines(mx+((rw<0)?rw:0), my+((rh<0)?rh:0), (rw<0)?-rw:rw, (rh<0)?-rh:rh, RED);
 		EndDrawing();
 	}
 	UnloadTexture(t);
@@ -125,9 +131,9 @@ K showev(K x, K click, K zoom){
 }
 
 //show(50;10000#255) /red window 100x50
-K show(K x){ showev(x, Ki(0), Ki(0)); }
+K show(K x){ Show(x, Ki(0), Ki(0)); }
 
 void loadray(){
-	KR("show",   (void*)show,   1); // show image from data or png
-	KR("showev", (void*)showev, 3); // same with click and zoom callbacks
+	KR("show", (void*)show, 1); // show image from data or png
+	KR("Show", (void*)Show, 3); // same with click and zoom callbacks
 }

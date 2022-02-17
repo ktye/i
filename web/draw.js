@@ -1,6 +1,6 @@
 import { K } from './k.js'
 
-let D = {} // draw show showev
+let D = {} // draw show Show
 
 
 // draw[L;wh]               // draw[(`color;255*256;`rect;10 10 300 200);400 300]
@@ -189,8 +189,8 @@ function unhandle(){
 }
 
 
-//im:{(20;(20*50)#*1?255*256*256)};showev[im[];{`click \(x;y);im[]};{[x;y;w;h]`zoom \(x;y;w;h);im[]}]
-D.showev = function(x,y,z){
+//im:{(20;(20*50)#*1?255*256*256)};Show[im[];{`click \(x;y);im[]};{[x;y;w;h]`zoom \(x;y;w;h);im[]}]
+D.Show = function(x,y,z){
  let r=D.show(x); click=y; zoom=z
  
  let cnv = ge("_cnv");

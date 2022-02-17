@@ -93,7 +93,8 @@ K draw(K x, K y){ //dst
   if(TK(l[i])!='s') { i--; err="draw cmd type"; goto E; }
   K a=l[1+i];
   int j=iK(Kx("?", ref(drawcmds), l[i]));
-  // printf("drawcmd %d\n", j);
+  //printf("drawcmd %d\n", j);
+  cairo_new_path(cr);
   switch(j){
   case 0: //color
    if(TK(a)!='i') { err="draw color"; goto E; }
@@ -124,14 +125,20 @@ K draw(K x, K y){ //dst
   case 5: //circle
   case 6: //Circle
    if(vec(v,3,a)) { err="draw circle"; goto E; }
-   cairo_arc(cr, v[0], v[1], v[2], 0, 6.283185307179586);
+   cairo_arc(cr, v[0], v[1], v[2], 0, 6.283185307179586 );
+   cairo_close_path(cr);
    fillstroke(cr, j==6);
    break;
   case 7: //clip
+   cairo_reset_clip(cr);
    if(vec(v,3,a)){
     if(vec(v,4,a)){ err="clip"; goto E; }
     cairo_rectangle(cr, v[0], v[1], v[2], v[3]);
-   }else cairo_arc(cr, v[0], v[1], v[2], 0, 6.283185307179586);
+   }else{
+    cairo_new_path(cr);
+    cairo_arc(cr, v[0], v[1], v[2], 0.0, 6.283185307179586 );
+   //cairo_close_path(cr);
+   }
    cairo_clip(cr);
    break;
   case 8: //line
@@ -140,7 +147,7 @@ K draw(K x, K y){ //dst
    cairo_line_to(cr, v[2], v[3]);
    cairo_stroke(cr);
    break;
-  case 9: //poly
+  case 9:  //poly
   case 10: //Poly
    if((TK(a)!='L')||(NK(a)!=2)) { err="draw poly"; goto E; }
    K xy[2]; LK(xy, a);
@@ -234,7 +241,7 @@ static int vec(double *v, size_t n, K x){
  if(t=='F'){ FK(v,x); }
  else{
   IK(I,x);
-  for (int i=0;i<n;i++) v[i]=(float)I[i];
+  for (int i=0;i<n;i++) v[i]=(double)I[i];
  }
  return 0;
 }
