@@ -48,7 +48,7 @@ static char *c0K(K x){
 }
 
 
-K drawcmds; // "`color`font`linewidth`rect`Rect`circle`Circle`line`poly`Poly`text`Text"
+K drawcmds; // "`color`font`linewidth`rect`Rect`circle`Circle`clip`line`poly`Poly`text`Text"
 
 
 K drawclose(K *l, int i, int n, cairo_t *cr, cairo_surface_t *surf, uint32_t *bg, const char *err);
@@ -127,14 +127,21 @@ K draw(K x, K y){ //dst
    cairo_arc(cr, v[0], v[1], v[2], 0, 6.283185307179586);
    fillstroke(cr, j==6);
    break;
-  case 7: //line
+  case 7: //clip
+   if(vec(v,3,a)){
+    if(vec(v,4,a)){ err="clip"; goto E; }
+    cairo_rectangle(cr, v[0], v[1], v[2], v[3]);
+   }else cairo_arc(cr, v[0], v[1], v[2], 0, 6.283185307179586);
+   cairo_clip(cr);
+   break;
+  case 8: //line
    if(vec(v,4,a)) { err="draw line"; goto E; }
    cairo_move_to(cr, v[0], v[1]);
    cairo_line_to(cr, v[2], v[3]);
    cairo_stroke(cr);
    break;
-  case 8: //poly
-  case 9: //Poly
+  case 9: //poly
+  case 10: //Poly
    if((TK(a)!='L')||(NK(a)!=2)) { err="draw poly"; goto E; }
    K xy[2]; LK(xy, a);
    int nx=vecn(xy[0]);
@@ -143,11 +150,11 @@ K draw(K x, K y){ //dst
    double *yf = veca(xy[1], nx);
    cairo_move_to(cr, xf[0], yf[0]);
    for(int i=1;i<nx;i++) cairo_line_to(cr, xf[i], yf[i]);
-   fillstroke(cr, j==9);
+   fillstroke(cr, j==10);
    free(xf); free(yf);
    break;
-  case 10: //text
-  case 11: //Text
+  case 11: //text
+  case 12: //Text
    if((TK(a)!='L')||(NK(a)!=3)) { err="draw text arg"; goto E; }
    K l3[3]; LK(l3, ref(a));
    if(vec(v,2,l3[0])||(TK(l3[1])!='i')||(TK(l3[2])!='C')){
@@ -157,11 +164,11 @@ K draw(K x, K y){ //dst
    char *cc = c0K(l3[2]);
    cairo_text_extents_t ex;
    cairo_text_extents(cr, cc, &ex);
-   align(cr, v, iK(l3[1]), j==11, &ex);
+   align(cr, v, iK(l3[1]), j==12, &ex);
    cairo_move_to(cr, v[0], v[1]);
-   if(j==11){ cairo_save(cr); cairo_rotate(cr,-1.5707963267948966); }
+   if(j==12){ cairo_save(cr); cairo_rotate(cr,-1.5707963267948966); }
    cairo_show_text(cr, cc);
-   if(j==11) cairo_restore(cr);
+   if(j==12) cairo_restore(cr);
    free(cc);
    break;
   default:
@@ -277,7 +284,7 @@ static void rgb24(uint32_t *u, size_t n){ for(int i=0;i<n;i++) u[i] = ((u[i]&0xf
 
 
 void loaddrw(){
- drawcmds = Kx("`color`font`linewidth`rect`Rect`circle`Circle`line`poly`Poly`text`Text");
+ drawcmds = Kx("`color`font`linewidth`rect`Rect`circle`Circle`clip`line`poly`Poly`text`Text");
  //fontnames = KS(NULL, 0);
  KR("png", (void*)png, 1);
  KR("draw", (void*)draw, 2);

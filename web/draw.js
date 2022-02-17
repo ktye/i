@@ -3,20 +3,21 @@ import { K } from './k.js'
 let D = {} // draw show showev
 
 
-// draw[L;wh]             // draw[(`color;255*256;`rect;10 10 300 200);400 300]
-// draw[L;image]          // draw over bg image
-// `color;rgb             // i
-// `font;"20px monospace" // C
-// `linewidth;w           // i or f
-// `rect;(x;y;w;h)        // I or F        stroke
-// `Rect;(x;y;w;h)        // I or F        fill
-// `circle;(x;y;r)        // I or F        stroke
-// `Circle;(x;y;r)        // I or F        fill
-// `line;(x0;y0;x1;y1)    // I or F
-// `poly;(X;Y)            // X, Y: I or F  stroke
-// `Poly;(X;Y)            // I or F        close fill
-// `text;(x;y;"text")     // i,i,C
-// `Text;(x;y;"text")     // i,i,C         rotated
+// draw[L;wh]               // draw[(`color;255*256;`rect;10 10 300 200);400 300]
+// draw[L;image]            // draw over bg image
+// `color;rgb               // i
+// `font;"20px monospace"   // C
+// `linewidth;w             // i or f
+// `rect;(x;y;w;h)          // I or F        stroke
+// `Rect;(x;y;w;h)          // I or F        fill
+// `circle;(x;y;r)          // I or F        stroke
+// `Circle;(x;y;r)          // I or F        fill
+// `clip;(x;y;r)or(x;y;w;h) // I or F
+// `line;(x0;y0;x1;y1)      // I or F
+// `poly;(X;Y)              // X, Y: I or F  stroke
+// `Poly;(X;Y)              // I or F        close fill
+// `text;(x;y;"text")       // i,i,C
+// `Text;(x;y;"text")       // i,i,C         rotated
 // draw returns an image object (h;I)
 D.draw = function(x,y){
  if(K.TK(x) != 'L'){ K.unref(x); K.unref(y); return K.KE("draw: x type") }
@@ -89,6 +90,16 @@ D.draw = function(x,y){
     ctx.arc(a[0], a[1], a[2], 0, 2 * Math.PI)
     if(s=="circle") ctx.stroke()
     else            ctx.fill()
+    break
+   case "clip":
+    a = vec(a)
+    ctx.beginPath()
+    if(a.length==3) ctx.arc(a[0], a[1], a[2], 0, 2 * Math.PI)
+    else{
+     ck(a.length==4)
+                    ctx.rect(a[0], a[1], a[2], a[3])
+    }
+    ctx.clip()
     break
    case "line":
     a = vec(a)
