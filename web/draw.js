@@ -61,6 +61,7 @@ D.draw = function(x,y){
  let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : K.KE("num type") }
  let vec = function(x){ let t=K.TK(x); return (t=='F') ? K.FK(x) : (t=='I') ? K.IK(x) : K.KE("vec type") }
  
+ ctx.save() //for clipping
  let cmd=function(s,a){
   let n
   switch(s){
@@ -99,6 +100,8 @@ D.draw = function(x,y){
      ck(a.length==4)
                     ctx.rect(a[0], a[1], a[2], a[3])
     }
+    ctx.restore()
+    ctx.save()
     ctx.clip()
     break
    case "line":
