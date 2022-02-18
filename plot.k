@@ -9,9 +9,10 @@ PW:800;PH:600;FH:20;FONT:"monospace"
 `"pltcl":{[x;y]p:.`"pltco";xy:p[plt;x;y]; `<"x:",($xy 0), " y:",($xy 1),_10 32}
 `"pltzo":{[x;y;w;h]p:.`"pltco";xy0:p[plt;x;y+h]; xy1:p[plt;x+w;y]; plt[`a]:(xy0,xy1)0 2 1 3; plt[`t]:$[`polar~t:plt`t;`xy;t]; draw[`Plot@`plt;(PW;PH)]}
 
-plot:{plt::`plot x;Show[draw[`Plot@`plt;(PW;PH)];.`"pltcl";.`"pltzo"]}
+plot:{n:#x;multi:{x[`pw]%:n;x[`px]:(!n)*x`pw;x}
+ plt::$[(@x)':`L`T;multi@(`plot@)'x;`plot x];Show[draw[`plts@`plt;(PW;PH)];.`"pltcl";.`"pltzo"]}
 
-`"plot.":{[d];l:$!d;v:.d; t:$[2~#d;`xy;`polar];
+`"plot.":{[d]l:$!d;v:.d; t:$[2~#d;`xy;`polar];
  y:$[t~`xy; $[`L~@y:v 1;y;,y];          $[`L~@y:_*v;y;,y]]
  x:$[t~`xy; $[`L~@x:v 0;x;(,x)@(#y)#0]; $[`L~@x:imag@*v;x;,x]]
  xt:`tics(&/&/x;|/|/x);yt:`tics(&/&/y;|/|/y)
@@ -20,10 +21,14 @@ plot:{plt::`plot x;Show[draw[`Plot@`plt;(PW;PH)];.`"pltcl";.`"pltzo"]}
  style:$[t~`polar;"..";`i~@**y;"||";"--"] / -.| line points bar
  size: $[t~`polar;2;style~"||";(--/((**x),-1#*x))%-1+#*x ;2]
  lines:{`style`size`color`x`y!(style;size;z;x;0.+y)}'[x;y;c]
- `L`t`l`a`f`fw`fh`px`py`pw`ph!(lines;t;l;a;FONT;FW;FH;50;30;$[t~`xy;PW-50;PH-30];PH-30)}
+ pw:PW;ph:PH; /po:t~`polar;e: \pw-ph-2*FH;pw-:e*po*e>0;px+:2\e*po*e>0;ph-:e*po*e<0
+ `L`t`l`a`f`fw`fh`px`py`pw`ph!(lines;t;l;a;FONT;FW;FH;0;0;pw;ph)}
+ 
+`"plts.":{[sym];x:.sym;$[`D~@x;`Plot x;,/(`Plot@)'x]}
 
-`"Plot.":{[sym];x:.sym;w:x`fh; h:x`fh; X:x`px; Y:x`py; W:x`pw; H:x`ph; a:x`a;T:"title";grey:13882323
- dst:(X+w;X+W-w;Y+H-h;Y+h);rdst:(X+w;Y+h;W-2*w;H-2*h)
+`"Plot.":{[x];w:x`fh; h:x`fh; X:x`px; Y:x`py; W:x`pw; H:x`ph; a:x`a;T:"title";grey:13882323
+ C:(X+W%2;Y+H%2);R:(W%2)&(H%2)-h
+ dst:$[`xy~x`t;(X+w;X+W-w;Y+H-h;Y+h);((C-R),C+R)0 2 3 1];rdst:(X+w;Y+h;W-2*w;H-2*h)
  xs:(a 0 1)(dst 0 1)' /transform axis to canvas
  ys:(a 2 3)(dst 2 3)'
  d:{(x i)!x 1+i:2*!2\#x}
@@ -38,15 +43,13 @@ plot:{plt::`plot x;Show[draw[`Plot@`plt;(PW;PH)];.`"pltcl";.`"pltzo"]}
        c,:(`clip;rdst)
        c,:,/{(`line;0.+(x;dst 2;x;dst 3))}'xs`tics x[`a;0 1]
        c,:,/{(`line;0.+(dst 0;x;dst 1;x))}'ys`tics x[`a;2 3]}
- po:{[]C:(X+W%2;Y+H%2);R:(H%2)-h
-       c,:(`text;((C 0;Y+H);1;(x`l)0);`text;(C+.75*R;6;$(x`a)3))
+ po:{[]c,:(`text;((C 0;Y+H);1;(x`l)0);`text;(C+.75*R;6;$(x`a)3))
        c,:,/{(`text;(C+R*(_;imag)@'x;y;z))}'[1@270.+a;0 0 6 6 4 4 2 2;$a:30 60 120 150 210 240 300 330]
        c,:(`color;0),/{(`line;,/+C+(R-w%2;R)*/:(_;imag)@'x)}'1@30.*!12
        /c,:(`clip;C,R) /bug in cairo?
-       c,:(`color;grey;`linewidth;1;`line;(X+w;C 1;X+W-h;C 1);`line;(*C;Y+h;*C;Y+H-h))
+       c,:(`color;grey;`linewidth;1;`line;((-R)+*C;C 1;R+*C;C 1);`line;(*C;(-R)+C 1;*C;R+C 1))
        c,:,/{(`circle;0.+C,x)}'r:(xs@`tics 0.,x[`a;3])-*C
        c,:(`color;0;`linewidth;2;`circle;C,R)}
-       
  $[`xy~x`t;xy[];po[]]
  c,:,/bars'x`L
  c,:,/line'x`L
