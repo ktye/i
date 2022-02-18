@@ -568,6 +568,10 @@ func uf(x K) (r K) {
 func ufd(x K) (r K) {
 	xp := int32(x)
 	r = Til(x0(xp))
+	if tp(r) != St {
+		dx(r)
+		return x
+	}
 	n := nn(x)
 	for i := int32(0); i < n; i++ {
 		if match(r, K(I64(int32(I64(xp))))) == 0 {
