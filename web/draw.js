@@ -28,7 +28,6 @@ D.draw = function(x,y){
   wh=[m.w, m.h]; bg=m.I;
  } else if((K.TK(y)=='I')&&(K.NK(y) == 2)) wh=K.IK(y);
  else {
-  console.log("yt", K.TK(y), K.NK(y))
   K.unref(x); return K.KE("draw: y type"); }
  
  let l=K.LK(x)
@@ -42,7 +41,30 @@ D.draw = function(x,y){
  ctx.fillStyle = "white"
  ctx.fillRect(0,0,wh[0],wh[1])
  ctx.fillStyle = "black"
+ ctx.strokeStyle = "black"
  ctx.font = "20px monospace"
+ 
+ let state = {}
+ let saveState      = function(){
+  state.fillStyle   = ctx.fillStyle
+  state.strokeStyle = ctx.strokeStyle
+  state.font        = ctx.font
+  state.lineWidth   = ctx.lineWidth
+ }
+ let restoreState = function(){
+  ctx.fillStyle   = state.fillStyle
+  ctx.strokeStyle = state.strokeStyle
+  ctx.font        = state.font
+  ctx.lineWidth   = state.lineWidth
+ }
+ saveState()
+ 
+ // reset clip needs save/restore which also resets all other changes
+ let resetClip = function(){
+   ctx.restore()
+   ctx.save()
+   restoreState()
+ }
  
  if(bg !== undefined){
   let d = ctx.createImageData(wh[0], wh[1])
@@ -55,7 +77,7 @@ D.draw = function(x,y){
  
  let setcolor = function(i){ 
   let s="rgb(" + String(i&255) + ", " + String((i>>>8)&255) + ", " + String((i>>>16)&255) + ")"
-  ctx.fillStyle=s; ctx.strokeStyle=s
+  ctx.fillStyle=s; ctx.strokeStyle=s; saveState()
  }
  
  let num = function(x){ let t=K.TK(x); return (t=='f') ? K.fK(x) : (t=='i') ? K.iK(x) : K.KE("num type") }
@@ -73,10 +95,10 @@ D.draw = function(x,y){
     a = K.LK(a)
     ck(s, K.TK(a[0]) == "C")
     let px = num(a[1])
-    ctx.font = String(px) + "px " + K.CK(a[0])
+    ctx.font = String(px) + "px " + K.CK(a[0]); saveState()
     break
    case "linewidth":
-    ctx.lineWidth = num(a)
+    ctx.lineWidth=num(a); saveState()
     break
    case "rect":
    case "Rect":
@@ -94,14 +116,13 @@ D.draw = function(x,y){
     break
    case "clip":
     a = vec(a)
+    resetClip()
     ctx.beginPath()
     if(a.length==3) ctx.arc(a[0], a[1], a[2], 0, 2 * Math.PI)
     else{
      ck(a.length==4)
                     ctx.rect(a[0], a[1], a[2], a[3])
     }
-    ctx.restore()
-    ctx.save()
     ctx.clip()
     break
    case "line":
