@@ -1,4 +1,5 @@
 #include<stdlib.h>
+#include<string.h>
 #include<cairo.h>
 #include"../k.h"
 
@@ -292,6 +293,8 @@ static void rgb24(uint32_t *u, size_t n){ for(int i=0;i<n;i++) u[i] = ((u[i]&0xf
 
 void loaddrw(){
  drawcmds = Kx("`color`font`linewidth`rect`Rect`circle`Circle`clip`line`poly`Poly`text`Text");
+ const char *v = cairo_version_string();
+ KA(Ks("cairoversion"), KC((char*)v, strlen(v)));
  //fontnames = KS(NULL, 0);
  KR("png", (void*)png, 1);
  KR("draw", (void*)draw, 2);
