@@ -200,7 +200,9 @@ D.Show = function(x,y,z){
  let ctx = cnv.getContext("2d")
  cnv.ondblclick = function(ev){
   // console.log("dblclick", ev.offsetX, ev.offsetY)
-  let x=K.Kx(".", K.ref(click), K.KI([ev.offsetX, ev.offsetY]))
+  let X=ev.offsetX, Y=ev.offsetY
+  ctx.beginPath();ctx.arc(X,Y,3,0,2*Math.PI);ctx.fillStyle="red";ctx.fill()
+  let x=K.Kx(".", K.ref(click), K.KI([X, Y]))
   K.unref( (K.TK(x)==="L") ? setimg(img(x)) : x )
  }
  
