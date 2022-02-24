@@ -49,7 +49,7 @@
 `"odo.":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}
 `"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}
 
-dot:{dotmv:{{+/x*y}\:[x;y]};dotmv[x;y]}
+dot:{[xt;y]{+/x*y}\:[xt;y]} /col-major
 
 solve:{qslv:{H:x 0;r:x 1;n:x 2;m:x 3;j:0;K:!m
  while[j<n;y[K]-:(+/(conj H[j;K])*y K)*H[j;K];K:1_K;j+:1]
@@ -83,6 +83,11 @@ rem:{x/x+x/y} /like apl for negative arguments
 `"unpack.":{s:x;g:{[n]r:n#s;s::n_s;r};n:{*`i@g 4};u:{x;$[(t:*g 1)':"bcifz";*(`$t)g n[];t~"s";`$u 0;t~"S";`$u 0;t~"L";u'!n[];t~"D";(u 0)!u 0;t~"T";+(u 0)!u 0;(`$_t+32)g n[]]};u 0}
 
 csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
+
+ucal:{[s;u;r](#u)#+solve[u,0a+r=/:?r;s]} /k
+pcal:{[s;u]+solve[+u;+s]}                /k  s:s0-s1, u:u0
+uslv:{[qrk;s]qrsolve[qrk;s]}             /u
+uidx:{[u;a]solve[((#u)#1a;1@a);u] }      /(u0;uR)   rref:uidx[u*1@a;a]
 
 PW:800;PH:600;FH:20;FONT:"monospace"
 
