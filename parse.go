@@ -156,6 +156,9 @@ func pasn(x, y K) (K, K, int32) {
 			lp := lastp(x)
 			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
 			// lp+128 is @[amd..] or .[dmd..]
+			if lp == 92 {
+				lp = 84 // x[i;]:.. no projection
+			}
 			x = cat1(cat1(ucat(l1(l), ldrop(-2, x)), 20), lp+128)
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
