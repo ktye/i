@@ -44,9 +44,8 @@ func Fst(x K) K { // *x
 	if t < 16 {
 		return x
 	}
-	if t > Lt {
+	if t == Dt {
 		x = Val(x)
-		t = tp(x)
 	}
 	return ati(x, 0)
 }
