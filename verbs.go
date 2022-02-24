@@ -55,6 +55,9 @@ func Las(x K) K { // *|x
 	if t < 16 {
 		return x
 	}
+	if t == Dt {
+		x = Val(x)
+	}
 	n := nn(x)
 	if n == 0 {
 		return Fst(x)
