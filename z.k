@@ -1,5 +1,5 @@
 /               64     72    80    88     96     104    112    120    128                 
-``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp."
+``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
 
 `"x.":{,/+"0123456789abcdef"@(x%16;16/x:256/256+x)} /`x@ (hex)
 `"t.":`45         /`t@ token
@@ -96,7 +96,13 @@ PW:800;PH:600;FH:20;FONT:"monospace"
 `"pltcl.":{[x;y]p:.`"pltco.";n:`pltnn(x;y); xy:p[plt n;x;y]; `<$[`polar~plt[n;`t];$imag/|xy;"x:",($xy 0), " y:",($xy 1)],_10 32}
 `"pltzo.":{[x;y;w;h]n:`pltnn(x;y);p:.`"pltco.";xy0:p[plt n;x;y+h]; xy1:p[plt n;x+w;y]; plt[`a;n]:(xy0,xy1)0 2 1 3; plt[`t;n]:`xy; draw[`plts@`plt;(PW;PH)]}
 
-plot:{n:#x;multi:{x[`pw]%:n;x[`px]:(!n)*x`pw;x};plt::$[(@x)':`L`T;multi@(`plot@)'x;,`plot x];Show[draw[`plts@`plt;(PW;PH)];.`"pltcl.";.`"pltzo."]}
+plot:{n:#x;i:!0;r:!0
+ absa:{af:{v:.x;(!x)!(*v;y v 1)};am:{af[x;abs]};an:{af[x;angle]}
+  i::^(&{$[1~#x;0b;`Z~@$[L~@v:(.x)1;*v;v]]}'x),!#x
+  r::&1_~':i;x:x i;x[r]:am'x r;x[1+r]:an'x 1+r;x}
+ mult:{x[`pw]%:n;x[`px]:i*x`pw;x[r;`ph]:3\2*PH;x[1+r;`py`ph]:(3\2*PH;3\PH);x[`a;1+r;2 3]:,0 360.;x}
+ plt::mult@(`plot@)'absa$[(@x)':`L`T;*(x;n:#x);,x]
+ Show[draw[`plts@`plt;(PW;PH)];.`"pltcl.";.`"pltzo."]}
 
 `"plot.":{[d]l:$!d;v:.d; t:$[2~#d;`xy;`polar];
  y:$[t~`xy; $[`L~@y:v 1;y;,y];          $[`L~@y:_*v;y;,y]]
@@ -138,7 +144,7 @@ plot:{n:#x;multi:{x[`pw]%:n;x[`px]:(!n)*x`pw;x};plt::$[(@x)':`L`T;multi@(`plot@)
  c,:,/bars'x`L
  c,:,/line'x`L
  c,:,/dots'x`L}
- 
+
 `"tics.":{[minmax]nice:{[x;r]f:x%0.+10^ex:_log[10;x];(1 2 5 10.@*&(~f>1 2 5 0w;f<1.5 3 7 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;$[~(minmax 1)>*-2#r:s*(_(*minmax)%s)+!n;-1_r;r]}
 
 `"ceg.":{(x i)!0-':1+i:&(1_~~':x),1b} /#'= (^x)
