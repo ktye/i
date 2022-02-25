@@ -145,6 +145,7 @@ f:
 func pasn(x, y K) (K, K, int32) {
 	l := K(I64(int32(y)))
 	v := int32(l)
+	sp := 0xffffff & int32(l>>32)
 	if nn(y) == 1 && tp(l) == 0 && v == 449 || (v > 544 && v < 565) {
 		dx(y)
 		xn := nn(x)
@@ -159,7 +160,7 @@ func pasn(x, y K) (K, K, int32) {
 			if lp == 92 {
 				lp = 84 // x[i;]:.. no projection
 			}
-			x = cat1(cat1(ucat(l1(l), ldrop(-2, x)), 20), lp+128)
+			x = cat1(cat1(ucat(l1(l), ldrop(-2, x)), 20), (K(sp)<<32)|(lp+128))
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
 			s := Fst(x) // (`x;.)

@@ -21,7 +21,11 @@ const (
 
 func trap(x int32) K {
 	src := src()
-	if srcp < nn(src) {
+	//Printf("src %d %d, nn=%d srcp:%d\n", int32(src), int32(src>>32), nn(src), srcp)
+	//if srcp < nn(src) {
+	if srcp == 0 {
+		write(Ku(2608)) // 0\n
+	} else {
 		a := maxi(srcp-30, 0)
 		for i := a; i < srcp; i++ {
 			if I8(int32(src)+i) == 10 {
@@ -39,8 +43,8 @@ func trap(x int32) K {
 		if srcp > a {
 			write(Cat(Kc(10), ntake(srcp-a-1, Kc(32))))
 		}
-		write(Ku(2654)) // ^\n
 	}
+	write(Ku(2654)) // ^\n
 	panic(x)
 	return 0
 }
