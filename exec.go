@@ -194,7 +194,7 @@ func Dmd(x, i, v, y K) (r K) {
 			r, x = spl2(x)
 			return key(rx(r), Dmd(x, l2(Fnd(r, i), f), v, y), Tt)
 		}
-		if tp(f) != It || tp(x) != Lt { // todo table-matrix-assign
+		if tp(f) != It || tp(x) != Lt {
 			trap(Nyi) // Dt
 		}
 		r = use(x)
