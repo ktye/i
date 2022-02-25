@@ -126,8 +126,11 @@ func Amd(x, i, v, y K) (r K) {
 
 	if xt > Lt {
 		r, x = spl2(x)
-		if xt == Tt && tp(i)&15 == it { // table-assign-rows, assume (!x)~!y
-			return key(r, Dmd(x, l2(0, i), v, Val(y)), xt)
+		if xt == Tt && tp(i)&15 == it { // table-assign-rows
+			if tp(y) > Lt {
+				y = Val(y)
+			}
+			return key(r, Dmd(x, l2(0, i), v, y), xt)
 		}
 		r = Unq(Cat(r, rx(i)))
 		return key(r, Amd(ntake(nn(r), x), Fnd(rx(r), i), v, y), xt)
