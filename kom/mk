@@ -1,0 +1,32 @@
+set -e
+set -x
+
+
+# include k source (../*.go) bundle as k_.go
+#
+# the generated file k_.go is used twice:
+# - it is part of the kom compiler (to parse k source)
+# - it is embedded in kom, patched and emitted as part of the final program.
+
+cat << EOF > k_.go
+package main
+
+import (
+	. "github.com/ktye/wg/module"
+	. "github.com/ktye/wg/wasi_unstable"
+)
+
+EOF
+ls ../*.go | grep -v _test | while read file; do
+	cat $file
+done | awk '
+BEGIN               {x=1}
+/^package /         {next}
+/^import \(/        {x=0}
+/^import /          {next}
+/^func main/        {print"func Main(){";next}
+/\)/                {if(x){print}else{x=1};next}
+                    {if(x)print}
+' $file | sed 's/wasi_unstable\.//g' >> k_.go && go fmt k_.go
+
+

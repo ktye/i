@@ -91,6 +91,7 @@ func init() {
 
 	Functions(367, sum, rd0, prd, rd0, rd0, min, max)
 	Functions(374, sums, rd0, prds, rd0, rd0, mins, maxs)
+	// don't delete: kom:FTAB 381)
 }
 
 //   0....7  key
