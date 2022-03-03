@@ -16,7 +16,7 @@ import (
 //go:embed k_.go
 var gsrc []byte // source of the k implementation
 
-var xxx = "$[1;2;3]" // `{*a:-a:x}` // `*1+2`
+var xxx = "(1+)3"
 
 var mo []string   // {"nul", "Idy", "Flp", ... } see ../k.go (func init)
 var dy []string   // {"Asn", "Dex", "Add", ... }
@@ -24,9 +24,11 @@ var kfns [][]byte // generated code for k functions
 var tablen int    // number of predefined functions in indirect call table (k.go:init "Functions...")
 
 func main() {
-	ksrc := zksrc() // k source code (init + program)
-	//ksrc = []byte(xxx) //delete z.k for now
 	kinit()
+	ksrc := zksrc()  // k source code (init + program)
+	ksrc = ksrc[:76] //just symbols (76) // 504
+	ksrc = append(ksrc, addtests(ksrc, 80, 10)...)
+	//ksrc = append(ksrc, []byte(xxx)...)
 	for _, a := range os.Args[1:] {
 		if strings.HasSuffix(a, ".k") {
 			ksrc = append(ksrc, fileread(a)...)
@@ -43,7 +45,7 @@ func main() {
 	tablen, e = strconv.Atoi(string(gsearch("kom:FTAB ")))
 	fatal(e)
 	symtab = make(map[string]int)
-	konsts = make(map[string]string)
+	konsts = make(map[string]int)
 
 	var out bytes.Buffer
 
@@ -64,9 +66,15 @@ func main() {
 	gsrc[1+a] = 'a'
 	gsrc[2+a] = 'l'
 
+	// remove zk() (don't run interpreted initialization code)
+	a = bytes.Index(gsrc, []byte("\nfunc zk()"))
+	n := bytes.Index(gsrc[a:], []byte("\n}\n"))
+	gsrc = append(gsrc[:a], gsrc[2+a+n:]...)
+	gsrc = bytes.Replace(gsrc, []byte("zk()"), nil, 1)
+
 	// patch function table in gsrc: (add generated k functions)
 	a = bytes.Index(gsrc, []byte("kom:FTAB "))
-	n := 1 + bytes.Index(gsrc[a:], []byte(")\n"))
+	n = 1 + bytes.Index(gsrc[a:], []byte(")\n"))
 	var buf bytes.Buffer
 	buf.Write(gsrc[:a])
 	if len(kfns) > 0 {
@@ -75,14 +83,16 @@ func main() {
 			if i > 0 {
 				fmt.Fprintf(&buf, ", ")
 			}
-			fmt.Fprintf(&buf, "f%d", i)
+			fmt.Fprintf(&buf, "F%d", i)
 		}
 		buf.WriteString(")\n")
 	}
 	buf.Write(gsrc[a+n:])
 	io.Copy(os.Stdout, &buf) // emit patched go interpreter source
 
-	os.Stdout.Write([]byte(rtext)) // add runtime extensions "kal", "LAMBDA"
+	os.Stdout.Write([]byte(rtext)) // add runtime extensions "kal", "lmb"
+
+	os.Stdout.Write([]byte(gcomment(string(ksrc))))
 
 	// emit code for compiled k functions
 	for _, b := range kfns {
@@ -103,10 +113,42 @@ func fatal(e error) {
 		panic(e)
 	}
 }
+func tests() (r [][2]string) {
+	v := bytes.Split(fileread("c:/k/i/k.t"), []byte{10})
+	for i := range v {
+		ab := strings.Split(string(v[i]), " /")
+		r = append(r, [2]string{ab[0], ab[1]})
+	}
+	return r
+}
+func addtests(b []byte, a, n int) []byte {
+	all := tests()
+	for i := a; i < a+n; i++ {
+		tc := all[i]
+		var r string
+		l := `left:([` + tc[0] + "])\n"
+		if len(tc[1]) == 0 {
+			r = "`0"
+		} else {
+			r = `rite:` + string(CK(Kst(Val(KC([]byte(tc[1])))))) + "\n"
+		}
+		b = append(b, []byte(l)...)
+		b = append(b, []byte(r)...)
+		b = append(b, []byte("`"+`<$[left~rite;"ok   ";"fail "],($`+strconv.Itoa(1+i)+`),"\n"`+"\n")...)
+	}
+	return b
+}
 func fileread(f string) []byte {
 	b, e := os.ReadFile(f)
 	fatal(e)
 	return b
+}
+func gcomment(s string) string {
+	v := strings.Split(s, "\n")
+	for i := range v {
+		v[i] = "// " + v[i]
+	}
+	return strings.Join(v, "\n") + "\n\n"
 }
 func gsearch(s string) []byte {
 	a := bytes.Index(gsrc, []byte(s))
@@ -162,14 +204,14 @@ func markwhile(x K) { // mark while loops upfront
 	}
 }
 
-var as []string              // assignment stack
-var lo []string              // ssa variables
-var rs []string              // block return var stack
-var ar int                   // arity
-var lm map[string]bool       // k-name to ssa name
-var ce []int32               // cond end positions
-var symtab map[string]int    // k symbol index table for runtime
-var konsts map[string]string // k runtime constants
+var as []string           // assignment stack
+var lo []string           // ssa variables
+var rs []string           // block return var stack
+var ar int                // arity
+var lm map[string]bool    // k-name to ssa name
+var ce []int32            // cond end positions
+var symtab map[string]int // k symbol index table for runtime
+var konsts map[string]int // k runtime constants
 
 func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go (func exec) how k executes byte code
 
@@ -186,7 +228,6 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 	e := p + 8*xn
 	for p < e {
 		u := K(I64(p))
-
 		if u == 0xffffffffffffffff { // while
 			fmt.Fprintf(w, "%s := K(0)\nfor {\n", ssa())
 			rs = append(rs, v0())
@@ -200,11 +241,13 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 		} else if K(I64(p+8)) == 384 { // jif in cond
 			fmt.Fprintf(w, "%s := K(0)\ndx(%s)\n", ssa(), v1()) // cond's return var
 			fmt.Fprintf(w, "if int32(%s) != 0 {\n", v1())
+			ppop()
 			rs = append(rs, v0())
 			p += 8
 		} else if K(I64(p+8)) == 320 { // jmp in cond
 			ce = append(ce, p+16+int32(u))
 			fmt.Fprintf(w, "%s = %s\n} else {\n", rs[len(rs)-1], v0())
+			lpop()
 			p += 8
 		} else if tp(u) != 0 { // noun
 			if isAsn(u, e, p) {
@@ -239,7 +282,7 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 				w.Write([]byte(strings.Replace(s, "Amd", "Dmd", 1)))
 				fmt.Fprintf(w, "}\n")
 			case 4: // 256       drop
-				fmt.Fprintf(w, "dx(%s)\n", v0())
+				fmt.Fprintf(w, "dx(%s) //drop\n", v0())
 			case 5: // 320       jump
 				fmt.Fprintf(w, "!jump\n")
 			case 6: // 384       jump if not
@@ -253,20 +296,22 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 				} else if v-64 > 0 && v-64 < len(t) {
 					c = t[v-64]
 				}
-				fmt.Fprintf(w, "%s = K(%d) // `%d (%c)\n", ssa(), v, v, c)
+				fmt.Fprintf(w, "%s := K(%d) // `%d (%c)\n", ssa(), v, v, c)
 			}
 		}
 		p += 8
 
 		if len(ce) > 0 && ce[len(ce)-1] == p {
 			rs = append(rs, v0())
+			lpop()
 			for len(ce) > 0 && ce[len(ce)-1] == p { // cond-end
 				ce = ce[:len(ce)-1]
 				fmt.Fprintf(w, "%s = %s\n}\n", rs[len(rs)-2], rs[len(rs)-1])
 				rs = rs[:len(rs)-1]
 			}
-			lo = append(lo, rs[len(rs)-1])
+			//lo = append(lo, rs[len(rs)-1])
 			rs = rs[:len(rs)-1]
+			printstack(w)
 		}
 	}
 	if len(lo) == 0 {
@@ -274,6 +319,7 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 	}
 	return v0()
 }
+func printstack(w io.Writer) { fmt.Fprintf(w, "// lo: %v\n", lo) }
 func intern(s string) int32 {
 	if i, o := symtab[s]; o {
 		return int32(i)
@@ -285,10 +331,10 @@ func intern(s string) int32 {
 }
 func konst(s string) (r string) {
 	if g, o := konsts[s]; o {
-		return g
+		return "konst_" + strconv.Itoa(g)
 	} else {
 		r := "konst_" + strconv.Itoa(len(konsts))
-		konsts[s] = r
+		konsts[s] = len(konsts)
 		return r
 	}
 }
@@ -341,10 +387,10 @@ func kmNoun(x K) string {
 		if n > 0 {
 			m := sz * n / 8
 			if 8*m < sz*n {
-				for i := 8 * m; i < sz*n; i++ { // blank trailing memory
-					SetI8(int32(i), 0)
-				}
 				m++
+				for i := sz * n; i < 8*m; i++ { // blank trailing memory
+					SetI8(int32(x)+int32(i), 0)
+				}
 			}
 			for i := 0; i < m; i++ {
 				fmt.Fprintf(&buf, "SetI64(k_p+%d, %d)\n", 8*i, I64(int32(x)+int32(8*i)))
@@ -371,7 +417,7 @@ func kmNoun(x K) string {
 	case 17: // B
 		return vec(1)
 	case 18: // C
-		return fmt.Sprintf("rx(%s)", konst(mkC(string(CK(x)))))
+		return fmt.Sprintf("rx(%s)", konst(mkC(string(CK(rx(x))))))
 	case 19: // I
 		return vec(4)
 	case 20: // S
@@ -399,13 +445,14 @@ func kmNoun(x K) string {
 		s := string(CK(Kst(rx(x))))
 		var buf bytes.Buffer
 		fmt.Fprintf(&buf, "mk(23, %d) // %s\n", n, s)
-		fmt.Fprintf(&buf, "konst_p = int32(@)\n")
+		fmt.Fprintf(&buf, "k_p = int32(@)\n")
 		if n > 0 {
 			for i := int32(0); i < n; i++ {
 				y := ati(rx(x), i)
 				s := string(CK(Kst(rx(y))))
 				fmt.Fprintf(&buf, "SetI64(k_p+%d, int64(%s)) // %s\n", 8*i, kmNoun(y), s)
 			}
+			//fmt.Fprintf(&buf, "%s = uf(%s)\n", s, s)
 		}
 		return fmt.Sprintf("rx(%s)", konst(string(buf.Bytes())))
 	// functions cannot exist, dicts, tables should not.
@@ -425,12 +472,12 @@ func kmLambda(x K) string {
 	v := SK(locs)
 	r := kom(&buf, code, v, ary)
 
-	n := "f" + strconv.Itoa(len(kfns))
+	n := "F" + strconv.Itoa(len(kfns))
 	b := []byte("func " + n + "(" + strings.Join(v[:ary], ", "))
 	if ary > 0 {
 		b = append(b, ' ', 'K')
 	}
-	b = append(b, []byte(") K { // "+single(string(CK(kstr)))+"\n")...)
+	b = append(b, []byte(") K { // "+single(string(CK(rx(kstr))))+"\n")...)
 	if len(v) > ary {
 		zeros := strings.Join(strings.Split(strings.Repeat("0", len(v)-ary), ""), ", ")
 		b = append(b, []byte("var "+strings.Join(v[ary:], ", ")+" K = "+zeros+"\n")...)
@@ -444,7 +491,7 @@ func kmLambda(x K) string {
 	kfns = append(kfns, b)
 
 	fn := len(kfns) - 1
-	return fmt.Sprintf("LAMBDA(%d)", tablen+fn)
+	return fmt.Sprintf("lmb(%d, %d)", tablen+fn, ary)
 }
 func kmMo(w io.Writer, u K) {
 	if u == 0 {
@@ -452,12 +499,15 @@ func kmMo(w io.Writer, u K) {
 		return
 	}
 	fmt.Fprintf(w, "%s := %s(%s)\n", ssa(), mo[int32(u)], v1())
+	ppop()
 }
 func kmDy(w io.Writer, u K) {
 	if int32(u) == 64 { // asn
 		kmAsn(w)
 	} else {
 		fmt.Fprintf(w, "%s := %s(%s, %s)\n", ssa(), dy[int32(u)-64], v1(), v2())
+		ppop()
+		ppop()
 	}
 }
 func isLst(u K, e, p int32) bool {
@@ -472,7 +522,11 @@ func isLst(u K, e, p int32) bool {
 func mkLst(w io.Writer, n int) { // build list at runtime
 	fmt.Fprintf(w, "%s := mk(23, %d)\n", ssa(), n)
 	for i := 0; i < n; i++ {
-		fmt.Fprintf(w, "SetI64(int32(%s)+%d, %s)\n", v0(), 8*i, vn(1+i))
+		fmt.Fprintf(w, "SetI64(int32(%s)+%d, int64(%s))\n", v0(), 8*i, v1())
+		ppop()
+	}
+	if n > 0 {
+		fmt.Fprintf(w, "%s = uf(%s)\n", v0(), v0())
 	}
 }
 func ssa() string {
@@ -486,7 +540,9 @@ func ssa() string {
 	lo = append(lo, s)
 	return s
 }
-func vn(n int) string { return lo[len(lo)-n-1] } // n'th var name from top
+func lpop()           { lo = lo[:len(lo)-1] }                   // pop last ssa
+func ppop()           { lo[len(lo)-2] = lo[len(lo)-1]; lpop() } // pop previous local
+func vn(n int) string { return lo[len(lo)-n-1] }                // n'th var name from top
 func v0() string      { return vn(0) }
 func v1() string      { return vn(1) }
 func v2() string      { return vn(2) }
@@ -541,8 +597,8 @@ func constdecl(w io.Writer) { // declared in global context
 		return
 	}
 	var v []string
-	for _, k := range konsts {
-		v = append(v, k)
+	for i := 0; i < len(konsts); i++ {
+		v = append(v, "konst_"+strconv.Itoa(i))
 	}
 	fmt.Fprintf(w, "var %s K\n", strings.Join(v, ", "))
 }
@@ -551,8 +607,13 @@ func constnt(w io.Writer) { // initialized in main
 		return
 	}
 	fmt.Fprintf(w, "// runtime constants\n")
-	for c, k := range konsts {
-		fmt.Fprintf(w, "%s = %s\n", k, strings.Replace(c, "@", k, -1))
+	ord := make([]string, len(konsts))
+	for s, i := range konsts {
+		ord[i] = s
+	}
+	for k, c := range ord {
+		s := "konst_" + strconv.Itoa(k)
+		fmt.Fprintf(w, "%s = %s\n", s, strings.Replace(c, "@", s, -1))
 	}
 }
 func needkp() bool { // need variable k_p
@@ -566,7 +627,9 @@ func needkp() bool { // need variable k_p
 
 func KC(b []byte) (r K) {
 	r = mk(Ct, int32(len(b)))
-	copy(Bytes[int32(r):], b)
+	if len(b) > 0 {
+		copy(Bytes[int32(r):], b)
+	}
 	return r
 }
 func sK(x K) string { x = cs(x); return string(Bytes[int32(x) : int32(x)+nn(x)]) }
@@ -577,32 +640,49 @@ func SK(x K) []string {
 	}
 	return r
 }
-func CK(x K) []byte { return Bytes[int32(x) : int32(x)+nn(x)] }
+func CK(x K) []byte {
+	if x == 0 {
+		return []byte{}
+	}
+	r := Bytes[int32(x) : int32(x)+nn(x)]
+	rx(x)
+	return r
+}
 
 const head string = `func main() {
 `
 const rtext string = `
 func kal(f, x K) (r K) { // call kom-compiled lambda function
 	n := nn(x)
-	p := int32(f)
+	xp := int32(x)
+	fp := int32(f)
 	lfree(x)
 	switch(n) {
 	case 0:
-		r = Func[p].(func() K)()
+		r = Func[fp].(func() K)()
 	case 1:
-	        r = Func[p].(func(K) K)(K(I64(p)))
+	        r = Func[fp].(func(K) K)(K(I64(xp)))
 	case 2:
-	        r = Func[p].(func(K, K) K)(K(I64(p)), K(I64(p+8)))
+	        r = Func[fp].(func(K, K) K)(K(I64(xp)), K(I64(xp+8)))
 	case 3:
-	        r = Func[p].(func(K, K, K) K)(K(I64(p)), K(I64(p+8)), K(I64(p+16)))
+	        r = Func[fp].(func(K, K, K) K)(K(I64(xp)), K(I64(xp+8)), K(I64(xp+16)))
 	default: // todo: track needed maxargs during compilation
 		r = trap(Nyi)
 	}
 	dx(f)
 	return r
 }
-func LAMBDA(x int32) K {
+func lmb(x, a int32) K { // store compiled lambda function as a k value (type xf)
 	l := l2(Ki(x), mk(Ct, 0))
+	SetI32(int32(l)-12, a)         // arity as length
 	return K(int32(l)) | K(14)<<59 // native function type xf
 }
 `
+
+// todo: refcount optimization
+//  k$ := rx(?)
+//  dx(k$) //drop
+// => delete both lines
+//  k$ := Asn(?)
+//  dx(k$)
+// => dx(Asn(?))

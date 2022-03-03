@@ -2,7 +2,7 @@ set -x
 set -e
 
 # embed z.k in z.go
-sed -e '/^\//d' -e 's, /.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
+sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
 zn=`wc -c k.k | sed 's/ .*//'`
 zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
 cat << EOF > z.go
