@@ -16,18 +16,35 @@ import (
 //go:embed k_.go
 var gsrc []byte // source of the k implementation
 
-var xxx = "(1+)3"
+var xxx = "{x+y*z}[;1 2;]"
+
+//var xxx = "{while[x;x-:1]}"
+//var xxx = "while[x;x-:1]"
+//var xxx = `$[x;y;z]`
+//var xxx = "{(x@*'g)!g:(&~x~':x i)^i:<x}"
+//var xxx = "{$[0;1;x+i:x]}"
+//var xxx = "{x:$x;$[`c~t;s x;`s~t;\"`\",x;x]}"
+//var xxx = "{$[`c~t;s x;`s~t;\"`\",x;x]}"
+//var xxx = "x:!3;@[x;i:1 2;+;2]"
+//var xxx = "{x[1 2]+:3}"
 
 var mo []string   // {"nul", "Idy", "Flp", ... } see ../k.go (func init)
 var dy []string   // {"Asn", "Dex", "Add", ... }
 var kfns [][]byte // generated code for k functions
 var tablen int    // number of predefined functions in indirect call table (k.go:init "Functions...")
+var maxargs int   //
 
 func main() {
 	kinit()
-	ksrc := zksrc()  // k source code (init + program)
-	ksrc = ksrc[:76] //just symbols (76) // 504
-	ksrc = append(ksrc, addtests(ksrc, 80, 10)...)
+	ksrc := zksrc() // k source code (init + program)
+	//ksrc = ksrc[:76] // symbols 76
+	//ksrc = ksrc[:504] // math 504
+	ksrc = ksrc[:1498] // print 1498
+
+	//fmt.Println(string(ksrc))
+	//os.Exit(0)
+
+	ksrc = append(ksrc, addtests(ksrc, 0, 200)...)
 	//ksrc = append(ksrc, []byte(xxx)...)
 	for _, a := range os.Args[1:] {
 		if strings.HasSuffix(a, ".k") {
@@ -50,7 +67,6 @@ func main() {
 	var out bytes.Buffer
 
 	x := Prs(KC(ksrc)) // byte-code as L
-	markwhile(x)
 	v := kom(&out, x, []string{}, 0)
 	if v != "" { // fix last node (we could also print).
 		out.Write([]byte("dx(" + v + ")\n"))
@@ -83,14 +99,14 @@ func main() {
 			if i > 0 {
 				fmt.Fprintf(&buf, ", ")
 			}
-			fmt.Fprintf(&buf, "F%d", i)
+			fmt.Fprintf(&buf, "f_%d", i)
 		}
 		buf.WriteString(")\n")
 	}
 	buf.Write(gsrc[a+n:])
 	io.Copy(os.Stdout, &buf) // emit patched go interpreter source
 
-	os.Stdout.Write([]byte(rtext)) // add runtime extensions "kal", "lmb"
+	os.Stdout.Write([]byte(rtext())) // add runtime extensions "kal", "lmb"
 
 	os.Stdout.Write([]byte(gcomment(string(ksrc))))
 
@@ -122,20 +138,31 @@ func tests() (r [][2]string) {
 	return r
 }
 func addtests(b []byte, a, n int) []byte {
+	skip := make(map[string]bool)
+	for _, s := range skiptests() {
+		skip[s] = true
+	}
+	quote := func(s string) string {
+		s = strings.ReplaceAll(s, `\`, `\\`)
+		s = strings.ReplaceAll(s, `"`, `\"`)
+		s = `"` + s + `"`
+		if len(s) == 3 {
+			s = "," + s
+		}
+		return s
+	}
+	b = append(b, []byte("ktest:{`<$[x~`k y;\"ok   \";\"fail \"],($z),\"\\n\"}\n")...)
 	all := tests()
 	for i := a; i < a+n; i++ {
 		tc := all[i]
-		var r string
-		l := `left:([` + tc[0] + "])\n"
-		if len(tc[1]) == 0 {
-			r = "`0"
-		} else {
-			r = `rite:` + string(CK(Kst(Val(KC([]byte(tc[1])))))) + "\n"
+		if skip[tc[0]] {
+			tc[0] = "`skip"
+			tc[1] = "`skip"
 		}
-		b = append(b, []byte(l)...)
-		b = append(b, []byte(r)...)
-		b = append(b, []byte("`"+`<$[left~rite;"ok   ";"fail "],($`+strconv.Itoa(1+i)+`),"\n"`+"\n")...)
+		//s := "`<$[" + quote(tc[1]) + "~`k@([" + tc[0] + `]);"ok   ";"fail "],($` + strconv.Itoa(1+i) + `),"\n"` + "\n"
+		b = append(b, []byte(fmt.Sprintf("ktest[%s;[%s];%d]\n", quote(tc[1]), tc[0], 1+i))...)
 	}
+	//println(string(b))
 	return b
 }
 func fileread(f string) []byte {
@@ -189,8 +216,8 @@ func markwhile(x K) { // mark while loops upfront
 	e := p + 8*xn
 	for p < e {
 		u := K(I64(p))
-		j := int32(I64(p - 8))
 		if u == 384 { // jif
+			j := int32(I64(p - 8))
 			if I64(p+j) == 320 { // jump
 				o := int32(I64(p + j - 8))
 				if o < 0 { // negative jump offset (end of while)
@@ -204,10 +231,9 @@ func markwhile(x K) { // mark while loops upfront
 	}
 }
 
-var as []string           // assignment stack
+var locs []string         // local variables of current lambda
 var lo []string           // ssa variables
-var rs []string           // block return var stack
-var ar int                // arity
+var as []string           // assignment stack
 var lm map[string]bool    // k-name to ssa name
 var ce []int32            // cond end positions
 var symtab map[string]int // k symbol index table for runtime
@@ -216,38 +242,50 @@ var konsts map[string]int // k runtime constants
 func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go (func exec) how k executes byte code
 
 	// kom is called recursively and (re)stores it's state in globals
-	save_lo, save_rs, save_ar, save_lm, save_ce := lo, rs, ar, lm, ce
-	lo, rs, ar, lm, ce = locals, make([]string, 0), args, make(map[string]bool), make([]int32, 0)
+	save_lo, save_locs, save_lm, save_ce := lo, locs, lm, ce
+	lo, locs, lm, ce = locals, locals, make(map[string]bool), make([]int32, 0)
 	for i := 0; i < args; i++ {
 		lm[locals[i]] = true
 	}
-	defer func() { lo, rs, ar, lm, ce = save_lo, save_rs, save_ar, save_lm, save_ce }()
+	defer func() { lo, locs, lm, ce = save_lo, save_locs, save_lm, save_ce }()
 
 	xn := nn(x)
 	p := int32(x)
 	e := p + 8*xn
+	markwhile(x)
 	for p < e {
 		u := K(I64(p))
+		//println("u", u, int32(u), "tp", tp(u))
+		//if p+8 < e {
+		//	n := K(I64(p + 8))
+		//	println(" n", n, int32(n), "tp", tp(n))
+		//}
 		if u == 0xffffffffffffffff { // while
 			fmt.Fprintf(w, "%s := K(0)\nfor {\n", ssa())
-			rs = append(rs, v0())
 		} else if u == 0xfffffffffffffffe { // jif within while
 			fmt.Fprintf(w, "if %s != 0 { dx(%s); break; }\n", v0(), v0())
+			lpop()
+			printstack(w)
 		} else if u == 0xfffffffffffffffd {
-			r := rs[len(rs)-1]
-			rs = rs[:len(rs)-1]
-			fmt.Fprintf(w, "dx(%s); %s = %s\n}\n%s := %s\n", r, r, v0(), ssa(), r)
+			r := lo[len(lo)-2]
+			fmt.Fprintf(w, "dx(%s); %s = %s\n}\n", r, r, v0())
+			lpop()
+			printstack(w)
 			p += 8
-		} else if K(I64(p+8)) == 384 { // jif in cond
-			fmt.Fprintf(w, "%s := K(0)\ndx(%s)\n", ssa(), v1()) // cond's return var
+		} else if p+8 < e && K(I64(p+8)) == 384 { // jif in cond
+			fmt.Fprintf(w, "%s := K(0)\n", ssa())
+			printstack(w)
+			fmt.Fprintf(w, "dx(%s)\n", v1()) // cond's return var
 			fmt.Fprintf(w, "if int32(%s) != 0 {\n", v1())
 			ppop()
-			rs = append(rs, v0())
+			printstack(w)
 			p += 8
-		} else if K(I64(p+8)) == 320 { // jmp in cond
+		} else if p+8 < e && K(I64(p+8)) == 320 { // jmp in cond
 			ce = append(ce, p+16+int32(u))
-			fmt.Fprintf(w, "%s = %s\n} else {\n", rs[len(rs)-1], v0())
+			fmt.Fprintf(w, "%s = %s\n", v1(), v0())
 			lpop()
+			printstack(w)
+			fmt.Fprintf(w, "} else {\n")
 			p += 8
 		} else if tp(u) != 0 { // noun
 			if isAsn(u, e, p) {
@@ -274,19 +312,31 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 				kmDy(w, u)
 			case 2: // 128       dyadic indirect
 				fmt.Fprintf(w, "%s := Cal(%s, l2(%s, %s))\n", ssa(), v1(), v2(), vn(3))
+				ppop()
+				ppop()
+				ppop()
+				printstack(w)
 			case 3: // 192..255  tetradic
-				fmt.Fprintf(w, "var %s K\nif 211 == int32(dx(%s)) {\n", ssa(), v1())
-				s := fmt.Sprintf(" %s = Amd(%s, %s, %s, %s)\n", v0(), v1(), v2(), vn(3), vn(4))
-				w.Write([]byte(s))
-				fmt.Fprintf(w, "} else {\n")
-				w.Write([]byte(strings.Replace(s, "Amd", "Dmd", 1)))
-				fmt.Fprintf(w, "}\n")
+				fmt.Fprintf(w, "// tetradic %v\n", int32(u))
+				printstack(w)
+				s := "Dmd"
+				if 211 == int32(u) {
+					s = "Amd"
+				}
+				fmt.Fprintf(w, "%s := %s(%s, %s, %s, %s)\n", ssa(), s, v1(), v2(), vn(3), vn(4))
+				ppop()
+				ppop()
+				ppop()
+				ppop()
+				printstack(w)
 			case 4: // 256       drop
 				fmt.Fprintf(w, "dx(%s) //drop\n", v0())
+				lpop()
+				printstack(w)
 			case 5: // 320       jump
-				fmt.Fprintf(w, "!jump\n")
+				panic("!jump\n")
 			case 6: // 384       jump if not
-				fmt.Fprintf(w, "!jump if not\n")
+				panic("!jump if not\n")
 			default: //448..     quoted verb
 				v := int(unquote(K(int32(u))))
 				c := byte(' ')
@@ -301,17 +351,12 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 		}
 		p += 8
 
-		if len(ce) > 0 && ce[len(ce)-1] == p {
-			rs = append(rs, v0())
+		for len(ce) > 0 && ce[len(ce)-1] == p { // cond-end
+			ce = ce[:len(ce)-1]
+			fmt.Fprintf(w, "%s = %s\n", lo[len(lo)-2], lo[len(lo)-1])
 			lpop()
-			for len(ce) > 0 && ce[len(ce)-1] == p { // cond-end
-				ce = ce[:len(ce)-1]
-				fmt.Fprintf(w, "%s = %s\n}\n", rs[len(rs)-2], rs[len(rs)-1])
-				rs = rs[:len(rs)-1]
-			}
-			//lo = append(lo, rs[len(rs)-1])
-			rs = rs[:len(rs)-1]
 			printstack(w)
+			fmt.Fprintf(w, "}\n")
 		}
 	}
 	if len(lo) == 0 {
@@ -319,7 +364,7 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 	}
 	return v0()
 }
-func printstack(w io.Writer) { fmt.Fprintf(w, "// lo: %v\n", lo) }
+func printstack(w io.Writer) {} // fmt.Fprintf(w, "// lo> %v\n", lo) }
 func intern(s string) int32 {
 	if i, o := symtab[s]; o {
 		return int32(i)
@@ -358,8 +403,8 @@ func isLup(u K, e, p int32) bool {
 	return false
 }
 func isglobal(s string) bool {
-	for i := 0; i < ar; i++ {
-		if lo[i] == s {
+	for _, v := range locs {
+		if v == s {
 			return false
 		}
 	}
@@ -371,9 +416,11 @@ func kmAsn(w io.Writer) {
 	as = as[:len(as)-1]
 	if isglobal(s) {
 		fmt.Fprintf(w, "%s := Asn(Ks(%d), %s) // %s:\n", ssa(), intern(s), v1(), s)
+		ppop()
 	} else {
-		lo = append(lo, s)
 		fmt.Fprintf(w, "dx(%s); %s = rx(%s)\n", s, s, y)
+		lpop()
+		lo = append(lo, s)
 	}
 }
 func kmNoun(x K) string {
@@ -466,13 +513,16 @@ func kmLambda(x K) string {
 	single := func(s string) string { return strings.Replace(s, "\n", ";", -1) }
 	var buf bytes.Buffer
 	ary := int(nn(x))
+	if ary > maxargs {
+		maxargs = ary
+	}
 	code := x0(int32(x))
 	locs := x1(int32(x))
 	kstr := x2(int32(x))
 	v := SK(locs)
 	r := kom(&buf, code, v, ary)
 
-	n := "F" + strconv.Itoa(len(kfns))
+	n := "f_" + strconv.Itoa(len(kfns))
 	b := []byte("func " + n + "(" + strings.Join(v[:ary], ", "))
 	if ary > 0 {
 		b = append(b, ' ', 'K')
@@ -500,14 +550,17 @@ func kmMo(w io.Writer, u K) {
 	}
 	fmt.Fprintf(w, "%s := %s(%s)\n", ssa(), mo[int32(u)], v1())
 	ppop()
+	printstack(w)
 }
 func kmDy(w io.Writer, u K) {
 	if int32(u) == 64 { // asn
 		kmAsn(w)
+		printstack(w)
 	} else {
 		fmt.Fprintf(w, "%s := %s(%s, %s)\n", ssa(), dy[int32(u)-64], v1(), v2())
 		ppop()
 		ppop()
+		printstack(w)
 	}
 }
 func isLst(u K, e, p int32) bool {
@@ -651,33 +704,54 @@ func CK(x K) []byte {
 
 const head string = `func main() {
 `
-const rtext string = `
+
+func rtext() string {
+	s := `
+func lmb(x, a int32) K { // store compiled lambda function as a k value (type xf)
+	l := l2(Ki(x), mk(Ct, 0))
+	SetI32(int32(l)-12, a)         // arity as length
+	return K(int32(l)) | K(14)<<59 // native function type xf
+}
 func kal(f, x K) (r K) { // call kom-compiled lambda function
 	n := nn(x)
 	xp := int32(x)
 	fp := int32(f)
 	lfree(x)
 	switch(n) {
-	case 0:
-		r = Func[fp].(func() K)()
-	case 1:
-	        r = Func[fp].(func(K) K)(K(I64(xp)))
-	case 2:
-	        r = Func[fp].(func(K, K) K)(K(I64(xp)), K(I64(xp+8)))
-	case 3:
-	        r = Func[fp].(func(K, K, K) K)(K(I64(xp)), K(I64(xp+8)), K(I64(xp+16)))
-	default: // todo: track needed maxargs during compilation
-		r = trap(Nyi)
+`
+	for i := 0; i <= maxargs; i++ {
+		t := strings.Join(strings.Split(strings.Repeat("K", i), ""), ",")
+		a := ""
+		if i > 0 {
+			a = "K(I64(xp))"
+			for j := 1; j < i; j++ {
+				a += ", K(I64(xp+" + strconv.Itoa(8*j) + "))"
+			}
+		}
+		s += fmt.Sprintf("case %d:\nr=Func[fp].(func(%s) K)(%s)\n", i, t, a)
+	}
+
+	return s + `
+	default:
+		r = trap(Err)
 	}
 	dx(f)
 	return r
+}`
 }
-func lmb(x, a int32) K { // store compiled lambda function as a k value (type xf)
-	l := l2(Ki(x), mk(Ct, 0))
-	SetI32(int32(l)-12, a)         // arity as length
-	return K(int32(l)) | K(14)<<59 // native function type xf
+
+func skiptests() []string {
+	return []string{
+		"{x+y*z}[;1 2;]",     // cannot string compiled functions ($l)
+		"f:{x+y};f 3",        // $l
+		"({x+y+z}3)4",        // $l
+		"({x+y+z}[;1;])[;2]", // $l
+		"{[a]a}",             // $l
+		"(.{[]x+y})3",        // $l
+		"(.{a+b})3",          // .l
+		"(.{[]s:1+s:1})1",    // .l
+	}
 }
-`
 
 // todo: refcount optimization
 //  k$ := rx(?)
