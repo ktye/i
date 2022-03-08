@@ -11,9 +11,9 @@
 `"f.":(`46)[`f;]
 `"z.":(`46)[`z;]
 
-`"uqs.":{x@&~0b~':x:^x}                    /?^x
-`"uqf.":{x@&(!#x)=x?x}                     /?xL
-`"gdt.":{[t;g](!#t){x g y x}/|.t}          /<t >t  grade table
+`"uqs.":{x@&~0b~':x:^x}                           /?^x
+`"uqf.":{x@&(!#x)=x?x}                            /?xL
+`"gdt.":{[t;g](!#t)($[g;{x@>y x};{x@<y x}])/|.t}  /<t >t  grade table
 
 `"odo.":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}  /!I (odometer)
 `"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}       /=x
@@ -24,13 +24,22 @@ any:`30;abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;ex
 / pretty print  `l@x  `k@x
 `"pad.":{(|/#'x)#'x}
 
-`"l.":{t:@x;k:`kxy 1
- kt:{x:$[`T~@x;T x;`pad("";"-"),$x];(x,'"|"),'T y}
- d:{r:!x;x:.x;$[`T~@x;kt[r;x];,'[,'[`pad(k'r);"|"];k'x]]}
- T:{$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+`pad@'$(!x),'.x]}
+/ `"l.":{t:@x;k:`kxy 1
+/  kt:{x:$[`T~@x;T x;`pad("";"-"),$x];(x,'"|"),'T y}
+/  d:{r:!x;x:.x;$[`T~@x;kt[r;x];,'[,'[`pad(k'r);"|"];k'x]]}
+/  T:{$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+`pad@'$(!x),'.x]}
+/  dd:("";,"..")20<#x:$[(@x)':`L`D`T;x;x~*x;x;[t:`L;,x]]
+/  x:$[x~*x;x;(20&#x)#x]
+/  $[`D~t;d x;`T~t;T x;x~*x;,k x;k'x],dd} /352
+
+`"l.":{ /k
+ kt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad("";"-"),$x];(x,'"|"),'T[y;k]}
+ d:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);"|"];k'x]]}
+ T:{[x;k]$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+`pad@'$(!x),'.x]}
+ t:@x;k:`kxy 1
  dd:("";,"..")20<#x:$[(@x)':`L`D`T;x;x~*x;x;[t:`L;,x]]
  x:$[x~*x;x;(20&#x)#x]
- $[`D~t;d x;`T~t;T x;x~*x;,k x;k'x],dd} /352
+ $[`D~t;d[x;k;kt;T];`T~t;T[x;k];x~*x;,k x;k'x],dd} /352
 
 / `"kxy.":{t:@y;n:#y;k:`kxy x;m:x
 /  q:{c,("\\"/:(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x':qs:"\t\n\r\"\\"]),c:_34}
@@ -112,7 +121,7 @@ csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s
 ucal:{[s;u;r](#u)#+solve[u,0a+r=/:?r;s]} /k
 pcal:{[s;u]+solve[+u;+s]}                /k  s:s0-s1, u:u0
 uslv:{[qrk;s]qrsolve[qrk;s]}             /u
-uidx:{[u;a]solve[((#u)#1a;1@a);u] }      /(u0;uR)   rref:uidx[u*1@a;a]
+uidx:{[u;a]solve[((#u)#1a;1@a);u]}       /(u0;uR)   rref:uidx[u*1@a;a]
 
 
 /plot

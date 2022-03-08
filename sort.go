@@ -52,7 +52,7 @@ func grade(x K, f int32) (r K) { // <x >x
 	}
 	n := nn(x)
 	if xt == Tt {
-		return kxy(104, x, K(9+I32B(f == 336))) //gdt ngn:{(!#x){x@<y x}/|.+x}
+		return kxy(104, x, Kb(I32B(f == 336))) //gdt ngn:{(!#x){x@<y x}/|.+x}
 	}
 	if n < 2 {
 		dx(x)

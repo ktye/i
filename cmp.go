@@ -76,6 +76,8 @@ func match(x, y K) int32 {
 		yn = 24
 	case 5: // lambda
 		return match(K(I64(xp+16)), K(I64(yp+16))) // compare strings
+	default: // xf, kf
+		return match(K(I64(xp)), K(I64(yp)))
 	}
 	for yn > 0 { // composition, derived, projection
 		yn -= 8

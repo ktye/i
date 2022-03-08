@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -16,41 +17,38 @@ import (
 //go:embed k_.go
 var gsrc []byte // source of the k implementation
 
-var xxx = "{x+y*z}[;1 2;]"
+var mo []string              // {"nul", "Idy", "Flp", ... } see ../k.go (func init)
+var dy []string              // {"Asn", "Dex", "Add", ... }
+var kfns [][]byte            // generated code for k functions
+var tablen int               // number of predefined functions in indirect call table (k.go:init "Functions...")
+var maxargs int              //
+var lmbdas map[string]string // compile identical functions only once
+var krep bool                // append repl to main
 
-//var xxx = "{while[x;x-:1]}"
-//var xxx = "while[x;x-:1]"
-//var xxx = `$[x;y;z]`
-//var xxx = "{(x@*'g)!g:(&~x~':x i)^i:<x}"
-//var xxx = "{$[0;1;x+i:x]}"
-//var xxx = "{x:$x;$[`c~t;s x;`s~t;\"`\",x;x]}"
-//var xxx = "{$[`c~t;s x;`s~t;\"`\",x;x]}"
-//var xxx = "x:!3;@[x;i:1 2;+;2]"
-//var xxx = "{x[1 2]+:3}"
-
-var mo []string   // {"nul", "Idy", "Flp", ... } see ../k.go (func init)
-var dy []string   // {"Asn", "Dex", "Add", ... }
-var kfns [][]byte // generated code for k functions
-var tablen int    // number of predefined functions in indirect call table (k.go:init "Functions...")
-var maxargs int   //
-
+// kom args > a.go
+// args:
+//  *.k   compile k
+//  *.go  add native go
+//  *.t   add tests
+//  repl  add repl loop
 func main() {
 	kinit()
-	ksrc := zksrc() // k source code (init + program)
+	ksrc := zksrc() // k source code (z.k + program)
 	//ksrc = ksrc[:76] // symbols 76
-	//ksrc = ksrc[:504] // math 504
-	ksrc = ksrc[:1498] // print 1498
+	//ksrc = ksrc[:519] // math 519
+	//ksrc = ksrc[:1559] // print 1559
 
-	//fmt.Println(string(ksrc))
-	//os.Exit(0)
-
-	ksrc = append(ksrc, addtests(ksrc, 0, 200)...)
+	//ksrc = append(ksrc, addtests(ksrc, 0, -1)...)
 	//ksrc = append(ksrc, []byte(xxx)...)
 	for _, a := range os.Args[1:] {
 		if strings.HasSuffix(a, ".k") {
 			ksrc = append(ksrc, fileread(a)...)
 		} else if strings.HasSuffix(a, ".go") {
 			gsrc = append(gsrc, fileread(a)...)
+		} else if strings.HasSuffix(a, ".t") {
+			ksrc = append(ksrc, addtests(a, 0, -1)...)
+		} else if a == "repl" {
+			krep = true
 		} else {
 			fatal(fmt.Errorf("unknown suffix: " + a))
 		}
@@ -63,6 +61,7 @@ func main() {
 	fatal(e)
 	symtab = make(map[string]int)
 	konsts = make(map[string]int)
+	lmbdas = make(map[string]string)
 
 	var out bytes.Buffer
 
@@ -107,7 +106,6 @@ func main() {
 	io.Copy(os.Stdout, &buf) // emit patched go interpreter source
 
 	os.Stdout.Write([]byte(rtext())) // add runtime extensions "kal", "lmb"
-
 	os.Stdout.Write([]byte(gcomment(string(ksrc))))
 
 	// emit code for compiled k functions
@@ -122,6 +120,9 @@ func main() {
 	}
 	constnt(os.Stdout)
 	io.Copy(os.Stdout, &out)
+	if krep {
+		os.Stdout.Write([]byte(replsrc))
+	}
 	os.Stdout.Write([]byte("}\n"))
 }
 func fatal(e error) {
@@ -129,15 +130,20 @@ func fatal(e error) {
 		panic(e)
 	}
 }
-func tests() (r [][2]string) {
-	v := bytes.Split(fileread("c:/k/i/k.t"), []byte{10})
+func tests(file string) (r [][2]string) {
+	b := fileread(file)
+	if len(b) > 0 && b[len(b)-1] == 10 {
+		b = b[:len(b)-1]
+	}
+	v := bytes.Split(b, []byte{10})
 	for i := range v {
 		ab := strings.Split(string(v[i]), " /")
 		r = append(r, [2]string{ab[0], ab[1]})
 	}
 	return r
 }
-func addtests(b []byte, a, n int) []byte {
+func addtests(file string, a, n int) []byte { // all: a,n=0,-1
+	var b []byte
 	skip := make(map[string]bool)
 	for _, s := range skiptests() {
 		skip[s] = true
@@ -152,7 +158,10 @@ func addtests(b []byte, a, n int) []byte {
 		return s
 	}
 	b = append(b, []byte("ktest:{`<$[x~`k y;\"ok   \";\"fail \"],($z),\"\\n\"}\n")...)
-	all := tests()
+	all := tests(file)
+	if n < 0 {
+		n = len(all) - a
+	}
 	for i := a; i < a+n; i++ {
 		tc := all[i]
 		if skip[tc[0]] {
@@ -187,9 +196,14 @@ func gsearch(s string) []byte {
 	b := gsrc[a : a+n]
 	return b
 }
-func zksrc() []byte { // extract z.k from gsrc
+func zksrc() []byte { // extract z.k from gsrc, do not include plot.
 	s, e := strconv.Unquote(string(gsearch("Data(600, ")))
 	fatal(e)
+	a := strings.Index(s, "PW:800;PH:600;") // plot
+	if a < 0 {
+		panic("cannot find plot in z.k")
+	}
+	s = s[:a]
 	return []byte(s)
 }
 func monadics() []string { // extract monadics from gsrc function table
@@ -210,7 +224,9 @@ func dyadics() []string { // extract dyadics from gsrc function table
 }
 func markwhile(x K) { // mark while loops upfront
 	// a while loop is [0 ... jif(to the end) ... jump(back)]
-	// replace the leading 0 with -1 and the jif with -2
+	//  replace the leading 0 with -1 and, jif and offset with -2 and jmp-offset with -3
+	// a return is identity+jmp [idy Ki(1048576) 320]
+	//  replace all with -4
 	xn := nn(x)
 	p := int32(x)
 	e := p + 8*xn
@@ -221,11 +237,18 @@ func markwhile(x K) { // mark while loops upfront
 			if I64(p+j) == 320 { // jump
 				o := int32(I64(p + j - 8))
 				if o < 0 { // negative jump offset (end of while)
+					//println("WHILE")
 					SetI64(p+j+o, -1) // replace leading 0
+					SetI64(p-8, -2)   // jif offset
 					SetI64(p, -2)     // replace jif with 0xfffffffffffffffe
 					SetI64(p+j-8, -3) // replace negative jump offset with fffffffffffffffd
 				}
 			}
+		} else if u == 320 && int32(I64(p-8)) == 1048576 {
+			//println("RETURN")
+			SetI64(p-16, -4) // identity
+			SetI64(p-8, -4)  // jump offset
+			SetI64(p, -4)    // jump
 		}
 		p += 8
 	}
@@ -263,15 +286,25 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 		if u == 0xffffffffffffffff { // while
 			fmt.Fprintf(w, "%s := K(0)\nfor {\n", ssa())
 		} else if u == 0xfffffffffffffffe { // jif within while
-			fmt.Fprintf(w, "if %s != 0 { dx(%s); break; }\n", v0(), v0())
+			fmt.Fprintf(w, "dx(%s)\n", v0())
+			fmt.Fprintf(w, "if int32(%s) == 0 { break; }\n", v0())
 			lpop()
 			printstack(w)
-		} else if u == 0xfffffffffffffffd {
+			p += 16
+		} else if u == 0xfffffffffffffffd { // jmp offset in while
 			r := lo[len(lo)-2]
 			fmt.Fprintf(w, "dx(%s); %s = %s\n}\n", r, r, v0())
 			lpop()
 			printstack(w)
 			p += 8
+		} else if u == 0xfffffffffffffffc { // return
+			s := v0()
+			lpop()
+			for _, s := range lo {
+				fmt.Fprintf(w, "dx(%s)\n", s)
+			}
+			fmt.Fprintf(w, "return %s\n", s)
+			p += 16
 		} else if p+8 < e && K(I64(p+8)) == 384 { // jif in cond
 			fmt.Fprintf(w, "%s := K(0)\n", ssa())
 			printstack(w)
@@ -292,9 +325,10 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 			} else if isLup(u, e, p) {
 				p += 8 // skip .
 				s := sK(u)
-				if isglobal(s) {
+				if isglobal(s + "_") {
 					fmt.Fprintf(w, "%s := Val(Ks(%d)) // .%s\n", ssa(), intern(s), s)
 				} else {
+					s += "_"
 					lo = append(lo, s)
 					fmt.Fprintf(w, "rx(%s) // .%s\n", s, s)
 				}
@@ -364,7 +398,7 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 	}
 	return v0()
 }
-func printstack(w io.Writer) {} // fmt.Fprintf(w, "// lo> %v\n", lo) }
+func printstack(w io.Writer) { fmt.Fprintf(w, "// lo> %v\n", lo) }
 func intern(s string) int32 {
 	if i, o := symtab[s]; o {
 		return int32(i)
@@ -387,7 +421,7 @@ func isAsn(u K, e, p int32) bool {
 	if tp(u) == 4 && e > p+8 {
 		v := K(I64(p + 8))
 		if tp(v) == 0 && int32(v) == 64 {
-			as = append(as, sK(u))
+			as = append(as, sK(u)+"_")
 			return true
 		}
 	}
@@ -415,6 +449,7 @@ func kmAsn(w io.Writer) {
 	s := as[len(as)-1]
 	as = as[:len(as)-1]
 	if isglobal(s) {
+		s = strings.TrimSuffix(s, "_")
 		fmt.Fprintf(w, "%s := Asn(Ks(%d), %s) // %s:\n", ssa(), intern(s), v1(), s)
 		ppop()
 	} else {
@@ -454,11 +489,11 @@ func kmNoun(x K) string {
 		return fmt.Sprintf("Ki(%d)", int32(x))
 	case 4: // s
 		s := sK(x)
-		return fmt.Sprintf("Ks(%d) // %s", intern(s), s)
+		return fmt.Sprintf("Ks(%d)", intern(s))
 	case 5: // f
-		return fmt.Sprintf("Kf(%v)", F64(int32(x)))
+		return fmt.Sprintf("Kf(%v)", fstr(F64(int32(x))))
 	case 6: // z
-		return fmt.Sprintf("Kz(%v,%v)", F64(int32(x)), F64(int32(x)+8))
+		return fmt.Sprintf("Kz(%v,%v)", fstr(F64(int32(x))), fstr(F64(int32(x)+8)))
 	case 13: // lambda
 		return kmLambda(x)
 	case 17: // B
@@ -519,7 +554,14 @@ func kmLambda(x K) string {
 	code := x0(int32(x))
 	locs := x1(int32(x))
 	kstr := x2(int32(x))
+	ls := string(CK(rx(kstr)))
+	if s, o := lmbdas[ls]; o {
+		return s
+	}
 	v := SK(locs)
+	for i := range v {
+		v[i] += "_"
+	}
 	r := kom(&buf, code, v, ary)
 
 	n := "f_" + strconv.Itoa(len(kfns))
@@ -541,7 +583,9 @@ func kmLambda(x K) string {
 	kfns = append(kfns, b)
 
 	fn := len(kfns) - 1
-	return fmt.Sprintf("lmb(%d, %d)", tablen+fn, ary)
+	s := fmt.Sprintf("lmb(%d, %d)", tablen+fn, ary)
+	lmbdas[ls] = s
+	return s
 }
 func kmMo(w io.Writer, u K) {
 	if u == 0 {
@@ -599,6 +643,17 @@ func vn(n int) string { return lo[len(lo)-n-1] }                // n'th var name
 func v0() string      { return vn(0) }
 func v1() string      { return vn(1) }
 func v2() string      { return vn(2) }
+func fstr(f float64) string {
+	if f != f {
+		return "na"
+	} else if math.IsInf(f, 1) {
+		return "inf"
+	} else if math.IsInf(f, -1) {
+		return "-inf"
+	} else {
+		return strconv.FormatFloat(f, 'g', -1, 64)
+	}
+}
 
 // generate code creates symbols in the right order at runtime.
 func symbols(w io.Writer) {
@@ -716,6 +771,7 @@ func kal(f, x K) (r K) { // call kom-compiled lambda function
 	n := nn(x)
 	xp := int32(x)
 	fp := int32(f)
+	_, _ = xp, fp
 	lfree(x)
 	switch(n) {
 `
@@ -740,16 +796,40 @@ func kal(f, x K) (r K) { // call kom-compiled lambda function
 }`
 }
 
+const replsrc = `
+doargs()
+write(Ku(2932601077199979))
+store()
+for {
+	write(Ku(32))
+	x := read()
+	try(x)
+}
+`
+
 func skiptests() []string {
 	return []string{
-		"{x+y*z}[;1 2;]",     // cannot string compiled functions ($l)
-		"f:{x+y};f 3",        // $l
-		"({x+y+z}3)4",        // $l
-		"({x+y+z}[;1;])[;2]", // $l
-		"{[a]a}",             // $l
-		"(.{[]x+y})3",        // $l
-		"(.{a+b})3",          // .l
-		"(.{[]s:1+s:1})1",    // .l
+		"{x+y*z}[;1 2;]",                     // cannot string compiled functions ($l)
+		"f:{x+y};f 3",                        // $l
+		"({x+y+z}3)4",                        // $l
+		"({x+y+z}[;1;])[;2]",                 // $l
+		"{[a]a}",                             // $l
+		"(.{[]x+y})3",                        // $l
+		"(.{a+b})3",                          // .l
+		"(.{[]s:1+s:1})1",                    // .l
+		"2#{x+y}",                            // $l
+		"x:1",                                // prints 1 not null
+		"{x+y}",                              // $l
+		".{x+y}",                             // .l
+		"(.{a:3*x;a:5;x:2})1",                // .l
+		"(.{a:3*x})3",                        // .l
+		"{a+b}.`a`b!1 2",                     // envcall is not supported (l.d)
+		"(+`a`b!(1 2 3;4 5 6)){a>1}",         // envcall is not supported (t@d)
+		"`unpack 0x690400000002000000",       // unpack uses dynamic scope
+		"x~`unpack `pack x:1.2 3.4",          // unpack
+		"x~`unpack `pack x:(1;2 3;`beta)",    // unpack
+		"x~`unpack `pack x:`a`b!2 3",         // unpack
+		"x~`unpack `pack x:+`a`b!(1 2;3 4.)", // unpack
 	}
 }
 
