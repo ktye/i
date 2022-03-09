@@ -32,3 +32,8 @@ BEGIN               {x=1}
 
 # todo api
 
+
+# k with vector-count statistics: go install kvc.go
+sed -e 's/^package k/package main/' -e 's,//vcount:,,' k.go > kvc.go
+echo 'func main(){ Main(); }' >> Kvc.go
+

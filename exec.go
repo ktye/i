@@ -57,6 +57,7 @@ func exec(x K) K {
 				a = rx(u - 448)
 			}
 		}
+		//vcount: vcount(a)
 		p += 8
 		continue
 	}
@@ -211,3 +212,8 @@ func Dmd(x, i, v, y K) (r K) {
 
 	return Amd(x, f, 1, Dmd(Atx(rx(x), f), i, v, y))
 }
+
+//vcount: func vcount(x K) {
+//vcount: 	i := Cnt(rx(x))
+//vcount: 	Printf("vcount %d\n", int32(i))
+//vcount: }
