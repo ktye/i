@@ -1,0 +1,3 @@
+sh mk compile
+sh mk bench
+sh mk table

@@ -12,8 +12,8 @@ cat << EOF > k_.go
 package main
 
 import (
+	"github.com/ktye/wg/wasi_unstable"
 	. "github.com/ktye/wg/module"
-	. "github.com/ktye/wg/wasi_unstable"
 )
 
 EOF
@@ -27,6 +27,6 @@ BEGIN               {x=1}
 /^func main/        {print"func Main(){";next}
 /\)/                {if(x){print}else{x=1};next}
                     {if(x)print}
-' $file | sed 's/wasi_unstable\.//g' >> k_.go && go fmt k_.go
+' $file >> k_.go && go fmt k_.go
 
 

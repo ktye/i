@@ -475,7 +475,7 @@ func kmNoun(x K) string {
 				}
 			}
 			for i := 0; i < m; i++ {
-				fmt.Fprintf(&buf, "SetI64(k_p+%d, %d)\n", 8*i, I64(int32(x)+int32(8*i)))
+				fmt.Fprintf(&buf, "SetI64(k_p+%d, int64(%d))\n", 8*i, I64(int32(x)+int32(8*i)))
 			}
 		}
 		return fmt.Sprintf("rx(%s)", konst(string(buf.Bytes())))
