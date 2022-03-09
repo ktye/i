@@ -68,6 +68,9 @@ jobs:
 
     - name: test k.c
       run: cd i && ./kc k.t -e
+      
+    - name: kom
+      run: cd i/kom && sh mk && sh mk test
   
     - name: install k+ dependencies
       run: sudo apt-get update && sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
