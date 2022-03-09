@@ -42,12 +42,37 @@ The resulting binary is still a full k-interpreter.
 New k code at runtime is interpreted the normal way.
 It is not a jit-compiler.
 
+## example
+`f:{{x+y}/!x}` is compiled to
+
+```
+...
+func f_53(x_, y_ K) K {   // {x+y}  f_53 is stored in function table at 434
+        rx(y_) // ref
+        rx(x_)
+        k4 := Add(x_, y_) // call k primitive directly
+        dx(x_) // unref   (it still contains unnecessary refcounting)
+        dx(y_) 
+        return k4
+}
+func f_54(x_ K) K { // {{x+y}/!x}
+        rx(x_)
+        k2 := Til(x_)      // !x
+        k3 := lmb(434, 2)  // assign compiled lambda (f_53) as a k value
+        k4 := rdc(k3)      // create reduction
+        k5 := Atx(k4, k2)  // apply reduction
+        dx(x_)
+        return k5
+}
+...
+```
+
 ## limits
 
 - no dynamic scope
 - cannot print compiled lambda     `${x+y}`
 - cannot decompose compiled lambda `.{x+y}`
-- envcalls are not supported        `{...}.d   t{..}` (table-where)
+- envcalls are not supported        `{...}.d` or `t{..}` (table-where)
 - unpack in `z.k` uses dynamic scope
 
 ## benchmark

@@ -157,7 +157,7 @@ func addtests(file string, a, n int) []byte { // all: a,n=0,-1
 		}
 		return s
 	}
-	b = append(b, []byte("ktest:{`<$[x~`k y;\"ok   \";\"fail \"],($z),\"\\n\"}\n")...)
+	b = append(b, []byte("ktest:{`<$[x~`k y;\"ok   \";`fail+\"fail \"],($z),\"\\n\"}\n")...)
 	all := tests(file)
 	if n < 0 {
 		n = len(all) - a
@@ -398,7 +398,7 @@ func kom(w io.Writer, x K, locals []string, args int) string { // see ../exec.go
 	}
 	return v0()
 }
-func printstack(w io.Writer) { fmt.Fprintf(w, "// lo> %v\n", lo) }
+func printstack(w io.Writer) {} // fmt.Fprintf(w, "// lo> %v\n", lo) }
 func intern(s string) int32 {
 	if i, o := symtab[s]; o {
 		return int32(i)

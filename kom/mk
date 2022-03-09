@@ -1,6 +1,15 @@
 set -e
 set -x
 
+if [ "$1" = "test" ]; then
+	kom ../k.t > a.go
+	go run a.go
+	wg -c -prefix ktye_ a.go > a.c
+	gcc -Werror -Wfatal-errors -o a a.c -lm
+	./a
+	exit 0
+fi
+
 
 # include k source (../*.go) bundle as k_.go
 #
@@ -28,5 +37,7 @@ BEGIN               {x=1}
 /\)/                {if(x){print}else{x=1};next}
                     {if(x)print}
 ' $file >> k_.go && go fmt k_.go
+
+go install kom.go k_.go
 
 
