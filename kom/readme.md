@@ -43,20 +43,20 @@ The resulting binary is still a full k-interpreter.
 New k code at runtime is interpreted the normal way.
 It is not a jit-compiler.
 
-## example
+## examples
 `f:{{x+y}/!x}` is compiled to
 
 ```
 ...
-func f_53(x_, y_ K) K {   // {x+y}  f_53 is stored in function table at 434
-        rx(y_) // ref
+func f_53(x_, y_ K) K {    // {x+y}  f_53 is stored in function table at 434
+        rx(y_)             // ref
         rx(x_)
-        k4 := Add(x_, y_) // call k primitive directly
-        dx(x_) // unref   (it still contains unnecessary refcounting)
+        k4 := Add(x_, y_)  // call k primitive directly
+        dx(x_)             // unref
         dx(y_) 
         return k4
-}
-func f_54(x_ K) K { // {{x+y}/!x}
+}                          // => there is some unnecessary refcounting
+func f_54(x_ K) K {        // {{x+y}/!x}
         rx(x_)
         k2 := Til(x_)      // !x
         k3 := lmb(434, 2)  // assign compiled lambda (f_53) as a k value
@@ -65,7 +65,53 @@ func f_54(x_ K) K { // {{x+y}/!x}
         dx(x_)
         return k5
 }
-...
+```
+
+```
+func f_53(x_, y_ K) K {         // {while[x;y]}
+        k2 := K(0)              // return value for the following loop       
+        for {
+                rx(x_)
+                dx(x_)
+                if int32(x_) == 0 {
+                        break
+                }
+                rx(y_)
+                dx(k2)
+                k2 = y_
+        }
+        dx(x_)
+        dx(y_)
+        return k2
+}
+```
+
+```
+func f_53(x_, y_, z_ K) K {  // {$[x;y;z;x;y]}
+        rx(x_)
+        k4 := K(0)           // return value for cond
+        dx(x_)
+        if int32(x_) != 0 {
+                rx(y_)
+                k4 = y_
+        } else {
+                rx(z_)
+                k5 := K(0)   // $[a;b;c;d;e] is $[a;b;$[c;d;e]]
+                dx(z_)
+                if int32(z_) != 0 { 
+                        rx(x_)
+                        k5 = x_
+                } else {
+                        rx(y_)
+                        k5 = y_
+                }
+                k4 = k5
+        }
+        dx(x_)
+        dx(y_)
+        dx(z_)
+        return k4
+}
 ```
 
 ## limits
@@ -75,6 +121,7 @@ func f_54(x_ K) K { // {{x+y}/!x}
 - cannot decompose compiled lambda `.{x+y}`
 - envcalls are not supported        `{...}.d` or `t{..}` (table-where)
 - unpack in `z.k` uses dynamic scope
+- error positions are not tracked
 
 ## benchmark
 
@@ -118,8 +165,9 @@ qr:{K:!m:#*x;I:!n:#x;j:0;r:n#0a;turn:$[`Z~@*x;{(-x)@angle y};{x*1. -1@y>0}]
 ### how array-like is the program?
 assumption: scalar code profits from compilation while large vectors don't care.
 
-[kvc](../go/mk) is a special build of k that prints vector sizes `#x` of the accumulator after each vm instruction.
-`k qr.k -e 'f 1' using 1 rhs instead of 100 does:  
+[kvc](../go/mk) is a special build of k that prints vector sizes `#x` of the accumulator after each vm instruction.  
+
+statistics of `k qr.k -e 'f 1'` using rhs:1 instead of 100:  
 
 - 500 000 vm instructions with
 - 64 % of instructions are scalar  1~#x
@@ -133,4 +181,4 @@ assumption: scalar code profits from compilation while large vectors don't care.
 [lapack](./bench/lapack.c) standard build with refblas is 5 times faster.
 
 ## todo
-refcount elimination
+refcount elimination 
