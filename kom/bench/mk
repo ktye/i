@@ -4,6 +4,7 @@ set -x
 # sh mk compile
 # sh mk bench
 # sh mk table
+# sh mk lapack
 #
 # kom, wg, gcc must be on the path
 
@@ -43,6 +44,19 @@ fi
 
 if [ "$1" = "table" ]; then
  ./k out table.k -e
+fi
+
+if [ "$1" = "kvc" ]; then # (../../go/mk)
+ # only 1 rhs, because it's slow.
+ kvc qr.k -e 'f 1' | awk '/^vcount/{print $2}' > vc
+ # k vc
+ #  h:0.+.#'=^i:.@[vc;&vc="\n";" "]
+ 
+fi
+
+if [ "$1" = "lapack" ]; then
+ L="../../+/"
+ gcc -O3 -o lapack lapack.c $L/liblapacke.a $L/liblapack.a $L/librefblas.a -lgfortran -lquadmath -lm
 fi
 
 

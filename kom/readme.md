@@ -18,7 +18,7 @@ args:
  repl  add a repl loop
 ```
 
-The output is a single file (Go subset) that can be compiled with Go or [wg](https://github.com/ktye/wg):
+the output is a single file of a Go subset, that can be compiled with go or [wg](https://github.com/ktye/wg), e.g. to c:
 
 ```
 kom file.k   [repl] > a.go
@@ -29,14 +29,15 @@ gcc k.c -lm
 ## how
 
 Kom parses the k source to byte code, than transforms byte code into native code. 
-It bundles the interpreter source with the generated code and emits everything as a single source file.
+It bundles the interpreter source with the generated code and emits everything as one file.
 
-Every lambda function is compiled into a single native function and loaded to k's type system as a special function type (compiled lambda).
+Every lambda function is compiled into a native function and loaded to k's type system as a special function type (compiled lambda).
 Local variables are compiled to native locals and globals remain k variables.
 
 `while`, cond `$[..]` and return `:x` are detected from jumps in byte code and transformed to native control flow.
 
-Constants are stored in native globals and are computed once at startup.
+Constant arrays are stored in native globals and are computed once at startup.
+Both constants and lambdas are are generated only once if they appear multiple times.
 
 The resulting binary is still a full k-interpreter.
 New k code at runtime is interpreted the normal way.
@@ -113,3 +114,23 @@ qr:{K:!m:#*x;I:!n:#x;j:0;r:n#0a;turn:$[`Z~@*x;{(-x)@angle y};{x*1. -1@y>0}]
   x[I;K]-:{+/x*y}/:[(conj x[j;K]);x[I;K]]*\:x[j;K]
   K:1_K;j+:1];(x;r;n;m)}
 ```
+
+### how array-like is the program?
+assumption: scalar code profits from compilation while large vectors don't care.
+
+[kvc](../go/mk) is a special build of k that prints vector sizes `#x` of the accumulator after each vm instruction.
+`k qr.k -e 'f 1' using 1 rhs instead of 100 does:  
+
+- 500 000 vm instructions with
+- 64 % of instructions are scalar  1~#x
+- 34 % are large 100<#x
+- with a maximum length of 603
+
+
+### k vs lapack
+`qr.k` runs at the same speed compiled or interpreted. How does that compare to pure lapack?  
+
+[lapack](./bench/lapack.c) standard build with refblas is 5 times faster.
+
+## todo
+refcount elimination
