@@ -1,10 +1,12 @@
 set -e
 set -x
 
-# sh mk compile
-# sh mk bench
-# sh mk table
-# sh mk lapack
+# sh mk compile  (compile k interpreter and benchmark programs)
+# sh mk bench    (run benchmarks)
+# sh mk table    (print benchmark table)
+# sh mk lapack   (compile lapack.c, windows flags)
+# sh mk kvc      (run kvc, build here: ../../go/mk)
+# sh mk words    (generate m from w1,w2)
 #
 # kom, wg, gcc must be on the path
 
@@ -14,7 +16,7 @@ if [ "$1" = "compile" ]; then
  wg -c -prefix ktye_ ../.. > k.c
  gcc -s -O3 -o k k.c
  
- for file in inc over qr; do
+ for file in inc over qr words; do
   kom ${file}.k repl > a.go
   wg -c -prefix ktye_  a.go > a.c
   gcc -s -O3 -o $file  a.c
@@ -37,9 +39,10 @@ function b {
 
 if [ "$1" = "bench" ]; then
  rm -f out
- b inc  100000000
- b over 100000000
- b qr   100
+ b inc   100000000
+ b over  100000000
+ b qr    100
+ b words 1
 fi
 
 if [ "$1" = "table" ]; then
@@ -59,4 +62,7 @@ if [ "$1" = "lapack" ]; then
  gcc -O3 -o lapack lapack.c $L/liblapacke.a $L/liblapack.a $L/librefblas.a -lgfortran -lquadmath -lm
 fi
 
+if [ "$1" = "words" ]; then # creates m(30mb)
+ ./k w1 w2 words.k -e
+fi
 
