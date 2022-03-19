@@ -87,7 +87,7 @@ func match(x, y K) int32 {
 	}
 	return 1
 }
-func mtC(xp, yp, ve, e int32) (r int32) {
+func mtC(xp, yp, ve, e int32) (r int32) { // f77 replace
 	for yp < ve {
 		if I8x16load(xp).Eq(I8x16load(yp)).All_true() == 0 {
 			return 0
@@ -104,6 +104,7 @@ func mtC(xp, yp, ve, e int32) (r int32) {
 	}
 	return 1
 }
+
 /*
 func mtI(xp, yp, ve, e int32) (r int32) {
 	for yp < ve {
@@ -134,8 +135,7 @@ func mtF(xp, yp, e int32) (r int32) {
 	}
 	return 1
 }
-
-func all(x, n int32) int32 {
+func all(x, n int32) int32 { // f77 replace
 	t := I8x16splat(1)
 	e := x + n
 	ve := e &^ 15
@@ -153,7 +153,7 @@ func all(x, n int32) int32 {
 	}
 	return 1
 }
-func any(x, n int32) int32 {
+func any(x, n int32) int32 { // f77 replace
 	e := x + n
 	ve := e &^ 15
 	for x < ve {
@@ -210,7 +210,7 @@ func in(x, y K, xt T) K {
 	}
 	return Kb(I32B(e != 0))
 }
-func inC(x, yp, ve, e int32) int32 {
+func inC(x, yp, ve, e int32) int32 { // f77 replace
 	v := I8x16splat(x)
 	for yp < ve {
 		if v.Eq(I8x16load(yp)).Any_true() != 0 {
@@ -270,13 +270,7 @@ func Not(x K) (r K) { // ~x
 		r = use1(x)
 		rp := int32(r)
 		e := ep(r)
-		w := I8x16splat(1)
-		for rp < e {
-			I8x16store(rp, I8x16load(xp).Not().And(w))
-			xp += 16
-			rp += 16
-			continue
-		}
+		not(xp, rp, e)
 		dx(x)
 	} else if xt&15 == st {
 		r = Eql(Ks(0), x)
@@ -284,4 +278,13 @@ func Not(x K) (r K) { // ~x
 		r = Eql(Ki(0), x)
 	}
 	return r
+}
+func not(xp, rp, e int32) { //f77 replace
+	w := I8x16splat(1)
+	for rp < e {
+		I8x16store(rp, I8x16load(xp).Not().And(w))
+		xp += 16
+		rp += 16
+		continue
+	}
 }
