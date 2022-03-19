@@ -36,9 +36,9 @@ func match(x, y K) int32 {
 		case 1: // Ct
 			return mtC(xp, yp, ve, e)
 		case 2: // It
-			return mtI(xp, yp, ve, e)
+			return mtC(xp, yp, ve, e) //mtI
 		case 3: // St
-			return mtI(xp, yp, ve, e)
+			return mtC(xp, yp, ve, e) //mtI
 		case 4: // Ft
 			return mtF(xp, yp, e)
 		case 5: // Zt
@@ -104,6 +104,7 @@ func mtC(xp, yp, ve, e int32) (r int32) {
 	}
 	return 1
 }
+/*
 func mtI(xp, yp, ve, e int32) (r int32) {
 	for yp < ve {
 		if I8x16load(xp).Eq(I8x16load(yp)).All_true() == 0 {
@@ -121,6 +122,7 @@ func mtI(xp, yp, ve, e int32) (r int32) {
 	}
 	return 1
 }
+*/
 func mtF(xp, yp, e int32) (r int32) {
 	for yp < e {
 		if eqf(F64(xp), F64(yp)) == 0 {
