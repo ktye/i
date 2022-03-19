@@ -770,12 +770,7 @@ func scale(s float64, x K) (r K) {
 	e := ep(r)
 	v := F64x2splat(s)
 	xp, rp := int32(x), int32(r)
-	for rp < e {
-		F64x2store(rp, v.Mul(F64x2load(xp)))
-		xp += 16
-		rp += 16
-		continue
-	}
+	mulfF(v, xp, rp, e)
 	dx(x)
 	return r
 }
@@ -919,28 +914,30 @@ func idiv(x, y K, mod int32) (r K) {
 		xp = int32(x)
 		xn := nn(x)
 		e := xp + 4*xn
-		if yp > 0 && xn > 0 && mod == 0 { // x % powers of 2
-			s := int32(31) - I32clz(uint32(yp))
-			if yp == int32(1)<<s {
-				for xp < e {
-					I32x4store(xp, I32x4load(xp).Shr_s(s))
-					xp += 16
-					continue
-				}
-			}
+		if yp > 0 && xn > 0 && mod == 0 {
+			divIi(xp, yp, e)
 		}
 		if mod != 0 {
 			for xp < e {
 				SetI32(xp, I32(xp)%yp)
 				xp += 4
 			}
-		} else {
-			for xp < e {
-				SetI32(xp, I32(xp)/yp)
-				xp += 4
-			}
 		}
 		return x
+	}
+}
+func divIi(xp, yp, e int32) { // x % powers of 2
+	s := int32(31) - I32clz(uint32(yp))
+	if yp == int32(1)<<s {
+		for xp < e {
+			I32x4store(xp, I32x4load(xp).Shr_s(s))
+			xp += 16
+			continue
+		}
+	}
+	for xp < e {
+		SetI32(xp, I32(xp)/yp)
+		xp += 4
 	}
 }
 func Mod(x, y K) (r K) {
