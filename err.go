@@ -39,7 +39,7 @@ func trap(x int32) K {
 				break
 			}
 		}
-		writepn(int32(src)+a, b-a)
+		Write(0, 0, int32(src)+a, b-a)
 		if srcp > a {
 			write(Cat(Kc(10), ntake(srcp-a-1, Kc(32))))
 		}

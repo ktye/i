@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/ktye/wg/wasi_unstable"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -46,9 +44,7 @@ func repl(x K) {
 			} else {
 				c := I8(1 + xp)
 				if I8(1+xp) == '\\' {
-					wasi_unstable.Proc_exit(0)
-				} else if c == 't' {
-					bench(ndrop(2, x))
+					Exit(0)
 				} else if c == 'm' {
 					dx(x)
 					dx(Out(Ki(I32(128))))
@@ -84,7 +80,7 @@ func doargs() {
 				dx(a)
 				repl(x)
 			}
-			wasi_unstable.Proc_exit(0)
+			Exit(0)
 		}
 		dofile(x, readfile(rx(x)))
 		ap += 8
@@ -108,22 +104,6 @@ func dofile(x K, c K) {
 	dx(tt)
 	dx(kk)
 }
-func bench(x K) {
-	i := fnd(x, Kc(32), ct)
-	if i == nai {
-		trap(Parse)
-	}
-	n := maxi(1, int32(prs(it, ntake(i, rx(x)))))
-	x = parse(tok(ndrop(i, x)))
-	t := time_()
-	for n > 0 {
-		dx(exec(rx(x)))
-		n--
-		continue
-	}
-	t = time_() - t
-	dx(Out(Kf(1e-6 * float64(t))))
-}
 
 func Out(x K) K {
 	write(cat1(Kst(rx(x)), Kc(10)))
@@ -133,81 +113,41 @@ func Otu(x, y K) K {
 	write(cat1(Kst(x), Kc(':')))
 	return Out(y)
 }
-func time_() int64 {
-	wasi_unstable.Clock_time_get(1, wasi_unstable.Timestamp(0), 512)
-	return I64(512)
-}
 func read() (r K) {
 	r = mk(Ct, 504)
-	rp := int32(r)
-	SetI32(512, rp)
-	SetI32(516, 504)
-	if wasi_unstable.Fd_read(0, 512, 1, 512) != 0 {
-		trap(Io)
-	}
-	return ntake(maxi(0, I32(512)-1), r)
+	return ntake(ReadIn(int32(r), 504), r)
 }
 func write(x K) {
-	if writepn(int32(x), nn(x)) != 0 {
-		trap(Io)
-	}
+	Write(0, 0, int32(x), nn(x))
 	dx(x)
 }
-func writepn(p, n int32) int32 {
-	SetI32(512, p)
-	SetI32(516, n)
-	return wasi_unstable.Fd_write(1, 512, 1, 512)
-}
-func getargv() K {
-	wasi_unstable.Args_sizes_get(512, 516)
-	n := I32(516)
-	a := mk(It, I32(512))
-	r := mk(Ct, n)
-	wasi_unstable.Args_get(int32(a), int32(r))
-	dx(a)
-	return split(Kc(0), ndrop(-1, r))
+func getargv() (r K) {
+	n := Args()
+	r = mk(Lt, n)
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		s := mk(Ct, Arg(i, 0))
+		Arg(i, int32(s))
+		SetI64(rp, int64(s))
+		rp += 8
+	}
+	return r
 }
 func readfile(x K) (r K) { // x C
-	// fd=3 is root directory, e.g. wavm run --mount-root . k.wat
-	if wasi_unstable.Path_open(3, 0, int32(x), nn(x), 0, 31, 31, 0, 512) != 0 {
+	n := Read(int32(x), nn(x), 0)
+	if n < 0 {
 		trap(Io)
 	}
-	fd := I32(512)
-	if wasi_unstable.Fd_seek(fd, 0, 2, 512) != 0 {
-		trap(Io)
-	}
-	n := I32(512)
-	if wasi_unstable.Fd_seek(fd, 0, 0, 512) != 0 {
-		trap(Io)
-	}
-
 	r = mk(Ct, n)
-	rp := int32(r)
-	SetI32(512, rp)
-	SetI32(516, n)
-	if wasi_unstable.Fd_read(fd, 512, 1, 512) != 0 {
-		trap(Io)
-	}
-	if I32(512) != n {
-		trap(Io)
-	}
-	wasi_unstable.Fd_close(fd)
+	Read(0, 0, int32(r))
 	dx(x)
 	return r
 }
 func writefile(x, y K) K { // x, y C
-	if wasi_unstable.Path_open(3, 0, int32(x), nn(x), 9, 2047, 2047, 0, 512) != 0 {
+	r := Write(int32(x), nn(x), int32(y), nn(y))
+	if r != 0 {
 		trap(Io)
 	}
-	fd := I32(512)
-
-	yp := int32(y)
-	SetI32(512, yp)
-	SetI32(516, nn(y))
-	if wasi_unstable.Fd_write(fd, 512, 1, 512) != 0 {
-		trap(Io)
-	}
-	wasi_unstable.Fd_close(fd)
 	dx(x)
 	return y
 }

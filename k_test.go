@@ -13,13 +13,12 @@ import (
 	"unicode/utf8"
 
 	. "github.com/ktye/wg/module"
-	"github.com/ktye/wg/wasi_unstable"
 )
 
 var save []byte
 
 func newtest() {
-	wasi_unstable.Stdout = os.Stdout
+	Stdout = os.Stdout
 	rand_ = 1592653589
 	if save == nil {
 		kinit()
@@ -173,7 +172,7 @@ func TestKE(t *testing.T) {
 	for i := range v {
 		newtest()
 		var buf bytes.Buffer
-		wasi_unstable.Stdout = &buf
+		Stdout = &buf
 		e := tryf(func() { test(mkchars(v[i])) })
 		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
 		fmt.Println(string(v[i]))
@@ -203,7 +202,7 @@ func TestTraps(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		newtest()
-		wasi_unstable.Stdout = io.Discard
+		Stdout = io.Discard
 		e := tryf(tc.f)
 		if e != tc.e {
 			t.Fatalf("expected %d got %d", tc.e, e)
@@ -249,7 +248,7 @@ func TestRepl(t *testing.T) {
 	for _, tc := range testCases {
 		newtest()
 		var buf bytes.Buffer
-		wasi_unstable.Stdout = &buf
+		Stdout = &buf
 		repl(mkchars([]byte(tc[0])))
 		if r := string(buf.Bytes()); r != tc[1] {
 			t.Fatalf("expected %q got %q\n", tc[1], r)
