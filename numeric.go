@@ -1773,6 +1773,8 @@ func uptype(x K, dst T) (r K) {
 	dx(x)
 	return r
 }
+
+/*
 func alpha(x K) K { // set alpha byte opaque (pixbuffers)
 	if tp(x) == It {
 		m := I32x4splat(-16777216)
@@ -1786,3 +1788,4 @@ func alpha(x K) K { // set alpha byte opaque (pixbuffers)
 	}
 	return x
 }
+*/

@@ -115,7 +115,7 @@ func thex() (r K) {
 	r = mk(Ct, 0)
 	for pp < pe-1 {
 		c := I8(pp)
-		if !is(c, 128) {
+		if is(c, 128) == 0 {
 			break
 		}
 		r = cat1(r, Kc((hx(c)<<4)+hx(I8(1+pp))))
@@ -127,7 +127,7 @@ func thex() (r K) {
 	return r
 }
 func hx(c int32) int32 {
-	if is(c, 4) {
+	if is(c, 4) != 0 {
 		return c - '0'
 	} else {
 		return c - 'W'
@@ -148,7 +148,7 @@ func tnms() (r K) {
 func tnum() (r K) {
 	c := I8(pp)
 	if c == '-' || c == '.' {
-		if is(I8(pp-1), 64) {
+		if is(I8(pp-1), 64) != 0 {
 			return 0 // e.g. x-1 is (x - 1) not (x -1)
 		}
 	}
@@ -168,7 +168,7 @@ func tunm() K {
 	r := pu()
 	if r == 0 && p == pp {
 		if I8(p) == '.' {
-			if is(I8(1+p), 4) {
+			if is(I8(1+p), 4) != 0 {
 				return pflt(r)
 			}
 		}
@@ -213,7 +213,7 @@ func tunm() K {
 func pu() (r int64) {
 	for pp < pe {
 		c := I8(pp)
-		if is(c, 4) == false {
+		if is(c, 4) == 0 {
 			break
 		}
 		r = 10*r + int64(c-'0')
@@ -243,7 +243,7 @@ func pflt(i int64) K {
 	var c int32
 	for pp < pe {
 		c = I8(pp)
-		if is(c, 4) == false {
+		if is(c, 4) == 0 {
 			break
 		}
 		d /= 10.0
@@ -281,7 +281,7 @@ func ppi(f float64) (r K) {
 
 func tvrb() (r K) {
 	c := I8(pp)
-	if !is(c, 1) {
+	if is(c, 1) == 0 {
 		return 0
 	}
 	pp++
@@ -292,7 +292,7 @@ func tvrb() (r K) {
 	if pp < pe {
 		if I8(pp) == 58 { // :
 			pp++
-			if is(c, 8) {
+			if is(c, 8) != 0 {
 				o = 2 // ':
 			} else {
 				o = 97 // +:
@@ -303,7 +303,7 @@ func tvrb() (r K) {
 }
 func tpct() (r K) {
 	c := I8(pp)
-	if is(c, 48) { // ([{}]); \n
+	if is(c, 48) != 0 { // ([{}]); \n
 		pp++
 		return K(c)
 	}
@@ -315,14 +315,14 @@ func tpct() (r K) {
 }
 func tvar() (r K) {
 	c := I8(pp)
-	if !is(c, 2) {
+	if is(c, 2) == 0 {
 		return 0
 	}
 	pp++
 	r = Ku(uint64(c))
 	for pp < pe {
 		c = I8(pp)
-		if !is(c, 6) {
+		if is(c, 6) == 0 {
 			break
 		}
 		r = cat1(r, K(c)|K(ct)<<59)
@@ -396,4 +396,6 @@ func cmt(x K) (r K) {
 	dx(x)
 	return r
 }
-func is(x, m int32) (r bool) { return m&I8(100+x) != 0 }
+
+//func is(x, m int32) (r bool) { return m&I8(100+x) != 0 }
+func is(x, m int32) int32 { return m & I8(100+x) }

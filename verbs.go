@@ -93,21 +93,22 @@ func seq(n int32) (r K) {
 	if n == 0 {
 		return r
 	}
-	p := int32(r)
+	seqi(int32(r), ep(r))
+	return r
+}
+func seqi(p, e int32) {
 	SetI32(p, 0)
 	SetI32(p+4, 1)
 	SetI32(p+8, 2)
 	SetI32(p+12, 3)
 	v := I32x4load(p)
 	w := I32x4splat(4)
-	e := ep(r)
 	for p < e {
 		I32x4store(p, v)
 		v = v.Add(w)
 		p += 16
 		continue
 	}
-	return r
 }
 func Unq(x K) (r K) { // ?x
 	xt := tp(x)

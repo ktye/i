@@ -82,7 +82,7 @@ func t() (r K, verb int32) { // Lt
 		return 0, 0
 	}
 	if r < 127 {
-		if is(int32(r), 32) {
+		if is(int32(r), 32) != 0 {
 			pp -= 8
 			return 0, 0
 		}
@@ -356,14 +356,14 @@ func next() (r K) {
 func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x, y K) K {
 	l := lastp(y)
-	if quoted(l) {
+	if quoted(l) == true {
 		return cat1(ucat(x, ldrop(-1, y)), 64+unquote(l))
 	}
 	return cat1(ucat(x, y), 128)
 }
 func monadic(x K) (r K) {
 	l := lastp(x)
-	if quoted(l) {
+	if quoted(l) == true {
 		r = cat1(ldrop(-1, x), unquote(l))
 		if int32(l) == 449 { // :x (return: identity+jump)
 			return cat1(cat1(r, Ki(1048576)), 320)
