@@ -51,14 +51,13 @@ jobs:
       run: |
         cd i
         wg             . > k.wat
-        wg -try -multi . > k-wavm.wat
         ../wat2wasm -o k.wasm k.wat
         
-    - name: build k.go amalgamation package
-      run: cd i/go && sh mk && go build k.go
+    - name: build k.go and kg.go amalgamation packages
+      run: cd i/go && sh mk && go build k.go && go build kg.go
       
-    - name: build kg.go main program
-      run: cd i/go && sed -e 's/package k/package main/' -e 's/^func Main/func main/' k.go > kg.go && go build kg.go && ./kg ../k.t -e
+    - name: test kg.go
+      run: cd i/go && ./kg ../k.t -e
 
     - name: build k.c
       run: | 
@@ -148,16 +147,6 @@ jobs:
         asset_path: ./i/k.wasm
         asset_name: k.wasm
         asset_content_type: application/wasm
-    
-    - name: upload k-wavm.wat
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/k-wavm.wat
-        asset_name: k-wavm.wat
-        asset_content_type: text/plain
     
     - name: upload k.go
       uses: actions/upload-release-asset@v1

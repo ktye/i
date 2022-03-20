@@ -10,11 +10,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/bits"
 	"os"
-	"time"
 )
 
 EOF
@@ -33,7 +31,10 @@ BEGIN               {x=1}
 # todo api
 
 
+# kg.go main program
+cat k.go | sed -e 's/package k/package main/' -e 's/^func Main/func main/' > kg.go
+
 # k with vector-count statistics: go install kvc.go
 sed -e 's/^package k/package main/' -e 's,//vcount:,,' k.go > kvc.go
-echo 'func main(){ Main(); }' >> Kvc.go
+echo 'func main(){ Main(); }' >> kvc.go
 
