@@ -16,7 +16,7 @@ if [ "$1" = "compile" ]; then
  wg -c -prefix ktye_ ../.. > k.c
  gcc -s -O3 -o k k.c
  
- for file in inc over qr words; do
+ for file in inc over qr ; do
   kom ${file}.k repl > a.go
   wg -c -prefix ktye_  a.go > a.c
   gcc -s -O3 -o $file  a.c
@@ -42,7 +42,7 @@ if [ "$1" = "bench" ]; then
  b inc   100000000
  b over  100000000
  b qr    100
- b words 1
+# b words 1
 fi
 
 if [ "$1" = "table" ]; then

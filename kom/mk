@@ -21,7 +21,6 @@ cat << EOF > k_.go
 package main
 
 import (
-	"github.com/ktye/wg/wasi_unstable"
 	. "github.com/ktye/wg/module"
 )
 
