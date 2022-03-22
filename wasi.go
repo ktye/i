@@ -139,7 +139,7 @@ func readfile(x K) (r K) { // x C
 		trap(Io)
 	}
 	r = mk(Ct, n)
-	Read(0, 0, int32(r))
+	Read(int32(x), nn(x), int32(r))
 	dx(x)
 	return r
 }

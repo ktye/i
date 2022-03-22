@@ -4,19 +4,19 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-const (
-	Err int32 = iota
-	Type
-	Value
-	Index
-	Length
-	Rank
-	Parse
-	Stack
-	Grow
-	Unref
-	Io
-	Nyi
+const ( // iota is not supported by wg
+	Err    = int32(0)
+	Type   = int32(1)
+	Value  = int32(2)
+	Index  = int32(3)
+	Length = int32(4)
+	Rank   = int32(5)
+	Parse  = int32(6)
+	Stack  = int32(7)
+	Grow   = int32(8)
+	Unref  = int32(9)
+	Io     = int32(10)
+	Nyi    = int32(11)
 )
 
 func trap(x int32) K {
