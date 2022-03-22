@@ -9,9 +9,9 @@ type f2 = func(K, K) K
 type f3 = func(K, K, K) K
 type f4 = func(K, K, K, K) K
 
-func quoted(x K) bool { return int32(x) >= 448 && tp(x) == 0 }
-func quote(x K) K     { return x + 448 }
-func unquote(x K) K   { return x - 448 }
+func quoted(x K) int32 { return I32B(int32(x) >= 448 && tp(x) == 0) }
+func quote(x K) K      { return x + 448 }
+func unquote(x K) K    { return x - 448 }
 
 func exec(x K) K {
 	srcp = 0
@@ -79,7 +79,7 @@ func push(x K) {
 		trap(Stack)
 	}
 }
-func pop() (r K) {
+func pop() K {
 	sp -= 8
 	if sp < 256 {
 		trap(Stack)

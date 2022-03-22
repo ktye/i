@@ -30,7 +30,7 @@ func roll(x K) (r K) { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
 	}
 	return trap(Type)
 }
-func deal(x, y K) (r K) { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-#L)?L shuffle
+func deal(x, y K) K { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-#L)?L shuffle
 	if tp(x) != it {
 		trap(Type)
 	}

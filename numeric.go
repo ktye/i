@@ -218,7 +218,7 @@ func absZ(x K) (r K) {
 	dx(x)
 	return r
 }
-func Hyp(x, y K) (r K) { // e.g.  norm:0. abs/x
+func Hyp(x, y K) K { // e.g.  norm:0. abs/x
 	xt := tp(x)
 	yt := tp(y)
 	if xt > Zt || yt > Zt {
@@ -241,7 +241,7 @@ func Hyp(x, y K) (r K) { // e.g.  norm:0. abs/x
 	return trap(Nyi)
 }
 
-func Sqr(x K) (r K) {
+func Sqr(x K) K {
 	if tp(x)&15 != ft {
 		x = Add(Kf(0), x)
 	}
@@ -286,8 +286,8 @@ func Img(x K) (r K) { // imag x
 		return ntake(nn(x), Kf(0.0))
 	}
 }
-func Cpx(x, y K) (r K) { return Add(x, Mul(Kz(0.0, 1.0), y)) } // x imag y
-func Cnj(x K) (r K) { // conj x
+func Cpx(x, y K) K { return Add(x, Mul(Kz(0.0, 1.0), y)) } // x imag y
+func Cnj(x K) K { // conj x
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(34, l1(x))
@@ -518,7 +518,7 @@ func nc(f, ff int32, x, y K) (r K) {
 		return r
 	}
 }
-func conform(x, y K) (av int32, r T) { // 0:atom-atom 1:atom-vector, 2:vector-vector, 3:vector-atom
+func conform(x, y K) (int32, T) { // 0:atom-atom 1:atom-vector, 2:vector-vector, 3:vector-atom
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if yt < 16 {
@@ -536,7 +536,7 @@ func conform(x, y K) (av int32, r T) { // 0:atom-atom 1:atom-vector, 2:vector-ve
 	}
 	return 2, xt - 16
 }
-func Add(x, y K) (r K) {
+func Add(x, y K) K {
 	if tp(y) < 16 {
 		return nd(234, 2, y, x)
 	}
@@ -602,7 +602,7 @@ func addF(xp, yp, rp, e int32) {
 }
 func addZ(xp, yp, rp, e int32) { addF(xp, yp, rp, e) }
 
-func Sub(x, y K) (r K) {
+func Sub(x, y K) K {
 	if tp(y) < 16 {
 		return nd(234, 2, Neg(y), x)
 	}
@@ -669,7 +669,7 @@ func subF(xp, yp, rp, e int32) {
 }
 func subZ(xp, yp, rp, n int32) { subF(xp, yp, rp, n) }
 
-func Mul(x, y K) (r K) {
+func Mul(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt < zt && yt == Zt {
 		return scalez(x, y)
@@ -774,7 +774,7 @@ func scale(s float64, x K) (r K) {
 	dx(x)
 	return r
 }
-func scalez(x, z K) (r K) { // xt<=ft, z:Zt
+func scalez(x, z K) K { // xt<=ft, z:Zt
 	if tp(x) < ft {
 		x = uptype(x, ft)
 	}
@@ -783,7 +783,7 @@ func scalez(x, z K) (r K) { // xt<=ft, z:Zt
 	return scale(s, z)
 }
 
-func Div(x, y K) (r K) {
+func Div(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt&15 < ft && yt&15 < ft {
 		return idiv(x, y, 0) // no simd for ints
@@ -940,7 +940,7 @@ func divIi(xp, yp, e int32) { // x % powers of 2
 		xp += 4
 	}
 }
-func Mod(x, y K) (r K) {
+func Mod(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt&15 < ft && yt&15 < ft {
 		return idiv(x, y, 1)
@@ -1256,7 +1256,7 @@ func eqZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Les(x, y K) (r K) { // x<y   `file<c
+func Les(x, y K) K { // x<y   `file<c
 	if tp(x) == st && tp(y) == Ct {
 		if int32(x) == 0 {
 			write(rx(y))
@@ -1383,7 +1383,7 @@ func ltZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Mor(x, y K) (r K)       { return nc(323, 10, x, y) }
+func Mor(x, y K) K           { return nc(323, 10, x, y) }
 func gti(x, y int32) int32   { return I32B(x > y) }
 func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {

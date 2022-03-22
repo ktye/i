@@ -103,7 +103,7 @@ func srtC(x K, n int32) (r K) {
 	dx(y)
 	return r
 }
-func srtI(x K, n int32) (r K) {
+func srtI(x K, n int32) K {
 	if n < 32 {
 		x = use(x)
 		isrtsI(int32(x), n)
@@ -112,7 +112,7 @@ func srtI(x K, n int32) (r K) {
 	// return atv(x, Asc(rx(x))) // merge?
 	return radixI(x, n)
 }
-func srtF(x K, n int32) (r K) {
+func srtF(x K, n int32) K {
 	if n < 32 { // todo limit?
 		return atv(x, Asc(rx(x)))
 	}

@@ -10,7 +10,7 @@ func Dex(x, y K) K { // x:y
 	dx(x)
 	return y
 }
-func Flp(x K) (r K) { // +x
+func Flp(x K) K { // +x
 	xt := tp(x)
 	switch xt - Lt {
 	case 0: // Lt   n:#x;  m:|/#x (,/m#/:x)[(!m)+\:m*!n]
@@ -64,7 +64,7 @@ func Las(x K) K { // *|x
 	return ati(x, n-1)
 }
 
-func Cnt(x K) (r K) { // #x
+func Cnt(x K) K { // #x
 	t := tp(x)
 	dx(x)
 	if t < 16 {
@@ -138,16 +138,16 @@ func Unq(x K) (r K) { // ?x
 	dx(x)
 	return r
 }
-func Uqs(x K) (r K) { // ?^x
+func Uqs(x K) K { // ?^x
 	xt := tp(x)
 	if xt < 16 {
 		trap(Type)
 	}
 	return kx(88, x) // .uqs
 }
-func Grp(x K) (r K) { return kx(128, x) }                             // =x grp.
-func grp(x, y K) K  { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
-func Key(x, y K) K  { return key(x, y, Dt) }                          // x!y
+func Grp(x K) K    { return kx(128, x) }                             // =x grp.
+func grp(x, y K) K { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
+func Key(x, y K) K { return key(x, y, Dt) }                          // x!y
 func key(x, y K, t T) (r K) { // Dt or Tt
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
@@ -176,7 +176,7 @@ func key(x, y K, t T) (r K) { // Dt or Tt
 	SetI32(int32(r)-12, xn)
 	return K(int32(r)) | K(t)<<59
 }
-func keyt(x, y K) (r K) { return Key(Tak(rx(x), rx(y)), Drp(x, y)) } // `s!t (key table: (`s#t)!`s_t)
+func keyt(x, y K) K { return Key(Tak(rx(x), rx(y)), Drp(x, y)) } // `s!t (key table: (`s#t)!`s_t)
 
 func Tak(x, y K) (r K) { // x#y
 	xt := tp(x)
@@ -383,7 +383,7 @@ func rcut(x, a, b K) (r K) { // a, b start-stop ranges
 	dx(x)
 	return r
 }
-func split(x, y K) (r K) {
+func split(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	xn := int32(1)
 	if yt == xt+16 {
@@ -426,7 +426,7 @@ func join(x, y K) (r K) {
 	dx(y)
 	return r
 }
-func lin(x, y, z K) (r K) { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
+func lin(x, y, z K) K { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
 func Bin(x, y K) (r K) { // x'y
 	xt := tp(x)
 	yt := tp(y)
@@ -680,11 +680,11 @@ f:
 	return nai
 }
 
-func Typ(x K) (r K) { // @x
+func Typ(x K) K { // @x
 	dx(x)
 	return sc(Enl(Kc(I8(520 + int32(tp(x))))))
 }
-func Tok(x K) (r K) { // `t@"src"
+func Tok(x K) K { // `t@"src"
 	if tp(x) == Ct {
 		return tok(x)
 	} else {
@@ -720,7 +720,7 @@ func Val(x K) (r K) {
 		return trap(Type)
 	}
 }
-func val(x K) (r K) {
+func val(x K) K {
 	x = parse(tok(x))
 	xn := nn(x)
 	xp := int32(x) + 8*(xn-1)

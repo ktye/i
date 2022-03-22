@@ -169,7 +169,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	dx(y)
 	return r
 }
-func stv(x, i, y K) (r K) {
+func stv(x, i, y K) K {
 	x = use(x)
 	xt := tp(x)
 	if It != tp(i) {
@@ -272,7 +272,7 @@ func sti(x K, i int32, y K) K {
 	return x
 }
 
-func atdepth(x, y K) (r K) {
+func atdepth(x, y K) K {
 	xt := tp(x)
 	if xt < 16 {
 		trap(Type)

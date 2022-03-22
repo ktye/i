@@ -258,7 +258,6 @@ func mins(x K, yp int32, t T, n int32) K {
 	} else {
 		return 0
 	}
-
 }
 func maxs(x K, yp int32, t T, n int32) K {
 	if t != Bt || x != 0 {

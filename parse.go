@@ -6,7 +6,7 @@ import (
 
 var ps int32
 
-func Prs(x K) (r K) { return parse(Tok(x)) } // `p"src"  `p(token list)
+func Prs(x K) K { return parse(Tok(x)) } // `p"src"  `p(token list)
 func parse(x K) (r K) {
 	if tp(x) != Lt {
 		trap(Type)
@@ -286,6 +286,7 @@ func cond(x K, xn int32) (r K) {
 	return flat(x)
 }
 func plist(c K) (r K, n, p int32) {
+	n = 0
 	r = mk(Lt, 0)
 	p = 84
 	for {
@@ -356,14 +357,14 @@ func next() (r K) {
 func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x, y K) K {
 	l := lastp(y)
-	if quoted(l) == true {
+	if quoted(l) != 0 {
 		return cat1(ucat(x, ldrop(-1, y)), 64+unquote(l))
 	}
 	return cat1(ucat(x, y), 128)
 }
 func monadic(x K) (r K) {
 	l := lastp(x)
-	if quoted(l) == true {
+	if quoted(l) != 0 {
 		r = cat1(ldrop(-1, x), unquote(l))
 		if int32(l) == 449 { // :x (return: identity+jump)
 			return cat1(cat1(r, Ki(1048576)), 320)
@@ -373,7 +374,7 @@ func monadic(x K) (r K) {
 	}
 	return cat1(x, 83) // dyadic-@
 }
-func ldrop(n int32, x K) (r K) { return explode(ndrop(n, x)) }
+func ldrop(n int32, x K) K { return explode(ndrop(n, x)) }
 func svrb(p int32) int32 {
 	x := K(I64(p))
 	return I32B(tp(x) == 0) * int32(x)

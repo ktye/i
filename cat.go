@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Cat(x, y K) (r K) {
+func Cat(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt == Tt && yt == Dt {
 		y, yt = Enl(y), Tt
@@ -250,7 +250,7 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 	SetI32(int32(r)-12, nx+ny)
 	return r, int32(r) + s*nx, s
 }
-func ncat(x, y K) (r K) {
+func ncat(x, y K) K {
 	xt := tp(x)
 	if xt < 16 {
 		x = Enl(x)

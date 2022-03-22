@@ -204,7 +204,7 @@ func Str(x K) (r K) {
 	dx(x)
 	return r
 }
-func emb(a, b int32, x K) (r K) { return cat1(Cat(Kc(a), x), Kc(b)) }
+func emb(a, b int32, x K) K { return cat1(Cat(Kc(a), x), Kc(b)) }
 func si(x int32) (r K) {
 	if x == 0 {
 		return Ku(uint64('0'))
@@ -266,7 +266,7 @@ func sf(x float64) (r K) {
 	}
 	return ndrop(-c, r)
 }
-func se(x float64) (r K) {
+func se(x float64) K {
 	f, e := frexp(x)
 	x = 0.3010299956639812 * float64(e) // log10(2)*
 	ei := int32(F64floor(x))
@@ -293,7 +293,7 @@ func trdot(x K) K {
 	return x
 }
 
-func Cst(x, y K) (r K) { // x$y
+func Cst(x, y K) K { // x$y
 	yt := tp(y)
 	if yt > Zt {
 		return Ecr(17, l2(x, y))

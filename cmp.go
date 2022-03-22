@@ -87,7 +87,7 @@ func match(x, y K) int32 {
 	}
 	return 1
 }
-func mtC(xp, yp, ve, e int32) (r int32) { // f77 replace
+func mtC(xp, yp, ve, e int32) int32 { // f77 replace
 	for yp < ve {
 		if I8x16load(xp).Eq(I8x16load(yp)).All_true() == 0 {
 			return 0
@@ -124,7 +124,7 @@ func mtI(xp, yp, ve, e int32) (r int32) {
 	return 1
 }
 */
-func mtF(xp, yp, e int32) (r int32) {
+func mtF(xp, yp, e int32) int32 {
 	for yp < e {
 		if eqf(F64(xp), F64(yp)) == 0 {
 			return 0
@@ -170,7 +170,7 @@ func any(x, n int32) int32 { // f77 replace
 	}
 	return 0
 }
-func Any(x K) (r K) {
+func Any(x K) K {
 	if tp(x) != Bt {
 		trap(Type)
 	}
@@ -178,7 +178,7 @@ func Any(x K) (r K) {
 	dx(x)
 	return Kb(any(int32(x), xn))
 }
-func In(x, y K) (r K) {
+func In(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt == yt && xt > 16 {
 		return Ecl(30, l2(x, y))

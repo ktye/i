@@ -54,6 +54,7 @@ func grow(p int32) int32 {
 }
 
 func mcount() (r uint32) {
+	r = 0
 	for i := int32(5); i < 31; i++ {
 		n := fcount(4 * i)
 		//fmt.Println("m", i, n)
@@ -62,6 +63,7 @@ func mcount() (r uint32) {
 	return r
 }
 func fcount(x int32) (r int32) {
+	r = 0
 	for {
 		if I32(x) == 0 {
 			break

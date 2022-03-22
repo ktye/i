@@ -218,12 +218,12 @@ func l2t(x, y K, t T) (r K) {
 	SetI64(8+int32(r), int64(y))
 	return K(int32(r)) | K(t)<<59
 }
-func l2(x, y K) (r K)    { return l2t(x, y, Lt) }
-func l3(x, y, z K) (r K) { return cat1(l2(x, y), z) }
-func x0(x int32) K       { return rx(K(I64(x))) }
-func x1(x int32) K       { return x0(x + 8) }
-func x2(x int32) K       { return x0(x + 16) }
-func x3(x int32) K       { return x0(x + 24) }
+func l2(x, y K) K    { return l2t(x, y, Lt) }
+func l3(x, y, z K) K { return cat1(l2(x, y), z) }
+func x0(x int32) K   { return rx(K(I64(x))) }
+func x1(x int32) K   { return x0(x + 8) }
+func x2(x int32) K   { return x0(x + 16) }
+func x3(x int32) K   { return x0(x + 24) }
 func Ku(x uint64) (r K) { // Ct
 	r = mk(Ct, 0)
 	p := int32(r)
@@ -264,7 +264,7 @@ func sc(c K) K {
 	SetI64(8, int64(cat1(K(I64(8)), 0)))
 	return K(8*sn) | K(st)<<59
 }
-func cs(x K) (r K) { return x0(I32(0) + int32(x)) }
+func cs(x K) K { return x0(I32(0) + int32(x)) }
 func td(x K) (r K) { // table from dict
 	r, x = spl2(x)
 	if tp(r) != St || tp(x) != Lt {
@@ -276,7 +276,7 @@ func td(x K) (r K) { // table from dict
 	SetI32(int32(r)-12, m)
 	return K(int32(r)) | K(Tt)<<59
 }
-func missing(t T) (r K) {
+func missing(t T) K {
 	switch t - 2 {
 	case 0: // ct
 		return Kc(32)

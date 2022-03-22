@@ -36,7 +36,7 @@ func tok(x K) (r K) {
 	return r
 }
 func src() K { return K(I64(548)) }
-func tbln() (r K) {
+func tbln() K {
 	n := pe - pp
 	for i := int32(0); i < n; i++ {
 		c := I8(pp + i)
@@ -274,12 +274,12 @@ func pflz(f float64) (r K) {
 	}
 	return Rot(Kf(f), r)
 }
-func ppi(f float64) (r K) {
+func ppi(f float64) K {
 	pp++
 	return Kf(pi * f)
 }
 
-func tvrb() (r K) {
+func tvrb() K {
 	c := I8(pp)
 	if is(c, 1) == 0 {
 		return 0
@@ -301,7 +301,7 @@ func tvrb() (r K) {
 	}
 	return K(o + idx(c, 228, 253))
 }
-func tpct() (r K) {
+func tpct() K {
 	c := I8(pp)
 	if is(c, 48) != 0 { // ([{}]); \n
 		pp++

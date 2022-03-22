@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Cal(x, y K) (r K) {
+func Cal(x, y K) K {
 	xt := tp(x)
 	yt := tp(y)
 	if tp(x) == lf && yt > Lt {
@@ -121,7 +121,7 @@ func callenv(f, x K) (r K) { // {..}.d  {..}.t
 	dx(f)
 	return cal(r, explode(x))
 }
-func native(f K, x K) (r K) {
+func native(f K, x K) K {
 	fn := nn(f)
 	xn := nn(x)
 	if xn < fn {
