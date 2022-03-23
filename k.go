@@ -11,9 +11,14 @@ var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack posit
 
 /* debug c vs go
 func kprint(x K) { //rm
+	t := int32(tp(x))
+	n := int32(-1)
+	if t > 16 {
+		n = nn(x)
+	}
 	h := int32(x)
 	l := int32(x >> 32)
-	Printf("%d %d\n", h, l)
+	Printf("t/n%12d%12d%12d%12d\n", t, n, h, l)
 }
 func printlist(x K) { //rm
 	n := nn(x)
