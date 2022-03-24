@@ -111,7 +111,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	case 0:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if uint32(xi) >= uint32(xn) {
+			if xi < 0 || xi >= xn {
 				SetI8(rp, int32(na))
 			} else {
 				SetI8(rp, I8(xp+xi))
@@ -122,7 +122,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	case 1:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if uint32(xi) >= uint32(xn) {
+			if xi < 0 || xi >= xn {
 				SetI32(rp, int32(na))
 			} else {
 				SetI32(rp, I32(xp+4*xi))
@@ -133,7 +133,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	case 2:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if uint32(xi) >= uint32(xn) {
+			if xi < 0 || xi >= xn {
 				if t == Lt {
 					SetI64(rp, int64(na))
 				} else {
@@ -148,7 +148,7 @@ func atv(x, y K) (r K) { // x BT..LT
 	default:
 		for i := int32(0); i < yn; i++ {
 			xi := I32(yp)
-			if uint32(xi) >= uint32(xn) {
+			if xi < 0 || xi >= xn {
 				SetI64(rp, I64(int32(na)))
 				SetI64(rp+8, I64(int32(na)))
 			} else {
@@ -188,8 +188,8 @@ func stv(x, i, y K) K {
 	yp := int32(y)
 	ip := int32(i)
 	for j := int32(0); j < n; j++ {
-		xi := uint32(I32(ip + 4*j))
-		if xi >= uint32(xn) {
+		xi := I32(ip + 4*j)
+		if xi < 0 || xi >= xn {
 			trap(Index)
 		}
 	}

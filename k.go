@@ -9,6 +9,7 @@ var loc, xyz K
 var na, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
+/* debug c vs go
 func dump(a, b int32) {
 	var ii, jj int32
 	for i := a; i < b; i++ {
@@ -18,7 +19,6 @@ func dump(a, b int32) {
 	}
 }
 
-/* debug c vs go
 func kprint(x K) { //rm
 	t := int32(tp(x))
 	n := int32(-1)
@@ -29,6 +29,7 @@ func kprint(x K) { //rm
 	l := int32(x >> 32)
 	Printf("t/n%12d%12d%12d%12d\n", t, n, h, l)
 }
+
 func printlist(x K) { //rm
 	n := nn(x)
 	var h, l int32
@@ -157,7 +158,7 @@ func reset() {
 }
 
 type K uint64
-type T uint32
+type T int32
 
 // typeof(x K): t=x>>59
 // isatom:      t<16

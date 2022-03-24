@@ -241,7 +241,7 @@ func sf(x float64) (r K) {
 	if u == 0 {
 		r = cat1(r, Kc('0'))
 	}
-	for u > 0 {
+	for u != 0 {
 		r = cat1(r, Kc(int32('0'+u%10)))
 		u /= 10
 	}

@@ -32,7 +32,6 @@ func tok(x K) (r K) {
 			}
 		}
 	}
-
 	SetI64(552, int64(src))
 	return r
 }

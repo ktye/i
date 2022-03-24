@@ -117,7 +117,7 @@ func mk(t T, n int32) (r K) {
 	SetI32(x+4, n)
 	return r | K(x+16)
 }
-func tp(x K) T     { return T(x >> 59) }
+func tp(x K) T     { return T(uint64(x) >> 59) }
 func nn(x K) int32 { return I32(int32(x) - 12) }
 func ep(x K) int32 { return int32(x) + sz(tp(x))*nn(x) }
 func sz(t T) int32 {
