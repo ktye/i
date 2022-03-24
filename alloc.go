@@ -5,6 +5,7 @@ import (
 )
 
 func minit(a, b int32) {
+	// Printf("minit %12d%12d\n", a, b)
 	p := int32(1 << a)
 	for i := a; i < b; i++ {
 		SetI32(4*i, p)
@@ -41,14 +42,23 @@ func alloc(n, s int32) int32 {
 	return a
 }
 func grow(p int32) int32 {
+	//j := Memorysize()
+	//Printf("grow%12d%12d\n", p, j)
 	m := I32(128)                       // old total memory (log2)
 	n := 1 + (p >> 2)                   // required total mem (log2)
 	g := (1 << (n - 16)) - Memorysize() // grow by 64k blocks
+
+	//Printf("mng%12d%12d%12d\n", m, n, g)
+
 	if g > 0 {
 		if Memorygrow(g) < 0 {
 			trap(Grow)
 		}
 	}
+
+	//p = Memorysize()
+	//Printf("size%12d\n", p)
+
 	minit(m, n)
 	return n
 }

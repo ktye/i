@@ -9,6 +9,15 @@ var loc, xyz K
 var na, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
+func dump(a, b int32) {
+	var ii, jj int32
+	for i := a; i < b; i++ {
+		ii = i
+		jj = I8(ii)
+		Printf("mem%12d%12d\n", ii, jj)
+	}
+}
+
 /* debug c vs go
 func kprint(x K) { //rm
 	t := int32(tp(x))
@@ -109,19 +118,19 @@ func init() {
 // 256..511  stack
 // 512..519  wasi iovec
 // 520..545  "vbcisfzldtcdpl000BCISFZLDT"
-// 548..563  src
+// 552..559  src (aligned)
 
 func kinit() {
+	//Printf("kinit>\n")
 	minit(13, 16) //8k..64k
 	sp = 256
-	SetI64(548, int64(mk(Ct, 0))) //src
+	SetI64(552, int64(mk(Ct, 0))) //src
 	loc = 0
 	na = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
 	rand_ = 1592653589
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-
 	sc(Ku(0))        // `   0
 	x := sc(Ku(120)) // `x  8
 	y := sc(Ku(121)) // `y 16
