@@ -5,7 +5,6 @@ import (
 )
 
 func minit(a, b int32) {
-	// Printf("minit %12d%12d\n", a, b)
 	p := int32(1 << a)
 	for i := a; i < b; i++ {
 		SetI32(4*i, p)

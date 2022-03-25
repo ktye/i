@@ -26,10 +26,9 @@ func kprint(x K) { //rm
 		n = nn(x)
 	}
 	h := int32(x)
-	l := int32(x >> 32)
+	l := int32(uint32(x) >> 32)
 	Printf("t/n%12d%12d%12d%12d\n", t, n, h, l)
 }
-
 func printlist(x K) { //rm
 	n := nn(x)
 	var h, l int32
@@ -231,7 +230,7 @@ func l2t(x, y K, t T) (r K) {
 	r = mk(Lt, 2)
 	SetI64(int32(r), int64(x))
 	SetI64(8+int32(r), int64(y))
-	return K(int32(r)) | K(t)<<59
+	return K(uint32(r)) | K(t)<<59
 }
 func l2(x, y K) K    { return l2t(x, y, Lt) }
 func l3(x, y, z K) K { return cat1(l2(x, y), z) }

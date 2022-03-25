@@ -144,7 +144,7 @@ func Str(x K) (r K) {
 		case 1: // df
 			r = Str(x0(xp))
 			p := x1(xp)
-			if p%2 != 0 {
+			if int32(p)%2 != 0 {
 				p = cat1(Str(20+p), Kc(':'))
 			} else {
 				p = Str(21 + p)
@@ -237,14 +237,26 @@ func sf(x float64) (r K) {
 		return se(x)
 	}
 	r = mk(Ct, 0)
-	u = uint64(x)
-	if u == 0 {
+	/*
+		u = uint64(x)
+		if u == 0 {
+			r = cat1(r, Kc('0'))
+		}
+		for u != 0 {
+			r = cat1(r, Kc(int32('0'+u%10)))
+			u /= 10
+		}
+	*/
+
+	i := int64(x)
+	if i == 0 {
 		r = cat1(r, Kc('0'))
 	}
-	for u != 0 {
-		r = cat1(r, Kc(int32('0'+u%10)))
-		u /= 10
+	for i != 0 {
+		r = cat1(r, Kc(int32('0'+i%10)))
+		i /= 10
 	}
+
 	r = Rev(r)
 	r = cat1(r, Kc('.'))
 	x -= F64floor(x)

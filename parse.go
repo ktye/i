@@ -58,13 +58,11 @@ func e(x K, xv int32) (r K, ev int32) { // Lt
 		if (r == 0 || ev == 1) && a == 0 { // 1+ (projection)
 			x = cat1(ucat(cat1(cat1(ucat(l1(0), x), Ki(2)), 27), y), 92)
 			if ev == 1 { // 1+-
-				r = cat1(ucat(r, x), 91)
-				return r, 1
+				return cat1(ucat(r, x), 91), 1
 			}
 			return x, 1
 		}
-		r = ucat(r, x)
-		return dyadic(r, y), 0 // dyadic
+		return dyadic(ucat(r, x), y), 0 // dyadic
 	}
 	r, ev = e(rx(y), yv)
 	dx(y)

@@ -70,7 +70,7 @@ func randi(n int32) int32 {
 	prod := uint64(v) * uint64(n)
 	low := uint32(prod)
 	if low < uint32(n) {
-		thresh := uint32(-n) % uint32(n) //int64(uint32(-n))%int64(n)
+		thresh := uint32(-n) % uint32(n)
 		for low < thresh {
 			v = uint32(rnd())
 			prod = uint64(v) * uint64(n)
