@@ -67,6 +67,9 @@ jobs:
 
     - name: test k.c
       run: cd i && ./kc k.t -e
+
+    - name: k.f
+      run: cd i/f77 && sh mk && sh mk test
       
     - name: kom
       run: cd i/kom && sh mk && sh mk test
