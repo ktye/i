@@ -155,8 +155,10 @@ func TestKT(t *testing.T) {
 	}
 	v := bytes.Split(b, []byte{10})
 	for i := range v {
-		test(mkchars(v[i]))
-		reset()
+		if len(v[i]) > 1 {
+			test(mkchars(append(v[i], 10)))
+			reset()
+		}
 	}
 	dofile(mkchars([]byte("k.t")), mkchars(b))
 	reset()
@@ -173,7 +175,7 @@ func TestKE(t *testing.T) {
 		newtest()
 		var buf bytes.Buffer
 		Stdout = &buf
-		e := tryf(func() { test(mkchars(v[i])) })
+		e := tryf(func() { test(mkchars(append(v[i],10))) })
 		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
 		fmt.Println(string(v[i]))
 		if e != exp {
@@ -191,8 +193,8 @@ func TestTraps(t *testing.T) {
 		{func() { mk(2, 3) }, Value},
 		{func() { cal(mk(It, 0), seq(3)) }, Type},
 		{func() { test(seq(3)) }, Type},
-		{func() { test(mkchars([]byte("1 2 /1 /2"))) }, Length},
-		{func() { test(mkchars([]byte("1 /2"))) }, Err},
+		{func() { test(mkchars([]byte("1 2 /1 /2\n"))) }, Length},
+		{func() { test(mkchars([]byte("1 /2\n"))) }, Err},
 		{func() { sp = 0; reset() }, Stack},
 		{func() { mk(It, 0); reset() }, Err},
 		{func() { use(Key(seq(2), seq(2))) }, Type},
@@ -200,12 +202,12 @@ func TestTraps(t *testing.T) {
 		{func() { ndrop(5, Key(seq(2), seq(2))) }, Type},
 		{func() { mfree(int32(seq(1)), 5) }, Unref},
 	}
-	for _, tc := range testCases {
+	for i, tc := range testCases {
 		newtest()
 		Stdout = io.Discard
 		e := tryf(tc.f)
 		if e != tc.e {
-			t.Fatalf("expected %d got %d", tc.e, e)
+			t.Fatalf("tc %d: expected %d got %d", i, tc.e, e)
 		}
 	}
 }

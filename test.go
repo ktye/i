@@ -4,7 +4,7 @@ func test(x K) {
 	if tp(x) != Ct {
 		trap(Type)
 	}
-	l := split(Kc(10), rx(x))
+	l := ndrop(-1, split(Kc(10), rx(x)))
 	n := nn(l)
 	dx(l)
 	for i := int32(0); i < n; i++ {

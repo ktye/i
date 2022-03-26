@@ -1,0 +1,12 @@
+set -e
+set -x
+
+if [ "$1" = "test" ]; then
+	awk -f t.awk < ../k.t > k.t
+	./k k.t -e
+	exit 0
+fi
+
+wg -f .. > k.f
+gfortran -Wall -Wfatal-errors -Werror -Wno-unused-dummy-argument -o k k.f
+
