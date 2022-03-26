@@ -185,6 +185,7 @@ func radixI(x K, n int32) K { // ^I  see:shawnsmithdev/zermelo
 	op := int32(o)
 	fr := int32(x)
 	to := int32(b)
+L:
 	for ko := int32(0); ko < 32; ko += 8 {
 		s := int32(1)
 		var prev int32 = nai
@@ -203,7 +204,7 @@ func radixI(x K, n int32) K { // ^I  see:shawnsmithdev/zermelo
 			if (ko>>3)%2 == 1 {
 				Memorycopy(to, fr, n)
 			}
-			break
+			break L
 		}
 		w := int32(0)
 		if ko == 24 {
@@ -257,6 +258,7 @@ func radixF(x K, n int32) K { // ^F
 	n -= na
 
 	var u uint64
+L:
 	for ko := int32(0); ko < 64; ko += 8 {
 		s := int32(1)
 		prev := float64(0)
@@ -275,7 +277,7 @@ func radixF(x K, n int32) K { // ^F
 			if (ko>>3)%2 == 1 {
 				Memorycopy(to, fr, n)
 			}
-			break
+			break L
 		}
 		radixp(op, 0, 256, 0)
 		for i := int32(0); i < n; i += 8 {

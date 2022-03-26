@@ -107,6 +107,7 @@ func mk(t T, n int32) (r K) {
 	//		fmt.Println("mk", t, n, int32(r))
 	//	}
 	//}(t, n)
+	//Printf("mk%12d%12d\n", t, n)
 	if t < 17 {
 		trap(Value)
 	}

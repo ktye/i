@@ -25,6 +25,7 @@ func exec(x K) K {
 	e := p + 8*xn
 	for p < e {
 		u := K(I64(p))
+		//kprint(u)
 		//fmt.Printf("exec p=%d sp=%d tp=%d int32=%d case(%d) %s\n", p, sp-256, tp(u), int32(u), int32(u)>>6, sK(u))
 		//fmt.Printf("exec p=%d tp=%d int32=%d case(%d)\n", p, tp(u), int32(u), int32(u)>>6)
 		if tp(u) != 0 {

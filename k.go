@@ -9,7 +9,7 @@ var loc, xyz K
 var na, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
-/* debug c vs go
+/* debug c/f77
 func dump(a, b int32) {
 	var ii, jj int32
 	for i := a; i < b; i++ {
@@ -18,7 +18,6 @@ func dump(a, b int32) {
 		Printf("mem%12d%12d\n", ii, jj)
 	}
 }
-
 func kprint(x K) { //rm
 	t := int32(tp(x))
 	n := int32(-1)
