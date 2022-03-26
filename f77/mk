@@ -8,5 +8,7 @@ if [ "$1" = "test" ]; then
 fi
 
 wg -f .. > k.f
-gfortran -Wall -Wfatal-errors -Werror -Wno-unused-dummy-argument -o k k.f
+
+#gfortran -Wall -Wfatal-errors -Werror -Wno-unused-dummy-argument -o k k.f
+gfortran -o k k.f
 
