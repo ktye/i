@@ -1,5 +1,4 @@
 `<                 "      A P L \\ 3 6 0\n      "
-/      ¨¯<≤=≥>≠∨^-÷+×?⍵∊⍴~↑↓⍳○*→←⌈⌊_∇∆∘'⎕⊂⊃∩∪⊥⊤|;:,./\\()[]
 / ┌────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐
 / │    │ ¨ │ ¯ │ < │ ≤ │ = │ ≥ │ > │ ≠ │ ∨ │ ^ │ - │ ÷ │  OVER  │
 / │    │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ + │ × │ STRIKE │
@@ -16,14 +15,9 @@
 
 O:1; C:""; I:!0; E:0; P:!0; V:`!(); D:(); S:()
 
-APL:{C::x;n:{x;0};$[")"~*x;SYS 1_x;(0~#D)&"∇"~(3#x);n D::,3_x;"∇"~3#x;n DEF D;#D;n D,:,x;PRINT RUN TOK x]}
+APL:{C::x;n:{x;0};$[")"~*x;SYS 1_x;PRINT RUN TOK x]}
 SYS:{$[x~"ORIGIN 1";*|(O::1;"WAS ",$O);x~"ORIGIN 0";*|(O::0;"WAS ",$O);"INCORRECT COMMAND"]}
 UTF:{(&x>-65)^x}
-
-CAL:{[f;x]`call \(f;x);sv:PRO f;V[ \(f 1)#*f]:x;c:*|f;while[(1+#c)>N::1+N;RUN TOK c N];r:V f 2;EPI[f;sv];r}
-PRO:{[f]S,:,(C;P;N);C::"";P::!0;N::0;V[*f]}
-EPI:{[f;v]C::*l:*|S;P:l 1;N::l 2;S::1_S;V[*f]:v}
-
 
 
 err:((`$_32+3#)'e)!e:" "\:"CHARACTER DEPTH DOMAIN DEFN INDEX LABEL LENGTH RANK SYNTAX SYMBOL VALUE"
@@ -33,7 +27,6 @@ NM:"_.0123456789"                                               /¯ is mapped to
 AZ:_("A"+!26),"a"+!26
 OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⊖⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,/⌿⍀{\\;:.()[]"   /← is mapped to :
 SY:UTF OP;                                       SE:SY?,";"
-
 
 A:256#                       "e"   /illegal but allowed in quotation
 @[`A;32;                     "_"]  /blank
@@ -161,8 +154,6 @@ mo:{[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}                /apply monadic funct
 
 /   case   action       PARSE TABLE
 PT:(  ,"x"; {*x}                                            /no match, keep shifting
-      "g1"; {("1",CAL[2_*x;,x 1])}                          /call monadic user function
-     "1h1"; {("1",CAL[2_x 1;(*x;x 2)])}                     /call dyadic user function
      "1+1"; {("1",DF[1_x 1;1_*x;1_x 2])}                    /apply dyadic function
      "++1"; mo                                              /apply monadic
      "(+1"; mo                                              /apply monadic
@@ -206,28 +197,12 @@ tab:{[s;c]s:-1_s;nlf[s;,/'(*/s)^c]}                                 /format char
 OUT:{x:1_x;t:@v:*|x;r:#s:*x;`<($[0~#v;"\n";(`L~t)&r<2;,/v;`L~t;tab[s;v];(!0)~*x;str 0+*v;1~#*x;"  "/:str'0+v;mat[s;str'0+v]]),"\n"}
 PRINT:{$[`s~@x;`<ERR x;OUT x]}
 
-DEF:{D::();n:`;a:0;
- r:$[#i:find["←";h:*x];`$(*i)#h;0#`]
- h:*l:";"\:h;l:1_`$l
- s:`$" "\:$[#i;(3+*i)_h;h]
- a:$[2~#s;1;3~#s;2;0]
- l:($[1~a;s 1;2~a;s 0 2;0#`]),l,r
- n:*(2~a)_s
- V[n]:("fgh"@a;n;l;a;r;1_x)}
+$[1<#x:.`"66";{`<x,"\n";APL x;`<"      "}'-1_"\n"\:x;0]
 
-/ \APL"2+3"
-/ \APL"∇Z←X SPHERE5 Y;R;S;T"
-/ \APL"∇"
-/ \APL"X←⍳6"
-/ \APL"X[2 3]:5 6"
-/ \APL"X[2 3]:5"
-/ \APL"∇Z←G1 X"
-/ \APL"Z←1+X"
-/ \APL"∇"
-/ \APL"G1 8"
- \APL"∇Z←X H Y"
- \APL"Z←X+Y"
- \APL"∇"
-/ \APL"3 H 4"
-/ \APL"24 60 60⊤3723"
-/ \APL"60 60⊤3723"
+/ k apl.k -e 'REPL Y'
+REPL:{[Y]while[1;{$[0<#x;APL x;1]}@<`;`<"      "]}
+
+/ ref
+/ APL\360 User's Manual, August 1968
+/ token like arthur: shaktidb mailing list 2021.02.22 
+/ parse like roger:  An Implementation of J
