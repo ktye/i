@@ -134,6 +134,11 @@ func getargv() (r K) {
 	return r
 }
 func readfile(x K) (r K) { // x C
+	if nn(x) == 0 {
+		r = mk(Ct, 496)
+		r = ntake(ReadIn(int32(r), 496), r)
+		return r
+	}
 	n := Read(int32(x), nn(x), 0)
 	if n < 0 {
 		trap(Io)

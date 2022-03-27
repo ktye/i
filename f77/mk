@@ -3,12 +3,15 @@ set -x
 
 if [ "$1" = "test" ]; then
 	awk -f t.awk < ../k.t > k.t
-	./k k.t -e
+	./k22 k.t -e
+	cp ../apl/66 .
+	./k22 66 ../apl/apl.k -e
+	rm 66
 	exit 0
 fi
 
 wg -f .. > k.f
 
 #gfortran -Wall -Wfatal-errors -Werror -Wno-unused-dummy-argument -o k k.f
-gfortran -fno-range-check -o k k.f
+gfortran -ok22 k.f
 

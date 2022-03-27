@@ -175,7 +175,7 @@ func TestKE(t *testing.T) {
 		newtest()
 		var buf bytes.Buffer
 		Stdout = &buf
-		e := tryf(func() { test(mkchars(append(v[i],10))) })
+		e := tryf(func() { test(mkchars(append(v[i], 10))) })
 		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
 		fmt.Println(string(v[i]))
 		if e != exp {
@@ -402,23 +402,6 @@ func Test360(t *testing.T) {
 		{"2 3 4+.×5 6 7", []int{}, []float64{56}},
 		{"1 2 3∘.×1 2 3 4", []int{3, 4}, []float64{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
 		{"(⍳3)∘.×⍳4", []int{3, 4}, []int{1, 2, 3, 4, 2, 4, 6, 8, 3, 6, 9, 12}},
-		//{"∇F0", nil, nil},
-		//{"∇", nil, nil},
-		//{"∇Z←F1", nil, nil},
-		//{"Z←1", nil, nil},
-		//{"∇", nil, nil},
-		//{"∇G0 X", nil, nil},
-		//{"∇", nil, nil},
-		//{"∇Z←G1 X", nil, nil},
-		//{"Z←1+X", nil, nil},
-		//{"∇", nil, nil},
-		//{"∇X H Y", nil, nil},
-		//{"∇", nil, nil},
-		//{"∇Z←X H Y", nil, nil},
-		//{"Z←X+Y", nil, nil},
-		//{"∇", nil, nil},
-		//{"1+2", []int{}, []float64{3}},
-		//{"G1 8", []int{}, []float64{9}},
 	}
 	nt := func(x K, y int, xt T) {
 		if n := nn(x); int(n) != y {
@@ -480,7 +463,7 @@ func Test360(t *testing.T) {
 		}
 	}
 	newtest()
-	x := mkchars([]byte("apl/∘.k"))
+	x := mkchars([]byte("apl/apl.k"))
 	dofile(x, readfile(rx(x)))
 	def := val(mkchars([]byte("APL")))
 	apl := val(mkchars([]byte("{RUN TOK x}"))) //lup(sc(mkchars([]byte("APL"))))
@@ -522,72 +505,6 @@ func Test360(t *testing.T) {
 	}
 	dx(apl)
 	dx(def)
-	reset()
-}
-func TestDef(t *testing.T) {
-	//t.Skip()
-	Tx := []struct {
-		s string
-		f string
-		l string
-		a int
-		r string
-	}{
-		{"∇Z←X SPHERE5 Y", "SPHERE5", "X,Y,Z", 2, "Z"},
-		{"∇F0", "F0", "", 0, ""},
-		{"∇F0;P", "F0", "P", 0, ""},
-		{"∇F1 ABC", "F1", "ABC", 1, ""},
-		{"∇RZ←F11 ABC", "F11", "ABC,RZ", 1, "RZ"},
-		{"∇RZ←F11 ABC;L12", "F11", "ABC,L12,RZ", 1, "RZ"},
-		{"∇Z←X H Y;A;B;C", "H", "X,Y,A,B,C,Z", 2, "Z"},
-	}
-	assert := func(x, y K, s string) {
-		if match(x, y) != 1 {
-			t.Fatalf("%s: does not match", s)
-		}
-		dx(x)
-		dx(y)
-	}
-	split := func(s string) K {
-		if s == "" {
-			return mk(St, 0)
-		}
-		v := strings.Split(s, ",")
-		r := mk(St, 0)
-		for i := range v {
-			r = Cat(r, sc(mkchars([]byte(v[i]))))
-		}
-		return r
-	}
-	newtest()
-	x := mkchars([]byte("apl/∘.k"))
-	dofile(x, readfile(rx(x)))
-	apl := val(mkchars([]byte("APL")))
-	V := sc(mkchars([]byte("V")))
-	for _, tc := range Tx {
-		fmt.Println(tc.s)
-		dx(Atx(rx(apl), mkchars([]byte(tc.s))))
-		dx(Atx(rx(apl), mkchars([]byte("∇"))))
-		f := Atx(lup(V), sc(mkchars([]byte(tc.f))))
-		//fmt.Println(sK(f))
-		if ty := tp(f); ty != Lt {
-			t.Fatalf("type of %s is %d not L", tc.f, ty)
-		}
-		n := Atx(rx(f), Ki(1))
-		l := Atx(rx(f), Ki(2))
-		a := Atx(rx(f), Ki(3))
-		r := Atx(rx(f), Ki(4))
-		assert(n, sc(mkchars([]byte(tc.f))), "name")
-		assert(l, split(tc.l), "locals")
-		assert(a, Ki(int32(tc.a)), "arity")
-		tcr := sc(mkchars([]byte(tc.r)))
-		if tc.r == "" {
-			tcr = mk(St, 0)
-		}
-		assert(r, tcr, "return")
-		dx(f)
-	}
-	dx(apl)
 	reset()
 }
 

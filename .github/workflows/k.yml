@@ -171,6 +171,16 @@ jobs:
         asset_name: kg.go
         asset_content_type: text/plain
           
+    - name: upload k.f
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./f77/k.f
+        asset_name: k.f
+        asset_content_type: text/plain
+
     - name: upload k.c
       uses: actions/upload-release-asset@v1
       env:

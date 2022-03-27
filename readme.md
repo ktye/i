@@ -46,9 +46,10 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 |---|---|---|
 [k.wasm](https://github.com/ktye/i/releases/download/latest/k.wasm)|webassembly binary module||
 [k-wavm.wat](https://github.com/ktye/i/releases/download/latest/k-wavm.wat)|webassembly text format (with try/catch)|`wavm run --enable multi-memory --enable exception-handling --mount-root . k-wavm.wat`|
-[k.go](https://github.com/ktye/i/releases/download/latest/k.go)|single file package k|`go build k.go`|
-[kg.go](https://github.com/ktye/i/releases/download/latest/kg.go)|single file main program|`go build kg.go`|
-[k.c](https://github.com/ktye/i/releases/download/latest/k.c)|single file c program|`gcc k.c -lm`|
+[k.go](https://github.com/ktye/i/releases/download/latest/k.go)|bundled package k|`go build k.go`|
+[kg.go](https://github.com/ktye/i/releases/download/latest/kg.go)|main program|`go build kg.go`|
+[k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran|`gfortran k.f`|
+[k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c|`gcc k.c -lm`|
 [ktye.h](https://github.com/ktye/i/releases/download/latest/ktye.h)|single header library|see [k+](https://github.com/ktye/i/tree/master/%2B)|
 [k+.tar.gz](https://github.com/ktye/i/releases/download/latest/k%2B.tar.gz)|k + extensions|linux: `sh mk.lin`|
 
