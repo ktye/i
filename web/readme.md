@@ -4,7 +4,6 @@
 - k.wasm is not checked in. it's the core that is built by [wg](https://github.com/ktye/wg) from `../*.go` or `wget ktye.github.io/k.wasm`
 - k6.html is a minimal web page that demonstrates it's usage
 - k.html (to be reworked) is the front page on ktye.github.io
-- l.wasm (see l.wat) is the link module, that imports a js function and provides it as a wasm function
 
 ## js interface
 `k.wasm` is the k core, which does not include a filesystem or a repl.

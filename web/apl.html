@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>↓</title></head>
+<link rel=icon href='log.png'
+<style>
+ <style>
+ @font-face{font-family:'apl'; src:url('apl.woff2') format('woff2');}
+ html{font-family:monospace;}
+ .ibm2741{resize:none;padding:1px;border:none;outline:none;font-family:apl;position:absolute;top:0;bottom:0;left:0;right:0;height:100%;overflow:hidden};.hit{paddint-top:0px}
+</style>
+
+
+
+<body>
+<textarea id="_ibm" class="ibm2741" spellcheck="false"></textarea>
+
+<script type="module">
+
+import { K } from './k.js'
+
+
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function us(s){return new TextEncoder("utf-8").encode(s)}
+
+
+//IBM2741
+var _ibm=ge("_ibm");_ibm.value="\n".repeat(100);
+_ibm.addEventListener('keydown',function(e){var t=_ibm;
+ var u={Digit1:"¨",Digit2:"¯",Digit3:"<",Digit4:"≤",Digit5:"=",Digit6:"≥",Digit7:">",Digit8:"≠",Digit9:"∨",Digit0:"^",Minus:"-",Equal:"÷",KeyQ:"?",KeyW:"⍵",KeyE:"∊",KeyR:"⍴",KeyT:"~",KeyY:"↑",KeyU:"↓",KeyI:"⍳",KeyO:"○",KeyP:"*",BracketLeft:"→",KeyA:"⍺",KeyS:"⌈",KeyD:"⌊",KeyF:"_",KeyG:"∇",KeyH:"∆",KeyJ:"∘",KeyK:"'",KeyL:"⎕",Semicolon:"(",Quote:")",KeyZ:"⊂",KeyX:"⊃",KeyC:"∩",KeyV:"∪",KeyB:"⊥",KeyN:"⊤",KeyM:"|",Comma:";",Period:":",Slash:"\\"}
+ var w={Minus:"+",Equal:"×",BracketLeft:"←",Semicolon:"[",Quote:"]",Comma:",",Period:".",Slash:"/"}
+ var c=e.code;var s=e.getModifierState("Shift");//console.log(c, s)
+ var n=t.value.length;var p=t.selectionStart
+ if(c=="Backspace"){t.selectionStart=(p>0)?p-1:0;t.selectionEnd=t.selectionStart}
+ if(c=="Delete"){t.value=t.value.slice(0,p)}
+ if(!s&&c.startsWith("Key"))emit(c.slice(3)) //AZ
+ if(!s&&c.startsWith("Digit"))emit(c.slice(5)) //09
+ if(c=="Space"){emit(" ")}
+ if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
+ if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
+ if(c=="Enter"){new channel("ret.m4a").play();var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
+ pd(e)}) 
+async function emits(s){ s += s.endsWith("\n") ? "      " : ""
+ _ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){ await sleep(50);await emit(a[i])};}
+async function emit(c){var t=_ibm;var h=(c!=" ")
+ if(h)t.classList.add("hit");
+ new channel((c==" ")?"spc.m4a":"key.m4a").play()
+ var o=t.value[t.selectionStart];if(o!=undefined)c=overstrike(o,c)
+ var p=t.selectionStart;t.value=t.value.slice(0,p)+c+t.value.slice(1+p)
+ t.selectionStart=1+p;t.selectionEnd=1+p
+ t.scroll(0,t.scrollHeight)
+ //await sleep(200)
+ if(h)t.classList.remove("hit")}
+var overstrikes={};var a="'.!'⎕⍞⎕∘⌼⊤○⍕⊥○⍎○*⍟/-⌿\\-⍀∩∘⍝○\\⍉○|⌽○∘⌾○-⊖∆|⍋∇|⍒÷⎕⌹FLE";
+for(var i=0;i<26;i++)a+=String.fromCharCode(65+i)+"_"+String.fromCharCode(97+i);
+for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
+function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
+function sleep(x){return new Promise(r=>setTimeout(r,x))}
+function channel(u){this.u=u;this.r=new Audio(u)};channel.prototype.play = function(){ this.r.play() }
+
+
+function apl(s){ 
+ try     { _ibm.value+="\n"; K.unref(K.Kx("APL", K.KC(s))); K.save(); }
+ catch(e){ console.log(e); K.restore() }
+}
+
+
+function ktry(s){
+ try     { let x=K._.repl(K.KC(s)); K.save(); _ibm.focus() }
+ catch(e){ console.log(e); K.restore() }
+}
+
+
+var ext = {
+ init: function(){ 
+  fetch('apl.k').then(r=>r.text()).then(s=>{K.Kx(".",K.KC(s)); K.save() })
+ },
+ read: function(file)     {return new Uint8Array(0)},
+ write:function(file,data){if(file===""){console.log(su(data)); emits(su(data))}else{ }},
+}
+K.kinit(ext)
+
+
+</script>
+</body></html>
+
