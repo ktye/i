@@ -53,7 +53,7 @@ PRS:{                                                   / apl token           k 
  ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"      C
   {$[r:`F$" "/:x@&~""~/:x:" "\:x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0       F
   `$                                                    / "X1"              → `X1                   s  
-  {(,#x;x:UTF@"'"/:v@&~""~/:v:"'"\:1_-1_x)}              / "'⍺ isn''t ⍵'"    → ("1";,14;"⍺ isn't ⍵") L
+  {(,#x;x:UTF@"'"/:v@&~""~/:v:"'"\:1_-1_x)}             / "'⍺ isn''t ⍵'"    → ("1";,14;"⍺ isn't ⍵") L
  )[*&~0N=(OP;NM;AZ;,"'")?\:*x]x}
 
 
@@ -159,6 +159,7 @@ PT:(  ,"x"; {*x}                                            /no match, keep shif
      "++1"; mo                                              /apply monadic
      "(+1"; mo                                              /apply monadic
      "[+1"; mo                                              /apply monadic
+     "{+1"; mo                                              /apply monadic
      ":+1"; mo)                                             /apply monadic
 PT,:("+{1"; {("1",REDUCE[1_*x;1_x 2])}                      /reduction
     "+{i1"; {("1",REDAXE[1_*x;**|*1_x 2;1_x 3])}            /reduce with axis

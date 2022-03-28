@@ -14,5 +14,6 @@ fi
 wg -f .. > k.f
 
 #gfortran -Wall -Wfatal-errors -Werror -Wno-unused-dummy-argument -o k k.f
-gfortran -ok22 -fno-range-check k.f
+
+gfortran -ok22 k.f -fno-range-check
 
