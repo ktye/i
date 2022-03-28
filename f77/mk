@@ -5,8 +5,9 @@ if [ "$1" = "test" ]; then
 	awk -f t.awk < ../k.t > k.t
 	./k22 k.t -e
 	cp ../apl/66 .
-	./k22 66 ../apl/apl.k -e
-	rm 66
+	./k22 66 ../apl/apl.k -e > out
+	cmp out ../apl/out
+	rm 66 out
 	exit 0
 fi
 
