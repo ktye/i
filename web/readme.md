@@ -103,12 +103,6 @@ The list's length always matches the number of arguments of the provided functio
 The extension functions (except for init, read and write) have to use the k-api (via global `K`), consume their arguments and return a k value.  
 They are stored as k variables under their name.
 
-_Implementation:_ k.wasm only imports wasi functions, no user defined js functions.
-However it exports it's function table.
-K calls the indirect function at index 98 to do a native/extern function call.
-We cannot set the index with a js function directly. Only a wasm function can be put there by the js loader.
-That's why there is another module _l.wasm_ whose sole purpose is to provide a wasm function that calls an imported js function.  
-
 
 ### reference counting
 Functions consume their arguments.

@@ -83,7 +83,7 @@ func init() {
 	//            0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
 	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, Fin, Abs, Img, Cnj, Ang, nyi, Uqs, Xpt, Cos, Fwh, Las, Exp, Log, Sin, Tok, Prs)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, com, prj, Otu, In, Find, Hyp, Cpx, nyi, Rot, Enc, Dec, Fil, nyi, Bin, Mod, Pow, Lgn, nyi, nyi, Rtp)
-	Functions(192, tbln, tchr, tnms, tvrb, tpct, tvar, tsym) //                                                                                                                             ^ccal(98)
+	Functions(192, tbln, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
 
 	Functions(220, negi, negf, negz, negC, negI, negF, negZ)

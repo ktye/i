@@ -91,55 +91,29 @@ K.unref= function(x){       _.dx(x)}
 
 
 let bak   // save/restore back buffer
-K.save    = function(){
- bak = new Uint8Array(K._.memory.buffer).slice(0, 1<<U()[32])
- // todo: save src
-}
-K.restore = function(){
- let u=new Uint8Array(K._.memory.buffer).set(bak)
- // todo: restore src
-}
+K.save    = function(){ bak = new Uint8Array(K._.memory.buffer).slice(0, 1<<U()[32]) }
+K.restore = function(){ let u=new Uint8Array(K._.memory.buffer).set(bak) }
 
 
 // low-level wasi io functions
-// on reading k does: path_open, fd_seek(end), fd_seek(start), fd_read(all), fd_close
 let usr_write
 let usr_read
 let filename="" 
 let filedata      // for fd_read
-function path_open(fd,dirflags,path,pathlen,oflags,baserights,inheritrights,fdflags,res){
- filename=su(C().slice(path,path+pathlen));U()[res>>>2]=3;
- filedata=(oflags==0) ? usr_read(filename) : filedata
- return 0
-} 
-function fd_write(fd,p,nio,nw){
- let u=U()
- let x=u[p>>>2]
- let n=u[(4+p)>>>2]
- let b=new ArrayBuffer(n)
- let d=new Uint8Array(b)
- d.set(C().slice(x,x+n))
- if(fd==1) usr_write("",      d)
- else      usr_write(filename,d)
- return 0
+
+function k_write(file,nfile,src,n){
+ let d = new Uint8Array(K._.memory.buffer, src,  n)
+ if(nfile==0){ usr_write("",       d); return 0; }
+ let filename = su(new Uint8Array(K._.memory.buffer, file, nfile))
+ return usr_write(filename, d)
 }
-function fd_read(fd,p,nio,nw){
- let i = I()
- if(fd!=3){ i[   nw>>>2 ] = 0; return 0 }  // report nothing written
- let addr = i[   p >>>2 ]                  // destination in wasm memory
- let n    = i[1+(p >>>2)]                  // requested read length
- if(n != filedata.length){
-  console.log("fd_read: size mismatch:", n, filedata.length)
-  return 1
- }
- var m = new Uint8Array(K._.memory.buffer, addr, n)
- m.set(filedata)                           // copy into wasm memory
- I()[nw>>>2] = filedata.length
- return 0
-}
-function fd_seek(fd,o,w,r){ // fd_seek is used to the the file size only
- if(fd!=3) return 1;
- I()[r>>>2] = (w==2) ? filedata.length : 0 // whence 2(end) or start
+ 
+function k_read(file,nfile,dst){
+ let filename = su(new Uint8Array(K._.memory.buffer, file, nfile))
+ let u = usr_read(filename)
+ if(dst == 0) return u.length;
+ let m = new Uint8Array(K._.memory.buffer, dst, u.length)
+ m.set(u)
  return 0
 }
 
@@ -156,26 +130,18 @@ function register(name, idx, arity){ // this is similar to the c-api's KR(..) im
  K.KA(K.Ks(name), f)                                  // assign
 }
 
-// import object for l.wasm
-let lenv={js:{         
- call:function(x,y){    //x is I, an enlisted index into xcal; y the argument list.
-  let i=I()[lo(x)>>>2]
-  K._.dx(x)
-  return xcal[i](...K.LK(y)) //split y-list into arguments
- }
-}}
  
 // import object for k.wasm
-let kenv={wasi_unstable:{ 
- args_get: function(a,b){return 0},
- args_sizes_get: function(a,b){return 0},
- proc_exit:function(x){ console.log("exit",x) },
- fd_read:  fd_read,
- fd_write: fd_write,
- fd_seek:  fd_seek,
- fd_close: function(fd){return 0},
- path_open:path_open,
- clock_time_get:function(a,b,p){msl();J[p>>>3]=BigInt.asIntN(64, BigInt(Math.floor(1e6*performance.now())));return 0}
+let kenv={env:{ 
+ Exit: function( x){ console.log("exit", x) },
+ Args: function(  ){ console.log("args", x); return 0},
+ Arg: function(x,y){ console.log("args", x, y); return 0},
+ Read:  k_read,
+ Write: k_write,
+ ReadIn: function(x,y){ return 0 },
+ Native: function(x,y){ let i=I()[lo(x)>>>2]
+  K._.dx(x)
+  return xcal[i](...K.LK(y)) },
 }}
 
 // kinit fetches, compiles and initializes l.wasm then k.wasm then calls ext.init asychronously as a callback.
@@ -185,12 +151,9 @@ K.kinit = function(ext){
  usr_write = ext.write; delete ext.write // file write implementation for k: write(name,data_uint8array)
  
  function binsize(x){K.n=x.byteLength;return x}
- let link = {}
-  fetch('l.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(        r, lenv)).then(r=>{link=r.instance.exports}).then
- (fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),kenv)).then(r=>{
+ fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),kenv)).then(r=>{
   _=r.instance.exports
   _.kinit()
-  _.table.set(98,link.xcall) //insert xcall from l.wasm into k.wasm's function table at index 98.
   K._=_
   
   // todo
@@ -201,8 +164,7 @@ K.kinit = function(ext){
   
   if(init !== undefined)init()
   K.save()
-  
- }))
+ })
  
 }
 
