@@ -71,18 +71,11 @@ func main() {
 		out.Write([]byte("dx(" + v + ")\n"))
 	}
 
-	// replace function table@98 "nyi" with "kal" (call native function)
-	a := bytes.Index(gsrc, []byte("Functions(64,"))
-	if a < 0 {
-		fatal(fmt.Errorf("cannot find 'Functions(64,' in gsrc"))
-	}
-	a += bytes.Index(gsrc[a:], []byte("nyi"))
-	gsrc[0+a] = 'k'
-	gsrc[1+a] = 'a'
-	gsrc[2+a] = 'l'
+	// replace Native() with kal()
+	gsrc = bytes.Replace(gsrc, []byte("Native(int64(x0(int32(f))), int64(x))"), []byte("kal(x0(int32(f)),x)"), 1)
 
 	// remove zk() (don't run interpreted initialization code)
-	a = bytes.Index(gsrc, []byte("\nfunc zk()"))
+	a := bytes.Index(gsrc, []byte("\nfunc zk()"))
 	n := bytes.Index(gsrc[a:], []byte("\n}\n"))
 	gsrc = append(gsrc[:a], gsrc[2+a+n:]...)
 	gsrc = bytes.Replace(gsrc, []byte("zk()"), nil, 1)
