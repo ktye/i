@@ -1,5 +1,7 @@
 #include<stdio.h>
 #include"k.h"
+#define NATIVE
+int64_t native(int64_t x,int64_t y);
 #include"ktye.h"  // ktye/k implementation
 
 // external libraries

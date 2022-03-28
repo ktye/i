@@ -114,8 +114,9 @@ void KR(const char *name, void *fp, int arity) {
  ktye_dx(ktye_Asn(ktye_sc(s),((K)(int32_t)r)|(((K)xf)<<59)));
 }
 
-K ktye_ccall(K x, K y){
+int64_t native(int64_t x, int64_t y){
  int32_t n=ktye_nn(y);
+ printf("native %d\n", n);
  void **p = (void **)(_M+(int32_t)x);
  void *f=*p;
  ktye_rl(y);
@@ -146,7 +147,7 @@ K KE(char *s) { printf("error(c-api): %s\n", s); return 0; } //todo trap
 // embed
 void kinit(){
  ktye_cinit();
- _F[98]=ktye_ccall;
+ //_F[98]=ktye_ccall;
  ktye_kinit();
 }
 
