@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="codemirror/codemirror.min.css">
 <style>
  html{font-family:monospace;}
- .codemirror{height:100%;border:none;resize:none}
+ .CodeMirror{height:100%!important;border:none;resize:none}
  .cm-fat-cursor .CodeMirror-cursor{width:auto;border:0!important;background:black}
  #_uid{position:absolute;right:5px;top:5px;z-index:10}
 </style>
@@ -102,7 +102,7 @@ function download(name,u){
  dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
 
 var ext = {
- init: function()         {_ed.setValue("ktye/k "+K.n+"\n ")},
+ init: function()         {_ed.setValue("ktye/k "+K.n+"\n ");_ed.setCursor(_ed.lineCount());_ed.focus()},
  read: function(file)     {return new Uint8Array(0)},
  write:function(file,data){if(file===""){O(su(data))}else{download(file,data)}},
 }
