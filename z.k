@@ -15,8 +15,8 @@
 `"uqf.":{x@&(!#x)=x?x}                            /?xL
 `"gdt.":{[t;g](!#t)($[g;{x@>y x};{x@<y x}])/|.t}  /<t >t  grade table
 
-`"odo.":{{x/y}'[x;(!*/x)%/:{(*/x)%\ x}x]}  /!I (odometer)
-`"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}       /=x
+`"odo.":{{y@(#y)/!x}/:[*/x;&'x#'|*\-1_1,|x]} /!I (odometer)
+`"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}         /=x
 
 any:`30;abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 
