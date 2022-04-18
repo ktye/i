@@ -36,7 +36,7 @@ $ str cst       c:<`file(read)             v:  0..63   monadic
                                              256       drop
 abs sin cos exp log any find fill            320/384   jmp, jmp-ifz
 imag conj angle qr ej avg var std            448..     quoted verb
-qr solve dot plot hist (unpack) csv
+solve dot plot hist (unpack) csv
 rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 ```
 
