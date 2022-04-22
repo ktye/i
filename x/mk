@@ -1,0 +1,2 @@
+#wg -k .. > k.k
+k k.k go.k -e '`<emit[go;0]'
