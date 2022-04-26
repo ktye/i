@@ -1,2 +1,3 @@
-#wg -k .. > k.k
-k k.k go.k -e '`<emit[go;0]'
+go install /c/k/wg/cmd/wg
+wg -k .. > k.k
+# k k.k go.k -e '`<emit[go;0]'

@@ -1,16 +1,20 @@
 
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
-emit:{[l;i] ,/ (l(t`t)i)@'i }
-/cld:{&x=t`p}
+/ t{
+
+emit:{[l;i] ,/ (l T i)@'i }
+/cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
+em:{"(",x,")"}
 
+OO:``
+O:{OO::?OO,x}
 
-
-goroot:{[i] c:t{p=0}
+goprg:{[i] c:t@&P=0
  mem:"Memory(",(","/:$(c{t=`mem})`i),")"
  data:{ "\n"/:{"Data(",($x),",`",(`x C[x+!y]),"`)"}'[x@i:2*!2\#x;(x@1+i)] }
- dat:data(t{t=`dat})`i
+ dat:data I@&T=`dat
  tab:";"/:{ "F[",($*x),"]=",$(x 1) }'+(t{t=`tab})`i`s
  con:"\n"/:gocon'(c{t=`con})`n
  glo:"\n"/:govar'(c{t=`var})`n
@@ -18,23 +22,34 @@ goroot:{[i] c:t{p=0}
  "\n"/:("program main"
         con;glo
         "func init(){"
-        mem;dat;tab;,"}"
-	fun)}
-
-
-gotab:{[i]"(tab)\n"}
-gotyp:`i`I`j`J`f!("int32";"uint32";"int64";"uint64";"float64")
-gocon:{[i]"const ",($(t i)`s)," ",(gotyp@(t 1+i)`s),"=",golit t 1+i}
-govar:{[i]"var ",  ($(t i)`s)," ",(gotyp@(t 1+i)`s),"=",golit t 1+i}
+        mem;dat;tab;" }"
+	fun;gort)}
+gotyp:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
+gocon:{[i]"const ",($S i)," ",(gotyp S 1+i),"=",golit t 1+i}
+govar:{[i]"var ",  ($S i)," ",(gotyp S 1+i),"=",golit t 1+i}
 golit:{i:x`i;s:x`s;$[`i~tp:s;$[0N~i;"-0x80000000";$i]
  `I~tp;$[i<0;"0x",|`x@,i;$i]
  `J~tp;$[i~0;,"0";hx8 i]
  `j~tp;$[i~0;,"0";0<`i C 4+i+!4;hx8 i;"??"]
  `f~tp;$[i~0;"0.0";"0x400921fb54442d18"~h:(hx8 i);"math.Pi";h~"0x7fefffffffffffff";"math.MaxFloat64";"math.Float64frombits(",h,")"]
  ($s),$i]}
-gofun:{[i]"func ",($(t`s)i),"\n"}
-go:``tab`fn!(goroot;gotab;gofn)
-gomit:emit go
+gofun:{[i]
+ arg:{[i]n:&(P=i)&T=`arg; ","/:{x," ",gotyp y}'[$S 1+n; S n]}
+ res:{[i]","/:gotyp S@&(P=i)&T=`res}
+ var:{[i]"\n"/:{y;"var ",(gotyp x)," ",","/:$S 1+y`n}'[!g;.g:`s?t@&(P=i)&T=`loc]}
+ bdy:gox@&(P=i)&T=`ast
+ "func ",($S i),"(",(arg i),")(",(res i),"){\n",(var i),"\n",bdy,"\n}"}
+go1:{x,gox I@&P=y}
+go2:{i:&P=y;em (gox i 0),x,gox i 1}
+goadd:go2"+";gosub:go2"-";gomul:go2"*";godiv:go2"/"
+goast:{i:&P=x;O T i;gox i}
+gostm:goast
+goget:{$S x}
+goret:{"return ",goast x}
+go:``add`ast`div`get`mul`ret`stm`sub!(goprg;goadd;goast;godiv;goget;gomul;goret;gostm;gosub)
+gox:emit go
+gort:"/* rt */"
 
+/ g:`s?t{(t=`loc)&p=34568}
 
 `<emit[go;0]
