@@ -1,15 +1,15 @@
 
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
-/ t{
 
-emit:{[l;i] ,/ (l T i)@'i }
+emit:{[l;i] ,/ (l T i)@'i }                   / emit[target-lang;node-number]
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
 em:{"(",x,")"}
 
 OO:``
 O:{OO::?OO,x}
+nyi:{y;em x}
 
 goprg:{[i] c:t@&P=0
  mem:"Memory(",(","/:$(c{t=`mem})`i),")"
@@ -25,9 +25,9 @@ goprg:{[i] c:t@&P=0
         mem;dat;tab;" }"
 	fun;gort)}
 gotyp:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
-gocon:{[i]"const ",($S i)," ",(gotyp S 1+i),"=",golit t 1+i}
-govar:{[i]"var ",  ($S i)," ",(gotyp S 1+i),"=",golit t 1+i}
-golit:{i:x`i;s:x`s;$[`i~tp:s;$[0N~i;"-0x80000000";$i]
+gocon:{[i]"const ",($S i)," ",(gotyp S 1+i),"=",golit 1+i}
+govar:{[i]"var ",  ($S i)," ",(gotyp S 1+i),"=",golit 1+i}
+golit:{[j]i:I j;$[`i~tp:S j;$[0N~i;"-0x80000000";$i] /x
  `I~tp;$[i<0;"0x",|`x@,i;$i]
  `J~tp;$[i~0;,"0";hx8 i]
  `j~tp;$[i~0;,"0";0<`i C 4+i+!4;hx8 i;"??"]
@@ -39,17 +39,37 @@ gofun:{[i]
  var:{[i]"\n"/:{y;"var ",(gotyp x)," ",","/:$S 1+y`n}'[!g;.g:`s?t@&(P=i)&T=`loc]}
  bdy:gox@&(P=i)&T=`ast
  "func ",($S i),"(",(arg i),")(",(res i),"){\n",(var i),"\n",bdy,"\n}"}
-go1:{x,gox I@&P=y}
-go2:{i:&P=y;em (gox i 0),x,gox i 1}
-goadd:go2"+";gosub:go2"-";gomul:go2"*";godiv:go2"/"
+
 goast:{i:&P=x;O T i;gox i}
 gostm:goast
 goget:{$S x}
+
+gocal:nyi"cal"
+gocli:nyi"cli"
+goasn:nyi"asn"
+gocnd:nyi"cnd"
+gonop:nyi"nop"
+gojmp:nyi"jmp"
+goswc:nyi"swc"
+gofor:nyi"for"
+godfr:nyi"dfr"
+
 goret:{"return ",goast x}
-go:``add`ast`div`get`mul`ret`stm`sub!(goprg;goadd;goast;godiv;goget;gomul;goret;gostm;gosub)
+
+go1:{x,gox@&P=y}
+go2:{i:&P=y;em (gox i 0),x,gox i 1}
+goneg:go1"-";gonot:go1"!"
+goadd:go2"+";gosub:go2"-"; gomul:go2"*";godiv:go2"/"; gomod:go2"%"
+goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!="
+goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
+
+
+go:``add`and`ant`asn`ast`cal`cli`cnd`dfr`div`eql!(goprg;goadd;goand;goant;goasn;goast;gocal;gocli;gocnd;godfr;godiv;goeql)
+go,:`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul!(gofor;goget;goget;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul)
+go,:    `neg`nop`not`orr`ret`shl`shr`stm`sub`swc!(goneg;gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc)
+
 gox:emit go
 gort:"/* rt */"
 
-/ g:`s?t{(t=`loc)&p=34568}
 
-`<emit[go;0]
+`<x:emit[go;0]
