@@ -381,7 +381,7 @@ func fixs(f, x K) (r K) {
 		}
 		dx(x)
 		x = r
-		l = Cat(l, rx(x)) // todo: 1,2,3 4 5 should be (1;2;3 4 5)
+		l = cat1(l, rx(x))
 	}
 	dx(x)
 	dx(y)
