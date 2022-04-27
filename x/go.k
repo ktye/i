@@ -3,6 +3,9 @@ t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
 
 emit:{[l;i] ,/ (l T i)@'i }                   / emit[target-lang;node-number]
+emit:{[l;i] ,/ (l@`T \T@`i \i)@'i }
+emit:{[l;i] ,/ (l T i)@'i }
+
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
 em:{"(",x,")"}
@@ -47,12 +50,13 @@ goget:{$S x}
 gocal:nyi"cal"
 gocli:nyi"cli"
 goasn:nyi"asn"
-gocnd:nyi"cnd"
+gocnd:{[i]c:&P=i;"if",(gox c 0),"{",(gox c 1),"}"}
 gonop:nyi"nop"
 gojmp:nyi"jmp"
 goswc:nyi"swc"
 gofor:nyi"for"
 godfr:nyi"dfr"
+godrp:nyi"drp"
 
 goret:{"return ",goast x}
 
@@ -63,13 +67,12 @@ goadd:go2"+";gosub:go2"-"; gomul:go2"*";godiv:go2"/"; gomod:go2"%"
 goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!="
 goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
 
-
-go:``add`and`ant`asn`ast`cal`cli`cnd`dfr`div`eql!(goprg;goadd;goand;goant;goasn;goast;gocal;gocli;gocnd;godfr;godiv;goeql)
-go,:`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul!(gofor;goget;goget;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul)
-go,:    `neg`nop`not`orr`ret`shl`shr`stm`sub`swc!(goneg;gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc)
+go:`prg`add`and`ant`asn`ast`cal`cli`cnd`dfr`div`drp!(goprg;goadd;goand;goant;goasn;goast;gocal;gocli;gocnd;godfr;godiv;godrp)
+go,:   `eql`for`get`Get`gte`jmp`les`lit`lte`mod`mor!(goeql;gofor;goget;goget;gogte;gojmp;goles;golit;golte;gomod;gomor)
+go,:   `mul`neg`nop`not`orr`ret`shl`shr`stm`sub`swc!(gomul;goneg;gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc)
 
 gox:emit go
 gort:"/* rt */"
 
 
-`<x:emit[go;0]
+x:gox 0
