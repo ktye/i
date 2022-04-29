@@ -8,6 +8,7 @@ emit:{[l;i] ,/ (l T i)@'i }
 
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
+/dp:{+/0<{p x}\:!#p} /todo: project
 em:{"(",x,")"}
 
 OO:``
