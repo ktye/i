@@ -4,8 +4,8 @@
 <style>
  <style>
  @font-face{font-family:'apl'; src:url('apl.woff2') format('woff2');}
- html{font-family:monospace;overflow:hidden}
- .ibm2741{resize:none;padding:1px;border:none;outline:none;font-family:apl;position:absolute;bottom:5px;width:100%;height:100%;overflow:hidden};.hit{paddint-top:0px}
+ html, body{font-family:monospace;overflow:hidden;height:100%}
+ .ibm2741{resize:none;outline:none;border:none;font-family:apl;position:absolute;width:100%;height:100%;/*overflow:hidden*/}
 </style>
 
 
@@ -23,10 +23,10 @@ function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function us(s){return new TextEncoder("utf-8").encode(s)}
-
+function prg(){return decodeURIComponent(window.location.hash.substr(1))}
 
 //IBM2741
-var _ibm=ge("_ibm");_ibm.value="\n".repeat(100);
+var _ibm=ge("_ibm");
 _ibm.addEventListener('keydown',function(e){var t=_ibm;
  var u={Digit1:"¨",Digit2:"¯",Digit3:"<",Digit4:"≤",Digit5:"=",Digit6:"≥",Digit7:">",Digit8:"≠",Digit9:"∨",Digit0:"^",Minus:"-",Equal:"÷",KeyQ:"?",KeyW:"⍵",KeyE:"∊",KeyR:"⍴",KeyT:"~",KeyY:"↑",KeyU:"↓",KeyI:"⍳",KeyO:"○",KeyP:"*",BracketLeft:"→",KeyA:"⍺",KeyS:"⌈",KeyD:"⌊",KeyF:"_",KeyG:"∇",KeyH:"∆",KeyJ:"∘",KeyK:"'",KeyL:"⎕",Semicolon:"(",Quote:")",KeyZ:"⊂",KeyX:"⊃",KeyC:"∩",KeyV:"∪",KeyB:"⊥",KeyN:"⊤",KeyM:"|",Comma:";",Period:":",Slash:"\\"}
  var w={Minus:"+",Equal:"×",BracketLeft:"←",Semicolon:"[",Quote:"]",Comma:",",Period:".",Slash:"/"}
@@ -41,7 +41,7 @@ _ibm.addEventListener('keydown',function(e){var t=_ibm;
  if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
  if(c=="Enter"){new channel("ret.m4a").play();var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
  pd(e)}) 
-async function emits(s){ s += s.endsWith("\n") ? "      " : ""
+async function emits(s){s += s.endsWith("\n") ? "      " : ""
  _ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){ await sleep(50);await emit(a[i])};}
 async function emit(c){var t=_ibm;var h=(c!=" ")
  if(h)t.classList.add("hit");
@@ -57,10 +57,10 @@ for(var i=0;i<26;i++)a+=String.fromCharCode(65+i)+"_"+String.fromCharCode(97+i);
 for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
 function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
 function sleep(x){return new Promise(r=>setTimeout(r,x))}
-function channel(u){this.u=u;this.r=new Audio(u)};channel.prototype.play = function(){ this.r.play() }
+function channel(u){this.u=u;this.r=new Audio(u)};channel.prototype.play=function(){ this.r.play() }
 
 
-function apl(s){ 
+function apl(s){ if(0==s.length)return
  try     { _ibm.value+="\n"; K.unref(K.Kx("APL", K.KC(s))); K.save(); }
  catch(e){ console.log(e); K.restore() }
 }
@@ -73,8 +73,8 @@ function ktry(s){
 
 
 var ext = {
- init: function(){ 
-  fetch('apl.k').then(r=>r.text()).then(s=>{K.Kx(".",K.KC(s)); K.save() })
+ init: function(){ _ibm.value=""
+  fetch('apl.k').then(r=>r.text()).then(s=>{K.Kx(".",K.KC(s)); K.save(); _ibm.focus() })
  },
  read: function(file)     {return new Uint8Array(0)},
  write:function(file,data){if(file===""){console.log(su(data)); emits(su(data))}else{ }},
