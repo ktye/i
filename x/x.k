@@ -13,7 +13,7 @@ V: "-+123"   /node value
 dp:{+/0<(x@)\:!#x} /depth from parent
  \D~dp P
 
-/evaluate(convert to string), one function per node type
+/non-recursive evaluate(convert to string), one function per node type
 F:({y;        , V x          }   /leaf
    { "(",(y 0),(V x),y 1,")" })  /dyadic: x(index into orig table) y(already evaluated child strings)
    
@@ -29,5 +29,3 @@ i:&(t`d)=|/t`d     /vector of indexes where depth is max
 f:{[t]t:t@&(t`d)=|/t`d
  (F t`t).'+(t`t;t`v) }
  
- /...fixed-point-scan
-
