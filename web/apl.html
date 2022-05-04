@@ -25,7 +25,9 @@ function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function us(s){return new TextEncoder("utf-8").encode(s)}
-function hsh(){return decodeURIComponent(window.location.hash.substr(1))}
+function s2(x){let s="0"+x;return (s.length>2)?s.slice(-2):s}
+function hsh(){let s=decodeURIComponent(window.location.hash.substr(1));return s.length?s.split(";"):[]}
+
 
 var au;var snd=[]
 function setau(){if(au)return true;if(typeof au=='undefined')au=new AudioContext();if(au){
@@ -35,11 +37,11 @@ function play(x){if(!setau())return;let s=au.createBufferSource();s.buffer=snd[x
 function Q(){var q=[];q.active=false;q.do=function(x){q.push(x);if (!q.active)q.n()};q.n=function(){if(!q.length){q.active=false;return};var x=q.shift();q.active=true;x()};return q;}
 var q=new Q();
 
-function prg(){var x=hsh().split(";");console.log(x);for(let i=0;i<x.length;i++){let j=i;emits(x[j]+"\n ");apl(x[j]);}}
+function prg(){var x=hsh();for(let i=0;i<x.length;i++){let j=i;emits(x[j]+"\n");apl(x[j]);}}
 
 //IBM2741
-var _ibm=ge("_ibm");
-_ibm.addEventListener('keydown',function(e){var t=_ibm;
+var _ibm=ge("_ibm");let d=new Date();let h=hsh();_ibm.value=[(h.length?(h.join("\n")+"\n"):"")+"OPR)",[s2(d.getHours()),s2(d.getMinutes()),s2(d.getSeconds())].join("."),[s2(d.getMonth()),s2(d.getDay()),s2(d.getFullYear())].join("/"),"KTYE"].join(" ")
+_ibm.addEventListener('keydown',function(e){init();let t=_ibm;
  var u={Digit1:"¨",Digit2:"¯",Digit3:"<",Digit4:"≤",Digit5:"=",Digit6:"≥",Digit7:">",Digit8:"≠",Digit9:"∨",Digit0:"^",Minus:"-",Equal:"÷",KeyQ:"?",KeyW:"⍵",KeyE:"∊",KeyR:"⍴",KeyT:"~",KeyY:"↑",KeyU:"↓",KeyI:"⍳",KeyO:"○",KeyP:"*",BracketLeft:"→",KeyA:"⍺",KeyS:"⌈",KeyD:"⌊",KeyF:"_",KeyG:"∇",KeyH:"∆",KeyJ:"∘",KeyK:"'",KeyL:"⎕",Semicolon:"(",Quote:")",KeyZ:"⊂",KeyX:"⊃",KeyC:"∩",KeyV:"∪",KeyB:"⊥",KeyN:"⊤",KeyM:"|",Comma:";",Period:":",Slash:"\\"}
  var w={Minus:"+",Equal:"×",BracketLeft:"←",Semicolon:"[",Quote:"]",Comma:",",Period:".",Slash:"/"}
  var c=e.code;var s=e.getModifierState("Shift");//console.log(c, s)
@@ -51,10 +53,11 @@ _ibm.addEventListener('keydown',function(e){var t=_ibm;
  if(c=="Space"){emit(" ")}
  if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
  if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
- if(c=="Enter"){play(0);var nl=t.value.lastIndexOf("\n");apl(t.value.slice((nl<0)?0:1+nl).trim())}
+ if(c=="Enter"){var nl=t.value.lastIndexOf("\n"); emits("\n");  window.nl=nl;   apl(t.value.slice((nl<0)?0:1+nl).trim())}
  pd(e)}) 
-function emits(s){s+=s.endsWith("\n")?"      ":""
- _ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){let c=a[i];q.do(function(x){setTimeout(function(){emit(c);q.n()},30)})}}
+_ibm.addEventListener('click',init)
+function emits(s){ //s+=s.endsWith("\n")?"      ":""
+ _ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){let c=a[i];q.do(function(x){emit(c);setTimeout(function(){q.n()},(c=="\n")?100:30)})}}
 function emit(c){var t=_ibm;var h=(c!=" ")
  play(1+(c!=" "))
  var o=t.value[t.selectionStart];if(o!=undefined)c=overstrike(o,c)
@@ -66,11 +69,11 @@ for(var i=0;i<26;i++)a+=String.fromCharCode(65+i)+"_"+String.fromCharCode(97+i);
 for(var i=0;i<a.length;i+=3){overstrikes[a[i]+a[1+i]]=a[2+i];overstrikes[a[1+i]+a[i]]=a[2+i]}
 function overstrike(a,b){var r=overstrikes[a+b];return(r==undefined)?b:r}
 
+
 function apl(s){ if(0==s.length)return;
- try     { _ibm.value+="\n"; K.unref(K.Kx("APL", K.KC(s))); K.save(); }
+ try     { K.unref(K.Kx("APL", K.KC(s))); K.save(); }
  catch(e){ console.log(e); K.restore() };
 }
-
 
 function ktry(s){
  try     { let x=K._.repl(K.KC(s)); K.save(); _ibm.focus() }
@@ -81,9 +84,9 @@ function ktry(s){
 var ext={
  init: function()         {_ibm.value="";fetch('apl.k').then(r=>r.text()).then(s=>{K.Kx(".",K.KC(s)); K.save(); prg(); _ibm.focus()})},
  read: function(file)     {return new Uint8Array(0)},
- write:function(file,data){if(file===""){console.log(su(data)); emits(su(data))}else{ }},
+ write:function(file,data){if(file===""){console.log(su(data)); let s=su(data); emits(s+(s.endsWith("\n")?"      ":"") )}else{ }},
 }
-K.kinit(ext)
+var init_=false;function init(){if(!init_){init_=true;K.kinit(ext)}}
 
 </script>
 </body></html>
