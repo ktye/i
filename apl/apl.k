@@ -188,7 +188,8 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\:*'r)#r:R_x}          /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/:s x]                                           /shift once, reduce until fixpoint
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
- $[`s~@e:*|x R;e;~1~#x:R_x;`syn;*x]}                            /return the single noun left on the stack otherwise a syntax error
+ $[`s~@e:*|x R;e;`c~@e;`syn;~1~#x:R_x;`syn;*x]}                 /return the single noun left on the stack otherwise a syntax error
+
 
 str:{$[(,".")~-1#s:$x;-1_s;s]}
 dot:{0|(#x)-x?"."}
