@@ -191,7 +191,7 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  $[`s~@e:*|x R;e;`c~@e;`syn;~1~#x:R_x;`syn;*x]}                 /return the single noun left on the stack otherwise a syntax error
 
 
-str:{$[(,".")~-1#s:$x;-1_s;s]}
+str:{"¯"/:"-"\:$[(,".")~-1#s:$x;-1_s;s]}
 dot:{0|(#x)-x?"."}
 pad:{m:|/'n:dot''x;x,''(#''[(m-n);" "])}                            /rpad to align dots
 nlf:{[s;x]  j:&~0=i:1_+/<':'!s; x[j]:x[j],'(i j)#\:"\n"; "\n"/:x}   /insert newlines for higher dimensions
