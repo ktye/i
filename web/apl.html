@@ -3,10 +3,10 @@
 <link rel=icon href='div.png'/>
 <style>
  @font-face{font-family:'apl'; src:url('apl.woff2') format('woff2');}
- html, body{font-family:monospace;overflow:hidden;height:100%}
+ html, body{font-family:monospace;overflow:hidden;margin:none}
  .kb{width:37px;height:32px; overflow:hidden;position:absolute;right:5px;border:2px solid;border-radius:6px}
  .kb img{margin:-75px -87px;}
- .ibm2741{resize:none;outline:none;border:none;font-family:apl;position:absolute;width:100%;height:100%;/*overflow:hidden*/}
+ .ibm2741{resize:none;outline:none;border:none;font-family:apl;position:absolute;left:5px;top:5px;width:100%;height:calc(100vh - 15px);overflow:hidden}
 </style>
 
 
@@ -20,13 +20,13 @@
 import { K } from './k.js'
 
 
-function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}}
 function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function us(s){return new TextEncoder("utf-8").encode(s)}
 function s2(x){let s="0"+x;return (s.length>2)?s.slice(-2):s}
-function hsh(){let s=decodeURIComponent(window.location.hash.substr(1));return s.length?s.split(";"):[]}
+function hsh(){let s=decodeURIComponent(window.location.hash.substr(1));return s.length?s.split("\n"):[]}
 
 
 var au;var snd=[]
@@ -38,6 +38,13 @@ function Q(){var q=[];q.active=false;q.do=function(x){q.push(x);if (!q.active)q.
 var q=new Q();
 
 function prg(){var x=hsh();for(let i=0;i<x.length;i++){let j=i;emits(x[j]+"\n");apl(x[j]);}}
+
+
+// special commands:
+// ↑     show last
+// ←     link from last
+// ,←    add last to link
+
 
 //IBM2741
 var _ibm=ge("_ibm");let d=new Date();let h=hsh();_ibm.value=[(h.length?(h.join("\n")+"\n"):"")+"OPR)",[s2(d.getHours()),s2(d.getMinutes()),s2(d.getSeconds())].join("."),[s2(d.getMonth()),s2(d.getDay()),s2(d.getFullYear())].join("/"),"KTYE"].join(" ")
@@ -53,8 +60,11 @@ _ibm.addEventListener('keydown',function(e){init();let t=_ibm;
  if(c=="Space"){emit(" ")}
  if(s&&u[c]!=undefined){emit(u[c])}  //shift-apl
  if(!s&&w[c]!=undefined){emit(w[c])} //unshift-apl
- if(c=="Enter"){var nl=t.value.lastIndexOf("\n"); emits("\n");  window.nl=nl;   apl(t.value.slice((nl<0)?0:1+nl).trim())}
+ if(c=="Enter"){var nl=t.value.lastIndexOf("\n");let s=t.value.slice((nl<0)?0:1+nl).trim();if(s=="↑")last();else if(s=="←")link(1);else if(s==",←")link(2);else{lval=s;emits("\n");apl(s)}}
  pd(e)}) 
+var lval="";var lnk=""
+function last(){_ibm.value=_ibm.value.slice(0,-1)+lval}
+function link(x){if(x===2)lnk+="\n"+lval;else lnk=lval;_ibm.value=_ibm.value.slice(0,-x)+"https://ktye.github.io/apl#"+encodeURI(lnk)+"\n"+lnk+"\n      ";_ibm.scroll(0,_ibm.scrollHeight)}
 _ibm.addEventListener('click',init)
 function emits(s){ //s+=s.endsWith("\n")?"      ":""
  _ibm.selectionStart=_ibm.value.length;var a=s.split("");for(var i=0;i<a.length;i++){let c=a[i];q.do(function(x){emit(c);setTimeout(function(){q.n()},(c=="\n")?100:30)})}}
