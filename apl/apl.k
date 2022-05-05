@@ -97,7 +97,7 @@ LY:       {[f;x;y]f[-1+O+#*y;x;y]}
 PERAXIS:  {[x;a]$[1<#*x;(x 1)@.=+(!*x)_a;*|x]}
 IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);ER`ran]}
 RESHAPE:  {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
-CATENATE: {(,#r;r:(x 1),y 1)}
+CATENATE: {o:up[];(,#r;r:(o+x 1),o+y 1)} /APL"X←1 2"; APL"1 2,⍴X"
 COMPRESS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
 EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`L~t:@*|y;"";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[$[`L~t;,'e;e];r//@[i;a;(&v)(i:!s)a];*|y])]}
 INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
