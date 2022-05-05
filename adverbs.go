@@ -233,6 +233,9 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		}
 		return Mod(Fst(x), f)
 	}
+	if arity(f) > 2 {
+		return rdn(f, x, 0)
+	}
 	if t == df { // x//y
 		r = x0(int32(f))
 		dx(f)
@@ -309,6 +312,29 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	dx(y)
 	dx(f)
 	return x
+}
+func rdn(f, x, l K) (r K) { // {x+y*z}/x  {x+y*z}\x
+	n := nn(f)
+	if n > nn(x) {
+		return prj(rdc(f), x)
+	}
+
+	r = Fst(rx(x))
+	x = Flp(ndrop(1, x))
+	n = nn(K(I64(int32(x))))
+	for i := int32(0); i < n; i++ {
+		r = Cal(rx(f), Cat(Enl(r), ati(rx(x), i)))
+		if l != 0 {
+			l = cat1(l, rx(r))
+		}
+	}
+	dx(f)
+	dx(x)
+	if l != 0 {
+		dx(r)
+		return uf(l)
+	}
+	return r
 }
 
 func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
@@ -405,6 +431,9 @@ func Scn(f, x K) (r K) {
 			trap(Rank)
 		}
 		return Div(Fst(x), f)
+	}
+	if arity(f) > 2 {
+		return rdn(f, x, mk(Lt, 0))
 	}
 	if t == df { // x\\y
 		r = x0(int32(f))
