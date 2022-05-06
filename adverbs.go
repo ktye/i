@@ -255,9 +255,11 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		y = Val(y)
 		yt = tp(y)
 	}
-	if yt == Tt {
-		return Ech(rdc(f), l2(x, Flp(y))) // f/'[x;+y]
-	}
+	/*
+		if yt == Tt {
+			return Ech(rdc(f), l2(x, Flp(y))) // f/'[x;+y]
+		}
+	*/
 	if yt < 16 {
 		if x == 0 {
 			dx(f)
@@ -464,14 +466,11 @@ func Scn(f, x K) (r K) {
 		dx(x)
 		return y
 	}
-	if yt > Lt {
-		if yt == Dt {
-			r, y = spl2(y)
-			return Key(r, Scn(f, l2(x, y)))
-		} else {
-			return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
-		}
+	if yt == Dt {
+		r, y = spl2(y)
+		return Key(r, Scn(f, l2(x, y)))
 	}
+	//Tt: return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
 
 	xt := tp(x)
 	if tp(f) == 0 {

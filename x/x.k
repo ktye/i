@@ -29,11 +29,13 @@ flats1:{t:x`t;p:x`p
  l:|/d:x`d                    /depth level
  while[-2<l-:1;f:F t i:&d=1+l;*s[i]:f.'+(i;s c i)]}
  
- 
-flats:{t:x`t            
- s:&#t                  /evaluated strings
- c:(&=)/:[p;!#p:x`p]    /each node's child vector
- l:|/d:x`d              /depth level
- while[-2<l-:1;f:F t i:&d=1+l;*s[i]:f.'+(i;s c i)]}
- 
  \flats1 t
+ 
+ 
+/reverse fold with stack
+C:(&#P){x[y]+:1}/P             /number of children per node
+C[0]-:1                        /correct root node
+flats:{c:(0,(#x)-z)^x          /cut stack and args
+ (c 0),,(F T y)[y;|c 1]}/      /[();|!#P;|C]
+ 
+ \*flats[();|!#P;|C]
