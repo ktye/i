@@ -255,11 +255,6 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		y = Val(y)
 		yt = tp(y)
 	}
-	/*
-		if yt == Tt {
-			return Ech(rdc(f), l2(x, Flp(y))) // f/'[x;+y]
-		}
-	*/
 	if yt < 16 {
 		if x == 0 {
 			dx(f)
@@ -274,6 +269,9 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	if tp(f) == 0 {
 		fp := int32(f)
 		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
+			if yt == Tt {
+				return Ech(rdc(f), l2(x, Flp(y)))
+			}
 			r = Func[365+fp].(rdf)(x, int32(y), yt, yn)
 			if r != 0 {
 				dx(x)
@@ -470,12 +468,14 @@ func Scn(f, x K) (r K) {
 		r, y = spl2(y)
 		return Key(r, Scn(f, l2(x, y)))
 	}
-	//Tt: return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
 
 	xt := tp(x)
 	if tp(f) == 0 {
 		fp := int32(f)
 		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sums,prds,mins,maxs (reduce.go)
+			if yt == Tt {
+				return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
+			}
 			r = Func[372+fp].(rdf)(x, int32(y), yt, yn)
 			if r != 0 {
 				dx(x)
