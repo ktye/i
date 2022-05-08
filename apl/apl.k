@@ -160,6 +160,7 @@ PT:(  ,"x"; {*x}                                            /no match, keep shif
      "(+1"; mo                                              /apply monadic
      "[+1"; mo                                              /apply monadic
      "{+1"; mo                                              /apply monadic
+     ";+1"; mo                                              /apply monadic
      ":+1"; mo)                                             /apply monadic
 PT,:("+{1"; {("1",REDUCE[1_*x;1_x 2])}                      /reduction
     "+{i1"; {("1",REDAXE[1_*x;**|*1_x 2;1_x 3])}            /reduce with axis
