@@ -18,7 +18,7 @@ func Cat(x, y K) K {
 		} else {
 			return ucat(x, y)
 		}
-	} else if xt == Lt && yt < 16 {
+	} else if xt == Lt && yt < 16 && nn(x) > 0 {
 		return cat1(x, y)
 	}
 	return uf(Cat(explode(x), explode(y)))
