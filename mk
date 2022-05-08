@@ -41,7 +41,7 @@ cp web/k.html   /c/k/ktye.github.io/index.html
 cp web/k.wasm   /c/k/ktye.github.io/
 cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
-cp web/apl.html /c/k/ktye.github.io/
+cp apl/apl.html /c/k/ktye.github.io/
 cp apl/apl.k    /c/k/ktye.github.io/
 
 

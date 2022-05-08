@@ -110,7 +110,7 @@ GRADEDN:  {[a;x](,#r;r:O+>PERAXIS[x;a])}
 REVERSE:  {[a;x]a:a-O;s:*x;i:!s;(s;(*|x)@s//@[i;a;(|!s a)@i a])}
 rot:      {(x_y),(x:$[0>x:n/x+n:#y;n+x;x])#y}
 ROTATE:   {[a;x;y]a:a-O;s:*y;x:(*/s_a)#_0.+*|x;(s;$[1~#s;rot[*x;*|y];@[v;,/i;(v:*|y)@,/j:rot'[x;i:{s//@[n#'x;a;!n:s a]}'+!@[s;a;1]]]])}
-FLIP:     {TRANSPOSE[(#s;s:|O+!#*x);x]}
+FLIP:     {TRANSPOSE[(#s;((-2+#s)#s),|-2#s:O+!#*x);x]}
 TRANSPOSE:{(s;(*|y)@(*y)//(s\\!*/s:(*y)@?i)i:_0.+(*|x)-O)}
 DECODE:   {(!0;,($[(!0)~*x;**|x;*|x])//*|y)}
 ENCODE:   {(,#r;r:(_0.+*|x)\\_0.+**|y)}
