@@ -1,10 +1,14 @@
 
+/C  bytes(e.g.64bit literals)
+/D  data (initial memory)
+F:`!()                                  /function map: type to stringer
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
-
-emit:{[l;i] ,/ (l T i)@'i }                   / emit[target-lang;node-number]
-emit:{[l;i] ,/ (l@`T \T@`i \i)@'i }
-emit:{[l;i] ,/ (l T i)@'i }
+emit:{T::x`t;P::x`P;I::x`I;S::x`S;
+ n:(&#P){x[y]+:1}/P;n[0]-:1             /number of children per node
+ s:{c:(0,(#x)-z)^z                      /cut args from stack
+   (c 0),,(F T y)[y;c 1]}/[();|!#P;|n]  /fold over the tree in reverse order
+*s}
 
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
@@ -68,12 +72,19 @@ goadd:go2"+";gosub:go2"-"; gomul:go2"*";godiv:go2"/"; gomod:go2"%"
 goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!="
 goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
 
-go:`prg`add`and`ant`asn`ast`cal`cli`cnd`dfr`div`drp!(goprg;goadd;goand;goant;goasn;goast;gocal;gocli;gocnd;godfr;godiv;godrp)
-go,:   `eql`for`get`Get`gte`jmp`les`lit`lte`mod`mor!(goeql;gofor;goget;goget;gogte;gojmp;goles;golit;golte;gomod;gomor)
-go,:   `mul`neg`nop`not`orr`ret`shl`shr`stm`sub`swc!(gomul;goneg;gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc)
-
-gox:emit go
-gort:"/* rt */"
 
 
-x:gox 0
+
+
+go:{
+ F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)
+ F[`add`and`ant`asn`ast`cal`cli`cnd`dfr`div`drp`eql]:(goadd;goand;goant;goasn;goast;gocal;gocli;gocnd;godfr;godiv;godrp;goeql)
+ F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
+ F[`nop`not`orr`ret`shl`shr`stm`sub`swc            ]:(gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc;                 )
+ x}
+
+
+gornt:"/* rt */"
+
+t:go t
+emit t
