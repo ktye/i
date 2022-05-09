@@ -6,6 +6,7 @@ t:+`n`t`p`i`s!(!#T;T;P;I;S) /node type parent i-value s-value
 
 node type                    i-value             s-value
  prg     root node           -                   -               first node only
+ sym     lib name or `main   -                   libname         root child
  mem     memory segment      #64k blocks         -
  con     constant            -                   name            child type lit
  var     variable            -                   name            child type lit

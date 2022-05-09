@@ -1,0 +1,6 @@
+set -e
+set -x
+for f in *.go; do
+	k=`echo $f | sed 's/.go$/.k/'`
+	wg -k $f > $k
+done

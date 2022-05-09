@@ -1,56 +1,72 @@
 
 /C  bytes(e.g.64bit literals)
 /D  data (initial memory)
-F:`!()                                  /function map: type to stringer
+F:`!()                                     /function map: type to stringer
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
-emit:{T::x`t;P::x`P;I::x`I;S::x`S;
- n:(&#P){x[y]+:1}/P;n[0]-:1             /number of children per node
- s:{c:(0,(#x)-z)^z                      /cut args from stack
-   (c 0),,(F T y)[y;c 1]}/[();|!#P;|n]  /fold over the tree in reverse order
+emit:{[]
+ n:(&#P){x[y]+:1}/P;n[0]-:1;               /number of children per node
+ s:{c:(0,(#x)-z)^x                         /cut args from stack
+   (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]  /fold over the tree in reverse order
 *s}
 
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
-/dp:{+/0<{p x}\:!#p} /todo: project
+/dp:{+/0<(x@)\:!#x} /depth from parent
 em:{"(",x,")"}
-
-OO:``
-O:{OO::?OO,x}
 nyi:{y;em x}
 
-goprg:{[i] c:t@&P=0
- mem:"Memory(",(","/:$(c{t=`mem})`i),")"
- data:{ "\n"/:{"Data(",($x),",`",(`x C[x+!y]),"`)"}'[x@i:2*!2\#x;(x@1+i)] }
- dat:data I@&T=`dat
- tab:";"/:{ "F[",($*x),"]=",$(x 1) }'+(t{t=`tab})`i`s
- con:"\n"/:gocon'(c{t=`con})`n
- glo:"\n"/:govar'(c{t=`var})`n
- fun:"\n"/:gofun'(c{t=`fun})`n
- "\n"/:("program main"
-        con;glo
-        "func init(){"
-        mem;dat;tab;" }"
-	fun;gort)}
-gotyp:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
-gocon:{[i]"const ",($S i)," ",(gotyp S 1+i),"=",golit 1+i}
-govar:{[i]"var ",  ($S i)," ",(gotyp S 1+i),"=",golit 1+i}
-golit:{[j]i:I j;$[`i~tp:S j;$[0N~i;"-0x80000000";$i] /x
- `I~tp;$[i<0;"0x",|`x@,i;$i]
- `J~tp;$[i~0;,"0";hx8 i]
- `j~tp;$[i~0;,"0";0<`i C 4+i+!4;hx8 i;"??"]
- `f~tp;$[i~0;"0.0";"0x400921fb54442d18"~h:(hx8 i);"math.Pi";h~"0x7fefffffffffffff";"math.MaxFloat64";"math.Float64frombits(",h,")"]
- ($s),$i]}
-gofun:{[i]
- arg:{[i]n:&(P=i)&T=`arg; ","/:{x," ",gotyp y}'[$S 1+n; S n]}
- res:{[i]","/:gotyp S@&(P=i)&T=`res}
- var:{[i]"\n"/:{y;"var ",(gotyp x)," ",","/:$S 1+y`n}'[!g;.g:`s?t@&(P=i)&T=`loc]}
- bdy:gox@&(P=i)&T=`ast
- "func ",($S i),"(",(arg i),")(",(res i),"){\n",(var i),"\n",bdy,"\n}"}
+/goprg:{[i] c:t@&P=0
+/ mem:"Memory(",(","/:$(c{t=`mem})`i),")"
+/ data:{ "\n"/:{"Data(",($x),",`",(`x C[x+!y]),"`)"}'[x@i:2*!2\#x;(x@1+i)] }
+/ dat:data I@&T=`dat
+/ tab:";"/:{ "F[",($*x),"]=",$(x 1) }'+(t{t=`tab})`i`s
+/ con:"\n"/:gocon'(c{t=`con})`n
+/ glo:"\n"/:govar'(c{t=`var})`n
+/ fun:"\n"/:gofun'(c{t=`fun})`n
+/ "\n"/:("program main"
+/        con;glo
+/        "func init(){"
+/        mem;dat;tab;" }"
+/	fun;gort)}
+/gotyp:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
+/gocon:{[i]"const ",($S i)," ",(gotyp S 1+i),"=",golit 1+i}
+/govar:{[i]"var ",  ($S i)," ",(gotyp S 1+i),"=",golit 1+i}
+/golit:{[j]i:I j;$[`i~tp:S j;$[0N~i;"-0x80000000";$i] /x
+/ `I~tp;$[i<0;"0x",|`x@,i;$i]
+/ `J~tp;$[i~0;,"0";hx8 i]
+/ `j~tp;$[i~0;,"0";0<`i C 4+i+!4;hx8 i;"??"]
+/ `f~tp;$[i~0;"0.0";"0x400921fb54442d18"~h:(hx8 i);"math.Pi";h~"0x7fefffffffffffff";"math.MaxFloat64";"math.Float64frombits(",h,")"]
+/ ($s),$i]}
+/gofun:{[i]
+/ arg:{[i]n:&(P=i)&T=`arg; ","/:{x," ",gotyp y}'[$S 1+n; S n]}
+/ res:{[i]","/:gotyp S@&(P=i)&T=`res}
+/ var:{[i]"\n"/:{y;"var ",(gotyp x)," ",","/:$S 1+y`n}'[!g;.g:`s?t@&(P=i)&T=`loc]}
+/ bdy:gox@&(P=i)&T=`ast
+/ "func ",($S i),"(",(arg i),")(",(res i),"){\n",(var i),"\n",bdy,"\n}"}
 
-goast:{i:&P=x;O T i;gox i}
-gostm:goast
-goget:{$S x}
+
+gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
+
+goprg:{
+ pack:     *y@&`sym=T c:1_&P=0
+ fncs:"\n"/:y@&`fun=T c
+ ("package ";pack;"\n";gornt),,fncs}
+ 
+gofun:{
+ args:", "/:y@&`arg=T c:&x=P
+ rets:", "/:y@&`res=T c
+ body:     y@*&`ast=T c
+ ("func ";$S x;"(";args;")(";rets;"){";body;"}")}
+ 
+gores:{y;gotype S x}
+gosym:{y;$S x}
+goarg:{((y 0);" ";gotype S x)}
+
+goast:{*y}
+gostm:{"\n"/:y}
+goget:{y;$S x}
+goret:{"return ",(", "/:y)}
 
 gocal:nyi"cal"
 gocli:nyi"cli"
@@ -63,10 +79,9 @@ gofor:nyi"for"
 godfr:nyi"dfr"
 godrp:nyi"drp"
 
-goret:{"return ",goast x}
 
 go1:{x,gox@&P=y}
-go2:{i:&P=y;em (gox i 0),x,gox i 1}
+go2:{z;("(";z 0;x;z 1;")")}
 goneg:go1"-";gonot:go1"!"
 goadd:go2"+";gosub:go2"-"; gomul:go2"*";godiv:go2"/"; gomod:go2"%"
 goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!="
@@ -74,17 +89,15 @@ goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>
 
 
 
-
-
 go:{
  F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)
- F[`add`and`ant`asn`ast`cal`cli`cnd`dfr`div`drp`eql]:(goadd;goand;goant;goasn;goast;gocal;gocli;gocnd;godfr;godiv;godrp;goeql)
+ F[`add`and`ant`asn`cal`cli`cnd`dfr`div`drp`eql    ]:(goadd;goand;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
- F[`nop`not`orr`ret`shl`shr`stm`sub`swc            ]:(gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc;                 )
+ F[`nop`not`orr`ret`shl`shr`stm`sub`swc            ]:(gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc                  )
  x}
 
 
-gornt:"/* rt */"
+gornt:"/* rt */\n"
 
 t:go t
-emit t
+ \emit[]
