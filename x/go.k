@@ -7,7 +7,7 @@ t:+`n`t`p`i`s!(!#T;T;P;I;S)
 emit:{[]
  n:(&#P){x[y]+:1}/P;n[0]-:1;               /number of children per node
  s:{c:(0,(#x)-z)^x                         /cut args from stack
-   (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]  /fold over the tree in reverse order
+   (c 0),,,/(F@`T \T y)[y;|c 1]}/[();|!#P;|n]  /fold over the tree in reverse order
 *s}
 
 /cld:{&x=P}
@@ -49,15 +49,25 @@ nyi:{y;em x}
 gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
 
 goprg:{
- pack:     *y@&`sym=T c:1_&P=0
- fncs:"\n"/:y@&`fun=T c
- ("package ";pack;"\n";gornt),,fncs}
+ fncs:"\n"/:y@&`fun=T c:1_&P=0
+ vars:"\n"/:y@&`var=T c
+ ("package ";$S 0;"\n";vars;gornt),,fncs}
  
 gofun:{
  args:", "/:y@&`arg=T c:&x=P
  rets:", "/:y@&`res=T c
  body:     y@*&`ast=T c
  ("func ";$S x;"(";args;")(";rets;"){";body;"}")}
+ 
+
+goflt:{(*&" "=c)#c:C 8+x+!16}
+golit:{y;i:I x;$[`f~t:S x;goflt i
+                 `i~t;$[0N~i;"-0x80000000";$i]
+                 `u~t;$[i<0;"0x",`x@|`c@,i;$i]
+		 `j~t;$[i~0;,"0";0<`i C 4+i+!4;hx8 i;"??"]
+		 `k~t;$[i~0;,"0";hx8 i];"???"]}
+
+govar:{" "/:("var";$S x;gotype S 1+x;,"=";*y)}
  
 gores:{y;gotype S x}
 gosym:{y;$S x}
