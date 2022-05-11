@@ -26,6 +26,7 @@ node type                    i-value             s-value
  get     get local           arg node            varname
  Get     get global          glo node            varname
  asn     assignment          -                   modifier        children: sym typ [expr..]
+ cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
  cnd     if condition        -                   -               2|3 children: if then [else]
  nop     ignore              -                   -

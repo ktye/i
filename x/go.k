@@ -1,13 +1,13 @@
 
 /C  bytes(e.g.64bit literals)
 /D  data (initial memory)
-F:`!()                                     /function map: type to stringer
+F:`!()                                         /function map: type to stringer
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
-emit:{[]
- n:(&#P){x[y]+:1}/P;n[0]-:1;               /number of children per node
- s:{c:(0,(#x)-z)^x                         /cut args from stack
-   (c 0),,,/(F@`T \T y)[y;|c 1]}/[();|!#P;|n]  /fold over the tree in reverse order
+emit:{[o]opts::o
+ n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
+ s:{c:(0,(#x)-z)^x                             /cut args from stack
+   (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
 *s}
 
 /cld:{&x=P}
@@ -50,8 +50,10 @@ gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"
 
 goprg:{
  fncs:"\n"/:y@&`fun=T c:1_&P=0
+ cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
- ("package ";$S 0;"\n";vars;gornt),,fncs}
+ runt:$[`nort':opts;"";gornt]
+ ("package ";$S 0;"\n";cons;vars;runt),,fncs}
  
 gofun:{
  args:", "/:y@&`arg=T c:&x=P
@@ -60,15 +62,19 @@ gofun:{
  ("func ";$S x;"(";args;")(";rets;"){";body;"}")}
  
 
-goflt:{(*&" "=c)#c:C 8+x+!16}
+goflt:{(*&" "=c)#c:C 8+x+!24}
 golit:{y;i:I x;$[`f~t:S x;goflt i
                  `i~t;$[0N~i;"-0x80000000";$i]
                  `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-		 `j~t;$[i~0;,"0";0<`i C 4+i+!4;hx8 i;"??"]
+		 `j~t;$[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]
 		 `k~t;$[i~0;,"0";hx8 i];"???"]}
 
-govar:{" "/:("var";$S x;gotype S 1+x;,"=";*y)}
- 
+govar:{" "/:("var";  $S x;gotype S 1+x;,"=";*y)}
+gocon:{" "/:("const";$S x;gotype S 1+x;,"=";*y)}
+
+gocst:{(gotype S x;,"(";y 1;,")")}
+
+gotyp:{y;gotype S x} 
 gores:{y;gotype S x}
 gosym:{y;$S x}
 goarg:{((y 0);" ";gotype S x)}
@@ -78,7 +84,8 @@ gostm:{"\n"/:y}
 goget:{y;$S x}
 goret:{"return ",(", "/:y)}
 
-gocal:nyi"cal"
+gocal:{($S x;,"("; ","/:y ;,")")}
+
 gocli:nyi"cli"
 goasn:nyi"asn"
 gocnd:{[i]c:&P=i;"if",(gox c 0),"{",(gox c 1),"}"}
@@ -101,13 +108,13 @@ goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>
 
 go:{
  F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)
- F[`add`and`ant`asn`cal`cli`cnd`dfr`div`drp`eql    ]:(goadd;goand;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql)
+ F[`add`and`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(goadd;goand;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql;gocst)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
- F[`nop`not`orr`ret`shl`shr`stm`sub`swc            ]:(gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc                  )
+ F[`nop`not`orr`ret`shl`shr`stm`sub`swc`typ        ]:(gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc;gotyp            )
  x}
 
 
 gornt:"/* rt */\n"
 
-t:go t
- \emit[]
+/ t:go t
+/ \emit[]

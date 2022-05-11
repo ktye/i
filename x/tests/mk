@@ -1,6 +1,20 @@
 set -e
 set -x
-for f in *.go; do
-	k=`echo $f | sed 's/.go$/.k/'`
-	wg -k $f > $k
-done
+if [ -z "$1" ]; then
+	for f in *.go; do
+		go fmt $f
+		k=`echo $f | sed 's/.go$/.k/'`
+		wg -k $f > $k
+	done
+elif [ "$1" = go ]; then
+	# tests without runtime
+	for g in cal.go cast.go const.go fun.go lit.go; do
+		k=`echo $g | sed 's/.go$/.k/'`
+		k $k ../go.k -e 'x:`<emit go``nort' > out_$g
+		go fmt out_$g
+		cmp out_$g $g
+		rm out_$g
+	done
+else
+	echo 1
+fi
