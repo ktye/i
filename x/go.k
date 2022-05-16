@@ -58,8 +58,9 @@ goprg:{
 gofun:{
  args:", "/:y@&`arg=T c:&x=P
  rets:", "/:y@&`res=T c
+ locs:"\n"/:"var ",/:(.g),'" ",/:gotype@!g:" "/:'(y i)@=(S c)i:&`loc=T c
  body:     y@*&`ast=T c
- ("func ";$S x;"(";args;")(";rets;"){";body;"}")}
+ ("func ";$S x;"(";args;")(";rets;"){";locs,"\n";body;"}")}
  
 
 goflt:{(*&" "=c)#c:C 8+x+!24}
@@ -76,18 +77,20 @@ gocst:{(gotype S x;,"(";y 1;,")")}
 
 gotyp:{y;gotype S x} 
 gores:{y;gotype S x}
+goloc:{y}
 gosym:{y;$S x}
 goarg:{((y 0);" ";gotype S x)}
 
-goast:{*y}
 gostm:{"\n"/:y}
+goast:gostm
 goget:{y;$S x}
+goGet:goget
 goret:{"return ",(", "/:y)}
 
 gocal:{($S x;,"("; ","/:y ;,")")}
 
 gocli:nyi"cli"
-goasn:nyi"asn"
+goasn:{n:I x;(","/:n#y; ($S x),"= "; ","/:(2*n)_y)}
 gocnd:{[i]c:&P=i;"if",(gox c 0),"{",(gox c 1),"}"}
 gonop:nyi"nop"
 gojmp:nyi"jmp"
