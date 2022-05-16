@@ -113,7 +113,7 @@ go:{
  F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)
  F[`add`and`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(goadd;goand;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql;gocst)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
- F[`neq`nop`not`orr`ret`shl`shr`stm`sub`swc`typ    ]:(goneq;gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc;gotyp      )
+ F[`neq`nop`not`orr`xor`ret`shl`shr`stm`sub`swc`typ]:(goneq;gonop;gonot;goorr;goxor;goret;goshl;goshr;gostm;gosub;goswc;gotyp)
  x}
 
 
