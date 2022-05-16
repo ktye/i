@@ -88,16 +88,16 @@ goGet:goget
 goret:{"return ",(", "/:y)}
 
 gocal:{($S x;,"("; ","/:y ;,")")}
+godrp:{y}
 
 gocli:nyi"cli"
 goasn:{n:I x;(","/:n#y; ($S x),"= "; ","/:(2*n)_y)}
 gocnd:{[i]c:&P=i;"if",(gox c 0),"{",(gox c 1),"}"}
-gonop:nyi"nop"
+gonop:{y;""}
 gojmp:nyi"jmp"
 goswc:nyi"swc"
 gofor:nyi"for"
 godfr:nyi"dfr"
-godrp:nyi"drp"
 
 
 go1:{x,gox@&P=y}

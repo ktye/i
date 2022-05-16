@@ -23,6 +23,7 @@ node type                    i-value             s-value
  ret     return              -                   -               children: return values
  cal     function call       func node           func name       children: args
  cli     indirect call       func node           -               children: args
+ drp     drop return vals    -                   -               child type cal
  get     get local           arg node            varname
  Get     get global          glo node            varname
  asn     assignment          #symbols            modifier        children: syms typs expr(s) | syms typs expr
