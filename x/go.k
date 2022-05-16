@@ -59,8 +59,9 @@ gofun:{
  args:", "/:y@&`arg=T c:&x=P
  rets:", "/:y@&`res=T c
  locs:"\n"/:"var ",/:(.g),'" ",/:gotype@!g:","/:'(y i)@=(S c)i:&`loc=T c
- body:     y@*&`ast=T c
- ("func ";$S x;"(";args;")(";rets;"){";locs,"\n";body;"}")}
+ defr:     *y@&`dfr=T c
+ body:      y@*&`ast=T c
+ ("func ";$S x;"(";args;")(";rets;"){";defr;locs,"\n";body;"}")}
  
 
 goflt:{(*&" "=c)#c:C 8+x+!24}
@@ -94,10 +95,12 @@ gocli:nyi"cli"
 goasn:{n:I x;(","/:n#y; ($S x),"= "; ","/:(2*n)_y)}
 gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}
-goswc:nyi"swc"
+goswc:{
+ ("switch ";*y;" {"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"\n")," }" }
+ 
 gofor:{($[#l:$S x;l,":";""];"for ;";y 0;"; ";y 1;" {";y 2;"} ")}
 gojmp:{y;$[I x;"break ";"continue "],$S x}
-godfr:nyi"dfr"
+godfr:{("defer ";*y)}
 
 
 go1:{x,*z}
