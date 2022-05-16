@@ -8,7 +8,7 @@ if [ -z "$1" ]; then
 	done
 elif [ "$1" = go ]; then
 	# tests without runtime
-	for g in asn.go blank.go cal.go cast.go cnd.go const.go drp.go fun.go lit.go; do
+	for g in asn.go blank.go cal.go cast.go cnd.go const.go cont.go drp.go fun.go label.go lit.go loop.go loop2.go; do
 		k=`echo $g | sed 's/.go$/.k/'`
 		k $k ../go.k -e 'x:`<emit go``nort' > out_$g
 		go fmt out_$g

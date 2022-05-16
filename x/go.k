@@ -58,7 +58,7 @@ goprg:{
 gofun:{
  args:", "/:y@&`arg=T c:&x=P
  rets:", "/:y@&`res=T c
- locs:"\n"/:"var ",/:(.g),'" ",/:gotype@!g:" "/:'(y i)@=(S c)i:&`loc=T c
+ locs:"\n"/:"var ",/:(.g),'" ",/:gotype@!g:","/:'(y i)@=(S c)i:&`loc=T c
  body:     y@*&`ast=T c
  ("func ";$S x;"(";args;")(";rets;"){";locs,"\n";body;"}")}
  
@@ -94,9 +94,9 @@ gocli:nyi"cli"
 goasn:{n:I x;(","/:n#y; ($S x),"= "; ","/:(2*n)_y)}
 gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}
-gojmp:nyi"jmp"
 goswc:nyi"swc"
-gofor:nyi"for"
+gofor:{($[#l:$S x;l,":";""];"for ;";y 0;"; ";y 1;" {";y 2;"} ")}
+gojmp:{y;$[I x;"break ";"continue "],$S x}
 godfr:nyi"dfr"
 
 
@@ -106,7 +106,6 @@ goneg:go1"-";gonot:go1"!"
 goadd:go2"+";gosub:go2"-"; gomul:go2"*";godiv:go2"/"; gomod:go2"%"
 goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!="
 goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
-
 
 go:{
  F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)

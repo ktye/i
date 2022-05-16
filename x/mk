@@ -3,7 +3,7 @@ set -x
 if [ -z "$1" ]; then
 	go install /c/k/wg/cmd/wg
 	wg -k .. > k.k
-	# k k.k go.k -e '`<emit[go;0]'fi
+	k k.k go.k -e '`<emit go``'
 elif [ "$1" = "test" ]; then
 	for f in tests/*.k; do
 		k "$f" go.k -e
