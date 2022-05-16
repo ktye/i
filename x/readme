@@ -22,7 +22,7 @@ node type                    i-value             s-value
  stm     statement list      -                   -
  ret     return              -                   -               children: return values
  cal     function call       func node           func name       children: args
- cli     indirect call       func node           -               children: args
+ cli     indirect call       #args               -               children: func-expr args arg-types ret-types
  drp     drop return vals    -                   -               child type cal
  get     get local           arg node            varname
  Get     get global          glo node            varname

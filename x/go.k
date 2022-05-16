@@ -91,12 +91,11 @@ goret:{"return ",(", "/:y)}
 gocal:{($S x;,"("; ","/:y ;,")")}
 godrp:{y}
 
-gocli:nyi"cli"
+gocli:{n:I x;("Func[";*y;"].(func(";  ","/:n#(1+n)_y; ")("; ","/:(1+2*n)_y ;"))(";  ","/:n#1_y; ") ")}
 goasn:{n:I x;(","/:n#y; ($S x),"= "; ","/:(2*n)_y)}
 gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}
-goswc:{
- ("switch ";*y;" {"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"\n")," }" }
+goswc:{("switch ";*y;" {"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"\n")," }" }
  
 gofor:{($[#l:$S x;l,":";""];"for ;";y 0;"; ";y 1;" {";y 2;"} ")}
 gojmp:{y;$[I x;"break ";"continue "],$S x}

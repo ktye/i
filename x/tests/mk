@@ -8,12 +8,14 @@ if [ -z "$1" ]; then
 	done
 elif [ "$1" = go ]; then
 	# tests without runtime
-	for g in asn.go blank.go cal.go cast.go cnd.go const.go cont.go drp.go fun.go label.go lit.go loop.go loop2.go swtch.go; do
+	for g in asn.go blank.go cal.go cast.go cli.go cnd.go const.go cont.go drp.go fun.go label.go lit.go loop.go loop2.go swtch.go; do
 		k=`echo $g | sed 's/.go$/.k/'`
 		k $k ../go.k -e 'x:`<emit go``nort' > out_$g
 		go fmt out_$g
-		cmp out_$g $g
-		rm out_$g
+		grep -v '^import' $g > in_$g
+		go fmt in_$g
+		cmp out_$g in_$g
+		rm out_$g in_$g
 	done
 else
 	echo 1
