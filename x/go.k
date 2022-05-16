@@ -92,7 +92,7 @@ godrp:{y}
 
 gocli:nyi"cli"
 goasn:{n:I x;(","/:n#y; ($S x),"= "; ","/:(2*n)_y)}
-gocnd:{[i]c:&P=i;"if",(gox c 0),"{",(gox c 1),"}"}
+gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}
 gojmp:nyi"jmp"
 goswc:nyi"swc"
@@ -100,7 +100,7 @@ gofor:nyi"for"
 godfr:nyi"dfr"
 
 
-go1:{x,gox@&P=y}
+go1:{x,*z}
 go2:{z;("(";z 0;x;z 1;")")}
 goneg:go1"-";gonot:go1"!"
 goadd:go2"+";gosub:go2"-"; gomul:go2"*";godiv:go2"/"; gomod:go2"%"
@@ -108,12 +108,11 @@ goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!=
 goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
 
 
-
 go:{
  F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)
  F[`add`and`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(goadd;goand;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql;gocst)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
- F[`nop`not`orr`ret`shl`shr`stm`sub`swc`typ        ]:(gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc;gotyp            )
+ F[`neq`nop`not`orr`ret`shl`shr`stm`sub`swc`typ    ]:(goneq;gonop;gonot;goorr;goret;goshl;goshr;gostm;gosub;goswc;gotyp      )
  x}
 
 
