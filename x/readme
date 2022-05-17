@@ -25,6 +25,8 @@ node type                    i-value             s-value
  drp     drop return vals    -                   -               child type cal
  get     get local           arg node            varname
  Get     get global          glo node            varname
+ lod     load                -                   type(bijf)      child:    addr
+ sto     store               -                   type(bijf)      children: addr, value
  asn     assignment          #symbols            modifier        children: syms typs expr(s) | syms typs expr
  cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
@@ -39,7 +41,7 @@ unary operator nodes
 binary operator nodes
  eql|les|mor|gte|lte|and|orr 2                   type            2 children
  add|sub|mul|div|mod|shr|shl	
- xor|neq|ant(andnot)			     
+ xor|neq|ant(andnot)|bnd|bor(&& ||)			     
  
 types: `i`u`j`k`f`C`I`F!(i32;u32;i64;u64;f64;i8x16;i32x4;f64x2)
 			     
