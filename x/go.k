@@ -54,8 +54,9 @@ goprg:{
  vars:"\n"/:y@&`var=T c
  runt:$[`nort':opts;"";gornt]
  data:$[#D;"Data(0,\"",("\\x","\\x"/:(#D)^`x D),"\")";""]
+ tabl:"\n"/:y@&`tab=T c
  mems:"\n"/:y@&`mem=T c
- init:$[#data;"\n"/:("func init(){";mems;data;"}\n");""]
+ init:$[|/(#mems;#data;#tabl);"\n"/:("func init(){";mems;data;tabl;"}\n");""]
  ("package ";$S 0;"\n";cons;vars;runt;init),,fncs}
  
 gofun:{
@@ -68,6 +69,7 @@ gofun:{
  
 
 gomem:{y;("Memory";$[`b~S x;"2";""];"( ";$I x;" )")}
+gotab:{y;("Functions(";$I x;", ";$S x;") ")}
 goflt:{(*&" "=c)#c:C 8+x+!24}
 golit:{y;i:I x;$[`f~t:S x;goflt i
                  `i~t;$[0N~i;"-0x80000000";$i]
