@@ -1153,7 +1153,7 @@ func maxZ(xp, yp, rp, e int32) {
 
 func Eql(x, y K) K                     { return nc(338, 11, x, y) }
 func eqi(x, y int32) int32             { return I32B(x == y) }
-func eqf(x, y float64) int32           { return I32B(isnan(x) && isnan(y) || x == y) }
+func eqf(x, y float64) int32           { return I32B((x != x) && (y != y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
 func eqcC(v, w I8x16, yp, rp, e int32) {
 	for rp < e {
@@ -1501,7 +1501,7 @@ func gtZ(xp, yp, rp, e int32) {
 	}
 }
 
-func isnan(x float64) bool { return x != x }
+//func isnan(x float64) bool { return x != x }
 
 func Ang(x K) (r K) { // angle x
 	xt := tp(x)

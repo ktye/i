@@ -70,11 +70,17 @@ func ati(x K, i int32) (r K) { // x BT..LT
 	p := int32(x) + i*s
 	switch s >> 2 {
 	case 0:
-		r = K(U8(p))
+		i := I8(p)
+		if i < 0 {
+			i += 256
+		}
+		r = K(i)
 	case 1:
-		r = K(U32(p))
+		//r = K(U32(p))
+		r = K(uint32(I32(p)))
 	case 2:
-		r = K(U64(p))
+		//r = K(U64(p))
+		r = K(uint64(I64(p)))
 	default:
 		dx(x)
 		return Kz(F64(p), F64(p+8))

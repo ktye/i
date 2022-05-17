@@ -247,7 +247,7 @@ func radixF(x K, n int32) K { // ^F
 	na := int32(0)
 	for i := int32(0); i < n; i += 8 {
 		v := F64(xp + i)
-		if isnan(v) == true {
+		if v != v {
 			SetF64(xp+i, F64(xp+na))
 			SetF64(xp+na, v)
 			na += 8

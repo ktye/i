@@ -43,10 +43,10 @@ func cosin(deg float64) (c, s float64) {
 	return c, s
 }
 func cosin_(x float64) (c, s float64) {
-	ss, cs := false, false
+	var ss, cs int32
 	if x < 0 {
 		x = -x
-		ss = true
+		ss = 1
 	}
 	var j uint64
 	var y, z float64
@@ -60,10 +60,11 @@ func cosin_(x float64) (c, s float64) {
 	z = ((x - y*7.85398125648498535156e-1) - y*3.77489470793079817668e-8) - y*2.69515142907905952645e-15
 	if j > 3 {
 		j -= 4
-		ss, cs = !ss, !cs
+		//ss, cs = !ss, !cs
+		ss, cs = 1-ss, 1-cs
 	}
 	if j > 1 {
-		cs = !cs
+		cs = 1 - cs
 	}
 	zz := z * z
 	c = 1.0 - 0.5*zz + zz*zz*((((((-1.13585365213876817300e-11*zz)+2.08757008419747316778e-9)*zz+-2.75573141792967388112e-7)*zz+2.48015872888517045348e-5)*zz+-1.38888888888730564116e-3)*zz+4.16666666666665929218e-2)
@@ -73,10 +74,10 @@ func cosin_(x float64) (c, s float64) {
 		c = s
 		s = x
 	}
-	if cs {
+	if cs != 0 {
 		c = -c
 	}
-	if ss {
+	if ss != 0 {
 		s = -s
 	}
 	return c, s
@@ -137,7 +138,7 @@ func xatan(x float64) float64 {
 	return z
 }
 func exp(x float64) float64 {
-	if isnan(x) {
+	if x != x {
 		return x
 	}
 	if x > 7.09782712893383973096e+02 {
@@ -169,7 +170,7 @@ func expmulti(hi, lo float64, k int64) float64 {
 
 //func signbit(x float64) int32 { return int32(I64reinterpret_f64(x) >> 63) }
 func ldexp(frac float64, exp int64) float64 {
-	if frac == 0 || frac > maxfloat || frac < -maxfloat || isnan(frac) {
+	if frac == 0 || frac > maxfloat || frac < -maxfloat || (frac != frac) {
 		return frac
 	}
 	var e int64
@@ -195,11 +196,12 @@ func ldexp(frac float64, exp int64) float64 {
 	x |= uint64(exp+1023) << 52
 	return m * F64reinterpret_i64(uint64(x))
 }
-func frexp(f float64) (frac float64, exp int64) {
+func frexp(f float64) (float64, int64) {
+	var exp int64
 	if f == 0.0 {
 		return f, 0
 	}
-	if f < -maxfloat || f > maxfloat || isnan(f) {
+	if f < -maxfloat || f > maxfloat || (f != f) {
 		return f, 0
 	}
 	f, exp = normalize(f)
@@ -210,14 +212,14 @@ func frexp(f float64) (frac float64, exp int64) {
 	return F64reinterpret_i64(x), exp
 }
 
-func normalize(x float64) (y float64, exp int64) {
+func normalize(x float64) (float64, int64) {
 	if F64abs(x) < 2.2250738585072014e-308 {
 		return x * 4.503599627370496e+15, int64(-52)
 	}
 	return x, 0
 }
 func log(x float64) float64 {
-	if isnan(x) || x > maxfloat {
+	if (x != x) || x > maxfloat {
 		return x
 	}
 	if x < 0 {
@@ -263,7 +265,7 @@ func pow(x, y float64) float64 {
 	if y == 1.0 {
 		return x
 	}
-	if isnan(x) || isnan(y) || y > maxfloat || y < -maxfloat { // simplified
+	if (x != x) || (y != y) || y > maxfloat || y < -maxfloat { // simplified
 		return na
 	}
 	if x == 0 { // simplified

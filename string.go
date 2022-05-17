@@ -286,7 +286,7 @@ func se(x float64) K {
 	return ucat(cat1(sf(f*pow(10.0, x)), Kc('e')), si(ei))
 }
 func sfz(re, im float64) (r K) {
-	if isnan(re) || isnan(im) {
+	if (re != re) || (im != im) {
 		return Ku(6385200) // 0na
 	}
 	z := hypot(re, im)
