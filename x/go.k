@@ -18,7 +18,7 @@ nl:{$[#x:"\n"/:x;x,"\n";x]}
 nyi:{y;em x}
 
 
-gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[8]int8";"[32]int32";"[2]float64")
+gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[16]int8";"[4]int32";"[2]float64")
 
 goprg:{
  fncs:nl y@&`fun=T c:1_&P=0
@@ -98,27 +98,18 @@ go:{
  x}
 
 
-gornt:"import ( \"encoding/binary\"; \"fmt\"; \"math\"; \"math/bits\"; \"os\" )
+/ run time
+gornt:"import ( \"encoding/binary\"; \"math\"; \"math/bits\"; \"os\" )
 var Bytes, Bytes2 []byte
 var Func []interface{}
-func Memory(blocks int) {
-	if Bytes == nil {
-		Bytes = make([]byte, 64*1024*blocks)
-	}
-}
-func Memory2(blocks int) {
-	if Bytes2 == nil {
-		Bytes2 = make([]byte, 64*1024*blocks)
-	}
-}
+func Memory(blocks int) { if Bytes == nil { Bytes = make([]byte, 64*1024*blocks) } }
+func Memory2(blocks int) { if Bytes2 == nil { Bytes2 = make([]byte, 64*1024*blocks) } }
 func Memorysize() int32  { return int32(len(Bytes) >> 16) }
 func Memorysize2() int32 { return int32(len(Bytes2) >> 16) }
 func Memorygrow(blocks int32) (previous int32) {
 	previous = int32(len(Bytes) >> 16)
 	delta := 64 * 1024 * int(blocks)
-	if len(Bytes)+delta > (1<<32 - 1) {
-		return -1
-	}
+	if len(Bytes)+delta > (1<<32 - 1) { return -1 }
 	Bytes = append(Bytes, make([]byte, delta)...)
 	return previous
 }
@@ -129,20 +120,10 @@ func Memorygrow2(blocks int32) int32 {
 	return r
 }
 func Memorycopy(dst, src, n int32) { copy(Bytes[dst:], Bytes[src:src+n]) }
-func Memoryfill(dst, val, n int32) {
-	b := byte(val)
-	for i := int32(0); i < n; i++ {
-		Bytes[dst+i] = b
-	}
-}
+func Memoryfill(dst, val, n int32) { b := byte(val); for i := int32(0); i < n; i++ { Bytes[dst+i] = b } }
 func Memorycopy2(dst, src, n int32) { copy(Bytes2[dst:], Bytes[src:src+n]) }
 func Memorycopy3(dst, src, n int32) { copy(Bytes[dst:], Bytes2[src:src+n]) }
-func Functions(i int, f interface{}) {
-	for i >= len(Func) {
-		Func = append(Func, nil)
-	}
-	Func[i] = f
-}
+func Functions(i int, f interface{}) { for i >= len(Func) { Func = append(Func, nil) }; Func[i] = f }
 func Data(o int, x string) { copy(Bytes, x) }
 func I8(addr int32) int32           { return int32(int8(Bytes[addr])) }
 func SetI8(addr int32, value int32) { Bytes[addr] = byte(value) }
@@ -158,53 +139,93 @@ func I32B(b bool) int32 { if b { return 1; }; return 0}
 func Exit(x int32) { os.Exit(int(x)) }
 func Args() int32 { return int32(len(os.Args)) }
 func Arg(i, r int32) int32 {
-	if i >= int32(len(os.Args)) {
-		return 0
-	}
-	if r == 0 {
-		return int32(len(os.Args[i]))
-	}
+	if i >= int32(len(os.Args)) { return 0 }
+	if r == 0 { return int32(len(os.Args[i])) }
 	copy(Bytes[r:], []byte(os.Args[i]))
 	return 0
 }
 var filebuf []byte
 func Read(file, nfile, dst int32) int32 {
-	if dst != 0 {
-		copy(Bytes[dst:], filebuf)
-		return 0
-	}
+	if dst != 0 { copy(Bytes[dst:], filebuf); return 0 }
 	b, e := os.ReadFile(string(Bytes[file : file+nfile]))
-	if e != nil {
-		return -1
-	}
+	if e != nil { return -1 }
 	filebuf = b
 	return int32(len(filebuf))
 }
 func Write(file, nfile, src, n int32) int32 {
 	b := Bytes[src : src+n]
-	if nfile == 0 {
-		os.Stdout.Write(b)
-		return 0
-	}
+	if nfile == 0 { os.Stdout.Write(b); return 0 }
 	name := string(Bytes[file : file+nfile])
 	e := os.WriteFile(name, b, 0644)
-	if e != nil {
-		return -1
-	}
+	if e != nil { return -1 }
 	return 0
 }
 func ReadIn(dst, n int32) int32 {
 	nr, e := os.Stdin.Read(Bytes[dst : dst+n])
-	if e != nil {
-		return 0
-	}
-	if nr > 0 && Bytes[dst+int32(nr)-1] == 10 {
-		nr -= 1
-	}
+	if e != nil { return 0 }
+	if nr > 0 && Bytes[dst+int32(nr)-1] == 10 { nr -= 1 }
 	return int32(nr)
 }
 func Native(x, y int64) int64 { return x }
-"
+func F64reinterpret_i64(x uint64) float64 { return math.Float64frombits(x) }
+func I64reinterpret_f64(x float64) uint64 { return math.Float64bits(x) }
+func F64abs(x float64) float64         { return math.Abs(x) }
+func F64sqrt(x float64) float64        { return math.Sqrt(x) }
+func F64ceil(x float64) float64        { return math.Ceil(x) }
+func F64floor(x float64) float64       { return math.Floor(x) }
+func F64min(x, y float64) float64      { return math.Min(x, y) }
+func F64max(x, y float64) float64      { return math.Max(x, y) }
+func F64copysign(x, y float64) float64 { return math.Copysign(x, y) }
+func I8x16load(addr int32) (r [16]int8) { for i := range r { r[i] = int8(Bytes[addr+int32(i)]); }; return r }
+func I32x4load(addr int32) [4]int32 { return [4]int32{I32(addr), I32(4 + addr), I32(8 + addr), I32(12 + addr)} }
+func F64x2load(addr int32) [2]float64 { return [2]float64{F64(addr), F64(8 + addr)} }
+func I8x16store(addr int32, x [16]int8) { for i := range x { Bytes[addr+int32(i)] = byte(x[i]) } }
+func I32x4store(addr int32, x [4]int32) { for i := range x { SetI32(addr, x[i]); addr += 4 } }
+func F64x2store(addr int32, x [2]float64) { SetF64(addr, x[0]); SetF64(8+addr, x[1]) }
+func I8x16splat(x int32) (r [16]int8) { for i := range r { r[i] = int8(x); }; return r }
+func I32x4splat(x int32) [4]int32 { return [4]int32{x, x, x, x} }
+func F64x2splat(x float64) [2]float64 { return [2]float64{x, x} }
+func I8x16Extract_lane_s0(x [16]int8) int32 { return int32(x[0]) }
+func F64x2Replace_lane1(x [2]float64, f float64) [2]float64 { x[1] = f; return x }
+func I8x16All_true(x [16]int8) int32 { for i := range x { if (x[i] != 0) == false { return 0; }; }; return 1 }
+func I8x16Any_true(x [16]int8) int32 { for i := range x { if x[i] != 0 { return 1; }; }; return 0 }
+func I32x4Any_true(x [4]int32) int32 { for i := range x { if x[i] != 0 { return 1; }; }; return 0 }
+func I8x16Eq(x, y [16]int8) (r [16]int8) { for i := range r { if x[i] == y[i] { r[i] = -1; }; }; return r; }
+func I32x4Eq(x, y [4]int32) (r [4]int32) { for i := range r { if x[i] == y[i] { r[i] = -1; }; }; return r }
+func I8x16And(x, y [16]int8) (r [16]int8) { for i := range r { r[i] = x[i] & y[i] }; return r }
+func I8x16Not(x [16]int8) (r [16]int8) { for i := range r { r[i] = ^x[i]; }; return r }
+func I8x16Neg(x [16]int8) (r [16]int8) { for i := range r { r[i] = -x[i] }; return r }
+func I32x4Neg(x [4]int32) (r [4]int32) { for i := range r { r[i] = -x[i] }; return r }
+func F64x2Neg(x [2]float64) [2]float64 { return [2]float64{-x[0], -x[1]} }
+func absi8(x int8) int8 { return int8(absi32(int32(x))) }
+func absi32(x int32) int32 { if x < 0 { return -x }; return x }
+func I8x16Abs(x [16]int8) (r [16]int8) { for i := range r { r[i] = absi8(x[i]) }; return r }
+func I32x4Abs(x [4]int32) (r [4]int32) { for i := range r { r[i] = absi32(x[i]) }; return r }
+func F64x2Abs(x [2]float64) [2]float64 { return [2]float64{math.Abs(x[0]), math.Abs(x[1])} }
+func F64x2Sqrt(x [2]float64) [2]float64 { return [2]float64{math.Sqrt(x[0]), math.Sqrt(x[1])} }
+func I8x16Add(x, y [16]int8) (r [16]int8) { for i := range r { r[i] = x[i] + y[i] }; return r }
+func I32x4Add(x, y [4]int32) (r [4]int32) { for i := range r { r[i] = x[i] + y[i] }; return r }
+func F64x2Add(x, y [2]float64) [2]float64 { return [2]float64{x[0]+y[0], x[1]+y[1]} }
+func I8x16Sub(x, y [16]int8) (r [16]int8) { for i := range r { r[i] = x[i] - y[i] }; return r }
+func I32x4Sub(x, y [4]int32) (r [4]int32) { for i := range r { r[i] = x[i] - y[i] }; return r }
+func F64x2Sub(x, y [2]float64) [2]float64 { return [2]float64{x[0]-y[0], x[1]-y[1]} }
+func I32x4Mul(x, y [4]int32) (r [4]int32) { for i := range r { r[i] = x[i] * y[i] }; return r }
+func F64x2Mul(x, y [2]float64) [2]float64 { return [2]float64{x[0]*y[0], x[1]*y[1]} }
+func F64x2Div(x, y [2]float64) [2]float64 { return [2]float64{x[0]/y[0], x[1]/y[1]} }
+func I32x4Shr_s(x [4]int32, y int32) (r [4]int32) { for i := range r { r[i] = x[i] >> y }; return r }
+func mini8(x, y int8)   int8  { return int8(mini32(int32(x), int32(y))) }
+func mini32(x, y int32) int32 { if x < y { return x } else { return y } }
+func maxi8(x, y int8)   int8  { return int8(maxi32(int32(x), int32(y))) }
+func maxi32(x, y int32) int32 { if x > y { return x } else { return y } }
+func pmin(x, y float64) float64 { if y < x { return y } else { return x } }
+func pmax(x, y float64) float64 { if x < y { return y } else { return x } }
+func I8x16Min_s(x, y [16]int8) (r [16]int8) { for i := range r { r[i] = mini8(x[i], y[i]) }; return r }
+func I32x4Min_s(x, y [4]int32) (r [4]int32) { for i := range r { r[i] = mini32(x[i], y[i]) }; return r }
+func F64x2Pmin(x, y [2]float64) [2]float64 { return [2]float64{ pmin(x[0], y[0]), pmin(x[1], y[1]) } }
+func F64x2Pmax(x, y [2]float64) [2]float64 { return [2]float64{ pmax(x[0], y[0]), pmax(x[1], y[1]) } }	
+func I8x16Max_s(x, y [16]int8) (r [16]int8) { for i := range r { r[i] = maxi8(x[i], y[i]) }; return r }
+func I32x4Max_s(x, y [4]int32) (r [4]int32) { for i := range r { r[i] = maxi32(x[i], y[i]) }; return r }
+func I8x16Lt_s(x, y [16]int8) (r [16]int8) { for i := range r { if x[i] < y[i] { r[i] = -1 } }; return r }
+func I8x16Gt_s(x, y [16]int8) (r [16]int8) { for i := range r { if x[i] > y[i] { r[i] = -1 } }; return r }
 
-/ t:go t
-/ \emit[]
+"
