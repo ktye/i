@@ -53,7 +53,10 @@ goprg:{
  cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
  runt:$[`nort':opts;"";gornt]
- ("package ";$S 0;"\n";cons;vars;runt),,fncs}
+ data:$[#D;"Data(0,\"",("\\x","\\x"/:(#D)^`x D),"\")";""]
+ mems:"\n"/:y@&`mem=T c
+ init:$[#data;"\n"/:("func init(){";mems;data;"}\n");""]
+ ("package ";$S 0;"\n";cons;vars;runt;init),,fncs}
  
 gofun:{
  args:", "/:y@&`arg=T c:&x=P
@@ -64,6 +67,7 @@ gofun:{
  ("func ";$S x;"(";args;")(";rets;"){";defr;locs,"\n";body;"}")}
  
 
+gomem:{y;("Memory";$[`b~S x;"2";""];"( ";$I x;" )")}
 goflt:{(*&" "=c)#c:C 8+x+!24}
 golit:{y;i:I x;$[`f~t:S x;goflt i
                  `i~t;$[0N~i;"-0x80000000";$i]
@@ -101,7 +105,6 @@ gofor:{($[#l:$S x;l,":";""];"for ;";y 0;"; ";y 1;" {";y 2;"} ")}
 gojmp:{y;$[I x;"break ";"continue "],$S x}
 godfr:{("defer ";*y)}
 
-
 go1:{x,*z}
 go2:{z;("(";z 0;x;z 1;")")}
 goneg:go1"-";gonot:go1"!"
@@ -110,7 +113,7 @@ goeql:go2"=";gogte:go2">=";goles:go2"<";golte:go2"<=";gomor:go2">"; goneq:go2"!=
 goand:go2"&";goant:go2"&^";goorr:go2"|";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
 
 go:{
- F[`prg`mem`con`var`tab`dat`fun`arg`sym`res`loc`ast]:(goprg;gomem;gocon;govar;gotab;godat;gofun;goarg;gosym;gores;goloc;goast)
+ F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast    ]:(goprg;gomem;gocon;govar;gotab;gofun;goarg;gosym;gores;goloc;goast)
  F[`add`and`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(goadd;goand;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql;gocst)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
  F[`neq`nop`not`orr`xor`ret`shl`shr`stm`sub`swc`typ]:(goneq;gonop;gonot;goorr;goxor;goret;goshl;goshr;gostm;gosub;goswc;gotyp)
