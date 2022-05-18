@@ -3,7 +3,8 @@ set -x
 if [ -z "$1" ]; then
 	go install /c/k/wg/cmd/wg
 	wg -k .. > k.k
-	k k.k go.k -e 'x:`<emit go``' > k.go
+	#k k.k go.k -e 'x:`<emit go``' > k.go
+	k k.k go.k -e 'x:`<emit go`pkg`k' > k.go
 	go fmt k.go
 	go build k.go
 elif [ "$1" = "test" ]; then

@@ -5,18 +5,23 @@ F:`!()                                         /function map: type to stringer
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
 emit:{[o]opts::o
+ S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
 *s}
 
+
+/set pkg name and delete main
+pkg:{S[0]::x; rm@*&(`fun=T)&`main=S}
+
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
 /dp:{+/0<(x@)\:!#x} /depth from parent
 em:{"(",x,")"}
+
 nl:{$[#x:"\n"/:x;x,"\n";x]}
 nyi:{y;em x}
-
 
 gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[16]int8";"[4]int32";"[2]float64")
 
@@ -32,6 +37,7 @@ goprg:{
  ("package ";$S 0;"\n";runt;cons;vars;init),,fncs}
  
 gofun:{
+ $[(`main~S x)&`lib':opts; :""; 0]
  args:", "/:y@&`arg=T c:&x=P
  rets:", "/:y@&`res=T c
  locs:"\n"/:"var ",/:(.g),'" ",/:gotype@!g:","/:'(y i)@=(S c)i:&`loc=T c

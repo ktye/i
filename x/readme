@@ -2,11 +2,26 @@ k's source as a k table (k.k)
 
 t:+`n`t`p`i`s!(!#T;T;P;I;S) /node type parent i-value s-value
 
+k k.k go.k -e 'x:`"k.go"<emit go``'       /generate k.go main
+k k.k go.k -e 'x:`"k.go"<emit go`lib`k'   /generate k.go lib
+
+
+a compiler backend implements a function per node type to transform the node into string form.
+e.g. go[] sets the function dict F to use the Go code generating functions.
+
+
+emit transforms the table to a string of program source code.
+it folds the table in reverse order  f/[();|!#P;|n]
+the first argument is a stack (of string results) and n is the child count per node:
+ n:(&#P){x[y]+:1}/P; n[0]-:1
+for each node, f cuts the number of children from the stack, calls the emitter based on the node's type
+with arguments x:node id, and y the evaluated children in string form.
+the result is catenated to the stack.
+
 
 
 node type                    i-value             s-value
- prg     root node           -                   -               first node only
- sym     lib name or `main   -                   libname         root child
+ prg     root node           -                   prog/libname    first node only
  mem     memory segment      #64k blocks         `a|`b           a|b: memory1|memory2
  con     constant            -                   name            child type lit
  var     variable            -                   name            child type lit
