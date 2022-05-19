@@ -129,7 +129,7 @@ func Unq(x K) (r K) { // ?x
 	r = mk(xt, 0)
 	for i := int32(0); i < xn; i++ {
 		xi := ati(rx(x), i)
-		if int32(In(xi, rx(r))) == 0 {
+		if int32(In(rx(xi), rx(r))) == 0 {
 			r = cat1(r, xi)
 		} else {
 			dx(xi)
