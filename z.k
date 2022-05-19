@@ -117,13 +117,6 @@ ej:{(y j),'x_z i j:&~0N=i:(z x)?y x} /sym t1 t2
 
 csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
 
-
-ucal:{[s;u;r](#u)#+solve[u,0a+r=/:?r;s]} /k
-pcal:{[s;u]+solve[+u;+s]}                /k  s:s0-s1, u:u0
-uslv:{[qrk;s]qrsolve[qrk;s]}             /u
-uidx:{[u;a]solve[((#u)#1a;1@a);u]}       /(u0;uR)   rref:uidx[u*1@a;a]
-
-
 /plot
 PW:800;PH:600;FH:20;FONT:"monospace"
 
