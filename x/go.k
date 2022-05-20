@@ -87,7 +87,7 @@ goswc:{("switch ";*y;" {"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\
  
 gofor:{($[#l:$S x;l,":";""];"for ;";y 0;"; ";y 1;" {";y 2;"} ")}
 gojmp:{y;$[I x;"break ";"continue "],$S x}
-godfr:{("defer ";*y)}
+godfr:{("defer func(){if recover()!=nil{";*y;"}}()")}
 
 go1:{x,*z}
 go2:{z;("(";z 0;x;z 1;")")}
