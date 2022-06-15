@@ -1,0 +1,5 @@
+wazero+k.wasm 
+
+wget ktye.github.io/k.wasm
+go build
+./k
