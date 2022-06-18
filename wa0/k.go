@@ -128,7 +128,7 @@ func main() {
 	}
 	restore := func() { m.Memory().Write(ctx, 0, bak) }
 
-	// same as _start (../wasi.go: func main), but without internal try/catch
+	// same as _start (../system.go: func main), but without internal try/catch
 	var x []uint64
 	call("kinit")
 	call("doargs")

@@ -4,8 +4,6 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-//func LK(x K) K         { return K(wasi_unstable.L64(uint64(x))) }
-//func LI(x int32) int32 { return wasi_unstable.L32(x) }
 func main() { // _start
 	kinit()
 	doargs()
