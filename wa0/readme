@@ -1,0 +1,19 @@
+#wazero+k.wasm 
+
+set -e
+set -x
+
+# k.wasm
+sed -e 's/_start/start/g' ../k.wat > k.wat
+/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o k.wasm k.wat
+
+## k.exe
+#go build
+#./k
+
+
+## test
+#./k ../k.t
+
+# => jit does not work
+# => interpreter cannot print 0N, why?

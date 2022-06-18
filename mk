@@ -33,7 +33,7 @@ if [ "$1" = "cover" ]; then
 fi
 
 wg             . > k.wat
-#wg -try -multi . > k-wavm.wat
+#wg -try -multi . > k-wa0.wat
 /c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o web/k.wasm k.wat
 
 
