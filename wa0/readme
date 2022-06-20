@@ -3,9 +3,14 @@
 set -e
 set -x
 
-# k.wasm
-sed -e 's/_start/start/g' ../k.wat > k.wat
-/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o k.wasm k.wat
+# k.wasm (patch out _start function)
+twa="/c/local/wabt/wasm2wat --enable-bulk-memory --enable-simd"
+awt="/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd"
+
+wget -O k.wasm ktye.github.io/k.wasm
+$twa k.wasm | sed -e 's/_start/start/g' > k.wat
+$awt k.wat -o k.wasm
+#/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o k.wasm k.wat
 
 ## k.exe
 #go build
@@ -15,5 +20,4 @@ sed -e 's/_start/start/g' ../k.wat > k.wat
 ## test
 #./k ../k.t
 
-# => jit does not work
-# => interpreter cannot print 0N, why?
+# => jit does not work yet
