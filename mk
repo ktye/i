@@ -33,9 +33,7 @@ if [ "$1" = "cover" ]; then
 fi
 
 wg             . > k.wat
-#wg -try -multi . > k-wa0.wat
 /c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o web/k.wasm k.wat
-
 
 cp web/k.html   /c/k/ktye.github.io/index.html
 cp web/k.wasm   /c/k/ktye.github.io/
@@ -43,9 +41,4 @@ cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
 cp apl/apl.html /c/k/ktye.github.io/
 cp apl/apl.k    /c/k/ktye.github.io/
-
-
-
-# wavm:
-# wk='rlwrap -H /dev/null /c/local/wavm/bin/wavm run --mount-root . /c/k/i/k.wat'
 

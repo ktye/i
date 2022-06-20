@@ -6,11 +6,12 @@ build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
        wg . > k.wat         (wat2wasm: github.com/WebAssembly/wabt)
        wat2wasm --enable-bulk-memory --enable-simd k.wat  -o k.wasm
 online:ktye.github.io  (wasm needs multi-value/bulk-memory/simd128)
+targets: go c fortran wasm web                   (x/ . f77/ . web/)
+tests:                                                        (k.t)
 c/extend: +/k.c                           (header-library "ktye.h")
+kompile:  ahead of time                                      (kom/)
 args:     data file.k file.t                  (assign/execute/test)
-web:      drop file assigns                      `file<c (download)
-
-repl:  \\(exit) \t1000 expr(bench) \m(totalmem) \c(clear+checkrefs)
+web:      drop file assigns, plot                `file<c (download)
 
 + flp add       '  ech  bin   x y' lin     b bool     1b    110b   
 - neg sub       /  rdc  mod   f n/ ndo     c char     "x"   "ab"        
@@ -43,7 +44,6 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 |file|what|compile|
 |---|---|---|
 [k.wasm](https://github.com/ktye/i/releases/download/latest/k.wasm)|webassembly binary module||
-[k-wavm.wat](https://github.com/ktye/i/releases/download/latest/k-wavm.wat)|webassembly text format (with try/catch)|`wavm run --enable multi-memory --enable exception-handling --mount-root . k-wavm.wat`|
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|bundled package k|`go build k.go`|
 [kg.go](https://github.com/ktye/i/releases/download/latest/kg.go)|main program|`go build kg.go`|
 [k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran|`gfortran k.f`|
