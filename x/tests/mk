@@ -1,6 +1,7 @@
 set -e
 set -x
-rm -f out_* in_*
+rm -f out out.go in.go *.wasm
+
 
 if [ -z "$1" ]; then
 	for f in *.go; do
@@ -9,15 +10,29 @@ if [ -z "$1" ]; then
 		wg -k $f > $k
 	done
 elif [ "$1" = go ]; then
-	for g in heap.go asn.go blank.go cal.go cast.go cli.go cnd.go const.go cont.go drp.go fun.go label.go lit.go loop.go loop2.go mem.go swtch.go tab.go; do
-		k=`echo $g | sed 's/.go$/.k/'`
-		k $k ../go.k -e 'x:`<emit go``nort' > out_$g
-		go fmt out_$g
-		grep -v '^import' $g > in_$g
-		go fmt in_$g
-		cmp out_$g in_$g
-		rm out_$g in_$g
+	for x in *.k; do
+		g=`echo $x | sed 's/.k$/.go/'`
+		k $x ../go.k -e 'x:`<emit go``nort' > out.go
+		go fmt out.go
+		grep -v '^import' $g > in.go
+		go fmt in.go
+		cmp out.go in.go
+		rm out.go in.go
 	done
+elif [ "$1" = wa ]; then
+	#for x in *.k; do
+	#ok: asn drp
+	for x in cast.k; do
+		w=`echo $x | sed 's/.k$/.wa/'`
+		k $x ../wa.k -e 'x:`<emit wa``' > out
+		cmp out $w
+		rm out
+	done
+elif [ "$1" = walidate ]; then
+	for x in *.wa; do
+		/c/local/wabt/wat2wasm $x
+	done
+	rm *.wasm
 else
 	echo 1
 fi

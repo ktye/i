@@ -1,0 +1,26 @@
+(module
+(func $f (export "f")(param $x i32)(result i64)
+local.get $x
+i64.extend_i32_s
+return)
+(func $g (export "g")(param $x i64)(result i32)
+local.get $x
+i32.wrap_i64
+return)
+(func $h (export "h")(param $x i32)(result f64)
+local.get $x
+f64.convert_i32_s
+return)
+(func $i (export "i")(param $x f64)(result i32)
+local.get $x
+i32.trunc_f64_s
+return)
+(func $j (export "j")(param $x i32)(result i32)
+local.get $x
+
+return)
+(func $k (export "k")(param $x i32)(result i32)
+local.get $x
+
+return)
+)

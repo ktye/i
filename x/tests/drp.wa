@@ -1,0 +1,9 @@
+(module
+(func $f (export "f")(result i32)
+i32.const 1
+return)
+(func $g (export "g")
+
+call $f
+drop)
+)
