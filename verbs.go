@@ -646,6 +646,8 @@ func Wer(x K) (r K) { // &x
 			}
 			xp += 4
 		}
+	} else if xn == 0 {
+		r = mk(It, 0)
 	} else {
 		trap(Type)
 	}

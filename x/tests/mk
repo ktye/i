@@ -21,8 +21,8 @@ elif [ "$1" = go ]; then
 	done
 elif [ "$1" = wa ]; then
 	#for x in *.k; do
-	#ok: asn drp
-	for x in cast.k; do
+	#ok: asn drp cast.k swtch.k
+	for x in cnd.k; do
 		w=`echo $x | sed 's/.k$/.wa/'`
 		k $x ../wa.k -e 'x:`<emit wa``' > out
 		cmp out $w
