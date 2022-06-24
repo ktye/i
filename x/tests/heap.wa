@@ -1,0 +1,9 @@
+(module
+(memory (export "memory") 1)
+
+(func $f (export "f")(param $x i32)(param $y i32)
+local.get $y
+local.get $x
+i32.load
+i32.store)
+)

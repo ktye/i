@@ -37,7 +37,7 @@ node type                    i-value             s-value
  loc     local var decl      loc index           type            child type sym
  ast     func ast root       -                   -               one per func
  stm     statement list      -                   -
- ret     return              -                   -               children: return values
+ ret     return              -                   `|type          children: return values, s-type only for single res
  cal     function call       func node           func name       children: args
  cli     indirect call       #args               -               children: func-expr args arg-types ret-types
  drp     drop return vals    -                   -               child type cal
@@ -48,10 +48,10 @@ node type                    i-value             s-value
  asn     assignment          #symbols            modifier        children: syms typs expr(s) | syms typs expr
  cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
- cnd     if condition        -                   -               2|3 children: if then [else]
+ cnd     if condition        -                   `|type          2|3 children: if then [else]
  nop     ignore              -                   -
  jmp     break/continue      1(break)|0(cont)    label
- swc     switch              1(has default)      -               children: expr cases [default]
+ swc     switch              1(has default)      `|result-type   children: expr cases [default]
  for     loop                1(simple)           label           children: (cond|nop) (post|nop) body
  dfr     defer stmt node     -                   -               child type cal
 unary operator nodes
