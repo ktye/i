@@ -26,12 +26,14 @@ func main() {
 	Stdout = os.Stdout
 	Stdin = os.Stdin
 
-	// jit
-	// r := wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfig().WithWasmCore2())
-
-	// interpreter
-	r := wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigInterpreter().WithWasmCore2())
-
+	var r wazero.Runtime
+	if len(os.Args) > 0 && os.Args[1] == "-i" { // interpreter
+		copy(os.Args[1:], os.Args[2:])
+		os.Args = os.Args[:len(os.Args)-1]
+		r = wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigInterpreter().WithWasmCore2())
+	} else { // jit
+		r = wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfig().WithWasmCore2())
+	}
 	defer r.Close(ctx)
 
 	// ktye/wg system interface (https://github.com/ktye/wg/blob/master/module/system.go): Exit,Args,Arg,Read,Write,ReadIn,Native
@@ -97,19 +99,6 @@ func main() {
 		Instantiate(ctx, r)
 	fatal(e)
 
-	/*
-		ns := r.NewNamespace(ctx)
-		defer ns.Close(ctx)
-
-		com, e := r.CompileModule(ctx, K, wazero.NewCompileConfig())
-		fatal(e)
-
-		cfg := wazero.NewModuleConfig().WithStartFunctions("") // skip _start
-		m, e = ns.InstantiateModule(ctx, com, cfg)
-		fatal(e)
-	*/
-
-	//module, err := r.InstantiateModuleFromBinary(ctx, K)
 	m, e = r.InstantiateModuleFromBinary(ctx, K)
 	fatal(e)
 

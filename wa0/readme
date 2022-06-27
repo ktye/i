@@ -3,21 +3,39 @@
 set -e
 set -x
 
+# get files    (kg.go,k.f,k.c for comparison)
+wget -O k.wasm https://github.com/ktye/i/releases/download/latest/k.wasm
+wget -O kg.go  https://github.com/ktye/i/releases/download/latest/kg.go
+wget -O k.c    https://github.com/ktye/i/releases/download/latest/k.c
+#wget -O k.f    https://github.com/ktye/i/releases/download/latest/k.f
+wget -O k.t    https://raw.githubusercontent.com/ktye/i/master/k.t         # tests
+
 # k.wasm (patch out _start function)
-twa="/c/local/wabt/wasm2wat --enable-bulk-memory --enable-simd"
-awt="/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd"
+tw="wasm2wat --enable-bulk-memory --enable-simd"
+wt="wat2wasm --enable-bulk-memory --enable-simd"
 
-wget -O k.wasm ktye.github.io/k.wasm
-$twa k.wasm | sed -e 's/_start/start/g' > k.wat
-$awt k.wat -o k.wasm
-#/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o k.wasm k.wat
-
-## k.exe
-#go build
-#./k
+$tw k.wasm | sed -e 's/_start/start/g' > k.wat
+$wt k.wat -o k.wasm
 
 
-## test
-#./k ../k.t
+## compile
+go build    k.go                          # k  (k.wasm+wazero)
+go build    kg.go                         # kg (pure go)
+gcc      -o kc k.c -O3 -lm                # kc (c)
+#gfortran -o kf k.f -O3 -fno-range-check  # kf (fortran does not pass test due to formatting)
 
-# => jit does not work yet
+
+
+## test/benchmark:           time(user), best of 3     (windows/amd64)
+# ./k    k.t -e >/dev/null   #  1.23s      wazero-jit
+# ./k -i k.t -e >/dev/null   # 20.06s      wazero-interpreted
+# ./kg   k.t -e >/dev/null   #  0.39s      go
+# ./kc   k.t -e >/dev/null   #  0.07s      c
+
+# remarks
+# the Go version uses a single byte slice for heap memory and serializes all memory access
+# with alignment checks, see: https://github.com/ktye/wg/blob/master/module/module.go#L51
+#
+# c uses gcc portable vector instructions for simd.
+#
+# libm calls (except for sqrt) uses softfloat versions, ported from go fallbacks.
