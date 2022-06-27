@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
@@ -21,6 +22,8 @@ var bak []byte
 var filebuf []byte
 
 func main() {
+	t0 := time.Now()
+	var t1, t2 time.Duration
 
 	ctx := context.Background()
 	Stdout = os.Stdout
@@ -88,8 +91,14 @@ func main() {
 		set(dst, b)
 		return int32(nr)
 	}
+	exit := func(x int32) {
+		t2 = time.Since(t0)
+		fmt.Fprintf(os.Stderr, "compile %v, run %v, total %v\n", t1, t2-t1, t2)
+		os.Exit(int(x))
+	}
+
 	_, e := r.NewModuleBuilder("env").
-		ExportFunction("Exit", func(x int32) { os.Exit(int(x)) }).
+		ExportFunction("Exit", exit).
 		ExportFunction("Args", func() int32 { return int32(len(os.Args)) }).
 		ExportFunction("Arg", arg).
 		ExportFunction("Read", read).
@@ -101,6 +110,8 @@ func main() {
 
 	m, e = r.InstantiateModuleFromBinary(ctx, K)
 	fatal(e)
+
+	t1 = time.Since(t0)
 
 	call := func(s string, args ...uint64) []uint64 {
 		r, e := m.ExportedFunction(s).Call(ctx, args...)
