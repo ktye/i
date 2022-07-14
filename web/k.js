@@ -145,13 +145,13 @@ let kenv={env:{
 }}
 
 // kinit fetches, compiles and initializes l.wasm then k.wasm then calls ext.init asychronously as a callback.
-K.kinit = function(ext){
+K.kinit = function(ext,kw){
  let init  = ext.init;  delete ext.init  // callback when k is loaded
  usr_read  = ext.read;  delete ext.read  // file read  implementation for k: read(name)=>Uint8Array
  usr_write = ext.write; delete ext.write // file write implementation for k: write(name,data_uint8array)
  
  function binsize(x){K.n=x.byteLength;return x}
- fetch('k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),kenv)).then(r=>{
+ fetch(kw?kw:'k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),kenv)).then(r=>{
   _=r.instance.exports
   _.kinit()
   K._=_
