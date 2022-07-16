@@ -45,7 +45,7 @@ func Fst(x K) K { // *x
 		return x
 	}
 	if t == Dt {
-		x = Val(x)
+		return Fst(Val(x))
 	}
 	return ati(x, 0)
 }
@@ -150,8 +150,8 @@ func grp(x, y K) K { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
 func Key(x, y K) K { return key(x, y, Dt) }                          // x!y
 func key(x, y K, t T) (r K) { // Dt or Tt
 	xt, yt := tp(x), tp(y)
-	if xt < 16 {
-		if yt < 16 {
+	if xt < 16 || xt == Dt {
+		if yt < 16 || yt == Dt {
 			return Key(Enl(x), Enl(y))
 		} else {
 			if xt == st && yt == Tt {
@@ -161,7 +161,7 @@ func key(x, y K, t T) (r K) { // Dt or Tt
 		}
 	}
 	xn := nn(x)
-	if yt < 16 {
+	if yt < 16 || yt == Dt {
 		y = ntake(nn(x), y)
 	}
 	if xn != nn(y) {
