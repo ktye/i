@@ -33,7 +33,7 @@ if [ "$1" = "cover" ]; then
 fi
 
 wg             . > k.wat
-/c/local/wabt/wat2wasm --enable-bulk-memory --enable-simd -o web/k.wasm k.wat
+/c/local/wabt/wat2wasm -o web/k.wasm k.wat
 
 cp web/k.html   /c/k/ktye.github.io/index.html
 cp web/k.wasm   /c/k/ktye.github.io/
