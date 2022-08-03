@@ -38,7 +38,7 @@ K.KS = function(x){
  let n=x.length
  var r=_.mk(20,n)
  var p=I().slice(lo(r))
- for(let i=0;i<n;i++)p[i]=lo(K.s(x[i]))
+ for(let i=0;i<n;i++)p[i]=lo(K.Ks(x[i]))
  return r
 }
 K.KI = function(x){
