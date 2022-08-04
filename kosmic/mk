@@ -1,6 +1,8 @@
 set -e
 set -x
 
+if false; then
+
 k=kosmic
 
 c9=/c/local/cross9/bin
@@ -11,3 +13,7 @@ $c9/x86_64-pc-linux-gnu-gcc.exe -g -O -o ${k}.com.dbg ${k}.c               \
   -Wl,-T,ape.lds -include cosmopolitan.h crt.o ape.o cosmopolitan.a
 
 $c9/x86_64-pc-linux-gnu-objcopy.exe -S -O binary ${k}.com.dbg ${k}.com
+
+fi
+
+gcc s.c -lwsock32
