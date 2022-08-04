@@ -29,16 +29,15 @@ func match(x, y K) int32 {
 		}
 		xp, yp := int32(x), int32(y)
 		e := ep(y)
-		ve := e &^ 15
 		switch xt - 17 {
 		case 0: // Bt
-			return mtC(xp, yp, ve, e)
+			return mtC(xp, yp, e)
 		case 1: // Ct
-			return mtC(xp, yp, ve, e)
+			return mtC(xp, yp, e)
 		case 2: // It
-			return mtC(xp, yp, ve, e) //mtI
+			return mtC(xp, yp, e) //mtI
 		case 3: // St
-			return mtC(xp, yp, ve, e) //mtI
+			return mtC(xp, yp, e) //mtI
 		case 4: // Ft
 			return mtF(xp, yp, e)
 		case 5: // Zt
@@ -87,13 +86,14 @@ func match(x, y K) int32 {
 	}
 	return 1
 }
-func mtC(xp, yp, ve, e int32) int32 { // f77 replace
+func mtC(xp, yp, e int32) int32 {
+	ve := e &^ 7
 	for yp < ve {
-		if I8x16load(xp).Eq(I8x16load(yp)).All_true() == 0 {
+		if I64(xp) != I64(yp) {
 			return 0
 		}
-		xp += 16
-		yp += 16
+		xp += 8
+		yp += 8
 	}
 	for yp < e {
 		if I8(xp) != I8(yp) {
@@ -104,26 +104,6 @@ func mtC(xp, yp, ve, e int32) int32 { // f77 replace
 	}
 	return 1
 }
-
-/*
-func mtI(xp, yp, ve, e int32) (r int32) {
-	for yp < ve {
-		if I8x16load(xp).Eq(I8x16load(yp)).All_true() == 0 {
-			return 0
-		}
-		xp += 16
-		yp += 16
-	}
-	for yp < e {
-		if I32(xp) != I32(yp) {
-			return 0
-		}
-		xp += 4
-		yp += 4
-	}
-	return 1
-}
-*/
 func mtF(xp, yp, e int32) int32 {
 	for yp < e {
 		if eqf(F64(xp), F64(yp)) == 0 {
@@ -135,15 +115,14 @@ func mtF(xp, yp, e int32) int32 {
 	}
 	return 1
 }
-func all(x, n int32) int32 { // f77 replace
-	t := I8x16splat(1)
+func all(x, n int32) int32 {
 	e := x + n
-	ve := e &^ 15
+	ve := e &^ 7
 	for x < ve {
-		if I8x16load(x).Eq(t).All_true() != 1 {
+		if I64(x) != int64(0x0101010101010101) {
 			return 0
 		}
-		x += 16
+		x += 8
 	}
 	for x < e {
 		if I8(x) == 0 {
@@ -153,14 +132,14 @@ func all(x, n int32) int32 { // f77 replace
 	}
 	return 1
 }
-func any(x, n int32) int32 { // f77 replace
+func any(x, n int32) int32 {
 	e := x + n
-	ve := e &^ 15
+	ve := e &^ 7
 	for x < ve {
-		if I8x16load(x).Any_true() != 0 {
+		if I64(x) != 0 {
 			return 1
 		}
-		x += 16
+		x += 8
 	}
 	for x < e {
 		if I8(x) != 0 {
@@ -191,16 +170,15 @@ func In(x, y K) K {
 func in(x, y K, xt T) K {
 	xp, yp := int32(x), int32(y)
 	e := ep(y)
-	ve := e &^ 15
 	switch xt - 1 {
 	case 0: //bt
-		e = inC(xp, yp, ve, e)
+		e = inC(xp, yp, e)
 	case 1: //ct
-		e = inC(xp, yp, ve, e)
+		e = inC(xp, yp, e)
 	case 2: //it
-		e = inI(xp, yp, ve, e)
+		e = inI(xp, yp, e)
 	case 3: //st
-		e = inI(xp, yp, ve, e)
+		e = inI(xp, yp, e)
 	case 4: //ft
 		dx(x)
 		e = inF(F64(xp), yp, e)
@@ -210,33 +188,20 @@ func in(x, y K, xt T) K {
 	}
 	return Kb(I32B(e != 0))
 }
-func inC(x, yp, ve, e int32) int32 { // f77 replace
-	v := I8x16splat(x)
-	for yp < ve {
-		if v.Eq(I8x16load(yp)).Any_true() != 0 {
-			return yp
-		}
-		yp += 16
-	}
+func inC(x, yp, e int32) int32 {
+	// maybe splat x to int64
 	for yp < e {
 		if x == I8(yp) {
-			return yp
+			return yp //used in idxc
 		}
 		yp++
 	}
 	return 0
 }
-func inI(x, yp, ve, e int32) int32 {
-	v := I32x4splat(x)
-	for yp < ve {
-		if v.Eq(I32x4load(yp)).Any_true() != 0 {
-			return yp
-		}
-		yp += 16
-	}
+func inI(x, yp, e int32) int32 {
 	for yp < e {
 		if x == I32(yp) {
-			return yp
+			return yp //used in idxi
 		}
 		yp += 4
 	}
@@ -279,12 +244,11 @@ func Not(x K) (r K) { // ~x
 	}
 	return r
 }
-func not(xp, rp, e int32) { //f77 replace
-	w := I8x16splat(1)
+func not(xp, rp, e int32) {
 	for rp < e {
-		I8x16store(rp, I8x16load(xp).Not().And(w))
-		xp += 16
-		rp += 16
+		SetI64(rp, int64(0x0101010101010101)&^I64(xp))
+		xp += 8
+		rp += 8
 		continue
 	}
 }

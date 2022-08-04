@@ -97,16 +97,11 @@ func seq(n int32) (r K) {
 	return r
 }
 func seqi(p, e int32) {
-	SetI32(p, 0)
-	SetI32(p+4, 1)
-	SetI32(p+8, 2)
-	SetI32(p+12, 3)
-	v := I32x4load(p)
-	w := I32x4splat(4)
+	i := int32(0)
 	for p < e {
-		I32x4store(p, v)
-		v = v.Add(w)
-		p += 16
+		SetI32(p, i)
+		i++
+		p += 4
 		continue
 	}
 }
@@ -663,16 +658,8 @@ func Fwh(x K) K { // *&x
 	return Fst(Wer(x))
 }
 func fwh(xp, n int32) int32 { // *&B
-	e := xp + n
-	ve := e &^ 15
 	p := xp
-f:
-	for p < ve {
-		if I8x16load(p).Any_true() != 0 {
-			break f
-		}
-		p += 16
-	}
+	e := xp + n
 	for p < e {
 		if I8(p) != 0 {
 			return p - xp

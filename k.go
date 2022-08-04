@@ -88,8 +88,8 @@ func init() {
 
 	Functions(220, negi, negf, negz, negC, negI, negF, negZ)
 	Functions(227, absi, absf, nyi, absC, absI, absF, absZ)
-	Functions(234, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addZ)
-	Functions(245, subi, subf, nyi, subcC, subiI, subfF, subzZ, subC, subI, subF, subZ)
+	Functions(234, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addF)
+	Functions(245, subi, subf, nyi, subcC, subiI, subfF, subzZ, subC, subI, subF, subF)
 	Functions(256, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
 	Functions(267, divi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
 	Functions(278, mini, minf, minz, mincC, miniI, minfF, minzZ, minC, minI, minF, minZ)

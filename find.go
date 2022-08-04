@@ -69,16 +69,15 @@ func fnd(x, y K, t T) (r int32) {
 	}
 	xp, yp := int32(x), int32(y)
 	xe := ep(x)
-	ve := xe &^ 15
 	switch t - 1 {
 	case 0: // bt
-		r = idxc(yp, xp, ve, xe)
+		r = idxc(yp, xp, xe)
 	case 1: // ct
-		r = idxc(yp, xp, ve, xe)
+		r = idxc(yp, xp, xe)
 	case 2: // it
-		r = idxi(yp, xp, ve, xe)
+		r = idxi(yp, xp, xe)
 	case 3: // st
-		r = idxi(yp, xp, ve, xe)
+		r = idxi(yp, xp, xe)
 	case 4: // ft
 		r = idxf(F64(yp), xp, xe)
 	default: // zt
@@ -124,33 +123,19 @@ func fndXs(x, y K, t T, yn int32) (r K) {
 	dx(x)
 	return Atx(r, Add(Ki(-a), y))
 }
-func idxc(x, p, ve, e int32) (r int32) {
-	r = inC(x, p, ve, e)
+func idxc(x, p, e int32) (r int32) {
+	r = inC(x, p, e)
 	if r == 0 {
 		return -1
 	}
-	e = r + 16
-	for i := r; i < e; i++ {
-		if I8(i) == x {
-			return i - p
-		}
-		continue
-	}
-	return 0 //not reached
+	return r - p
 }
-func idxi(x, p, ve, e int32) (r int32) {
-	r = inI(x, p, ve, e)
+func idxi(x, p, e int32) (r int32) {
+	r = inI(x, p, e)
 	if r == 0 {
 		return -1
 	}
-	e = r + 16
-	for i := r; i < e; i += 4 {
-		if I32(i) == x {
-			return (i - p) >> 2
-		}
-		continue
-	}
-	return 0 //not reached
+	return (r - p) >> 2
 }
 func idxf(x float64, p, e int32) (r int32) {
 	r = inF(x, p, e)

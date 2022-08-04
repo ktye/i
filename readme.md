@@ -3,9 +3,9 @@
 ```
 src:   github.com/ktye/i          6#k               (public domain)
 build: go install ktye.github.com/wg/cmd/wg  (compile wasm from go)
-       wg . > k.wat         (wat2wasm: github.com/WebAssembly/wabt)
-       wat2wasm --enable-bulk-memory --enable-simd k.wat  -o k.wasm
-online:ktye.github.io  (wasm needs multi-value/bulk-memory/simd128)
+       wg .   > k.wat       (wat2wasm: github.com/WebAssembly/wabt)
+       wat2wasm k.wat                                     -o k.wasm
+online:ktye.github.io          (wasm needs multi-value/bulk-memory)
 targets: go c fortran wasm web                   (x/ . f77/ . web/)
 tests:                                                        (k.t)
 c/extend: +/k.c                           (header-library "ktye.h")
@@ -51,4 +51,4 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 [ktye.h](https://github.com/ktye/i/releases/download/latest/ktye.h)|single header library|see [k+](https://github.com/ktye/i/tree/master/%2B)|
 [k+.tar.gz](https://github.com/ktye/i/releases/download/latest/k%2B.tar.gz)|k + extensions|linux: `sh mk.lin`|
 
-  
+simd128 has been removed, latest was [77a566f](https://github.com/ktye/i/tree/77a566f)

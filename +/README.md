@@ -18,7 +18,7 @@ ktye.h is the c version of ktye/k.
 It is generated from the source files in the toplevel directory using a custom compiler [ktye/wg](https://github.com/ktye/wg).
 The generated c code is pretty large, the expressions are converted to many single assignments but the c compiler should be able to tranform this into acceptable binaries.
 
-It should be portable and uses stdio, stdlib(malloc), setjmp(error recovery) and gcc portable vector instructions for simd128.
+It should be portable using stdio, stdlib(malloc) and setjmp(error recovery).
 
 k.c is the main application that includes all extensions.
 

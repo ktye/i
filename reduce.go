@@ -131,7 +131,7 @@ func sumb(xp, xn int32) (r int32) {
 	e := xp + xn
 	ve := e &^ 7
 	var s int64
-	for xp < ve { // todo: I8x16popcnt when ready: https://github.com/WebAssembly/simd/pull/379
+	for xp < ve {
 		s += I64popcnt(uint64(I64(xp)))
 		xp += 8
 	}
