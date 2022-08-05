@@ -50,5 +50,6 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c|`gcc k.c -lm`|
 [ktye.h](https://github.com/ktye/i/releases/download/latest/ktye.h)|single header library|see [k+](https://github.com/ktye/i/tree/master/%2B)|
 [k+.tar.gz](https://github.com/ktye/i/releases/download/latest/k%2B.tar.gz)|k + extensions|linux: `sh mk.lin`|
+[kosmic.com](https://github.com/ktye/i/releases/download/latest/kosmic.com)|universal binary+webserver|[kosmic/](kosmic/)|
 
 simd128 has been removed, latest was [77a566f](https://github.com/ktye/i/tree/77a566f)

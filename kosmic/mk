@@ -1,19 +1,48 @@
 set -e
 set -x
 
-if false; then
+if [ "$1" = "ktye" ];then  
+ cat ../+/k.h                   | grep -v '^#include' > k.h
+ wg -c -prefix ktye_ -nomain .. | grep -v '^#include' > ktye.h
+ cat                         ../+/api                >> ktye.h
+ exit 0
+ # or wget github.com/ktye/i/releases/download/latest/ktye.h and remove includes.
+fi
+
+
+if [ "$1" = "getcosmo" ];then
+ wget https://justine.lol/cosmopolitan/cosmopolitan-tiny.zip && unzip cosmopolitan-tiny.zip
+ exit 0
+fi
+
 
 k=kosmic
 
-c9=/c/local/cross9/bin
+if [ "$1" = "lin" ];then    # build on linux
 
-$c9/x86_64-pc-linux-gnu-gcc.exe -g -O -o ${k}.com.dbg ${k}.c               \
+ gcc -g -Os -static -fno-pie -no-pie -nostdlib -nostdinc            \
+  -fno-omit-frame-pointer -pg -mnop-mcount -mno-tls-direct-seg-refs \
+  -o ${k}.dbg hello.c -Wl,--gc-sections -fuse-ld=bfd                \
+  -Wl,-T,ape.lds -include cosmopolitan.h crt.o ape.o cosmopolitan.a
+ objcopy -S -O binary ${k}.com.dbg ${k}.com
+ 
+else                        # build on windows
+
+ c9=/c/local/cross9/bin     # cross9 is: justine.lol/cosmopolitan/windows-compiling.html
+ cc=$c9/x86_64-pc-linux-gnu-gcc.exe
+ oc=$c9/x86_64-pc-linux-gnu-objcopy.exe
+ $cc -g -O  -o ${k}.com.dbg ${k}.c -Wfatal-errors                                    \
   -static -fno-pie -no-pie -mno-red-zone -fno-omit-frame-pointer -nostdlib -nostdinc \
   -Wl,--gc-sections -Wl,-z,max-page-size=0x1000 -fuse-ld=bfd                         \
   -Wl,-T,ape.lds -include cosmopolitan.h crt.o ape.o cosmopolitan.a
-
-$c9/x86_64-pc-linux-gnu-objcopy.exe -S -O binary ${k}.com.dbg ${k}.com
-
+ $oc -S -O binary ${k}.com.dbg ${k}.com
+ 
 fi
 
-gcc s.c -lwsock32
+
+
+
+
+
+
+
