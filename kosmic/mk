@@ -38,11 +38,3 @@ else                        # build on windows
  $oc -S -O binary ${k}.com.dbg ${k}.com
  
 fi
-
-
-
-
-
-
-
-

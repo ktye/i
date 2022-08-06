@@ -10,21 +10,19 @@ The c side of the webserver is minimalistic, single-threaded and forwards every 
 # arguments
 
 ```
-kosmic [file.k *] [1234] [-e][kstr]
+kosmic [port] [file.k *] [-e][kstr]
+ port  disable with 0, default 8088
  files.k  are executed
- int   is used as a port
  -e    terminates (no repl)
  -e X  evaluates X before terminating
 ```
 
 - without arguments (e.g. double-click) executes `a.k`, if present in the same directory
-  and listens on `port` (a k variable) if it is non-zero. otherwise the server is not started.
-  
-- without explicit `-e`, the terminal always remains a k-console.
+  and listens on `8088`. The server is not started if port is 0.
 
 # minimal web application
-- k has a variable `port` (a nonzero integer)
 - k has a function `serve` that receives the request as `C` and responds with `C`
+- `cwd` variable is predefined at startup
 
 # applications
 
@@ -45,8 +43,5 @@ you can add additional c code to `kosmic.c` and make it available to k by the [c
 
 as an example a `clock` function is included.
 
-see (mk)[mk] how to compile.
-
-
-
+see [mk](mk) how to compile.
 
