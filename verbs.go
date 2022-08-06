@@ -205,6 +205,13 @@ func Tak(x, y K) (r K) { // x#y
 }
 func ntake(n int32, y K) (r K) {
 	t := tp(y)
+	if n == nai {
+		if t < 16 {
+			n = 1
+		} else {
+			n = nn(y)
+		}
+	}
 	if n < 0 {
 		if tp(y) < 16 {
 			return ntake(-n, y)
