@@ -32,14 +32,6 @@ void serve(int port){
 void dofile(const char *f){K a=ref(KC(f,strlen(f)));ktye_dofile(a,ktye_readfile(a));}
 void ak(){          int f=open("a.k",O_RDONLY);if(0>f)return;close(f);dofile("a.k");}
 
-void doargs(int args, char **argv){
- for(int i=0;i<args;i++){
-  char *a=argv[i];size_t n=strlen(a);
-  int p=atoi(a);if(p){KA(Ks("port"),Ki(p));continue;}
-       if((2< n)&&('k'==a[n-1])&&('.'==a[n-2]))dofile(a);
-  else if((2==n)&&('e'==a[n-1])&&('-'==a[n-2])){if(i<args-1)ktye_repl(KC(argv[1+i],strlen(argv[1+i])));exit(0);
-}}}
-
 int main(int args, char **argv){
  int p=8088;
  kinit();
