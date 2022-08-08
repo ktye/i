@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>.</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+<link rel="stylesheet" href="kweb.css">
+<style>
+ html{font-family:monospace;overflow:hidden}
+ #tty{left:0;width:100vw;top:70vh;height:30vh;position:absolute;resize:none}
+ #left{left:0;width:30vw;position:absolute;}
+ #main{left:30vw;top:0;position:absolute;}
+</style>
+
+<body>
+
+<!--
+<input id="inn" size=50 value="+`abc`def!(1 2 3;`alpha`beta`gamma)"/> <button id="but">show</button>
+<input id="tty" size=50 /><button id="exec">exec</button>
+<hr/>
+<div id="result"></div>
+<hr/>
+<pre id="out"></div>
+-->
+
+<div id="left">
+ <table>
+ <tr><td><a href="index.html#web.k">web.k</a><td><td>example 1<td></tr>
+ <tr><td><a href="index.html#web2.k">web2.k</a><td><td>example 2<td></tr>
+ </table>
+</div>
+<textarea id="tty">a b c</textarea>
+<div id="main">
+</div>
+
+
+<script type="module">
+
+import {K   } from '../k.js'
+import {kweb} from './kweb.js'
+
+
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function us(s){return new TextEncoder("utf-8").encode(s)}
+
+/*
+let but=ge("but")
+but.onclick=function(){
+ kweb.show("result",ktry(ge("inn").value))
+}
+
+let out=ge("out")
+let tty=ge("tty")
+let exec=ge("exec")
+tty.onkeydown=function(e){if(e.key=="Enter"){rep();return false}}
+exec.onclick=function(e){rep()}
+function rep(){
+ let r=ktry(tty.value)
+ if(r){out.textContent=" "+tty.value+"\n"+K.CK(K.Kx("`k@",r))}
+ else out.textContent=""
+ kweb.update()
+}
+*/
+
+function O(s){
+ let tty=ge("tty")
+ if(tty) tty.value+=s
+ else    console.log(s)
+}
+
+function start(){
+ let h=document.location.hash.slice(1)
+ if(h)fetch(h).then(r=>r.text()).then(r=>ktry(r))
+ tty.value="k\n "
+}
+
+var ext={
+ init: start,
+ read: function(file)     {return new Uint8Array(0)},
+ write:function(file,data){if(file===""){O(su(data))}else{}},
+ show: function(x,y)      {kweb.show(K.sK(x),K.ref(y));return y},
+ body: kweb.body,
+ style:kweb.style,
+}
+K.kinit(ext,"../k.wasm")
+
+function ktry(s){
+ try     {let x=K._.Val(K.KC(s));K.save();return x}
+ catch(e){console.log(e);K.restore();return false}
+}
+
+</script>
+
+</body>
+</html>
+

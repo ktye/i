@@ -18,7 +18,7 @@ function F(){ return new  Float64Array(_.memory.buffer) }
 
 // type/length
 K.TK = function(x){ 
- const t="-icisfF----------ICISFFLDT"; //like ../+/api
+ const t="-bcisfz----------BCISFZLDT";
  return t[_.tp(x)]
 }
 K.NK = function(x){ return _.nn(x) }
@@ -64,13 +64,17 @@ K.KL = function(x){
 
 K.cK = function(x){ return lo(x) << 24 >> 24 } // signed int8
 K.iK = function(x){ return lo(x) << 0 } // signed int32
-K.fK = function(x){ 
- let p=lo(x)>>>3;return dxr(x,F()[p])
-}
+K.sK = function(x){ return K.CK(_.cs(x)) }
+K.fK = function(x){ let p=lo(x)>>>3;return dxr(x,F()[p]) }
 
 K.BK = function(x){ return dxr(x, C().slice(lo(x),lo(x)+_.nn(x))) }
 K.CK = function(x){ return su(K.BK(x)) }
 K.IK = function(x){ let p=lo(x)>>>2;return dxr(x,I().slice(p,p+_.nn(x))) }
+K.SK = function(x){ let n=_.nn(x); let r=new Array(n); let p=lo(x)>>>2
+ let y=I().slice(p,p+n)
+ for(let i=0;i<n;i++)r[i]=K.CK(_.cs(BigInt(y[i]))) 
+ return dxr(x,r)
+}
 K.FK = function(x){
  let t=_.tp(x); let n=(t==6) ? 2 : (t==22) ? 2*_.nn(x) : _.nn(x);
  let p=lo(x)>>>3;return dxr(x,F().slice(p,p+n))
