@@ -93,6 +93,40 @@ K.KA   = function(sym,val){ K._.dx(K._.Asn(sym,val)) }
 K.ref  = function(x){return _.rx(x)}
 K.unref= function(x){       _.dx(x)}
 
+K.KJ=function(x){ //general js to k converter
+ if(Array.isArray(x)){
+  let r=Array(x.length)
+  for(let i=0;i<x.length;i++)r[i]=K.KJ(x[i])
+  return K.KL(r)
+ }
+ if(Number.isInteger(x))return K.Ki(x)
+ switch(typeof x){
+ case "number": return K.Kf(x)
+ case "string": return K.CK(x)
+ default: return BigInt(0);
+}}
+K.JK=function(x){
+ let t=_.tp(x)
+ let n=(t>16)?_.nn(x):1
+ switch(t){
+ case 1:  return lo(x)!=0;
+ case 2:  return K.cK(x);
+ case 3:  return K.iK(x);
+ case 4:  return K.sK(x);
+ case 5:  return K.fK(x);
+ //no z
+ case 17: return K.BK(x);
+ case 18: return K.CK(x);
+ case 19: return K.IK(x);
+ case 20: return K.SK(x);
+ case 21: return K.FK(x);
+ //no Z
+ case 23: let r=Array(n);for(let i=0;i<n;i++)r[i]=K.JK(_.Atx(_.rx(x),K.Ki(i)));return dxr(x,r)
+ //no D,T,and funcs
+ default: return dxr(x,null);
+ }
+}
+function jk(x){ return x.map(K.JK) }
 
 let bak   // save/restore back buffer
 K.save    = function(){ bak = new Uint8Array(K._.memory.buffer).slice(0, 1<<U()[32]) }
@@ -123,6 +157,15 @@ function k_read(file,nfile,dst){
 
 // js implementation for external k functions
 let xcal=[]
+K.JS = function(args,body){        //create anonymous js function
+ if(4==_.tp(args))args=K.Kx(",",args)
+ let a=K.SK(args),b=K.CK(body)
+ let F=Function(...a,b)
+ xcal.push(function(...xyz){return K.KJ(F.apply(null,jk(xyz)))})
+ let f=K._.l2(K.Kx(",", K.Ki(xcal.length-1)), K.KC("js{"+b+"}"))
+ I()[(lo(f)>>>2)-3]=a.length  //arity
+ return (BigInt(14)<<BigInt(59)) + BigInt(lo(BigInt(f)))
+}
 function register(name, idx, arity){ // this is similar to the c-api's KR(..) implementation in ../+/api
  // k representation of a native function: length-2 list, the arity is stored as the vector-length.
  //   c uses: (pointer;string) where the pointer is stored in an 8-byte char vector; string is the function name (used by $f).
@@ -133,6 +176,7 @@ function register(name, idx, arity){ // this is similar to the c-api's KR(..) im
  f = (BigInt(14)<<BigInt(59)) + BigInt(lo(BigInt(f))) // type tag xf(extern function) as upper bits
  K.KA(K.Ks(name), f)                                  // assign
 }
+
 
  
 // import object for k.wasm

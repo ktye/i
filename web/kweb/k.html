@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>.</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+
+<link rel="stylesheet" href="kweb.css">
+
+<body>
+
+
+
+<script type="module">
+
+import {K   } from '../k.js'
+import {kweb} from './kweb.js'
+
+
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
+function us(s){return new TextEncoder("utf-8").encode(s)}
+function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
+
+
+// drop files (execute .k)
+window.ondragover=function(e){pd(e)}
+window.ondrop=function(e){pd(e);if(e.dataTransfer.items){for(let i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){let file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(let i=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
+function addfile(x){
+ let r=new FileReader()
+ r.onload=function(){
+  let u=new Uint8Array(r.result)
+  if(x.name.endsWith(".k")){ document.body.innerHTML=""; ktry(su(u)) }
+ }
+ r.readAsArrayBuffer(x)
+}
+
+
+function start(){
+ let h=document.location.hash.slice(1)
+ document.title=h
+ if(h)fetch(h).then(r=>r.text()).then(r=>ktry(r))
+ else{document.body.innerHTML="drop k file here"}
+}
+
+var ext={
+ init: start,
+ read: function(file)     {return new Uint8Array(0)},
+ write:function(file,data){if(file===""){console.log("k>",su(data))}else{}},
+ show: kweb.show,
+ link: kweb.link,
+ expr: kweb.expr,
+ js:   K.JS,
+}
+K.kinit(ext,"../k.wasm")
+
+function ktry(s){
+ try     {let x=K._.Val(K.KC(s));K.save();return x}
+ catch(e){console.log(e);K.restore();return false}
+}
+
+</script>
+
+</body>
+</html>
+
+

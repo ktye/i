@@ -1,41 +1,45 @@
 import { K } from '../k.js'
 
-//nodes stores all element ids that 
+
 let nodes={}
 
 function update(){
- for(id in nodes){
-  let dst=nodes[i]
-  if('s'in dst){
+ for(let id in nodes){
+  let dst=nodes[id]
+  if(dst.offsetParent===null)continue   //skip invisible
+  if(dst.s){ 
    let k=K.Kx(".",dst.s)
-   if(k!=dst.k)show(id,dst.s) //global variable has changed
-}}}
-
-//show(dst,x) shows the k-value x in html element with id.
-function show(id,x){
- let dst=ge(id)
- if(dst===null){
-  dst=ce("div")
-  document.body.appendChild(dst)
- }
- removeAll(dst)
- delete dst.s      //k-symbol(global variable)
- if('k'in dst){
-  K.unref(dst.k)
-  delete dst.k     //k-value
- }
- if(!x)return
- if(K.TK(x)=="s"){ //backed by a global
-  nodes[id]=x
-  dst.s=x;
-  x=K.Kx(".",x)
- }else delete nodes[id]
- dst.k=x
- let t=K.TK(x)
- switch(K.TK(x)){
- case "T":Tshow(dst,x);break;
- default:console.log("type",t)
+   if(k!=dst.k)gui(id,null,dst.s,null)  //global variable has changed
+  }
+  if(dst.e)    gui(id,null,null,dst.e)  //evaluate expr
 }}
+
+
+function show(id,x){return gui(K.sK(id),   x,   null,null)}
+function link(id,x){return gui(K.sK(id),null,   x   ,null)}
+function expr(id,x){return gui(K.sK(id),null,null,K.CK(x))}
+
+function gui(id,x,s,e){id=(id=="")?"uid"+String(Object.keys(nodes).length):id
+ let dst=ge(id);
+ if(dst==null){dst=ce("div");dst.id=id;document.body.appendChild(dst)}
+ dst.s=s;dst.e=e                                 //symbol,expr
+ if(('k' in dst)&&dst.k)K.unref(dst.k); dst.k=x  //k-value
+ removeAll(dst)
+ nodes[id]=dst
+ if(s){dst.k=K.Kx(".",     s )}                  //link
+ if(e){dst.k=K.Kx(".",K.KC(e))}                  //expr
+ let t=K.TK(dst.k)
+ switch(t){
+ case"B":case"I":case"S":case"F":case"Z":case"L":
+         Lshow(dst,dst.k);break
+ case"T":Tshow(dst,dst.k);break
+ case"D":Dshow(dst,dst.k);break
+ default:console.log("gui:type",t)
+ }
+ return K.Ks(id)
+}
+
+
 
 function SV(x){ //strings from vector 
  let l
@@ -49,11 +53,47 @@ function SV(x){ //strings from vector
  K.unref(l);return r
 }
 
-function Tshow(dst,x){ //create table from x, append to dst
+function Lshow(dst,x){ //create select element from vectors
+ let n=K.NK(x)
+ let S=Array(n)
+ if(K.TK(x)=="L"){
+  for(let i=0;i<n;i++)S[i]=K.Kx("`k@",K.Kx("@",K.ref(x),K.Ki(i)))
+  K.unref(x)
+ }else S=K.LK(K.Kx("$",x)).map(K.CK)
+ let s=ce("select")
+ for(let i=0;i<n;i++){
+  let o=ce("option")
+   o.textContent=S[i]
+  s.appendChild(o)
+ }
+ dst.appendChild(s)
+}
+function Dshow(dst,x){ //create table from x(dict), only for symbol keys
+ let [k,v]=K.LK(K.ref(x))
+ if(K.TK(k)!="S"){K.unref(k);K.unref(v);return}
+ let S=K.SK(k), n=S.length
+ let ta=ce("table")
+ ta.classList.add("kweb-dict")
+ for(let i=0;i<n;i++){
+  let tr=ce("tr")
+   let th=ce("th")
+    th.textContent=S[i]
+   tr.appendChild(th)
+   let td=ce("td")
+    td.textContent=K.Kx("`k@",K.Kx("@",K.ref(v),K.Ki(i)))
+   tr.appendChild(td)
+  ta.appendChild(tr)
+ }
+ dst.appendChild(ta)
+ K.unref(v)
+ //todo: editable
+}
+function Tshow(dst,x){ //create table from x(table)
  let N=K.iK(K.Kx("#",K.ref(x)))
  let L=K.LK(K.ref(x))             //[keys,values]
  let S=K.SK(L[0])
  let ta=ce("table") 
+ ta.classList.add("kweb-table")
  ta.cols=S                        //store column names/types
  ta.coltype=Array(S.length)
   let tr=ce("tr")
@@ -77,7 +117,7 @@ function Tshow(dst,x){ //create table from x, append to dst
    ta.appendChild(tr)
   }
  dst.appendChild(ta)
- if('v'in dst)editTable(dst)
+ if(dst.s)editTable(dst)
 }
 
 function editTable(dst){ //make table editable (link with k)
@@ -97,9 +137,11 @@ function editTable(dst){ //make table editable (link with k)
     et.textContent=K.CK(K.Kx("$",K.ref(v)))
     et.classList.remove("kweb-editing","kweb-invalid")
     et.blur()
-    dst.k=K.Kx(".",dst.k,K.Kx(",",K.Ks(t.cols[j]),K.Ki(i)),v)
-    if('v'in dst)dst.k=K.Kx(":",dst.v,dst.k)
+    v=K.Kx(".",dst.k,K.Kx(",",K.Ks(t.cols[j]),K.Ki(i)),v)
+    K.KA(dst.s,v)
+    dst.k=K.ref(v)
     delete et.old
+    update()
     return false
    }else if(e.key=="Escape"){
     if('old' in et)et.textContent=et.old
@@ -116,14 +158,14 @@ function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
 function removeAll(p){while(p.firstChild)p.removeChild(p.firstChild)}
 
-function body(x){
- let b=ge("main");
- ((b==null)?document.body:b).innerHTML=K.CK(x);return BigInt(0)
-}
+/*
 function style(x){
  let s=ce("style");s.innerText=K.CK(x);
  document.head.appendChild(s);return BigInt(0)
 }
+*/
 
-let kweb = {show,body,update,style}
+document.update=update //for custom updates from k
+
+let kweb = {show,link,expr,update}
 export { kweb }

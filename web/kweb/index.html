@@ -1,95 +1,178 @@
 <!DOCTYPE html>
 <head><meta charset="utf-8"><title>.</title></head>
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
-<link rel="stylesheet" href="kweb.css">
 <style>
- html{font-family:monospace;overflow:hidden}
- #tty{left:0;width:100vw;top:70vh;height:30vh;position:absolute;resize:none}
- #left{left:0;width:30vw;position:absolute;}
- #main{left:30vw;top:0;position:absolute;}
+ h1{border-top:1px solid black}
+ pre{margin-left:1em}
+ .example{background-color:#f8f8f8}
 </style>
 
-<body>
+<body onload='build()'>
 
-<!--
-<input id="inn" size=50 value="+`abc`def!(1 2 3;`alpha`beta`gamma)"/> <button id="but">show</button>
-<input id="tty" size=50 /><button id="exec">exec</button>
-<hr/>
-<div id="result"></div>
-<hr/>
-<pre id="out"></div>
--->
-
-<div id="left">
- <table>
- <tr><td><a href="index.html#web.k">web.k</a><td><td>example 1<td></tr>
- <tr><td><a href="index.html#web2.k">web2.k</a><td><td>example 2<td></tr>
- </table>
-</div>
-<textarea id="tty">a b c</textarea>
-<div id="main">
-</div>
+<div><ul id="toc"></ul></div>
 
 
-<script type="module">
-
-import {K   } from '../k.js'
-import {kweb} from './kweb.js'
+<h1 id="intro">intro</h1>
 
 
-function ge(x){return document.getElementById(x)}
-function ce(x){return document.createElement(x)}
-function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
-function us(s){return new TextEncoder("utf-8").encode(s)}
+<h1 id="js">call js from k</h1>
 
-/*
-let but=ge("but")
-but.onclick=function(){
- kweb.show("result",ktry(ge("inn").value))
-}
-
-let out=ge("out")
-let tty=ge("tty")
-let exec=ge("exec")
-tty.onkeydown=function(e){if(e.key=="Enter"){rep();return false}}
-exec.onclick=function(e){rep()}
-function rep(){
- let r=ktry(tty.value)
- if(r){out.textContent=" "+tty.value+"\n"+K.CK(K.Kx("`k@",r))}
- else out.textContent=""
- kweb.update()
-}
-*/
-
-function O(s){
- let tty=ge("tty")
- if(tty) tty.value+=s
- else    console.log(s)
-}
-
-function start(){
- let h=document.location.hash.slice(1)
- if(h)fetch(h).then(r=>r.text()).then(r=>ktry(r))
- tty.value="k\n "
-}
-
+<p><i>k</i> runs in the browser as a WebAssembly module. To interface with the system (in this case js), it needs to be supplied with an <i>import object</i> when the module is initialized.<br>
+This is done in <code>k.html</code> with:
+<pre>
 var ext={
  init: start,
  read: function(file)     {return new Uint8Array(0)},
- write:function(file,data){if(file===""){O(su(data))}else{}},
- show: function(x,y)      {kweb.show(K.sK(x),K.ref(y));return y},
- body: kweb.body,
- style:kweb.style,
+ write:function(file,data){if(file===""){console.log("k>",su(data))}else{}},
+ show: kweb.show,
+ link: kweb.link,
+ expr: kweb.expr,
+ js:   K.JS,
 }
 K.kinit(ext,"../k.wasm")
+</pre>
 
-function ktry(s){
- try     {let x=K._.Val(K.KC(s));K.save();return x}
- catch(e){console.log(e);K.restore();return false}
+<p><code>init</code>, <code>read</code> and <code>write</code> are the only requirements for the module.</p>
+
+<p>The remaining functions are stored in <i>k</i> variables with an external/native function type.</p>
+
+<p><code>show</code>, <code>link</code> and <code>expr</code> provide ui functions that are described later.</p>
+
+<p><code>js</code> creates an anonymous javascript function which is returned to <i>k</i> and allows us to access and modify the js environment from <i>k</i>.
+Arguments to <code>js</code> are the arglist as symbols and the function body as a string.<br>
+
+<div class="example" id="js.k"></div>
+
+
+<h1 id="khtml">khtml</h1>
+With some projections we can write a classic html site in k:
+<div class="example" id="html.k"></div>
+
+<p>css/style rules could be changed from <i>k</i> like that:
+<pre>
+style:js[`x;"function style(x){let s=document.createElement('style');s.innerText=x;document.head.appendChild(s);return null}"]
+style"*{background-color:black}"
+</pre>
+
+
+<h1 id="link">link k and ui</h1>
+
+<p><b>kweb.js</b> defines some functions that allow the creation of ui elements from k values.</p>
+
+<i>k values</i> are connected to visual elements in <i>div nodes</i> in three different modes:
+<ol>
+ <li><code>show</code> takes a k value</li>
+ <li><code>link</code> takes a symbol that references a k variable</li>
+ <li><code>expr</code> evaluates a string as a k expression</li>
+</ol>
+
+<p>
+A <b>k value</b> is simply shown in the gui. It cannot be modified.<br>
+If the value is referenced by <b>symbol</b>, it may be modified by ui interactions which mirror the modification to the k side.<br>
+A <b>k expression</b> is evaluated each time the ui is updated.
+It can be used e.g. to add computed columns to a table.
+</p>
+
+<p><code>show</code>, <code>link</code> and <code>expr</code> create ui elements from <i>k</i> e.g. with <code>show[dst;x]</code>. The functions take two arguments:</p>
+<ol>
+ <li><code>dst</code> is the id of a div element where the ui is placed inside.
+     If it does not exist or is empty, a new element is created and appended to the body.
+     It returns the element id.</li>
+ <li><code>x</code>is the k value. The kind of ui element that is build depends on the type of <code>x</code></li>
+</ol>
+
+<p>The example shows a table stored in the variable <code>t</code>.
+It can be edited by clicking on the values.
+Editing is commited with the <code>Enter</code> key.
+The string value is verified by <i>k</i> if it is valid for the row type.
+Edited values always keep the original type.</p>
+
+<div class="example" id="table.k"></div>
+
+<p>This example shows two tables. The first is stored in the variable <code>t</code> and shown in the div element <code>a</code> that is created in the first line.<br>
+The second table is created by an expression and shown in <code>b</code>.<br>
+You can edit the first table and see the second updating.
+
+<div class="example" id="computecol.k"></div>
+
+<h1 id="imgui">immediate mode ui</h1>
+
+<p>The ui updates every time when there is an interaction between <i>k</i> and <i>html/js</i>.<br></p>
+
+<p>To save work, only elements that are visible are rebuild.</p>
+<p>An element that shows a static <i>k value</i> is not updated.</p>
+<p>Elements linked by symbols also take a reference of a k value which is an <code>i64</code> in the k system, represented by a <code>BigInt</code> in js.
+Before rebuilding the element, the gui resolves the variable and compares the new k value to the old one.
+Due to k's immutability rules, underlying values cannot have changed if the k values are identical, even for deeply nested object.
+Redrawing only happens, if the value is different.</p>
+<p><b>k expressions</b> however are redrawn each time.</p>
+
+
+<h1 id="callbacks">js callbacks and events</h1>
+
+In this example we create a dropdown list with months.
+A table query should be updated every time the dropdown changes.<br>
+
+<div class="example" id="event.k"></div>
+
+<h1 id="separation">separate html and k</h1>
+When the application has reached a certain size, it may be beneficial to separate <i>k</i> and <i>html</i>.<br>
+
+The gui can be written in <i>html</i> and <i>k</i> remains functional/analytical.
+
+
+<h1 id="empty">empty application</h1>
+The website <a href="k.html">ktye.github.io/kweb/k</a> (which shows all examples using a location hash), also serves as an empty template.<br>
+
+It will execute every <i>k</i> gui file that is dropped on the page.
+
+
+<h1 id="io">data i/o</h1>
+
+<code>kweb/k</code> is served from github which is a static server.
+
+<p>The program runs completely inside the browser, including the <i>k</i> core which is a WebAssembly module.<br>
+That means that <i>k</i> has no access to data on disk.</p>
+
+<p>Data files can be added to a virtual filesystem, by dropping them in the browser.
+Then <i>k</i> can access them with it's read mechanism: <code>data:&lt;`filename</code></p>
+
+<p>Files written by <i>k</i> trigger a download: <code>`filename&lt;data</code></p>
+
+<p>Alternatively <i>kweb</i> can be served from a local http server that has access to files on disk and writes files on post request.
+It needs at least the following files:
+<pre>
+../k.wasm    k core
+../k.js      js interface
+kweb.js      ui
+kweb.css     style
+k.html       application
+</pre>
+<i>todo..</i></p>
+
+<p>Other possibilities are to run <i>k</i> in the server application, or let <i>k</i> be the server itself.</p>
+
+
+<script>
+function ge(x){return document.getElementById(x)}
+function ce(x){return document.createElement(x)}
+function build(){
+ let l=document.querySelectorAll("div.example")
+ for(i=0;i<l.length;i++){let p=l[i]
+  let pr=ce("pre");p.appendChild(pr)
+  fetch(p.id).then(r=>r.text()).then(r=>pr.textContent=r)
+  let a=ce("a");a.href="k.html#"+p.id;a.target="_blank";a.textContent="run "+p.id;p.appendChild(a)
+ }
+ l=document.querySelectorAll("h1")
+ let toc=ge("toc")
+ for(let i=0;i<l.length;i++){let h=l[i]
+  let li=ce("li")
+  let a=ce("a");a.href="#"+h.id;a.textContent=h.textContent
+  li.appendChild(a);toc.appendChild(li)
+ }
 }
 
-</script>
 
+</script>
 </body>
 </html>
-
