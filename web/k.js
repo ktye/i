@@ -18,7 +18,7 @@ function F(){ return new  Float64Array(_.memory.buffer) }
 
 // type/length
 K.TK = function(x){ 
- const t="-bcisfz----------BCISFZLDT";
+ const t="0bcisfz---mdplx--BCISFZLDT";
  return t[_.tp(x)]
 }
 K.NK = function(x){ return _.nn(x) }
@@ -72,7 +72,7 @@ K.CK = function(x){ return su(K.BK(x)) }
 K.IK = function(x){ let p=lo(x)>>>2;return dxr(x,I().slice(p,p+_.nn(x))) }
 K.SK = function(x){ let n=_.nn(x); let r=new Array(n); let p=lo(x)>>>2
  let y=I().slice(p,p+n)
- for(let i=0;i<n;i++)r[i]=K.CK(_.cs(BigInt(y[i]))) 
+ for(let i=0;i<n;i++)r[i]=K.CK(_.cs(K.Ki(y[i]))) 
  return dxr(x,r)
 }
 K.FK = function(x){

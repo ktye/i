@@ -1,51 +1,60 @@
 <!DOCTYPE html>
-<head><meta charset="utf-8"><title>.</title></head>
+<head><meta charset="utf-8"><title>we don't do gui</title></head>
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
 <style>
- h1{border-top:1px solid black}
+ h2{border-top:1px solid black}
+ p{max-width:55em}
  pre{margin-left:1em}
  .example{background-color:#f8f8f8}
 </style>
 
 <body onload='build()'>
+<h1>kweb: a ui for k</h1>
+
+<p>This document describes a system how <i>k</i> and <i>html/js</i> can interact to build gui applications for analytical tasks.
+Small programs can be written directly in k with minimal ui overhead.
+Larger programs can be separated into <i>html</i> for the presentation and <i>k</i> for computation.
+The ui updates automatically after user interaction.<br>
+
+Programs can run <a href="#online">online</a>, e.g. from this page or <a href="#kosmic">locally</a> to access files on disk.
+All examples in this document are executable.</p>
 
 <div><ul id="toc"></ul></div>
 
 
-<h1 id="intro">intro</h1>
 
-
-<h1 id="js">call js from k</h1>
+<h2 id="js">calling js from k</h2>
 
 <p><i>k</i> runs in the browser as a WebAssembly module. To interface with the system (in this case js), it needs to be supplied with an <i>import object</i> when the module is initialized.<br>
-This is done in <code>k.html</code> with:
+This is done in <code>kweb.js</code> with:</p>
+
 <pre>
-var ext={
- init: start,
- read: function(file)     {return new Uint8Array(0)},
- write:function(file,data){if(file===""){console.log("k>",su(data))}else{}},
- show: kweb.show,
- link: kweb.link,
- expr: kweb.expr,
- js:   K.JS,
-}
-K.kinit(ext,"../k.wasm")
+ let ext={                  //wasm import module
+  init: start,
+  read: function(file)     {return new Uint8Array(0)},
+  write:function(file,data){if(file===""){O(su(data))}else{}},
+  show: show,
+  js:   K.JS,
+ }
+ K.kinit(ext,kwasm)
 </pre>
 
-<p><code>init</code>, <code>read</code> and <code>write</code> are the only requirements for the module.</p>
+<p><code>init</code>, <code>read</code> and <code>write</code> are the only requirements for the <code>k.wasm</code> module.</p>
 
 <p>The remaining functions are stored in <i>k</i> variables with an external/native function type.</p>
 
-<p><code>show</code>, <code>link</code> and <code>expr</code> provide ui functions that are described later.</p>
+<p><code>show</code> is a ui function that is explained later.</p>
 
 <p><code>js</code> creates an anonymous javascript function which is returned to <i>k</i> and allows us to access and modify the js environment from <i>k</i>.
-Arguments to <code>js</code> are the arglist as symbols and the function body as a string.<br>
+Arguments to <code>js</code> are the arglist as symbols and the function body as a string.</p>
 
 <div class="example" id="js.k"></div>
 
 
-<h1 id="khtml">khtml</h1>
-With some projections we can write a classic html site in k:
+<h2 id="khtml">khtml</h2>
+
+<p>With some projections we can write a classic html site in k:</p>
+
 <div class="example" id="html.k"></div>
 
 <p>css/style rules could be changed from <i>k</i> like that:
@@ -55,30 +64,30 @@ style"*{background-color:black}"
 </pre>
 
 
-<h1 id="link">link k and ui</h1>
+<h2 id="link">link k and ui</h2>
 
-<p><b>kweb.js</b> defines some functions that allow the creation of ui elements from k values.</p>
+<p><b>kweb.js</b> defines the <code>show</code> functions that allow the creation of ui elements from k values.</p>
 
-<i>k values</i> are connected to visual elements in <i>div nodes</i> in three different modes:
+<i>k values</i> are connected to visual elements in <i>div nodes</i> in three different modes depending on the second argument:
 <ol>
- <li><code>show</code> takes a k value</li>
- <li><code>link</code> takes a symbol that references a k variable</li>
- <li><code>expr</code> evaluates a string as a k expression</li>
+ <li><code>show[dst; value]</code> takes a k value</li>
+ <li><code>show[dst;symbol]</code> takes a symbol that references a k variable</li>
+ <li><code>show[dst; expr ]</code> evaluates a k expression, which is given by a niladic lambda</li>
 </ol>
 
 <p>
-A <b>k value</b> is simply shown in the gui. It cannot be modified.<br>
+A k <b>value</b> is simply shown in the gui. It cannot be modified.<br>
 If the value is referenced by <b>symbol</b>, it may be modified by ui interactions which mirror the modification to the k side.<br>
-A <b>k expression</b> is evaluated each time the ui is updated.
+A k <code>{expression}</code> is evaluated each time the ui is updated.
 It can be used e.g. to add computed columns to a table.
 </p>
 
-<p><code>show</code>, <code>link</code> and <code>expr</code> create ui elements from <i>k</i> e.g. with <code>show[dst;x]</code>. The functions take two arguments:</p>
+<p><code>show[dst;x]</code> creates ui elements from <i>k</i></p>
 <ol>
  <li><code>dst</code> is the id of a div element where the ui is placed inside.
      If it does not exist or is empty, a new element is created and appended to the body.
-     It returns the element id.</li>
- <li><code>x</code>is the k value. The kind of ui element that is build depends on the type of <code>x</code></li>
+     <code>show</code> returns the element id.</li>
+ <li><code>x</code>is the k value/reference/expr. The kind of ui element that is build depends on the type of <code>x</code>, the value reference by it or returned by an expression.</li>
 </ol>
 
 <p>The example shows a table stored in the variable <code>t</code>.
@@ -89,53 +98,102 @@ Edited values always keep the original type.</p>
 
 <div class="example" id="table.k"></div>
 
-<p>This example shows two tables. The first is stored in the variable <code>t</code> and shown in the div element <code>a</code> that is created in the first line.<br>
+<p><b>Computed column:</b> this example shows two tables. The first is stored in the variable <code>t</code> and shown in the div element <code>a</code> that is created in the first line.<br>
 The second table is created by an expression and shown in <code>b</code>.<br>
-You can edit the first table and see the second updating.
+You can edit the first table and see the second updating.</p>
 
 <div class="example" id="computecol.k"></div>
 
-<h1 id="imgui">immediate mode ui</h1>
+<h2 id="imgui">immediate mode ui</h2>
 
 <p>The ui updates every time when there is an interaction between <i>k</i> and <i>html/js</i>.<br></p>
 
-<p>To save work, only elements that are visible are rebuild.</p>
+<p>To save work, only <b>visible elements</b> are rebuild.</p>
 <p>An element that shows a static <i>k value</i> is not updated.</p>
 <p>Elements linked by symbols also take a reference of a k value which is an <code>i64</code> in the k system, represented by a <code>BigInt</code> in js.
 Before rebuilding the element, the gui resolves the variable and compares the new k value to the old one.
 Due to k's immutability rules, underlying values cannot have changed if the k values are identical, even for deeply nested object.
 Redrawing only happens, if the value is different.</p>
-<p><b>k expressions</b> however are redrawn each time.</p>
+<p>k expressions are redrawn at every update.</p>
 
 
-<h1 id="callbacks">js callbacks and events</h1>
+<h2 id="callbacks">js callbacks and events</h2>
 
-In this example we create a dropdown list with months.
-A table query should be updated every time the dropdown changes.<br>
+<p>In this example we create a dropdown list with months.
+A table query should be updated every time the dropdown changes.</p>
 
 <div class="example" id="event.k"></div>
 
-<h1 id="separation">separate html and k</h1>
-When the application has reached a certain size, it may be beneficial to separate <i>k</i> and <i>html</i>.<br>
+<h2 id="separation">separate html and k</h2>
 
-The gui can be written in <i>html</i> and <i>k</i> remains functional/analytical.
+<p>When the application has reached a certain size, it may be beneficial to separate <i>k</i> and <i>html</i>.</p>
+
+<p>The gui can be written in <i>html</i> and <i>k</i> remains functional/analytical.</p>
+
+<p><a href="map.html"><code>map.html</code></a> is an example application that uses the <a href="https://leafletjs.com">leaflet library</a> to show a slippery map from tiles.<br>
+Tiles are usually server from a tile server, in this case they are generated for each pair of corner coordinates and zoom level from <i>k</i>:</p>
+<pre>
+tile:{[x;y;z]c:`c@?128*256    /random floats converted to chars
+     @[c;3+4*!256*256;_-1]}   /set alpha opaque
+</pre>
+
+<p>The requested coordinates are written on top of each image.<br>
+The js part looks like that:</p>
+
+<pre>
+var ctx = tile.getContext('2d');
+let I=K.BK(K.Kx("tile",K.Ki(x),K.Ki(y),K.Ki(z)))   //get a tile from k
+let u = new Uint8ClampedArray(I.buffer);
+let d = new ImageData(u,256,256);
+ctx.putImageData(d,0,0);                           //draw to canvas background
+ctx.font="30px monospace"
+ctx.fillText(x+"/"+y+"@"+z,0,30)                   //draw tile coordinates
+return tile;
+</pre>
 
 
-<h1 id="empty">empty application</h1>
-The website <a href="k.html">ktye.github.io/kweb/k</a> (which shows all examples using a location hash), also serves as an empty template.<br>
+<h2 id="variants">ui variants</h2>
 
-It will execute every <i>k</i> gui file that is dropped on the page.
+<p>So far <code>show</code> renders a k variable as an ui element by type.
+But there are cases when this is not enough, e.g. a <i>general list</i> may be rendered as:</p>
+<ul>
+ <li>a select element (dropdown menu)</li>
+ <li>a multi select element (listbox)</li>
+ <li>a table</li>
+ <li>a nested tree with collapsing leaves</li>
+ <li>...</li>
+</ul>
+
+<p>Or a table should have further properties, e.g. readonly, different row styles, pageable, ..</p>
+
+<p><b>Variants</b> can be selected in a simple form by adding a symbol to <code>show</code></p>
+<pre>
+t:+`a`b!(1 2;3 4)
+show[`dstid`readonly;t]
+</pre>
+
+<p>Additional symbols after the id element are converted to <b>css classes</b> for the containing div element.
+The ui function can test for the class and render a different element.
+This also allows to style these elements differently.<br>
+The target element may also have classes defined already in html.
+</p>
 
 
-<h1 id="io">data i/o</h1>
+
+<h2 id="online">online application</h2>
+
+<p>The website <a href="k.html">ktye.github.io/kweb/k</a> (which shows all examples using a location hash), also serves as an empty program.
+If you drop a k file on the page, it will be executed.</p>
+
+<h2 id="io">data i/o</h2>
 
 <code>kweb/k</code> is served from github which is a static server.
 
-<p>The program runs completely inside the browser, including the <i>k</i> core which is a WebAssembly module.<br>
+<p>The program runs completely inside the browser, including the <i>k</i> core as a WebAssembly module.<br>
 That means that <i>k</i> has no access to data on disk.</p>
 
 <p>Data files can be added to a virtual filesystem, by dropping them in the browser.
-Then <i>k</i> can access them with it's read mechanism: <code>data:&lt;`filename</code></p>
+Then <i>k</i> can access them with it's read mechanism: <code>data:&lt;`filename</code> (in this dialect of k).</p>
 
 <p>Files written by <i>k</i> trigger a download: <code>`filename&lt;data</code></p>
 
@@ -147,10 +205,35 @@ It needs at least the following files:
 kweb.js      ui
 kweb.css     style
 k.html       application
+a.k          default application if present
 </pre>
 <i>todo..</i></p>
 
 <p>Other possibilities are to run <i>k</i> in the server application, or let <i>k</i> be the server itself.</p>
+
+
+<h2>ui reference</h2>
+
+<p> This is the dispatch table from <b>kweb.js</b> to decide which type of ui element is shown for a combination of k-type and class.<br>
+E.g. <code>show[`dst`listbox,!10]</code> is type <code>I</code> and class <code>listbox</code></p>
+
+<pre>
+ //k-type    class      ui element
+ ["T",       "",        uitable],      //table
+ ["BISFZL",  "listbox", uiselect],     //
+ ["BISFZL",  "",        uiselect],     //select(dropdown)
+ ["D",       "tree",    uitree],       //tree view
+ ["D",       "",        uidicttab],    //table on row per key
+ ["Cisfz",   "input",   uiinput],      //input element, veryfied by k
+ ["C",       "edit",    uitextarea],   //text area
+ ["C",       "h1",      uih1],         //header
+ ["C",       "tty",     uitty],        //k-console
+ ["C",       "",        uispan],       //span element
+</pre>
+
+<p>All elements prevent updating k values if the <code>readonly</code> class is set.</p>
+
+<div class="example" id="uiref.k"><?/div>
 
 
 <script>
@@ -163,7 +246,7 @@ function build(){
   fetch(p.id).then(r=>r.text()).then(r=>pr.textContent=r)
   let a=ce("a");a.href="k.html#"+p.id;a.target="_blank";a.textContent="run "+p.id;p.appendChild(a)
  }
- l=document.querySelectorAll("h1")
+ l=document.querySelectorAll("h2")
  let toc=ge("toc")
  for(let i=0;i<l.length;i++){let h=l[i]
   let li=ce("li")
