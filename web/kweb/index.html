@@ -13,7 +13,7 @@
 
 <p>This document describes a system how <i>k</i> and <i>html/js</i> can interact to build gui applications for analytical tasks.
 Small programs can be written directly in k with minimal ui overhead.
-Larger programs can be separated into <i>html</i> for the presentation and <i>k</i> for computation.
+Larger programs can be <a href="#separate">separated</a> into <i>html</i> for the presentation and <i>k</i> for computation.
 The ui updates automatically after user interaction.<br>
 
 Programs can run <a href="#online">online</a>, e.g. from this page or <a href="#kosmic">locally</a> to access files on disk.
@@ -34,6 +34,7 @@ This is done in <code>kweb.js</code> with:</p>
   read: function(file)     {return new Uint8Array(0)},
   write:function(file,data){if(file===""){O(su(data))}else{}},
   show: show,
+  hide: function(id)       {ge(K.sK(K.ref(id))).classList.add("hidden");return id},
   js:   K.JS,
  }
  K.kinit(ext,kwasm)
@@ -43,15 +44,10 @@ This is done in <code>kweb.js</code> with:</p>
 
 <p>The remaining functions are stored in <i>k</i> variables with an external/native function type.</p>
 
-<p><code>show</code> is a ui function that is explained later.</p>
-
 <p><code>js</code> creates an anonymous javascript function which is returned to <i>k</i> and allows us to access and modify the js environment from <i>k</i>.
 Arguments to <code>js</code> are the arglist as symbols and the function body as a string.</p>
 
 <div class="example" id="js.k"></div>
-
-
-<h2 id="khtml">khtml</h2>
 
 <p>With some projections we can write a classic html site in k:</p>
 
@@ -62,6 +58,8 @@ Arguments to <code>js</code> are the arglist as symbols and the function body as
 style:js[`x;"function style(x){let s=document.createElement('style');s.innerText=x;document.head.appendChild(s);return null}"]
 style"*{background-color:black}"
 </pre>
+
+
 
 
 <h2 id="link">link k and ui</h2>
@@ -98,7 +96,11 @@ Edited values always keep the original type.</p>
 
 <div class="example" id="table.k"></div>
 
-<p><b>Computed column:</b> this example shows two tables. The first is stored in the variable <code>t</code> and shown in the div element <code>a</code> that is created in the first line.<br>
+<p>There is also <code>hide`id</code> to hide an element.
+It adds the <i>hidden</i> class to the containing div element.
+Use <code>show[`id;`]</code> to display it again.</p>
+
+<p><b>Computed column:</b> The next example shows two tables. The first is stored in the variable <code>t</code> and shown in the div element <code>a</code> that is created in the first line.<br>
 The second table is created by an expression and shown in <code>b</code>.<br>
 You can edit the first table and see the second updating.</p>
 
@@ -109,47 +111,15 @@ You can edit the first table and see the second updating.</p>
 <p>The ui updates every time when there is an interaction between <i>k</i> and <i>html/js</i>.<br></p>
 
 <p>To save work, only <b>visible elements</b> are rebuild.</p>
+
 <p>An element that shows a static <i>k value</i> is not updated.</p>
-<p>Elements linked by symbols also take a reference of a k value which is an <code>i64</code> in the k system, represented by a <code>BigInt</code> in js.
+
+<p>Elements linked to symbols also take a reference of a k value.
 Before rebuilding the element, the gui resolves the variable and compares the new k value to the old one.
 Due to k's immutability rules, underlying values cannot have changed if the k values are identical, even for deeply nested object.
-Redrawing only happens, if the value is different.</p>
-<p>k expressions are redrawn at every update.</p>
+Redrawing only happens, if the values are different.</p>
 
-
-<h2 id="callbacks">js callbacks and events</h2>
-
-<p>In this example we create a dropdown list with months.
-A table query should be updated every time the dropdown changes.</p>
-
-<div class="example" id="event.k"></div>
-
-<h2 id="separation">separate html and k</h2>
-
-<p>When the application has reached a certain size, it may be beneficial to separate <i>k</i> and <i>html</i>.</p>
-
-<p>The gui can be written in <i>html</i> and <i>k</i> remains functional/analytical.</p>
-
-<p><a href="map.html"><code>map.html</code></a> is an example application that uses the <a href="https://leafletjs.com">leaflet library</a> to show a slippery map from tiles.<br>
-Tiles are usually server from a tile server, in this case they are generated for each pair of corner coordinates and zoom level from <i>k</i>:</p>
-<pre>
-tile:{[x;y;z]c:`c@?128*256    /random floats converted to chars
-     @[c;3+4*!256*256;_-1]}   /set alpha opaque
-</pre>
-
-<p>The requested coordinates are written on top of each image.<br>
-The js part looks like that:</p>
-
-<pre>
-var ctx = tile.getContext('2d');
-let I=K.BK(K.Kx("tile",K.Ki(x),K.Ki(y),K.Ki(z)))   //get a tile from k
-let u = new Uint8ClampedArray(I.buffer);
-let d = new ImageData(u,256,256);
-ctx.putImageData(d,0,0);                           //draw to canvas background
-ctx.font="30px monospace"
-ctx.fillText(x+"/"+y+"@"+z,0,30)                   //draw tile coordinates
-return tile;
-</pre>
+<p><i>k expressions</i> are redrawn at every update.</p>
 
 
 <h2 id="variants">ui variants</h2>
@@ -169,14 +139,104 @@ But there are cases when this is not enough, e.g. a <i>general list</i> may be r
 <p><b>Variants</b> can be selected in a simple form by adding a symbol to <code>show</code></p>
 <pre>
 t:+`a`b!(1 2;3 4)
-show[`dstid`readonly;t]
+show[`dstid`listbox;t]
 </pre>
 
-<p>Additional symbols after the id element are converted to <b>css classes</b> for the containing div element.
-The ui function can test for the class and render a different element.
-This also allows to style these elements differently.<br>
-The target element may also have classes defined already in html.
-</p>
+<p><code>listbox</code> chooses an alternative ui building function. There are:</p>
+<pre>
+          k-types   default for  
+table     DT        TD
+listbox   BISFZLDT  BISFZL         multi selection
+select    BISFZL    S              dropdown
+tree      D         -              collapsing
+input     Cisfz     isfz
+edit      C                        textarea
+h1        C                        heading
+tty       C                        k console
+text      *                        span element(`k@)
+</pre>
+<p>Functions can be added in js with <code>kweb.register(dst,f)</code></p>
+
+
+
+<p>If more parameters should be supplied to a ui element, they are passed with a <b>dict</b> as the first argument to <code>show</code>.</p>
+
+<pre>
+show[`uid`listbox;`t]                  /short form with id,class
+show[`id`class!`uid`listbox;`t]        /equivalent dict form
+
+s:`abc
+show[`id`options!(`;`abc`def`ghi);`s]  /dropdown with options
+
+/styled listbox with a size attribute and a callback function
+show[(`id`class`style`size!(`uid;`listbox;"font:20px monospace";10));`t]
+</pre>
+
+The <code>id</code> field takes the role of the first</p>
+
+
+
+<h2 id="callbacks">js callbacks and events</h2>
+
+<p>In this example we create a dropdown list with months.
+A table query should be updated every time the dropdown changes.</p>
+
+<div class="example" id="event.k"></div>
+
+<h2 id="separate">separate html and k</h2>
+
+<p>When the application has reached a certain size, it may be beneficial to separate <i>k</i> and <i>html</i>.</p>
+
+<p>The gui can be <b>declared</b> in <i>html</i> and <i>k</i> remains functional/analytical without any ui code.</p>
+
+<p>To do so, use a <b>data attribute</b> in the html tag of the div container:</p>
+
+<pre>
+&lt;div id="ta" class="listbox" data-k-var="t">&lt;/div>
+&lt;div id="dt" data-k-expr="{+/t}">&lt;/div>
+</pre>
+
+<p>This is equivalent to the following code in <i>k</i>:</p>
+<pre>
+show[`ta`listbox;`t]
+show[`dt;{+/t}]
+</pre>
+
+<p>There is no equivalent of a static k value in html declarations.
+Only variable references and expressions can be declared.</p>
+
+<p><a href="sep.html"><code>sep.html</code></a> is an example of separated <i>html</i> and <i>k</i>.
+It calls <code>sep.k</code> in the init function:</p>
+<pre>
+kweb.init("sep.k")
+</pre>
+
+<p><code>sep.k</code> only defines the table <code>t:+`abc`def!(|!10;?10)</code></p>
+
+<p>An application can also be written in html/js without any of the <i>kweb</i> functionality and call <i>k</i> directly when needed.</p>
+
+<p><a href="map.html"><code>map.html</code></a> is an example application that uses the <a href="https://leafletjs.com">leaflet library</a> to show a slippery map from tiles.<br>
+Tiles are normally served from a tile server for each pair of corner coordinates and zoom level.
+In this case they are generated  from <i>k</i>:</p>
+
+<pre>
+tile:{[x;y;z]c:`c@?128*256    /random floats reinterpreted as bytes
+     @[c;3+4*!256*256;_-1]}   /set alpha opaque
+</pre>
+
+<p>The requested coordinates are written on top of each image.<br>
+The js part inside a leaflet function looks like that:</p>
+
+<pre>
+var ctx = tile.getContext('2d');
+let I=K.BK(K.Kx("tile",K.Ki(x),K.Ki(y),K.Ki(z)))   //get a tile from k
+let u = new Uint8ClampedArray(I.buffer);
+let d = new ImageData(u,256,256);
+ctx.putImageData(d,0,0);                           //draw to canvas background
+ctx.font="30px monospace"
+ctx.fillText(x+"/"+y+"@"+z,0,30)                   //draw tile coordinates
+return tile;
+</pre>
 
 
 
@@ -214,27 +274,7 @@ a.k          default application if present
 
 <h2>ui reference</h2>
 
-<p> This is the dispatch table from <b>kweb.js</b> to decide which type of ui element is shown for a combination of k-type and class.<br>
-E.g. <code>show[`dst`listbox,!10]</code> is type <code>I</code> and class <code>listbox</code></p>
-
-<pre>
- //k-type    class      ui element
- ["T",       "",        uitable],      //table
- ["BISFZL",  "listbox", uiselect],     //
- ["BISFZL",  "",        uiselect],     //select(dropdown)
- ["D",       "tree",    uitree],       //tree view
- ["D",       "",        uidicttab],    //table on row per key
- ["Cisfz",   "input",   uiinput],      //input element, veryfied by k
- ["C",       "edit",    uitextarea],   //text area
- ["C",       "h1",      uih1],         //header
- ["C",       "tty",     uitty],        //k-console
- ["C",       "",        uispan],       //span element
-</pre>
-
-<p>All elements prevent updating k values if the <code>readonly</code> class is set.</p>
-
 <div class="example" id="uiref.k"><?/div>
-
 
 <script>
 function ge(x){return document.getElementById(x)}

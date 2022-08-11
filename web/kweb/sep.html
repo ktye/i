@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>map</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+
+
+<style>
+table,th,td{ border-collapse:collapse;border:1px solid; }
+th,td{ padding:5px; }
+</style>
+
+<body>
+
+<p> This is a k table </p>
+<div id="tab" data-k-var="t"></div>
+
+<p> The sum is updated automatically if you change values from the table</p>
+<div id="sum" data-k-expr="{+/t}"></div>
+
+
+<script type="module">
+
+import {kweb} from './kweb.js'
+import {K} from '../k.js'
+
+function ce(x) { return document.createElement(x) }
+function ge(x) { return document.getElementById(x) }
+function gu(x) { return (new URL(document.location)).searchParams.get(x) } // or null
+function pa(x) { var r=gu(x);return r?("&"+x+"="+r):"" }
+
+
+kweb.init("sep.k")
+
+</script>
+</body>
+</html>

@@ -18,7 +18,6 @@ import {kweb} from './kweb.js'
 
 
 function start(){      //executed when k is loaded
- console.log("start")
  let h=document.location.hash.slice(1)
  document.title=h
  if(h)fetch(h).then(r=>r.text()).then(r=>kweb.ktry(r))

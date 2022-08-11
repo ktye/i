@@ -24,6 +24,7 @@ K.TK = function(x){
 K.NK = function(x){ return _.nn(x) }
 
 // create k atoms
+K.Kb = function(x){ return _.Kb( x ? 1 : 0 ) }
 K.Kc = function(x){ return _.Kc( ("string"===typeof(x)) ? x.charCodeAt(0) : x ) }
 K.Ks = function(x){ return _.sc(K.KC(x)) }
 K.Ki = function(x){ return _.Ki(x) }
@@ -62,6 +63,7 @@ K.KL = function(x){
  return r
 }
 
+K.bK = function(x){ return lo(x) != 0 }
 K.cK = function(x){ return lo(x) << 24 >> 24 } // signed int8
 K.iK = function(x){ return lo(x) << 0 } // signed int32
 K.sK = function(x){ return K.CK(_.cs(x)) }
@@ -109,7 +111,7 @@ K.JK=function(x){
  let t=_.tp(x)
  let n=(t>16)?_.nn(x):1
  switch(t){
- case 1:  return lo(x)!=0;
+ case 1:  return K.bK(x);
  case 2:  return K.cK(x);
  case 3:  return K.iK(x);
  case 4:  return K.sK(x);
@@ -123,6 +125,14 @@ K.JK=function(x){
  //no Z
  case 23: let r=Array(n);for(let i=0;i<n;i++)r[i]=K.JK(_.Atx(_.rx(x),K.Ki(i)));return dxr(x,r)
  //no D,T,and funcs
+ case 24: 
+  let l=K.LK(x)
+  if(20!=_.tp(l[0])){_.dx(l[0]);_.dx(l[1]);return null}
+  let keys=K.SK(l[0])
+  let vals=K.JK(l[1])
+  let d={}
+  for(let i=0;i<keys.length;i++)d[keys[i]]=vals[i]
+  return d
  default: return dxr(x,null);
  }
 }

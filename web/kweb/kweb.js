@@ -1,25 +1,32 @@
 import { K } from '../k.js'
 
-let T=[
- //k-type    class      ui element
- ["T",       "",        uitable],      //table
- ["BISFZL",  "listbox", uiselect],     //
- ["BISFZL",  "",        uiselect],     //select(dropdown)
- ["D",       "tree",    uitree],       //tree view
- ["D",       "",        uidicttab],    //table on row per key
- ["Cisfz",   "input",   uiinput],      //input element, veryfied by k
- ["C",       "edit",    uitextarea],   //text area
- ["C",       "h1",      uih1],         //header
- ["C",       "tty",     uitty],        //k-console
- ["C",       "",        uispan],       //span element
-]
-
 function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
 function su(u){return (u.length)?new TextDecoder("utf-8").decode(u):""}
 function us(s){return new TextEncoder("utf-8").encode(s)}
 function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function rm(p){while(p.firstChild)p.removeChild(p.firstChild)}
+
+
+//predefined ui classes and defaults per type.
+let UI={
+ table:    uitable,
+ listbox:  uilistbox,
+ select:   uiselect,
+ tree:     uitree,
+ input:    uiinput,
+ edit:     uiedit,
+ h1:       uih1,
+ tty:      uitty,
+ text:     uitext,
+ b:uicheckbox, c:uitext,   i:uiinput,   s:uiinput, f:uiinput,  z:uiinput,
+ B:uilistbox,  C:uitext,   I:uilistbox,S:uiselect,f:uilistbox,z:uilistbox,
+ L:uilistbox,  D:uitable,  T:uitable,
+}
+
+function register(s,f){UI[sym]=f} //register user supplied elements: kweb.register(str,function(dst,x))
+
+
 
 let nodes={}
 
@@ -29,95 +36,106 @@ function update(){
   if(dst.offsetParent===null)continue     //skip invisible
   if(dst.s){ 
    let k=K.Kx(".",dst.s)
-   if(k!=dst.k)gui(id,null,dst.s,null)    //global variable has changed
+   if(k!=dst.k)gui(id,null,dst.s,null,K.ref(dst.d))    //global variable has changed
   }
-  if(dst.e)gui(id,null,null,K.ref(dst.e)) //evaluate expr
+  if(dst.e)gui(id,null,null,K.ref(dst.e),K.ref(dst.d)) //evaluate expr
 }}
 
 
-function show(kid,x){let id=K.sK(K.Kx("*",K.ref(kid)))
- let c=("S"==K.TK(kid))?K.SK(K.Kx("_",K.Ki(1),kid)):[]  //classes
+
+function show(d,x){
+ //convert short form to dict.
+ let id,t=K.TK(d)
+ if("s"==t){ id=K.sK(d); d=K.Kx("!",K.Ks(""),K.Ks("")) }
+ if("S"==t){ id=K.sK(K.Kx("*",K.ref(d))); d=K.Kx("`class!*|",d) }
+ if("D"==t){ id=K.sK(K.Kx("@",K.ref(d),K.Ks("id"))) }
+ 
+ //hide: show[`id;`]
+ if(x==K.Ks("")){ge(id).classList.remove("hidden");K.unref(d);return K.Ks(id)}
+ 
  switch(K.TK(x)){
- case "l": return gui(id,null,null,x,c)           //expr(lambda)
- case "s": return gui(id,null,x,null,c)           //symbol
- default:  return gui(id,x,null,null,c)           //value
+ case "l": return gui(id,null,null,x,d)           //expr(lambda)
+ case "s": return gui(id,null,x,null,d)           //symbol
+ default:  return gui(id,x,null,null,d)           //value
 }}
 
-function gui(id,x,s,e,c){id=(id=="")?"uid"+String(Object.keys(nodes).length):id
+function gui(id,x,s,e,d){ id=(id=="")?"uid"+String(Object.keys(nodes).length):id
  let dst=ge(id);
  if(dst==null){dst=ce("div");dst.id=id;document.body.appendChild(dst)}
- if(c)dst.classList.add(...c)
+ dst.classList.remove("hidden")
+ if(('d' in dst)&&dst.d)K.unref(d);     dst.d=d  //dict
  if(('e' in dst)&&dst.e)K.unref(e);     dst.e=e  //expr
  if(('k' in dst)&&dst.k)K.unref(dst.k); dst.k=x  //k-value
  dst.s=s                                         //symbol
  rm(dst)
  nodes[id]=dst
+ let ro = K.Kx("@",K.ref(d),K.Ks("readonly"));if(K.Kb(1)==ro){dst.classList.add("readonly")};K.unref(ro)
  if(s){dst.k=K.Kx(".",s)}                        //symbol
  if(e){dst.k=K.Kx(".",K.ref(e),K.KL([]))}        //expr
  let t=K.TK(dst.k)
- console.log("gui type ", t)
- let f=function(x,y){console.log("gui:type",t)}
- for(let i=0;i<T.length;i++){let t0=T[i][0],t1=T[i][1],t2=T[i][2]
-  if(-1<t0.indexOf(t)){
-   if((t1!="")&&dst.classList.contains(t1)){f=t2;break}
-   //else{                                    f=t2;break}
- }}
+ 
+ let c=K.sK(K.Kx("@",K.ref(d),K.Ks("class")))
+ let f=UI[(c=="")?t:c]
  f(dst,K.ref(dst.k))
+ 
+ let a=K.JK(K.Kx("`id`class_",K.ref(d)))
+ if("readonly"in a){a["readOnly"]=a.readonly;delete a.readonly}
+ let keys=Object.keys(a),cld=dst.firstChild;
+ for(let i=0;i<keys.length;i++){let ki=keys[i];let ai=a[ki]
+  if(ai.startsWith("on")==false) cld[ki]=a[ki]
+  else console.log("todo: event")
+ }
+ 
  return K.Ks(id)
 }
 
-function SV(x){ //strings from vector 
- let l
- switch(K.TK(x)){
- case 'B':case 'I':case 'S':case 'F':case 'Z':l=K.Kx("$",x);break
- default:{console.error("nyi");return[]}
- }
- let r=[]
- let n=K.NK(x)
- for(let i=0;i<n;i++)r.push(K.CK(K.Kx("@",K.ref(l),K.Ki(i))))
- K.unref(l);return r
-}
 
-function uispan(dst,x){  //text node for C
- let s=ce("span");s.textContent=K.CK(x);dst.appendChild(s)
+function uitext(dst,x){ //text node
+ let s=ce("span");s.textContent=(K.TK(x)=="C")?K.CK(x):K.Kx("`k@",x);dst.appendChild(s)
 }
 
 function uiinput(dst,x){ //input element from Cisfz
  let t=K.TK(x)
- let s=("C"==t)?K.CK(x):K.Kx("$",x)
+ let s=K.CK(("C"==t)?x:K.Kx("$",x))
  let e=ce("input");e.type="text";e.value=s;e.defaultValue=s;e.readOnly=dst.classList.contains("readonly")
  e.onchange=function(evt){
   let x=K.Kx("$",K.Ks(t),K.KC(evt.target.value))
   if(x==0)  e.value=e.defaultValue
-  else{     e.value=K.CK(K.ref(x));e.defaultValue=e.value
+  else{     e.value=K.CK(("C"==t)?K.ref(x):K.Kx("$",K.ref(x)));e.defaultValue=e.value
    if(dst.s)K.KA(dst.s,x)
    else     K.unref(x)
  }}
  dst.appendChild(e)
 }
-function uitextarea(dst,x){
- let ta=ce("textarea");ta.classList.append("kweb-textarea");ta.readOnly=dst.classList.contains("readonly")
+function uicheckbox(dst,x){ //b
+ uiinput(dst,x)
+ dst.firstChild.type=checkbox
+}
+function uiedit(dst,x){
+ let ta=ce("textarea");ta.classList.add("kweb-textarea");ta.readOnly=dst.classList.contains("readonly")
  ta.value=K.CK(x)
  ta.onchange=function(evt){if(dst.s)K.KA(dst.s,K.KC(ta.value))}
  dst.appendChild(ta)
 }
 function uih1(dst,x){
- let h=ce("h1");h.classList.append("kweb-h1");h.textContent=K.CK(x);h.appendChild(h)
+console.log("uih1")
+ let h=ce("h1");h.classList.add("kweb-h1");h.textContent=K.CK(x);dst.appendChild(h)
 }
 
-let O=function(x){console.log("k>",x)}                           //default k output
+
+let O=function(x){console.log("out k>")}                           //default k output
 
 function uitty(dst,x){
  let tty=ce("textarea");tty.value=K.CK(x)
- O=function(x){tty.value+=x;tty.scrollTop=tty.scrollHeight}      //redirect k output to tty
+ O=function(x){tty.value+=x}      //redirect k output to tty
  tty.onkeydown=function(e){
   if(("Enter"==e.key)&&(0<tty.value.length)){pd(e);
    let v=tty.value; let i=v.lastIndexOf("\n");
    let s=((i<0)?v:v.slice(i)).trim()
    if(!s.length)return
-   evl(s); tty.scrollTop=tty.scrollHeight;
+   tty.value+="\n";krep(s);tty.value+=" ";tty.scrollTop=tty.scrollHeight
  }}
- dst.appendChild(dst)
+ dst.appendChild(tty)
 }
 
 function uiselect(dst,x){ //create select element from vectors
@@ -135,7 +153,12 @@ function uiselect(dst,x){ //create select element from vectors
  }
  dst.appendChild(s)
 }
-function uidicttab(dst,x){ //create table from x(dict), only for symbol keys
+function uilistbox(dst,x){ //listbox from vectors, or T D
+ if(-1<"TD".indexOf(K.TK(x)))x=K.Kx("`l@",x)
+ uiselect(dst,x)
+ let lb=dst.firstChild;lb.multiple=true
+}
+function uidicttab(dst,x){ //D (only S!..)
  let [k,v]=K.LK(x)
  if(K.TK(k)!="S"){K.unref(k);K.unref(v);return}
  let S=K.SK(k), n=S.length
@@ -147,7 +170,7 @@ function uidicttab(dst,x){ //create table from x(dict), only for symbol keys
     th.textContent=S[i]
    tr.appendChild(th)
    let td=ce("td")
-    td.textContent=K.Kx("`k@",K.Kx("@",K.ref(v),K.Ki(i)))
+    td.textContent=K.CK(K.Kx("`k@",K.Kx("@",K.ref(v),K.Ki(i))))
    tr.appendChild(td)
   ta.appendChild(tr)
  }
@@ -156,7 +179,8 @@ function uidicttab(dst,x){ //create table from x(dict), only for symbol keys
  //todo: editable
 }
 
-function uitable(dst,x){ //create table from x(table)
+function uitable(dst,x){ //TD
+ if(K.TK(x)=="D")return uidicttab(dst,x)
  let N=K.iK(K.Kx("#",K.ref(x)))
  let L=K.LK(x)                    //[keys,values]
  let S=K.SK(L[0])
@@ -220,18 +244,38 @@ function editTable(dst){ //make table editable (link with k)
    et.classList.add("kweb-editing")
   }
 })}
+function SV(x){ //strings from vector 
+ let l
+ switch(K.TK(x)){
+ case 'B':case 'I':case 'S':case 'F':case 'Z':l=K.Kx("$",x);break
+ default:{console.error("nyi");return[]}
+ }
+ let r=[]
+ let n=K.NK(x)
+ for(let i=0;i<n;i++)r.push(K.CK(K.Kx("@",K.ref(l),K.Ki(i))))
+ K.unref(l);return r
+}
 
 function uitree(dst,x){ //treeview for D
  console.log("nyi treeview")
 }
 
 
-/*
-function style(x){
- let s=ce("style");s.innerText=K.CK(x);
- document.head.appendChild(s);return BigInt(0)
-}
-*/
+//initialzation:
+// - init k.wasm, when loaded call user supplied start
+// - if that's a string, load it as a k script
+// - after that initialize divs (connect to k variables)
+function initKweb(start){
+ return function(){
+  if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs()})
+  else{                            start();                                  initDivs()}
+}}
+function initDivs(){
+ document.querySelectorAll("div").forEach(x=>{
+       if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,[])
+  else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),[])
+})}
+
 
 document.update=update //for custom updates from k
 
@@ -250,10 +294,11 @@ function addfile(x){
 function init(start,kwasm){ //start k
  kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
  let ext={                  //wasm import module
-  init: start,
+  init: initKweb(start),
   read: function(file)     {return new Uint8Array(0)},
   write:function(file,data){if(file===""){O(su(data))}else{}},
   show: show,
+  hide: function(id)       {ge(K.sK(K.ref(id))).classList.add("hidden");return id},
   js:   K.JS,
  }
  K.kinit(ext,kwasm)
@@ -262,7 +307,11 @@ function ktry(s){
  try     {let x=K._.Val(K.KC(s));K.save();return x}
  catch(e){console.log(e);K.restore();return false}
 }
+function krep(s){
+ try     {let x=K._.repl(K.KC(s));K.save();return x}
+ catch(e){console.log(e);K.restore();return false}
+}
 
 
-let kweb = {init,ktry,show,update}
+let kweb = {init,ktry,show,update,register}
 export { kweb }
