@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<head><meta charset="utf-8"><title>we don't do gui</title></head>
+<head><meta charset="utf-8"><title>kweb</title></head>
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
 <style>
  h2{border-top:1px solid black}
@@ -155,31 +155,25 @@ h1        C                        heading
 tty       C                        k console
 text      *                        span element(`k@)
 </pre>
-<p>Functions can be added in js with <code>kweb.register(dst,f)</code></p>
+<p>Custom ui functions can be added in js with <code>kweb.register(dst,f)</code></p>
 
 
 
 <p>If more parameters should be supplied to a ui element, they are passed with a <b>dict</b> as the first argument to <code>show</code>.</p>
 
-<pre>
-show[`uid`listbox;`t]                  /short form with id,class
-show[`id`class!`uid`listbox;`t]        /equivalent dict form
+<p>The fields <code>id</code> and <code>class</code> are treated specially and define the id and classes of the parent div element.</p>
 
-s:`abc
-show[`id`options!(`;`abc`def`ghi);`s]  /dropdown with options
-
-/styled listbox with a size attribute and a callback function
-show[(`id`class`style`size!(`uid;`listbox;"font:20px monospace";10));`t]
-</pre>
-
-The <code>id</code> field takes the role of the first</p>
+<div class="example" id="variants.k"></div>
 
 
 
 <h2 id="callbacks">js callbacks and events</h2>
 
-<p>In this example we create a dropdown list with months.
-A table query should be updated every time the dropdown changes.</p>
+<p>If the first argument to <code>show</code> is a dictionary, keys starting with <i>on&hellip;</i> are recognized as events.
+Their values are k functions that are called when the event is triggered.</p>
+
+<p>As an example we create a dropdown list with months.
+A table query is updated every time the dropdown changes.</p>
 
 <div class="example" id="event.k"></div>
 

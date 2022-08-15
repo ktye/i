@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>sin</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+
+
+<style>
+ body{display:flex;flex-direction:row;gap:20px}
+</style>
+
+<body>
+<div class="left">
+ <table>
+  <tr><td colspan="2">input</td></tr>
+  <tr><th>a</th><td><div id="a" data-k-var="a"></div></td></tr>
+  <tr><th>b</th><td><div id="b" data-k-var="b"></div></td></tr>
+  <tr><th>r</th><td><div id="r" data-k-var="r"></div></td></tr>
+ </table>
+ <hr>
+ <table>
+  <tr><td colspan="2">identified</td></tr>
+  <tr><th>A</th><td><div id="A" data-k-var="A"></div></td></tr>
+  <tr><th>B</th><td><div id="B" data-k-var="B"></div></td></tr>
+ </table>
+</div>
+
+<div class="right" data-k-type="plot" data-k-expr="t">
+</div>
+
+
+<script type="module">
+
+import {kweb} from './kweb.js'
+import {K} from '../k.js'
+
+function ce(x) { return document.createElement(x) }
+function ge(x) { return document.getElementById(x) }
+
+kweb.init("sin.k")
+
+</script>
+</body>
+</html>

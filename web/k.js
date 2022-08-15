@@ -104,7 +104,7 @@ K.KJ=function(x){ //general js to k converter
  if(Number.isInteger(x))return K.Ki(x)
  switch(typeof x){
  case "number": return K.Kf(x)
- case "string": return K.CK(x)
+ case "string": return K.KC(x)
  default: return BigInt(0);
 }}
 K.JK=function(x){

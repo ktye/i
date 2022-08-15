@@ -8,19 +8,21 @@ function pd(e){if(e){e.preventDefault();e.stopPropagation()}};
 function rm(p){while(p.firstChild)p.removeChild(p.firstChild)}
 
 
-//predefined ui classes and defaults per type.
+//predefined ui types and defaults per type.
 let UI={
  table:    uitable,
  listbox:  uilistbox,
  select:   uiselect,
  tree:     uitree,
  input:    uiinput,
+ button:   uibutton,
  edit:     uiedit,
  h1:       uih1,
  tty:      uitty,
  text:     uitext,
+ plot:     uiplot,
  b:uicheckbox, c:uitext,   i:uiinput,   s:uiinput, f:uiinput,  z:uiinput,
- B:uilistbox,  C:uitext,   I:uilistbox,S:uiselect,f:uilistbox,z:uilistbox,
+ B:uilistbox,  C:uitext,   I:uilistbox, S:uiselect,F:uilistbox,Z:uilistbox,
  L:uilistbox,  D:uitable,  T:uitable,
 }
 
@@ -42,13 +44,15 @@ function update(){
 }}
 
 
-
 function show(d,x){
  //convert short form to dict.
- let id,t=K.TK(d)
+ let id="",t=K.TK(d)
  if("s"==t){ id=K.sK(d); d=K.Kx("!",K.Ks(""),K.Ks("")) }
- if("S"==t){ id=K.sK(K.Kx("*",K.ref(d))); d=K.Kx("`class!*|",d) }
- if("D"==t){ id=K.sK(K.Kx("@",K.ref(d),K.Ks("id"))) }
+ if("S"==t){ id=K.sK(K.Kx("*",K.ref(d))); d=K.Kx("`type!*|",d) }
+ if("D"==t){ let kid=K.Kx("@",K.ref(d),K.Ks("id"))
+  if("s"==K.TK(kid))id=K.sK(kid)
+  else K.unref(kid)
+ }
  
  //hide: show[`id;`]
  if(x==K.Ks("")){ge(id).classList.remove("hidden");K.unref(d);return K.Ks(id)}
@@ -59,36 +63,51 @@ function show(d,x){
  default:  return gui(id,x,null,null,d)           //value
 }}
 
+
 function gui(id,x,s,e,d){ id=(id=="")?"uid"+String(Object.keys(nodes).length):id
  let dst=ge(id);
  if(dst==null){dst=ce("div");dst.id=id;document.body.appendChild(dst)}
  dst.classList.remove("hidden")
- if(('d' in dst)&&dst.d)K.unref(d);     dst.d=d  //dict
- if(('e' in dst)&&dst.e)K.unref(e);     dst.e=e  //expr
+ dst.classList.add(...classes(d))
+ if(('d' in dst)&&dst.d)K.unref(dst.d); dst.d=d  //dict
+ if(('e' in dst)&&dst.e)K.unref(dst.e); dst.e=e  //expr
  if(('k' in dst)&&dst.k)K.unref(dst.k); dst.k=x  //k-value
  dst.s=s                                         //symbol
  rm(dst)
  nodes[id]=dst
- let ro = K.Kx("@",K.ref(d),K.Ks("readonly"));if(K.Kb(1)==ro){dst.classList.add("readonly")};K.unref(ro)
  if(s){dst.k=K.Kx(".",s)}                        //symbol
  if(e){dst.k=K.Kx(".",K.ref(e),K.KL([]))}        //expr
  let t=K.TK(dst.k)
  
- let c=K.sK(K.Kx("@",K.ref(d),K.Ks("class")))
- let f=UI[(c=="")?t:c]
+ let u=K.JK(K.Kx("@",K.ref(d),K.Ks("type")))
+ let f=UI[(u=="")?t:u]
  f(dst,K.ref(dst.k))
  
- let a=K.JK(K.Kx("`id`class_",K.ref(d)))
- if("readonly"in a){a["readOnly"]=a.readonly;delete a.readonly}
+ let a=K.JK(K.Kx("`id`type_",K.ref(d)))
  let keys=Object.keys(a),cld=dst.firstChild;
  for(let i=0;i<keys.length;i++){let ki=keys[i];let ai=a[ki]
-  if(ai.startsWith("on")==false) cld[ki]=a[ki]
-  else console.log("todo: event")
+  cld[ki]=(ki.startsWith("on"))?jsevent(ki,dst):ai
  }
- 
  return K.Ks(id)
 }
-
+function classes(d){let c=K.Kx("@",K.ref(d),K.Ks("class"))
+ switch(K.TK(c)){
+ case "S": return K.SK(c)
+ case "s": let r=K.sK(c);return(r=="")?[]:[K.sK(c)]
+ default:  K.unref(c);return []
+}}
+function jsevent(s,dst){
+ return function(e){
+ let a=[];let f=K.Kx("@",K.ref(dst.d),K.Ks(s))
+  switch(s){
+  case "onchange":  a=[K.KJ(e.target.value)]; break
+  case "onkeydown": a=[K.Ks(e.target.key)];   break
+  default:
+  }
+  K.unref(K.Kx(".",f,K.KL(a)))
+  update()
+ }
+}
 
 function uitext(dst,x){ //text node
  let s=ce("span");s.textContent=(K.TK(x)=="C")?K.CK(x):K.Kx("`k@",x);dst.appendChild(s)
@@ -104,8 +123,14 @@ function uiinput(dst,x){ //input element from Cisfz
   else{     e.value=K.CK(("C"==t)?K.ref(x):K.Kx("$",K.ref(x)));e.defaultValue=e.value
    if(dst.s)K.KA(dst.s,x)
    else     K.unref(x)
+   update()
  }}
  dst.appendChild(e)
+}
+function uibutton(dst,x){
+ let b=ce("input");b.type="button";b.classList.add("kweb-button")
+ b.value=K.CK(x)
+ dst.appendChild(b)
 }
 function uicheckbox(dst,x){ //b
  uiinput(dst,x)
@@ -118,7 +143,6 @@ function uiedit(dst,x){
  dst.appendChild(ta)
 }
 function uih1(dst,x){
-console.log("uih1")
  let h=ce("h1");h.classList.add("kweb-h1");h.textContent=K.CK(x);dst.appendChild(h)
 }
 
@@ -142,16 +166,21 @@ function uiselect(dst,x){ //create select element from vectors
  let n=K.NK(x)
  let S=Array(n)
  if(K.TK(x)=="L"){
-  for(let i=0;i<n;i++)S[i]=K.Kx("`k@",K.Kx("@",K.ref(x),K.Ki(i)))
+  for(let i=0;i<n;i++){let xi=K.Kx("@",K.ref(x),K.Ki(i))
+   S[i]=K.CK(("C"==K.TK(xi))?xi:K.Kx("`k@",xi))
+  }
   K.unref(x)
  }else S=K.LK(K.Kx("$",x)).map(K.CK)
  let s=ce("select")
  for(let i=0;i<n;i++){
   let o=ce("option")
-   o.textContent=S[i]
+  o.value=S[i]
+  o.innerHTML=encodeURI(S[i]).replace(/%20/g,"&nbsp;")
+  o.classList.add("kweb-option")
   s.appendChild(o)
  }
  dst.appendChild(s)
+ dst.classList.add("kweb-select")
 }
 function uilistbox(dst,x){ //listbox from vectors, or T D
  if(-1<"TD".indexOf(K.TK(x)))x=K.Kx("`l@",x)
@@ -256,6 +285,13 @@ function SV(x){ //strings from vector
  K.unref(l);return r
 }
 
+function uiplot(dst,x){ //plot for d
+ if("D"!=K.TK(x))console.err("uiplot expectes dict not "+K.TK(x))
+ let cnv=ce("canvas")
+ let ctx=cnv.getContext("2d")
+ dst.appendChild(cnv)
+}
+
 function uitree(dst,x){ //treeview for D
  console.log("nyi treeview")
 }
@@ -272,8 +308,11 @@ function initKweb(start){
 }}
 function initDivs(){
  document.querySelectorAll("div").forEach(x=>{
-       if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,[])
-  else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),[])
+  let d=function(){let k="",v="";if('kType'in x.dataset){k="type",v=x.dataset.kType}
+   return K.Kx("!",K.Ks(k),K.Ks(v))
+  }
+       if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,d())
+  else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())
 })}
 
 
