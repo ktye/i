@@ -27,7 +27,7 @@ func Cat(x, y K) K {
 }
 func Enl(x K) (r K) {
 	t := tp(x)
-	if t < 16 {
+	if t < 7 {
 		t += 16
 		r = mk(t, 1)
 		rp := int32(r)
