@@ -1,4 +1,5 @@
 import { K } from '../k.js'
+import  plot from './plot.js'
 
 function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
@@ -26,7 +27,7 @@ let UI={
  L:uilistbox,  D:uitable,  T:uitable,
 }
 
-function register(s,f){UI[sym]=f} //register user supplied elements: kweb.register(str,function(dst,x))
+function register(s,f){UI[s]=f} //register user supplied elements: kweb.register(str,function(dst,x))
 
 
 
@@ -331,6 +332,7 @@ function addfile(x){
 }
 
 function init(start,kwasm){ //start k
+ register('plot',plot)
  kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
  let ext={                  //wasm import module
   init: initKweb(start),

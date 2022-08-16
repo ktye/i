@@ -1,10 +1,35 @@
-import { K } from './k.js'
+import { K } from '../k.js'
 
-let D = {} // draw show Show
+function ce(x){return document.createElement(x)}
+
+export default function plot(dst,x){
+ K.unref(x)
+ let cnv=ce("canvas")
+ let dbl=ce("pre")                                        //dbl-click output
+ dst.appendChild(cnv);dst.appendChild(dbl)
+ window.requestAnimationFrame(function(){replot(cnv,[])}) //draw when mapped (and w/h is set)
+}
+
+function replot(cnv,ax){
+ let x=K.ref(cnv.parentElement.k)
+ let w=cnv.width,h=cnv.height              //default 300,150; show[`type`width`height!(`plot;400;300);..]
+ let fs=('fs'in cnv)?cnv.fs:20             //show[`type`fs!(`plot;30);..]
+ let ctx=cnv.getContext("2d")
+ x=K.Kx("`plot@",x)
+ if(ax.length)x=K.Kx("@[;`a`t;]",x,K.KL([K.KF(ax),K.Ks("xy")])) //set axes after zoom
+ let t=K.sK(K.Kx("@",K.ref(x),K.Ks("t")))      //"xy" or "po"
+ let a=K.FK(K.Kx("@",K.ref(x),K.Ks("a")))      //[xmin xmax ymin ymax]
+ let A=[fs,w-fs,h-fs,fs]                       //rect
+ let C=[w/2,h/2],R=Math.min(w/2,h/2-fs)
+ let f=(t=="xy")?xyclick(a,A):poclick(a[3],C,R)
+ x=K.Kx("plotwh",x,K.Ki(fs),K.Ki(w),K.Ki(h))
+ draw(ctx,x,w,h)
+ cnv.ondblclick=dblclick(cnv.nextSibling,ctx,f)
+ cnv.onmousedown=zoom(cnv,ctx,a,A)
+}
 
 
-// draw(cnv,L,wh)           // draw[(`color;255*256;`rect;10 10 300 200);400 300]
-// draw(cnv,L,image)        // draw over bg image
+// draw(ctx,L,w,h)          // draw[(`color;255*256;`rect;10 10 300 200);400 300]
 // `color;rgb               // i
 // `font;"20px monospace"   // C
 // `linewidth;w             // i or f
@@ -19,27 +44,13 @@ let D = {} // draw show Show
 // `text;(x;y;"text")       // i,i,C
 // `Text;(x;y;"text")       // i,i,C         rotated
 // draw returns an image object (h;I)
-D.draw = function(x,y){
- if(K.TK(x) != 'L'){ K.unref(x); K.unref(y); return K.KE("draw: x type") }
- 
- let wh, bg
- if(K.TK(y)=='L'){
-  let m = img(y);
-  wh=[m.w, m.h]; bg=m.I;
- } else if((K.TK(y)=='I')&&(K.NK(y) == 2)) wh=K.IK(y);
- else {
-  K.unref(x); return K.KE("draw: y type"); }
- 
+function draw(ctx,x,w,h){
  let l=K.LK(x)
  let n=K.NK(x)
  if(n%2 != 0) return K.KE("draw: #x")
  
- let cnv = ce("canvas"); 
- cnv.width=wh[0]; cnv.height=wh[1];
- let ctx = cnv.getContext("2d")
- 
  ctx.fillStyle = "white"
- ctx.fillRect(0,0,wh[0],wh[1])
+ ctx.fillRect(0,0,w,h)
  ctx.fillStyle = "black"
  ctx.strokeStyle = "black"
  ctx.font = "20px monospace"
@@ -64,13 +75,6 @@ D.draw = function(x,y){
    ctx.restore()
    ctx.save()
    restoreState()
- }
- 
- if(bg !== undefined){
-  let d = ctx.createImageData(wh[0], wh[1])
-  let u = new Uint8Array(d.data.buffer)
-  u.set(new Uint8Array(bg.buffer))
-  ctx.putImageData(d,0,0)
  }
  
  let ck = function(s,c){ if(c==false) K.KE(s+" arg") }
@@ -169,11 +173,6 @@ D.draw = function(x,y){
   if(K.TK(l[i]) != 's') return K.KE("draw cmd type")
   cmd(K.CK(K.Kx("$",l[i])), l[1+i])
  }
- 
- let d = ctx.getImageData(0,0,wh[0],wh[1])
- let r = K.KL([K.Ki(wh[1]), K.KI(new Int32Array(d.data.buffer))])
- cnv.remove()
- return r
 }
 
 function align(ctx, a){
@@ -181,62 +180,35 @@ function align(ctx, a){
  ctx.textAlign     = ["left","center","right","right","right","center","left","left","center"][a]
 }
 
-// display an image on a canvas with id="_cnv"
-// show(20;(20*50)#255)
-D.show = function(x){
- unhandle()
- if(K.TK(x)=='i') return x  // hide image: show 0
- return setimg(img(x))
-}
-
-function setimg(x){
- let cnv = ge("_cnv"); cnv.width=x.w; cnv.height=x.h
- let ctx = cnv.getContext("2d")
- let d = ctx.createImageData(x.w, x.h)
- let u = new Uint8Array(d.data.buffer)
- u.set(new Uint8Array(x.I.buffer))
- ctx.putImageData(d,0,0)
- cnv.style.display = "block"
- return K.Ki(x.w*x.h)
-}
-
-let click, zoom // k-values: callback functions
-
-function unhandle(){
- if(click!=undefined){K.unref(click); click=undefined}
- if(zoom !=undefined){K.unref(zoom);  zoom =undefined}
- let cnv = ge("_cnv")
- cnv.ondblclick  = undefined
- cnv.onmousedown = undefined
- cnv.onmouseup   = undefined
- cnv.style.display = "none"
-}
-
-
-//im:{(20;(20*50)#*1?255*256*256)};Show[im[];{`click \(x;y);im[]};{[x;y;w;h]`zoom \(x;y;w;h);im[]}]
-D.Show = function(x,y,z){
- let r=D.show(x); click=y; zoom=z
- 
- let cnv = ge("_cnv");
- let ctx = cnv.getContext("2d")
- cnv.ondblclick = function(ev){
-  // console.log("dblclick", ev.offsetX, ev.offsetY)
+function dblclick(dbl,ctx,f){
+ return function(ev){
   let X=ev.offsetX, Y=ev.offsetY
   ctx.beginPath();ctx.arc(X,Y,3,0,2*Math.PI);ctx.fillStyle="red";ctx.fill()
-  let x=K.Kx(".", K.ref(click), K.KI([X, Y]))
-  K.unref( (K.TK(x)==="L") ? setimg(img(x)) : x )
+  //let x=K.Kx(".", K.ref(click), K.KI([X, Y]))
+  //K.unref( (K.TK(x)==="L") ? setimg(img(x)) : x )
+  dbl.textContent=String(f(X,Y))
  }
- 
- let zd = false, zm, zs, ze, bg
- zs = function(ev){ //zoom-start
-  bg = ctx.getImageData(0,0,cnv.width,cnv.height)
-  cnv.onmousemove = zm
-  cnv.style.cursor="crosshair"
-  zd = [ev.offsetX,ev.offsetY,0,0]
- }
- zm = function(ev){ //zoom-move
+}
+
+function xyclick(a,A){return function(x,y){
+ let xy=xyscale([x,y],a,A)
+ return "x:"+String(xy[0])+" y:"+String(xy[1])
+}}
+function poclick(r,C,R){return function(x,y){
+ let X=(x-C[0])*r/R,Y=-(y-C[1])*r/R
+ let abs=Math.hypot(X,Y)
+ let ang=Math.atan2(X,Y)/Math.PI*180
+ return String(abs)+"a"+String((ang<0)?360+ang:ang)
+}}
+function scale(x,x0,x1,y0,y1){return y0+(y1-y0)*(x-x0)/(x1-x0)}
+function xyscale(xy,a,A){return [scale(xy[0],A[0],A[1],a[0],a[1]),scale(xy[1],A[2],A[3],a[2],a[3])]}
+
+
+function zoom(cnv,ctx,a,A){
+ let zd = false, zs, bg
+ let zm = function(e){ //zoom-move
   if(zd!==false){
-   zd=[zd[0],zd[1],ev.offsetX-zd[0],ev.offsetY-zd[1]]
+   zd=[zd[0],zd[1],e.offsetX-zd[0],e.offsetY-zd[1]]
    ctx.putImageData(bg,0,0)
    ctx.beginPath()
    ctx.rect(...zd)
@@ -244,46 +216,23 @@ D.Show = function(x,y,z){
    ctx.stroke()
   }
  }
- ze = function(ev){ //zoom-end
+ let ze = function(ev){ //zoom-end
   ctx.putImageData(bg,0,0)
   cnv.style.cursor=""
   cnv.onmousemove = undefined
   if(Math.abs(zd[2])< 5||Math.abs(zd[3])<5){zd=false;return}
   if(zd[2]<0){ zd[0]+=zd[2]; zd[2]=-zd[2] }
   if(zd[3]<0){ zd[1]+=zd[3]; zd[3]=-zd[3] }
-  
-  let x=K.Kx(".", K.ref(zoom), K.KI(zd))
-  K.unref( (K.TK(x)==="L") ? setimg(img(x)) : x )
-  
+  let xya=xyscale([zd[0],zd[1]],a,A)
+  let xyb=xyscale([zd[0]+zd[2],zd[1]+zd[3]],a,A)
   zd = false
+  replot(cnv,[xya[0],xyb[0],xyb[1],xya[1]])
   return
  }
- cnv.onmousedown = zs
- cnv.onmousemove = zm
- cnv.onmouseup   = ze
- 
- return r
-}
-
-// loadfont is ignored in js. it's only needed for the c version.
-D.loadfont = function(name, bytes) { K.unref(bytes); return name }
-
-function img(x){
- if(K.TK(x) != 'L') return K.KE("img: type")
- if(K.NK(x) != 2)   return K.KE("img: L2")
- let r = K.LK(x)
- if(K.TK(r[0]) != 'i') return K.KE("img: h-type")
- if(K.TK(r[1]) != 'I') return K.KE("img: I-type")
- let h = K.iK(r[0])
- let I = K.IK(r[1])
- let w = Math.floor(I.length / h)
- if(I.length != w*h) return K.KE("img:rect")
- let u = new Uint8Array(I.buffer)
- for(let i=3;i<u.length;i+=4)u[i]=255 //alpha
- return {w:w, h:h, I:I}
-}
-
-function ge(x){return document.getElementById(x)}
-function ce(x){return document.createElement(x)}
-
-export { D }
+ return function(e){
+  bg = ctx.getImageData(0,0,cnv.width,cnv.height)
+  cnv.onmousemove = zm
+  cnv.onmouseup = ze
+  cnv.style.cursor="crosshair"
+  zd = [e.offsetX,e.offsetY,0,0]
+}}

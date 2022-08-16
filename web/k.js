@@ -49,7 +49,7 @@ K.KI = function(x){
  return r
 }
 K.KF = function(x){
- x = (x.constructor===Float64Array) ? x : new Int32Array(x)
+ x = (x.constructor===Float64Array) ? x : new Float64Array(x)
  let r=_.mk(21,x.length)
  F().set(x,lo(r)>>>3)
  return r
