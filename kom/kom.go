@@ -192,7 +192,7 @@ func gsearch(s string) []byte {
 func zksrc() []byte { // extract z.k from gsrc, do not include plot.
 	s, e := strconv.Unquote(string(gsearch("Data(600, ")))
 	fatal(e)
-	a := strings.Index(s, "PW:800;PH:600;") // plot
+	a := strings.Index(s, "`\"plot.\":") // plot
 	if a < 0 {
 		panic("cannot find plot in z.k")
 	}
