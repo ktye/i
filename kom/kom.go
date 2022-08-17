@@ -192,11 +192,6 @@ func gsearch(s string) []byte {
 func zksrc() []byte { // extract z.k from gsrc, do not include plot.
 	s, e := strconv.Unquote(string(gsearch("Data(600, ")))
 	fatal(e)
-	a := strings.Index(s, "`\"plot.\":") // plot
-	if a < 0 {
-		panic("cannot find plot in z.k")
-	}
-	s = s[:a]
 	return []byte(s)
 }
 func monadics() []string { // extract monadics from gsrc function table
@@ -811,6 +806,8 @@ func skiptests() []string {
 		"(.{a+b})3",                          // .l
 		"(.{[]s:1+s:1})1",                    // .l
 		"2#{x+y}",                            // $l
+		"@,{1+x}",                            // ,l or $l
+		",{1+x}",                             // ,l or $l
 		"x:1",                                // prints 1 not null
 		"{x+y}",                              // $l
 		".{x+y}",                             // .l
