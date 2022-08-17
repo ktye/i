@@ -86,6 +86,7 @@ function gui(id,x,s,e,d){ id=(id=="")?"uid"+String(Object.keys(nodes).length):id
  
  let a=K.JK(K.Kx("`id`type_",K.ref(d)))
  let keys=Object.keys(a),cld=dst.firstChild;
+ if(e)cld.readOnly=true
  for(let i=0;i<keys.length;i++){let ki=keys[i];let ai=a[ki]
   cld[ki]=(ki.startsWith("on"))?jsevent(ki,dst):ai
  }

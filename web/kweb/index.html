@@ -233,6 +233,39 @@ return tile;
 </pre>
 
 
+<h2 id="plot">plot</h2>
+
+<p><a href="sin.html"><code>sin.html</code></a> is a program that identifies parameters from a sine wave.
+It uses the following k code to update a gui for each change of the input parameters, including a graph of the curves:</p>
+
+<pre>
+a:1.;b:2.;r:.5;
+x:.4*!50
+R:?-#x
+
+f:{[a;b;r;x](r*R)+(a*sin x)+(b* cos x)}
+fit:{[]ab::solve[(sin x;cos x);f[a;b;r;x]]}
+fit[]
+
+p:{[]`x`y!(x;(f[a;b;r;x];f[ab 0;ab 1;0;x]))}
+</pre>
+
+<p>The input element for <b>A</b> is declared as a <i>k expr</i> in html.
+It recalculates the fit after every update.</p>
+<pre>
+&lt;div id="A" data-k-expr="{fit[];ab 0}">&lt;/div>
+</pre>
+
+<p>The plot element is also defined as an expression which returns a dict:</p>
+<pre>
+&lt;div id="cnv" class="right" data-k-type="plot" data-k-expr="p" data-width=800 data-height=400>
+</pre>
+
+<p>The <b>plot type</b> expects a dict whose keys are axis labels as input and the values are <i>x</i> and <i>y</i> data.</p>
+
+<div class="example" id="plot.k"></div>
+
+<p>Plots are <b>interactive</b>: Zoom by drawing a rectangle with the mouse and doubleclick to show coordinates.</p>
 
 <h2 id="online">online application</h2>
 

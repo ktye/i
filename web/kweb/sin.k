@@ -1,5 +1,9 @@
-a:1.;b:2.;r:.1
-A:B:0.
-x:.1p*!30
-f:{[a;b;r;x](r*?#x)+(a*sin x)+(b* cos x)}
-p:{[]`x`y!(x;(f[a;b;r;x];f[A;B;0;x]))}
+a:1.;b:2.;r:.5;
+x:.4*!50
+R:?-#x
+
+f:{[a;b;r;x](r*R)+(a*sin x)+(b* cos x)}
+fit:{[]ab::solve[(sin x;cos x);f[a;b;r;x]]}
+fit[]
+
+p:{[]`x`y!(x;(f[a;b;r;x];f[ab 0;ab 1;0;x]))}
