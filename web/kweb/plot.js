@@ -2,16 +2,14 @@ import { K } from '../k.js'
 
 function ce(x){return document.createElement(x)}
 
-export default function plot(dst,x){
+export function plot(dst,x){
  if(plotdict==0){
   K.KA(K.Ks("tics."),K.Kx(".",K.KC(tics_))) // `tics@
   plotdict=K.Kx(".",K.KC(plotdict_))
   plotwh  =K.Kx(".",K.KC(plotwh_))
  }
  K.unref(x)
- let cnv=ce("canvas")
- if("width" in dst.dataset)cnv.width =dst.dataset.width
- if("height"in dst.dataset)cnv.height=dst.dataset.height
+ let cnv=newcanvas(dst)
  let dbl=ce("pre")                                        //dbl-click output
  dst.appendChild(cnv);dst.appendChild(dbl)
  window.requestAnimationFrame(function(){replot(cnv,[])}) //draw when mapped (and w/h is set)
@@ -30,17 +28,36 @@ function replot(cnv,ax){
  let C=[w/2,h/2],R=Math.min(w/2,h/2-fs)
  let f=(t=="xy")?xyclick(a,A):poclick(a[3],C,R)
  x=K.Kx(".",K.ref(plotwh),K.KL([x,K.Ki(fs),K.Ki(w),K.Ki(h)]))
- //x=K.Kx("plotwh",x,K.Ki(fs),K.Ki(w),K.Ki(h))
- draw(ctx,x,w,h)
+ cnvdraw(ctx,x,w,h)
  cnv.ondblclick=dblclick(cnv.nextSibling,ctx,f)
  cnv.onmousedown=zoom(cnv,ctx,a,A)
 }
 
 
+export function draw(dst,x){
+ K.unref(x)
+ let cnv=newcanvas(dst)
+ dst.appendChild(cnv)
+ window.requestAnimationFrame(function(){redraw(cnv)})
+}
+
+function redraw(cnv){
+ let x=K.ref(cnv.parentElement.k)
+ let w=cnv.width,h=cnv.height
+ let ctx=cnv.getContext("2d")
+ cnvdraw(ctx,x,w,h)
+}
+
+function newcanvas(dst){
+ let cnv=ce("canvas")
+ if("width" in dst.dataset)cnv.width =dst.dataset.width
+ if("height"in dst.dataset)cnv.height=dst.dataset.height
+ return cnv
+}
 
 // draw(ctx,L,w,h)          // draw[(`color;255*256;`rect;10 10 300 200);400 300]
 // `color;rgb               // i
-// `font;"20px monospace"   // C
+// `font;("monospace";20)   // L(C,i or f)
 // `linewidth;w             // i or f
 // `rect;(x;y;w;h)          // I or F        stroke
 // `Rect;(x;y;w;h)          // I or F        fill
@@ -52,8 +69,7 @@ function replot(cnv,ax){
 // `Poly;(X;Y)              // I or F        close fill
 // `text;(x;y;"text")       // i,i,C
 // `Text;(x;y;"text")       // i,i,C         rotated
-// draw returns an image object (h;I)
-function draw(ctx,x,w,h){
+function cnvdraw(ctx,x,w,h){
  let l=K.LK(x)
  let n=K.NK(x)
  if(n%2 != 0) return K.KE("draw: #x")

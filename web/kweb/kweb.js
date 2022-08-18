@@ -1,5 +1,5 @@
 import { K } from '../k.js'
-import  plot from './plot.js'
+import {plot,draw} from './plot.js'
 
 function ge(x){return document.getElementById(x)}
 function ce(x){return document.createElement(x)}
@@ -21,7 +21,6 @@ let UI={
  h1:       uih1,
  tty:      uitty,
  text:     uitext,
- plot:     uiplot,
  b:uicheckbox, c:uitext,   i:uiinput,   s:uiinput, f:uiinput,  z:uiinput,
  B:uilistbox,  C:uitext,   I:uilistbox, S:uiselect,F:uilistbox,Z:uilistbox,
  L:uilistbox,  D:uitable,  T:uitable,
@@ -287,13 +286,6 @@ function SV(x){ //strings from vector
  K.unref(l);return r
 }
 
-function uiplot(dst,x){ //plot for d
- if("D"!=K.TK(x))console.err("uiplot expectes dict not "+K.TK(x))
- let cnv=ce("canvas")
- let ctx=cnv.getContext("2d")
- dst.appendChild(cnv)
-}
-
 function uitree(dst,x){ //treeview for D
  console.log("nyi treeview")
 }
@@ -334,6 +326,7 @@ function addfile(x){
 
 function init(start,kwasm){ //start k
  register('plot',plot)
+ register('draw',draw)
  kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
  let ext={                  //wasm import module
   init: initKweb(start),
