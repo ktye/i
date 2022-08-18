@@ -153,12 +153,14 @@ let O=function(x){console.log("out k>")}                           //default k o
 function uitty(dst,x){
  let tty=ce("textarea");tty.value=K.CK(x)
  O=function(x){tty.value+=x}      //redirect k output to tty
+ dst.evl=function(s){s=s.trim();if(!s.length)return
+  tty.value+="\n";krep(s);tty.value+=" ";tty.scrollTop=tty.scrollHeight
+  update()
+ }
  tty.onkeydown=function(e){
   if(("Enter"==e.key)&&(0<tty.value.length)){pd(e);
    let v=tty.value; let i=v.lastIndexOf("\n");
-   let s=((i<0)?v:v.slice(i)).trim()
-   if(!s.length)return
-   tty.value+="\n";krep(s);tty.value+=" ";tty.scrollTop=tty.scrollHeight
+   dst.evl((i<0)?v:v.slice(i))
  }}
  dst.appendChild(tty)
 }
@@ -295,19 +297,22 @@ function uitree(dst,x){ //treeview for D
 // - init k.wasm, when loaded call user supplied start
 // - if that's a string, load it as a k script
 // - after that initialize divs (connect to k variables)
-function initKweb(start){
+// - after that run post function if present
+function initKweb(start,post){
  return function(){
-  if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs()})
-  else{                            start();                                  initDivs()}
+  if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs(post)})
+  else{                            start();                                  initDivs(post)}
 }}
-function initDivs(){
+function initDivs(post){
  document.querySelectorAll("div").forEach(x=>{
   let d=function(){let k="",v="";if('kType'in x.dataset){k="type",v=x.dataset.kType}
    return K.Kx("!",K.Ks(k),K.Ks(v))
   }
        if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,d())
   else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())
-})}
+ })
+ if("function"==typeof post)post()
+}
 
 
 document.update=update //for custom updates from k
@@ -324,12 +329,12 @@ function addfile(x){
  r.readAsArrayBuffer(x)
 }
 
-function init(start,kwasm){ //start k
+function init(start,kwasm,post){ //start k
  register('plot',plot)
  register('draw',draw)
  kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
  let ext={                  //wasm import module
-  init: initKweb(start),
+  init: initKweb(start,post),
   read: function(file)     {return new Uint8Array(0)},
   write:function(file,data){if(file===""){O(su(data))}else{}},
   show: show,
@@ -343,9 +348,11 @@ function ktry(s){
  catch(e){console.log(e);K.restore();return false}
 }
 function krep(s){
+ if((s=="\\")||s=="\\h"){help();return}
  try     {let x=K._.repl(K.KC(s));K.save();return x}
  catch(e){console.log(e);K.restore();return false}
 }
+function help(){fetch('readme').then(r=>r.text()).then(r=>O("\n"+r+" "))}
 
 
 let kweb = {init,ktry,show,update,register}

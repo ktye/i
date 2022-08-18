@@ -3,7 +3,7 @@
 - k.js is a js module that loads k.wasm and provides an interface similar to the [c-api k.h](../+/k.h)
 - k.wasm is not checked in. it's the core that is built by [wg](https://github.com/ktye/wg) from `../*.go` or `wget ktye.github.io/k.wasm`
 - k6.html is a minimal web page that demonstrates it's usage
-- k.html (to be reworked) is the front page on ktye.github.io
+- k.html is the front page on ktye.github.io. It uses [kweb](kweb/).
 
 ## js interface
 `k.wasm` is the k core, which does not include a filesystem or a repl.
