@@ -35,7 +35,6 @@ fi
 wg             . > k.wat
 /c/local/wabt/wat2wasm -o web/k.wasm k.wat
 
-cp web/k.html   /c/k/ktye.github.io/index.html
 cp web/k.wasm   /c/k/ktye.github.io/
 cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
