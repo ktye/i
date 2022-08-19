@@ -23,7 +23,6 @@
 find[1 2 3;4 5] /Type
 find["abc";"b"] /Type
 1.2@3 /Type
-(+`a`b!(1 2;3 4)),+`b`a!(4 5;6 7) /Value
 ) /Parse
 {x+1] /Parse
 (1;2] /Parse

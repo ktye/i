@@ -3,7 +3,7 @@
 - k.js is a js module that loads k.wasm and provides an interface similar to the [c-api k.h](../+/k.h)
 - k.wasm is not checked in. it's the core that is built by [wg](https://github.com/ktye/wg) from `../*.go` or `wget ktye.github.io/k.wasm`
 - k6.html is a minimal web page that demonstrates it's usage
-- k.html is the front page on ktye.github.io. It uses [kweb](kweb/).
+- kweb/a.html is the front page on ktye.github.io.
 
 ## js interface
 `k.wasm` is the k core, which does not include a filesystem or a repl.
@@ -135,7 +135,6 @@ see [k6.html](k6.html) for an example providing custom read/write functions and 
 
 ### libraries
 [draw.js](draw.js) extends `k.js` with additional functions.
-See [k.html](k.html) how it is used:
 ```
 import { K } from './k.js'
 import { D } from './draw.js'
@@ -148,6 +147,3 @@ var ext = {
 Object.assign(ext, D)              //this adds draw.js functions to the import object
 K.kinit(ext)
 ```
-
-`draw` adds functions `draw`, `show`, `showev` which are compatible to the [c-versions](../+/draw/readme.md)
-

@@ -116,3 +116,5 @@ csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s
 
 `"ceg.":{(x i)!0-':1+i:&(1_~~':x),1b} /#'= (^x)
 hist:{$[`i~@x;hist[(x;&/y;|/y);y];(Y;(`38)[0;(`ceg@^1+((d%2.0)+-1_Y:(x 1)+(d:(--/1_x)%-1.+n)*!n)'y)@!n:_0.+*x])]} /[xn;y] [xn xmin xmax;y] e.g. plot `x`y!hist[10 -4 4.;?-1000]
+
+plot:{show[`id`type`width`height!(`cnv;`plot;800;600);x]}

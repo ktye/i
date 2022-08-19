@@ -59,6 +59,9 @@ func explode(x K) (r K) {
 	xt := tp(x)
 	if xt < 16 {
 		r = l1(x)
+	} else if xt == Dt {
+		r = mk(Lt, 1)
+		SetI64(int32(r), int64(x))
 	} else if xt < Lt {
 		xn := nn(x)
 		r = mk(Lt, xn)
@@ -166,14 +169,19 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 func dcat(x, y K) (r K) { // d,d  t,t
 	var q K
 	t := tp(x)
+	if t == Tt {
+		if match(K(I64(int32(x))), K(I64(int32(y)))) == 0 {
+			return ucat(explode(x), explode(y))
+		}
+	}
 	r, x = spl2(x)
 	q, y = spl2(y)
 	if t == Dt {
 		return Key(Cat(r, q), Cat(x, y))
 	} else {
-		if match(r, q) == 0 {
-			trap(Value)
-		}
+		//if match(r, q) == 0 {
+		//	return ucat(explode(Key(r, x)), explode(Key(q, y)))
+		//}
 		dx(q)
 		x = Ech(13, l2(x, y))
 		return key(r, x, t)
