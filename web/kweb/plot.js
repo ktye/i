@@ -2,12 +2,10 @@ import { K } from '../k.js'
 
 function ce(x){return document.createElement(x)}
 
+var plotwh=0
+
 export function plot(dst,x){
- if(plotdict==0){
-  K.KA(K.Ks("tics."),K.Kx(".",K.KC(tics_))) // `tics@
-  plotdict=K.Kx(".",K.KC(plotdict_))
-  plotwh  =K.Kx(".",K.KC(plotwh_))
- }
+ if(plotwh==0)plotwh=K.Kx(".",K.Ks(".plotwh"))
  K.unref(x)
  let cnv=newcanvas(dst)
  let dbl=ce("pre")                                        //dbl-click output
@@ -20,7 +18,7 @@ function replot(cnv,ax){
  let w=cnv.width,h=cnv.height              //default 300,150; show[`type`width`height!(`plot;400;300);..]
  let fs=('fs'in cnv)?cnv.fs:20             //show[`type`fs!(`plot;30);..]
  let ctx=cnv.getContext("2d")
- x=K.Kx("@",K.ref(plotdict),x)
+ x=K.Kx("@",K.Ks("plotdict"),x)
  if(ax.length)x=K.Kx("@[;`a`t;]",x,K.KL([K.KF(ax),K.Ks("xy")])) //set axes after zoom
  let t=K.sK(K.Kx("@",K.ref(x),K.Ks("t")))      //"xy" or "po"
  let a=K.FK(K.Kx("@",K.ref(x),K.Ks("a")))      //[xmin xmax ymin ymax]
@@ -262,46 +260,3 @@ function zoom(cnv,ctx,a,A){
   zd = [e.offsetX,e.offsetY,0,0]
 }}
 
-var plotdict=0
-var plotwh=0
-var tics=0
-const tics_="{[minmax]nice:{[x;r]f:x%0.+10^ex:_log[10;x];(1 2 5 10.@*&(~f>1 2 5 0w;f<1.5 3 7 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_1.5+e%s;$[~(minmax 1)>*-2#r:s*(_(*minmax)%s)+!n;-1_r;r]}"
-
-// the following k code has been escaped with: sh ./escape.sh
-const plotdict_="{[d]l:$!d;v:.d; t:$[2~#d;`xy;`polar];\n\
- y:$[t~`xy; $[`L~@y:v 1;y;,y];          $[`L~@y:_*v;y;,y]]\n\
- x:$[t~`xy; $[`L~@x:v 0;x;(,x)@(#y)#0]; $[`L~@x:imag@*v;x;,x]]\n\
- xt:`tics(&/&/x;|/|/x);yt:`tics(&/&/y;|/|/y)\n\
- a:$[t~`xy;(xt 0;*-1#xt;yt 0;*-1#yt);(-a;a;-a;a:*|`tics@0.,|/|/abs@*v)]\n\
- c:c@(#c:11826975 950271 2924588 2631638 12412820 4937356 12744675 8355711 2276796 13614615)/!#x\n\
- style:$[t~`polar;\"..\";`i~@**y;\"||\";\"--\"] / -.| line points bar\n\
- size: $[t~`polar;2;style~\"||\";(--/((**x),-1#*x))%-1+#*x ;2]\n\
- lines:{`style`size`color`x`y!(style;size;z;x;0.+y)}'[x;y;c]\n\
- `L`T`t`l`a!(lines;\"\";t;l;a)}"
-const plotwh_="{[x;fs;W;H]; ; a:x`a;T:x`T;grey:13882323\n\
- C:(W%2;H%2);R:(W%2)&(H%2)-fs\n\
- dst:$[`xy~x`t;(fs;W-fs;H-fs;fs);((C-R),C+R)0 2 3 1];rdst:(fs;fs;W-2*fs;H-2*fs)\n\
- xs:(a 0 1)(dst 0 1)' /transform axis to canvas\n\
- ys:(a 2 3)(dst 2 3)'\n\
- bars:{[l]$[\"|\"':l`style;(`color;l`color),,/{(`Rect;((-dx%2)+xs x;ys y;dx:-/xs(l`size;0.);(ys a 2)-ys y))}'[l`x;l`y];()]}\n\
- line:{[l]$[\"-\"':l`style;(`linewidth;l`size;`color;l`color;`poly;(xs l`x;ys l`y));()]}\n\
- dots:{[l]$[\".\"':l`style;(`color;l`color),,/{(`Circle;(xs x;ys y;1.5*l`size))}'[l`x;l`y];()]}\n\
- c:(`clip;(0;0;W;H);`font;(\"monospace\";fs);`color;0;`text;((W%2;fs);1;T))\n\
- xy:{[]c,:(`text;((fs;H);0;$a 0);`text;((W%2;H);1;(x`l)0);`text;((W-fs;H);2;$a 1))\n\
-       c,:(`Text;((fs;H-fs);0;$a 2);`Text;((fs;H%2);2;(x`l)1);`Text;((fs;fs);2;$a 3))\n\
-       c,:(`color;0;`linewidth;2;`rect;rdst)      /todo: clip rdst\n\
-       c,:(`linewidth;1;`color;grey)\n\
-       c,:(`clip;rdst)\n\
-       c,:,/{(`line;0.+(x;dst 2;x;dst 3))}'xs`tics x[`a;0 1]\n\
-       c,:,/{(`line;0.+(dst 0;x;dst 1;x))}'ys`tics x[`a;2 3]}\n\
- po:{[]c,:(`text;((C 0;H);1;(x`l)0);`text;(C+.75*R;6;$(x`a)3))\n\
-       c,:(`font;(\"monospace\";_fs*.8)),,/{(`text;(C+R*(_;imag)@'x;y;z))}'[1@270.+a;0 0 6 6 4 4 2 2;$a:30 60 120 150 210 240 300 330]\n\
-       c,:(`color;0),/{(`line;,/+C+(R-fs%2;R)*/:(_;imag)@'x)}'1@30.*!12\n\
-       /c,:(`clip;C,R) /bug in cairo?\n\
-       c,:(`color;grey;`linewidth;1;`line;((-R)+*C;C 1;R+*C;C 1);`line;(*C;(-R)+C 1;*C;R+C 1))\n\
-       c,:,/{(`circle;0.+C,x)}'r:(xs@`tics 0.,x[`a;3])-*C\n\
-       c,:(`color;0;`linewidth;2;`circle;C,R)}\n\
- $[`xy~x`t;xy[];po[]]\n\
- c,:,/bars'x`L\n\
- c,:,/line'x`L\n\
- c,:,/dots'x`L}"

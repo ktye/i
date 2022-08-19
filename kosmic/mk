@@ -1,14 +1,6 @@
 set -e
 set -x
 
-if [ "$1" = "ktye" ];then  
- cat ../+/k.h                   | grep -v '^#include' > k.h
- wg -c -prefix ktye_ -nomain .. | grep -v '^#include' > ktye.h
- cat                         ../+/api                >> ktye.h
- exit 0
- # or wget github.com/ktye/i/releases/download/latest/ktye.h and remove includes.
-fi
-
 
 if [ "$1" = "getcosmo" ];then
  wget https://justine.lol/cosmopolitan/cosmopolitan-tiny.zip && unzip cosmopolitan-tiny.zip
@@ -38,3 +30,9 @@ else                        # build on windows
  $oc -S -O binary ${k}.com.dbg ${k}.com
  
 fi
+
+for file in ../k.wasm ../k.js plot.js kweb.js kweb.css a.html a.k; do
+ base=`basename  ${file}`
+ echo  -e "\n\\\\${base}" >> ${k}.com
+ cat ../web/kweb/${file}  >> ${k}.com
+done

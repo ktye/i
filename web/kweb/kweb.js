@@ -294,15 +294,18 @@ function uitree(dst,x){ //treeview for D
 
 
 //initialzation:
-// - init k.wasm, when loaded call user supplied start
-// - if that's a string, load it as a k script
-// - after that initialize divs (connect to k variables)
-// - after that run post function if present
+// - get & init k.wasm
+// - get & exec a.k
+// - exec user supplied start(js or k script)
+// - initialize divs (connect to k variables)
+// - run post function(js) if present
 function initKweb(start,post){
  return function(){
-  if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs(post)})
-  else{                            start();                                  initDivs(post)}
-}}
+  fetch("a.k").then(r=>r.text()).then(r=>{
+   K._.Val(K.KC(r))
+   if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs(post)})
+   else{                            start();                                  initDivs(post)}
+})}}
 function initDivs(post){
  document.querySelectorAll("div").forEach(x=>{
   let d=function(){let k="",v="";if('kType'in x.dataset){k="type",v=x.dataset.kType}

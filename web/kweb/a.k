@@ -1,7 +1,4 @@
-
-echo -n "const plotdict_=\""
-cat << 'EOF' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/$/\\n\\/g'
-{[d]l:$!d;v:.d; t:$[2~#d;`xy;`polar];
+`"plotdict.":{[d]l:$!d;v:.d; t:$[2~#d;`xy;`polar];
  y:$[t~`xy; $[`L~@y:v 1;y;,y];          $[`L~@y:_*v;y;,y]]
  x:$[t~`xy; $[`L~@x:v 0;x;(,x)@(#y)#0]; $[`L~@x:imag@*v;x;,x]]
  xt:`tics(&/&/x;|/|/x);yt:`tics(&/&/y;|/|/y)
@@ -11,12 +8,8 @@ cat << 'EOF' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/$/\\n\\/g'
  size: $[t~`polar;2;style~"||";(--/((**x),-1#*x))%-1+#*x ;2]
  lines:{`style`size`color`x`y!(style;size;z;x;0.+y)}'[x;y;c]
  `L`T`t`l`a!(lines;"";t;l;a)}
-EOF
 
-
-echo -n "const plotwh_=\""
-cat << 'EOF' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/$/\\n\\/g'
-{[x;fs;W;H]; ; a:x`a;T:x`T;grey:13882323
+`".plotwh":{[x;fs;W;H]; ; a:x`a;T:x`T;grey:13882323
  C:(W%2;H%2);R:(W%2)&(H%2)-fs
  dst:$[`xy~x`t;(fs;W-fs;H-fs;fs);((C-R),C+R)0 2 3 1];rdst:(fs;fs;W-2*fs;H-2*fs)
  xs:(a 0 1)(dst 0 1)' /transform axis to canvas
@@ -43,4 +36,8 @@ cat << 'EOF' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/$/\\n\\/g'
  c,:,/bars'x`L
  c,:,/line'x`L
  c,:,/dots'x`L}
-EOF
+
+`"tics.":{[minmax]nice:{[x;r]f:x%0.+10^ex:_log[10;x];(1 2 5 10.@*&(~f>1 2 5 0w;f<1.5 3 7 0w)[r])*10^ex};e:nice[-/|minmax;0];s:nice[e%4.;1];n:_    1.5+e%s;$[~(minmax 1)>*-2#r:s*(_(*minmax)%s)+!n;-1_r;r]}
+
+x:.5*!9
+d:`x`y!(x;(sin x;cos x))

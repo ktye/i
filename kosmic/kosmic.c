@@ -1,10 +1,98 @@
-//no std includes(cosmopolitan.h/a provides everything)
-#include"k.h"     //c-api
-#include"ktye.h"  //k-implementation
 
 #define E(c,s) if(c){printf("^%s\n",s);exit(1);}
-#define P(s)   printf("%s\n",s);fflush(stdout);
 
+#define OK "HTTP/1.1 200 OK\nContent-Type: "
+#define HM "text/html\n"
+#define JS "text/javascript\n"
+#define CS "text/css\n"
+#define TX "text/plain\n"
+#define LN "Content-Length: "
+#define GT "GET /"
+#define HT " HTTP/1.1"
+#define R4 "HTTP/1.1 404 Not Found\nContent-Length: 0\n\n"
+#define NX close(f);continue
+#define writec(x,y) write((x),(y),sizeof(y)-1)
+
+
+// files are attached to the binary
+// each file has a header line: \filename
+int  NF;     //attached files
+char*F[32];  //name
+char*P[32];  //data
+int  N[32];  //len
+
+int flen(int f){
+ struct stat st;
+ if(fstat(f,&st))return -1;
+ return st.st_size;
+}
+
+void fsys(char *a0){
+ int f=open(a0,O_RDONLY);
+ E(!f,"^a0");
+ int n=flen(f);
+ E(0>n,"#a0");
+ 
+ char *a=malloc(n);
+ E(n!=read(f,a,n),"<a0");
+ close(f);
+
+ NF=0;
+ char s[10];
+ s[0]='\n';s[1]='\\';
+ memcpy(2+s,"k.wasm\n",7);
+ 
+ for(int i=0;i<n-1;i++){
+  if((a[i]!='\n')||a[1+i]!='\\')continue;
+  char *c=2+i+a;
+  if(!NF)if(strncmp(c,"k.wasm\n",10))continue;  //k.wasm is first attachment.
+  c=strchr(c,10);
+  if(!c)continue;
+  *c++='\0';
+  F[NF]=2+i+a;
+  P[NF]=c;
+  N[NF]=n-(c-a);
+  if(0<NF)N[NF-1]-=n-i;
+  NF++;
+ }
+ for(int i=0;i<NF;i++){
+  printf("%s:%d\n",F[i],N[i]);
+ }
+}
+
+void hdr(int d, char *c, int n){
+ writec(d,OK);
+ if(strstr(c,".html"))    writec(d,HM);
+ else if(strstr(c,".js")) writec(d,JS);
+ else if(strstr(c,".css"))writec(d,CS);
+ else                     writec(d,TX);
+ writec(d,LN);
+ char sz[32];
+ itoa(n,sz,10);
+ write(d,sz,strlen(sz));
+ write(d,"\n\n",2);
+}
+
+int getfile(int d,char *c){
+ printf("get: %s ",c);
+ if(!c[0])memcpy(c,"a.html",7);
+ for(int i=0;i<NF;i++){  //from mem
+  if(!strcmp(F[i],c)){
+   hdr(d,c,N[i]);
+   write(d,P[i],N[i]);
+   printf("{%d ok}\n",N[i]);
+   return 1;
+  }
+ }                       //from disk
+ int f=open(c,O_RDONLY);
+ if(!f)return 0;
+ int n=flen(f);
+ if(0>n){close(f);return 0;}
+ hdr(d,c,n);
+ sendfile(d,f,NULL,n);
+ printf("[%d ok]\n",n);
+ return 1;
+}
 
 void serve(int port){
  int s=socket(AF_INET,SOCK_STREAM,6);E((s<0),"socket")
@@ -13,43 +101,27 @@ void serve(int port){
  E(listen(s,64),"listen")
  
  printf("browse to http://127.0.0.1:%d\n",port);
- if((port==8088)&&IsWindows())system("explorer http://127.0.0.1:8088");
+ //if((port==8088)&&IsWindows())system("explorer http://127.0.0.1:8088");
  for(;;){
- 
-  //todo select s|stdin
- 
   struct sockaddr_in c; uint32_t cn=sizeof(c); int f=accept(s,&c,&cn);E(f<0,"accept")
   char q[2040];int n=read(f,q,sizeof(q)-1);E(n<0,"read");
   n=(n>sizeof(q)-1)?sizeof(q)-1:n;q[n]='\0';
-
-  K x=Kx(".",Ks("serve"));E(!x,"serve");
-  K r=Kx("@",x,KC(q,n));  E('C'!=TK(r),"type");
-  write(f,_M+(int32_t)r,NK(r));
+  
+  if(n>sizeof GT){
+   if(strncmp(GT,q,sizeof GT)){
+    char *c=strstr(q,HT);
+    if(c==NULL)goto NE;
+    *c='\0';
+    if(!getfile(f,q+5))goto NE;
+    NX;
+   }
+  }
+  
+NE:
+  printf("[404]\n");
+  writec(f,R4);
   close(f);
  }
 }
 
-void dofile(const char *f){K a=ref(KC(f,strlen(f)));ktye_dofile(a,ktye_readfile(a));}
-void ak(){          int f=open("a.k",O_RDONLY);if(0>f)return;close(f);dofile("a.k");}
-
-int main(int args, char **argv){
- int p=8088;
- kinit();
- args_=args;argv_=argv;
- if(1==args)ak();
- if((1<args)){char *a=argv[1];
-       if(!strcmp(a,"0")){p=0;             args_--;argv_++; }
-  else if(0!=atoi(a)){    p=atoi(argv[1]); args_--;argv_++; }
-  else p=0;
- }
-
- //todo: define/register extension
- char *cwd=getcwd(0,0);KA(Ks("cwd"),KC(cwd,strlen(cwd)));
- ktye_doargs();
-
- if(p)serve(p);
-
- ktye_store();
- P("kosmic")
- for(;;){printf(" ");fflush(stdout);ktye_try(ktye_read());}
-}
+int main(int args, char **argv){ fsys(argv[0]); serve((2==args)?atoi(argv[1]):8088); }
