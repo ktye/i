@@ -74,56 +74,56 @@ jobs:
     - name: kom
       run: cd i/kom && sh mk && sh mk test
   
-    - name: install k+ dependencies
-      run: sudo apt-get update && sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
-  
-    - name: checkout sqlite
-      uses: actions/checkout@v2
-      with:
-        repository: sqlite/sqlite
-        path: sqlite
-        ref: version-3.37.2
-
-    - name: build sqlite.c
-      run: |
-        mkdir sq
-        cd sq
-        ../sqlite/configure
-        make
-        make sqlite3.c
-        cp sqlite3.c ../i/+
-        
-    - name: checkout raylib
-      uses: actions/checkout@v2
-      with:
-        repository: raysan5/raylib
-        ref: '4.0.0'
-        path: ray
-        
-    - name: build raylib
-      run: |
-        cd ray/src
-        make PLATFORM=PLATFORM_DESKTOP
-        cp ../libraylib.a ../../i/+/
-        cp raylib.h       ../../i/+/ray/
-        cp rgestures.h    ../../i/+/ray/
+#    - name: install k+ dependencies
+#      run: sudo apt-get update && sudo apt-get install -y liblapacke-dev libcairo2-dev libsqlite3-dev libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
+#  
+#    - name: checkout sqlite
+#      uses: actions/checkout@v2
+#      with:
+#        repository: sqlite/sqlite
+#        path: sqlite
+#        ref: version-3.37.2
+#
+#    - name: build sqlite.c
+#      run: |
+#        mkdir sq
+#        cd sq
+#        ../sqlite/configure
+#        make
+#        make sqlite3.c
+#        cp sqlite3.c ../i/+
+#        
+#    - name: checkout raylib
+#      uses: actions/checkout@v2
+#      with:
+#        repository: raysan5/raylib
+#        ref: '4.0.0'
+#        path: ray
+#        
+#    - name: build raylib
+#      run: |
+#        cd ray/src
+#        make PLATFORM=PLATFORM_DESKTOP
+#        cp ../libraylib.a ../../i/+/
+#        cp raylib.h       ../../i/+/ray/
+#        cp rgestures.h    ../../i/+/ray/
     
     - name: build ktye.h
       run: cd i/+ && sh mk ktye.h
     
-    - name: tar k+
-      run: cd i && tar czf k+.tar.gz +/
+#    - name: tar k+
+#      run: cd i && tar czf k+.tar.gz +/
           
-    - name: build k+
-      run: |
-        cd i/+
-        sh mk.lin
-        
-    - name: test k+
-      run: |
-        cd i/+
-        ./k+ mat/mat.k -e
-        ./k+ draw/draw.k -e
+#    - name: build k+
+#      run: |
+#        cd i/+
+#        sh mk.lin
+#        
+#    - name: test k+
+#      run: |
+#        cd i/+
+#        ./k+ mat/mat.k -e
+#        ./k+ draw/draw.k -e
         
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0
@@ -201,12 +201,12 @@ jobs:
         asset_name: ktye.h
         asset_content_type: text/plain
     
-    - name: upload k+
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/k+.tar.gz
-        asset_name: k+.tar.gz
-        asset_content_type: application/tar+gzip
+#    - name: upload k+
+#      uses: actions/upload-release-asset@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: ./i/k+.tar.gz
+#        asset_name: k+.tar.gz
+#        asset_content_type: application/tar+gzip
