@@ -46,9 +46,6 @@ func repl(x K) {
 				} else if c == 'm' {
 					dx(x)
 					dx(Out(Ki(I32(128))))
-				} else if c == 'c' {
-					dx(x)
-					reset()
 				}
 			}
 			return

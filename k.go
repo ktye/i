@@ -9,69 +9,6 @@ var loc, xyz K
 var na, inf float64
 var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
-/* debug c/f77
-func dump(a, b int32) {
-	var ii, jj int32
-	for i := a; i < b; i++ {
-		ii = i
-		jj = I8(ii)
-		Printf("mem%12d%12d\n", ii, jj)
-	}
-}
-func kprint(x K) { //rm
-	t := int32(tp(x))
-	n := int32(-1)
-	if t > 16 {
-		n = nn(x)
-	}
-	h := int32(x)
-	l := int32(uint32(x) >> 32)
-	Printf("t/n%12d%12d%12d%12d\n", t, n, h, l)
-}
-func printlist(x K) { //rm
-	n := nn(x)
-	var h, l int32
-	Printf("list:#%d ", n)
-	for i := int32(0); i < n; i++ {
-		xi := I64(int32(x) + 8*i)
-		h = int32(xi)
-		l = int32(xi >> 32)
-		Printf(" (%d,%d)\n", h, l)
-	}
-	Printf("\n")
-}
-func printints(x K) { //rm
-	n := nn(x)
-	Printf("ints[%d]", n)
-	var xi int32
-	for i := int32(0); i < n; i++ {
-		xi = I32(int32(x) + 4*i)
-		Printf(" %d", xi)
-	}
-	Printf("\n")
-}
-func printfloats(x K) { //rm
-	n := nn(x)
-	Printf("floats[%d]", n)
-	var xi float64
-	for i := int32(0); i < n; i++ {
-		xi = F64(int32(x) + 8*i)
-		Printf(" %f", xi)
-	}
-	Printf("\n")
-}
-func printchars(x K) { //rm
-	n := nn(x)
-	Printf("bools/chars[%d]: ", n)
-	var xi int32
-	for i := int32(0); i < n; i++ {
-		xi = I8(int32(x) + i)
-		Printf(" %d", xi)
-	}
-	Printf("\n")
-}
-*/
-
 func init() {
 	Memory(1)
 	Memory2(1)
@@ -80,7 +17,6 @@ func init() {
 	Data(520, "vbcisfzldtmdplx00BCISFZLDT") //546
 	Export(Asn, Atx, Cal, cs, dx, Kb, Kc, Kf, Ki, kinit, l2, mk, nn, repl, rx, sc, tp, trap, Val)
 
-	//ExportAll()
 	//            0    :    +    -    *    %    !    &    |    <    >10  =    ~    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
 	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Til, Wer, Rev, Asc, Dsc, Grp, Not, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, ecp, rdc, ecr, scn, ecl, lst, Kst, Out, Any, Fin, Abs, Img, Cnj, Ang, nyi, Uqs, Xpt, Cos, Fwh, Las, Exp, Log, Sin, Tok, Prs)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Key, Min, Max, Les, Mor, Eql, Mtc, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, com, prj, Otu, In, Find, Hyp, Cpx, nyi, Rot, Enc, Dec, Fil, nyi, Bin, Mod, Pow, Lgn, nyi, nyi, Rtp)
@@ -122,7 +58,7 @@ func init() {
 
 func kinit() {
 	//Printf("kinit>\n")
-	minit(13, 16) //8k..64k
+	minit(12, 16) //4k..64k
 	sp = 256
 	SetI64(552, int64(mk(Ct, 0))) //src
 	loc = 0
@@ -137,23 +73,6 @@ func kinit() {
 	z := sc(Ku(122)) // `z 24
 	xyz = cat1(Cat(x, y), z)
 	zk()
-}
-func reset() {
-	if sp != 256 {
-		panic(Stack)
-	}
-	dx(src())
-	dx(xyz)
-	dx(K(I64(0)))
-	dx(K(I64(8)))
-	//check() // k_test.go
-	if (uint32(1)<<uint32(I32(128)))-(8192+mcount()) != 0 {
-		trap(Err)
-	}
-	for i := int32(5); i < 31; i++ {
-		SetI32(4*i, 0)
-	}
-	kinit()
 }
 
 type K uint64

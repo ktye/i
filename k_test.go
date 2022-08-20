@@ -266,7 +266,6 @@ func TestRepl(t *testing.T) {
 	testCases := [][2]string{
 		[2]string{"1+1", "2\n"},
 		[2]string{"x:!10", ""},
-		[2]string{"\\c", ""},
 		[2]string{"\\m", "16\n"},
 	}
 	for _, tc := range testCases {
@@ -784,4 +783,20 @@ func comma(x bool) string {
 	} else {
 		return ""
 	}
+}
+func reset() {
+	if sp != 256 {
+		panic(Stack)
+	}
+	dx(src())
+	dx(xyz)
+	dx(K(I64(0)))
+	dx(K(I64(8)))
+	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
+		trap(Err)
+	}
+	for i := int32(5); i < 31; i++ {
+		SetI32(4*i, 0)
+	}
+	kinit()
 }
