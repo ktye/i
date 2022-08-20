@@ -5,32 +5,31 @@ R:")}]"                    /right
 A:"'/\\"                   /adverb
 V:"+-*%&|<>=^!~,#_$?@."    /verb
 
-C:(S,L;R;V;A;".",_,/65 97+\:!26;"0123456789"),"\"`_-:e\\/\n"
+C:(S,L;R;V;A;".",_,/65 97+\:!26;"0123456789"),"\"`-:e\\/\n"
 C:@[;;]/[-1+&256;0+C;!#C]@0+
 
 t:1_'(&"\n"=t)^t:1_("
- ;)+'a0q`_-:e\/n
-;;)+'a0q`_-+a'/;
-);)+'a0q`_++a'';
-+;)+'a0q`_-+a'';
-';)+'a0q`_-:a'';
-a;)+'bbq`b++b'';
-0;)+'11q`_+:e'';
-qrrrrrrtrrrrrsrr
-`;)+'b0q`b++b'';
-_;)+'b0q`_-+b'';
--;)+'a1q`_-+a'';
-/cccccccccccccc;
-ccccccccccccccc;
-:;)+'a0q`_-+a'';
-b;)+'bbq`b++b'';
-1;)+'11q`_++e'';
-e;)+'11q`_1+1'';
-rrrrrrrtrrrrrsrr
-srrrrrrrrrrrrrrr
-t;)+'a0q`_++a'';")
+ ;)+'a0q`-:e\/n
+;;)+'a0q`-+a'/;
+);)+'a0q`++a'';
++;)+'a0q`-+a'';
+';)+'a0q`-:a'';
+a;)+'bbq`++b'';
+0;)+'11q`+:e'';
+qrrrrrrtrrrrsrr
+`;)+'b0q`++b'';
+-;)+'a1q`-+a'';
+/ccccccccccccc;
+cccccccccccccc;
+:;)+'a0q`-+a'';
+b;)+'bbq`++b'';
+1;)+'11q`++e'';
+e;)+'11q`1+1'';
+rrrrrrrtrrrrsrr
+srrrrrrrrrrrrrr
+t;)+'a0q`++a'';")
 
-t[10]:"/cccccccccccccc;"
+t[10]:"/ccccccccccccc;"
 
 T:t[;0]?/:1_'t
 
@@ -51,3 +50,5 @@ p:{x:w x
    x[i]:x[i],'":"
    x:x(&b&e&~-1_1,c':L)_!#x
    -1_,/{$[0N~i:dma?x;x;DMA i]," "}'x}
+
+ \p"1_'(&x=y)_y:x,y"
