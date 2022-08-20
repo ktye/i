@@ -131,11 +131,16 @@ func TestMultiline(t *testing.T) {
 	tc := []struct {
 		in, exp string
 	}{
+		{"1\n/", "1"},
+		{"", ""},
+		{`" /"`, `" /"`},
+		{"/12\n3", "3"},
+		{"1", "1"},
 		{"1+2\n3*4", "12"},
 	}
 	for _, tc := range tc {
 		newtest()
-		//fmt.Println(tc.in)
+		fmt.Println(tc.in)
 		got := sK(Val(mkchars([]byte(tc.in))))
 		if got != tc.exp {
 			t.Fatalf("got %s expected %s", got, tc.exp)
