@@ -6,25 +6,21 @@
  textarea{outline:none;border:none;resize:none;}
  .hidden{visibility:collapse}
  #main{display:flex;flex-direction:column;height:100%}
- #top{display:flex;flex-direction:row;flex:2;height:100%}
- #edt{display:flex;flex-direction:column;flex:1;width:100%;}
- #edt > * {flex:1;background-color:#f0f0f0}
- #cnv{display:flex;}
+ #edt{display:flex;flex-direction:row;flex:2;height:100%;width:100%}
+ #edt > * {background-color:#f0f0f0;width:100%}
  #con{display:flex;flex:1;height:100%;width:100%}
  #con > * {flex:1;width:100%}
+ #cnv{position:absolute;top:0;right:0}
 </style>
 
 
 <body>
 
 <div id="main">
- <div id="top">
-  <div id="edt" data-k-var="edit" data-k-type="edit" class="hidden"></div>
-  <div id="cnv"><canvas width=0 height=0 class="hidden"></canvas></div>
- </div>
+ <div id="edt" data-k-var="edit" data-k-type="edit" class="hidden"></div>
  <div id="con" data-k-type="tty" data-k-var=".tty"></div>
 </div>
-
+<div id="cnv"><canvas width=0 height=0 class="hidden"></canvas></div>
 
 <a id="_dl" style:"display:none"></a>
 
