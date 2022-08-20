@@ -378,10 +378,9 @@ func ws() {
 				pp++
 			}
 		} else {
-			break
+			return
 		}
 	}
-	//return
 }
 
 //func is(x, m int32) (r bool) { return m&I8(100+x) != 0 }
