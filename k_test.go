@@ -171,6 +171,21 @@ func TestKT(t *testing.T) {
 	reset()
 	reset()
 }
+func TestAT(t *testing.T) {
+	newtest()
+	b, err := ioutil.ReadFile("web/kweb/a.k")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := ioutil.ReadFile("web/kweb/a.t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dofile(mkchars([]byte("a.k")), mkchars(b))
+	dofile(mkchars([]byte("a.t")), mkchars(c))
+	reset()
+	reset()
+}
 func TestKE(t *testing.T) {
 	//t.Skip()
 	b, err := ioutil.ReadFile("k.e")
@@ -252,7 +267,7 @@ func TestRepl(t *testing.T) {
 		[2]string{"1+1", "2\n"},
 		[2]string{"x:!10", ""},
 		[2]string{"\\c", ""},
-		[2]string{"\\m", "17\n"},
+		[2]string{"\\m", "16\n"},
 	}
 	for _, tc := range testCases {
 		newtest()

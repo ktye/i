@@ -44,5 +44,43 @@ hist:{$[`i~@x;hist[(x;&/y;|/y);y];(Y;(`38)[0;(`ceg@^1+((d%2.0)+-1_Y:(x 1)+(d:(--
 
 plot:{show[`id`type`width`height!(`cnv;`plot;800;600);x]}
 
+
+
+/linear algebra
+dot:{[xt;y]{+/x*y}\:[xt;y]} /col-major
+
+solve:{qslv:{H:x 0;r:x 1;n:x 2;m:x 3;j:0;K:!m
+ while[j<n;y[K]-:(+/(conj H[j;K])*y K)*H[j;K];K:1_K;j+:1]
+ i:n-1;J:!n;y[i]%:r@i
+ while[i;j:i_J;i-:1;y[i]:(y[i]-+/H[j;i]*y@j)%r@i]
+ n#y}
+ q:$[`i~@*|x;x;qr x];$[`L~@y;qslv/:[q;y];qslv[q;y]]}
+
+qr:{K:!m:#*x;I:!n:#x;j:0;r:n#0a;turn:$[`Z~@*x;{(-x)@angle y};{x*1. -1@y>0}]
+ while[j<n;I:1_I
+  r[j]:turn[s:abs@abs/j_x j;xx:x[j;j]]
+  x[j;j]-:r[j]
+  x[j;K]%:%s*(s+abs xx)
+  x[I;K]-:{+/x*y}/:[(conj x[j;K]);x[I;K]]*\:x[j;K]
+  K:1_K;j+:1];(x;r;n;m)}
+
+
+/statistics
+avg:{(+/x)%0.+#x}
+var:{(+/x*x:(x-avg x))%-1+#x}
+std:{%var x}
+
+rem:{x/x+x/y} /like apl for negative arguments
+ej:{(y j),'x_z i j:&~0N=i:(z x)?y x} /sym t1 t2
+
+/serialize
+`"pack.":{w:{(`c@,#x),x};($t),$[`s~t:@x;`pack@$x;x~*x;w `c@,x;`L~@x;(`c@,#x),,/`pack@'x;(@x)':`D`T;(`pack@.x),`pack@!x;`S~t;,/`pack@$x;w `c x]}
+`"unpack.":{s:x;g:{[n]r:n#s;s::n_s;r};n:{*`i@g 4};u:{x;$[(t:*g 1)':"bcifz";*(`$t)g n[];t~"s";`$u 0;t~"S";`$u 0;t~"L";u'!n[];t~"D";(u 0)!u 0;t~"T";+(u 0)!u 0;(`$_t+32)g n[]]};u 0}
+`"split.":{$[`L~@x;`split@'x;" "\:$[" "=x@-1+#x:x@&~i&~':i:" "=x;-1_x;x]]} /multiple whitespace/leading/trailing
+csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
+
+
+/plot example
 x:.5*!9
 d:`x`y!(x;(sin x;cos x))
+
