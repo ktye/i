@@ -24,14 +24,6 @@ any:`30;abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;ex
 / pretty print  `l@x  `k@x
 `"pad.":{(|/#'x)#'x}
 
-/ `"l.":{t:@x;k:`kxy 1
-/  kt:{x:$[`T~@x;T x;`pad("";"-"),$x];(x,'"|"),'T y}
-/  d:{r:!x;x:.x;$[`T~@x;kt[r;x];,'[,'[`pad(k'r);"|"];k'x]]}
-/  T:{$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+`pad@'$(!x),'.x]}
-/  dd:("";,"..")20<#x:$[(@x)':`L`D`T;x;x~*x;x;[t:`L;,x]]
-/  x:$[x~*x;x;(20&#x)#x]
-/  $[`D~t;d x;`T~t;T x;x~*x;,k x;k'x],dd} /352
-
 `"l.":{ /k
  kt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad("";"-"),$x];(x,'"|"),'T[y;k]}
  d:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);"|"];k'x]]}
@@ -40,17 +32,6 @@ any:`30;abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;ex
  dd:("";,"..")20<#x:$[(@x)':`L`D`T;x;x~*x;x;[t:`L;,x]]
  x:$[x~*x;x;(20&#x)#x]
  $[`D~t;d[x;k;kt;T];`T~t;T[x;k];x~*x;,k x;k'x],dd} /352
-
-/ `"kxy.":{t:@y;n:#y;k:`kxy x;m:x
-/  q:{c,("\\"/:(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x':qs:"\t\n\r\"\\"]),c:_34}
-/  s:{$[|/x':"\t\n\r"__!31;"0x",`x@x;q x]}
-/  a:{x:$x;$[`c~t;s x;`s~t;"`",x;x]}
-/  d:{r:"!",k@.x;n:#!x;x:k@!x;$[(1~n)|(@.x)':`D`T;"(",x,")";x],r}
-/  v:{m*:(.`".kstm")t; dd:("";"..")m<#x;x:(m&#x)#x
-/   x:$[`L~t;k'x;`C~t;x;$x]
-/   x:$[`B~t;(*'x),"b";`C~t;s x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
-/   (("";",")(1~n)),x,dd}
-/  $[n~0;(.`".kst0")@t;`T~t;"+",d@+y;`D~t;d y;y~*y;a y;v y]} /344
 
 `"str.":{q:{c,("\\"/:(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x':qs:"\t\n\r\"\\"]),c:_34}
  $[|/x':"\t\n\r"__!31;"0x",`x@x;q x]}
@@ -111,10 +92,4 @@ ej:{(y j),'x_z i j:&~0N=i:(z x)?y x} /sym t1 t2
 /serialize
 `"pack.":{w:{(`c@,#x),x};($t),$[`s~t:@x;`pack@$x;x~*x;w `c@,x;`L~@x;(`c@,#x),,/`pack@'x;(@x)':`D`T;(`pack@.x),`pack@!x;`S~t;,/`pack@$x;w `c x]}
 `"unpack.":{s:x;g:{[n]r:n#s;s::n_s;r};n:{*`i@g 4};u:{x;$[(t:*g 1)':"bcifz";*(`$t)g n[];t~"s";`$u 0;t~"S";`$u 0;t~"L";u'!n[];t~"D";(u 0)!u 0;t~"T";+(u 0)!u 0;(`$_t+32)g n[]]};u 0}
-
 csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s=`z];s$'y n};s:$[" "~(*x);`split@;(*x)\:];x:1_x;y:+s'$[`L~@y;y;"\n"\:y];$[#x;c[x;y];y]} / csv[";1z3i2f"; "input.."]
-
-`"ceg.":{(x i)!0-':1+i:&(1_~~':x),1b} /#'= (^x)
-hist:{$[`i~@x;hist[(x;&/y;|/y);y];(Y;(`38)[0;(`ceg@^1+((d%2.0)+-1_Y:(x 1)+(d:(--/1_x)%-1.+n)*!n)'y)@!n:_0.+*x])]} /[xn;y] [xn xmin xmax;y] e.g. plot `x`y!hist[10 -4 4.;?-1000]
-
-plot:{show[`id`type`width`height!(`cnv;`plot;800;600);x]}
