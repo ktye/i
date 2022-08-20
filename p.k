@@ -29,11 +29,9 @@ rrrrrrrtrrrrsrr
 srrrrrrrrrrrrrr
 t;)+'a0q`++a'';")
 
-t[10]:"/ccccccccccccc;"
-
 T:t[;0]?/:1_'t
 
-w:{x@&{$[(*x)':S;0b;"/"=*x;1=#x;1b]}'x:(&11>{T[x;y]}\C x)^x:" ",x}
+w:{x@&{$[(*x)':S;0b;"/"=*x;1=#x;1b]}'x:(&10>{T[x;y]}\C x)^x:" ",x}
 
 D:`plus`minus`times`dividedby`and`or`less`more`equal`power`mod`match`join`take`drop`form`find`at`dot
 M:`flip`negate`first`reciprocal`where`reverse`upgrade`downgrade`group`shape`enumerate`not`enlist`count`floor`format`unique`atom`value
@@ -51,4 +49,4 @@ p:{x:w x
    x:x(&b&e&~-1_1,c':L)_!#x
    -1_,/{$[0N~i:dma?x;x;DMA i]," "}'x}
 
- \p"1_'(&x=y)_y:x,y"
+ \p"1_'(&x=y)_y:x,y /comment"
