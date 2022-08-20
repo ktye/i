@@ -36,30 +36,31 @@ func tok(x K) (r K) {
 }
 func src() K { return K(I64(552)) }
 func tbln() K {
-	n := pe - pp
-	for i := int32(0); i < n; i++ {
-		c := I8(pp + i)
-		if c != '0' && c != '1' {
-			if i < 1 || c != 'b' {
-				return 0
-			}
-			return pbln(i)
-		}
-	}
+	//	n := pe - pp
+	//	for i := int32(0); i < n; i++ {
+	//		c := I8(pp + i)
+	//		if c != '0' && c != '1' {
+	//			if i < 1 || c != 'b' {
+	//				return 0
+	//			}
+	//			return pbln(i)
+	//		}
+	//	}
 	return 0
 }
 func pbln(n int32) (r K) {
-	r = mk(Bt, n)
-	rp := int32(r)
-	for i := int32(0); i < n; i++ {
-		SetI8(rp, I8(pp+i)-'0')
-		rp++
-	}
-	pp += 1 + n
-	if n == 1 {
-		return Fst(r)
-	}
-	return r
+	//	r = mk(Bt, n)
+	//	rp := int32(r)
+	//	for i := int32(0); i < n; i++ {
+	//		SetI8(rp, I8(pp+i)-'0')
+	//		rp++
+	//	}
+	//	pp += 1 + n
+	//	if n == 1 {
+	//		return Fst(r)
+	//	}
+	//	return r
+	return trap(Err) //unreachable
 }
 func tchr() (r K) {
 	if I8(pp) == '0' && pp < pe { // 0x01ab (lower case only)

@@ -8,13 +8,6 @@ const pi float64 = 3.141592653589793
 const maxfloat float64 = 1.797693134862315708145274237317043567981e+308
 
 func hypot(p, q float64) float64 {
-	//todo
-	//switch {
-	//case IsInf(p, 0) || IsInf(q, 0):
-	//	return Inf(1)
-	//case IsNaN(p) || IsNaN(q):
-	//	return NaN()
-	//}
 	p, q = F64abs(p), F64abs(q)
 	if p < q {
 		t := p

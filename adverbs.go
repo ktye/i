@@ -189,31 +189,31 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 	xt := tp(x)
 	xp := int32(x)
 	s := sz(xt)
-	r = mk(Bt, n)
+	r = mk(It, n)
 	rp := int32(r)
 	f = 173 + 15*f
 	switch s >> 2 {
 	case 0:
-		SetI8(rp, Func[f].(f2i)(I8(xp), int32(y)))
+		SetI32(rp, Func[f].(f2i)(I8(xp), int32(y)))
 		for i := int32(1); i < n; i++ {
 			xp++
-			rp++
-			SetI8(rp, Func[f].(f2i)(I8(xp), I8(xp-1)))
+			rp += 4
+			SetI32(rp, Func[f].(f2i)(I8(xp), I8(xp-1)))
 		}
 	case 1:
-		SetI8(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		SetI32(rp, Func[f].(f2i)(I32(xp), int32(y)))
 		for i := int32(1); i < n; i++ {
 			xp += 4
-			rp++
-			SetI8(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
+			rp += 4
+			SetI32(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
 		}
 	default:
 		f++
-		SetI8(rp, Func[f].(f2c)(F64(xp), F64(int32(y))))
+		SetI32(rp, Func[f].(f2c)(F64(xp), F64(int32(y))))
 		for i := int32(1); i < n; i++ {
 			xp += 8
-			rp++
-			SetI8(rp, Func[f].(f2c)(F64(xp), F64(xp-8)))
+			rp += 4
+			SetI32(rp, Func[f].(f2c)(F64(xp), F64(xp-8)))
 		}
 	}
 	dx(x)
@@ -472,7 +472,7 @@ func Scn(f, x K) (r K) {
 	xt := tp(x)
 	if tp(f) == 0 {
 		fp := int32(f)
-		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sums,prds,mins,maxs (reduce.go)
+		if (fp == 2 || fp == 3) && (xt == 0 || yt == xt+16) { // sums,prds (reduce.go)
 			if yt == Tt {
 				return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
 			}

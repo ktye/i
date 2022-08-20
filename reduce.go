@@ -9,13 +9,8 @@ type rdf = func(K, int32, T, int32) K
 func rd0(x K, yp int32, t T, n int32) K { return 0 }
 func min(x K, yp int32, t T, n int32) K { // &/x
 	xp := int32(x)
-	switch t - 17 {
-	case 0: // Bt
-		if x == 0 {
-			xp = 1
-		}
-		return Kb(mini(xp, all(yp, n)))
-	case 1: // Ct
+	switch t - 18 {
+	case 0: // Ct
 		if x == 0 {
 			xp = 127
 		}
@@ -23,7 +18,7 @@ func min(x K, yp int32, t T, n int32) K { // &/x
 			xp = mini(xp, I8(yp+i))
 		}
 		return Kc(xp)
-	case 2: // It
+	case 1: // It
 		if x == 0 {
 			xp = 2147483647
 		}
@@ -32,7 +27,7 @@ func min(x K, yp int32, t T, n int32) K { // &/x
 			yp += 4
 		}
 		return Ki(xp)
-	case 3: // St
+	case 2: // St
 		if x == 0 {
 			xp = (nn(K(I64(8))) << 3) - 8
 		}
@@ -41,7 +36,7 @@ func min(x K, yp int32, t T, n int32) K { // &/x
 			yp += 4
 		}
 		return Ks(xp)
-	case 4: // Ft
+	case 3: // Ft
 		f := F64(xp)
 		if x == 0 {
 			f = F64reinterpret_i64(uint64(0x7FF0000000000000))
@@ -57,10 +52,8 @@ func min(x K, yp int32, t T, n int32) K { // &/x
 }
 func max(x K, yp int32, t T, n int32) K { // |/x
 	xp := int32(x)
-	switch t - 17 {
-	case 0: // Bt
-		return Kb(maxi(xp, any(yp, n)))
-	case 1: // Ct
+	switch t - 18 {
+	case 0: // Ct
 		if x == 0 {
 			xp = -128
 		}
@@ -68,7 +61,7 @@ func max(x K, yp int32, t T, n int32) K { // |/x
 			xp = maxi(xp, I8(yp+i))
 		}
 		return Kc(xp)
-	case 2: // It
+	case 1: // It
 		if x == 0 {
 			xp = nai
 		}
@@ -77,13 +70,13 @@ func max(x K, yp int32, t T, n int32) K { // |/x
 			yp += 4
 		}
 		return Ki(xp)
-	case 3: // St
+	case 2: // St
 		for i := int32(0); i < n; i++ {
 			xp = maxi(xp, I32(yp))
 			yp += 4
 		}
 		return Ks(xp)
-	case 4: // Ft
+	case 3: // Ft
 		f := F64(xp)
 		if x == 0 {
 			f = F64reinterpret_i64(uint64(0xFFF0000000000000))
@@ -99,25 +92,23 @@ func max(x K, yp int32, t T, n int32) K { // |/x
 }
 func sum(x K, yp int32, t T, n int32) K { // +/x
 	xp := int32(x)
-	switch t - 17 {
-	case 0: // Bt
-		return Ki(xp + sumb(yp, n))
-	case 1: // Ct
+	switch t - 18 {
+	case 0: // Ct
 		for i := int32(0); i < n; i++ {
 			xp += I8(yp + i)
 		}
 		return Kc(xp)
-	case 2: // It
+	case 1: // It
 		return Ki(xp + sumi(yp, n))
-	case 3: // St
+	case 2: // St
 		return 0
-	case 4: // Ft
+	case 3: // Ft
 		f := F64(xp)
 		if x == 0 {
 			f = 0.0
 		}
 		return Kf(f + sumf(yp, n, 8))
-	case 5: // Zt
+	case 4: // Zt
 		var re, im float64
 		if x != 0 {
 			re, im = F64(xp), F64(xp+8)
@@ -163,13 +154,8 @@ func sumf(xp, n, s int32) (r float64) {
 }
 func prd(x K, yp int32, t T, n int32) K { // */x
 	xp := int32(x)
-	switch t - 17 {
-	case 0: // Bt
-		if x == 0 {
-			xp = 1
-		}
-		return Kb(mini(xp, all(yp, n)))
-	case 1: // Ct
+	switch t - 18 {
+	case 0: // Ct
 		if x == 0 {
 			xp = 1
 		}
@@ -177,7 +163,7 @@ func prd(x K, yp int32, t T, n int32) K { // */x
 			xp *= I8(yp + i)
 		}
 		return Kc(xp)
-	case 2: // It
+	case 1: // It
 		if x == 0 {
 			xp = 1
 		}
@@ -186,9 +172,9 @@ func prd(x K, yp int32, t T, n int32) K { // */x
 			yp += 4
 		}
 		return Ki(xp)
-	case 3: // St
+	case 2: // St
 		return 0
-	case 4: // Ft
+	case 3: // Ft
 		f := F64(xp)
 		if x == 0 {
 			f = 1.0
@@ -204,31 +190,19 @@ func prd(x K, yp int32, t T, n int32) K { // */x
 }
 
 func sums(x K, yp int32, t T, n int32) (r K) {
-	if t != Bt && t != It {
+	if t != It {
 		return 0
 	}
 	r = mk(It, n)
 	rp := int32(r)
 	s := int32(x)
-	e := yp
-	if t == Bt {
-		e += n
-		for yp < e {
-			s += I8(yp)
-			SetI32(rp, s)
-			rp += 4
-			yp++
-			continue
-		}
-	} else {
-		e += 4 * n
-		for yp < e {
-			s += I32(yp)
-			SetI32(rp, s)
-			rp += 4
-			yp += 4
-			continue
-		}
+	e := yp + 4*n
+	for yp < e {
+		s += I32(yp)
+		SetI32(rp, s)
+		rp += 4
+		yp += 4
+		continue
 	}
 	return r
 }
@@ -251,26 +225,4 @@ func prds(x K, yp int32, t T, n int32) (r K) {
 		continue
 	}
 	return r
-}
-func mins(x K, yp int32, t T, n int32) K {
-	if t != Bt {
-		return 0
-	} else {
-		return 0
-	}
-}
-func maxs(x K, yp int32, t T, n int32) K {
-	if t != Bt || x != 0 {
-		return 0
-	} else {
-		i := int32(fwh(yp, n))
-		r := mk(Bt, n)
-		rp := int32(r)
-		if i < 0 {
-			i = n
-		}
-		Memoryfill(rp, 0, i)
-		Memoryfill(rp+i, 1, n-i)
-		return r
-	}
 }

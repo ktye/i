@@ -5,7 +5,7 @@ import (
 )
 
 func Mtc(x, y K) (r K) {
-	r = Kb(match(x, y))
+	r = Ki(match(x, y))
 	dx(x)
 	dx(y)
 	return r
@@ -29,20 +29,18 @@ func match(x, y K) int32 {
 		}
 		xp, yp := int32(x), int32(y)
 		e := ep(y)
-		switch xt - 17 {
-		case 0: // Bt
+		switch xt - 18 {
+		case 0: // Ct
 			return mtC(xp, yp, e)
-		case 1: // Ct
-			return mtC(xp, yp, e)
-		case 2: // It
+		case 1: // It
 			return mtC(xp, yp, e) //mtI
-		case 3: // St
+		case 2: // St
 			return mtC(xp, yp, e) //mtI
-		case 4: // Ft
+		case 3: // Ft
 			return mtF(xp, yp, e)
-		case 5: // Zt
+		case 4: // Zt
 			return mtF(xp, yp, e)
-		case 6: // Lt
+		case 5: // Lt
 			for i := int32(0); i < xn; i++ {
 				if match(K(I64(xp)), K(I64(yp))) == 0 {
 					return 0
@@ -115,6 +113,8 @@ func mtF(xp, yp, e int32) int32 {
 	}
 	return 1
 }
+
+/*
 func all(x, n int32) int32 {
 	e := x + n
 	ve := e &^ 7
@@ -157,6 +157,7 @@ func Any(x K) K {
 	dx(x)
 	return Kb(any(int32(x), xn))
 }
+*/
 func In(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt == yt && xt > 16 {
@@ -170,23 +171,21 @@ func In(x, y K) K {
 func in(x, y K, xt T) K {
 	xp, yp := int32(x), int32(y)
 	e := ep(y)
-	switch xt - 1 {
-	case 0: //bt
+	switch xt - 2 {
+	case 0: //ct
 		e = inC(xp, yp, e)
-	case 1: //ct
-		e = inC(xp, yp, e)
-	case 2: //it
+	case 1: //it
 		e = inI(xp, yp, e)
-	case 3: //st
+	case 2: //st
 		e = inI(xp, yp, e)
-	case 4: //ft
+	case 3: //ft
 		dx(x)
 		e = inF(F64(xp), yp, e)
 	default: //zt
 		dx(x)
 		e = inZ(F64(xp), F64(xp+8), yp, e)
 	}
-	return Kb(I32B(e != 0))
+	return Ki(I32B(e != 0))
 }
 func inC(x, yp, e int32) int32 {
 	// maybe splat x to int64
@@ -227,17 +226,7 @@ func inZ(re, im float64, yp int32, e int32) int32 {
 }
 
 func Not(x K) (r K) { // ~x
-	xt := tp(x)
-	xp := int32(x)
-	if xt == bt {
-		r = Kb(1 - xp)
-	} else if xt == Bt {
-		r = use1(x)
-		rp := int32(r)
-		e := ep(r)
-		not(xp, rp, e)
-		dx(x)
-	} else if xt&15 == st {
+	if tp(x)&15 == st {
 		r = Eql(Ks(0), x)
 	} else {
 		r = Eql(Ki(0), x)

@@ -31,7 +31,7 @@ t;)+'a0q`++a'';")
 
 T:t[;0]?/:1_'t
 
-w:{x@&{$[(*x)':S;0b;"/"=*x;1=#x;1b]}'x:(&10>{T[x;y]}\C x)^x:" ",x}
+w:{x@&{$[(*x)':S;0;"/"=*x;1=#x;1]}'x:(&10>{T[x;y]}\C x)^x:" ",x}
 
 D:`plus`minus`times`dividedby`and`or`less`more`equal`power`mod`match`join`take`drop`form`find`at`dot
 M:`flip`negate`first`reciprocal`where`reverse`upgrade`downgrade`group`shape`enumerate`not`enlist`count`floor`format`unique`atom`value
@@ -43,8 +43,8 @@ p:{x:w x
    c:*'x
    d:q'x
    e:c=":"
-   b:1_(c':"[;\n",R,A),1b
-   i:&d&(-1_1b,d|e|c': L,A)&~b 
+   b:1_(c':"[;\n",R,A),1
+   i:&d&(-1_1,d|e|c': L,A)&~b 
    x[i]:x[i],'":"
    x:x(&b&e&~-1_1,c':L)_!#x
    -1_,/{$[0N~i:dma?x;x;DMA i]," "}'x}

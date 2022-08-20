@@ -4,21 +4,20 @@
 `"x.":{,/+"0123456789abcdef"@(x%16;16/x:256/256+x)} /`x@ (hex)
 `"t.":`45         /`t@ token
 `"p.":`46         /`p@ parse
-`"b.":(`46)[`b;]  /`b@ reinterpret
-`"c.":(`46)[`c;]
+`"c.":(`46)[`c;]  /`c@ reinterpret
 `"i.":(`46)[`i;]
 `"s.":(`46)[`s;]
 `"f.":(`46)[`f;]
 `"z.":(`46)[`z;]
 
-`"uqs.":{x@&~0b~':x:^x}                           /?^x
+`"uqs.":{x@&~0~':x:^x}                           /?^x
 `"uqf.":{x@&(!#x)=x?x}                            /?xL
 `"gdt.":{[t;g](!#t)($[g;{x@>y x};{x@<y x}])/|.t}  /<t >t  grade table
 
 `"odo.":{{y@(#y)/!x}/:[*/x;&'x#'|*\-1_1,|x]} /!I (odometer)
 `"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}         /=x
 
-any:`30;abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
+abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 
 
 / pretty print  `l@x  `k@x
@@ -41,13 +40,13 @@ any:`30;abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;ex
  d:{[x;k]r:"!",k@.x;n:#!x;x:k@!x;$[(1~n)|(@.x)':`D`T;"(",x,")";x],r}
  v:{[x;k;m;n]m*:(.`".kstm")t:@x; dd:("";"..")m<#x;x:(m&#x)#x
   x:$[`L~t;k'x;`C~t;x;$x]
-  x:$[`B~t;(*'x),"b";`C~t;`str x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
+  x:$[`C~t;`str x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
   (("";",")(1~n)),x,dd}
  t:@y;n:#y;k:`kxy x;m:x
  $[n~0;(.`".kst0")@t;`T~t;"+",d[+y;k];`D~t;d[y;k];y~*y;a y;v[y;k;m;n]]} /344
 
-`".kst0":`B`C`I`S`F`Z`L!("0#0b";c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
-`".kstm":`B`C`I`S`F`Z`L!100 100 30 30 20 10 20
+`".kst0":`C`I`S`F`Z`L!(c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
+`".kstm":`C`I`S`F`Z`L!100 30 30 20 10 20
  
 `"k.":`kxy 1000000
 

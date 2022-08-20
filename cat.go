@@ -71,36 +71,29 @@ func explode(x K) (r K) {
 		}
 		xp, rp := int32(x), int32(r)
 		e := ep(x)
-		switch xt - 17 {
-		case 0: //Bt
-			for xp < e {
-				SetI64(rp, int64(Kb(I8(xp))))
-				rp += 8
-				xp++
-				continue
-			}
-		case 1: //Ct
+		switch xt - 18 {
+		case 0: //Ct
 			for xp < e {
 				SetI64(rp, int64(Kc(I8(xp))))
 				rp += 8
 				xp++
 				continue
 			}
-		case 2: //It
+		case 1: //It
 			for xp < e {
 				SetI64(rp, int64(Ki(I32(xp))))
 				rp += 8
 				xp += 4
 				continue
 			}
-		case 3: //St
+		case 2: //St
 			for xp < e {
 				SetI64(rp, int64(Ks(I32(xp))))
 				rp += 8
 				xp += 4
 				continue
 			}
-		case 4: //Ft
+		case 3: //Ft
 			for xp < e {
 				SetI64(rp, int64(Kf(F64(xp))))
 				rp += 8

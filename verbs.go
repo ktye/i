@@ -195,7 +195,7 @@ func Tak(x, y K) (r K) { // x#y
 			return Ecr(15, l2(x, y))
 		}
 	}
-	if xt == it || xt == bt {
+	if xt == it {
 		return ntake(int32(x), y)
 	}
 	if xt > 16 && xt == yt {
@@ -285,7 +285,7 @@ func Drp(x, y K) (r K) { // x_y
 			return Ecr(16, l2(x, y))
 		}
 	}
-	if xt == it || xt == bt {
+	if xt == it {
 		return ndrop(int32(x), y)
 	}
 	if xt > 16 && xt == yt {
@@ -625,18 +625,7 @@ func Wer(x K) (r K) { // &x
 	var n, rp int32
 	xn := nn(x)
 	xp := int32(x)
-	if t == Bt {
-		n = sumb(xp, xn)
-		r = mk(It, n)
-		rp = int32(r)
-		for i := int32(0); i < xn; i++ {
-			if I8(xp) != 0 {
-				SetI32(rp, i)
-				rp += 4
-			}
-			xp++
-		}
-	} else if t == It {
+	if t == It {
 		n = sumi(xp, xn)
 		r = mk(It, n)
 		rp = int32(r)
@@ -658,20 +647,20 @@ func Wer(x K) (r K) { // &x
 }
 func Fwh(x K) K { // *&x
 	t := tp(x)
-	if t == Bt {
+	if t == It {
 		dx(x)
 		return Ki(fwh(int32(x), nn(x)))
 	}
 	return Fst(Wer(x))
 }
-func fwh(xp, n int32) int32 { // *&B
+func fwh(xp, n int32) int32 { // *&I
 	p := xp
-	e := xp + n
+	e := xp + 4*n
 	for p < e {
 		if I8(p) != 0 {
-			return p - xp
+			return (p - xp) >> 2
 		}
-		p++
+		p += 4
 	}
 	return nai
 }

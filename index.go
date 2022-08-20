@@ -39,7 +39,7 @@ func Atx(x, y K) (r K) { // x@y
 		y = uptype(y, it)
 		yt = tp(y)
 	}
-	if yt == It || yt == Bt {
+	if yt == It {
 		return atv(x, y)
 	}
 	if yt == it && xt > 16 {
@@ -54,7 +54,7 @@ func Atx(x, y K) (r K) { // x@y
 	}
 	return trap(Type) // f@
 }
-func ati(x K, i int32) (r K) { // x BT..LT
+func ati(x K, i int32) (r K) { // x CT..LT
 	t := tp(x)
 	if t < 16 {
 		return x
@@ -89,7 +89,7 @@ func ati(x K, i int32) (r K) { // x BT..LT
 	dx(x)
 	return r | K(t-16)<<59
 }
-func atv(x, y K) (r K) { // x BT..LT
+func atv(x, y K) (r K) { // x CT..LT
 	t := tp(x)
 	if t == Tt {
 		return Atx(x, y)

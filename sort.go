@@ -18,16 +18,14 @@ func Srt(x K) (r K) { // ^x
 	if xn < 2 {
 		return x
 	}
-	switch xt - 17 {
+	switch xt - 18 {
 	case 0:
-		r = srtB(x, xn)
-	case 1:
 		r = srtC(x, xn)
+	case 1:
+		r = srtI(x, xn)
 	case 2:
 		r = srtI(x, xn)
 	case 3:
-		r = srtI(x, xn)
-	case 4:
 		r = srtF(x, xn)
 	default:
 		r = atv(x, Asc(rx(x)))
@@ -52,7 +50,7 @@ func grade(x K, f int32) (r K) { // <x >x
 	}
 	n := nn(x)
 	if xt == Tt {
-		return kxy(104, x, Kb(I32B(f == 336))) //gdt ngn:{(!#x){x@<y x}/|.+x}
+		return kxy(104, x, Ki(I32B(f == 336))) //gdt ngn:{(!#x){x@<y x}/|.+x}
 	}
 	if n < 2 {
 		dx(x)
@@ -70,15 +68,6 @@ func grade(x K, f int32) (r K) { // <x >x
 		msrt(wp, rp, 0, n, xp, sz(xt), f+int32(xt))
 		dx(w)
 	}
-	dx(x)
-	return r
-}
-func srtB(x K, n int32) (r K) { // ^B
-	r = mk(Bt, n)
-	rp := int32(r)
-	s := n - sumb(int32(x), n)
-	Memoryfill(rp, 0, s)
-	Memoryfill(rp+s, 1, n-s)
 	dx(x)
 	return r
 }

@@ -6,130 +6,6 @@ import (
 
 func Kst(x K) K { return Atx(Ks(32), x) } // `k@
 func Lst(x K) K { return Atx(Ks(40), x) } // `l@
-
-/*
-func Kst(x K) (r K) {
-	xt := tp(x)
-	if xt < 16 {
-		r = Str(x)
-		if xt == ct {
-			r = emb(34, 34, r)
-		} else if xt == st {
-			r = ucat(Ku(96), r)
-		}
-	} else {
-		xn := nn(x)
-		if xn == 0 {
-			dx(x)
-			return kst0(xt - 17)
-		}
-		if xt == Lt {
-			x = Ech(28, l1(x)) // Kst
-		} else if xt < Lt && xt != Ct {
-			x = Str(x)
-		}
-		switch xt - 17 {
-		case 0:
-			r = cat1(Ech(4, l1(x)), Kc('b'))
-		case 1:
-			r = emb(34, 34, x)
-		case 2:
-			r = join(Kc(' '), x)
-		case 3:
-			r = ucat(Ku(96), join(Kc('`'), x))
-		case 4:
-			r = join(Kc(' '), x)
-		case 5:
-			r = join(Kc(' '), x)
-		case 6:
-			if xn == 1 {
-				r = Fst(x)
-			} else {
-				r = emb(40, 41, join(Kc(';'), x))
-			}
-			r = r
-		case 7: // Dt
-			x, r = spl2(x)
-			x = Kst(x)
-			if xn == 1 {
-				x = emb(40, 41, x)
-				xn = 0
-			}
-			r = ucat(cat1(x, Kc('!')), Kst(r)) // todo ()!..
-		default:
-			xn = 0
-			r = ucat(Ku(43), Kst(Flp(x)))
-		}
-		if xn == 1 {
-			r = ucat(Ku(44), r)
-		}
-	}
-	return r
-}
-func kst0(t T) (r K) {
-	switch t {
-	case 0:
-		r = 1647321904 // 0#0b
-	case 1:
-		r = 8738 // ""
-	case 2:
-		r = 12321 // !0
-	case 3:
-		r = 6300464 // 0#`
-	case 4:
-		r = 774906672 // 0#0.
-	case 5:
-		r = 1630544688 // 0#0a
-	case 6:
-		r = 10536 // ()
-	default:
-		r = trap(Nyi)
-	}
-	return Ku(uint64(r))
-}
-func Lst(x K) (r K) { // `l@  matrix-output (list-of-chars)
-	xt := tp(x)
-	if xt < Lt {
-		return Str(x)
-	}
-	n := nn(x)
-	switch xt - Lt {
-	case 0: // Lt
-		r = mk(Lt, n)
-		for i := int32(0); i < n; i++ {
-			xi := x0(int32(x) + 8*i)
-			ti := tp(xi)
-			if ti == ct {
-				xi = Enl(xi)
-			} else if ti != Ct {
-				xi = Kst(xi)
-			}
-			SetI64(int32(r)+8*i, int64(xi))
-		}
-		return r
-	case 1: // Dt
-		r, x = spl2(x)
-		return Ech(13, l2(Ecl(13, l2(pads(Lst(r)), Kc('|'))), Lst(x)))
-	default: // Tt
-		return trap(Nyi)
-	}
-}
-func pads(x K) (r K) { // padl
-	n := nn(x)
-	r = mk(Lt, n)
-	rp := int32(r)
-	xp := int32(x)
-	m := maxcount(xp, n)
-	for i := int32(0); i < n; i++ {
-		SetI64(rp, int64(ntake(m, x0(xp))))
-		rp += 8
-		xp += 8
-	}
-	dx(x)
-	return r
-}
-*/
-
 func Str(x K) (r K) {
 	xt := tp(x)
 	if xt > 16 {
@@ -185,8 +61,8 @@ func Str(x K) (r K) {
 				return ucat(Ku('`'), si(xp))
 			}
 			r = Ku(uint64(I8(227 + xp)))
-		case bt:
-			r = Ku(uint64(25136 + xp)) // 0b 1b
+		case 1: //not reached
+			r = 0
 		case ct:
 			r = Ku(uint64(xp))
 		case it:
@@ -397,8 +273,5 @@ func Rtp(y K, x K) K { // `b@ `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	x = use(x)
 	SetI32(int32(x)-12, n/s)
 	x = K(t)<<59 | K(int32(x))
-	if t == Bt {
-		return Not(Eql(Kb(0), x))
-	} // todo: St may contain non-multiples of 8 or out-of-range values
 	return x
 }

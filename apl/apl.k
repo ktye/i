@@ -47,7 +47,7 @@ TOK:{[x]m:{y/:x\:z};m1:{m[x;y,"[",(_O+"0"),"]";z]};x:m["¯";"_"]m["←";":"]m1["
  r:b VEC b r                                /merge successive numbers (strong vector binding)   
  $[(!0)~e:&s=6;$[+/p:0N~/:r:PRS'r;ERR@*(`val;E::P@*&p);r];ERR@*(`cha;E::*e)]}
 
-VEC:{x:,/|'{x," ",y}\'(&~b&0b~':b:{(*x)':NM}'x)^x;x[i]:(#i:&b&0b~':b)#,""}
+VEC:{x:,/|'{x," ",y}\'(&~b&0~':b:{(*x)':NM}'x)^x;x[i]:(#i:&b&0~':b)#,""}
  
 PRS:{                                                   / apl token           k value               k-type
  ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"      C
@@ -99,7 +99,7 @@ IOTA:     {$[(!0)~*x;($[n;,n;!0];O+!n:_0.+*x 1);ER`ran]}
 RESHAPE:  {(r;(y 1)@(#y 1)/!*/r:_0.+x 1)}
 CATENATE: {o:up[];(,#r;r:(o+x 1),o+y 1)} /APL"X←1 2"; APL"1 2,⍴X"
 COMPRESS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)//@[p;a;i(p:!s)a])}
-EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`L~t:@*|y;"";`B~t;0b;`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[$[`L~t;,'e;e];r//@[i;a;(&v)(i:!s)a];*|y])]}
+EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`L~t:@*|y;"";`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[$[`L~t;,'e;e];r//@[i;a;(&v)(i:!s)a];*|y])]}
 INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
 MEMBER:   {o:up[];(*x;(o+*|x)':(o+*|y))}
 TAKEDROP: {[o;n;x]*|x;(n;(*|x)@(*x)//o+!n)}
@@ -148,7 +148,7 @@ REDAXE:{[f;a;x]$[1~#*x;(!0;,Q[SY?f]x 1);~(#*x)>a:a-O;ER`ran;((*x)_a;Q[SY?f]'PERA
 MF:{[f;x]($[~`C~@f;*f;F[SY?f;0]])x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
 
-split:{x[0,-1+#x]:";";x[&(0b~':s)&s:";"=*'x]:0;x@&~";"=*'x} /split index expression, fill space for empty index
+split:{x[0,-1+#x]:";";x[&(0~':s)&s:";"=*'x]:0;x@&~";"=*'x}  /split index expression, fill space for empty index
 ifill:{[x;s]x[i]:{(,#x;x)}'O+!'s i:&x~\:0}                  /fill 0s in index vector, given shape s
 drop:{x[i]:_0.+1_'x i:&~0~/:x}
 mo:{[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}                /apply monadic function (correct stack for leading +)

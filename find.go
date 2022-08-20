@@ -22,9 +22,6 @@ func Fnd(x, y K) (r K) { // x?y
 	} else if xt == yt {
 		yn := nn(y)
 		if xt < Ft && yn > 2 {
-			if xt == Bt {
-				return fndBs(x, y)
-			}
 			if yn > 4 && xt == Ct || yn > 8 {
 				r = fndXs(x, y, xt, yn)
 				if r != 0 {
@@ -69,16 +66,14 @@ func fnd(x, y K, t T) (r int32) {
 	}
 	xp, yp := int32(x), int32(y)
 	xe := ep(x)
-	switch t - 1 {
-	case 0: // bt
+	switch t - 2 {
+	case 0: // ct
 		r = idxc(yp, xp, xe)
-	case 1: // ct
-		r = idxc(yp, xp, xe)
-	case 2: // it
+	case 1: // it
 		r = idxi(yp, xp, xe)
-	case 3: // st
+	case 2: // st
 		r = idxi(yp, xp, xe)
-	case 4: // ft
+	case 3: // ft
 		r = idxf(F64(yp), xp, xe)
 	default: // zt
 		r = idxz(F64(yp), F64(yp+8), xp, xe)
@@ -87,12 +82,6 @@ func fnd(x, y K, t T) (r int32) {
 		return nai
 	}
 	return r
-}
-func fndBs(x, y K) K {
-	a := fnd(x, Kb(0), 1)
-	b := fnd(x, Kb(1), 1) - a
-	dx(x)
-	return Add(Ki(a), Mul(Ki(b), y))
 }
 func fndXs(x, y K, t T, yn int32) (r K) {
 	xn := nn(x)

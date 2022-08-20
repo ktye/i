@@ -193,6 +193,9 @@ func TestKE(t *testing.T) {
 		t.Fatal(err)
 	}
 	v := bytes.Split(b, []byte{10})
+	if len(v[len(v)-1]) == 0 {
+		v = v[:len(v)-1]
+	}
 	for i := range v {
 		newtest()
 		var buf bytes.Buffer
@@ -318,8 +321,8 @@ func Test360(t *testing.T) {
 		{"-7", []int{}, []float64{-7}},
 		{"'ALPHA⍴⍳'", []int{7}, "ALPHA⍴⍳"},
 		{"1+2", []int{}, []float64{3}},
-		{"3≤7", []int{}, []bool{true}},
-		{"7≤3", []int{}, []bool{false}},
+		{"3≤7", []int{}, []int{1}},
+		{"7≤3", []int{}, []int{0}},
 		{"1 2 3 4×4 3 2 1", []int{4}, []float64{4, 6, 6, 4}},
 		{"2+1 2 3 4", []int{4}, []float64{3, 4, 5, 6}},
 		{"1 2 3 4⌈2", []int{4}, []float64{2, 2, 3, 4}},
@@ -373,10 +376,10 @@ func Test360(t *testing.T) {
 		{"3 4⍳4", []int{}, []int{2}},
 		{"1 2 3 4⍳2 3⍴⍳6", []int{2, 3}, []int{1, 2, 3, 4, 5, 5}},
 		{"'ABCDEFGH'⍳'GAFFE'", []int{5}, []int{7, 1, 6, 6, 5}},
-		{"3 4 7∊⍳5", []int{3}, []bool{true, true, false}},
-		{"4∊⍳5", []int{}, []bool{true}},
-		{"2 3 5 7∊⍳4", []int{4}, []bool{true, true, false, false}},
-		{"(3 4⍴⍳12)∊2 3 5 7", []int{3, 4}, []bool{false, true, true, false, true, false, true, false, false, false, false, false}},
+		{"3 4 7∊⍳5", []int{3}, []int{1, 1, 0}},
+		{"4∊⍳5", []int{}, []int{1}},
+		{"2 3 5 7∊⍳4", []int{4}, []int{1, 1, 0, 0}},
+		{"(3 4⍴⍳12)∊2 3 5 7", []int{3, 4}, []int{0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0}},
 		{"0↑3 4 5 6", []int{0}, []float64{}},
 		{"2↑3 4 5 6", []int{2}, []float64{3, 4}},
 		{"2 3↑3 4⍴⍳12", []int{2, 3}, []int{1, 2, 3, 5, 6, 7}},
@@ -465,15 +468,6 @@ func Test360(t *testing.T) {
 			i++
 		}
 	}
-	bools := func(x K, y []bool) {
-		//fmt.Println("bools", sK(x), "|", y)
-		nt(x, len(y), Bt)
-		for i := 0; i < len(y); i++ {
-			if xi := I8(int32(x) + int32(i)); xi != I32B(y[i]) {
-				t.Fatalf("x[%d] is %d not %v", i, xi, y[i])
-			}
-		}
-	}
 	ints := func(x K, y []int) {
 		//fmt.Println("ints", sK(x), "|", y)
 		nt(x, len(y), It)
@@ -520,8 +514,6 @@ func Test360(t *testing.T) {
 		switch v := tc.r.(type) {
 		case string:
 			runes(ravel, v)
-		case []bool:
-			bools(ravel, v)
 		case []int:
 			ints(ravel, v)
 		case []float64:
@@ -650,12 +642,14 @@ func sK(x K) string {
 		default:
 			return "`" + itoa(xp)
 		}
-	case bt:
-		if int32(x) != 0 {
-			return "1b"
-		} else {
-			return "0b"
-		}
+		/*
+			case bt:
+				if int32(x) != 0 {
+					return "1b"
+				} else {
+					return "0b"
+				}
+		*/
 	case ct:
 		return strconv.Quote(string([]byte{byte(xp)}))
 	case it:
@@ -699,14 +693,16 @@ func sK(x K) string {
 		x = K(I64(xp + 16))
 		xp = int32(x)
 		return string(Bytes[xp : xp+nn(x)])
-	case Bt:
-		r := bytes.Repeat([]byte{'0'}, int(nn(x)))
-		for i := range r {
-			if I8(xp+int32(i)) != 0 {
-				r[i] = '1'
-			}
-		}
-		return comma(1 == nn(x)) + string(r) + "b"
+		/*
+			case Bt:
+				r := bytes.Repeat([]byte{'0'}, int(nn(x)))
+				for i := range r {
+					if I8(xp+int32(i)) != 0 {
+						r[i] = '1'
+					}
+				}
+				return comma(1 == nn(x)) + string(r) + "b"
+		*/
 	case Ct:
 		return comma(1 == nn(x)) + strconv.Quote(string(Bytes[xp:xp+nn(x)]))
 	case It:
