@@ -780,6 +780,47 @@ func comma(x bool) string {
 		return ""
 	}
 }
+func TestNative(t *testing.T) {
+	newtest()
+	Native = nat
+	f1 := l2t(K(1), mkchars([]byte("tilcnt")), xf)
+	SetI32(int32(f1)-12, 1)
+	f2 := l2t(K(2), mkchars([]byte("nativeadd")), xf)
+	r1 := Cal(f1, Enl(Rev(Til(Ki(3)))))
+	e1 := Til(Ki(3))
+	if match(r1, e1) == 0 {
+		t.Fatalf("native 1")
+	}
+	dx(r1)
+	dx(e1)
+	r2 := Cal(rx(f2), l2(Ki(2), Ki(3)))
+	if tp(r2) != it || int32(r2) != 5 {
+		t.Fatalf("native 2")
+	}
+	dx(r2)
+
+	p := Atx(f2, Ki(5))
+	r3 := Atx(p, Ki(6))
+	if tp(r3) != it || int32(r3) != 11 {
+		t.Fatalf("native 3")
+	}
+	dx(r3)
+
+	reset()
+	reset()
+}
+func nat(x, y int64) (r int64) {
+	switch x {
+	case 1:
+		return int64(Til(Cnt(Fst(K(y)))))
+	case 2:
+		a := ati(rx(K(y)), 0)
+		b := ati(K(y), 1)
+		return int64(Add(a, b))
+	default:
+		panic("native call error")
+	}
+}
 func reset() {
 	if sp != 256 {
 		panic(Stack)
