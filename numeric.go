@@ -1682,9 +1682,7 @@ func uptype(x K, dst T) (r K) {
 	xp = int32(x)
 	r = mk(dst+16, xn)
 	rp := int32(r)
-	if dst == ct {
-		Memorycopy(rp, xp, xn)
-	} else if dst == it {
+	if dst == it {
 		for i := int32(0); i < xn; i++ {
 			SetI32(rp, I8(xp))
 			xp++

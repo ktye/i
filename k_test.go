@@ -786,6 +786,16 @@ func TestNative(t *testing.T) {
 	f1 := l2t(K(1), mkchars([]byte("tilcnt")), xf)
 	SetI32(int32(f1)-12, 1)
 	f2 := l2t(K(2), mkchars([]byte("nativeadd")), xf)
+	if match(f1, f2) != 0 || match(f2, f2) != 1 {
+		t.Fatalf("match native")
+	}
+	es1 := mkchars([]byte("tilcnt"))
+	s1 := Str(rx(f1))
+	if match(s1, es1) != 1 {
+		t.Fatalf("native string")
+	}
+	dx(s1)
+	dx(es1)
 	r1 := Cal(f1, Enl(Rev(Til(Ki(3)))))
 	e1 := Til(Ki(3))
 	if match(r1, e1) == 0 {
@@ -819,6 +829,24 @@ func nat(x, y int64) (r int64) {
 		return int64(Add(a, b))
 	default:
 		panic("native call error")
+	}
+}
+func TestArgs(t *testing.T) {
+	newtest()
+	argv, exit, stdout := Argv, Exit, Stdout
+	defer func() {
+		Argv, Exit, Stdout = argv, exit, stdout
+	}()
+	var buf bytes.Buffer
+
+	Stdout = &buf
+	Argv = []string{"test-k", "p.k"}
+	Exit = func(int32) { panic("exit") }
+	doargs()
+	e := "\"1 drop each ( where x equal y ) drop y : x join y\"\n"
+	g := string(buf.Bytes())
+	if e != g {
+		t.Fatalf("\nexp %q\ngot %q\n", e, g)
 	}
 }
 func reset() {

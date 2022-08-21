@@ -465,7 +465,7 @@ func Scn(f, x K) (r K) {
 	xt := tp(x)
 	if tp(f) == 0 {
 		fp := int32(f)
-		if (fp == 2 || fp == 3) && (xt == 0 || yt == xt+16) { // sums,prds (reduce.go)
+		if (fp == 2 || fp == 4) && (xt == 0 || yt == xt+16) { // sums,prds (reduce.go)
 			if yt == Tt {
 				return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
 			}

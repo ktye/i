@@ -71,10 +71,8 @@ func Str(x K) (r K) {
 			r = cs(x)
 		case ft:
 			r = sf(F64(xp))
-		case zt:
-			r = sfz(F64(xp), F64(xp+8))
 		default:
-			r = trap(Err)
+			r = sfz(F64(xp), F64(xp+8))
 		}
 	}
 	dx(x)
@@ -113,17 +111,6 @@ func sf(x float64) (r K) {
 		return se(x)
 	}
 	r = mk(Ct, 0)
-	/*
-		u = uint64(x)
-		if u == 0 {
-			r = cat1(r, Kc('0'))
-		}
-		for u != 0 {
-			r = cat1(r, Kc(int32('0'+u%10)))
-			u /= 10
-		}
-	*/
-
 	i := int64(x)
 	if i == 0 {
 		r = cat1(r, Kc('0'))
@@ -203,9 +190,6 @@ func prs(t T, y K) (r K) { // s$C
 	pp = yp
 	pe = yp + yn
 	tt := t & 15
-	if tt == 1 {
-		r = tbln()
-	}
 	if tt == 2 {
 		if t == Ct {
 			return y // `C$
@@ -248,7 +232,7 @@ func prs(t T, y K) (r K) { // s$C
 }
 func ts(x K) T {
 	c := int32(Fst(cs(x)))
-	for i := int32(520); i < 546; i++ {
+	for i := int32(521); i < 546; i++ {
 		if I8(i) == c {
 			return T(i - 520)
 		}
@@ -258,7 +242,7 @@ func ts(x K) T {
 	return 0
 }
 
-func Rtp(y K, x K) K { // `b@ `c@ `i@ `s@ `f@ `z@ (reinterpret data)
+func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	t := ts(y)
 	xt := tp(x)
 	t += T(16 * I32B(t < 16))

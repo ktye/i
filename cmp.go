@@ -73,8 +73,8 @@ func match(x, y K) int32 {
 		yn = 24
 	case 5: // lambda
 		return match(K(I64(xp+16)), K(I64(yp+16))) // compare strings
-	default: // xf, kf
-		return match(K(I64(xp)), K(I64(yp)))
+	default: // xf
+		return I32B(I64(xp) == I64(yp))
 	}
 	for yn > 0 { // composition, derived, projection
 		yn -= 8
@@ -113,51 +113,6 @@ func mtF(xp, yp, e int32) int32 {
 	}
 	return 1
 }
-
-/*
-func all(x, n int32) int32 {
-	e := x + n
-	ve := e &^ 7
-	for x < ve {
-		if I64(x) != int64(0x0101010101010101) {
-			return 0
-		}
-		x += 8
-	}
-	for x < e {
-		if I8(x) == 0 {
-			return 0
-		}
-		x++
-	}
-	return 1
-}
-func any(x, n int32) int32 {
-	e := x + n
-	ve := e &^ 7
-	for x < ve {
-		if I64(x) != 0 {
-			return 1
-		}
-		x += 8
-	}
-	for x < e {
-		if I8(x) != 0 {
-			return 1
-		}
-		x++
-	}
-	return 0
-}
-func Any(x K) K {
-	if tp(x) != Bt {
-		trap(Type)
-	}
-	xn := nn(x)
-	dx(x)
-	return Kb(any(int32(x), xn))
-}
-*/
 func In(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt == yt && xt > 16 {
@@ -232,12 +187,4 @@ func Not(x K) (r K) { // ~x
 		r = Eql(Ki(0), x)
 	}
 	return r
-}
-func not(xp, rp, e int32) {
-	for rp < e {
-		SetI64(rp, int64(0x0101010101010101)&^I64(xp))
-		xp += 8
-		rp += 8
-		continue
-	}
 }

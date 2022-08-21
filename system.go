@@ -36,17 +36,13 @@ func repl(x K) {
 	s := int32(0)
 	if n > 0 {
 		s = I8(xp)
-		if I8(xp) == 92 { // \
-			if n == 1 {
-				help()
-			} else {
-				c := I8(1 + xp)
-				if I8(1+xp) == '\\' {
-					Exit(0)
-				} else if c == 'm' {
-					dx(x)
-					dx(Out(Ki(I32(128))))
-				}
+		if I8(xp) == 92 && n > 1 { // \
+			c := I8(1 + xp)
+			if I8(1+xp) == '\\' {
+				Exit(0)
+			} else if c == 'm' {
+				dx(x)
+				dx(Out(Ki(I32(128))))
 			}
 			return
 		}
@@ -150,8 +146,4 @@ func writefile(x, y K) K { // x, y C
 	}
 	dx(x)
 	return y
-}
-func iwrite(x int32) { write(cat1(Kst(Ki(x)), Kc(10))) }
-func help() {
-	trap(Nyi)
 }

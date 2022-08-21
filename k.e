@@ -3,6 +3,7 @@
 -':[1;2;3] /Rank
 -':1 /Type
 -':`a`b!1 2 /Nyi
+1.2':2 3 /Type
 (1)2':3 4 5 /Rank
 1/[2;3] /Type
 {x}3./4 /Type
@@ -10,11 +11,16 @@
 +/[2;3;4] /Rank
 +\[2;3;4] /Rank
 1/:[1;2] /Rank
+1+`x /Type
+`c@1 /Type
+`i@"abc" /Length
+(`46)[`a;1] /Value
 +/:[1;2;3] /Rank
 +\:[1;2;3] /Rank
 1\:[2;3] /Rank
 (2000000000)#1a20 /Grow
 +[1;2;3;4;5] /Rank
+1$2 /Type
 (+-)[1;2;3] /Rank
 (1+)[2;3] /Rank
 {x+y}.1 2!3 4 /Type
@@ -24,6 +30,8 @@
 find[1 2 3;4 5] /Type
 find["abc";"b"] /Type
 1.2@3 /Type
+`p 2 /Type
+[2} /Parse
 ) /Parse
 {x+1] /Parse
 (1;2] /Parse
@@ -46,6 +54,7 @@ abs[2;3] /Nyi
 -`a`b /Type
 -(-) /Type
 1 2+3 4 5 /Length
+`x%`y /Type
 angle[2a45;1a] /Type
 log[2a45;3] /Type
 3.5/4 /Type

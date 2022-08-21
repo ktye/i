@@ -118,21 +118,6 @@ func sum(x K, yp int32, t T, n int32) K { // +/x
 		return 0
 	}
 }
-func sumb(xp, xn int32) (r int32) {
-	e := xp + xn
-	ve := e &^ 7
-	var s int64
-	for xp < ve {
-		s += I64popcnt(uint64(I64(xp)))
-		xp += 8
-	}
-	r = int32(s)
-	for xp < e {
-		r += I8(xp)
-		xp++
-	}
-	return r
-}
 func sumi(xp, xn int32) (r int32) {
 	e := xp + 4*xn
 	for xp < e {

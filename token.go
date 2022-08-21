@@ -19,7 +19,7 @@ func tok(x K) (r K) {
 		if pp == pe {
 			break
 		}
-		for i := int32(192); i < 199; i++ { // tbln, tchr, tnms, tvrb, tpct, tvar, tsym
+		for i := int32(193); i < 199; i++ { // tchr, tnms, tvrb, tpct, tvar, tsym
 			y = Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-int32(s)) << 32)
@@ -35,33 +35,6 @@ func tok(x K) (r K) {
 	return r
 }
 func src() K { return K(I64(552)) }
-func tbln() K {
-	//	n := pe - pp
-	//	for i := int32(0); i < n; i++ {
-	//		c := I8(pp + i)
-	//		if c != '0' && c != '1' {
-	//			if i < 1 || c != 'b' {
-	//				return 0
-	//			}
-	//			return pbln(i)
-	//		}
-	//	}
-	return 0
-}
-func pbln(n int32) (r K) {
-	//	r = mk(Bt, n)
-	//	rp := int32(r)
-	//	for i := int32(0); i < n; i++ {
-	//		SetI8(rp, I8(pp+i)-'0')
-	//		rp++
-	//	}
-	//	pp += 1 + n
-	//	if n == 1 {
-	//		return Fst(r)
-	//	}
-	//	return r
-	return trap(Err) //unreachable
-}
 func tchr() (r K) {
 	if I8(pp) == '0' && pp < pe { // 0x01ab (lower case only)
 		if I8(1+pp) == 'x' {
