@@ -155,9 +155,6 @@ func Ecp(f, x K) (r K) {
 }
 func epx(f int32, x, y K, n int32) (r K) { // ( +-*% &| )':
 	xt := tp(x)
-	if xt < It {
-		x, xt = uptype(x, it), It
-	}
 	xp := int32(x)
 	r = mk(xt, n)
 	rp := int32(r)
@@ -315,14 +312,9 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	return x
 }
 func rdn(f, x, l K) (r K) { // {x+y*z}/x  {x+y*z}\x
-	n := nn(f)
-	if n > nn(x) {
-		return prj(rdc(f), x)
-	}
-
 	r = Fst(rx(x))
 	x = Flp(ndrop(1, x))
-	n = nn(x)
+	n := nn(x)
 	for i := int32(0); i < n; i++ {
 		r = Cal(rx(f), Cat(Enl(r), ati(rx(x), i)))
 		if l != 0 {
