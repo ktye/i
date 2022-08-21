@@ -131,12 +131,12 @@ func readfile(x K) (r K) { // x C
 		return r
 	}
 	n := Read(int32(x), nn(x), 0)
+	dx(x)
 	if n < 0 {
-		n = 0
+		return mk(Ct, 0)
 	}
 	r = mk(Ct, n)
-	Read(int32(x), nn(x), int32(r))
-	dx(x)
+	Read(0, 0, int32(r))
 	return r
 }
 func writefile(x, y K) K { // x, y C
