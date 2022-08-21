@@ -131,8 +131,9 @@ func Ecp(f, x K) (r K) {
 	yt := tp(y)
 	if tp(f) == 0 && xt < Zt && yt == xt-16 {
 		fp := int32(f)
-		if fp > 2 && xt != St && fp < 6 || fp == 7 || fp == 8 {
-			return epx(fp, x, y, xn) // +-*% &|
+		//if fp > 2 && xt != St && fp < 6 || fp == 7 || fp == 8 {
+		if fp > 1 && fp < 9 && fp != 6 && (xt == It || xt == Ft) {
+			return epx(fp, x, y, xn) // +-*% &| 2345 78
 		}
 		if fp == 12 {
 			fp = 11 // ~ =

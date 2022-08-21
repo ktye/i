@@ -4,6 +4,8 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
+// softfloat implementation of cosin_ atan2 log exp pow frexp is 2464 b
+
 const pi float64 = 3.141592653589793
 const maxfloat float64 = 1.797693134862315708145274237317043567981e+308
 
@@ -20,7 +22,6 @@ func hypot(p, q float64) float64 {
 	q = q / p
 	return p * F64sqrt(1+q*q)
 }
-
 func cosin(deg float64) (c, s float64) {
 	if deg == 0 {
 		c = 1.0
@@ -34,6 +35,25 @@ func cosin(deg float64) (c, s float64) {
 		c, s = cosin_(deg * 0.017453292519943295)
 	}
 	return c, s
+}
+func ang2(y, x float64) (deg float64) {
+	if y == 0 {
+		if x < 0 {
+			return 180.0
+		}
+		return 0.
+	}
+	if x == 0 {
+		if y < 0 {
+			return 270.0
+		}
+		return 90.0
+	}
+	deg = 57.29577951308232 * atan2(y, x)
+	if deg < 0 {
+		deg += 360.0
+	}
+	return deg
 }
 func cosin_(x float64) (c, s float64) {
 	var ss, cs int32
@@ -74,25 +94,6 @@ func cosin_(x float64) (c, s float64) {
 		s = -s
 	}
 	return c, s
-}
-func ang2(y, x float64) (deg float64) {
-	if y == 0 {
-		if x < 0 {
-			return 180.0
-		}
-		return 0.
-	}
-	if x == 0 {
-		if y < 0 {
-			return 270.0
-		}
-		return 90.0
-	}
-	deg = 57.29577951308232 * atan2(y, x)
-	if deg < 0 {
-		deg += 360.0
-	}
-	return deg
 }
 func atan2(y, x float64) float64 {
 	// todo nan/inf
