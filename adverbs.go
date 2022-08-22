@@ -11,6 +11,14 @@ func ecr(x K) K { return l2t(x, 3, df) } // /:
 func scn(x K) K { return l2t(x, 4, df) } // \
 func ecl(x K) K { return l2t(x, 5, df) } // \:
 
+// maybe?
+//  '     f1'x   f2' [x;y]   f3'[x;y;z]...   a' x bin  a'[x;y] lin
+//  ':    f2':x  f2':[x;y]   err             a':x  in
+//  /     f2/x   f2/ [x;y]   f3/[x;y;z]...   a/x  dec
+//  \     f2\x   f2\ [x;y]   f3/[x;y;z]...   a\x  enc
+//  /:    fix/:x f2/:[x;y]   err             a/:x join
+//  \:    fix/:x f2/:[x;y]   err             a\:x split
+
 func Ech(f, x K) (r K) {
 	t := tp(f)
 	if isfunc(t) == 0 {
