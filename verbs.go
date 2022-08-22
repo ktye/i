@@ -791,3 +791,11 @@ func Dec(x, y K) (r K) { // x//y   {z+x*y}/[0;x;y]
 	dx(y)
 	return r
 }
+func sumi(xp, xn int32) (r int32) {
+	e := xp + 4*xn
+	for xp < e {
+		r += I32(xp)
+		xp += 4
+	}
+	return r
+}

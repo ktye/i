@@ -33,7 +33,9 @@ if [ "$1" = "cover" ]; then
 fi
 
 wg             . > k.wat
+wg -small      . > s.wat
 /c/local/wabt/wat2wasm -o web/k.wasm k.wat
+/c/local/wabt/wat2wasm -o web/s.wasm s.wat
 
 cp web/k.wasm   /c/k/ktye.github.io/
 cp web/*.js     /c/k/ktye.github.io/

@@ -1,10 +1,10 @@
+// +build !small
+
 package main
 
 import (
 	. "github.com/ktye/wg/module"
 )
-
-type rdf = func(K, int32, T, int32) K
 
 func rd0(x K, yp int32, t T, n int32) K { return 0 }
 func min(x K, yp int32, t T, n int32) K { // &/x
@@ -117,14 +117,6 @@ func sum(x K, yp int32, t T, n int32) K { // +/x
 	default:
 		return 0
 	}
-}
-func sumi(xp, xn int32) (r int32) {
-	e := xp + 4*xn
-	for xp < e {
-		r += I32(xp)
-		xp += 4
-	}
-	return r
 }
 func sumf(xp, n, s int32) (r float64) {
 	if n < 128 {
