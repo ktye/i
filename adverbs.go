@@ -337,7 +337,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point
-		return fix(f, Fst(x))
+		return fix(f, Fst(x), 0)
 	case 1:
 		var y K
 		x, y = spl2(x)
@@ -365,7 +365,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		return trap(Rank)
 	}
 }
-func fix(f, x K) (r K) {
+func fix(f, x, l K) (r K) {
 	y := rx(x)
 	for {
 		r = Atx(rx(f), rx(x))
@@ -377,32 +377,18 @@ func fix(f, x K) (r K) {
 		}
 		dx(x)
 		x = r
+		if l != 0 {
+			l = cat1(l, rx(x))
+		}
 	}
+	dx(f)
 	dx(r)
 	dx(y)
-	dx(f)
+	if l != 0 {
+		dx(x)
+		return l
+	}
 	return x
-}
-func fixs(f, x K) (r K) {
-	l := Enl(rx(x))
-	y := rx(x)
-	for {
-		r = Atx(rx(f), rx(x))
-		if match(r, x) != 0 {
-			break
-		}
-		if match(r, y) != 0 {
-			break
-		}
-		dx(x)
-		x = r
-		l = cat1(l, rx(x))
-	}
-	dx(x)
-	dx(y)
-	dx(f)
-	dx(r)
-	return l
 }
 func ndo(n int32, f, x K) K {
 	for n > 0 {
@@ -504,7 +490,8 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point-scan
-		return fixs(f, Fst(x))
+		x = Fst(x)
+		return fix(f, rx(x), Enl(x))
 	case 1:
 		var y K
 		x, y = spl2(x)
