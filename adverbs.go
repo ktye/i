@@ -131,14 +131,13 @@ func Ecp(f, x K) (r K) {
 	yt := tp(y)
 	if tp(f) == 0 && xt < Zt && yt == xt-16 {
 		fp := int32(f)
-		//if fp > 2 && xt != St && fp < 6 || fp == 7 || fp == 8 {
-		if fp > 1 && fp < 9 && fp != 6 && (xt == It || xt == Ft) {
-			return epx(fp, x, y, xn) // +-*% &| 2345 78
+		if fp > 1 && fp < 8 && (xt == It || xt == Ft) {
+			return epx(fp, x, y, xn) // +-*%&| 234567
 		}
-		if fp == 12 {
-			fp = 11 // ~ =
+		if fp == 11 {
+			fp = 10 // ~ =
 		}
-		if fp > 8 && fp < 12 {
+		if fp > 9 && fp < 11 {
 			return epc(fp, x, y, xn) // <>= (~)
 		}
 	}
@@ -153,14 +152,11 @@ func Ecp(f, x K) (r K) {
 	dx(x)
 	return uf(r)
 }
-func epx(f int32, x, y K, n int32) (r K) { // ( +-*% &| )':
+func epx(f int32, x, y K, n int32) (r K) { // ( +-*%&| )':
 	xt := tp(x)
 	xp := int32(x)
 	r = mk(xt, n)
 	rp := int32(r)
-	if f > 6 {
-		f--
-	}
 	f = 212 + 11*f
 	yp := int32(y)
 	if xt == It {
@@ -189,7 +185,7 @@ func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
 	s := sz(xt)
 	r = mk(It, n)
 	rp := int32(r)
-	f = 173 + 15*f
+	f = 188 + 15*f
 	switch s >> 2 {
 	case 0:
 		SetI32(rp, Func[f].(f2i)(I8(xp), int32(y)))
@@ -266,7 +262,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	yn := nn(y)
 	if tp(f) == 0 {
 		fp := int32(f)
-		if fp > 1 && fp < 9 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
+		if fp > 1 && fp < 8 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
 			if yt == Tt {
 				return Ech(rdc(f), l2(x, Flp(y)))
 			}

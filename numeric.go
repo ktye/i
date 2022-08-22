@@ -935,9 +935,9 @@ func Mod(x, y K) K {
 
 func Min(x, y K) (r K) {
 	if tp(y) < 16 {
-		return nd(278, 7, y, x)
+		return nd(278, 6, y, x)
 	}
-	return nd(278, 7, x, y)
+	return nd(278, 6, x, y)
 }
 func mini(x, y int32) int32 {
 	if x < y {
@@ -1027,9 +1027,9 @@ func minZ(xp, yp, rp, e int32) {
 
 func Max(x, y K) (r K) {
 	if tp(y) < 16 {
-		return nd(289, 8, y, x)
+		return nd(289, 7, y, x)
 	}
-	return nd(289, 8, x, y)
+	return nd(289, 7, x, y)
 }
 func maxi(x, y int32) int32 {
 	if x > y {
@@ -1118,7 +1118,7 @@ func maxZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Eql(x, y K) K                     { return nc(338, 11, x, y) }
+func Eql(x, y K) K                     { return nc(338, 10, x, y) }
 func eqi(x, y int32) int32             { return I32B(x == y) }
 func eqf(x, y float64) int32           { return I32B((x != x) && (y != y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
@@ -1203,7 +1203,7 @@ func Les(x, y K) K { // x<y   `file<c
 		}
 		return writefile(cs(x), y)
 	}
-	return nc(308, 9, x, y)
+	return nc(308, 8, x, y)
 }
 func lti(x, y int32) int32   { return I32B(x < y) }
 func ltf(x, y float64) int32 { return I32B(x < y || x != x) }
@@ -1322,7 +1322,7 @@ func ltZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Mor(x, y K) K           { return nc(323, 10, x, y) }
+func Mor(x, y K) K           { return nc(323, 9, x, y) }
 func gti(x, y int32) int32   { return I32B(x > y) }
 func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {
