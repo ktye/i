@@ -1,4 +1,4 @@
-// +build small
+//go:build small
 
 package main
 
@@ -37,6 +37,16 @@ if SMALL == false {
 	...
 }
 */
+
+func ov0(f K, t T) (r K) { // f/0#x
+	// `".o0":{x:(;;(0x00;0;0.;0a);;(0x01;1;1.);;(_127;0N-1;0w);(_-128;-0w))[x];$[i:(@'x)?@y;x i;y]}
+	r = missing(t)
+	if tp(f) == 0 && t <= zt {
+		return Cal(Val(Ku(3174190)), l2(Ki(int32(f)), Ki(int32(t))))
+	}
+	dx(f)
+	return r
+}
 
 func min(x K, yp int32, t T, n int32) K  { return Rdc(6, rx(K(uint32(x))|K(t)<<59)) }
 func max(x K, yp int32, t T, n int32) K  { return Rdc(7, rx(K(uint32(x))|K(t)<<59)) }

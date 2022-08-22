@@ -1,4 +1,4 @@
-// +build !small
+//go:build !small
 
 package main
 

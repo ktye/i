@@ -1,4 +1,4 @@
-// +build !small
+//go:build !small
 
 package main
 
@@ -30,6 +30,11 @@ func init1() {
 }
 
 const SMALL = false
+
+func ov0(f K, t T) K {
+	dx(f)
+	return missing(t)
+}
 
 func epx(f int32, x, y K, n int32) (r K) { // ( +-*%&| )':
 	xt := tp(x)

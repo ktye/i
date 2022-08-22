@@ -241,7 +241,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	if yn == 0 {
 		if x == 0 {
 			dx(y)
-			return missing(yt - 16) // or identity element, e.g. +/() -> 0 not ""
+			return ov0(f, yt-16)
 		} else {
 			dx(f)
 			dx(y)
