@@ -36,11 +36,15 @@ function update(){
  for(let id in nodes){
   let dst=nodes[id]
   if(dst.offsetParent===null)continue     //skip invisible
-  if(dst.s){ 
+  if(dst.s){
    let k=K.Kx(".",dst.s)
    if(k!=dst.k)gui(id,null,dst.s,null,K.ref(dst.d))    //global variable has changed
+   else        K.unref(k)
   }
-  if(dst.e)gui(id,null,null,K.ref(dst.e),K.ref(dst.d)) //evaluate expr
+  if(dst.e){
+   console.log("update", id, "(expr)")
+   gui(id,null,null,K.ref(dst.e),K.ref(dst.d)) //evaluate expr
+  }
 }}
 
 
@@ -140,7 +144,7 @@ function uicheckbox(dst,x){ //b
 function uiedit(dst,x){
  let ta=ce("textarea");ta.classList.add("kweb-textarea");ta.readOnly=dst.classList.contains("readonly")
  ta.value=K.CK(x)
- ta.onchange=function(evt){if(dst.s)K.KA(dst.s,K.KC(ta.value))}
+ ta.onchange=function(evt){if(dst.s)K.KA(dst.s,K.KC(ta.value));update()}
  dst.appendChild(ta)
 }
 function uih1(dst,x){
@@ -153,8 +157,8 @@ let O=function(x){console.log("out k>")}                           //default k o
 function uitty(dst,x){
  let tty=ce("textarea");tty.value=K.CK(x)
  O=function(x){tty.value+=x}      //redirect k output to tty
- dst.evl=function(s){s=s.trim();if(!s.length)return
-  tty.value+="\n";krep(s);tty.value+=" ";tty.scrollTop=tty.scrollHeight
+ dst.evl=function(s){let c=s.startsWith("\n  ")?" ":"";s=s.trim();if(!s.length)return
+  tty.value+="\n";krep(c+s);tty.value+=" ";tty.scrollTop=tty.scrollHeight
   update()
  }
  tty.onkeydown=function(e){
@@ -313,6 +317,7 @@ function initDivs(post){
   }
        if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,d())
   else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())
+  else if('kVal' in x.dataset) gui(x.id,K.Kx(".",K.Ks(x.dataset.kVal)),null,null,d())
  })
  if("function"==typeof post)post()
 }

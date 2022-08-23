@@ -24,7 +24,6 @@ K.TK = function(x){
 K.NK = function(x){ return _.nn(x) }
 
 // create k atoms
-K.Kb = function(x){ return _.Kb( x ? 1 : 0 ) }
 K.Kc = function(x){ return _.Kc( ("string"===typeof(x)) ? x.charCodeAt(0) : x ) }
 K.Ks = function(x){ return _.sc(K.KC(x)) }
 K.Ki = function(x){ return _.Ki(x) }
@@ -63,13 +62,12 @@ K.KL = function(x){
  return r
 }
 
-K.bK = function(x){ return lo(x) != 0 }
 K.cK = function(x){ return lo(x) << 24 >> 24 } // signed int8
 K.iK = function(x){ return lo(x) << 0 } // signed int32
 K.sK = function(x){ return K.CK(_.cs(x)) }
 K.fK = function(x){ let p=lo(x)>>>3;return dxr(x,F()[p]) }
 
-K.BK = function(x){ return dxr(x, C().slice(lo(x),lo(x)+_.nn(x))) }
+K.BK = function(x){ return dxr(x, C().slice(lo(x),lo(x)+_.nn(x))) } //bytes
 K.CK = function(x){ return su(K.BK(x)) }
 K.IK = function(x){ let p=lo(x)>>>2;return dxr(x,I().slice(p,p+_.nn(x))) }
 K.SK = function(x){ let n=_.nn(x); let r=new Array(n); let p=lo(x)>>>2
@@ -90,7 +88,7 @@ K.LK = function(x){
 K.dK = lo
 
 K.KE   = function(e){ console.log(e); _.trap(0); return 0 }
-K.Kx   = function(s,...args){ let f=_.Val(K.KC(s)); return (args.length>0) ? _.Cal(f,K.KL(args)) : f }
+K.Kx   = function(s,...args){ console.log("kx args", args); let f=_.Val(K.KC(s)); return (args.length>0) ? _.Cal(f,K.KL(args)) : f }
 K.KA   = function(sym,val){ K._.dx(K._.Asn(sym,val)) }
 K.ref  = function(x){return _.rx(x)}
 K.unref= function(x){       _.dx(x)}
@@ -111,13 +109,11 @@ K.JK=function(x){
  let t=_.tp(x)
  let n=(t>16)?_.nn(x):1
  switch(t){
- case 1:  return K.bK(x);
  case 2:  return K.cK(x);
  case 3:  return K.iK(x);
  case 4:  return K.sK(x);
  case 5:  return K.fK(x);
  //no z
- case 17: return K.BK(x);
  case 18: return K.CK(x);
  case 19: return K.IK(x);
  case 20: return K.SK(x);

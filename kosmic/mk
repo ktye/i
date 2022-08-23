@@ -21,14 +21,15 @@ if [ "$1" = "lin" ];then    # build on linux
 else                        # build on windows
 
  c9=/c/local/cross9/bin     # cross9 is: justine.lol/cosmopolitan/windows-compiling.html
+ co=~/cosmo                 # contains ape.lds ape.o crt.o cosmopolitan.h cosmopolitan.a
  cc=$c9/x86_64-pc-linux-gnu-gcc.exe
  oc=$c9/x86_64-pc-linux-gnu-objcopy.exe
  $cc -g -O  -o ${k}.com.dbg ${k}.c -Wfatal-errors                                    \
   -static -fno-pie -no-pie -mno-red-zone -fno-omit-frame-pointer -nostdlib -nostdinc \
   -Wl,--gc-sections -Wl,-z,max-page-size=0x1000 -fuse-ld=bfd                         \
-  -Wl,-T,ape.lds -include cosmopolitan.h crt.o ape.o cosmopolitan.a
+  -Wl,-T,$co/ape.lds -include $co/cosmopolitan.h $co/crt.o $co/ape.o $co/cosmopolitan.a
  $oc -S -O binary ${k}.com.dbg ${k}.com
- 
+ rm ${k}.com.dbg
 fi
 
 for file in ../k.wasm ../k.js plot.js kweb.js kweb.css a.html a.k; do

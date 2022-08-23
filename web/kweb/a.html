@@ -18,7 +18,7 @@
 
 <div id="main">
  <div id="edt" data-k-var="edit" data-k-type="edit" class="hidden"></div>
- <div id="con" data-k-type="tty" data-k-var=".tty"></div>
+ <div id="con" data-k-type="tty" data-k-val=".tty"></div>
 </div>
 <div id="cnv"><canvas width=0 height=0 class="hidden"></canvas></div>
 
@@ -46,7 +46,7 @@ function post(){
  let ed=edt();ed.onkeydown=function(e){
   if(e.key=="Enter"){
    let s=ed.value.slice(ed.selectionStart,ed.selectionEnd)
-   if(s.length){ge("con").evl(s);window.location.hash=encodeURIComponent(s);return false}
+   if(s.length){pd(e);ge("con").evl(s);window.location.hash=encodeURIComponent(s);return false}
 }}}
 
 

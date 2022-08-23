@@ -225,7 +225,7 @@ The js part inside a leaflet function looks like that:</p>
 
 <pre>
 var ctx = tile.getContext('2d');
-let I=K.BK(K.Kx("tile",K.Ki(x),K.Ki(y),K.Ki(z)))   //get a tile from k
+let I=K.CK(K.Kx("tile",K.Ki(x),K.Ki(y),K.Ki(z)))   //get a tile from k
 let u = new Uint8ClampedArray(I.buffer);
 let d = new ImageData(u,256,256);
 ctx.putImageData(d,0,0);                           //draw to canvas background
@@ -280,6 +280,9 @@ The draw commands provide a subset of the canvas api without transformations or 
 
 <p>The website <a href="k.html">ktye.github.io/kweb/k</a> (which shows all examples using a location hash), also serves as an empty program.
 If you drop a k file on the page, it will be executed.</p>
+
+<p>The <a href="https://ktye.github.io">mainpage</a> is a larger example that shows an editor, a repl and has a plot canvas.
+Type <code>plot d</code> into the repl at the bottom to see an example and <code>hide`cnv</code> to hide the canvas.</p>
 
 <h2 id="io">data i/o</h2>
 

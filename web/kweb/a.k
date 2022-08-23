@@ -83,4 +83,3 @@ csv:{c:{s:`$'x@i:&x':"ifzs";n:`i$" "\:-1_@[x;i;" "];y[a]:(y[a],''"a"),''y[1+a:&s
 /plot example
 x:.5*!9
 d:`x`y!(x;(sin x;cos x))
-
