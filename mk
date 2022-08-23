@@ -2,12 +2,10 @@ set -x
 set -e
 
 # embed z.k in z.go
-zk(){
-cat $1 $2 | sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' > k.k
+sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
 zn=`wc -c k.k | sed 's/ .*//'`
 zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
-cat << EOF > $4
-$3
+cat << EOF > z.go
 
 package main
 
@@ -21,9 +19,6 @@ func zk() {
 	dx(Val(x))
 }
 EOF
-}
-zk z.k ""  "//go:build !small" z.go
-zk z.k s.k "//go:build small"  s.go
 
 if [ "$1" = "kc" ]; then
 	wg -c -prefix ktye_ . > k.c
@@ -32,9 +27,6 @@ if [ "$1" = "kc" ]; then
 fi
 
 go install
-go build -tags small -o sk.exe
-
-#small: go build -tags small
 
 if [ "$1" = "cover" ]; then
 	go test -coverprofile=cov.out
@@ -42,9 +34,7 @@ if [ "$1" = "cover" ]; then
 fi
 
 wg             . > k.wat
-wg -small      . > s.wat
 /c/local/wabt/wat2wasm -o web/k.wasm k.wat
-/c/local/wabt/wat2wasm -o web/s.wasm s.wat
 
 cp web/k.wasm   /c/k/ktye.github.io/
 cp web/*.js     /c/k/ktye.github.io/

@@ -138,19 +138,17 @@ func Ecp(f, x K) (r K) {
 		return x
 	}
 
-	if SMALL == false {
-		yt := tp(y)
-		if tp(f) == 0 && xt < Zt && yt == xt-16 {
-			fp := int32(f)
-			if fp > 1 && fp < 8 && (xt == It || xt == Ft) {
-				return epx(fp, x, y, xn) // +-*%&| 234567
-			}
-			if fp == 11 {
-				fp = 10 // ~ =
-			}
-			if fp > 9 && fp < 11 {
-				return epc(fp, x, y, xn) // <>= (~)
-			}
+	yt := tp(y)
+	if tp(f) == 0 && xt < Zt && yt == xt-16 {
+		fp := int32(f)
+		if fp > 1 && fp < 8 && (xt == It || xt == Ft) {
+			return epx(fp, x, y, xn) // +-*%&| 234567
+		}
+		if fp == 11 {
+			fp = 10 // ~ =
+		}
+		if fp > 9 && fp < 11 {
+			return epc(fp, x, y, xn) // <>= (~)
 		}
 	}
 
@@ -211,29 +209,27 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	}
 
 	yn := nn(y)
-	if SMALL == false {
-		xt := tp(x)
-		if tp(f) == 0 {
-			fp := int32(f)
-			if fp > 1 && fp < 8 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
-				if yt == Tt {
-					return Ech(rdc(f), l2(x, Flp(y)))
-				}
-				r = Func[365+fp].(rdf)(x, int32(y), yt, yn)
-				if r != 0 {
-					dx(x)
-					dx(y)
-					return r
-				}
+	xt := tp(x)
+	if tp(f) == 0 {
+		fp := int32(f)
+		if fp > 1 && fp < 8 && (xt == 0 || yt == xt+16) { // sum,prd,min,max (reduce.go)
+			if yt == Tt {
+				return Ech(rdc(f), l2(x, Flp(y)))
 			}
-			if x == 0 && fp == 13 { // ,/
-				if yt < Lt {
-					return y
-				}
-				r = ucats(y)
-				if r != 0 {
-					return r
-				}
+			r = Func[365+fp].(rdf)(x, int32(y), yt, yn)
+			if r != 0 {
+				dx(x)
+				dx(y)
+				return r
+			}
+		}
+		if x == 0 && fp == 13 { // ,/
+			if yt < Lt {
+				return y
+			}
+			r = ucats(y)
+			if r != 0 {
+				return r
 			}
 		}
 	}
@@ -397,20 +393,18 @@ func Scn(f, x K) (r K) {
 		return Key(r, Scn(f, l2(x, y)))
 	}
 
-	if SMALL == false {
-		xt := tp(x)
-		if tp(f) == 0 {
-			fp := int32(f)
-			if (fp == 2 || fp == 4) && (xt == 0 || yt == xt+16) { // sums,prds (reduce.go)
-				if yt == Tt {
-					return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
-				}
-				r = Func[372+fp].(rdf)(x, int32(y), yt, yn)
-				if r != 0 {
-					dx(x)
-					dx(y)
-					return r
-				}
+	xt := tp(x)
+	if tp(f) == 0 {
+		fp := int32(f)
+		if (fp == 2 || fp == 4) && (xt == 0 || yt == xt+16) { // sums,prds (reduce.go)
+			if yt == Tt {
+				return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
+			}
+			r = Func[372+fp].(rdf)(x, int32(y), yt, yn)
+			if r != 0 {
+				dx(x)
+				dx(y)
+				return r
 			}
 		}
 	}
@@ -540,4 +534,72 @@ func ufd(x K) (r K) {
 		xp += 8
 	}
 	return key(r, Flp(Ech(20, l1(x))), Tt)
+}
+
+func ov0(f, x K) K {
+	dx(f)
+	dx(x)
+	return missing(tp(x))
+}
+func epx(f int32, x, y K, n int32) (r K) { // ( +-*%&| )':
+	xt := tp(x)
+	xp := int32(x)
+	r = mk(xt, n)
+	rp := int32(r)
+	f = 212 + 11*f
+	yp := int32(y)
+	if xt == It {
+		SetI32(rp, Func[f].(f2i)(I32(xp), yp))
+		for i := int32(1); i < n; i++ {
+			xp += 4
+			rp += 4
+			SetI32(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
+		}
+	} else {
+		f++
+		SetF64(rp, Func[f].(f2f)(F64(xp), F64(yp)))
+		for i := int32(1); i < n; i++ {
+			xp += 8
+			rp += 8
+			SetF64(rp, Func[f].(f2f)(F64(xp), F64(xp-8)))
+		}
+	}
+	dx(x)
+	dx(y)
+	return r
+}
+func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
+	xt := tp(x)
+	xp := int32(x)
+	s := sz(xt)
+	r = mk(It, n)
+	rp := int32(r)
+	f = 188 + 15*f
+	switch s >> 2 {
+	case 0:
+		SetI32(rp, Func[f].(f2i)(I8(xp), int32(y)))
+		for i := int32(1); i < n; i++ {
+			xp++
+			rp += 4
+			SetI32(rp, Func[f].(f2i)(I8(xp), I8(xp-1)))
+		}
+	case 1:
+		SetI32(rp, Func[f].(f2i)(I32(xp), int32(y)))
+		for i := int32(1); i < n; i++ {
+			xp += 4
+			rp += 4
+			SetI32(rp, Func[f].(f2i)(I32(xp), I32(xp-4)))
+		}
+	default:
+		f++
+		SetI32(rp, Func[f].(f2c)(F64(xp), F64(int32(y))))
+		for i := int32(1); i < n; i++ {
+			xp += 8
+			rp += 4
+			SetI32(rp, Func[f].(f2c)(F64(xp), F64(xp-8)))
+		}
+	}
+	dx(x)
+	dx(y)
+	return r
 }

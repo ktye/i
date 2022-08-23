@@ -22,7 +22,26 @@ func init() {
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Min, Max, Les, Mor, Eql, Mtc, Key, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Ecp, Rdc, Ecr, Scn, Ecl, com, prj, Otu, In, Find, Hyp, Cpx, nyi, Rot, Enc, Dec, Fil, nyi, Bin, Mod, Pow, Lgn, nyi, nyi, Rtp)
 	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
-	init1()
+
+	Functions(220, negi, negf, negz, negC, negI, negF, negZ)
+	Functions(227, absi, absf, nyi, absC, absI, absF, absZ)
+	Functions(234, addi, addf, addz, addcC, addiI, addfF, addzZ, addC, addI, addF, addF)
+	Functions(245, subi, subf, nyi, subcC, subiI, subfF, subzZ, subC, subI, subF, subF)
+	Functions(256, muli, mulf, mulz, mulcC, muliI, mulfF, mulzZ, mulC, mulI, mulF, mulZ)
+	Functions(267, divi, divf, divz, nyi, nyi, divfF, divzZ, nyi, nyi, divF, divZ)
+	Functions(278, mini, minf, minz, mincC, miniI, minfF, minzZ, minC, minI, minF, minZ)
+	Functions(289, maxi, maxf, maxz, maxcC, maxiI, maxfF, maxzZ, maxC, maxI, maxF, maxZ)
+	Functions(300, nyi, sqrf, nyi, nyi, nyi, sqrF, nyi)
+
+	Functions(308, lti, ltf, ltz, ltcC, ltiI, ltfF, ltzZ, ltCc, ltIi, ltFf, ltZz, ltC, ltI, ltF, ltZ)
+	Functions(323, gti, gtf, gtz, gtcC, gtiI, gtfF, gtzZ, gtCc, gtIi, gtFf, gtZz, gtC, gtI, gtF, gtZ)
+	Functions(338, eqi, eqf, eqz, eqcC, eqiI, eqfF, eqzZ, eqCc, eqIi, eqFf, eqZz, eqC, eqI, eqF, eqZ)
+
+	Functions(353, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL)
+
+	Functions(367, sum, rd0, prd, rd0, min, max)
+	Functions(374, sums, rd0, prds, rd0, rd0)
+	// don't delete: kom:FTAB 381)
 }
 
 //   0....7  key

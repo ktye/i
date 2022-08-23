@@ -1,4 +1,3 @@
-//go:build !small
 
 package main
 

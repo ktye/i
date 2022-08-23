@@ -1,5 +1,3 @@
-//go:build !small
-
 package main
 
 import (
