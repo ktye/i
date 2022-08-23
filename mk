@@ -32,6 +32,7 @@ if [ "$1" = "kc" ]; then
 fi
 
 go install
+go build -tags small -o sk.exe
 
 #small: go build -tags small
 
