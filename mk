@@ -2,10 +2,13 @@ set -x
 set -e
 
 # embed z.k in z.go
-sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
+zk(){
+cat $1 $2 | sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' > k.k
 zn=`wc -c k.k | sed 's/ .*//'`
 zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
-cat << EOF > z.go
+cat << EOF > $4
+$3
+
 package main
 
 import . "github.com/ktye/wg/module"
@@ -18,6 +21,9 @@ func zk() {
 	dx(Val(x))
 }
 EOF
+}
+zk z.k ""  "//go:build !small" z.go
+zk z.k s.k "//go:build small"  s.go
 
 if [ "$1" = "kc" ]; then
 	wg -c -prefix ktye_ . > k.c
@@ -26,6 +32,8 @@ if [ "$1" = "kc" ]; then
 fi
 
 go install
+
+#small: go build -tags small
 
 if [ "$1" = "cover" ]; then
 	go test -coverprofile=cov.out

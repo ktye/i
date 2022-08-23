@@ -31,9 +31,10 @@ func init1() {
 
 const SMALL = false
 
-func ov0(f K, t T) K {
+func ov0(f, x K) K {
 	dx(f)
-	return missing(t)
+	dx(x)
+	return missing(tp(x))
 }
 
 func epx(f int32, x, y K, n int32) (r K) { // ( +-*%&| )':

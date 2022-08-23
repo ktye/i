@@ -326,7 +326,7 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 		case 1: // it
 			return Ki(Func[f].(f2i)(xp, yp))
 		case 2: // st
-			return trap(Type)
+			return Ks(Func[f].(f2i)(xp, yp))
 		case 3:
 			dx(x)
 			dx(y)

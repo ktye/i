@@ -240,8 +240,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 
 	if yn == 0 {
 		if x == 0 {
-			dx(y)
-			return ov0(f, yt-16)
+			return ov0(f, y)
 		} else {
 			dx(f)
 			dx(y)

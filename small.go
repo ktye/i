@@ -38,13 +38,18 @@ if SMALL == false {
 }
 */
 
-func ov0(f K, t T) (r K) { // f/0#x
-	// `".o0":{x:(;;(0x00;0;0.;0a);;(0x01;1;1.);;(_127;0N-1;0w);(_-128;-0w))[x];$[i:(@'x)?@y;x i;y]}
-	r = missing(t)
-	if tp(f) == 0 && t <= zt {
-		return Cal(Val(Ku(3174190)), l2(Ki(int32(f)), Ki(int32(t))))
+func ov0(f, x K) (r K) { // f/0#x
+	r = missing(tp(x) - 16)
+	if tp(f) == 0 { // 3174190 is `".oO"
+		if int32(f) == 13 {
+			return x
+		}
+		dx(x)
+		//println("f-2", int32(f-2), tp(r))
+		return Cal(Val(sc(Ku(3174190))), l2(Ki(int32(f-2)), r))
 	}
 	dx(f)
+	dx(x)
 	return r
 }
 
