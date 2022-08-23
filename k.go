@@ -53,12 +53,6 @@ func kinit() {
 	y := sc(Ku(121)) // `y 16
 	z := sc(Ku(122)) // `z 24
 	xyz = cat1(Cat(x, y), z)
-	if SMALL {
-		sp *= 1
-	}
-	if SMALL == false {
-		sp *= 4
-	}
 	zk()
 }
 

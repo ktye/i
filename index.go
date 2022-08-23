@@ -21,9 +21,6 @@ func Atx(x, y K) (r K) { // x@y
 		}
 	}
 	if xt > Lt && yt < Lt {
-		if yt == lf {
-			return Atx(x, Wer(callenv(y, rx(x))))
-		}
 		r, x = spl2(x)
 		if xt == Tt {
 			if yt&15 == it {
