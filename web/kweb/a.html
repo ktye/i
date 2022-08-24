@@ -17,7 +17,7 @@
 <body>
 
 <div id="main">
- <div id="edt" data-k-var="edit" data-k-type="edit" class="hidden"></div>
+ <div id="edt" data-k-var="edit" data-k-type="ttyedit" class="hidden"></div>
  <div id="con" data-k-type="tty" data-k-val=".tty"></div>
 </div>
 <div id="cnv"><canvas width=0 height=0 class="hidden"></canvas></div>
@@ -42,6 +42,19 @@ function edt(){return ge("edt").firstChild}
 window.addEventListener('unhandledrejection', function(e) {tty().setValue(String(e.reason))})
 
 
+//custom editor that sends marked text to the repl when pressing return.
+function ttyedit(dst,x){
+ let ta=ce("textarea");ta.classList.add("kweb-textarea");ta.readOnly=dst.classList.contains("readonly")
+ ta.value=K.CK(x)
+ ta.onchange=function(evt){if(dst.s)K.KA(dst.s,K.KC(ta.value));kweb.update()}
+ ta.onkeydown=function(e){
+  if(e.key=="Enter"){
+   let s=ta.value.slice(ta.selectionStart,ta.selectionEnd)
+   if(s.length){pd(e);ge("con").evl(s);window.location.hash=encodeURIComponent(s);return false}
+ }}
+ dst.appendChild(ta)
+}
+
 function post(){
  let ed=edt();ed.onkeydown=function(e){
   if(e.key=="Enter"){
@@ -54,11 +67,18 @@ function download(name,u){
  let dl=ge("_dl");let b=new Blob([u],{type:"application/octet-stream"})
  dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
 
+function dropfile(name,u){let t=tty();
+ if(name.endsWith(".k")){t.value+="\l "+name+"\n"; ge("con").evl(su(u))}
+ else{t.value+=name+":"+u.length+"\n";               kweb.fsadd(name,u)}
+}
+
 function start(){
  let h=window.location.hash
  K.KA(K.Ks("edit"),K.KC((h.length>1)?decodeURIComponent(h.slice(1)):"/editor"))
  K.KA(K.Ks(".tty"),K.KC("ktye/k "+K.n+"\n "))
 }
+kweb.register("ttyedit", ttyedit)
+kweb.filedrop(dropfile)
 kweb.init(start,"../k.wasm",post)
 
 /*

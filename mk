@@ -13,7 +13,7 @@ import . "github.com/ktye/wg/module"
 
 func zk() {
 	Data(600, "$zk")
-	zn := int32($zn) // should end before 8k
+	zn := int32($zn) // should end before 4k
 	x := mk(Ct, zn)
 	Memorycopy(int32(x), 600, zn)
 	dx(Val(x))

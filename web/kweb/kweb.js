@@ -319,6 +319,8 @@ function initDivs(post){
   else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())
   else if('kVal' in x.dataset) gui(x.id,K.Kx(".",K.Ks(x.dataset.kVal)),null,null,d())
  })
+ let a=ce("a");a.id="_dl";a.style.display="none" //hidden download element
+ document.body.appendChild(a)
  if("function"==typeof post)post()
 }
 
@@ -326,16 +328,46 @@ function initDivs(post){
 document.update=update //for custom updates from k
 
 // drop files (execute .k)
+let _dropfile=dropfile
 window.ondragover=function(e){pd(e)}
 window.ondrop=function(e){pd(e);if(e.dataTransfer.items){for(let i=0;i<e.dataTransfer.items.length;i++){if(e.dataTransfer.items[i].kind=='file'){let file=e.dataTransfer.items[i].getAsFile();addfile(file)}}}else for(let i=0;i<e.dataTransfer.files.length;i++)addfile(e.dataTransfer.files[i])}
 function addfile(x){
  let r=new FileReader()
  r.onload=function(){
   let u=new Uint8Array(r.result)
-  if(x.name.endsWith(".k")){ document.body.innerHTML=""; ktry(su(u)) }
+  _dropfile(x.name,u)
  }
  r.readAsArrayBuffer(x)
 }
+function filedrop(f){_dropfile=f}
+function dropfile(name,u){ //default drop handler can be overwritten with kweb.filedrop(f)
+ console.log("name?",name)
+ if(name.endsWith(".k")){ document.body.innerHTML=""; ktry(su(u)) }
+}
+function writefile(name,u){let l=String(window.location)
+ console.log("writefile",name)
+ if(l.startsWith("http://localhost:")||l.startsWith("http://127.0.0.1:")) upload(name,u)
+ else                                                                   download(name,u)
+}
+function download(name,u){
+ let dl=ge("_dl");let b=new Blob([u],{type:"application/octet-stream"})
+ dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
+function upload(name,u){let l=window.location
+ let h="http://"+l.hostname+":"+l.port+"/"+name
+ fetch(h, {method:"POST",body:u/*new Blob(u)*/})
+}
+let files={}
+function fsadd(name,u){files[name]=u}
+function readfile(name){ // k read, e.g. x:<`name
+ if(name in files)return files[name]
+ 
+ let h = new XMLHttpRequest()
+ h.open("GET", name, false)
+ //h.responseType="arraybuffer" //cannot set type for synchronous request. text-only.
+ h.send(null)
+ return us((200===h.status)?h.responseText:"")
+}
+
 
 function init(start,kwasm,post){ //start k
  register('plot',plot)
@@ -343,8 +375,8 @@ function init(start,kwasm,post){ //start k
  kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
  let ext={                  //wasm import module
   init: initKweb(start,post),
-  read: function(file)     {return new Uint8Array(0)},
-  write:function(file,data){if(file===""){O(su(data))}else{}},
+  read: readfile,
+  write:function(file,data){if(file===""){O(su(data))}else{writefile(file,data)}},
   show: show,
   hide: function(id)       {ge(K.sK(K.ref(id))).classList.add("hidden");return id},
   js:   K.JS,
@@ -363,5 +395,5 @@ function krep(s){
 function help(){fetch('readme').then(r=>r.text()).then(r=>O("\n"+r+" "))}
 
 
-let kweb = {init,ktry,show,update,register}
+let kweb = {init,ktry,show,update,register,filedrop,fsadd}
 export { kweb }

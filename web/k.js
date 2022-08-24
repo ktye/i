@@ -18,7 +18,7 @@ function F(){ return new  Float64Array(_.memory.buffer) }
 
 // type/length
 K.TK = function(x){ 
- const t="0bcisfz---mdplx--BCISFZLDT";
+ const t="0-cisfz---mdplx--BCISFZLDT";
  return t[_.tp(x)]
 }
 K.NK = function(x){ return _.nn(x) }
@@ -32,7 +32,8 @@ K.Kf = function(x){ return _.Kf(x) }
 // create k vectors
 K.KC = function(x){
  if("string"===typeof(x))x=us(x);
- let r=_.mk(18,x.length);C().set(x,lo(r));return r
+ let r=_.mk(18,x.length);
+ C().set(x,lo(r));return r
 }
 K.KS = function(x){
  let n=x.length
@@ -87,8 +88,15 @@ K.LK = function(x){
 }
 K.dK = lo
 
+function refcount(a){ return I()[(lo(a)-4)>>>2] }
+
 K.KE   = function(e){ console.log(e); _.trap(0); return 0 }
-K.Kx   = function(s,...args){ console.log("kx args", args); let f=_.Val(K.KC(s)); return (args.length>0) ? _.Cal(f,K.KL(args)) : f }
+K.Kx   = function(s,...args){ 
+ let c=1+":+-*%&|<>=~!,^#_$?@.".indexOf(s)
+ let f = ((s.length==1)&&(c>0)) ? BigInt(c) : _.Val(K.KC(s))
+ return (args.length>0) ? _.Cal(f,K.KL(args)) : f
+}
+ 
 K.KA   = function(sym,val){ K._.dx(K._.Asn(sym,val)) }
 K.ref  = function(x){return _.rx(x)}
 K.unref= function(x){       _.dx(x)}
@@ -151,13 +159,16 @@ function k_write(file,nfile,src,n){
  let filename = su(new Uint8Array(K._.memory.buffer, file, nfile))
  return usr_write(filename, d)
 }
- 
+
+let _rd
 function k_read(file,nfile,dst){
  let filename = su(new Uint8Array(K._.memory.buffer, file, nfile))
- let u = usr_read(filename)
- if(dst == 0) return u.length;
- let m = new Uint8Array(K._.memory.buffer, dst, u.length)
- m.set(u)
+ if(dst == 0){
+  _rd=usr_read(filename)
+  return _rd.length
+ }
+ let m = new Uint8Array(K._.memory.buffer, dst, _rd.length)
+ m.set(_rd)
  return 0
 }
 
