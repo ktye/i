@@ -2,22 +2,27 @@
 <head><meta charset="utf-8"><title>kweb</title></head>
 <link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
 <style>
+ #main{width:calc(50% - 10px)}
  h2{border-top:1px solid black}
- p{max-width:55em}
  pre{margin-left:1em}
  .example{background-color:#f8f8f8}
+ iframe{position:sticky;float:right;top:5px;width:50%;height:calc(100vh - 20px)}
 </style>
 
 <body onload='build()'>
+<iframe name="kframe" src="data:text/html,%3Ci%3Eit's electric, not reactive%3C%2Fi%3E"></iframe>
+<div id="main">
 <h1>kweb: a ui for k</h1>
 
-<p>This document describes a system how <i>k</i> and <i>html/js</i> can interact to build gui applications for analytical tasks.
-Small programs can be written directly in k with minimal ui overhead.
-Larger programs can be <a href="#separate">separated</a> into <i>html</i> for the presentation and <i>k</i> for computation.
-The ui updates automatically after user interaction.<br>
+<p>three simple rules</p>
+<ul>
+<li><i>ONE</i> k file is enough to write a gui application. use <a href="#link">show and hide</a> to put k objects on the screen.</li>
+<li>or you can <a href="#separate">split</a> into <i>TWO</i>: html/js for the ui and k for computation</li>
+<li><i>THREE</i> ways to <a href=#link>data-bind:</a> by value, by reference or by expression. k needs nothing special: no views or triggers</li>
+</ul>
 
-Programs can run <a href="#online">online</a>, e.g. from this page or <a href="#kosmic">locally</a> to access files on disk.
-All examples in this document are executable.</p>
+Programs can run <a href="#online">online</a>, e.g. from this page or <a href="#kweb.c">locally</a> to access files on disk.
+All examples in this document are executable and load in the iframe on the right.</p>
 
 <div><ul id="toc"></ul></div>
 
@@ -199,7 +204,7 @@ show[`dt;{+/t}]
 <p>There is no equivalent of a static k value in html declarations.
 Only variable references and expressions can be declared.</p>
 
-<p><a href="sep.html"><code>sep.html</code></a> is an example of separated <i>html</i> and <i>k</i>.
+<p><a href="sep.html" target="kframe"><code>sep.html</code></a> is an example of separated <i>html</i> and <i>k</i>.
 It calls <code>sep.k</code> in the init function:</p>
 <pre>
 kweb.init("sep.k")
@@ -211,7 +216,7 @@ kweb.init("sep.k")
 
 <p>An application can also be written in html/js without any of the <i>kweb</i> functionality and call <i>k</i> directly when needed.</p>
 
-<p><a href="map.html"><code>map.html</code></a> is an example application that uses the <a href="https://leafletjs.com">leaflet library</a> to show a slippery map from tiles.<br>
+<p><a href="map.html" target="kframe"><code>map.html</code></a> is an example application that uses the <a href="https://leafletjs.com">leaflet library</a> to show a slippery map from tiles.<br>
 Tiles are normally served from a tile server for each pair of corner coordinates and zoom level.
 In this case they are generated  from <i>k</i>:</p>
 
@@ -237,7 +242,7 @@ return tile;
 
 <h2 id="plot">plot</h2>
 
-<p><a href="sin.html"><code>sin.html</code></a> is a program that identifies parameters from a sine wave.
+<p><a href="sin.html" target="kframe"><code>sin.html</code></a> is a program that identifies parameters from a sine wave.
 It uses the following k code to update a gui for each change of the input parameters, including a graph of the curves:</p>
 
 <pre>
@@ -278,43 +283,50 @@ The draw commands provide a subset of the canvas api without transformations or 
 
 <h2 id="online">online application</h2>
 
-<p>The website <a href="k.html">ktye.github.io/kweb/k</a> (which shows all examples using a location hash), also serves as an empty program.
+<p>The website <a href="k.html" target="kframe">ktye.github.io/kweb/k</a> (which shows all examples using a location hash), also serves as an empty program.
 If you drop a k file on the page, it will be executed.</p>
 
-<p>The <a href="https://ktye.github.io">mainpage</a> is a larger example that shows an editor, a repl and has a plot canvas.
+<p>The <a href="https://ktye.github.io" target="kframe">mainpage</a> is a larger example that shows an editor, a repl and has a plot canvas.
 Type <code>plot d</code> into the repl at the bottom to see an example and <code>hide`cnv</code> to hide the canvas.</p>
 
 <h2 id="io">data i/o</h2>
 
 <code>kweb/k</code> is served from github which is a static server.
 
-<p>The program runs completely inside the browser, including the <i>k</i> core as a WebAssembly module.<br>
+<p>The program runs isolated inside the browser, including <i>k</i> as a WebAssembly module.<br>
 That means that <i>k</i> has no access to data on disk.</p>
 
 <p>Data files can be added to a virtual filesystem, by dropping them in the browser.
 Then <i>k</i> can access them with it's read mechanism: <code>data:&lt;`filename</code> (in this dialect of k).</p>
 
-<p>Files written by <i>k</i> trigger a download: <code>`filename&lt;data</code></p>
+<p>Files written by <i>k</i> trigger a download: <code>`filename&lt;"data"</code></p>
 
-<p>Alternatively <i>kweb</i> can be served from a local http server that has access to files on disk and writes files on post request.
-It needs at least the following files:
+<p>Alternatively <i>kweb</i> can be served from a local http server:
+
+<h2 id="kweb.c">kweb.c</h2>
+<p><a href="kweb.c" target="kframe"><code>kweb.c</code></a> is a fileserver that runs locally.
+It has all necessary files attached to the binary, to run a gui application written in k.
+You can edit k.exe with a texteditor, jump to the end and change a.html or a.k.
+Files read by k are served from the binary, or from disk.
+Files written by k are written to disk.</p>
 <pre>
-../k.wasm    k core
-../k.js      js interface
-kweb.js      ui
-plot.js      plot/draw
-kweb.css     style
-a.html       application
-a.k          default application
+kweb.exe(92kb) includes:
+
+kweb.exe:7680 (thanks to tcc)
+  k.wasm:48610
+    <a href="../k.js" target="kframe">k.js:7389</a>
+ <a href="kweb.js" target="kframe">kweb.js:12315</a>
+ <a href="plot.js" target="kframe">plot.js:7589</a>
+<a href="kweb.css" target="kframe">kweb.css:311</a>
+  a.html:4011
+     <a href="a.k" target="kframe">a.k:4099</a>
 </pre>
-<i>todo..</i></p>
-
-<p>Other possibilities are to run <i>k</i> in the server application, or let <i>k</i> be the server itself.</p>
-
+A double-click on kweb.exe opens a web browser with the application running.
 
 <h2>ui reference</h2>
 
-<div class="example" id="uiref.k"><?/div>
+<div class="example" id="uiref.k"></div>
+</div>
 
 <script>
 function ge(x){return document.getElementById(x)}
@@ -324,7 +336,8 @@ function build(){
  for(i=0;i<l.length;i++){let p=l[i]
   let pr=ce("pre");p.appendChild(pr)
   fetch(p.id).then(r=>r.text()).then(r=>pr.textContent=r)
-  let a=ce("a");a.href="k.html#"+p.id;a.target="_blank";a.textContent="run "+p.id;p.appendChild(a)
+  let a=ce("a");a.href="k.html?"+i+"#"+p.id;a.target="kframe";
+  a.textContent="run "+p.id;p.appendChild(a)
  }
  l=document.querySelectorAll("h2")
  let toc=ge("toc")
