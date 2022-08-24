@@ -1,0 +1,17 @@
+kweb           electric not reactive
+
+doc:           ktye.github.io/kweb/index.html
+local server:  kweb.c   (see mk for building)
+
+
+kweb.exe(92kb) includes:
+
+kweb.exe:7680
+  k.wasm:48610
+    k.js:7389
+ plot.js:7589
+ kweb.js:12315
+kweb.css:311
+  a.html:4011
+     a.k:4099
+

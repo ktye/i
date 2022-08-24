@@ -1,2 +1,17 @@
+set -e
+set -x
+
 cp * /c/k/ktye.github.io/kweb/
 cp ../k.js /c/k/ktye.github.io/
+
+tcc=/c/local/tcc/tcc.exe
+inc=/c/local/tcc/winapi
+nic=/c/local/tcc/winapi/include/winapi  #full winapi including winsock
+
+$tcc -I$inc -I$nic -o kweb.exe kweb.c -lwsock32
+
+for file in ../k.wasm ../k.js plot.js kweb.js kweb.css a.html a.k; do
+ base=`basename  ${file}`
+ echo  -e "\n\\\\${base}" >> kweb.exe
+ cat             ${file}  >> kweb.exe
+done
