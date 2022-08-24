@@ -52,12 +52,6 @@ jobs:
         cd i
         wg             . > k.wat
         ../wat2wasm -o k.wasm k.wat
-        
-    - name: build k.go and kg.go amalgamation packages
-      run: cd i/go && sh mk && go build k.go && go build kg.go
-      
-    - name: test kg.go
-      run: cd i/go && ./kg ../k.t -e
 
     - name: build k.c
       run: | 
@@ -150,26 +144,6 @@ jobs:
         asset_path: ./i/k.wasm
         asset_name: k.wasm
         asset_content_type: application/wasm
-    
-    - name: upload k.go
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/go/k.go
-        asset_name: k.go
-        asset_content_type: text/plain
-    
-    - name: upload kg.go
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/go/kg.go
-        asset_name: kg.go
-        asset_content_type: text/plain
           
     - name: upload k.f
       uses: actions/upload-release-asset@v1
@@ -201,12 +175,3 @@ jobs:
         asset_name: ktye.h
         asset_content_type: text/plain
     
-#    - name: upload k+
-#      uses: actions/upload-release-asset@v1
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        upload_url: ${{ steps.create_release.outputs.upload_url }}
-#        asset_path: ./i/k+.tar.gz
-#        asset_name: k+.tar.gz
-#        asset_content_type: application/tar+gzip
