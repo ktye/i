@@ -18,7 +18,7 @@ function F(){ return new  Float64Array(_.memory.buffer) }
 
 // type/length
 K.TK = function(x){ 
- const t="0-cisfz---mdplx--BCISFZLDT";
+ const t="0-cisfz---mdplx---CISFZLDT";
  return t[_.tp(x)]
 }
 K.NK = function(x){ return _.nn(x) }

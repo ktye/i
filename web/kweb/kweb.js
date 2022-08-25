@@ -11,19 +11,19 @@ function rm(p){while(p.firstChild)p.removeChild(p.firstChild)}
 
 //predefined ui types and defaults per type.
 let UI={
- table:    uitable,
- listbox:  uilistbox,
- select:   uiselect,
- tree:     uitree,
- input:    uiinput,
- button:   uibutton,
- edit:     uiedit,
- h1:       uih1,
- tty:      uitty,
- text:     uitext,
- b:uicheckbox, c:uitext,   i:uiinput,   s:uiinput, f:uiinput,  z:uiinput,
- B:uilistbox,  C:uitext,   I:uilistbox, S:uiselect,F:uilistbox,Z:uilistbox,
- L:uilistbox,  D:uitable,  T:uitable,
+ table:      uitable,
+ listbox:    uilistbox,
+ select:     uiselect,
+ tree:       uitree,
+ input:      uiinput,
+ button:     uibutton,
+ edit:       uiedit,
+ h1:         uih1,
+ tty:        uitty,
+ text:       uitext,
+ c:uitext,   i:uiinput,  s:uiinput, f:uiinput,  z:uiinput,
+ C:uitext,   I:uilistbox,S:uiselect,F:uilistbox,Z:uilistbox,
+ L:uilistbox,D:uitable,  T:uitable,
 }
 
 function register(s,f){UI[s]=f} //register user supplied elements: kweb.register(str,function(dst,x))
@@ -42,7 +42,6 @@ function update(){
    else        K.unref(k)
   }
   if(dst.e){
-   console.log("update", id, "(expr)")
    gui(id,null,null,K.ref(dst.e),K.ref(dst.d)) //evaluate expr
   }
 }}
@@ -84,7 +83,7 @@ function gui(id,x,s,e,d){ id=(id=="")?"uid"+String(Object.keys(nodes).length):id
  let t=K.TK(dst.k)
  
  let u=K.JK(K.Kx("@",K.ref(d),K.Ks("type")))
- let f=UI[(u=="")?t:u]
+ let f=UI[(("string"!=typeof u)||u=="")?t:u]
  f(dst,K.ref(dst.k))
  
  let a=K.JK(K.Kx("`id`type_",K.ref(d)))
@@ -95,7 +94,8 @@ function gui(id,x,s,e,d){ id=(id=="")?"uid"+String(Object.keys(nodes).length):id
  }
  return K.Ks(id)
 }
-function classes(d){let c=K.Kx("@",K.ref(d),K.Ks("class"))
+function classes(d){
+ let c=K.Kx("@",K.ref(d),K.Ks("class"))
  switch(K.TK(c)){
  case "S": return K.SK(c)
  case "s": let r=K.sK(c);return(r=="")?[]:[K.sK(c)]
@@ -317,7 +317,7 @@ function initDivs(post){
   }
        if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,d())
   else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())
-  else if('kVal' in x.dataset) gui(x.id,K.Kx(".",K.Ks(x.dataset.kVal)),null,null,d())
+  else if('kVal' in x.dataset) gui(x.id,K.Kx(x.dataset.kVal),null,null,d())
  })
  let a=ce("a");a.id="_dl";a.style.display="none" //hidden download element
  document.body.appendChild(a)
@@ -341,11 +341,9 @@ function addfile(x){
 }
 function filedrop(f){_dropfile=f}
 function dropfile(name,u){ //default drop handler can be overwritten with kweb.filedrop(f)
- console.log("name?",name)
  if(name.endsWith(".k")){ document.body.innerHTML=""; ktry(su(u)) }
 }
 function writefile(name,u){let l=String(window.location)
- console.log("writefile",name)
  if(l.startsWith("http://localhost:")||l.startsWith("http://127.0.0.1:")) upload(name,u)
  else                                                                   download(name,u)
 }

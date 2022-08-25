@@ -8,4 +8,4 @@ show[`;{t@&m=t`month}]
 
 c:0
 show[`type`onclick!(`button;{c+:1});"click me"]
-show[`readOnly!,1b;`c]
+show[`readOnly!1;`c]
