@@ -152,7 +152,7 @@ function uih1(dst,x){
 }
 
 
-let O=function(x){console.log("out k>")}                           //default k output
+let O=function(x){console.log("out k>",x)}                           //default k output
 
 function uitty(dst,x){
  let tty=ce("textarea");tty.value=K.CK(x)
