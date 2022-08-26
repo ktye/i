@@ -367,7 +367,7 @@ function readfile(name){ // k read, e.g. x:<`name
 }
 
 
-function init(start,kwasm,post){ //start k
+function init(start,kwasm,post,imp){ //start k
  register('plot',plot)
  register('draw',draw)
  kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
@@ -379,6 +379,7 @@ function init(start,kwasm,post){ //start k
   hide: function(id)       {ge(K.sK(K.ref(id))).classList.add("hidden");return id},
   js:   K.JS,
  }
+ if(imp!==undefined)Object.assign(ext,imp)
  K.kinit(ext,kwasm)
 }
 function ktry(s){

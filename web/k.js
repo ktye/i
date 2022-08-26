@@ -214,6 +214,11 @@ K.kinit = function(ext,kw){
  let init  = ext.init;  delete ext.init  // callback when k is loaded
  usr_read  = ext.read;  delete ext.read  // file read  implementation for k: read(name)=>Uint8Array
  usr_write = ext.write; delete ext.write // file write implementation for k: write(name,data_uint8array)
+
+ //d.wasm
+ if('dbg' in ext){kenv.env.dbg =ext.dbg; delete ext.dbg }
+ if('step'in ext){kenv.env.step=ext.step;delete ext.step}
+
  
  function binsize(x){K.n=x.byteLength;return x}
  fetch(kw?kw:'k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(binsize(r),kenv)).then(r=>{

@@ -20,10 +20,12 @@ func exec(x K) K {
 		dx(x)
 		return 0
 	}
+	//dbg:if stepping != 0 { dbg(x); }
 	var a K // accumulator
 	p := int32(x)
 	e := p + 8*xn
 	for p < e {
+		//dbg:if stepping != 0 { step(p, sp, a); }
 		u := K(I64(p))
 		//kprint(u)
 		//fmt.Printf("exec p=%d sp=%d tp=%d int32=%d case(%d) %s\n", p, sp-256, tp(u), int32(u), int32(u)>>6, sK(u))
@@ -66,6 +68,10 @@ func exec(x K) K {
 	dx(x)
 	return a
 }
+
+//dbg:var stepping int32
+//dbg:func step(p, sp int32, spa K){}
+//dbg:func dbg(x K){}
 
 func marksrc(x K) int32 {
 	if p := 0xffffff & int32(x>>32); p != 0 {

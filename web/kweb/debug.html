@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>kdb</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+
+
+<style>
+ body{font-family:monospace}
+ .container{/*max-width:940px*/;display:grid;grid-template-columns:1fr 4fr;grid-gap: 7px;}
+ .header{grid-column-start:1;grid-column-end:-1;}
+ .footer{grid-column-start:1;grid-column-end:-1;}
+ #stack{width:100%}
+ #exec{width:100%}
+ #inp{width:100%;height:35vh}
+ #out > textarea{width:100%;height:25vh}
+ #val{width:100%;height:25vh}
+</style>
+
+<body>
+<div class="container">
+ <header class="header">
+  <button id="run">run</button>
+  <button id="stp">stp</button>
+  <button id="cnt">cnt</button>
+ </header>
+ <aside class="sidebar">
+  <pre>call stack</pre>
+  exec
+  <select id="exec" size="16">
+   <option>1</option>
+   <option>2</option>
+  </select>
+  k stack
+  <select id="stack" size="16">
+   <option>1</option>
+   <option>2</option>
+  </select>
+ </aside> 
+ <main class="main">
+  <textarea id="inp">abc</textarea>
+  <div id="out" data-k-type="tty" data-k-val='""'>def</div>
+  <div id="val">1 2 3</div>
+ </main>
+</div>
+
+
+<script type="module">
+
+import {kweb} from './kweb.js'
+import {K} from '../k.js'
+
+function ce(x) { return document.createElement(x) }
+function ge(x) { return document.getElementById(x) }
+function con(x){ return ge("out").firstElementChild }
+
+ge("run").onclick=function(){
+ con().value=""
+ kweb.ktry(ge("inp").value)}
+
+kweb.O = function(x){console.log("k>>",x)}
+
+function dbg(x){console.log("dbg",x)}
+function step(p,sp,a){console.log("step",p,sp,a)}
+
+function post(){con().readOnly=true}
+kweb.init(function(){}, "../d.wasm", post, {dbg:dbg,step:step})
+
+</script>
+</body>
+</html>
