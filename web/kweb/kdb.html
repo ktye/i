@@ -9,7 +9,7 @@
  .columns{display:flex;flex-direction:row;gap:5px;width:100%}
  .sidebar{flex:1;display:flex;flex-direction:column}
  .header{height:24px;display:flex;flex-direction:row;gap:5px;width:100%;padding-top:2px;border-bottom:1px solid black;background:#eee}
- .main{display:flex;flex:2;flex-direction:column}
+ .main{display:flex;flex:2;flex-direction:column;min-width:0}
  .footer{grid-column-start:1;grid-column-end:-1;}
  .selected{border:2px solid black;transform:translateY(2px)}
  .hidden{display:none}
@@ -23,7 +23,7 @@
  #tab{height:100%}
  #call{height:100%}
  #inp{flex:2;resize:none}
- #crs{flex:2;overflow:auto}
+ #crs{flex:2;overflow:auto;max-width:100%}
  #out{display:flex;flex-direction:row;flex:1}
  #out > textarea{flex:1;resize:none}
  #val{width:100%;height:100%}
