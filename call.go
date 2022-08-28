@@ -68,7 +68,9 @@ func cal(f, x K) (r K) {
 	case 3: // pf
 		r = callprj(f, x)
 	case 4: // lf
+		//kdb:fpush(f,rx(x))
 		r = lambda(f, x)
+		//kdb:dx(x);fpop()
 	case 5: // xf
 		r = native(f, x)
 	default:
@@ -77,6 +79,8 @@ func cal(f, x K) (r K) {
 	dx(f)
 	return r
 }
+//kdb:func fpush(f, x K){}
+//kdb:func fpop(){}
 func calltrain(f, x, y K) (r K) {
 	n := nn(f)
 	fp := int32(f)

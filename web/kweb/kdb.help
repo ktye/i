@@ -1,0 +1,18 @@
+<h1>k debug</h1>
+<ul>
+<li>press run to execute k script in the editor</li>
+<li>drop a k file to load it (other files are stored in the file system and can be read)</li>
+<li>break point will trap(space\\): x+ \\y</li>
+</ul>
+<h1>src</h1>
+k catenates all input to <b>src</b> and tracks error positions
+within this variable.
+After execution the debugger shows the src value and marks the current position if there was a trap.
+
+<h1>symbol table</h1>
+The symbol table holds all symbols and associated variable (if they are a var name).<br>
+Click on a variable to show it the right column (here).
+
+<h1>call stack</h1>
+The call stack lists all lambda function that are currently executed and stores their arguments.<br>
+Click on any to show their arguments on the right column and marks the lambda definition in the src view.

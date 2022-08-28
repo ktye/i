@@ -194,7 +194,7 @@ func plam(s0 int32) (r K) {
 		pp -= 8
 		loc = mk(St, 0)
 	}
-	c := es() // todo: translate srcp
+	c := es()
 	n = next()
 	if n != 125 {
 		trap(Parse)
@@ -220,12 +220,12 @@ func plam(s0 int32) (r K) {
 	s := atv(rx(src()), i)
 	r = l3(c, Unq(loc), s)
 	loc = slo
-	return l1(slam(r, ar))
+	return l1(slam(r, ar, s0))
 }
-func slam(r K, ar int32) K {
+func slam(r K, ar, s0 int32) K {
 	rp := int32(r)
 	SetI32(rp-12, ar)
-	return K(rp) | K(lf)<<59
+	return K(rp) | (K(s0)<<32) | K(lf)<<59
 }
 func pspec(r, n K, ln int32) (K, int32) {
 	v := K(I64(int32(r)))

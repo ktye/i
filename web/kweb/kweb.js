@@ -23,8 +23,9 @@ let UI={
  text:       uitext,
  c:uitext,   i:uiinput,  s:uiinput, f:uiinput,  z:uiinput,
  C:uitext,   I:uilistbox,S:uiselect,F:uilistbox,Z:uilistbox,
- L:uilistbox,D:uitable,  T:uitable,
+ L:uilistbox,D:uitable,  T:uitable, m:uitext,p:uitext,l:uitext
 }
+UI["0"]=uitext
 
 function register(s,f){UI[s]=f} //register user supplied elements: kweb.register(str,function(dst,x))
 
@@ -115,7 +116,7 @@ function jsevent(s,dst){
 }
 
 function uitext(dst,x){ //text node
- let s=ce("span");s.textContent=(K.TK(x)=="C")?K.CK(x):K.Kx("`k@",x);dst.appendChild(s)
+ let s=ce("span");s.textContent=(K.TK(x)=="C")?K.CK(x):K.CK(K.Kx("`k@",x));dst.appendChild(s)
 }
 
 function uiinput(dst,x){ //input element from Cisfz
@@ -169,6 +170,7 @@ function uitty(dst,x){
  dst.appendChild(tty)
 }
 
+function html(s){ return s.replace(/[\u00A0-\u9999<>\&]/g,((i)=>`&#${i.charCodeAt(0)};`)) }
 function uiselect(dst,x){ //create select element from vectors
  let n=K.NK(x)
  let S=Array(n)
@@ -182,10 +184,11 @@ function uiselect(dst,x){ //create select element from vectors
  for(let i=0;i<n;i++){
   let o=ce("option")
   o.value=S[i]
-  o.innerHTML=encodeURI(S[i]).replace(/%20/g,"&nbsp;")
+  o.innerHTML=html(S[i]).replace(/%20/g,"&nbsp;")
   o.classList.add("kweb-option")
   s.appendChild(o)
  }
+ s.selectedIndex=-1
  dst.appendChild(s)
  dst.classList.add("kweb-select")
 }
@@ -303,27 +306,33 @@ function uitree(dst,x){ //treeview for D
 // - exec user supplied start(js or k script)
 // - initialize divs (connect to k variables)
 // - run post function(js) if present
-function initKweb(start,post){
+function initKweb(start,post,ak){
  return function(){
-  fetch("a.k").then(r=>r.text()).then(r=>{
-   K._.Val(K.KC(r))
+  let dostart=function(){
    if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs(post)})
    else{                            start();                                  initDivs(post)}
-})}}
+  } 
+  if(ak!==false){
+   fetch("a.k").then(r=>r.text()).then(r=>{
+    K._.Val(K.KC(r))
+           dostart()
+  })} else dostart()
+}}
 function initDivs(post){
  document.querySelectorAll("div").forEach(x=>{
   let d=function(){let k="",v="";if('kType'in x.dataset){k="type",v=x.dataset.kType}
    return K.Kx("!",K.Ks(k),K.Ks(v))
   }
-       if('kVar' in x.dataset) gui(x.id,null,K.Ks(x.dataset.kVar),null,d())
-  else if('kExpr'in x.dataset) gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())
-  else if('kVal' in x.dataset) gui(x.id,K.Kx(x.dataset.kVal),null,null,d())
+       if('kVar' in x.dataset){cl(x);gui(x.id,null,K.Ks(x.dataset.kVar),null,d())}
+  else if('kExpr'in x.dataset){cl(x);gui(x.id,null,null,K.Kx(x.dataset.kExpr),d())}
+  else if('kVal' in x.dataset){cl(x);gui(x.id,K.Kx(x.dataset.kVal),null,null,d())}
  })
  let a=ce("a");a.id="_dl";a.style.display="none" //hidden download element
  document.body.appendChild(a)
  if("function"==typeof post)post()
 }
 
+function cl(x){delete x.d;delete x.e;delete x.k} //for reinit
 
 document.update=update //for custom updates from k
 
@@ -367,6 +376,25 @@ function readfile(name){ // k read, e.g. x:<`name
 }
 
 
+function init(o){
+ nodes={}
+ if(o.plot!==false) register('plot',plot)
+ if(o.draw!==false) register('draw',draw)
+ let start = ("start"in o)?o.start : function(){}
+ let post  = ("post"in o) ?o.post:   function(){}
+ let ext={                  //wasm import module
+  init: initKweb(start,post,("ak"in o)?o.ak:true),
+  read: readfile,
+  write:function(file,data){if(file===""){O(su(data))}else{writefile(file,data)}},
+  show: show,
+  hide: function(id)       {ge(K.sK(K.ref(id))).classList.add("hidden");return id},
+  js:   K.JS,
+ }
+ if("ext"in o)Object.assign(ext,o.ext)
+ K.kinit(ext,("wasm"in o)?o.wasm:"../k.wasm")
+}
+
+/*
 function init(start,kwasm,post,imp){ //start k
  register('plot',plot)
  register('draw',draw)
@@ -382,6 +410,8 @@ function init(start,kwasm,post,imp){ //start k
  if(imp!==undefined)Object.assign(ext,imp)
  K.kinit(ext,kwasm)
 }
+*/
+
 function ktry(s){
  try     {let x=K._.Val(K.KC(s));K.save();return x}
  catch(e){console.log(e);K.restore();return false}

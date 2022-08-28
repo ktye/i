@@ -215,9 +215,10 @@ K.kinit = function(ext,kw){
  usr_read  = ext.read;  delete ext.read  // file read  implementation for k: read(name)=>Uint8Array
  usr_write = ext.write; delete ext.write // file write implementation for k: write(name,data_uint8array)
 
- //d.wasm
- if('dbg' in ext){kenv.env.dbg =ext.dbg; delete ext.dbg }
- if('step'in ext){kenv.env.step=ext.step;delete ext.step}
+ //d.wasm (debug build for ktye.github.io/kdb)
+ if('fpush'in ext){kenv.env.fpush=ext.fpush;delete ext.fpush}
+ if('fpop' in ext){kenv.env.fpop =ext.fpop; delete ext.fpop }
+ if('Trap' in ext){kenv.env.Trap =ext.Trap; delete ext.Trap }
 
  
  function binsize(x){K.n=x.byteLength;return x}

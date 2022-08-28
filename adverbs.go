@@ -364,6 +364,7 @@ func Scn(f, x K) (r K) {
 		dx(f)
 		return Enc(r, Fst(x))
 	}
+	//kdb:if int32(f)==29{trap(Err);}
 	var y K
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)

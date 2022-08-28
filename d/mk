@@ -1,21 +1,23 @@
 set -e
 set -x
-cp ../*.go .
-for file in ../*.go; do
- sed 's.//dbg:..' $file > `basename $file`
-done
+
+mv build_go build.go
+go run build.go
+mv build.go build_go
 
 wg . > k.wat
 
 cat << EOF > d.wat
 (module
-(import "env" "dbg"  (func \$dbg (param i64)))
-(import "env" "step" (func \$step (param i32)(param i32)(param i64)))
+(import "env" "fpush"  (func \$fpush (param i64)(param i64)))
+(import "env" "fpop"  (func \$fpop ))
+(import "env" "Trap" (func \$Trap (param i32)(param i32)(param i32)(param i64)))
 EOF
 
-sed -e 1d -e '/func $dbg/,+1d' -e '/func $step/,+1d'  k.wat >> d.wat
+sed -e 1d -e '/func $fpush/,+1d' -e '/func $fpop/,+1d'  k.wat >> d.wat
 
 /c/local/wabt/wat2wasm -o d.wasm d.wat
-cp d.wasm /c/k/ktye.github.io/
+cp d.wasm  /c/k/ktye.github.io/
+cp src.map /c/k/ktye.github.io/
 
-rm *.go k.wat d.wasm d.wat
+rm *.go k.wat d.wasm d.wat src.map

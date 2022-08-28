@@ -21,6 +21,7 @@ const ( // iota is not supported by wg
 
 func trap(x int32) K {
 	s := src()
+	//kdb:Trap(p,x,srcp,int64(s))
 	//Printf("src %d %d, nn=%d srcp:%d\n", int32(src), int32(src>>32), nn(src), srcp)
 	//if srcp < nn(src) {
 	if srcp == 0 {
