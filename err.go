@@ -33,7 +33,7 @@ func trap(x int32) K {
 				a = 1 + i
 			}
 		}
-		b := mini(int32(s)+nn(s), srcp+30)
+		b := mini(nn(s), srcp+30)
 		for i := srcp; i < b; i++ {
 			if I8(int32(s)+i) == 10 {
 				b = i

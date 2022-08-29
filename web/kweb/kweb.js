@@ -332,7 +332,7 @@ function initDivs(post){
  if("function"==typeof post)post()
 }
 
-function cl(x){delete x.d;delete x.e;delete x.k} //for reinit
+function cl(x){if('d'in x)delete x.d;if('e'in x)delete x.e;if('k'in x)delete x.k} //for reinit
 
 document.update=update //for custom updates from k
 

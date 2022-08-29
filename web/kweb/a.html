@@ -79,7 +79,7 @@ function start(){
 }
 kweb.register("ttyedit", ttyedit)
 kweb.filedrop(dropfile)
-kweb.init(start,"../k.wasm",post)
+kweb.init({start:start,wasm:"../k.wasm",post:post})
 
 /*
 var ext = {

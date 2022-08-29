@@ -23,6 +23,7 @@ func exec(x K) K {
 	var a K // accumulator
 	p := int32(x)
 	e := p + 8*xn
+	//kdb:var arg K
 	for p < e {
 		u := K(I64(p))
 		//kprint(u)
@@ -34,14 +35,25 @@ func exec(x K) K {
 		} else {
 			switch int32(u) >> 6 {
 			case 0: //   0..63   monadic
+				//kdb:arg=l1(rx(a))
+				//kdb:fpush(u,arg)
 				a = Func[marksrc(u)].(f1)(a)
+				//kdb:dx(arg);fpop()
 			case 1: //  64..127  dyadic
+				//kdb:arg=l2(rx(a),rx(K(I64(sp-8))))
+				//kdb:fpush(u,arg)
 				a = Func[marksrc(u)].(f2)(a, pop())
+				//kdb:dx(arg);fpop()
 			case 2: // 128       dyadic indirect
+				//kdb:arg=l2(rx(K(I64(sp-8))),rx(K(I64(sp-16))))
 				marksrc(a)
+				//kdb:fpush(rx(a),arg)
 				a = Cal(a, l2(pop(), pop()))
+				//kdb:dx(a);dx(arg);fpop()
 			case 3: // 192..255  tetradic
+				//kdb:arg=l2(l2(rx(a),rx(K(I64(sp-8)))),l2(rx(K(I64(sp-16))),rx(K(I64(sp-24)))))
 				a = Func[marksrc(u)].(f4)(a, pop(), pop(), pop())
+				//kdb:dx(a);dx(arg);fpop()
 			case 4: // 256       drop
 				dx(a)
 				a = pop()
@@ -66,6 +78,9 @@ func exec(x K) K {
 	dx(x)
 	return a
 }
+
+//kdb:func fpush(f, x K){}
+//kdb:func fpop(){}
 
 func marksrc(x K) int32 {
 	if p := 0xffffff & int32(x>>32); p != 0 {

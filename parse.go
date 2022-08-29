@@ -117,6 +117,7 @@ f:
 		}
 		a := int32(n)
 		tn := tp(n)
+		ks := K(ps) << 32
 		if tn == 0 && a > 20 && a < 27 { // +/
 			r, verb = cat1(r, n), 1
 		} else if n == 91 { // [
@@ -128,10 +129,10 @@ f:
 				return n, 0
 			}
 			if ln == 1 {
-				r = cat1(ucat(Fst(n), r), 83)
+				r = cat1(ucat(Fst(n), r), 83|ks)
 			} else {
 				n = rlist(n, ln, 0)
-				r = cat1(Cat(n, r), K(p))
+				r = cat1(Cat(n, r), K(p)|ks)
 			}
 		} else {
 			pp -= 8
@@ -152,7 +153,7 @@ func pasn(x, y K) (K, K, int32) {
 				l -= 96
 			}
 			s := ati(rx(x), xn-3)
-			lp := lastp(x)
+			lp := 0xff000000ffffffff & lastp(x)
 			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
 			// lp+128 is @[amd..] or .[dmd..]
 			if lp == 92 {
@@ -225,7 +226,7 @@ func plam(s0 int32) (r K) {
 func slam(r K, ar, s0 int32) K {
 	rp := int32(r)
 	SetI32(rp-12, ar)
-	return K(rp) | (K(s0)<<32) | K(lf)<<59
+	return K(rp) | (K(s0) << 32) | K(lf)<<59
 }
 func pspec(r, n K, ln int32) (K, int32) {
 	v := K(I64(int32(r)))

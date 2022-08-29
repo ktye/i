@@ -16,7 +16,7 @@ function con(x){ return ge("out").firstElementChild }
 var fstack=[]
 ge("run").onclick=function(e){ //click run button
  fstack=[]
- rm(ge("val"))
+ let v=ge("val");rm(val);delete val.d;delete val.e;delete val.k
  rm(ge("msg"))
  rm(ge("out"))
  rm(ge("crs").firstChild)
@@ -44,14 +44,18 @@ function setfstk(){
  rm(c)
  for(let j=0;j<fstack.length;j++){let i=fstack.length-1-j
   let f=fstack[i]
+  let t=K.TK(f[0])
+  const v=" :+-*%&|<>=~!,^#_$?@."
+  if(t=="l")t="λ"
+  if(t=="0"){let n=lo(f[0]);if(n&&n<v.length)t=v[n];else if((-1<n-64)&&(n-64)<v.length)t=v[n-64];else t="`"+String(n)}
   let m=Number(BigInt.asUintN(32,f[0]>>BigInt(32))&BigInt(0xffffff))
-  let o=ce("option");o.textContent="@"+m+" #"+K.NK(f[1])
-  o.x=f[1]
+  let o=ce("option");o.textContent=t+" @"+m+" #"+K.NK(f[1])
+  o.x=f[1];o.i=m
   c.appendChild(o)
  }
 }
 ge("call").onchange=function(e){let s=e.target //select call stack
- setcrs(null,Number(s.value.slice(1,s.value.indexOf(" "))))
+ setcrs(null,s.children[s.selectedIndex].i)
  scrollHi()
  show(K.ref(s.children[s.selectedIndex].x))
 }
@@ -114,7 +118,7 @@ function setcrs(s,p){p-=1
  crst=t
  if((-1<p)&&(p<t.length))
   c.innerHTML=html(t.slice(0,p)) + '<span id="hi">'+t[p]+'</span>'+html(t.slice(1+p))
- else c.textContent=cc(s)
+ else c.textContent=t
 }
 function html(s){ return s.replace(/[\u00A0-\u9999<>\&]/g,((i)=>`&#${i.charCodeAt(0)};`)) }
 
