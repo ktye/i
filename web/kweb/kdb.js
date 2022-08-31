@@ -14,6 +14,7 @@ function F(){ return new  Float64Array(K._.memory.buffer) }
 function con(x){ return ge("out").firstElementChild }
 
 var fstack=[]
+ge("hlp").onclick=function(e){ge("help").classList.toggle("hidden")}
 ge("run").onclick=function(e){ //click run button
  fstack=[]
  let v=ge("val");rm(val);delete val.d;delete val.e;delete val.k
@@ -145,5 +146,5 @@ kweb.filedrop(function(name,u){
 })
 
 fetch("../src.map").then(r=>r.json()).then(r=>{srcmap=r})
-fetch("kdb.help").then(r=>r.text()).then(r=>ge("val").innerHTML=r)
+fetch("kdb.help").then(r=>r.text()).then(r=>ge("help").innerHTML=r)
 

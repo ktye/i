@@ -9,7 +9,7 @@
  .columns{display:flex;flex-direction:row;gap:5px;width:100%}
  .sidebar{flex:1;display:flex;flex-direction:column}
  .header{height:24px;display:flex;flex-direction:row;gap:5px;width:100%;padding-top:2px;border-bottom:1px solid black;background:#eee}
- .main{display:flex;flex:2;flex-direction:column;min-width:0}
+ .main{display:flex;flex:3;flex-direction:column;min-width:0}
  .footer{grid-column-start:1;grid-column-end:-1;}
  .selected{border:2px solid black;transform:translateY(2px)}
  .hidden{display:none}
@@ -28,22 +28,22 @@
  #out > textarea{flex:1;resize:none}
  #val{width:100%;height:100%}
  #edt{background-color}
+ #help{position:absolute;top:26px;z-index:10;left:0;width:100%;height:calc(100vh - 26px);background:white}
 </style>
 
 <body>
  <div id="hb">
   <header class="header">
    <div style="flex:1;display:flex;gap:5px">
-    <input id="fsym" placeholder="search sym"></input>
+    <input id="fsym" placeholder="search sym" style="flex:1"></input>
+    <button id="hlp">help</button>
    </div>
-   <div style="flex:2">
+   <div style="flex:3">
     <button id="run">run</button>
     <button id="edt" class="selected">edt</button>
     <button id="src">src</button>
     <input  id="ak" type="checkbox"></input> a.k
     <div id="msg" style="float:right"></div>
-   </div>
-   <div style="flex:1">k value
    </div>
   </header>
   <div id="mainbody" class="columns">
@@ -53,6 +53,8 @@
     call stack
     <select id="call" size="8">
     </select>
+    k value
+    <div id="val"></div>
    </aside> 
    <main class="main">
     <textarea id="inp">f:{x+y}
@@ -62,12 +64,10 @@ g 3
     <div id="crs" class="hidden"><pre>src</pre></div>
     <div id="out" data-k-type="tty" data-k-val='""'></div>
    </main>
-   <aside class="sidebar">
-    <div id="val"></div>
-   </aside>
   </div>
  </div>
 </div>
+<div id="help" class="hidden"></div>
 
 <script type=module src="kdb.js"></script
 </body></html>
