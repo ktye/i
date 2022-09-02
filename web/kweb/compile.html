@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>compile</title></head>
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+
+<style>
+ body{font-family:monospace;margin:0;height:100%;overflow:hidden;display:flex;flex-direction:row}
+ button{font-family:monospace;background-color:white;border:1px solid black}
+ button:active{transform:translateY(1px)}
+ listbox{font-family:monospace}
+ #sel{height:24px}
+ #tab > pre{height:calc(100vh - 24px);margin:0;overflow:auto}
+ #left{flex:1}
+ #right{flex:2;min-width:0}
+ #out{height:calc(100vh - 24px);margin:0;overflow:auto}
+</style>
+
+<body>
+ <div id="left">
+  program: <select id="sel"></select>
+  <div id="tab" data-k-type="treetable" data-k-expr="{(D i;T i;P i;I i;S i:vc[C;P])}"></div>
+ </div>
+ <div id="right">
+  <div id="target"></div>
+  <button id="compile">compile</button> to <select><option>go</option></select>
+  <pre id="out">
+  </pre>
+ </div>
+ 
+<script type=module src="compile.js"></script>
+
+
+</script
+</body></html>

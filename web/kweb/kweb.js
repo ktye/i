@@ -68,7 +68,7 @@ function show(d,x){
 }}
 
 
-function gui(id,x,s,e,d){ id=(id=="")?"uid"+String(Object.keys(nodes).length):id
+function gui(id,x,s,e,d){id=(id=="")?"uid"+String(Object.keys(nodes).length):id
  let dst=ge(id);
  if(dst==null){dst=ce("div");dst.id=id;document.body.appendChild(dst)}
  dst.classList.remove("hidden")
@@ -308,8 +308,9 @@ function uitree(dst,x){ //treeview for D
 // - run post function(js) if present
 function initKweb(start,post,ak){
  return function(){
+  start=("string"==typeof start)?[start]:start
   let dostart=function(){
-   if("string"==typeof start) fetch(start).then(r=>r.text()).then(r=>{ktry(r);initDivs(post)})
+   if("object"==typeof start)Promise.all(start.map(x=>fetch(x))).then(r=>Promise.all(r.map(r=>r.text()))).then(x=>{for(let i=0;i<x.length;i++)ktry(x[i]);initDivs(post)})
    else{                            start();                                  initDivs(post)}
   } 
   if(ak!==false){
@@ -393,24 +394,6 @@ function init(o){
  if("ext"in o)Object.assign(ext,o.ext)
  K.kinit(ext,("wasm"in o)?o.wasm:"../k.wasm")
 }
-
-/*
-function init(start,kwasm,post,imp){ //start k
- register('plot',plot)
- register('draw',draw)
- kwasm=(kwasm!==undefined)?kwasm:"../k.wasm"
- let ext={                  //wasm import module
-  init: initKweb(start,post),
-  read: readfile,
-  write:function(file,data){if(file===""){O(su(data))}else{writefile(file,data)}},
-  show: show,
-  hide: function(id)       {ge(K.sK(K.ref(id))).classList.add("hidden");return id},
-  js:   K.JS,
- }
- if(imp!==undefined)Object.assign(ext,imp)
- K.kinit(ext,kwasm)
-}
-*/
 
 function ktry(s){
  try     {let x=K._.Val(K.KC(s));K.save();return x}

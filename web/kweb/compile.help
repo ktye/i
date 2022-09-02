@@ -1,0 +1,98 @@
+
+The ast of a program is stored as a k table with columns: T P I S
+A table with a parent vector is an example of tree table.
+
+Select the program with the drop down on the left.
+Most are small examples, but the last is the full source of the k interpreter (30k nodes).
+
+T node type
+P parent
+I int value
+S symbol value
+
+
+From a parent vector P we can compute:
+
+np:{n:(&#x){x[y]+:1}/x;n[0]-:1}  /number of children
+dp:{+/0<(x@)\:!#x}               /depth
+lp:{(~~)#@[&#x;x i;i:!#x]}       /last child
+
+To draw a tree: (+ 1 (- (* 2 3)) (% 4))
+          i  d  P        (1)              (2)              (3)
+ ┬     +  0  0  0         ┬     +          ┬     +          ┬     +
+ └┬    1  1  1  0          ┬    1          └┬    1          └┬    1
+  ├┬   -  2  2  1           ┬   -           ├┬   -           ├┬   -
+  │└┬  *  3  3  2            ┬  *            └┬  *           │└┬  *
+  │ ├─ 2  4  4  3             ─ 2             ├─ 2           │ ├─ 2
+  │ └─ 3  5  4  3             ─ 3             └─ 3           │ └─ 3
+  └┬   %  6  1  1           ┬   %           └┬   %           └┬   %
+   └─  4  7  2  6            ─  4            └─  4            └─  4
+
+ (1) draw at depth d:                  ┬ for nodes ─ for leaves
+ (2) draw at depth d-1:                └ if last child, ├ otherwise
+ (3) connect with parent at depth d-1: │ for rows 1+P i..i-1
+
+drawtree:{[P]
+ d:dp P                                      /depth
+ m:1+|/d                                     /1+max depth
+ c:&~np P                                    /child nodes
+ l:lp P                                      /last child nodes
+ i:!#P
+ r:(m*#P)#" "
+ r:@[r;(-1+  d l)+m*{x+!y-x}'[1+P l;l];"|"]  /step(3)
+ r:@[r;(-1+1_d i)+m*1_i;"+"]                 /step(2)
+ r:@[r;(-1+  d l)+m*l;"L"]                   /└ for last child
+ r:@[r;d+m*!#P;("T";"-")@~np P]              /step (1)
+ (#P)^r}                                     /ascii is replaced by js
+
+the program is compiled to a string of program source code.
+compilation folds the table in reverse order  f/[();|!#P;|n]
+the first argument is a stack (of string results) and n is the child count per node:
+ n:(&#P){x[y]+:1}/P; n[0]-:1
+for each node, f cuts the number of children from the stack, calls the emitter based on the node's type
+with arguments x:node id, and y the evaluated children in string form.
+the result is catenated to the stack.
+
+ast transformations are done on the table before calling emit.
+the go backend does not need any transformations.
+
+
+node type                    i-value             s-value
+ prg     root node           -                   prog/libname    first node only
+ mem     memory segment      #64k blocks         `a|`b           a|b: memory1|memory2
+ con     constant            -                   name            child type lit
+ var     variable            -                   name            child type lit
+ lit     literal (con|var)   val(32bit)|C-index  type
+ tab     func table entry    index               func name
+ fun     function            func index          func name       children: args rets locs ast dfr
+ arg     func argument       arg index           type            child type sym
+ sym     symbol              -                   name
+ res     return value        ret val index       type            unnamed
+ loc     local var decl      loc index           type            child type sym
+ ast     func ast root       -                   -               one per func
+ stm     statement list      -                   -
+ ret     return              -                   `|type          children: return values, s-type only for single res
+ cal     function call       func node           func name       children: args
+ cli     indirect call       #args               -               children: func-expr args arg-types ret-types
+ drp     drop return vals    -                   -               child type cal
+ get     get local           arg node            varname
+ Get     get global          glo node            varname
+ lod     load                -                   type(bijf)      child:    addr
+ sto     store               -                   type(bijf)      children: addr, value
+ asn     assignment          #symbols            modifier        children: syms typs expr(s) | syms typs expr
+ cst     cast                -                   dst type        2 children: typ(src), arg
+ typ     type                -                   type
+ cnd     if condition        -                   `|type          2|3 children: if then [else]
+ nop     ignore              -                   -
+ jmp     break/continue      1(break)|0(cont)    label
+ swc     switch              1(has default)      `|result-type   children: expr cases [default]
+ for     loop                1(simple)           label           children: (cond|nop) (post|nop) body
+ dfr     defer stmt node     -                   -               child type cal
+unary operator nodes
+ neg|not                     1                   type            1 child
+binary operator nodes
+ eql|les|mor|gte|lte|and|orr 2                   type            2 children
+ add|sub|mul|div|mod|shr|shl	
+ xor|neq|ant(andnot)|bnd|bor(&& ||)			     
+ 
+types: `i`u`j`k`f`C`I`F!(i32;u32;i64;u64;f64;i8x16;i32x4;f64x2)
