@@ -6,23 +6,33 @@ function ge(x) { return document.getElementById(x) }
 
 
 function treeclick(e){
- console.log(e)
+ K.Kx("clicktree",K.Ki(e.target.parentNode.rowIndex-1))
+ kweb.update()
+ return false
 }
 
 kweb.register("treetable",function(dst,x){
  let l=K.LK(x)
  let D=K.LK(l[0]),T=K.SK(l[1]),P=K.IK(l[2]),I=K.IK(l[3]),S=K.SK(l[4])
  let a=D.map(x=>K.CK(x).replaceAll("|","│").replace("+","├").replace("L","└").replace("-","─").replace("T","┬"))
- let p=ce("pre")
+ let t=ce("table")
+ let h=ce("thead");h.innerHTML="<tr><th></th><th>T</th><th>P</th><th>I</th><th>S</th></tr>"
+ t.appendChild(h)
  for(let i=0;i<a.length;i++){
-  p.textContent += a[i]+" "+T[i].padEnd(8)+" "+String(P[i]).padEnd(8)+(I[i]==-2147483648?"0N":String(I[i])).padEnd(8)+String(S[i])+"\n"
+  let r=ce("tr")
+  let d=ce("td");d.textContent=a[i];r.appendChild(d)
+  let s=ce("td");s.textContent=T[i];r.appendChild(s)
+  let p=ce("td");p.textContent=P[i];r.appendChild(p)
+  let k=ce("td");k.textContent=(I[i]==-2147483648)?"0N":T[i];r.appendChild(k)
+  let v=ce("td");v.textContent=S[i];r.appendChild(v)
+  r.ondblclick=treeclick
+  t.appendChild(r)
  }
- p.ondblclick=treeclick
- dst.appendChild(p)
+ dst.appendChild(t)
 })
 
 function setinput(s){ 
- kweb.init({start:[s+".k","go.k","compile.k"]})
+ kweb.init({start:[s+".k","compile.k"]})
 }
 
 let sel=ge("sel")
@@ -36,6 +46,10 @@ sel.onchange=function(e){setinput(examples[e.target.selectedIndex])}
 setinput(examples[sel.selectedIndex])
 
 ge("compile").onclick=function(){
- ge("out").textContent=K.CK(kweb.ktry("emit go``"))
+ let t=ge("target").value 
+ fetch(t+".k").then(r=>r.text()).then(r=>{
+  kweb.ktry(r)
+  ge("out").textContent=K.CK(kweb.ktry("emit "+t+"``"))
+ })
 }
 fetch("compile.help").then(r=>r.text()).then(r=>ge("out").textContent=r)

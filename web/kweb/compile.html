@@ -8,20 +8,22 @@
  button:active{transform:translateY(1px)}
  listbox{font-family:monospace}
  #sel{height:24px}
- #tab > pre{height:calc(100vh - 24px);margin:0;overflow:auto}
+ #tab{height:calc(100vh - 24px); overflow:auto}
  #left{flex:1}
  #right{flex:2;min-width:0}
  #out{height:calc(100vh - 24px);margin:0;overflow:auto}
+ table{border-collapse:collapse}
+ td{white-space:pre;padding:0;padding-right:1em}
+ th{text-align:left}
 </style>
 
 <body>
  <div id="left">
   program: <select id="sel"></select>
-  <div id="tab" data-k-type="treetable" data-k-expr="{(D i;T i;P i;I i;S i:vc[C;P])}"></div>
+  <div id="tab" data-k-type="treetable" data-k-expr="{(dt v;T v;P v;I v;S v)}"></div>
  </div>
  <div id="right">
-  <div id="target"></div>
-  <button id="compile">compile</button> to <select><option>go</option></select>
+  <button id="compile">compile</button> to <select id="target"><option>go</option><option>wa</option></select>
   <pre id="out">
   </pre>
  </div>

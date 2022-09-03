@@ -2,14 +2,15 @@
 The ast of a program is stored as a k table with columns: T P I S
 A table with a parent vector is an example of tree table.
 
-Select the program with the drop down on the left.
-Most are small examples, but the last is the full source of the k interpreter (30k nodes).
-
 T node type
 P parent
 I int value
 S symbol value
 
+Select the program with the drop down on the left.
+Most are small examples, but the last is the full source of the k interpreter (30k nodes).
+
+Double-click on a row to expand/collapse.
 
 From a parent vector P we can compute:
 
@@ -17,7 +18,12 @@ np:{n:(&#x){x[y]+:1}/x;n[0]-:1}  /number of children
 dp:{+/0<(x@)\:!#x}               /depth
 lp:{(~~)#@[&#x;x i;i:!#x]}       /last child
 
-To draw a tree: (+ 1 (- (* 2 3)) (% 4))
+c is a boolean list of the checked state of each node (toggled by double click).
+A node is visible if all parents are checked:
+
+vc:{[c;p]&1,1_&/1_(c@P@)\:!#p}
+
+To draw a tree, e.g. (+ 1 (- (* 2 3)) (% 4))
           i  d  P        (1)              (2)              (3)
  ┬     +  0  0  0         ┬     +          ┬     +          ┬     +
  └┬    1  1  1  0          ┬    1          └┬    1          └┬    1
@@ -45,16 +51,16 @@ drawtree:{[P]
  r:@[r;d+m*!#P;("T";"-")@~np P]              /step (1)
  (#P)^r}                                     /ascii is replaced by js
 
-the program is compiled to a string of program source code.
+The program is compiled to a string of program source code.
 compilation folds the table in reverse order  f/[();|!#P;|n]
-the first argument is a stack (of string results) and n is the child count per node:
- n:(&#P){x[y]+:1}/P; n[0]-:1
-for each node, f cuts the number of children from the stack, calls the emitter based on the node's type
-with arguments x:node id, and y the evaluated children in string form.
-the result is catenated to the stack.
+The first argument is a stack (of string results) and n is the child count per node.
 
-ast transformations are done on the table before calling emit.
-the go backend does not need any transformations.
+For each node, f cuts the number of children from the stack, calls the emitter based on the node's type
+with arguments x:node id, and y the evaluated children in string form.
+The result is catenated to the stack.
+
+Ast transformations are done on the table before calling emit.
+The go backend does not need any transformations.
 
 
 node type                    i-value             s-value
@@ -96,3 +102,5 @@ binary operator nodes
  xor|neq|ant(andnot)|bnd|bor(&& ||)			     
  
 types: `i`u`j`k`f`C`I`F!(i32;u32;i64;u64;f64;i8x16;i32x4;f64x2)
+
+go.k is working, wa.k is not fully implemented
