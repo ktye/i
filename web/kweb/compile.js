@@ -23,7 +23,7 @@ kweb.register("treetable",function(dst,x){
   let d=ce("td");d.textContent=a[i];r.appendChild(d)
   let s=ce("td");s.textContent=T[i];r.appendChild(s)
   let p=ce("td");p.textContent=P[i];r.appendChild(p)
-  let k=ce("td");k.textContent=(I[i]==-2147483648)?"0N":T[i];r.appendChild(k)
+  let k=ce("td");k.textContent=(I[i]==-2147483648)?"0N":I[i];r.appendChild(k)
   let v=ce("td");v.textContent=S[i];r.appendChild(v)
   r.ondblclick=treeclick
   t.appendChild(r)
