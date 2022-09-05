@@ -21,7 +21,7 @@ lp:{(~~)#@[&#x;x i;i:!#x]}       /last child
 c is a boolean list of the checked state of each node (toggled by double click).
 A node is visible if all parents are checked:
 
-vc:{[c;p]&1,1_&/1_(c@P@)\:!#p}
+vc:{[c;p]&1,1_&/1_c@(P@)\:!#p}
 
 To draw a tree, e.g. (+ 1 (- (* 2 3)) (% 4))
           i  d  P        (1)              (2)              (3)

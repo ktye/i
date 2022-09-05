@@ -6,7 +6,7 @@ lp:{(~~)#@[&#x;x i;i:!#x]}       /last child
 
 /visiblility from checked vector
 /root is always visible (1,1_)
-vc:{[c;p]&1,1_&/1_(c@P@)\:!#p}
+vc:{[c;p]&1,1_&/1_c@(P@)\:!#p}
 
 /nodes that are last children of their parents
 
