@@ -1,6 +1,8 @@
 (module
 (memory (export "memory") 1)
 
+
+
 (func $f (export "f")(result i32)
 i32.const 1
 return)
@@ -8,4 +10,5 @@ return)
 
 call $f
 drop)
+
 )

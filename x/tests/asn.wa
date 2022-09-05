@@ -1,6 +1,8 @@
 (module
 (memory (export "memory") 1)
 
+
+
 (func $f (export "f")(param $x i32)(result i32)(local $r i32)
 i32.const 1
 local.get $x
@@ -8,4 +10,5 @@ i32.add
 local.set $r
 local.get $r
 return)
+
 )

@@ -21,8 +21,8 @@ elif [ "$1" = go ]; then
 	done
 elif [ "$1" = wa ]; then
 	#for x in *.k; do
-	#nyi:blank cal cli cont fun label lit loop loop2 mem tab
-	for x in asn.k drp.k cast.k swtch.k cnd.k heap.k const.k; do
+	#nyi:blank cont label loop2
+	for x in loop.k inc.k mem.k tab.k lit.k fun.k cli.k cal.k asn.k cast.k drp.k swtch.k cnd.k heap.k const.k; do
 		w=`echo $x | sed 's/.k$/.wa/'`
 		k $x ../wa.k -e 'x:`<emit wa``' > out
 		cmp out $w

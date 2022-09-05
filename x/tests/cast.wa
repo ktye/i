@@ -1,6 +1,8 @@
 (module
 (memory (export "memory") 1)
 
+
+
 (func $f (export "f")(param $x i32)(result i64)
 local.get $x
 i64.extend_i32_s
@@ -25,4 +27,5 @@ return)
 local.get $x
 
 return)
+
 )

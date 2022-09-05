@@ -36,7 +36,7 @@ function setinput(s){
 }
 
 let sel=ge("sel")
-let examples="asn`blank`cal`cast`cli`cnd`const`cont`drp`fun`heap`label`lit`loop`loop2`mem`swtch`tab`k".split("`")
+let examples="asn`blank`cal`cast`cli`cnd`const`cont`drp`fun`heap`inc`label`lit`loop`loop2`mem`swtch`tab`k".split("`")
 for(let i=0;i<examples.length;i++){
  let o=ce("option");o.textContent=examples[i]
  sel.appendChild(o)
@@ -49,7 +49,7 @@ ge("compile").onclick=function(){
  let t=ge("target").value 
  fetch(t+".k").then(r=>r.text()).then(r=>{
   kweb.ktry(r)
-  ge("out").textContent=K.CK(kweb.ktry("emit "+t+"``"))
+  ge("out").textContent=K.CK(kweb.ktry("emit "+t+"``nort"))
  })
 }
 fetch("compile.help").then(r=>r.text()).then(r=>ge("out").textContent=r)

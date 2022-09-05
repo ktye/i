@@ -1,6 +1,8 @@
 (module
 (memory (export "memory") 1)
 
+
+
 (func $f (export "f")(param $x i32)(result i32)
 block
 block
@@ -25,4 +27,5 @@ local.get $x
 return
 br 0
 end)
+
 )

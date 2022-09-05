@@ -27,7 +27,7 @@ node type                    i-value             s-value
  prg     root node           -                   prog/libname    first node only
  mem     memory segment      #64k blocks         `a|`b           a|b: memory1|memory2
  con     constant            -                   name            child type lit
- var     variable            -                   name            child type lit
+ var     global variable     -                   name            child type lit
  lit     literal (con|var)   val(32bit)|C-index  type
  tab     func table entry    index               func name
  fun     function            func index          func name       children: args rets locs ast dfr

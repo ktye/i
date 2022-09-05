@@ -622,7 +622,7 @@ func divIi(xp, yp, e int32) {
 	}
 }
 
-func Min(x, y K) (r K) {
+func Min(x, y K) K {
 	if tp(y) < 16 {
 		return nd(278, 6, y, x)
 	}
@@ -714,7 +714,7 @@ func minZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Max(x, y K) (r K) {
+func Max(x, y K) K {
 	if tp(y) < 16 {
 		return nd(289, 7, y, x)
 	}
