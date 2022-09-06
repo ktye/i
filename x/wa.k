@@ -7,6 +7,12 @@ emit:{[o]opts::o
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
 *s}
 hx8:{[i]"0x",`x@|C i+!8}
+lp:{(~~)#@[&#x;x i;i:!#x]}
+
+
+/ast transform
+T:@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loops
+
 
 waprg:{
  fncs:"\n"/:y@&`fun=T c:1_&P=0
@@ -38,20 +44,21 @@ walod:{(y 0),"\n",(watype S x),".load"}
 wasto:{"\n"/:y,,(watype S x),".store"}
 waant:{("\n"/:y),t,".const -1\n",t,".xor\n",(t:$S x),".and"}
 waasn:{                     /todo global, modified, multi
- n:I x; $[~`~S x;wamas[x;y];~1~I x;0+`multiasn; (y 2),"\n","local.set ",y 0]}
+ n:I x; $[~`~S x;wamas[x;y]; "\n"/:(,y 2*n),|wadro"local.set ",/:n#y]}
+wadro:{@[x;i;(,"drop")@&#i:&"local.set $_"~/:x]}
 wamas:{"\n"/:("local.get ",*y; y 2;(watype y 1),(".add";".sub";".mul";".div")["+-*/"?*$S x];"local.set ",*y)}
 wacal:{("\n"/:y),"\n",$[#c:wainst s:S x;c;"call $",$s]}
 wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect ",/(1+I x)_y}
 wadfr:{y;""}
 wadrp:{"\n"/:y,,"drop"}
 wacst:{t:!watype;(y 1),"\n",$[0~r:wacast i:(t?y 0)+8*t?S x;`castyp+ \i;r]}
-wafor:{$[0~#*y;wawhl[x;y];I x;waslp[x;y];walop[x;y]]}
-wawhl:{"\n"/:("loop";"\n"/:2_y;y 1;"br 0\nend")}
-waslp:{"\n"/:("loop";"\n"/:2_y;y 1;*y;"i32.eqz\nbr_if 0\nend")}
-walop:{"\n"/:("block\nloop";(*y);"i32.eqz\nbr_if 1"; "\n"/:2_y;y 1;"br 0\nend\nend")}
+wafor:{$[I x;waslp[x;y];walop[x;y]]}
+waslp:{"\n"/:("loop";"\n"/:2_y;y 1;*y;"br_if 0\nend")}
+walop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
+ "\n"/:bl,($[#*y;(*y),"\ni32.eqz\nbr_if 1";""]; "\n"/:2_y;y 1;"br 0\nend\nend")}
 waget:{y;"local.get $",$S x}
 waGet:{y;"global.get $",$S x}
-wajmp:{y;0+`nyi}
+wajmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 
 waflt:{(*&" "=c)#c:C 8+x+!24}                        /todo: wasm literals
 walit:{y;i:I x;(watype t),".const ",$[`f~t:S x;waflt i
