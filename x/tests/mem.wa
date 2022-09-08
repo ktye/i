@@ -1,6 +1,6 @@
 (module
 (memory (export "memory") 1)
-(data (i32.const 0) "abcd\01\02\03"
+(data (i32.const 0) "abcd\01\02\03")
 
 
 

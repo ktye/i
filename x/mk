@@ -7,7 +7,8 @@ if [ -z "$1" ]; then
  go fmt k.go
  go build k.go
 elif [ "$1" = "wa" ]; then
- k k.k wa.k -e 'x:`<wa``' > k.wa
+ k k.k wa.k -e 'x:`<wa``' >  k.wa
+ /c/local/wabt/wat2wasm k.wa
 elif [ "$1" = "test" ]; then
  for f in tests/*.k; do
   k "$f" go.k -e

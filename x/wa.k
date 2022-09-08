@@ -21,10 +21,12 @@ wa:{[o]opts::o
 
 
 waprg:{
- fncs:"\n"/:y@&`fun=T c:1_&P=0
+ c:1_&P=0
+ excl:&(`fun=T c)&(`store=S c)|`catch=S c
+ fncs:"\n"/:y@excl_&`fun=T c
  cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
- data:$[#D;"(data (i32.const 0) \"",(wadat D),"\"";""]
+ data:$[#D;"(data (i32.const 0) \"",(wadat D),"\")";""]
  tabl:"\n"/:y@&`tab=T c
  mems:"(memory (export \"memory\") 1)"
  "\n"/:("(module";mems;data;cons;vars;fncs;tabl;")\n")}
@@ -46,18 +48,23 @@ wares:{y;"(result ",(watype S x),")"}
 waloc:{"(local ",(*y)," ",(watype S x),")"}
 wastm:{"\n"/:y}
 waast:wastm
-walod:{(y 0),"\n",(watype S x),".load"}
-wasto:{"\n"/:y,,(watype S x),".store"}
-waant:{("\n"/:y),t,".const -1\n",t,".xor\n",(t:$S x),".and"}
+walod:{(y 0),"\n",$[`b~s:S x;"i32.load8_s";(watype s),".load"]}
+wasto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(watype s),".store"]}
+waant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:watype S x),".and"}
 waasn:{                     /todo global, modified, multi
  n:I x; $[~`~S x;wamas[x;y]; "\n"/:(,y 2*n),|wadro"local.set ",/:n#y]}
 wadro:{@[x;i;(,"drop")@&#i:&"local.set $_"~/:x]}
-wamas:{"\n"/:("local.get ",*y; y 2;(watype y 1),(".add";".sub";".mul";".div")["+-*/"?*$S x];"local.set ",*y)}
+
+/modified assignment: (+ - * & | >>) signed:(<< /) andnot:(&^)
+wamas:{t:watype y 1; "\n"/:("local.get ",*y; y 2
+  $[~0N~i:"+-*&|^"?*$s:S x; t,(".add";".sub";".mul";".and";".or";".xor")i
+    ~0N~i:`">>"`"/"?s;t,((".shr";".div")i),wasign y 1
+    `"<<"~s;t,".shl";`"&^"~s;t,".const -1\n",t,".xor\n",t,".and";`modasign+0];"local.set ",*y)}   
 wacal:{("\n"/:y),"\n",$[#c:wainst s:S x;c;"call $",$s]}
 wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect ",/(1+I x)_y}
 wadfr:{y;""}
 wadrp:{"\n"/:y,,"drop"}
-wacst:{t:!watype;(y 1),"\n",$[0~r:wacast i:(t?y 0)+8*t?S x;`castyp+ \i;r]}
+wacst:{t:!watype;(y 1),"\n",wacast i:(t?y 0)+5*t?S x}
 wafor:{$[I x;waslp[x;y];walop[x;y]]}
 waslp:{"\n"/:("loop";"\n"/:2_y;y 1;*y;"br_if 0\nend")}
 walop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
@@ -73,16 +80,12 @@ walit:{y;i:I x;(watype t),".const ",$[`f~t:S x;waflt i
 		 `j~t;$[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]
 		 `k~t;$[i~0;,"0";hx8 i];"???"]}
 
-wamod:{y;0+`nyi}
 waneg:{$[`f~t:S x;(*y),"\nf64.neg";"\n"/:(t,".const 0";(*y);(t:watype t),".sub")]}
+wanot:{(*y),"\ni32.eqz"}
 wanop:{y;""}
-wanot:{y;0+`nyi}
-waorr:{y;0+`nyi}
-wabor:{y;0+`nyi}
-waxor:{y;0+`nyi}
+
 waret:{("\n"/:y),"\nreturn"}
-washl:{y;0+`nyi}
-washr:{y;0+`nyi}
+
 waswc:{ /todo: transform to expression-block with return type in (S x)
  r:(,"block")@&n:#y
  r,:,*y
@@ -97,16 +100,27 @@ watyp:{y;S x} /keep as symbol
 wa2: {"\n"/:(z 0;z 1;(watype S y),x)}
 wa2s:{"\n"/:(z 0;z 1;(watype t  ),x,wasign@t:S y)}
 waadd:wa2".add";wasub:wa2".sub"
-wamul:wa2".mul";wadiv:wa2".div"
+wamul:wa2".mul";wadiv:wa2s".div";wamod:wa2s".rem"
 waand:wa2".and";wabnd:wa2".and"
 waneq:wa2".ne"
 wamor:wa2s".gt";wagte:wa2s".ge";wales:wa2s".lt";walte:wa2s".le";
+waorr:wa2".or";wabor:waorr;waxor:wa2".xor"
 waeql:wa2".eq"
+washl:wa2".shl";washr:wa2s".shr"
 
-watype:`i`u`j`k`f`C`I`F!("i32";"i32";"i64";"i64";"f64";"v128";"v128";"v128")
-wasign:`i`u`j`k`f`C`I`F!("_s";  "_u"; "_s"; "_u";   "";    "";    "";    "")
-wacast:@[&64;0 1 2 3 4 8 16 19 24 32;("";"";"i32.wrap_i64";"i32.wrap_i64";"i32.trunc_f64_s";"";"i64.extend_i32_s";"i32.wrap_i64";"i64.extend_i32_u";"f64.convert_i32_s")]  /wg/wat.go:wasmcst
-wainst:`Memorysize`Memorygrow`Memorycopy`Memoryfill!("memory.size";"memory.grow";"memory.copy";"memory.fill")
+
+watype:`i`u`j`k`f!("i32";"i32";"i64";"i64";"f64")
+wasign:`i`u`j`k`f!("_s";  "_u"; "_s"; "_u";   "")
+wainst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"memory.grow";"memory.copy";"memory.fill")
+wainst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
+
+/         i                   u   j              k              f
+wacast:("";                 "";"i32.wrap_i64";"i32.wrap_i64";"i32.trunc_f64_s"  /i
+        "";                 "";""            ;""            ;""                 /u
+        "i64.extend_i32_s"; "";""            ;"i32.wrap_i64";"i64.trunc_f64_s"  /j
+        "i64.extend_i32_u"; "";""            ;""            ;"i64.trunc_f64_u"  /k
+        "f64.convert_i32_s";"";""            ;""            ;"")                /f
+
 
 /todo:
 /TEE: local.set $x local.get $x => local.tee $x
