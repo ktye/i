@@ -1,17 +1,18 @@
 set -e
 set -x
 if [ -z "$1" ]; then
-	go install /c/k/wg/cmd/wg
-	wg -k .. > k.k
-	#k k.k go.k -e 'x:`<emit go``' > k.go
-	k k.k go.k -e 'x:`<emit go`pkg`k' > k.go
-	go fmt k.go
-	go build k.go
+ go install /c/k/wg/cmd/wg
+ wg -k .. > k.k
+ k k.k go.k -e 'x:`<go`pkg`k' > k.go
+ go fmt k.go
+ go build k.go
+elif [ "$1" = "wa" ]; then
+ k k.k wa.k -e 'x:`<wa``' > k.wa
 elif [ "$1" = "test" ]; then
-	for f in tests/*.k; do
-		k "$f" go.k -e
-	done
+ for f in tests/*.k; do
+  k "$f" go.k -e
+ done
 else
-	exit 1
+ exit 1
 fi
 

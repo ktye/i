@@ -4,7 +4,13 @@
 F:`!()                                         /function map: type to stringer
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
-emit:{[o]opts::o
+
+go:{[o]opts::o
+ F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(goprg;gomem;gocon;govar;gotab;gofun;goarg;gosym;gores;goloc;goast;golod;gosto)
+ F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(goadd;goand;gobnd;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql;gocst)
+ F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
+ F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(goneq;gonop;gonot;goorr;gobor;goxor;goret;goshl;goshr;gostm;gosub;goswc;gotyp)
+
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
@@ -96,12 +102,6 @@ goadd:go2"+"; gosub:go2"-"; gomul:go2"*"; godiv:go2"/"; gomod:go2"%"
 goeql:go2"==";gogte:go2">=";goles:go2"< ";golte:go2"<=";gomor:go2">"; goneq:go2"!="
 goand:go2"&"; gobnd:go2"&&";goant:go2"&^";goorr:go2"|"; gobor:go2"||";goxor:go2"^"; goshl:go2"<<";goshr:go2">>"
 
-go:{
- F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(goprg;gomem;gocon;govar;gotab;gofun;goarg;gosym;gores;goloc;goast;golod;gosto)
- F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(goadd;goand;gobnd;goant;goasn;gocal;gocli;gocnd;godfr;godiv;godrp;goeql;gocst)
- F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
- F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(goneq;gonop;gonot;goorr;gobor;goxor;goret;goshl;goshr;gostm;gosub;goswc;gotyp)
- x}
 
 
 / run time

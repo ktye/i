@@ -1,17 +1,23 @@
-/copied
+/webassembly compiler (text format)
 F:`!()
-emit:{[o]opts::o
+hx8:{[i]"0x",`x@|C i+!8}
+lp:{(~~)#@[&#x;x i;i:!#x]}
+
+
+wa:{[o]opts::o
+ RCND::i@&{`ret`ret~T@1_&P=x}@/:i:&T=`cnd  /these cnd(if-else) nodes always return
+ T::@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loops
+ 
+ F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(waprg;wamem;wacon;wavar;watab;wafun;waarg;wasym;wares;waloc;waast;walod;wasto)
+ F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(waadd;waand;wabnd;waant;waasn;wacal;wacli;wacnd;wadfr;wadiv;wadrp;waeql;wacst)
+ F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wafor;waget;waGet;wagte;wajmp;wales;walit;walte;wamod;wamor;wamul;waneg)
+ F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(waneq;wanop;wanot;waorr;wabor;waxor;waret;washl;washr;wastm;wasub;waswc;watyp)
+ 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]
  n:(&#P){x[y]+:1}/P;n[0]-:1;
  s:{c:(0,(#x)-z)^x
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
 *s}
-hx8:{[i]"0x",`x@|C i+!8}
-lp:{(~~)#@[&#x;x i;i:!#x]}
-
-
-/ast transform
-T:@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loops
 
 
 waprg:{
@@ -106,14 +112,5 @@ wainst:`Memorysize`Memorygrow`Memorycopy`Memoryfill!("memory.size";"memory.grow"
 /TEE: local.set $x local.get $x => local.tee $x
 /RET: local.tee $r return => return, also remove (local $r typ)
 
-wa:{
- 
- RCND::i@&{`ret`ret~T@1_&P=x}@/:i:&T=`cnd  /these cnd(if-else) nodes always return
- 
- F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(waprg;wamem;wacon;wavar;watab;wafun;waarg;wasym;wares;waloc;waast;walod;wasto)
- F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(waadd;waand;wabnd;waant;waasn;wacal;wacli;wacnd;wadfr;wadiv;wadrp;waeql;wacst)
- F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wafor;waget;waGet;wagte;wajmp;wales;walit;walte;wamod;wamor;wamul;waneg)
- F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(waneq;wanop;wanot;waorr;wabor;waxor;waret;washl;washr;wastm;wasub;waswc;watyp)
- x}
 
 

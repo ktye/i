@@ -2,16 +2,14 @@ k's source as a k table (k.k)
 
 t:+`n`t`p`i`s!(!#T;T;P;I;S) /node type parent i-value s-value
 
-k k.k go.k -e 'x:`"k.go"<emit go``'       /generate k.go main
-k k.k go.k -e 'x:`"k.go"<emit go`lib`k'   /generate k.go lib
-k k.k wa.k -e         '`<emit wa``'       /generate wasm(text) (wip)
+k k.k go.k -e 'x:`"k.go"<go``'       /generate k.go main
+k k.k go.k -e 'x:`"k.go"<go`lib`k'   /generate k.go lib
+k k.k wa.k -e         '`<wa``'       /generate wasm(text) (wip)
 next: cc wb pa qb rv zi ha
 
 a compiler backend implements a function per node type to transform the node into string form.
-e.g. go[opts] sets the function dict F to use the Go code generating functions.
+e.g. go transforms the table to a string of go program source code:
 
-
-emit[opts] transforms the table to a string of program source code.
 it folds the table in reverse order  f/[();|!#P;|n]
 the first argument is a stack (of string results) and n is the child count per node:
  n:(&#P){x[y]+:1}/P; n[0]-:1
@@ -19,7 +17,7 @@ for each node, f cuts the number of children from the stack, calls the emitter b
 with arguments x:node id, and y the evaluated children in string form.
 the result is catenated to the stack.
 
-ast transformations are done on the table before calling emit.
+ast transformations are done on the table before flattening.
 the go backend does not need any transformations.
 
 

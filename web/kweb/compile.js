@@ -49,7 +49,7 @@ ge("compile").onclick=function(){
  let t=ge("target").value 
  fetch(t+".k").then(r=>r.text()).then(r=>{
   kweb.ktry(r)
-  ge("out").textContent=K.CK(kweb.ktry("emit "+t+"``nort"))
+  ge("out").textContent=K.CK(kweb.ktry(t+"``nort"))
  })
 }
 fetch("compile.help").then(r=>r.text()).then(r=>ge("out").textContent=r)

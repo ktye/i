@@ -59,7 +59,7 @@ For each node, f cuts the number of children from the stack, calls the emitter b
 with arguments x:node id, and y the evaluated children in string form.
 The result is catenated to the stack.
 
-Ast transformations are done on the table before calling emit.
+Ast transformations are done on the table before calling flattening.
 The go backend does not need any transformations.
 
 
