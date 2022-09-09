@@ -1,45 +1,35 @@
 (module
 (memory (export "memory") 1)
-
-
-
 (func $f (export "f")(local $i i32)
-block $L1
-loop $L0
-
-local.get $i
-i32.const 1
-i32.add
-local.set $i
-local.get $i
-i32.const 3
-i32.gt_s
-if
-br $L1
-
-end
-
-br 0
-end
-end)
+ block $L1
+  loop $L0
+   local.get $i
+   i32.const 1
+   i32.add
+   local.set $i
+   local.get $i
+   i32.const 3
+   i32.gt_s
+   if
+    br $L1
+   end
+   br 0
+  end
+ end)
 (func $g (export "g")(local $i i32)
-block
-loop
-
-local.get $i
-i32.const 1
-i32.add
-local.set $i
-local.get $i
-i32.const 3
-i32.gt_s
-if
-br 2
-
-end
-
-br 0
-end
-end)
-
+ block
+  loop
+   local.get $i
+   i32.const 1
+   i32.add
+   local.set $i
+   local.get $i
+   i32.const 3
+   i32.gt_s
+   if
+    br 2
+   end
+   br 0
+  end
+ end)
 )

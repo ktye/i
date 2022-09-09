@@ -1,12 +1,8 @@
 (module
 (memory (export "memory") 1)
-
-
-
 (func $f (export "f")(param $x i32)(param $y i32)(result i32)
-local.get $y
-local.get $x
-call_indirect (param  i32)(result i32)
-return)
-
+ local.get $y
+ local.get $x
+ call_indirect (param  i32)(result i32)
+ return)
 )

@@ -20,8 +20,7 @@ elif [ "$1" = go ]; then
 		rm out.go in.go
 	done
 elif [ "$1" = wa ]; then
-	#for x in *.k; do
-	for x in blank.k cont.k label.k loop2.k loop.k inc.k mem.k tab.k lit.k fun.k cli.k cal.k asn.k cast.k drp.k swtch.k cnd.k heap.k const.k; do
+	for x in *.k; do
 		w=`echo $x | sed 's/.k$/.wa/'`
 		k $x ../wa.k -e 'x:`<wa``nort' > out
 		cmp out $w

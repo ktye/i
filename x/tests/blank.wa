@@ -1,18 +1,13 @@
 (module
 (memory (export "memory") 1)
-
-
-
 (func $f (export "f")(result i32)(result i32)
-i32.const 1
-i32.const 2
-return)
+ i32.const 1
+ i32.const 2
+ return)
 (func $g (export "g")(result i32)(local $x i32)
-
-call $f
-drop
-local.set $x
-local.get $x
-return)
-
+ call $f
+ drop
+ local.set $x
+ local.get $x
+ return)
 )
