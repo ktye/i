@@ -51,15 +51,7 @@ waast:wastm
 walod:{(y 0),"\n",$[`b~s:S x;"i32.load8_s";(watype s),".load"]}
 wasto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(watype s),".store"]}
 waant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:watype S x),".and"}
-waasn:{                     /todo global, modified, multi
- n:I x; $[~`~S x;wamas[x;y]; "\n"/:(,y 2*n),|wadro"local.set ",/:n#y]}
-wadro:{@[x;i;(,"drop")@&#i:&"local.set $_"~/:x]}
-
-/modified assignment: (+ - * & | >>) signed:(<< /) andnot:(&^)
-wamas:{t:watype y 1; "\n"/:("local.get ",*y; y 2
-  $[~0N~i:"+-*&|^"?*$s:S x; t,(".add";".sub";".mul";".and";".or";".xor")i
-    ~0N~i:`">>"`"/"?s;t,((".shr";".div")i),wasign y 1
-    `"<<"~s;t,".shl";`"&^"~s;t,".const -1\n",t,".xor\n",t,".and";`modasign+0];"local.set ",*y)}   
+waasn:{y[&b:"$_"~/:-1_y]:,"";(*|y),,/|(("\nlocal.set ";"\nglobal.set ";"\ndrop")(2*b)|I 1+x+!I x),'-1_y}
 wacal:{("\n"/:y),"\n",$[#c:wainst s:S x;c;"call $",$s]}
 wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect ",/(1+I x)_y}
 wadfr:{y;""}

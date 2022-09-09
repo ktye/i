@@ -67,12 +67,12 @@ node type                    i-value             s-value
  prg     root node           -                   prog/libname    first node only
  mem     memory segment      #64k blocks         `a|`b           a|b: memory1|memory2
  con     constant            -                   name            child type lit
- var     variable            -                   name            child type lit
+ var     global variable     -                   name            child type lit
  lit     literal (con|var)   val(32bit)|C-index  type
  tab     func table entry    index               func name
  fun     function            func index          func name       children: args rets locs ast dfr
  arg     func argument       arg index           type            child type sym
- sym     symbol              -                   name
+ sym     symbol              1(global)|0N(func)  name
  res     return value        ret val index       type            unnamed
  loc     local var decl      loc index           type            child type sym
  ast     func ast root       -                   -               one per func
@@ -85,7 +85,7 @@ node type                    i-value             s-value
  Get     get global          glo node            varname
  lod     load                -                   type(bijf)      child:    addr
  sto     store               -                   type(bijf)      children: addr, value
- asn     assignment          #symbols            modifier        children: syms typs expr(s) | syms typs expr
+ asn     assignment          #symbols            -               children: symbol(s), expr
  cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
  cnd     if condition        -                   `|type          2|3 children: if then [else]
