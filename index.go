@@ -167,19 +167,21 @@ func atv(x, y K) (r K) { // x CT..LT
 	return r
 }
 func stv(x, i, y K) K {
-	x = use(x)
-	xt := tp(x)
 	if It != tp(i) {
 		trap(Type)
 	}
-	//if xt != tp(y) {
-	//	trap(Type)
-	//}
-	xn := nn(x)
 	n := nn(i)
+	if n == 0 {
+		dx(y)
+		dx(i)
+		return x
+	}
 	if n != nn(y) {
 		trap(Length)
 	}
+	x = use(x)
+	xt := tp(x)
+	xn := nn(x)
 	s := sz(xt)
 	xp := int32(x)
 	yp := int32(y)
