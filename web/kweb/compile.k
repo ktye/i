@@ -40,7 +40,8 @@ drawtree:{[P]
  (#P)^r}
 
 
-dt:drawtree P  /ascii tree
-c:&#P          /checked state
-v:,0
+nodes:($#P)," nodes"
+dt:drawtree P   /ascii tree
+c:1+&#P         /checked state
+v:!#P
 clicktree:{v::vc[c[v x]:~c[v x];P];}

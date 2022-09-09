@@ -41,8 +41,14 @@ for(let i=0;i<examples.length;i++){
  let o=ce("option");o.textContent=examples[i]
  sel.appendChild(o)
 }
-sel.selectedIndex=0
+let h=decodeURIComponent(window.location.hash.slice(1)).split(" ") //e.g. #go asn
+if(h.length){
+ ge("target").selectedIndex=Math.max(0,["go","wa"].indexOf(h[0]))
+ sel.selectedIndex=Math.max(0,examples.indexOf(h[1]))
+}else sel.selectedIndex=0
 sel.onchange=function(e){setinput(examples[e.target.selectedIndex])}
+
+
 setinput(examples[sel.selectedIndex])
 
 ge("compile").onclick=function(){
