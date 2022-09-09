@@ -26,10 +26,11 @@ waprg:{
  fncs:"\n"/:y@excl_&`fun=T c
  cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
+ sysi:$[`nort':opts;"";wasys]
  data:$[#D;"(data (i32.const 0) \"",(wadat D),"\")";""]
  tabl:"\n"/:y@&`tab=T c
  mems:"(memory (export \"memory\") 1)"
- "\n"/:("(module";mems;data;cons;vars;fncs;tabl;")\n")}
+ "\n"/:("(module",sysi;mems;data;cons;vars;fncs;tabl;")\n")}
  
 wadat:{,/@["\\",/:256^`x@_!256;0+wac;wac:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 wamem:{y;""}
@@ -113,6 +114,15 @@ wacast:("";                 "";"i32.wrap_i64";"i32.wrap_i64";"i32.trunc_f64_s"  
         "i64.extend_i32_u"; "";""            ;""            ;"i64.trunc_f64_u"  /k
         "f64.convert_i32_s";"";""            ;""            ;"")                /f
 
+wasys:"
+(import \"env\" \"Exit\"  (func $Exit  (param i32)))
+(import \"env\" \"Args\"  (func $Args  (result i32)))
+(import \"env\" \"Arg\"   (func $Arg   (param i32) (param i32) (result i32)))
+(import \"env\" \"Read\"  (func $Read  (param i32) (param i32) (param i32) (result i32)))
+(import \"env\" \"Write\" (func $Write (param i32) (param i32) (param i32) (param i32) (result i32)))
+(import \"env\" \"ReadIn\" (func $ReadIn (param i32) (param i32) (result i32)))
+(import \"env\" \"Native\" (func $Native (param i64) (param i64) (result i64)))
+"
 
 /todo:
 /TEE: local.set $x local.get $x => local.tee $x
