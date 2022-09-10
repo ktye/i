@@ -7,8 +7,7 @@
   loop
    local.get $i
    i32.const 3
-   i32.lt_s
-   i32.eqz
+   i32.ge_s
    br_if 1
    local.get $n
    i32.const 1

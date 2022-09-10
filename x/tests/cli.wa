@@ -3,5 +3,5 @@
 (func $f (param $x i32) (param $y i32) (result i32)
  local.get $y
  local.get $x
- call_indirect (param  i32)(result i32))
+ call_indirect (param i32) (result i32))
 )

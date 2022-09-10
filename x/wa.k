@@ -46,7 +46,7 @@ wafun:{s:$S x
  body:    y@*&`ast=T c
  expo:$[I x;"(export \"",s,"\")";""]
  (" "/:(""~/:)_("(func";"$",s;expo;args;rets;locs)),"\n",wafmt[body],")"}
-waarg:{"(param ",(y 0)," ",(watype S x),")"}
+waarg:{" "/:(""~/:)_("(param";(y 0);(watype S x),")")}
 wasym:{y;"$",$S x}
 wares:{y;"(result ",(watype S x),")"}
 waloc:{"(local ",(*y)," ",(watype S x),")"}
@@ -57,7 +57,7 @@ wasto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(watype s),".store"]}
 waant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:watype S x),".and"}
 waasn:{y[&b:"$_"~/:-1_y]:,"";(*|y),,/|(("\nlocal.set ";"\nglobal.set ";"\ndrop")(2*b)|I 1+x+!I x),'-1_y}
 wacal:{("\n"/:y),"\n",$[#c:wainst s:S x;c;"call $",$s]}
-wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect ",/(1+I x)_y}
+wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect "," "/:(1+I x)_y}
 wadfr:{y;""}
 wadrp:{"\n"/:y,,"drop"}
 wacst:{t:!watype;(y 1),"\n",wacast i:(t?y 0)+5*t?S x}
@@ -82,11 +82,12 @@ wanop:{y;""}
 waret:{("\n"/:y),"\nreturn"}
 
 waswc:{ /todo: transform to expression-block with return type in (S x)
+ y,:$[I x;();,""]
  q:$[S x;*("\nreturn";y[i]:wartf y i:1_!#y);""]
  r:(,"block")@&n:#y
  r[0],:$[S x;" (result ",(watype S x),")";""]
  r,:,*y
- r,:,"br_table ",(" "/:$!n-I x),"\nend"
+ r,:,"br_table ",(" "/:$!n-1),"\nend"
  r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
  ("\n"/:r),q}
 
@@ -139,17 +140,23 @@ wafmt:{x:"\n"\:x;
 waind:{ /indent: +(if block loop else) -(end else)
  s:(#x)#1,1+\(e:"els"~/:h)|("blo"~/:h)|("loo"~/:h)|"if "~/:h:3#'x   
  s-:+\e|"end"~/:h;(s#\:" "),'x}
-waopt:{ /tee, last return
+waopt:{ /tee, !lt_s, last return
  i:&"local.get"~/:9#'x
  i:-1+i@&(x i-1)~'("local.set"),/:t:9_'x i
  x:@[x;i;"local.tee",/:9_'x i]
  x@:(1+i)_!#x
+
+ i:&("i32.eqz"~/:x 1+!#x)&"i32.lt_s"~/:x
+ x:@[x;i;(,"i32.ge_s")@&#i]
+ x@:(1+i)_!#x
+ 
+ i:&("if"~/:x 2+!#x)&("i32.ne"~/:x 1+!#x)&"i32.const 0"~/:x
+ x@:(i,1+i)_!#x
+
  (-"return"~*|x)_x}
 
-/lt_s eqz -> ge_s
 /const.0 eq eqz br_if -> br_if
 /ge_s eqz -> lt_s 
-/const.0 ne if -> if
 
 /todo:
 /RET: local.tee $r return => return, also remove (local $r typ)
