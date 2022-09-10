@@ -1,13 +1,11 @@
 (module
 (memory (export "memory") 1)
-(func $g (export "g")(param $x i32)(param $y i32)(result i32)
+(func $g (param $x i32) (param $y i32) (result i32)
  local.get $x
  local.get $y
- i32.sub
- return)
-(func $f (export "f")(param $x i32)(result i32)
+ i32.sub)
+(func $f (param $x i32) (result i32)
  i32.const 1
  local.get $x
- call $g
- return)
+ call $g)
 )

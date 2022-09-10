@@ -32,19 +32,20 @@ waprg:{
  tabd:$[0<i:1+|/I c t:&`tab=T c;"(table ",($i)," funcref)";""]
  tabl:"\n"/:y t
  mems:"(memory (export \"memory\") 1)"
- "\n"/:(""~/:)_("(module",sysi;mems;data;cons;vars;fncs;tabd;tabl;")\n")}
+ "\n"/:(""~/:)_("(module",sysi;mems;cons;vars;data;fncs;tabd;tabl;")\n")}
  
 wadat:{,/@["\\",/:256^`x@_!256;0+wac;wac:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 wamem:{y;""}
-wacon:{" "/:("(global"; "$",$S x; watype S 1+x; "(",(*y),"))")} /export?
-wavar:{" "/:("(global"; "$",$S x; "(mut"; watype S 1+x; ")(",(*y),"))")}
+wacon:{"(global $",($S x)," ",(watype S 1+x)," (",(*y),"))"}
+wavar:{"(global $",($S x)," (mut ",(watype S 1+x),") (",(*y),"))"}
 watab:{y;"(elem (i32.const ",($I x),") func $",($S x),")"}
 wafun:{s:$S x
- args:"",/y@&`arg=T c:&x=P
- rets:"",/y@&`res=T c
- locs:"",/y@&`loc=T c
+ args:" "/:y@&`arg=T c:&x=P
+ rets:" "/:y@&`res=T c
+ locs:" "/:y@&`loc=T c
  body:    y@*&`ast=T c
- "(func $",s," (export \"",s,"\")",args,rets,locs,"\n",wafmt[body],")"}
+ expo:$[I x;"(export \"",s,"\")";""]
+ (" "/:(""~/:)_("(func";"$",s;expo;args;rets;locs)),"\n",wafmt[body],")"}
 waarg:{"(param ",(y 0)," ",(watype S x),")"}
 wasym:{y;"$",$S x}
 wares:{y;"(result ",(watype S x),")"}
@@ -68,12 +69,11 @@ waget:{y;"local.get $",$S x}
 waGet:{y;"global.get $",$S x}
 wajmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 
-waflt:{(*&" "=c)#c:C 8+x+!24}                        /todo: wasm literals
+waflt:{(*&" "=c)#c:C 8+x+!24}
 walit:{y;i:I x;(watype t),".const ",$[`f~t:S x;waflt i
-                 `i~t;$[0N~i;"-0x80000000";$i]
+                 `i~t;$[0N~i;"-2147483648";$i]
                  `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-		 `j~t;$[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]
-		 `k~t;$[i~0;,"0";hx8 i];"???"]}
+		 $[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]]}
 
 waneg:{$[`f~t:S x;(*y),"\nf64.neg";"\n"/:(t,".const 0";(*y);(t:watype t),".sub")]}
 wanot:{(*y),"\ni32.eqz"}
@@ -82,11 +82,13 @@ wanop:{y;""}
 waret:{("\n"/:y),"\nreturn"}
 
 waswc:{ /todo: transform to expression-block with return type in (S x)
+ q:$[S x;*("\nreturn";y[i]:wartf y i:1_!#y);""]
  r:(,"block")@&n:#y
+ r[0],:$[S x;" (result ",(watype S x),")";""]
  r,:,*y
- r,:,"br_table ",(" "/:$!n),"\nend"
+ r,:,"br_table ",(" "/:$!n-I x),"\nend"
  r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
- "\n"/:r}
+ ("\n"/:r),q}
 
 wacnd:{
  r:$[S x;*("\nreturn";y[i]:wartf y i:1_!#y);""]
@@ -116,12 +118,12 @@ wainst:`I32B`panic`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"unreachab
 wainst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
 wainst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
 
-/         i                   u   j              k              f
-wacast:("";                 "";"i32.wrap_i64";"i32.wrap_i64";"i32.trunc_f64_s"  /i
-        "";                 "";""            ;"i32.wrap_i64";""                 /u
-        "i64.extend_i32_s"; "";""            ;""            ;"i64.trunc_f64_s"  /j
-        "i64.extend_i32_u"; "";""            ;""            ;"i64.trunc_f64_u"  /k
-        "f64.convert_i32_s";"";""            ;""            ;"")                /f
+/         i                   u                  j                   k                   f
+wacast:(""                 ;""                 ;"i32.wrap_i64"     ;"i32.wrap_i64"     ;"i32.trunc_f64_s"  /i
+        ""                 ;""                 ;""                 ;"i32.wrap_i64"     ;""                 /u
+        "i64.extend_i32_s" ;""                 ;""                 ;""                 ;"i64.trunc_f64_s"  /j
+        "i64.extend_i32_u" ;"i64.extend_i32_u" ;""                 ;""                 ;"i64.trunc_f64_u"  /k
+        "f64.convert_i32_s";"f64.convert_i32_u";"f64.convert_i64_s";"f64.convert_i64_u";"")                /f
 
 wasys:"
 (import \"env\" \"Exit\"  (func $Exit  (param i32)))
@@ -130,22 +132,24 @@ wasys:"
 (import \"env\" \"Read\"  (func $Read  (param i32) (param i32) (param i32) (result i32)))
 (import \"env\" \"Write\" (func $Write (param i32) (param i32) (param i32) (param i32) (result i32)))
 (import \"env\" \"ReadIn\" (func $ReadIn (param i32) (param i32) (result i32)))
-(import \"env\" \"Native\" (func $Native (param i64) (param i64) (result i64)))
-"
+(import \"env\" \"Native\" (func $Native (param i64) (param i64) (result i64)))"
 
 wafmt:{x:"\n"\:x;
- ("\n"/:waind waopt x@&~x~\:"")}
-waind:{    /indent: +(if block loop) -(end) (else<<)
+ ("\n"/:waind waopt x@&~(x~\:"nop")|x~\:"")}
+waind:{ /indent: +(if block loop else) -(end else)
  s:(#x)#1,1+\(e:"els"~/:h)|("blo"~/:h)|("loo"~/:h)|"if "~/:h:3#'x   
- s-:+\e|"end"~/:h
- (s#\:" "),'x}
-waopt:{
- x:(-"return"~*|x)_x
- x}
+ s-:+\e|"end"~/:h;(s#\:" "),'x}
+waopt:{ /tee, last return
+ i:&"local.get"~/:9#'x
+ i:-1+i@&(x i-1)~'("local.set"),/:t:9_'x i
+ x:@[x;i;"local.tee",/:9_'x i]
+ x@:(1+i)_!#x
+ (-"return"~*|x)_x}
+
+/lt_s eqz -> ge_s
+/const.0 eq eqz br_if -> br_if
+/ge_s eqz -> lt_s 
+/const.0 ne if -> if
 
 /todo:
-/TEE: local.set $x local.get $x => local.tee $x
 /RET: local.tee $r return => return, also remove (local $r typ)
-
-
-

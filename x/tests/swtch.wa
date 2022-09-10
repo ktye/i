@@ -1,27 +1,24 @@
 (module
 (memory (export "memory") 1)
-(func $f (export "f")(param $x i32)(result i32)
- block
+(func $f (param $x i32) (result i32)
+ block (result i32)
   block
    block
     block
      local.get $x
-     br_table 0 1 2 3
+     br_table 0 1 2
     end
     i32.const 1
     local.get $x
     i32.add
-    return
     br 2
    end
    i32.const 2
    local.get $x
    i32.mul
-   return
    br 1
   end
   local.get $x
-  return
   br 0
  end)
 )

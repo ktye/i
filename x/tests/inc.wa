@@ -1,10 +1,8 @@
 (module
 (memory (export "memory") 1)
-(func $f (export "f")(param $x i32)(result i32)
+(func $f (param $x i32) (result i32)
  local.get $x
  i32.const 1
  i32.add
- local.set $x
- local.get $x
- return)
+ local.tee $x)
 )

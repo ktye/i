@@ -1,13 +1,12 @@
 (module
 (memory (export "memory") 1)
-(func $f (export "f")(local $i i32)
+(func $f (local $i i32)
  block $L1
   loop $L0
    local.get $i
    i32.const 1
    i32.add
-   local.set $i
-   local.get $i
+   local.tee $i
    i32.const 3
    i32.gt_s
    if
@@ -16,14 +15,13 @@
    br 0
   end
  end)
-(func $g (export "g")(local $i i32)
+(func $g (local $i i32)
  block
   loop
    local.get $i
    i32.const 1
    i32.add
-   local.set $i
-   local.get $i
+   local.tee $i
    i32.const 3
    i32.gt_s
    if

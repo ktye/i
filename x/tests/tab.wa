@@ -1,15 +1,13 @@
 (module
 (memory (export "memory") 1)
-(func $f (export "f")
+(func $f
 )
-(func $g (export "g")(param $x i32)(result i32)
- local.get $x
- return)
-(func $h (export "h")(param $x i32)(param $y i32)(result i32)
+(func $g (param $x i32) (result i32)
+ local.get $x)
+(func $h (param $x i32) (param $y i32) (result i32)
  local.get $x
  local.get $y
- i32.add
- return)
+ i32.add)
 (table 3 funcref)
 (elem (i32.const 0) func $f)
 (elem (i32.const 1) func $g)
