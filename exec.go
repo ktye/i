@@ -136,9 +136,15 @@ func Amd(x, i, v, y K) (r K) {
 	if xt < 16 {
 		trap(Type)
 	}
-	if tp(i) == Lt {
-		i = Rdc(13, l1(i))
-		y = Rdc(13, l1(y))
+	if tp(i) == Lt { // @[;;v;]/[x;y;i]
+		n := nn(i)
+		for j := int32(0); j<n; j++ {
+			x = Amd(x, ati(rx(i), j), rx(v), ati(rx(y), j))
+		}
+		dx(i)
+		dx(v)
+		dx(y)
+		return x
 	}
 
 	if xt > Lt {
