@@ -10,7 +10,7 @@
  #sel{height:24px}
  #tab{height:calc(100vh - 24px); overflow:auto}
  #left{flex:1}
- #right{flex:2;min-width:0}
+ #right{flex:2;min-width:0;padding-left:5px}
  #out{height:calc(100vh - 24px);margin:0;overflow:auto}
  table{border-collapse:collapse}
  td{white-space:pre;padding:0;padding-right:1em}
@@ -19,11 +19,11 @@
 
 <body>
  <div id="left">
-  program: <select id="sel"></select><div id="nodes" data-k-var="nodes" style="float:right"></div>
+  program: <select id="sel"></select><div id="nodes" data-k-var="nodes" style="display:inline"></div>
   <div id="tab" data-k-type="treetable" data-k-expr="{(dt v;T v;P v;I v;S v)}"></div>
  </div>
  <div id="right">
-  <button id="compile">compile</button> to <select id="target"><option>go</option><option>wa</option></select>
+  compile to <select id="target"><option>help</option><option>go</option><option>wa</option></select> 
   <pre id="out">
   </pre>
  </div>

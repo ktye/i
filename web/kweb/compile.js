@@ -32,7 +32,7 @@ kweb.register("treetable",function(dst,x){
 })
 
 function setinput(s){ 
- kweb.init({start:[s+".k","compile.k"]})
+ kweb.init({start:[s+".k","compile.k"],post:compile})
 }
 
 let sel=ge("sel")
@@ -43,7 +43,7 @@ for(let i=0;i<examples.length;i++){
 }
 let h=decodeURIComponent(window.location.hash.slice(1)).split(" ") //e.g. #go asn
 if(h.length){
- ge("target").selectedIndex=Math.max(0,["go","wa"].indexOf(h[0]))
+ ge("target").selectedIndex=Math.max(0,["help","go","wa"].indexOf(h[0]))
  sel.selectedIndex=Math.max(0,examples.indexOf(h[1]))
 }else sel.selectedIndex=0
 sel.onchange=function(e){setinput(examples[e.target.selectedIndex])}
@@ -51,11 +51,15 @@ sel.onchange=function(e){setinput(examples[e.target.selectedIndex])}
 
 setinput(examples[sel.selectedIndex])
 
-ge("compile").onclick=function(){
+function compile(){
  let t=ge("target").value 
+ if(t=="help"){
+  fetch("compile.help").then(r=>r.text()).then(r=>ge("out").textContent=r)
+  return
+ }
  fetch(t+".k").then(r=>r.text()).then(r=>{
   kweb.ktry(r)
   ge("out").textContent=K.CK(kweb.ktry(t+"``nort"))
  })
 }
-fetch("compile.help").then(r=>r.text()).then(r=>ge("out").textContent=r)
+ge("target").onchange=compile

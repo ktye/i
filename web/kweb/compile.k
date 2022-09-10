@@ -27,18 +27,16 @@ vc:{[c;p]&1,1_&/1_c@(P@)\:!#p}
 / (3) connect with parent at depth d-1: │ for rows 1+P i..i-1
 
 drawtree:{[P]
- d:dp P                                      /depth
- m:1+|/d                                     /1+max depth
- c:&~np P                                    /child nodes
- l:lp P                                      /last child nodes
- i:!#P
- r:(m*#P)#" "
- r:@[r;(-1+  d l)+m*{x+!y-x}'[1+P l;l];"|"]  /step(3)
- r:@[r;(-1+1_d i)+m*1_i;"+"]                 /step(2)
- r:@[r;(-1+  d l)+m*l;"L"]                   /└ for last child
- r:@[r;d+m*!#P;("T";"-")@~np P]              /step (1)
- (#P)^r}
-
+ d:dp P                         /depth
+ r:m:1+|/d                      /1+max depth
+ a:~np P                        /child nodes
+ w: lp P                        /last child nodes
+ t:!#P
+ r:((d w)+r*{x+!y-x}'[1+P w;w]  /step(3)    "|"
+    (1_d)+r*1_t                 /step(2)    "+"
+    (d w)+r*w)-1                /last child "L"
+ e:@[(m*#P)#" ";r;"|+L"]
+ e:@[e;d+m*!#P;"T-"a];(#P)^e}   /step (1)
 
 nodes:($#P)," nodes"
 dt:drawtree P   /ascii tree
