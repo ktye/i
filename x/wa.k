@@ -134,11 +134,14 @@ wasys:"
 "
 
 wafmt:{x:"\n"\:x;
- ("\n"/:waind x@&~x~\:"")}
+ ("\n"/:waind waopt x@&~x~\:"")}
 waind:{    /indent: +(if block loop) -(end) (else<<)
- s:1+\(-"end"~/:h)+(b:"blo"~/:h)|(l:"loo"~/:h)|i:"if "~/:h:3#'x   
- s[&l|b|i|"else"~/:x]-:1
+ s:(#x)#1,1+\(e:"els"~/:h)|("blo"~/:h)|("loo"~/:h)|"if "~/:h:3#'x   
+ s-:+\e|"end"~/:h
  (s#\:" "),'x}
+waopt:{
+ x:(-"return"~*|x)_x
+ x}
 
 /todo:
 /TEE: local.set $x local.get $x => local.tee $x
