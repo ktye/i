@@ -138,7 +138,7 @@ func Amd(x, i, v, y K) (r K) {
 	}
 	if tp(i) == Lt { // @[;;v;]/[x;y;i]
 		n := nn(i)
-		for j := int32(0); j<n; j++ {
+		for j := int32(0); j < n; j++ {
 			x = Amd(x, ati(rx(i), j), rx(v), ati(rx(y), j))
 		}
 		dx(i)

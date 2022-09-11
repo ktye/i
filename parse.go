@@ -376,7 +376,7 @@ func monadic(x K) (r K) {
 func ldrop(n int32, x K) K { return explode(ndrop(n, x)) }
 func svrb(p int32) int32 {
 	x := K(I64(p))
-	return I32B(tp(x) == 0) * int32(x)
+	return I32B(int32(x) < 64 && tp(x) == 0) * int32(x)
 }
 func idiom(x K) K {
 	l := int32(x) + 8*(nn(x)-2)
