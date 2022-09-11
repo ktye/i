@@ -8,8 +8,6 @@
  local.get $x
  local.get $y
  i32.add)
-(table 3 funcref)
-(elem (i32.const 0) func $f)
-(elem (i32.const 1) func $g)
-(elem (i32.const 2) func $h)
+(table (export "table") 3 funcref)
+(elem (i32.const 0) func $f $g $h)
 )

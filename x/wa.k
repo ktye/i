@@ -22,15 +22,14 @@ wa:{[o]opts::o
 
 waprg:{
  c:1_&P=0
- /excl:&(`fun=T c)&(`store=S c)|`catch=S c
  excl:!0
  fncs:"\n"/:y@&`fun=T c
  cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
  sysi:$[`nort':opts;"";wasys]
  data:$[#D;"(data (i32.const 0) \"",(wadat D),"\")";""]
- tabd:$[0<i:1+|/I c t:&`tab=T c;"(table ",($i)," funcref)";""]
- tabl:"\n"/:y t
+ tabd:$[0<i:1+|/I c t:&`tab=T c;"(table (export \"table\") ",($i)," funcref)";""]
+ tabl:watbl y t
  mems:"(memory (export \"memory\") 1)"
  "\n"/:(""~/:)_("(module",sysi;mems;cons;vars;data;fncs;tabd;tabl;")\n")}
  
@@ -38,7 +37,8 @@ wadat:{,/@["\\",/:256^`x@_!256;0+wac;wac:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^
 wamem:{y;""}
 wacon:{"(global $",($S x)," ",(watype S 1+x)," (",(*y),"))"}
 wavar:{"(global $",($S x)," (mut ",(watype S 1+x),") (",(*y),"))"}
-watab:{y;"(elem (i32.const ",($I x),") func $",($S x),")"}
+watab:{y;(I x;S x)}
+watbl:{"\n"/:{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/:'"$",''$(i:&~1=-':*x)^(x:+x)1]}
 wafun:{s:$S x
  args:" "/:y@&`arg=T c:&x=P
  rets:" "/:y@&`res=T c
