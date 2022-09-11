@@ -78,27 +78,20 @@ walit:{y;i:I x;(watype t),".const ",$[`f~t:S x;waflt i
 waneg:{$[`f~t:S x;(*y),"\nf64.neg";"\n"/:(t,".const 0";(*y);(t:watype t),".sub")]}
 wanot:{(*y),"\ni32.eqz"}
 wanop:{y;""}
-
 waret:{("\n"/:y),"\nreturn"}
-
 waswc:{ /todo: transform to expression-block with return type in (S x)
  y,:$[I x;();,""]
- q:$[S x;*("\nreturn";y[i]:wartf y i:1_!#y);""]
+ q:$[S x;[y[i]:*1_r:wartf y i:1_!#y;*r];""]
  r:(,"block")@&n:#y
  r[0],:$[S x;" (result ",(watype S x),")";""]
  r,:,*y
  r,:,"br_table ",(" "/:$!n-1),"\nend"
  r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
  ("\n"/:r),q}
-
 wacnd:{
- r:$[S x;*("\nreturn";y[i]:wartf y i:1_!#y);""]
+ r:$[S x;[y[i]:*1_r:wartf y i:1_!#y;*r];""]
  "\n"/:(*y;$[#t:watype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend",r)}
- 
-wartf:{$[&/"\nreturn"~/:-7#'x;-7_'x;x]}
-/todo: assign-all-transformation
-
-
+wartf:{n:(#*x)-*|&"\n"=*x;((-n)#*x;(-n)_'x)} /split last "return" or "local.set.." common to all
 watyp:{y;S x} /keep as symbol
 
 wa2: {"\n"/:(z 0;z 1;(watype S y),x)}
@@ -111,7 +104,6 @@ wamor:wa2s".gt";wagte:wa2s".ge";wales:wa2s".lt";walte:wa2s".le";
 waorr:wa2".or";wabor:waorr;waxor:wa2".xor"
 waeql:wa2".eq"
 washl:wa2".shl";washr:wa2s".shr"
-
 
 watype:`i`u`j`k`f!("i32";"i32";"i64";"i64";"f64")
 wasign:`i`u`j`k`f!("_s";  "_u"; "_s"; "_u";   "")
@@ -158,5 +150,3 @@ waopt:{ /tee, !lt_s, last return
 /const.0 eq eqz br_if -> br_if
 /ge_s eqz -> lt_s 
 
-/todo:
-/RET: local.tee $r return => return, also remove (local $r typ)

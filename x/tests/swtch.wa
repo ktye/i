@@ -4,6 +4,21 @@
  block (result i32)
   block
    block
+    local.get $x
+    br_table 0 1
+   end
+   i32.const 1
+   local.get $x
+   i32.add
+   br 1
+  end
+  local.get $x
+  br 0
+ end)
+(func $g (param $x i32) (result i32)
+ block
+  block
+   block
     block
      local.get $x
      br_table 0 1 2
@@ -11,14 +26,14 @@
     i32.const 1
     local.get $x
     i32.add
+    return
     br 2
    end
-   i32.const 2
    local.get $x
-   i32.mul
+   return
    br 1
   end
-  local.get $x
   br 0
- end)
+ end
+ i32.const 0)
 )
