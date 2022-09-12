@@ -5,7 +5,6 @@ lp:{(~~)#@[&#x;x i;i:!#x]}
 
 
 wa:{[o]opts::o
- RCND::i@&{`ret`ret~T@1_&P=x}@/:i:&T=`cnd  /these cnd(if-else) nodes always return
  T::@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loops
  
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(waprg;wamem;wacon;wavar;watab;wafun;waarg;wasym;wares;waloc;waast;walod;wasto)
@@ -56,7 +55,9 @@ walod:{(y 0),"\n",$[`b~s:S x;"i32.load8_s";(watype s),".load"]}
 wasto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(watype s),".store"]}
 waant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:watype S x),".and"}
 waasn:{y[&b:"$_"~/:-1_y]:,"";(*|y),,/|(("\nlocal.set ";"\nglobal.set ";"\ndrop")(2*b)|I 1+x+!I x),'-1_y}
-wacal:{("\n"/:y),"\n",$[#c:wainst s:S x;c;"call $",$s]}
+
+wacal:{$[`panic~s:S x;"unreachable";("\n"/:y),"\n",$[#c:wainst s;c;"call $",$s]]}
+
 wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect "," "/:(1+I x)_y}
 wadfr:{y;""}
 wadrp:{"\n"/:y,,"drop"}
@@ -79,19 +80,14 @@ waneg:{$[`f~t:S x;(*y),"\nf64.neg";"\n"/:(t,".const 0";(*y);(t:watype t),".sub")
 wanot:{(*y),"\ni32.eqz"}
 wanop:{y;""}
 waret:{("\n"/:y),"\nreturn"}
-waswc:{ /todo: transform to expression-block with return type in (S x)
- y,:$[I x;();,""]
- q:$[S x;[y[i]:*1_r:wartf y i:1_!#y;*r];""]
- r:(,"block")@&n:#y
+waswc:{
+ r:(,"block")@&n:#$[I x;y;y,:,""]
  r[0],:$[S x;" (result ",(watype S x),")";""]
  r,:,*y
  r,:,"br_table ",(" "/:$!n-1),"\nend"
  r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
- ("\n"/:r),q}
-wacnd:{
- r:$[S x;[y[i]:*1_r:wartf y i:1_!#y;*r];""]
- "\n"/:(*y;$[#t:watype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend",r)}
-wartf:{n:(#*x)-*|&"\n"=*x;((-n)#*x;(-n)_'x)} /split last "return" or "local.set.." common to all
+ ("\n"/:r)}
+wacnd:{"\n"/:(*y;$[#t:watype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend")}
 watyp:{y;S x} /keep as symbol
 
 wa2: {"\n"/:(z 0;z 1;(watype S y),x)}
@@ -107,7 +103,7 @@ washl:wa2".shl";washr:wa2s".shr"
 
 watype:`i`u`j`k`f!("i32";"i32";"i64";"i64";"f64")
 wasign:`i`u`j`k`f!("_s";  "_u"; "_s"; "_u";   "")
-wainst:`I32B`panic`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"unreachable";"memory.size";"memory.grow";"memory.copy";"memory.fill")
+wainst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"memory.grow";"memory.copy";"memory.fill")
 wainst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
 wainst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
 
