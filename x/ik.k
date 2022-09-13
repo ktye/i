@@ -1,10 +1,10 @@
-/ i (low level input language) with k syntax
+/ "i" is a low level input language with k syntax
 /  it can be parsed by k but not evaluated. IR is written from k byte code. the parser is for free.
 / types
 /  `i`u`j`k`f:  i32 u32 i64 u64 f64
 / heap
-/  I x   U x   J x   K x   F x             read. x is byte address(not vector index) in linear memory
-/  I[x]:y ..                               write. alignment is assumed, e.g. avoid I[1+2]:..
+/  I x  U x  J x  K x  F x  read. x is byte address(not vector index) in linear memory
+/  I[x]:y ..                write. alignment is assumed, e.g. avoid I[1+2]:..
 / functions
 /  f:i:{[xi;yf]..}       f(name), i(return type), args&locals have type suffix in the name
 /                        locals are not declared, they are detected by k on assignment, global: zi::..
@@ -22,34 +22,34 @@
 /  `i x  `u x  ..
 / call
 /  f x  f[x;y]           normal k syntax
-/  g f x                 f returns same number of values as k has args
+/  g f x                 f returns same number of values as g has args
 /  `a`b:f x              destructing assignment
 /  `a``c:f x             empty var drops a return value
 / call-indirect          
 /  .[int-expr;ret-type;arg-types][args]    .[5;i;iif][1;2;3.0]
 / loops
 /  (expr;post)'[statement-list]            (x<9;x:x+1)'[a;b;c]
-/  (;)'[..]   "while"
-/  (;;label)'..          jump label for nested loops
+/  (;)'[..]              while true
+/  (;;label)'[..]        jump label for nested loops
 /  (;)'[..;<;..]         jump backwards(continue)
 /  (;)'[..;>;..]         jump forwards(break inner loop)
 /  (;)'[..;>label;..]    break/continue label (outer loop)
 /  (;)'[..;<]            simple loop (continue is last in list)
-/                        simple loops don't check cond on first entry (repeat-until)
+/  simple loops don't check cond on first entry (repeat-until)
 / cond
 /  $[x;y]                if x then y
 /  $[x;y;z]              if x then y else z
 /  $[a;b;c;d]            if a then b else if c then d
 / switch
-/  ?[int-expr;a;b;c]     jump table: switch(int-expr)case 0:a; case 1:b; default:c
+/  ?[int-expr;a;b;..]    jump table: switch(int-expr)case 0:a; case 1:b; default:c
 /  ?[int-expr;a;b;]      last expr is empty: no default
 /  cond and switch may be expressions or statements.
-/  as expressions, e.g. 1+r:$[x;y;z] cond needs an else clause and switch a default.
-/  all branched must evaluate to the same type (for expressions).
+/  as expressions, e.g. 1+r:$[x;y;z] cond needs an else clause and switch a default,
+/  and branched must evaluate to the same type.
 / data
-/  0x1234..              first statement is data section(copied to initial memory at 0)
+/  0x1234..              first statements are data section(copied to initial memory at 0)
 / function table
-/  #100                  function table (for indirect calls) has 100 entries
+/  #100                  function table (for indirect calls) with 100 entries
 /  0:`a`b`c              table for indirect calls start-index:names
 /  50:`f`g ";"/:
 
@@ -159,12 +159,11 @@ ikinst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"m
 ikinst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
 ikinst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
 
-ikjon:{{_@[x;&" ">x;+;1]}1_(_0)/:{$[70>(#*|x)+$[0N~i:*&" ">y;#y;i];@[x;0|-1+#x;,;";",y];x,,y]}/[,"";x]} /join short lines
-ikfmt:{$[0~#x;"";0~#i:&" ">x;x;  ,/((_!32)^x),'(("\n",/:_32+&'n:0+x i),,"")]}
-/ikfmt:{ @[x;i:&" ">x;"\n"] }
+ikjon:{@[x;&" ">x:(_0)/:x;+;_1]}
+ikfmt:{"\n"/:{(_32+&0+*x),1_x}'{$[70>(#*|x)+#y;@[x;0|-1+#x;,;";",1_y];x,,y]}/[,,_0;(&" ">x)^x:(_0),x]}
 
-/x:("alpha";"beta";"gamma";"delta";"werner")
-/ \@[x;&" ">x:ikfmt x;"\n"]
+/maybe join with {(_1),((_0)/:x),_-1}
+/then  fmt  identify level by +-_1, cut them, replace 0 with level, ...
 
 /x:`<ik``nort
 
