@@ -159,10 +159,16 @@ ikinst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"m
 ikinst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
 ikinst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
 
-ikfmt:{l:1+0,(+\("["=x)|"("=x)-+\("]"=x)|")"=x:";",x                             /indentation level
- x[i]:_l i:&";"=x                                                                /replace ";" with level(byte)
- 1_"\n"/:{$[70>(#*|x)+#y;@[x;0|-1+#x;,;";",1_y];x,,(_32+&0+*y),1_y]}/[,"";i^x]}  /join or line-break
+
+/format: if longest line is too long, try to split it at lowest level (until fixed)
+ikfmt:{l:1+(+\("["=x)|"("=x)-+\("]"=x)|")"=x  /indentation level
+ x:@[x;i;_l i:&";"=x]                         /replace ";" with level(byte) spl
+ "\n"/:iksem'ikspl/:,x}
+ikspl:{$[100<n:n i:*&n=|/n:#'x;(x@!i),(ikf2 x i),(1+i)_x;x]}
+ikf2:{i:&x=l:&/x i:&" ">x; (,(*i)#x), (_32+&0+l),/:1_'(i)^x}
+iksem:{@[x;&" ">x;";"]}                       /remove binary levels
+
+/ikfmt:{l:1+(+\("["=x)|"("=x)-+\("]"=x)|")"=x:";",x;"\n"/:((_(32)+&)'l i),'1_'(i:&";"=x)^x} /split everything and indent
 
 
-/x:`<ik``nort
-
+/ `<ikfmt"alpha;1+(gamma;delta)*2;epsilon"
