@@ -77,8 +77,8 @@ ikprg:{
  c:1_&P=0
  excl:!0
  fncs:"\n"/:y@&`fun=T c
- cons:$[#r:ikfmt ikjon y@&`con=T c;"/constants\n",r;""]
- vars:$[#r:ikfmt ikjon y@&`var=T c;"/globals\n",r;""]
+ cons:$[#r:ikfmt@";"/:y@&`con=T c;"/constants\n",r;""]
+ vars:$[#r:ikfmt@";"/:y@&`var=T c;"/globals\n",r;""]
  data:$[#D;"/data\n","\n"/:("0x",`x@)'-32^D,_&31;""]
  tabd:$[0>i:1+|/I c t:&`tab=T c;"";"/function table\n#",$i]
  tabl:iktbl y t
@@ -103,8 +103,8 @@ ikarg:{$[#y;$*y;""]}
 iksym:{y;$[`"_"~s:S x;"";$s]}
 ikres:{y;,/$S x}
 ikloc:{"(local ",(*y)," ",(iktype S x),")"}
-ikstm:{ikjon y}
-ikast:{ikjon $[":"~**|y;y[l]:1_y[l:-1+#y];y]}
+ikstm:{";"/:y}
+ikast:{";"/:$[":"~**|y;y[l]:1_y[l:-1+#y];y]}
 
 iklod:{$[`b~s:S x;"B";_($s)-32]," ",*y}
 iksto:{$[`b~s:S x;"B";_($s)-32],"[",(*y),"]::",y 1}
@@ -112,9 +112,9 @@ iksto:{$[`b~s:S x;"B";_($s)-32],"[",(*y),"]::",y 1}
 ikant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:iktype S x),".and"}
 
 ikasn:{$[1~i:(I x);*y;,/"`",'i#y],":",*|y}
-ikcal:{n:#y;y:ikjon y;$[`panic~s:S x;"!",y;($s),$[1~n;" ",y;"[",y,"]"]]}
+ikcal:{n:#y:";"/:y;$[`panic~s:S x;"!",y;($s),$[1~n;" ",y;"[",y,"]"]]}
 
-ikcli:{n:I x;".[",(,/(1+2*n)_y),";",(","/:n#(1+n)_y),";",(*y),"]",$[1~n;y 1;"[",(ikjon n#1_y),"]"]}
+ikcli:{n:I x;".[",(,/(1+2*n)_y),";",(","/:n#(1+n)_y),";",(*y),"]",$[1~n;y 1;"[",(";"/:n#1_y),"]"]}
 
 
 ikdfr:{y;""}
@@ -140,8 +140,8 @@ iknot:{(*y),"\ni32.eqz"}
 iknop:{y;""}
 ikret:{$[1~#y; ":",*y; ":(",(";"/:y),")"]}
 
-ikswc:{"?[",(ikjon y,$[I x;();,""]),"]"}
-ikcnd:{"$[",(ikjon y),"]"}
+ikswc:{"?[",(";"/:y,$[I x;();,""]),"]"}
+ikcnd:{"$[",(";"/:y),"]"}
 
 iktyp:{y;S x} /keep as symbol
 
@@ -159,11 +159,10 @@ ikinst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"m
 ikinst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
 ikinst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
 
-ikjon:{@[x;&" ">x:(_0)/:x;+;_1]}
-ikfmt:{"\n"/:{(_32+&0+*x),1_x}'{$[70>(#*|x)+#y;@[x;0|-1+#x;,;";",1_y];x,,y]}/[,,_0;(&" ">x)^x:(_0),x]}
+ikfmt:{l:1+0,(+\("["=x)|"("=x)-+\("]"=x)|")"=x:";",x                             /indentation level
+ x[i]:_l i:&";"=x                                                                /replace ";" with level(byte)
+ 1_"\n"/:{$[70>(#*|x)+#y;@[x;0|-1+#x;,;";",1_y];x,,(_32+&0+*y),1_y]}/[,"";i^x]}  /join or line-break
 
-/maybe join with {(_1),((_0)/:x),_-1}
-/then  fmt  identify level by +-_1, cut them, replace 0 with level, ...
 
 /x:`<ik``nort
 
