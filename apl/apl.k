@@ -29,13 +29,13 @@ AZ:_("A"+!26),"a"+!26
 OP:"¨<≤=≥>≠∨^⍲⍱-÷+×?⍵∊⍴~↑↓⍳○⌽⊖⍉*⍟→⌈⌊∇∆⍋⍒∘⎕⊂⊃∩∪⊥⊤!|,/⌿⍀{\\;:.()[]"   /← is mapped to :
 SY:UTF OP;                                       SE:SY?,";"
 
-A:256#                       "e"   /illegal but allowed in quotation
-@[`A;32;                     "_"]  /blank
-@[`A;0+"~+-*<>^?!,:;/\\()[]";"+"]  /ascii punctuation
-@[`A;192+!64;                "u"]  /utf8 start
-@[`A;39;                     "'"]  /quote
-@[`A;0+NM,AZ;                "a"]  /alphanum
-@[`A;128+!64;                "c"]  /utf8 continuation
+A:256#                        "e"   /illegal but allowed in quotation
+@[`A;32;                      "_"]  /blank
+@[`A;0+"~+-*<=>^?!,:;/\\()[]";"+"]  /ascii punctuation
+@[`A;192+!64;                 "u"]  /utf8 start
+@[`A;39;                      "'"]  /quote
+@[`A;0+NM,AZ;                 "a"]  /alphanum
+@[`A;128+!64;                 "c"]  /utf8 continuation
 
 TOK:{[x]m:{y/:x\:z};m1:{m[x;y,"[",(_O+"0"),"]";z]};x:m["¯";"_"]m["←";":"]m1["⍀";"\\"]m1["⌿";"/"]m1["⊖";"⌽";x]
  M:"__+u'aee;+_+u'ace;ueeeeece;'qqqqqqq;a_+u'1ee;c_+u'ace;eeeeeeee;qqqqbqqq;b__uq___;1_+u'1ce"  /state matrix
