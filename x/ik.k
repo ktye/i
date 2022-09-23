@@ -11,8 +11,8 @@
 /  f:i:{[]..; :x; ..}    return x, automatic on last statement if f has a return value.
 /  f:ii:{[]..; (a;b)}    multi-return
 / globals
-/  ai:3                  global var (mutable)
-/  bi::4                 const
+/  global{ai:3}          global var (mutable)
+/  const{bi:4}           const
 / literals
 /  xi:1; yf:2.           int float parsed by k
 /  2 5                   (two int array) is int64 [high low]
