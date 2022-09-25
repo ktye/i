@@ -1,5 +1,6 @@
+/ ik transforms the IR (a k table) into an "i" program.
 / "i" is a low level input language with k syntax
-/  it can be parsed by k but not evaluated. IR is written from k byte code. the parser is for free.
+/  it can be parsed by k but not evaluated (see ki.k).
 / types
 /  `i`u`j`k`f:  i32 u32 i64 u64 f64
 / heap
@@ -11,8 +12,8 @@
 /  f:i:{[]..; :x; ..}    return x, automatic on last statement if f has a return value.
 /  f:ii:{[]..; (a;b)}    multi-return
 / globals
-/  global{ai:3}          global var (mutable)
-/  const{bi:4}           const
+/  ai:3                  global var (mutable)
+/  bi=4                  const
 / literals
 /  xi:1; yf:2.           int float parsed by k
 /  2 5                   (two int array) is int64 [high low]
