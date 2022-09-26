@@ -1524,9 +1524,8 @@ func nc(f, ff int32, x, y K) (r K) { //compare
 		return r
 	} else { // vector-vector
 		n := nn(x)
-		if t == ct {
+		if t == it {
 			r = use2(x, y)
-			r = K(It)<<59 | K(uint32(r))
 		} else {
 			r = mk(It, nn(x))
 		}
