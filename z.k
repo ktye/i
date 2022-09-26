@@ -43,7 +43,7 @@ abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;exp:`42;lo
   x:$[`C~t;`str x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
   (("";",")(1~n)),x,dd}
  t:@y;n:#y;k:`kxy x;m:x
- $[n~0;(.`".kst0")@t;`T~t;"+",d[+y;k];`D~t;d[y;k];y~*y;a y;v[y;k;m;n]]} /344
+ $[`T~t;"+",d[+y;k];n~0;(.`".kst0")@t;`D~t;d[y;k];y~*y;a y;v[y;k;m;n]]} /344
 
 `".kst0":`C`I`S`F`Z`L!(c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
 `".kstm":`C`I`S`F`Z`L!100 30 30 20 10 20
