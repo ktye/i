@@ -7,18 +7,17 @@
 /  I x  U x  J x  K x  F x  read. x is byte address(not vector index) in linear memory
 /  I[x]:y ..                write. alignment is assumed, e.g. avoid I[1+2]:..
 / functions
-/  f:i:{[xi;yf]..}       f(name), i(return type), args&locals have type suffix in the name
+/  f[i]:{[xi;yf]..}      f(name), i(return type), args&locals have type suffix in the name
 /                        locals are not declared, they are detected by k on assignment, global: zi::..
-/  f:i:{[]..; :x; ..}    return x, automatic on last statement if f has a return value.
-/  f:ii:{[]..; (a;b)}    multi-return
+/  f[i]:{[]..; :x; ..}   return x, automatic on last statement if f has a return value.
+/  f[ii]:{[]..; (a;b)}   multi-return
 / globals
 /  ai:3                  global var (mutable)
 /  bi=4                  const
 / literals
 /  xi:1; yf:2.           int float parsed by k
 /  2 5                   (two int array) is int64 [high low]
-/  "-1.13585365213876817300e-11" precise float constants as strings
-/  (`u 6)<<`u 1          unsigned literals need explicit cast
+/  0x123...              precise float constants binary 64bit
 / cast
 /  `i x  `u x  ..
 / call
@@ -50,7 +49,6 @@
 / data
 /  0x1234..              first statements are data section(copied to initial memory at 0)
 / function table
-/  #100                  function table (for indirect calls) with 100 entries
 /  0:`a`b`c              table for indirect calls start-index:names
 /  50:`f`g ";"/:
 
@@ -77,17 +75,17 @@ ik:{[o]opts::o
 ikprg:{
  c:1_&P=0
  excl:!0
+ prog:"`",($S 0)," /program\n"
  fncs:"\n"/:y@&`fun=T c
  cons:$[#r:ikfmt@";"/:y@&`con=T c;"/constants\n",r;""]
  vars:$[#r:ikfmt@";"/:y@&`var=T c;"/globals\n",r;""]
  data:$[#D;"/data\n","\n"/:("0x",`x@)'-32^D,_&31;""]
- tabd:$[0>i:1+|/I c t:&`tab=T c;"";"/function table\n#",$i]
- tabl:iktbl y t
- "\n"/:(""~/:)_(data;tabd;tabl;cons;vars;"\n/functions\n",fncs)}
+ tabl:iktbl y t:&`tab=T c
+ "\n"/:(""~/:)_(prog;data;tabl;cons;vars;"\n/functions\n",fncs)}
  
 ikdat:{,/@["\\",/:256^`x@_!256;0+ikc;ikc:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 ikmem:{y;""}
-ikcon:{($S x),"::",*y}
+ikcon:{($S x),"=",*y}
 ikvar:{($S x),":", *y}
 iktab:{y;(I x;S x)}
 iktbl:{"\n"/:{($x),":",y}'[(*x)i;,/'"`",''$(i:&~1=-':*x)^(x:+x)1]}
@@ -97,7 +95,7 @@ ikfun:{s:$S x
  locs:" "/:y@&`loc=T c
  body:    y@*&`ast=T c
  expo:$[I x;"(export \"",s,"\")";""]
- s,":",rets,":{[",args,"]",ikfmt body,"}"}
+ s,"[",rets,"]:{[",args,"]",ikfmt body,"}"}
  
  
 ikarg:{$[#y;$*y;""]}
@@ -128,13 +126,8 @@ ikget:{y;$S x}
 ikGet:{y;$S x}
 ikjmp:{y;(,$[I x;"<";">"]),$[`~S x;"";($S x)]}
 
-ikflt:{$["."~*|s:(*&" "=c)#c:C 8+x+!24;s;"\"",s,"\""]}
-iklit:{y;i:I x;$[`f~t:S x;ikflt i
-                 `i~t;$[0N~i;"-2147483648";$i]
-                 `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-		 $[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]]}
-iklit:{y;i:I x;$[`k~t;"`k ";""],$[`f~t:S x;ikflt i;`i~t;$i;`u~t;"`u ",$i
-               i~0;"0 0"; ($`i C 4+i+!4)," ",$`i C i+!4]}
+ikflt:{$[f~0.+_f:*`f@c:C x+!8;$f;"0x",`x@`c@,f]}
+iklit:{y;i:I x;$[`f~t:S x;ikflt i;t':`i`u;$i;i~0;"0 0";" "/:$`i C i+!8]}
 
 ikneg:{"-",*y}
 iknot:{(*y),"\ni32.eqz"}

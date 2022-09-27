@@ -1,8 +1,8 @@
-/function table
-#3
+`tab /program
+
 0:`f`g`h
 
 /functions
-f::{[]}
-g:i:{[x]x}
-h:i:{[x;y]x+y}
+f[]:{[]}
+g[i]:{[x]x}
+h[i]:{[x;y]x+y}

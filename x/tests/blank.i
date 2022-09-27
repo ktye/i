@@ -1,4 +1,6 @@
+`blank /program
+
 
 /functions
-f:ii:{[](1;2)}
-g:i:{[]`x`:f[];x}
+f[ii]:{[](1;2)}
+g[i]:{[]`x`:f[];x}

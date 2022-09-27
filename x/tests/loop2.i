@@ -1,3 +1,5 @@
+`loop /program
+
 
 /functions
-f::{[](i<3;)'[i:i+1;>]}
+f[]:{[](i<3;)'[i:i+1;>]}
