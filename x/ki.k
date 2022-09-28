@@ -21,8 +21,10 @@ kicon:{v:x -3+i:&(`74)~/:x;s:x -2+i;{(`var`lit;0N 1;0N,kival y;(`$-1_c),`$*|c:$x
 kival:{$[`i~t:@x;x;[C,:`c x:$[`f~t;`c@,x;x];:-8+#C]]}
 kilam:{i:&"l"~/:x; kifun'[x i-1;x i-6;x i-8]}
 
-kifun:{[s;r;f]f:.f; ((`fun;0;0;s)),'kiarg f  } /todo..
+kifun:{[s;r;f]f:.f ; x:((`fun;0;0;s)),'(kiarg f); (+kiret'$r),'(kiloc f)  } /todo..
 kiarg:{a:(n:x 3)#x 1; i:2/!2*n; (`arg`sym@i;0 1 i;,/+2^(!n),&n;,/+2^(kits'a),a)}
+kiloc:{n:#l:(x 3)_x 1;i:2/!2*n; (`loc`sym@i;0 1 i;,/+2^(!n),&n;,/+2^(kits'l),l)}
+kiret:{(`ret;0;0;`$x)}
 
 kits:{`$*|$x}
 kiel:{i@&`v=@'x[-7+i:&(`64)~/:x]}    /lambda assignments -> `64->"l"
@@ -31,6 +33,7 @@ kiet:{i@&`i=@'x[-1+i:&(`64)~/:x]}    /table assignments  -> `64->"t"
 
 
 l: \`p@<`"tests/asn.i"
+
 
 
 
