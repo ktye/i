@@ -39,7 +39,6 @@ wg             . > k.wat
 cp web/k.wasm   /c/k/ktye.github.io/
 cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
-cp apl/apl.html /c/k/ktye.github.io/
-cp apl/apl.k    /c/k/ktye.github.io/
+cp apl/apl.*    /c/k/ktye.github.io/
 
 rm k.k out k.wat

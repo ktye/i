@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<head><meta charset="utf-8"><title>↓</title></head>
+<head><meta charset="utf-8"><title>↓</title>
 <link rel=icon href='div.png'/>
+<link rel="manifest" href="/apl.webmanifest">
 <style>
  @font-face{font-family:'apl'; src:url('apl.woff2') format('woff2');}
  html, body{font-family:monospace;overflow:hidden;margin:none}
@@ -8,6 +9,7 @@
  .kb img{margin:-75px -87px;}
  .ibm2741{resize:none;outline:none;border:none;font-family:apl;position:absolute;left:5px;top:5px;width:100%;height:calc(100vh - 15px);overflow:hidden}
 </style>
+</head>
 
 <body>
 <textarea id="_ibm" class="ibm2741" spellcheck="false"></textarea>
@@ -16,6 +18,7 @@
 
 <script type="module">
 
+if('serviceWorker'in navigator)navigator.serviceWorker.register("/apl.sw.js")
 
 import { K } from './k.js'
 
