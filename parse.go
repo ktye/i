@@ -164,7 +164,7 @@ func pasn(x, y K) (K, K, int32) {
 		} else if v == 449 || v == 545 {
 			s := Fst(x) // (`x;.)
 			if loc != 0 && v == 449 {
-				loc = cat1(loc, s)
+				loc = Cat(loc, s)
 			}
 			x = l1(s)
 			y = l1(448) // asn
