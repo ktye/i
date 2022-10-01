@@ -7,12 +7,15 @@ this.addEventListener("install", (event) => {
     cache.addAll([
      "/apl.html",
      "/k.js",
+     "/k.wasm",
      "/apl.woff2",
+     "/icon.svg",
      "/div.png"
     ])
    )
   )
 })
+
 
 self.addEventListener('fetch', function(event) {
  event.respondWith(
