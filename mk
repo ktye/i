@@ -3,6 +3,7 @@ set -e
 
 # embed z.k in z.go
 sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
+cp k.k /c/k/ktye.github.io/kde/z.k
 zn=`wc -c k.k | sed 's/ .*//'`
 zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
 cat << EOF > z.go
@@ -41,4 +42,4 @@ cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
 cp apl/apl.*    /c/k/ktye.github.io/
 
-rm k.k out k.wat
+#rm k.k out k.wat
