@@ -813,6 +813,7 @@ func skiptests() []string {
 		".{x+y}",                             // .l
 		"(.{a:3*x;a:5;x:2})1",                // .l
 		"(.{a:3*x})3",                        // .l
+		"(.{`a`b:u})1 3",                     //.l
 		"{a+b}.`a`b!1 2",                     // envcall is not supported (l.d)
 		"(+`a`b!(1 2 3;4 5 6)){a>1}",         // envcall is not supported (t@d)
 		"`unpack 0x690400000002000000",       // unpack uses dynamic scope
