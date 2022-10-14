@@ -261,7 +261,7 @@ func rdn(f, x, l K) (r K) { // {x+y*z}/x  {x+y*z}\x
 	x = Flp(ndrop(1, x))
 	n := nn(x)
 	for i := int32(0); i < n; i++ {
-		r = Cal(rx(f), Cat(Enl(r), ati(rx(x), i)))
+		r = Cal(rx(f), Cat(l1(r), ati(rx(x), i)))
 		if l != 0 {
 			l = cat1(l, rx(r))
 		}
