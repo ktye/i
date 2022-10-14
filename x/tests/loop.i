@@ -2,4 +2,4 @@
 
 
 /functions
-f[]:{[]i:0;(i<3;i:i+1)'[n:n+1]}
+f[]:{[]ii:0;(ii<3;ii:ii+1)'[ni:ni+1]}

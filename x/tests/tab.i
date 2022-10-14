@@ -4,5 +4,5 @@
 
 /functions
 f[]:{[]}
-g[i]:{[x]x}
-h[i]:{[x;y]x+y}
+g[i]:{[xi]xi}
+h[i]:{[xi;yi]xi+yi}

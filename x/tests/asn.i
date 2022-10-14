@@ -2,6 +2,6 @@
 
 
 /functions
-f[i]:{[x]r:1+x;r}
-g[ii]:{[x](1+x;1-x)}
-h[i]:{[x]`x`r:g x;r}
+f[i]:{[xi]ri:1+xi;ri}
+g[ii]:{[xi](1+xi;1-xi)}
+h[i]:{[xi]`xi`ri:g[xi];ri}

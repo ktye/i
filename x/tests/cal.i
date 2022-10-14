@@ -2,5 +2,5 @@
 
 
 /functions
-g[i]:{[x;y]x-y}
-f[i]:{[x]g[1;x]}
+g[i]:{[xi;yi]xi-yi}
+f[i]:{[xi]g[1;xi]}

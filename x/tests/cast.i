@@ -2,9 +2,9 @@
 
 
 /functions
-f[j]:{[x]`j x}
-g[i]:{[x]`i x}
-h[f]:{[x]`f x}
-i[i]:{[x]`i x}
-j[u]:{[x]`u x}
-k[i]:{[x]`i x}
+f[j]:{[xi]`j xi}
+g[i]:{[xj]`i xj}
+h[f]:{[xi]`f xi}
+i[i]:{[xf]`i xf}
+j[u]:{[xi]`u xi}
+k[i]:{[xu]`i xu}

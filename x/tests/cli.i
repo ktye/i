@@ -2,4 +2,4 @@
 
 
 /functions
-f[i]:{[x;y].[i;;x]y}
+f[i]:{[xi;yi].[i;;xi]yi}

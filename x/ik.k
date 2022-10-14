@@ -60,6 +60,8 @@ lp:{(~~)#@[&#x;x i;i:!#x]}
 ik:{[o]opts::o
  /T::@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loops
  
+ {[d;i;t]$[t':`arg`loc;d[S 1+i]:S i;t':`sym`get;S[i]:`$,/$(S i),d S i;0];d}/[(0#`)!0#`;!#T;T] /append type to symbols
+ 
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(ikprg;ikmem;ikcon;ikvar;iktab;ikfun;ikarg;iksym;ikres;ikloc;ikast;iklod;iksto)
  F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(ikadd;ikand;ikbnd;ikant;ikasn;ikcal;ikcli;ikcnd;ikdfr;ikdiv;ikdrp;ikeql;ikcst)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(ikfor;ikget;ikGet;ikgte;ikjmp;ikles;iklit;iklte;ikmod;ikmor;ikmul;ikneg)
