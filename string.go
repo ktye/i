@@ -49,18 +49,25 @@ func Str(x K) (r K) {
 			if xp > 448 {
 				return Str(K(xp) - 448)
 			}
+			ip := xp
 			switch xp >> 6 {
 			case 0: //  0..63  monadic
+				if xp == 0 {
+					return mk(Ct, 0)
+				}
 			case 1: // 64..127 dyadic
-				xp -= 64
+				ip -= 64
 			case 2: // 128     dyadic indirect
-				xp -= 128
+				ip -= 128
 			case 3: // 192     tetradic
-				xp -= 192
-			default:
+				ip -= 192
+				//default:
+				//	return ucat(Ku('`'), si(xp))
+			}
+			if ip > 25 || ip == 0 {
 				return ucat(Ku('`'), si(xp))
 			}
-			r = Ku(uint64(I8(227 + xp)))
+			r = Ku(uint64(I8(227 + ip)))
 		case 1: //not reached
 			r = 0
 		case ct:

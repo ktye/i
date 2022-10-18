@@ -643,19 +643,15 @@ func sK(x K) string {
 		default:
 			return "`" + itoa(xp)
 		}
-		/*
-			case bt:
-				if int32(x) != 0 {
-					return "1b"
-				} else {
-					return "0b"
-				}
-		*/
 	case ct:
 		return strconv.Quote(string([]byte{byte(xp)}))
 	case it:
 		return strconv.Itoa(int(xp))
 	case st:
+		n := nn(K(I64(0)))
+		if 8*n <= xp {
+			panic("illegal symbol")
+		}
 		x = cs(x)
 		dx(x)
 		xp = int32(x)
