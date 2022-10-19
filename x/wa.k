@@ -63,14 +63,15 @@ wadfr:{y;""}
 wadrp:{"\n"/:y,,"drop"}
 wacst:{t:!watype;(y 1),"\n",wacast i:(t?y 0)+5*t?S x}
 wafor:{$[I x;waslp[x;y];walop[x;y]]}
-waslp:{"\n"/:("loop";"\n"/:2_y;y 1;*y;"br_if 0\nend")}
+waslp:{"\n"/:("loop";-5_"\n"/:2_y;y 1;*y;"br_if 0\nend")}
 walop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
  "\n"/:bl,($[#*y;(*y),"\ni32.eqz\nbr_if 1";""]; "\n"/:2_y;y 1;"br 0\nend\nend")}
 waget:{y;"local.get $",$S x}
 waGet:{y;"global.get $",$S x}
 wajmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 
-waflt:{(*&" "=c)#c:C 8+x+!24}
+waflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don't roundtrip
+waflt:{x:C x+!8;$[#r:waflts x;r;$*`f x]}
 walit:{y;i:I x;(watype t),".const ",$[`f~t:S x;waflt i
                  `i~t;$[0N~i;"-2147483648";$i]
                  `u~t;$[i<0;"0x",`x@|`c@,i;$i]

@@ -39,8 +39,8 @@ node type                    i-value             s-value
  cal     function call       func node           func name       children: args
  cli     indirect call       #args               -               children: func-expr args arg-types ret-types
  drp     drop return vals    -                   -               child: cal
- get     get local           arg node            varname
- Get     get global          glo node            varname
+ get     get local           -                   varname
+ Get     get global          -                   varname
  lod     load                -                   type(bijf)      child:    addr
  sto     store               -                   type(bijf)      children: addr, value
  asn     assignment          #symbols            -               children: symbol(s), expr

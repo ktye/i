@@ -54,7 +54,9 @@ gofun:{
 
 gomem:{y;("Memory";$[`b~S x;"2";""];"( ";$I x;" )")}
 gotab:{y;("Functions(";$I x;", ";$S x;") ")}
-goflt:{(*&" "=c)#c:C 8+x+!24}  /todo from binary
+
+goflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don't roundtrip
+goflt:{x:C x+!8;$[#r:goflts x;r;$*`f x]}
 golit:{y;i:I x;$[`f~t:S x;goflt i
                  `i~t;$[0N~i;"-0x80000000";$i]
                  `u~t;$[i<0;"0x",`x@|`c@,i;$i]
