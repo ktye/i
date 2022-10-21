@@ -57,3 +57,22 @@ func itakeF(n, xF, xn int32) (int32, int32) {
  }
 }
 ```
+
+```
+std:{[xF]%(+/xF*xF:(xF-(+/xF)%#xF))%-1+#xF}
+```
+```go
+func std(xF, xn int32) (float64) {
+ var t1 float64
+ for i:=int32(0); i<xn<<3; i+=8 {
+  t1 += F64(xF+i)
+ }
+ var t2
+ for i:=int32(0); i<xn<<3; i+=8 {
+  var t3 = (F64(xF+i)-t1) / (-1+xn))
+  t2 += t3*t3
+ }
+ free(xF, bt(8*xn))
+ return sqrt(t2)
+}
+```
