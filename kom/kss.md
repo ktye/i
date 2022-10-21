@@ -67,6 +67,7 @@ func std(xF, xn int32) (float64) {
  for i:=int32(0); i<xn<<3; i+=8 {
   t1 += F64(xF+i)
  }
+ t1 /= xn
  var t2
  for i:=int32(0); i<xn<<3; i+=8 {
   var t3 = (F64(xF+i)-t1) / (-1+xn))
