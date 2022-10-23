@@ -28,11 +28,11 @@ node type                    i-value             s-value
  var     global variable     -                   name            child: lit
  lit     literal (con|var)   val(32bit)|C-index  type
  tab     func table entry    index               func name
- fun     function            func index          func name       children: args rets locs ast dfr
- arg     func argument       arg index           type            child: sym
+ fun     function            exported            func name       children: args rets locs ast dfr
+ arg     func argument       -                   type            child: sym
  sym     symbol              1(global)|0N(func)  name
- res     return value        ret val index       type            unnamed
- loc     local var decl      loc index           type            child: sym
+ res     return value        -                   type            unnamed
+ loc     local var decl      -                   type            child: sym
  ast     func ast root       -                   -               one per func
  stm     statement list      -                   -
  ret     return              -                   `|type          children: return values, s-type only for single res
