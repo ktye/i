@@ -23,11 +23,12 @@ kiast:{x:*x;t:$[1~#y;`$y;`]
 
 kiprs:{t:@y;
  f2:{kix[kix[(x;0N;2;kits(*|y)3);*|y];y@-2+#y]}
- f:(0;kiasn;f2`add;f2`sub;f2`mul;0)@0|(0;`64;`66;`67;`68)?y
- $[~f~0;(-2_x),,f x;`s~t;x,,(`sym;0N;0;y);`i~t;x,,(`lit;0N;y;`i);x]}
+ f:(0;kiasn;f2`add;f2`sub;f2`mul;kical;0)@0|(0;`64;`66;`67;`68;`83)?y
+ $[~f~0;(-2_x),,f x;`s~t;x,,(`sym;0N;0;y);`S~t;x,,(n#`sym;n#0N;&n:#y;y);`i~t;x,,(`lit;0N;y;`i);x]}
  
 
-kiasn:{kix[kix[(`asn;0N;1;`);*|x];x@-2+#x]}        /todo multi-assign(i-value)
+kical:{kix[(`cal;0N;0N;(*|x)3);x@-2+#x]}
+kiasn:{kix[kix[(`asn;0N;#(*|x)3;`);*|x];x@-2+#x]}
 
 kits:{`$*|$x}
 kiel:{i@&`v=@'x[-7+i:&(`64)~/:x]}    /lambda assignments -> `64->"l"
