@@ -31,6 +31,14 @@ elif [ "$1" = i ];then
 		o=`echo $x | sed 's/.k$/.i/'`
 	 	k $x ../ik.k -e 'x:`<ik``' > $o
 	done
+elif [ "$1" = ki ]; then
+        #for x in *.k; do
+	for x in asn.k blank.k cal.k fun.k inc.k; do
+	 i=`echo $x | sed 's/.k$/.i/'`
+	 k ../ki.k -e 'x:kixx@<`"'$i'"' > out1
+ 	 k ${x}  -e 'x:`<"\n"/:(`lxy 40 100)@+`T`P`I`S!(T;P;I;S)' > out2
+	 diff out1 out2
+	done
 elif [ "$1" = walidate ]; then
 	for x in *.wa; do
 		/c/local/wabt/wat2wasm $x
