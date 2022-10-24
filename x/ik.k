@@ -10,7 +10,7 @@
 /  f[i]:{[xi;yf]..}      f(name), i(return type), args&locals have type suffix in the name
 /                        locals are not declared, they are detected by k on assignment, global: zi::..
 /  f[i]:{[]..; :x; ..}   return x, automatic on last statement if f has a return value.
-/  f[ii]:{[]..; (a;b)}   multi-return
+/  f[ii]:{[]..;(,a;,b)}  multi-return
 / globals
 /  ai:3                  global var (mutable)
 /  bi=4                  const
@@ -134,7 +134,7 @@ iklit:{y;i:I x;$[`f~t:S x;ikflt i;t':`i`u;$i;i~0;"0 0";" "/:$`i C i+!8]}
 ikneg:{"-",*y}
 iknot:{(*y),"\ni32.eqz"}
 iknop:{y;""}
-ikret:{$[1~#y; ":",*y; ":(",(";"/:y),")"]}
+ikret:{$[1~#y; ":",*y; ":(,",(";,"/:y),")"]}
 
 ikswc:{"?[",(";"/:y,$[I x;();,""]),"]"}
 ikcnd:{"$[",(";"/:y),"]"}
