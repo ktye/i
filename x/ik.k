@@ -100,7 +100,7 @@ ikfun:{s:$S x
  s,"[",rets,"]:{[",args,"]",ikfmt body,"}"}
  
  
-ikarg:{$[#y;$*y;""]}
+ikarg:{$[#y;$*y;$S x]}
 iksym:{y;$[`"_"~s:S x;"";$s]}
 ikres:{y;,/$S x}
 ikloc:{"(local ",(*y)," ",(iktype S x),")"}

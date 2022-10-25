@@ -25,18 +25,20 @@ kiast:{x:*x;t:$[1~#y;`$y;`]
  
  r:$[#y;((-#y)_r),,(`ret;0N;0N;t)kix/|(-#y)#r;r]
  r:(`ast;0N;0N;`)kix/r}
- 
-kidpf:{ } /drop
 
 
 kiprs:{t:@y;
  f2:{kix[kix[(x;0N;2;kits(*|y)3);*|y];y@-2+#y]}
- f:(0;kiasn;f2`add;f2`sub;f2`mul;kiatx;0)@0|(0;`64;`66;`67;`68;`83)?y
- $[~(y~())|f~0;(-2_x),,f x;y~`84;((*|r)_x),,-1_r:kical x;`s~t;x,,(`sym;0N;0;y);`S~t;x,,(n#`sym;n#0N;&n:#y;kidrp y);`i~t;x,,(`lit;0N;y;`i);x]}
+ f:(0;kiasn;f2`add;f2`sub;f2`mul;0)@0|(0;`64;`66;`67;`68)?y
+ $[~(y~())|f~0;(-2_x),,f x;y~`83;kiatx x;y~`84;kifnc x;`s~t;x,,(`sym;0N;0;y);`S~t;x,,(n#`sym;n#0N;&n:#y;kidrp y);`i~t;x,,(`lit;0N;y;`i);x]}
  
 
-kiatx:{kix[(`cal;0N;0N;(*|x)3);x@-2+#x]}
-kical:{s:kis f:(*|x)3;a:*s;r:s 1;c:(`cal;0N;0N;f);$[a;(c kix/|a#-2_x),-2-a;c,-1-a]} /;  $[()~p:x[-2+#x];c,0;(c kix/n#|-2_x),n:-p 2]}
+kiatx:{$[`sym~**|x;(-2_x),,kix[(`cal;0N;0N;(*|x)3);x@-2+#x];x]}
+kifnc:{$[`sym~**|x;kical x;kicli x]}
+kical:{s:kis f:(*|x)3;a:*s;r:s 1;c:(`cal;0N;0N;f);$[a;((-2-a)_x),,(c kix/|a#-2_x);((-1-a)_x),,c]}
+kicli:{n:#x;an:#a:$(x n-2)3;r:+(rn#`res;rn#0N;(rn:#r)#0N;r:`$'$(x n-3)3); e:(x n-4); x:-4_x; b:+(an#`arg;an#0N;an#0N;`$'a);((-an)_x),,((((`cli;0N;an;`)kix/,e)kix/(-an)#x)kix/b)kix/r}
+
+
 kiasn:{kix[kix[(`asn;0N;#(*|x)3;`);*|x];x@-2+#x]}
 kidrp:{@[x;&`=x;`"__"]}
 
@@ -69,10 +71,10 @@ ki:{kiC::"";x:`p@x;x:@[x;(kiel;kiev;kiet)@\:x;"lnt"]; kis::kisig x
 
 kixx:{d:ki x;`<"\n"/:(`lxy 40 100)@+`T`P`I`S!-4#.d}
 
-/x:kixx"`drp /program
+/x:kixx"`cli /program
 /
 /
 //functions
-/f[i]:{[]1}
-/g[]:{[]f[];f[]}
+//f[i]:{[xi;yi]f xi} /((`sym;0N;0;`xi);(`sym;0N;0;`f))
+/f[i]:{[xi;yi].[i;i;xi]yi}
 /"
