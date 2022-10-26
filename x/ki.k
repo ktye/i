@@ -6,8 +6,8 @@ kix:{y:@[y;1;+;#*x];y[1]:0|y 1;x,'y} /catentate subtrees and translate parents, 
 ki0:(0#`;!0;!0;0#`)
 
 kitab:{i:&"t"~/:x;s:x i-2; {(`tab;0;x;y)}'[,/(x i-1)+!'#'s;,/s]}
-kivar:{v:x -2+i:&(`64)~/:x;s:x -1+i;{(`con`lit;0N 1;0N,kival y;(`$-1_c),`$*|c:$x)}'[s;v]}
-kicon:{v:x -3+i:&(`74)~/:x;s:x -2+i;{(`var`lit;0N 1;0N,kival y;(`$-1_c),`$*|c:$x)}'[s;v]}
+kivar:{v:x -2+i:&(`64)~/:x;s:x -1+i;{(`var`lit;0N 1;0N,kival y;(`$-1_c),`$*|c:$x)}'[s;v]}
+kicon:{v:x -3+i:&(`74)~/:x;s:x -2+i;{(`con`lit;0N 1;0N,kival y;(`$-1_c),`$*|c:$x)}'[s;v]}
 kival:{$[`i~t:@x;x;[kiC,:`c x:$[`f~t;`c@,x;x];:-8+#kiC]]}
 kilam:{i:&"l"~/:x; kifun'[x i-1;x i-6;x i-8]}
 kilan:{i:&"n"~/:x; kifun'[x i-1;0#`;x i-7]}
