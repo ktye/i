@@ -109,8 +109,7 @@ func glyph(m image.Image, x, y, w, h int) string {
 	b, k := make([]bool, w*h), 0
 	for j := 0; j < h; j++ {
 		for i := 0; i < w; i++ {
-			if rr, gg, bb, _ := m.At(x+i, y+j).RGBA(); rr == 0 && gg == 0 && bb == 0 {
-				fmt.Println("r/g/b", rr, gg, bb)
+			if rr, gg, bb, aa := m.At(x+i, y+j).RGBA(); rr == 0 && gg == 0 && bb == 0 && aa == 65535 {
 				b[k] = true
 			}
 			k++

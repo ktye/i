@@ -1,6 +1,17 @@
-go run gen.go 10x20.png         decker 10 20  >10x20.dek
-go run gen.go 16x32.png         decker 16 32  >16x32.dek
-go run gen.go vt220.png         decker 10 20  >vt220.dek
-go run gen.go zevv_8x16.png     decker  8 16  >zevv.dek
-#go run gen.go lucx11_6x11.png   decker  6 11  >lucx11_6x11.dek
-#go run gen.go lucx13_7x13.png   decker  7 13  >lucx13_7x13.dek
+fn()
+{
+	echo "${1}:\"${2}\""
+}
+
+cat << EOD
+{deck}
+version:1
+{fonts}
+EOD
+
+fn f10x20 `go run gen.go 10x20.png         decker 10 20`
+fn f16x32 `go run gen.go 16x32.png         decker 16 32`
+fn vt220  `go run gen.go vt220.png         decker 10 20`
+fn zevv   `go run gen.go zevv_8x16.png     decker  8 16`
+fn lucx11 `go run gen.go lucx11_6x11.png   decker  6 11`
+fn lucx13 `go run gen.go lucx13_7x13.png   decker  7 13`
