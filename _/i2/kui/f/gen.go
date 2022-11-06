@@ -91,7 +91,7 @@ func main() {
 	{
 		printd("%%%%FNT0")
 		var d []byte
-		d = append(d, byte(w), byte(h), byte(w))
+		d = append(d, byte(w), byte(h), 0)
 		d = append(d, []byte(dekglyph(make([]bool, w*h), w, h))...) //space
 		for i := 0; i < 94; i++ {
 			if len(dek[33+rune(i)]) == 0 {
@@ -144,7 +144,7 @@ func dekglyph(b []bool, w, h int) string {
 	if 8*w8 < w {
 		w8++
 	}
-	u := append([]byte{}, 0)
+	u := append([]byte{}, byte(w))
 	for i := 0; i < h; i++ {
 		a := make([]bool, 8*w8)
 		copy(a, b[i*w:w+i*w])
