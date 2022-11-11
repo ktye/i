@@ -23,7 +23,12 @@ func Cat(x, y K) K {
 			return cat1(x, y)
 		}
 	}
-	return uf(Cat(explode(x), explode(y)))
+	x = uf(Cat(explode(x), explode(y)))
+	if nn(x) == 0 {
+		dx(x)
+		return mk(xt|16, 0)
+	}
+	return x
 }
 func Enl(x K) (r K) {
 	t := tp(x)
