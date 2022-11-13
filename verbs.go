@@ -765,10 +765,10 @@ l:
 		xi := ati(rx(x), n)
 		r = Cat(r, Enl(idiv(rx(y), xi, 1)))
 		y = idiv(y, xi, 0)
-		if int32(y) == 0 || n == 0 {
+		if n == 0 || (n < 0 && int32(y) == 0) {
 			break
 		}
-		if tp(y) > 16 {
+		if tp(y) > 16 && n < 0 {
 			if sumi(int32(y), yn) == 0 {
 				break l
 			}
