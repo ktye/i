@@ -1,0 +1,9 @@
+time for 
+- prepare
+- 1000x
+  -set random input vector 2x2^15 float64 (same algorithm)
+  -compute fft
+
+8.8s  k  (gcc -O3 k.c)  fft.k
+0.8s  c  (gcc -O3 )     fft.c   (libfftw3)
+1.7s  go                fft.go  (same algorithm/author as k)
