@@ -44,6 +44,7 @@ func rnd() float64 {
 	return 0.5 + float64(r)/4294967295.0
 }
 
+
 type NFFT struct {
 	n, h, l uint16
 	p       []uint16
@@ -80,16 +81,26 @@ func Prepare(n uint16) NFFT { //n: power of two
 	return NFFT{n: n, h: h, l: l, p: p, e: e, i: i}
 }
 func (f NFFT) Complex(x []complex128) {
+	brswap(x, f.p)
+	s := uint16(1)
 	for i, el := range f.e {
 		l := f.i[i]
 		for k := uint16(0); k < f.h; k++ {
 			ii := l[k]
-			jj := uint16(i) + ii
+			jj := ii + s
 			xi := x[ii]
 			xj := x[jj]
 			ek := el[k]
 			x[ii] += xj * ek
 			x[jj] = xi - xj*ek
+		}
+		s <<= 1
+	}
+}
+func brswap(x []complex128, p []uint16) {
+	for i := range p {
+		if k := p[i]; i < int(k) {
+			x[i], x[k] = x[k], x[i]
 		}
 	}
 }
