@@ -17,7 +17,8 @@ EOF
 sed -e 1d -e '/func $fpush/,+1d' -e '/func $fpop/,+1d'  k.wat >> d.wat
 
 /c/local/wabt/wat2wasm -o d.wasm d.wat
-cp d.wasm  /c/k/ktye.github.io/
+/c/local/lz4/lz4 -12 d.wasm d.wasm.lz4
+cp d.wasm.lz4  /c/k/ktye.github.io/
 cp src.map /c/k/ktye.github.io/
 
-rm *.go k.wat d.wasm d.wat src.map
+rm *.go k.wat d.wasm d.wasm.lz4 d.wat src.map
