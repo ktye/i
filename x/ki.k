@@ -33,7 +33,7 @@ kiprs:{t:@y;
  $[~(y~())|f~0;(-2_x),,f x;y~`83;kiatx x;y~`84;kifnc x;`s~t;x,,(`sym;0N;0;y);`S~t;x,,(n#`sym;n#0N;&n:#y;kidrp y);`i~t;x,,(`lit;0N;y;`i);x]}
  
 
-kiatx:{$[`sym~**|x;(-2_x),,kix[(`cal;0N;0N;(*|x)3);x@-2+#x];x]}
+kiatx:{$[`sym~**|x;(-2_x),,kix[$[(s:(*|x)3)':`i`u`j`k`f;(`cst`typ;0N 0;0N 0N;s,kits a 3);(`cal;0N;0N;s)];a:x@-2+#x];x]}
 kifnc:{$[`sym~**|x;kical x;kicli x]}
 kical:{s:kis f:(*|x)3;a:*s;r:s 1;c:(`cal;0N;0N;f);$[a;((-2-a)_x),,(c kix/|a#-2_x);((-1-a)_x),,c]}
 kicli:{n:#x;an:#a:$(x n-2)3;r:+(rn#`res;rn#0N;(rn:#r)#0N;r:`$'$(x n-3)3); e:(x n-4); x:-4_x; b:+(an#`arg;an#0N;an#0N;`$'a);((-an)_x),,((((`cli;0N;an;`)kix/,e)kix/(-an)#x)kix/b)kix/r}
@@ -71,10 +71,8 @@ ki:{kiC::"";x:`p@x;x:@[x;(kiel;kiev;kiet)@\:x;"lnt"]; kis::kisig x
 
 kixx:{d:ki x;`<"\n"/:(`lxy 40 100)@+`T`P`I`S!-4#.d}
 
-/x:kixx"`cli /program
-/
+/x:kixx"`cast /program
 /
 //functions
-//f[i]:{[xi;yi]f xi} /((`sym;0N;0;`xi);(`sym;0N;0;`f))
-/f[i]:{[xi;yi].[i;i;xi]yi}
+/f[j]:{[xi]`j xi}
 /"
