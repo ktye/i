@@ -10,7 +10,8 @@ func Srt(x K) (r K) { // ^x
 		trap(Type)
 	}
 	if xt == Dt {
-		r, x = spl2(x)
+		r = x0(x)
+		x = r1(x)
 		i := Asc(rx(x))
 		return Key(atv(r, rx(i)), atv(x, i))
 	}
@@ -45,8 +46,7 @@ func grade(x K, f int32) (r K) { // <x >x
 		trap(Type)
 	}
 	if xt == Dt {
-		r, x = spl2(x)
-		return Atx(r, grade(x, f))
+		return Atx(x0(x), grade(r1(x), f))
 	}
 	n := nn(x)
 	if xt == Tt {

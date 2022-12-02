@@ -254,7 +254,7 @@ func whl(x K, xn int32) (r K) {
 			r = cat1(r, 256)
 		}
 		xp += 8
-		y := x0(xp)
+		y := x0(K(xp))
 		sum += 1 + nn(y)
 		r = ucat(r, y)
 	}

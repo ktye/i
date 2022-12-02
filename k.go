@@ -150,10 +150,12 @@ func l2t(x, y K, t T) (r K) {
 }
 func l2(x, y K) K    { return l2t(x, y, Lt) }
 func l3(x, y, z K) K { return cat1(l2(x, y), z) }
-func x0(x int32) K   { return rx(K(I64(x))) }
-func x1(x int32) K   { return x0(x + 8) }
-func x2(x int32) K   { return x0(x + 16) }
-func x3(x int32) K   { return x0(x + 24) }
+func r0(x K) K       { r := x0(x); dx(x); return r }
+func r1(x K) K       { r := x1(x); dx(x); return r }
+func x0(x K) K       { return rx(K(I64(int32(x)))) }
+func x1(x K) K       { return x0(x + 8) }
+func x2(x K) K       { return x0(x + 16) }
+func x3(x K) K       { return x0(x + 24) }
 func Ku(x uint64) (r K) { // Ct
 	r = mk(Ct, 0)
 	p := int32(r)
@@ -194,9 +196,10 @@ func sc(c K) K {
 	SetI64(8, int64(cat1(K(I64(8)), 0)))
 	return K(8*sn) | K(st)<<59
 }
-func cs(x K) K { return x0(I32(0) + int32(x)) }
+func cs(x K) K { return x0(K(I32(0)) + x) }
 func td(x K) (r K) { // table from dict
-	r, x = spl2(x)
+	r = x0(x)
+	x = r1(x)
 	if tp(r) != St || tp(x) != Lt {
 		trap(Type)
 	}

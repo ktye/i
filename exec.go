@@ -116,7 +116,7 @@ func lst(n K) (r K) {
 func nul(x K) K { push(x); return 0 }
 func lup(x K) K {
 	vp := I32(8) + int32(x)
-	r := x0(vp)
+	r := x0(K(vp))
 	return r
 }
 func Asn(x, y K) K {
@@ -149,7 +149,8 @@ func Amd(x, i, v, y K) (r K) {
 	}
 
 	if xt > Lt {
-		r, x = spl2(x)
+		r = x0(x)
+		x = r1(x)
 		if xt == Tt && tp(i)&15 == it { // table-assign-rows
 			if tp(y) > Lt {
 				y = Val(y)
@@ -215,8 +216,8 @@ func Dmd(x, i, v, y K) (r K) {
 		}
 		i = Fst(i)
 		if tp(f) == It && tp(x) == Tt {
-			r, x = spl2(x)
-			return key(rx(r), Dmd(x, l2(Fnd(r, i), f), v, y), Tt)
+			r = x0(x)
+			return key(rx(r), Dmd(r1(x), l2(Fnd(r, i), f), v, y), Tt)
 		}
 		if tp(f) != It || tp(x) != Lt {
 			trap(Nyi) // Dt

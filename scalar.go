@@ -1293,8 +1293,7 @@ func ff(f, rp, xp, n int32, yf float64) {
 func nm(f int32, x K) (r K) { //monadic
 	xt := tp(x)
 	if xt > Lt {
-		r, x = spl2(x)
-		return key(r, nm(f, x), xt)
+		return key(x0(x), nm(f, r1(x)), xt)
 	}
 	xp := int32(x)
 	if xt == Lt {
@@ -1302,7 +1301,7 @@ func nm(f int32, x K) (r K) { //monadic
 		r = mk(Lt, n)
 		rp := int32(r)
 		for i := int32(0); i < n; i++ {
-			SetI64(rp, int64(nm(f, x0(xp))))
+			SetI64(rp, int64(nm(f, x0(K(xp)))))
 			xp += 8
 			rp += 8
 		}
@@ -1539,8 +1538,8 @@ func nc(f, ff int32, x, y K) (r K) { //compare
 		return r
 	}
 }
-func conform(x, y K) int32 {// 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vector-vector
-	r := 2*I32B(tp(x)>16) + I32B(tp(y)>16)
+func conform(x, y K) int32 { // 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vector-vector
+	r := 2*I32B(tp(x) > 16) + I32B(tp(y) > 16)
 	if r == 3 {
 		if nn(x) != nn(y) {
 			trap(Length)
@@ -1556,17 +1555,19 @@ func dctypes(x, y K) (K, T, K, K) {
 	}
 	var k K
 	if xt > Lt {
-		k, x = spl2(x)
+		k = x0(x)
+		x = r1(x)
 		if yt > Lt {
-			var yk K
-			yk, y = spl2(y)
+			yk := x0(y)
+			y = r1(y)
 			if match(k, yk) == 0 {
 				trap(Value)
 			}
 			dx(yk)
 		}
 	} else if yt > Lt {
-		k, y = spl2(y)
+		k = x0(y)
+		y = r1(y)
 	}
 	return k, t, x, y
 }

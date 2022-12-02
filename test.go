@@ -18,7 +18,8 @@ func testi(l K, i int32) {
 	if nn(x) != 2 {
 		trap(Length)
 	}
-	x, y = spl2(x)
+	y = x1(x)
+	x = r0(x)
 	dx(Out(ucat(ucat(rx(x), Ku(12064)), rx(y))))
 	x = Kst(val(x))
 	if match(x, y) == 0 {

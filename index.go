@@ -21,7 +21,8 @@ func Atx(x, y K) (r K) { // x@y
 		}
 	}
 	if xt > Lt && yt < Lt {
-		r, x = spl2(x)
+		r = x0(x)
+		x = r1(x)
 		if xt == Tt {
 			if yt&15 == it {
 				return key(r, Ecl(19, l2(x, y)), Dt+T(I32B(yt == It)))
@@ -46,8 +47,7 @@ func Atx(x, y K) (r K) { // x@y
 		return Ecr(19, l2(x, y))
 	}
 	if yt == Dt {
-		r, y = spl2(y)
-		return Key(r, Atx(x, y))
+		return Key(x0(y), Atx(x, r1(y)))
 	}
 	return trap(Type) // f@
 }

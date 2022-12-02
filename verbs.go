@@ -22,7 +22,7 @@ func Flp(x K) K { // +x
 	case 1: // Dt
 		return td(x)
 	case 2: // Tt
-		return Key(spl2(x))
+		return Key(x0(x), r1(x))
 	default:
 		return x
 	}
@@ -75,7 +75,7 @@ func Cnt(x K) K { // #x
 func Til(x K) (r K) {
 	xt := tp(x)
 	if xt > Lt {
-		r = x0(int32(x))
+		r = x0(x)
 		dx(x)
 		return r
 	}
@@ -115,7 +115,8 @@ func Unq(x K) (r K) { // ?x
 			trap(Type)
 		}
 		if xt == Tt {
-			r, x = spl2(x)
+			r = x0(x)
+			x = r1(x)
 			return key(r, Flp(Unq(Flp(x))), xt)
 		}
 		return kx(96, x) // .uqf
@@ -178,7 +179,8 @@ func Tak(x, y K) (r K) { // x#y
 	yt := tp(y)
 	if yt == Dt {
 		if xt == it {
-			r, y = spl2(y)
+			r = x0(y)
+			y = r1(y)
 			r = Tak(rx(x), r)
 			y = Tak(x, y)
 			return Key(r, y)
@@ -275,7 +277,8 @@ func Drp(x, y K) (r K) { // x_y
 	yt := tp(y)
 	if yt > Lt {
 		if yt == Dt || (yt == Tt && xt&15 == st) {
-			r, y = spl2(y)
+			r = x0(y)
+			y = r1(y)
 			if xt < 16 {
 				x = Enl(x)
 			}
@@ -414,7 +417,7 @@ func join(x, y K) (r K) {
 	yn := nn(y)
 	r = mk(xt, 0)
 	for i := int32(0); i < yn; i++ {
-		v := x0(yp)
+		v := x0(K(yp))
 		if tp(v) != xt {
 			trap(Type)
 		}
@@ -596,8 +599,7 @@ func Rev(x K) (r K) { // |x
 		return x
 	}
 	if t == Dt {
-		r, x = spl2(x)
-		return Key(Rev(r), Rev(x))
+		return Key(Rev(x0(x)), Rev(r1(x)))
 	}
 	xn := nn(x)
 	if xn < 2 {
@@ -619,8 +621,7 @@ func Wer(x K) (r K) { // &x
 		t = tp(x)
 	}
 	if t == Dt {
-		r, x = spl2(x)
-		return Atx(r, Wer(x))
+		return Atx(x0(x), Wer(r1(x)))
 	}
 	var n, rp int32
 	xn := nn(x)
@@ -685,10 +686,10 @@ func Val(x K) (r K) {
 		return val(x)
 	}
 	if xt == lf || xt == xf { // lambda: (code;locals;string;arity)
-		xp := int32(x) //    native: (ptr;string;arity)
-		r = l2(x0(xp), x1(xp))
+		//xp := int32(x)  // native: (ptr;string;arity)
+		r = l2(x0(x), x1(x))
 		if xt == lf {
-			r = cat1(r, x2(xp))
+			r = cat1(r, x2(x))
 		}
 		r = cat1(r, Ki(nn(x)))
 		dx(x)
@@ -698,7 +699,7 @@ func Val(x K) (r K) {
 		return exec(x) // .L e.g. 1+2 is (1;2;`66)
 	}
 	if xt > Lt {
-		r = x1(int32(x))
+		r = x1(x)
 		dx(x)
 		return r
 	} else {

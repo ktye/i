@@ -18,14 +18,14 @@ func cal(f, x K) (r K) {
 	t := tp(f)
 	fp := int32(f)
 	xn := nn(x)
-	xp := int32(x)
 	var z K
 	if t < df {
 		switch xn - 1 {
 		case 0:
 			x = Fst(x)
 		case 1:
-			x, r = spl2(x)
+			r = x1(x)
+			x = r0(x)
 		case 2:
 			x, r, z = spl3(x)
 		}
@@ -43,7 +43,7 @@ func cal(f, x K) (r K) {
 		case 2:
 			r = Func[fp+192].(f4)(x, r, 1, z)
 		case 3:
-			z := x3(xp)
+			z := x3(x)
 			x, r, f = spl3(x)
 			r = Func[fp+192].(f4)(x, r, f, z)
 		default:
@@ -61,7 +61,7 @@ func cal(f, x K) (r K) {
 		}
 		r = r
 	case 2: // df
-		d := x0(fp)
+		d := x0(f)
 		a := 85 + int32(I64(fp+8))
 		r = Func[a].(f2)(d, x)
 	case 3: // pf
@@ -79,15 +79,13 @@ func cal(f, x K) (r K) {
 
 func calltrain(f, x, y K) (r K) {
 	n := nn(f)
-	fp := int32(f)
 	if y == 0 {
-		r = cal(x0(fp), l1(x))
+		r = cal(x0(f), l1(x))
 	} else {
-		r = cal(x0(fp), l2(x, y))
+		r = cal(x0(f), l2(x, y))
 	}
 	for i := int32(1); i < n; i++ {
-		fp += 8
-		r = cal(x0(fp), l1(r))
+		r = cal(x0(f+8), l1(r))
 	}
 	return r
 }
@@ -117,7 +115,7 @@ func native(f K, x K) K {
 		trap(Rank)
 	}
 	//return Func[int32(98)].(f2)(x0(int32(f)), x) // +/api: KR
-	return K(Native(int64(x0(int32(f))), int64(x))) // +/api: KR
+	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
 func lambda(f K, x K) (r K) {
 	fn := nn(f)

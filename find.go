@@ -17,8 +17,7 @@ func Fnd(x, y K) (r K) { // x?y
 		if xt == Tt {
 			trap(Nyi) // t?..
 		}
-		r, x = spl2(x)
-		return Atx(r, Fnd(x, y))
+		return Atx(x0(x), Fnd(r1(x), y))
 	} else if xt == yt {
 		yn := nn(y)
 		if xt < Ft && yn > 2 {
@@ -34,7 +33,7 @@ func Fnd(x, y K) (r K) { // x?y
 		if xt == Lt {
 			yp := int32(y)
 			for i := int32(0); i < yn; i++ {
-				SetI32(rp, fndl(x, x0(int32(yp))))
+				SetI32(rp, fndl(x, x0(K(yp))))
 				rp += 4
 				yp += 8
 			}

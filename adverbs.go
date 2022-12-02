@@ -25,8 +25,7 @@ func Ech(f, x K) (r K) {
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			x, r = spl2(x)
-			return lin(x, f, r)
+			return lin(x0(x), f, r1(x))
 		}
 		return Bin(f, Fst(x))
 	}
@@ -40,8 +39,7 @@ func Ech(f, x K) (r K) {
 	}
 	xt := tp(x)
 	if xt == Dt {
-		x, r = spl2(x)
-		return Key(x, Ech(f, l1(r)))
+		return Key(x0(x), Ech(f, l1(r1(x))))
 	}
 	if xt == Tt {
 		x = explode(x)
@@ -59,7 +57,8 @@ func Ech(f, x K) (r K) {
 }
 func ecn(f, x K) (r K) {
 	if nn(x) == 2 {
-		r, x = spl2(x)
+		r = x0(x)
+		x = r1(x)
 		if r == 0 {
 			return Ech(f, l1(x))
 		}
@@ -68,9 +67,7 @@ func ecn(f, x K) (r K) {
 				if nn(r) != nn(x) {
 					trap(Length)
 				}
-				p, q := spl2(r)
-				r, x = spl2(x)
-				return key(Cat(p, r), Cat(q, x), Tt)
+				return key(Cat(x0(r), x0(x)), Cat(r1(r), r1(x)), Tt)
 			}
 		}
 		return ec2(f, r, x)
@@ -121,7 +118,8 @@ func Ecp(f, x K) (r K) {
 		y = Fst(rx(x)) // could be missing(xt)
 		m = 1
 	} else if xn == 2 {
-		y, x = spl2(x)
+		y = x0(x)
+		x = r1(x)
 	} else {
 		trap(Rank)
 	}
@@ -168,7 +166,8 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			r, x = spl2(x)
+			r = x0(x)
+			x = r1(x)
 			if t == it && isfunc(tp(r)) != 0 {
 				return ndo(int32(f), r, x)
 			} else {
@@ -181,7 +180,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		return rdn(f, x, 0)
 	}
 	if t == df { // x//y
-		r = x0(int32(f))
+		r = x0(f)
 		dx(f)
 		return Dec(r, Fst(x))
 	}
@@ -190,7 +189,8 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		y = Fst(x)
 		x = 0
 	} else if xn == 2 {
-		x, y = spl2(x)
+		y = x1(x)
+		x = r0(x)
 	} else {
 		trap(Rank)
 	}
@@ -289,7 +289,8 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		return fix(f, Fst(x), 0)
 	case 1:
 		var y K
-		x, y = spl2(x)
+		y = x1(x)
+		x = r0(x)
 		yt := tp(y)
 		if yt < 16 {
 			return cal(f, l2(x, y))
@@ -360,7 +361,7 @@ func Scn(f, x K) (r K) {
 		return rdn(f, x, mk(Lt, 0))
 	}
 	if t == df { // x\\y
-		r = x0(int32(f))
+		r = x0(f)
 		dx(f)
 		return Enc(r, Fst(x))
 	}
@@ -370,7 +371,8 @@ func Scn(f, x K) (r K) {
 		y = Fst(x)
 		x = 0
 	} else if xn == 2 {
-		x, y = spl2(x)
+		y = x1(x)
+		x = r0(x)
 	} else {
 		trap(Rank)
 	}
@@ -390,8 +392,7 @@ func Scn(f, x K) (r K) {
 		return y
 	}
 	if yt == Dt {
-		r, y = spl2(y)
-		return Key(r, Scn(f, l2(x, y)))
+		return Key(x0(y), Scn(f, l2(x, r1(y))))
 	}
 
 	xt := tp(x)
@@ -444,7 +445,8 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 		return fix(f, rx(x), Enl(x))
 	case 1:
 		var y K
-		x, y = spl2(x)
+		y = x1(x)
+		x = r0(x)
 		if tp(x) < 16 {
 			return cal(f, l2(x, y))
 		}
@@ -520,13 +522,13 @@ func uf(x K) (r K) {
 	return r
 }
 func ufd(x K) (r K) {
-	xp := int32(x)
-	r = Til(x0(xp))
+	r = Til(x0(x))
 	if tp(r) != St {
 		dx(r)
 		return x
 	}
 	n := nn(x)
+	xp := int32(x)
 	for i := int32(0); i < n; i++ {
 		if match(r, K(I64(int32(I64(xp))))) == 0 {
 			dx(r)

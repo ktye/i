@@ -62,11 +62,11 @@ func doargs() {
 	ap := int32(a)
 	ee := Ku(25901) // -e
 	for i := int32(0); i < an; i++ {
-		x := x0(ap)
+		x := x0(a)
 		if match(x, ee) != 0 { // -e (exit)
 			if i < an-1 {
 				dx(x)
-				x = x1(ap)
+				x = x1(K(ap))
 				dx(ee)
 				dx(a)
 				repl(x)

@@ -18,8 +18,8 @@ func Str(x K) (r K) {
 			rx(x)
 			r = ucats(Rev(Str(K(xp) | K(Lt)<<59)))
 		case 1: // df
-			r = Str(x0(xp))
-			p := x1(xp)
+			r = Str(x0(x))
+			p := x1(x)
 			if int32(p)%2 != 0 {
 				p = cat1(Str(20+p), Kc(':'))
 			} else {
@@ -37,9 +37,9 @@ func Str(x K) (r K) {
 				r = ucat(f, emb('[', ']', ndrop(-1, ndrop(1, Kst(l)))))
 			}
 		case 3: //lf
-			r = x2(xp)
+			r = x2(x)
 		default: // native
-			r = x1(xp)
+			r = x1(x)
 		}
 		dx(x)
 		return r

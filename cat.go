@@ -119,13 +119,14 @@ func explode(x K) (r K) {
 	} else if xt == Tt {
 		var k K
 		xn := nn(x)
-		k, x = spl2(x)
+		k = x0(x)
+		x = r1(x)
 		r = mk(Lt, xn)
 		rp := int32(r)
 		x = Flp(x)
 		xp := int32(x)
 		for i := int32(0); i < xn; i++ {
-			SetI64(rp, int64(Key(rx(k), x0(xp))))
+			SetI64(rp, int64(Key(rx(k), x0(K(xp)))))
 			xp += 8
 			rp += 8
 		}
@@ -140,7 +141,7 @@ func flat(x K) (r K) { // ((..);(..)) -> (...)
 	xn := nn(x)
 	xp := int32(x)
 	for i := int32(0); i < xn; i++ {
-		r = Cat(r, x0(xp))
+		r = Cat(r, x0(K(xp)))
 		xp += 8
 	}
 	dx(x)
@@ -172,14 +173,13 @@ func dcat(x, y K) (r K) { // d,d  t,t
 			return ucat(explode(x), explode(y))
 		}
 	}
-	r, x = spl2(x)
-	q, y = spl2(y)
+	r = x0(x)
+	x = r1(x)
+	q = x0(y)
+	y = r1(y)
 	if t == Dt {
 		return Key(Cat(r, q), Cat(x, y))
 	} else {
-		//if match(r, q) == 0 {
-		//	return ucat(explode(Key(r, x)), explode(Key(q, y)))
-		//}
 		dx(q)
 		x = Ech(13, l2(x, y))
 		return key(r, x, t)
@@ -268,15 +268,8 @@ func ncat(x, y K) K {
 	y = uptype(y, xt)
 	return cat1(x, y)
 }
-func spl2(l K) (x, y K) {
-	lp := int32(l)
-	x, y = x0(lp), x1(lp)
-	dx(l)
-	return x, y
-}
 func spl3(l K) (x, y, z K) {
-	lp := int32(l)
-	x, y, z = x0(lp), x1(lp), x2(lp)
+	x, y, z = x0(l), x1(l), x2(l)
 	dx(l)
 	return x, y, z
 }

@@ -509,8 +509,8 @@ func Test360(t *testing.T) {
 		}
 		r := Atx(rx(apl), mkchars([]byte(tc.s)))
 		nt(r, 3, Lt)
-		shape := x1(int32(r))
-		ravel := x2(int32(r))
+		shape := x1(r)
+		ravel := x2(r)
 		ints(shape, tc.shape)
 		switch v := tc.r.(type) {
 		case string:
