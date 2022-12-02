@@ -208,7 +208,9 @@ L:
 			SetI32(ok, 1+I32(ok))
 			continue
 		}
-		to, fr = swap(to, fr)
+		t := to
+		to = fr
+		fr = t
 	}
 	dx(o)
 	dx(b)
@@ -276,7 +278,9 @@ L:
 			SetI64(to+8*I32(ok), v)
 			SetI32(ok, 1+I32(ok))
 		}
-		to, fr = swap(to, fr)
+		t := to
+		to = fr
+		fr = t
 	}
 	dx(o)
 	dx(b)
@@ -288,8 +292,6 @@ func floatflp(x uint64) uint64 {
 	}
 	return x ^ 0x8000000000000000
 }
-
-func swap(x, y int32) (int32, int32) { return y, x }
 
 func guC(xp, yp int32) int32 { return I32B(I8(xp) < I8(yp)) }
 func guI(xp, yp int32) int32 { return I32B(I32(xp) < I32(yp)) }
