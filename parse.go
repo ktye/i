@@ -31,7 +31,7 @@ func es() (r K) {
 			continue
 		}
 		pp -= 8
-		x, _ := e(t())
+		x := e(t()) &^ 1
 		if x == 0 {
 			break
 		}
@@ -42,49 +42,58 @@ func es() (r K) {
 	}
 	return r
 }
-func e(x K, xv int32) (r K, ev int32) { // Lt
+func e(x K) (r K) { // Lt
+	xv := x&1
+	x &^= 1
 	if x == 0 {
-		return 0, 0
+		return 0
 	}
 	xs := ps
-	y, yv := t()
+	y := t()
+	yv := y&1
+	y &^= 1
 	if y == 0 {
-		return x, xv
+		return x + xv
 	}
 	if yv != 0 && xv == 0 {
 		a := int32(0)
 		x, y, a = pasn(x, y)
-		r, ev = e(t())
+		r = e(t())
+		ev := r&1
+		r &^= 1
 		if (r == 0 || ev == 1) && a == 0 { // 1+ (projection)
 			x = cat1(ucat(cat1(cat1(ucat(l1(0), x), Ki(2)), 27), y), 92)
 			if ev == 1 { // 1+-
-				return cat1(ucat(r, x), 91), 1
+				return cat1(ucat(r, x), 91) + 1
 			}
-			return x, 1
+			return x + 1
 		}
-		return dyadic(ucat(r, x), y), 0 // dyadic
+		return dyadic(ucat(r, x), y) // dyadic
 	}
-	r, ev = e(rx(y), yv)
+	r = e(rx(y)+yv)
+	ev := r&1
+	r &^= 1
 	dx(y)
 	if xv == 0 {
-		return cat1(ucat(r, x), 83|K(xs)<<32), 0 // juxtaposition
+		return cat1(ucat(r, x), 83|K(xs)<<32) // juxtaposition
 	} else if (r == y && xv+yv == 2) || ev == 1 {
-		return cat1(ucat(r, x), 91), 1 // composition
+		return cat1(ucat(r, x), 91) + 1 // composition
 	}
-	return idiom(monadic(ucat(r, x))), 0 // monadic
+	return idiom(monadic(ucat(r, x))) // monadic
 }
-func t() (r K, verb int32) { // Lt
+func t() (r K) { // Lt
 	var ln int32
 	r = next()
 	if r == 0 {
-		return 0, 0
+		return 0
 	}
 	if tp(r) == 0 && int32(r) < 127 {
 		if is(int32(r), 32) != 0 {
 			pp -= 8
-			return 0, 0
+			return 0
 		}
 	}
+	verb := K(0)
 	if r == K('(') {
 		r = rlist(plist(41))
 	} else if r == K('{') {
@@ -94,7 +103,7 @@ func t() (r K, verb int32) { // Lt
 		if next() != K(']') {
 			trap(Parse)
 		}
-		return r, 0
+		return r
 	} else if tp(r) == st {
 		r = l2(r, 20|(K(ps)<<32)) // .`x (lookup)
 	} else {
@@ -126,7 +135,7 @@ f:
 			n, ln, p = plist(93)
 			n, ln = pspec(r, n, ln)
 			if ln < 0 {
-				return n, 0
+				return n
 			}
 			if ln == 1 {
 				r = cat1(ucat(Fst(n), r), 83|ks)
@@ -139,7 +148,7 @@ f:
 			break f // within else-if
 		}
 	}
-	return r, verb
+	return r+verb
 }
 func pasn(x, y K) (K, K, int32) {
 	l := K(I64(int32(y)))
@@ -301,7 +310,7 @@ func plist(c K) (r K, n, p int32) {
 			trap(Parse)
 		}
 		n++
-		x, _ := e(t())
+		x := e(t()) &^ 1
 		if x == 0 {
 			p = 92
 		}
