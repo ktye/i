@@ -43,25 +43,27 @@ func es() (r K) {
 	return r
 }
 func e(x K) (r K) { // Lt
-	xv := x&1
+	xv := x & 1
 	x &^= 1
 	if x == 0 {
 		return 0
 	}
 	xs := ps
 	y := t()
-	yv := y&1
+	yv := y & 1
 	y &^= 1
 	if y == 0 {
 		return x + xv
 	}
 	if yv != 0 && xv == 0 {
-		a := int32(0)
-		x, y, a = pasn(x, y)
 		r = e(t())
-		ev := r&1
+		ev := r & 1
 		r &^= 1
-		if (r == 0 || ev == 1) && a == 0 { // 1+ (projection)
+		a := pasn(x, y, r)
+		if a != 0 {
+			return a
+		}
+		if r == 0 || ev == 1 { // 1+ (projection)
 			x = cat1(ucat(cat1(cat1(ucat(l1(0), x), Ki(2)), 27), y), 92)
 			if ev == 1 { // 1+-
 				return cat1(ucat(r, x), 91) + 1
@@ -70,8 +72,8 @@ func e(x K) (r K) { // Lt
 		}
 		return dyadic(ucat(r, x), y) // dyadic
 	}
-	r = e(rx(y)+yv)
-	ev := r&1
+	r = e(rx(y) + yv)
+	ev := r & 1
 	r &^= 1
 	dx(y)
 	if xv == 0 {
@@ -148,9 +150,9 @@ f:
 			break f // within else-if
 		}
 	}
-	return r+verb
+	return r + verb
 }
-func pasn(x, y K) (K, K, int32) {
+func pasn(x, y, r K) K {
 	l := K(I64(int32(y)))
 	v := int32(l)
 	sp := 0xffffff & int32(l>>32)
@@ -180,9 +182,9 @@ func pasn(x, y K) (K, K, int32) {
 		} else { // modified
 			y = cat1(l2(unquote(l-32), Fst(rx(x))), 448)
 		}
-		return x, y, 1
+		return dyadic(ucat(r, x), y)
 	}
-	return x, y, 0
+	return 0
 }
 func plam(s0 int32) (r K) {
 	slo := loc
