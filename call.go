@@ -27,7 +27,9 @@ func cal(f, x K) (r K) {
 			r = x1(x)
 			x = r0(x)
 		case 2:
-			x, r, z = spl3(x)
+			r = x1(x)
+			z = x2(x)
+			x = r0(x)
 		}
 	}
 	if t != 0 {
@@ -43,9 +45,7 @@ func cal(f, x K) (r K) {
 		case 2:
 			r = Func[fp+192].(f4)(x, r, 1, z)
 		case 3:
-			z := x3(x)
-			x, r, f = spl3(x)
-			r = Func[fp+192].(f4)(x, r, f, z)
+			r = Func[fp+192].(f4)(x0(x), x1(x), x2(x), r3(x))
 		default:
 			r = trap(Rank)
 		}
@@ -99,10 +99,7 @@ func callprj(f, x K) K {
 		}
 		trap(Rank)
 	}
-	p, l, i := spl3(rx(f))
-	x = stv(l, i, x)
-	x = Cal(p, x)
-	return x
+	return Cal(x0(f), stv(x1(f), x2(f), x))
 }
 func native(f K, x K) K {
 	fn := nn(f)
@@ -114,7 +111,6 @@ func native(f K, x K) K {
 	if xn != fn {
 		trap(Rank)
 	}
-	//return Func[int32(98)].(f2)(x0(int32(f)), x) // +/api: KR
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
 func lambda(f K, x K) (r K) {
@@ -189,7 +185,9 @@ func prj(f, x K) (r K) { // project
 	an := nn(a)
 	if tp(f) == pf { // collapse
 		var y K
-		f, r, y = spl3(f)
+		r = x1(f)
+		y = x2(f)
+		f = r0(f)
 		x = stv(r, rx(y), x)
 		a = Drp(a, y)
 	}

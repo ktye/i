@@ -27,7 +27,9 @@ func Str(x K) (r K) {
 			}
 			r = ucat(r, p)
 		case 2: //pf
-			f, l, i := spl3(rx(x))
+			f := x0(x)
+			l := x1(x)
+			i := x2(x)
 			ft := tp(f)
 			f = Str(f)
 			dx(i)

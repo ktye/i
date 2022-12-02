@@ -152,6 +152,7 @@ func l2(x, y K) K    { return l2t(x, y, Lt) }
 func l3(x, y, z K) K { return cat1(l2(x, y), z) }
 func r0(x K) K       { r := x0(x); dx(x); return r }
 func r1(x K) K       { r := x1(x); dx(x); return r }
+func r3(x K) K       { r := x3(x); dx(x); return r }
 func x0(x K) K       { return rx(K(I64(int32(x)))) }
 func x1(x K) K       { return x0(x + 8) }
 func x2(x K) K       { return x0(x + 16) }

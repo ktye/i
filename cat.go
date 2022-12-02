@@ -268,8 +268,3 @@ func ncat(x, y K) K {
 	y = uptype(y, xt)
 	return cat1(x, y)
 }
-func spl3(l K) (x, y, z K) {
-	x, y, z = x0(l), x1(l), x2(l)
-	dx(l)
-	return x, y, z
-}
