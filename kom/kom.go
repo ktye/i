@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// replace Native() with kal()
-	gsrc = bytes.Replace(gsrc, []byte("Native(int64(x0(int32(f))), int64(x))"), []byte("kal(x0(int32(f)),x)"), 1)
+	gsrc = bytes.Replace(gsrc, []byte("Native(int64(x0(f)), int64(x))"), []byte("kal(x0(f),x)"), 1)
 
 	// remove zk() (don't run interpreted initialization code)
 	a := bytes.Index(gsrc, []byte("\nfunc zk()"))
@@ -539,9 +539,9 @@ func kmLambda(x K) string {
 	if ary > maxargs {
 		maxargs = ary
 	}
-	code := x0(int32(x))
-	locs := x1(int32(x))
-	kstr := x2(int32(x))
+	code := x0(x)
+	locs := x1(x)
+	kstr := x2(x)
 	ls := string(CK(rx(kstr)))
 	if s, o := lmbdas[ls]; o {
 		return s
