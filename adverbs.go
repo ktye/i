@@ -83,15 +83,15 @@ func ec2(f, x, y K) (r K) {
 	if r != 0 {
 		return key(r, ec2(f, x, y), t)
 	}
-	n, _ := conform(x, y)
+	n := conform(x, y)
 	switch n {
 	case 0: // a-a
 		return Cal(f, l2(x, y))
 	case 1: // a-v
 		n = nn(y)
-	case 2: // v-v
+	case 2: // v-a
 		n = nn(x)
-	default: // v-a
+	default: // v-v
 		n = nn(x)
 	}
 	r = mk(Lt, n)

@@ -529,8 +529,10 @@ func divZ(xp, yp, rp, e int32) {
 	}
 }
 func idiv(x, y K, mod int32) (r K) {
-	x, y = uptypes(x, y)
-	av, t := conform(x, y)
+	t := maxtype(x, y)
+	x = uptype(x, t)
+	y = uptype(y, t)
+	av := conform(x, y)
 	if t != it {
 		trap(Type)
 	}
@@ -560,7 +562,22 @@ func idiv(x, y K, mod int32) (r K) {
 			}
 		}
 		return r
-	case 2: //v%v
+	case 2: // v%a
+		x = use(x)
+		xp = int32(x)
+		xn := nn(x)
+		e := xp + 4*xn
+		if yp > 0 && xn > 0 && mod == 0 {
+			divIi(xp, yp, e)
+		}
+		if mod != 0 {
+			for xp < e {
+				SetI32(xp, I32(xp)%yp)
+				xp += 4
+			}
+		}
+		return x
+	default: //v%v
 		r = use2(x, y)
 		rp := int32(r)
 		e := rp + 4*nn(r)
@@ -582,21 +599,6 @@ func idiv(x, y K, mod int32) (r K) {
 		dx(x)
 		dx(y)
 		return r
-	default: // v%a
-		x = use(x)
-		xp = int32(x)
-		xn := nn(x)
-		e := xp + 4*xn
-		if yp > 0 && xn > 0 && mod == 0 {
-			divIi(xp, yp, e)
-		}
-		if mod != 0 {
-			for xp < e {
-				SetI32(xp, I32(xp)%yp)
-				xp += 4
-			}
-		}
-		return x
 	}
 }
 func divIi(xp, yp, e int32) {
@@ -1350,7 +1352,6 @@ func nm(f int32, x K) (r K) { //monadic
 	return r
 }
 func nd(f, ff int32, x, y K) (r K) { //dyadic
-	var av int32
 	var t T
 	r, t, x, y = dctypes(x, y)
 	if r != 0 {
@@ -1359,9 +1360,11 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
 	}
-	x, y = uptypes(x, y)
+	t = maxtype(x, y)
+	x = uptype(x, t)
+	y = uptype(y, t)
+	av := conform(x, y)
 	xp, yp := int32(x), int32(y)
-	av, t = conform(x, y)
 	if av == 0 { // atom-atom
 		switch t - 2 {
 		case 0: // ct
@@ -1433,7 +1436,6 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 	}
 }
 func nc(f, ff int32, x, y K) (r K) { //compare
-	var av int32
 	var t T
 	r, t, x, y = dctypes(x, y)
 	if r != 0 {
@@ -1442,9 +1444,11 @@ func nc(f, ff int32, x, y K) (r K) { //compare
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
 	}
-	x, y = uptypes(x, y)
+	t = maxtype(x, y)
+	x = uptype(x, t)
+	y = uptype(y, t)
+	av := conform(x, y)
 	xp, yp := int32(x), int32(y)
-	av, t = conform(x, y)
 	if av == 0 { // atom-atom
 		switch t - 2 {
 		case 0: // ct
@@ -1489,7 +1493,7 @@ func nc(f, ff int32, x, y K) (r K) { //compare
 		dx(y)
 		return r
 	}
-	if av == 3 {
+	if av == 2 {
 		xn := nn(x)
 		r = mk(It, xn)
 		if xn == 0 {
@@ -1535,24 +1539,14 @@ func nc(f, ff int32, x, y K) (r K) { //compare
 		return r
 	}
 }
-
-func conform(x, y K) (int32, T) { // 0:atom-atom 1:atom-vector, 2:vector-vector, 3:vector-atom
-	xt, yt := tp(x), tp(y)
-	if xt < 16 {
-		if yt < 16 {
-			return 0, xt
-		} else {
-			return 1, xt
+func conform(x, y K) int32 {// 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vector-vector
+	r := 2*I32B(tp(x)>16) + I32B(tp(y)>16)
+	if r == 3 {
+		if nn(x) != nn(y) {
+			trap(Length)
 		}
 	}
-	xn := nn(x)
-	if yt < 16 {
-		return 3, yt
-	}
-	if nn(y) != xn {
-		trap(Length)
-	}
-	return 2, xt - 16
+	return r
 }
 func dctypes(x, y K) (K, T, K, K) {
 	xt, yt := tp(x), tp(y)
@@ -1576,19 +1570,13 @@ func dctypes(x, y K) (K, T, K, K) {
 	}
 	return k, t, x, y
 }
-func uptypes(x, y K) (K, K) {
+func maxtype(x, y K) (t T) {
 	xt, yt := tp(x)&15, tp(y)&15
-	rt := T(maxi(int32(xt), int32(yt)))
-	if rt == 0 {
-		rt = it
+	t = T(maxi(int32(xt), int32(yt)))
+	if t == 0 {
+		t = it
 	}
-	if xt < rt {
-		x = uptype(x, rt)
-	}
-	if yt < rt {
-		y = uptype(y, rt)
-	}
-	return x, y
+	return t
 }
 func uptype(x K, dst T) (r K) {
 	xt := tp(x)
