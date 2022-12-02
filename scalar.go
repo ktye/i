@@ -7,11 +7,11 @@ import (
 type f1_ = func(int32, int32, int32)
 type f1i = func(int32) int32
 type f1f = func(float64) float64
-type f1z = func(float64, float64) (float64, float64)
+type f1z = func(float64, float64) K
 type f2i = func(int32, int32) int32
 type f2f = func(float64, float64) float64
 type f2c = func(float64, float64) int32
-type f2z = func(float64, float64, float64, float64) (float64, float64)
+type f2z = func(float64, float64, float64, float64, int32)
 type f2d = func(float64, float64, float64, float64) int32
 type ff3i = func(float64, int32, int32, int32)
 type fF3i = func(float64, float64, int32, int32, int32)
@@ -19,10 +19,10 @@ type f4i = func(int32, int32, int32, int32)
 type f2Ff = func(int32, float64, int32, int32)
 type f2Zz = func(int32, float64, float64, int32, int32)
 
-func Neg(x K) K                            { return nm(220, x) }
-func negi(x int32) int32                   { return -x }
-func negf(x float64) float64               { return -x }
-func negz(x, y float64) (float64, float64) { return -x, -y }
+func Neg(x K) K              { return nm(220, x) }
+func negi(x int32) int32     { return -x }
+func negf(x float64) float64 { return -x }
+func negz(x, y float64) K    { return Kz(-x, -y) }
 func negC(xp, rp, e int32) {
 	for rp < e {
 		SetI8(rp, -I8(xp))
@@ -207,9 +207,9 @@ func Add(x, y K) K {
 	}
 	return nd(234, 2, x, y)
 }
-func addi(x, y int32) int32                          { return x + y }
-func addf(x, y float64) float64                      { return x + y }
-func addz(xr, xi, yr, yi float64) (float64, float64) { return xr + yr, xi + yi }
+func addi(x, y int32) int32                 { return x + y }
+func addf(x, y float64) float64             { return x + y }
+func addz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr+yr); SetF64(rp+8, xi+yi) }
 func addcC(x, yp, rp, e int32) {
 	for rp < e {
 		SetI8(rp, x+I8(yp))
@@ -353,9 +353,9 @@ func Mul(x, y K) K {
 	}
 	return nd(256, 4, x, y)
 }
-func muli(x, y int32) int32                          { return x * y }
-func mulf(x, y float64) float64                      { return x * y }
-func mulz(xr, xi, yr, yi float64) (float64, float64) { return xr*yr - xi*yi, xr*yi + xi*yr }
+func muli(x, y int32) int32                 { return x * y }
+func mulf(x, y float64) float64             { return x * y }
+func mulz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr*yr-xi*yi); SetF64(rp+8, xr*yi+xi*yr) }
 func mulcC(x, yp, rp, e int32) {
 	for rp < e {
 		SetI8(rp, x*I8(yp))
@@ -382,9 +382,7 @@ func mulfF(x float64, yp, rp, e int32) {
 }
 func mulzZ(re, im float64, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := mulz(re, im, F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		mulz(re, im, F64(yp), F64(yp+8), rp)
 		yp += 16
 		rp += 16
 		continue
@@ -419,9 +417,7 @@ func mulF(xp, yp, rp, e int32) {
 }
 func mulZ(xp, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := mulz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		mulz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
 		xp += 16
 		yp += 16
 		rp += 16
@@ -482,8 +478,8 @@ func Div(x, y K) K {
 }
 func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x / y }
-func divz(xr, xi, yr, yi float64) (e float64, f float64) {
-	var r, d float64
+func divz(xr, xi, yr, yi float64, rp int32) {
+	var r, d, e, f float64
 	if F64abs(yr) >= F64abs(yi) {
 		r = yi / yr
 		d = yr + r*yi
@@ -495,7 +491,8 @@ func divz(xr, xi, yr, yi float64) (e float64, f float64) {
 		e = (xr*r + xi) / d
 		f = (xi*r - xr) / d
 	}
-	return e, f
+	SetF64(rp, e)
+	SetF64(rp+8, f)
 }
 func divfF(x float64, yp, rp, e int32) {
 	for rp < e {
@@ -507,9 +504,7 @@ func divfF(x float64, yp, rp, e int32) {
 }
 func divzZ(re, im float64, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := divz(re, im, F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		divz(re, im, F64(yp), F64(yp+8), rp)
 		yp += 16
 		rp += 16
 		continue
@@ -526,9 +521,7 @@ func divF(xp, yp, rp, e int32) {
 }
 func divZ(xp, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := divz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		divz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
 		xp += 16
 		yp += 16
 		rp += 16
@@ -635,11 +628,14 @@ func mini(x, y int32) int32 {
 	return y
 }
 func minf(x, y float64) float64 { return F64min(x, y) }
-func minz(xr, xi, yr, yi float64) (float64, float64) {
+func minz(xr, xi, yr, yi float64, rp int32) {
 	if ltz(xr, xi, yr, yi) != 0 {
-		return xr, xi
+		SetF64(rp, xr)
+		SetF64(rp+8, xi)
+	} else {
+		SetF64(rp, yr)
+		SetF64(rp+8, yi)
 	}
-	return yr, yi
 }
 func mincC(x, yp, rp, e int32) {
 	for rp < e {
@@ -667,9 +663,7 @@ func minfF(x float64, yp, rp, e int32) {
 }
 func minzZ(re, im float64, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := minz(re, im, F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		minz(re, im, F64(yp), F64(yp+8), rp)
 		yp += 16
 		rp += 16
 		continue
@@ -704,9 +698,7 @@ func minF(xp, yp, rp, e int32) {
 }
 func minZ(xp, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := minz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		minz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
 		xp += 16
 		yp += 16
 		rp += 16
@@ -728,11 +720,14 @@ func maxi(x, y int32) int32 {
 	}
 }
 func maxf(x, y float64) float64 { return F64max(x, y) }
-func maxz(xr, xi, yr, yi float64) (float64, float64) {
+func maxz(xr, xi, yr, yi float64, rp int32) {
 	if gtz(xr, xi, yr, yi) != 0 {
-		return xr, xi
+		SetF64(rp, xr)
+		SetF64(rp+8, xi)
+	} else {
+		SetF64(rp, yr)
+		SetF64(rp+8, yi)
 	}
-	return yr, yi
 }
 func maxcC(x, yp, rp, e int32) {
 	for rp < e {
@@ -760,9 +755,7 @@ func maxfF(x float64, yp, rp, e int32) {
 }
 func maxzZ(re, im float64, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := maxz(re, im, F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		maxz(re, im, F64(yp), F64(yp+8), rp)
 		yp += 16
 		rp += 16
 		continue
@@ -797,9 +790,7 @@ func maxF(xp, yp, rp, e int32) {
 }
 func maxZ(xp, yp, rp, e int32) {
 	for rp < e {
-		xx, yy := maxz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
-		SetF64(rp, xx)
-		SetF64(rp+8, yy)
+		maxz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
 		xp += 16
 		yp += 16
 		rp += 16
@@ -1329,7 +1320,7 @@ func nm(f int32, x K) (r K) { //monadic
 			dx(x)
 			return r
 		case 4:
-			r = Kz(Func[2+f].(f1z)(F64(xp), F64(xp+8)))
+			r = Func[2+f].(f1z)(F64(xp), F64(xp+8))
 			dx(x)
 			return r
 		default:
@@ -1384,9 +1375,11 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 			dx(y)
 			return Kf(Func[1+f].(f2f)(F64(xp), F64(yp)))
 		default:
+			r = Kz(0, 0)
 			dx(x)
 			dx(y)
-			return Kz(Func[2+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
+			Func[2+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8), int32(r))
+			return r
 		}
 	}
 	if av == 1 { // atom-vector

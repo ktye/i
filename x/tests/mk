@@ -33,8 +33,8 @@ elif [ "$1" = i ];then
 	done
 elif [ "$1" = ki ]; then
         #for x in *.k; do
-	# cast.k cnd.k const.k cont.k heap.k ifret.k label.k lit.k loop.k loop2.k mem.k swtch.k tab.k
-	for x in cast.k asn.k blank.k cal.k cli.k drp.k fun.k inc.k; do
+	# cnd.k const.k cont.k heap.k ifret.k label.k lit.k loop.k loop2.k mem.k swtch.k tab.k
+	for x in const.k cast.k asn.k blank.k cal.k cli.k drp.k fun.k inc.k; do
 	 i=`echo $x | sed 's/.k$/.i/'`
 	 k ../ki.k -e 'x:kixx@<`"'$i'"' > out1
  	 k ${x}  -e 'x:`<"\n"/:(`lxy 40 100)@+`T`P`I`S!(T;P;I;S)' > out2

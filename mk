@@ -7,7 +7,6 @@ cp k.k /c/k/ktye.github.io/kde/z.k
 zn=`wc -c k.k | sed 's/ .*//'`
 zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
 cat << EOF > z.go
-
 package main
 
 import . "github.com/ktye/wg/module"
