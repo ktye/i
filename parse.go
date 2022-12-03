@@ -133,8 +133,9 @@ f:
 			r, verb = cat1(r, n), 1
 		} else if n == 91 { // [
 			verb = 0
-			p := int32(0) // 92(project) or call(84)
+			var p K
 			n, p = plist(93)
+			p = K(84) + 8*p // 92(project) or call(84)
 			n, ln = pspec(r, n)
 			if ln < 0 {
 				return n
@@ -142,8 +143,8 @@ f:
 			if ln == 1 {
 				r = cat1(ucat(Fst(n), r), 83|ks)
 			} else {
-				n = rlist(n, 0)
-				r = cat1(Cat(n, r), K(p)|ks)
+				n = rlist(n, 2)
+				r = cat1(Cat(n, r), p|ks)
 			}
 		} else {
 			pp -= 8
@@ -297,10 +298,10 @@ func cond(x K, xn int32) (r K) {
 	}
 	return flat(x)
 }
-func plist(c K) (r K, p int32) {
+func plist(c K) (r, p K) {
 	n := int32(0)
 	r = mk(Lt, 0)
-	p = 84
+	p = 0
 	for {
 		var b K
 		b = next()
@@ -316,13 +317,13 @@ func plist(c K) (r K, p int32) {
 		n++
 		x := e(t()) &^ 1
 		if x == 0 {
-			p = 92
+			p = 1
 		}
 		r = cat1(r, x)
 	}
 	return r, p
 }
-func rlist(x K, p int32) (r K) {
+func rlist(x, p K) (r K) {
 	n := nn(x)
 	if n == 0 {
 		return l1(x)
@@ -330,7 +331,7 @@ func rlist(x K, p int32) (r K) {
 	if n == 1 {
 		return Fst(x)
 	}
-	if p != 0 {
+	if p != 2 {
 		r = clist(x, n)
 		if r != 0 {
 			return l1(r)
