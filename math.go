@@ -247,19 +247,17 @@ func log(x float64) float64 {
 	hfsq := 0.5 * f * f
 	return k*6.93147180369123816490e-01 - ((hfsq - (s*(hfsq+R) + k*1.90821492927058770002e-10)) - f)
 }
-func modabsf(f float64) (i float64, frac float64) {
+func modabsfi(f float64) float64 {
 	if f < 1.0 {
 		// simplified for f > 0
-		return 0, f
+		return 0
 	}
 	x := I64reinterpret_f64(f)
 	e := (x>>52)&2047 - 1023
 	if e < 52 {
 		x &^= 1<<(52-e) - 1
 	}
-	i = F64reinterpret_i64(x)
-	frac = f - i
-	return i, frac
+	return F64reinterpret_i64(x)
 }
 func pow(x, y float64) float64 {
 	if y == 0.0 || x == 1.0 {
@@ -285,7 +283,9 @@ func pow(x, y float64) float64 {
 		return 1.0 / F64sqrt(x)
 	}
 
-	yi, yf := modabsf(F64abs(y))
+	yf := F64abs(y)
+	yi := modabsfi(yf)
+	yf -= yi
 	if yf != 0.0 && x < 0.0 {
 		return na
 	}
