@@ -170,8 +170,6 @@ func expmulti(hi, lo float64, k int64) float64 {
 	y := 1 - ((lo - (r*c)/(2-c)) - hi)
 	return ldexp(y, k)
 }
-
-//func signbit(x float64) int32 { return int32(I64reinterpret_f64(x) >> 63) }
 func ldexp(frac float64, exp int64) float64 {
 	if frac == 0 || frac > maxfloat || frac < -maxfloat || (frac != frac) {
 		return frac
@@ -201,6 +199,32 @@ func ldexp(frac float64, exp int64) float64 {
 	x |= uint64(exp+1023) << 52
 	return m * F64reinterpret_i64(uint64(x))
 }
+func frexp1(f float64) int32 {
+	if f == 0.0 {
+		return 0
+	}
+	if f < -maxfloat || f > maxfloat || (f != f) {
+		return 0
+	}
+	return 1
+}
+func frexp2(f float64) float64 {
+	f = normalize(f)
+	x := I64reinterpret_f64(f)
+	x &^= 9218868437227405312
+	x |= 4602678819172646912
+	return F64reinterpret_i64(x)
+}
+func frexp3(f float64) (exp int64) {
+	nf := normalize(f)
+	if nf != f {
+		exp = -52
+		f = nf
+	}
+	x := I64reinterpret_f64(f)
+	return exp + int64((x>>52)&2047) - 1022
+}
+/*
 func frexp(f float64) (float64, int64) {
 	var exp int64
 	if f == 0.0 {
@@ -220,6 +244,7 @@ func frexp(f float64) (float64, int64) {
 	x |= 4602678819172646912
 	return F64reinterpret_i64(x), exp
 }
+*/
 func normalize(x float64) float64 {
 	if F64abs(x) < 2.2250738585072014e-308 {
 		return x * 4.503599627370496e+15
@@ -236,7 +261,12 @@ func log(x float64) float64 {
 	if x == 0 {
 		return -inf
 	}
-	f1, ki := frexp(x)
+	f1 := x
+	ki := int64(0)
+	if frexp1(x) != 0 {
+		f1 = frexp2(x)
+		ki = frexp3(x)
+	}
 	if f1 < 0.7071067811865476 {
 		f1 *= 2
 		ki--
@@ -312,7 +342,12 @@ func pow(x, y float64) float64 {
 		}
 		a1 = exp(yf * log(x))
 	}
-	x1, xe := frexp(x)
+	x1 := x
+	xe := int64(0)
+	if frexp1(x) != 0 {
+		x1 = frexp2(x)
+		xe = frexp3(x)
+	}
 	for i := int64(yi); i != 0; i >>= int64(1) {
 		if xe < int64(-4096) || 4096 < xe {
 			ae += xe

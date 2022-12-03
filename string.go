@@ -151,7 +151,12 @@ func sf(x float64) (r K) {
 	return ndrop(-c, r)
 }
 func se(x float64) K {
-	f, e := frexp(x)
+	f := x
+	e := int64(0)
+	if frexp1(x) != 0 {
+		f = frexp2(x)
+		e = frexp3(x)
+	}
 	x = 0.3010299956639812 * float64(e) // log10(2)*
 	ei := int32(F64floor(x))
 	x = x - float64(ei)
