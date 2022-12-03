@@ -134,15 +134,15 @@ f:
 		} else if n == 91 { // [
 			verb = 0
 			p := int32(0) // 92(project) or call(84)
-			n, ln, p = plist(93)
-			n, ln = pspec(r, n, ln)
+			n, p = plist(93)
+			n, ln = pspec(r, n)
 			if ln < 0 {
 				return n
 			}
 			if ln == 1 {
 				r = cat1(ucat(Fst(n), r), 83|ks)
 			} else {
-				n = rlist(n, ln, 0)
+				n = rlist(n, 0)
 				r = cat1(Cat(n, r), K(p)|ks)
 			}
 		} else {
@@ -192,7 +192,8 @@ func plam(s0 int32) (r K) {
 	ar := int32(-1)
 	n := next()
 	if n == 91 { // argnames
-		n, ln, _ := plist(93)
+		n, _ := plist(93)
+		ln := nn(n)
 		loc = Ech(4, l1(n)) // [a]->,(`a;.)  [a;b]->((`a;.);(`b;.))
 		if ln > 0 && tp(loc) != St {
 			trap(Parse)
@@ -239,7 +240,8 @@ func slam(r K, ar, s0 int32) K {
 	SetI32(rp-12, ar)
 	return K(rp) | (K(s0) << 32) | K(lf)<<59
 }
-func pspec(r, n K, ln int32) (K, int32) {
+func pspec(r, n K) (K, int32) {
+	ln := nn(n)
 	v := K(I64(int32(r)))
 	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 465 {
@@ -295,8 +297,8 @@ func cond(x K, xn int32) (r K) {
 	}
 	return flat(x)
 }
-func plist(c K) (r K, n, p int32) {
-	n = 0
+func plist(c K) (r K, p int32) {
+	n := int32(0)
 	r = mk(Lt, 0)
 	p = 84
 	for {
@@ -318,9 +320,10 @@ func plist(c K) (r K, n, p int32) {
 		}
 		r = cat1(r, x)
 	}
-	return r, n, p
+	return r, p
 }
-func rlist(x K, n, p int32) (r K) {
+func rlist(x K, p int32) (r K) {
+	n := nn(x)
 	if n == 0 {
 		return l1(x)
 	}
