@@ -176,9 +176,11 @@ func ldexp(frac float64, exp int64) float64 {
 	if frac == 0 || frac > maxfloat || frac < -maxfloat || (frac != frac) {
 		return frac
 	}
-	var e int64
-	frac, e = normalize(frac)
-	exp += e
+	nf := normalize(frac)
+	if nf != frac {
+		exp -= 52
+		frac = nf
+	}
 	x := uint64(I64reinterpret_f64(frac))
 	exp += int64(x>>52)&2047 - 1023
 	if exp < int64(-1075) {
@@ -207,19 +209,22 @@ func frexp(f float64) (float64, int64) {
 	if f < -maxfloat || f > maxfloat || (f != f) {
 		return f, 0
 	}
-	f, exp = normalize(f)
+	nf := normalize(f)
+	if nf != f {
+		exp = -52
+		f = nf
+	}
 	x := I64reinterpret_f64(f)
 	exp += int64((x>>52)&2047) - 1022
 	x &^= 9218868437227405312
 	x |= 4602678819172646912
 	return F64reinterpret_i64(x), exp
 }
-
-func normalize(x float64) (float64, int64) {
+func normalize(x float64) float64 {
 	if F64abs(x) < 2.2250738585072014e-308 {
-		return x * 4.503599627370496e+15, int64(-52)
+		return x * 4.503599627370496e+15
 	}
-	return x, 0
+	return x
 }
 func log(x float64) float64 {
 	if (x != x) || x > maxfloat {
