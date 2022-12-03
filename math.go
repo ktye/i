@@ -33,7 +33,8 @@ func cosin(deg float64, rp int32) {
 	} else if deg == 270 {
 		s = -1.0
 	} else {
-		c, s = cosin_(deg * 0.017453292519943295)
+		cosin_(deg*0.017453292519943295, rp, 0)
+		return
 	}
 	SetF64(rp, c)
 	SetF64(rp+8, s)
@@ -57,7 +58,8 @@ func ang2(y, x float64) (deg float64) {
 	}
 	return deg
 }
-func cosin_(x float64) (c, s float64) {
+func cosin_(x float64, rp int32, csonly int32) {
+	var c, s float64
 	var ss, cs int32
 	if x < 0 {
 		x = -x
@@ -95,7 +97,12 @@ func cosin_(x float64) (c, s float64) {
 	if ss != 0 {
 		s = -s
 	}
-	return c, s
+	SetF64(rp, c)
+	if csonly == 0 {
+		SetF64(rp+8, s)
+	} else if csonly == 1 {
+		SetF64(rp, s)
+	}
 }
 func atan2(y, x float64) float64 {
 	// todo nan/inf

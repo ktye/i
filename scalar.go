@@ -1276,11 +1276,7 @@ func ff(f, rp, xp, n int32, yf float64) {
 			}
 		} else { // sin cos
 			for xp < e {
-				c, s := cosin_(F64(xp))
-				SetF64(rp, s)
-				if f == 39 {
-					SetF64(rp, c)
-				}
+				cosin_(F64(xp), rp, 1+I32B(f == 39))
 				rp += 8
 				xp += 8
 				continue
