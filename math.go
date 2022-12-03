@@ -218,7 +218,7 @@ func frexp2(f float64) float64 {
 func frexp3(f float64) (exp int64) {
 	nf := normalize(f)
 	if nf != f {
-		exp = -52
+		exp = int64(-52)
 		f = nf
 	}
 	x := I64reinterpret_f64(f)
