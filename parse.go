@@ -97,7 +97,8 @@ func t() (r K) { // Lt
 	}
 	verb := K(0)
 	if r == K('(') {
-		r = rlist(plist(41))
+		r = plist(41)
+		r = rlist(r&^1, 0)
 	} else if r == K('{') {
 		r = plam(ps)
 	} else if r == K('[') {
@@ -133,10 +134,9 @@ f:
 			r, verb = cat1(r, n), 1
 		} else if n == 91 { // [
 			verb = 0
-			var p K
-			n, p = plist(93)
-			p = K(84) + 8*p // 92(project) or call(84)
-			n, ln = pspec(r, n)
+			n = plist(93)
+			p := K(84) + 8*(n&1) // 92(project) or call(84)
+			n, ln = pspec(r, n&^1)
 			if ln < 0 {
 				return n
 			}
@@ -193,7 +193,7 @@ func plam(s0 int32) (r K) {
 	ar := int32(-1)
 	n := next()
 	if n == 91 { // argnames
-		n, _ := plist(93)
+		n := plist(93) &^ 1
 		ln := nn(n)
 		loc = Ech(4, l1(n)) // [a]->,(`a;.)  [a;b]->((`a;.);(`b;.))
 		if ln > 0 && tp(loc) != St {
@@ -298,10 +298,10 @@ func cond(x K, xn int32) (r K) {
 	}
 	return flat(x)
 }
-func plist(c K) (r, p K) {
-	n := int32(0)
+func plist(c K) (r K) {
+	var p K
+	var n int32
 	r = mk(Lt, 0)
-	p = 0
 	for {
 		var b K
 		b = next()
@@ -321,7 +321,7 @@ func plist(c K) (r, p K) {
 		}
 		r = cat1(r, x)
 	}
-	return r, p
+	return r + p
 }
 func rlist(x, p K) (r K) {
 	n := nn(x)
