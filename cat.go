@@ -149,20 +149,17 @@ func flat(x K) (r K) { // ((..);(..)) -> (...)
 }
 func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	xt := tp(x)
-	//if xt != tp(y) {
-	//	panic("ucat")
-	//}
-
 	if xt > Lt {
 		return dcat(x, y)
 	}
-	ny := nn(y)
-	r, rp := uspc(x, xt, ny)
+	xn := nn(x)
+	yn := nn(y)
+	r := uspc(x, xt, yn)
 	s := sz(xt)
 	if xt == Lt {
 		rl(y)
 	}
-	Memorycopy(rp, int32(y), s*ny)
+	Memorycopy(int32(r)+s*xn, int32(y), s*yn)
 	dx(y)
 	return r
 }
@@ -222,8 +219,10 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 }
 func cat1(x, y K) K {
 	xt := tp(x)
-	r, rp := uspc(x, xt, 1)
+	xn := nn(x)
+	r := uspc(x, xt, 1)
 	s := sz(xt)
+	rp := int32(r) + s*xn
 	yp := int32(y)
 	if s == 1 {
 		SetI8(rp, yp)
@@ -243,7 +242,7 @@ func cat1(x, y K) K {
 	}
 	return r
 }
-func uspc(x K, xt T, ny int32) (K, int32) {
+func uspc(x K, xt T, ny int32) K {
 	var r K
 	nx := nn(x)
 	s := sz(xt)
@@ -258,7 +257,7 @@ func uspc(x K, xt T, ny int32) (K, int32) {
 		dx(x)
 	}
 	SetI32(int32(r)-12, nx+ny)
-	return r, int32(r) + s*nx
+	return r
 }
 func ncat(x, y K) K {
 	xt := tp(x)
