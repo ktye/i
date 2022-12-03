@@ -1352,9 +1352,9 @@ func nm(f int32, x K) (r K) { //monadic
 }
 func nd(f, ff int32, x, y K) (r K) { //dyadic
 	var t T
-	r, t, x, y = dctypes(x, y)
-	if r != 0 {
-		return key(r, Func[64+ff].(f2)(x, y), t)
+	t = dtypes(x, y)
+	if t > Lt {
+		return key(dkeys(x, y), Func[64+ff].(f2)(dvals(x), dvals(y)), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
@@ -1436,9 +1436,9 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 }
 func nc(f, ff int32, x, y K) (r K) { //compare
 	var t T
-	r, t, x, y = dctypes(x, y)
-	if r != 0 {
-		return key(r, nc(f, ff, x, y), t)
+	t = dtypes(x, y)
+	if t > Lt {
+		return key(dkeys(x, y), nc(f, ff, dvals(x), dvals(y)), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
@@ -1547,29 +1547,21 @@ func conform(x, y K) int32 { // 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vect
 	}
 	return r
 }
-func dctypes(x, y K) (K, T, K, K) {
+func dtypes(x, y K) (t T) {
 	xt, yt := tp(x), tp(y)
-	t := T(maxi(int32(xt), int32(yt)))
-	if xt < Dt && yt < Dt {
-		return 0, t, x, y
+	return T(maxi(int32(xt), int32(yt)))
+}
+func dkeys(x, y K) K {
+	if tp(x) > Lt {
+		return x0(x)
 	}
-	var k K
-	if xt > Lt {
-		k = x0(x)
-		x = r1(x)
-		if yt > Lt {
-			yk := x0(y)
-			y = r1(y)
-			if match(k, yk) == 0 {
-				trap(Value)
-			}
-			dx(yk)
-		}
-	} else if yt > Lt {
-		k = x0(y)
-		y = r1(y)
+	return x0(y)
+}
+func dvals(x K) K {
+	if tp(x) > Lt {
+		return r1(x)
 	}
-	return k, t, x, y
+	return x
 }
 func maxtype(x, y K) (t T) {
 	xt, yt := tp(x)&15, tp(y)&15

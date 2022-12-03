@@ -76,9 +76,9 @@ func ecn(f, x K) (r K) {
 }
 func ec2(f, x, y K) (r K) {
 	var t T
-	r, t, x, y = dctypes(x, y)
-	if r != 0 {
-		return key(r, ec2(f, x, y), t)
+	t = dtypes(x, y)
+	if t > Lt {
+		return key(dkeys(x, y), ec2(f, dvals(x), dvals(y)), t)
 	}
 	n := conform(x, y)
 	switch n {
@@ -296,9 +296,8 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 			return cal(f, l2(x, y))
 		}
 		if yt > Lt {
-			var t T
-			r, t, x, y = dctypes(x, y)
-			return key(r, Ecr(f, l2(x, y)), t)
+			t := dtypes(x, y)
+			return key(dkeys(x, y), Ecr(f, l2(dvals(x), dvals(y))), t)
 		}
 		yn := nn(y)
 		r = mk(Lt, yn)

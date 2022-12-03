@@ -58,7 +58,6 @@ angle[2a45;1a] /Type
 log[2a45;3] /Type
 3.5/4 /Type
 `a`b+1 2 /Type
-(`a`b!1 2)+`a`c!3 4 /Value
 !"x" /Type
 ?^3 /Type
 ?`a`b!1 2 /Type
