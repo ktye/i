@@ -28,7 +28,7 @@ node type                    i-value             s-value
  var     global variable     -                   name            child: lit
  lit     literal (con|var)   val(32bit)|C-index  type
  tab     func table entry    index               func name
- fun     function            exported            func name       children: args rets locs ast dfr
+ fun     function            exported            func name       children: args res locs ast dfr
  arg     func argument       -                   type            child: sym
  sym     symbol              1(global)|0N(func)  name
  res     return value        -                   type            unnamed
@@ -37,7 +37,7 @@ node type                    i-value             s-value
  stm     statement list      -                   -
  ret     return              -                   `|type          children: return values, s-type only for single res
  cal     function call       func node           func name       children: args
- cli     indirect call       #args               -               children: func-expr args arg-types ret-types
+ cli     indirect call       #args               res-type        children: func-expr args arg-types
  drp     drop return vals    -                   -               child: cal
  get     get local           -                   varname
  Get     get global          -                   varname
