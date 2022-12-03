@@ -157,7 +157,8 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 		return dcat(x, y)
 	}
 	ny := nn(y)
-	r, rp, s := uspc(x, xt, ny)
+	r, rp := uspc(x, xt, ny)
+	s := sz(xt)
 	if xt == Lt {
 		rl(y)
 	}
@@ -221,7 +222,8 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 }
 func cat1(x, y K) K {
 	xt := tp(x)
-	r, rp, s := uspc(x, xt, 1)
+	r, rp := uspc(x, xt, 1)
+	s := sz(xt)
 	yp := int32(y)
 	if s == 1 {
 		SetI8(rp, yp)
@@ -241,7 +243,7 @@ func cat1(x, y K) K {
 	}
 	return r
 }
-func uspc(x K, xt T, ny int32) (K, int32, int32) {
+func uspc(x K, xt T, ny int32) (K, int32) {
 	var r K
 	nx := nn(x)
 	s := sz(xt)
@@ -256,7 +258,7 @@ func uspc(x K, xt T, ny int32) (K, int32, int32) {
 		dx(x)
 	}
 	SetI32(int32(r)-12, nx+ny)
-	return r, int32(r) + s*nx, s
+	return r, int32(r) + s*nx
 }
 func ncat(x, y K) K {
 	xt := tp(x)
