@@ -22,7 +22,8 @@ func hypot(p, q float64) float64 {
 	q = q / p
 	return p * F64sqrt(1+q*q)
 }
-func cosin(deg float64) (c, s float64) {
+func cosin(deg float64, rp int32) {
+	var c, s float64
 	if deg == 0 {
 		c = 1.0
 	} else if deg == 90 {
@@ -34,7 +35,8 @@ func cosin(deg float64) (c, s float64) {
 	} else {
 		c, s = cosin_(deg * 0.017453292519943295)
 	}
-	return c, s
+	SetF64(rp, c)
+	SetF64(rp+8, s)
 }
 func ang2(y, x float64) (deg float64) {
 	if y == 0 {

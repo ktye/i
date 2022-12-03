@@ -1167,15 +1167,14 @@ func Rot(x, y K) (r K) { // r@deg
 	yt := tp(y)
 	yp := int32(y)
 	if yt == ft {
-		r = Kz(cosin(F64(yp)))
+		r = Kz(0, 0)
+		cosin(F64(yp), int32(r))
 	} else {
 		yn := nn(y)
 		r = mk(Zt, yn)
 		rp := int32(r)
 		for i := int32(0); i < yn; i++ {
-			c, s := cosin(F64(yp))
-			SetF64(rp, c)
-			SetF64(rp+8, s)
+			cosin(F64(yp), rp)
 			yp += 8
 			rp += 16
 		}
