@@ -84,7 +84,6 @@ func e(x K) (r K) { // Lt
 	return idiom(monadic(ucat(r, x))) // monadic
 }
 func t() (r K) { // Lt
-	var ln int32
 	r = next()
 	if r == 0 {
 		return 0
@@ -136,11 +135,12 @@ f:
 			verb = 0
 			n = plist(93)
 			p := K(84) + 8*(n&1) // 92(project) or call(84)
-			n, ln = pspec(r, n&^1)
-			if ln < 0 {
-				return n
+			n &^= 1
+			s := pspec(r, n)
+			if s != 0 {
+				return s
 			}
-			if ln == 1 {
+			if nn(n) == 1 {
 				r = cat1(ucat(Fst(n), r), 83|ks)
 			} else {
 				n = rlist(n, 2)
@@ -241,20 +241,20 @@ func slam(r K, ar, s0 int32) K {
 	SetI32(rp-12, ar)
 	return K(rp) | (K(s0) << 32) | K(lf)<<59
 }
-func pspec(r, n K) (K, int32) {
+func pspec(r, n K) K {
 	ln := nn(n)
 	v := K(I64(int32(r)))
 	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 465 {
 			dx(r)
-			return cond(n, ln), -1
+			return cond(n, ln)
 		}
 	}
 	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]
 		dx(r)
-		return whl(n, ln-1), -1
+		return whl(n, ln-1)
 	}
-	return n, ln
+	return 0
 }
 func whl(x K, xn int32) (r K) {
 	r = cat1(Fst(rx(x)), 0)
