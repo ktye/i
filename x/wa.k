@@ -54,7 +54,7 @@ waast:wastm
 walod:{(y 0),"\n",$[`b~s:S x;"i32.load8_s";(watype s),".load"]}
 wasto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(watype s),".store"]}
 waant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:watype S x),".and"}
-waasn:{y[&b:"$_"~/:-1_y]:,"";(*|y),,/|(("\nlocal.set ";"\nglobal.set ";"\ndrop")(2*b)|I 1+x+!I x),'-1_y}
+waasn:{ y,("\nlocal.set $";"\nglobal.set $")[I x],$S x }
 
 wacal:{$[`panic~s:S x;"unreachable";("\n"/:y),"\n",$[#c:wainst s;c;"call $",$s]]}
 

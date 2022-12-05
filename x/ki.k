@@ -29,18 +29,20 @@ kiast:{x:*x;t:$[1~#y;`$y;`]
 
 kiprs:{t:@y;
  f2:{kix[kix[(x;0N;2;kits(*|y)3);*|y];y@-2+#y]}
- f:(0;kiasn;f2`add;f2`sub;f2`mul;0)@0|(0;`64;`66;`67;`68)?y
- $[~(y~())|f~0;(-2_x),,f x;y~`83;kiatx x;y~`84;kifnc x;`s~t;x,,(`sym;0N;0;y);`S~t;x,,(n#`sym;n#0N;&n:#y;kidrp y);`i~t;x,,(`lit;0N;y;`i);x]}
+ f:(0;kiasn;f2`add;f2`sub;f2`mul;kicst;0)@0|(0;`64;`66;`67;`68;`82)?y
+ $[~(y~())|f~0;(-2_x),,f x;y~`83;kiatx x;y~`84;kifnc x;`s~t;x,,(`sym;0N;0;y);`i~t;x,,(`lit;0N;y;`i);y~`256;kidrp x;x]}
  
 
-kiatx:{$[`sym~**|x;(-2_x),,kix[$[(s:(*|x)3)':`i`u`j`k`f;(`cst`typ;0N 0;0N 0N;s,kits a 3);(`cal;0N;0N;s)];a:x@-2+#x];x]}
+kiatx:{$[`sym~**|x;(-2_x),,kix[(`cal;0N;0N;*|*|x);x@-2+#x];x]}
 kifnc:{$[`sym~**|x;kical x;kicli x]}
 kical:{s:kis f:(*|x)3;a:*s;r:s 1;c:(`cal;0N;0N;f);$[a;((-2-a)_x),,(c kix/|a#-2_x);((-1-a)_x),,c]}
 kicli:{n:#x;an:#a:$(x n-2)3;r:+(rn#`res;rn#0N;(rn:#r)#0N;r:`$'$(x n-3)3); e:(x n-4); x:-4_x; b:+(an#`arg;an#0N;an#0N;`$'a);((-an)_x),,((((`cli;0N;an;`)kix/,e)kix/(-an)#x)kix/b)kix/r}
 
+kicst:{(`cst`typ;0N 0;0N 0N;((x 1)3),kits@(*x)3)kix/-1_x}
+kiasn:{(`asn;0N;0;`$-1_$(*|x)3)kix/-1_x}
 
-kiasn:{kix[kix[(`asn;0N;#(*|x)3;`);*|x];x@-2+#x]}
-kidrp:{@[x;&`=x;`"__"]}
+kidrp:{`drp \x; \(,(0#`;!0;!0;0#`)),x}
+/kidrp:{`drp \x;$[`cal~***x;$[kis@*(*x)3;x[0]:(`drp;0N;0N;`)kix/+x 0;x];x]}
 
 kits:{`$*|$x}
 kiel:{i@&`v=@'x[-7+i:&(`64)~/:x]}    /lambda assignments -> `64->"l"
@@ -54,7 +56,7 @@ kisig:{r:(*r)!+1_r:(x i-1;{(.x)3}'x i-8;#'$x -6+i:&"l"~/:x);r,(x i-1)!+({(.x)3}'
 
 kiget:{f:&`fun=*x;s:x[3;i:1+&(`loc=*x)|`arg=*x];fi:=f'i
  a:&`sym=*x
- a:a@&~(x[0;x[1;a]])':`arg`loc`asn
+ a:a@&~(x[0;x[1;a]])':`arg`loc /`asn
  fa:f'a
  g:0N=(s fi fa)?'x[3;a]
  x[0;a]:`get`Get g

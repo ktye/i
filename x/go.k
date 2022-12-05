@@ -88,7 +88,7 @@ gocal:{($S x;,"("; ","/:y ;,")")}
 godrp:{y}
 
 gocli:{n:I x;("Func[";*y;"].(func(";  ","/:n#(1+n)_y; ")("; gotype S x ;"))(";  ","/:n#1_y; ") ")}
-goasn:{(", "/:(I x)#y)," = ",*|y}
+goasn:{($S x)," = ",*|y}
 gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}
 goswc:{("switch ";*y;" {"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"\n")," }" }

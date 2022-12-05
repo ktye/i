@@ -19,12 +19,10 @@
 /  2 5                   (two int array) is int64 [high low]
 /  0x123...              precise float constants binary 64bit
 / cast
-/  `i x  `u x  ..
+/  i?x  u?x  ..
 / call
 /  f x  f[x;y]           normal k syntax
 /  g f x                 f returns same number of values as g has args
-/  `a`b:f x              destructing assignment
-/  `a``c:f x             empty var drops a return value
 / call-indirect          
 /  .[int-expr;ret-type;arg-types][args]    .[5;i;iif][1;2;3.0]
 / loops
@@ -60,7 +58,7 @@ lp:{(~~)#@[&#x;x i;i:!#x]}
 ik:{[o]opts::o
  /T::@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loops
  
- {[d;i;t]$[t':`arg`loc;d[S 1+i]:S i;t':`sym`get;S[i]:`$,/$(S i),d S i;0];d}/[(0#`)!0#`;!#T;T] /append type to symbols
+ {[d;i;t]$[t':`arg`loc;d[S 1+i]:S i;t':`sym`get`asn;S[i]:`$,/$(S i),d S i;0];d}/[(0#`)!0#`;!#T;T] /append type to symbols
  
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(ikprg;ikmem;ikcon;ikvar;iktab;ikfun;ikarg;iksym;ikres;ikloc;ikast;iklod;iksto)
  F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(ikadd;ikand;ikbnd;ikant;ikasn;ikcal;ikcli;ikcnd;ikdfr;ikdiv;ikdrp;ikeql;ikcst)
@@ -112,7 +110,7 @@ iksto:{$[`b~s:S x;"B";_($s)-32],"[",(*y),"]::",y 1}
 
 ikant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:iktype S x),".and"}
 
-ikasn:{$[1~i:(I x);*y;,/"`",'i#y],":",*|y}
+ikasn:{($S x),":",y}
 ikcal:{n:#y:";"/:y;$[`panic~s:S x;"!",y;($s),$[1~n;" ",y;"[",y,"]"]]}
 
 ikcli:{n:I x;".[",($S x),";",(","/:n#(1+n)_y),";",(*y),"]",$[1~n;y 1;"[",(";"/:n#1_y),"]"]}
@@ -120,7 +118,7 @@ ikcli:{n:I x;".[",($S x),";",(","/:n#(1+n)_y),";",(*y),"]",$[1~n;y 1;"[",(";"/:n
 
 ikdfr:{y;""}
 ikdrp:{y}
-ikcst:{$[(S x)~y 0;y 1;"`",($S x)," ",y 1]}
+ikcst:{$[(S x)~y 0;y 1;($S x),"?",y 1]}
 
 ikfor:{"(",(";"/:2#y),$[s:S x;";",$s;""],")'[",(y 2),"]"}
 

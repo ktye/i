@@ -43,7 +43,7 @@ node type                    i-value             s-value
  Get     get global          -                   varname
  lod     load                -                   type(bijf)      child:    addr
  sto     store               -                   type(bijf)      children: addr, value
- asn     assignment          #symbols            -               children: symbol(s), expr
+ asn     assignment          1(global)           varname         children: expr
  cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
  cnd     if condition        -                   `|result-type   2|3 children: if then [else]
