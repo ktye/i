@@ -26,20 +26,6 @@ elif [ "$1" = wa ]; then
 		cmp out $w
 		rm out
 	done
-elif [ "$1" = i ];then
- 	for x in *.k; do
-		o=`echo $x | sed 's/.k$/.i/'`
-	 	k $x ../ik.k -e 'x:`<ik``' > $o
-	done
-elif [ "$1" = ki ]; then
-        #for x in *.k; do
-	# cnd.k const.k cont.k heap.k ifret.k label.k lit.k loop.k loop2.k mem.k swtch.k tab.k
-	for x in inc.k cast.k asn.k cal.k cli.k drp.k fun.k; do
-	 i=`echo $x | sed 's/.k$/.i/'`
-	 k ../ki.k -e 'x:kixx@<`"'$i'"' > out1
- 	 k ${x}  -e 'x:`<"\n"/:(`lxy 40 100)@+`T`P`I`S!(T;P;I;S)' > out2
-	 diff out1 out2
-	done
 elif [ "$1" = walidate ]; then
 	for x in *.wa; do
 		/c/local/wabt/wat2wasm $x

@@ -9,8 +9,6 @@ if [ -z "$1" ]; then
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa
-elif [ "$1" = "ik" ]; then
- k k.k ik.k -e >  k.ik
 elif [ "$1" = "test" ]; then
  for f in tests/*.k; do
   k "$f" go.k -e
