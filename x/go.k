@@ -29,7 +29,7 @@ em:{"(",x,")"}
 nl:{$[#x:"\n"/:x;x,"\n";x]}
 nyi:{y;em x}
 
-gotype:`i`u`j`k`f`C`I`F!("int32";"uint32";"int64";"uint64";"float64";"[16]int8";"[4]int32";"[2]float64")
+gotype:`i`u`j`k`f!("int32";"uint32";"int64";"uint64";"float64")
 
 goprg:{
  fncs:nl y@&`fun=T c:1_&P=0
@@ -87,7 +87,7 @@ gosto:{("Set";$gosiz S x;"( ";y 0;", ";y 1;") ")}
 gocal:{($S x;,"("; ","/:y ;,")")}
 godrp:{y}
 
-gocli:{n:I x;("Func[";*y;"].(func(";  ","/:n#(1+n)_y; ")("; ","/:(1+2*n)_y ;"))(";  ","/:n#1_y; ") ")}
+gocli:{n:I x;("Func[";*y;"].(func(";  ","/:n#(1+n)_y; ")("; gotype S x ;"))(";  ","/:n#1_y; ") ")}
 goasn:{(", "/:(I x)#y)," = ",*|y}
 gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}

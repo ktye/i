@@ -58,7 +58,7 @@ waasn:{y[&b:"$_"~/:-1_y]:,"";(*|y),,/|(("\nlocal.set ";"\nglobal.set ";"\ndrop")
 
 wacal:{$[`panic~s:S x;"unreachable";("\n"/:y),"\n",$[#c:wainst s;c;"call $",$s]]}
 
-wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect "," "/:(1+I x)_y}
+wacli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect "," "/:((1+I x)_y),$[S x;,"(result ",(watype S x),")";()]}
 wadfr:{y;""}
 wadrp:{"\n"/:y,,"drop"}
 wacst:{t:!watype;(y 1),"\n",wacast i:(t?y 0)+5*t?S x}
