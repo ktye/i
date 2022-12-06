@@ -21,7 +21,7 @@ abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;exp:`42;lo
 
 
 / pretty print  `l@x  `k@x
-`"pad.":{(|/#'x)#'x}
+`"pad.":{x@\:!|/#'x}
 
 `"lxy.":{ /k
  kt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad("";"-"),$x];(x,'"|"),'T[y;k]}

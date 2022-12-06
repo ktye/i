@@ -270,7 +270,12 @@ func ntake(n int32, y K) (r K) {
 		dx(y)
 		return r
 	}
-	return Atx(y, seq(n))
+	r = seq(n)
+	yn := nn(y)
+	if n > yn && yn > 0 {
+		r = idiv(r, Ki(yn), 1)
+	}
+	return atv(y, r)
 }
 func Drp(x, y K) (r K) { // x_y
 	xt := tp(x)
