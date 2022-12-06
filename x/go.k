@@ -11,6 +11,7 @@ go:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(gofor;goget;goGet;gogte;gojmp;goles;golit;golte;gomod;gomor;gomul;goneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(goneq;gonop;gonot;goorr;gobor;goxor;goret;goshl;goshr;gostm;gosub;goswc;gotyp)
 
+ rwcnd'|&(~`=S)&(T=`cnd)|T=`swc                /rewrite cnd/swc expressions
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
@@ -25,6 +26,11 @@ pkg:{S[0]::x; rm@*&(`fun=T)&`main=S}
 hx8:{[i]"0x",`x@|C i+!8}
 /dp:{+/0<(x@)\:!#x} /depth from parent
 em:{"(",x,")"}
+
+INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
+ins:{[i;x;y](i#x),y,i_x}
+del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
+rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x}
 
 nl:{$[#x:"\n"/:x;x,"\n";x]}
 nyi:{y;em x}
