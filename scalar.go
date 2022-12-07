@@ -1542,7 +1542,7 @@ func conform(x, y K) int32 { // 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vect
 	}
 	return r
 }
-func dtypes(x, y K) (t T) {
+func dtypes(x, y K) T {
 	xt, yt := tp(x), tp(y)
 	return T(maxi(int32(xt), int32(yt)))
 }
