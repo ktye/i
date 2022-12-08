@@ -154,7 +154,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./x/k.go
+        asset_path: ./i/x/k.go
         asset_name: k.go
         asset_content_type: text/plain
           
