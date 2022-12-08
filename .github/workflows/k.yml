@@ -66,7 +66,7 @@ jobs:
       run: cd i/f77 && sh mk && sh mk test
     
     - name: k.go
-      run: cd i/x && sh mk && sh mk gotest
+      run: cd i/x && wg -k .. > k.k && k k.k go.k -e 'x:`go`pkg`k' > k.go && go fmt k.go && go build k.go && ./k ../k.t -e
       
     - name: kom
       run: cd i/kom && sh mk && sh mk test
