@@ -64,6 +64,9 @@ jobs:
 
     - name: k.f
       run: cd i/f77 && sh mk && sh mk test
+    
+    - name: k.go
+      run: cd i/x && sh mk && sh mk gotest
       
     - name: kom
       run: cd i/kom && sh mk && sh mk test
@@ -144,6 +147,16 @@ jobs:
         asset_path: ./i/k.wasm
         asset_name: k.wasm
         asset_content_type: application/wasm
+        
+    - name: upload k.go
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./x/k.go
+        asset_name: k.go
+        asset_content_type: text/plain
           
     - name: upload k.f
       uses: actions/upload-release-asset@v1
