@@ -41,11 +41,11 @@ jobs:
         tar zxf wabt-1.0.26-ubuntu.tar.gz
         cp wabt-1.0.26/bin/wat2wasm .
 
-    - name: build i
-      run: cd i && go build -v ./
+    - name: build k
+      run: cd i && go build -v
       
-    - name: test i
-      run: cd i && go test
+    - name: test and install k
+      run: cd i && go test && go install
     
     - name: build k.wasm
       run: |
