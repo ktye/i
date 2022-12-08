@@ -6,6 +6,12 @@ if [ -z "$1" ]; then
  k k.k go.k -e 'x:`<go`pkg`k' > k.go
  go fmt k.go
  go build k.go
+elif [ "$1" = "gotest" ]; then
+ ./k ../k.t -e
+elif [ "$1" = "flt" ]; then
+ k k.k flt.k -e
+ go run flt.go
+ rm flt.out
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa
