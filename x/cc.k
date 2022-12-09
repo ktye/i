@@ -91,11 +91,12 @@ ccdrp:{y}
 
 cccli:{n:I x;("((";cctype S x;"(*)("; ","/:n#(1+n)_y; "))Func[";*y;"])(";  ","/:n#1_y; ")")}
 ccasn:{r:(s:$S x),"=",(*|y),";\n";$[r~s,"=(",s,"+1);\n";s,"++;\n";r]}
-cccnd:{$[S x; (*y;"?(";y 1;"):(";y 2;")") ;"if",(y 0),(y 1),$[3~#y;"else ",(y 2);""]]}
+cccnd:{$[S x; (ccnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(ccnd y 0),(y 1),$[3~#y;"else ",(y 2);""]]}
 ccnop:{y;""}
 ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"break;\n"),"}" }
  
-ccfor:{("for(;";y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)}
+ccfor:{$[I x;ccwhl[x;y];("for(;";ccnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
+ccwhl:{((,"do"),,-12_y 2),("}while";ccnd y 0;";\n")}
 ccjmp:{y;$[I x;"break";"continue"]}
 ccdfr:{("defer func(){if recover()!=nil{";*y;"}}()")}
 
@@ -106,8 +107,14 @@ ccadd:cc2"+"; ccsub:cc2"-"; ccmul:cc2"*"; ccdiv:cc2"/"; ccmod:cc2"%"
 cceql:cc2"==";ccgte:cc2">=";ccles:cc2"<"; cclte:cc2"<=";ccmor:cc2">"; ccneq:cc2"!="
 ccand:cc2"&"; ccbnd:cc2"&&";ccant:cc2"&^";ccorr:cc2"|"; ccbor:cc2"||";ccxor:cc2"^"; ccshl:cc2"<<";ccshr:cc2">>"
 
+ccnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 
-ccfmt:{l:"\n"\:x;l@:&~(""~/:l)|(,";")~/:l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l;,/(s,'l),\:"\n"}
+ccfmt:{
+ x:@[x;1+find["}\nelse";x];" "]
+ x:@[x;1+find["}\nwhil";x];" "]
+ l:"\n"\:x;
+ l@:&~(""~/:l)|(,";")~/:l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
+ ,/(s,'l),\:"\n"}
 
 / run time
 ccrnt:"import ( \"encoding/binary\"; \"math\"; \"math/bits\"; \"os\" )

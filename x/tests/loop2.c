@@ -1,7 +1,6 @@
 void f(){
  int32_t i;
- for(;(i<3);){
+ do{
   i++;
-  continue;
- }
+ }while(i<3);
 }
