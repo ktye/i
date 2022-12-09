@@ -17,7 +17,8 @@ func Fnd(x, y K) (r K) { // x?y
 		if xt == Tt {
 			trap(Nyi) // t?..
 		}
-		return Atx(x0(x), Fnd(r1(x), y))
+		r = x0(x)
+		return Atx(r, Fnd(r1(x), y))
 	} else if xt == yt {
 		yn := nn(y)
 		if xt < Ft && yn > 2 {

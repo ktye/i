@@ -10,7 +10,7 @@ func Dex(x, y K) K { // x:y
 	dx(x)
 	return y
 }
-func Flp(x K) K { // +x
+func Flp(x K) (r K) { // +x
 	xt := tp(x)
 	switch xt - Lt {
 	case 0: // Lt   n:#x;  m:|/#x (,/m#/:x)[(!m)+\:m*!n]
@@ -22,7 +22,8 @@ func Flp(x K) K { // +x
 	case 1: // Dt
 		return td(x)
 	case 2: // Tt
-		return Key(x0(x), r1(x))
+		r = x0(x)
+		return Key(r, r1(x))
 	default:
 		return x
 	}
@@ -141,9 +142,13 @@ func Uqs(x K) K { // ?^x
 	}
 	return kx(88, x) // .uqs
 }
-func Grp(x K) K    { return kx(128, x) }                             // =x grp.
-func grp(x, y K) K { return Atx(Drp(rx(x), rx(y)), Grp(Atx(y, x))) } // s?T
-func Key(x, y K) K { return key(x, y, Dt) }                          // x!y
+func Grp(x K) K { return kx(128, x) } // =x grp.
+func grp(x, y K) K { // s?T
+	x = rx(x)
+	y = rx(y)
+	return Atx(Drp(x, y), Grp(Atx(y, x)))
+}
+func Key(x, y K) K { return key(x, y, Dt) } // x!y
 func key(x, y K, t T) (r K) { // Dt or Tt
 	xt, yt := tp(x), tp(y)
 	if xt < 16 || xt == Dt {
@@ -172,27 +177,33 @@ func key(x, y K, t T) (r K) { // Dt or Tt
 	SetI32(int32(r)-12, xn)
 	return K(int32(r)) | K(t)<<59
 }
-func keyt(x, y K) K { return Key(Tak(rx(x), rx(y)), Drp(x, y)) } // `s!t (key table: (`s#t)!`s_t)
+func keyt(x, y K) K { // `s!t (key table: (`s#t)!`s_t)
+	x = rx(x)
+	y = rx(y)
+	return Key(Tak(x, y), Drp(x, y))
+}
 
 func Tak(x, y K) (r K) { // x#y
 	xt := tp(x)
 	yt := tp(y)
 	if yt == Dt {
+		x = rx(x)
 		if xt == it {
 			r = x0(y)
 			y = r1(y)
-			r = Tak(rx(x), r)
+			r = Tak(x, r)
 			y = Tak(x, y)
 			return Key(r, y)
 		} else {
-			return Key(rx(x), Atx(y, x))
+			return Key(x, Atx(y, x))
 		}
 	} else if yt == Tt {
 		if xt&15 == st {
 			if xt == st {
 				x = Enl(x)
 			}
-			return key(rx(x), Atx(y, x), yt)
+			x = rx(x)
+			return key(x, Atx(y, x), yt)
 		} else {
 			return Ecr(15, l2(x, y))
 		}
@@ -200,10 +211,11 @@ func Tak(x, y K) (r K) { // x#y
 	if xt == it {
 		return ntake(int32(x), y)
 	}
+	y = rx(y)
 	if xt > 16 && xt == yt {
-		return atv(y, Wer(In(rx(y), x))) // set take
+		return atv(y, Wer(In(y, x))) // set take
 	}
-	return Atx(rx(y), Wer(Cal(x, l1(y)))) // f#
+	return Atx(y, Wer(Cal(x, l1(y)))) // f#
 }
 func ntake(n int32, y K) (r K) {
 	t := tp(y)
@@ -287,8 +299,8 @@ func Drp(x, y K) (r K) { // x_y
 			if xt < 16 {
 				x = Enl(x)
 			}
-			x = Wer(Not(In(rx(r), x)))
-			return key(Atx(r, rx(x)), Atx(y, x), yt)
+			x = rx(Wer(Not(In(rx(r), x))))
+			return key(Atx(r, x), Atx(y, x), yt)
 		} else {
 			return Ecr(16, l2(x, y))
 		}
@@ -302,7 +314,7 @@ func Drp(x, y K) (r K) { // x_y
 	if yt == it {
 		return atv(x, Wer(Not(Eql(y, seq(nn(x))))))
 	}
-	return Atx(rx(y), Wer(Not(Cal(x, l1(y))))) // f#
+	return Atx(y, Wer(Not(Cal(x, l1(rx(y)))))) // f#
 }
 func ndrop(n int32, y K) (r K) {
 	yt := tp(y)
@@ -346,8 +358,8 @@ func Cut(x, y K) (r K) { // x^y
 		return cuts(x, y)
 	}
 	if xt == Ct && yt == Ct { // "set"^"abc"
-		x = Wer(In(rx(y), x))
-		return rcut(y, Cat(Ki(0), Add(Ki(1), rx(x))), Cat(x, Ki(nn(y))))
+		x = rx(Wer(In(rx(y), x)))
+		return rcut(y, Cat(Ki(0), Add(Ki(1), x)), Cat(x, Ki(nn(y))))
 	}
 	if xt != it || yt < 16 {
 		trap(Type)
@@ -371,7 +383,7 @@ func Cut(x, y K) (r K) { // x^y
 	dx(y)
 	return r
 }
-func cuts(x, y K) K { return rcut(y, rx(x), cat1(ndrop(1, x), Ki(nn(y)))) }
+func cuts(x, y K) K { return rcut(y, x, cat1(ndrop(1, rx(x)), Ki(nn(y)))) }
 func rcut(x, a, b K) (r K) { // a, b start-stop ranges
 	n := nn(a)
 	ap, bp := int32(a), int32(b)
@@ -406,7 +418,8 @@ func split(x, y K) K {
 			trap(Type)
 		}
 	}
-	return rcut(y, Cat(Ki(0), Add(Ki(xn), rx(x))), cat1(x, Ki(nn(y))))
+	x = rx(x)
+	return rcut(y, Cat(Ki(0), Add(Ki(xn), x)), cat1(x, Ki(nn(y))))
 }
 func join(x, y K) (r K) {
 	xt := tp(x)
@@ -604,7 +617,8 @@ func Rev(x K) (r K) { // |x
 		return x
 	}
 	if t == Dt {
-		return Key(Rev(x0(x)), Rev(r1(x)))
+		r = x0(x)
+		return Key(Rev(r), Rev(r1(x)))
 	}
 	xn := nn(x)
 	if xn < 2 {
@@ -626,7 +640,8 @@ func Wer(x K) (r K) { // &x
 		t = tp(x)
 	}
 	if t == Dt {
-		return Atx(x0(x), Wer(r1(x)))
+		r = x0(x)
+		return Atx(r, Wer(r1(x)))
 	}
 	var n, rp int32
 	xn := nn(x)

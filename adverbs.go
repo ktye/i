@@ -25,7 +25,8 @@ func Ech(f, x K) (r K) {
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			return lin(x0(x), f, r1(x))
+			r = x0(x)
+			return lin(r, f, r1(x))
 		}
 		return Bin(f, Fst(x))
 	}
@@ -39,7 +40,8 @@ func Ech(f, x K) (r K) {
 	}
 	xt := tp(x)
 	if xt == Dt {
-		return Key(x0(x), Ech(f, l1(r1(x))))
+		r = x0(x)
+		return Key(r, Ech(f, l1(r1(x))))
 	}
 	if xt == Tt {
 		x = explode(x)
@@ -78,7 +80,8 @@ func ec2(f, x, y K) (r K) {
 	var t T
 	t = dtypes(x, y)
 	if t > Lt {
-		return key(dkeys(x, y), ec2(f, dvals(x), dvals(y)), t)
+		r = dkeys(x, y)
+		return key(r, ec2(f, dvals(x), dvals(y)), t)
 	}
 	n := conform(x, y)
 	switch n {
@@ -297,7 +300,8 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		}
 		if yt > Lt {
 			t := dtypes(x, y)
-			return key(dkeys(x, y), Ecr(f, l2(dvals(x), dvals(y))), t)
+			r = dkeys(x, y)
+			return key(r, Ecr(f, l2(dvals(x), dvals(y))), t)
 		}
 		yn := nn(y)
 		r = mk(Lt, yn)
@@ -391,7 +395,8 @@ func Scn(f, x K) (r K) {
 		return y
 	}
 	if yt == Dt {
-		return Key(x0(y), Scn(f, l2(x, r1(y))))
+		r = x0(y)
+		return Key(r, Scn(f, l2(x, r1(y))))
 	}
 
 	xt := tp(x)
@@ -440,8 +445,8 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point-scan
-		x = Fst(x)
-		return fix(f, rx(x), Enl(x))
+		x = rx(Fst(x))
+		return fix(f, x, Enl(x))
 	case 1:
 		var y K
 		y = x1(x)

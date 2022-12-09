@@ -216,8 +216,8 @@ func Dmd(x, i, v, y K) (r K) {
 		}
 		i = Fst(i)
 		if tp(f) == It && tp(x) == Tt {
-			r = x0(x)
-			return key(rx(r), Dmd(r1(x), l2(Fnd(r, i), f), v, y), Tt)
+			r = rx(x0(x))
+			return key(r, Dmd(r1(x), l2(Fnd(r, i), f), v, y), Tt)
 		}
 		if tp(f) != It || tp(x) != Lt {
 			trap(Nyi) // Dt
@@ -233,8 +233,8 @@ func Dmd(x, i, v, y K) (r K) {
 		dx(y)
 		return r
 	}
-
-	return Amd(x, f, 1, Dmd(Atx(rx(x), f), i, v, y))
+	x = rx(x)
+	return Amd(x, f, 1, Dmd(Atx(x, f), i, v, y))
 }
 
 //vcount: func vcount(x K) {

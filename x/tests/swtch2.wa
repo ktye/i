@@ -1,0 +1,24 @@
+(module
+(memory (export "memory") 1)
+(func $f (param $x i32) (result i32)
+ local.get $x)
+(func $g (param $x i32) (result i32) (local $r i32)
+ block (result i32)
+  block
+   block
+    local.get $x
+    br_table 0 1
+   end
+   local.get $x
+   call $f
+   br 1
+  end
+  i32.const 1
+  local.get $x
+  call $f
+  i32.add
+  br 0
+ end
+ global.set $r
+ local.get $r)
+)

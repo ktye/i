@@ -1288,7 +1288,8 @@ func ff(f, rp, xp, n int32, yf float64) {
 func nm(f int32, x K) (r K) { //monadic
 	xt := tp(x)
 	if xt > Lt {
-		return key(x0(x), nm(f, r1(x)), xt)
+		r = x0(x)
+		return key(r, nm(f, r1(x)), xt)
 	}
 	xp := int32(x)
 	if xt == Lt {
@@ -1349,7 +1350,8 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 	var t T
 	t = dtypes(x, y)
 	if t > Lt {
-		return key(dkeys(x, y), Func[64+ff].(f2)(dvals(x), dvals(y)), t)
+		r = dkeys(x, y)
+		return key(r, Func[64+ff].(f2)(dvals(x), dvals(y)), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
@@ -1433,7 +1435,8 @@ func nc(f, ff int32, x, y K) (r K) { //compare
 	var t T
 	t = dtypes(x, y)
 	if t > Lt {
-		return key(dkeys(x, y), nc(f, ff, dvals(x), dvals(y)), t)
+		r = dkeys(x, y)
+		return key(r, nc(f, ff, dvals(x), dvals(y)), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))

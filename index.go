@@ -47,7 +47,8 @@ func Atx(x, y K) (r K) { // x@y
 		return Ecr(19, l2(x, y))
 	}
 	if yt == Dt {
-		return Key(x0(y), Atx(x, r1(y)))
+		r = x0(y)
+		return Key(r, Atx(x, r1(y)))
 	}
 	return trap(Type) // f@
 }
