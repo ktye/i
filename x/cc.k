@@ -8,7 +8,8 @@ cc:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(ccfor;ccget;ccGet;ccgte;ccjmp;ccles;cclit;cclte;ccmod;ccmor;ccmul;ccneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(ccneq;ccnop;ccnot;ccorr;ccbor;ccxor;ccret;ccshl;ccshr;ccstm;ccsub;ccswc;cctyp)
 
- rwcnd'|&(~`=S)&(T=`cnd)|T=`swc                /rewrite cnd/swc expressions 
+ i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd
+ rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)':i     /rewrite cnd/swc expressions 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
@@ -90,7 +91,7 @@ ccdrp:{y}
 
 cccli:{n:I x;("((";cctype S x;"(*)("; ","/:n#(1+n)_y; "))Func[";*y;"])(";  ","/:n#1_y; ")")}
 ccasn:{r:(s:$S x),"=",(*|y),";\n";$[r~s,"=(",s,"+1);\n";s,"++;\n";r]}
-cccnd:{"if",(y 0),(y 1),$[3~#y;"else ",(y 2);""]}
+cccnd:{$[S x; (*y;"?(";y 1;"):(";y 2;")") ;"if",(y 0),(y 1),$[3~#y;"else ",(y 2);""]]}
 ccnop:{y;""}
 ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"break;\n"),"}" }
  

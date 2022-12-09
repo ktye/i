@@ -9,8 +9,7 @@ int32_t g(int32_t x){
   break;
   default:
   {
-   if(x>5)r=(x-3);
-   else r=(x-2);
+   r=(x>5)?((x-3)):((x-2));
    r=r;
   }
   break;
