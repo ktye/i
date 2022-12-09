@@ -26,6 +26,13 @@ elif [ "$1" = wa ]; then
 		cmp out $w
 		rm out
 	done
+elif [ "$1" = cc ]; then
+	for x in *.k; do
+		c=`echo $x | sed 's/.k$/.c/'`
+		k $x ../cc.k -e 'x:`<cc``nort' > out
+		cmp out $c
+		rm out
+	done
 elif [ "$1" = walidate ]; then
 	for x in *.wa; do
 		/c/local/wabt/wat2wasm $x
