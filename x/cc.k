@@ -44,6 +44,7 @@ ccprg:{
  main:$[|/`nort`lib':opts;"";ccmain]
  data:$[#D;"memcpy(_M,\"",("\\x","\\x"/:(#D)^`x D),"\",",($#D),");";""]
  tabl:nl y@&`tab=T c
+ tabl:$[#tabl;"_F=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
  mems:nl y@&`mem=T c
  init:$[|/(#mems;#data;#tabl);nl("void init(){\n";mems;data;tabl;"}\n");""]
  (runt;fpre;cons;vars),(,fncs),(ccfmt init),main}
