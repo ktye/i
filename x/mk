@@ -14,7 +14,8 @@ elif [ "$1" = "flt" ]; then
  rm flt.out
 elif [ "$1" = "cc" ]; then
  k k.k cc.k -e 'x:`<cc``' >  k.c
- gcc -Wfatal-errors -o kc k.c -lm
+ #gcc -Wall -Wfatal-errors -o kc k.c -lm
+ c:/local/zig/zig cc -Wall -Wno-parentheses-equality k.c -o kc
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa

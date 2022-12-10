@@ -279,7 +279,8 @@ func whl(x K, xn int32) (r K) {
 }
 func cond(x K, xn int32) (r K) {
 	xp := int32(x) + 8*xn
-	var nxt, sum int32
+	var nxt int32
+	sum := int32(0)
 	state := int32(1)
 	for xp != int32(x) {
 		xp -= 8
@@ -300,8 +301,8 @@ func cond(x K, xn int32) (r K) {
 }
 func plist(c K) (r K) {
 	var p K
-	var n int32
 	r = mk(Lt, 0)
+	n := int32(0)
 	for {
 		var b K
 		b = next()

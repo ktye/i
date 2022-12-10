@@ -60,7 +60,8 @@ func Enl(x K) (r K) {
 	}
 	return l1(x)
 }
-func explode(x K) (r K) {
+func explode(x K) K {
+	r := K(0)
 	xt := tp(x)
 	if xt < 16 {
 		r = l1(x)
@@ -190,7 +191,7 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 	}
 	xp := int32(x)
 	var rt T
-	var rn int32
+	rn := int32(0)
 	for i := int32(0); i < xn; i++ {
 		xi := K(I64(xp))
 		t := tp(xi)

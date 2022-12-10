@@ -115,7 +115,7 @@ func Ecp(f, x K) (r K) {
 	}
 	xn := nn(x)
 	var y K
-	var m int32
+	m := int32(0)
 	if xn == 1 {
 		x = Fst(x)
 		y = Fst(rx(x)) // could be missing(xt)
@@ -195,7 +195,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		y = x1(x)
 		x = r0(x)
 	} else {
-		trap(Rank)
+		y = trap(Rank)
 	}
 	yt := tp(y)
 	if yt == Dt {
@@ -377,7 +377,7 @@ func Scn(f, x K) (r K) {
 		y = x1(x)
 		x = r0(x)
 	} else {
-		trap(Rank)
+		y = trap(Rank)
 	}
 	yt := tp(y)
 	if yt < 16 {

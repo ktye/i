@@ -129,6 +129,7 @@ ccfmt:{
  x:@[x;1+find["}\nwhil";x];" "]
  x:@[x;1+find["};\n"   ;x];" "]
  l:"\n"\:x;
+ l@:&~l~\:"r=r;"
  l@:&~(""~/:l)|(,";")~/:l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
  ,/(s,'l),\:"\n"}
 
@@ -233,10 +234,11 @@ int64_t Native(int64_t x, int64_t y){
 #ifdef NATIVE
  return cnative(x, y);
 #else
- return 0;
+ return 0*(x+y);
 #endif
 }
-void panic() { longjmp(_jb_,1); }
+void panic(int32_t x) { longjmp(_jb_,1); }
+#define P(...) printf(__VA_ARGS__);fflush(stdout);
 "
 ccmain:"int main(int args, char **argv){
  args_=(int32_t)args;

@@ -107,7 +107,8 @@ func sum(x K, yp int32, t T, n int32) K { // +/x
 		}
 		return Kf(f + sumf(yp, n, 8))
 	case 4: // Zt
-		var re, im float64
+		re := 0.0
+		im := 0.0
 		if x != 0 {
 			re, im = F64(xp), F64(xp+8)
 		}
@@ -116,7 +117,8 @@ func sum(x K, yp int32, t T, n int32) K { // +/x
 		return 0
 	}
 }
-func sumf(xp, n, s int32) (r float64) {
+func sumf(xp, n, s int32) float64 {
+	r := 0.0
 	if n < 128 {
 		for i := int32(0); i < n; i++ {
 			r += F64(xp)

@@ -4,7 +4,8 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Fnd(x, y K) (r K) { // x?y
+func Fnd(x, y K) K { // x?y
+	r := K(0)
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if yt == Tt {
@@ -140,10 +141,11 @@ func idxz(re, im float64, p, e int32) (r int32) {
 	}
 	return (r - p) >> 4
 }
-func fndl(x, y K) (r int32) {
+func fndl(x, y K) int32 {
 	xn := nn(x)
 	xp := int32(x)
 	dx(y)
+	r := int32(0)
 	for r < xn {
 		if match(K(I64(xp)), y) != 0 {
 			return r

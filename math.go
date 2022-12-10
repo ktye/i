@@ -23,7 +23,7 @@ func hypot(p, q float64) float64 {
 	return p * F64sqrt(1+q*q)
 }
 func cosin(deg float64, rp int32) {
-	var c, s float64
+	c, s := 0.0, 0.0
 	if deg == 0 {
 		c = 1.0
 	} else if deg == 90 {
@@ -60,7 +60,8 @@ func ang2(y, x float64) (deg float64) {
 }
 func cosin_(x float64, rp int32, csonly int32) {
 	var c, s float64
-	var ss, cs int32
+	var ss int32
+	var cs int32 = 0
 	if x < 0 {
 		x = -x
 		ss = 1
@@ -215,7 +216,8 @@ func frexp2(f float64) float64 {
 	x |= 4602678819172646912
 	return F64reinterpret_i64(x)
 }
-func frexp3(f float64) (exp int64) {
+func frexp3(f float64) int64 {
+	exp := int64(0)
 	nf := normalize(f)
 	if nf != f {
 		exp = int64(-52)

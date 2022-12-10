@@ -184,6 +184,7 @@ func tunm() K {
 	return Ki(int32(r))
 }
 func pu() (r int64) {
+	r = int64(0)
 	for pp < pe {
 		c := I8(pp)
 		if is(c, 4) == 0 {
@@ -244,6 +245,8 @@ func pflz(f float64) (r K) {
 	pp++
 	if pp < pe {
 		r = tunm()
+	} else {
+		r = 0
 	}
 	return Rot(Kf(f), r)
 }

@@ -450,7 +450,8 @@ func join(x, y K) (r K) {
 	return r
 }
 func lin(x, y, z K) K { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
-func Bin(x, y K) (r K) { // x'y
+func Bin(x, y K) K { // x'y
+	r := K(0)
 	xt := tp(x)
 	yt := tp(y)
 	if xt < 16 || xt > Ft { // n' win?
@@ -472,10 +473,11 @@ func Bin(x, y K) (r K) { // x'y
 	return r
 }
 func ibin(x, y K, t T) int32 {
-	var k, j, h int32
+	var j, h int32
 	n := nn(x)
 	xp := int32(x)
 	yp := int32(y)
+	k := int32(0)
 	j = n - 1
 	s := sz(t)
 	switch s >> 2 {
@@ -661,7 +663,7 @@ func Wer(x K) (r K) { // &x
 	} else if xn == 0 {
 		r = mk(It, 0)
 	} else {
-		trap(Type)
+		r = trap(Type)
 	}
 	dx(x)
 	return r
@@ -813,6 +815,7 @@ func Dec(x, y K) (r K) { // x//y   {z+x*y}/[0;x;y]
 	return r
 }
 func sumi(xp, xn int32) (r int32) {
+	r = int32(0)
 	e := xp + 4*xn
 	for xp < e {
 		r += I32(xp)
