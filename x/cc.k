@@ -94,7 +94,7 @@ ccasn:{r:(s:$S x),"=",(*|y),";\n";
  $[((n:3+2*#s)#r)~s,"=(",s,"+";$["+=1"~-3#r:s,"+=",(n_-3_r);s,"++";r],";\n";r]}
 cccnd:{$[S x; (ccnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(ccnd y 0),(y 1),$[3~#y;"else ",(y 2);""]]}
 ccnop:{y;""}
-ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"break;\n"),"}" }
+ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'y,\:"break;\n"),"}" }
  
 ccfor:{$[I x;ccwhl[x;y];("for(;";ccnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
 ccwhl:{((,"do"),,-12_y 2),("}while";ccnd y 0;";\n")}
