@@ -176,7 +176,7 @@ func Find(x, y K) (r K) { // find[pattern;string] returns all matches (It)
 	r = mk(It, 0)
 	xp, yp := int32(x), int32(y)
 	y0 := yp
-	e := yp + yn
+	e := yp + yn + 1 - xn
 	for yp < e { // todo rabin-karp / knuth-morris / boyes-moore..
 		if findat(xp, yp, xn) != 0 {
 			r = cat1(r, Ki(yp-y0))
