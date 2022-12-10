@@ -11,6 +11,6 @@ int32_t g(int32_t x){
    r=r;
   }
   break;
- };
+ } 
  return r;
 }
