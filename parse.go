@@ -7,21 +7,21 @@ import (
 var ps int32
 
 func Prs(x K) K { return parse(Tok(x)) } // `p"src"  `p(token list)
-func parse(x K) (r K) {
+func parse(x K) K {
 	if tp(x) != Lt {
 		trap(Type)
 	}
 	pp = int32(x)
 	pe = pp + 8*nn(x)
-	r = es()
+	r := es()
 	if pp != pe {
 		trap(Parse)
 	}
 	lfree(x)
 	return r
 }
-func es() (r K) {
-	r = mk(Lt, 0)
+func es() K {
+	r := mk(Lt, 0)
 	for {
 		n := next()
 		if n == 0 {
@@ -42,7 +42,8 @@ func es() (r K) {
 	}
 	return r
 }
-func e(x K) (r K) { // Lt
+func e(x K) K { // Lt
+	r := K(0)
 	xv := x & 1
 	x &^= 1
 	if x == 0 {
@@ -83,8 +84,8 @@ func e(x K) (r K) { // Lt
 	}
 	return idiom(monadic(ucat(r, x))) // monadic
 }
-func t() (r K) { // Lt
-	r = next()
+func t() K { // Lt
+	r := next()
 	if r == 0 {
 		return 0
 	}
@@ -121,8 +122,7 @@ func t() (r K) { // Lt
 	}
 f:
 	for {
-		var n K
-		n = next()
+		n := next()
 		if n == 0 {
 			break f
 		}
@@ -187,7 +187,8 @@ func pasn(x, y, r K) K {
 	}
 	return 0
 }
-func plam(s0 int32) (r K) {
+func plam(s0 int32) K {
+	r := K(0)
 	slo := loc
 	loc = 0
 	ar := int32(-1)
@@ -256,8 +257,8 @@ func pspec(r, n K) K {
 	}
 	return 0
 }
-func whl(x K, xn int32) (r K) {
-	r = cat1(Fst(rx(x)), 0)
+func whl(x K, xn int32) K {
+	r := cat1(Fst(rx(x)), 0)
 	p := nn(r) - 1
 	r = cat1(r, 384) // jif
 	r = cat1(r, 256) // drop
@@ -277,14 +278,14 @@ func whl(x K, xn int32) (r K) {
 	dx(x)
 	return ucat(l1(0), r) // null for empty while
 }
-func cond(x K, xn int32) (r K) {
-	xp := int32(x) + 8*xn
-	var nxt int32
+func cond(x K, xn int32) K {
+	nxt := int32(0)
 	sum := int32(0)
+	xp := int32(x) + 8*xn
 	state := int32(1)
 	for xp != int32(x) {
 		xp -= 8
-		r = K(I64(xp))
+		r := K(I64(xp))
 		if sum > 0 {
 			state = 1 - state
 			if state != 0 {
@@ -299,13 +300,12 @@ func cond(x K, xn int32) (r K) {
 	}
 	return flat(x)
 }
-func plist(c K) (r K) {
-	var p K
-	r = mk(Lt, 0)
+func plist(c K) K {
+	p := K(0)
+	r := mk(Lt, 0)
 	n := int32(0)
 	for {
-		var b K
-		b = next()
+		b := next()
 		if b == 0 || b == c {
 			break
 		}
@@ -324,7 +324,7 @@ func plist(c K) (r K) {
 	}
 	return r + p
 }
-func rlist(x, p K) (r K) {
+func rlist(x, p K) K {
 	n := nn(x)
 	if n == 0 {
 		return l1(x)
@@ -333,9 +333,9 @@ func rlist(x, p K) (r K) {
 		return Fst(x)
 	}
 	if p != 2 {
-		r = clist(x, n)
-		if r != 0 {
-			return l1(r)
+		p = clist(x, n)
+		if p != 0 {
+			return l1(p)
 		}
 	}
 	return cat1(cat1(flat(Rev(x)), Ki(n)), 27)
@@ -359,11 +359,11 @@ func clist(x K, n int32) K {
 	return uf(flat(x))
 }
 
-func next() (r K) {
+func next() K {
 	if pp == pe {
 		return 0
 	}
-	r = K(I64(pp))
+	r := K(I64(pp))
 	ps = 0xffffff & int32(r>>32)
 	r = r &^ (K(0xffffff) << 32)
 	pp += 8
@@ -377,10 +377,10 @@ func dyadic(x, y K) K {
 	}
 	return cat1(ucat(x, y), 128)
 }
-func monadic(x K) (r K) {
+func monadic(x K) K {
 	l := lastp(x)
 	if quoted(l) != 0 {
-		r = cat1(ldrop(-1, x), unquote(l))
+		r := cat1(ldrop(-1, x), unquote(l))
 		if int32(l) == 449 { // :x (return: identity+jump)
 			return cat1(cat1(r, Ki(1048576)), 320)
 		} else {

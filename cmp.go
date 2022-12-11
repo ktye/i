@@ -4,13 +4,14 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Mtc(x, y K) (r K) {
-	r = Ki(match(x, y))
+func Mtc(x, y K) K {
+	r := Ki(match(x, y))
 	dx(x)
 	dx(y)
 	return r
 }
 func match(x, y K) int32 {
+	yn := int32(0)
 	if x == y {
 		return 1
 	}
@@ -18,9 +19,9 @@ func match(x, y K) int32 {
 	if xt != yt {
 		return 0
 	}
-	var xn, yn int32
 	if xt > 16 {
-		xn, yn = nn(x), nn(y)
+		xn := nn(x)
+		yn = nn(y)
 		if xn != yn {
 			return 0
 		}
@@ -180,11 +181,11 @@ func inZ(re, im float64, yp int32, e int32) int32 {
 	return 0
 }
 
-func Not(x K) (r K) { // ~x
+func Not(x K) K { // ~x
 	if tp(x)&15 == st {
-		r = Eql(Ks(0), x)
+		x = Eql(Ks(0), x)
 	} else {
-		r = Eql(Ki(0), x)
+		x = Eql(Ki(0), x)
 	}
-	return r
+	return x
 }

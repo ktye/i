@@ -60,7 +60,8 @@ func Fnd(x, y K) K { // x?y
 	dx(y)
 	return r
 }
-func fnd(x, y K, t T) (r int32) {
+func fnd(x, y K, t T) int32 {
+	r := int32(0)
 	xn := nn(x)
 	if xn == 0 {
 		return nai
@@ -84,7 +85,7 @@ func fnd(x, y K, t T) (r int32) {
 	}
 	return r
 }
-func fndXs(x, y K, t T, yn int32) (r K) {
+func fndXs(x, y K, t T, yn int32) K {
 	xn := nn(x)
 	a := int32(min(0, int32(x), t, xn))
 	b := 1 + (int32(max(0, int32(x), t, xn))-a)>>(3*I32B(t == St))
@@ -95,7 +96,7 @@ func fndXs(x, y K, t T, yn int32) (r K) {
 		x, y = Div(Flr(x), Ki(8)), Div(Flr(y), Ki(8))
 		a >>= 3
 	}
-	r = ntake(b, Ki(nai))
+	r := ntake(b, Ki(nai))
 	rp := int32(r) - 4*a
 	x0 := int32(x)
 	xp := ep(x)
@@ -113,29 +114,29 @@ func fndXs(x, y K, t T, yn int32) (r K) {
 	dx(x)
 	return Atx(r, Add(Ki(-a), y))
 }
-func idxc(x, p, e int32) (r int32) {
-	r = inC(x, p, e)
+func idxc(x, p, e int32) int32 {
+	r := inC(x, p, e)
 	if r == 0 {
 		return -1
 	}
 	return r - p
 }
-func idxi(x, p, e int32) (r int32) {
-	r = inI(x, p, e)
+func idxi(x, p, e int32) int32 {
+	r := inI(x, p, e)
 	if r == 0 {
 		return -1
 	}
 	return (r - p) >> 2
 }
-func idxf(x float64, p, e int32) (r int32) {
-	r = inF(x, p, e)
+func idxf(x float64, p, e int32) int32 {
+	r := inF(x, p, e)
 	if r == 0 {
 		return -1
 	}
 	return (r - p) >> 3
 }
-func idxz(re, im float64, p, e int32) (r int32) {
-	r = inZ(re, im, p, e)
+func idxz(re, im float64, p, e int32) int32 {
+	r := inZ(re, im, p, e)
 	if r == 0 {
 		return -1
 	}
@@ -164,7 +165,7 @@ func idx(x, a, b int32) int32 {
 	return -1
 }
 
-func Find(x, y K) (r K) { // find[pattern;string] returns all matches (It)
+func Find(x, y K) K { // find[pattern;string] returns all matches (It)
 	xt, yt := tp(x), tp(y)
 	if xt != yt || xt != Ct {
 		trap(Type)
@@ -175,7 +176,7 @@ func Find(x, y K) (r K) { // find[pattern;string] returns all matches (It)
 		dx(y)
 		return mk(It, 0)
 	}
-	r = mk(It, 0)
+	r := mk(It, 0)
 	xp, yp := int32(x), int32(y)
 	y0 := yp
 	e := yp + yn + 1 - xn

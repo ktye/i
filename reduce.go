@@ -166,11 +166,11 @@ func prd(x K, yp int32, t T, n int32) K { // */x
 	}
 }
 
-func sums(x K, yp int32, t T, n int32) (r K) {
+func sums(x K, yp int32, t T, n int32) K {
 	if t != It {
 		return 0
 	}
-	r = mk(It, n)
+	r := mk(It, n)
 	rp := int32(r)
 	s := int32(x)
 	e := yp + 4*n
@@ -183,11 +183,11 @@ func sums(x K, yp int32, t T, n int32) (r K) {
 	}
 	return r
 }
-func prds(x K, yp int32, t T, n int32) (r K) {
+func prds(x K, yp int32, t T, n int32) K {
 	if t != It {
 		return 0
 	}
-	r = mk(It, n)
+	r := mk(It, n)
 	rp := int32(r)
 	s := int32(x)
 	if x == 0 {

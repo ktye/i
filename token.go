@@ -6,21 +6,20 @@ import (
 
 type ftok = func() K
 
-func tok(x K) (r K) {
-	var y K
+func tok(x K) K {
 	s := cat1(src(), Kc(10))
 	pp = nn(s)
 	s = Cat(s, x)  // src contains all src
 	pp += int32(s) // pp is the parser position within src
 	pe = pp + nn(x)
-	r = mk(Lt, 0)
+	r := mk(Lt, 0)
 	for {
 		ws()
 		if pp == pe {
 			break
 		}
 		for i := int32(193); i < 199; i++ { // tchr, tnms, tvrb, tpct, tvar, tsym
-			y = Func[i].(ftok)()
+			y := Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-int32(s)) << 32)
 				r = cat1(r, y)
@@ -35,7 +34,7 @@ func tok(x K) (r K) {
 	return r
 }
 func src() K { return K(I64(552)) }
-func tchr() (r K) {
+func tchr() K {
 	if I8(pp) == '0' && pp < pe { // 0x01ab (lower case only)
 		if I8(1+pp) == 'x' {
 			pp += 2
@@ -46,8 +45,8 @@ func tchr() (r K) {
 		return 0
 	}
 	pp++
-	r = mk(Ct, 0)
-	var q int32
+	r := mk(Ct, 0)
+	q := uint32(0)
 	for {
 		if pp == pe {
 			trap(Parse)
@@ -84,8 +83,8 @@ func cq(c int32) int32 { // \t \n \r \" \\   -> 9 10 13 34 92
 	}
 	return c
 }
-func thex() (r K) {
-	r = mk(Ct, 0)
+func thex() K {
+	r := mk(Ct, 0)
 	for pp < pe-1 {
 		c := I8(pp)
 		if is(c, 128) == 0 {
@@ -106,8 +105,8 @@ func hx(c int32) int32 {
 		return c - 'W'
 	}
 }
-func tnms() (r K) {
-	r = tnum()
+func tnms() K {
+	r := tnum()
 	for pp < pe-1 && I8(pp) == ' ' {
 		pp++
 		x := tnum()
@@ -118,7 +117,7 @@ func tnms() (r K) {
 	}
 	return r
 }
-func tnum() (r K) {
+func tnum() K {
 	c := I8(pp)
 	if c == '-' || c == '.' {
 		if is(I8(pp-1), 64) != 0 {
@@ -127,7 +126,7 @@ func tnum() (r K) {
 	}
 	if c == '-' && pp < 1+pe {
 		pp++
-		r = tunm()
+		r := tunm()
 		if r == 0 {
 			pp--
 			return 0
@@ -183,8 +182,8 @@ func tunm() K {
 	}
 	return Ki(int32(r))
 }
-func pu() (r int64) {
-	r = int64(0)
+func pu() int64 {
+	r := int64(0)
 	for pp < pe {
 		c := I8(pp)
 		if is(c, 4) == 0 {
@@ -211,10 +210,10 @@ func pexp(f float64) float64 {
 	return f * pow(10.0, float64(e))
 }
 func pflt(i int64) K {
-	f := float64(i)
+	c := int32(0)
 	d := 1.0
+	f := float64(i)
 	pp++ // .
-	var c int32
 	for pp < pe {
 		c = I8(pp)
 		if is(c, 4) == 0 {
@@ -241,12 +240,11 @@ func pflt(i int64) K {
 	}
 	return Kf(f)
 }
-func pflz(f float64) (r K) {
+func pflz(f float64) K {
+	r := K(0)
 	pp++
 	if pp < pe {
 		r = tunm()
-	} else {
-		r = 0
 	}
 	return Rot(Kf(f), r)
 }
@@ -289,13 +287,13 @@ func tpct() K {
 	}
 	return 0
 }
-func tvar() (r K) {
+func tvar() K {
 	c := I8(pp)
 	if is(c, 2) == 0 {
 		return 0
 	}
 	pp++
-	r = Ku(uint64(c))
+	r := Ku(uint64(c))
 	for pp < pe {
 		c = I8(pp)
 		if is(c, 6) == 0 {
@@ -306,14 +304,14 @@ func tvar() (r K) {
 	}
 	return sc(r)
 }
-func tsym() (r K) {
-	var s K
+func tsym() K {
+	r := K(0)
 	for I8(pp) == 96 {
 		pp++
 		if r == 0 {
 			r = mk(St, 0)
 		}
-		s = 0
+		s := K(0)
 		if pp < pe {
 			s = tchr()
 			if tp(s) == ct {
@@ -335,7 +333,7 @@ func tsym() (r K) {
 	return r
 }
 func ws() {
-	var c int32
+	c := int32(0)
 	for pp < pe {
 		c = I8(pp)
 		if c == 10 || c > 32 {
@@ -359,6 +357,4 @@ func ws() {
 		}
 	}
 }
-
-//func is(x, m int32) (r bool) { return m&I8(100+x) != 0 }
 func is(x, m int32) int32 { return m & I8(100+x) }

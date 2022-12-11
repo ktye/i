@@ -30,11 +30,11 @@ func Cat(x, y K) K {
 	}
 	return x
 }
-func Enl(x K) (r K) {
+func Enl(x K) K {
 	t := tp(x)
 	if t < 7 {
 		t += 16
-		r = mk(t, 1)
+		r := mk(t, 1)
 		rp := int32(r)
 		xp := int32(x)
 		s := sz(t)
@@ -118,9 +118,8 @@ func explode(x K) K {
 	} else if xt == Lt {
 		r = x
 	} else if xt == Tt {
-		var k K
 		xn := nn(x)
-		k = x0(x)
+		k := x0(x)
 		x = r1(x)
 		r = mk(Lt, xn)
 		rp := int32(r)
@@ -137,8 +136,8 @@ func explode(x K) K {
 	}
 	return r
 }
-func flat(x K) (r K) { // ((..);(..)) -> (...)
-	r = mk(Lt, 0)
+func flat(x K) K { // ((..);(..)) -> (...)
+	r := mk(Lt, 0)
 	xn := nn(x)
 	xp := int32(x)
 	for i := int32(0); i < xn; i++ {
@@ -164,17 +163,16 @@ func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
 	dx(y)
 	return r
 }
-func dcat(x, y K) (r K) { // d,d  t,t
-	var q K
+func dcat(x, y K) K { // d,d  t,t
 	t := tp(x)
 	if t == Tt {
 		if match(K(I64(int32(x))), K(I64(int32(y)))) == 0 {
 			return ucat(explode(x), explode(y))
 		}
 	}
-	r = x0(x)
+	r := x0(x)
 	x = r1(x)
-	q = x0(y)
+	q := x0(y)
 	y = r1(y)
 	if t == Dt {
 		return Key(Cat(r, q), Cat(x, y))
@@ -184,13 +182,13 @@ func dcat(x, y K) (r K) { // d,d  t,t
 		return key(r, x, t)
 	}
 }
-func ucats(x K) (r K) { // ,/ unitype-lists
+func ucats(x K) K { // ,/ unitype-lists
+	rt := T(0)
 	xn := nn(x)
 	if xn == 0 {
 		return x
 	}
 	xp := int32(x)
-	var rt T
 	rn := int32(0)
 	for i := int32(0); i < xn; i++ {
 		xi := K(I64(xp))
@@ -204,7 +202,7 @@ func ucats(x K) (r K) { // ,/ unitype-lists
 		rn += nn(xi)
 		xp += 8
 	}
-	r = mk(rt, rn)
+	r := mk(rt, rn)
 	s := sz(rt)
 	rp := int32(r)
 	xp = int32(x)
@@ -244,7 +242,7 @@ func cat1(x, y K) K {
 	return r
 }
 func uspc(x K, xt T, ny int32) K {
-	var r K
+	r := K(0)
 	nx := nn(x)
 	s := sz(xt)
 	if I32(int32(x)-4) == 1 && bucket(s*nx) == bucket(s*(nx+ny)) {

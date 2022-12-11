@@ -13,12 +13,11 @@ func test(x K) {
 	dx(x)
 }
 func testi(l K, i int32) {
-	var x, y K
-	x = split(Ku(12064), ati(split(Kc(10), l), i))
+	x := split(Ku(12064), ati(split(Kc(10), l), i))
 	if nn(x) != 2 {
 		trap(Length)
 	}
-	y = x1(x)
+	y := x1(x)
 	x = r0(x)
 	dx(Out(ucat(ucat(rx(x), Ku(12064)), rx(y))))
 	x = Kst(val(x))

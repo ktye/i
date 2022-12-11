@@ -4,22 +4,22 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func rnd() (r int32) {
-	r = rand_
+func rnd() int32 {
+	r := rand_
 	r ^= (r << 13)
 	r ^= (r >> 17)
 	r ^= (r << 5)
 	rand_ = r
 	return r
 }
-func roll(x K) (r K) { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
+func roll(x K) K { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
 	xt := tp(x)
 	xp := int32(x)
 	if xt == it {
 		if xp > 0 {
 			return kx(72, x) // .rf uniform
 		} else {
-			r = kx(80, Ki((1+-xp)/2))
+			r := kx(80, Ki((1+-xp)/2))
 			SetI32(int32(r)-12, -xp)
 			return K(int32(r)) | K(Ft)<<59 // normal
 		}
@@ -79,8 +79,8 @@ func randi(n int32) int32 {
 	}
 	return int32(prod >> 32)
 }
-func randI(i, n int32) (r K) {
-	r = mk(It, n)
+func randI(i, n int32) K {
+	r := mk(It, n)
 	rp := int32(r)
 	e := rp + 4*n
 	if i == 0 {

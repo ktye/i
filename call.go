@@ -14,11 +14,12 @@ func Cal(x, y K) K {
 }
 func isfunc(t T) int32 { return I32B(t == 0 || (t < 16 && t > tt)) }
 
-func cal(f, x K) (r K) {
+func cal(f, x K) K {
+	r := K(0)
+	z := K(0)
 	t := tp(f)
 	fp := int32(f)
 	xn := nn(x)
-	var z K
 	if t < df {
 		switch xn - 1 {
 		case 0:
@@ -77,7 +78,8 @@ func cal(f, x K) (r K) {
 	return r
 }
 
-func calltrain(f, x, y K) (r K) {
+func calltrain(f, x, y K) K {
+	r := K(0)
 	n := nn(f)
 	if y == 0 {
 		r = cal(x0(f), l1(x))
@@ -113,7 +115,7 @@ func native(f K, x K) K {
 	}
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
-func lambda(f K, x K) (r K) {
+func lambda(f K, x K) K {
 	fn := nn(f)
 	xn := nn(x)
 	if xn < fn {
@@ -147,7 +149,7 @@ func lambda(f K, x K) (r K) {
 		lp += 4
 	}
 	spp, spe := pp, pe
-	r = exec(rx(c))
+	r := exec(rx(c))
 	vp = I32(8)
 	sp = int32(sa)
 	lp = int32(lo)
@@ -164,7 +166,8 @@ func lambda(f K, x K) (r K) {
 	return r
 }
 func com(x, y K) K { return K(int32(l2(y, x))) | K(cf)<<59 } // compose
-func prj(f, x K) (r K) { // project
+func prj(f, x K) K { // project
+	r := K(0)
 	if isfunc(tp(f)) == 0 {
 		return atdepth(f, x)
 	}
@@ -184,9 +187,8 @@ func prj(f, x K) (r K) { // project
 	}
 	an := nn(a)
 	if tp(f) == pf { // collapse
-		var y K
 		r = x1(f)
-		y = x2(f)
+		y := x2(f)
 		f = r0(f)
 		x = stv(r, rx(y), x)
 		a = Drp(a, y)

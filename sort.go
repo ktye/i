@@ -4,7 +4,8 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Srt(x K) (r K) { // ^x
+func Srt(x K) K { // ^x
+	r := K(0)
 	xt := tp(x)
 	if xt < 16 {
 		trap(Type)
@@ -40,7 +41,8 @@ func Asc(x K) K { // <x  <`file
 	return grade(x, 343)
 }
 func Dsc(x K) K { return grade(x, 336) } // >x
-func grade(x K, f int32) (r K) { // <x >x
+func grade(x K, f int32) K { // <x >x
+	r := K(0)
 	xt := tp(x)
 	if xt < 16 {
 		trap(Type)
@@ -72,8 +74,8 @@ func grade(x K, f int32) (r K) { // <x >x
 	dx(x)
 	return r
 }
-func srtC(x K, n int32) (r K) {
-	r = mk(Ct, n)
+func srtC(x K, n int32) K {
+	r := mk(Ct, n)
 	y := ntake(256, Ki(0))
 	yp := int32(y)
 	xp := int32(x)
@@ -132,8 +134,8 @@ func msrt(x, r, a, b, p, s, f int32) {
 	mrge(x, r, 4*a, 4*b, 4*c, p, s, f)
 }
 func mrge(x, r, a, b, c, p, s, f int32) {
+	q := int32(0)
 	i, j := a, c
-	var q int32
 	for k := a; k < b; k += 4 {
 		if i < c && j < b {
 			q = Func[f].(f2i)(p+s*I32(x+i), p+s*I32(x+j))
@@ -178,7 +180,7 @@ func radixI(x K, n int32) K { // ^I  see:shawnsmithdev/zermelo
 L:
 	for ko := int32(0); ko < 32; ko += 8 {
 		s := int32(1)
-		var prev int32 = nai
+		prev := nai
 		Memoryfill(op, 0, 1024)
 		for i := int32(0); i < n; i += 4 {
 			e := I32(fr + i)
@@ -229,6 +231,7 @@ func radixp(op, a, b, w int32) int32 {
 	return w
 }
 func radixF(x K, n int32) K { // ^F
+	u := uint64(0)
 	x = use(x)
 	b := ntake(n, Kf(0))
 	o := mk(It, 256)
@@ -249,7 +252,6 @@ func radixF(x K, n int32) K { // ^F
 	to := int32(b)
 	n -= na
 
-	var u uint64
 L:
 	for ko := int32(0); ko < 64; ko += 8 {
 		s := int32(1)
@@ -306,7 +308,8 @@ func gdF(xp, yp int32) int32 { return guF(yp, xp) }
 func gdZ(xp, yp int32) int32 { return guZ(yp, xp) }
 func gdL(xp, yp int32) int32 { return guL(yp, xp) }
 
-func ltL(x, y K) (r int32) { // sort lists lexically
+func ltL(x, y K) int32 { // sort lists lexically
+	r := int32(0)
 	xt := tp(x)
 	if xt != tp(y) {
 		return I32B(xt < tp(y))

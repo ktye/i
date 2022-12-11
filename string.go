@@ -6,7 +6,8 @@ import (
 
 func Kst(x K) K { return Atx(Ks(32), x) } // `k@
 func Lst(x K) K { return Atx(Ks(40), x) } // `l@
-func Str(x K) (r K) {
+func Str(x K) K {
+	r := K(0)
 	xt := tp(x)
 	if xt > 16 {
 		return Ech(17, l1(x))
@@ -88,7 +89,7 @@ func Str(x K) (r K) {
 	return r
 }
 func emb(a, b int32, x K) K { return cat1(Cat(Kc(a), x), Kc(b)) }
-func si(x int32) (r K) {
+func si(x int32) K {
 	if x == 0 {
 		return Ku(uint64('0'))
 	} else if x == nai {
@@ -96,14 +97,15 @@ func si(x int32) (r K) {
 	} else if x < 0 {
 		return ucat(Ku(uint64('-')), si(-x))
 	}
-	r = mk(Ct, 0)
+	r := mk(Ct, 0)
 	for x != 0 {
 		r = cat1(r, Kc('0'+x%10))
 		x /= 10
 	}
 	return Rev(r)
 }
-func sf(x float64) (r K) {
+func sf(x float64) K {
+	c := int32(0)
 	if x != x {
 		return Ku(28208) // 0n
 	}
@@ -119,7 +121,7 @@ func sf(x float64) (r K) {
 	if x > 0 && (x >= 1e6 || x <= 1e-6) {
 		return se(x)
 	}
-	r = mk(Ct, 0)
+	r := mk(Ct, 0)
 	i := int64(x)
 	if i == 0 {
 		r = cat1(r, Kc('0'))
@@ -139,7 +141,6 @@ func sf(x float64) (r K) {
 	}
 	n := nn(r)
 	rp := int32(r)
-	var c int32
 	for i := int32(0); i < n; i++ {
 		if I8(rp) == '0' {
 			c++
@@ -162,13 +163,13 @@ func se(x float64) K {
 	x = x - float64(ei)
 	return ucat(cat1(sf(f*pow(10.0, x)), Kc('e')), si(ei))
 }
-func sfz(re, im float64) (r K) {
+func sfz(re, im float64) K {
 	if (re != re) || (im != im) {
 		return Ku(6385200) // 0na
 	}
 	z := hypot(re, im)
 	a := ang2(im, re)
-	r = cat1(trdot(sf(z)), Kc('a'))
+	r := cat1(trdot(sf(z)), Kc('a'))
 	if a != 0.0 {
 		r = ucat(r, trdot(sf(a)))
 	}
@@ -198,7 +199,8 @@ func Cst(x, y K) K { // x$y
 	}
 	return prs(ts(x), y)
 }
-func prs(t T, y K) (r K) { // s$C
+func prs(t T, y K) K { // s$C
+	r := K(0)
 	yp, yn := int32(y), nn(y)
 	p, e := pp, pe
 	pp = yp

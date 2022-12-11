@@ -20,7 +20,7 @@ func store() {
 	if g > 0 {
 		Memorygrow2(g)
 	}
-	Memorycopy2(0, 0, 1<<I32(128))
+	Memorycopy2(0, 0, int32(1)<<I32(128))
 }
 func catch() {
 	Memorycopy3(0, 0, int32(65536)*Memorysize2())
@@ -101,17 +101,17 @@ func Otu(x, y K) K {
 	write(cat1(Kst(x), Kc(':')))
 	return Out(y)
 }
-func read() (r K) {
-	r = mk(Ct, 504)
+func read() K {
+	r := mk(Ct, 504)
 	return ntake(ReadIn(int32(r), 504), r)
 }
 func write(x K) {
 	Write(0, 0, int32(x), nn(x))
 	dx(x)
 }
-func getargv() (r K) {
+func getargv() K {
 	n := Args()
-	r = mk(Lt, n)
+	r := mk(Lt, n)
 	rp := int32(r)
 	for i := int32(0); i < n; i++ {
 		s := mk(Ct, Arg(i, 0))
@@ -121,7 +121,8 @@ func getargv() (r K) {
 	}
 	return r
 }
-func readfile(x K) (r K) { // x C
+func readfile(x K) K { // x C
+	r := K(0)
 	if nn(x) == 0 {
 		r = mk(Ct, 496)
 		r = ntake(ReadIn(int32(r), 496), r)

@@ -4,7 +4,8 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func Atx(x, y K) (r K) { // x@y
+func Atx(x, y K) K { // x@y
+	r := K(0)
 	xt, yt := tp(x), tp(y)
 	xp := int32(x)
 	if xt < 16 {
@@ -52,7 +53,8 @@ func Atx(x, y K) (r K) { // x@y
 	}
 	return trap(Type) // f@
 }
-func ati(x K, i int32) (r K) { // x CT..LT
+func ati(x K, i int32) K { // x CT..LT
+	r := K(0)
 	t := tp(x)
 	if t < 16 {
 		return x
@@ -87,7 +89,7 @@ func ati(x K, i int32) (r K) { // x CT..LT
 	dx(x)
 	return r | K(t-16)<<59
 }
-func atv(x, y K) (r K) { // x CT..LT
+func atv(x, y K) K { // x CT..LT
 	t := tp(x)
 	if t == Tt {
 		return Atx(x, y)
@@ -98,7 +100,7 @@ func atv(x, y K) (r K) { // x CT..LT
 		return ntake(yn, x)
 	}
 	xn := nn(x)
-	r = mk(t, yn)
+	r := mk(t, yn)
 	s := sz(t)
 	rp := int32(r)
 	xp := int32(x)

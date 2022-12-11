@@ -31,7 +31,7 @@ func alloc(n, s int32) int32 {
 	a := I32(i)
 	SetI32(i, I32(a))
 	for j := i - 4; j >= 4*t; j -= 4 {
-		u := a + 1<<(j>>2)
+		u := a + int32(1)<<(j>>2)
 		SetI32(u, I32(j))
 		SetI32(j, u)
 	}
@@ -41,38 +41,29 @@ func alloc(n, s int32) int32 {
 	return a
 }
 func grow(p int32) int32 {
-	//j := Memorysize()
-	//Printf("grow%12d%12d\n", p, j)
 	m := I32(128)                       // old total memory (log2)
 	n := 1 + (p >> 2)                   // required total mem (log2)
 	g := (1 << (n - 16)) - Memorysize() // grow by 64k blocks
-
-	//Printf("mng%12d%12d%12d\n", m, n, g)
 
 	if g > 0 {
 		if Memorygrow(g) < 0 {
 			trap(Grow)
 		}
 	}
-
-	//p = Memorysize()
-	//Printf("size%12d\n", p)
-
 	minit(m, n)
 	return n
 }
 
-func mcount() (r uint32) {
-	r = 0
+func mcount() uint32 {
+	r := uint32(0)
 	for i := int32(5); i < 31; i++ {
 		n := fcount(4 * i)
-		//fmt.Println("m", i, n)
 		r += uint32(n) * (1 << uint32(i))
 	}
 	return r
 }
-func fcount(x int32) (r int32) {
-	r = 0
+func fcount(x int32) int32 {
+	r := int32(0)
 	for {
 		if I32(x) == 0 {
 			break
@@ -84,9 +75,6 @@ func fcount(x int32) (r int32) {
 }
 
 func mfree(x, bs int32) {
-	//if x == 8080-16 {
-	//	fmt.Println("free ", x+16)
-	//}
 	if x&31 != 0 {
 		trap(Unref)
 	}
@@ -94,24 +82,18 @@ func mfree(x, bs int32) {
 	SetI32(x, I32(t))
 	SetI32(t, x)
 }
-func bucket(size int32) (r int32) {
-	r = 32 - I32clz(uint32(15+size))
+func bucket(size int32) int32 {
+	r := int32(32) - I32clz(uint32(15+size))
 	if r < 5 {
 		r = 5
 	}
 	return r
 }
-func mk(t T, n int32) (r K) {
-	//defer func(t T, n int32) {
-	//	if int32(r) == 8080 {
-	//		fmt.Println("mk", t, n, int32(r))
-	//	}
-	//}(t, n)
-	//Printf("mk%12d%12d\n", t, n)
+func mk(t T, n int32) K {
 	if t < 17 {
 		trap(Value)
 	}
-	r = K(uint64(t) << uint64(59))
+	r := K(uint64(t) << uint64(59))
 	x := alloc(n, sz(t))
 	SetI32(x+12, 1) //rc
 	SetI32(x+4, n)

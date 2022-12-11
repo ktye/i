@@ -21,7 +21,8 @@ func ecl(x K) K { return l2t(x, 5, df) } // \:
 //  /:    fix/:x f2/:[x;y]   err             a/:x join
 //  \:    fix/:x f2/:[x;y]   err             a\:x split
 
-func Ech(f, x K) (r K) {
+func Ech(f, x K) K {
+	r := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
@@ -57,9 +58,9 @@ func Ech(f, x K) (r K) {
 	dx(x)
 	return uf(r)
 }
-func ecn(f, x K) (r K) {
+func ecn(f, x K) K {
 	if nn(x) == 2 {
-		r = x0(x)
+		r := x0(x)
 		x = r1(x)
 		if r == 0 {
 			return Ech(f, l1(x))
@@ -69,16 +70,18 @@ func ecn(f, x K) (r K) {
 				if nn(r) != nn(x) {
 					trap(Length)
 				}
-				return key(Cat(x0(r), x0(x)), Cat(r1(r), r1(x)), Tt)
+				f = Cat(x0(r), x0(x))
+				return key(f, Cat(r1(r), r1(x)), Tt)
+		//return key(Cat(x0(r), x0(x)), Cat(r1(r), r1(x)), Tt)
 			}
 		}
 		return ec2(f, r, x)
 	}
 	return Ech(20, l2(f, Flp(x)))
 }
-func ec2(f, x, y K) (r K) {
-	var t T
-	t = dtypes(x, y)
+func ec2(f, x, y K) K {
+	r := K(0)
+	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
 		return key(r, ec2(f, dvals(x), dvals(y)), t)
@@ -105,7 +108,9 @@ func ec2(f, x, y K) (r K) {
 	dx(y)
 	return uf(r)
 }
-func Ecp(f, x K) (r K) {
+func Ecp(f, x K) K {
+	m := int32(0)
+	y := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -114,8 +119,6 @@ func Ecp(f, x K) (r K) {
 		return In(f, Fst(x))
 	}
 	xn := nn(x)
-	var y K
-	m := int32(0)
 	if xn == 1 {
 		x = Fst(x)
 		y = Fst(rx(x)) // could be missing(xt)
@@ -153,7 +156,7 @@ func Ecp(f, x K) (r K) {
 		}
 	}
 
-	r = mk(Lt, xn)
+	r := mk(Lt, xn)
 	rp := int32(r)
 	SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), 0), y))))
 	for i := int32(1); i < xn; i++ {
@@ -165,7 +168,8 @@ func Ecp(f, x K) (r K) {
 	return uf(r)
 }
 
-func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
+func Rdc(f, x K) K { // x f/y   (x=0):f/y
+	r := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
@@ -187,7 +191,7 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 		dx(f)
 		return Dec(r, Fst(x))
 	}
-	var y K
+	y := K(0)
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
 		x = 0
@@ -259,8 +263,8 @@ func Rdc(f, x K) (r K) { // x f/y   (x=0):f/y
 	dx(f)
 	return x
 }
-func rdn(f, x, l K) (r K) { // {x+y*z}/x  {x+y*z}\x
-	r = Fst(rx(x))
+func rdn(f, x, l K) K { // {x+y*z}/x  {x+y*z}\x
+	r := Fst(rx(x))
 	x = Flp(ndrop(1, x))
 	n := nn(x)
 	for i := int32(0); i < n; i++ {
@@ -278,7 +282,8 @@ func rdn(f, x, l K) (r K) { // {x+y*z}/x  {x+y*z}\x
 	return r
 }
 
-func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
+func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
+	r := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -291,8 +296,7 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 	case 0: // fixed-point
 		return fix(f, Fst(x), 0)
 	case 1:
-		var y K
-		y = x1(x)
+		y := x1(x)
 		x = r0(x)
 		yt := tp(y)
 		if yt < 16 {
@@ -318,7 +322,8 @@ func Ecr(f, x K) (r K) { // f/:x   x f/:y   x/:y(join)
 		return trap(Rank)
 	}
 }
-func fix(f, x, l K) (r K) {
+func fix(f, x, l K) K {
+	r := K(0)
 	y := rx(x)
 	for {
 		r = Atx(rx(f), rx(x))
@@ -352,7 +357,9 @@ func ndo(n int32, f, x K) K {
 	return x
 }
 
-func Scn(f, x K) (r K) {
+func Scn(f, x K) K {
+	r := K(0)
+	y := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -369,7 +376,6 @@ func Scn(f, x K) (r K) {
 		return Enc(r, Fst(x))
 	}
 	//kdb:if int32(f)==29{trap(Err);}
-	var y K
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
 		x = 0
@@ -434,7 +440,7 @@ func Scn(f, x K) (r K) {
 	dx(f)
 	return uf(r)
 }
-func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
+func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -448,14 +454,13 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 		x = rx(Fst(x))
 		return fix(f, x, Enl(x))
 	case 1:
-		var y K
-		y = x1(x)
+		y := x1(x)
 		x = r0(x)
 		if tp(x) < 16 {
 			return cal(f, l2(x, y))
 		}
 		xn := nn(x)
-		r = mk(Lt, xn)
+		r := mk(Lt, xn)
 		rp := int32(r)
 		for i := int32(0); i < xn; i++ {
 			SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), i), rx(y)))))
@@ -470,10 +475,10 @@ func Ecl(f, x K) (r K) { // f\:x   x f\:y   x\:y(split)
 	}
 }
 
-func uf(x K) (r K) {
+func uf(x K) K {
+	rt := T(0)
 	xn := nn(x)
 	xp := int32(x)
-	var rt T
 	for i := int32(0); i < xn; i++ {
 		t := tp(K(I64(xp)))
 		if i == 0 {
@@ -490,7 +495,7 @@ func uf(x K) (r K) {
 		return x
 	}
 	rt += 16
-	r = mk(rt, xn)
+	r := mk(rt, xn)
 	s := sz(rt)
 	rp := int32(r)
 	xp = int32(x)
@@ -525,8 +530,8 @@ func uf(x K) (r K) {
 	dx(x)
 	return r
 }
-func ufd(x K) (r K) {
-	r = Til(x0(x))
+func ufd(x K) K {
+	r := Til(x0(x))
 	if tp(r) != St {
 		dx(r)
 		return x
@@ -548,10 +553,10 @@ func ov0(f, x K) K {
 	dx(x)
 	return missing(tp(x))
 }
-func epx(f int32, x, y K, n int32) (r K) { // ( +-*%&| )':
+func epx(f int32, x, y K, n int32) K { // ( +-*%&| )':
 	xt := tp(x)
 	xp := int32(x)
-	r = mk(xt, n)
+	r := mk(xt, n)
 	rp := int32(r)
 	f = 212 + 11*f
 	yp := int32(y)
@@ -575,11 +580,11 @@ func epx(f int32, x, y K, n int32) (r K) { // ( +-*%&| )':
 	dx(y)
 	return r
 }
-func epc(f int32, x, y K, n int32) (r K) { // ( <>= )':
+func epc(f int32, x, y K, n int32) K { // ( <>= )':
 	xt := tp(x)
 	xp := int32(x)
 	s := sz(xt)
-	r = mk(It, n)
+	r := mk(It, n)
 	rp := int32(r)
 	f = 188 + 15*f
 	switch s >> 2 {

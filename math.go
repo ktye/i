@@ -39,7 +39,7 @@ func cosin(deg float64, rp int32) {
 	SetF64(rp, c)
 	SetF64(rp+8, s)
 }
-func ang2(y, x float64) (deg float64) {
+func ang2(y, x float64) float64 {
 	if y == 0 {
 		if x < 0 {
 			return 180.0
@@ -52,30 +52,26 @@ func ang2(y, x float64) (deg float64) {
 		}
 		return 90.0
 	}
-	deg = 57.29577951308232 * atan2(y, x)
+	deg := 57.29577951308232 * atan2(y, x)
 	if deg < 0 {
 		deg += 360.0
 	}
 	return deg
 }
 func cosin_(x float64, rp int32, csonly int32) {
-	var c, s float64
-	var ss int32
-	var cs int32 = 0
+	c, s, ss, cs := 0.0, 0.0, int32(0), int32(0)
 	if x < 0 {
 		x = -x
 		ss = 1
 	}
-	var j uint64
-	var y, z float64
-	j = uint64(x * 1.2732395447351628) // *4/pi
-	y = float64(j)
+	j := uint64(x * 1.2732395447351628) // *4/pi
+	y := float64(j)
 	if j&1 == 1 {
 		j++
 		y++
 	}
 	j &= 7
-	z = ((x - y*7.85398125648498535156e-1) - y*3.77489470793079817668e-8) - y*2.69515142907905952645e-15
+	z := ((x - y*7.85398125648498535156e-1) - y*3.77489470793079817668e-8) - y*2.69515142907905952645e-15
 	if j > 3 {
 		j -= 4
 		//ss, cs = !ss, !cs
@@ -142,6 +138,7 @@ func xatan(x float64) float64 {
 	return z
 }
 func exp(x float64) float64 {
+	k := int64(0)
 	if x != x {
 		return x
 	}
@@ -154,7 +151,6 @@ func exp(x float64) float64 {
 	if -3.725290298461914e-09 < x && x < 3.725290298461914e-09 {
 		return 1.0 + x
 	}
-	var k int64
 	if x < 0 {
 		k = int64(1.44269504088896338700*x - 0.5)
 	} else {
@@ -191,7 +187,7 @@ func ldexp(frac float64, exp int64) float64 {
 		}
 		return inf
 	}
-	var m float64 = 1.0
+	m := 1.0
 	if exp < int64(-1022) {
 		exp += 53
 		m = 1.1102230246251565e-16
@@ -226,6 +222,7 @@ func frexp3(f float64) int64 {
 	x := I64reinterpret_f64(f)
 	return exp + int64((x>>52)&2047) - 1022
 }
+
 /*
 func frexp(f float64) (float64, int64) {
 	var exp int64
@@ -292,7 +289,7 @@ func modabsfi(f float64) float64 {
 	x := I64reinterpret_f64(f)
 	e := (x>>52)&2047 - 1023
 	if e < 52 {
-		x &^= 1<<(52-e) - 1
+		x &^= uint64(1)<<(52-e) - uint64(1)
 	}
 	return F64reinterpret_i64(x)
 }
@@ -372,10 +369,10 @@ func pow(x, y float64) float64 {
 	}
 	return ldexp(a1, ae)
 }
-func ipow(x K, y int32) (r K) {
+func ipow(x K, y int32) K {
 	if tp(x) == It {
 		n := nn(x)
-		r = mk(It, n)
+		r := mk(It, n)
 		rp := int32(r)
 		xp := int32(x)
 		e := rp + 4*n
@@ -390,8 +387,8 @@ func ipow(x K, y int32) (r K) {
 		return Ki(iipow(int32(x), y))
 	}
 }
-func iipow(x, y int32) (r int32) {
-	r = 1
+func iipow(x, y int32) int32 {
+	r := int32(1)
 	for {
 		if y&1 == 1 {
 			r *= x

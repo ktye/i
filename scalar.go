@@ -94,9 +94,9 @@ func absF(xp, rp, e int32) {
 		continue
 	}
 }
-func absZ(x K) (r K) {
+func absZ(x K) K {
 	n := nn(x)
-	r = mk(Ft, n)
+	r := mk(Ft, n)
 	rp := int32(r)
 	xp := int32(x)
 	for i := int32(0); i < n; i++ {
@@ -147,7 +147,7 @@ func Hyp(x, y K) K { // e.g.  norm:0. abs/x
 	}
 	return trap(Nyi)
 }
-func Img(x K) (r K) { // imag x
+func Img(x K) K { // imag x
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(33, l1(x))
@@ -155,7 +155,7 @@ func Img(x K) (r K) { // imag x
 	if xt == Zt {
 		xp := 8 + int32(x)
 		n := nn(x)
-		r = mk(Ft, n)
+		r := mk(Ft, n)
 		rp := int32(r)
 		e := rp + 8*n
 		for rp < e {
@@ -424,11 +424,11 @@ func mulZ(xp, yp, rp, e int32) {
 		continue
 	}
 }
-func scale(s float64, x K) (r K) {
+func scale(s float64, x K) K {
 	if tp(x) < Ft {
 		x = uptype(x, ft)
 	}
-	r = use1(x)
+	r := use1(x)
 	if nn(r) == 0 {
 		dx(x)
 		return r
@@ -479,7 +479,7 @@ func Div(x, y K) K {
 func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x / y }
 func divz(xr, xi, yr, yi float64, rp int32) {
-	var r, d, e, f float64
+	r, d, e, f := 0.0, 0.0, 0.0, 0.0
 	if F64abs(yr) >= F64abs(yi) {
 		r = yi / yr
 		d = yr + r*yi
@@ -528,7 +528,8 @@ func divZ(xp, yp, rp, e int32) {
 		continue
 	}
 }
-func idiv(x, y K, mod int32) (r K) {
+func idiv(x, y K, mod int32) K {
+	r := K(0)
 	t := maxtype(x, y)
 	x = uptype(x, t)
 	y = uptype(y, t)
@@ -1122,7 +1123,8 @@ func gtZ(xp, yp, rp, e int32) {
 	}
 }
 
-func Ang(x K) (r K) { // angle x
+func Ang(x K) K { // angle x
+	r := K(0)
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(35, l1(x))
@@ -1152,7 +1154,8 @@ func Ang(x K) (r K) { // angle x
 	dx(x)
 	return r
 }
-func Rot(x, y K) (r K) { // r@deg
+func Rot(x, y K) K { // r@deg
+	r := K(0)
 	if tp(x) > Zt {
 		return Ech(35, l2(x, y))
 	}
@@ -1218,7 +1221,9 @@ func fk(x K) float64 {
 	dx(x)
 	return F64(int32(x))
 }
-func nf(f int32, x, y K) (r K) {
+func nf(f int32, x, y K) K {
+	r := K(0)
+	yf := 0.0
 	xt := tp(x)
 	if xt >= Lt {
 		if y == 0 {
@@ -1227,7 +1232,6 @@ func nf(f int32, x, y K) (r K) {
 			return Ech(K(f-64), l2(y, x))
 		}
 	}
-	var yf float64
 	if y != 0 {
 		yf = fk(y)
 	}
@@ -1285,7 +1289,8 @@ func ff(f, rp, xp, n int32, yf float64) {
 	}
 }
 
-func nm(f int32, x K) (r K) { //monadic
+func nm(f int32, x K) K { //monadic
+	r := K(0)
 	xt := tp(x)
 	if xt > Lt {
 		r = x0(x)
@@ -1346,9 +1351,9 @@ func nm(f int32, x K) (r K) { //monadic
 	dx(x)
 	return r
 }
-func nd(f, ff int32, x, y K) (r K) { //dyadic
-	var t T
-	t = dtypes(x, y)
+func nd(f, ff int32, x, y K) K { //dyadic
+	r := K(0)
+	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
 		return key(r, Func[64+ff].(f2)(dvals(x), dvals(y)), t)
@@ -1431,9 +1436,9 @@ func nd(f, ff int32, x, y K) (r K) { //dyadic
 		return r
 	}
 }
-func nc(f, ff int32, x, y K) (r K) { //compare
-	var t T
-	t = dtypes(x, y)
+func nc(f, ff int32, x, y K) K { //compare
+	r := K(0)
+	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
 		return key(r, nc(f, ff, dvals(x), dvals(y)), t)
@@ -1561,15 +1566,15 @@ func dvals(x K) K {
 	}
 	return x
 }
-func maxtype(x, y K) (t T) {
+func maxtype(x, y K) T {
 	xt, yt := tp(x)&15, tp(y)&15
-	t = T(maxi(int32(xt), int32(yt)))
+	t := T(maxi(int32(xt), int32(yt)))
 	if t == 0 {
 		t = it
 	}
 	return t
 }
-func uptype(x K, dst T) (r K) {
+func uptype(x K, dst T) K {
 	xt := tp(x)
 	xp := int32(x)
 	if xt&15 == dst {
@@ -1583,12 +1588,10 @@ func uptype(x K, dst T) (r K) {
 		} else if dst == ft {
 			return Kf(float64(xp))
 		} else if dst == zt {
-			var f float64
+			f := float64(xp)
 			if xt == ft {
 				f = F64(xp)
 				dx(x)
-			} else {
-				f = float64(xp)
 			}
 			return Kz(f, 0)
 		} else {
@@ -1603,7 +1606,7 @@ func uptype(x K, dst T) (r K) {
 	}
 	xn := nn(x)
 	xp = int32(x)
-	r = mk(dst+16, xn)
+	r := mk(dst+16, xn)
 	rp := int32(r)
 	if dst == it {
 		for i := int32(0); i < xn; i++ {
@@ -1642,7 +1645,7 @@ func use1(x K) K {
 	}
 	return mk(tp(x), nn(x))
 }
-func use(x K) (r K) {
+func use(x K) K {
 	xt := tp(x)
 	if xt < 16 || xt > Lt {
 		trap(Type)
@@ -1651,7 +1654,7 @@ func use(x K) (r K) {
 		return x
 	}
 	nx := nn(x)
-	r = mk(xt, nx)
+	r := mk(xt, nx)
 	Memorycopy(int32(r), int32(x), sz(xt)*nx)
 	if xt == Lt {
 		rl(r)

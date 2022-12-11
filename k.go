@@ -57,7 +57,6 @@ func init() {
 // 552..559  src (aligned)
 
 func kinit() {
-	//Printf("kinit>\n")
 	minit(12, 16) //4k..64k
 	sp = 256
 	SetI64(552, int64(mk(Ct, 0))) //src
@@ -125,25 +124,25 @@ const ( //base t&15          bytes  atom  vector
 func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }
 func Ki(x int32) K { return K(uint32(x)) | K(it)<<59 }
 func Ks(x int32) K { return K(uint32(x)) | K(st)<<59 }
-func Kf(x float64) (r K) {
-	r = mk(Ft, 1)
+func Kf(x float64) K {
+	r := mk(Ft, 1)
 	SetF64(int32(r), x)
 	return K(int32(r)) | K(ft)<<59
 }
-func Kz(x, y float64) (r K) {
-	r = mk(Zt, 1)
+func Kz(x, y float64) K {
+	r := mk(Zt, 1)
 	rp := int32(r)
 	SetF64(rp, x)
 	SetF64(rp+8, y)
 	return K(rp) | K(zt)<<59
 }
-func l1(x K) (r K) {
-	r = mk(Lt, 1)
+func l1(x K) K {
+	r := mk(Lt, 1)
 	SetI64(int32(r), int64(x))
 	return r
 }
-func l2t(x, y K, t T) (r K) {
-	r = mk(Lt, 2)
+func l2t(x, y K, t T) K {
+	r := mk(Lt, 2)
 	SetI64(int32(r), int64(x))
 	SetI64(8+int32(r), int64(y))
 	return K(uint32(r)) | K(t)<<59
@@ -157,8 +156,8 @@ func x0(x K) K       { return rx(K(I64(int32(x)))) }
 func x1(x K) K       { return x0(x + 8) }
 func x2(x K) K       { return x0(x + 16) }
 func x3(x K) K       { return x0(x + 24) }
-func Ku(x uint64) (r K) { // Ct
-	r = mk(Ct, 0)
+func Ku(x uint64) K { // Ct
+	r := mk(Ct, 0)
 	p := int32(r)
 	for x != 0 {
 		SetI8(p, int32(x))
@@ -172,7 +171,8 @@ func kx(u int32, x K) K     { return cal(Val(Ks(u)), l1(x)) }
 func kxy(u int32, x, y K) K { return cal(Val(Ks(u)), l2(x, y)) }
 
 /* encode bytes with: https://play.golang.org/p/4ethx6OEVCR
-func enc(x []byte) (r uint64) {
+func enc(x []byte) uint64 {
+	r := uint32(0)
 	var o uint64 = 1
 	for _, b := range x {
 		r += o * uint64(b)
@@ -198,8 +198,8 @@ func sc(c K) K {
 	return K(8*sn) | K(st)<<59
 }
 func cs(x K) K { return x0(K(I32(0)) + x) }
-func td(x K) (r K) { // table from dict
-	r = x0(x)
+func td(x K) K { // table from dict
+	r := x0(x)
 	x = r1(x)
 	if tp(r) != St || tp(x) != Lt {
 		trap(Type)

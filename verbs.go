@@ -10,7 +10,7 @@ func Dex(x, y K) K { // x:y
 	dx(x)
 	return y
 }
-func Flp(x K) (r K) { // +x
+func Flp(x K) K { // +x
 	xt := tp(x)
 	switch xt - Lt {
 	case 0: // Lt   n:#x;  m:|/#x (,/m#/:x)[(!m)+\:m*!n]
@@ -22,13 +22,14 @@ func Flp(x K) (r K) { // +x
 	case 1: // Dt
 		return td(x)
 	case 2: // Tt
-		r = x0(x)
-		return Key(r, r1(x))
+		t := x0(x)
+		return Key(t, r1(x))
 	default:
 		return x
 	}
 }
-func maxcount(xp int32, n int32) (r int32) { // |/#l
+func maxcount(xp int32, n int32) int32 { // |/#l
+	r := int32(0)
 	for i := int32(0); i < n; i++ {
 		x := K(I64(xp))
 		xp += 8
@@ -73,12 +74,12 @@ func Cnt(x K) K { // #x
 	}
 	return Ki(nn(x))
 }
-func Til(x K) (r K) {
+func Til(x K) K {
 	xt := tp(x)
 	if xt > Lt {
-		r = x0(x)
+		t := x0(x)
 		dx(x)
-		return r
+		return t
 	}
 	if xt == it {
 		return seq(int32(x))
@@ -88,9 +89,9 @@ func Til(x K) (r K) {
 	}
 	return trap(Type)
 }
-func seq(n int32) (r K) {
+func seq(n int32) K {
 	n = maxi(n, 0)
-	r = mk(It, n)
+	r := mk(It, n)
 	if n == 0 {
 		return r
 	}
@@ -106,7 +107,8 @@ func seqi(p, e int32) {
 		continue
 	}
 }
-func Unq(x K) (r K) { // ?x
+func Unq(x K) K { // ?x
+	r := K(0)
 	xt := tp(x)
 	if xt < 16 {
 		return roll(x)
@@ -149,7 +151,7 @@ func grp(x, y K) K { // s?T
 	return Atx(Drp(x, y), Grp(Atx(y, x)))
 }
 func Key(x, y K) K { return key(x, y, Dt) } // x!y
-func key(x, y K, t T) (r K) { // Dt or Tt
+func key(x, y K, t T) K { // Dt or Tt
 	xt, yt := tp(x), tp(y)
 	if xt < 16 || xt == Dt {
 		if yt < 16 || yt == Dt {
@@ -173,9 +175,9 @@ func key(x, y K, t T) (r K) { // Dt or Tt
 			xn = nn(K(I64(int32(y))))
 		}
 	}
-	r = l2(x, y)
-	SetI32(int32(r)-12, xn)
-	return K(int32(r)) | K(t)<<59
+	x = l2(x, y)
+	SetI32(int32(x)-12, xn)
+	return K(int32(x)) | K(t)<<59
 }
 func keyt(x, y K) K { // `s!t (key table: (`s#t)!`s_t)
 	x = rx(x)
@@ -183,13 +185,13 @@ func keyt(x, y K) K { // `s!t (key table: (`s#t)!`s_t)
 	return Key(Tak(x, y), Drp(x, y))
 }
 
-func Tak(x, y K) (r K) { // x#y
+func Tak(x, y K) K { // x#y
 	xt := tp(x)
 	yt := tp(y)
 	if yt == Dt {
 		x = rx(x)
 		if xt == it {
-			r = x0(y)
+			r := x0(y)
 			y = r1(y)
 			r = Tak(x, r)
 			y = Tak(x, y)
@@ -217,7 +219,8 @@ func Tak(x, y K) (r K) { // x#y
 	}
 	return Atx(y, Wer(Cal(x, l1(y)))) // f#
 }
-func ntake(n int32, y K) (r K) {
+func ntake(n int32, y K) K {
+	r := K(0)
 	t := tp(y)
 	if n == nai {
 		if t < 16 {
@@ -289,12 +292,12 @@ func ntake(n int32, y K) (r K) {
 	}
 	return atv(y, r)
 }
-func Drp(x, y K) (r K) { // x_y
+func Drp(x, y K) K { // x_y
 	xt := tp(x)
 	yt := tp(y)
 	if yt > Lt {
 		if yt == Dt || (yt == Tt && xt&15 == st) {
-			r = x0(y)
+			r := x0(y)
 			y = r1(y)
 			if xt < 16 {
 				x = Enl(x)
@@ -316,7 +319,8 @@ func Drp(x, y K) (r K) { // x_y
 	}
 	return Atx(y, Wer(Not(Cal(x, l1(rx(y)))))) // f#
 }
-func ndrop(n int32, y K) (r K) {
+func ndrop(n int32, y K) K {
+	r := K(0)
 	yt := tp(y)
 	if yt < 16 || yt > Lt {
 		trap(Type)
@@ -348,7 +352,7 @@ func ndrop(n int32, y K) (r K) {
 	return r
 }
 
-func Cut(x, y K) (r K) { // x^y
+func Cut(x, y K) K { // x^y
 	yt := tp(y)
 	if yt == it || yt == ft {
 		return Pow(y, x)
@@ -368,7 +372,7 @@ func Cut(x, y K) (r K) { // x^y
 	if xp <= 0 {
 		xp = nn(y) / -xp
 	}
-	r = mk(Lt, xp)
+	r := mk(Lt, xp)
 	rp := int32(r)
 	e := ep(r)
 	n := nn(y) / xp
@@ -384,10 +388,10 @@ func Cut(x, y K) (r K) { // x^y
 	return r
 }
 func cuts(x, y K) K { return rcut(y, x, cat1(ndrop(1, rx(x)), Ki(nn(y)))) }
-func rcut(x, a, b K) (r K) { // a, b start-stop ranges
+func rcut(x, a, b K) K { // a, b start-stop ranges
 	n := nn(a)
 	ap, bp := int32(a), int32(b)
-	r = mk(Lt, n)
+	r := mk(Lt, n)
 	rp := int32(r)
 	for i := int32(0); i < n; i++ {
 		o := I32(ap)
@@ -421,7 +425,7 @@ func split(x, y K) K {
 	x = rx(x)
 	return rcut(y, Cat(Ki(0), Add(Ki(xn), x)), cat1(x, Ki(nn(y))))
 }
-func join(x, y K) (r K) {
+func join(x, y K) K {
 	xt := tp(x)
 	if xt < 16 {
 		x = Enl(x)
@@ -433,7 +437,7 @@ func join(x, y K) (r K) {
 	}
 	yp := int32(y)
 	yn := nn(y)
-	r = mk(xt, 0)
+	r := mk(xt, 0)
 	for i := int32(0); i < yn; i++ {
 		v := x0(K(yp))
 		if tp(v) != xt {
@@ -473,12 +477,12 @@ func Bin(x, y K) K { // x'y
 	return r
 }
 func ibin(x, y K, t T) int32 {
-	var j, h int32
+	h := int32(0)
+	k := int32(0)
 	n := nn(x)
 	xp := int32(x)
 	yp := int32(y)
-	k := int32(0)
-	j = n - 1
+	j := n - 1
 	s := sz(t)
 	switch s >> 2 {
 	case 0:
@@ -521,9 +525,9 @@ func ibin(x, y K, t T) int32 {
 	}
 	return 0 // not reached
 }
-func win(n int32, x K) (r K) {
+func win(n int32, x K) K {
 	y := seq(n)
-	r = mk(Lt, 0)
+	r := mk(Lt, 0)
 	m := 1 + nn(x) - n
 	for i := int32(0); i < m; i++ {
 		r = ucat(r, l1(atv(rx(x), rx(y))))
@@ -534,7 +538,9 @@ func win(n int32, x K) (r K) {
 	return r
 }
 
-func Flr(x K) (r K) { // _x
+func Flr(x K) K { // _x
+	r := K(0)
+	rp := int32(0)
 	xt := tp(x)
 	xp := int32(x)
 	if xt < 16 {
@@ -556,7 +562,6 @@ func Flr(x K) (r K) { // _x
 		}
 	}
 	xn := nn(x)
-	var rp int32
 	switch xt - 18 {
 	case 0: //C
 		return lower(x)
@@ -595,15 +600,15 @@ func Flr(x K) (r K) { // _x
 	dx(x)
 	return r
 }
-func lower(x K) (r K) {
-	r = use(x)
-	p := int32(r)
-	e := p + nn(r)
+func lower(x K) K {
+	x = use(x)
+	p := int32(x)
+	e := p + nn(x)
 	for p < e {
 		SetI8(p, lc(I8(p)))
 		p++
 	}
-	return r
+	return x
 }
 func lc(x int32) int32 {
 	if x >= 'A' && x <= 'Z' {
@@ -613,7 +618,8 @@ func lc(x int32) int32 {
 	}
 }
 
-func Rev(x K) (r K) { // |x
+func Rev(x K) K { // |x
+	r := K(0)
 	t := tp(x)
 	if t < 16 {
 		return x
@@ -635,7 +641,8 @@ func Rev(x K) (r K) { // |x
 	return atv(x, r)
 }
 
-func Wer(x K) (r K) { // &x
+func Wer(x K) K { // &x
+	r := K(0)
 	t := tp(x)
 	if t < 16 {
 		x = Enl(x)
@@ -645,13 +652,12 @@ func Wer(x K) (r K) { // &x
 		r = x0(x)
 		return Atx(r, Wer(r1(x)))
 	}
-	var n, rp int32
 	xn := nn(x)
 	xp := int32(x)
 	if t == It {
-		n = sumi(xp, xn)
+		n := sumi(xp, xn)
 		r = mk(It, n)
-		rp = int32(r)
+		rp := int32(r)
 		for i := int32(0); i < xn; i++ {
 			j := I32(xp)
 			for k := int32(0); k < j; k++ {
@@ -699,7 +705,8 @@ func Tok(x K) K { // `t@"src"
 		return x
 	}
 }
-func Val(x K) (r K) {
+func Val(x K) K {
+	r := K(0)
 	xt := tp(x)
 	if xt == st {
 		return lup(x)
@@ -752,7 +759,7 @@ func Xpt(x K) K { // fill x
 		return Eql(missing(xt-T(16*I32B(xt > 16))), x)
 	}
 }
-func Fil(x, y K) (r K) { // x fill y
+func Fil(x, y K) K { // x fill y
 	xt, yt := tp(x), tp(y)
 	if yt >= Lt {
 		return Ecr(38, l2(x, y))
@@ -764,7 +771,7 @@ func Fil(x, y K) (r K) { // x fill y
 			return y
 		}
 	}
-	r = Wer(Xpt(rx(y)))
+	r := Wer(Xpt(rx(y)))
 	if xt == yt-16 {
 		return Amd(y, r, 1, x)
 	}
@@ -774,13 +781,13 @@ func Fil(x, y K) (r K) { // x fill y
 		return trap(Type)
 	}
 }
-func Enc(x, y K) (r K) { // x\\y
+func Enc(x, y K) K { // x\\y
 	xt := tp(x)
 	n := int32(0)
 	if xt == It {
 		n = nn(x)
 	}
-	r = mk(It, 0)
+	r := mk(It, 0)
 	yn := int32(Cnt(rx(y)))
 l:
 	for {
@@ -801,11 +808,11 @@ l:
 	dx(y)
 	return Rev(r)
 }
-func Dec(x, y K) (r K) { // x//y   {z+x*y}/[0;x;y]
+func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
 	if tp(y) < 16 {
 		trap(Type)
 	}
-	r = Fst(rx(y))
+	r := Fst(rx(y))
 	n := nn(y)
 	for i := int32(1); i < n; i++ {
 		r = Add(ati(rx(y), i), Mul(ati(rx(x), i), r))
@@ -814,8 +821,8 @@ func Dec(x, y K) (r K) { // x//y   {z+x*y}/[0;x;y]
 	dx(y)
 	return r
 }
-func sumi(xp, xn int32) (r int32) {
-	r = int32(0)
+func sumi(xp, xn int32) int32 {
+	r := int32(0)
 	e := xp + 4*xn
 	for xp < e {
 		r += I32(xp)

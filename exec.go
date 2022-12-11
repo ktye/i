@@ -20,15 +20,12 @@ func exec(x K) K {
 		dx(x)
 		return 0
 	}
-	var a K // accumulator
+	a := K(0) // accumulator
 	p := int32(x)
 	e := p + 8*xn
 	//kdb:var arg K
 	for p < e {
 		u := K(I64(p))
-		//kprint(u)
-		//fmt.Printf("exec p=%d sp=%d tp=%d int32=%d case(%d) %s\n", p, sp-256, tp(u), int32(u), int32(u)>>6, sK(u))
-		//fmt.Printf("exec p=%d tp=%d int32=%d case(%d)\n", p, tp(u), int32(u), int32(u)>>6)
 		if tp(u) != 0 {
 			push(a)
 			a = rx(u)
@@ -101,11 +98,13 @@ func pop() K {
 	if sp < 256 {
 		trap(Stack)
 	}
-	return K(I64(sp))
+	//return K(I64(sp))
+	r := K(I64(sp))
+	return r
 }
-func lst(n K) (r K) {
+func lst(n K) K {
 	rn := int32(n)
-	r = mk(Lt, rn)
+	r := mk(Lt, rn)
 	rp := int32(r)
 	for i := int32(0); i < rn; i++ {
 		SetI64(rp, int64(pop()))
@@ -128,8 +127,7 @@ func Asn(x, y K) K {
 	SetI64(vp, int64(rx(y)))
 	return y
 }
-func Amd(x, i, v, y K) (r K) {
-	//fmt.Printf("amend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+func Amd(x, i, v, y K) K {
 	xt := tp(x)
 	if xt == st {
 		return Asn(x, Amd(Val(x), i, v, y))
@@ -149,7 +147,7 @@ func Amd(x, i, v, y K) (r K) {
 	}
 
 	if xt > Lt {
-		r = x0(x)
+		r := x0(x)
 		x = r1(x)
 		if xt == Tt && tp(i)&15 == it { // table-assign-rows
 			if tp(y) > Lt {
@@ -192,8 +190,7 @@ func Amd(x, i, v, y K) (r K) {
 	}
 	return stv(x, i, y)
 }
-func Dmd(x, i, v, y K) (r K) {
-	// fmt.Printf("dmend[%s;%s;%s;%s]\n", sK(x), sK(i), sK(v), sK(y))
+func Dmd(x, i, v, y K) K {
 	if tp(x) == st {
 		return Asn(x, Dmd(Val(x), i, v, y))
 	}
@@ -216,22 +213,22 @@ func Dmd(x, i, v, y K) (r K) {
 		}
 		i = Fst(i)
 		if tp(f) == It && tp(x) == Tt {
-			r = rx(x0(x))
-			return key(r, Dmd(r1(x), l2(Fnd(r, i), f), v, y), Tt)
+			t := rx(x0(x))
+			return key(t, Dmd(r1(x), l2(Fnd(t, i), f), v, y), Tt)
 		}
 		if tp(f) != It || tp(x) != Lt {
 			trap(Nyi) // Dt
 		}
-		r = use(x)
+		x = use(x)
 		for j := int32(0); j < n; j++ {
-			rj := int32(r) + 8*I32(int32(f)+4*j)
+			rj := int32(x) + 8*I32(int32(f)+4*j)
 			SetI64(rj, int64(Amd(K(I64(rj)), rx(i), rx(v), ati(rx(y), j))))
 		}
 		dx(f)
 		dx(i)
 		dx(v)
 		dx(y)
-		return r
+		return x
 	}
 	x = rx(x)
 	return Amd(x, f, 1, Dmd(Atx(x, f), i, v, y))
