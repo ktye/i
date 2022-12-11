@@ -1,11 +1,11 @@
 set -e
 set -x
 if [ -z "$1" ]; then
- go install /c/k/wg/cmd/wg
+ #go install /c/k/wg/cmd/wg
  wg -k .. > k.k
- k k.k go.k -e 'x:`<go`pkg`k' > k.go
- go fmt k.go
- go build k.go
+ #k k.k go.k -e 'x:`<go`pkg`k' > k.go
+ #go fmt k.go
+ #go build k.go
 elif [ "$1" = "gotest" ]; then
  ./k ../k.t -e
 elif [ "$1" = "flt" ]; then
@@ -13,9 +13,17 @@ elif [ "$1" = "flt" ]; then
  go run flt.go
  rm flt.out
 elif [ "$1" = "cc" ]; then
+ wg -k .. > k.k
  k k.k cc.k -e 'x:`<cc``' >  k.c
  #gcc -Wall -Wfatal-errors -o kc k.c -lm
- c:/local/zig/zig cc -Wall -Wno-parentheses-equality k.c -o kc
+ c:/local/zig/zig cc -Wall -Wno-parentheses-equality k.c -o kc.exe -lm
+elif [ "$1" = "ctest" ]; then
+ go install ..
+ wg -k .. > k.k
+ ./kg.exe k.k cc.k -e 'x:`<cc``' >  k.c
+ gcc -Wall -Wfatal-errors -O0 -o kc k.c -lm
+   k      ../k.t -e 2>out1
+ ./kc.exe ../k.t -e 2>out2
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa

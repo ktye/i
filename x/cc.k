@@ -109,7 +109,7 @@ ccnop:{y;""}
 ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(ccsem'y),\:"break;\n"),"}" }
  
 ccfor:{$[I x;ccwhl[x;y];("for(;";ccnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
-ccwhl:{((,"do"),,-12_y 2),("}while";ccnd y 0;";\n")}
+ccwhl:{((,"do"),(,-12_y 2),(,y 1)),("}while";ccnd y 0;";\n")}
 ccjmp:{y;$[I x;"break";"continue"]}
 ccdfr:{("else{";*y;";}\n}")}
 
@@ -183,10 +183,10 @@ void Memorycopy (int32_t dst, int32_t src, int32_t n){ memcpy(_M +dst, _M +src, 
 void Memorycopy2(int32_t dst, int32_t src, int32_t n){ memcpy(_M2+dst, _M +src, n); }
 void Memorycopy3(int32_t dst, int32_t src, int32_t n){ memcpy( _M+dst, _M2+src, n); }
 void Memoryfill(int32_t p, int32_t v, int32_t n){ memset(_M+p, (int)v, (size_t)n); }
-int32_t I32clz(uint32_t x) { return (int32_t)__builtin_clz((unsigned int)x); }
-int32_t I64popcnt(uint64_t x){ return (int32_t)__builtin_popcountll(x); }
-double  F64reinterpret_i64(uint64_t x){return *(double *)&x;}
-int64_t I64reinterpret_f64(double   x){return *(int64_t*)&x;}
+int32_t  I32clz(uint32_t x) { return (int32_t)__builtin_clz((unsigned int)x); }
+int32_t  I64popcnt(uint64_t x){ return (int32_t)__builtin_popcountll(x); }
+double   F64reinterpret_i64(uint64_t x){return *(double  *)&x;}
+uint64_t I64reinterpret_f64(double   x){return *(uint64_t*)&x;}
 int32_t Args(){ return args_; }
 int32_t Arg(int32_t i, int32_t r){
  if(i>=args_) return 0;
@@ -239,6 +239,46 @@ int64_t Native(int64_t x, int64_t y){
 }
 void panic(int32_t x) { longjmp(_jb_,1); }
 #define P(...) printf(__VA_ARGS__);fflush(stdout);
+void Printi(int32_t x, int32_t y){ fprintf(stderr,\"%d %d\\n\",x,y);fflush(stderr); }
+void Prinf(int32_t x, double y){ fprintf(stderr,\"%d %.6lf\\n\",x,y);fflush(stderr); }
+/*
+void Printk(int32_t x, uint64_t y){
+ y=y&~(uint64_t)1;
+ if((y>>59)>16){
+  int32_t n=I32(((int32_t)(y))-12);
+  fprintf(stderr,\"%d (%d#%u)\\n\",x,n,(uint32_t)(y>>59));
+ }else fprintf(stderr,\"%d (%u)\\n\",x,(uint32_t)(y>>59));
+ fflush(stderr);
+}
+*/
+void printk_(uint64_t y){
+ y=y&~(uint64_t)1;
+ if((y>>59)>16){
+  int32_t n=I32(((int32_t)(y))-12);
+  fprintf(stderr,\"(%d#%u) \",n,(uint32_t)(y>>59));
+ }else fprintf(stderr,\"(%u) \",(uint32_t)(y>>59));
+}
+void Printk(int32_t x, uint64_t y){
+ fprintf(stderr,\"%d \", x);printk_(y);fprintf(stderr,\"\\n\");fflush(stderr);
+}
+void Printu(int32_t x, uint64_t y){
+ fprintf(stderr,\"%d %llu\\n\", x, y);fflush(stderr);
+}
+void Printl(int32_t x, uint64_t y){
+ y=y&~(uint64_t)1;
+ if(23!=y>>59){
+  fprintf(stderr,\"%dL !%llu\\n\",x,y>>59);
+  fflush(stderr);return;
+ }
+ int32_t yp=(int32_t)y;
+ int32_t n=I32(yp-12);
+ fprintf(stderr,\"%dL %d# \",x,n);fflush(stderr);
+ if(n>5)n=5;
+ int32_t e=yp+8*n;
+ for(;yp<e;yp+=8)printk_(I64(yp));
+ fprintf(stderr,\"\\n\");
+ fflush(stderr);
+}
 "
 ccmain:"int main(int args, char **argv){
  args_=(int32_t)args;
