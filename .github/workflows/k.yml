@@ -57,7 +57,7 @@ jobs:
       run: cd i/f77 && sh mk && sh mk test
     
     - name: k.go
-      run: cd i/x && wg -k .. > k.k && k k.k go.k -e 'x:`<go`pkg`k' > k.go && go fmt k.go && go build k.go -o kg && ./kg ../k.t -e
+      run: cd i/x && wg -k .. > k.k && k k.k go.k -e 'x:`<go`pkg`k' > k.go && go fmt k.go && go build -o kg k.go && ./kg ../k.t -e
 
     - name: k.c
       run: cd i/x && k k.k cc.k -e 'x:`<c``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
