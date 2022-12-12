@@ -33,6 +33,13 @@ elif [ "$1" = cc ]; then
 		cmp out $c
 		rm out
 	done
+elif [ "$1" = js ]; then
+	for x in *.k; do
+		j=`echo $x | sed 's/.k$/.js/'`
+		k $x ../js.k -e 'x:`<js``nort' > out
+		cmp out $j
+		rm out
+	done
 elif [ "$1" = walidate ]; then
 	for x in *.wa; do
 		/c/local/wabt/wat2wasm $x
