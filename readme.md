@@ -43,10 +43,7 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 
 |file|what|compile|
 |---|---|---|
-[k.wasm](https://github.com/ktye/i/releases/download/latest/k.wasm)|webassembly binary module||
+[k.wasm](https://github.com/ktye/i/releases/download/latest/k.wasm)|webassembly binary||
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go|`go build k.go`|
 [k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran|`gfortran k.f`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c|`gcc k.c -lm`|
-[ktye.h](https://github.com/ktye/i/releases/download/latest/ktye.h)|single header library|see [k+](https://github.com/ktye/i/tree/master/%2B)|
-
-simd128 has been removed, latest was [77a566f](https://github.com/ktye/i/tree/77a566f)
