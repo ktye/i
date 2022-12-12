@@ -36,14 +36,14 @@ function setinput(s){
 }
 
 let sel=ge("sel")
-let examples="asn`blank`cal`cast`cli`cnd`const`cont`drp`fun`heap`inc`label`lit`loop`loop2`mem`swtch`tab`k".split("`")
+let examples="asn`cal`cast`cli`cnd`cnd2`const`cont`drp`fun`heap`ifret`inc`label`lit`loop`loop2`mem`swtch`swtch2`tab`k".split("`")
 for(let i=0;i<examples.length;i++){
  let o=ce("option");o.textContent=examples[i]
  sel.appendChild(o)
 }
 let h=decodeURIComponent(window.location.hash.slice(1)).split(" ") //e.g. #go asn
 if(h.length){
- ge("target").selectedIndex=Math.max(0,["help","go","wa","ik"].indexOf(h[0]))
+ ge("target").selectedIndex=Math.max(0,["help","go","wa","cc"].indexOf(h[0]))
  sel.selectedIndex=Math.max(0,examples.indexOf(h[1]))
 }else sel.selectedIndex=0
 sel.onchange=function(e){setinput(examples[e.target.selectedIndex])}
@@ -59,7 +59,10 @@ function compile(){
  }
  fetch(t+".k").then(r=>r.text()).then(r=>{
   kweb.ktry(r)
-  ge("out").textContent=K.CK(kweb.ktry(t+"``nort"))
+  let s=K.CK(kweb.ktry(t+"``nort"))
+  ge("out").textContent=s
+  ge("bytes").textContent=s.length+" bytes"
  })
 }
 ge("target").onchange=compile
+
