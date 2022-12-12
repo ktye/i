@@ -106,7 +106,7 @@ ccdrp:{y}
 cccli:{n:I x;("((";$[#r:cctype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))_F[";*y;"])(";  ","/:n#1_y; ")")}
 ccasn:{r:(s:$S x),"=",(*|y),";\n";
  $[((n:3+2*#s)#r)~s,"=(",s,"+";$["+=1"~-3#r:s,"+=",(n_-3_r);s,"++";r],";\n";r]}
-cccnd:{$[S x; (ccnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(ccnd y 0),(ccemb ccsem y 1),$[3~#y;"else",(ccemb ccsem y 2);""]]}
+cccnd:{$[S x; (ccnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(ccnd y 0),(ccemb ccsem y 1),$[3~#y;"else ",(ccemb ccsem y 2);""]]}
 ccnop:{y;""}
 ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(ccsem'y),\:"break;\n"),"}" }
  
@@ -124,7 +124,7 @@ ccand:cc2"&"; ccbnd:cc2"&&";ccant:cc2"&~";ccorr:cc2"|"; ccbor:cc2"||";ccxor:cc2"
 
 ccnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 ccsem:{$[(*|x)':";}\n";x;x,";"]}
-ccemb:{$["{"=*x;x;"{",x,"}"]}
+ccemb:{$["{"=*x;x;"{\n",x,"\n}\n"]}
 
 ccfmt:{
  x:@[x;1+find["}\nelse";x];" "]

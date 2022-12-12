@@ -5,7 +5,8 @@ t:+`n`t`p`i`s!(!#T;T;P;I;S) /node type parent i-value s-value
 k k.k go.k -e 'x:`"k.go"<go``'       /generate k.go main
 k k.k go.k -e 'x:`"k.go"<go`lib`k'   /generate k.go lib
 k k.k wa.k -e         '`<wa``'       /generate wasm(text) (wip)
-next: cc wb pa qb rv zi ha
+k k.k cc.k -e 'x:`"k.c" <cc``'       /generate k.c main
+next: js zz wb pa qb rv ha jv
 
 a compiler backend implements a function per node type to transform the node into string form.
 e.g. go transforms the table to a string of go program source code:
@@ -17,9 +18,12 @@ for each node, f cuts the number of children from the stack, calls the emitter b
 with arguments x:node id, and y the evaluated children in string form.
 the result is catenated to the stack.
 
-ast transformations are done on the table before flattening.
-the go backend does not need any transformations.
-
+ast transformations(are done on the table before flattening), e.g.:
+ -rename builtin functions [c]
+ -rewrite cond/swtich expressions as statements (return or assign each) [go]
+  same for c but keep ternary expressions
+ -remove explicit zero assignments [go wa] todo
+ 
 
 node type                    i-value             s-value
  prg     root node           -                   prog/libname    first node only
