@@ -15,12 +15,14 @@ func unquote(x K) K    { return x - 448 }
 
 func exec(x K) K {
 	srcp = 0
+	a := K(0) // accumulator
+	b := K(0)
+	c := K(0)
 	xn := nn(x)
 	if xn == 0 {
 		dx(x)
 		return 0
 	}
-	a := K(0) // accumulator
 	p := int32(x)
 	e := p + 8*xn
 	//kdb:var arg K
@@ -46,11 +48,14 @@ func exec(x K) K {
 				marksrc(a)
 				//kdb:b:=rx(a)
 				//kdb:fpush(b,arg)
-				a = Cal(a, l2(pop(), pop()))
+				b = pop()
+				a = Cal(a, l2(b, pop()))
 				//kdb:dx(b);dx(arg);fpop()
 			case 3: // 192..255  tetradic
 				//kdb:arg=l2(l2(rx(a),rx(K(I64(sp-8)))),l2(rx(K(I64(sp-16))),rx(K(I64(sp-24)))))
-				a = Func[marksrc(u)].(f4)(a, pop(), pop(), pop())
+				b = pop()
+				c = pop()
+				a = Func[marksrc(u)].(f4)(a, b, c, pop())
 				//kdb:dx(arg);fpop()
 			case 4: // 256       drop
 				dx(a)
@@ -145,7 +150,6 @@ func Amd(x, i, v, y K) K {
 		dx(y)
 		return x
 	}
-
 	if xt > Lt {
 		r := x0(x)
 		x = r1(x)
@@ -200,12 +204,10 @@ func Dmd(x, i, v, y K) K {
 		dx(i)
 		return Amd(x, f, v, y)
 	}
-
 	if f == 0 {
 		f = seq(nn(x))
 	}
 	i = ndrop(1, i)
-
 	if tp(f) > 16 { // matrix-assign
 		n := nn(f)
 		if nn(i) != 1 {

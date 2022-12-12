@@ -175,7 +175,8 @@ func dcat(x, y K) K { // d,d  t,t
 	q := x0(y)
 	y = r1(y)
 	if t == Dt {
-		return Key(Cat(r, q), Cat(x, y))
+		r = Cat(r, q)
+		return Key(r, Cat(x, y))
 	} else {
 		dx(q)
 		x = Ech(13, l2(x, y))

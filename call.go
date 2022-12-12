@@ -46,7 +46,10 @@ func cal(f, x K) K {
 		case 2:
 			r = Func[fp+192].(f4)(x, r, 1, z)
 		case 3:
-			r = Func[fp+192].(f4)(x0(x), x1(x), x2(x), r3(x))
+			r = x0(x)
+			y := x1(x)
+			z = x2(x)
+			r = Func[fp+192].(f4)(r, y, z, r3(x))
 		default:
 			r = trap(Rank)
 		}

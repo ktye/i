@@ -72,7 +72,6 @@ func ecn(f, x K) K {
 				}
 				f = Cat(x0(r), x0(x))
 				return key(f, Cat(r1(r), r1(x)), Tt)
-		//return key(Cat(x0(r), x0(x)), Cat(r1(r), r1(x)), Tt)
 			}
 		}
 		return ec2(f, r, x)
