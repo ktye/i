@@ -53,21 +53,15 @@ jobs:
         wg             . > k.wat
         ../wat2wasm -o k.wasm k.wat
 
-    - name: build k.c
-      run: | 
-        cd i
-        wg -c -prefix ktye_ . > k.c
-        gcc -o kc -O2 k.c -lm
-
-    - name: test k.c
-      run: cd i && ./kc k.t -e
-
     - name: k.f
       run: cd i/f77 && sh mk && sh mk test
     
     - name: k.go
-      run: cd i/x && wg -k .. > k.k && k k.k go.k -e 'x:`<go`pkg`k' > k.go && go fmt k.go && go build k.go && ./k ../k.t -e
-      
+      run: cd i/x && wg -k .. > k.k && k k.k go.k -e 'x:`<go`pkg`k' > k.go && go fmt k.go && go build k.go -o kg && ./kg ../k.t -e
+
+    - name: k.c
+      run: cd i/x && k k.k cc.k -e 'x:`<c``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
+
     - name: kom
       run: cd i/kom && sh mk && sh mk test
   
@@ -105,8 +99,8 @@ jobs:
 #        cp raylib.h       ../../i/+/ray/
 #        cp rgestures.h    ../../i/+/ray/
     
-    - name: build ktye.h
-      run: cd i/+ && sh mk ktye.h
+#    - name: build ktye.h
+#      run: cd i/+ && sh mk ktye.h
     
 #    - name: tar k+
 #      run: cd i && tar czf k+.tar.gz +/
@@ -174,17 +168,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/k.c
+        asset_path: ./i/x/k.c
         asset_name: k.c
         asset_content_type: text/plain
-    
-    - name: upload ktye.h
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/+/ktye.h
-        asset_name: ktye.h
-        asset_content_type: text/plain
-    
+  
