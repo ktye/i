@@ -1,0 +1,4 @@
+set -e
+set -x
+wg . 1k.go > k.wat
+/c/local/wabt/wat2wasm -o k.wasm k.wat
