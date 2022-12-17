@@ -99,7 +99,7 @@ func lup(x int32) int32 {
 type f1 = func(int32) int32
 type f2 = func(int32, int32) int32
 
-//dyadic
+// dyadic
 func add(x, y int32) int32 { return x + y }
 func sub(x, y int32) int32 { return x - y }
 func mul(x, y int32) int32 { return x * y }
@@ -275,7 +275,7 @@ func ecv(x, y int32) int32 { return ec2(39, x, enl(y)) } // v'a  v'a
 
 func ovv(x, y int32) int32 { return ec2(47, x, enl(y)) } // v/a  v/v
 
-//monadic
+// monadic
 func nyi(x int32) int32 { return x }
 func flp(x int32) int32 { return nyi(x) } // +x
 func neg(x int32) int32 { // -x
@@ -358,12 +358,12 @@ func val(x int32) int32 { // .x
 	}
 	return exe(x, 0)
 }
-func tok(r, x, t int32) int32 {
+func tok(x int32) int32 {
 	xn := n(x)
 	r := rm(xn)
 	x = v(x)
 	xe := x + 4*xn
-	t := 0
+	t := int32(0)
 	q := rm(xn)
 	for x < xe {
 		c := I32(x)
@@ -386,30 +386,34 @@ func tok(r, x, t int32) int32 {
 	}
 	return r
 }
-func prs(r, x, t int32) int32 {
-	// 11-(1+1)+-1
-	//          -   1)     >   A       ? /    >d
-	//          +  -1)     m   B       - -    m>
-	//          )  +1)     >   C       1 -    >d
-	//          1  )+1)    >   D       1 1    c
-	//                                 ( ?    <>
-	//          +  1)+1)   >   A     else     >
-	//          1  +1)+1)  d   E
-	//          (  1)+1)   b<  F      -/1()
-	//          1    +1)   d   E
-	//          -    1)    >   A
-	//          1    -1)   d   E
-	//          1    1)    j   G
-	//               1)
-	//          +    +)    m
-	//
-	// x == (      => move<y over (, remove )  next
-	// y == /      => move> dyadic
-	// y == -
-	//   | x == 1  => move> dyadic
-	//   | x == -  => monadic, move>
-	// else        => move
-}
+
+// func prs(r, x, t int32) int32 {
+// 11-(1+1)+-1
+//   - 1)     >   A       ? /    >d
+//   - -1)     m   B       - -    m>
+//     )  +1)     >   C       1 -    >d
+//     1  )+1)    >   D       1 1    c
+//     ( ?    <>
+//   - 1)+1)   >   A     else     >
+//     1  +1)+1)  d   E
+//     (  1)+1)   b<  F      -/1()
+//     1    +1)   d   E
+//   - 1)    >   A
+//     1    -1)   d   E
+//     1    1)    j   G
+//     1)
+//   - +)    m
+//
+// x == (      => move<y over (, remove )  next
+// y == /      => move> dyadic
+// y == -
+//
+//	| x == 1  => move> dyadic
+//	| x == -  => monadic, move>
+//
+// else        => move
+// }
 func exe(x, a int32) int32 {
-	x = rev(run(tok(x)), 0)
+	x = rev(tok(x))
+	return x
 }

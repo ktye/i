@@ -16,7 +16,7 @@ elif [ "$1" = "flt" ]; then
  rm flt.out
 elif [ "$1" = "cc" ]; then
  k k.k cc.k -e 'x:`<cc``' >  k.c
- gcc -Wall -Wfatal-errors -o kc k.c -lm
+ gcc -Wall -Wfatal-errors -O3 -o kc k.c -lm
 #c:/local/zig/zig cc -Wall -Wno-parentheses-equality -fwrapv -ffast-math k.c -o kc.exe -lm
 elif [ "$1" = "ctest" ]; then
  go install ..
