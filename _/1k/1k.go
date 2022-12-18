@@ -40,15 +40,15 @@ func k1() {
 }
 
 func v(x int32) int32 { return x >> 1 }
-func w(x int32) int32 { return x << 1 }
+func w(x int32) int32 { return (x << 1) + 1 }
 func n(x int32) int32 {
 	if x&1 != 0 {
 		return -1
 	}
-	return I32(v(x) - 4)
+	return I32(x-4)
 }
 func mk(x int32) int32 {
-	x = x*4 + 4
+	x = 4 + 4*x
 	for tot < top+x {
 		Memorygrow(1)
 		tot += 65536
@@ -56,18 +56,17 @@ func mk(x int32) int32 {
 	r := top
 	SetI32(r, x)
 	top += x
-	return 1 + w(r)
+	return 4 + r
 }
 func rm(x int32) int32 { // reset make, use with c1
 	r := mk(x)
-	SetI32(v(r)-1, 0)
+	SetI32(r-4, 0)
 	return r
 }
-func c1(x, y int32) int32 {
-	p := I32(v(x))
-	SetI32(p, 1+p)
-	SetI32(v(x)+4*p, y)
-	return x
+func c1(x, y int32) {
+	p := I32(x-4)
+	SetI32(x-4, 1+p)
+	SetI32(x+4*p, y)
 }
 func l2(x, y int32) int32 { return cat(enl(x), enl(y)) }
 func el(x int32) int32 {
@@ -88,7 +87,7 @@ func ec2(f, x, y int32) int32 {
 func seq(x, o, m int32) int32 {
 	r := rm(x)
 	for i := int32(0); i < x; i++ {
-		c1(r, (i+o)%m)
+		c1(r, w((i+o)%m))
 	}
 	return r
 }
@@ -344,7 +343,7 @@ func str(x int32) int32 { // ^x
 func cnt(x int32) int32 { // #x
 	xn := n(x)
 	if xn < 0 {
-		return 2
+		return 3
 	} else {
 		return w(xn)
 	}
