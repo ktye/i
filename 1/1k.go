@@ -21,7 +21,7 @@ func init() {
 	// vy idx
 	Data(0, "\x57\x5b\x55\x4b\x4d\xf9\x79\x7d\x7b\x43\x75\xfd\x59\xbd\x47\xbf\x7f\x5d\x41\x4f\x5f\xb9") // (1+2*)  +-*%&|<>=!:~,^#_?. '/\  (22)
 
-        //              0    1    2    3    4    5    6    7    8    9   10   11
+	//              0    1    2    3    4    5    6    7    8    9   10   11
 	//              :    ~    ,    ^    #    _    ?    .         '    /    \
 	Functions(00, asn, mtc, cat, ctv, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, rol, cal, spc, ech, ovr, scn)                                    //ay
@@ -46,7 +46,7 @@ func n(x int32) int32 {
 	if x&1 != 0 {
 		return -1
 	}
-	return I32(x-4)
+	return I32(x - 4)
 }
 func mk(x int32) int32 {
 	r := top
@@ -64,7 +64,7 @@ func rm(x int32) int32 { // reset make, use with c1
 	return r
 }
 func c1(x, y int32) {
-	p := I32(x-4)
+	p := I32(x - 4)
 	SetI32(x-4, 1+p)
 	SetI32(x+4*p, y)
 }
@@ -78,7 +78,7 @@ func el(x int32) int32 {
 func ec2(f, x, y int32) int32 {
 	rn := max(cnt(x), cnt(y)) >> 1
 	r := rm(rn)
-	for i := int32(0); i<rn; i++ {
+	for i := int32(0); i < rn; i++ {
 		c1(r, cal(f, cat(enl(atx(x, w(i))), enl(atx(y, w(i))))))
 	}
 	return r
@@ -168,6 +168,7 @@ func rol(x, y int32) int32 { return ny2(x, y) }                       // a?y
 func fnd(x, y int32) int32 { return fst(ec2(126, x, y)) }             // v?a
 func fnx(x, y int32) int32 { return ec2(63, enl(x), y) }              // v?v   x?/:y
 func cal(x, y int32) int32 { // a.a  a.v
+	//println("cal", tostring(x), tostring(y))
 	y = el(y)
 	yn := n(y)
 	i := int32(0)
@@ -176,22 +177,27 @@ func cal(x, y int32) int32 { // a.a  a.v
 			break
 		}
 	}
+	//println("cali", i)
 	if i > 20 {
+		panic("exe lup")
 		return exe(lup(x), y)
 	}
 	x = fst(y)
-	y = I32(4 + y)
+	y = atx(y, 3)
 	xa := I32B(n(x) < 0)
 	ya := I32B(n(y) < 0)
 	mo := I32B(yn < 2)
 	if i < 10 { //scalar
-		i += 48
 		if mo != 0 {
-			return nd(i, x, y, xa+ya)
+			return Func[i+34].(f1)(x)
 		}
-		return nm(i+10, x, xa)
+		if xa&ya != 0 {
+			return w(Func[i+24].(f2)(v(x), v(y)))
+		}
+		return ec2(I8(i), x, y)
 	}
 	if mo != 0 {
+		panic("mo")
 		return Func[i+48].(f1)(x)
 	}
 	i = (i - 10) + 12*xa
@@ -214,11 +220,9 @@ func atx(x, y int32) int32 { // v.a  (also a.v)
 func spc(x, y int32) int32 { return cat(enl(x), y) } // x(space)y
 func ech(x, y int32) int32 { // a'a  a'v
 	yn := v(cnt(y))
-	r := mk(yn)
-	p := v(r)
+	r := rm(yn)
 	for i := int32(0); i < yn; i++ {
-		SetI32(p, cal(x, atx(y, w(i))))
-		p += 4
+		c1(r, cal(x, atx(y, w(i))))
 	}
 	return r
 }
@@ -254,19 +258,6 @@ func scn(x, y int32) int32 { // a\a  a\v
 }
 func jon(x, y int32) int32 { return ovr(44, ec2(44, x, enl(y))) } // v\a   ,/x,',y
 
-func nm(f, x, a int32) int32 {
-	if a != 0 {
-		return ech(46, cat(f, enl(x)))
-	}
-	return w(Func[f].(f1)(v(x)))
-}
-func nd(f, x, y, a int32) int32 {
-	if a != 0 {
-		return ec2(I8(f), x, y)
-	}
-	return w(Func[f].(f2)(v(x), v(y)))
-}
-
 func ecv(x, y int32) int32 { return ec2(39, x, enl(y)) } // v'a  v'a
 
 func ovv(x, y int32) int32 { return ec2(47, x, enl(y)) } // v/a  v/v
@@ -276,13 +267,9 @@ func nyi(x int32) int32 { return x }
 func flp(x int32) int32 { return nyi(x) } // +x
 func neg(x int32) int32 { // -x
 	if n(x) < 0 {
-		x = v(x)
-		if x < 0 {
-			x = -x
-		}
-		return w(x)
+		return w(-v(x))
 	}
-	return ech(90, x)
+	return ech(91, x)
 }
 func fst(x int32) int32 { return atx(x, 1) }              // *x
 func rot(x int32) int32 { return cat(drp(2, x), fst(x)) } // %x
