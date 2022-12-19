@@ -13,18 +13,31 @@ import (
 
 func Test1K(t *testing.T) {
 	k1()
-	T(tostring(w(-2)), "-2")
-	T(tostring(til(w(5))),"(0 1 2 3 4)")
-	T(tostring(cnt(til(w(5)))),"5")
-	T(tostring(cnt((w(3)))),"1")
+	T(w(-2), "-2")
+	T(til(w(5)), "(0 1 2 3 4)")
+	T(cnt(til(w(5))), "5")
+	T(cnt((w(3))), "1")
+	T(enl(w(1)), "(1)")
+	T(el(enl(w(1))), "(1)")
+	T(el(w(1)), "(1)")
+	T(cat(w(1), w(2)), "(1 2)")
+	T(max(w(2), w(2)), "2")
+	j := til(w(3))
+	T(fst(j), "0")
+	T(fst(enl(j)), "(0 1 2)")
+	T(atx(j, w(2)), "2")
+	T(atx(j, j), "(0 1 2)")
+	//T(cal(w('-'), til(w(2))), "-1")
+	//T(tak(w(2),j), "(0 1)")
 
 	//readtests("readme")
 }
-func T(a, b string) {
-	if a != b {
-		panic("got:" + a + "\nnot:" + b)
+func T(a int32, b string) {
+	s := tostring(a)
+	if s != b {
+		panic("got:" + s + "\nnot:" + b)
 	}
-	println(a)
+	println(s)
 }
 func tostring(x int32) string {
 	if x&1 != 0 {

@@ -19,11 +19,12 @@ func init() {
 	// juxtaposition
 	// ay cal
 	// vy idx
-	Data(0, "\x2b\x2d\x2a\x25\x26\x7c\x3c\x3e\x3d\x21\x3a\x7e\x2c\x5e\x23\x5f\x3f\x2e\x20\x27\x2f\x5c") // +-*%&|<>=!:~,^#_?. '/\  (22)
+	Data(0, "\x57\x5b\x55\x4b\x4d\xf9\x79\x7d\x7b\x43\x75\xfd\x59\xbd\x47\xbf\x7f\x5d\x41\x4f\x5f\xb9") // (1+2*)  +-*%&|<>=!:~,^#_?. '/\  (22)
 
+        //              0    1    2    3    4    5    6    7    8    9   10   11
 	//              :    ~    ,    ^    #    _    ?    .         '    /    \
-	Functions(00, asn, mtc, cat, cut, tak, drp, rol, cal, spc, ech, ovr, scn)                                    //ay
-	Functions(12, asn, mtc, cat, ctv, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
+	Functions(00, asn, mtc, cat, ctv, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
+	Functions(12, asn, mtc, cat, cut, tak, drp, rol, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
 	Functions(34, flp, neg, fst, rot, wer, rev, grd, gdn, grp, til, idn, not, enl, str, cnt, lst, unq, val, enl) //monadic
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
@@ -48,14 +49,13 @@ func n(x int32) int32 {
 	return I32(x-4)
 }
 func mk(x int32) int32 {
-	x = 4 + 4*x
-	for tot < top+x {
+	r := top
+	top += 4 + 4*x
+	for tot < top {
 		Memorygrow(1)
 		tot += 65536
 	}
-	r := top
 	SetI32(r, x)
-	top += x
 	return 4 + r
 }
 func rm(x int32) int32 { // reset make, use with c1
@@ -70,17 +70,16 @@ func c1(x, y int32) {
 }
 func l2(x, y int32) int32 { return cat(enl(x), enl(y)) }
 func el(x int32) int32 {
-	if n(x)&1 != 0 {
-		return x
+	if x&1 != 0 {
+		return enl(x)
 	}
-	return enl(x)
+	return x
 }
 func ec2(f, x, y int32) int32 {
 	rn := max(cnt(x), cnt(y)) >> 1
-	r := mk(rn)
-	p := v(r)
-	for i := int32(0); i < rn; i++ {
-		SetI32(p+4*i, cal(f, cat(enl(atx(x, i)), enl(atx(y, i)))))
+	r := rm(rn)
+	for i := int32(0); i<rn; i++ {
+		c1(r, cal(f, cat(enl(atx(x, w(i))), enl(atx(y, w(i))))))
 	}
 	return r
 }
@@ -141,8 +140,8 @@ func cat(x, y int32) int32 { // x,y
 	x, y = el(x), el(y)
 	xn, yn := n(x), n(y)
 	r := mk(xn + yn)
-	Memorycopy(v(r), v(x), 4*xn)
-	Memorycopy(v(r)+4*xn, v(y), 4*yn)
+	Memorycopy(r, x, 4*xn)
+	Memorycopy(r+4*xn, y, 4*yn)
 	return r
 }
 func cut(x, y int32) int32 { return ny2(x, el(y)) }                           // a^y
@@ -177,11 +176,11 @@ func cal(x, y int32) int32 { // a.a  a.v
 			break
 		}
 	}
-	if i > 21 {
+	if i > 20 {
 		return exe(lup(x), y)
 	}
 	x = fst(y)
-	y = I32(4 + v(y))
+	y = I32(4 + y)
 	xa := I32B(n(x) < 0)
 	ya := I32B(n(y) < 0)
 	mo := I32B(yn < 2)
@@ -192,27 +191,25 @@ func cal(x, y int32) int32 { // a.a  a.v
 		}
 		return nm(i+10, x, xa)
 	}
-	i += 24*ya + 12*xa
 	if mo != 0 {
 		return Func[i+48].(f1)(x)
 	}
+	i = (i - 10) + 12*xa
 	return Func[i].(f2)(x, y)
 }
 func atx(x, y int32) int32 { // v.a  (also a.v)
-	nn := n(y)
-	if nn < 0 {
-		return ec2(46, enl(x), y)
+	if y&1 != 0 {
+		xn := n(x)
+		if xn < 0 {
+			return x
+		}
+		y = v(y)
+		if uint32(xn) > uint32(y) {
+			return I32(x + 4*y)
+		}
+		return fst(x)
 	}
-	nn = n(x)
-	if nn < 0 {
-		return x
-	}
-	y = v(y)
-	if y < 0 || nn > y {
-		return 0
-	} else {
-		return I32(v(x) + 4*y)
-	}
+	return ec2(93, enl(x), y)
 }
 func spc(x, y int32) int32 { return cat(enl(x), y) } // x(space)y
 func ech(x, y int32) int32 { // a'a  a'v
@@ -287,7 +284,7 @@ func neg(x int32) int32 { // -x
 	}
 	return ech(90, x)
 }
-func fst(x int32) int32 { return atx(x, 0) }              // *x
+func fst(x int32) int32 { return atx(x, 1) }              // *x
 func rot(x int32) int32 { return cat(drp(2, x), fst(x)) } // %x
 func wer(x int32) int32 { // &x
 	x = el(x)
