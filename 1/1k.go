@@ -102,7 +102,12 @@ func add(x, y int32) int32 { return x + y }
 func sub(x, y int32) int32 { return x - y }
 func mul(x, y int32) int32 { return x * y }
 func div(x, y int32) int32 { return x / y }
-func mod(x, y int32) int32 { return x % y }
+func mod(x, y int32) (r int32) { 
+	if x < 0 || y < 1 {
+		return 0
+	}
+	return x % y
+}
 func min(x, y int32) int32 {
 	if x < y {
 		return x
@@ -146,21 +151,30 @@ func cat(x, y int32) int32 { // x,y
 }
 func cut(x, y int32) int32 { return ny2(x, el(y)) }                           // a^y
 func ctv(x, y int32) int32 { return ny2(x, el(y)) }                           // v^y
-func tak(x, y int32) int32 { return atx(el(y), cal(66, l2(til(x), cnt(x)))) } // a#v
+func tak(x, y int32) int32 { 
+println("tak", tostring(x), tostring(y))
+	y = el(y)
+	if x < 0 {
+		return drp(w(n(y)+v(x)), y)
+	}
+	return atx(el(y), cal(67, l2(til(x), cnt(y))))
+} // a#v
 func tkv(x, y int32) int32 { return atx(y, wer(inn(el(y), x))) }              // v#y
 func drp(x, y int32) int32 { // a_y
+println("drp", tostring(x), tostring(y))
+	y = el(y)
 	yn := n(y)
 	xv := v(x)
 	if x < 0 {
+		println("xv/yn", xv, yn)
 		if xv < -yn {
+			panic("aaa")
 			return atx(x, seq(-xv, xv+yn, yn))
 		}
+		panic("bbb")
 		return tak(x, w(-xv))
 	} else {
-		if xv > y {
-			return mk(0)
-		}
-		return atx(x, seq(yn-xv, xv, yn))
+		return atx(y, seq(max(0,yn-xv), xv, yn))
 	}
 }
 func dpv(x, y int32) int32 { return atx(y, wer(not(inn(el(y), x)))) } // v_y
@@ -168,7 +182,7 @@ func rol(x, y int32) int32 { return ny2(x, y) }                       // a?y
 func fnd(x, y int32) int32 { return fst(ec2(126, x, y)) }             // v?a
 func fnx(x, y int32) int32 { return ec2(63, enl(x), y) }              // v?v   x?/:y
 func cal(x, y int32) int32 { // a.a  a.v
-	//println("cal", tostring(x), tostring(y))
+	println("cal", tostring(x), tostring(y))
 	y = el(y)
 	yn := n(y)
 	i := int32(0)
@@ -177,7 +191,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 			break
 		}
 	}
-	//println("cali", i)
+	println("cali", i)
 	if i > 20 {
 		panic("exe lup")
 		return exe(lup(x), y)
@@ -201,19 +215,21 @@ func cal(x, y int32) int32 { // a.a  a.v
 		return Func[i+48].(f1)(x)
 	}
 	i = (i - 10) + 12*xa
+	println("cal basic i", i)
 	return Func[i].(f2)(x, y)
 }
 func atx(x, y int32) int32 { // v.a  (also a.v)
+println("atx", tostring(x), tostring(y))
 	if y&1 != 0 {
 		xn := n(x)
-		if xn < 0 {
-			return x
+		if xn > 1 {
+			y = v(y)
+			if uint32(y) < uint32(xn) {
+				return I32(x + 4*mod(y,xn))
+			}
+			return 1
 		}
-		y = v(y)
-		if uint32(xn) > uint32(y) {
-			return I32(x + 4*y)
-		}
-		return fst(x)
+		return x*I32B(xn < 0) + I32B(xn == 0)
 	}
 	return ec2(93, enl(x), y)
 }
@@ -264,6 +280,12 @@ func ovv(x, y int32) int32 { return ec2(47, x, enl(y)) } // v/a  v/v
 
 // monadic
 func nyi(x int32) int32 { return x }
+func abs(x int32) int32 { 
+	if x < 0 {
+		return -x
+	}
+	return x
+}
 func flp(x int32) int32 { return nyi(x) } // +x
 func neg(x int32) int32 { // -x
 	if n(x) < 0 {
@@ -295,7 +317,7 @@ func rev(x int32) int32 { // |x
 func grd(x int32) int32 { return nyi(el(x)) }               // <x
 func gdn(x int32) int32 { return nyi(el(x)) }               // >x
 func grp(x int32) int32 { return nyi(el(x)) }               // =x
-func til(x int32) int32 { return seq(v(x), 0, 2147483647) } // !0
+func til(x int32) int32 { return seq(abs(v(x)), 0, 2147483647) } // !0
 func idn(x int32) int32 { return x }                        // :x
 func not(x int32) int32 { // ~a
 	if n(x) < 0 {

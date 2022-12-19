@@ -13,8 +13,11 @@ import (
 
 func Test1K(t *testing.T) {
 	k1()
+	j := til(w(3))
+	_ = j
 	T(w(-2), "-2")
 	T(til(w(5)), "(0 1 2 3 4)")
+	T(til(w(-5)), "(0 1 2 3 4)")
 	T(cnt(til(w(5))), "5")
 	T(cnt((w(3))), "1")
 	T(enl(w(1)), "(1)")
@@ -22,7 +25,6 @@ func Test1K(t *testing.T) {
 	T(el(w(1)), "(1)")
 	T(cat(w(1), w(2)), "(1 2)")
 	T(max(w(2), w(2)), "2")
-	j := til(w(3))
 	T(fst(j), "0")
 	T(fst(enl(j)), "(0 1 2)")
 	T(atx(w(3), w(9)), "3")
@@ -35,10 +37,22 @@ func Test1K(t *testing.T) {
 	T(cal(w('*'), l2(w(-2), j)), "(0 -2 -4)")             // -2*0 1 2
 	T(cal(w('*'), l2(j, w(-2))), "(0 -2 -4)")             // 0 1 2*-2
 	T(cal(w('*'), l2(j, j)), "(0 1 4)")                   // 0 1 2*0 1 2
-	T(cal(w('*'), l2(til(w(4)), til(w(2)))), "(0 1 0 0)") // 0 1 2 3*0 1
+	T(cal(w('*'), l2(til(w(4)), til(w(2)))), "(0 1 0 3)") // 0 1 2 3*0 1
+	T(cal(w('!'), l2(til(w(4)), w(3))), "(0 1 2 0)") // (!4)!3  mod
+	T(cal(67, l2(til(w(4)), w(3))), "(0 1 2 0)")
+	/*
+	
+	//T(tak(w(4), w(3)), "(3 3 3 3)") // 4#3 scalar take
+	//T(tak(w(2), j), "(0 1)") // 2#0 1 2  undertake
+	//T(tak(w(4), j), "(0 1 2 0)") // 2#0 1 2  overtake (mod)
 
-	//T(tak(w(2),j), "(0 1)")
+	T(tak(w(-2), j), "(1 2)") // -2#0 1 2  tail take
+	T(tak(w(-4), j), "()") // -4#0 1 2  tail overtake
+	//T(tak(w(-2), w(3)), "(3 3)") // -2#3
+	//T(tak(w(4), j), "(0 1 2 0)")
+	//T(tak(w(-12), j), "(1 2)")
 
+	*/
 	//readtests("readme")
 }
 func T(a int32, b string) {
