@@ -1,0 +1,5 @@
+set -e
+set -x
+k ../x/k.k ../x/go.k -e 'x:`<go``lib' | sed 's/^package.*/package main/' > k.go
+go build
+rm k.go

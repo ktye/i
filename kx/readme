@@ -1,0 +1,30 @@
+input | kx '+\x' '#x'
+
+each row is split at whitespace to x, row number is i:
+ x:("col0";"col1";..)
+
+each argument is evaluated per line and joined by space
+
+unitype conversion for complete line
+ xi short for `i$x
+ xf           `f$x
+ xs            `$x
+
+convert individual fields
+ 0i short for  `i x 0
+ 2f            `f x 2
+ 3s            `s x 3
+
+filter
+ /condition/prog
+
+aggregate
+ sum+:x   (global assignment does not reassign each line)
+
+examples
+ number lines:                kx i x
+ row sum:                     kx +/xf
+ number of columns:           kx '#x'
+ amplitude angle as cmplx     kx 0f@1f
+ lines with first col peter   kx '/`peter~0s/x'
+ column sum                   kx 'sum+:x' -e sum
