@@ -76,6 +76,9 @@ func el(x int32) int32 {
 	return x
 }
 func ec2(f, x, y int32) int32 {
+	if n(x)*n(y) == 0 {
+		return mk(0)
+	}
 	rn := max(cnt(x), cnt(y)) >> 1
 	r := rm(rn)
 	for i := int32(0); i < rn; i++ {
@@ -83,16 +86,6 @@ func ec2(f, x, y int32) int32 {
 	}
 	return r
 }
-
-/*
-	func seq(x, o, m int32) int32 {
-		r := rm(x)
-		for i := int32(0); i < x; i++ {
-			c1(r, w((i+o)%m))
-		}
-		return r
-	}
-*/
 func seq(x, o int32) int32 {
 	r := rm(abs(x))
 	for i := int32(0); i < abs(x); i++ {
@@ -161,58 +154,13 @@ func cat(x, y int32) int32 { // x,y
 	return r
 }
 func cut(x, y int32) int32 { return ny2(x, el(y)) }              // a^y
-func cts(x, y int32) int32 {              return ny2(x, y) } // v^y
+func cts(x, y int32) int32 { return ny2(x, y) }                  // v^y
 func tak(x, y int32) int32 { return atx(el(y), til(x)) }         // a#v
 func tkv(x, y int32) int32 { return atx(y, wer(inn(el(y), x))) } // v#y
 func drp(x, y int32) int32 { // a_y
-/*
-	x = v(x)
-	yn := n(y)
-	rn := max(0, yn-abs(x))
-	o := mod(x+yn, yn)
-	r := mk(rn)
-	Memorycopy(r, y+o, 4*rn)
-	return r
-*/	
-
-	//y = el(y)
-	// n(y)-v(x)
-	// y:0 1 2
-	// 2_y
-	// o:(yn-x)
-	// n:x
-	//println("x/vx",x,v(x))
-	//println("seq",tostring(seq(n(y)-v(x),v(x))))
-
-
-//	1+!yn   1 2 3
-//	(yn-x)# 1 2
-
-//	fst(cts(enl(x),til(y)))  // *(,x)^!y
-
-//	rev(cut(x,til(y)))
-
 	y = el(y)
-	return atx(y, tak(w(max(0,n(y)-v(x))), seq(n(y), v(x))))
+	return atx(y, tak(w(max(0, n(y)-abs(v(x)))), seq(n(y), max(0, v(x)))))
 }
-/*
-	//println("drp", tostring(x), tostring(y))
-	y = el(y)
-	yn := n(y)
-	xv := v(x)
-	if x < 0 {
-		if xv < -yn {
-			panic("aaa")
-			//			return atx(x, seq(-xv, xv+yn, yn))
-		}
-		panic("bbb")
-		return tak(x, w(-xv))
-	} else {
-		panic("drop")
-		//		return atx(y, seq(max(0,yn-xv), xv, yn))
-	}
-}
-*/
 func dpv(x, y int32) int32 { return atx(y, wer(not(inn(el(y), x)))) } // v_y
 func rol(x, y int32) int32 { return ny2(x, y) }                       // a?y
 func fnd(x, y int32) int32 { return fst(ec2(126, x, y)) }             // v?a
@@ -283,10 +231,10 @@ func inn(x, y int32) int32 {
 	}
 }
 func ovr(x, y int32) int32 { // a/a  a/v
-	yn := v(cnt(y))
-	r := fst(x)
-	for i := int32(1); i < yn; i++ {
-		r = cal(x, atx(y, w(i)))
+	y = el(y)
+	r := fst(y)
+	for i := int32(1); i < n(y); i++ {
+		r = cal(x, l2(r, I32(y+4*i)))
 	}
 	return r
 }
@@ -330,32 +278,26 @@ func rot(x int32) int32 { return cat(drp(2, x), fst(x)) } // %x
 func wer(x int32) int32 { // &x
 	x = el(x)
 	r := mk(0)
-	xn := n(x)
-	for i := int32(0); i < xn; i++ {
-		j := w(i)
-		r = cat(r, tak(j, atx(x, j)))
+	for i := int32(1); i < w(n(x)); i += 2 {
+		r = cat(r, tak(atx(x, i), i))
 	}
 	return r
 }
 func rev(x int32) int32 { // |x
 	x = el(x)
 	xn := n(x)
-	r := rm(xn)
-	for i := int32(0); i < xn; i++ {
-		c1(r, xn-i-1)
-	}
-	return atx(x, r)
+	return atx(x, cal(91, l2(w(xn), seq(xn, 1))))
 }
-func grd(x int32) int32 { return nyi(el(x)) }   // <x
-func gdn(x int32) int32 { return nyi(el(x)) }   // >x
-func grp(x int32) int32 { return nyi(el(x)) }   // =x
+func grd(x int32) int32 { return nyi(el(x)) } // <x
+func gdn(x int32) int32 { return nyi(el(x)) } // >x
+func grp(x int32) int32 { return nyi(el(x)) } // =x
 func til(x int32) int32 { // !x  !v(domain)
 	if x&1 != 0 {
-		return seq(v(x), 0) 
+		return seq(v(x), 0)
 	}
-	return til(cnt(x))
+	return til(cnt(x)) //domain. todo: or flip?
 }
-func idn(x int32) int32 { return x }            // :x
+func idn(x int32) int32 { return x } // :x
 func not(x int32) int32 { // ~a
 	if n(x) < 0 {
 		return w(I32B(v(x) != 0))

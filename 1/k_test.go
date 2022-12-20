@@ -11,22 +11,27 @@ import (
 
 // var tot, top int32
 
-func Test1K(t *testing.T) {
+func TestVerbs(t *testing.T) {
 	k1()
 	j := til(w(3))
 	_ = j
 
-	// v -3 -2 -1
-
-	//T(drp(w(-1), j), "(0 1)") // tail drop
-	//T(til(w(0)), "()") // major problem with ec2
-	//T(atx(j, til(w(0))), "()")
-	//T(drp(w(5), j), "(1 2)") // overdrop
-	T(drp(w(1), j), "(1 2)") // drop
-	T(tak(w(-5), j), "(1 2 0 1 2)") //undertake
-	T(tak(w(-2), j), "(1 2)")       //take tail
-	T(tak(w(5), j), "(0 1 2 0 1)")  //overtake
-	T(cal(67, l2(til(w(4)), w(3))), "(0 1 2 0)")
+	T(wer(j), "(1 2 2)")                                  // &!3
+	T(wer(w(3)), "(0 0 0)")                               // &3
+	T(ovr(w('+'), til(w(0))), "0")                        // +/!3
+	T(ovr(w('+'), j), "3")                                // +/!3
+	T(rev(j), "(2 1 0)")                                  // |x is x@xn-1+!xn:#x
+	T(tak(w(-2), w(3)), "(3 3)")                          // -2#3
+	T(drp(w(-3), j), "()")                                // underdrop
+	T(drp(w(-5), j), "()")                                // underdrop
+	T(drp(w(-1), j), "(0 1)")                             // taildrop
+	T(drp(w(5), j), "()")                                 // overdrop
+	T(drp(w(1), j), "(1 2)")                              // drop
+	T(tak(w(4), w(3)), "(3 3 3 3)")                       // 4#3 scalar take
+	T(tak(w(-5), j), "(1 2 0 1 2)")                       // undertake
+	T(tak(w(-2), j), "(1 2)")                             // take tail
+	T(tak(w(5), j), "(0 1 2 0 1)")                        // overtake
+	T(cal(67, l2(til(w(4)), w(3))), "(0 1 2 0)")          // (!4)!3
 	T(cal(w('!'), l2(til(w(4)), w(3))), "(0 1 2 0)")      // (!4)!3  mod
 	T(cal(w('*'), l2(til(w(4)), til(w(2)))), "(0 1 0 3)") // 0 1 2 3*0 1
 	T(cal(w('*'), l2(j, j)), "(0 1 4)")                   // 0 1 2*0 1 2
@@ -36,6 +41,8 @@ func Test1K(t *testing.T) {
 	T(cal(w('-'), enl(j)), "(0 -1 -2)")                   // -!3
 	T(cal(w('-'), w(3)), "-3")                            // -3
 	T(cal(w(46), l2(j, w(1))), "1")                       // .[j;0] => dyadic
+	T(atx(j, til(w(0))), "()")
+	T(atx(j, cat(enl(j), enl(j))), "((0 1 2) (0 1 2))")
 	T(atx(j, j), "(0 1 2)")
 	T(atx(j, w(2)), "2")
 	T(atx(w(3), w(9)), "3")
@@ -48,22 +55,10 @@ func Test1K(t *testing.T) {
 	T(enl(w(1)), "(1)")
 	T(cnt((w(3))), "1")
 	T(cnt(til(w(5))), "5")
+	T(til(w(0)), "()")
 	T(til(w(-3)), "(-3 -2 -1)")
 	T(til(w(5)), "(0 1 2 3 4)")
 	T(w(-2), "-2")
-	/*
-
-		//T(tak(w(4), w(3)), "(3 3 3 3)") // 4#3 scalar take
-		//T(tak(w(2), j), "(0 1)") // 2#0 1 2  undertake
-		//T(tak(w(4), j), "(0 1 2 0)") // 2#0 1 2  overtake (mod)
-
-		T(tak(w(-2), j), "(1 2)") // -2#0 1 2  tail take
-		T(tak(w(-4), j), "()") // -4#0 1 2  tail overtake
-		//T(tak(w(-2), w(3)), "(3 3)") // -2#3
-		//T(tak(w(4), j), "(0 1 2 0)")
-		//T(tak(w(-12), j), "(1 2)")
-
-	*/
 	//readtests("readme")
 }
 func T(a int32, b string) {
