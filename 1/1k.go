@@ -26,7 +26,7 @@ func init() {
 	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
-	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, str, cnt, lst, unq, val, enl) //monadic
+	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, srt, cnt, lst, unq, val, enl) //monadic
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
 }
@@ -139,7 +139,6 @@ func mtv(x, y int32) int32 { // v~y
 	if n(x) != n(y) {
 		return 1
 	}
-	println("mtv", n(x), n(y))
 	return ovr(77, ec2(253, x, y)) // &/x~'y
 }
 func cat(x, y int32) int32 { // x,y
@@ -184,7 +183,6 @@ func cal(x, y int32) int32 { // a.a  a.v
 	}
 	//	println("cali", i)
 	if i > 20 {
-		panic("exe lup")
 		return exe(lup(x), y)
 	}
 	x = fst(y)
@@ -202,8 +200,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 		return ec2(I8(i), x, y)
 	}
 	if mo != 0 {
-		panic("mo")
-		return Func[i+48].(f1)(x)
+		return Func[i+34].(f1)(x)
 	}
 	i = (i - 10) + 12*xa
 	return Func[i].(f2)(x, y)
@@ -222,10 +219,13 @@ func atx(x, y int32) int32 { // v.a  (also a.v)
 }
 func spc(x, y int32) int32 { return cat(enl(x), y) } // x(space)y
 func ech(x, y int32) int32 { // a'a  a'v
-	yn := v(cnt(y))
+	yn := n(y)
+	if yn < 0 {
+		return cal(x, enl(y))
+	}
 	r := rm(yn)
 	for i := int32(0); i < yn; i++ {
-		c1(r, cal(x, atx(y, w(i))))
+		c1(r, cal(x, enl(I32(y+4*i))))
 	}
 	return r
 }
@@ -273,7 +273,12 @@ func abs(x int32) int32 {
 	}
 	return x
 }
-func flp(x int32) int32 { return nyi(x) }                          // +x
+func flp(x int32) int32 { // +x   m:|/#'x   r:(,/m#/:x)(!m)+\:m*!n
+	x = el(x)
+	xn := cnt(x)
+	xm := ovr(249, ech(71, x))
+	return atx(ovr(89, ec2(71, enl(xm), x)), ec2(87, til(xm), enl(cal(85, l2(xm, til(xn))))))
+}
 func neg(x int32) int32 { return cal(91, l2(1, x)) }               // -x
 func fst(x int32) int32 { return atx(x, 1) }                       // *x
 func rot(x int32) int32 { x = el(x); return atx(x, seq(n(x), 1)) } // %x
@@ -312,41 +317,30 @@ func grd(x, c int32) int32 { // <x  todo tao
 }
 func gup(x int32) int32 { return grd(x, 31) } // <x
 func gdn(x int32) int32 { return grd(x, 30) } // >x
-func grp(x int32) int32 { return nyi(el(x)) } // =x
+func grp(x int32) int32 { // =x
+	x = el(x)
+	k := unq(x)
+	v := rm(n(k))
+	for i := int32(0); i < n(k); i++ {
+		c1(v, wer(ec2(253, x, I32(k+4*i))))
+	}
+	return l2(k, v)
+}
 func til(x int32) int32 { // !x  !v(domain)
 	if x&1 != 0 {
 		return seq(v(x), 0)
 	}
-	return til(cnt(x)) //domain. todo: or flip?
+	return til(cnt(x))
 }
 func idn(x int32) int32 { return x } // :x
 func not(x int32) int32 { // ~a
 	if n(x) < 0 {
-		return w(I32B(v(x) != 0))
+		return w(I32B(v(x) == 0))
 	}
-	return ech(252, x)
+	return ech(253, x)
 }
 func enl(x int32) int32 { r := mk(1); SetI32(r, x); return r } // ,x
-func str(x int32) int32 { // ^x
-	if n(x) < 0 {
-		x = v(x)
-		if x < 0 {
-			return cat(90, str(w(-x)))
-		} else if x == 0 {
-			return enl(0)
-		}
-		r := rm(10)
-		i := int32(0)
-		for x > 0 {
-			c1(r, x%10)
-			x -= 10
-			x /= 10
-			i++
-		}
-		return tak(w(i), r)
-	}
-	return ech(188, x)
-}
+func srt(x int32) int32 { return atx(x, gup(x)) } // ^x
 func cnt(x int32) int32 { // #x
 	xn := n(x)
 	if xn < 0 {
@@ -355,8 +349,24 @@ func cnt(x int32) int32 { // #x
 		return w(xn)
 	}
 }
-func lst(x int32) int32 { return atx(el(x), w(n(x)-1)) } // _x
-func unq(x int32) int32 { return nyi(x) }                // ?x
+func lst(x int32) int32 { // _x  last
+	xn := n(x)
+	if xn < 0 {
+		return x
+	}
+	return atx(x, w(n(x)-1)) 
+}
+func unq(x int32) int32 { // ?x
+	x = el(x)
+	r := rm(x)
+	for i := int32(0); i < n(x); i++ {
+		xi := I32(x + 4*i)
+		if v(fnd(r, xi)) == n(r) {
+			c1(r, xi)
+		}
+	}
+	return r
+}
 func val(x int32) int32 { // .x
 	xn := n(x)
 	if xn < 0 {

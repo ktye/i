@@ -3,7 +3,7 @@ set -x
 wg . 1k.go > k.wat
 /c/local/wabt/wat2wasm -o k.wasm k.wat
 ls -l k.wasm
-/c/local/binaryen/wasm-opt.exe --enable-bulk-memory -Oz k.wasm -o k.wasm
+/c/local/binaryen/wasm-opt --enable-bulk-memory -Oz k.wasm -o k.wasm
 ls -l k.wasm
 gzip k.wasm
 ls -l k.wasm.gz
