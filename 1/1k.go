@@ -23,8 +23,8 @@ func init() {
 
 	//              0    1    2    3    4    5    6    7    8    9   10   11
 	//              :    ~    ,    ^    #    _    ?    .         '    /    \
-	Functions(00, asn, mtc, cat, cts, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
-	Functions(12, asn, mtc, cat, cut, tak, drp, rol, cal, spc, ech, ovr, scn)                                    //ay
+	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
+	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
 	Functions(34, flp, neg, idn, rot, wer, rev, grd, gdn, grp, til, idn, not, enl, str, cnt, lst, unq, val, enl) //monadic
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
@@ -115,16 +115,14 @@ func mod(x, y int32) int32 {
 func min(x, y int32) int32 {
 	if x < y {
 		return x
-	} else {
-		return y
 	}
+	return y
 }
 func max(x, y int32) int32 {
 	if x > y {
 		return x
-	} else {
-		return y
 	}
+	return y
 }
 func les(x, y int32) int32 { return I32B(x < y) }
 func mor(x, y int32) int32 { return I32B(x > y) }
@@ -133,17 +131,16 @@ func eql(x, y int32) int32 { return I32B(x == y) }
 func ny2(x, y int32) int32 { return y }
 
 func asn(x, y int32) int32 { return ny2(x, y) }
-func mtc(x, y int32) int32 { return w(I32B(x == y)) }
-func nul(x, y int32) int32 { return 0 }
-func mtv(x, y int32) int32 {
-	xn := n(x)
+func mtc(x, y int32) int32 { return w(I32B(x == y)) } // a~y
+func mtv(x, y int32) int32 { // v~y
 	if x == y {
-		return 2
+		return 3
 	}
-	if xn != n(y) {
-		return 0
+	if n(x) != n(y) {
+		return 1
 	}
-	return ovr(38, ec2(126, x, y)) // &/x~'y
+	println("mtv", n(x), n(y))
+	return ovr(77, ec2(253, x, y)) // &/x~'y
 }
 func cat(x, y int32) int32 { // x,y
 	x, y = el(x), el(y)
@@ -153,25 +150,35 @@ func cat(x, y int32) int32 { // x,y
 	Memorycopy(r+4*xn, y, 4*yn)
 	return r
 }
-func cut(x, y int32) int32 { return ny2(x, el(y)) }              // a^y
-func cts(x, y int32) int32 { return ny2(x, y) }                  // v^y
-func tak(x, y int32) int32 { return atx(el(y), til(x)) }         // a#v
-func tkv(x, y int32) int32 { return atx(y, wer(inn(el(y), x))) } // v#y
+func cut(x, y int32) int32 { return l2(atx(y, til(x)), drp(x, y)) } // a^y
+func cts(x, y int32) int32 { return ec2(189, x, enl(el(y))) }       // v^y
+func tak(x, y int32) int32 { return atx(el(y), til(x)) }            // a#v
+func tkv(x, y int32) int32 { return atx(y, wer(inn(el(y), x))) }    // v#y
 func drp(x, y int32) int32 { // a_y
 	y = el(y)
 	return atx(y, tak(w(max(0, n(y)-abs(v(x)))), seq(n(y), max(0, v(x)))))
 }
 func dpv(x, y int32) int32 { return atx(y, wer(not(inn(el(y), x)))) } // v_y
-func rol(x, y int32) int32 { return ny2(x, y) }                       // a?y
-func fnd(x, y int32) int32 { return fst(ec2(126, x, y)) }             // v?a
-func fnx(x, y int32) int32 { return ec2(63, enl(x), y) }              // v?v   x?/:y
+func fna(x, y int32) int32 { return fnd(enl(x), y) }                  // a?y
+func fnd(x, y int32) int32 { // v?y
+	if n(y) < 0 {
+		i := int32(0)
+		for ; i < n(x); i++ {
+			if mtc(I32(x+4*i), y) == 3 {
+				break
+			}
+		}
+		return w(i)
+	}
+	return ec2(127, enl(x), y)
+}
 func cal(x, y int32) int32 { // a.a  a.v
 	//	println("cal", tostring(x), tostring(y))
 	y = el(y)
 	yn := n(y)
 	i := int32(0)
 	for ; i < 21; i++ {
-		if x == I8(i) {
+		if x == I8(i)&0xff {
 			break
 		}
 	}
@@ -225,7 +232,7 @@ func ech(x, y int32) int32 { // a'a  a'v
 func inn(x, y int32) int32 {
 	yn := w(n(y))
 	if n(x) < 0 {
-		return mor(yn, fnx(y, x))
+		return mor(yn, fnd(y, x))
 	} else {
 		return ovr(124, mor(yn, fnd(y, x))) // |/(#y)>y?x
 	}
@@ -266,15 +273,10 @@ func abs(x int32) int32 {
 	}
 	return x
 }
-func flp(x int32) int32 { return nyi(x) } // +x
-func neg(x int32) int32 { // -x
-	if n(x) < 0 {
-		return w(-v(x))
-	}
-	return ech(91, x)
-}
-func fst(x int32) int32 { return atx(x, 1) }              // *x
-func rot(x int32) int32 { return cat(drp(2, x), fst(x)) } // %x
+func flp(x int32) int32 { return nyi(x) }                          // +x
+func neg(x int32) int32 { return cal(91, l2(1, x)) }               // -x
+func fst(x int32) int32 { return atx(x, 1) }                       // *x
+func rot(x int32) int32 { x = el(x); return atx(x, seq(n(x), 1)) } // %x
 func wer(x int32) int32 { // &x
 	x = el(x)
 	r := mk(0)
