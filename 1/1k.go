@@ -26,7 +26,7 @@ func init() {
 	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
-	Functions(34, flp, neg, idn, rot, wer, rev, grd, gdn, grp, til, idn, not, enl, str, cnt, lst, unq, val, enl) //monadic
+	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, str, cnt, lst, unq, val, enl) //monadic
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
 }
@@ -290,8 +290,28 @@ func rev(x int32) int32 { // |x
 	xn := n(x)
 	return atx(x, cal(91, l2(w(xn), seq(xn, 1))))
 }
-func grd(x int32) int32 { return nyi(el(x)) } // <x
-func gdn(x int32) int32 { return nyi(el(x)) } // >x
+func grd(x, c int32) int32 { // <x  todo tao
+	x = el(x)
+	xn := n(x)
+	r := til(x)
+	for i := int32(1); i < xn; i++ {
+		ri := I32(r + 4*i)
+		j := i - 1
+		for j >= 0 {
+			if Func[c].(f2)(I32(x+4*v(I32(r+4*j))), I32(x+4*v(ri))) == 0 {
+				break
+			}
+			jj := r + 4*j
+			SetI32(4+jj, I32(jj))
+			j--
+		}
+		SetI32(r+4+4*j, ri)
+		continue
+	}
+	return r
+}
+func gup(x int32) int32 { return grd(x, 31) } // <x
+func gdn(x int32) int32 { return grd(x, 30) } // >x
 func grp(x int32) int32 { return nyi(el(x)) } // =x
 func til(x int32) int32 { // !x  !v(domain)
 	if x&1 != 0 {

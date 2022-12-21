@@ -16,6 +16,8 @@ func TestVerbs(t *testing.T) {
 	j := til(w(3))
 	_ = j
 
+	T(gup(ints(1, 8, 1, 2, 5, 9)), "(0 2 3 4 1 5)")         // <x
+	T(gdn(ints(1, 8, 1, 2, 5, 9)), "(5 1 4 3 0 2)")         // >x
 	T(fnd(j, w(2)), "2")                                    // (!3)?2
 	T(fnd(j, til(w(5))), "(0 1 2 3 3)")                     // (!3)?!5
 	T(cts(cat(w(1), w(2)), j), "(((0) (1 2)) ((0 1) (2)))") // 1 2^!3
@@ -96,6 +98,14 @@ func tostring(x int32) string {
 		}
 		return "(" + strings.Join(u, " ") + ")"
 	}
+}
+func ints(x ...int) int32 {
+	n := len(x)
+	r := rm(int32(n))
+	for _, i := range x {
+		c1(r, w(int32(i)))
+	}
+	return r
 }
 func readtests(file string) (r [][2]string) {
 	b, e := os.ReadFile(file)
