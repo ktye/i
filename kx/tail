@@ -1,15 +1,3 @@
-package main
-
-import (
-	"bufio"
-	_ "embed"
-	"math"
-	"math/cmplx"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-)
 
 //go:embed readme
 var help []byte

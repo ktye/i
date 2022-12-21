@@ -1,5 +1,10 @@
 set -e
 set -x
-k ../x/k.k ../x/go.k -e 'x:`<go``lib' | sed 's/^pac.*/package main/' > k.go
+cat head                                             > kx.go
+k ../x/k.k ../x/go.k -e 'x:`<go``lib' | sed '1d;2d' >> kx.go
+cat tail                                            >> kx.go
 go build
-rm k.go
+
+if [ -z $1 ]; then
+	rm kx.go
+fi

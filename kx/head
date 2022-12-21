@@ -1,0 +1,14 @@
+package main
+
+import ( 
+	"encoding/binary"
+	"math"
+	"math/bits"
+	"os" 
+	"bufio"
+	_ "embed"
+	"math/cmplx"
+	"regexp"
+	"strconv"
+	"strings"
+)
