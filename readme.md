@@ -45,5 +45,6 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 |---|---|---|
 [k.wasm](https://github.com/ktye/i/releases/download/latest/k.wasm)|webassembly binary||
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go|`go build k.go`|
+[kx.go](https://github.com/ktye/i/releases/download/latest/kx.go)|[awk style](kx)|`go build kx.go`|
 [k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran|`gfortran k.f`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c|`gcc k.c -lm`|
