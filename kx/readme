@@ -1,25 +1,29 @@
-input | kx '+\x' '#x'
+input | kx [lib.k] '+\x' '#x' [-e ...]
 
-each row is split at whitespace to x, row number is i:
+each row is split at whitespace assigned to x, row number is i:
  x:("col0";"col1";..)
 
 each argument is evaluated per line and joined by space
 
 unitype conversion for complete line
- xi short for `i$x
- xf           `f$x
- xs            `$x
+ xi short for (`i$x)
+ xf           (`f$x)
+ xs            (`$x)
 
 convert individual fields
- 0i short for  `i x 0
- 2f            `f x 2
- 3s            `s x 3
+ 0i short for   (`i x 0)
+ 2f             (`f x 2)
+ 3s             (`s x 3)
+ 3c                (x 3)
+ 3z  ((`f x 3)@`f x 1+3)   amplitude angle(deg)
+ °                     '   each (e.g. in quotes)  
 
 filter
- /condition/prog
+ /cond/prog   short for $[cond;prog;]
+ \cond\prog   alternative, e.g if cond contains /
 
 aggregate
- sum+:x   (global assignment does not reassign each line)
+ sum+:x
 
 examples
  number lines:                kx i x
@@ -27,4 +31,4 @@ examples
  number of columns:           kx '#x'
  amplitude angle as cmplx     kx 0f@1f
  lines with first col peter   kx '/`peter~0s/x'
- column sum                   kx 'sum+:x' -e sum
+ column average               kx 'sum+:xf' -e 'sum%i'
