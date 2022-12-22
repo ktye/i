@@ -36,8 +36,8 @@ func main() {
 func k1() {
 	tot = 65536
 	top = 24
-	rm(256) //keys at 24
-	rm(256) //vals at 270
+	rm(64) //keys at 28  (4+24)
+	rm(64) //vals at 288 (4+24+(4*64)+4)
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -93,9 +93,6 @@ func seq(x, o int32) int32 {
 	}
 	return r
 }
-func lup(x int32) int32 {
-	return x //nyi
-}
 
 type f1 = func(int32) int32
 type f2 = func(int32, int32) int32
@@ -128,9 +125,40 @@ func les(x, y int32) int32 { return I32B(x < y) }
 func mor(x, y int32) int32 { return I32B(x > y) }
 func eql(x, y int32) int32 { return I32B(x == y) }
 
-func ny2(x, y int32) int32 { return y }
-
-func asn(x, y int32) int32 { return ny2(x, y) }
+func asn(x, y int32) int32 { // a:y  (a i):y
+	if n(x) < 0 {
+		i := fnd(28, x)
+		if i == cnt(28) {
+			c1(28, i) //overrun after 64 entries
+			c1(288, y)
+		} else {
+			SetI32(24+4*i, y)
+		}
+		return y
+	}
+	i := drp(3, x)
+	x = fst(x) //todo */:x
+	return asn(x, amd(val(x), i, y))
+}
+func amd(x, i, y int32) int32 {
+	x = el(x)
+	xn := n(x)
+	r := mk(xn) //amd is the only place that needs to copy
+	if xn > 0 {
+		Memorycopy(r, x, 4*xn)
+		if n(i) < 0 {
+			i = enl(i)
+			y = enl(y)
+		}
+		y = tak(cnt(i), y)
+		for j := int32(0); j < n(i); j++ {
+			ij := mod(v(I32(i+4*j)), xn)
+			yj := I32(y + 4*j)
+			SetI32(r+4*mod(v(I32(i+4*j)), xn), I32(y+4*j))
+		}
+	}
+	return r
+}
 func mtc(x, y int32) int32 { return w(I32B(x == y)) } // a~y
 func mtv(x, y int32) int32 { // v~y
 	if x == y {
@@ -183,7 +211,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 	}
 	//	println("cali", i)
 	if i > 20 {
-		return exe(lup(x), y)
+		return exe(val(x), y)
 	}
 	x = fst(y)
 	y = atx(y, 3)
@@ -266,7 +294,6 @@ func ecv(x, y int32) int32 { return ec2(39, x, enl(y)) } // v'a  v'a
 func ovv(x, y int32) int32 { return ec2(47, x, enl(y)) } // v/a  v/v
 
 // monadic
-func nyi(x int32) int32 { return x }
 func abs(x int32) int32 {
 	if x < 0 {
 		return -x
@@ -340,7 +367,7 @@ func not(x int32) int32 { // ~a
 	return ech(253, x)
 }
 func enl(x int32) int32 { r := mk(1); SetI32(r, x); return r } // ,x
-func srt(x int32) int32 { return atx(x, gup(x)) } // ^x
+func srt(x int32) int32 { return atx(x, gup(x)) }              // ^x
 func cnt(x int32) int32 { // #x
 	xn := n(x)
 	if xn < 0 {
@@ -354,7 +381,7 @@ func lst(x int32) int32 { // _x  last
 	if xn < 0 {
 		return x
 	}
-	return atx(x, w(n(x)-1)) 
+	return atx(x, w(n(x)-1))
 }
 func unq(x int32) int32 { // ?x
 	x = el(x)
@@ -369,8 +396,11 @@ func unq(x int32) int32 { // ?x
 }
 func val(x int32) int32 { // .x
 	xn := n(x)
-	if xn < 0 {
-		return lup(x)
+	if xn < 0 { // lup
+		println("lup", x, "nn 28", n(28))
+		x = fnd(28, x)
+		println("==> ", x)
+		return atx(288, fnd(28, x))
 	}
 	return exe(x, 0)
 }
