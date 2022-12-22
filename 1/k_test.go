@@ -11,9 +11,6 @@ import (
 
 // var tot, top int32
 
-func TestTok(t *testing.T) {
-	reset()
-}
 func TestVerbs(t *testing.T) {
 	reset()
 	j := til(w(3))
@@ -21,10 +18,9 @@ func TestVerbs(t *testing.T) {
 	_ = j
 
 	TK(`abc"def`, "(97 98 99)")                // skip open quotation
-	TK(`abc"def"`, "(97 98 99 (100 101 102))") //quotation
-	TK("123+4 5", "(123 43 4 32 5)")
-	T(tok(101), "(2)")
-	TK("123", "(123)")
+	TK(`abc"def"`, "(97 98 99 ((100 101 102)))") //quotation
+	TK("123+4 5\n", "((123) 43 (4) 32 (5) 10)")
+	TK("123\n", "((123) 10)")
 	T(ks("123"), "(49 50 51)")
 	T(amd(j, til(w(5)), rev(til(w(5)))), "(1 0 2)") // @[!3;|!5;|!5]   i:i mod xn
 	T(amd(j, w(0), w(3)), "(3 1 2)")                // @[!3;0;3]
@@ -128,7 +124,7 @@ func tostring(x int32) string {
 		return strconv.Itoa(int(x >> 1))
 	} else {
 		xn := n(x)
-		if xn < 0 || xn > 20 {
+		if xn < 0 || xn > 30 {
 			panic("xn")
 		}
 		u := make([]string, xn)

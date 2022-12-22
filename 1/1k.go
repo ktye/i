@@ -19,7 +19,8 @@ func init() {
 	// juxtaposition
 	// ay cal
 	// vy idx
-	Data(0, "\x57\x5b\x55\x4b\x4d\xf9\x79\x7d\x7b\x43\x75\xfd\x59\xbd\x47\xbf\x7f\x5d\x41\x4f\x5f\xb9") // (1+2*)  +-*%&|<>=!:~,^#_?. '/\  (22)
+	//Data(0, "\x57\x5b\x55\x4b\x4d\xf9\x79\x7d\x7b\x43\x75\xfd\x59\xbd\x47\xbf\x7f\x5d\x41\x4f\x5f\xb9") // (1+2*)  +-*%&|<>=!:~,^#_?. '/\  (22)
+	Data(0, "\x2b\x2d\x2a\x25\x26\x7c\x3c\x3e\x3d\x21\x3a\x7e\x2c\x5e\x23\x5f\x3f\x2e\x20\x27\x2f\x5c") // +-*%&|<>=!:~,^#_?. '/\  (22)
 
 	//              0    1    2    3    4    5    6    7    8    9   10   11
 	//              :    ~    ,    ^    #    _    ?    .         '    /    \
@@ -36,8 +37,13 @@ func main() {
 func k1() {
 	tot = 65536
 	top = 24
-	rm(64) //keys at 28  (4+24)
-	rm(64) //vals at 288 (4+24+(4*64)+4)
+	rm(64) //64 keys at 28  (4+24)
+	rm(64) //64 vals at 288 (4+24+(4*64)+4)
+        rm(22) //22 primitive symbols at 548 +-*%&|<>=!:~,^#_?. '/\
+	for n(548) < 22 {
+		c1(548, w(I8(n(548))))
+	}
+	//top is 636 (next 644)
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -60,12 +66,13 @@ func mk(x int32) int32 {
 }
 func rm(x int32) int32 { // reset make, use with c1
 	r := mk(x)
-	SetI32(r-4, 0)
+	sn(r, 0)
 	return r
 }
+func sn(x, y int32) { SetI32(x-4, y) }
 func c1(x, y int32) {
 	p := I32(x - 4)
-	SetI32(x-4, 1+p)
+	sn(x, 1+p)
 	SetI32(x+4*p, y)
 }
 func l2(x, y int32) int32 { return cat(enl(x), enl(y)) }
@@ -198,17 +205,12 @@ func fnd(x, y int32) int32 { // v?y
 	return ec2(127, enl(x), y)
 }
 func cal(x, y int32) int32 { // a.a  a.v
-	//	println("cal", tostring(x), tostring(y))
+//	println("Cal", x, y, "ny", n(y))
 	y = el(y)
 	yn := n(y)
-	i := int32(0)
-	for ; i < 21; i++ {
-		if x == I8(i)&0xff {
-			break
-		}
-	}
+	i := v(fnd(548, x))
 	//	println("cali", i)
-	if i > 20 {
+	if i == 22 { // not a primitive
 		return exe(val(x), y)
 	}
 	x = fst(y)
@@ -223,16 +225,16 @@ func cal(x, y int32) int32 { // a.a  a.v
 		if xa&ya != 0 {
 			return w(Func[i+24].(f2)(v(x), v(y)))
 		}
-		return ec2(I8(i), x, y)
+		return ec2((I32(548+4*i)), x, y)
 	}
 	if mo != 0 {
-		return Func[i+34].(f1)(x)
+		return Func[i+34].(f1)(x) //monadic
 	}
 	i = (i - 10) + 12*xa
-	return Func[i].(f2)(x, y)
+	return Func[i].(f2)(x, y) //dyadic
 }
 func atx(x, y int32) int32 { // v.a  (also a.v)
-	//println("atx", tostring(x), tostring(y))
+	// println("atx", tostring(x), tostring(y))
 	if y&1 != 0 {
 		xn := n(x)
 		if xn > 0 {
@@ -370,9 +372,8 @@ func cnt(x int32) int32 { // #x
 	xn := n(x)
 	if xn < 0 {
 		return 3
-	} else {
-		return w(xn)
 	}
+	return w(xn)
 }
 func lst(x int32) int32 { // _x  last
 	xn := n(x)
@@ -400,7 +401,7 @@ func val(x int32) int32 { // .x
 	}
 	return exe(x, 0)
 }
-func tok(x int32) int32 {
+func tok(x int32) int32 { //(123 and "abc") are enlisted
 	x = el(x)
 	xn := n(x)
 	r := rm(xn)
@@ -412,14 +413,14 @@ func tok(x int32) int32 {
 		x += 4
 		if 0 < n(q) {
 			if c == 69 { // "
-				c1(r, drp(3, q))
-				SetI32(q-4, 0)
+				c1(r, enl(drp(3, q)))
+				sn(q, 0)
 				continue
 			}
 			c1(q, c)
 			continue
 		} else if c == 69 {
-			c1(q, 0)
+			c1(q, 1)
 			continue
 		}
 		if c >= 96 && c <= 114 {
@@ -427,47 +428,75 @@ func tok(x int32) int32 {
 			t += v(c) - 48
 			continue
 		}
-		t = num(r, t)
+		if t != 0 {
+			c1(r, enl(w(t)))
+			t = 0
+		}
 		c1(r, c)
 	}
-	num(r, t)
 	return r
 }
-func num(r, t int32) int32 {
-	if t != 0 {
-		println("num", t)
-		c1(r, w(t))
-	}
-	return 0
-}
 
-// func prs(r, x, t int32) int32 {
-// 11-(1+1)+-1
-//   - 1)     >   A       ? /    >d
-//   - -1)     m   B       - -    m>
-//     )  +1)     >   C       1 -    >d
-//     1  )+1)    >   D       1 1    c
-//     ( ?    <>
-//   - 1)+1)   >   A     else     >
-//     1  +1)+1)  d   E
-//     (  1)+1)   b<  F      -/1()
-//     1    +1)   d   E
-//   - 1)    >   A
-//     1    -1)   d   E
-//     1    1)    j   G
-//     1)
-//   - +)    m
-//
-// x == (      => move<y over (, remove )  next
-// y == /      => move> dyadic
-// y == -
-//
-//	| x == 1  => move> dyadic
-//	| x == -  => monadic, move>
-//
-// else        => move
-// }
-func exe(x, a int32) int32 {
+func exe(x, z int32) int32 { //parse and execute
+	save := val(239)
+	asn(239, z)
 	x = rev(tok(x))
+	x = e(t(x), x)
+	asn(239, save)
 	return x
+}
+func e(x, b int32) int32 {
+	if x == 1 {
+		return x
+	}
+	y := t(b)
+	if y == 1 {
+		return x
+	}
+	var r int32
+	if ver(y) != 0 && ver(x) == 0 {
+		r = e(t(b), b)
+		//todo asn
+		r = vau(r)
+		return enl(cal(y, l2(vau(x), r))) //dyadic
+	}
+	r = vau(e(y, b))
+	if ver(x) == 0 { // juxtaposition
+		return enl(cal(93, l2(vau(x), r)))
+	}
+	return enl(cal(r, enl(vau(x))))
+}
+func t(x int32) int32 {
+	r := nxt(x)
+	if r == 0 {
+		return 1
+	}
+	r = I32(x)
+	if r == 81 { // (
+		return e(t(x), x)
+	}
+	return r
+}
+func nxt(x int32) int32 {
+	if n(x) == 0 {
+		return 0
+	}
+	sn(x, n(x)-1)
+	x = I32(x+4*n(x))
+	if x == 83 { // )
+		return 0
+	}
+	return x
+}
+func ver(x int32) int32 { 
+	if x&1 == 0 {
+		return 0
+	}
+	return I32B(fnd(548, x) < 45) 
+}
+func vau(x int32) int32 {
+	if x&1 != 0 {
+		return val(fst(x))
+	}
+	return fst(x)
 }
