@@ -11,11 +11,21 @@ import (
 
 // var tot, top int32
 
+func TestTok(t *testing.T) {
+	reset()
+}
 func TestVerbs(t *testing.T) {
-	k1()
+	reset()
 	j := til(w(3))
+	TK := func(a, b string) { T(tok(ks(a)), b) }
 	_ = j
 
+	TK(`abc"def`, "(97 98 99)")                // skip open quotation
+	TK(`abc"def"`, "(97 98 99 (100 101 102))") //quotation
+	TK("123+4 5", "(123 43 4 32 5)")
+	T(tok(101), "(2)")
+	TK("123", "(123)")
+	T(ks("123"), "(49 50 51)")
 	T(amd(j, til(w(5)), rev(til(w(5)))), "(1 0 2)") // @[!3;|!5;|!5]   i:i mod xn
 	T(amd(j, w(0), w(3)), "(3 1 2)")                // @[!3;0;3]
 	T(val(w('y')), "0")                             // .y  not assigned
@@ -93,12 +103,25 @@ func TestVerbs(t *testing.T) {
 	T(w(-2), "-2")
 	//readtests("readme")
 }
+func reset() {
+	data := Bytes[:24]
+	Bytes = make([]byte, 64*1024)
+	copy(Bytes, data)
+	k1()
+}
 func T(a int32, b string) {
 	s := tostring(a)
 	if s != b {
 		panic("got:" + s + "\nnot:" + b)
 	}
 	println(s)
+}
+func ks(s string) int32 {
+	r := rm(int32(len(s)))
+	for _, c := range s {
+		c1(r, w(int32(c)))
+	}
+	return r
 }
 func tostring(x int32) string {
 	if x&1 != 0 {

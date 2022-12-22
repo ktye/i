@@ -152,8 +152,6 @@ func amd(x, i, y int32) int32 {
 		}
 		y = tak(cnt(i), y)
 		for j := int32(0); j < n(i); j++ {
-			ij := mod(v(I32(i+4*j)), xn)
-			yj := I32(y + 4*j)
 			SetI32(r+4*mod(v(I32(i+4*j)), xn), I32(y+4*j))
 		}
 	}
@@ -397,40 +395,50 @@ func unq(x int32) int32 { // ?x
 func val(x int32) int32 { // .x
 	xn := n(x)
 	if xn < 0 { // lup
-		println("lup", x, "nn 28", n(28))
 		x = fnd(28, x)
-		println("==> ", x)
 		return atx(288, fnd(28, x))
 	}
 	return exe(x, 0)
 }
 func tok(x int32) int32 {
+	x = el(x)
 	xn := n(x)
 	r := rm(xn)
-	x = v(x)
 	xe := x + 4*xn
 	t := int32(0)
 	q := rm(xn)
 	for x < xe {
 		c := I32(x)
+		x += 4
 		if 0 < n(q) {
-			if c == 68 { // "
-				c1(r, q)
-				q = rm(xn)
+			if c == 69 { // "
+				c1(r, drp(3, q))
+				SetI32(q-4, 0)
 				continue
 			}
 			c1(q, c)
 			continue
+		} else if c == 69 {
+			c1(q, 0)
+			continue
 		}
 		if c >= 96 && c <= 114 {
 			t *= 10
-			t += v(c - 36)
+			t += v(c) - 48
 			continue
 		}
-		c1(r, x)
-		x += 4
+		t = num(r, t)
+		c1(r, c)
 	}
+	num(r, t)
 	return r
+}
+func num(r, t int32) int32 {
+	if t != 0 {
+		println("num", t)
+		c1(r, w(t))
+	}
+	return 0
 }
 
 // func prs(r, x, t int32) int32 {
