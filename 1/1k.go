@@ -24,10 +24,10 @@ func init() {
 
 	//              0    1    2    3    4    5    6    7    8    9   10   11
 	//              :    ~    ,    ^    #    _    ?    .         '    /    \
-	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, inn, spl, jon)                                    //vy
+	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, ech, ovr, scn)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
-	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, srt, cnt, lst, unq, val, enl) //monadic
+	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, srt, cnt, las, unq, val, enl) //monadic
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
 }
@@ -86,6 +86,22 @@ func el(x int32) int32 {
 		return enl(x)
 	}
 	return x
+}
+func fs(x int32) int32 {
+	if x&1 == 0 {
+		if x== 0 {
+			return 0
+		}
+		return fs(I32(x))
+	}
+	return x
+}
+func fl(x int32) int32 {
+	a := int32(1)
+	for i := int32(0); i<n(x); i++ {
+		a = min(a, I32B(uint32(v(get(x,i))-10) < 117))
+	}
+	return a
 }
 func iv(x int32) int32 { return v(fnd(28, x)) }
 func set(x, i, y int32)    { SetI32(x+4*i, y) }
@@ -149,7 +165,7 @@ func asn(x, y int32) int32 { // a:y  (a i):y
 		return y
 	}
 	i := drp(3, x)
-	x = fst(x) //todo */:x
+	x = fs(x)
 	return asn(x, amd(val(x), i, y))
 }
 func amd(x, i, y int32) int32 { // @[x;i;y]
@@ -209,13 +225,19 @@ func fnd(x, y int32) int32 { // v?y
 	}
 	return ec2(127, enl(x), y)
 }
-func cal(x, y int32) int32 { // a.a  a.v
-	//	println("Cal", x, y, "ny", n(y))
+func cal(x, y int32) int32 { // a.a  a.v    +derived (+ /) y
+	// println("cal", tostring(x), tostring(y), "arity", n(y))
+	if x&1 == 0 { //derived  x:(/ +) y => x:/ y:(+ y)
+		y = l2(atx(x, 3), fst(y))
+		x = fst(x)
+		println("rewrite", tostring(x), tostring(y))
+	}
 	y = el(y)
 	yn := n(y)
 	i := iv(x)
 	//	println("cali", i)
 	if i == 22 { // not a primitive
+		panic("lambda")
 		return exe(val(x), y)
 	}
 	x = fst(y)
@@ -236,6 +258,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 		return Func[i+34].(f1)(x) //monadic
 	}
 	i = (i - 10) + 12*xa
+	//println("dyadic", i)
 	return Func[i].(f2)(x, y) //dyadic
 }
 func atx(x, y int32) int32 { // v.a  (also a.v)
@@ -278,7 +301,7 @@ func ovr(x, y int32) int32 { // a/a  a/v
 	}
 	return r
 }
-func spl(x, y int32) int32 { return cut(cat(0, wer(ec2(126, enl(x), fst(y)))), x) } // v/a    (0,&(,x)~'*y)^x
+//func spl(x, y int32) int32 { return cut(cat(0, wer(ec2(126, enl(x), fst(y)))), x) } // v/a    (0,&(,x)~'*y)^x
 func scn(x, y int32) int32 { // a\a  a\v
 	yn := v(cnt(y))
 	r := mk(yn)
@@ -292,7 +315,7 @@ func scn(x, y int32) int32 { // a\a  a\v
 	}
 	return r
 }
-func jon(x, y int32) int32 { return ovr(44, ec2(44, x, enl(y))) } // v\a   ,/x,',y
+//func jon(x, y int32) int32 { return ovr(44, ec2(44, x, enl(y))) } // v\a   ,/x,',y
 
 func ecv(x, y int32) int32 { return ec2(39, x, enl(y)) } // v'a  v'a
 
@@ -380,7 +403,7 @@ func cnt(x int32) int32 { // #x
 	}
 	return w(xn)
 }
-func lst(x int32) int32 { // _x  last
+func las(x int32) int32 { // _x  last
 	xn := n(x)
 	if xn < 0 {
 		return x
@@ -486,19 +509,22 @@ func e(x, b int32) int32 {
 		return x
 	}
 	var r int32
-
 	if ver(y) != 0 && ver(x) == 0 {
 		r = e(t(b), b)
 		//todo asn
 		//println("dyadic", tostring(x), tostring(y), tostring(r))
+
 		r = vau(r)
 		return enl(cal(y, l2(vau(x), r))) //dyadic
 	}
 
 	r = vau(e(y, b))
 	if ver(x) == 0 { // juxtaposition
-		//println("jux")
+		println("jux")
 		return enl(cal(93, l2(vau(x), r)))
+	}
+	if las(x) == 0 {
+		x = tak(5, x) //unmark derived
 	}
 	//println("monadic", tostring(r), tostring(x))
 	return enl(cal(x, enl(r)))
@@ -511,6 +537,23 @@ func t(x int32) int32 {
 	if I32(x) == 81 { // (
 		panic("brace")
 		return e(t(x), x)
+	}
+	d := int32(0)
+	for {
+		y := nxt(x)
+		if y == 0 {
+			break
+		}
+		if adv(y) != 0 {
+			r = l2(y, r)
+			d = 1
+		} else {
+			sn(x, n(x)+1)
+			break
+		}
+	}
+	if d != 0 {
+		return cat(r, enl(0)) //mark derived
 	}
 	return r
 }
@@ -529,10 +572,18 @@ func nxt(x int32) int32 {
 }
 func ver(x int32) int32 {
 	if x&1 == 0 {
-		return 0
+		return I32B(las(x) == 0) // derived
+		//return 0
 	}
 	return I32B(iv(x) < 22)
 }
+func adv(x int32) int32 {
+	if ver(x) != 0 {
+		return I32B(iv(x) > 18) // 19 20 21
+	}
+	return 0
+}
+
 func vau(x int32) int32 { // combien vaut-il?
 	if x&1 != 0 {
 		return val(x)
@@ -564,15 +615,11 @@ func out(x int32) {
 		oi(x)
 	} else {
 		o(40)
-		a := int32(1)
-		i := int32(0)
-		for ; i<n(x); i++ {
-			a = min(a, I32B(uint32(v(get(x,i))-10) < 117))
-		}
+		a := fl(x)
 		if a == 1 {
 			ov(x)
 		} else {
-			for i = 0; i<n(x); i++ {
+			for i := int32(0); i<n(x); i++ {
 				if i > 0 {
 					o(32)
 				}
