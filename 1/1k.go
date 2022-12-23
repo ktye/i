@@ -444,7 +444,9 @@ func tok(x int32) int32 { //(123 and "abc") are enlisted
 			c1(r, enl(w(t)))
 			t = 0
 		}
-		c1(r, c)
+		if c > 21 {
+			c1(r, c)
+		}
 	}
 	return r
 }
@@ -452,28 +454,34 @@ func tok(x int32) int32 { //(123 and "abc") are enlisted
 func exe(x, args int32) int32 { //parse and execute
 	sv, sp := loc, top
 
-	a := wer(127)
-	for i := int32(0); i < n(args); i++ {
-		set(a, 4*(i-55), get(args, i)) // xyz..
+	if args != 0 {
+		panic("args != 0")
+		a := wer(127)
+		for i := int32(0); i < n(args); i++ {
+			set(a, 4*(i-55), get(args, i)) // xyz..
+		}
 	}
 
 	x = rev(tok(x))
-	x = e(t(x), x)
+	x = fst(e(t(x), x))
 
-	loc, top = sv, sp
-	xn := n(x)
-	if xn >= 0 {
-		rm(xn) //sp+4
-		cp(sp+4, x, xn)
+	if args != 0 {
+		panic("args != 0")
+		loc, top = sv, sp
+		xn := n(x)
+		if xn >= 0 {
+			rm(xn) //sp+4
+			cp(sp+4, x, xn)
+		}
 	}
 	return x
 }
 func e(x, b int32) int32 {
-	if x == 1 {
-		return x
+	if x == 0 {
+		return 0
 	}
 	y := t(b)
-	if y == 1 {
+	if y == 0 {
 		return x
 	}
 	var r int32
@@ -481,31 +489,36 @@ func e(x, b int32) int32 {
 		r = e(t(b), b)
 		//todo asn
 		r = vau(r)
+		//println("dyadic")
 		return enl(cal(y, l2(vau(x), r))) //dyadic
 	}
 	r = vau(e(y, b))
 	if ver(x) == 0 { // juxtaposition
+		//println("jux")
 		return enl(cal(93, l2(vau(x), r)))
 	}
-	return enl(cal(r, enl(vau(x))))
+	//println("monadic", tostring(r), tostring(x))
+	return enl(cal(x, enl(r)))
 }
 func t(x int32) int32 {
 	r := nxt(x)
 	if r == 0 {
-		return 1
+		return 0
 	}
-	r = I32(x)
-	if r == 81 { // (
+	if I32(x) == 81 { // (
+		panic("brace")
 		return e(t(x), x)
 	}
 	return r
 }
 func nxt(x int32) int32 {
 	if n(x) == 0 {
+//println("nxt eof")
 		return 0
 	}
 	sn(x, n(x)-1)
 	x = get(x, n(x))
+//println("nxt ", tostring(x))
 	if x == 83 { // )
 		return 0
 	}
@@ -517,9 +530,9 @@ func ver(x int32) int32 {
 	}
 	return I32B(fnd(28, x) < 45)
 }
-func vau(x int32) int32 {
+func vau(x int32) int32 { // combien vaut-il?
 	if x&1 != 0 {
-		return val(fst(x))
+		return val(x)
 	}
 	return fst(x)
 }

@@ -15,12 +15,16 @@ func TestVerbs(t *testing.T) {
 	reset()
 	j := til(w(3))
 	TK := func(a, b string) { T(tok(ks(a)), b) }
-	_ = j
+	EX := func(a, b string) { T(exe(ks(a), 0), b) }
+	_, _, _ = j, TK, EX
 
+	EX("-2\n", "-2")
+	EX("1+2\n", "3")
+	EX("1\n", "1")
 	TK(`abc"def`, "(97 98 99)")                  // skip open quotation
 	TK(`abc"def"`, "(97 98 99 ((100 101 102)))") //quotation
-	TK("123+4 5\n", "((123) 43 (4) 32 (5) 10)")
-	TK("123\n", "((123) 10)")
+	TK("123+4 5\n", "((123) 43 (4) 32 (5))")
+	TK("123\n", "((123))")
 	T(ks("123"), "(49 50 51)")
 	T(amd(j, til(w(5)), rev(til(w(5)))), "(1 0 2)") // @[!3;|!5;|!5]   i:i mod xn
 	T(amd(j, w(0), w(3)), "(3 1 2)")                // @[!3;0;3]
@@ -122,7 +126,9 @@ func ks(s string) int32 {
 	return r
 }
 func tostring(x int32) string {
-	if x&1 != 0 {
+	if x == 0 {
+		return "null"
+	} else if x&1 != 0 {
 		return strconv.Itoa(int(x >> 1))
 	} else {
 		xn := n(x)
