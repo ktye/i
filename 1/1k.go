@@ -87,6 +87,7 @@ func el(x int32) int32 {
 	}
 	return x
 }
+func iv(x int32) int32 { return v(fnd(28, x)) }
 func set(x, i, y int32)    { SetI32(x+4*i, y) }
 func get(x, i int32) int32 { return I32(x + 4*i) }
 func ec2(f, x, y int32) int32 {
@@ -212,7 +213,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 	//	println("Cal", x, y, "ny", n(y))
 	y = el(y)
 	yn := n(y)
-	i := v(fnd(28, x))
+	i := iv(x)
 	//	println("cali", i)
 	if i == 22 { // not a primitive
 		return exe(val(x), y)
@@ -485,13 +486,15 @@ func e(x, b int32) int32 {
 		return x
 	}
 	var r int32
+
 	if ver(y) != 0 && ver(x) == 0 {
 		r = e(t(b), b)
 		//todo asn
+		//println("dyadic", tostring(x), tostring(y), tostring(r))
 		r = vau(r)
-		//println("dyadic")
 		return enl(cal(y, l2(vau(x), r))) //dyadic
 	}
+
 	r = vau(e(y, b))
 	if ver(x) == 0 { // juxtaposition
 		//println("jux")
@@ -528,7 +531,7 @@ func ver(x int32) int32 {
 	if x&1 == 0 {
 		return 0
 	}
-	return I32B(fnd(28, x) < 45)
+	return I32B(iv(x) < 22)
 }
 func vau(x int32) int32 { // combien vaut-il?
 	if x&1 != 0 {
@@ -536,3 +539,48 @@ func vau(x int32) int32 { // combien vaut-il?
 	}
 	return fst(x)
 }
+
+//print
+func ov(x int32) { for i := int32(0); i<n(x); i++ { o(v(get(x,i))) } }
+func oi(x int32) {
+	x = v(x)
+	if x == 0 {
+		o(48)
+		return
+	}
+	if x < 0 {
+		o(45)
+		return
+	}
+	r := rm(10)
+	for x != 0 {
+		c1(r, w(48+x%10))
+		x /= 10
+	}
+	ov(rev(r))
+}
+func out(x int32) {
+	if x&1 != 0 {
+		oi(x)
+	} else {
+		o(40)
+		a := int32(1)
+		i := int32(0)
+		for ; i<n(x); i++ {
+			a = min(a, I32B(uint32(v(get(x,i))-10) < 117))
+		}
+		if a == 1 {
+			ov(x)
+		} else {
+			for i = 0; i<n(x); i++ {
+				if i > 0 {
+					o(32)
+				}
+				out(get(x, i))
+			}
+		}
+		o(41)
+	}
+}
+func o(x int32) { print(string(x)) }
+

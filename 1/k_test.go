@@ -11,20 +11,27 @@ import (
 
 // var tot, top int32
 
-func TestVerbs(t *testing.T) {
-	reset()
+func TestK(t *testing.T) {
+	k1()
 	j := til(w(3))
-	TK := func(a, b string) { T(tok(ks(a)), b) }
-	EX := func(a, b string) { T(exe(ks(a), 0), b) }
-	_, _, _ = j, TK, EX
+	P := func(a, b string) { T(tok(ks(a)), b) }
+	E := func(a, b string) { T(exe(ks(a+"\n"), 0), b) }
+	O := func(x int32) { out(x); o(10) }
+	_, _, _, _ = j, P, E, O
 
-	EX("-2\n", "-2")
-	EX("1+2\n", "3")
-	EX("1\n", "1")
-	TK(`abc"def`, "(97 98 99)")                  // skip open quotation
-	TK(`abc"def"`, "(97 98 99 ((100 101 102)))") //quotation
-	TK("123+4 5\n", "((123) 43 (4) 32 (5))")
-	TK("123\n", "((123))")
+
+	//E("+/9\n", "-2")
+	dotests("readme")
+
+	//E("+/2", "9")
+	E("--2", "2")
+	E("-2", "-2")
+	E("1+2", "3")
+	E("1", "1")
+	P(`abc"def`, "(97 98 99)")                  // skip open quotation
+	P(`abc"def"`, "(97 98 99 ((100 101 102)))") //quotation
+	P("123+4 5\n", "((123) 43 (4) 32 (5))")
+	P("123\n", "((123))")
 	T(ks("123"), "(49 50 51)")
 	T(amd(j, til(w(5)), rev(til(w(5)))), "(1 0 2)") // @[!3;|!5;|!5]   i:i mod xn
 	T(amd(j, w(0), w(3)), "(3 1 2)")                // @[!3;0;3]
@@ -101,15 +108,12 @@ func TestVerbs(t *testing.T) {
 	T(til(w(-3)), "(-3 -2 -1)")
 	T(til(w(5)), "(0 1 2 3 4)")
 	T(w(-2), "-2")
-	//readtests("readme")
+
+	O(w(123))
+	O(ks("abc"))
+	O(j)
 
 	println("top/tot", top/1024, tot/1024, "k")
-}
-func reset() {
-	data := Bytes[:24]
-	Bytes = make([]byte, 64*1024)
-	copy(Bytes, data)
-	k1()
 }
 func T(a int32, b string) {
 	s := tostring(a)
@@ -150,6 +154,19 @@ func ints(x ...int) int32 {
 	}
 	return r
 }
+func dotests(file string) {
+	ts := readtests(file)
+	for _, t := range ts {
+		print(t[0])
+		x := ks(t[0])
+		println(tostring(x))
+		r := exe(x, 0)
+		s := tostring(r)
+		if t[1] != s {
+			panic("got "+s)
+		}
+	}
+}
 func readtests(file string) (r [][2]string) {
 	b, e := os.ReadFile(file)
 	fatal(e)
@@ -165,6 +182,7 @@ func readtests(file string) (r [][2]string) {
 func readcase(s string) (r [2]string) {
 	var o bool
 	r[0], r[1], o = strings.Cut(s, " /")
+	r[0] += "\n"
 	if !o {
 		panic("testcase: " + s)
 	}
