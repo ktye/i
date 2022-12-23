@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-var tot, top int32
+var tot, top, loc int32
 
 func init() {
 	Memory(1)
@@ -37,13 +37,13 @@ func main() {
 func k1() {
 	tot = 65536
 	top = 24
-	rm(64) //64 keys at 28  (4+24)
-	rm(64) //64 vals at 288 (4+24+(4*64)+4)
-        rm(22) //22 primitive symbols at 548 +-*%&|<>=!:~,^#_?. '/\
-	for n(548) < 22 {
-		c1(548, w(I8(n(548))))
+	loc = 120
+        rm(22) //22 primitive symbols at 28 +-*%&|<>=!:~,^#_?. '/\
+	for n(28) < 22 {
+		c1(28, w(I8(n(28))))
 	}
-	//top is 636 (next 644)
+	rm(64) //63 globals at 120
+	//top is 376
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -134,12 +134,9 @@ func eql(x, y int32) int32 { return I32B(x == y) }
 
 func asn(x, y int32) int32 { // a:y  (a i):y
 	if n(x) < 0 {
-		i := fnd(28, x)
-		if i == cnt(28) {
-			c1(28, i) //overrun after 64 entries
-			c1(288, y)
-		} else {
-			SetI32(24+4*i, y)
+		x = v(x) - 65
+		if uint32(x) < 63 {
+			SetI32(loc+4*x, y) //asn is always local
 		}
 		return y
 	}
@@ -147,7 +144,7 @@ func asn(x, y int32) int32 { // a:y  (a i):y
 	x = fst(x) //todo */:x
 	return asn(x, amd(val(x), i, y))
 }
-func amd(x, i, y int32) int32 {
+func amd(x, i, y int32) int32 { // @[x;i;y]
 	x = el(x)
 	xn := n(x)
 	r := mk(xn) //amd is the only place that needs to copy
@@ -208,7 +205,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 //	println("Cal", x, y, "ny", n(y))
 	y = el(y)
 	yn := n(y)
-	i := v(fnd(548, x))
+	i := v(fnd(28, x))
 	//	println("cali", i)
 	if i == 22 { // not a primitive
 		return exe(val(x), y)
@@ -225,7 +222,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 		if xa&ya != 0 {
 			return w(Func[i+24].(f2)(v(x), v(y)))
 		}
-		return ec2((I32(548+4*i)), x, y)
+		return ec2((I32(28+4*i)), x, y)
 	}
 	if mo != 0 {
 		return Func[i+34].(f1)(x) //monadic
@@ -396,11 +393,19 @@ func unq(x int32) int32 { // ?x
 func val(x int32) int32 { // .x
 	xn := n(x)
 	if xn < 0 { // lup
-		x = fnd(28, x)
-		return atx(288, fnd(28, x))
+		r := lup(x, loc) //try local
+		if r != 0 {
+			return r
+		}
+		r = lup(x, 120) //try global
+		if r != 0 {
+			return r
+		}
+		return 1
 	}
 	return exe(x, 0)
 }
+func lup(x, env int32) int32 { return I32(env+4*(v(x)-65)) }
 func tok(x int32) int32 { //(123 and "abc") are enlisted
 	x = el(x)
 	xn := n(x)
@@ -492,7 +497,7 @@ func ver(x int32) int32 {
 	if x&1 == 0 {
 		return 0
 	}
-	return I32B(fnd(548, x) < 45) 
+	return I32B(fnd(28, x) < 45) 
 }
 func vau(x int32) int32 {
 	if x&1 != 0 {

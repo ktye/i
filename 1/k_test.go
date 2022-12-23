@@ -24,9 +24,15 @@ func TestVerbs(t *testing.T) {
 	T(ks("123"), "(49 50 51)")
 	T(amd(j, til(w(5)), rev(til(w(5)))), "(1 0 2)") // @[!3;|!5;|!5]   i:i mod xn
 	T(amd(j, w(0), w(3)), "(3 1 2)")                // @[!3;0;3]
+println(">>>val y")
 	T(val(w('y')), "0")                             // .y  not assigned
+
+println(">>>asn x")
 	T(asn(w('x'), j), "(0 1 2)")                    // x:!3
+
+println(">>>val x")
 	T(val(w('x')), "(0 1 2)")                       // .x
+println(">>>srt x")
 	T(srt(rev(j)), "(0 1 2)")                       // ^|!3
 	T(lst(j), "2")                                  // _!3  last
 	T(not(w(0)), "1")                               // ~!3
