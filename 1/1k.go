@@ -38,12 +38,12 @@ func k1() {
 	tot = 65536
 	top = 24
 	loc = 120
-        rm(22) //22 primitive symbols at 28 +-*%&|<>=!:~,^#_?. '/\
+	rm(22) //22 primitive symbols at 28 +-*%&|<>=!:~,^#_?. '/\
 	for n(28) < 22 {
 		c1(28, w(I8(n(28))))
 	}
-	rm(64) //63 globals at 120
-	//top is 376
+	rm(63) //63 globals at 120
+	//top is 372
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -69,11 +69,16 @@ func rm(x int32) int32 { // reset make, use with c1
 	sn(r, 0)
 	return r
 }
-func sn(x, y int32) { SetI32(x-4, y) }
+func sn(x, y int32) { set(x, -1, y) }
 func c1(x, y int32) {
 	p := I32(x - 4)
 	sn(x, 1+p)
-	SetI32(x+4*p, y)
+	set(x, p, y)
+}
+func cp(x, y, n int32) {
+	for i := int32(0); i < 4*n; i += 4 {
+		set(x, i, get(y, i))
+	}
 }
 func l2(x, y int32) int32 { return cat(enl(x), enl(y)) }
 func el(x int32) int32 {
@@ -82,6 +87,8 @@ func el(x int32) int32 {
 	}
 	return x
 }
+func set(x, i, y int32)    { SetI32(x+4*i, y) }
+func get(x, i int32) int32 { return I32(x + 4*i) }
 func ec2(f, x, y int32) int32 {
 	if n(x)*n(y) == 0 {
 		return mk(0)
@@ -136,7 +143,7 @@ func asn(x, y int32) int32 { // a:y  (a i):y
 	if n(x) < 0 {
 		x = v(x) - 65
 		if uint32(x) < 63 {
-			SetI32(loc+4*x, y) //asn is always local
+			set(loc, x, y) //asn is always local
 		}
 		return y
 	}
@@ -156,7 +163,7 @@ func amd(x, i, y int32) int32 { // @[x;i;y]
 		}
 		y = tak(cnt(i), y)
 		for j := int32(0); j < n(i); j++ {
-			SetI32(r+4*mod(v(I32(i+4*j)), xn), I32(y+4*j))
+			set(r, mod(v(get(i, j)), xn), get(y, j))
 		}
 	}
 	return r
@@ -193,7 +200,7 @@ func fnd(x, y int32) int32 { // v?y
 	if n(y) < 0 {
 		i := int32(0)
 		for ; i < n(x); i++ {
-			if mtc(I32(x+4*i), y) == 3 {
+			if mtc(get(x, i), y) == 3 {
 				break
 			}
 		}
@@ -202,7 +209,7 @@ func fnd(x, y int32) int32 { // v?y
 	return ec2(127, enl(x), y)
 }
 func cal(x, y int32) int32 { // a.a  a.v
-//	println("Cal", x, y, "ny", n(y))
+	//	println("Cal", x, y, "ny", n(y))
 	y = el(y)
 	yn := n(y)
 	i := v(fnd(28, x))
@@ -222,7 +229,7 @@ func cal(x, y int32) int32 { // a.a  a.v
 		if xa&ya != 0 {
 			return w(Func[i+24].(f2)(v(x), v(y)))
 		}
-		return ec2((I32(28+4*i)), x, y)
+		return ec2((get(28, i)), x, y)
 	}
 	if mo != 0 {
 		return Func[i+34].(f1)(x) //monadic
@@ -235,7 +242,7 @@ func atx(x, y int32) int32 { // v.a  (also a.v)
 	if y&1 != 0 {
 		xn := n(x)
 		if xn > 0 {
-			return I32(x + 4*mod(v(y), xn))
+			return get(x, mod(v(y), xn))
 		}
 		// todo xn<0: does this happen?
 		return x*I32B(xn < 0) + I32B(xn == 0)
@@ -250,7 +257,7 @@ func ech(x, y int32) int32 { // a'a  a'v
 	}
 	r := rm(yn)
 	for i := int32(0); i < yn; i++ {
-		c1(r, cal(x, enl(I32(y+4*i))))
+		c1(r, cal(x, enl(get(y, i))))
 	}
 	return r
 }
@@ -266,7 +273,7 @@ func ovr(x, y int32) int32 { // a/a  a/v
 	y = el(y)
 	r := fst(y)
 	for i := int32(1); i < n(y); i++ {
-		r = cal(x, l2(r, I32(y+4*i)))
+		r = cal(x, l2(r, get(y, i)))
 	}
 	return r
 }
@@ -324,17 +331,17 @@ func grd(x, c int32) int32 { // <x  todo tao
 	xn := n(x)
 	r := til(x)
 	for i := int32(1); i < xn; i++ {
-		ri := I32(r + 4*i)
+		ri := get(r, i)
 		j := i - 1
 		for j >= 0 {
-			if Func[c].(f2)(I32(x+4*v(I32(r+4*j))), I32(x+4*v(ri))) == 0 {
+			if Func[c].(f2)(get(x, v(get(r, j))), get(x, v(ri))) == 0 {
 				break
 			}
 			jj := r + 4*j
 			SetI32(4+jj, I32(jj))
 			j--
 		}
-		SetI32(r+4+4*j, ri)
+		set(r+4, j, ri)
 		continue
 	}
 	return r
@@ -346,7 +353,7 @@ func grp(x int32) int32 { // =x
 	k := unq(x)
 	v := rm(n(k))
 	for i := int32(0); i < n(k); i++ {
-		c1(v, wer(ec2(253, x, I32(k+4*i))))
+		c1(v, wer(ec2(253, x, get(k, i))))
 	}
 	return l2(k, v)
 }
@@ -383,7 +390,7 @@ func unq(x int32) int32 { // ?x
 	x = el(x)
 	r := rm(x)
 	for i := int32(0); i < n(x); i++ {
-		xi := I32(x + 4*i)
+		xi := get(x, i)
 		if v(fnd(r, xi)) == n(r) {
 			c1(r, xi)
 		}
@@ -405,7 +412,7 @@ func val(x int32) int32 { // .x
 	}
 	return exe(x, 0)
 }
-func lup(x, env int32) int32 { return I32(env+4*(v(x)-65)) }
+func lup(x, env int32) int32 { return get(env, v(x)-65) }
 func tok(x int32) int32 { //(123 and "abc") are enlisted
 	x = el(x)
 	xn := n(x)
@@ -442,12 +449,23 @@ func tok(x int32) int32 { //(123 and "abc") are enlisted
 	return r
 }
 
-func exe(x, z int32) int32 { //parse and execute
-	save := val(239)
-	asn(239, z)
+func exe(x, args int32) int32 { //parse and execute
+	sv, sp := loc, top
+
+	a := wer(127)
+	for i := int32(0); i < n(args); i++ {
+		set(a, 4*(i-55), get(args, i)) // xyz..
+	}
+
 	x = rev(tok(x))
 	x = e(t(x), x)
-	asn(239, save)
+
+	loc, top = sv, sp
+	xn := n(x)
+	if xn >= 0 {
+		rm(xn) //sp+4
+		cp(sp+4, x, xn)
+	}
 	return x
 }
 func e(x, b int32) int32 {
@@ -487,17 +505,17 @@ func nxt(x int32) int32 {
 		return 0
 	}
 	sn(x, n(x)-1)
-	x = I32(x+4*n(x))
+	x = get(x, n(x))
 	if x == 83 { // )
 		return 0
 	}
 	return x
 }
-func ver(x int32) int32 { 
+func ver(x int32) int32 {
 	if x&1 == 0 {
 		return 0
 	}
-	return I32B(fnd(28, x) < 45) 
+	return I32B(fnd(28, x) < 45)
 }
 func vau(x int32) int32 {
 	if x&1 != 0 {
