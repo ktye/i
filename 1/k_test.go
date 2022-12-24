@@ -19,10 +19,8 @@ func TestK(t *testing.T) {
 	O := func(x int32) { out(x); o(10) }
 	_, _, _, _ = j, P, E, O
 
-
 	//cond? 1+("4*x" "3*x" "x>4" "1+x")$x<0
 	//      $[x<0;1+x;x>4;3*x;4*x]
-
 
 	E("-/2 3 4", "-5")
 	E("+/2", "2")
@@ -47,7 +45,6 @@ func TestK(t *testing.T) {
 	T(val(w('y')), "0")                             // .y  not assigned
 	T(asn(w('x'), j), "(0 1 2)")                    // x:!3
 	T(val(w('x')), "(0 1 2)")                       // .x
-	T(srt(rev(j)), "(0 1 2)")                       // ^|!3
 	T(las(j), "2")                                  // _!3  last
 	T(not(w(0)), "1")                               // ~!3
 	T(not(j), "(1 0 0)")                            // ~!3
@@ -172,7 +169,7 @@ func dotests(file string) {
 		r := exe(x, 0)
 		s := tostring(r)
 		if t[1] != s {
-			panic("got "+s)
+			panic("got " + s)
 		}
 	}
 }
