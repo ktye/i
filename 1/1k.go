@@ -242,7 +242,7 @@ func fnd(x, y int32) int32 { // v?y
 	return ec2(127, enl(x), y)
 }
 func cal(x, y int32) int32 { // a.a  a.v    +derived (+ /) y
-	// println("cal", tostring(x), tostring(y), "arity", n(y))
+	//println("cal", tostring(x), tostring(y), "arity", n(y))
 	if x&1 == 0 { //derived  x:(/ +) y => x:/ y:(+ y)
 		y = l2(atx(x, 3), fst(y))
 		x = fst(x)
@@ -252,7 +252,7 @@ func cal(x, y int32) int32 { // a.a  a.v    +derived (+ /) y
 	i := iv(x)
 	//	println("cali", i)
 	if i == 22 { // not a primitive
-		panic("lambda")
+		//println("lambda")
 		return exe(val(x), y)
 	}
 	x = fst(y)
@@ -494,23 +494,23 @@ func tok(x int32) int32 { // ^x tokenize, enlists (123 and "abc")
 }
 
 func exe(x, args int32) int32 { //parse and execute
-println("exe", tostring(x))
+//println("exe", tostring(x))
 	sv, sp := loc, top
 
 	if args != 0 {
-		panic("args != 0")
 		a := wer(127)
 		for i := int32(0); i < n(args); i++ {
-			set(a, 4*(i-55), get(args, i)) // xyz..
+			set(a, i+55, get(args, i)) // xyz..
+			println("setloc", a, i+55, tostring(get(args, i)))
 		}
+		loc = a
 	}
 
 	x = rev(tok(x))
-println("rev tok", tostring(x))
+//println("rev tok", tostring(x))
 	x = fst(e(t(x), x))
 
 	if args != 0 {
-		panic("args != 0")
 		loc, top = sv, sp
 		xn := n(x)
 		if xn >= 0 {
@@ -542,9 +542,11 @@ func e(x, b int32) int32 {
 
 	r = vau(e(y, b))
 	if ver(x) == 0 { // juxtaposition
-		println("jux")
-		return enl(cal(93, l2(vau(x), r)))
+		//println("jux")
+		//x=vau(x)
+		return enl(cal(93, l2(x, r)))
 	}
+	println("monadic", tostring(x), tostring(r))
 	if las(x) == 0 {
 		x = tak(5, x) //unmark derived
 	}
@@ -607,7 +609,9 @@ func vau(x int32) int32 { // combien vaut-il?
 }
 
 // print
-func out(x int32) int32 { ou(x); o(10); return x }
+func out(x int32) int32 { 
+	println("out", tostring(x))
+	ou(x); o(10); return x }
 func ov(x int32) {
 	for i := int32(0); i < n(x); i++ {
 		o(v(get(x, i)))
@@ -621,6 +625,7 @@ func oi(x int32) {
 	}
 	if x < 0 {
 		o(45)
+		oi(w(-x))
 		return
 	}
 	r := rm(10)
