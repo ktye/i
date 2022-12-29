@@ -36,11 +36,11 @@ func TestK(t *testing.T) {
 	E("-2", "-2")
 	E("1+2", "3")
 	E("1", "1")
-	P(`abc"def`, "(97 98 99)")                  // skip open quotation
-	P(`abc"def"`, "(97 98 99 ((100 101 102)))") //quotation
-	P("123+4 5\n", "((123) 43 (4) 32 (5))")
-	P("123\n", "((123))")
-	T(ks("123"), "(49 50 51)")
+	P(`abc"def`, `"abc"`)                  // skip open quotation
+	P(`abc"def"`, `(97 98 99 ("def"))`) //quotation
+	P("123+4 5\n", `("{" 43 (4) 32 (5))`)
+	P("123\n", `("{")`)
+	T(ks("123"), `"123"`)
 	T(cal(w('\''), l2(l2(w('/'), w('+')), l2(j, j))), "(3 3)") // +/'(!3;!3)  ' ((/ +) (j j))
 	T(amd(j, til(w(5)), rev(til(w(5)))), "(1 0 2)") // @[!3;|!5;|!5]   i:i mod xn
 	T(amd(j, w(0), w(3)), "(3 1 2)")                // @[!3;0;3]
@@ -77,10 +77,10 @@ func TestK(t *testing.T) {
 	T(ovr(w('+'), j), "3")                                               // +/!3
 	T(rev(j), "(2 1 0)")                                                 // |x is x@xn-1+!xn:#x
 	T(tak(w(-2), w(3)), "(3 3)")                                         // -2#3
-	T(drp(w(-3), j), "()")                                               // underdrop
-	T(drp(w(-5), j), "()")                                               // underdrop
+	T(drp(w(-3), j), `""`)                                               // underdrop
+	T(drp(w(-5), j), `""`)                                               // underdrop
 	T(drp(w(-1), j), "(0 1)")                                            // taildrop
-	T(drp(w(5), j), "()")                                                // overdrop
+	T(drp(w(5), j), `""`)                                                // overdrop
 	T(drp(w(1), j), "(1 2)")                                             // drop
 	T(tak(w(4), w(3)), "(3 3 3 3)")                                      // 4#3 scalar take
 	T(tak(w(-5), j), "(1 2 0 1 2)")                                      // undertake
@@ -96,7 +96,7 @@ func TestK(t *testing.T) {
 	T(cal(w('-'), enl(j)), "(0 -1 -2)")                                  // -!3
 	T(cal(w('-'), w(3)), "-3")                                           // -3
 	T(cal(w(46), l2(j, w(1))), "1")                                      // .[j;0] => dyadic
-	T(atx(j, til(w(0))), "()")
+	T(atx(j, til(w(0))), `""`)
 	T(atx(j, cat(enl(j), enl(j))), "((0 1 2) (0 1 2))")
 	T(atx(j, j), "(0 1 2)")
 	T(atx(j, w(2)), "2")
@@ -112,7 +112,7 @@ func TestK(t *testing.T) {
 	T(enl(w(1)), "(1)")
 	T(cnt((w(3))), "1")
 	T(cnt(til(w(5))), "5")
-	T(til(w(0)), "()")
+	T(til(w(0)), `""`)
 	T(til(w(-3)), "(-3 -2 -1)")
 	T(til(w(5)), "(0 1 2 3 4)")
 	T(w(-2), "-2")
@@ -168,11 +168,11 @@ func dotests(file string) {
 	for _, t := range ts {
 		print(t[0])
 		x := ks(t[0])
-		println(tostring(x))
+		//println(tostring(x))
 		r := exe(x, 0)
 		s := tostring(r)
 		if t[1] != s {
-			panic("got " + s)
+			panic("got " + s + " not " + t[1])
 		}
 	}
 }

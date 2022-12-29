@@ -29,7 +29,7 @@ func init() {
 	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, ech, ovr, scn)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
-	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, enl) //monadic
+	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, out) //monadic
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
 }
@@ -57,8 +57,9 @@ func rep() {
 		c1(r, w(I8(x)))
 	}
 	c1(r, 21)
-	out(exe(r, 0))
-	o(10)
+	//out(exe(r, 0))
+	//o(10)
+	exe(r, 0)
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -452,13 +453,13 @@ func val(x int32) int32 { // .x
 func lup(x, env int32) int32 { return get(env, v(x)-65) }
 func tok(x int32) int32 { // ^x tokenize, enlists (123 and "abc")
 //println("tok", tostring(x))
+	t := int32(0)
 	x = el(x)
 	xn := n(x)
 	r := rm(xn)
-	xe := x + 4*xn
-	t := int32(0)
 	q := rm(xn)
-	for x < xe {
+	xn = x + 4*xn
+	for x < xn {
 		c := I32(x)
 		x += 4
 		if 0 < n(q) {
@@ -473,9 +474,12 @@ func tok(x int32) int32 { // ^x tokenize, enlists (123 and "abc")
 			c1(q, 1)
 			continue
 		}
-		if c >= 96 && c <= 114 {
+		if c >= 97 && c <= 115 {
 			t *= 10
 			t += v(c) - 48
+			if t == 0 {
+				c1(r, enl(1))
+			}
 			continue
 		}
 		if t != 0 {
@@ -490,7 +494,7 @@ func tok(x int32) int32 { // ^x tokenize, enlists (123 and "abc")
 }
 
 func exe(x, args int32) int32 { //parse and execute
-//println("exe", tostring(x))
+println("exe", tostring(x))
 	sv, sp := loc, top
 
 	if args != 0 {
@@ -502,7 +506,7 @@ func exe(x, args int32) int32 { //parse and execute
 	}
 
 	x = rev(tok(x))
-//println("rev tok", tostring(x))
+println("rev tok", tostring(x))
 	x = fst(e(t(x), x))
 
 	if args != 0 {
@@ -603,6 +607,7 @@ func vau(x int32) int32 { // combien vaut-il?
 }
 
 // print
+func out(x int32) int32 { ou(x); o(10); return x }
 func ov(x int32) {
 	for i := int32(0); i < n(x); i++ {
 		o(v(get(x, i)))
@@ -625,23 +630,25 @@ func oi(x int32) {
 	}
 	ov(rev(r))
 }
-func out(x int32) {
+func ou(x int32) {
 	if x&1 != 0 {
 		oi(x)
 	} else {
-		o(40)
 		a := fl(x)
 		if a == 1 {
+			o(34)	
 			ov(x)
+			o(34)	
 		} else {
+			o(40)
 			for i := int32(0); i < n(x); i++ {
 				if i > 0 {
 					o(32)
 				}
-				out(get(x, i))
+				ou(get(x, i))
 			}
+			o(41)
 		}
-		o(41)
 	}
 }
 func o(x int32) { print(string(x)) }
@@ -655,6 +662,18 @@ func tostring(x int32) string { //todo rm
 		xn := n(x)
 		if xn < 0 || xn > 30 {
 			panic("xn")
+		}
+		a := make([]byte, xn)
+		for i := int32(0); i<xn; i++ {
+			if xi := v(get(x, i)); xi > 31 && xi < 128 {
+				a[i] = byte(xi)
+			} else {
+				a = nil
+				break
+			}
+		}
+		if a != nil {
+			return `"` + string(a) + `"`
 		}
 		u := make([]string, xn)
 		for i := int32(0); i < xn; i++ {
