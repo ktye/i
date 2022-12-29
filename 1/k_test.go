@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
-	. "github.com/ktye/wg/module"
+//	. "github.com/ktye/wg/module"
 	"os"
-	"strconv"
+//	"strconv"
 	"strings"
 	"testing"
 )
@@ -120,7 +120,6 @@ func TestK(t *testing.T) {
 	O(w(123))
 	O(ks("abc"))
 	O(j)
-
 	println("top/tot", top/1024, tot/1024, "k")
 }
 func T(a int32, b string) {
@@ -137,6 +136,7 @@ func ks(s string) int32 {
 	}
 	return r
 }
+/*
 func tostring(x int32) string {
 	if x == 0 {
 		return "null"
@@ -154,6 +154,7 @@ func tostring(x int32) string {
 		return "(" + strings.Join(u, " ") + ")"
 	}
 }
+*/
 func ints(x ...int) int32 {
 	n := len(x)
 	r := rm(int32(n))

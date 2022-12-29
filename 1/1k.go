@@ -2,6 +2,8 @@ package main
 
 import (
 	. "github.com/ktye/wg/module"
+	"strconv"
+	"strings"
 )
 
 var tot, top, loc int32
@@ -33,6 +35,9 @@ func init() {
 }
 func main() {
 	k1()
+	for {
+		rep()
+	}
 }
 func k1() {
 	tot = 65536
@@ -44,6 +49,16 @@ func k1() {
 	}
 	rm(63) //63 globals at 120
 	//top is 372
+}
+func rep() {
+	r := rm(126)
+	x := mk(1)
+	for ReadIn(x, 1) != 0 {
+		c1(r, w(I8(x)))
+	}
+	c1(r, 21)
+	out(exe(r, 0))
+	o(10)
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -230,7 +245,6 @@ func cal(x, y int32) int32 { // a.a  a.v    +derived (+ /) y
 	if x&1 == 0 { //derived  x:(/ +) y => x:/ y:(+ y)
 		y = l2(atx(x, 3), fst(y))
 		x = fst(x)
-		println("rewrite", tostring(x), tostring(y))
 	}
 	y = el(y)
 	yn := n(y)
@@ -308,8 +322,7 @@ func scn(x, y int32) int32 { // a\a  a\v
 	r := rm(yn)
 	if yn != 0 {
 		c1(r, fst(y))
-		println("r0", tostring(r))
-		for i := int32(1); i<yn; i++ {
+		for i := int32(1); i < yn; i++ {
 			c1(r, cal(x, l2(las(r), get(y, i))))
 		}
 	}
@@ -437,7 +450,8 @@ func val(x int32) int32 { // .x
 	return exe(x, 0)
 }
 func lup(x, env int32) int32 { return get(env, v(x)-65) }
-func tok(x int32) int32 { // ^x  enlists (123 and "abc")
+func tok(x int32) int32 { // ^x tokenize, enlists (123 and "abc")
+//println("tok", tostring(x))
 	x = el(x)
 	xn := n(x)
 	r := rm(xn)
@@ -476,6 +490,7 @@ func tok(x int32) int32 { // ^x  enlists (123 and "abc")
 }
 
 func exe(x, args int32) int32 { //parse and execute
+//println("exe", tostring(x))
 	sv, sp := loc, top
 
 	if args != 0 {
@@ -487,7 +502,7 @@ func exe(x, args int32) int32 { //parse and execute
 	}
 
 	x = rev(tok(x))
-println("rev tok", tostring(x))
+//println("rev tok", tostring(x))
 	x = fst(e(t(x), x))
 
 	if args != 0 {
@@ -507,15 +522,17 @@ func e(x, b int32) int32 {
 	}
 	y := t(b)
 	if y == 0 {
-		return x
+		return enl(vau(x))
 	}
 	var r int32
 	if ver(y) != 0 && ver(x) == 0 {
-		r = e(t(b), b)
-		//todo asn
-		println("dyadic", tostring(x), tostring(y), tostring(r))
+		r = vau(e(t(b), b))
+		if y == 117 {
+			return enl(asn(x, r))
+		}
+		//println("dyadic", tostring(x), tostring(y), tostring(r))
 
-		r = vau(r)
+		//r = vau(r)
 		return enl(cal(y, l2(vau(x), r))) //dyadic
 	}
 
@@ -527,12 +544,11 @@ func e(x, b int32) int32 {
 	if las(x) == 0 {
 		x = tak(5, x) //unmark derived
 	}
-	println("monadic", tostring(r), tostring(x))
+	//println("monadic", tostring(r), tostring(x))
 	return enl(cal(x, enl(r)))
 }
 func t(x int32) int32 {
 	r := nxt(x)
-	println("nxt", r, tostring(r))
 	if r == 0 || r == 83 {
 		return 0
 	}
@@ -629,3 +645,21 @@ func out(x int32) {
 	}
 }
 func o(x int32) { print(string(x)) }
+
+func tostring(x int32) string { //todo rm
+	if x == 0 {
+		return "null"
+	} else if x&1 != 0 {
+		return strconv.Itoa(int(x >> 1))
+	} else {
+		xn := n(x)
+		if xn < 0 || xn > 30 {
+			panic("xn")
+		}
+		u := make([]string, xn)
+		for i := int32(0); i < xn; i++ {
+			u[i] = tostring(I32(x + 4*i))
+		}
+		return "(" + strings.Join(u, " ") + ")"
+	}
+}
