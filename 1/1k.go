@@ -305,14 +305,13 @@ func ovr(x, y int32) int32 { // a/a  a/v
 // func spl(x, y int32) int32 { return cut(cat(0, wer(ec2(126, enl(x), fst(y)))), x) } // v/a    (0,&(,x)~'*y)^x
 func scn(x, y int32) int32 { // a\a  a\v
 	yn := v(cnt(y))
-	r := mk(yn)
-	p := v(r)
-	f := fst(x)
-	SetI32(p, f)
-	for i := int32(0); i < yn; i++ {
-		p += 4
-		f = cal(x, cat(enl(f), enl(atx(y, w(i)))))
-		SetI32(p, f)
+	r := rm(yn)
+	if yn != 0 {
+		c1(r, fst(y))
+		println("r0", tostring(r))
+		for i := int32(1); i<yn; i++ {
+			c1(r, cal(x, l2(las(r), get(y, i))))
+		}
 	}
 	return r
 }
@@ -488,6 +487,7 @@ func exe(x, args int32) int32 { //parse and execute
 	}
 
 	x = rev(tok(x))
+println("rev tok", tostring(x))
 	x = fst(e(t(x), x))
 
 	if args != 0 {
@@ -513,7 +513,7 @@ func e(x, b int32) int32 {
 	if ver(y) != 0 && ver(x) == 0 {
 		r = e(t(b), b)
 		//todo asn
-		//println("dyadic", tostring(x), tostring(y), tostring(r))
+		println("dyadic", tostring(x), tostring(y), tostring(r))
 
 		r = vau(r)
 		return enl(cal(y, l2(vau(x), r))) //dyadic
@@ -527,16 +527,16 @@ func e(x, b int32) int32 {
 	if las(x) == 0 {
 		x = tak(5, x) //unmark derived
 	}
-	//println("monadic", tostring(r), tostring(x))
+	println("monadic", tostring(r), tostring(x))
 	return enl(cal(x, enl(r)))
 }
 func t(x int32) int32 {
 	r := nxt(x)
-	if r == 0 {
+	println("nxt", r, tostring(r))
+	if r == 0 || r == 83 {
 		return 0
 	}
-	if I32(x) == 81 { // (
-		panic("brace")
+	if r == 81 { // (
 		return e(t(x), x)
 	}
 	d := int32(0)
@@ -560,16 +560,10 @@ func t(x int32) int32 {
 }
 func nxt(x int32) int32 {
 	if n(x) == 0 {
-		//println("nxt eof")
 		return 0
 	}
 	sn(x, n(x)-1)
-	x = get(x, n(x))
-	//println("nxt ", tostring(x))
-	if x == 83 { // )
-		return 0
-	}
-	return x
+	return get(x, n(x))
 }
 func ver(x int32) int32 {
 	if x&1 == 0 {
