@@ -1,18 +1,18 @@
-let f=function(x){
+const f=function(x){
  return JI(x);
 }
-let g=function(x){
+const g=function(x){
  return IJ(x);
 }
-let h=function(x){
+const h=function(x){
  return FI(x);
 }
-let i=function(x){
+const i=function(x){
  return IF(x);
 }
-let j=function(x){
+const j=function(x){
  return UI(x);
 }
-let k=function(x){
+const k=function(x){
  return IU(x);
 }

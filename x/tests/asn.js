@@ -1,9 +1,9 @@
-let f=function(x){
+const f=function(x){
  let r
- r=I((1|0)+x);
+ r=I(I(1)+x);
  return r;
 }
-let h=function(x){
+const h=function(x){
  let r
  f(x);
  r=f(x);

@@ -1,6 +1,6 @@
-let g=function(x,y){
+const g=function(x,y){
  return I(x-y);
 }
-let f=function(x){
- return g((1|0),x);
+const f=function(x){
+ return g(I(1),x);
 }

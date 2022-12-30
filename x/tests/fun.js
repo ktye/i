@@ -1,3 +1,3 @@
 const f=function(x,y){
- return I(F[x])(y));
+ return I(x+y);
 }
