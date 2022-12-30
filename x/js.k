@@ -52,7 +52,7 @@ jsfun:{
  $[(`main~S x)&`lib':opts; :""; 0]
  args:","/:y@&`arg=T c:&x=P
  locs:($[#r:","/:$S 1+c@&`loc=T c;"let ",r,"\n";""])
- defr:     *y@&`dfr=T c
+ defr:"" / *y@&`dfr=T c
  setj:$[#defr;"try{";""]
  body: 2_-1_y@*&`ast=T c
  jsfmt@,/("const ";$S x;"=function(";args;"){\n";setj;locs;body;defr)}
@@ -72,7 +72,7 @@ jslit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
  y;i:I x;jsty[t;$[`f~t:S x;jsflt i
            `i~t;$[0N~i;"-2147483648";$i]
            `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-           `j~t;$[i~0;,"0n";(-1~h:hi i)&0>l:lo i;$l;(h~0)&l>0;($l),"n";"J(BigInt(\"",(hx8 i),"\"))"]
+           `j~t;$[i~0;,"0n";(-1~h:hi i)&0>l:lo i;($l),"n";(h~0)&l>0;($l),"n";"J(BigInt(\"",(hx8 i),"\"))"]
            `k~t;$[i~0;,"0n";(0~h:hi i)&0<l:lo i;($l),"n";"BigInt(\"",(hx8 i),"\")"];"???"]]}
  
 
@@ -116,7 +116,8 @@ js3:{em (z 0),x,z 1}
 jsneg:js1"-"; jsnot:js1"!"
 jsadd:js2"+"; jssub:js2"-"; jsmul:js2"*"; jsdiv:js2"/"; jsmod:js2"%"
 jseql:js3"==";jsgte:js3">=";jsles:js3"<"; jslte:js3"<=";jsmor:js3">"; jsneq:js3"!="
-jsand:js2"&"; jsbnd:js3"&&";jsant:js2"&~";jsorr:js2"|"; jsbor:js3"||";jsxor:js2"^"; jsshl:js2"<<";jsshr:js2">>"
+jsand:js2"&"; jsbnd:js3"&&";jsant:js2"&~";jsorr:js2"|"; jsbor:js3"||";jsxor:js2"^"; jsshl:js2"<<";
+jsshr:{jsty[S x;(y 0),$[`u~S x;">>>";">>"],y 1]}
 
 jsnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 
@@ -134,9 +135,11 @@ jsfmt:{
 
 / run time
 jsrnt:"
-let _I2,_I8,_I32,_I64,_F64,_memorysize,_memorysize2,_F,_args,_argv
+let _I2,_I8,_I32,_I64,_F64,_memorysize,_memorysize2,_F,_args,_argv,_fbuf
 const I=x=>x|0,U=x=>x|0,J=x=>BigInt.asIntN(64,x),K=x=>BigInt.asUintN(64,x),F=x=>+x
-const _UI=x=>x,_KI=_KU=x=>K(BigInt(x)),_JI=x=>J(BigInt(x)),_IK=_IJ=x=>Number(BigInt.asIntN(32,x))|0,_UK=_UJ=x=>Number(BigInt.asUintN(32,x))|0,_JK=x=>J(x),_KJ=x=>K(x),_FI=_FJ=x=>+Number(x)
+const _UI=x=>x,_KI=x=>K(BigInt.asIntN(32,BigInt(x))),_KU=x=>K(BigInt.asUintN(32,BigInt(x))),_JI=x=>J(BigInt(x))
+const _IK=_IJ=x=>Number(BigInt.asIntN(32,x))|0,_UK=_UJ=x=>Number(BigInt.asUintN(32,x))|0,_JK=x=>J(x),_KJ=x=>K(x)
+const _FI=_FJ=_FK=x=>+Number(x),_JF=x=>J(BigInt(x|0)),_IF=x=>x|0,_KF=x=>K(BigInt(x|0))
 const _F0=new Float64Array(1),_U0=new BigUint64Array(_F0.buffer)
 const _msl=function(){_I32=new Int32Array(_I8.buffer);_I64=new BigInt64Array(_I8.buffer);_F64=new Float64Array(_I8.buffer)}
 const Memory =function(x){_memorysize =x;_I8=new Int8Array(x*64*1024);_msl()}
@@ -144,12 +147,13 @@ const Memory2=function(x){_memorysize2=x;_I2=new Int8Array(x*64*1024)}
 const Memorycopy=function(x,y,z){_I8.copyWithin(x,y,y+z)}
 const Memorycopy2=function(x,y,z){_I2.set(_I8.subarray(y,y+z),x)}
 const Memorycopy3=function(x,y,z){_I8.set(_I2.subarray(y,y+z),x)}
+const Memoryfill=function(x,y,z){_I8.set(y,x,x+z)}
 const Memorysize =function(){return _memorysize}
 const Memorysize2=function(){return _memorysize2}
 const Memorygrow=x=>{
  let r=_memorysize;_memorysize+=x;
  let m=new Int8Array(64*1024*_memorysize)
- m.set(_I8);_I8=m;msl();return r}
+ m.set(_I8);_I8=m;_msl();return r}
 const Memorygrow2=x=>{
  let r=_memorysize2;_memorysize2+=x;
  let m=new Int8Array(64*1024*_memorysize2)
@@ -161,6 +165,9 @@ const SetI64=function(x,y){_I64[x>>3]=y}
 const SetF64=function(x,y){_F64[x>>3]=y}
 const I32clz=x=>Math.clz32(x),I32B=x=>(+x|0)
 const F64reinterpret_i64=x=>{_U0[0]=x;return _F0[0]}
+const I64reinterpret_f64=x=>{_F0[0]=x;return _U0[0]}
+const F64floor=x=>Math.floor(x),F64min=(x,y)=>Math.min(x,y),F64max=(x,y)=>Math.max(x,y)
+const F64abs=x=>Math.abs(x),F64sqrt=x=>Math.sqrt(x),F64copysign=function(x,y){return x*Math.sign(y)}
 const Args=function(){return _args}
 const Arg=function(x,y){
  if(x>=_args)return 0;
@@ -171,16 +178,28 @@ const Write=function(f,nf,src,n){
  if(nf==0){std.out.write(_I8.buffer,src,n);return 0}
  //todo: write to file
  return 0;}
-const Read=function(f,nf,src,x){return 0;} //todo
+const Read=function(f,nf,dst){
+ if(dst!=0){_I8.set(_fbuf,dst);return 0;}
+ if(nf>511)return -1;
+ let name=String.fromCharCode(..._I8.slice(f,f+nf))
+ let fp=std.open(name,\"rb\")
+ if(fp===null){return -1}
+ fp.seek(0,std.SEEK_END)
+ let n=fp.tell()
+ fp.seek(0,std.SEEK_SET)
+ _fbuf=new Int8Array(n)
+ if(n!=fp.read(_fbuf.buffer,0,n)){fp.close();return -1}
+ fp.close();return n}
 const ReadIn=function(dst,n){
  let s=std.in.getline();
  if(s===null)return 0;
  for(let i=0;i<s.length;i++)_I8[dst+i]=s.charCodeAt(i);
  return s.length;}
+const Exit=x=>std.exit(x)
 const Native=function(x,y){return 0;}
 const panic=x=>{throw(x)}
 "
 
-jsmain:"//qjs --std file.js  (quickjs)
+jsmain:"//qjs --std k.js  (quickjs)
 _args=scriptArgs.length;_argv=scriptArgs;init();main()
 "
