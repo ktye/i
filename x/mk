@@ -27,10 +27,8 @@ elif [ "$1" = "ctest" ]; then
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa
-elif [ "$1" = "test" ]; then
- for f in tests/*.k; do
-  k "$f" go.k -e
- done
+elif [ "$1" = "js" ]; then
+ k k.k js.k -e 'x:`<js``' > k.js
 else
  exit 1
 fi
