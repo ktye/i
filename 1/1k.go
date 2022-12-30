@@ -29,15 +29,13 @@ func init() {
 	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, ech, ovr, scn)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
-	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, out) //monadic
-	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \
+	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, out, wrt) //monadic 
+	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \   (/join \split at 0 or 10?)
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
 }
 func main() {
 	k1()
-	for {
-		rep()
-	}
+	for rep()!=0 { }
 }
 func k1() {
 	tot = 65536
@@ -50,16 +48,17 @@ func k1() {
 	rm(63) //63 globals at 120
 	//top is 372
 }
-func rep() {
+func rep() int32 {
 	r := rm(126)
 	x := mk(1)
 	for ReadIn(x, 1) != 0 {
 		c1(r, w(I8(x)))
 	}
+	println("#r", n(r))
 	c1(r, 21)
 	//out(exe(r, 0))
 	//o(10)
-	exe(r, 0)
+	return exe(r, 0)
 }
 
 func v(x int32) int32 { return x >> 1 }
@@ -609,9 +608,12 @@ func vau(x int32) int32 { // combien vaut-il?
 }
 
 // print
-func out(x int32) int32 { 
-	println("out", tostring(x))
-	ou(x); o(10); return x }
+func out(x int32) int32 { ou(x); o(10); return x }
+func wrt(x int32) int32 { // 'x (write)
+	x = el(x)
+	ov(x)
+	return x
+}
 func ov(x int32) {
 	for i := int32(0); i < n(x); i++ {
 		o(v(get(x, i)))
