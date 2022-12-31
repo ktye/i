@@ -53,27 +53,6 @@ func grow(p int32) int32 {
 	minit(m, n)
 	return n
 }
-
-func mcount() uint32 {
-	r := uint32(0)
-	for i := int32(5); i < 31; i++ {
-		n := fcount(4 * i)
-		r += uint32(n) * (1 << uint32(i))
-	}
-	return r
-}
-func fcount(x int32) int32 {
-	r := int32(0)
-	for {
-		if I32(x) == 0 {
-			break
-		}
-		r++
-		x = I32(x)
-	}
-	return r
-}
-
 func mfree(x, bs int32) {
 	if x&31 != 0 {
 		trap(Unref)
