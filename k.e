@@ -67,7 +67,6 @@ log[2a45;3] /Type
 3.0^1 2 /Type
 &1 2 3. /Type
 . 1 /Type
-fill[3.0;2 3] /Type
 3.0'1 2 /Type
 1 2 3'3. /Type
 1 2a'3a /Type

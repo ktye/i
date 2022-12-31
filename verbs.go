@@ -750,6 +750,7 @@ func val(x K) K {
 	}
 	return x
 }
+/*
 func Fin(x K) K { return Wer(Not(Xpt(x))) } // find x (index of non-missing)
 func Xpt(x K) K { // fill x
 	xt := tp(x)
@@ -781,6 +782,7 @@ func Fil(x, y K) K { // x fill y
 		return trap(Type)
 	}
 }
+*/
 func Enc(x, y K) K { // x\\y
 	xt := tp(x)
 	n := int32(0)

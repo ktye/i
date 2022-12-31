@@ -17,7 +17,7 @@
 `"odo.":{{y@(#y)/!x}/:[*/x;&'x#'|*\-1_1,|x]} /!I (odometer)
 `"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}         /=x
 
-abs:`32;sin:`44;cos:`39;find:`31;fill:`38;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
+abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 
 
 / pretty print  `l@x  `k@x
