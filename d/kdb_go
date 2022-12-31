@@ -1,0 +1,90 @@
+
+type frame struct {
+	f, x uint64
+}
+
+var fstack []frame
+
+func Trap(p, x, srcp int32, s int64) {
+	for i, f := range fstack {
+		fmt.Printf("[%x] %d@%d %d\n", i, f.f, getpos(f.f), f.x)
+		indicate(s, getpos(f.f))
+	}
+	fmt.Println(errstr(x))
+	b := make([]byte, 1)
+	fmt.Printf("0-f g(gostack) \\(return) q(uit)\n")
+	fmt.Printf("kdb> ")
+    	for {
+       		os.Stdin.Read(b)
+		c := b[0]
+		if c < 33 {
+			continue
+		}
+		switch c {
+		case '\\': fstack=nil; return
+		case 'q':  os.Exit(1)
+		case 'g':  debug.PrintStack()
+		default:
+			if c >= '0' && c <= 'f' {
+				fmt.Println("...")
+			} else {
+				fmt.Println("?")
+			}
+		}
+		fmt.Printf("kdb> ")
+	}
+}
+
+func fpush(f, x uint64) {
+	fstack = append(fstack, frame{f, x})
+}
+func fpop() {
+	fstack = fstack[:len(fstack)-1]
+}
+
+func getpos(x uint64) int32 { return 0xffffff & int32(x>>32) }
+func errstr(x int32) string {
+	v := []string{"Err", "Type", "Value", "Index", "Length", "Rank", "Parse", "Stack", "Grow" , "Unref", "Io", "Nyi"}
+	if x >= int32(0) && x < int32(len(v)) {
+		return v[x]
+	}
+	return "unknown(" + strconv.Itoa(int(x)) + ")"
+}
+func indicate(si int64, p int32) {
+	s := uint64(si)
+	if p > 0 && s != 0 && p <= nn(s) {
+		x := int32(s)
+		src := Bytes[x:x+nn(s)]
+		line := 1
+		j := -1
+
+		show := func(i int) {
+			o := int(p)
+			if j > 0 {
+				o -= j
+			}
+			src = src[1+j : i]
+			if len(src) > 70 {
+				if o < 70 {
+					src = src[:70]
+				}
+			}
+			fmt.Println(string(src))
+			fmt.Println(strings.Repeat(" ", o-2)+"^")
+		}
+
+		for i, c := range src {
+			if c == 10 {
+				if i > int(p) {
+					show(i)
+					return
+				}
+				line++
+				j = i
+			}
+		}
+		show(len(src))
+	}
+}
+
+

@@ -1,9 +1,26 @@
 set -e
 set -x
 
+rm -f *.go
+
 mv build_go build.go
 go run build.go
 mv build.go build_go
+
+if [ "$1" = "kdb" ];then
+ wg -k . > k.k
+ echo "package main" > kdb.go
+ echo 'import ( "encoding/binary"; "math"; "math/bits"; "os"; "fmt"; "runtime/debug"; "strconv"; "strings" )' >> kdb.go
+ k k.k ../x/go.k -e 'x:`<go``' | sed -e '1,2d' -e '/func fpush/,+1d' -e '/func fpop/,+1d' >> kdb.go
+ cat kdb_go >> kdb.go
+ go fmt kdb.go
+ go build kdb.go
+ mv kdb.go kdb.gox
+ rm *.go
+ mv kdb.gox kdb.go
+ exit 0
+fi
+
 
 wg . > k.wat
 
@@ -16,9 +33,12 @@ EOF
 
 sed -e 1d -e '/func $fpush/,+1d' -e '/func $fpop/,+1d'  k.wat >> d.wat
 
-/c/local/wabt/wat2wasm -o d.wasm d.wat
-/c/local/lz4/lz4 -12 d.wasm d.wasm.lz4
-cp d.wasm.lz4  /c/k/ktye.github.io/
-cp src.map /c/k/ktye.github.io/
+if [ "$1" = "install" ]; then
+ /c/local/wabt/wat2wasm -o d.wasm d.wat
+ /c/local/lz4/lz4 -12 d.wasm d.wasm.lz4
+ cp d.wasm.lz4  /c/k/ktye.github.io/
+ cp src.map /c/k/ktye.github.io/
+ rm d.wasm.lz4
+fi
 
-rm *.go k.wat d.wasm d.wasm.lz4 d.wat src.map
+rm *.go k.wat d.wasm d.wat src.map

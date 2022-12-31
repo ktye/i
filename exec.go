@@ -46,13 +46,14 @@ func exec(x K) K {
 			case 2: // 128       dyadic indirect
 				//kdb:arg=l2(rx(K(I64(sp-8))),rx(K(I64(sp-16))))
 				marksrc(a)
-				//kdb:b:=rx(a)
-				//kdb:fpush(b,arg)
+				//kdb:c:=rx(a)
+				//kdb:fpush(c,arg)
 				b = pop()
 				a = Cal(a, l2(b, pop()))
-				//kdb:dx(b);dx(arg);fpop()
+				//kdb:dx(c);dx(arg);fpop()
 			case 3: // 192..255  tetradic
 				//kdb:arg=l2(l2(rx(a),rx(K(I64(sp-8)))),l2(rx(K(I64(sp-16))),rx(K(I64(sp-24)))))
+				//kdb:fpush(u,arg)
 				b = pop()
 				c = pop()
 				a = Func[marksrc(u)].(f4)(a, b, c, pop())
