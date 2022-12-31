@@ -29,6 +29,7 @@ elif [ "$1" = "jstest" ]; then
  qjs --std k.js ../k.t -e
 elif [ "$1" = "libjs" ]; then
  k k.k js.k -e 'x:`<js``lib' > kj.js
+ mv kj.js /c/k/ktye.github.io/kj.js
 else
  exit 1
 fi

@@ -52,7 +52,7 @@ jsfun:{
  $[(`main~S x)&`lib':opts; :""; 0]
  args:","/:y@&`arg=T c:&x=P
  locs:($[#r:","/:$S 1+c@&`loc=T c;"let ",r,"\n";""])
- defr:"" / *y@&`dfr=T c
+ defr:*y@&`dfr=T c
  setj:$[#defr;"try{";""]
  body: 2_-1_y@*&`ast=T c
  jsfmt@,/("const ";$S x;"=function(";args;"){\n";setj;locs;body;defr)}
@@ -135,7 +135,7 @@ jsfmt:{
 
 / run time
 jsrnt:"
-let _I2,_I8,_I32,_I64,_F64,_memorysize,_memorysize2,_F,_args,_argv,_fbuf
+let _I2,_I8,_I32,_I64,_F64,_memorysize,_memorysize2,_F
 const I=x=>x|0,U=x=>BigInt.asUintN(32,x),J=x=>BigInt.asIntN(64,x),K=x=>BigInt.asUintN(64,x),F=x=>+x
 const _UI=x=>U(BigInt(x)),_KI=x=>K(BigInt.asIntN(32,BigInt(x))),_KU=x=>K(x),_JI=x=>J(BigInt(x))
 const _IK=_IJ=x=>Number(BigInt.asIntN(32,x))|0,_UK=_UJ=x=>U(x),_JK=x=>J(x),_KJ=x=>K(x)
@@ -168,6 +168,14 @@ const F64reinterpret_i64=x=>{_U0[0]=x;return _F0[0]}
 const I64reinterpret_f64=x=>{_F0[0]=x;return _U0[0]}
 const F64floor=x=>Math.floor(x),F64min=(x,y)=>Math.min(x,y),F64max=(x,y)=>Math.max(x,y)
 const F64abs=x=>Math.abs(x),F64sqrt=x=>Math.sqrt(x),F64copysign=function(x,y){return x*Math.sign(y)}
+
+const panic=x=>{throw(x)}
+"
+
+jsmain:"//qjs --std k.js  (quickjs)
+
+let _args=scriptArgs.length,_argv=scriptArgs,_fbuf
+
 const Args=function(){return _args}
 const Arg=function(x,y){
  if(x>=_args)return 0;
@@ -201,9 +209,6 @@ const ReadIn=function(dst,n){
  return s.length;}
 const Exit=x=>std.exit(x)
 const Native=function(x,y){return 0;}
-const panic=x=>{throw(x)}
-"
 
-jsmain:"//qjs --std k.js  (quickjs)
-_args=scriptArgs.length;_argv=scriptArgs;init();main()
+init();main()
 "
