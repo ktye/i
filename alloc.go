@@ -62,7 +62,7 @@ func mfree(x, bs int32) {
 	SetI32(t, x)
 }
 func bucket(size int32) int32 {
-	r := int32(32) - I32clz(uint32(15+size))
+	r := int32(32) - I32clz(15+size)
 	if r < 5 {
 		r = 5
 	}

@@ -603,7 +603,7 @@ func idiv(x, y K, mod int32) K {
 	}
 }
 func divIi(xp, yp, e int32) {
-	s := int32(31) - I32clz(uint32(yp))
+	s := int32(31) - I32clz(yp)
 	if yp == int32(1)<<s { // x % powers of 2
 		for xp < e {
 			SetI32(xp, I32(xp)>>s)

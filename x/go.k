@@ -149,8 +149,7 @@ func F64(addr int32) float64 { return math.Float64frombits(binary.LittleEndian.U
 func SetI32(addr int32, value int32) { binary.LittleEndian.PutUint32(Bytes[addr:], uint32(value)) }
 func SetI64(addr int32, value int64) { binary.LittleEndian.PutUint64(Bytes[addr:], uint64(value)) }
 func SetF64(addr int32, value float64) { binary.LittleEndian.PutUint64(Bytes[addr:], math.Float64bits(value)) }
-func I32clz(x uint32) int32    { return int32(bits.LeadingZeros32(x)) }
-func I64popcnt(x uint64) int64 { return int64(bits.OnesCount64(x)) }
+func I32clz(x int32) int32    { return int32(bits.LeadingZeros32(uint32(x))) }
 func I32B(b bool) int32 { if b { return 1; }; return 0}
 func Exit(x int32) { os.Exit(int(x)) }
 func Args() int32 { return int32(len(os.Args)) }
