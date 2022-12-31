@@ -9,7 +9,7 @@ if [ "$1" = "go" ]; then
  go fmt kg.go
  go build kg.go
 elif [ "$1" = "gotest" ]; then
- ./k ../k.t -e
+ ./kg ../k.t -e
 elif [ "$1" = "flt" ]; then
  k k.k flt.k -e
  go run flt.go
@@ -17,18 +17,18 @@ elif [ "$1" = "flt" ]; then
 elif [ "$1" = "cc" ]; then
  k k.k cc.k -e 'x:`<cc``' >  k.c
  gcc -Wall -Wfatal-errors -O3 -o kc k.c -lm
-#c:/local/zig/zig cc -Wall -Wno-parentheses-equality -fwrapv -ffast-math k.c -o kc.exe -lm
+ #c:/local/zig/zig cc -Wall -Wno-parentheses-equality -fwrapv -ffast-math k.c -o kc.exe -lm
 elif [ "$1" = "ctest" ]; then
- go install ..
- ./kg.exe k.k cc.k -e 'x:`<cc``' >  k.c
- gcc -Wall -Wfatal-errors -O0 -o kc k.c -lm
-   k      x.k -e t 2>out1
- ./kc.exe x.k -e t 2>out2
+ ./kc ../k.t -e
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa
 elif [ "$1" = "js" ]; then
  k k.k js.k -e 'x:`<js``' > k.js
+elif [ "$1" = "jstest" ]; then
+ qjs --std k.js ../k.t -e
+elif [ "$1" = "libjs" ]; then
+ k k.k js.k -e 'x:`<js``lib' > kj.js
 else
  exit 1
 fi

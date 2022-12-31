@@ -71,7 +71,7 @@ jsflt:{x:C x+!8;$[#r:jsflts x;r;$*`f x]}
 jslit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
  y;i:I x;jsty[t;$[`f~t:S x;jsflt i
            `i~t;$[0N~i;"-2147483648";$i]
-           `u~t;$[i<0;"0x",`x@|`c@,i;$i]
+           `u~t;$i,"n"
            `j~t;$[i~0;,"0n";(-1~h:hi i)&0>l:lo i;($l),"n";(h~0)&l>0;($l),"n";"J(BigInt(\"",(hx8 i),"\"))"]
            `k~t;$[i~0;,"0n";(0~h:hi i)&0<l:lo i;($l),"n";"BigInt(\"",(hx8 i),"\")"];"???"]]}
  
@@ -136,9 +136,9 @@ jsfmt:{
 / run time
 jsrnt:"
 let _I2,_I8,_I32,_I64,_F64,_memorysize,_memorysize2,_F,_args,_argv,_fbuf
-const I=x=>x|0,U=x=>x|0,J=x=>BigInt.asIntN(64,x),K=x=>BigInt.asUintN(64,x),F=x=>+x
-const _UI=x=>x,_KI=x=>K(BigInt.asIntN(32,BigInt(x))),_KU=x=>K(BigInt.asUintN(32,BigInt(x))),_JI=x=>J(BigInt(x))
-const _IK=_IJ=x=>Number(BigInt.asIntN(32,x))|0,_UK=_UJ=x=>Number(BigInt.asUintN(32,x))|0,_JK=x=>J(x),_KJ=x=>K(x)
+const I=x=>x|0,U=x=>BigInt.asUintN(32,x),J=x=>BigInt.asIntN(64,x),K=x=>BigInt.asUintN(64,x),F=x=>+x
+const _UI=x=>U(BigInt(x)),_KI=x=>K(BigInt.asIntN(32,BigInt(x))),_KU=x=>K(x),_JI=x=>J(BigInt(x))
+const _IK=_IJ=x=>Number(BigInt.asIntN(32,x))|0,_UK=_UJ=x=>U(x),_JK=x=>J(x),_KJ=x=>K(x)
 const _FI=_FJ=_FK=x=>+Number(x),_JF=x=>J(BigInt(x|0)),_IF=x=>x|0,_KF=x=>K(BigInt(x|0))
 const _F0=new Float64Array(1),_U0=new BigUint64Array(_F0.buffer)
 const _msl=function(){_I32=new Int32Array(_I8.buffer);_I64=new BigInt64Array(_I8.buffer);_F64=new Float64Array(_I8.buffer)}
@@ -147,7 +147,7 @@ const Memory2=function(x){_memorysize2=x;_I2=new Int8Array(x*64*1024)}
 const Memorycopy=function(x,y,z){_I8.copyWithin(x,y,y+z)}
 const Memorycopy2=function(x,y,z){_I2.set(_I8.subarray(y,y+z),x)}
 const Memorycopy3=function(x,y,z){_I8.set(_I2.subarray(y,y+z),x)}
-const Memoryfill=function(x,y,z){_I8.set(y,x,x+z)}
+const Memoryfill=function(x,y,z){_I8.fill(y,x,x+z)}
 const Memorysize =function(){return _memorysize}
 const Memorysize2=function(){return _memorysize2}
 const Memorygrow=x=>{
@@ -176,7 +176,11 @@ const Arg=function(x,y){
  return 0;}
 const Write=function(f,nf,src,n){
  if(nf==0){std.out.write(_I8.buffer,src,n);return 0}
- //todo: write to file
+ let name=String.fromCharCode(..._I8.slice(f,f+nf))
+ let fp=std.open(name,'wb')
+ if(fp===null)return -1
+ fp.write(_I8.buffer,src,n)
+ fp.close()
  return 0;}
 const Read=function(f,nf,dst){
  if(dst!=0){_I8.set(_fbuf,dst);return 0;}
