@@ -64,6 +64,9 @@ jobs:
 
     - name: k.c
       run: cd i/x && k k.k cc.k -e 'x:`<cc``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
+    
+    - name: k.js
+      run: cd i/x && k k.k js.k -e 'x:`<js``' > k.js #test with qjs --std k.js ../k.t -e (takes 2min)
 
     - name: kom
       run: cd i/kom && sh mk && sh mk test
@@ -183,5 +186,15 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./i/x/k.c
         asset_name: k.c
+        asset_content_type: text/plain
+        
+    - name: upload k.js
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/x/k.js
+        asset_name: k.js
         asset_content_type: text/plain
   
