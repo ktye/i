@@ -48,4 +48,4 @@ rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L
 [kx.go](https://github.com/ktye/i/releases/download/latest/kx.go)|[awk style](kx)|`go build kx.go`|
 [k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran|`gfortran k.f`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c|`gcc k.c -lm`|
-[k.js](https://github.com/ktye/i/releases/download/latest/k.c)|js|`qjs --std k.js` (quickjs)|
+[k.js](https://github.com/ktye/i/releases/download/latest/k.js)|js|`qjs --std k.js` (quickjs)|
