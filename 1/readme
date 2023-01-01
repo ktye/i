@@ -12,8 +12,8 @@ scalar      a-y      v-y                         monadic
 < less      ? find         < up      ? uniq
 > more      . call   at    > down    . value
 = equal       lcat         = group
-! modulo                   ! til            
-                                           space matters
+! modulo                   ! til           space matters   
+
 ? cond ech2 amend indexed-assign
 63 locals 63 globals (single letter A~) no global assign
 juxtaposition: fx (atom call)      (!5)3  (vector index)
@@ -75,12 +75,25 @@ The 3 ADVERBS each/over/scan have one entry each
 with two arguments, as one is the function there
 is only a monadic form for the derived verb.
 
-TOKENIZATION takes a flat list of numbers and returns
+TOKENIZATION  takes a flat list of numbers and returns
 a list that may have some values enlisted. e.g. ascii input
 (49 50 51) is recognized as a number, computed and enlisted
 (,123). ".." creates a list verbatim with no escape chars.
 `quotes(enlists) the next value.
 values below 32 are ignored and everything else copied as is.
+
+PROBLEMS  the simplified type system doesn't know if "x+y" is
+code or data. it is just a list of numbers.
+consequentially k's call/index duality does not work.
+One way to solve that is to use two different primitives,
+e.g.  . and @  but that's not nice.
+1k uses . or juxtaposition for both and dispatches on the
+left argument: atoms are called, lists are indexed.
+That means for a function f:"3*x" the call f.5 or f5 indexes
+as f is already resolved. it needs to be quoted as `f5
+or 102(5) or 102.5 or (*"f")5
+call: `fx  `f(x)  `gx y                       index: x0  x(1)
+
 
 (`f `g)x>3
 
@@ -107,6 +120,6 @@ tests
  -x /-3
  ^"`a" /("a")
  f:"2*x" /"2*x"
- f1 /2
+ `f1 /2
  f:"x-y" /"x-y"
- f3 5 /-2
+ `f3 5 /-2

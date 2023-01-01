@@ -17,7 +17,7 @@ func init() {
 	Functions(00, asn, mtv, cat, cts, tkv, dpv, fnd, atx, spc, ech, ovr, scn)                                    //vy
 	Functions(12, asn, mtc, cat, cut, tak, drp, fna, cal, spc, ech, ovr, scn)                                    //ay
 	Functions(24, add, sub, mul, div, min, max, les, mor, eql, mod)                                              //scalar dyadic
-	Functions(34, flp, neg, idn, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, out, wrt) //monadic 
+	Functions(34, flp, neg, fst, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, out, wrt) //monadic 
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \   (/join \split at 0 or 10?)
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
 }
@@ -532,9 +532,9 @@ func e(x, b int32) int32 {
 
 	r = vau(e(y, b))
 	if ver(x) == 0 { // juxtaposition
-		//println("jux")
+		println("jux x", tostring(x), "r", tostring(r))
 		//x=vau(x)
-		return enl(cal(93, l2(x, r)))
+		return enl(cal(93, l2(vau(x), r)))
 	}
 	println("monadic", tostring(x), tostring(r))
 	if las(x) == 0 {
