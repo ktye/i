@@ -1,0 +1,57 @@
+k debug (kdb)
+
+this directory builds two versions of k with debugging:
+ k.wasm.lz4  used by ktye.github.io/kde
+ kdb.go      repl
+
+the debug version saves all vm calls with arguments in a stack
+
+example
+
+$cat x.k
+f:{x+y}
+g:{f[1;x]}
+
+$kdb x.k
+ktye/k
+ g`s                                    /input which traps
+x.k:1: [2] *66@1685 L#2:5232            /top frame
+f:{x+⏴y}                                /call src location 
+x.k:2: [1] *84@1693 L#2:10608           /calling frame
+g:{f[⏴1;x]}
+-: [0] *83@1703 L#2:11056               /last frame
+g`s⏴
+Type                                    /error type
+0-f g(gostack) \(return) q(uit)
+kdb> 0
+f[0]> @
+x[0]> ({f[1;x]};`s)
+kdb> 1
+f[1]> .
+x[1]> ({x+y};(1;`s))
+kdb> 2
+f[2]> +
+x[2]> (1;`s)
+kdb> \
+
+
+the stack lists all call frames followd by an indicated source line.
+
+x.k:1: [2] *66@1685 L#2:5232
+^       ^  k-func   arglist 
+file    frame number
+
+
+func and arglist are k-values that are apprevated as:
+*type  *.cisfzldtmdplx...CISFZLDT
+#n:    length for list arrays
+@n     byte location within catenated src
+n      int32 value of k type (e.g. memory index or char/int value)
+
+
+at the kdb> prompt you can
+ \     return to interactive mode
+ q     quit
+ g     print a go stack
+ 0..f  inspect frame
+inspecting a frame prints the function and arguments in k form.
