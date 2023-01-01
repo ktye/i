@@ -1,25 +1,88 @@
-1k 2types(int list) "ab" is quote (97 98) lambda f:"x+y"
-+-*%&|<>=!:~,^#_?. '/\   (22 primitives including space)
-no @ $ /: \: ': ` [ ]  { }
+1k 2types(int list) "ab"~(97 98) `a~,97   lambda f:"x+y"
++-*%&|<>=!:~,^#_?. '/\  (22prim) no @ $ /: \: ': [ ] { }
 
-dyadic      dyadic         monadic              adverbs
-scalar      a-y      v-y                        monadic
-+ plus      : assign idx   + flip    : id       ' each
-- minus     ~ match        - negate  ~ not      / over
-* multiply  , catenate     * fist    , enlist   \ scan
+dyadic      dyadic         monadic               adverbs
+scalar      a-y      v-y                         monadic
++ plus      : assign       + flip    : id        '  each
+- minus     ~ match        - negate  ~ not       /  over
+* multiply  , catenate     * fist    , enlist    \  scan
 % divide    ^ cut          % rotate  ^ token
 & min       # take   set   & where   # count
 | max       _ drop   set   | reverse _ last
 < less      ? find         < up      ? uniq
-> more      . cal    at    > down    . value
+> more      . call   at    > down    . value
 = equal       lcat         = group
-! modulo                   ! til
-
+! modulo                   ! til            
+                                           space matters
 ? cond ech2 amend indexed-assign
-token parse print is implicit
-63 locals 63 globals (single letter) no global assign
-juxtaposition: fx (atom call)   (!5)3  (vector index)
-lambda call: f(x,y) or fx y        max 7 args xyz{|}~
+63 locals 63 globals (single letter A~) no global assign
+juxtaposition: fx (atom call)      (!5)3  (vector index)
+lambda call: f(x,y) or fx y           max 7 args xyz{|}~
+
+
+
+TYPE system / representation
+1k works with 32bit signed integers which represent
+NUMBERS(atoms) and LISTS.
+numbers are 31bit integers, lists contain atoms or lists
+
+* last bit 1: number/atom,  n is x>>1
+* otherwise:  list    x is byte index in linear memory
+-  the 32bit value at x is the first element
+-  the length is stored at x-4
+-  0 is special, list-type but reading it's length crashes
+
+ALLOCATION  is a simple bump allocator with two global
+variables top(last used addr) and tot(allocated memory).
+primitives never overwrite the input but may shallow copy.
+
+LAMBDA  functions store the input in a list, e.g. "x+y"
+and evaluate (tokenzize and parse) each time when called.
+
+Calling a lambda saves top and resets it afterwards.
+except for the result value, all intermediate allocations
+are gone. cheap and simple. no refcouting no gc.
+as a consequence, lambda functions cannot assign to globals
+
+SCOPE  there is global and local scope (both 63 spots)
+starting at 65(A).
+the local list is created for each lambda call and zeroed.
+the ARGUMENT list is copied to the 7 last positions: x y..
+A lookup indexes the local list, if it is null it tries 
+the global list and returns numeric 0 if unset.
+The parent environment in a nested call is hidden.
+
+SPACE (32) is a primitive verb. in dyadic form it builds
+nested lists: x y  is  (,x),y       (x;y) does not exist.
+monadic-space prints. no need to detect assignments to
+prevent printing. no need for a prompt. prepend a space
+to see the result otherwise silcence.
+
+NO ERRORS means every case is implemented and no need for
+error types, recovery mechanism and error indication.
+
+DISPATCH  1k has a function table with 53 entries.
+SCALAR functions implement the scalar case only
+and are called via dyadic each.
+besides k's recursive atom-list pairing, 1k pairs two
+by indexing both upto the longer list. outdexing is
+circular like k's take.
+Other DYADIC functions dispatch automatically on the
+left arugment, and have two versions one for atom and
+one for list.
+MONADIC functions have one entry each.
+The 3 ADVERBS each/over/scan have one entry each
+with two arguments, as one is the function there
+is only a monadic form for the derived verb.
+
+TOKENIZATION takes a flat list of numbers and returns
+a list that may have some values enlisted. e.g. ascii input
+(49 50 51) is recognized as a number, computed and enlisted
+(,123). ".." creates a list verbatim with no escape chars.
+`quotes(enlists) the next value.
+values below 32 are ignored and everything else copied as is.
+
+(`f `g)x>3
 
 tests
  1 /1
@@ -27,6 +90,7 @@ tests
  1 2 /(1 2)
  1+2 /3
  4#!3 /(0 1 2 0)
+ (!3)(!4) /(0 1 2 0)
  "abc" /"abc"
  +/!4 /6
  +/4 /4
@@ -41,6 +105,7 @@ tests
  #j /3
  x:3 /3
  -x /-3
+ ^"`a" /("a")
  f:"2*x" /"2*x"
  f1 /2
  f:"x-y" /"x-y"

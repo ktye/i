@@ -10,18 +10,6 @@ var tot, top, loc int32
 
 func init() {
 	Memory(1)
-	// no @ $ /: \: ': ` [ ]  { }  may be assigned to as user functions but not infix
-
-	// x(space)y          is (,x),y
-	// e.g.:   l:4 5 6    is (4;5;6)
-	//         1 l 2      is (1;4 5 6;2)  or as:  1 (4 5 6) 2      (space matters)
-	//
-	// "abc" is quotation/literal, also used for lambdas: f:"(+/x)%#x"
-	//
-	// juxtaposition
-	// ay cal
-	// vy idx
-	//Data(0, "\x57\x5b\x55\x4b\x4d\xf9\x79\x7d\x7b\x43\x75\xfd\x59\xbd\x47\xbf\x7f\x5d\x41\x4f\x5f\xb9") // (1+2*)  +-*%&|<>=!:~,^#_?. '/\  (22)
 	Data(0, "\x2b\x2d\x2a\x25\x26\x7c\x3c\x3e\x3d\x21\x3a\x7e\x2c\x5e\x23\x5f\x3f\x2e\x20\x27\x2f\x5c") // +-*%&|<>=!:~,^#_?. '/\  (22)
 
 	//              0    1    2    3    4    5    6    7    8    9   10   11
@@ -485,7 +473,10 @@ func tok(x int32) int32 { // ^x tokenize, enlists (123 and "abc")
 			c1(r, enl(w(t)))
 			t = 0
 		}
-		if c > 21 {
+		if c == 193 {
+			c1(r, enl(I32(x)))
+			x += 4
+		} else if c > 31 {
 			c1(r, c)
 		}
 	}

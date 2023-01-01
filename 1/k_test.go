@@ -189,12 +189,11 @@ func readtests(file string) (r [][2]string) {
 	return r
 }
 func readcase(s string) (r [2]string) {
-	var o bool
-	r[0], r[1], o = strings.Cut(s, " /")
-	r[0] += "\n"
-	if !o {
+	v := strings.Split(s, " /")
+	if len(v) < 2 {
 		panic("testcase: " + s)
 	}
+	r[0], r[1] = v[0]+"\n", v[1]
 	return
 }
 func fatal(e error) {
