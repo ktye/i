@@ -1,7 +1,7 @@
 k debug (kdb)
 
 this directory builds two versions of k with debugging:
- k.wasm.lz4  used by ktye.github.io/kde
+ d.wasm.lz4  used by ktye.github.io/kde
  kdb.go      repl
 
 the debug version saves all vm calls with arguments in a stack
