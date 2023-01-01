@@ -42,11 +42,11 @@ x.k:1: [2] *66@1685 L#2:5232
 file    frame number
 
 
-func and arglist are k-values that are apprevated as:
+func and arglist are k-values that are abbreviated as:
 *type  *.cisfzldtmdplx...CISFZLDT
 #n:    length for list arrays
 @n     byte location within catenated src
-n      int32 value of k type (e.g. memory index or char/int value)
+n      int32 of k value (e.g. memory index or char/int value)
 
 
 at the kdb> prompt you can
