@@ -3,11 +3,21 @@ type frame struct {
 	f, x uint64
 }
 
+type sfile struct {
+	name string
+	a, b []int
+}
+
 var fstack []frame
+var srcfil []sfile
 
 func Trap(p, x, srcp int32, s int64) {
-	for i, f := range fstack {
-		fmt.Printf("[%x] %d@%d %d\n", i, f.f, getpos(f.f), f.x)
+	if srcfil == nil {
+		srcfil = getfiles()
+	}
+	for i := len(fstack)-1; i>=0; i-- {
+		f := fstack[i]
+		fmt.Printf("%s: [%x] %s %s\n", filepos(getpos(f.f)), i, kinfo(f.f), kinfo(f.x))
 		indicate(s, getpos(f.f))
 	}
 	fmt.Println(errstr(x))
@@ -26,7 +36,14 @@ func Trap(p, x, srcp int32, s int64) {
 		case 'g':  debug.PrintStack()
 		default:
 			if c >= '0' && c <= 'f' {
-				fmt.Println("...")
+				i := c-'0'
+				if i > 10 {
+					i = 10 + c - 'a'
+				}
+				fmt.Printf("f[%d]> ", i)
+				Out(fstack[i].f)
+				fmt.Printf("x[%d]> ", i)
+				Out(fstack[i].x)
 			} else {
 				fmt.Println("?")
 			}
@@ -51,6 +68,13 @@ func errstr(x int32) string {
 	return "unknown(" + strconv.Itoa(int(x)) + ")"
 }
 func indicate(si int64, p int32) {
+	nc , e := strconv.Atoi(os.Getenv("COLUMNS"))
+	nc--
+	if nc < 10 || e != nil {
+		nc = 70
+	}
+	lo := nc / 2
+
 	s := uint64(si)
 	if p > 0 && s != 0 && p <= nn(s) {
 		x := int32(s)
@@ -59,23 +83,31 @@ func indicate(si int64, p int32) {
 		j := -1
 
 		show := func(i int) {
-			o := int(p)
+			o := int(p) - 1
 			if j > 0 {
 				o -= j
 			}
 			src = src[1+j : i]
-			if len(src) > 70 {
-				if o < 70 {
-					src = src[:70]
-				}
-			}
-			fmt.Println(string(src))
-			fmt.Println(strings.Repeat(" ", o-2)+"^")
-		}
 
+			e1, e2 := "", ""
+			if len(src) > nc && o > nc-5 {
+				e1 = "…"
+				src = src[lo:]
+				o -= lo
+			}
+			if len(src)+len(e1) > nc {
+				e2 = "…"
+				src = src[:nc-len(e1)-1]
+			}
+			if o < 0 {
+                                fmt.Println(e1 + "⏵" + string(src) + e2)
+                        } else {
+                                fmt.Println(e1 + string(src[:o]) + "⏴" + string(src[o:]) + e2)
+                        }
+		}
 		for i, c := range src {
 			if c == 10 {
-				if i > int(p) {
+				if i >= int(p) {
 					show(i)
 					return
 				}
@@ -87,4 +119,74 @@ func indicate(si int64, p int32) {
 	}
 }
 
+func getfiles() (r []sfile) {
+	o := 0
+	r, o = addfile(r, o, "z.k", Bytes[600:600+zklen])
+	for _, s := range os.Args {
+		if len(s) > 2 && s[len(s)-2:] == ".k" {
+			r, o = addfile(r, o, s, nil)
+		}
+	}
+	return r
+}
+func addfile(r []sfile, off int, s string, b []byte) ([]sfile, int) {
+	if b == nil {
+		var e error
+		b, e = os.ReadFile(s)
+		if e != nil {
+			fmt.Println(e)
+			return r, off
+		}
+	}
+	f := sfile{name:s}
+	o := 0
+	for i, c := range b {
+		if c == 10 {
+			f.a = append(f.a, o+off)
+			f.b = append(f.b, 1+i+off)
+			o = 1+i
+		}
+	}
+	if len(f.a) == 0 || f.b[len(f.b)-1] != len(b)+off {
+		f.a = append(f.a, o)
+		f.b = append(f.a, len(b)+off)
+	}
+	return append(r, f), 1+len(b)+off
+}
+func filepos(pi int32) string {
+	p := int(pi)
+	if p == 0 {
+		return "?"
+	}
+	if p > 0 {
+		p--
+		for _, f := range srcfil {
+			for i, x := range f.a {
+				if p >= x && p < f.b[i] {
+					return f.name + ":" + strconv.Itoa(1+i)
+				}
+			}
+		}
+	}
+	return "-"
+}
+func kinfo(x uint64) string {
+	s := ""
+	ts := "*.cisfzldtmdplx...CISFZLDT..."
+	tn := int(tp(x))
+	if tn >= 0 && tn < len(ts) {
+		s += string(ts[tn])
+	} else {
+		s += "(" + strconv.Itoa(tn) + "?)"
+	}
+	if tn > 16 {
+		s += "#" + strconv.Itoa(int(nn(x))) + ":"
+	}
+	s += strconv.Itoa(int(int32(x)))
+	p := getpos(x)
+	if p > 0 {
+		s += "@"+strconv.Itoa(int(p))
+	}
+	return s
+}
 
