@@ -1,10 +1,10 @@
 package main
 
 import (
+	. "github.com/ktye/wg/module"
 	"bytes"
-//	. "github.com/ktye/wg/module"
 	"os"
-//	"strconv"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -18,11 +18,6 @@ func TestK(t *testing.T) {
 	E := func(a, b string) { T(exe(ks(a+"\n"), 0), b) }
 	O := func(x int32) { out(x); o(10) }
 	_, _, _, _ = j, P, E, O
-
-	//cond? 1+("4*x" "3*x" "x>4" "1+x")$x<0
-	//      $[x<0;1+x;x>4;3*x;4*x]
-
-
 
 	dotests("readme")
 	E(`+\!4`, "(0 1 3 6)")
@@ -136,25 +131,6 @@ func ks(s string) int32 {
 	}
 	return r
 }
-/*
-func tostring(x int32) string {
-	if x == 0 {
-		return "null"
-	} else if x&1 != 0 {
-		return strconv.Itoa(int(x >> 1))
-	} else {
-		xn := n(x)
-		if xn < 0 || xn > 30 {
-			panic("xn")
-		}
-		u := make([]string, xn)
-		for i := int32(0); i < xn; i++ {
-			u[i] = tostring(I32(x + 4*i))
-		}
-		return "(" + strings.Join(u, " ") + ")"
-	}
-}
-*/
 func ints(x ...int) int32 {
 	n := len(x)
 	r := rm(int32(n))
@@ -199,5 +175,34 @@ func readcase(s string) (r [2]string) {
 func fatal(e error) {
 	if e != nil {
 		panic(e)
+	}
+}
+func tostring(x int32) string {
+	if x == 0 {
+		return "null"
+	} else if x&1 != 0 {
+		return strconv.Itoa(int(x >> 1))
+	} else {
+		xn := n(x)
+		if xn < 0 || xn > 30 {
+			panic("xn")
+		}
+		a := make([]byte, xn)
+		for i := int32(0); i<xn; i++ {
+			if xi := v(get(x, i)); xi > 31 && xi < 128 {
+				a[i] = byte(xi)
+			} else {
+				a = nil
+				break
+			}
+		}
+		if a != nil {
+			return `"` + string(a) + `"`
+		}
+		u := make([]string, xn)
+		for i := int32(0); i < xn; i++ {
+			u[i] = tostring(I32(x + 4*i))
+		}
+		return "(" + strings.Join(u, " ") + ")"
 	}
 }

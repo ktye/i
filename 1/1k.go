@@ -2,8 +2,8 @@ package main
 
 import (
 	. "github.com/ktye/wg/module"
-	"strconv"
-	"strings"
+//	"strconv"
+//	"strings"
 )
 
 var tot, top, loc int32
@@ -20,6 +20,8 @@ func init() {
 	Functions(34, flp, neg, fst, rot, wer, rev, gup, gdn, grp, til, idn, not, enl, tok, cnt, las, unq, val, out, wrt) //monadic 
 	//              +    -    *    %    &    |    <    >    =    !    :    ~    ,    ^    #    _    ?    .  spc    '   /  \   (/join \split at 0 or 10?)
 	//             43   45   42   37   38  124   60   62   61   33   58  126   44   94   35   95   63   46   32   39  47  92
+
+	Export(k1, rep)
 }
 func main() {
 	k1()
@@ -42,10 +44,7 @@ func rep() int32 {
 	for ReadIn(x, 1) != 0 {
 		c1(r, w(I8(x)))
 	}
-	println("#r", n(r))
 	c1(r, 21)
-	//out(exe(r, 0))
-	//o(10)
 	return exe(r, 0)
 }
 
@@ -160,6 +159,7 @@ func mor(x, y int32) int32 { return I32B(x > y) }
 func eql(x, y int32) int32 { return I32B(x == y) }
 
 func asn(x, y int32) int32 { // a:y  (a i):y
+	//println("asn", tostring(x), tostring(y))
 	if n(x) < 0 {
 		x = v(x) - 65
 		if uint32(x) < 63 {
@@ -167,11 +167,13 @@ func asn(x, y int32) int32 { // a:y  (a i):y
 		}
 		return y
 	}
+	x = fst(x)
 	i := drp(3, x)
 	x = fs(x)
 	return asn(x, amd(val(x), i, y))
 }
 func amd(x, i, y int32) int32 { // @[x;i;y]
+	//println("amd", tostring(x), tostring(i), tostring(y))
 	x = el(x)
 	xn := n(x)
 	r := mk(xn) //amd is the only place that needs to copy
@@ -491,7 +493,6 @@ func exe(x, args int32) int32 { //parse and execute
 		a := wer(127)
 		for i := int32(0); i < n(args); i++ {
 			set(a, i+55, get(args, i)) // xyz..
-			println("setloc", a, i+55, tostring(get(args, i)))
 		}
 		loc = a
 	}
@@ -532,11 +533,11 @@ func e(x, b int32) int32 {
 
 	r = vau(e(y, b))
 	if ver(x) == 0 { // juxtaposition
-		println("jux x", tostring(x), "r", tostring(r))
+		//println("jux x", tostring(x), "r", tostring(r))
 		//x=vau(x)
 		return enl(cal(93, l2(vau(x), r)))
 	}
-	println("monadic", tostring(x), tostring(r))
+	//println("monadic", tostring(x), tostring(r))
 	if las(x) == 0 {
 		x = tak(5, x) //unmark derived
 	}
@@ -649,8 +650,9 @@ func ou(x int32) {
 		}
 	}
 }
-func o(x int32) { print(string(x)) }
+func o(x int32) { SetI8(0, x); Write(0, 0, 0, 1) }
 
+/*
 func tostring(x int32) string { //todo rm
 	if x == 0 {
 		return "null"
@@ -680,3 +682,4 @@ func tostring(x int32) string { //todo rm
 		return "(" + strings.Join(u, " ") + ")"
 	}
 }
+*/

@@ -14,11 +14,9 @@ scalar      a-y      v-y                         monadic
 = equal       lcat         = group
 ! modulo                   ! til           space matters   
 
-? cond ech2 amend indexed-assign
 63 locals 63 globals (single letter A~) no global assign
 juxtaposition: fx (atom call)      (!5)3  (vector index)
 lambda call: f(x,y) or fx y           max 7 args xyz{|}~
-
 
 
 TYPE system / representation

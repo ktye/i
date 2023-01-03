@@ -1,9 +1,13 @@
 set -e
 set -x
-wg . 1k.go > k.wat
-/c/local/wabt/wat2wasm -o k.wasm k.wat
-ls -l k.wasm
-/c/local/binaryen/wasm-opt --enable-bulk-memory -Oz k.wasm -o k.wasm
-ls -l k.wasm
-gzip k.wasm
-ls -l k.wasm.gz
+wg 1k.go|sed -e'2,5d' -e8d>k.wat
+wat2wasm                   k.wat -o 1k.wasm
+rm k.wat
+
+if [ "$1" = install ]; then
+ cp 1k.wasm                         /c/k/ktye.github.io/zoo/1k/
+ cp readme                          /c/k/ktye.github.io/zoo/1k/
+ awk -F" /" '/^ /{print $1}' readme>/c/k/ktye.github.io/zoo/1k/a
+ awk -F" /" '/^ /{print $2}' readme>/c/k/ktye.github.io/zoo/1k/b
+ rm 1k.wasm
+fi
