@@ -1,13 +1,40 @@
 set -e
 set -x
-wg 1k.go|sed -e'2,5d' -e8d>k.wat
-wat2wasm                   k.wat -o 1k.wasm
-rm k.wat
 
 if [ "$1" = install ]; then
+ wg 1k.go|sed -e'2,5d' -e8d>k.wat
+ wat2wasm                   k.wat -o 1k.wasm
+ rm k.wat
+
  cp 1k.wasm                         /c/k/ktye.github.io/zoo/1k/
  cp readme                          /c/k/ktye.github.io/zoo/1k/
  awk -F" /" '/^ /{print $1}' readme>/c/k/ktye.github.io/zoo/1k/a
  awk -F" /" '/^ /{print $2}' readme>/c/k/ktye.github.io/zoo/1k/b
  rm 1k.wasm
+fi
+
+
+# standalone wasm binary, run with e.g. wasm3, wavm, ..
+#  $wasm3    1k.wasm
+#  $wavm run 1k.wasm
+if [ "$1" = wasi ]; then    
+ cat <<' EOF'           >k.wat
+(module
+(import "wasi_unstable" "fd_read"  (func $R (param i32 i32 i32 i32) (result i32)))
+(import "wasi_unstable" "fd_write" (func $W (param i32 i32 i32 i32) (result i32)))
+ EOF
+ wg 1k.go | sed -e '1,8d' -e 's/$main/$main (export "_start")/' -e '/(func $o /q' >>k.wat
+ cat << ' EOF'          >>k.wat
+ i32.const 12 local.get 0  i32.store
+ i32.const 4  i32.const 12 i32.store
+ i32.const 8  i32.const 1  i32.store
+ i32.const 1  i32.const 4  i32.const 1 i32.const 16 call $W drop)
+(func $ReadIn (param $x i32) (param i32) (result i32)
+ i32.const 4 local.get 0 i32.store
+ i32.const 8 i32.const 1 i32.store
+ i32.const 0 i32.const 4 i32.const 1 i32.const 16 call $R drop
+ local.get 0 i32.load i32.const 10 i32.ne)
+ EOF
+ wg 1k.go | sed -e /table/p -e '1,/table/d' >> k.wat
+ wat2wasm                k.wat -o 1k.wasm
 fi
