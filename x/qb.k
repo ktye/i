@@ -1,0 +1,138 @@
+
+F:`!()                                         /function map: type to stringer
+ftyp:`!()
+ssan:0
+
+qb:{[o]opts::o
+ F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(qbprg;qbmem;qbcon;qbvar;qbtab;qbfun;qbarg;qbsym;qbres;qbloc;qbast;qblod;qbsto)
+ F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(qbadd;qband;qbbnd;qbant;qbasn;qbcal;qbcli;qbcnd;qbdfr;qbdiv;qbdrp;qbeql;qbcst)
+ F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(qbfor;qbget;qbGet;qbgte;qbjmp;qbles;qblit;qblte;qbmod;qbmor;qbmul;qbneg)
+ F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(qbneq;qbnop;qbnot;qborr;qbbor;qbxor;qbret;qbshl;qbshr;qbstm;qbsub;qbswc;qbtyp)
+
+ qbren'`main`ldexp`hypot                       /rename libm
+ i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
+ rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)':i     /rewrite cnd/swc expressions 
+ S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
+ ftyp::(S i)!qbsig'i:&T=`fun                   /function signatures "rxyz"
+ n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
+ s:{c:(0,(#x)-z)^x                             /cut args from stack
+   (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
+*s}
+
+
+hx8:{[i]"0x",`x@|C i+!8}
+em:{"(",x,")"}
+
+INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
+ins:{[i;x;y](i#x),y,i_x}
+del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
+rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)':`ret`asn}
+restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
+
+qbren:{S[&(S=x)&T':`fun`cal]:s:`$"_",$x;}
+
+nl:{$[#x:"\n"/:x;x,"\n";x]}
+nyi:{y;em x}
+
+qbtype:{,(`i`u`j`k`f!"wwlld")x}
+
+qbprg:{
+ fncs: ,/y@&`fun=T c:1_&P=0
+ cons:nl y@&`con=T c
+ vars:nl y@&`var=T c
+ runt:$[`nort':opts;"";qbrnt]
+ main:$[|/`nort`lib':opts;"";qbmain]
+ data:$[#D;"memcpy(_M,\"",("\\x","\\x"/:(#D)^`x D),"\",",($#D),");";""]
+ tabl:nl y@&`tab=T c
+ tabl:$[#tabl;"_F=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
+ mems:nl y@&`mem=T c
+ init:$[|/(#mems;#data;#tabl);nl("void init(){\n";mems;data;tabl;"}\n");""]
+ (runt;cons;vars),(,fncs),init,main}
+ 
+qbfun:{
+ $[(`main~S x)&`lib':opts; :""; 0]
+ ssan::0
+ args:", "/:y@&`arg=T c:&x=P
+ ret:$[#r:", "/:y@&`res=T c;r;""]
+ /locs:nl@{(qbtype x)," ",y}'[!g;.g:","/:'(y i)@=(S c)i:&`loc=T c]
+ defr:     *y@&`dfr=T c
+ setj:$[#defr;"if(!setjmp(_jb_)){";""]
+ body: y@*&`ast=T c
+ ,/("function ",ret;" $";$S x;"(";args;"){\n@start\n";setj;body;defr,"}\n")}
+
+qbsig:{,/(qbtype 1#S@*&(T=`res)&P=x),qbtype S@&(T=`arg)&P=x} /"rxyz"
+
+qbmem:{y;("Memory";$[`b~S x;"2";""];"(";$I x;");")}
+qbtab:{y;("_F[";$I x;"]=";$S x;";\n")}
+
+qbflts:{d:{(0=*x)_x:@[@[x;i;-;10];-1+i:&9<x:@[0,2*x;#x;+;y];+;1]};,/$d/,/+(8#2)\\256/256+|x}
+qbflt:{x:C x+!8;$[#r:qbflts x;r;"d_",$*`f x]}
+qblit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
+ y;i:I x;$[`f~t:S x;qbflt i
+           `i~t;$[0N~i;"-0x80000000";$i]
+           `u~t;$[i<0;"0x",`x@|`c@,i;$i]
+           `j~t;$[i~0;,"0";(-1~h:hi i)&0>l:lo i;$l;(h~0)&l>0;$l;hx8 i],"ll"
+           `k~t;$[i~0;,"0";(0~h:hi i)&0<l:lo i;$l;hx8 i],"ull";"???"]}
+ 
+
+qbvar:{" "/:(qbtype S 1+x;  $S x;,"=";(*y),";")}
+qbcon:{"const ",(qbtype S 1+x)," ",($S x),"=",(*y),";"}
+
+qbcst:{("(";qbtype S x;")";,"(";y 1;,")")}
+
+qbtyp:{y;qbtype S x} 
+qbres:{y;qbtype S x}
+qbloc:{y}
+qbsym:{y;"%",$S x}
+qbarg:{(qbtype S x;" ";*y)}
+
+qbstm:{,/" ",'y,\:"\n"}
+/qbstm:{`stm y; ,/y,\:"\n" }
+/qbstm:{"{\n",(";\n"/:y),"}\n"}
+qbast:qbstm
+qbget:{y;"%",$S x}
+qbGet:qbget
+qbret:{ssa["ret";,/y]}
+
+qbsiz:`b`i`j`f!`I8`I32`I64`F64
+qblod:{($qbsiz S x;"(";y 0;")")}
+qbsto:{("Set";$qbsiz S x;"(";y 0;",";y 1;")")}
+
+/todo: ftyp for builtins?
+qbcal:{t:ftyp S x; y:{x," ",y}'[1_t;y];  ("=",(*t)," call $";$S x;,"("; ", "/:y ;,")")}
+qbdrp:{$["="~**y;3_*y;*y]}
+
+qbcli:{n:I x;("((";$[#r:qbtype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))_F[";*y;"])(";  ","/:n#1_y; ")")}
+
+/qbasn:{r:(s:$S x),"=",(*|y),";\n";
+/ $[((n:3+2*#s)#r)~s,"=(",s,"+";$["+=1"~-3#r:s,"+=",(n_-3_r);s,"++";r],";\n";r]}
+qbasn:{ ("%",$S x)," ",y }
+
+/qbcnd:{$[S x; (qbnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(qbnd y 0),(qbemb qbsem y 1),$[3~#y;"else ",(qbemb qbsem y 2);""]]}
+qbcnd:{y;"cnd?"}
+
+qbnop:{y;""}
+/qbswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(qbsem'y),\:"break;\n"),"}" }
+qbswc:{y;"swc?"}
+ 
+qbfor:{$[I x;qbwhl[x;y];("for(;";qbnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
+qbwhl:{((,"do"),(,-12_y 2),(,y 1)),("}while";qbnd y 0;";\n")}
+qbjmp:{y;$[I x;"break";"continue"]}
+qbdfr:{("else{";*y;";}\n}")}
+
+qb1:{x,*z}
+qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";z 1)}
+qbneg:qb1"-"; qbnot:qb1"!"
+qbadd:qb2"add"; qbsub:qb2"sub"; qbmul:qb2"*"; qbdiv:qb2"/"; qbmod:qb2"%"
+qbeql:qb2"==";qbgte:qb2">=";qbles:qb2"<"; qblte:qb2"<=";qbmor:qb2">"; qbneq:qb2"!="
+qband:qb2"&"; qbbnd:qb2"&&";qbant:qb2"&~";qborr:qb2"|"; qbbor:qb2"||";qbxor:qb2"^"; qbshl:qb2"<<";qbshr:qb2">>"
+
+qbnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
+
+ssa:{$["%"~*y;x," ",y;t," ",y,"\n ",x," ",t:"%.",$ssan+:1]}
+
+
+/ run time
+qbrnt:""
+qbmain:""
+

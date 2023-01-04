@@ -40,6 +40,14 @@ elif [ "$1" = js ]; then
 		cmp out $j
 		rm out
 	done
+elif [ "$1" = qb ]; then
+	for x in *.k; do
+		q=`echo $x|sed 's/.k$/.q/'`
+		k $x ../qb.k -e 'x:`<qb``nort' > out
+		cmp out $q
+		rm out
+	done
+fi
 elif [ "$1" = walidate ]; then
 	for x in *.wa; do
 		/c/local/wabt/wat2wasm $x

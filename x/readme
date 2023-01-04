@@ -7,7 +7,7 @@ k k.k go.k -e 'x:`"k.go"<go`lib`k'   /generate k.go lib
 k k.k wa.k -e         '`<wa``'       /generate wasm(text)
 k k.k cc.k -e 'x:`"k.c" <cc``'       /generate k.c main
 k k.k js.k -e 'x:`"k.js"<js``'       /generate k.js; $qjs --std k.js
-next: zz wb pa qb rv ha jv x8
+next: qb zz wb pa rv ha jv x8
 
 a compiler backend implements a function per node type to transform the node into string form.
 e.g. go transforms the table to a string of go program source code:
