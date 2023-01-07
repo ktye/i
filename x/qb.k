@@ -57,8 +57,8 @@ qbfun:{
  /locs:nl@{(qbtype x)," ",y}'[!g;.g:","/:'(y i)@=(S c)i:&`loc=T c]
  defr:     *y@&`dfr=T c
  setj:$[#defr;"if(!setjmp(_jb_)){";""]
- body: y@*&`ast=T c
- ,/("function ",ret;" $";$S x;"(";args;"){\n@start\n";setj;body;defr,"}\n")}
+ body:qbfmt y@*&`ast=T c
+ ,/("function ",ret;" $";$S x;"(";args;"){\n@start\n";setj;body;defr,"\n}\n")}
 
 qbsig:{,/(qbtype 1#S@*&(T=`res)&P=x),qbtype S@&(T=`arg)&P=x} /"rxyz"
 
@@ -80,7 +80,7 @@ qbcon:{"const ",(qbtype S 1+x)," ",($S x),"=",(*y),";"}
 
 /          i:iujkf   u:iukjf   j:i     u     jkf   k:i     u     kjf   f:i u j     k     f
 qbcast:","\:",,,,dtosi,,,,,dtoui,extsw,extsw,,,dtosi,extuw,extuw,,,dtoui,s,u,sltof,ultof,"
-qbcst:{c:qbcast(5*`i`u`k`j`f?S x)+`i`u`k`j`f?S 1+x; t:**y
+qbcst:{c:qbcast(5*`i`u`k`j`f?S x)+`i`u`k`j`f?S 1+x; t:**y;
  $[""~c;y:y 1;("u"~*c)|"s"~*c;ssa["=d ",(*c),"ltof";ssa["=l ext",(*c),"w ";y]]; ssa["=",t," ",c;y]]}
 
 qbtyp:{y;qbtype S x} 
@@ -90,26 +90,25 @@ qbsym:{y;"%",$S x}
 qbarg:{(qbtype S x;" ";*y)}
 
 
-qbrev:{("\n"/:" ",/:|"\n"\:x)}
-qbstm:{,/qbrev'y}
+qbstm:{,/y}
 /qbstm:{`stm y; ,/y,\:"\n" }
 /qbstm:{"{\n",(";\n"/:y),"}\n"}
 qbast:qbstm
 qbget:{y;"%",$S x}
 qbGet:qbget
-qbret:{ssa["ret";,/y]}
+qbret:{("ret "/:ssa y 0),"\n"}
 
 qbsiz:`b`i`j`f!`I8`I32`I64`F64
 qblod:{($qbsiz S x;"(";y 0;")")}
 qbsto:{("Set";$qbsiz S x;"(";y 0;",";y 1;")")}
 
 /todo: ftyp for builtins?
-qbcal:{t:ftyp S x; y:{x," ",y}'[1_t;y];  ("=",(*t)," call $";$S x;,"("; ", "/:y ;,")")}
-qbdrp:{$["="~**y;3_*y;*y]}
+qbcal:{t:ftyp S x; y:ssa'y; a:{x," ",y 1}'[1_t;y];  (,/*'y;"?=",(*t)," call $";$S x;,"("; ", "/:a ;")\n")}
+qbdrp:{$["?="~2#*y;4_*y;*y]}
 
 qbcli:{n:I x;("((";$[#r:qbtype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))_F[";*y;"])(";  ","/:n#1_y; ")")}
 
-qbasn:{ ("%",$S x)," ",y }
+qbasn:{ ("%",($S x)," "),/ $[1=#y:"?"\:y 0;("";"=",y);y] }
 
 /qbcnd:{$[S x; (qbnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(qbnd y 0),(qbemb qbsem y 1),$[3~#y;"else ",(qbemb qbsem y 2);""]]}
 qbcnd:{y;"cnd?"}
@@ -124,7 +123,11 @@ qbjmp:{y;$[I x;"break";"continue"]}
 qbdfr:{("else{";*y;";}\n}")}
 
 qb1:{x,*z}
-qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
+/qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
+
+qb2:{z:ssa'z;(,/*'z),("?=",qbtype S y)," ",x," ",(", "/:(*1_)'z),"\n"}
+
+/qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
 qbneg:qb1"-"; qbnot:qb1"!"
 qbadd:qb2"add"; qbsub:qb2"sub"; qbmul:qb2"*"; qbdiv:qb2"/"; qbmod:qb2"%"
 qbeql:qb2"==";qbgte:qb2">=";qbles:qb2"<"; qblte:qb2"<=";qbmor:qb2">"; qbneq:qb2"!="
@@ -132,9 +135,13 @@ qband:qb2"&"; qbbnd:qb2"&&";qbant:qb2"&~";qborr:qb2"|"; qbbor:qb2"||";qbxor:qb2"
 
 qbnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 
-/ssa:{$["%"~*y;x," ",y;t," ",y,"\n ",x," ",t:"%.",$ssan+:1]}
-ssa:{$["%"~*y;x," ",y; x," ",t,"\n",(t:"%.",$ssan+:1)," ",y]}
+/qbs:{$["?"':x;`qbs \"?"\:x;("";x)]}
+/ssa:{$[#*x:qbs x;(*x;("%.",$ssan+:1),x 1);x]}
+qbs:{x; \`QBS}
 
+ssa:{$["?"':x;((r," ")/:"?"\:x; r:"%.",$ssan+:1);("";x)]}
+
+qbfmt:{"\n"/:" ",/:"\n"\:-1_x}
 
 / run time
 qbrnt:""
