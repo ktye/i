@@ -78,7 +78,10 @@ qblit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
 qbvar:{" "/:(qbtype S 1+x;  $S x;,"=";(*y),";")}
 qbcon:{"const ",(qbtype S 1+x)," ",($S x),"=",(*y),";"}
 
-qbcst:{("(";qbtype S x;")";,"(";y 1;,")")}
+/          i:iujkf   u:iukjf   j:i     u     jkf   k:i     u     kjf   f:i u j     k     f
+qbcast:","\:",,,,dtosi,,,,,dtoui,extsw,extsw,,,dtosi,extuw,extuw,,,dtoui,s,u,sltof,ultof,"
+qbcst:{c:qbcast(5*`i`u`k`j`f?S x)+`i`u`k`j`f?S 1+x; t:**y
+ $[""~c;y:y 1;("u"~*c)|"s"~*c;ssa["=d ",(*c),"ltof";ssa["=l ext",(*c),"w ";y]]; ssa["=",t," ",c;y]]}
 
 qbtyp:{y;qbtype S x} 
 qbres:{y;qbtype S x}
@@ -86,7 +89,9 @@ qbloc:{y}
 qbsym:{y;"%",$S x}
 qbarg:{(qbtype S x;" ";*y)}
 
-qbstm:{,/" ",'y,\:"\n"}
+
+qbrev:{("\n"/:" ",/:|"\n"\:x)}
+qbstm:{,/qbrev'y}
 /qbstm:{`stm y; ,/y,\:"\n" }
 /qbstm:{"{\n",(";\n"/:y),"}\n"}
 qbast:qbstm
@@ -104,8 +109,6 @@ qbdrp:{$["="~**y;3_*y;*y]}
 
 qbcli:{n:I x;("((";$[#r:qbtype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))_F[";*y;"])(";  ","/:n#1_y; ")")}
 
-/qbasn:{r:(s:$S x),"=",(*|y),";\n";
-/ $[((n:3+2*#s)#r)~s,"=(",s,"+";$["+=1"~-3#r:s,"+=",(n_-3_r);s,"++";r],";\n";r]}
 qbasn:{ ("%",$S x)," ",y }
 
 /qbcnd:{$[S x; (qbnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(qbnd y 0),(qbemb qbsem y 1),$[3~#y;"else ",(qbemb qbsem y 2);""]]}
@@ -121,7 +124,7 @@ qbjmp:{y;$[I x;"break";"continue"]}
 qbdfr:{("else{";*y;";}\n}")}
 
 qb1:{x,*z}
-qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";z 1)}
+qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
 qbneg:qb1"-"; qbnot:qb1"!"
 qbadd:qb2"add"; qbsub:qb2"sub"; qbmul:qb2"*"; qbdiv:qb2"/"; qbmod:qb2"%"
 qbeql:qb2"==";qbgte:qb2">=";qbles:qb2"<"; qblte:qb2"<=";qbmor:qb2">"; qbneq:qb2"!="
@@ -129,7 +132,8 @@ qband:qb2"&"; qbbnd:qb2"&&";qbant:qb2"&~";qborr:qb2"|"; qbbor:qb2"||";qbxor:qb2"
 
 qbnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 
-ssa:{$["%"~*y;x," ",y;t," ",y,"\n ",x," ",t:"%.",$ssan+:1]}
+/ssa:{$["%"~*y;x," ",y;t," ",y,"\n ",x," ",t:"%.",$ssan+:1]}
+ssa:{$["%"~*y;x," ",y; x," ",t,"\n",(t:"%.",$ssan+:1)," ",y]}
 
 
 / run time

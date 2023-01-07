@@ -12,7 +12,7 @@ scalar      a-y      v-y                         monadic
 < less      ? find         < up      ? uniq
 > more      . call   at    > down    . value
 = equal       lcat         = group
-! modulo                   ! til           space matters   
+! modulo                   ! til           space matters
 
 63 locals 63 globals (single letter A~) no global assign
 juxtaposition: fx (atom call)      (!5)3  (vector index)
@@ -25,14 +25,14 @@ NUMBERS(atoms) and LISTS.
 numbers are 31bit integers, lists contain atoms or lists
 
 * last bit 1: number/atom,  n is x>>1
-* otherwise:  list    x is byte index in linear memory
--  the 32bit value at x is the first element
--  the length is stored at x-4
--  0 is special, list-type but reading it's length crashes
+* otherwise:  list     x is byte index in linear memory
+- the 32bit value at x is the first element
+- the length is stored at x-4
+- 0 is a special list, reading it's length crashes
 
 ALLOCATION  is a simple bump allocator with two global
 variables top(last used addr) and tot(allocated memory).
-primitives never overwrite the input but may shallow copy.
+primitives never overwrite the input but may shallow copy
 
 LAMBDA  functions store the input in a list, e.g. "x+y"
 and evaluate (tokenzize and parse) each time when called.
@@ -40,24 +40,24 @@ and evaluate (tokenzize and parse) each time when called.
 Calling a lambda saves top and resets it afterwards.
 except for the result value, all intermediate allocations
 are gone. cheap and simple. no refcouting no gc.
-as a consequence, lambda functions cannot assign to globals
+accordingly lambda functions cannot assign to globals
 
-SCOPE  there is global and local scope (both 63 spots)
-starting at 65(A).
-the local list is created for each lambda call and zeroed.
-the ARGUMENT list is copied to the 7 last positions: x y..
-A lookup indexes the local list, if it is null it tries 
+SCOPE is global or local(both 63 spots) starting at 65/A.
+the local list is created at call time and zeroed.
+ARGUMENTS are copied into the 7 last positions: x y..
+Lookup indexes the local list, then the global list and
+returns numeric 0 if both are unset.
 the global list and returns numeric 0 if unset.
-The parent environment in a nested call is hidden.
+In a nested call, the parent environment is hidden.
 
 SPACE (32) is a primitive verb. in dyadic form it builds
-nested lists: x y  is  (,x),y       (x;y) does not exist.
+nested lists: x y  is  (,x),y      (x;y) does not exist.
 monadic-space prints. no need to detect assignments to
 prevent printing. no need for a prompt. prepend a space
 to see the result otherwise silcence.
 
-NO ERRORS means every case is implemented and no need for
-error types, recovery mechanism and error indication.
+NO ERRORS means every case is implemented and no need
+for error types, recovery mechanism and error indication.
 
 DISPATCH  1k has a function table with 53 entries.
 SCALAR functions implement the scalar case only
@@ -74,23 +74,24 @@ with two arguments, as one is the function there
 is only a monadic form for the derived verb.
 
 TOKENIZATION  takes a flat list of numbers and returns
-a list that may have some values enlisted. e.g. ascii input
-(49 50 51) is recognized as a number, computed and enlisted
-(,123). ".." creates a list verbatim with no escape chars.
+a list that may have some values enlisted. e.g. ascii
+input (49 50 51) is recognized as a number, computed and
+enlisted.
+(,123). ".." creates a list verbatim with no escapes.
 `quotes(enlists) the next value.
-values below 32 are ignored and everything else copied as is.
+values below 32 are ignored and everything is copied.
 
-PROBLEMS  the simplified type system doesn't know if "x+y" is
-code or data. it is just a list of numbers.
+PROBLEMS  the simplified type system doesn't know if
+"x+y" is code or data. it is just a list of numbers.
 consequentially k's call/index duality does not work.
-One way to solve that is to use two different primitives,
+One way to solve that is to use two different primitives
 e.g.  . and @  but that's not nice.
-1k uses . or juxtaposition for both and dispatches on the
-left argument: atoms are called, lists are indexed.
-That means for a function f:"3*x" the call f.5 or f5 indexes
-as f is already resolved. it needs to be quoted as `f5
-or 102(5) or 102.5 or (*"f")5
-call: `fx  `f(x)  `gx y                       index: x0  x(1)
+1k uses . or juxtaposition for both and dispatches on
+the left argument: atoms are called, lists are indexed.
+That means for a function f:"3*x" the call f.5 or f5
+indexes as f is already resolved. it needs to be quoted
+as `f5 or 102(5) or 102.5 or (*"f")5
+call: `fx  `f(x)  `gx y                   index: x0  x(1)
 
 
 (`f `g)x>3
