@@ -78,10 +78,11 @@ qblit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
 qbvar:{" "/:(qbtype S 1+x;  $S x;,"=";(*y),";")}
 qbcon:{"const ",(qbtype S 1+x)," ",($S x),"=",(*y),";"}
 
-/          i:iujkf   u:iukjf   j:i     u     jkf   k:i     u     kjf   f:i u j     k     f
+/          i:iujkf   u:iujkf   j:i     u     jkf   k:i     u     jkf   f:i u j     k     f
 qbcast:","\:",,,,dtosi,,,,,dtoui,extsw,extsw,,,dtosi,extuw,extuw,,,dtoui,s,u,sltof,ultof,"
-qbcst:{c:qbcast(5*`i`u`k`j`f?S x)+`i`u`k`j`f?S 1+x; t:**y;
- $[""~c;y:y 1;("u"~*c)|"s"~*c;ssa["=d ",(*c),"ltof";ssa["=l ext",(*c),"w ";y]]; ssa["=",t," ",c;y]]}
+qbcst:{c:qbcast(5*`i`u`j`k`f?S x)+`i`u`j`k`f?S 1+x; t:qbtype S x
+ $[""~c;y:y 1;("u"~*c)|"s"~*c;ssa1["d ",(*c),"ltof";ssa1["l ext",(*c),"w";y 1]];ssa1[t," ",c;y 1]]}
+
 
 qbtyp:{y;qbtype S x} 
 qbres:{y;qbtype S x}
@@ -91,8 +92,6 @@ qbarg:{(qbtype S x;" ";*y)}
 
 
 qbstm:{,/y}
-/qbstm:{`stm y; ,/y,\:"\n" }
-/qbstm:{"{\n",(";\n"/:y),"}\n"}
 qbast:qbstm
 qbget:{y;"%",$S x}
 qbGet:qbget
@@ -140,6 +139,7 @@ qbnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 qbs:{x; \`QBS}
 
 ssa:{$["?"':x;((r," ")/:"?"\:x; r:"%.",$ssan+:1);("";x)]}
+ssa1:{ (("?=",x," ")/:ssa y),"\n" }
 
 qbfmt:{"\n"/:" ",/:"\n"\:-1_x}
 

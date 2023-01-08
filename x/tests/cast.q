@@ -1,7 +1,7 @@
 function l $f(w %x){
 @start
  %.1 =l extsw %x
- ret %x
+ ret %.1
 }
 function w $g(l %x){
 @start
@@ -9,19 +9,20 @@ function w $g(l %x){
 }
 function d $h(w %x){
 @start
- %.1 =d sltof %x
- ret %.1
+ %.1 =l extsw %x
+ %.2 =d sltof %.1
+ ret %.2
 }
 function w $i(d %x){
 @start
  %.1 =w dtosi %x
- return %.1
+ ret %.1
 }
 function w $j(w %x){
 @start
- return %x
+ ret %x
 }
 function w $k(w %x){
 @start
- return %x
+ ret %x
 }
