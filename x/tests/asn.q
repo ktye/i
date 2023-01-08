@@ -5,7 +5,7 @@ function w $f(w %x){
 }
 function w $h(w %x){
 @start
- call $f(w %x)
+ %.1 =w call $f(w %x)
  %r =w call $f(w %x)
  ret %r
 }

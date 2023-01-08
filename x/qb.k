@@ -103,7 +103,7 @@ qbsto:{("Set";$qbsiz S x;"(";y 0;",";y 1;")")}
 
 /todo: ftyp for builtins?
 qbcal:{t:ftyp S x; y:ssa'y; a:{x," ",y 1}'[1_t;y];  (,/*'y;"?=",(*t)," call $";$S x;,"("; ", "/:a ;")\n")}
-qbdrp:{$["?="~2#*y;4_*y;*y]}
+qbdrp:{*ssa@*y}
 
 qbcli:{n:I x;("((";$[#r:qbtype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))_F[";*y;"])(";  ","/:n#1_y; ")")}
 
