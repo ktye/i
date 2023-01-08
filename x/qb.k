@@ -31,6 +31,7 @@ restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
 
 qbren:{S[&(S=x)&T':`fun`cal]:s:`$"_",$x;}
 
+NL:{x,"\n"}
 nl:{$[#x:"\n"/:x;x,"\n";x]}
 nyi:{y;em x}
 
@@ -102,10 +103,10 @@ qblod:{($qbsiz S x;"(";y 0;")")}
 qbsto:{("Set";$qbsiz S x;"(";y 0;",";y 1;")")}
 
 /todo: ftyp for builtins?
-qbcal:{t:ftyp S x; y:ssa'y; a:{x," ",y 1}'[1_t;y];  (,/*'y;"?=",(*t)," call $";$S x;,"("; ", "/:a ;")\n")}
 qbdrp:{*ssa@*y}
-
-qbcli:{n:I x;("((";$[#r:qbtype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))_F[";*y;"])(";  ","/:n#1_y; ")")}
+qbcl:{[f;rt;at;y] y:ssa'y; a:{x," ",y 1}'[at;y];  (,/*'y;"?=",rt," call ";f;,"("; ", "/:a ;")\n")}
+qbcal:{qbcl["$",$S x;*t;1_t:ftyp S x;y]}
+qbcli:{a:ssa@"?=l loadl "/:ssa NL@"?=l add %_F, "/:ssa NL@"?=l mul 8, "/:ssa y 0; n:I x;  (*a),"\n",qbcl[*|a;qbtype S x;(1+n)_*'y;n#1_y]}
 
 qbasn:{ ("%",($S x)," "),/ $[1=#y:"?"\:y 0;("";"=",y);y] }
 
