@@ -40,8 +40,7 @@ qbtype:{,(`i`u`j`k`f!"wwlld")x}
 
 qbprg:{
  fncs: ,/y@&`fun=T c:1_&P=0
- cons:nl y@&`con=T c
- vars:nl y@&`var=T c
+ cons:nl y@&(`con=T c)|`var=T c
  runt:$[`nort':opts;"";qbrnt]
  main:$[|/`nort`lib':opts;"";qbmain]
  data:$[#D;"memcpy(_M,\"",("\\x","\\x"/:(#D)^`x D),"\",",($#D),");";""]
@@ -49,7 +48,7 @@ qbprg:{
  tabl:$[#tabl;"_F=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
  mems:nl y@&`mem=T c
  init:$[|/(#mems;#data;#tabl);nl("void init(){\n";mems;data;tabl;"}\n");""]
- (runt;cons;vars),(,fncs),init,main}
+ (runt;cons),(,fncs),init,main}
  
 qbfun:{
  $[(`main~S x)&`lib':opts; :""; 0]
@@ -69,16 +68,11 @@ qbtab:{y;("_F[";$I x;"]=";$S x;";\n")}
 
 qbflts:{d:{(0=*x)_x:@[@[x;i;-;10];-1+i:&9<x:@[0,2*x;#x;+;y];+;1]};,/$d/,/+(8#2)\\256/256+|x}
 qbflt:{x:C x+!8;$[#r:qbflts x;r;"d_",$*`f x]}
-qblit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
- y;i:I x;$[`f~t:S x;qbflt i
-           `i~t;$[0N~i;"-0x80000000";$i]
-           `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-           `j~t;$[i~0;,"0";(-1~h:hi i)&0>l:lo i;$l;(h~0)&l>0;$l;hx8 i],"ll"
-           `k~t;$[i~0;,"0";(0~h:hi i)&0<l:lo i;$l;hx8 i],"ull";"???"]}
+qblit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4};y;i:I x
+ $[`f~t:S x;qbflt i;(`u~t)|`i~t;$[0N~i;"2147483648";$i];i~0;"0";qbflts C i+!8]}
  
 
-qbvar:{" "/:(qbtype S 1+x;  $S x;,"=";(*y),";")}
-qbcon:{"const ",(qbtype S 1+x)," ",($S x),"=",(*y),";"}
+qbvar:qbcon:{"data $",($S x)," = { ",(qbtype S 1+x)," ",(*y)," }"}
 
 /          i:iujkf   u:iujkf   j:i     u     jkf   k:i     u     jkf   f:i u j     k     f
 qbcast:","\:",,,,dtosi,,,,,dtoui,extsw,extsw,,,dtosi,extuw,extuw,,,dtoui,s,u,sltof,ultof,"
