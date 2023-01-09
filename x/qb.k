@@ -1,7 +1,7 @@
 
 F:`!()                                         /function map: type to stringer
 ftyp:`!()
-ssan:0
+ssan:ssl:0
 
 qb:{[o]opts::o
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(qbprg;qbmem;qbcon;qbvar;qbtab;qbfun;qbarg;qbsym;qbres;qbloc;qbast;qblod;qbsto)
@@ -11,7 +11,7 @@ qb:{[o]opts::o
 
  qbren'`main`ldexp`hypot                       /rename libm
  i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
- rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)':i     /rewrite cnd/swc expressions 
+ rwcnd'|&(~`=S)&(T=`cnd)|T=`swc                /rewrite cnd/swc expressions 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  ftyp::(S i)!qbsig'i:&T=`fun                   /function signatures "rxyz"
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
@@ -28,6 +28,7 @@ ins:{[i;x;y](i#x),y,i_x}
 del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
 rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)':`ret`asn}
 restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
+
 
 qbren:{S[&(S=x)&T':`fun`cal]:s:`$"_",$x;}
 
@@ -52,7 +53,7 @@ qbprg:{
  
 qbfun:{
  $[(`main~S x)&`lib':opts; :""; 0]
- ssan::0
+ ssan::ssl::0
  args:", "/:y@&`arg=T c:&x=P
  ret:$[#r:", "/:y@&`res=T c;r;""]
  /locs:nl@{(qbtype x)," ",y}'[!g;.g:","/:'(y i)@=(S c)i:&`loc=T c]
@@ -110,8 +111,8 @@ qbcli:{a:ssa@"?=l loadl "/:ssa NL@"?=l add %_F, "/:ssa NL@"?=l mul 8, "/:ssa y 0
 
 qbasn:{ ("%",($S x)," "),/ $[1=#y:"?"\:y 0;("";"=",y);y] }
 
-/qbcnd:{$[S x; (qbnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(qbnd y 0),(qbemb qbsem y 1),$[3~#y;"else ",(qbemb qbsem y 2);""]]}
-qbcnd:{y;"cnd?"}
+qbcnd:{l:$ssl+:1;
+ ("jnz "/:ssa@*y),", @i",l,", @e",l,"\n@i",l,"\n",(y 1),$[3~#y;"\n"/:("jmp @f",l;"@e",l;(y 2),"@f",l);"@e",l],"\n"}
 
 qbnop:{y;""}
 /qbswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(qbsem'y),\:"break;\n"),"}" }
@@ -126,11 +127,14 @@ qb1:{x,*z}
 /qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
 
 qb2:{z:ssa'z;(,/*'z),("?=",qbtype S y)," ",x," ",(", "/:(*1_)'z),"\n"}
+qbc:{z:ssa'z;(,/*'z),"?=w ",("su"@(S y)':`u`k),x," ",(", "/:(*1_)'z),"\n"}
+
+qbneg:{ NL@("?=",(qbtype S x)," sub 0, ")/:ssa y 0 }
 
 /qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
-qbneg:qb1"-"; qbnot:qb1"!"
-qbadd:qb2"add"; qbsub:qb2"sub"; qbmul:qb2"*"; qbdiv:qb2"/"; qbmod:qb2"%"
-qbeql:qb2"==";qbgte:qb2">=";qbles:qb2"<"; qblte:qb2"<=";qbmor:qb2">"; qbneq:qb2"!="
+qbnot:qb1"!"
+qbadd:qb2"add"; qbsub:qb2"sub"; qbmul:qb2"mul"; qbdiv:qb2"div"; qbmod:qb2"rem"
+qbeql:qb2"eq";qbgte:qbc"ge";qbles:qbc"lt"; qblte:qbc"le";qbmor:qbc"gt"; qbneq:qb2"ne"
 qband:qb2"&"; qbbnd:qb2"&&";qbant:qb2"&~";qborr:qb2"|"; qbbor:qb2"||";qbxor:qb2"^"; qbshl:qb2"<<";qbshr:qb2">>"
 
 qbnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
