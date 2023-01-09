@@ -43,7 +43,7 @@ for(let i=0;i<examples.length;i++){
 }
 let h=decodeURIComponent(window.location.hash.slice(1)).split(" ") //e.g. #go asn
 if(h.length){
- ge("target").selectedIndex=Math.max(0,["help","go","wa","cc","js"].indexOf(h[0]))
+ ge("target").selectedIndex=Math.max(0,["help","go","wa","cc","js","qb"].indexOf(h[0]))
  sel.selectedIndex=Math.max(0,examples.indexOf(h[1]))
 }else sel.selectedIndex=0
 sel.onchange=function(e){setinput(examples[e.target.selectedIndex])}
