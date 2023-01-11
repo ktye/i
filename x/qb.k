@@ -55,12 +55,13 @@ qbprg:{
  gtyp::(S i)!(S 1+i)
  runt:$[`nort':opts;"";qbrnt]
  main:$[|/`nort`lib':opts;"";qbmain]
- data:$[#D;"memcpy(_M,\"",("\\x","\\x"/:(#D)^`x D),"\",",($#D),");";""]
+ data:$[#D;"%t =l call memcpy(%_M, $data0, ",($#D), ")\n";""]
+ dat0:$[#D;"data $data0 = { b ",("\"\\x","\\x"/:(#D)^`x D),"\" }\n";""]
  tabl:nl y@&`tab=T c
  tabl:$[#tabl;"_F=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
  mems:nl y@&`mem=T c
- init:$[|/(#mems;#data;#tabl);nl("void init(){\n";mems;data;tabl;"}\n");""]
- (runt;cons),(,fncs),init,main}
+ init:$[|/(#mems;#data;#tabl);nl("function init(){\n@start\n";mems;data;tabl;,"}");""]
+ (runt;cons;dat0),(,fncs),init,main}
  
 qbfun:{
  $[(`main~S x)&`lib':opts; :""; 0]
