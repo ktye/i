@@ -104,12 +104,12 @@ qbGet:qbget
 qbret:{("ret "/:ssa y 0),"\n"}
 
 qbsiz:`b`i`j`f!`I8`I32`I64`F64
-qblod:{($qbsiz S x;"(";y 0;")")}
-qbsto:{("Set";$qbsiz S x;"(";y 0;",";y 1;")")}
+qblod:{("?=";(`b`i`j`f!"wwlf")S x;" call ";$qbsiz S x;,"(";y 0;")\n")}
+qbsto:{y:ssa'y;(,/*'y),"call $Set",($qbsiz S x),"(",(", "/:y[;1]),")\n"}
 
 /todo: ftyp for builtins?
 qbdrp:{*ssa@*y}
-qbcl:{[f;rt;at;y] y:ssa'y; a:{x," ",y 1}'[at;y];  (,/*'y;"?=",rt," call ";f;,"("; ", "/:a ;")\n")}
+qbcl:{[f;rt;at;y] y:ssa'y; a:{x," ",y 1}'[at;y];  (,/*'y;$[" "~rt;"call ";"?=",rt," call "];f;,"("; ", "/:a ;")\n")}
 qbcal:{qbcl["$",$S x;*t;1_t:ftyp S x;y]}
 qbcli:{a:ssa@"?=l loadl "/:ssa NL@"?=l add %_F, "/:ssa NL@"?=l mul 8, "/:ssa y 0; n:I x;  (*a),"\n",qbcl[*|a;qbtype S x;(1+n)_*'y;n#1_y]}
 
