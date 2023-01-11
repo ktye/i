@@ -2,6 +2,8 @@
 (memory (export "memory") 1)
 (func $f (local $n i32) (local $i i32)
  i32.const 0
+ local.set $n
+ i32.const 0
  local.set $i
  block
   loop

@@ -12,15 +12,16 @@ qb:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(qbfor;qbget;qbGet;qbgte;qbjmp;qbles;qblit;qblte;qbmod;qbmor;qbmul;qbneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(qbneq;qbnop;qbnot;qborr;qbbor;qbxor;qbret;qbshl;qbshr;qbstm;qbsub;qbswc;qbtyp)
 
+ T::@[T;i@&(1=I j)&`for=T j:P P i:i@&`jmp=T i:lp P;`nop] /delete continue in simple loop
  qbren'`main`ldexp`hypot                       /rename libm
  /i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
  rwcnd'|&(~`=S)&(T=`cnd)|T=`swc                /rewrite cnd/swc expressions 
- S[i]:`$"f",/:$ i@&`=S i:&T=`for               /label foor loops
+ S[i]:`$"f",/:$i:i@&`=S i:&T=`for              /label for loops
  rwlab'i@&`=S i:&T=`jmp                        /set jmp labels
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  ftyp::(S i)!qbsig'i:&T=`fun                   /function signatures "rxyz"
  ifun::-1+\T=`fun                              /function index for each node
- ltyp::(!g)!((S i)@.g)!'(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
+ ltyp::(!g)!((S 1+i)@.g)!'(S i)@.g:=ifun i:&(T=`arg)|T=`loc
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
@@ -28,6 +29,7 @@ qb:{[o]opts::o
 
 
 hx8:{[i]"0x",`x@|C i+!8}
+lp:{(~~)#@[&#x;x i;i:!#x]}
 em:{"(",x,")"}
 
 INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
@@ -126,7 +128,6 @@ qbswc:{y;"swc?"}
 qbdfr:{("else{";*y;";}\n}")}
 
 
-/qbfor:{ \y; l:"@",($S x);l,"\n",$[#*y; ("jnz "/:ssa y 0),", ",lc,", ",(l,"e"),"\n",(lc:l,"c"),"\n";""],(y 1),(y 2),"jmp ",l,"\n",l,"e\n" }
 qbfor:{l:"@",($S x);le:l,"e"; l,"\n",$[#*y; ("jnz "/:ssa y 0),", ",lc,", ",le,"\n",(lc:l,"c"),"\n";""],(y 2),(y 1),"jmp ",l,"\n",le,"\n"}
 qbjmp:{y;"jmp @",($S x),(" e"I x),"\n"}
 

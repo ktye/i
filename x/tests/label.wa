@@ -1,6 +1,8 @@
 (module
 (memory (export "memory") 1)
 (func $f (local $i i32)
+ i32.const 0
+ local.set $i
  block $L1
   loop $L0
    local.get $i
@@ -16,6 +18,8 @@
   end
  end)
 (func $g (local $i i32)
+ i32.const 0
+ local.set $i
  block
   loop
    local.get $i
