@@ -13,10 +13,20 @@
    call $f
    br 1
   end
-  i32.const 1
   local.get $x
-  call $f
-  i32.add
+  i32.const 5
+  i32.gt_s
+  if (result i32)
+   local.get $x
+   i32.const 3
+   i32.sub
+  else
+   local.get $x
+   i32.const 2
+   i32.sub
+  end
+  global.set $r
+  local.get $r
   br 0
  end
  global.set $r

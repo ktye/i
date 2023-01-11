@@ -1,6 +1,9 @@
 
 F:`!()                                         /function map: type to stringer
 ftyp:`!()
+gtyp:`!()
+ifun:&#T                                       /function index per node
+ltyp:0                                         /ifun!name!type
 ssan:ssl:0
 
 qb:{[o]opts::o
@@ -10,10 +13,14 @@ qb:{[o]opts::o
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(qbneq;qbnop;qbnot;qborr;qbbor;qbxor;qbret;qbshl;qbshr;qbstm;qbsub;qbswc;qbtyp)
 
  qbren'`main`ldexp`hypot                       /rename libm
- i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
+ /i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
  rwcnd'|&(~`=S)&(T=`cnd)|T=`swc                /rewrite cnd/swc expressions 
+ S[i]:`$"f",/:$ i@&`=S i:&T=`for               /label foor loops
+ rwlab'i@&`=S i:&T=`jmp                        /set jmp labels
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  ftyp::(S i)!qbsig'i:&T=`fun                   /function signatures "rxyz"
+ ifun::-1+\T=`fun                              /function index for each node
+ ltyp::(!g)!((S i)@.g)!'(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
@@ -29,8 +36,10 @@ del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
 rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)':`ret`asn}
 restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
 
-
 qbren:{S[&(S=x)&T':`fun`cal]:s:`$"_",$x;}
+
+rwlab:{ S[x]:S@{$[`for~T x;x;P x]}/:x }
+
 
 NL:{x,"\n"}
 nl:{$[#x:"\n"/:x;x,"\n";x]}
@@ -40,7 +49,8 @@ qbtype:{,(`i`u`j`k`f!"wwlld")x}
 
 qbprg:{
  fncs: ,/y@&`fun=T c:1_&P=0
- cons:nl y@&(`con=T c)|`var=T c
+ cons:nl y i:&(`con=T c)|`var=T c
+ gtyp::(S i)!(S 1+i)
  runt:$[`nort':opts;"";qbrnt]
  main:$[|/`nort`lib':opts;"";qbmain]
  data:$[#D;"memcpy(_M,\"",("\\x","\\x"/:(#D)^`x D),"\",",($#D),");";""]
@@ -103,7 +113,8 @@ qbcl:{[f;rt;at;y] y:ssa'y; a:{x," ",y 1}'[at;y];  (,/*'y;"?=",rt," call ";f;,"("
 qbcal:{qbcl["$",$S x;*t;1_t:ftyp S x;y]}
 qbcli:{a:ssa@"?=l loadl "/:ssa NL@"?=l add %_F, "/:ssa NL@"?=l mul 8, "/:ssa y 0; n:I x;  (*a),"\n",qbcl[*|a;qbtype S x;(1+n)_*'y;n#1_y]}
 
-qbasn:{ ("%",($S x)," "),/ $[1=#y:"?"\:y 0;("";"=",y);y] }
+qbasn:{ ("%",($S x)," "),/ $[1=#y:"?"\:y 0;("";"=",$[I x;gtyp S x;qbltyp x]," copy ",y,"\n");y] }
+qbltyp:{qbtype(ltyp ifun x)S x}
 
 qbcnd:{l:$ssl+:1;
  ("jnz "/:ssa@*y),", @i",l,", @e",l,"\n@i",l,"\n",(y 1),$[3~#y;"\n"/:("jmp @f",l;"@e",l;(y 2),"@f",l);"@e",l],"\n"}
@@ -112,10 +123,12 @@ qbnop:{y;""}
 /qbswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(qbsem'y),\:"break;\n"),"}" }
 qbswc:{y;"swc?"}
  
-qbfor:{$[I x;qbwhl[x;y];("for(;";qbnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
-qbwhl:{((,"do"),(,-12_y 2),(,y 1)),("}while";qbnd y 0;";\n")}
-qbjmp:{y;$[I x;"break";"continue"]}
 qbdfr:{("else{";*y;";}\n}")}
+
+
+/qbfor:{ \y; l:"@",($S x);l,"\n",$[#*y; ("jnz "/:ssa y 0),", ",lc,", ",(l,"e"),"\n",(lc:l,"c"),"\n";""],(y 1),(y 2),"jmp ",l,"\n",l,"e\n" }
+qbfor:{l:"@",($S x);le:l,"e"; l,"\n",$[#*y; ("jnz "/:ssa y 0),", ",lc,", ",le,"\n",(lc:l,"c"),"\n";""],(y 2),(y 1),"jmp ",l,"\n",le,"\n"}
+qbjmp:{y;"jmp @",($S x),(" e"I x),"\n"}
 
 qb1:{x,*z}
 /qb2:{z;" "/:("=",(qbtype S y);x;(z 0),",";(z 1),"\n")}
