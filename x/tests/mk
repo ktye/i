@@ -26,6 +26,10 @@ elif [ "$1" = wa ]; then
 		cmp out $w
 		rm out
 	done
+elif [ "$1" = wb ]; then
+	for x in *.k; do
+		k $x ../wb.k -e 'x:`<wb``nort'
+	done
 elif [ "$1" = cc ]; then
 	for x in *.k; do
 		c=`echo $x | sed 's/.k$/.c/'`
