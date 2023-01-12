@@ -2,7 +2,7 @@ set -e
 set -x
 
 #go install /c/k/wg/cmd/wg
-wg -k .. > k.k
+#wg -k .. > k.k
 
 if [ "$1" = "go" ]; then
  k k.k go.k -e 'x:`<go`pkg`k' > kg.go
@@ -30,6 +30,8 @@ elif [ "$1" = "jstest" ]; then
 elif [ "$1" = "libjs" ]; then
  k k.k js.k -e 'x:`<js``lib' > kj.js
  mv kj.js /c/k/ktye.github.io/kj.js
+elif [ "$1" = "qb" ];then
+ k k.k qb.k -e 'x:`<qb``' > k.q
 else
  exit 1
 fi

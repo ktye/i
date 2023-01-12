@@ -20,6 +20,7 @@ qb:{[o]opts::o
  rwlab'i@&`=S i:&T=`jmp                        /set jmp labels
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
  ftyp::(S i)!qbsig'i:&T=`fun                   /function signatures "rxyz"
+ ftyp::ftyp,deftyp
  ifun::-1+\T=`fun                              /function index for each node
  ltyp::(!g)!((S 1+i)@.g)!'(S i)@.g:=ifun i:&(T=`arg)|T=`loc
  n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
@@ -80,7 +81,7 @@ qbtab:{y;"%fi =l add %_F, ",($8*I x),"\nstorel $",($S x),", %fi\n"}
 qbflts:{d:{(0=*x)_x:@[@[x;i;-;10];-1+i:&9<x:@[0,2*x;#x;+;y];+;1]};,/$d/,/+(8#2)\\256/256+|x}
 qbflt:{x:C x+!8;$[#r:qbflts x;r;"d_",$*`f x]}
 qblit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4};y;i:I x
- $[`f~t:S x;qbflt i;(`u~t)|`i~t;$[0N~i;"2147483648";$i];i~0;"0";qbflts C i+!8]}
+ $[`f~t:S x;qbflt i;(`u~t)|`i~t;$[0N~i;"2147483648";$i];i~0;,"0";qbflts C i+!8]}
 
 qbvar:qbcon:{"data $",($S x)," = { ",(qbtype S 1+x)," ",(*y)," }"}
 
@@ -110,7 +111,7 @@ qbsto:{y:ssa'y;(,/*'y),"call $Set",($qbsiz S x),"(",(", "/:y[;1]),")\n"}
 /todo: ftyp for builtins?
 qbdrp:{*ssa@*y}
 qbcl:{[f;rt;at;y] y:ssa'y; a:{x," ",y 1}'[at;y];  (,/*'y;$[" "~rt;"call ";"?=",rt," call "];f;,"("; ", "/:a ;")\n")}
-qbcal:{qbcl["$",$S x;*t;1_t:ftyp S x;y]}
+qbcal:{$[`I32B~S x;*y;qbcl["$",$S x;*t;1_t:ftyp S x;y]]}
 qbcli:{a:ssa@"?=l loadl "/:ssa NL@"?=l add %_F, "/:ssa NL@"?=l mul 8, "/:ssa y 0; n:I x;  (*a),"\n",qbcl[*|a;qbtype S x;(1+n)_*'y;n#1_y]}
 
 qbasn:{ ("%",($S x)," "),/ $[1=#y:"?"\:y 0;("";"=",$[I x;gtyp S x;qbltyp x]," copy ",y,"\n");y] }
@@ -144,6 +145,13 @@ ssa:{$["?"':x;((r," ")/:"?"\:x; r:"%.",$ssan+:1);("";x)]}
 ssa1:{ (("?=",x," ")/:ssa y),"\n" }
 
 qbfmt:{"\n"/:" ",/:"\n"\:-1_x}
+
+deftyp:`Memorycopy`Memorycopy2`Memorycopy3`Memoryfill!4#," www"
+deftyp,:`Memorysize`Memorysize2`Memorygrow`Memorygrow2`Exit!(,"w";,"w";"ww";"ww";" w")
+deftyp,:`F64abs`F64sqrt`F64ceil`F64floor`F64nearest!5#,"ff"
+deftyp,:`F64min`F64max`F64copysign!3#,"fff"
+deftyp,:`"F64reinterpret_i64"`"I64reinterpret_f64"`I32clz`Native`panic!("fl";"lf";"ww";"lll";" w")
+deftyp,:`Args`Arg`Read`Write`ReadIn!1 3 4 5 3#'"w"
 
 / run time
 qbrnt:""
