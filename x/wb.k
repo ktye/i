@@ -2,12 +2,22 @@
 F:`!()
 hx8:{[i]"0x",`x@|C i+!8}
 lp:{(~~)#@[&#x;x i;i:!#x]}
+ifun:&#T                                       /function index per node
+locs:0                                         /ifun!names
+fsig:`!()
+sigs:()
 
 wb:{[o]opts::o
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(wbprg;wbmem;wbcon;wbvar;wbtab;wbfun;wbarg;wbsym;wbres;wbloc;wbast;wblod;wbsto)
  F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(wbadd;wband;wbbnd;wbant;wbasn;wbcal;wbcli;wbcnd;wbdfr;wbdiv;wbdrp;wbeql;wbcst)
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wbfor;wbget;wbGet;wbgte;wbjmp;wbles;wblit;wblte;wbmod;wbmor;wbmul;wbneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(wbneq;wbnop;wbnot;wborr;wbbor;wbxor;wbret;wbshl;wbshr;wbstm;wbsub;wbswc;wbtyp)
+ 
+ ifun::-1+\T=`fun                              /function index for each node
+ locs::(!g)!(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
+ g:=f:S P i@:&`fun=T P i:&(T=`arg)|T=`res
+ fsig::(S i)g:f!g f:?f
+ sigs::?.fsig
  
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]
  n:(&#P){x[y]+:1}/P;n[0]-:1;
@@ -17,8 +27,10 @@ wb:{[o]opts::o
 
 
 wbprg:{
+ s:{(_x),(leb@#y),y} /0(custom) 1(type) 2(import) 3(func) 4(table) 5(mem) 6(global) 7(export) 8(start) 9(element) 10(code) 11(data) 12(data count)
  c:1_&P=0
- fncs:"\n"/:y@&`fun=T c
+ fncs:s[10;(leb@#f),/f:y@&fn:`fun=T c]
+ fnsg:s[3;(leb@#f),/leb'sigs?fsig S fn]
  cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
  sysi:$[`nort':opts;"";wbsys]
@@ -26,21 +38,30 @@ wbprg:{
  tabd:$[0<i:1+|/I c t:&`tab=T c;"(table (export \"table\") ",($i)," funcref)";""]
  tabl:wbtbl y t
  mems:"(memory (export \"memory\") 1)"
- "\n"/:(""~/:)_("(module",sysi;mems;cons;vars;data;fncs;tabd;tabl;")\n")}
+ /"\n"/:(""~/:)_("(module",sysi;mems;cons;vars;data;fncs;tabd;tabl;")\n")} 
+ typs:s[1;(leb@#t),/t:wbsig'.fsig]
  
+ 0x0061736d01000000,typs,fnsg,fncs}
+
+wbsig:{0x60,((leb@#a),/wbtype a:-1_x),$[`~r:*|x;_0;(_1),wbtype r]} //wbsig args, ret
+
+
 wbdat:{,/@["\\",/:256^`x@_!256;0+wbc;wbc:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 wbmem:{y;""}
 wbcon:{"(global $",($S x)," ",(wbtype S 1+x)," (",(*y),"))"}
 wbvar:{"(global $",($S x)," (mut ",(wbtype S 1+x),") (",(*y),"))"}
 wbtab:{y;(I x;S x)}
 wbtbl:{"\n"/:{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/:'"$",''$(i:&~1=-':*x)^(x:+x)1]}
+
 wbfun:{s:$S x
  args:" "/:y@&`arg=T c:&x=P
  rets:" "/:y@&`res=T c
- locs:" "/:y@&`loc=T c
+ locs:(leb@#l),,/l:{(leb@#x),wbtype@*x}'(&~`x~':l)^l:S@&`loc=T c
  body:    y@*&`ast=T c
  expo:$[I x;"(export \"",s,"\")";""]
- (" "/:(""~/:)_("(func";"$",s;expo;args;rets;locs)),"\n",wbfmt[body],")"}
+ /expo;args;rets;locs
+ (leb@#r),r:locs,((- 0x0f~*|body)_body),0x0b}
+ 
 wbarg:{" "/:(""~/:)_("(param";(y 0);(wbtype S x),")")}
 wbsym:{y;"$",$S x}
 wbres:{y;"(result ",(wbtype S x),")"}
@@ -52,7 +73,7 @@ wbsto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(wbtype s),".store"]}
 wbant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:wbtype S x),".and"}
 wbasn:{ y,("\nlocal.set $";"\nglobal.set $")[I x],$S x }
 
-wbcal:{$[`panic~s:S x;"unreachable";("\n"/:y),"\n",$[#c:wbinst s;c;"call $",$s]]}
+wbcal:{$[`panic~s:S x;_!0;(,/y),$[#c:wbinst s;c;0x10,leb@(!`fsig \fsig)? \s]]}
 
 wbcli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect "," "/:((1+I x)_y),$[S x;,"(result ",(wbtype S x),")";()]}
 wbdfr:{y;""}
@@ -62,21 +83,18 @@ wbfor:{$[I x;wbslp[x;y];wblop[x;y]]}
 wbslp:{"\n"/:("loop";-5_"\n"/:2_y;y 1;*y;"br_if 0\nend")}
 wblop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
  "\n"/:bl,($[#*y;(*y),"\ni32.eqz\nbr_if 1";""]; "\n"/:2_y;y 1;"br 0\nend\nend")}
-wbget:{y;"local.get $",$S x}
+wbget:{y; 0x20,leb(locs ifun x)?S x}
 wbGet:{y;"global.get $",$S x}
 wbjmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 
 wbflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don't roundtrip
 wbflt:{x:C x+!8;$[#r:wbflts x;r;$*`f x]}
-wblit:{y;i:I x;(wbtype t),".const ",$[`f~t:S x;wbflt i
-                 `i~t;$[0N~i;"-2147483648";$i]
-                 `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-		 $[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]]}
+wblit:{y;i:I x;((`i`u`k`j`f!0x4141424247)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
 
 wbneg:{$[`f~t:S x;(*y),"\nf64.neg";"\n"/:(t,".const 0";(*y);(t:wbtype t),".sub")]}
 wbnot:{(*y),"\ni32.eqz"}
 wbnop:{y;""}
-wbret:{("\n"/:y),"\nreturn"}
+wbret:{(*y),0x0f}
 wbswc:{
  r:(,"block")@&n:#$[I x;y;y,:,""]
  r[0],:$[S x;" (result ",(wbtype S x),")";""]
@@ -85,9 +103,9 @@ wbswc:{
  r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
  ("\n"/:r)}
 wbcnd:{"\n"/:(*y;$[#t:wbtype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend")}
-wbtyp:{y;S x} /keep as symbol
+wbtyp:{y;wbtype S x} /keep as symbol
 
-wb2: { (,/z),x(`i`u`j`k`f?S y)}
+wb2: {(,/z),x(`i`u`j`k`f?S y)}
 wb2s:{"\n"/:(z 0;z 1;(wbtype t  ),x,wbsign@t:S y)}
 wbadd:wb2 0x6a6a7c7ca0;wbsub:wb2 0x6b6b7d7da1
 wbmul:wb2 0x6c6c7e7ea2;wbdiv:wb2 0x6d6e7f80a3;wbmod:wb2s".rem"
@@ -96,7 +114,7 @@ wbneq:wb2 0x4747525262;wbeql:wb2 0x4646515161
 wbmor:wb2 0x4a4b555664;wbgte:wb2 0x4e4f595a66;wbles:wb2 0x4849535463; wblte:wb2 0x4c4d575856
 wbshl:wb2 0x7474868600;wbshr:wb2 0x7576878800
 
-wbtype:`i`u`j`k`f!("i32";"i32";"i64";"i64";"f64")
+wbtype:`i`u`j`k`f`!0x7f7f7e7e7c00
 wbsign:`i`u`j`k`f!("_s";  "_u"; "_s"; "_u";   "")
 wbinst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"memory.grow";"memory.copy";"memory.fill")
 wbinst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
@@ -109,6 +127,10 @@ wbcast:(""                 ;""                 ;"i32.wrap_i64"     ;"i32.wrap_i6
         "i64.extend_i32_u" ;"i64.extend_i32_u" ;""                 ;""                 ;"i64.trunc_f64_u"  /k
         "f64.convert_i32_s";"f64.convert_i32_u";"f64.convert_i64_s";"f64.convert_i64_u";"")                /f
 
+
+leb:{_x} /todo
+leb8:{leb@*`i x} /todo
+
 wbsys:"
 (import \"env\" \"Exit\"  (func $Exit  (param i32)))
 (import \"env\" \"Args\"  (func $Args  (result i32)))
@@ -118,25 +140,21 @@ wbsys:"
 (import \"env\" \"ReadIn\" (func $ReadIn (param i32) (param i32) (result i32)))
 (import \"env\" \"Native\" (func $Native (param i64) (param i64) (result i64)))"
 
-wbfmt:{x:"\n"\:x;
- ("\n"/:wbind wbopt x@&~(x~\:"nop")|x~\:"")}
-wbind:{ /indent: +(if block loop else) -(end else)
- s:(#x)#1,1+\(e:"els"~/:h)|("blo"~/:h)|("loo"~/:h)|"if "~/:h:x@\:0 1 2  
- s-:+\e|"end"~/:h;(s#\:" "),'x}
-wbopt:{ /tee, !lt_s, last return
- i:&"local.get"~/:9#'x
- i:-1+i@&(x i-1)~'("local.set"),/:t:9_'x i
- x:@[x;i;"local.tee",/:9_'x i]
- x@:(1+i)_!#x
 
- i:&("i32.eqz"~/:x 1+!#x)&"i32.lt_s"~/:x
- x:@[x;i;(,"i32.ge_s")@&#i]
- x@:(1+i)_!#x
- 
- i:&("if"~/:x 2+!#x)&("i32.ne"~/:x 1+!#x)&"i32.const 0"~/:x
- x@:(i,1+i)_!#x
-
- (-"return"~*|x)_x}
+/wbopt:{ /tee, !lt_s, last return
+/ i:&"local.get"~/:9#'x
+/ i:-1+i@&(x i-1)~'("local.set"),/:t:9_'x i
+/ x:@[x;i;"local.tee",/:9_'x i]
+/ x@:(1+i)_!#x
+/
+/ i:&("i32.eqz"~/:x 1+!#x)&"i32.lt_s"~/:x
+/ x:@[x;i;(,"i32.ge_s")@&#i]
+/ x@:(1+i)_!#x
+/ 
+/ i:&("if"~/:x 2+!#x)&("i32.ne"~/:x 1+!#x)&"i32.const 0"~/:x
+/ x@:(i,1+i)_!#x
+/
+/ (-"return"~*|x)_x}
 
 /const.0 eq eqz br_if -> br_if
 /ge_s eqz -> lt_s 
