@@ -27,8 +27,10 @@ elif [ "$1" = wa ]; then
 		rm out
 	done
 elif [ "$1" = wb ]; then
-	for x in fun.k; do
-		k $x ../wb.k -e 'x: \wb``nort'
+	for x in *.k; do
+		k $x ../wb.k -e 'x:`<wb``nort' > out
+		/c/local/wabt/wasm2wat out
+		# /c/local/wabt/wasm-objdump.exe -s -d -x out
 	done
 elif [ "$1" = cc ]; then
 	for x in *.k; do

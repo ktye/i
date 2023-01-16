@@ -4,6 +4,7 @@ hx8:{[i]"0x",`x@|C i+!8}
 lp:{(~~)#@[&#x;x i;i:!#x]}
 ifun:&#T                                       /function index per node
 locs:0                                         /ifun!names
+glob:0#`
 fsig:`!()
 sigs:()
 
@@ -16,7 +17,7 @@ wb:{[o]opts::o
  ifun::-1+\T=`fun                              /function index for each node
  locs::(!g)!(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
  g:=f:S P i@:&`fun=T P i:&(T=`arg)|T=`res
- fsig::(S i)g:f!g f:?f
+ fsig::f!wbtype(S i)g f:?f
  sigs::?.fsig
  
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]
@@ -29,8 +30,9 @@ wb:{[o]opts::o
 wbprg:{
  s:{(_x),(leb@#y),y} /0(custom) 1(type) 2(import) 3(func) 4(table) 5(mem) 6(global) 7(export) 8(start) 9(element) 10(code) 11(data) 12(data count)
  c:1_&P=0
- fncs:s[10;(leb@#f),/f:y@&fn:`fun=T c]
- fnsg:s[3;(leb@#f),/leb'sigs?fsig S fn]
+ fncs:s[10;(leb@#f),/f:y@fn:&`fun=T c]
+ fnsg:s[3;(leb@#f),/leb'sigs?fsig S c fn]
+ glob:S@&(`con=T c)|`var=T c
  cons:"\n"/:y@&`con=T c
  vars:"\n"/:y@&`var=T c
  sysi:$[`nort':opts;"";wbsys]
@@ -43,7 +45,7 @@ wbprg:{
  
  0x0061736d01000000,typs,fnsg,fncs}
 
-wbsig:{0x60,((leb@#a),/wbtype a:-1_x),$[`~r:*|x;_0;(_1),wbtype r]} //wbsig args, ret
+wbsig:{0x60,((leb@#a),/a:-1_x),$[0x00~r:*|x;_0;(_1),r]} //wbsig args, ret
 
 
 wbdat:{,/@["\\",/:256^`x@_!256;0+wbc;wbc:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
@@ -53,32 +55,30 @@ wbvar:{"(global $",($S x)," (mut ",(wbtype S 1+x),") (",(*y),"))"}
 wbtab:{y;(I x;S x)}
 wbtbl:{"\n"/:{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/:'"$",''$(i:&~1=-':*x)^(x:+x)1]}
 
-wbfun:{s:$S x
- args:" "/:y@&`arg=T c:&x=P
- rets:" "/:y@&`res=T c
+wbfun:{s:$S x;c:&x=P
  locs:(leb@#l),,/l:{(leb@#x),wbtype@*x}'(&~`x~':l)^l:S@&`loc=T c
  body:    y@*&`ast=T c
  expo:$[I x;"(export \"",s,"\")";""]
  /expo;args;rets;locs
  (leb@#r),r:locs,((- 0x0f~*|body)_body),0x0b}
  
-wbarg:{" "/:(""~/:)_("(param";(y 0);(wbtype S x),")")}
-wbsym:{y;"$",$S x}
+wbarg:{y;wbtype S x}
+wbsym:{y;S x}
 wbres:{y;"(result ",(wbtype S x),")"}
 wbloc:{"(local ",(*y)," ",(wbtype S x),")"}
-wbstm:{"\n"/:y}
+wbstm:{,/y}
 wbast:wbstm
 wblod:{(y 0),"\n",$[`b~s:S x;"i32.load8_s";(wbtype s),".load"]}
 wbsto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(wbtype s),".store"]}
 wbant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:wbtype S x),".and"}
-wbasn:{ y,("\nlocal.set $";"\nglobal.set $")[I x],$S x }
+wbasn:{y,$[I x;0x24,leb(glob?S x);0x21,leb(locs ifun x)?S x]}
 
-wbcal:{$[`panic~s:S x;_!0;(,/y),$[#c:wbinst s;c;0x10,leb@(!`fsig \fsig)? \s]]}
+wbcal:{$[`panic~s:S x;_!0;(,/y),$[#c:wbinst s;c;0x10,leb@(!fsig)?s]]}
 
-wbcli:{("\n"/:((I x)#1_y),,*y),"\n","call_indirect "," "/:((1+I x)_y),$[S x;,"(result ",(wbtype S x),")";()]}
+wbcli:{(,/(I x)#1_y),(*y),0x11,(leb sigs?(,/(1+I x)_y),wbtype S x),0x00 } 
 wbdfr:{y;""}
-wbdrp:{"\n"/:y,,"drop"}
-wbcst:{t:!wbtype;(y 1),"\n",wbcast i:(t?y 0)+5*t?S x}
+wbdrp:{y,0x1a}
+wbcst:{(y 1),$[0x00~c:wbcast[t?S x;(t:!wbtype)?S 1+x];"";c]}
 wbfor:{$[I x;wbslp[x;y];wblop[x;y]]}
 wbslp:{"\n"/:("loop";-5_"\n"/:2_y;y 1;*y;"br_if 0\nend")}
 wblop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
@@ -120,12 +120,7 @@ wbinst:`I32B`Memorysize`Memorygrow`Memorycopy`Memoryfill!("nop";"memory.size";"m
 wbinst,:`Memorysize2`Memorygrow2`Memorycopy2`Memorycopy3!((,"unreachable\ni32.const 0")0 0),(,"drop\ndrop\ndrop\nunreachable")0 0
 wbinst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copysign`F64min`F64max`"F64reinterpret_i64"`"I64reinterpret_f64"
 
-/         i                   u                  j                   k                   f
-wbcast:(""                 ;""                 ;"i32.wrap_i64"     ;"i32.wrap_i64"     ;"i32.trunc_f64_s"  /i
-        ""                 ;""                 ;""                 ;"i32.wrap_i64"     ;""                 /u
-        "i64.extend_i32_s" ;""                 ;""                 ;""                 ;"i64.trunc_f64_s"  /j
-        "i64.extend_i32_u" ;"i64.extend_i32_u" ;""                 ;""                 ;"i64.trunc_f64_u"  /k
-        "f64.convert_i32_s";"f64.convert_i32_u";"f64.convert_i64_s";"f64.convert_i64_u";"")                /f
+wbcast:(0x0000a7a7aa;0x0000a7a7ab;0xacad0000b0;0xadad0000b1;0xb7b8b9ba00) /iujkf
 
 
 leb:{_x} /todo
