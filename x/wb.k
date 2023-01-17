@@ -91,7 +91,7 @@ wbflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don
 wbflt:{x:C x+!8;$[#r:wbflts x;r;$*`f x]}
 wblit:{y;i:I x;((`i`u`k`j`f!0x4141424247)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
 
-wbneg:{$[`f~t:S x;(*y),"\nf64.neg";"\n"/:(t,".const 0";(*y);(t:wbtype t),".sub")]}
+wbneg:{wbsub[x;($[`f~t:S x;0x44,(8#0x00);(0x4141424244@`i`u`j`k?S x),0x00];*y)]}
 wbnot:{(*y),"\ni32.eqz"}
 wbnop:{y;""}
 wbret:{(*y),0x0f}
@@ -102,7 +102,11 @@ wbswc:{
  r,:,"br_table ",(" "/:$!n-1),"\nend"
  r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
  ("\n"/:r)}
-wbcnd:{"\n"/:(*y;$[#t:wbtype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend")}
+
+/wbcnd:{"\n"/:(*y;$[#t:wbtype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend")}
+wbcnd:{(*y),0x04,$[`~t:S x;0x40;wbtype t],(y 1),$[3~#y;0x05,(y 2);""],0x0b}
+
+
 wbtyp:{y;wbtype S x} /keep as symbol
 
 wb2: {(,/z),x(`i`u`j`k`f?S y)}
