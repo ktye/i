@@ -29,12 +29,14 @@ wb:{[o]opts::o
 
 wbprg:{
  s:{(_x),(leb@#y),y} /0(custom) 1(type) 2(import) 3(func) 4(table) 5(mem) 6(global) 7(export) 8(start) 9(element) 10(code) 11(data) 12(data count)
- c:1_&P=0
- fncs:s[10;(leb@#f),/f:y@fn:&`fun=T c]
- fnsg:s[3;(leb@#f),/leb'sigs?fsig S c fn]
- glob:S@&(`con=T c)|`var=T c
- cons:"\n"/:y@&`con=T c
- vars:"\n"/:y@&`var=T c
+ c:1_&P=0;f:y fn:&`fun=T c;
+ fncs:$[#f;s[10;(leb@#f),/f];""]
+ fnsg:$[#f;s[3;(leb@#f),/leb'sigs?fsig S c fn];""]
+ glob::     S c@&(`con=T c)
+ glob::glob,S c@& `var=T c
+ cons:,/y@&`con=T c
+ vars:,/y@&`var=T c
+ glbs:s[6;(leb@#glob),/cons,vars]
  sysi:$[`nort':opts;"";wbsys]
  data:$[#D;"(data (i32.const 0) \"",(wbdat D),"\")";""]
  tabd:$[0<i:1+|/I c t:&`tab=T c;"(table (export \"table\") ",($i)," funcref)";""]
@@ -43,15 +45,15 @@ wbprg:{
  /"\n"/:(""~/:)_("(module",sysi;mems;cons;vars;data;fncs;tabd;tabl;")\n")} 
  typs:s[1;(leb@#t),/t:wbsig'.fsig]
  
- 0x0061736d01000000,typs,fnsg,fncs}
+ 0x0061736d01000000,typs,fnsg,glbs,fncs}
 
 wbsig:{0x60,((leb@#a),/a:-1_x),$[0x00~r:*|x;_0;(_1),r]} //wbsig args, ret
 
 
 wbdat:{,/@["\\",/:256^`x@_!256;0+wbc;wbc:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 wbmem:{y;""}
-wbcon:{"(global $",($S x)," ",(wbtype S 1+x)," (",(*y),"))"}
-wbvar:{"(global $",($S x)," (mut ",(wbtype S 1+x),") (",(*y),"))"}
+wbcon:{(wbtype S 1+x),0x00,*y}
+wbvar:{(wbtype S 1+x),0x01,*y}
 wbtab:{y;(I x;S x)}
 wbtbl:{"\n"/:{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/:'"$",''$(i:&~1=-':*x)^(x:+x)1]}
 
@@ -89,7 +91,7 @@ wbjmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 
 wbflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don't roundtrip
 wbflt:{x:C x+!8;$[#r:wbflts x;r;$*`f x]}
-wblit:{y;i:I x;((`i`u`k`j`f!0x4141424247)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
+wblit:{y;i:I x;((`i`u`k`j`f!0x4141424244)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
 
 wbneg:{wbsub[x;($[`f~t:S x;0x44,(8#0x00);(0x4141424244@`i`u`j`k?S x),0x00];*y)]}
 wbnot:{(*y),"\ni32.eqz"}
@@ -127,8 +129,8 @@ wbinst,:{x!{(_32+*x),(1_3#x),".",3_x}'$x}`I32clz`F64abs`F64sqrt`F64floor`F64copy
 wbcast:(0x0000a7a7aa;0x0000a7a7ab;0xacad0000b0;0xadad0000b1;0xb7b8b9ba00) /iujkf
 
 
-leb:{_x} /todo
-leb8:{leb@*`i x} /todo
+leb:{leb8(`c@,x),4#$[x<0;0xff;0x00]}
+leb8:{r:!0;B:1v:,/+(8#2)\\256/256+|x;while[B&(8<#v)&+/v;b:-7#v;s:*b;v:-7_v;r,:$[((0~&/v)|0x00~s)&(+/v)|s;1;B:0],b];_2//'-8^r}
 
 wbsys:"
 (import \"env\" \"Exit\"  (func $Exit  (param i32)))
