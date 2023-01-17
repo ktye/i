@@ -14,11 +14,14 @@ wb:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wbfor;wbget;wbGet;wbgte;wbjmp;wbles;wblit;wblte;wbmod;wbmor;wbmul;wbneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(wbneq;wbnop;wbnot;wborr;wbbor;wbxor;wbret;wbshl;wbshr;wbstm;wbsub;wbswc;wbtyp)
  
- ifun::-1+\T=`fun                              /function index for each node
+ ifun::-1+\fi:T=`fun                              /function index for each node
  locs::(!g)!(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
  g:=f:S P i@:&`fun=T P i:&(T=`arg)|T=`res
  fsig::f!wbtype(S i)g f:?f
- sigs::?.fsig
+ 
+ fsig::fsig,fx!(#fx:fx@&0N=f?fx:S@&fi)#,,0x00    /function with no arg/res
+ sigs:: ?.fsig
+ 
  
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]
  n:(&#P){x[y]+:1}/P;n[0]-:1;
@@ -36,7 +39,7 @@ wbprg:{
  glob::glob,S c@& `var=T c
  cons:,/y@&`con=T c
  vars:,/y@&`var=T c
- glbs:s[6;(leb@#glob),/cons,vars]
+ glbs:s[6;(leb@#glob),,/cons,vars]
  sysi:$[`nort':opts;"";wbsys]
  data:$[#D;"(data (i32.const 0) \"",(wbdat D),"\")";""]
  tabd:$[0<i:1+|/I c t:&`tab=T c;"(table (export \"table\") ",($i)," funcref)";""]
@@ -52,13 +55,13 @@ wbsig:{0x60,((leb@#a),/a:-1_x),$[0x00~r:*|x;_0;(_1),r]} //wbsig args, ret
 
 wbdat:{,/@["\\",/:256^`x@_!256;0+wbc;wbc:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 wbmem:{y;""}
-wbcon:{(wbtype S 1+x),0x00,*y}
-wbvar:{(wbtype S 1+x),0x01,*y}
+wbcon:{(wbtype S 1+x),0x00,(*y),0x0b}
+wbvar:{(wbtype S 1+x),0x01,(*y),0x0b}
 wbtab:{y;(I x;S x)}
 wbtbl:{"\n"/:{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/:'"$",''$(i:&~1=-':*x)^(x:+x)1]}
 
 wbfun:{s:$S x;c:&x=P
- locs:(leb@#l),,/l:{(leb@#x),wbtype@*x}'(&~`x~':l)^l:S@&`loc=T c
+ locs:(leb@#l),,/l:{(leb@#x),wbtype@*x}'(&~`x~':l)^l:S c@&`loc=T c
  body:    y@*&`ast=T c
  expo:$[I x;"(export \"",s,"\")";""]
  /expo;args;rets;locs
@@ -83,11 +86,14 @@ wbdrp:{y,0x1a}
 wbcst:{(y 1),$[0x00~c:wbcast[t?S x;(t:!wbtype)?S 1+x];"";c]}
 wbfor:{$[I x;wbslp[x;y];wblop[x;y]]}
 wbslp:{"\n"/:("loop";-5_"\n"/:2_y;y 1;*y;"br_if 0\nend")}
-wblop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
- "\n"/:bl,($[#*y;(*y),"\ni32.eqz\nbr_if 1";""]; "\n"/:2_y;y 1;"br 0\nend\nend")}
-wbget:{y; 0x20,leb(locs ifun x)?S x}
+
+/wblop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
+/ "\n"/:bl,($[#*y;(*y),"\ni32.eqz\nbr_if 1";""]; "\n"/:2_y;y 1;"br 0\nend\nend")}
+wblop:{ 0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b }
+ 
+wbget:{y;0x20,leb(locs ifun x)?S x}
 wbGet:{y;"global.get $",$S x}
-wbjmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
+wbjmp:{y;0x0c,(_1+I x)} /todo:label  /{"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 
 wbflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don't roundtrip
 wbflt:{x:C x+!8;$[#r:wbflts x;r;$*`f x]}

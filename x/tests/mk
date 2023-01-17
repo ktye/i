@@ -27,7 +27,8 @@ elif [ "$1" = wa ]; then
 		rm out
 	done
 elif [ "$1" = wb ]; then
-	for x in *.k; do
+	#cli.k
+	for x in asn.k cal.k cast.k cnd.k cnd2.k const.k cont.k drp.k fun.k heap.k ifret.k inc.k label.k lit.k loop.k loop2.k mem.k swtch.k swtch2.k tab.k; do
 		k $x ../wb.k -e 'x:`<wb``nort' > out
 		/c/local/wabt/wasm2wat out
 		# /c/local/wabt/wasm-objdump.exe -s -d -x out
