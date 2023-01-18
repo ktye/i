@@ -25,10 +25,8 @@
    i32.const 2
    i32.sub
   end
-  global.set $r
-  local.get $r
+  local.tee $r
   br 0
  end
- global.set $r
- local.get $r)
+ local.tee $r)
 )

@@ -18,15 +18,12 @@ wb:{[o]opts::o
  locs::(!g)!(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
  g:=f:S P i@:&`fun=T P i:&(T=`arg)|T=`res
  fsig::f!wbtype(S i)g f:?f
- 
  fsig::fsig,fx!(#fx:fx@&0N=f?fx:S@&fi)#,,0x00    /function with no arg/res
  sigs:: ?.fsig
  
- 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]
  n:(&#P){x[y]+:1}/P;n[0]-:1;
- s:{c:(0,(#x)-z)^x
-   (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
+ s:{c:(0,(#x)-z)^x;(c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
 *s}
 
 
@@ -35,36 +32,30 @@ wbprg:{
  c:1_&P=0;f:y fn:&`fun=T c;
  fncs:$[#f;s[10;(leb@#f),/f];""]
  fnsg:$[#f;s[3;(leb@#f),/leb'sigs?fsig S c fn];""]
+ typs:s[1;(leb@#t),,/t:wbsig'.fsig]
  glob::     S c@&(`con=T c)
  glob::glob,S c@& `var=T c
  cons:,/y@&`con=T c
  vars:,/y@&`var=T c
+ mems:s[5;0x010001]
  glbs:s[6;(leb@#glob),,/cons,vars]
  sysi:$[`nort':opts;"";wbsys]
- data:$[#D;"(data (i32.const 0) \"",(wbdat D),"\")";""]
- tabd:$[0<i:1+|/I c t:&`tab=T c;"(table (export \"table\") ",($i)," funcref)";""]
- tabl:wbtbl y t
- mems:"(memory (export \"memory\") 1)"
- /"\n"/:(""~/:)_("(module",sysi;mems;cons;vars;data;fncs;tabd;tabl;")\n")} 
- typs:s[1;(leb@#t),/t:wbsig'.fsig]
- 
- 0x0061736d01000000,typs,fnsg,glbs,fncs}
+ tabl:$[#t:&`tab=T c;s[4;0x017000,(leb@|/I c t)];""]
+ elem:$[#t;s[9;(leb@#t),,/t:wbtbl y t];""]
+ data:$[#D;s[11;0x010041000b,(leb@#D),D];""]
+ 0x0061736d01000000,typs,fnsg,tabl,mems,glbs,elem,fncs,data}
 
 wbsig:{0x60,((leb@#a),/a:-1_x),$[0x00~r:*|x;_0;(_1),r]} //wbsig args, ret
-
-
-wbdat:{,/@["\\",/:256^`x@_!256;0+wbc;wbc:_("a"+!26),("A"+!26),("0"+!10),"~!@#$%^&*()_+{}[]|;:<>,./?"]x}
 wbmem:{y;""}
 wbcon:{(wbtype S 1+x),0x00,(*y),0x0b}
 wbvar:{(wbtype S 1+x),0x01,(*y),0x0b}
-wbtab:{y;(I x;S x)}
-wbtbl:{"\n"/:{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/:'"$",''$(i:&~1=-':*x)^(x:+x)1]}
+wbtab:{y;(I x;(!fsig)?S x)}
+wbtbl:{{0x0041,(leb x),0x0b,(leb@#y),,/leb'y}'[(*x)i;(i:&~1=-':*x)^(x:+x)1 ]}
 
 wbfun:{s:$S x;c:&x=P
  locs:(leb@#l),,/l:{(leb@#x),wbtype@*x}'(&~`x~':l)^l:S c@&`loc=T c
  body:    y@*&`ast=T c
- expo:$[I x;"(export \"",s,"\")";""]
- /expo;args;rets;locs
+ /expo:$[I x;"(export \"",s,"\")";""]
  (leb@#r),r:locs,((- 0x0f~*|body)_body),0x0b}
  
 wbarg:{y;wbtype S x}
@@ -73,8 +64,8 @@ wbres:{y;"(result ",(wbtype S x),")"}
 wbloc:{"(local ",(*y)," ",(wbtype S x),")"}
 wbstm:{,/y}
 wbast:wbstm
-wblod:{(y 0),"\n",$[`b~s:S x;"i32.load8_s";(wbtype s),".load"]}
-wbsto:{"\n"/:y,,$[`b~s:S x;"i32.store8";(wbtype s),".store"]}
+wblod:{(y 0),(0x2d282829292b i),(0x000202030303 i:`b`i`u`j`k`f?S x),0x00}
+wbsto:{(,/y),(0x3a3636373739 i),(0x000202030303 i:`b`i`u`j`k`f?S x),0x00}
 wbant:{(y,'"\n"),t,".const -1\n",t,".xor\n",(t:wbtype S x),".and"}
 wbasn:{y,$[I x;0x24,leb(glob?S x);0x21,leb(locs ifun x)?S x]}
 
@@ -85,11 +76,8 @@ wbdfr:{y;""}
 wbdrp:{y,0x1a}
 wbcst:{(y 1),$[0x00~c:wbcast[t?S x;(t:!wbtype)?S 1+x];"";c]}
 wbfor:{$[I x;wbslp[x;y];wblop[x;y]]}
-wbslp:{"\n"/:("loop";-5_"\n"/:2_y;y 1;*y;"br_if 0\nend")}
-
-/wblop:{bl:("block";"loop"),'$[`~S x;2^"";(l,"1";(l:" $",$S x),"0")]
-/ "\n"/:bl,($[#*y;(*y),"\ni32.eqz\nbr_if 1";""]; "\n"/:2_y;y 1;"br 0\nend\nend")}
-wblop:{ 0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b }
+wbslp:{0x0340,(-2_y 2),(y 1),(*y),0x0d000b }
+wblop:{0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b}
  
 wbget:{y;0x20,leb(locs ifun x)?S x}
 wbGet:{y;"global.get $",$S x}
@@ -103,15 +91,18 @@ wbneg:{wbsub[x;($[`f~t:S x;0x44,(8#0x00);(0x4141424244@`i`u`j`k?S x),0x00];*y)]}
 wbnot:{(*y),"\ni32.eqz"}
 wbnop:{y;""}
 wbret:{(*y),0x0f}
-wbswc:{
- r:(,"block")@&n:#$[I x;y;y,:,""]
- r[0],:$[S x;" (result ",(wbtype S x),")";""]
- r,:,*y
- r,:,"br_table ",(" "/:$!n-1),"\nend"
- r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
- ("\n"/:r)}
+/wbswc:{
+/ r:(,"block")@&n:#$[I x;y;y,:,""]
+/ r[0],:$[S x;" (result ",(wbtype S x),")";""]
+/ r,:,*y
+/ r,:,"br_table ",(" "/:$!n-1),"\nend"
+/ r,:(1_y),'"\nbr ",/:($|!n-1),\:"\nend"
+/ ("\n"/:r)}
 
-/wbcnd:{"\n"/:(*y;$[#t:wbtype S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend")}
+wbswc:{n:#$[I x;y;y,:,""]
+ r:@[,/n#(,0x0240);1;$[t:S x;wbtype t;0x40]],(*y),0x0e,(leb n-2),(,/leb'!n-1),0x0b
+ r,,/(1_y),'0x0c,/:(leb'|!n-1),\:0x0b}
+
 wbcnd:{(*y),0x04,$[`~t:S x;0x40;wbtype t],(y 1),$[3~#y;0x05,(y 2);""],0x0b}
 
 
