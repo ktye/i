@@ -23,6 +23,9 @@ elif [ "$1" = "ctest" ]; then
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa
+elif [ "$1" = "wb" ]; then
+ k k.k wb.k -e 'x:`<wb``' >  k.wasm
+ /c/local/wabt/wasm2wat k.wasm > k.wat
 elif [ "$1" = "js" ]; then
  k k.k js.k -e 'x:`<js``' > k.js
 elif [ "$1" = "jstest" ]; then

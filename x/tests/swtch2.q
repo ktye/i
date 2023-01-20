@@ -18,7 +18,7 @@ function w $g(w %x){
  @e1
  %r =w sub %x, 2
  @f1
- %r = copy %r
+ %r =w copy %r
  @f2
  ret %r
 }
