@@ -1,0 +1,18 @@
+ku: paint on window
+
+build
+ $sh mk get    #fenster.h from zserge
+ $sh mk k.h    #build k.h, requires k
+ $sh mk        #compiles ku.c
+ $./a.out
+
+k interface:   W:H:(size)  K:{[key]}  (paint):P[color;indexlist]
+
+$ku x.k
+
+W:H:200          /window size
+B:P 255          /blue
+G:P 255*256      /green
+R:P 255*256*256  /red
+
+K:{P[10*x;!W*H]} /key callback
