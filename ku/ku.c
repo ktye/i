@@ -20,7 +20,7 @@ uint64_t cnative(uint64_t x,uint64_t y){ //P[color;indexlist]
 }
 
 
-const char *p0="W:H:100;B:P 255;G:P 255*256;R:P 255*256*256;wh:!W*H;K:{`key \\x;$[x~82;R wh;x~71;G wh;x~66;B wh;P[0;wh]];}";
+const char *p0="W:H:100;B:P 255;G:P 255*256;R:P 255*256*256;wh:!W*H;M:{`mouse \\(x)};K:{`key \\x;$[x~82;R wh;x~71;G wh;x~66;B wh;P[0;wh]];}";
 
 uint64_t ks(const char *p){
  int32_t  n=(int32_t)strlen(p);
@@ -41,6 +41,7 @@ int main(int args, char **argv){
  W=(int32_t)Val(sc(Ku('W')));
  H=(int32_t)Val(sc(Ku('H')));
  printf("W=%d H=%d\n", W, H);
+ uint64_t M=sc(Ku('M'));
  uint64_t K=sc(Ku('K'));
  O=calloc(W*H,4);
  struct fenster f={
@@ -52,8 +53,9 @@ int main(int args, char **argv){
  fenster_open(&f);
  int64_t now=fenster_time();
  while(!fenster_loop(&f)){
-  for(int i=0;i<128;i++)if(f.keys[i])dx(Atx(Val(K),Ki(i)));
+  for(int i=0;i<128;i++)if(f.keys[i]){dx(Atx(Val(K),Ki(i)));f.keys[i]=0;}
   if(f.keys[27])break;
+  if(f.mouse){dx(Atx(Val(M),Cat(Ki((int32_t)f.x),Ki((int32_t)f.y))));f.mouse=0;}
   int64_t time=fenster_time();
   if(time-now<1000/60)fenster_sleep(time-now);
   now=time;
