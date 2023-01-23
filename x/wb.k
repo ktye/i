@@ -14,14 +14,17 @@ wb:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wbfor;wbget;wbGet;wbgte;wbjmp;wbles;wblit;wblte;wbmod;wbmor;wbmul;wbneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(wbneq;wbnop;wbnot;wborr;wbbor;wbxor;wbret;wbshl;wbshr;wbstm;wbsub;wbswc;wbtyp)
  
+ $[1~#i:i@&`store=S P i:&T=`ast;T[&P=*i]:`nop;0]  /remove store/catch
+ $[1~#i:i@&`catch=S P i:&T=`ast;T[&P=*i]:`nop;0]
+ 
  ifun::-1+\T=`fun                              /function index for each node
  locs::(!g)!(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
  f:&T=`fun
- a:&T=`arg
+ a@:&`fun=T P a:&T=`arg
  d:(S f)!(#f)#,0#`
  d[S@!g]:S a@.g:=f@f'a
  fsig::wbtype d,'@[(#f)#`;ifun r;S r:&T=`res]
- fsig::$[`nort':opts;fsig;fsig,wbsys]          /imports
+ fsig::$[`nort':opts;fsig;wbsys,fsig]          /imports
  sigs::?.fsig
  glob::     S@&`con=T
  glob::glob,S@&`var=T
@@ -106,7 +109,7 @@ wbadd:wb2 0x6a6a7c7ca0;wbsub:wb2 0x6b6b7d7da1
 wbmul:wb2 0x6c6c7e7ea2;wbdiv:wb2 0x6d6e7f80a3;wbmod:wb2 0x6f70818200 
 wband:wbbnd:wb2 0x7171838300;wborr:wbbor:wb2 0x7272848400;wbxor:wb2 0x7373858500
 wbneq:wb2 0x4747525262;wbeql:wb2 0x4646515161
-wbmor:wb2 0x4a4b555664;wbgte:wb2 0x4e4f595a66;wbles:wb2 0x4849535463; wblte:wb2 0x4c4d575856
+wbmor:wb2 0x4a4b555664;wbgte:wb2 0x4e4f595a66;wbles:wb2 0x4849535463; wblte:wb2 0x4c4d575865
 wbshl:wb2 0x7474868600;wbshr:wb2 0x7576878800
 
 wbtype:`i`u`j`k`f`!0x7f7f7e7e7c00
