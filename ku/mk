@@ -1,8 +1,16 @@
+# mk get
+# mk k.h
+# mk w     (windows)
+# mk       (x11)
 if [ "$1" = "get" ]; then
-	wget https://raw.githubusercontent.com/zserge/fenster/main/fenster.h
-fi
-if [ "$1" = "k.h" ]; then
-	k ../x/k.k ../x/cc.k -e 'x:`"k.h"<cc``lib'
+ wget https://raw.githubusercontent.com/zserge/fenster/main/fenster.h
+elif [ "$1" = "k.h" ]; then
+ k ../x/k.k ../x/cc.k -e 'x:`"k.h"<cc``lib'
+elif [ "$1" = "w" ]; then
+ gcc ku.c -lgdi32 -lm
+else
+ gcc ku.c -lX11 -lm
 fi
 
-gcc ku.c -lX11 -lm
+
+

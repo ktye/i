@@ -3,6 +3,8 @@
 
 uint64_t cnative(uint64_t x,uint64_t y);
 #define NATIVE
+#undef min
+#undef max
 #include"k.h"
 
 int32_t W,H;
