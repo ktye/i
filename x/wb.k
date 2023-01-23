@@ -14,12 +14,14 @@ wb:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wbfor;wbget;wbGet;wbgte;wbjmp;wbles;wblit;wblte;wbmod;wbmor;wbmul;wbneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(wbneq;wbnop;wbnot;wborr;wbbor;wbxor;wbret;wbshl;wbshr;wbstm;wbsub;wbswc;wbtyp)
  
- ifun::-1+\fi:T=`fun                              /function index for each node
+ ifun::-1+\T=`fun                              /function index for each node
  locs::(!g)!(S 1+i)@.g:=ifun i:&(T=`arg)|T=`loc
- g:=f:S P i@:&`fun=T P i:&(T=`arg)|T=`res
- fsig::f!wbtype(S i)g f:?f
- fsig::fsig,fx!(#fx:fx@&0N=f?fx:S@&fi)#,,0x00    /function with no arg/res
- fsig::$[`nort':opts;fsig;fsig,wbsys]            /imports
+ f:&T=`fun
+ a:&T=`arg
+ d:(S f)!(#f)#,0#`
+ d[S@!g]:S a@.g:=f@f'a
+ fsig::wbtype d,'@[(#f)#`;ifun r;S r:&T=`res]
+ fsig::$[`nort':opts;fsig;fsig,wbsys]          /imports
  sigs::?.fsig
  glob::     S@&`con=T
  glob::glob,S@&`var=T
@@ -28,8 +30,6 @@ wb:{[o]opts::o
  n:(&#P){x[y]+:1}/P;n[0]-:1;
  s:{c:(0,(#x)-z)^x;(c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
 *s}
-
-/fsig::fsig,s!t;sigs::?.fsig;{0x03,"env",(leb@#x),x,0x00,(leb sigs?y)}'[$s;t]}
  
 
 wbprg:{
