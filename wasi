@@ -1,35 +1,38 @@
+# wavm run --abi=wasi k.was
+# wasm3 k.was
 
 cat << 'EOF'                    >k.wasi
 (module
-(import "wasi_unstable" "arg_sizes_get" (func $arg_sizes_get (param i32 i32) (result i32)))
+(import "wasi_unstable" "args_sizes_get" (func $args_sizes_get (param i32 i32) (result i32)))
 (import "wasi_unstable" "args_get" (func $args_get(param i32 i32) (result i32)))
 (import "wasi_unstable" "fd_read"  (func $fd_read  (param i32 i32 i32 i32) (result i32)))
 (import "wasi_unstable" "fd_write" (func $fd_write (param i32 i32 i32 i32) (result i32)))
 (import "wasi_unstable" "fd_seek"  (func $fd_seek  (param i32 i64 i32 i32) (result i32)))
 (import "wasi_unstable" "fd_close" (func $fd_close (param i32) (result i32)))
 (import "wasi_unstable" "path_open" (func $path_open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
-(import "wasi_unstable" "proc_exit" (func $proc_exit (param i32) (result i32))
+(import "wasi_unstable" "proc_exit" (func $proc_exit (param i32)))
 EOF
 
 sed 1,8d k.wat | grep -v '^)' >>k.wasi
 
 
 cat << 'EOF'                  >>k.wasi
+(func (export "_start") 
+ call $main)
 (func $Exit (param i32)
  local.get 0
- call $proc_exit
- drop)
+ call $proc_exit)
 (func $Args (result i32)
  i32.const 512
  i32.const 516
- call $arg_sizes_get
+ call $args_sizes_get
  drop
  i32.const 512
  i32.load)
-($func $Arg (param i32 i32) (result i32) (local $an i32) (local $i int64)
+(func $Arg (param i32 i32) (result i32) (local $an i32) (local $i i64)
  i32.const 512
  i32.const 516
- call $arg_sizes_get
+ call $args_sizes_get
  drop
 
  i32.const 19
@@ -51,13 +54,13 @@ cat << 'EOF'                  >>k.wasi
  i32.load
  local.get 1
  i32.sub
- i32.set $an
+ local.set $an
 
  local.get 1
  local.get 1
  local.get $an
  i32.add
- local get $an
+ local.get $an
  memory.copy
 
  local.get $i
@@ -69,6 +72,31 @@ cat << 'EOF'                  >>k.wasi
  i32.const 512
  i32.add
  call $idxc)
+(func $Read (param i32 i32 i32) (result i32)
+ local.get 2
+ i32.eqz
+ if
+  i32.const 0
+  return
+ end
+ i32.const 0)
+(func $Write (param i32 i32 i32 i32) (result i32)
+ i32.const 512
+ local.get 2
+ i32.store
+ i32.const 516
+ local.get 3
+ i32.store
+
+ i32.const 1
+ i32.const 512
+ i32.const 1
+ i32.const 516
+ call $fd_write)
+(func $ReadIn (param i32 i32) (result i32)
+ i32.const 0)
+(func $Native (param i64) (param i64) (result i64)
+ i64.const 0)
 EOF
 
 echo ")"                      >>k.wasi
@@ -81,4 +109,7 @@ echo ")"                      >>k.wasi
 #"Write" (func $Write (param i32) (param i32) (param i32) (param i32) (result i32)))
 #"ReadIn" (func $ReadIn (param i32) (param i32) (result i32)))
 #"Native" (func $Native (param i64) (param i64) (result i64)))
+
+
+wat2wasm -o k.was k.wasi
 
