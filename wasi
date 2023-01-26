@@ -13,7 +13,7 @@ cat << 'EOF'                    >k.wasi
 (import "wasi_unstable" "proc_exit" (func $proc_exit (param i32)))
 EOF
 
-sed 1,8d k.wat | grep -v '^)' >>k.wasi
+sed 1,8d k.wat | awk 'BEGIN{x=1}/^\(func/{x=1}/^\(func \$getargv/{x=0}{if(x)print}' | grep -v '^)' >>k.wasi
 
 
 cat << 'EOF'                  >>k.wasi
@@ -22,15 +22,8 @@ cat << 'EOF'                  >>k.wasi
 (func $Exit (param i32)
  local.get 0
  call $proc_exit)
-(func $Args (result i32)
- i32.const 512
- i32.const 516
- call $args_sizes_get
- drop
- i32.const 512
- i32.load)
-(func $Arg (param i32 i32) (result i32) (local $an i32) (local $i i64)
- i32.const 512
+(func $getargv (result i64) (local $i i64) (local $r i64)
+ i32.const 512 
  i32.const 516
  call $args_sizes_get
  drop
@@ -41,26 +34,62 @@ cat << 'EOF'                  >>k.wasi
  call $mk
  local.tee $i
  i32.wrap_i64
+
+ i32.const 18
+ i32.const 516
+ i32.load
+ call $mk
+ local.tee $r
+ i32.wrap_i64
+ call $args_get
+ drop
+
+ local.get $i
+ call $dx
+
+ i32.const -1
+ i32.const 0
+ call $Kc
+ local.get $r
+ call $split
+ call $ndrop)
+(func $Args (result i32)
+ i32.const 512
+ i32.const 516
+ call $args_sizes_get
+ drop
+ i32.const 512
+ i32.load)
+(func $Arg (param i32 i32) (result i32) (local $an i32) (local $sn i32) (local $i i64)
+ i32.const 512
+ i32.const 516
+ call $args_sizes_get
+ drop
+
+ i32.const 19
+ i32.const 512
+ i32.load
+ local.tee $an
+ call $mk
+ local.tee $i
+ i32.wrap_i64
+
  local.get 1
  call $args_get
  drop
 
+
+ local.get 1
+ local.get $i
+ i32.wrap_i64
  local.get 0
  i32.const 4
  i32.mul
- local.get $i
- i32.wrap_i64
  i32.add
  i32.load
  local.get 1
- i32.sub
- local.set $an
-
- local.get 1
- local.get 1
- local.get $an
  i32.add
- local.get $an
+ i32.const 256
  memory.copy
 
  local.get $i
@@ -94,7 +123,22 @@ cat << 'EOF'                  >>k.wasi
  i32.const 516
  call $fd_write)
 (func $ReadIn (param i32 i32) (result i32)
- i32.const 0)
+
+ i32.const 512
+ local.get 0
+ i32.store
+ i32.const 516
+ local.get 1
+ i32.store
+
+ i32.const 0
+ i32.const 512
+ i32.const 1
+ i32.const 516
+ call $fd_read
+ drop
+ i32.const 512
+ i32.load)
 (func $Native (param i64) (param i64) (result i64)
  i64.const 0)
 EOF
