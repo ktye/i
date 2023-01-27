@@ -141,19 +141,55 @@ cat << 'EOF'                  >>k.wasi
  drop
 
  local.get $sz)
-(func $Write (param i32 i32 i32 i32) (result i32)
+(func $Write (param i32 i32 i32 i32) (result i32) (local $fd i32) (local $r i32)
+ local.get 1
+ i32.eqz
+ if (result i32)
+  i32.const 1
+ else
+  i32.const 3
+  i32.const 0
+  local.get 0
+  local.get 1
+  i32.const 9
+  i64.const 525334
+  i64.const 525334
+  i32.const 0
+  i32.const 512
+  call $path_open
+  if
+   i32.const -1
+   return
+  end
+  i32.const 512
+  i32.load
+ end
+ local.set $fd
+ 
  i32.const 512
  local.get 2
  i32.store
  i32.const 516
  local.get 3
  i32.store
-
- i32.const 1
+ 
+ local.get $fd
  i32.const 512
  i32.const 1
  i32.const 516
- call $fd_write)
+ call $fd_write
+ local.set $r
+ 
+ local.get 1
+ i32.eqz
+ if
+  local.get $r
+  return
+ end
+ local.get $fd
+ call $fd_close
+ drop
+ local.get $r)
 (func $ReadIn (param i32 i32) (result i32) 
  i32.const 512
  local.get 0
