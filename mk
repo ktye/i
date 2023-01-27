@@ -34,10 +34,6 @@ if [ "$1" = "cover" ]; then
 fi
 
 wg             . > k.wat
-if [ "$1" = "wasi" ]; then
-	sh ./wasi
-	exit 0
-fi
 
 /c/local/wabt/wat2wasm -o web/k.wasm k.wat
 

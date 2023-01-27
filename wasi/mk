@@ -23,7 +23,7 @@ cat << 'EOF'                    >k.wasi
 (import "wasi_snapshot_preview1" "proc_exit" (func $proc_exit (param i32)))
 EOF
 
-sed 1,8d k.wat | awk 'BEGIN{x=1}/^\(func/{x=1}/^\(func \$(getargv|store|catch)/{x=0}{if(x)print}' | grep -v '^)' >>k.wasi
+sed 1,8d ../k.wat | awk 'BEGIN{x=1}/^\(func/{x=1}/^\(func \$(getargv|store|catch)/{x=0}{if(x)print}' | grep -v '^)' >>k.wasi
 
 
 cat << 'EOF'                  >>k.wasi
@@ -66,20 +66,13 @@ cat << 'EOF'                  >>k.wasi
  call $split
  call $ndrop)
 (func $Read (param i32 i32 i32) (result i32) (local $fd i32) (local $sz i32)
- local.get 2
- i32.eqz
- if
-  i32.const 0
-  return
- end
-
  i32.const 3
  i32.const 0
  local.get 0
  local.get 1
  i32.const 0
- i64.const 0
- i64.const 0
+ i64.const 6
+ i64.const 6
  i32.const 0
  i32.const 512
  call $path_open
@@ -98,7 +91,8 @@ cat << 'EOF'                  >>k.wasi
  drop
 
  i32.const 512
- i32.load
+ i64.load
+ i32.wrap_i64
  local.set $sz
 
  local.get 2
@@ -121,7 +115,6 @@ cat << 'EOF'                  >>k.wasi
  i32.const 512
  local.get 2
  i32.store
-
  i32.const 516
  local.get $sz
  i32.store
@@ -131,18 +124,23 @@ cat << 'EOF'                  >>k.wasi
  i32.const 1
  i32.const 516
  call $fd_read
- i32.eqz
  if
   i32.const -1
   return
  end
-
+ 
  local.get $fd
  call $fd_close
  drop
-
+ 
  i32.const 0
- return)
+ i32.const 0
+ local.get 2
+ local.get $sz
+ call $Write
+ drop
+
+ local.get $sz)
 (func $Write (param i32 i32 i32 i32) (result i32)
  i32.const 512
  local.get 2
