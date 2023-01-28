@@ -1,14 +1,18 @@
-ku: paint on window
+ku: k with framebuffer + key & mouse
 
 build
- $sh mk get    #fenster.h from zserge
- $sh mk k.h    #build k.h, requires k
- $sh mk        #compiles ku.c
- $./a.out
+$wget https://github.com/ktye/i/releases/download/latest/k.c
+$sed '/^int main/Q k.c                                  >k.h
+$sh mk                               (compile ku.c on linux)
+$sh mk w                           (compile ku.c on windows)
 
-k interface:   W:H:(size)  K:{[key]}  (paint):P[color;indexlist]
+
+k interface: 
+ W:H:(size)  K:{[key]}  (paint):P[color;indexlist]
+
 
 $ku x.k
+$ku 2 x.k        (scaled)
 
 W:H:200          /window size
 B:P 255          /blue
