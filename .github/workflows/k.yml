@@ -53,6 +53,9 @@ jobs:
         wg             . > k.wat
         ../wat2wasm -o k.wasm k.wat
 
+    - name: k.wasi
+      run: cd i/wasi && sh mk
+
     - name: k.f
       run: cd i/f77 && sh mk && sh mk test
     
@@ -149,6 +152,16 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./i/k.wasm
         asset_name: k.wasm
+        asset_content_type: application/wasm
+
+    - name: upload k.wasi
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/wasi/k.wasi
+        asset_name: k.wasi
         asset_content_type: application/wasm
         
     - name: upload k.go

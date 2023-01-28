@@ -1,0 +1,54 @@
+wasi patch
+
+- remove all imports (Exit,Args,Arg,Read,Write,ReadIn,Native)
+- rewrite getargs() using args_get&args_sizes_get
+- remove store(), catch()
+- add _start()
+- dummy Native()
+- implement Read, Write, ReadIn with fd_read.. 
+
+get
+$wget https://github.com/ktye/i/releases/download/latest/k.wasi
+
+run
+-wavm
+$wavm run --abi=wasi --mount-root . k.wasi [x.k..]
+
+-wasm3
+$wasm3 k.wasi [x.k]
+
+-wazero
+$wazero run -mount . k.wasi [x.k..]
+
+
+bench
+$cp ../k.t .
+$cp ../x/kc .  (mk cc: gcc -O3 k.c -lm)
+(unit tests)
+[0] time wavm run --abi=wasi --mount-root . k.wasi k.t -e >/dev/null
+[1] time wasm3                              k.wasi k.t -e >/dev/null
+[2] time wazero run --mount .               k.wasi k.t -e >/dev/null
+[3] time kc                                        k.t -e >/dev/null
+(compile k to wasm binary)
+$cp ../x/k.k .
+$cp ../x/wb.k .
+[4] time wavm run --abi=wasi --mount-root . k.wasi k.k wb.k -e 'x:wb``'
+[5] time wasm3                              k.wasi k.k wb.k -e 'x:wb``'
+[6] time wazero run --mount .               k.wasi k.k wb.k -e 'x:wb``'
+[7] time kc                                        k.k wb.k -e 'x:wb``'
+
+  time(user best-of-3)
+       k.t       wb.k
+wavm   1.50      2.34
+wasm3  3.86     15.07
+wazero 1.47      5.18
+k.c    0.23      0.65
+
+
+
+debug wasi, e.g. flags:
+ $wavm run --abi=wasi --wasi-trace=syscalls --mount-root . k.was
+compare with
+ $zig cc -target wasm32-wasi example.c
+doc
+ github.com/tetratelabs/wazero/blob/main/imports/wasi_snapshot_preview1
