@@ -197,6 +197,6 @@ echo ")"                      >>_k.wat
 
 
 
-wat2wasm -o k.wasi _k.wat
-rm _k.wat
+#wat2wasm -o k.wasi _k.wat
+#rm _k.wat
 

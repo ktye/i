@@ -54,7 +54,7 @@ jobs:
         ../wat2wasm -o k.wasm k.wat
 
     - name: k.wasi
-      run: cd i/wasi && sh mk
+      run: cd i/wasi && sh mk && ../../wat2wasm -o k.wasi _k.wat
 
     - name: k.f
       run: cd i/f77 && sh mk && sh mk test
