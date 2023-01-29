@@ -10,6 +10,9 @@ elif [ "$1" = "k.h" ]; then
 elif [ "$1" = "w" ]; then
  gcc ku.c -lgdi32 -lm
 
+elif [ "$1" = "install" ]; then
+ cp index.html /c/k/ktye.github.io/ku/
+ cp *.k        /c/k/ktye.github.io/ku/
 
 else
  gcc ku.c -lX11 -lm

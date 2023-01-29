@@ -31,12 +31,21 @@ uint64_t cnative(uint64_t x,uint64_t y){ //P[color;indexlist]
 
 
 const char *p0="W:H:100;B:P 255;G:P 255*256;R:P 255*256*256;wh:!W*H;M:{`mouse \\(x)};K:{`key \\x;$[x~82;R wh;x~71;G wh;x~66;B wh;P[0;wh]];}";
+const char *sl="`-=[];'\\,./";
+const char *Sl="~_+{}:\"|<>?";
 
 uint64_t ks(const char *p){
  int32_t  n=(int32_t)strlen(p);
  uint64_t r=mk(Ct,n);
  memcpy(_M+(int32_t)r,p,n);
  return r;
+}
+
+int shift(int k,int s){
+ if((k>=65)&&(k<=90)&&!s)return k+32;
+ if((k>=48)&&(k<=57)&&s) return ")!@#$%^&*("[k-48];
+ if(s)for(int i=0;i<11;i++)if(sl[i]==k)return Sl[i];
+ return k;
 }
 
 int main(int args, char **argv){
@@ -64,7 +73,7 @@ int main(int args, char **argv){
  fenster_open(&f);
  int64_t now=fenster_time();
  while(!fenster_loop(&f)){
-  for(int i=0;i<128;i++)if(f.keys[i]){dx(Atx(Val(K),Ki(i)));f.keys[i]=0;}
+  for(int i=0;i<128;i++)if(f.keys[i]){dx(Atx(Val(K),Ki(shift(i,f.mod&2))));f.keys[i]=0;}
   if(f.keys[27])break;
   if(f.mouse){dx(Atx(Val(M),Cat(Ki((int32_t)f.x/SC),Ki((int32_t)f.y/SC))));f.mouse=0;}
   int64_t time=fenster_time();

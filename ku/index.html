@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8">
+<link rel=icon href='data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAACVBMVEX/AAAAAAD////KksOZAAAAMElEQVR4nGJYtWrVKoYFq1ZxMSyYhkZMgxNRXAwLpmbBCDAXSRZEgAwAGQUIAAD//+QzHr+8V1EyAAAAAElFTkSuQmCC'>
+<title>ku</title>
+<style>
+body{font-family:monospace;}
+select{position:absolute;top:5px;right:5px}
+pre{position:absolute;left:5px;width:calc(100vw - 10px);bottom:5px;max-height:30vh;overflow:scroll;background:#ffe}
+canvas{border:1px solid black}
+</style>
+</head>
+<body>
+
+<canvas id="cnv"></canvas>
+<pre    id="out">alpha beta</pre>
+<select>
+ <option>a</option>
+ <option>b</option>
+ <option>c</option>
+</select>
+
+<script>
+window.onerror=function(m,s,l,c,e){O(s+m+"\n")}
+let ge=x=>document.getElementById(x)
+let lo=x=>Number(BigInt.asUintN(32,x))
+let us=s=>new TextEncoder("utf-8").encode(s)
+let su=u=>(u.length)?new TextDecoder("utf-8").decode(u):""
+let O=s=>ge("out").innerText+=s
+let C=()=>new Int8Array(K.memory.buffer)
+let I=()=>new Int32Array(K.memory.buffer)
+let KC=x=>{if("string"===typeof(x))x=us(x);let r=K.mk(18,x.length);C().set(x,lo(r));return r}
+
+
+let env={env:{ 
+ Exit: function( x){ console.log("exit",x) },
+ Args: function(  ){ console.log("args",x); return 0},
+ Arg: function(x,y){ console.log("args",x,y); return 0},
+ Read: function(x,y,z){ console.log("read",x,y,z); return 0},
+ Write: function(file,nfile,src,n){
+  let d=new Uint8Array(K.memory.buffer,src,n)
+  if(nfile!==0)return 0;
+  O(su(d));return 0
+ },
+ ReadIn: function(x,y){ return 0 },
+ Native: function(x,y){ 
+  //let i=I()[lo(x)>>>2];K._.dx(x);return xcal[i](...K.LK(y)) 
+  console.log("native",x,y)
+  return 0
+ },
+}}
+
+let K,W,H,Key,Mouse
+function run(x){
+ fetch('../k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,env)).then(r=>{
+  K=r.instance.exports;K.kinit();
+  fetch(x).then(r=>r.arrayBuffer()).then(r=>{
+   K.dx(K.Val(KC(new Uint8Array(r))))
+   W=lo(K.Val(K.sc(KC("W"))))
+   H=lo(K.Val(K.sc(KC("H"))))
+   let k=K.Val(K.sc(KC("K")))
+   let m=K.Val(K.sc(KC("M")))
+   Key=function(c){   K.dx(K.Atx(k,K.Ki(x))) }
+   Mouse=function(x,y){ 
+    let r=K.mk(19,2)
+    let i=I();i[lo(r)>>>2]=x;i[1+(lo(r)>>>2)]=y
+    K.dx(K.Atx(m,r))
+   }
+   screen() 
+  })
+ })
+}
+run("x.k")
+
+function screen(){
+ console.log("screen")
+ let c=ge("cnv");c.width=W;c.heigth=H
+ //c=c.getContext("2d")
+ c.onclick=onclick
+ window.addEventListener('keydown',keydown,false);
+}
+function keydown(e){
+ if(e.key.length==1){return Key(e.key.charCodeAt())}
+}
+function onclick(e){
+ let x=e.clientX-e.target.offsetLeft
+ let y=e.clientY-e.target.offsetTop
+ Mouse(x,y)
+}
+
+</script>
+</body>
+</html>
