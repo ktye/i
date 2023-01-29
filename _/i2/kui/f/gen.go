@@ -117,6 +117,10 @@ func glyph(m image.Image, x, y, w, h int) string {
 	}
 	if φ == "k" {
 		c := make([]byte, len(b)/4)
+		if 4*len(c) < len(b) {
+			c = append(c, 0, 0)
+			b = append(b, false, false, false, false, false, false, false)
+		}
 		for i := 0; i < len(c); i += 2 {
 			c[i], c[i+1] = hxb(char(b[4*i : 4*i+8]))
 		}
