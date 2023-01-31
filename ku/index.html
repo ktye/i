@@ -7,6 +7,7 @@ body{font-family:monospace;}
 pre{position:absolute;left:5px;width:calc(50vw - 5px);bottom:5px;max-height:30vh;background:#ffe}
 canvas{border:1px solid black;image-rendering:pixelated}
 #opt{position:absolute;top:5px;right:5px}
+
 </style>
 </head>
 <body>
@@ -17,9 +18,11 @@ canvas{border:1px solid black;image-rendering:pixelated}
  <select id="exe">
   <option>x.k</option>
   <option>u.k</option>
+  <option>keyerr.k</option>
  </select>
  <input  id="scl" type="checkbox" title="scale"></input>scale
  <a id="lnk" href="x.k">x.k</a>
+ <br><a id="kui" href="ku.in.k">ui input</a>
 </div>
 <a id="_dl" style:"display:none"></a>
 
@@ -69,11 +72,12 @@ let env={env:{
 }}
 
 
-let K,W,H,ctx,Key,Mouse
+let K,W,H,ctx,Key,Mas,kui=[]
 let paint=()=>{let f=K.l2(K.Ki(0),KC("paint"));I()[(lo(f)>>>2)-3]=2;return(14n<<59n)+BigInt(lo(BigInt(f)))}
 function run(x){
  //(1)init-k (2)asn-P (3)eval-x.k (4)read-W/H (5)asn-K/M (6)setup-canvas
  ge("lnk").href=x;ge("lnk").innerText=x
+ ge("out").innerText=""
  fetch('../k.wasm').then(r=>r.arrayBuffer()).then(r=>WebAssembly.instantiate(r,env)).then(r=>{
   K=r.instance.exports;K.kinit();
   K.dx(K.Asn(K.sc(KC("P")),paint()))
@@ -83,12 +87,13 @@ function run(x){
    H=lo(K.Val(K.sc(KC("H"))))
    let k=K.Val(K.sc(KC("K")))
    let m=K.Val(K.sc(KC("M")))
-   Key=x=>K.dx(K.Atx(K.rx(k),K.Ki(x)))
-   Mouse=function(x,y){
+   Key=x=>K.dx(K.Atx(K.rx(k),K.Ki(logkey(x))))
+   Mas=function(x,y){             logmas(x,y)
     let r=K.mk(19,2)
     let i=I();i[lo(r)>>>2]=x;i[1+(lo(r)>>>2)]=y
     K.dx(K.Atx(K.rx(m),r))
    }
+   kui=[]
    screen() 
 })})}
 let ex=window.location.hash.slice(1);ex=ex.length?ex:"x.k"
@@ -113,8 +118,12 @@ function keydown(e){
 function onclick(e){
  let x=e.clientX-e.target.offsetLeft
  let y=e.clientY-e.target.offsetTop
- Mouse(x,y)
+ Mas(x,y)
 }
+function logkey(x){kui.push(x);return x}
+function logmas(x,y){kui.push([x,y])}
+function kuistr(){let r="/k "+ge("exe").value+" ku.in.k\nP:{y}\n";for(let i=0;i<kui.length;i++){let x=kui[i];r+=((x.length==2)?"M["+x[0]+";"+x[1]+"]":"K "+x)+"\n"};return r}
+ge("kui").onclick=e=>{download("ku.in.k",us(kuistr()));return false}
 
 let fs={}
 window.ondragover=function(e){pd(e)}
@@ -127,7 +136,7 @@ window.ondrop=function(e){pd(e);
    fs[f.name]=new Uint8Array(u)
 })}}
 
-function download(name,u){let dl=ge("_dl");let b=new Blob([u],{type:"application/octet-stream"});dl.href=URL.createObjectURL(b);dl.download=name;dl.click()}
+function download(name,u){let dl=ge("_dl");let b=new Blob([u],{type:"application/octet-stream"});dl.href=URL.createObjectURL(b);dl.download=name;dl.click();}
 
 </script>
 </body>

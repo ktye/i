@@ -4,7 +4,7 @@ G:P 255*256      /green
 R:P 255*256*256  /red
 
 X:-7
-K:{P[0;1];G (X+:7)+f7@`key \x} /key callback
+K:{G (X+:7)+f7@`key \x} /key callback
 M:{`click \x}     /mouse callback
 
 /font 8x16
