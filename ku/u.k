@@ -1,25 +1,26 @@
-W:400;H:300             /window size
-K:{key x}               /key callback /G (X+:7)+f7@`key \x} /key callback
-M:{ff.x;mouse[xy-rect 0 2]}
+W:400;H:300               /window size
+K:{key x}                 /key callback /G (X+:7)+f7@`key \x} /key callback
+M:{ff.x;mas[xy-rect 0 2]} /mouse
 
 fi:xy:0                 /frame index;current point (pixel coords)
 rect:(0;0;W;H)          /current widget rect x0 y0 x1 y1
 key:k0:{`K \x}          /callback for active widget
-mouse:m0:{`M \(x;y)}    /
+mas:m0:{`M \(x;y)}
 submit:{}
 
-F:+`t`x`y`X`Y!(```;0 200 0;0 150 150;200 400 200;150 300 300)  /frame table
+F:+`t`x`y`X`Y!(`text`text`text;0 200 0;0 150 150;200 400 200;150 300 300)  /frame table
 
-Mouse:``text`edit!(m0;mtext;medit)
-Key  :``text`edit!(k0;ktext;kedit)
+Mas:``text`edit!(m0;mtext;medit)
+Key:``text`edit!(k0;ktext;kedit)
 
 
-ff:{`ff (x;y);t:$[0N~i:*&0 1~/:+(x<F`x`X)&y<F`y`Y;`;(F`t)i];$[i~fi;submit[];frame[c0;rect]]
- key::Key t;mouse::Mouse t;rect::F[i;`x`y`X`Y];frame[c1;rect]}
- 
-frame:{P[x; r,(W*y 3)+r:(y 0)+!y 2]}
+ff:{i:`i \0|*&(</'+x<F`x`X)&</'+y<F`y`Y;$[i~fi;submit[];frame[c0;rect]]
+ key::Key(F`t)i;mas::Mas(F`t)i;rect::F[i;`x`y`X`Y];frame[c1;rect]}
 
-P:{`P (x;y)}
+frame:{`frame \(x;y);P[x; r,(W*`h \-1+-/y 3 1)+r:(W*y 1)+(`x0 \y 0)+!`w \-/y 2 0]}
+
+medit:{`medit \x}
+kedit:{`kedit \x}
 
 X:-7
 

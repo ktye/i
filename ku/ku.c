@@ -15,7 +15,7 @@ int nui=0,aui=0;
 // todo conform xI yI
 uint64_t cnative(uint64_t x,uint64_t y){ //P[color;pixelindex] /ci;pI
  x=Fst(rx(y));y=Las(y);
- dx(x);dx(y);if((tp(x)!=it)||(tp(y)!=It))return 0;
+ dx(x);if((tp(x)!=it)||(tp(y)!=It))return y;
  int32_t  n=nn(y),yp=(int32_t)y>>2;
  if(SC==2){
   for(int32_t i=0;i<n;i++){
@@ -29,7 +29,9 @@ uint64_t cnative(uint64_t x,uint64_t y){ //P[color;pixelindex] /ci;pI
   for(int32_t i=0;i<n;i++){
    int32_t j=((int32_t*)_M)[yp+i];
    if((j>=0)&&(j<W*H))O[j]=(uint32_t)x;
-}}}
+ }}
+ return y;
+}
 
 
 const char *p0="W:H:100;B:P 255;G:P 255*256;R:P 255*256*256;wh:!W*H;M:{`mouse \\(x)};K:{`key \\x;$[x~82;R wh;x~71;G wh;x~66;B wh;P[0;wh]];}";
@@ -57,7 +59,7 @@ int writekui(){
  FILE *f=fopen("ku.in.k", "w");
  fprintf(f,"P:{y}\n");
  for(int i=0;i<nui;i++){uint32_t x=kui[i];
-  if(x&0x80000000)fprintf(f,"M[%u,%u]\n",(x&0x7fff0000)>>16,x&0xffff);
+  if(x&0x80000000)fprintf(f,"M[%u %u]\n",(x&0x7fff0000)>>16,x&0xffff);
   else            fprintf(f,"K %u\n",x);
  }
  fclose(f);

@@ -39,7 +39,7 @@ let I=()=>new Int32Array(K.memory.buffer)
 let J=()=>new BigInt64Array(K.memory.buffer)
 let KC=x=>{if("string"===typeof(x))x=us(x);let r=K.mk(18,x.length);C().set(x,lo(r));return r}
 let P=(x,y)=>{ // ci,pI
- let j=J();let c=K.rx(j[lo(y)>>>3]);let i=K.rx(j[1+(lo(y)>>>3)]);K.dx(y)
+ let j=J();let c=K.rx(j[lo(y)>>>3]);let i=K.rx(j[1+(lo(y)>>>3)]);
  let it=K.tp(i);K.dx(c);c=lo(c)
  let m=ctx.getImageData(0,0,W,H)
  let r=255&(c>>>16),g=255&(c>>>8),b=255&c
@@ -48,7 +48,7 @@ let P=(x,y)=>{ // ci,pI
   for(let k=0;k<ii.length;k++){let p=4*ii[k];m.data[p]=r;m.data[1+p]=g;m.data[2+p]=b;m.data[3+p]=255}
  }
  ctx.putImageData(m,0,0)
- K.dx(i);return 0n
+ K.dx(i);return y
 }
 
 let env={env:{ 
@@ -122,7 +122,7 @@ function onclick(e){
 }
 function logkey(x){kui.push(x);return x}
 function logmas(x,y){kui.push([x,y])}
-function kuistr(){let r="/k "+ge("exe").value+" ku.in.k\nP:{y}\n";for(let i=0;i<kui.length;i++){let x=kui[i];r+=((x.length==2)?"M["+x[0]+";"+x[1]+"]":"K "+x)+"\n"};return r}
+function kuistr(){let r="/k "+ge("exe").value+" ku.in.k\nP:{y}\n";for(let i=0;i<kui.length;i++){let x=kui[i];r+=((x.length==2)?"M["+x[0]+" "+x[1]+"]":"K "+x)+"\n"};return r}
 ge("kui").onclick=e=>{download("ku.in.k",us(kuistr()));return false}
 
 let fs={}
