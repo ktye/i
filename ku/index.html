@@ -4,7 +4,7 @@
 <title>ku</title>
 <style>
 body{font-family:monospace;}
-pre{position:absolute;left:5px;width:calc(50vw - 5px);bottom:5px;max-height:30vh;background:#ffe}
+pre{position:absolute;left:5px;width:calc(100vw - 10px);bottom:5px;max-height:30vh;background:#ffe}
 canvas{border:1px solid black;image-rendering:pixelated}
 #opt{position:absolute;top:5px;right:5px}
 
@@ -22,7 +22,8 @@ canvas{border:1px solid black;image-rendering:pixelated}
  </select>
  <input  id="scl" type="checkbox" title="scale"></input>scale
  <a id="lnk" href="x.k">x.k</a>
- <br><a id="kui" href="ku.in.k">ui input</a>
+ <hr><a id="kui" href="ku.in.k">save ui input</a>
+ <br>replay <input id="replay" type="file"></input>
 </div>
 <a id="_dl" style:"display:none"></a>
 
@@ -74,7 +75,7 @@ let env={env:{
 
 let K,W,H,ctx,Key,Mas,kui=[]
 let paint=()=>{let f=K.l2(K.Ki(0),KC("paint"));I()[(lo(f)>>>2)-3]=2;return(14n<<59n)+BigInt(lo(BigInt(f)))}
-function run(x){
+function run(x,ply){
  //(1)init-k (2)asn-P (3)eval-x.k (4)read-W/H (5)asn-K/M (6)setup-canvas
  ge("lnk").href=x;ge("lnk").innerText=x
  ge("out").innerText=""
@@ -94,36 +95,45 @@ function run(x){
     K.dx(K.Atx(K.rx(m),r))
    }
    kui=[]
-   screen() 
+   screen(ply) 
 })})}
 let ex=window.location.hash.slice(1);ex=ex.length?ex:"x.k"
 run(ex.length?ex:"x.k")
 ge("exe").value=ex
 ge("exe").onchange=e=>run(e.target.value)
 
-function screen(){
+function screen(ply){
  let c=ge("cnv");c.width=W;c.height=H
  c.onclick=onclick
  window.addEventListener('keydown',keydown,false);
- ctx=c.getContext("2d")
+ ctx=c.getContext("2d",{willReadFrequently:true})
  ctx.fillRect(0,0,W,H)
  ge("scl").onchange=function(){setscale()}
  setscale()
+ if(ply!==undefined)K.Val(KC(ply))
 }
 function scale(){return ge("scl").checked?2:1}
 function setscale(){ ge("cnv").style.width=(scale()*W)+"px";ge("cnv").style.height=(scale()*H)+"px"}
 function keydown(e){
  if(e.key.length==1){return Key(e.key.charCodeAt())}
+ else if(e.key in keymap)return Key(keymap[e.key])
+ console.log("key",e.key)
 }
+const keymap={"Enter":10,"Delete":127,"Backspace":8,"ArrowUp":17,"ArrowDown":19,"ArrowRight":20,"ArrowLeft":21}
 function onclick(e){
  let x=e.clientX-e.target.offsetLeft
  let y=e.clientY-e.target.offsetTop
- Mas(x,y)
+ Mas(x/scale(),y/scale())
 }
 function logkey(x){kui.push(x);return x}
 function logmas(x,y){kui.push([x,y])}
 function kuistr(){let r="/k "+ge("exe").value+" ku.in.k\nP:{y}\n";for(let i=0;i<kui.length;i++){let x=kui[i];r+=((x.length==2)?"M["+x[0]+" "+x[1]+"]":"K "+x)+"\n"};return r}
 ge("kui").onclick=e=>{download("ku.in.k",us(kuistr()));return false}
+
+ge("replay").onchange=e=>{play(e.target.files[0]);e.target.value=null/*to allow reload same file*/}
+let play=f=>{let r=new FileReader();r.readAsText(f)
+ r.onload=()=>{run(ge("exe").value,r.result.split("\n").filter(x=>!x.startsWith("P:")).join("\n"))}
+}
 
 let fs={}
 window.ondragover=function(e){pd(e)}
