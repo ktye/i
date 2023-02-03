@@ -1,33 +1,34 @@
-W:400;H:300               /window size
-K:{key@`k \x}                 /key callback /G (X+:7)+f7@`key \x} /key callback
-M:{ff.`M \x;mas[xy-rect 0 2]} /mouse
+W:400;H:300                /window size
+K:{key@`k \x}              /key callback /G (X+:7)+f7@`key \x} /key callback
+M:{ff.`M \x;mas[xy-D`x`y]} /mouse
 
-fi:xy:0                 /frame index;current point (pixel coords)
-rect:(0;0;W;H)          /current widget rect x0 y0 x1 y1
-key:k0:{x}          /callback for active widget
+key:k0:{x}              /callback for active widget type
 mas:m0:{(x;y)}
-submit:{}
+commit:{`commit \x;$[x;(F[I]::D)I;D]}
 CX:CY:0
 
-F:+`t`x`y`X`Y`CX`CY!(`text`edit`text;0 200 0;0 150 150;200 400 200;150 300 300;0 0 0;0 0 0)  /frame table
+F:+`t`x`y`X`Y`CX`CY`v!(`text`text`text;0 200 0;0 150 150;200 400 200;150 300 300;0 0 0;0 0 0;("";"";""))  /frame table
+D:F I:0
 
-
-medit:{`medit \x;fill[white;rect]}
-kedit:{$[10~x;CY+:13+CX::0;P[black; (((W*CY)+rect 0)+W*rect 1)+(CX+:7)+f7 x]]}
 mtext:{`mtext \x}
-ktext:{`ktext \x}
+ktext:{D[`v]::$[x~8;-1_D`v;x~10;commit[1]`v;x':abc,32;(D`v),_x;D`v];fill[white;(D`x`y`X`Y)];P[black;((D`x)+W*D`y)+,/{x+f7 y}'[7*!#D`v;D`v]]}
+
+
 
 Mas:``text`edit!(m0;mtext;medit)
 Key:``text`edit!(k0;ktext;kedit)
 
 
-ff:{i:0|*&(</'+x<F`x`X)&</'+y<F`y`Y;$[i~fi;submit[];frame[c0;rect]];fi:i
- key::Key(F`t)i;mas::Mas(F`t)i;rect::F[i;`x`y`X`Y];CX:F[i;`CX];CY:F[i;`CY];frame[c1;rect]}
+ff:{i:0|*&(</'+x<F`x`X)&</'+y<F`y`Y;frame[c0;D`x`y`X`Y];commit[~i~I];D::F I::i
+ key::Key D`t;mas::Mas D`t;         frame[c1;D`x`y`X`Y]}
 
 frame:{[c;r]P[c;(v+w-1),(v:(W*!h)+x+y*W),t,(W*-1+h:-/r 3 1)+t:(W*y:r 1)+(x:r 0)+!w:-/r 2 0];r}
 fill: {[c;r]P[c;((1+r 0)+W*1+r 1)+,/(W*!-2+-/r 3 1)+\:!(-2+-/r 2 0) ];r}
 
 X:-7
+
+
+abc:0+":+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 white:16777215;black:0
 c0:11184810 /#aaa
@@ -36,7 +37,7 @@ c1:255*256
 /font 7x13  (each char has 88 bits instead of 91)
 bits:{2/128 64 32 16 8 4 2 1\256+x}
 chr7:{(7/x)+W*7\x:&,/bits'x}
-f7:chr7'@[127#,"";0+":+-*%&|<>=!~,^#_$?@.0123456789'/\\;`\"(){}[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+f7:chr7'@[127#,"";abc
 -11^,/(0x000000030600000060c00000000081023f881020000000000000001f0000000000000042a28a840000000000000184994d041653243000
  0x0000c24486194a8911d000002040810204081020408000000041041010101000000000010101010410400000000000001f807e000000000000c1
  0x83060c100060c000000000000e670000000000000000000000000030618000004082851122000000000001224fc9127e48912000000000000000
