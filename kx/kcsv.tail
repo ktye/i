@@ -1,0 +1,126 @@
+
+//go:embed readme.csv
+var help []byte
+
+var out *bufio.Writer
+
+func main() {
+	a := os.Args[1:]
+	if len(a) == 0 || a[0] == "-h" {
+		os.Stderr.Write(help)
+		os.Exit(1)
+	}
+
+	fm, fi := "", ""
+	if len(a) < 2 {
+		fi = a[1]
+		a = a[1:]
+	} else {
+		fm, fi = a[1], a[2]
+		a = a[2:]
+	}
+	
+	// todo parse fm
+	// todo read fi
+	b, e := os.ReadFile(fi)
+	if e != nil {
+		println("cannot read csv file: "+fi)
+		return
+	}
+
+	text, binary := false, false
+	if len(a) > 0 {
+		l := a[len(a)-1]
+		if l == "-h" {
+			colnames()
+			return
+		}
+		text, binary = l=="-t", l=="-b"
+		if text || binary {
+			a = a[:len(a)-1]
+		}
+	}
+
+
+	kinit()
+	// todo
+	for i, s := range a {
+		if strings.HasSuffix(s, ".k") {
+			x := KC(s)
+			dofile(x, readfile(rx(x)))
+		} else if s == "-e" {
+			if i == len(a) - 1 {
+				return
+			}
+			// strings.ReplaceAll(a[1+i], "°", "'")
+			// todo return eval a[1+i]
+		} else {
+			println("? arg: ", s)
+			return
+		}
+	}
+	// todo repl
+
+	_ = fm
+	_ = b
+
+}
+func colnames() { println("todo") }
+func KC(s string) uint64 {
+	r := mk(18, int32(len(s)))
+	copy(Bytes[int32(r):], []byte(s))
+	return r
+}
+/*
+func CK(x uint64) string { dx(x); return string(Bytes[int32(x) : int32(x)+nn(x)]) }
+func KL(v []string) uint64 {
+	r := mk(23, int32(len(v)))
+	p := int32(r)
+	for i := range v {
+		SetI64(p+8*int32(i), int64(KC(v[i])))
+	}
+	return r
+}
+func eval(x uint64) string {
+	return strs(exec(rx(x)))
+}
+func writes(x []string) { out.WriteString(strings.Join(x, " ") + "\n") }
+func strs(x uint64) (r string) {
+	p := int32(x)
+	t := tp(x)
+	switch t {
+	case 2:
+		r = string(p)
+	case 3:
+		r = strconv.Itoa(int(p))
+	case 4:
+		r = CK(cs(rx(x)))
+	case 5:
+		r = ftoa(F64(p))
+	case 6:
+		r = absang(complex(F64(p), F64(p+8)))
+	case 18:
+		r = CK(rx(x)) // C
+	case 19, 20, 21, 22, 23:
+		r = each(x) // IFSZL
+	}
+	dx(x)
+	return r
+}
+func each(x uint64) string {
+	n := nn(x)
+	r := make([]string, n)
+	for i := int32(0); i < n; i++ {
+		r[i] = strs(ati(rx(x), i))
+	}
+	return strings.Join(r, " ")
+}
+func ftoa(f float64) string { return strconv.FormatFloat(f, 'g', 6, 64) }
+func absang(z complex128) string {
+	ang := 180.0 / math.Pi * cmplx.Phase(z)
+	if ang < 0 {
+		ang += 360.0
+	}
+	return ftoa(cmplx.Abs(z)) + " " + ftoa(ang)
+}
+*/

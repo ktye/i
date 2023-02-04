@@ -1,10 +1,16 @@
 set -e
 set -x
-cat head                                             > kx.go
+cat kx.head                                          > kx.go
 k ../x/k.k ../x/go.k -e 'x:`<go``lib' | sed '1d;2d' >> kx.go
-cat tail                                            >> kx.go
-go build
+cat kx.tail                                         >> kx.go
+go build kx.go
+
+
+cat kcsv.head                                        > kcsv.go
+k ../x/k.k ../x/go.k -e 'x:`<go``lib' | sed '1d;2d' >> kcsv.go
+cat kcsv.tail                                       >> kcsv.go
+go build kcsv.go
 
 if [ -z $1 ]; then
-	rm kx.go
+	rm -f kx.go kx kx.exe kcsv.go kcsv kcsv.exe
 fi

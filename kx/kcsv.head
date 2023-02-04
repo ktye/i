@@ -1,0 +1,11 @@
+package main
+
+import ( 
+	"encoding/binary"
+	"math"
+	"math/bits"
+	"os" 
+	"bufio"
+	_ "embed"
+	"strings"
+)
