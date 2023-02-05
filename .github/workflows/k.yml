@@ -63,7 +63,7 @@ jobs:
       run: cd i/x && wg -k .. > k.k && k k.k go.k -e 'x:`<go`pkg`k' > k.go && go fmt k.go && go build -o kg k.go && ./kg ../k.t -e
     
     - name: kx.go
-      run: cd i/kx && sh mk x && go fmt kx.go
+      run: cd i/kx && sh mk
 
     - name: k.c
       run: cd i/x && k k.k cc.k -e 'x:`<cc``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
@@ -174,16 +174,6 @@ jobs:
         asset_name: k.go
         asset_content_type: text/plain
         
-    - name: upload kx.go
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/kx/kx.go
-        asset_name: kx.go
-        asset_content_type: text/plain
-          
     - name: upload k.f
       uses: actions/upload-release-asset@v1
       env:

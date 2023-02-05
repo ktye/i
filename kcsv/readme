@@ -10,8 +10,8 @@ $ksv [fmt] f.csv -h
  print selected colnames from first line
 
 fmt
- ;4i8i             ;-separated, column 4 and 8 as int
+ ;0i4i             ;-separated, column 0 and 4 as int
  ,2hifs            skip 2 header lines
 
 i(int) f(float) s(symbol) c(chars) z(2 cols: abs,ang)
-default sep (1.row max# of ,;\t space:strings.Fields)
+default sep (1.row max# of ,;|t space:strings.Fields)

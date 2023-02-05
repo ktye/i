@@ -1,11 +1,14 @@
 package main
 
 import ( 
+	"bytes"
 	"encoding/binary"
 	"math"
 	"math/bits"
 	"os" 
 	"bufio"
 	_ "embed"
+	"regexp"
+	"strconv"
 	"strings"
 )

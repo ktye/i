@@ -1,0 +1,14 @@
+set -e
+set -x
+
+cat head                                             > kcsv.go
+k ../x/k.k ../x/go.k -e 'x:`<go``lib' | sed '1d;2d' >> kcsv.go
+cat tail                                            >> kcsv.go
+
+if [ "$1" = "test" ];then
+	go test
+else
+	go install kcsv.go
+fi
+
+rm kcsv.go
