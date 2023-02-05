@@ -37,12 +37,20 @@ func main() {
 		fatal("cannot read csv file: "+fi)
 	}
 
-	x := kcsv(fm, b, l)
+	x, f := kcsv(fm, b, l)
 	if x == 0 {
 		return
 	}
 
-	// todo store in x
+	if l == "-b" {
+		f.binary(os.Stdout, x)
+		return
+	} else if l == "-b" {
+		f.serialize(os.Stdout, x)
+		return
+	}
+
+	Asn(sc(Ku(120)), x) // x:(..)
 	for i, s := range a {
 		if strings.HasSuffix(s, ".k") {
 			x := KC(s)
@@ -69,26 +77,122 @@ func main() {
         }
 }
 
-func kcsv(fm string, b []byte, l string) uint64 {
-	var form format
-	form, b = parseFormat(fm, b)
+func kcsv(fm string, b []byte, l string) (uint64, format) {
+	var f format
+	f, b = parseFormat(fm, b)
 
 	if l == "-h" {
 		colnames()
-		return 0
+		return 0, f
 	}
 
+	r := csv.NewReader(bytes.NewReader(b))
+	r.Comma = rune(f.s)
+	r.Comment = '#'
+	r.TrimLeadingSpace = true
+	r.ReuseRecord = true
+
+	v, e := r.Read()
+	if e != nil {
+		fatal(e.Error())
+	}
 	kinit()
 
-	_ = form
-	// todo csv..
-	return 0
+	if len(f.t) == 0 {
+		f.t = make([]int32, len(v))
+		f.i = make([]int, len(v))
+		for i := range f.i {
+			f.t[i] = Ct //default
+			f.i[i] = i
+		}
+		f.maxcol = len(v) - 1
+	}
+	f.v = make([]uint64, len(v))
+	for i, t := range f.t {
+		if t == Ct {
+			f.v[i] = mk(Lt, 0)
+		} else {
+			f.v[i] = mk(t, 0)
+		}
+	}
+	f.line++
+	f.push(v)
+
+	for {
+		f.line++
+		v, e = r.Read()
+		if e == io.EOF {
+			return f.list(), f
+		} else if e != nil {
+			f.err(e.Error())
+		} else if len(v) == 0 {
+			continue
+		}
+		f.push(v)
+	}
 }
+func (f *format) push(v []string) {
+	f.line++
+	if len(v) <= f.maxcol {
+		f.err("not enough columns: " + strconv.Itoa(len(v)) + " not " + strconv.Itoa(1+f.maxcol))
+	}
+	for i, t := range f.t {
+		switch t {
+		case It:
+			f.v[i] = cat1(f.v[i], kint(v[i]))
+		case St:
+			f.v[i] = cat1(f.v[i], sc(KC(v[i])))
+		case Ft:
+			f.v[i] = cat1(f.v[i], Kf(flt(v[i])))
+		case Zt:
+			f.v[i] = cat1(f.v[i], kmpl(flt(v[i]), flt(v[1+i])))
+		default:
+			f.v[i] = ucat(f.v[i], Enl(KC(v[i])))
+		}
+	}
+}
+func kint(s string) uint64 {
+	n, e := strconv.ParseInt(s, 10, 32)
+	if e != nil {
+		return Ki(nai)
+	} else {
+		return Ki(int32(n))
+	}
+}
+func flt(s string) float64 {
+	n, e := strconv.ParseFloat(strings.ReplaceAll(s, ",", "."), 64)
+	if e != nil {
+		return math.NaN()
+	} else {
+		return n
+	}
+}
+func kmpl(r, a float64) uint64 { 
+	z := cmplx.Rect(r, a*math.Pi/180.0)
+	return Kz(real(z), imag(z))
+}
+
+func (f *format) list() uint64 {
+	r := mk(Lt, 0)
+	for _, x := range f.v {
+		r = Cat(r, Enl(x))		
+	}
+	return r
+}
+func (f *format) err(s string) {
+	os.Stderr.Write([]byte(strconv.Itoa(f.line)))
+	os.Stderr.Write([]byte(": "+s))
+	os.Exit(1)
+}
+
 
 type format struct {
 	s byte
-	t []byte
+	t []int32
 	i []int
+	v []uint64
+	maxcol int
+	line int
 }
 
 func parseFormat(f string, b []byte) (format, []byte) {
@@ -126,16 +230,18 @@ func parseFormat(f string, b []byte) (format, []byte) {
 			}
 		}
 		f = t
+		r.line++
 	}
 
 	cur := 0
+	tm := map[byte]int32{ 'c': Ct, 'i': It, 's': St, 'f': Ft, 'z': Zt, }
 	for len(f) > 0 {
 		i := strings.IndexAny(f, "ifcsz")
 		if i < 0 {
 			fatal("csv format: cannot read type: "+f)
 		} else if i == 0 {
 			r.i = append(r.i, cur)
-			r.t = append(r.t, f[0])
+			r.t = append(r.t, tm[f[0]])
 			f = f[1:]
 			cur++
 			if f[0] == 'z' {
@@ -146,7 +252,7 @@ func parseFormat(f string, b []byte) (format, []byte) {
 				fatal("csv format: cannot parse int: "+f)
 			} else {
 				r.i = append(r.i, n)
-				r.t = append(r.t, f[i])
+				r.t = append(r.t, tm[f[i]])
 				cur = n
 				if f[i] == 'z' {
 					cur++
@@ -155,6 +261,7 @@ func parseFormat(f string, b []byte) (format, []byte) {
 			}
 		}
 	}
+	r.maxcol = cur
 	return r, b
 }
 func autosep(h []byte) byte {
@@ -179,6 +286,10 @@ func KC(s string) uint64 {
 	copy(Bytes[int32(r):], []byte(s))
 	return r
 }
+
+func (f *format) binary(w io.Writer, x uint64) { } // todo
+func (f *format) serialize(w io.Writer, x uint64) { } //todo
+
 /*
 func CK(x uint64) string { dx(x); return string(Bytes[int32(x) : int32(x)+nn(x)]) }
 func KL(v []string) uint64 {
