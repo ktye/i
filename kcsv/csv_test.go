@@ -5,20 +5,30 @@ import "testing"
 var save []byte
 
 func newtest() {
-        rand_ = 1592653589
-        if save == nil {
-                kinit()
-                save = make([]byte, len(Bytes))
-                copy(save, Bytes)
-        } else {
-                Bytes = make([]byte, len(save))
-                copy(Bytes, save)
-                pp, pe, sp = 0, 0, 256
-        }
+	println("newtest")
+	rand_ = 1592653589
+	if save == nil {
+		kinit()
+		save = make([]byte, len(Bytes))
+		copy(save, Bytes)
+	} else {
+		Bytes = make([]byte, len(save))
+		copy(Bytes, save)
+		pp, pe, sp = 0, 0, 256
+	}
 }
 
 func TestCsv(t *testing.T) {
-	newtest()	
+	testCases := []struct {
+		fm, fi string
+	}{
+		{"zz", file1},
+	}
+	for _, tc := range testCases {
+		newtest()
+		println("kcsv")
+		kcsv(tc.fm, []byte(tc.fi), "")
+	}
 }
 
 const file1 = `

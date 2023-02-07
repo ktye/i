@@ -11,4 +11,4 @@ else
 	go install kcsv.go
 fi
 
-rm kcsv.go
+#rm kcsv.go

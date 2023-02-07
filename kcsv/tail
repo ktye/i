@@ -7,6 +7,7 @@ var out *bufio.Writer
 const separators = ",;|\t "
 
 func main() {
+	kinit()
 	a := os.Args[1:]
 	if len(a) == 0 || a[0] == "-h" {
 		os.Stderr.Write(help)
@@ -96,7 +97,6 @@ func kcsv(fm string, b []byte, l string) (uint64, format) {
 	if e != nil {
 		fatal(e.Error())
 	}
-	kinit()
 
 	if len(f.t) == 0 {
 		f.t = make([]int32, len(v))
@@ -105,9 +105,9 @@ func kcsv(fm string, b []byte, l string) (uint64, format) {
 			f.t[i] = Ct //default
 			f.i[i] = i
 		}
-		f.maxcol = len(v) - 1
+		f.columns = len(v)
 	}
-	f.v = make([]uint64, len(v))
+	f.v = make([]uint64, len(f.t))
 	for i, t := range f.t {
 		if t == Ct {
 			f.v[i] = mk(Lt, 0)
@@ -133,8 +133,8 @@ func kcsv(fm string, b []byte, l string) (uint64, format) {
 }
 func (f *format) push(v []string) {
 	f.line++
-	if len(v) <= f.maxcol {
-		f.err("not enough columns: " + strconv.Itoa(len(v)) + " not " + strconv.Itoa(1+f.maxcol))
+	if len(v) < f.columns {
+		f.err("not enough columns: " + strconv.Itoa(len(v)) + " not " + strconv.Itoa(f.columns))
 	}
 	for i, t := range f.t {
 		switch t {
@@ -181,7 +181,7 @@ func (f *format) list() uint64 {
 }
 func (f *format) err(s string) {
 	os.Stderr.Write([]byte(strconv.Itoa(f.line)))
-	os.Stderr.Write([]byte(": "+s))
+	os.Stderr.Write([]byte(": "+s+"\n"))
 	os.Exit(1)
 }
 
@@ -191,7 +191,7 @@ type format struct {
 	t []int32
 	i []int
 	v []uint64
-	maxcol int
+	columns int
 	line int
 }
 
@@ -242,11 +242,11 @@ func parseFormat(f string, b []byte) (format, []byte) {
 		} else if i == 0 {
 			r.i = append(r.i, cur)
 			r.t = append(r.t, tm[f[0]])
-			f = f[1:]
-			cur++
 			if f[0] == 'z' {
 				cur++
 			}
+			cur++
+			f = f[1:]
 		} else {
 			if n, e := strconv.Atoi(f[:i]); e != nil {
 				fatal("csv format: cannot parse int: "+f)
@@ -261,7 +261,7 @@ func parseFormat(f string, b []byte) (format, []byte) {
 			}
 		}
 	}
-	r.maxcol = cur
+	r.columns = cur
 	return r, b
 }
 func autosep(h []byte) byte {
