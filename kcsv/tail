@@ -2,8 +2,6 @@
 //go:embed readme
 var help []byte
 
-var out *bufio.Writer
-
 const separators = ",;|\t "
 
 func main() {
@@ -16,10 +14,10 @@ func main() {
 
 	fm, fi := "", ""
 	if len(a) < 2 {
-		fi = a[1]
+		fi = a[0]
 		a = a[1:]
 	} else {
-		fm, fi = a[1], a[2]
+		fm, fi = a[0], a[1]
 		a = a[2:]
 	}
 	l := ""
@@ -43,11 +41,15 @@ func main() {
 		return
 	}
 
-	if l == "-b" {
-		f.binary(os.Stdout, x)
-		return
-	} else if l == "-b" {
-		f.serialize(os.Stdout, x)
+	
+	if l == "-b" || l == "-t" {
+		out := bufio.NewWriter(os.Stdout)
+		if l == "-b" {
+			f.binary(out, x)
+		} else {
+			f.serialize(out, x)
+		}
+		out.Flush()
 		return
 	}
 
@@ -137,17 +139,18 @@ func (f *format) push(v []string) {
 		f.err("not enough columns: " + strconv.Itoa(len(v)) + " not " + strconv.Itoa(f.columns))
 	}
 	for i, t := range f.t {
+		j := f.i[i]
 		switch t {
 		case It:
-			f.v[i] = cat1(f.v[i], kint(v[i]))
+			f.v[i] = cat1(f.v[i], kint(v[j]))
 		case St:
-			f.v[i] = cat1(f.v[i], sc(KC(v[i])))
+			f.v[i] = cat1(f.v[i], sc(KC(v[j])))
 		case Ft:
-			f.v[i] = cat1(f.v[i], Kf(flt(v[i])))
+			f.v[i] = cat1(f.v[i], Kf(flt(v[j])))
 		case Zt:
-			f.v[i] = cat1(f.v[i], kmpl(flt(v[i]), flt(v[1+i])))
+			f.v[i] = cat1(f.v[i], kmpl(flt(v[j]), flt(v[1+j])))
 		default:
-			f.v[i] = ucat(f.v[i], Enl(KC(v[i])))
+			f.v[i] = ucat(f.v[i], Enl(KC(v[j])))
 		}
 	}
 }
@@ -214,7 +217,9 @@ func parseFormat(f string, b []byte) (format, []byte) {
 	}
 	if r.s == ' ' {
 		sp := regexp.MustCompile(" +")
+		st := regexp.MustCompile("(?m) *$")
 		b = sp.ReplaceAll(b, []byte{32})
+		b = st.ReplaceAll(b, []byte{})
 	}
 
 	// skip header
@@ -239,27 +244,21 @@ func parseFormat(f string, b []byte) (format, []byte) {
 		i := strings.IndexAny(f, "ifcsz")
 		if i < 0 {
 			fatal("csv format: cannot read type: "+f)
-		} else if i == 0 {
-			r.i = append(r.i, cur)
-			r.t = append(r.t, tm[f[0]])
-			if f[0] == 'z' {
-				cur++
-			}
-			cur++
-			f = f[1:]
-		} else {
-			if n, e := strconv.Atoi(f[:i]); e != nil {
-				fatal("csv format: cannot parse int: "+f)
-			} else {
-				r.i = append(r.i, n)
-				r.t = append(r.t, tm[f[i]])
-				cur = n
-				if f[i] == 'z' {
-					cur++
-				}
-				f = f[1+i:]
-			}
 		}
+		if i > 0 {
+			n, e := strconv.Atoi(f[:i])
+			if e != nil {
+				fatal("csv format: cannot parse int: "+f)
+			}
+			cur = n
+		}
+		r.i = append(r.i, cur)
+		r.t = append(r.t, tm[f[i]])
+		if f[i] == 'z' {
+			cur++
+		}
+		f = f[1+i:]
+		cur++
 	}
 	r.columns = cur
 	return r, b
@@ -287,8 +286,26 @@ func KC(s string) uint64 {
 	return r
 }
 
-func (f *format) binary(w io.Writer, x uint64) { } // todo
-func (f *format) serialize(w io.Writer, x uint64) { } //todo
+func (f *format) binary(w io.Writer, x uint64) {
+	dx(Val(KC("`\"pack.\":{w:{(`c@,#x),x};($t),$[`s~t:@x;`pack@$x;x~*x;w `c@,x;`L~@x;(`c@,#x),,/`pack@'x;(@x)':`D`T;(`pack@.x),`pack@!x;`S~t;,/`pack@$x;w `c x]}")))
+	y := Atx(sc(KC("pack")), x) // `pack@
+	wCK(w, y)
+}
+
+func wCK(w io.Writer, x uint64){dx(x); w.Write(Bytes[int32(x):int32(x)+nn(x)])}
+func (f *format) serialize(w io.Writer, x uint64) { 
+	n := nn(x)
+	w.Write([]byte("x:("))
+	for i := int32(0); i<n; i++ {
+		//Out(ati(x,i))
+		wCK(w, Kst(ati(rx(x), i)))
+		if i<n-1 {
+			w.Write([]byte("\n "))
+		}
+	}
+	w.Write([]byte(")\n"))
+	dx(x)
+}
 
 /*
 func CK(x uint64) string { dx(x); return string(Bytes[int32(x) : int32(x)+nn(x)]) }

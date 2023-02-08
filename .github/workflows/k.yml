@@ -65,6 +65,9 @@ jobs:
     - name: kx.go
       run: cd i/kx && sh mk
 
+    - name: kcsv.go
+      run: cd i/kcsv && sh mk test
+
     - name: k.c
       run: cd i/x && k k.k cc.k -e 'x:`<cc``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
     
