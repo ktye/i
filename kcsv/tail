@@ -11,6 +11,11 @@ func main() {
 		os.Stderr.Write(help)
 		os.Exit(1)
 	}
+	
+	hdr := len(a) > 1 && a[len(a)-1] == "-h"
+	if hdr {
+		a = a[:len(a)-1]
+	}	
 
 	fm, fi := "", ""
 	if len(a) < 2 {
@@ -23,7 +28,7 @@ func main() {
 	l := ""
 	if len(a) > 0 {
 		l = a[len(a)-1]
-		if l == "-t" || l == "-b" || l == "-h" {
+		if l == "-t" || l == "-b" {
 			a = a[:len(a)-1]
 		} else {
 			l = ""
@@ -36,7 +41,7 @@ func main() {
 		fatal("cannot read csv file: "+fi)
 	}
 
-	x, f := kcsv(fm, b, l)
+	x, f := kcsv(fm, b, hdr)
 	if x == 0 {
 		return
 	}
@@ -80,14 +85,9 @@ func main() {
         }
 }
 
-func kcsv(fm string, b []byte, l string) (uint64, format) {
+func kcsv(fm string, b []byte, hdr bool) (uint64, format) {
 	var f format
 	f, b = parseFormat(fm, b)
-
-	if l == "-h" {
-		colnames()
-		return 0, f
-	}
 
 	r := csv.NewReader(bytes.NewReader(b))
 	r.Comma = rune(f.s)
@@ -98,6 +98,17 @@ func kcsv(fm string, b []byte, l string) (uint64, format) {
 	v, e := r.Read()
 	if e != nil {
 		fatal(e.Error())
+	}
+	
+	if hdr {
+		w := make([]string, len(v))
+		copy(w, v)
+		v, e = r.Read()
+		if e != nil {
+			v = nil
+		}
+		colnames(w, v)
+		return 0, f
 	}
 
 	if len(f.t) == 0 {
@@ -273,7 +284,20 @@ func autosep(h []byte) byte {
 	return a[j]
 }
 
-func colnames() { println("todo") }
+func colnames(v, w []string) {
+	tw := tabwriter.NewWriter(os.Stdout, 2, 1, 2, ' ', 0)
+	for i := range v {
+		tw.Write([]byte(strconv.Itoa(i)))
+		tw.Write([]byte{'\t'})
+		tw.Write([]byte(v[i]))
+		tw.Write([]byte{'\t'})
+		if w != nil && len(w) > i {
+			tw.Write([]byte(w[i]+".."))
+		}
+		tw.Write([]byte{'\n'})
+	}
+	tw.Flush()
+}
 func fatal(s string) {
 	os.Stderr.Write([]byte(s))
 	os.Stderr.Write([]byte{10})
