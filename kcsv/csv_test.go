@@ -34,7 +34,7 @@ func TestCsv(t *testing.T) {
 	for i, tc := range testCases {
 		newtest()
 		var buf bytes.Buffer
-		x, f := kcsv(tc.fm, []byte(tc.fi), "")
+		x, f := kcsv(tc.fm, []byte(tc.fi), false)
 		if s := f.fstr(); s != tc.fstr {
 			t.Fatalf("tc %d format: exp %s got %s", i, tc.fstr, s)
 		}
