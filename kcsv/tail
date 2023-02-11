@@ -234,18 +234,17 @@ func parseFormat(f string, b []byte) (format, []byte) {
 	}
 
 	// skip header
-	if s, t, o := strings.Cut(f, "h"); o {
-		nh, e := strconv.Atoi(s)
+	if i := strings.Index(f, "h"); i > 0 {
+		nh, e := strconv.Atoi(f[:i])
 		if e != nil || nh < 0 {
 			fatal("csv format: cannot read #h: "+f)
 		}
 		for i := 0; i<nh; i++ {
-			//b = bytes.CutPrefix(b, []byte{10})
 			if j := bytes.IndexByte(b, 10); j >= 0 {
 				b = b[1+j:]
 			}
 		}
-		f = t
+		f = f[1+i:]
 		r.line++
 	}
 
