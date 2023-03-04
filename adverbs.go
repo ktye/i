@@ -187,8 +187,11 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 	}
 	if t == df { // x//y
 		r = x0(f)
-		dx(f)
-		return Dec(r, Fst(x))
+		if isfunc(tp(r)) == 0 {
+			dx(f)
+			return Dec(r, Fst(x))
+		}
+		dx(r)
 	}
 	y := K(0)
 	if xn := nn(x); xn == 1 {
@@ -371,8 +374,11 @@ func Scn(f, x K) K {
 	}
 	if t == df { // x\\y
 		r = x0(f)
-		dx(f)
-		return Enc(r, Fst(x))
+		if isfunc(tp(r)) == 0 {
+			dx(f)
+			return Enc(r, Fst(x))
+		}
+		dx(r)
 	}
 	//kdb:if int32(f)==29{trap(Err);}
 	if xn := nn(x); xn == 1 {
