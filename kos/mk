@@ -1,0 +1,10 @@
+set -e
+set -x
+
+mkdir -p t/
+cp ../*.go t/
+cp softfloat.go t/
+
+wg t/ > out
+
+# rm t/*
