@@ -6,5 +6,6 @@ cp ../*.go t/
 cp softfloat.go t/
 
 wg t/ > out
+wat2wasm out
 
 # rm t/*

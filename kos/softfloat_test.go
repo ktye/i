@@ -3,7 +3,7 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -33,12 +33,6 @@ func fop(f func(x, y uint64) uint64) func(x, y float64) float64 {
 	}
 }
 
-//	func TestF(t *testing.T) {
-//		//fmt.Println("-1 + 0.1 =", fadd(-1, 0.1))
-//		x := uint64(9218868437227405312)
-//		_, fm, _, _, _ := funpack64(x)
-//		fmt.Println(fm, "?", fmnt(x))
-//	}
 func TestFloat64(t *testing.T) {
 	base := []float64{
 		0,
@@ -89,35 +83,11 @@ func TestFloat64(t *testing.T) {
 	for i := len(base); i < len(all); i++ {
 		all[i] = rand.NormFloat64()
 	}
-
 	test(t, "+", add, fop(fadd), all)
 	test(t, "-", sub, fop(fsub), all)
 	test(t, "*", mul, fop(fmul), all)
 	test(t, "/", div, fop(fdiv), all)
 }
-
-/*
-// float64 -hw-> int64 -hw-> float64
-func hwint64(f float64) float64 {
-	return float64(int64(f))
-}
-
-// float64 -sw-> int64 -hw-> float64
-func toint64sw(f float64) float64 {
-	return float64(i64f(f))
-	//	if !ok {
-	//		// There's no right answer for out of range.
-	//		// Match the hardware to pass the test.
-	//		i = int64(f)
-	//	}
-	//	return float64(i)
-}
-
-// float64 -hw-> int64 -sw-> float64
-func fromint64sw(f float64) float64 {
-	return math.Float64frombits(Fintto64(int64(f)))
-}
-*/
 
 func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []float64) {
 	for _, f := range all {
@@ -128,12 +98,13 @@ func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []
 			if !same(h, s) {
 				t.Fatalf("%g %s %g = sw %g, hw %g\n", f, op, g, s, h)
 			}
-			//testu(t, "toint64", hwint64, toint64sw, h)
-			//testu(t, "fromint64", hwint64, fromint64sw, h)
+			testu(t, "if64", hwff64, swif64, h)
+			testu(t, "fi64", hwff64, swfi64, h)
 			testcmp(t, f, h)
 			testcmp(t, h, f)
 			testcmp(t, g, h)
 			testcmp(t, h, g)
+			testfloor(t, h)
 		}
 	}
 }
@@ -145,25 +116,62 @@ func testu(t *testing.T, op string, hw, sw func(float64) float64, v float64) {
 		t.Fatalf("%s %g = sw %g, hw %g\n", op, v, s, h)
 	}
 }
+func hwff64(f float64) float64 { return float64(int64(f)) }
+func swfi64(f float64) float64 { return math.Float64frombits(fi64(int64(f))) }
+func swif64(f float64) float64 {
+	u := math.Float64bits(f)
+	i := if64(math.Float64bits(f))
+
+	if _, ok := f64toint(u); !ok {
+		i = int64(f)
+	}
+	return float64(i)
+}
 
 func testcmp(t *testing.T, f, g float64) {
 	x, y := math.Float64bits(f), math.Float64bits(g)
 	eqh := f == g
+	neh := f != g
 	gth := f > g
 	geh := f >= g
+	lth := f < g
+	leh := f <= g
 	eqs := feql(x, y) != 0
+	nes := fneq(x, y) != 0
 	gts := fgth(x, y) != 0
 	ges := fgte(x, y) != 0
+	lts := flth(x, y) != 0
+	les := flte(x, y) != 0
 	if eqh != eqs {
 		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, eqh, eqs)
 	}
+	if neh != nes {
+		t.Fatalf("(%g != %g) = sw %v, hw %v\n", f, g, neh, nes)
+	}
 	if gth != gts {
-		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, gth, gts)
+		t.Fatalf("(%g > %g) = sw %v, hw %v\n", f, g, gth, gts)
 	}
 	if geh != ges {
-		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, geh, ges)
+		t.Fatalf("(%g >= %g) = sw %v, hw %v\n", f, g, geh, ges)
+	}
+	if lth != lts {
+		t.Fatalf("(%g < %g) = sw %v, hw %v\n", f, g, lth, lts)
+	}
+	if leh != les {
+		t.Fatalf("(%g <= %g) = sw %v, hw %v\n", f, g, leh, les)
 	}
 }
+func testfloor(t *testing.T, f float64) {
+	u := math.Float64bits(f)
+	h := math.Floor(f)
+	s := flor(u)
+	fmt.Println("test floor", f)
+	if math.Float64bits(h) != s {
+		sf := math.Float64frombits(s)
+		t.Fatalf("floor %v (%x) = (%v hw, %v sw)", f, u, h, sf)
+	}
+}
+
 func same(f, g float64) bool {
 	if math.IsNaN(f) && math.IsNaN(g) {
 		return true
