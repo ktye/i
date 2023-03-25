@@ -1,7 +1,10 @@
 package main
 
 // why? be kos
-
+//
+// f64:  +    -    *    /    =    >    >=  sqrt
+//      fadd fsub fmul fdiv feql fgth fgte fsqt
+//
 // from go.dev/src/runtime/softfloat64.go
 
 const nau = uint64(0x7FF8000000000001)
@@ -299,6 +302,48 @@ func fdiv(x, y uint64) uint64 {
 		r = (un21*b + un0 - q0*v) >> s
 	}
 	return fpak(fs^gs, q, fe-ge-2, r)
+}
+func feql(x, y uint64) int32 {
+	if (fnan(x) | fnan(y)) != 0 {
+		return 0
+	}
+	return I32B(fcmp(x, y) == 0)
+}
+func fgth(x, y uint64) int32 {
+	if (fnan(x) | fnan(y)) != 0 {
+		return 0
+	}
+	return I32B(fcmp(x, y) == 1)
+}
+func fgte(x, y uint64) int32 {
+	if (fnan(x) | fnan(y)) != 0 {
+		return 0
+	}
+	return I32B(fcmp(x, y) >= 0)
+}
+func fcmp(x, y uint64) int32 {
+	fs := fsgn(x)
+	fm := fmnt(x)
+	fi := finf(x)
+	gs := fsgn(y)
+	gm := fmnt(y)
+	gi := finf(y)
+	if fi == 0 && gi == 0 && fm == 0 && gm == 0 {
+		return 0
+	}
+	if fs > gs {
+		return -1
+	}
+	if fs < gs {
+		return 1
+	}
+	if (fs == 0 && x < y) || (fs != 0 && x > y) {
+		return -1
+	}
+	if (fs == 0 && x > y) || (fs != 0 && x < y) {
+		return 1
+	}
+	return 0
 }
 
 /*

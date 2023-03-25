@@ -9,7 +9,6 @@ import (
 
 	//. "runtime"
 	"testing"
-	//. "github.com/ktye/wg/module"
 )
 
 // from: github.com/ktye/wg/module
@@ -131,10 +130,10 @@ func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []
 			}
 			//testu(t, "toint64", hwint64, toint64sw, h)
 			//testu(t, "fromint64", hwint64, fromint64sw, h)
-			//testcmp(t, f, h)
-			//testcmp(t, h, f)
-			//testcmp(t, g, h)
-			//testcmp(t, h, g)
+			testcmp(t, f, h)
+			testcmp(t, h, f)
+			testcmp(t, g, h)
+			testcmp(t, h, g)
 		}
 	}
 }
@@ -147,28 +146,24 @@ func testu(t *testing.T, op string, hw, sw func(float64) float64, v float64) {
 	}
 }
 
-/*
-func hwcmp(f, g float64) (cmp int, isnan bool) {
-	switch {
-	case f < g:
-		return -1, false
-	case f > g:
-		return +1, false
-	case f == g:
-		return 0, false
-	}
-	return 0, true // must be NaN
-}
-
 func testcmp(t *testing.T, f, g float64) {
-	hcmp, hisnan := hwcmp(f, g)
-	scmp, sisnan := Fcmp64(math.Float64bits(f), math.Float64bits(g))
-	if int32(hcmp) != scmp || hisnan != sisnan {
-		t.Fatalf("cmp(%g, %g) = sw %v, %v, hw %v, %v\n", f, g, scmp, sisnan, hcmp, hisnan)
+	x, y := math.Float64bits(f), math.Float64bits(g)
+	eqh := f == g
+	gth := f > g
+	geh := f >= g
+	eqs := feql(x, y) != 0
+	gts := fgth(x, y) != 0
+	ges := fgte(x, y) != 0
+	if eqh != eqs {
+		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, eqh, eqs)
+	}
+	if gth != gts {
+		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, gth, gts)
+	}
+	if geh != ges {
+		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, geh, ges)
 	}
 }
-*/
-
 func same(f, g float64) bool {
 	if math.IsNaN(f) && math.IsNaN(g) {
 		return true
