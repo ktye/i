@@ -429,6 +429,7 @@ func if64(x uint64) int64 {
 	}
 	return r
 }
+func fabs(x uint64) uint64 { return x &^ 9223372036854775808 }
 func flor(x uint64) uint64 {
 	fs := fsgn(x)
 	fm := fmnt(x)
@@ -513,3 +514,4 @@ func fmod(x uint64) uint64 {
 	return
 }
 */
+

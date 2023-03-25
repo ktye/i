@@ -104,6 +104,7 @@ func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []
 			testcmp(t, h, f)
 			testcmp(t, g, h)
 			testcmp(t, h, g)
+			testfabs(t, h)
 			testfloor(t, h)
 		}
 	}
@@ -159,6 +160,15 @@ func testcmp(t *testing.T, f, g float64) {
 	}
 	if leh != les {
 		t.Fatalf("(%g <= %g) = sw %v, hw %v\n", f, g, leh, les)
+	}
+}
+func testfabs(t *testing.T, f float64) {
+	u := math.Float64bits(f)
+	h := math.Abs(f)
+	s := fabs(u)
+	if math.Float64bits(h) != s {
+		sf := math.Float64frombits(s)
+		t.Fatalf("fabs %v (%x) = (%v hw, %v sw)", f, u, h, sf)
 	}
 }
 func testfloor(t *testing.T, f float64) {
