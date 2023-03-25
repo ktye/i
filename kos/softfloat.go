@@ -5,7 +5,7 @@ package main
 // f64:  +    -    *    /    =    !=   >    >=   <    <=
 //      fadd fsub fmul fdiv feql fneq fgth fgte flth flte
 //           fneg
-// cnv: fi64 if64
+// cnv: fi64 if64      flor fcps(copysign)
 //
 // rewrite:
 //  f64.load
@@ -24,7 +24,6 @@ package main
 //  f64.abs
 //  f64.max
 //  f64.min
-//  f64.floor
 //  f64.copysign              go.dev/src/math/copysign.go
 //  f64.sqrt
 //
@@ -439,39 +438,13 @@ func flor(x uint64) uint64 {
 		return x
 	}
 	x &= uint64(9223372036854775807) //clear sign
-
-	i := if64(x)
-	r := fi64(i)
-	if fs != 0 && x != r {
-		r = fi64(i+1)
-	}
-	return r|fs
-
-	/*
-	x = fmod(x)
+	y := fmod(x)
 	if fs != 0 {
-		// todo if not integral
-		// x += 1.0
+		if fsub(x, y) != uint64(0) {
+			y = fadd(y, uint64(4607182418800017408)) // y+1.
+		}
 	}
-	return x|fs
-	*/
-}
-/*
-func flor(x uint64) uint64 {
-	fs := fsgn(x)
-	fm := fmnt(x)
-	fi := finf(x)
-	fn := fnan(x)
-	if fm == 0 || (fn|fi) != 0 {
-		return x
-	}
-	x &= uint64(9223372036854775807) //clear sign
-	x = fmod(x)
-	if fs != 0 {
-		// todo if not integral
-		// x += 1.0
-	}
-	return x|fs
+	return y | fs
 }
 func fmod(x uint64) uint64 { // x>0.
 	if x == 0 {
@@ -486,32 +459,4 @@ func fmod(x uint64) uint64 { // x>0.
 	}
 	return x
 }
-
-func fmod(x uint64) uint64 {
-	shift := 52
-	mask  := 2047
-	bias  := 1023
-	if f < 1 {
-		switch {
-		case f < 0:
-			int, frac = Modf(-f)
-			return -int, -frac
-		case f == 0:
-			return f, f // Return -0, -0 when f == -0
-		}
-		return 0, f
-	}
-
-	x := Float64bits(f)
-	e := uint(x>>shift)&mask - bias
-
-	// Keep the top 12+e bits, the integer part; clear the rest.
-	if e < 64-12 {
-		x &^= 1<<(64-12-e) - 1
-	}
-	int = Float64frombits(x)
-	frac = f - int
-	return
-}
-*/
-
+func fcps(x, y uint64) uint64 { return x&^uint64(9223372036854775808) | y&uint64(9223372036854775808) }

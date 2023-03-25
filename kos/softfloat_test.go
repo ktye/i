@@ -3,11 +3,9 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"math"
 	"math/rand"
-
-	//. "runtime"
 	"testing"
 )
 
@@ -87,6 +85,7 @@ func TestFloat64(t *testing.T) {
 	test(t, "-", sub, fop(fsub), all)
 	test(t, "*", mul, fop(fmul), all)
 	test(t, "/", div, fop(fdiv), all)
+	test(t, "cps", math.Copysign, fop(fcps), all)
 }
 
 func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []float64) {
@@ -175,7 +174,6 @@ func testfloor(t *testing.T, f float64) {
 	u := math.Float64bits(f)
 	h := math.Floor(f)
 	s := flor(u)
-	fmt.Println("test floor", f)
 	if math.Float64bits(h) != s {
 		sf := math.Float64frombits(s)
 		t.Fatalf("floor %v (%x) = (%v hw, %v sw)", f, u, h, sf)
