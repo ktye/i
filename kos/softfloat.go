@@ -5,7 +5,7 @@ package main
 // f64:  +    -    *    /    =    !=   >    >=   <    <=
 //      fadd fsub fmul fdiv feql fneq fgth fgte flth flte
 //           fneg
-// cnv: fi64 if64      flor fcps(copysign)
+//      fi64 if64 fabs flor fcps(copysign) fmax fmin fsqr
 //
 // rewrite:
 //  f64.load
@@ -21,10 +21,6 @@ package main
 //
 // todo
 //  f64.const
-//  f64.abs
-//  f64.max
-//  f64.min
-//  f64.copysign              go.dev/src/math/copysign.go
 //  f64.sqrt
 //
 // from go.dev/src/runtime/softfloat64.go
@@ -460,3 +456,100 @@ func fmod(x uint64) uint64 { // x>0.
 	return x
 }
 func fcps(x, y uint64) uint64 { return x&^uint64(9223372036854775808) | y&uint64(9223372036854775808) }
+func fmax(x, y uint64) uint64 {
+	if fnan(x) != 0 {
+		return y
+	}
+	if fnan(y) != 0 {
+		return x
+	}
+	xs := fsgn(x)
+	ys := fsgn(y)
+	if xs != ys {
+		if xs != 0 {
+			return y
+		}
+		return x
+	}
+	if x < y {
+		return y
+	}
+	return x
+}
+func fmin(x, y uint64) uint64 {
+	if fnan(x) != 0 {
+		return y
+	}
+	if fnan(y) != 0 {
+		return x
+	}
+	xs := fsgn(x)
+	ys := fsgn(y)
+	if xs != ys {
+		if xs != 0 {
+			return x
+		}
+		return y
+	}
+	if x < y {
+		return x
+	}
+	return y
+}
+func fsqr(x uint64) uint64 {
+	if fsgn(x) != 0 {
+		return nau
+	}
+	if x == 0 || fnan(x) != 0 || finf(x) != 0 {
+		return x
+	}
+	return x // todo
+}
+/*
+func sqrt(x float64) float64 {
+	// special cases
+	switch {
+	case x == 0 || IsNaN(x) || IsInf(x, 1):
+		return x
+	case x < 0:
+		return NaN()
+	}
+	ix := Float64bits(x)
+	// normalize x
+	exp := int((ix >> shift) & mask)
+	if exp == 0 { // subnormal x
+		for ix&(1<<shift) == 0 {
+			ix <<= 1
+			exp--
+		}
+		exp++
+	}
+	exp -= bias // unbias exponent
+	ix &^= mask << shift
+	ix |= 1 << shift
+	if exp&1 == 1 { // odd exp, double x to make it even
+		ix <<= 1
+	}
+	exp >>= 1 // exp = exp/2, exponent of square root
+	// generate sqrt(x) bit by bit
+	ix <<= 1
+	var q, s uint64               // q = sqrt(x)
+	r := uint64(1 << (shift + 1)) // r = moving bit from MSB to LSB
+	for r != 0 {
+		t := s + r
+		if t <= ix {
+			s = t + r
+			ix -= t
+			q += r
+		}
+		ix <<= 1
+		r >>= 1
+	}
+	// final rounding
+	if ix != 0 { // remainder, result not exact
+		q += q & 1 // round according to extra bit
+	}
+	ix = q>>1 + uint64(exp-1+bias)<<shift // significand + biased exponent
+	return Float64frombits(ix)
+}
+*/

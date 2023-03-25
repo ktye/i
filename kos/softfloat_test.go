@@ -86,6 +86,10 @@ func TestFloat64(t *testing.T) {
 	test(t, "*", mul, fop(fmul), all)
 	test(t, "/", div, fop(fdiv), all)
 	test(t, "cps", math.Copysign, fop(fcps), all)
+
+	//fmin/fmax is like libm and differs from go on 0n
+	//test(t, "max", math.Max, fop(fmax), all)
+	//test(t, "min", math.Min, fop(fmin), all)
 }
 
 func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []float64) {
