@@ -115,7 +115,7 @@ func fadd(x, y uint64) uint64 {
 	gi := finf(y)
 	gn := fnan(y)
 
-	if fn != 0 || gn != 0 {
+	if (fn | gn) != 0 {
 		return nau
 	}
 	if fi != 0 && gi != 0 && fs != gs {
@@ -184,7 +184,7 @@ func fmul(x, y uint64) uint64 {
 	ge := fexp(y)
 	gi := finf(y)
 	gn := fnan(y)
-	if fn != 0 || gn != 0 {
+	if (fn | gn) != 0 {
 		return nau
 	}
 	if fi != 0 && gi != 0 {
@@ -219,17 +219,87 @@ func fmul(x, y uint64) uint64 {
 	//fmt.Println("fmul", fs, gs, m, fe, ge, tr)
 	return fpak(fs^gs, m, fe+ge-1, tr)
 }
+func fdiv(x, y uint64) uint64 {
+	fs := fsgn(x)
+	fm := fmnt(x)
+	fe := fexp(x)
+	fi := finf(x)
+	fn := fnan(x)
+	gs := fsgn(y)
+	gm := fmnt(y)
+	ge := fexp(y)
+	gi := finf(y)
+	gn := fnan(y)
+	if (fn | gn) != 0 {
+		return nau
+	}
+	if (fi & gi) != 0 {
+		return nau
+	}
+	if fi == 0 && gi == 0 && fm == 0 && gm == 0 {
+		return nau
+	}
+	if fi != 0 || (gi == 0 && gm == 0) {
+		return fs ^ gs ^ uint64(0x7FF0000000000000)
+	}
+	if gi != 0 || fm == 0 {
+		return fs ^ gs ^ 0
+	}
 
-/*
-func fneg(x float64) float64 { return 0 }
-func fsqt(x float64) float64 { return 0 }
-func fadd(x, y float64) float64 { return 0 }
-func fsub(x, y float64) float64 { return 0 }
-func fmul(x, y float64) float64 { return 0 }
-func fdiv(x, y float64) float64 { return 0 }
+	//divlu 128/64->64quot,64rem
+	var q, r uint64
+	u1 := fm >> 10
+	u0 := fm << 54
+	v := gm
+	b := uint64(4294967296)
+	if u1 >= v {
+		q = uint64(18446744073709551615)
+		r = q
+	} else {
+		s := int32(0)
+		if v&uint64(9223372036854775808) == 0 {
+			s++
+			v <<= 1
+		}
+		vn1 := v >> 32
+		vn0 := v & uint64(4294967295)
+		un32 := u1<<s | u0>>(64-s)
+		un10 := u0 << s
+		un1 := un10 >> 32
+		un0 := un10 & uint64(4294967295)
+		q1 := un32 / vn1
+		rh := un32 - q1*vn1
 
+		l1 := int32(1)
+		for l1 != 0 {
+			if q1 >= b || q1*vn0 > b*rh+un1 {
+				q1--
+				rh += vn1
+				l1 = I32B(rh < b)
+			} else {
+				l1 = 0
+			}
+		}
 
-*/
+		un21 := un32*b + un1 - q1*v
+		q0 := un21 / vn1
+		rh = un21 - q0*vn1
+
+		l1 = 1
+		for l1 != 0 {
+			if q0 >= b || q0*vn0 > b*rh+un0 {
+				q0--
+				rh += vn1
+				l1 = I32B(rh < b)
+			} else {
+				l1 = 0
+			}
+		}
+		q = q1*b + q0
+		r = (un21*b + un0 - q0*v) >> s
+	}
+	return fpak(fs^gs, q, fe-ge-2, r)
+}
 
 /*
 mantbits64 uint = 52

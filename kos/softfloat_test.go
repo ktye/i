@@ -3,6 +3,7 @@
 package main
 
 import (
+	//"fmt"
 	"math"
 	"math/rand"
 
@@ -11,7 +12,7 @@ import (
 	//. "github.com/ktye/wg/module"
 )
 
-//from: github.com/ktye/wg/module
+// from: github.com/ktye/wg/module
 func I32B(b bool) int32 {
 	if b {
 		return 1
@@ -33,12 +34,12 @@ func fop(f func(x, y uint64) uint64) func(x, y float64) float64 {
 	}
 }
 
-//func TestF(t *testing.T) {
-//	//fmt.Println("-1 + 0.1 =", fadd(-1, 0.1))
-//	x := uint64(9218868437227405312)
-//	_, fm, _, _, _ := funpack64(x)
-//	fmt.Println(fm, "?", fmnt(x))
-//}
+//	func TestF(t *testing.T) {
+//		//fmt.Println("-1 + 0.1 =", fadd(-1, 0.1))
+//		x := uint64(9218868437227405312)
+//		_, fm, _, _, _ := funpack64(x)
+//		fmt.Println(fm, "?", fmnt(x))
+//	}
 func TestFloat64(t *testing.T) {
 	base := []float64{
 		0,
@@ -93,7 +94,7 @@ func TestFloat64(t *testing.T) {
 	test(t, "+", add, fop(fadd), all)
 	test(t, "-", sub, fop(fsub), all)
 	test(t, "*", mul, fop(fmul), all)
-	//test(t, "/", div, fdiv, all)
+	test(t, "/", div, fop(fdiv), all)
 }
 
 /*
@@ -122,6 +123,7 @@ func fromint64sw(f float64) float64 {
 func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []float64) {
 	for _, f := range all {
 		for _, g := range all {
+			//fmt.Printf("%v %s %v\n", f, op, g)
 			h := hw(f, g)
 			s := sw(f, g)
 			if !same(h, s) {
