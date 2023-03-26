@@ -1,4 +1,4 @@
-/webassembly compiler (text format)
+/webassembly compiler (binary format)
 F:`!()
 hx8:{[i]"0x",`x@|C i+!8}
 lp:{(~~)#@[&#x;x i;i:!#x]}

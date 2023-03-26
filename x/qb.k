@@ -1,4 +1,4 @@
-
+/compile to qbe (c9x.me/compile)   untested
 F:`!()                                         /function map: type to stringer
 ftyp:`!()
 gtyp:`!()
@@ -153,7 +153,7 @@ deftyp,:`F64min`F64max`F64copysign!3#,"fff"
 deftyp,:`"F64reinterpret_i64"`"I64reinterpret_f64"`I32clz`Native`panic!("fl";"lf";"ww";"lll";" w")
 deftyp,:`Args`Arg`Read`Write`ReadIn!1 3 4 5 3#'"w"
 
-/ run time
+/ run time (missing)
 qbrnt:""
 qbmain:""
 

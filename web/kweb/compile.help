@@ -51,49 +51,54 @@ drawtree:{[P]
  e:@[e;d+m*!#P;"T-"a];(#P)^e}   /step (1)
 
 
-The program is compiled to a string of program source code.
-compilation folds the table in reverse order  f/[();|!#P;|n]
-The first argument is a stack (of string results) and n is the child count per node.
+A compiler backend implements a function per node type to transform the node into string form.
+e.g. go transforms the table to a string of go program source code:
 
-For each node, f cuts the number of children from the stack, calls the emitter based on the node's type
+it folds the table in reverse order  f/[();|!#P;|n]
+the first argument is a stack (of string results) and n is the child count per node:
+ n:(&#P){x[y]+:1}/P; n[0]-:1
+for each node, f cuts the number of children from the stack, calls the emitter based on the node's type
 with arguments x:node id, and y the evaluated children in string form.
-The result is catenated to the stack.
+the result is catenated to the stack.
 
-Ast transformations are done on the table before calling flattening.
-The go backend does not need any transformations.
-
+ast transformations(are done on the table before flattening), e.g.:
+ -rename builtin functions [c]
+ -rewrite cond/swtich expressions as statements (return or assign each) [go]
+  same for c but keep ternary expressions
+ -remove explicit zero assignments [go wa] todo
+ 
 
 node type                    i-value             s-value
  prg     root node           -                   prog/libname    first node only
  mem     memory segment      #64k blocks         `a|`b           a|b: memory1|memory2
- con     constant            -                   name            child type lit
- var     global variable     -                   name            child type lit
+ con     constant            -                   name            child: lit
+ var     global variable     -                   name            child: lit
  lit     literal (con|var)   val(32bit)|C-index  type
  tab     func table entry    index               func name
- fun     function            func index          func name       children: args rets locs ast dfr
- arg     func argument       arg index           type            child type sym
+ fun     function            exported            func name       children: args res locs ast dfr
+ arg     func argument       -                   type            child: sym
  sym     symbol              1(global)|0N(func)  name
- res     return value        ret val index       type            unnamed
- loc     local var decl      loc index           type            child type sym
+ res     return value        -                   type            unnamed
+ loc     local var decl      -                   type            child: sym
  ast     func ast root       -                   -               one per func
  stm     statement list      -                   -
  ret     return              -                   `|type          children: return values, s-type only for single res
  cal     function call       func node           func name       children: args
- cli     indirect call       #args               -               children: func-expr args arg-types ret-types
- drp     drop return vals    -                   -               child type cal
- get     get local           arg node            varname
- Get     get global          glo node            varname
+ cli     indirect call       #args               res-type        children: func-expr args arg-types
+ drp     drop return vals    -                   -               child: cal
+ get     get local           -                   varname
+ Get     get global          -                   varname
  lod     load                -                   type(bijf)      child:    addr
  sto     store               -                   type(bijf)      children: addr, value
- asn     assignment          #symbols            -               children: symbol(s), expr
+ asn     assignment          1(global)           varname         children: expr
  cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
- cnd     if condition        -                   `|type          2|3 children: if then [else]
- nop     ignore              -                   -
- jmp     break/continue      1(break)|0(cont)    label
+ cnd     if condition        -                   `|result-type   2|3 children: if then [else]
  swc     switch              1(has default)      `|result-type   children: expr cases [default]
+ jmp     break/continue      1(break)|0(cont)    label
  for     loop                1(simple)           label           children: (cond|nop) (post|nop) body
- dfr     defer stmt node     -                   -               child type cal
+ dfr     defer stmt node     -                   -               child: cal
+ nop     ignore              -                   -
 unary operator nodes
  neg|not                     1                   type            1 child
 binary operator nodes
@@ -102,5 +107,3 @@ binary operator nodes
  xor|neq|ant(andnot)|bnd|bor(&& ||)			     
  
 types: `i`u`j`k`f!(i32;u32;i64;u64;f64)
-
-go.k is working, wa.k is not fully implemented

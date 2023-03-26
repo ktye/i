@@ -39,7 +39,7 @@ drawtree:{[P]
  e:@[e;d+m*!#P;"T-"a];(#P)^e}   /step (1)
 
 nodes:($#P)," nodes"
-dt:drawtree P   /ascii tree
-c:1+&#P         /checked state
-v:!#P
+dt:drawtree P    /ascii tree
+c:(1+&#P)-T=`fun /checked state (collapse function nodes)
+v:vc[c;P]        /visibility
 clicktree:{v::vc[c[v x]:~c[v x];P];}

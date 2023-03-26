@@ -3,7 +3,7 @@ set -x
 
 cp * /c/k/ktye.github.io/kweb/
 cp ../k.js /c/k/ktye.github.io/
-cp ../../x/{go,wa,cc,js,qb}.k /c/k/ktye.github.io/kweb/
+cp ../../x/*.k /c/k/ktye.github.io/kweb/
 cp ../../x/tests/*.k    /c/k/ktye.github.io/kweb/
 wg -k ../..       >     /c/k/ktye.github.io/kweb/k.k
 
