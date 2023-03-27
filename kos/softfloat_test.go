@@ -109,6 +109,7 @@ func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []
 			testcmp(t, h, g)
 			testfabs(t, h)
 			testfloor(t, h)
+			testsqrt(t, h)
 		}
 	}
 }
@@ -181,6 +182,15 @@ func testfloor(t *testing.T, f float64) {
 	if math.Float64bits(h) != s {
 		sf := math.Float64frombits(s)
 		t.Fatalf("floor %v (%x) = (%v hw, %v sw)", f, u, h, sf)
+	}
+}
+func testsqrt(t *testing.T, f float64) {
+	u := math.Float64bits(f)
+	h := math.Sqrt(f)
+	s := fsqr(u)
+	sf := math.Float64frombits(s)
+	if same(h, sf) == false {
+		t.Fatalf("sqrt %v (%x) = (%v hw, %v sw)", f, u, h, sf)
 	}
 }
 

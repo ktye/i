@@ -27,13 +27,13 @@ package main
 
 const nau = uint64(0x7FF8000000000001)
 
-func fsgn(x uint64) uint64 { return x & 9223372036854775808 }
+func fsgn(x uint64) uint64 { return x & uint64(9223372036854775808) }
 func fmnt(x uint64) uint64 { return fupk(x, 1) }
 func fexp(x uint64) int32  { return int32(fupk(x, 0)) }
 func fnan(x uint64) int32  { return fnai(x, 1) }
 func finf(x uint64) int32  { return fnai(x, 0) }
 func fnai(x uint64, n int32) int32 {
-	m := x & 4503599627370495
+	m := x & uint64(4503599627370495)
 	e := int32(x>>52) & 2047
 	if e == 2047 {
 		if m != 0 {
@@ -44,7 +44,7 @@ func fnai(x uint64, n int32) int32 {
 	return 0
 }
 func fupk(x uint64, mnt int32) uint64 {
-	m := x & 4503599627370495
+	m := x & uint64(4503599627370495)
 	e := int32(x>>52) & 2047
 	if e == 2047 {
 		return 0
@@ -52,13 +52,13 @@ func fupk(x uint64, mnt int32) uint64 {
 	if e == 0 {
 		if m != 0 {
 			e += -1022
-			for m < 4503599627370496 {
+			for m < uint64(4503599627370496) {
 				m <<= uint64(1)
 				e--
 			}
 		}
 	} else {
-		m |= 4503599627370496
+		m |= uint64(4503599627370496)
 		e += -1023
 	}
 	if mnt != 0 {
@@ -75,19 +75,19 @@ func fpak(s, m uint64, e int32, t uint64) uint64 {
 	if m == 0 {
 		return s
 	}
-	for m < 4503599627370496 {
+	for m < uint64(4503599627370496) {
 		m <<= uint64(1)
 		e--
 	}
-	for m >= 18014398509481984 {
+	for m >= uint64(18014398509481984) {
 		t |= m & 1
 		m >>= uint64(1)
 		e++
 	}
-	if m >= 9007199254740992 {
+	if m >= uint64(9007199254740992) {
 		if m&1 != 0 && (t != 0 || m&2 != 0) {
 			m++
-			if m >= 18014398509481984 {
+			if m >= uint64(18014398509481984) {
 				m >>= uint64(1)
 				e++
 			}
@@ -96,7 +96,7 @@ func fpak(s, m uint64, e int32, t uint64) uint64 {
 		e++
 	}
 	if e >= 1024 {
-		return s ^ 9218868437227405312
+		return s ^ uint64(9218868437227405312)
 	}
 	if e < -1022 {
 		if e < -1075 {
@@ -115,13 +115,13 @@ func fpak(s, m uint64, e int32, t uint64) uint64 {
 		}
 		m >>= uint64(1)
 		e++
-		if m < 4503599627370496 {
+		if m < uint64(4503599627370496) {
 			return s | m
 		}
 	}
-	return s | uint64(e+1023)<<52 | m&(4503599627370495)
+	return s | uint64(e+1023)<<52 | m&uint64(4503599627370495)
 }
-func fneg(x uint64) uint64 { return x ^ 9223372036854775808 }
+func fneg(x uint64) uint64 { return x ^ uint64(9223372036854775808) }
 func fadd(x, y uint64) uint64 {
 	var ti int32
 	var tu uint64
@@ -424,7 +424,7 @@ func if64(x uint64) int64 {
 	}
 	return r
 }
-func fabs(x uint64) uint64 { return x &^ 9223372036854775808 }
+func fabs(x uint64) uint64 { return x &^ uint64(9223372036854775808) }
 func flor(x uint64) uint64 {
 	fs := fsgn(x)
 	fm := fmnt(x)
@@ -496,60 +496,43 @@ func fmin(x, y uint64) uint64 {
 	}
 	return y
 }
-func fsqr(x uint64) uint64 {
+func fsqr(x uint64) uint64 { // see go.dev/src/math/sqrt.go
+	if x&uint64(9223372036854775807) == 0 || fnan(x) != 0 || x == uint64(9218868437227405312) {
+		return x
+	}
 	if fsgn(x) != 0 {
 		return nau
 	}
-	if x == 0 || fnan(x) != 0 || finf(x) != 0 {
-		return x
-	}
-	return x // todo
-}
-/*
-func sqrt(x float64) float64 {
-	// special cases
-	switch {
-	case x == 0 || IsNaN(x) || IsInf(x, 1):
-		return x
-	case x < 0:
-		return NaN()
-	}
-	ix := Float64bits(x)
-	// normalize x
-	exp := int((ix >> shift) & mask)
-	if exp == 0 { // subnormal x
-		for ix&(1<<shift) == 0 {
-			ix <<= 1
-			exp--
+	e := int32(x>>52) & 2047
+	if e == 0 {
+		for x&4503599627370496 == 0 {
+			x <<= uint64(1)
+			e--
 		}
-		exp++
+		e++
 	}
-	exp -= bias // unbias exponent
-	ix &^= mask << shift
-	ix |= 1 << shift
-	if exp&1 == 1 { // odd exp, double x to make it even
-		ix <<= 1
+	e -= 1023
+	x &^= 9218868437227405312
+	x |= 4503599627370496
+	if e&1 == 1 {
+		x <<= uint64(1)
 	}
-	exp >>= 1 // exp = exp/2, exponent of square root
-	// generate sqrt(x) bit by bit
-	ix <<= 1
-	var q, s uint64               // q = sqrt(x)
-	r := uint64(1 << (shift + 1)) // r = moving bit from MSB to LSB
+	e >>= 1
+	x <<= uint64(1)
+	var q, s uint64
+	r := uint64(9007199254740992)
 	for r != 0 {
 		t := s + r
-		if t <= ix {
+		if t <= x {
 			s = t + r
-			ix -= t
+			x -= t
 			q += r
 		}
-		ix <<= 1
-		r >>= 1
+		x <<= uint64(1)
+		r >>= uint64(1)
 	}
-	// final rounding
-	if ix != 0 { // remainder, result not exact
-		q += q & 1 // round according to extra bit
+	if x != 0 {
+		q += q & uint64(1)
 	}
-	ix = q>>1 + uint64(exp-1+bias)<<shift // significand + biased exponent
-	return Float64frombits(ix)
+	return q>>uint64(1) + uint64(e+1022)<<uint64(52)
 }
-*/
