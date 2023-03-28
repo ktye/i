@@ -31,8 +31,9 @@ kweb.register("treetable",function(dst,x){
  dst.appendChild(t)
 })
 
-function setinput(s){ 
- kweb.init({start:[s+".k","compile.k"],post:compile})
+function setinput(s){s+=".k"
+ ge("ksrc").href=s;ge("ksrc").textContent=s
+ kweb.init({start:[s,"compile.k"],post:compile})
 }
 
 let sel=ge("sel")

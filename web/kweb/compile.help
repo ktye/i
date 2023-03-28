@@ -10,8 +10,6 @@ S symbol value
 Select the program with the drop down on the left.
 Most are small examples, but the last is the full source of the k interpreter (30k nodes).
 
-Double-click on a row to expand/collapse.
-
 From a parent vector P we can compute:
 
 np:{n:(&#x){x[y]+:1}/x;n[0]-:1}  /number of children

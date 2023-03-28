@@ -8,7 +8,7 @@
  button:active{transform:translateY(1px)}
  listbox{font-family:monospace}
  #sel{height:24px}
- #tab{height:calc(100vh - 24px); overflow:auto}
+ #tab{height:calc(100vh - 48px); overflow:auto}
  #left{flex:1}
  #right{flex:2;min-width:0;padding-left:5px}
  #out{height:calc(100vh - 24px);margin:0;overflow:auto}
@@ -20,8 +20,9 @@
 
 <body>
  <div id="left">
-  program: <select id="sel"></select><div id="nodes" data-k-var="nodes" style="display:inline"></div>
+  program: <select id="sel"></select><div id="nodes" data-k-var="nodes" style="display:inline"></div> <a id="ksrc" title="k-sourse file"></a>
   <div id="tab" data-k-type="treetable" data-k-expr="{(dt v;T v;P v;I v;S v)}"></div>
+  <span>double-click to expand/collapse node (funcs are collapsed)</span>
  </div>
  <div id="right">
   compile to <select id="target"><option>help</option><option>go</option><option>wa</option><option>wb</option><option>cc</option><option>js</option><option>qb</option></select> 
