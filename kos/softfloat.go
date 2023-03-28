@@ -3,37 +3,23 @@ package main
 // why? be kos
 //
 // f64:  +    -    *    /    =    !=   >    >=   <    <=
-//      fadd fsub fmul fdiv feql fneq fgth fgte flth flte
+//      fadd fsub fmul fdiv feql fneq fmor fgte fles flte
 //           fneg
-//      fi64 if64 fabs flor fcps(copysign) fmax fmin fsqr
 //
-// rewrite:
-//  f64.load
-//  f64.store
-//  f64.convert_i32_s
-//  f64.convert_i64_u
-//  i64.trunc_f64_u
-//  i32.trunc_f64_s
-//
-// nop:
-//  f64.reinterpret_i64
-//  i64.reinterpret_f64
-//
-// todo
-//  f64.const
-//  f64.sqrt
+//      fabs flor fcps(copysign) fmax fmin fsqr
+//	fjcst     jfcst
 //
 // from go.dev/src/runtime/softfloat64.go
 
 const nau = uint64(0x7FF8000000000001)
 
-func fsgn(x uint64) uint64 { return x & uint64(9223372036854775808) }
+func fsgn(x uint64) uint64 { return x & uint64(0x8000000000000000) }
 func fmnt(x uint64) uint64 { return fupk(x, 1) }
 func fexp(x uint64) int32  { return int32(fupk(x, 0)) }
 func fnan(x uint64) int32  { return fnai(x, 1) }
 func finf(x uint64) int32  { return fnai(x, 0) }
 func fnai(x uint64, n int32) int32 {
-	m := x & uint64(4503599627370495)
+	m := x & uint64(0xfffffffffffff)
 	e := int32(x>>52) & 2047
 	if e == 2047 {
 		if m != 0 {
@@ -44,7 +30,7 @@ func fnai(x uint64, n int32) int32 {
 	return 0
 }
 func fupk(x uint64, mnt int32) uint64 {
-	m := x & uint64(4503599627370495)
+	m := x & uint64(0xfffffffffffff)
 	e := int32(x>>52) & 2047
 	if e == 2047 {
 		return 0
@@ -52,13 +38,13 @@ func fupk(x uint64, mnt int32) uint64 {
 	if e == 0 {
 		if m != 0 {
 			e += -1022
-			for m < uint64(4503599627370496) {
+			for m < uint64(0x10000000000000) {
 				m <<= uint64(1)
 				e--
 			}
 		}
 	} else {
-		m |= uint64(4503599627370496)
+		m |= uint64(0x10000000000000)
 		e += -1023
 	}
 	if mnt != 0 {
@@ -75,19 +61,19 @@ func fpak(s, m uint64, e int32, t uint64) uint64 {
 	if m == 0 {
 		return s
 	}
-	for m < uint64(4503599627370496) {
+	for m < uint64(0x10000000000000) {
 		m <<= uint64(1)
 		e--
 	}
-	for m >= uint64(18014398509481984) {
+	for m >= uint64(0x40000000000000) {
 		t |= m & 1
 		m >>= uint64(1)
 		e++
 	}
-	if m >= uint64(9007199254740992) {
+	if m >= uint64(0x20000000000000) {
 		if m&1 != 0 && (t != 0 || m&2 != 0) {
 			m++
-			if m >= uint64(18014398509481984) {
+			if m >= uint64(0x40000000000000) {
 				m >>= uint64(1)
 				e++
 			}
@@ -96,7 +82,7 @@ func fpak(s, m uint64, e int32, t uint64) uint64 {
 		e++
 	}
 	if e >= 1024 {
-		return s ^ uint64(9218868437227405312)
+		return s ^ uint64(0x7ff0000000000000)
 	}
 	if e < -1022 {
 		if e < -1075 {
@@ -115,13 +101,13 @@ func fpak(s, m uint64, e int32, t uint64) uint64 {
 		}
 		m >>= uint64(1)
 		e++
-		if m < uint64(4503599627370496) {
+		if m < uint64(0x10000000000000) {
 			return s | m
 		}
 	}
-	return s | uint64(e+1023)<<52 | m&uint64(4503599627370495)
+	return s | uint64(e+1023)<<52 | m&uint64(0xfffffffffffff)
 }
-func fneg(x uint64) uint64 { return x ^ uint64(9223372036854775808) }
+func fneg(x uint64) uint64 { return x ^ uint64(0x8000000000000000) }
 func fadd(x, y uint64) uint64 {
 	var ti int32
 	var tu uint64
@@ -222,20 +208,20 @@ func fmul(x, y uint64) uint64 {
 	}
 
 	// mullu (multiply 64x64->128)
-	u0 := fm & 4294967295
+	u0 := fm & uint64(0xffffffff)
 	u1 := fm >> 32
-	v0 := gm & 4294967295
+	v0 := gm & uint64(0xffffffff)
 	v1 := gm >> 32
 	w0 := u0 * v0
 	t := u1*v0 + w0>>32
-	w1 := t & 4294967295
+	w1 := t & uint64(0xffffffff)
 	w2 := t >> 32
 	w1 += u0 * v1
 	lo := fm * gm
 	hi := u1*v1 + w2 + w1>>32
 	//fmt.Println("fmul   hi/lo", hi, lo, "fm/gm", fm, gm)
 
-	tr := lo & 2251799813685247
+	tr := lo & uint64(0x7ffffffffffff)
 	m := hi<<13 | lo>>51
 	//fmt.Println("fmul", fs, gs, m, fe, ge, tr)
 	return fpak(fs^gs, m, fe+ge-1, tr)
@@ -272,22 +258,22 @@ func fdiv(x, y uint64) uint64 {
 	u1 := fm >> 10
 	u0 := fm << 54
 	v := gm
-	b := uint64(4294967296)
+	b := uint64(0x100000000)
 	if u1 >= v {
-		q = uint64(18446744073709551615)
+		q = uint64(0xffffffffffffffff)
 		r = q
 	} else {
 		s := uint64(0)
-		if v&uint64(9223372036854775808) == 0 {
+		if v&uint64(0x8000000000000000) == 0 {
 			s++
 			v <<= uint64(1)
 		}
 		vn1 := v >> 32
-		vn0 := v & uint64(4294967295)
+		vn0 := v & uint64(0xffffffff)
 		un32 := u1<<s | u0>>(64-s)
 		un10 := u0 << s
 		un1 := un10 >> 32
-		un0 := un10 & uint64(4294967295)
+		un0 := un10 & uint64(0xffffffff)
 		q1 := un32 / vn1
 		rh := un32 - q1*vn1
 
@@ -333,7 +319,7 @@ func fneq(x, y uint64) int32 {
 	}
 	return I32B(fcmp(x, y) != 0)
 }
-func fgth(x, y uint64) int32 {
+func fmor(x, y uint64) int32 {
 	if (fnan(x) | fnan(y)) != 0 {
 		return 0
 	}
@@ -351,7 +337,7 @@ func flte(x, y uint64) int32 {
 	}
 	return I32B(fcmp(x, y) <= 0)
 }
-func flth(x, y uint64) int32 {
+func fles(x, y uint64) int32 {
 	if (fnan(x) | fnan(y)) != 0 {
 		return 0
 	}
@@ -381,15 +367,15 @@ func fcmp(x, y uint64) int32 {
 	}
 	return 0
 }
-func fi64(x int64) uint64 { // f from i64
-	f := uint64(x) & uint64(9223372036854775808)
+func fjcst(x int64) uint64 { // f from i64
+	f := uint64(x) & uint64(0x8000000000000000)
 	m := uint64(x)
 	if f != 0 {
 		m = -m
 	}
 	return fpak(f, m, 52, 0)
 }
-func if64(x uint64) int64 {
+func jfcst(x uint64) int64 {
 	fs := fsgn(x)
 	fm := fmnt(x)
 	fe := fexp(x)
@@ -424,7 +410,9 @@ func if64(x uint64) int64 {
 	}
 	return r
 }
-func fabs(x uint64) uint64 { return x &^ uint64(9223372036854775808) }
+func ifcst(x uint64) int32 { return int32(jfcst(x)) }
+func ficst(x int32) uint64 { return fjcst(int64(x)) }
+func fabs(x uint64) uint64 { return x &^ uint64(0x8000000000000000) }
 func flor(x uint64) uint64 {
 	fs := fsgn(x)
 	fm := fmnt(x)
@@ -433,11 +421,11 @@ func flor(x uint64) uint64 {
 	if fm == 0 || (fn|fi) != 0 {
 		return x
 	}
-	x &= uint64(9223372036854775807) //clear sign
+	x &= uint64(0x7fffffffffffffff) //clear sign
 	y := fmod(x)
 	if fs != 0 {
 		if fsub(x, y) != uint64(0) {
-			y = fadd(y, uint64(4607182418800017408)) // y+1.
+			y = fadd(y, uint64(0x3ff0000000000000)) // y+1.
 		}
 	}
 	return y | fs
@@ -446,7 +434,7 @@ func fmod(x uint64) uint64 { // x>0.
 	if x == 0 {
 		return x
 	}
-	if x < uint64(4607182418800017408) { // x<1.0
+	if x < uint64(0x3ff0000000000000) { // x<1.0
 		return 0
 	}
 	e := (x>>uint64(52))&2047 - 1023
@@ -455,7 +443,7 @@ func fmod(x uint64) uint64 { // x>0.
 	}
 	return x
 }
-func fcps(x, y uint64) uint64 { return x&^uint64(9223372036854775808) | y&uint64(9223372036854775808) }
+func fcps(x, y uint64) uint64 { return x&^uint64(0x8000000000000000) | y&uint64(0x8000000000000000) }
 func fmax(x, y uint64) uint64 {
 	if fnan(x) != 0 {
 		return y
@@ -497,7 +485,7 @@ func fmin(x, y uint64) uint64 {
 	return y
 }
 func fsqr(x uint64) uint64 { // see go.dev/src/math/sqrt.go
-	if x&uint64(9223372036854775807) == 0 || fnan(x) != 0 || x == uint64(9218868437227405312) {
+	if x&uint64(0x7fffffffffffffff) == 0 || fnan(x) != 0 || x == uint64(0x7ff0000000000000) {
 		return x
 	}
 	if fsgn(x) != 0 {
@@ -505,22 +493,22 @@ func fsqr(x uint64) uint64 { // see go.dev/src/math/sqrt.go
 	}
 	e := int32(x>>52) & 2047
 	if e == 0 {
-		for x&4503599627370496 == 0 {
+		for x&0x10000000000000 == 0 {
 			x <<= uint64(1)
 			e--
 		}
 		e++
 	}
 	e -= 1023
-	x &^= 9218868437227405312
-	x |= 4503599627370496
+	x &^= 0x7ff0000000000000
+	x |= 0x10000000000000
 	if e&1 == 1 {
 		x <<= uint64(1)
 	}
 	e >>= 1
 	x <<= uint64(1)
 	var q, s uint64
-	r := uint64(9007199254740992)
+	r := uint64(0x20000000000000)
 	for r != 0 {
 		t := s + r
 		if t <= x {

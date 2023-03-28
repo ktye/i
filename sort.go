@@ -255,7 +255,7 @@ func radixF(x K, n int32) K { // ^F
 L:
 	for ko := int32(0); ko < 64; ko += 8 {
 		s := int32(1)
-		prev := float64(0)
+		prev := 0.0
 		Memoryfill(op, 0, 1024)
 		for i := int32(0); i < n; i += 8 {
 			u = floatflp(uint64(I64(fr + i)))

@@ -1,16 +1,18 @@
 set -e
 set -x
 
-# (1) add softfloat.go +3316-wasm-bytes
-
 mkdir -p t/
+
+# (1) add softfloat.go +3316-wasm-bytes
 cp ../*.go t/
 cp softfloat.go t/
 
 # typecheck:
-# wg t/ > out
-# wat2wasm out
+wg t/ > out
+wat2wasm out > out.wasm
 
 wg -k t/ > k.k
+
+k k.k softfloat.k ../x/go.k -e 'x:`"k.go"<go``'
 
 # rm t/*

@@ -64,7 +64,7 @@ func cosin_(x float64, rp int32, csonly int32) {
 		x = -x
 		ss = 1
 	}
-	j := uint64(x * 1.2732395447351628) // *4/pi
+	j := int64(x * 1.2732395447351628) // *4/pi
 	y := float64(j)
 	if j&1 == 1 {
 		j++

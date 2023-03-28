@@ -101,8 +101,8 @@ func test(t *testing.T, op string, hw, sw func(float64, float64) float64, all []
 			if !same(h, s) {
 				t.Fatalf("%g %s %g = sw %g, hw %g\n", f, op, g, s, h)
 			}
-			testu(t, "if64", hwff64, swif64, h)
-			testu(t, "fi64", hwff64, swfi64, h)
+			testu(t, "jfcst", hwff, swjf, h)
+			testu(t, "fjcst", hwff, swfj, h)
 			testcmp(t, f, h)
 			testcmp(t, h, f)
 			testcmp(t, g, h)
@@ -121,11 +121,11 @@ func testu(t *testing.T, op string, hw, sw func(float64) float64, v float64) {
 		t.Fatalf("%s %g = sw %g, hw %g\n", op, v, s, h)
 	}
 }
-func hwff64(f float64) float64 { return float64(int64(f)) }
-func swfi64(f float64) float64 { return math.Float64frombits(fi64(int64(f))) }
-func swif64(f float64) float64 {
+func hwff(f float64) float64 { return float64(int64(f)) }
+func swfj(f float64) float64 { return math.Float64frombits(fjcst(int64(f))) }
+func swjf(f float64) float64 {
 	u := math.Float64bits(f)
-	i := if64(math.Float64bits(f))
+	i := jfcst(math.Float64bits(f))
 
 	if _, ok := f64toint(u); !ok {
 		i = int64(f)
@@ -143,9 +143,9 @@ func testcmp(t *testing.T, f, g float64) {
 	leh := f <= g
 	eqs := feql(x, y) != 0
 	nes := fneq(x, y) != 0
-	gts := fgth(x, y) != 0
+	gts := fmor(x, y) != 0
 	ges := fgte(x, y) != 0
-	lts := flth(x, y) != 0
+	lts := fles(x, y) != 0
 	les := flte(x, y) != 0
 	if eqh != eqs {
 		t.Fatalf("(%g == %g) = sw %v, hw %v\n", f, g, eqh, eqs)
@@ -159,7 +159,7 @@ func testcmp(t *testing.T, f, g float64) {
 	if geh != ges {
 		t.Fatalf("(%g >= %g) = sw %v, hw %v\n", f, g, geh, ges)
 	}
-	if lth != lts {
+	if leh != les {
 		t.Fatalf("(%g < %g) = sw %v, hw %v\n", f, g, lth, lts)
 	}
 	if leh != les {
