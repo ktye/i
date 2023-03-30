@@ -37,7 +37,7 @@ function setinput(s){s+=".k"
 }
 
 let sel=ge("sel")
-let examples="asn`cal`cast`cli`cnd`cnd2`const`cont`drp`fun`heap`ifret`inc`label`lit`loop`loop2`mem`swtch`swtch2`tab`k".split("`")
+let examples="asn`cal`cast`cli`cnd`cnd2`const`cont`drp`fun`heap`ifret`inc`label`lit`loop`loop2`mem`swtch`swtch2`tab`1k`k".split("`")
 for(let i=0;i<examples.length;i++){
  let o=ce("option");o.textContent=examples[i]
  sel.appendChild(o)

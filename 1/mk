@@ -10,6 +10,7 @@ if [ "$1" = install ]; then
  cp readme                          /c/k/ktye.github.io/zoo/1k/
  awk -F" /" '/^ /{print $1}' readme>/c/k/ktye.github.io/zoo/1k/a
  awk -F" /" '/^ /{print $2}' readme>/c/k/ktye.github.io/zoo/1k/b
+ wg -k 1k.go                       >/c/k/ktye.github.io/kweb/1k.k
  rm 1k.wasm
 fi
 
