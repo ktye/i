@@ -68,7 +68,7 @@ goflt:{x:C x+!8;$[#r:goflts x;r;$*`f x]}
 golit:{y;i:I x;$[`f~t:S x;goflt i
                  `i~t;$[0N~i;"-0x80000000";$i]
                  `u~t;$[i<0;"0x",`x@|`c@,i;$i]
-		 `j~t;$[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]
+		 `j~t;$[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; (h~0N)&j~0; "-9223372036854775808"; hx8 i]
 		 `k~t;$[i~0;,"0";hx8 i];"???"]}
 
 govar:{" "/:("var";  $S x;gotype S 1+x;,"=";*y)}
@@ -92,7 +92,8 @@ gosiz:`b`i`j`f!`I8`I32`I64`F64
 golod:{($gosiz S x;"( ";y 0;") ")}
 gosto:{("Set";$gosiz S x;"( ";y 0;", ";y 1;") ")}
 
-gocal:{($S x;,"("; ","/:y ;,")")}
+/gocal:{($S x;,"("; ","/:y ;$[(S x)':`fles`flte`feql`fneq`fmor`fgte;")!=0";,")"])}
+gocal:{r:,/($S x;,"("; ","/:y ;,")");$[(S x)':`fles`flte`feql`fneq`fmor`fgte;em r,"!=0";r]}
 godrp:{y}
 
 gocli:{n:I x;("Func[";*y;"].(func(";  ","/:n#(1+n)_y; ")("; gotype S x ;"))(";  ","/:n#1_y; ") ")}

@@ -14,5 +14,7 @@ wat2wasm out > out.wasm
 wg -k t/ > k.k
 
 k k.k softfloat.k ../x/go.k -e 'x:`"k.go"<go``'
+go fmt k.go
+go build k.go
 
 # rm t/*
