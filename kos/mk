@@ -3,18 +3,31 @@ set -x
 
 mkdir -p t/
 
-# (1) add softfloat.go +3316-wasm-bytes
-cp ../*.go t/
-cp softfloat.go t/
+if [ "$1" = "softfloat" ]; then
+ # (1) add softfloat.go +3316-wasm-bytes
+ cp ../*.go t/
+ cp softfloat.go t/
 
-# typecheck:
-wg t/ > out
-wat2wasm out > out.wasm
+ # typecheck:
+ wg t/ > out
+ wat2wasm out > out.wasm
 
-wg -k t/ > k.k
+ wg -k t/ > k.k
 
-k k.k softfloat.k ../x/go.k -e 'x:`"k.go"<go``'
-go fmt k.go
-go build k.go
+ # test k.go+softfloat
+ k k.k softfloat.k ../x/go.k -e 'x:`"k.go"<go``'
+ go fmt k.go
+ go build k.go
+ ./k ../k.t -e
+fi
 
-# rm t/*
+if [ "$1" = "clean" ]; then
+ rm t/*
+fi
+
+cc=arm-none-eabi-gcc
+ob=arm-none-eabi-objdump
+$cc -S a.c  -o t/a.s
+$cc -c a.c  -o t/a.o
+$ob -D t/a.o > t/a.d
+
