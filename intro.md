@@ -11,9 +11,9 @@ ktye/k
 ```
 
 # command line arguments
-- `k a.k b.k c.k` executes all files in order, as if they were catenated and drops in the repl
+- `k a.k b.k c.k` executes all files in order, as if they were catenated and drops into the repl
 - `k a.k -e '+/x'` loads a.k, evaluates the expression and exits. *e* stands for both: *eval* and *end* (like in awk)
-- `k a.k -e'` prevents the repl
+- `k a.k -e` prevents the repl
 
 executing a file parses and executes everything in one go. it is not line oriented as opposed to other apl/k.
 If you want output from a line, print or debug:
@@ -44,7 +44,7 @@ adverbs have verb overloads if the left arg is not a verb: `' / \ ': /: \:` are 
 
 
 # dots, names
-a dot is not part of a symbol: `a.b` is `a . b`. to index a list/dict use `` d`a``.
+a dot is not part of a symbol: `a . b` can be written as `a.b`. to index a list/dict use `` d`a``.
 
 there are no namespaces, only flat global variables and locals.
 
