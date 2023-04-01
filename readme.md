@@ -39,6 +39,8 @@ solve dot plot hist (unpack) csv
 rand: ?n(uniform) ?-n(normal) ?z(binormal) n?n(with) -n?n(w/o) n?L 
 ```
 
+[introduction](intro.md)
+
 # Build
 
 |file|what|compile|
