@@ -1,4 +1,4 @@
-a brief introduction about the pecularities of ktye/k
+a brief introduction about the pecularities of ktye/k  [[qr](#qr-decomposition-least-squares);[fft](#fft);[stats](#statistics)]
 
 # get/compile
 get any version from the [table](https://github.com/ktye/i#build) e.g.
@@ -89,7 +89,7 @@ n:2^15
 f:fftn n
 fft[f;`z@?2*n]
 ```
-see (details)[https://github.com/ktye/i/tree/master/%2B/mat/fft]
+see [details](https://github.com/ktye/i/tree/master/%2B/mat/fft)
 
 ## statistics
 ```
