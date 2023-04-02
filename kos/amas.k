@@ -13,11 +13,15 @@ rd: 4096*rm@
 rot:{y@32/32-x-!32}
 mmi:{2//rot[2*y;(32#2)\\x]}
 imm:(,/mmi/:[!256;!16])?   /encode possible immediates
+bit:+/(2^/:!32)@           /bit 1 12  (sets bits 1 12)
 
 al:3758096384              /always                 0b111...
 im:33554432+imm@
 orrr:al+/(op;rd;rn;rm)@'   /orrr`add`r3`r2`r3  -> -528338941 e0823003
 orri:al+/(op;rd;rn;im)@'   /orri`sub`r2`r3,256 -> -498914303 e2432c01
+push:-382926848+bit@rm@    /push`fp`lr(multi)  -> -382908416 e92d4800
+pop: -390266880+bit@rm@    /pop`fp`lr          -> -390248448 e8bd4800
 
 
+h:|`c@,
 /encode: go.dev/play/p/41_1hQtVWVW
