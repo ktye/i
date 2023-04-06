@@ -86,12 +86,12 @@ type T int32
 // haspointers: t>5   (recursive unref)
 // elementsize: $[t<19;1;t<21;4;8]
 const ( //base t&15          bytes  atom  vector
-	ct T = 2  // char    1      2     18
-	it T = 3  // int     4      3     19
-	st T = 4  // symbol  4      4     20
-	ft T = 5  // float   8      5     21
-	zt T = 6  // complex(8)     6     22
-	lt T = 7  // list    8            23
+	ct T = 2 // char    1      2     18
+	it T = 3 // int     4      3     19
+	st T = 4 // symbol  4      4     20
+	ft T = 5 // float   8      5     21
+	zt T = 6 // complex(8)     6     22
+
 	dt T = 8  // dict   (8)           24
 	tt T = 9  // table  (8)           25
 	cf T = 10 // comp   (8)    10
@@ -99,14 +99,14 @@ const ( //base t&15          bytes  atom  vector
 	pf T = 12 // proj   (8)    12
 	lf T = 13 // lambda (8)    13
 	xf T = 14 // native (8)    14
-	Ct T = ct + 16
-	It T = it + 16
-	St T = st + 16
-	Ft T = ft + 16
-	Zt T = zt + 16
-	Lt T = lt + 16
-	Dt T = dt + 16
-	Tt T = tt + 16
+	Ct T = 18
+	It T = 19
+	St T = 20
+	Ft T = 21
+	Zt T = 22
+	Lt T = 23 // list
+	Dt T = 24 // dict
+	Tt T = 25 // table
 )
 
 // func t=0
