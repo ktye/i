@@ -72,7 +72,7 @@ ccflts:(0x25fab843dda06440;0x2cde25af6a56113f;0x182d4454fb21e93f;0x485555555555c
 ccflt:{x:C x+!8;$[#r:ccflts x;r;$*`f x]}
 cclit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
  y;i:I x;$[`f~t:S x;ccflt i
-           `i~t;$[0N~i;"-0x80000000";$i]
+           `i~t;$[0N~i;"(int32_t)0x80000000";$i]
            `u~t;$[i<0;"0x",`x@|`c@,i;$i]
            `j~t;$[i~0;,"0";(-1~h:hi i)&0>l:lo i;$l;(h~0)&l>0;$l;hx8 i],"ll"
            `k~t;$[i~0;,"0";(0~h:hi i)&0<l:lo i;$l;hx8 i],"ull";"???"]}
@@ -156,20 +156,20 @@ FILE *_fd_;
 int    args_;
 char **argv_;
 static jmp_buf _jb_;
-void Memory (int32_t x){_memorysize =x;_M =calloc(x,64*1024);}
-void Memory2(int32_t x){_memorysize2=x;_M2=calloc(x,64*1024);}
+void Memory (int32_t x){_memorysize =x;_M =(char *)calloc((size_t)x,64*1024);}
+void Memory2(int32_t x){_memorysize2=x;_M2=(char *)calloc((size_t)x,64*1024);}
 int32_t Memorysize( ){return _memorysize; }
 int32_t Memorysize2(){return _memorysize2;}
 int32_t Memorygrow(int32_t delta){
  int32_t r=_memorysize;
  _memorysize+=delta;
- _M=(char *)realloc(_M, 64*1024*_memorysize);
+ _M=(char *)realloc(_M, 64*1024*(size_t)_memorysize);
  return r;
 }
 int32_t Memorygrow2(int32_t delta){
  int32_t r=_memorysize2;
  _memorysize2+=delta;
- _M2=(char *)realloc(_M2, 64*1024*_memorysize2);
+ _M2=(char *)realloc(_M2, 64*1024*(size_t)_memorysize2);
  return r;
 }
 #define I8(x)       ((int8_t *)_M)[x]
@@ -181,11 +181,11 @@ int32_t Memorygrow2(int32_t delta){
 #define SetI64(x,y) ((int64_t*)_M)[(x)>>3]=(y)
 #define SetF64(x,y) (( double*)_M)[(x)>>3]=(y)
 #define I32B(x)     (int32_t)(x)
-void Memorycopy (int32_t dst, int32_t src, int32_t n){ memcpy(_M +dst, _M +src, n); }
-void Memorycopy2(int32_t dst, int32_t src, int32_t n){ memcpy(_M2+dst, _M +src, n); }
-void Memorycopy3(int32_t dst, int32_t src, int32_t n){ memcpy( _M+dst, _M2+src, n); }
+void Memorycopy (int32_t dst, int32_t src, int32_t n){ memcpy(_M +dst, _M +src, (size_t)n); }
+void Memorycopy2(int32_t dst, int32_t src, int32_t n){ memcpy(_M2+dst, _M +src, (size_t)n); }
+void Memorycopy3(int32_t dst, int32_t src, int32_t n){ memcpy( _M+dst, _M2+src, (size_t)n); }
 void Memoryfill(int32_t p, int32_t v, int32_t n){ memset(_M+p, (int)v, (size_t)n); }
-int32_t  I32clz(uint32_t x) { return (int32_t)__builtin_clz((unsigned int)x); }
+int32_t  I32clz(int32_t x) { return (int32_t)__builtin_clz((unsigned int)x); }
 int32_t  I64popcnt(uint64_t x){ return (int32_t)__builtin_popcountll(x); }
 double   F64reinterpret_i64(uint64_t x){return *(double  *)&x;}
 uint64_t I64reinterpret_f64(double   x){return *(uint64_t*)&x;}
@@ -202,12 +202,12 @@ int32_t Read(int32_t file, int32_t nfile, int32_t dst){
  if(dst != 0){ memcpy(_M+dst,filebuf,n); return 0; }
  char name[512];
  if(nfile > 511) return -1;
- memcpy(name, _M+file, nfile);
+ memcpy(name, _M+file, (size_t)nfile);
  name[nfile] = (char)0;
  FILE *fp = fopen(name, \"rb\");
  if(fp==NULL){if(filebuf!=NULL)free(filebuf);n=0;return -1;}
  fseek(fp, 0, SEEK_END);
- n = ftell(fp);
+ n=(size_t)ftell(fp);
  fseek(fp, 0, SEEK_SET);
  if(filebuf != NULL) free(filebuf);
  filebuf = malloc(n);
@@ -216,13 +216,13 @@ int32_t Read(int32_t file, int32_t nfile, int32_t dst){
  return n;
 }
 int32_t Write(int32_t file, int32_t nfile, int32_t src, int32_t n){
- if(nfile == 0){ fwrite(_M+src, 1, n, stdout); return 0; }
+ if(nfile == 0){ fwrite(_M+src, 1, (size_t)n, stdout); return 0; }
  char name[512];
- memcpy(name, _M+file, nfile);
+ memcpy(name, _M+file, (size_t)nfile);
  name[nfile] = (char)0;
  FILE *fp = fopen(name, \"wb\");
  if(fp == NULL){ return -1; }
- fwrite(_M+src, 1, n, fp);
+ fwrite(_M+src, 1, (size_t)n, fp);
  fclose(fp);
  return 0;
 }
@@ -230,7 +230,7 @@ int32_t ReadIn(int32_t dst, int32_t n){
  char *r = fgets(_M+dst, n, stdin);
  if(r==NULL){ //todo eof
   return 0;
- }else return (int32_t)strnlen(_M+dst,n);
+ }else return (int32_t)strnlen(_M+dst,(size_t)n);
 }
 int64_t Native(int64_t x, int64_t y){
 #ifdef NATIVE
