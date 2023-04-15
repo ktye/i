@@ -41,7 +41,7 @@ func Atx(x, y K) K { // x@y
 	if yt == It {
 		return atv(x, y)
 	}
-	if yt == it && xt > 16 {
+	if yt == it {
 		return ati(x, int32(y))
 	}
 	if yt == Lt {

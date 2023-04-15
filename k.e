@@ -28,7 +28,6 @@
 (+`a`b!(1 2;3 4))?5 /Nyi
 find[1 2 3;4 5] /Type
 find["abc";"b"] /Type
-1.2@3 /Type
 `p 2 /Type
 [2} /Parse
 ) /Parse
