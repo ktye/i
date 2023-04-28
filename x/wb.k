@@ -46,7 +46,7 @@ wbprg:{
  vars:,/y@&`var=T c
  mems:s[5;0x010001]
  glbs:s[6;(leb@#glob),,/cons,vars]
- expo:s[7;(leb@1+#n),0x03,"mem",0x0200,,/wbfex'[S i n;n:&I i:&`fun=T]]
+ expo:s[7;(leb@1+#n),0x06,"memory",0x0200,,/wbfex'[S i n;(#wbsys)+n:&I i:&`fun=T]]
  tabl:$[#t:&`tab=T c;s[4;0x017000,(leb@1+|/I c t)];""]
  elem:$[#t;s[9;(leb@#t),,/t:wbtbl y t];""]
  data:$[#D;s[11;0x010041000b,(leb@#D),D];""]
