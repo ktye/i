@@ -46,10 +46,11 @@ wbprg:{
  vars:,/y@&`var=T c
  mems:s[5;0x010001]
  glbs:s[6;(leb@#glob),,/cons,vars]
- tabl:$[#t:&`tab=T c;s[4;0x017000,(leb@|/I c t)];""]
+ expo:s[7;(leb@1+#n),0x03,"mem",0x0200,,/wbfex'[S i n;n:&I i:&`fun=T]]
+ tabl:$[#t:&`tab=T c;s[4;0x017000,(leb@1+|/I c t)];""]
  elem:$[#t;s[9;(leb@#t),,/t:wbtbl y t];""]
  data:$[#D;s[11;0x010041000b,(leb@#D),D];""]
- 0x0061736d01000000,typs,sysi,fnsg,tabl,mems,glbs,elem,fncs,data}
+ 0x0061736d01000000,typs,sysi,fnsg,tabl,mems,glbs,expo,elem,fncs,data}
 
 wbsig:{0x60,((leb@#a),/a:-1_x),$[0x00~r:*|x;_0;(_1),r]} //wbsig args, ret
 wbmem:{y;""}
@@ -57,11 +58,11 @@ wbcon:{(wbtype S 1+x),0x00,(*y),0x0b}
 wbvar:{(wbtype S 1+x),0x01,(*y),0x0b}
 wbtab:{y;(I x;(!fsig)?S x)}
 wbtbl:{{0x0041,(leb x),0x0b,(leb@#y),,/leb'y}'[(*x)i;(i:&~1=-':*x)^(x:+x)1]}
+wbfex:{(leb@#$x),($x),0x00,leb y}
 
 wbfun:{s:$S x;c:&x=P
  locs:(leb@#l),,/l:{(leb@#x),wbtype@*x}'(&~`x~':l)^l:S c@&`loc=T c
  body:    y@*&`ast=T c
- /expo:$[I x;"(export \"",s,"\")";""]
  (leb@#r),r:locs,((- 0x0f~*|body)_body),0x0b}
  
 wbarg:{y;wbtype S x}
