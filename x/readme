@@ -42,7 +42,7 @@ node type                    i-value             s-value
  ast     func ast root       -                   -               one per func
  stm     statement list      -                   -
  ret     return              -                   `|type          children: return values, s-type only for single res
- cal     function call       func node           func name       children: args
+ cal     function call       -                   func name       children: args
  cli     indirect call       #args               res-type        children: func-expr args arg-types
  drp     drop return vals    -                   -               child: cal
  get     get local           -                   varname

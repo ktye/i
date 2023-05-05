@@ -71,7 +71,7 @@ wbres:{y;"(result ",(wbtype S x),")"}
 wbloc:{"(local ",(*y)," ",(wbtype S x),")"}
 wbstm:{,/y}
 wbast:wbstm
-wblod:{(y 0),(0x2d282829292b i),(0x000202030303 i:`b`i`u`j`k`f?S x),0x00}
+wblod:{(y 0),(0x2c282829292b i),(0x000202030303 i:`b`i`u`j`k`f?S x),0x00}
 wbsto:{(,/y),(0x3a3636373739 i),(0x000202030303 i:`b`i`u`j`k`f?S x),0x00}
 wbant:{(,/y),(0x417f7371;0x427f8583)@(S x)':`j`k} /y0 y1 -1 xor and 
 wbasn:{y,$[I x;0x24,leb glob?S x;0x21,leb(locs ifun x)?S x]}
@@ -92,8 +92,8 @@ wbGet:{y;0x23,leb glob?S x}
 wbjmp:{y;0x0c,(_1+I x)} /todo:label  /{"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 wblit:{y;i:I x;((`i`u`k`j`f!0x4141424244)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
 
-wbneg:{wbsub[x;($[`f~t:S x;0x44,(8#0x00);(0x4141424244@`i`u`j`k?S x),0x00];*y)]}
-wbnot:{(*y),"\ni32.eqz"}
+wbneg:{$[`f~t:S x;(*y),0x9a;wbsub[x;((0x4141424244@`i`u`j`k?t),0x00;*y)]]}
+wbnot:{(*y),0x45} /i32.eqz
 wbnop:{y;""}
 wbret:{(*y),0x0f}
 
