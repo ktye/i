@@ -85,7 +85,10 @@ wbdrp:{y,0x1a}
 wbcst:{(y 1),$[0x00~c:wbcast[t?S x;(t:!wbtype)?S 1+x];"";c]}
 wbfor:{$[I x;wbslp[x;y];wblop[x;y]]}
 wbslp:{0x0340,(-2_y 2),(y 1),(*y),0x0d000b }
-wblop:{0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b}
+
+/wblop:{0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b}
+wblop:{0x02400340,(wbges(*y),$[#*y;0x450d01;""]),(y 2),(y 1),0x0c000b0b}
+wbges:{$[0x48450d01~-4#x;(-4_x),0x4e0d01;x]}  /i32.lt_s eqz break ->le_s break (wg compat) false-positive?
  
 wbget:{y;0x20,leb(locs ifun x)?S x}
 wbGet:{y;0x23,leb glob?S x}
@@ -100,7 +103,8 @@ wbret:{(*y),0x0f}
 wbswc:{n:#$[I x;y;y,:,""]
  r:@[,/n#(,0x0240);1;$[t:S x;wbtype t;0x40]],(*y),0x0e,(leb n-2),(,/leb'!n-1),0x0b
  r,,/(1_y),'0x0c,/:(leb'|!n-1),\:0x0b}
-wbcnd:{(*y),0x04,$[`~t:S x;0x40;wbtype t],(y 1),$[3~#y;0x05,(y 2);""],0x0b}
+wbcnd:{(wbne0@*y),0x04,$[`~t:S x;0x40;wbtype t],(y 1),$[3~#y;0x05,(y 2);""],0x0b}
+wbne0:{$[0x410047~-3#x;-3_x;x]}
 
 wbtyp:{y;wbtype S x} /keep as symbol
 
@@ -123,7 +127,7 @@ wbcast:(0x0000a7a7aa;0x0000a7a7ab;0xacad0000b0;0xadad0000b1;0xb7b8b9ba00) /iujkf
 
 
 leb:{leb8(`c@,x),4#$[x<0;0xff;0x00]}
-leb8:{r:!0;B:1v:,/+(8#2)\\256/256+|x;while[B&(8<#v)&+/v;b:-7#v;s:*b;v:-7_v;r,:$[((0~&/v)|0x00~s)&(+/v)|s;1;B:0],b];_2//'-8^r}
+leb8:{s:*x:,/+(8#2)\\256/256+|x;|_2//'(1&!#x),'x:-7^(((7*1+7\#x)-#x)#s),x:(x?~s)_x}
 
 wbsys:`Exit`Args`Arg`Read`Write`ReadIn`Native!wbtype@/:(`i`;,`i;3#`i;4#`i;5#`i;3#`i;3#`k)
 /(import \"env\" \"Exit\"  (func $Exit  (param i32)))
