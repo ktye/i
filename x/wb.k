@@ -85,18 +85,13 @@ wbdrp:{y,0x1a}
 wbcst:{(y 1),$[0x00~c:wbcast[t?S x;(t:!wbtype)?S 1+x];"";c]}
 wbfor:{$[I x;wbslp[x;y];wblop[x;y]]}
 wbslp:{0x0340,(-2_y 2),(y 1),(*y),0x0d000b }
-
-/wblop:{0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b}
-wblop:{0x02400340,(wbges(*y),$[#*y;0x450d01;""]),(y 2),(y 1),0x0c000b0b}
-wbges:{$[0x48450d01~-4#x;(-4_x),0x4e0d01;x]}  /i32.lt_s eqz break ->le_s break (wg compat) false-positive?
+wblop:{0x02400340,(*y),$[#*y;0x450d01;""],(y 2),(y 1),0x0c000b0b}
  
 wbget:{y;0x20,leb(locs ifun x)?S x}
 wbGet:{y;0x23,leb glob?S x}
 wblit:{y;i:I x;((`i`u`k`j`f!0x4141424244)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
-/wbjmp:{y;0x0c,(_1+I x)} /todo:label  /{"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 wbjmp:{y;0x0c,_$[`~S x;1+I x;wbtrg x]}
-
-wbtrg:{l:S x;c:-~I x   /calculate target for labeled break/continue
+wbtrg:{l:S x;c:-~I x                    /calculate target for labeled break/continue
  x:1_{$[(`for;l)~(T x;S x);x;P x]}\:x   /scan parents til for-with-label
  x:x@&~`stm=T x                         /dont nest statements
  c+-1+(#x)+/(`for=T x)&~I x}            /simple loops add 1 level, others 2
@@ -110,8 +105,7 @@ wbret:{(*y),0x0f}
 wbswc:{n:#$[I x;y;y,:,""]
  r:@[,/n#(,0x0240);1;$[t:S x;wbtype t;0x40]],(*y),0x0e,(leb n-2),(,/leb'!n-1),0x0b
  r,,/(1_y),'0x0c,/:(leb'|!n-1),\:0x0b}
-wbcnd:{(wbne0@*y),0x04,$[`~t:S x;0x40;wbtype t],(y 1),$[3~#y;0x05,(y 2);""],0x0b}
-wbne0:{$[0x410047~-3#x;-3_x;x]}
+wbcnd:{(*y),0x04,$[`~t:S x;0x40;wbtype t],(y 1),$[3~#y;0x05,(y 2);""],0x0b}
 
 wbtyp:{y;wbtype S x} /keep as symbol
 
