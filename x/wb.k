@@ -92,8 +92,15 @@ wbges:{$[0x48450d01~-4#x;(-4_x),0x4e0d01;x]}  /i32.lt_s eqz break ->le_s break (
  
 wbget:{y;0x20,leb(locs ifun x)?S x}
 wbGet:{y;0x23,leb glob?S x}
-wbjmp:{y;0x0c,(_1+I x)} /todo:label  /{"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 wblit:{y;i:I x;((`i`u`k`j`f!0x4141424244)t),,$[`f~t:S x;C i+!8;`i~t;leb i;`u~t;leb i;leb8 C i+!8]}
+/wbjmp:{y;0x0c,(_1+I x)} /todo:label  /{"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
+wbjmp:{y;0x0c,_$[`~S x;1+I x;wbtrg x]}
+
+wbtrg:{l:S x;c:-~I x   /calculate target for labeled break/continue
+ x:1_{$[(`for;l)~(T x;S x);x;P x]}\:x   /scan parents til for-with-label
+ x:x@&~`stm=T x                         /dont nest statements
+ c+-1+(#x)+/(`for=T x)&~I x}            /simple loops add 1 level, others 2
+
 
 wbneg:{$[`f~t:S x;(*y),0x9a;wbsub[x;((0x4141424244@`i`u`j`k?t),0x00;*y)]]}
 wbnot:{(*y),0x45} /i32.eqz
