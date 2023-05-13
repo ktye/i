@@ -1,7 +1,7 @@
-
-F:`!()                                         /function map: type to stringer
-
-
+/c compiler
+F:`!()
+hx8:{[i]"0x",`x@|C i+!8}
+em:{"(",x,")"}
 cc:{[o]opts::o
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(ccprg;ccmem;cccon;ccvar;cctab;ccfun;ccarg;ccsym;ccres;ccloc;ccast;cclod;ccsto)
  F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(ccadd;ccand;ccbnd;ccant;ccasn;cccal;cccli;cccnd;ccdfr;ccdiv;ccdrp;cceql;cccst)
@@ -17,9 +17,6 @@ cc:{[o]opts::o
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
 *s}
 
-
-hx8:{[i]"0x",`x@|C i+!8}
-em:{"(",x,")"}
 
 INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
 ins:{[i;x;y](i#x),y,i_x}
@@ -182,10 +179,10 @@ static int32_t Memorygrow2(int32_t delta){
 #define I32(x)                 (I_[(x)>>2])
 #define I64(x)        (int64_t)(U_[(x)>>3])
 #define F64(x)       ((double*)U_)[(x)>>3]
-#define SetI8(x,y)              M_[x]=(char)(y)
-#define SetI32(x,y)             I_[(x)>>2]=(y)
-#define SetI64(x,y)             U_[(x)>>3]=(uint64_t)(y)
-#define SetF64(x,y)  ((double*)U_)[(x)>>3]=(y)
+static void SetI8( int32_t x,int32_t y){M_[x]=(char)(y);}
+static void SetI32(int32_t x,int32_t y){I_[(x)>>2]=(y);}
+static void SetI64(int32_t x,int64_t y){U_[(x)>>3]=(uint64_t)(y);}
+static void SetF64(int32_t x,double  y){((double*)U_)[(x)>>3]=(y);}
 #define I32B(x) (int32_t)(x)
 static void Memorycopy (int32_t dst, int32_t src, int32_t n){ memcpy(M_ +dst, M_ +src, (size_t)n); }
 static void Memorycopy2(int32_t dst, int32_t src, int32_t n){ memcpy(M2_+dst, M_ +src, (size_t)n); }
