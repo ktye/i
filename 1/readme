@@ -5,7 +5,7 @@ dyadic      dyadic         monadic               adverbs
 scalar      a-y      v-y                         monadic
 + plus      : assign       + flip    : id        '  each
 - minus     ~ match        - negate  ~ not       /  over
-* multiply  , catenate     * fist    , enlist    \  scan
+* multiply  , catenate     * first   , enlist    \  scan
 % divide    ^ cut          % rotate  ^ token
 & min       # take   set   & where   # count
 | max       _ drop   set   | reverse _ last
