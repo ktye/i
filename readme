@@ -1,30 +1,25 @@
-╭───────────────────────────┬──╮
-│             *             │..│ 
-├───────────────────────────┴──┤
-│ktye/k  6#k  github.com/ktye/i│
-│+ flp add '  ech bin  x y' lin│
-│- neg sub /  rdc mod  f n/ ndo│
-│* fst mul \  scn div  x//y dec│
-│% sqr div ': ecp in   y\\x enc│
-│! til key /: ecr split  f/:fix│
-│& wer min \: ecl join   f\:fix│
-│| rev max while[c;a;b;..]     │
-│< asc les $[a;b;...]      cond│
-│> dsc mor @[x;i;+;y]     amend│
-│= grp eql .[x;i;+;y]     dmend│
-│~ not mtc k?t            group│
-│, enl cat k!t              key│
-│^ srt cut t,d t,t t,'t    join│
-│# cnt tak {[x;y]x+y}  "abc"  c│ 
-│_ flr drp             1 2 3  i│      
-│$ str cst  01234567   4 5 6. f│
-│? unq fnd   :+-*%&|   2a300  z│         
-│@ typ atx  <>=~!,^#  (1;2 3) L│ 
-│. val cal  _$?@.   `a`b!5 6  D│ 
-│                              │ 
-│abs sin cos exp log find angle│
-│imag conj  types:cisfzLDTvcdlx│
-│?n(uniform) ?-n(normal) ?z(bi)│
-│n?n(with) -n?n(w/o) n?L(outof)│
-╰──────────────────────────────╯
-
+ktye/k  6#k  github.com/ktye/i
++ flp add '  ech bin  x y' lin
+- neg sub /  rdc mod  f n/ ndo
+* fst mul \  scn div  x//y dec
+% sqr div ': ecp in   y\\x enc
+! til key /: ecr split  f/:fix
+& wer min \: ecl join   f\:fix
+| rev max while[c;a;b;..]     
+< asc les $[a;b;...]      cond
+> dsc mor @[x;i;+;y]     amend
+= grp eql .[x;i;+;y]     dmend
+~ not mtc k?t            group
+, enl cat k!t              key
+^ srt cut t,d t,t t,'t    join
+# cnt tak {[x;y]x+y}  "abc"  c
+_ flr drp             1 2 3  i     
+$ str cst  01234567   4 5 6. f
+? unq fnd   :+-*%&|   2a300  z
+@ typ atx  <>=~!,^#  (1;2 3) L
+. val cal  _$?@.   `a`b!5 6  D
+                              
+abs sin cos exp log find angle
+imag conj  types:cisfzLDTvcdlx
+?n(uniform) ?-n(normal) ?z(bi)
+n?n(with) -n?n(w/o) n?L(outof)
