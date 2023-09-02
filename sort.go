@@ -16,23 +16,29 @@ func Srt(x K) K { // ^x
 		i := rx(Asc(rx(x)))
 		return Key(atv(r, i), atv(x, i))
 	}
-	xn := nn(x)
-	if xn < 2 {
+	/*
+		xn := nn(x)
+		if xn < 2 {
+			return x
+		}
+		switch xt - 18 {
+		case 0:
+			r = srtC(x, xn)
+		case 1:
+			r = srtI(x, xn)
+		case 2:
+			r = srtI(x, xn)
+		case 3:
+			r = srtF(x, xn)
+		default:
+			r = atv(x, Asc(rx(x)))
+		}
+		return r
+	*/
+	if nn(x) < 2 {
 		return x
 	}
-	switch xt - 18 {
-	case 0:
-		r = srtC(x, xn)
-	case 1:
-		r = srtI(x, xn)
-	case 2:
-		r = srtI(x, xn)
-	case 3:
-		r = srtF(x, xn)
-	default:
-		r = atv(x, Asc(rx(x)))
-	}
-	return r
+	return atv(x, Asc(rx(x)))
 }
 func Asc(x K) K { // <x  <`file
 	if tp(x) == st {
@@ -62,18 +68,20 @@ func grade(x K, f int32) K { // <x >x
 	r = seq(n)
 	rp := int32(r)
 	xp := int32(x)
-	if n < 16 {
-		igrd(rp, xp, n, sz(xt), f+int32(xt))
-	} else {
-		w := mk(It, n)
-		wp := int32(w)
-		Memorycopy(wp, rp, 4*n)
-		msrt(wp, rp, 0, n, xp, sz(xt), f+int32(xt))
-		dx(w)
-	}
+	//	if n < 16 {
+	//		igrd(rp, xp, n, sz(xt), f+int32(xt))
+	//	} else {
+	w := mk(It, n)
+	wp := int32(w)
+	Memorycopy(wp, rp, 4*n)
+	msrt(wp, rp, 0, n, xp, sz(xt), f+int32(xt))
+	dx(w)
+	//	}
 	dx(x)
 	return r
 }
+
+/*
 func srtC(x K, n int32) K {
 	r := mk(Ct, n)
 	y := ntake(256, Ki(0))
@@ -123,6 +131,7 @@ func isrtsI(xp, n int32) { // insertion sort ints inplace
 		continue
 	}
 }
+*/
 
 func msrt(x, r, a, b, p, s, f int32) {
 	if b-a < 2 {
@@ -152,6 +161,7 @@ func mrge(x, r, a, b, c, p, s, f int32) {
 	}
 }
 
+/*
 func igrd(rp, xp, n, s, f int32) { // insertion grade with comparison
 	for i := int32(1); i < n; i++ { // f: gt(<) lt(>)
 		x := I32(rp + 4*i)
@@ -295,6 +305,7 @@ func floatflp(x uint64) uint64 {
 	}
 	return x ^ 0x8000000000000000
 }
+*/
 
 func guC(xp, yp int32) int32 { return I32B(I8(xp) < I8(yp)) }
 func guI(xp, yp int32) int32 { return I32B(I32(xp) < I32(yp)) }
