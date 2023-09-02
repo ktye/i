@@ -289,7 +289,7 @@ func subcC(x, yp, rp, e int32) {
 }
 func subiI(x, yp, rp, e int32) {
 	for rp < e {
-		SetI32(rp, x-I8(yp))
+		SetI32(rp, x-I32(yp))
 		yp += 4
 		rp += 4
 		continue
