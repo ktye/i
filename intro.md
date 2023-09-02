@@ -1,14 +1,27 @@
 a brief introduction about the pecularities of ktye/k  ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[fft](#fft);[stats](#statistics))
 
 # get/compile
-get any version from the [table](https://github.com/ktye/i#build) e.g.
+get any version from here:
+
+|file|what|compile|
+|---|---|---|
+[k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran version|`gfortran k.f`|
+[k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c version|`gcc k.c -lm`|
+[k.js](https://github.com/ktye/i/releases/download/latest/k.js)|js version|`qjs --std k.js` (quickjs)|
+[k.wasi](https://github.com/ktye/i/releases/download/latest/k.wasi)|standalone wasi binary||
+[k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go version|`go build k.go`|
+[kdb.go](https://github.com/ktye/i/releases/download/latest/kdb.go)|[debugger](d)|`go build kdb.go`|
+
+e.g.
 ```
 $wget https://github.com/ktye/i/releases/download/latest/k.c
-$gcc -ok k.c -lm
+$gcc -ok k.c -lm        #clang -ok -fwrapv -ffast-math k.c
 $k
 ktye/k
  █
 ```
+
+or online at ktye.github.io
 
 # command line arguments
 - `k a.k b.k c.k` executes all files in order, as if they were catenated and drops into the repl
