@@ -27,6 +27,7 @@ func Ech(f, x K) K {
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
 			r = x0(x)
+			trace("lin")
 			return lin(r, f, r1(x))
 		}
 		return Bin(f, Fst(x))
@@ -108,6 +109,7 @@ func ec2(f, x, y K) K {
 	return uf(r)
 }
 func Ecp(f, x K) K {
+	trace("prior")
 	m := int32(0)
 	y := K(0)
 	t := tp(f)
@@ -175,11 +177,13 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			r = x0(x)
 			x = r1(x)
 			if t == it && isfunc(tp(r)) != 0 {
+				trace("ndo")
 				return ndo(int32(f), r, x)
 			} else {
 				trap(Type)
 			}
 		}
+		trace("mod")
 		return Mod(Fst(x), f)
 	}
 	if arity(f) > 2 {
@@ -189,6 +193,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 		r = x0(f)
 		if isfunc(tp(r)) == 0 {
 			dx(f)
+			trace("decode")
 			return Dec(r, Fst(x))
 		}
 		dx(r)
@@ -291,13 +296,16 @@ func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
+		trace("join")
 		return join(f, Fst(x))
 	}
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point
+		trace("fix")
 		return fix(f, Fst(x), 0)
 	case 1:
+		trace("each-right")
 		y := x1(x)
 		x = r0(x)
 		yt := tp(y)
@@ -367,6 +375,7 @@ func Scn(f, x K) K {
 		if nn(x) != 1 {
 			trap(Rank)
 		}
+		trace("div")
 		return Div(Fst(x), f)
 	}
 	if arity(f) > 2 {
@@ -376,6 +385,7 @@ func Scn(f, x K) K {
 		r = x0(f)
 		if isfunc(tp(r)) == 0 {
 			dx(f)
+			trace("encode")
 			return Enc(r, Fst(x))
 		}
 		dx(r)
@@ -451,14 +461,17 @@ func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
+		trace("split")
 		return split(f, Fst(x))
 	}
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point-scan
 		x = rx(Fst(x))
+		trace("fixs")
 		return fix(f, x, Enl(x))
 	case 1:
+		trace("each-left")
 		y := x1(x)
 		x = r0(x)
 		if tp(x) < 16 {

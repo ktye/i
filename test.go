@@ -20,6 +20,7 @@ func testi(l K, i int32) {
 	y := x1(x)
 	x = r0(x)
 	dx(Out(ucat(ucat(rx(x), Ku(12064)), rx(y))))
+	tracetest(x)
 	x = Kst(val(x))
 	if match(x, y) == 0 {
 		x = Out(x)

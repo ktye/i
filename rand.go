@@ -37,6 +37,7 @@ func deal(x, y K) K { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-
 	xp := int32(x)
 	yt := tp(y)
 	if yt > 16 {
+		trace("shuffle")
 		yn := nn(y)
 		if xp < 0 {
 			xp = -xp

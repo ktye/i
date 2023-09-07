@@ -6,6 +6,7 @@ import (
 
 func main() { // _start
 	kinit()
+	tracestart()
 	doargs()
 	write(Ku(2932601077199979)) // "ktye/k\n"
 	store()
@@ -69,8 +70,10 @@ func doargs() {
 				dx(ee)
 				repl(x)
 			}
+			traceend()
 			Exit(0)
 		}
+		tracefile(x)
 		dofile(x, readfile(rx(x)))
 		a += 8
 	}
