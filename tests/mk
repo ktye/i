@@ -1,0 +1,13 @@
+set -e
+set -x
+k 66 ../apl/apl.k -e >out/apl
+k token.k -e >out/token
+k /c/k/ktye.github.io/kweb/k.k ../web/kweb/compile.k -e 'x:`<drawtree P' >out/compile
+k /c/k/ktye.github.io/kweb/k.k ../x/go.k -e 'x:`<go``' >out/go
+k /c/k/ktye.github.io/kweb/k.k ../x/wa.k -e 'x:`<wa``' >out/wa
+k /c/k/ktye.github.io/kweb/k.k ../x/wb.k -e 'x:`<wb``' >out/wb
+k /c/k/ktye.github.io/kweb/k.k ../x/cc.k -e 'x:`<cc``' >out/cc
+k /c/k/ktye.github.io/kweb/k.k ../x/js.k -e 'x:`<js``' >out/js
+k /c/k/ktye.github.io/kweb/k.k ../x/qb.k -e 'x:`<qb``' >out/qb
+k q.k q.t -e >out/q
+k k.t -e >out/k
