@@ -1,4 +1,4 @@
-module github.com/ktye/i/k
+module github.com/ktye/i/oldk
 
 go 1.16
 
