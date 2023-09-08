@@ -3,7 +3,6 @@ set -e
 
 # embed z.k in z.go
 sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
-cp k.k /c/k/ktye.github.io/kde/z.k
 zn=`wc -c k.k | sed 's/ .*//'`
 zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
 cat << EOF > z.go
@@ -37,8 +36,6 @@ wg             . > k.wat
 
 /c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
 
-#cp web/k.wasm   /c/k/ktye.github.io/
-#cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
 #cp apl/apl.*    /c/k/ktye.github.io/
 
