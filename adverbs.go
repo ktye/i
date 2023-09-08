@@ -244,7 +244,6 @@ func fix(f, x, l K) K {
 }
 func Scn(f, x K) K {
 	r := K(0)
-	y := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
@@ -267,65 +266,50 @@ func Scn(f, x K) K {
 		}
 	}
 	//kdb:if int32(f)==29{trap(Err);}
-	if xn := nn(x); xn == 1 {
-		y = Fst(x)
-		x = 0
-	} else if xn == 2 {
+	if nn(x) == 2 {
 		return Ecl(f, x)
-	} else {
-		y = trap(Rank)
 	}
-	yt := tp(y)
-	if yt < 16 {
-		if x == 0 {
-			dx(f)
-			return y
-		} else {
-			return cal(f, l2(x, y))
-		}
-	}
-	yn := nn(y)
-	if yn == 0 {
-		dx(f)
-		dx(x)
-		return y
-	}
-	if yt == Dt {
-		r = x0(y)
-		return Key(r, Scn(f, l1(r1(y))))
-	}
-
+	x = Fst(x)
 	xt := tp(x)
+	if xt < 16 {
+		dx(f)
+		return x
+	}
+	xn := nn(x)
+	if xn == 0 {
+		dx(f)
+		return x
+	}
+	if xt == Dt {
+		r = x0(x)
+		return Key(r, Scn(f, l1(r1(x))))
+	}
 	if tp(f) == 0 {
 		fp := int32(f)
-		if (fp == 2 || fp == 4) && (xt == 0 || yt == xt+16) { // sums,prds (reduce.go)
-			if yt == Tt {
-				return Flp(Ech(scn(f), l2(x, Flp(y)))) // +f\'[x;+y]
+		if fp == 2 || fp == 4 { // sums,prds (reduce.go)
+			if xt == Tt {
+				return Flp(Ech(scn(f), l1(Flp(x)))) // +f\'[x;+y]
 			}
-			r = Func[372+fp].(scf)(x, int32(y), yt, yn)
+			r = Func[372+fp].(rdf)(int32(x), xt, xn)
 			if r != 0 {
 				dx(x)
-				dx(y)
 				return r
 			}
 		}
 	}
-
-	r = mk(Lt, yn)
+	r = mk(Lt, xn)
 	rp := int32(r)
-	i := int32(0)
-	if x == 0 {
-		x, i = ati(rx(y), 0), 1
-		SetI64(rp, int64(rx(x)))
-		rp += 8
-	}
-	for i < yn {
-		x = cal(rx(f), l2(x, ati(rx(y), i)))
-		SetI64(rp, int64(rx(x)))
+	i := int32(1)
+	x0 := ati(rx(x), 0)
+	SetI64(rp, int64(rx(x0)))
+	rp += 8
+	for i < xn {
+		x0 = cal(rx(f), l2(x0, ati(rx(x), i)))
+		SetI64(rp, int64(rx(x0)))
 		rp += 8
 		i++
 	}
-	dx(y)
+	dx(x0)
 	dx(x)
 	dx(f)
 	return uf(r)
@@ -427,4 +411,3 @@ func ov0(f, x K) K {
 	dx(x)
 	return missing(tp(x))
 }
-
