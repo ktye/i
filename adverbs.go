@@ -6,12 +6,12 @@ import (
 
 type rdf = func(K, int32, T, int32) K
 
-func ech(x K) K { return l2t(x, 0, df) } // '
-func ecp(x K) K { return l2t(x, 1, df) } // ':
-func rdc(x K) K { return l2t(x, 2, df) } // /
-func ecr(x K) K { return l2t(x, 3, df) } // /:
-func scn(x K) K { return l2t(x, 4, df) } // \
-func ecl(x K) K { return l2t(x, 5, df) } // \:
+func ech(x K) K { return l2t(x, 0, df) }             // '
+func ecp(x K) K { trap(Type); return l2t(x, 1, df) } // ':
+func rdc(x K) K { return l2t(x, 2, df) }             // /
+func ecr(x K) K { trap(Type); return l2t(x, 3, df) } // /:
+func scn(x K) K { return l2t(x, 4, df) }             // \
+func ecl(x K) K { trap(Type); return l2t(x, 5, df) } // \:
 
 // maybe?
 //  '     f1'x   f2' [x;y]   f3'[x;y;z]...   a' x bin  a'[x;y] lin
@@ -26,9 +26,12 @@ func Ech(f, x K) K {
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			r = x0(x)
-			trace("lin")
-			return lin(r, f, r1(x))
+			trap(Type)
+			/*
+				r = x0(x)
+				trace("lin")
+				return lin(r, f, r1(x))
+			*/
 		}
 		return Bin(f, Fst(x))
 	}
@@ -117,12 +120,15 @@ func Ecp(f, x K) K {
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		if tp(x) > 16 {
-			trace("vector-in")
-		} else {
-			trace("atom-in")
-		}
-		return In(f, Fst(x))
+		trap(Type)
+		/*
+			if tp(x) > 16 {
+				trace("vector-in")
+			} else {
+				trace("atom-in")
+			}
+			return In(f, Fst(x))
+		*/
 	}
 	xn := nn(x)
 	if xn == 1 {
@@ -179,37 +185,58 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			r = x0(x)
-			x = r1(x)
-			if t == it && isfunc(tp(r)) != 0 {
-				trace("ndo")
-				return ndo(int32(f), r, x)
-			} else {
-				trap(Type)
+			trap(Nyi) // state machine
+			/*
+				r = x0(x)
+				x = r1(x)
+				if t == it && isfunc(tp(r)) != 0 {
+					trace("ndo")
+					return ndo(int32(f), r, x)
+				} else {
+					trap(Type)
+				}
+			*/
+		}
+		x = Fst(x)
+		if tp(f)&15 == ct {
+			return join(f, x)
+		} else {
+			return Dec(f, x)
+		}
+		/*
+			trace("mod")
+			return Mod(Fst(x), f)
+		*/
+	}
+	a := arity(f)
+	if a != 2 {
+		if a > 2 {
+			return rdn(f, x, 0)
+		} else {
+			return fix(f, Fst(x), 0)
+		}
+	}
+	/*
+		if t == df { // x//y
+			r = x0(f)
+			if isfunc(tp(r)) == 0 {
+				dx(f)
+				trace("decode")
+				return Dec(r, Fst(x))
 			}
+			dx(r)
 		}
-		trace("mod")
-		return Mod(Fst(x), f)
-	}
-	if arity(f) > 2 {
-		return rdn(f, x, 0)
-	}
-	if t == df { // x//y
-		r = x0(f)
-		if isfunc(tp(r)) == 0 {
-			dx(f)
-			trace("decode")
-			return Dec(r, Fst(x))
-		}
-		dx(r)
-	}
+	*/
 	y := K(0)
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
 		x = 0
 	} else if xn == 2 {
-		y = x1(x)
-		x = r0(x)
+		return Ecr(f, x)
+		/*
+			y = x1(x)
+			x = r0(x)
+		*/
 	} else {
 		y = trap(Rank)
 	}
@@ -363,6 +390,8 @@ func fix(f, x, l K) K {
 	}
 	return x
 }
+
+/*
 func ndo(n int32, f, x K) K {
 	for n > 0 {
 		x = cal(rx(f), l1(x))
@@ -371,6 +400,7 @@ func ndo(n int32, f, x K) K {
 	dx(f)
 	return x
 }
+*/
 
 func Scn(f, x K) K {
 	r := K(0)
@@ -380,28 +410,47 @@ func Scn(f, x K) K {
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		trace("div")
-		return Div(Fst(x), f)
-	}
-	if arity(f) > 2 {
-		return rdn(f, x, mk(Lt, 0))
-	}
-	if t == df { // x\\y
-		r = x0(f)
-		if isfunc(tp(r)) == 0 {
-			dx(f)
-			trace("encode")
-			return Enc(r, Fst(x))
+		x = Fst(x)
+		if tp(f)&15 == ct {
+			return split(f, x)
+		} else {
+			return Enc(f, x)
 		}
-		dx(r)
+		/*
+			trace("div")
+			return Div(Fst(x), f)
+		*/
 	}
+	a := arity(f)
+	if a != 2 {
+		if a > 2 {
+			return rdn(f, x, mk(Lt, 0))
+		} else {
+			x = rx(Fst(x))
+			return fix(f, x, Enl(x))
+		}
+	}
+	/*
+		if t == df { // x\\y
+			r = x0(f)
+			if isfunc(tp(r)) == 0 {
+				dx(f)
+				trace("encode")
+				return Enc(r, Fst(x))
+			}
+			dx(r)
+		}
+	*/
 	//kdb:if int32(f)==29{trap(Err);}
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
 		x = 0
 	} else if xn == 2 {
-		y = x1(x)
-		x = r0(x)
+		return Ecl(f, x)
+		/*
+			y = x1(x)
+			x = r0(x)
+		*/
 	} else {
 		y = trap(Rank)
 	}
@@ -422,7 +471,7 @@ func Scn(f, x K) K {
 	}
 	if yt == Dt {
 		r = x0(y)
-		return Key(r, Scn(f, l2(x, r1(y))))
+		return Key(r, Scn(f, l1(r1(y))))
 	}
 
 	xt := tp(x)

@@ -7,6 +7,7 @@ import (
 func Cat(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt == Tt && yt == Dt {
+		println("T,D")
 		y, yt = Enl(y), Tt
 	}
 	if xt&15 == yt&15 {

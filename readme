@@ -2,8 +2,8 @@ ktye/k ktye.github.io intro.md         ktye/k ktye.github.io intro.md
 + flp add '  ech bin  x y' lin         + flp add  '  ech both     bin
 - neg sub /  rdc mod  f n/ ndo         - neg sub  /  ovr/fix echright
 * fst mul \  scn div  x//y dec         * fst mul  \  scn/fix eachleft
-% sqr div ': ecp in   y\\x enc         % sqr div  /  join      decode 
-! til key /: ecr split  f/:fix         ! til key  \  split     encode
+% sqr div ': ecp in   y\\x enc         % sqr div      / join   decode 
+! til key /: ecr split  f/:fix         ! til key mod  \ split  encode
 & wer min \: ecl join   f\:fix         & wer min  $[a;b;...]     cond
 | rev max while[c;a;b;..]              | rev max      while[c;a;b;..]
 < asc les $[a;b;...]      cond         < asc les         f:{[x;y]x+y}

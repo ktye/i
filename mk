@@ -20,6 +20,7 @@ func zk() {
 }
 EOF
 
+go install
 exit
 
 if [ "$1" = "kc" ]; then

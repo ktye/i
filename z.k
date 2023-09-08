@@ -1,7 +1,7 @@
 /               64     72    80    88     96     104    112    120    128                 
 ``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
 
-`"x.":{,/+"0123456789abcdef"@(x%16;16/x:256/256+x)} /`x@ (hex)
+`"x.":{,/+"0123456789abcdef"@(x%16;16!x:256!256+x)} /`x@ (hex)
 `"t.":`45         /`t@ token
 `"p.":`46         /`p@ parse
 `"c.":(`46)[`c;]  /`c@ reinterpret
@@ -10,39 +10,40 @@
 `"f.":(`46)[`f;]
 `"z.":(`46)[`z;]
 
-`"uqs.":{x@&~0~':x:^x}                            /?^x
+`"uqs.":{x@&1,1_~x~'x@-1+!#x:^x}                  /?^x
 `"uqf.":{x@&(!#x)=x?x}                            /?xL
-`"gdt.":{[t;g](!#t)($[g;{x@>y x};{x@<y x}])/|.t}  /<t >t  grade table
+/`"gdt.":{[t;g](!#t)($[g;{x@>y x};{x@<y x}])/|.t}  /<t >t  grade table
+`"gdt.":{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}  /<t >t  grade table
 
-`"odo.":{{y@(#y)/!x}/:[*/x;&'x#'|*\-1_1,|x]} /!I (odometer)
-`"grp.":{(x@*'g)!g:(&~x~':x i)^i:<x}         /=x
+`"odo.":{{y@(#y)!!x}/[*/x;&'x#'|*\-1_1,|x]}       /!I (odometer)
+`"grp.":{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}      /=x
 
 abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 
 
 / pretty print  `l@x  `k@x
-`"pad.":{x@\:!|/#'x}
+`"pad.":{x@\!|/#'x}
 
 `"lxy.":{ /k
  kt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad("";"-"),$x];(x,'"|"),'T[y;k]}
  d:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);"|"];k'x]]}
- T:{[x;k]$[`L':@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/:'+`pad@'$(!x),'.x]}
+ T:{[x;k]$[`L?@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/'+`pad@'$(!x),'.x]}
  t:@y;k:`kxy@*x;h:*|x
- dd:("";,"..")h<#y:$[(@y)':`L`D`T;y;y~*y;y;[t:`L;,y]]
+ dd:("";,"..")h<#y:$[(@y)?`L`D`T;y;y~*y;y;[t:`L;,y]]
  y:$[y~*y;y;(h&#y)#y]
  $[`D~t;d[y;k;kt;T];`T~t;T[y;k];y~*y;,k y;k'y],dd}
 
 `"l.":`lxy 70 20
 
-`"str.":{q:{c,("\\"/:(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x':qs:"\t\n\r\"\\"]),c:_34}
- $[|/x':"\t\n\r"__!31;"0x",`x@x;q x]}
+`"str.":{q:{c,("\\"/(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x?\qs:"\t\n\r\"\\"]),c:_34}
+ $[|/x?\"\t\n\r"__!31;"0x",`x@x;q x]}
 
 `"kxy.":{ /k m t n
  a:{t:@x;x:$x;$[`c~t;`str x;`s~t;"`",x;x]}
- d:{[x;k]r:"!",k@.x;n:#!x;x:k@!x;$[(n<2)|(@.x)':`D`T;"(",x,")";x],r}
+ d:{[x;k]r:"!",k@.x;n:#!x;x:k@!x;$[(n<2)|(@.x)?`D`T;"(",x,")";x],r}
  v:{[x;k;m]t:@x;x:(m&n:#x)#x
   x:$[`L~t;k'x;`C~t;x;$x]
-  x:$[`C~t;`str x;`S~t;c,(c:"`")/:x;`L~t;$[1~n;*x;"(",(";"/:x),")"];" "/:x]
+  x:$[`C~t;`str x;`S~t;c,(c:"`")/x;`L~t;$[1~n;*x;"(",(";"/x),")"];" "/x]
   $[m<#x:(("";",")(1~n)),x;((m-2)#x),"..";x]}
  t:@y;k:`kxy x
  $[`T~t;"+",d[+y;k];`D~t;d[y;k];0~#y;(.`".kst0")@t;y~*y;a y;v[y;k;x]]} /344
@@ -55,6 +56,3 @@ abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 `"rf.": {.5+(x?0)%4294967295.}           /?n (uniform)  e.g. ?100
 `"rf1.":{.5+(1.+x?0)%4294967295.}        
 `"rz.": {(%-2*log `rf1 x)@360.*`rf x}    /?-n (normal)  ?z (binormal)   ?-100   ?100a
-
-/interpolate: x y'z
-`"lin.":{$[`L~@z;(.`"lin.")[x;y]'z;[dx:0.+1_-':x;dy:0.+1_-':y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}

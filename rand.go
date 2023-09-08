@@ -31,25 +31,30 @@ func roll(x K) K { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
 	return trap(Type)
 }
 func deal(x, y K) K { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-#L)?L shuffle
+	yt := tp(y)
+	if yt > 16 {
+		return In(x, y)
+
+		/*
+			yn := nn(y)
+			if xp < 0 {
+				xp = -xp
+				if xp >= yn {
+					return atv(y, shuffle(seq(xp), yn)) //(-#L)?L
+				} else {
+					return atv(y, deal(x, Ki(yn))) // -n?L
+				}
+			} else {
+				return atv(y, randI(nn(y), xp)) // n?L
+			}
+		*/
+	}
+
 	if tp(x) != it {
 		trap(Type)
 	}
 	xp := int32(x)
-	yt := tp(y)
-	if yt > 16 {
-		trace("shuffle")
-		yn := nn(y)
-		if xp < 0 {
-			xp = -xp
-			if xp >= yn {
-				return atv(y, shuffle(seq(xp), yn)) //(-#L)?L
-			} else {
-				return atv(y, deal(x, Ki(yn))) // -n?L
-			}
-		} else {
-			return atv(y, randI(nn(y), xp)) // n?L
-		}
-	}
+
 	if yt == ct {
 		return Add(Kc(97), Flr(deal(x, Ki(int32(y)-96))))
 	}
