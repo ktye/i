@@ -6,18 +6,18 @@ mkdir -p log
 
 kk=/c/k/ktye.github.io/kweb/k.k
 
-k math.k -e                                      >out/math        2>log/math
-k 66 ../apl/apl.k -e                             >out/apl         2>log/apl
-k token.k -e                                     >out/token       2>log/token
-k $kk halfkey.k mm.k -e                          >out/halfkey     2>log/halfkey
-k $kk ../web/kweb/compile.k -e 'x:`<drawtree P'  >out/compile     2>log/compile
-k $kk ../x/go.k -e 'x:`<go``'                    >out/go          2>log/go
-k $kk ../x/wa.k -e 'x:`<wa``'                    >out/wa          2>log/wa
-k $kk ../x/wb.k -e 'x:`<wb``'                    >out/wb          2>log/wb
-k $kk ../x/cc.k -e 'x:`<cc``'                    >out/cc          2>log/cc
-k $kk ../x/js.k -e 'x:`<js``'                    >out/js          2>log/js
-k $kk ../x/qb.k -e 'x:`<qb``'                    >out/qb          2>log/qb
-k $kk ../kos/softfloat.k ../x/cc.k -e 'x:`<cc``' >out/softfloat   2>log/softfloat
-k q.k qq.k -e                                    >out/q           2>log/q
-k t.k -e                                         >out/t           2>log/t
+oldk math.k -e                                      >out/math        2>log/math
+oldk 66 ../apl/apl.k -e                             >out/apl         2>log/apl
+oldk token.k -e                                     >out/token       2>log/token
+oldk $kk halfkey.k mm.k -e                          >out/halfkey     2>log/halfkey
+oldk $kk ../web/kweb/compile.k -e 'x:`<drawtree P'  >out/compile     2>log/compile
+oldk $kk ../x/go.k -e 'x:`<go``'                    >out/go          2>log/go
+oldk $kk ../x/wa.k -e 'x:`<wa``'                    >out/wa          2>log/wa
+oldk $kk ../x/wb.k -e 'x:`<wb``'                    >out/wb          2>log/wb
+oldk $kk ../x/cc.k -e 'x:`<cc``'                    >out/cc          2>log/cc
+oldk $kk ../x/js.k -e 'x:`<js``'                    >out/js          2>log/js
+oldk $kk ../x/qb.k -e 'x:`<qb``'                    >out/qb          2>log/qb
+oldk $kk ../kos/softfloat.k ../x/cc.k -e 'x:`<cc``' >out/softfloat   2>log/softfloat
+oldk q.k qq.k -e                                    >out/q           2>log/q
+oldk t.k -e                                         >out/t           2>log/t
 
