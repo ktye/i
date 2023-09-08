@@ -20,9 +20,6 @@ func zk() {
 }
 EOF
 
-go install
-exit
-
 if [ "$1" = "kc" ]; then
 	wg -c -prefix ktye_ . > k.c
 	gcc -O2 k.c
@@ -38,11 +35,11 @@ fi
 
 wg             . > k.wat
 
-/c/local/wabt/wat2wasm -o web/k.wasm k.wat
+/c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
 
-cp web/k.wasm   /c/k/ktye.github.io/
-cp web/*.js     /c/k/ktye.github.io/
+#cp web/k.wasm   /c/k/ktye.github.io/
+#cp web/*.js     /c/k/ktye.github.io/
 cp k.t          /c/k/ktye.github.io/k.t
-cp apl/apl.*    /c/k/ktye.github.io/
+#cp apl/apl.*    /c/k/ktye.github.io/
 
 #rm k.k out k.wat

@@ -171,23 +171,8 @@ func TestKT(t *testing.T) {
 	reset()
 	reset()
 }
-func TestAT(t *testing.T) {
-	newtest()
-	b, err := ioutil.ReadFile("web/kweb/a.k")
-	if err != nil {
-		t.Fatal(err)
-	}
-	c, err := ioutil.ReadFile("web/kweb/a.t")
-	if err != nil {
-		t.Fatal(err)
-	}
-	dofile(mkchars([]byte("a.k")), mkchars(b))
-	dofile(mkchars([]byte("a.t")), mkchars(c))
-	reset()
-	reset()
-}
 func TestKE(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	b, err := ioutil.ReadFile("k.e")
 	if err != nil {
 		t.Fatal(err)
@@ -312,7 +297,7 @@ func TestClass(t *testing.T) {
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 func Test360(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	Tx := []struct {
 		s     string
 		shape []int

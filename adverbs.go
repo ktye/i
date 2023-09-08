@@ -107,6 +107,8 @@ func ec2(f, x, y K) K {
 	dx(y)
 	return uf(r)
 }
+
+/*
 func Ecp(f, x K) K {
 	m := int32(0)
 	y := K(0)
@@ -166,6 +168,7 @@ func Ecp(f, x K) K {
 	dx(x)
 	return uf(r)
 }
+*/
 
 func Rdc(f, x K) K { // x f/y   (x=0):f/y
 	r := K(0)
@@ -606,6 +609,8 @@ func ov0(f, x K) K {
 	dx(x)
 	return missing(tp(x))
 }
+
+/*
 func epx(f int32, x, y K, n int32) K { // ( +-*%&| )':
 	xt := tp(x)
 	xp := int32(x)
@@ -668,3 +673,4 @@ func epc(f int32, x, y K, n int32) K { // ( <>= )':
 	dx(y)
 	return r
 }
+*/
