@@ -267,10 +267,16 @@ func tvrb() K {
 		if I8(pp) == 58 { // :
 			pp++
 			if is(c, 8) != 0 {
-				o = 2 // ':
-			} else {
-				o = 97 // +:
+				trap(Parse)
 			}
+			o = 97
+			/*
+				if is(c, 8) != 0 {
+					o = 2 // ':
+				} else {
+					o = 97 // +:
+				}
+			*/
 		}
 	}
 	return K(o + idx(c, 228, 253))

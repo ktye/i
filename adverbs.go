@@ -6,20 +6,14 @@ import (
 
 type rdf = func(K, int32, T, int32) K
 
-func ech(x K) K { return l2t(x, 0, df) }             // '
+func ech(x K) K { return l2t(x, 0, df) } // '
+func rdc(x K) K { return l2t(x, 2, df) } // /
+func scn(x K) K { return l2t(x, 4, df) } // \
+/*
 func ecp(x K) K { trap(Type); return l2t(x, 1, df) } // ':
-func rdc(x K) K { return l2t(x, 2, df) }             // /
 func ecr(x K) K { trap(Type); return l2t(x, 3, df) } // /:
-func scn(x K) K { return l2t(x, 4, df) }             // \
 func ecl(x K) K { trap(Type); return l2t(x, 5, df) } // \:
-
-// maybe?
-//  '     f1'x   f2' [x;y]   f3'[x;y;z]...   a' x bin  a'[x;y] lin
-//  ':    f2':x  f2':[x;y]   err             a':x  in
-//  /     f2/x   f2/ [x;y]   f3/[x;y;z]...   a/x  dec
-//  \     f2\x   f2\ [x;y]   f3/[x;y;z]...   a\x  enc
-//  /:    fix/:x f2/:[x;y]   err             a/:x join
-//  \:    fix/:x f2/:[x;y]   err             a\:x split
+*/
 
 func Ech(f, x K) K {
 	r := K(0)
@@ -176,16 +170,6 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
 			trap(Nyi) // state machine
-			/*
-				r = x0(x)
-				x = r1(x)
-				if t == it && isfunc(tp(r)) != 0 {
-					trace("ndo")
-					return ndo(int32(f), r, x)
-				} else {
-					trap(Type)
-				}
-			*/
 		}
 		x = Fst(x)
 		if tp(f)&15 == ct {
@@ -206,27 +190,12 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			return fix(f, Fst(x), 0)
 		}
 	}
-	/*
-		if t == df { // x//y
-			r = x0(f)
-			if isfunc(tp(r)) == 0 {
-				dx(f)
-				trace("decode")
-				return Dec(r, Fst(x))
-			}
-			dx(r)
-		}
-	*/
 	y := K(0)
 	if xn := nn(x); xn == 1 {
 		y = Fst(x)
 		x = 0
 	} else if xn == 2 {
 		return Ecr(f, x)
-		/*
-			y = x1(x)
-			x = r0(x)
-		*/
 	} else {
 		y = trap(Rank)
 	}
@@ -313,43 +282,28 @@ func rdn(f, x, l K) K { // {x+y*z}/x  {x+y*z}\x
 
 func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
 	r := K(0)
-	t := tp(f)
-	if isfunc(t) == 0 {
-		if nn(x) != 1 {
-			trap(Rank)
-		}
-		return join(f, Fst(x))
+	y := x1(x)
+	x = r0(x)
+	yt := tp(y)
+	if yt < 16 {
+		return cal(f, l2(x, y))
 	}
-	xn := nn(x)
-	switch xn - 1 {
-	case 0: // fixed-point
-		return fix(f, Fst(x), 0)
-	case 1:
-		y := x1(x)
-		x = r0(x)
-		yt := tp(y)
-		if yt < 16 {
-			return cal(f, l2(x, y))
-		}
-		if yt > Lt {
-			t := dtypes(x, y)
-			r = dkeys(x, y)
-			return key(r, Ecr(f, l2(dvals(x), dvals(y))), t)
-		}
-		yn := nn(y)
-		r = mk(Lt, yn)
-		rp := int32(r)
-		for i := int32(0); i < yn; i++ {
-			SetI64(rp, int64(cal(rx(f), l2(rx(x), ati(rx(y), i)))))
-			rp += 8
-		}
-		dx(f)
-		dx(x)
-		dx(y)
-		return uf(r)
-	default:
-		return trap(Rank)
+	if yt > Lt {
+		t := dtypes(x, y)
+		r = dkeys(x, y)
+		return key(r, Ecr(f, l2(dvals(x), dvals(y))), t)
 	}
+	yn := nn(y)
+	r = mk(Lt, yn)
+	rp := int32(r)
+	for i := int32(0); i < yn; i++ {
+		SetI64(rp, int64(cal(rx(f), l2(rx(x), ati(rx(y), i)))))
+		rp += 8
+	}
+	dx(f)
+	dx(x)
+	dx(y)
+	return uf(r)
 }
 func fix(f, x, l K) K {
 	r := K(0)
@@ -497,38 +451,22 @@ func Scn(f, x K) K {
 	return uf(r)
 }
 func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
-	t := tp(f)
-	if isfunc(t) == 0 {
-		if nn(x) != 1 {
-			trap(Rank)
-		}
-		return split(f, Fst(x))
+	y := x1(x)
+	x = r0(x)
+	if tp(x) < 16 {
+		return cal(f, l2(x, y))
 	}
 	xn := nn(x)
-	switch xn - 1 {
-	case 0: // fixed-point-scan
-		x = rx(Fst(x))
-		return fix(f, x, Enl(x))
-	case 1:
-		y := x1(x)
-		x = r0(x)
-		if tp(x) < 16 {
-			return cal(f, l2(x, y))
-		}
-		xn := nn(x)
-		r := mk(Lt, xn)
-		rp := int32(r)
-		for i := int32(0); i < xn; i++ {
-			SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), i), rx(y)))))
-			rp += 8
-		}
-		dx(f)
-		dx(x)
-		dx(y)
-		return uf(r)
-	default:
-		return trap(Rank)
+	r := mk(Lt, xn)
+	rp := int32(r)
+	for i := int32(0); i < xn; i++ {
+		SetI64(rp, int64(cal(rx(f), l2(ati(rx(x), i), rx(y)))))
+		rp += 8
 	}
+	dx(f)
+	dx(x)
+	dx(y)
+	return uf(r)
 }
 
 func uf(x K) K {
