@@ -87,8 +87,8 @@ func fnd(x, y K, t T) int32 {
 }
 func fndXs(x, y K, t T, yn int32) K {
 	xn := nn(x)
-	a := int32(min(0, int32(x), t, xn))
-	b := 1 + (int32(max(0, int32(x), t, xn))-a)>>(3*I32B(t == St))
+	a := int32(min(int32(x), t, xn))
+	b := 1 + (int32(max(int32(x), t, xn))-a)>>(3*I32B(t == St))
 	if b > 256 && b > yn {
 		return 0
 	}
