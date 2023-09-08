@@ -9,6 +9,7 @@ kk=/c/k/ktye.github.io/kweb/k.k
 k math.k -e                                      >out/math        2>log/math
 k 66 ../apl/apl.k -e                             >out/apl         2>log/apl
 k token.k -e                                     >out/token       2>log/token
+k $kk halfkey.k mm.k -e                          >out/halfkey     2>log/halfkey
 k $kk ../web/kweb/compile.k -e 'x:`<drawtree P'  >out/compile     2>log/compile
 k $kk ../x/go.k -e 'x:`<go``'                    >out/go          2>log/go
 k $kk ../x/wa.k -e 'x:`<wa``'                    >out/wa          2>log/wa

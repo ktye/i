@@ -20,6 +20,8 @@ func zk() {
 }
 EOF
 
+exit
+
 if [ "$1" = "kc" ]; then
 	wg -c -prefix ktye_ . > k.c
 	gcc -O2 k.c

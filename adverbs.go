@@ -117,6 +117,11 @@ func Ecp(f, x K) K {
 		if nn(x) != 1 {
 			trap(Rank)
 		}
+		if tp(x) > 16 {
+			trace("vector-in")
+		} else {
+			trace("atom-in")
+		}
 		return In(f, Fst(x))
 	}
 	xn := nn(x)

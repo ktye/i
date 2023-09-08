@@ -115,7 +115,6 @@ func mtF(xp, yp, e int32) int32 {
 	return 1
 }
 func In(x, y K) K {
-	trace("in")
 	xt, yt := tp(x), tp(y)
 	if xt == yt && xt > 16 {
 		return Ecl(30, l2(x, y))

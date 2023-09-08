@@ -134,3 +134,8 @@ var:{(+/x*x:(x-avg x))%-1+#x}
 std:{%var x}
 med: **|2^^
 ```
+
+## lin
+```
+lin:{$[`L~@z;(.`"lin.")[x;y]'z;[dx:0.+1_-':x;dy:0.+1_-':y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
+```
