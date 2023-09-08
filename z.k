@@ -56,3 +56,6 @@ abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 `"rf.": {.5+(x?0)%4294967295.}           /?n (uniform)  e.g. ?100
 `"rf1.":{.5+(1.+x?0)%4294967295.}        
 `"rz.": {(%-2*log `rf1 x)@360.*`rf x}    /?-n (normal)  ?z (binormal)   ?-100   ?100a
+
+`"d.":{x-(*x),-1_x}
+`"lin.":{$[`L~@z;(.`"lin.")[x;y]'z;[dx:0.+1_`d x;dy:0.+1_`d y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}

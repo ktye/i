@@ -1,5 +1,5 @@
 ktye/k ktye.github.io intro.md         ktye/k ktye.github.io intro.md
-+ flp add '  ech bin  x y' lin         + flp add  '  ech both     bin
++ flp add '  ech bin  x y' lin         + flp add  '  ech both bin lin
 - neg sub /  rdc mod  f n/ ndo         - neg sub  /  ovr/fix echright
 * fst mul \  scn div  x//y dec         * fst mul  \  scn/fix eachleft
 % sqr div ': ecp in   y\\x enc         % sqr div      / join   decode 

@@ -26,12 +26,8 @@ func Ech(f, x K) K {
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			trap(Type)
-			/*
-				r = x0(x)
-				trace("lin")
-				return lin(r, f, r1(x))
-			*/
+			r = x0(x)
+			return lin(r, f, r1(x))
 		}
 		return Bin(f, Fst(x))
 	}
@@ -112,7 +108,6 @@ func ec2(f, x, y K) K {
 	return uf(r)
 }
 func Ecp(f, x K) K {
-	trace("prior")
 	m := int32(0)
 	y := K(0)
 	t := tp(f)
@@ -121,14 +116,6 @@ func Ecp(f, x K) K {
 			trap(Rank)
 		}
 		trap(Type)
-		/*
-			if tp(x) > 16 {
-				trace("vector-in")
-			} else {
-				trace("atom-in")
-			}
-			return In(f, Fst(x))
-		*/
 	}
 	xn := nn(x)
 	if xn == 1 {
@@ -328,16 +315,13 @@ func Ecr(f, x K) K { // f/:x   x f/:y   x/:y(join)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		trace("join")
 		return join(f, Fst(x))
 	}
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point
-		trace("fix")
 		return fix(f, Fst(x), 0)
 	case 1:
-		trace("each-right")
 		y := x1(x)
 		x = r0(x)
 		yt := tp(y)
@@ -515,17 +499,14 @@ func Ecl(f, x K) K { // f\:x   x f\:y   x\:y(split)
 		if nn(x) != 1 {
 			trap(Rank)
 		}
-		trace("split")
 		return split(f, Fst(x))
 	}
 	xn := nn(x)
 	switch xn - 1 {
 	case 0: // fixed-point-scan
 		x = rx(Fst(x))
-		trace("fixs")
 		return fix(f, x, Enl(x))
 	case 1:
-		trace("each-left")
 		y := x1(x)
 		x = r0(x)
 		if tp(x) < 16 {

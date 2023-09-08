@@ -430,13 +430,6 @@ func rcut(x, a, b K) K { // a, b start-stop ranges
 }
 func split(x, y K) K {
 	xt, yt := tp(x), tp(y)
-
-	if xt != ct {
-		if xt != Ct {
-			trace("split-nonchar")
-		}
-	}
-
 	xn := int32(1)
 	if yt == xt+16 {
 		x = Wer(Eql(x, rx(y)))
@@ -457,11 +450,6 @@ func join(x, y K) K {
 		x = Enl(x)
 		xt = tp(x)
 	}
-
-	if xt != Ct {
-		trace("join-nonchar")
-	}
-
 	yt := tp(y)
 	if yt != Lt {
 		trap(Type)
