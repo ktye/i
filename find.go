@@ -68,22 +68,27 @@ func fnd(x, y K, t T) int32 {
 	}
 	xp, yp := int32(x), int32(y)
 	xe := ep(x)
+	s := int32(0)
 	switch t - 2 {
 	case 0: // ct
-		r = idxc(yp, xp, xe)
+		r = inC(yp, xp, xe) //idxc(yp, xp, xe)
 	case 1: // it
-		r = idxi(yp, xp, xe)
+		s = 2
+		r = inI(yp, xp, xe) //idxi(yp, xp, xe)
 	case 2: // st
-		r = idxi(yp, xp, xe)
+		s = 2
+		r = inI(yp, xp, xe) //idxi(yp, xp, xe)
 	case 3: // ft
-		r = idxf(F64(yp), xp, xe)
+		s = 3
+		r = inF(F64(yp), xp, xe) //idxf(F64(yp), xp, xe)
 	default: // zt
-		r = idxz(F64(yp), F64(yp+8), xp, xe)
+		s = 4
+		r = inZ(F64(yp), F64(yp+8), xp, xe) //idxz(F64(yp), F64(yp+8), xp, xe)
 	}
-	if r < 0 {
+	if r == 0 {
 		return nai
 	}
-	return r
+	return (r - xp) >> s
 }
 func fndXs(x, y K, t T, yn int32) K {
 	xn := nn(x)
@@ -113,34 +118,6 @@ func fndXs(x, y K, t T, yn int32) K {
 	}
 	dx(x)
 	return Atx(r, Add(Ki(-a), y))
-}
-func idxc(x, p, e int32) int32 {
-	r := inC(x, p, e)
-	if r == 0 {
-		return -1
-	}
-	return r - p
-}
-func idxi(x, p, e int32) int32 {
-	r := inI(x, p, e)
-	if r == 0 {
-		return -1
-	}
-	return (r - p) >> 2
-}
-func idxf(x float64, p, e int32) int32 {
-	r := inF(x, p, e)
-	if r == 0 {
-		return -1
-	}
-	return (r - p) >> 3
-}
-func idxz(re, im float64, p, e int32) int32 {
-	r := inZ(re, im, p, e)
-	if r == 0 {
-		return -1
-	}
-	return (r - p) >> 4
 }
 func fndl(x, y K) int32 {
 	xn := nn(x)
