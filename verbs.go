@@ -74,6 +74,14 @@ func Cnt(x K) K { // #x
 	}
 	return Ki(nn(x))
 }
+func Not(x K) K { // ~x
+	if tp(x)&15 == st {
+		x = Eql(Ks(0), x)
+	} else {
+		x = Eql(Ki(0), x)
+	}
+	return x
+}
 func Til(x K) K {
 	xt := tp(x)
 	if xt > Lt {
