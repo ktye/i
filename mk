@@ -32,7 +32,7 @@ if [ "$1" = "cover" ]; then
 	go tool cover -html=cov.out -o cov.html
 fi
 
-wg             . > k.wat
+wg -nomain . > k.wat
 
 /c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
 

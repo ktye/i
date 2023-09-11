@@ -1,5 +1,7 @@
-//go:build !small
+//go:build small
 
+//small version of scalar.go
+//it uses generic vector functions with indirect function calls
 package main
 
 import (
@@ -25,31 +27,6 @@ func Neg(x K) K              { return nm(220, x) }
 func negi(x int32) int32     { return -x }
 func negf(x float64) float64 { return -x }
 func negz(x, y float64) K    { return Kz(-x, -y) }
-func negC(xp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, -I8(xp))
-		xp++
-		rp++
-		continue
-	}
-}
-func negI(xp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, -I32(xp))
-		xp += 4
-		rp += 4
-		continue
-	}
-}
-func negF(xp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, -F64(xp))
-		xp += 8
-		rp += 8
-		continue
-	}
-}
-func negZ(xp, rp, e int32) { negF(xp, rp, e) }
 
 func Abs(x K) K {
 	xt := tp(x)
@@ -72,30 +49,6 @@ func absi(x int32) int32 {
 	return x
 }
 func absf(x float64) float64 { return F64abs(x) }
-func absC(xp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, absi(I8(xp)))
-		xp++
-		rp++
-		continue
-	}
-}
-func absI(xp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, absi(I32(xp)))
-		xp += 4
-		rp += 4
-		continue
-	}
-}
-func absF(xp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64abs(F64(xp)))
-		xp += 8
-		rp += 8
-		continue
-	}
-}
 func absZ(x K) K {
 	n := nn(x)
 	r := mk(Ft, n)
@@ -1340,15 +1293,28 @@ func nm(f int32, x K) K { //monadic
 	}
 	switch xt - 18 {
 	case 0:
-		Func[3+f].(f1_)(xp, rp, e)
+		for rp < e {
+			SetI8(rp, Func[f].(f1i)(I8(xp)))
+			xp++
+			rp++
+			continue
+		}
 	case 1:
-		Func[4+f].(f1_)(xp, rp, e)
+		for rp < e {
+			SetI32(rp, Func[f].(f1i)(I32(xp)))
+			xp += 4
+			rp += 4
+			continue
+		}
 	case 2:
 		trap(Type)
-	case 3:
-		Func[5+f].(f1_)(xp, rp, e)
-	default:
-		Func[6+f].(f1_)(xp, rp, e)
+	default: //F/Z (only called for neg)
+		for rp < e {
+			SetF64(rp, Func[1+f].(f1f)(F64(xp)))
+			xp += 8
+			rp += 8
+			continue
+		}
 	}
 	dx(x)
 	return r
