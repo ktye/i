@@ -1,14 +1,13 @@
 //go:build small
 
-//small version of scalar.go
-//it uses generic vector functions with indirect function calls
+// small version of scalar.go
+// it uses generic vector functions with indirect function calls
 package main
 
 import (
 	. "github.com/ktye/wg/module"
 )
 
-type f1_ = func(int32, int32, int32)
 type f1i = func(int32) int32
 type f1f = func(float64) float64
 type f1z = func(float64, float64) K
@@ -71,14 +70,6 @@ func Sqr(x K) K {
 	return nm(300, x)
 }
 func sqrf(x float64) float64 { return F64sqrt(x) }
-func sqrF(xp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64sqrt(F64(xp)))
-		xp += 8
-		rp += 8
-		continue
-	}
-}
 
 func Hyp(x, y K) K { // e.g.  norm:0. abs/x
 	xt := tp(x)
@@ -156,281 +147,29 @@ func Cnj(x K) K { // conj x
 	return x
 }
 
-func Add(x, y K) K {
-	if tp(y) < 16 {
-		return nd(234, 2, y, x)
-	}
-	return nd(234, 2, x, y)
-}
+func Add(x, y K) K                          { return nd(234, 2, x, y) }
 func addi(x, y int32) int32                 { return x + y }
 func addf(x, y float64) float64             { return x + y }
 func addz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr+yr); SetF64(rp+8, xi+yi) }
-func addcC(x, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, x+I8(yp))
-		yp++
-		rp++
-		continue
-	}
-}
-func addiI(x, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, x+I32(yp))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func addfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, x+F64(yp))
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func addzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, re+F64(yp))
-		SetF64(rp+8, im+F64(yp+8))
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func addC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, I8(xp)+I8(yp))
-		xp++
-		yp++
-		rp++
-		continue
-	}
-}
-func addI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32(xp)+I32(yp))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func addF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64(xp)+F64(yp))
-		xp += 8
-		yp += 8
-		rp += 8
-		continue
-	}
-}
+func Sub(x, y K) K                          { return nd(245, 3, x, y) }
+func subi(x, y int32) int32                 { return x - y }
+func subf(x, y float64) float64             { return x - y }
+func subz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr-yr); SetF64(rp+8, xi-yi) }
 
-func Sub(x, y K) K {
-	if tp(y) < 16 {
-		return nd(234, 2, Neg(y), x)
-	}
-	return nd(245, 3, x, y)
-}
-func subi(x, y int32) int32     { return x - y }
-func subf(x, y float64) float64 { return x - y }
-func subcC(x, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, x-I8(yp))
-		yp++
-		rp++
-		continue
-	}
-}
-func subiI(x, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, x-I32(yp))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func subfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, x-F64(yp))
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func subzZ(re, im float64, yp, rp, e int32) { //addzZ
-	for rp < e {
-		SetF64(rp, re-F64(yp))
-		SetF64(rp+8, im-F64(yp+8))
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func subC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, I8(xp)-I8(yp))
-		xp++
-		yp++
-		rp++
-		continue
-	}
-}
-func subI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32(xp)-I32(yp))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func subF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64(xp)-F64(yp))
-		xp += 8
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-
-func Mul(x, y K) K {
-	xt, yt := tp(x), tp(y)
-	if xt < zt && yt == Zt {
-		return scalez(x, y)
-	}
-	if yt < zt && xt == Zt {
-		return scalez(y, x)
-	}
-	if yt < 16 {
-		return nd(256, 4, y, x)
-	}
-	return nd(256, 4, x, y)
-}
+func Mul(x, y K) K                          { return nd(256, 4, x, y) }
 func muli(x, y int32) int32                 { return x * y }
 func mulf(x, y float64) float64             { return x * y }
 func mulz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr*yr-xi*yi); SetF64(rp+8, xr*yi+xi*yr) }
-func mulcC(x, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, x*I8(yp))
-		yp++
-		rp++
-		continue
-	}
-}
-func muliI(x, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, x*I32(yp))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func mulfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, x*F64(yp))
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func mulzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		mulz(re, im, F64(yp), F64(yp+8), rp)
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func mulC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, I8(xp)*I8(yp))
-		xp++
-		yp++
-		rp++
-		continue
-	}
-}
-func mulI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32(xp)*I32(yp))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func mulF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64(xp)*F64(yp))
-		xp += 8
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func mulZ(xp, yp, rp, e int32) {
-	for rp < e {
-		mulz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
-		xp += 16
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func scale(s float64, x K) K {
-	if tp(x) < Ft {
-		x = uptype(x, ft)
-	}
-	r := use1(x)
-	if nn(r) == 0 {
-		dx(x)
-		return r
-	}
-	e := ep(r)
-	xp, rp := int32(x), int32(r)
-	mulfF(s, xp, rp, e)
-	dx(x)
-	return r
-}
-func scalez(x, z K) K { // xt<=ft, z:Zt
-	if tp(x) < ft {
-		x = uptype(x, ft)
-	}
-	s := F64(int32(x))
-	dx(x)
-	return scale(s, z)
-}
 
-func Mod(x, y K) K {
-	xt, yt := tp(x), tp(y)
-	if xt&15 < ft && yt&15 < ft {
-		return idiv(x, y, 1)
+func Mod(x, y K) K          { return nd(300, 41, x, y) }
+func modi(x, y int32) int32 { return x % y }
+func idiv(x, y K, mod int32) K {
+	if mod != 0 {
+		return Mod(x, y)
 	}
-	if xt >= Lt || yt >= Lt {
-		return nd(0, 41, x, y)
-	} else {
-		return trap(Type)
-	}
+	return Div(x, y)
 }
-func Div(x, y K) K {
-	xt, yt := tp(x), tp(y)
-	if xt&15 < ft && yt&15 < ft {
-		return idiv(x, y, 0)
-	}
-	if yt < 16 && xt > 16 && xt < Lt {
-		if yt < ft {
-			y = uptype(y, ft)
-		} else if yt == zt {
-			return Mul(Div(Kz(1.0, 0.0), y), x)
-		}
-		s := 1.0 / F64(int32(y))
-		dx(y)
-		return scale(s, x)
-	}
-	return nd(267, 5, x, y)
-}
+func Div(x, y K) K              { return nd(267, 5, x, y) }
 func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x / y }
 func divz(xr, xi, yr, yi float64, rp int32) {
@@ -449,136 +188,8 @@ func divz(xr, xi, yr, yi float64, rp int32) {
 	SetF64(rp, e)
 	SetF64(rp+8, f)
 }
-func divfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, x/F64(yp))
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func divzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		divz(re, im, F64(yp), F64(yp+8), rp)
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func divF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64(xp)/F64(yp))
-		rp += 8
-		xp += 8
-		yp += 8
-		continue
-	}
-}
-func divZ(xp, yp, rp, e int32) {
-	for rp < e {
-		divz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
-		xp += 16
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func idiv(x, y K, mod int32) K {
-	r := K(0)
-	t := maxtype(x, y)
-	x = uptype(x, t)
-	y = uptype(y, t)
-	av := conform(x, y)
-	if t != it {
-		trap(Type)
-	}
-	xp := int32(x)
-	yp := int32(y)
-	switch av {
-	case 0: //a%a
-		if mod != 0 {
-			r = Ki(xp % yp)
-		} else {
-			r = Ki(xp / yp)
-		}
-		return r
-	case 1: //a%v
-		r = use(y)
-		rp := int32(r)
-		e := rp + 4*nn(r)
-		if mod != 0 {
-			for rp < e {
-				SetI32(rp, xp%I32(rp))
-				rp += 4
-			}
-		} else {
-			for rp < e {
-				SetI32(rp, xp/I32(rp))
-				rp += 4
-			}
-		}
-		return r
-	case 2: // v%a
-		x = use(x)
-		xp = int32(x)
-		xn := nn(x)
-		e := xp + 4*xn
-		if yp > 0 && xn > 0 && mod == 0 {
-			divIi(xp, yp, e)
-		}
-		if mod != 0 {
-			for xp < e {
-				SetI32(xp, I32(xp)%yp)
-				xp += 4
-			}
-		}
-		return x
-	default: //v%v
-		r = use2(x, y)
-		rp := int32(r)
-		e := rp + 4*nn(r)
-		if mod != 0 {
-			for rp < e {
-				SetI32(rp, I32(xp)%I32(yp))
-				xp += 4
-				yp += 4
-				rp += 4
-			}
-		} else {
-			for rp < e {
-				SetI32(rp, I32(xp)/I32(yp))
-				xp += 4
-				yp += 4
-				rp += 4
-			}
-		}
-		dx(x)
-		dx(y)
-		return r
-	}
-}
-func divIi(xp, yp, e int32) {
-	s := int32(31) - I32clz(yp)
-	if yp == int32(1)<<s { // x % powers of 2
-		for xp < e {
-			SetI32(xp, I32(xp)>>s)
-			xp += 4
-			continue
-		}
-		return
-	}
-	for xp < e {
-		SetI32(xp, I32(xp)/yp)
-		xp += 4
-	}
-}
 
-func Min(x, y K) K {
-	if tp(y) < 16 {
-		return nd(278, 6, y, x)
-	}
-	return nd(278, 6, x, y)
-}
+func Min(x, y K) K { return nd(278, 6, x, y) }
 func mini(x, y int32) int32 {
 	if x < y {
 		return x
@@ -595,81 +206,8 @@ func minz(xr, xi, yr, yi float64, rp int32) {
 		SetF64(rp+8, yi)
 	}
 }
-func mincC(x, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, mini(x, I8(yp)))
-		yp++
-		rp++
-		continue
-	}
-}
-func miniI(x, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, mini(x, I32(yp)))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func minfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, minf(x, F64(yp)))
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func minzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		minz(re, im, F64(yp), F64(yp+8), rp)
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func minC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, mini(I8(xp), I8(yp)))
-		xp++
-		yp++
-		rp++
-		continue
-	}
-}
-func minI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, mini(I32(xp), I32(yp)))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func minF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, minf(F64(xp), F64(yp)))
-		xp += 8
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func minZ(xp, yp, rp, e int32) {
-	for rp < e {
-		minz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
-		xp += 16
-		yp += 16
-		rp += 16
-		continue
-	}
-}
 
-func Max(x, y K) K {
-	if tp(y) < 16 {
-		return nd(289, 7, y, x)
-	}
-	return nd(289, 7, x, y)
-}
+func Max(x, y K) K { return nd(289, 7, x, y) }
 func maxi(x, y int32) int32 {
 	if x > y {
 		return x
@@ -685,74 +223,6 @@ func maxz(xr, xi, yr, yi float64, rp int32) {
 	} else {
 		SetF64(rp, yr)
 		SetF64(rp+8, yi)
-	}
-}
-func maxcC(x, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, maxi(x, I8(yp)))
-		yp++
-		rp++
-		continue
-	}
-}
-func maxiI(x, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, maxi(x, I32(yp)))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func maxfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64max(x, F64(yp)))
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func maxzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		maxz(re, im, F64(yp), F64(yp+8), rp)
-		yp += 16
-		rp += 16
-		continue
-	}
-}
-func maxC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI8(rp, maxi(I8(xp), I8(yp)))
-		xp++
-		yp++
-		rp++
-		continue
-	}
-}
-func maxI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, maxi(I32(xp), I32(yp)))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func maxF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetF64(rp, F64max(F64(xp), F64(yp)))
-		xp += 8
-		yp += 8
-		rp += 8
-		continue
-	}
-}
-func maxZ(xp, yp, rp, e int32) {
-	for rp < e {
-		maxz(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
-		xp += 16
-		yp += 16
-		rp += 16
-		continue
 	}
 }
 
@@ -1334,7 +804,8 @@ func nd(f, ff int32, x, y K) K { //dyadic
 	y = uptype(y, t)
 	av := conform(x, y)
 	xp, yp := int32(x), int32(y)
-	if av == 0 { // atom-atom
+
+	if av == 0 { //atom-atom
 		switch t - 2 {
 		case 0: // ct
 			return Kc(Func[f].(f2i)(xp, yp))
@@ -1354,55 +825,70 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			return r
 		}
 	}
-	if av == 1 { // atom-vector
+
+	n := int32(0)
+	ix := sz(t + 16)
+	iy := ix
+	if av == 1 { //av
+		x = Enl(x)
+		ix = 0
+		n = nn(y)
 		r = use1(y)
-		if nn(r) == 0 {
-			dx(x)
-			dx(y)
-			return r
-		}
-		e := ep(r)
-		yp, rp := int32(y), int32(r)
-		switch t - 2 {
-		case 0: // ct
-			Func[3+f].(f4i)(xp, yp, rp, e)
-		case 1: // it
-			Func[4+f].(f4i)(xp, yp, rp, e)
-		case 2: // st
-			trap(Type)
-		case 3: // ft
-			Func[5+f].(ff3i)(F64(xp), yp, rp, e)
-		default: // zt
-			Func[6+f].(fF3i)(F64(xp), F64(xp+8), yp, rp, e)
-		}
-		dx(x)
-		dx(y)
-		return r
-	} else { // vector-vector
+	} else if av == 2 { //va
+		n = nn(x)
+		y = Enl(y)
+		iy = 0
+		r = use1(x)
+	} else {
+		n = nn(x)
 		r = use2(x, y)
-		if nn(r) == 0 {
-			dx(x)
-			dx(y)
-			return r
-		}
-		rp, xp, yp := int32(r), int32(x), int32(y)
-		e := ep(r)
-		switch t - 2 {
-		case 0: // ct
-			Func[7+f].(f4i)(xp, yp, rp, e)
-		case 1: // it
-			Func[8+f].(f4i)(xp, yp, rp, e)
-		case 2: // st
-			trap(Type)
-		case 3: // ft
-			Func[9+f].(f4i)(xp, yp, rp, e)
-		default: // zt
-			Func[10+f].(f4i)(xp, yp, rp, e)
-		}
+	}
+	if n == 0 {
 		dx(x)
 		dx(y)
 		return r
 	}
+
+	rp, xp, yp := int32(r), int32(x), int32(y)
+	e := ep(r)
+	switch t - 2 {
+	case 0: // ct
+		for rp < e {
+			SetI8(rp, Func[f].(f2i)(I8(xp), I8(yp)))
+			xp += ix
+			yp += iy
+			rp++
+			continue
+		}
+	case 1: // it
+		for rp < e {
+			SetI32(rp, Func[f].(f2i)(I32(xp), I32(yp)))
+			xp += ix
+			yp += iy
+			rp += 4
+			continue
+		}
+	case 2: // st
+		trap(Type)
+	case 3: // ft
+		for rp < e {
+			SetF64(rp, Func[1+f].(f2f)(F64(xp), F64(yp)))
+			xp += ix
+			yp += iy
+			rp += 8
+			continue
+		}
+	default: // zt
+		for rp < e {
+			Func[2+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
+			xp += ix
+			yp += iy
+			rp += 16
+		}
+	}
+	dx(x)
+	dx(y)
+	return r
 }
 func nc(f, ff int32, x, y K) K { //compare
 	r := K(0)
