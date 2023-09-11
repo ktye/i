@@ -106,7 +106,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			trap(Nyi) // state machine
 		}
 		x = Fst(x)
-		if tp(f)&15 == ct {
+		if t&15 == ct {
 			return join(f, x)
 		} else {
 			return Dec(f, x)
@@ -250,7 +250,7 @@ func Scn(f, x K) K {
 			trap(Rank)
 		}
 		x = Fst(x)
-		if tp(f)&15 == ct {
+		if t&15 == ct {
 			return split(f, x)
 		} else {
 			return Enc(f, x)
