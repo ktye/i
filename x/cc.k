@@ -1,5 +1,5 @@
-/c compiler
-F:`!()
+/c compiler // \\ ': /: \:
+F:(0#`)!()
 hx8:{[i]"0x",`x@|C i+!8}
 em:{"(",x,")"}
 cc:{[o]opts::o
@@ -10,9 +10,9 @@ cc:{[o]opts::o
 
  ccren'`main`ldexp`hypot`atan2`atan`exp`log`pow /rename libm
  i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
- rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)':i     /rewrite cnd/swc expressions 
+ rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)?\i     /rewrite cnd/swc expressions 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
- n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
+ n:{x[y]+:1}/(,&#P),P;n[0]-:1;                 /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
 *s}
@@ -21,12 +21,12 @@ cc:{[o]opts::o
 INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
 ins:{[i;x;y](i#x),y,i_x}
 del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
-rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)':`ret`asn}
+rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)?\`ret`asn}
 restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
 
-ccren:{S[&(S=x)&T':`fun`cal]:s:`$($x),"_";}
+ccren:{S[&(S=x)&T?\`fun`cal]:s:`$($x),"_";}
 
-nl:{$[#x:"\n"/:x;x,"\n";x]}
+nl:{$[#x:"\n"/x;x,"\n";x]}
 nyi:{y;em x}
 
 cctype:`i`u`j`k`f!("int32_t";"uint32_t";"int64_t";"uint64_t";"double")
@@ -37,9 +37,9 @@ ccprg:{
  fncs: ,/y@&`fun=T c:1_&P=0
  cons:nl y@&`con=T c
  vars:nl y@&`var=T c
- runt:$[`nort':opts;"";ccrnt]
- main:$[|/`nort`lib':opts;"";ccmain]
- data:$[#D;"memcpy(M_,\"",("\\x","\\x"/:(#D)^`x D),"\",",($#D),");";""]
+ runt:$[`nort?opts;"";ccrnt]
+ main:$[|/`nort`lib?\opts;"";ccmain]
+ data:$[#D;"memcpy(M_,\"",("\\x","\\x"/(#D)^`x D),"\",",($#D),");";""]
  tabl:nl y@&`tab=T c
  tabl:$[#tabl;"F_=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
  mems:nl y@&`mem=T c
@@ -47,18 +47,18 @@ ccprg:{
  (runt;fpre;cons;vars),(,fncs),(ccfmt init),main}
  
 ccfun:{
- $[(`main~S x)&`lib':opts; :""; 0]
+ $[(`main~S x)&`lib?opts; :""; 0]
  stat:$[I x;"";"static "]
- args:", "/:y@&`arg=T c:&x=P
- ret:$[#r:", "/:y@&`res=T c;r;"void"]
- locs:nl@{(cctype x)," ",y,";"}'[!g;.g:","/:'(y i)@=(S c)i:&`loc=T c]
+ args:", "/y@&`arg=T c:&x=P
+ ret:$[#r:", "/y@&`res=T c;r;"void"]
+ locs:nl@{(cctype x)," ",y,";"}'[!g;.g:","/'(y i)@=(S c)i:&`loc=T c]
  defr:     *y@&`dfr=T c
  setj:$[#defr;"if(!setjmp(jb_)){";""]
  body: 2_-1_y@*&`ast=T c
  ccfmt@,/(stat;ret;" ";$S x;"(";$[#args;args;"void"];"){\n";setj;locs;body;defr)}
 
 ccsig:{
- args:","/:cctype S c@&`arg=T c:&x=P
+ args:","/cctype S c@&`arg=T c:&x=P
  stat:$[I x;"";"static "]
  ret:$[#r:cctype S c@&`res=T c;*r;"void"]," "
  stat,ret,($S x),"(",$[#args;args;"void"],");"}
@@ -77,7 +77,7 @@ cclit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
            `k~t;$[i~0;,"0";(0~h:hi i)&0<l:lo i;$l;hx8 i],"ull";"???"]}
  
 
-ccvar:{" "/:("static"; cctype S 1+x;  $S x;,"=";(*y),";")}
+ccvar:{" "/("static"; cctype S 1+x;  $S x;,"=";(*y),";")}
 cccon:{"static const ",(cctype S 1+x)," ",($S x),"=",(*y),";"}
 
 cccst:{("(";cctype S x;")";,"(";y 1;,")")}
@@ -88,27 +88,25 @@ ccloc:{y}
 ccsym:{y;$S x}
 ccarg:{(cctype S x;" ";*y)}
 
-ccstm:{ "{\n",(,/y,\:";\n"),"}\n"}
-/ccstm:{"{\n",(";\n"/:y),"}\n"}
+ccstm:{ "{\n",(,/y,\";\n"),"}\n"}
 ccast:ccstm
 ccget:{y;$S x}
 ccGet:ccget
-ccret:{"return ",(", "/:y),";\n"}
+ccret:{"return ",(", "/y),";\n"}
 
 ccsiz:`b`i`j`f!`I8`I32`I64`F64
 cclod:{($ccsiz S x;"(";y 0;")")}
 ccsto:{("Set";$ccsiz S x;"(";y 0;",";y 1;")")}
 
-cccal:{($S x;,"("; ","/:y ;,")")}
+cccal:{($S x;,"("; ","/y ;,")")}
 ccdrp:{y}
 
-/cccli:{n:I x;("((";$[#r:cctype S x;r;"void"];"(*)("; ","/:n#(1+n)_y; "))F_[";*y;"])(";  ","/:n#1_y; ")")}
-cccli:{n:I x;("((";$[#r:cctype S x;r;"void"];"(*)("; $[#a:","/:n#(1+n)_y;a;"void"]; "))F_[";*y;"])(";  ","/:n#1_y; ")")}
+cccli:{n:I x;("((";$[#r:cctype S x;r;"void"];"(*)("; $[#a:","/n#(1+n)_y;a;"void"]; "))F_[";*y;"])(";  ","/n#1_y; ")")}
 ccasn:{r:(s:$S x),"=",(*|y),";\n";
  $[((n:3+2*#s)#r)~s,"=(",s,"+";$["+=1"~-3#r:s,"+=",(n_-3_r);s,"++";r],";\n";r]}
 cccnd:{$[S x; (ccnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(ccnd y 0),(ccemb ccsem y 1),$[3~#y;"else ",(ccemb ccsem y 2);""]]}
 ccnop:{y;""}
-ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(ccsem'y),\:"break;\n"),"}" }
+ccswc:{("switch(";*y;"){\n"),(1_(@[("case ",/$-1+!#y); (-1+#y)*I x; "default"] ,\":"),'(ccsem'y),\"break;\n"),"}" }
  
 ccfor:{$[I x;ccwhl[x;y];("for(;";ccnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
 ccwhl:{((,"do"),(,-12_y 2),(,y 1)),("}while";ccnd y 0;";\n")}
@@ -123,17 +121,17 @@ cceql:cc2"==";ccgte:cc2">=";ccles:cc2"<"; cclte:cc2"<=";ccmor:cc2">"; ccneq:cc2"
 ccand:cc2"&"; ccbnd:cc2"&&";ccant:cc2"&~";ccorr:cc2"|"; ccbor:cc2"||";ccxor:cc2"^"; ccshl:cc2"<<";ccshr:cc2">>"
 
 ccnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
-ccsem:{$[(*|x)':";}\n";x;x,";"]}
+ccsem:{$[(*|x)?";}\n";x;x,";"]}
 ccemb:{$["{"=*x;x;"{\n",x,"\n}\n"]}
 
 ccfmt:{
  x:@[x;1+find["}\nelse";x];" "]
  x:@[x;1+find["}\nwhil";x];" "]
  x:@[x;1+find["};\n"   ;x];" "]
- l:"\n"\:x;
- l@:&~l~\:"r=r;"
- l@:&~(""~/:l)|(,";")~/:l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
- ,/(s,'l),\:"\n"}
+ l:"\n"\x;
+ l@:&~l~\"r=r;"
+ l@:&~(""~/l)|(,";")~/l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
+ ,/(s,'l),\"\n"}
 
 / run time
 ccrnt:"#include<stdio.h>
