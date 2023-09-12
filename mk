@@ -28,11 +28,12 @@ fi
 go install
 
 if [ "$1" = "cover" ]; then
-	go test -coverprofile=cov.out
+	go test -tags=small -coverprofile=cov.out
 	go tool cover -html=cov.out -o cov.html
 fi
 
-wg -nomain . > k.wat
+wg        -nomain . > k.wat
+wg -small -nomain . > s.wat
 
 /c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
 

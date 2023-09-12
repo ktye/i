@@ -226,82 +226,14 @@ func maxz(xr, xi, yr, yi float64, rp int32) {
 	}
 }
 
-func Eql(x, y K) K                     { return nc(338, 10, x, y) }
+func Eql(x, y K) K                     { return nc(308, 10, x, y) }
 func eqi(x, y int32) int32             { return I32B(x == y) }
 func eqf(x, y float64) int32           { return I32B((x != x) && (y != y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
-func eqcC(v, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(v == I8(yp)))
-		yp++
-		rp += 4
-		continue
-	}
-}
-func eqiI(x int32, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(x == I32(yp)))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func eqfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, eqf(x, F64(yp)))
-		yp += 8
-		rp += 4
-		continue
-	}
-}
-func eqzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, eqz(re, im, F64(yp), F64(yp+8)))
-		yp += 16
-		rp += 4
-		continue
-	}
-}
-func eqCc(xp, y, rp, e int32)                    { eqcC(y, xp, rp, e) }
-func eqIi(xp, y, rp, e int32)                    { eqiI(y, xp, rp, e) }
-func eqFf(xp int32, y float64, rp, e int32)      { eqfF(y, xp, rp, e) }
-func eqZz(xp int32, re, im float64, rp, e int32) { eqzZ(re, im, xp, rp, e) }
-func eqC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I8(xp) == I8(yp)))
-		xp++
-		yp++
-		rp += 4
-		continue
-	}
-}
-func eqI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I32(xp) == I32(yp)))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func eqF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, eqf(F64(xp), F64(yp)))
-		xp += 8
-		yp += 8
-		rp += 4
-		continue
-	}
-}
-func eqZ(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, eqz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
-		xp += 16
-		yp += 16
-		rp += 4
-		continue
-	}
-}
+func eqC(xp, yp int32) int32           { return I32B(I8(xp) == I8(yp)) }
+func eqI(xp, yp int32) int32           { return I32B(I32(xp) == I32(yp)) }
+func eqF(xp, yp int32) int32           { return eqf(F64(xp), F64(yp)) }
+func eqZ(xp, yp int32) int32           { return eqz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)) }
 
 func Les(x, y K) K { // x<y   `file<c
 	if tp(x) == st && tp(y) == Ct {
@@ -311,7 +243,7 @@ func Les(x, y K) K { // x<y   `file<c
 		}
 		return writefile(cs(x), y)
 	}
-	return nc(308, 8, x, y)
+	return nc(323, 8, x, y)
 }
 func lti(x, y int32) int32   { return I32B(x < y) }
 func ltf(x, y float64) int32 { return I32B(x < y || x != x) }
@@ -321,116 +253,8 @@ func ltz(xr, xi, yr, yi float64) int32 {
 	}
 	return ltf(xr, yr)
 }
-func ltcC(v, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(v < I8(yp)))
-		yp++
-		rp += 4
-		continue
-	}
-}
-func ltiI(x int32, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(x < I32(yp)))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func ltfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, ltf(x, F64(yp)))
-		yp += 8
-		rp += 4
-		continue
-	}
-}
-func ltzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		if re == F64(yp) {
-			SetI32(rp, ltf(im, F64(yp+8)))
-		} else {
-			SetI32(rp, ltf(re, F64(yp)))
-		}
-		yp += 16
-		rp += 4
-		continue
-	}
-}
-func ltCc(xp int32, v, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I8(xp) < v))
-		xp++
-		rp += 4
-		continue
-	}
-}
-func ltIi(xp, y int32, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I32(xp) < y))
-		xp += 4
-		rp += 4
-		continue
-	}
-}
-func ltFf(xp int32, y float64, rp, e int32) {
-	for rp < e {
-		SetI32(rp, ltf(F64(xp), y))
-		xp += 8
-		rp += 4
-		continue
-	}
-}
-func ltZz(xp int32, re, im float64, rp, e int32) {
-	for rp < e {
-		if F64(xp) == re {
-			SetI32(rp, ltf(F64(xp+8), im))
-		} else {
-			SetI32(rp, ltf(F64(xp), re))
-		}
-		xp += 16
-		rp += 4
-		continue
-	}
-}
-func ltC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I8(xp) < I8(yp)))
-		xp++
-		yp++
-		rp += 4
-		continue
-	}
-}
-func ltI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I32(xp) < I32(yp)))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func ltF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, ltf(F64(xp), F64(yp)))
-		xp += 8
-		yp += 8
-		rp += 4
-		continue
-	}
-}
-func ltZ(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, ltz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
-		xp += 16
-		yp += 16
-		rp += 4
-		continue
-	}
-}
 
-func Mor(x, y K) K           { return nc(323, 9, x, y) }
+func Mor(x, y K) K           { return nc(338, 9, x, y) }
 func gti(x, y int32) int32   { return I32B(x > y) }
 func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {
@@ -438,114 +262,6 @@ func gtz(xr, xi, yr, yi float64) int32 {
 		return gtf(xi, yi)
 	}
 	return gtf(xr, yr)
-}
-func gtcC(v, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(v > I8(yp)))
-		yp++
-		rp += 4
-		continue
-	}
-}
-func gtiI(x, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(x > I32(yp)))
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func gtfF(x float64, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, gtf(x, F64(yp)))
-		yp += 8
-		rp += 4
-		continue
-	}
-}
-func gtzZ(re, im float64, yp, rp, e int32) {
-	for rp < e {
-		if re == F64(yp) {
-			SetI32(rp, gtf(im, F64(yp+8)))
-		} else {
-			SetI32(rp, gtf(re, F64(yp)))
-		}
-		yp += 16
-		rp += 4
-		continue
-	}
-}
-func gtCc(xp, v, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I8(xp) > v))
-		xp++
-		rp += 4
-		continue
-	}
-}
-func gtIi(xp, y, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I32(xp) > y))
-		xp += 4
-		rp += 4
-		continue
-	}
-}
-func gtFf(xp int32, y float64, rp, e int32) {
-	for rp < e {
-		SetI32(rp, gtf(F64(xp), y))
-		xp += 8
-		rp += 4
-		continue
-	}
-}
-func gtZz(xp int32, re, im float64, rp, e int32) {
-	for rp < e {
-		if F64(xp) == re {
-			SetI32(rp, gtf(F64(xp+8), im))
-		} else {
-			SetI32(rp, gtf(F64(xp), re))
-		}
-		xp += 16
-		rp += 4
-		continue
-	}
-}
-func gtC(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I8(xp) > I8(yp)))
-		xp++
-		yp++
-		rp += 4
-		continue
-	}
-}
-func gtI(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, I32B(I32(xp) > I32(yp)))
-		xp += 4
-		yp += 4
-		rp += 4
-		continue
-	}
-}
-func gtF(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, gtf(F64(xp), F64(yp)))
-		xp += 8
-		yp += 8
-		rp += 4
-		continue
-	}
-}
-func gtZ(xp, yp, rp, e int32) {
-	for rp < e {
-		SetI32(rp, gtz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
-		xp += 16
-		yp += 16
-		rp += 4
-		continue
-	}
 }
 
 func Ang(x K) K { // angle x
@@ -831,12 +547,14 @@ func nd(f, ff int32, x, y K) K { //dyadic
 	iy := ix
 	if av == 1 { //av
 		x = Enl(x)
+		xp = int32(x)
 		ix = 0
 		n = nn(y)
 		r = use1(y)
 	} else if av == 2 { //va
 		n = nn(x)
 		y = Enl(y)
+		yp = int32(y)
 		iy = 0
 		r = use1(x)
 	} else {
@@ -849,7 +567,7 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		return r
 	}
 
-	rp, xp, yp := int32(r), int32(x), int32(y)
+	rp := int32(r)
 	e := ep(r)
 	switch t - 2 {
 	case 0: // ct
@@ -922,78 +640,42 @@ func nc(f, ff int32, x, y K) K { //compare
 			dx(y)
 			return Ki(Func[2+f].(f2d)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
 		}
-	} else if av == 1 { // atom-vector
-		yn := nn(y)
-		r = mk(It, yn)
-		if yn == 0 {
-			dx(x)
-			dx(y)
-			return r
-		}
-		rp := int32(r)
-		e := ep(r)
-		switch t - 2 {
-		case 0: // ct
-			Func[3+f].(f4i)(xp, yp, rp, e)
-		case 1: // it
-			Func[4+f].(f4i)(xp, yp, rp, e)
-		case 2: // st
-			Func[4+f].(f4i)(xp, yp, rp, e)
-		case 3: // ft
-			dx(x)
-			Func[5+f].(ff3i)(F64(xp), yp, rp, e)
-		default: // zt
-			dx(x)
-			Func[6+f].(fF3i)(F64(xp), F64(xp+8), yp, rp, e)
-		}
-		dx(y)
-		return r
 	}
-	if av == 2 {
-		xn := nn(x)
-		r = mk(It, xn)
-		if xn == 0 {
-			dx(x)
-			dx(y)
-			return r
-		}
-		rp := int32(r)
-		e := ep(r)
-		switch t - 2 {
-		case 0: // ct
-			Func[7+f].(f4i)(xp, yp, rp, e)
-		case 1: // it
-			Func[8+f].(f4i)(xp, yp, rp, e)
-		case 2: // st
-			Func[8+f].(f4i)(xp, yp, rp, e)
-		case 3: // ft
-			dx(y)
-			Func[9+f].(f2Ff)(xp, F64(yp), rp, e)
-		default: // zt
-			dx(y)
-			Func[10+f].(f2Zz)(xp, F64(yp), F64(yp+8), rp, e)
-		}
-		dx(x)
-		return r
-	} else { // vector-vector
-		n := nn(x)
-		if t == it {
-			r = use2(x, y)
-		} else {
-			r = mk(It, nn(x))
-		}
-		if n == 0 {
-			dx(x)
-			dx(y)
-			return r
-		}
-		// t   1  2  3  4  5  6
-		// f+ 11 11 12 12 13 14
-		Func[f+11+I32B(t == zt)+int32(t-1)/2].(f4i)(xp, yp, int32(r), ep(r))
+	n := int32(0)
+	ix := sz(t + 16)
+	iy := ix
+	if av == 1 { //av
+		x = Enl(x)
+		xp = int32(x)
+		ix = 0
+		n = nn(y)
+	} else if av == 2 { //va
+		n = nn(x)
+		y = Enl(y)
+		yp = int32(y)
+		iy = 0
+	} else {
+		n = nn(x)
+	}
+	r = mk(It, n)
+	if n == 0 {
 		dx(x)
 		dx(y)
 		return r
 	}
+	f += 1 + int32(t)
+	rp := int32(r)
+	e := ep(r)
+	for rp < e {
+		SetI32(rp, Func[f].(f2i)(xp, yp))
+		xp += ix
+		yp += iy
+		rp += 4
+		continue
+	}
+	dx(x)
+	dx(y)
+	return r
 }
 func conform(x, y K) int32 { // 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vector-vector
 	r := 2*I32B(tp(x) > 16) + I32B(tp(y) > 16)
