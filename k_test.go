@@ -115,7 +115,7 @@ func TestTok(t *testing.T) {
 		{"-1234567", ",-1234567"},
 		{"*", ",*"},
 		{`"a"`, `,"a"`},
-		//{`"a /b"`, `,"a /b"`}, //todo: fix #17
+		{`"a /b"`, `,"a /b"`}, //todo: fix #17
 	}
 	for _, tc := range tc {
 		newtest()
@@ -297,7 +297,7 @@ func TestClass(t *testing.T) {
 	//fmt.Printf("%q\n", string(c[32:]))
 }
 func Test360(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	Tx := []struct {
 		s     string
 		shape []int
