@@ -127,8 +127,7 @@ wasys:"
 wafmt:{x:"\n"\x;
  ("\n"/waind waopt x@&~(x~\"nop")|x~\"")}
 waind:{ /indent: +(if block loop else) -(end else)
- /s:(#x)#1,1+\(e:"els"~/h)|("blo"~/h)|("loo"~/h)|"if "~/h:x@\0 1 2  
- s:(#x)#1,+\(,1),(e:"els"~/h)|("blo"~/h)|("loo"~/h)|"if "~/h:x@\0 1 2  
+ s:(#x)#+\1,(e:"els"~/h)|("blo"~/h)|("loo"~/h)|"if "~/h:x@\0 1 2  
  s-:+\e|"end"~/h;(s#\" "),'x}
 waopt:{ /tee, !lt_s, last return
  i:&"local.get"~/9#'x
