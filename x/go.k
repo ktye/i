@@ -1,7 +1,7 @@
 
 /C  bytes(e.g.64bit literals)
 /D  data (initial memory)
-F:`!()                                         /function map: type to stringer
+F:(0#`)!()
 t:+`n`t`p`i`s!(!#T;T;P;I;S)
 
 
@@ -13,7 +13,7 @@ go:{[o]opts::o
 
  rwcnd'|&(~`=S)&(T=`cnd)|T=`swc                /rewrite cnd/swc expressions 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
- n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
+ n:{x[y]+:1}/(,&#P),P;n[0]-:1                  /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
 *s}
@@ -24,16 +24,16 @@ pkg:{S[0]::x; rm@*&(`fun=T)&`main=S}
 
 /cld:{&x=P}
 hx8:{[i]"0x",`x@|C i+!8}
-/dp:{+/0<(x@)\:!#x} /depth from parent
+/dp:{+/0<(x@)\!#x} /depth from parent
 em:{"(",x,")"}
 
 INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
 ins:{[i;x;y](i#x),y,i_x}
 del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
-rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)':`ret`asn}
+rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)?\`ret`asn}
 restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
 
-nl:{$[#x:"\n"/:x;x,"\n";x]}
+nl:{$[#x:"\n"/x;x,"\n";x]}
 nyi:{y;em x}
 
 gotype:`i`u`j`k`f!("int32";"uint32";"int64";"uint64";"float64")
@@ -42,18 +42,18 @@ goprg:{
  fncs:nl y@&`fun=T c:1_&P=0
  cons:nl y@&`con=T c
  vars:nl y@&`var=T c
- runt:$[`nort':opts;"";gornt]
- data:$[#D;"Data(0,\"",("\\x","\\x"/:(#D)^`x D),"\")";""]
+ runt:$[`nort?opts;"";gornt]
+ data:$[#D;"Data(0,\"",("\\x","\\x"/(#D)^`x D),"\")";""]
  tabl:nl y@&`tab=T c
  mems:nl y@&`mem=T c
  init:$[|/(#mems;#data;#tabl);nl("func init(){";mems;data;tabl;"}\n");""]
  ("package ";$S 0;"\n";runt;cons;vars;init),,fncs}
  
 gofun:{
- $[(`main~S x)&`lib':opts; :""; 0]
- args:", "/:y@&`arg=T c:&x=P
- rets:", "/:y@&`res=T c
- locs:"\n"/:"var ",/:(.g),'" ",/:gotype@!g:","/:'(y i)@=(S c)i:&`loc=T c
+ $[(`main~S x)&`lib?opts; :""; 0]
+ args:", "/y@&`arg=T c:&x=P
+ rets:", "/y@&`res=T c
+ locs:"\n"/"var ",/(.g),'" ",/gotype@!g:","/'(y i)@=(S c)i:&`loc=T c
  defr:     *y@&`dfr=T c
  body:      y@*&`ast=T c
  ("func ";$S x;"(";args;")(";rets;"){";defr;locs,"\n";body;"}")}
@@ -71,8 +71,8 @@ golit:{y;i:I x;$[`f~t:S x;goflt i
 		 `j~t;$[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; (h~0N)&j~0; "-9223372036854775808"; hx8 i]
 		 `k~t;$[i~0;,"0";hx8 i];"???"]}
 
-govar:{" "/:("var";  $S x;gotype S 1+x;,"=";*y)}
-gocon:{" "/:("const";$S x;gotype S 1+x;,"=";*y)}
+govar:{" "/("var";  $S x;gotype S 1+x;,"=";*y)}
+gocon:{" "/("const";$S x;gotype S 1+x;,"=";*y)}
 
 gocst:{(gotype S x;,"(";y 1;,")")}
 
@@ -82,25 +82,24 @@ goloc:{y}
 gosym:{y;$S x}
 goarg:{((y 0);" ";gotype S x)}
 
-gostm:{"\n"/:y}
+gostm:{"\n"/y}
 goast:gostm
 goget:{y;$S x}
 goGet:goget
-goret:{"return ",(", "/:y)}
+goret:{"return ",(", "/y)}
 
 gosiz:`b`i`j`f!`I8`I32`I64`F64
 golod:{($gosiz S x;"( ";y 0;") ")}
 gosto:{("Set";$gosiz S x;"( ";y 0;", ";y 1;") ")}
 
-/gocal:{($S x;,"("; ","/:y ;$[(S x)':`fles`flte`feql`fneq`fmor`fgte;")!=0";,")"])}
-gocal:{r:,/($S x;,"("; ","/:y ;,")");$[(S x)':`fles`flte`feql`fneq`fmor`fgte;em r,"!=0";r]}
+gocal:{r:,/($S x;,"("; ","/y ;,")");$[(S x)?`fles`flte`feql`fneq`fmor`fgte;em r,"!=0";r]}
 godrp:{y}
 
-gocli:{n:I x;("Func[";*y;"].(func(";  ","/:n#(1+n)_y; ")("; gotype S x ;"))(";  ","/:n#1_y; ") ")}
+gocli:{n:I x;("Func[";*y;"].(func(";  ","/n#(1+n)_y; ")("; gotype S x ;"))(";  ","/n#1_y; ") ")}
 goasn:{($S x)," = ",*|y}
 gocnd:{"if ",(y 0)," {",(y 1),"} ",$[3~#y;" else {",(y 2)," }";""]}
 gonop:{y;""}
-goswc:{("switch ";*y;" {"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":\n"),'y,\:"\n")," }" }
+goswc:{("switch ";*y;" {"),(1_(@[("case ",/$-1+!#y); (-1+#y)*I x; "default"] ,\":\n"),'y,\"\n")," }" }
  
 gofor:{($[#l:$S x;l,":";""];"for ;";y 0;"; ";y 1;" {";y 2;"} ")}
 gojmp:{y;$[I x;"break ";"continue "],$S x}
