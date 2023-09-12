@@ -1,5 +1,6 @@
+/js compiler // \\ ': /: \:
 
-F:`!();opts:``
+F:(0#`)!();opts:``
 
 js:{[o]opts::o
  F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(jsprg;jsmem;jscon;jsvar;jstab;jsfun;jsarg;jssym;jsres;jsloc;jsast;jslod;jssto)
@@ -9,9 +10,9 @@ js:{[o]opts::o
 
  jsren'`in`try`catch
  i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
- rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)':i     /rewrite cnd/swc expressions 
+ rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)?\i     /rewrite cnd/swc expressions 
  S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
- n:(&#P){x[y]+:1}/P;n[0]-:1;                   /number of children per node
+ n:{x[y]+:1}/(,&#P),P;n[0]-:1;                 /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
 *s}
@@ -23,12 +24,12 @@ em:{"(",x,")"}
 INS:{[i;x]T::ins[i;T;*x];P::ins[i;@[P;&P>i-1;+;1];x 1];P[1+i]:i;I::ins[i;I;x 2];S::ins[i;S;x 3]}
 ins:{[i;x;y](i#x),y,i_x}
 del:{T::T n:(!#P)_x;P::@[P n;&(P n)>x-1;-;1];I::I n;S::S n}
-rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\:(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)':`ret`asn}
+rwcnd:{c:|1_&P=x;S[x]:`;P[x]:P x-1;c INS\(T x;1+x;I x; S x:x-1);del x;restm'|i@&(T P i:&`stm=T)?\`ret`asn}
 restm:{c:*|&P=x;INS[c;(T x-1;x;I x-1;S x-1)];P[x]:P[x-1];del[x-1]} /fix ret stm
 
-jsren:{S[&(S=x)&T':`fun`cal]:s:`$($x),"_";}
+jsren:{S[&(S=x)&T?\`fun`cal]:s:`$($x),"_";}
 
-nl:{$[#x:"\n"/:x;x,"\n";x]}
+nl:{$[#x:"\n"/x;x,"\n";x]}
 nyi:{y;em x}
 
 jsty:{(_($x)-32),em y}
@@ -39,9 +40,9 @@ jsprg:{
  fncs: ,/y@&`fun=T c:1_&P=0
  cons:nl y@&`con=T c
  vars:nl y@&`var=T c
- runt:$[`nort':opts;"";jsrnt]
- main:$[|/`nort`lib':opts;"";jsmain]
- data:$[#D;"_I8.set([",(","/:$0+D),"])";""]
+ runt:$[`nort?opts;"";jsrnt]
+ main:$[|/`nort`lib?\opts;"";jsmain]
+ data:$[#D;"_I8.set([",(","/$0+D),"])";""]
  tabl:nl y@&`tab=T c
  tabl:$[#tabl;"_F=Array(",($1+|/I@&`tab=T),");\n";""],tabl
  mems:nl y@&`mem=T c
@@ -49,16 +50,16 @@ jsprg:{
  (runt;cons;vars),(,fncs),(jsfmt init),main}
  
 jsfun:{
- $[(`main~S x)&`lib':opts; :""; 0]
- args:","/:y@&`arg=T c:&x=P
- locs:($[#r:","/:$S 1+c@&`loc=T c;"let ",r,"\n";""])
+ $[(`main~S x)&`lib?opts; :""; 0]
+ args:","/y@&`arg=T c:&x=P
+ locs:($[#r:","/$S 1+c@&`loc=T c;"let ",r,"\n";""])
  defr:*y@&`dfr=T c
  setj:$[#defr;"try{";""]
  body: 2_-1_y@*&`ast=T c
  jsfmt@,/("const ";$S x;"=function(";args;"){\n";setj;locs;body;defr)}
 
 jssig:{
- args:","/:jstype S c@&`arg=T c:&x=P
+ args:","/jstype S c@&`arg=T c:&x=P
  ret:$[#r:jstype S c@&`res=T c;*r;"void"]
  ret," ",($S x),"(",args,");"}
 
@@ -76,7 +77,7 @@ jslit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
            `k~t;$[i~0;,"0n";(0~h:hi i)&0<l:lo i;($l),"n";"BigInt(\"",(hx8 i),"\")"];"???"]]}
  
 
-jsvar:{" "/:("let";$S x;,"=";(*y),";")}
+jsvar:{" "/("let";$S x;,"=";(*y),";")}
 jscon:{"const ",($S x),"=",(*y),";"}
 jscst:{$[(t:jstype S x)~*y;y 1; "_",t,(*y),em y 1]}
 jstyp:{y;jstype S x} 
@@ -85,25 +86,25 @@ jsloc:{y}
 jssym:{y;$S x}
 jsarg:{*y}
 
-jsstm:{"{\n",(,/y,\:";\n"),"}\n"}
+jsstm:{"{\n",(,/y,\";\n"),"}\n"}
 jsast:jsstm
 jsget:{y;$S x}
 jsGet:jsget
-jsret:{"return ",(", "/:y),";\n"}
+jsret:{"return ",(", "/y),";\n"}
 
 jssiz:`b`i`j`f!`I8`I32`I64`F64
 jslod:{($jssiz S x;"(";y 0;")")}
 jssto:{("Set";$jssiz S x;"(";y 0;",";y 1;")")}
 
-jscal:{($S x;,"("; ","/:y ;,")")}
+jscal:{($S x;,"("; ","/y ;,")")}
 jsdrp:{y}
 
-jscli:{n:I x;jsty[S x;"_F[",(*y),"](",(","/:n#1_y),")"]}
+jscli:{n:I x;jsty[S x;"_F[",(*y),"](",(","/n#1_y),")"]}
 jsasn:{r:(s:$S x),"=",(*|y),";\n";
  $[((n:6+2*#s)#r)~s,"=I(",s,"+I(";$["+=1"~-3#r:s,"+=",(n_-4_r);s,"++";r],";\n";r]}
 jscnd:{$[S x; (jsnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(jsnd y 0),(jsemb jssem y 1),$[3~#y;"else ",(jsemb jssem y 2);""]]}
 jsnop:{y;""}
-jsswc:{("switch(";*y;"){\n"),(1_(@[("case ",/:$-1+!#y); (-1+#y)*I x; "default"] ,\:":"),'(jssem'y),\:"break;\n"),"}" }
+jsswc:{("switch(";*y;"){\n"),(1_(@[("case ",/$-1+!#y); (-1+#y)*I x; "default"] ,\":"),'(jssem'y),\"break;\n"),"}" }
  
 jsfor:{$[I x;jswhl[x;y];("for(;";jsnd y 0;";";$[";\n"~-2#r:y 1;-2_r;r];")";y 2)]}
 jswhl:{((,"do"),(,-12_y 2),(,y 1)),("}while";jsnd y 0;";\n")}
@@ -121,17 +122,17 @@ jsshr:{jsty[S x;(y 0),$[`u~S x;">>>";">>"],y 1]}
 
 jsnd:{$["!=0)"~t:-4#x;(-4_x),")";"==0)"~t;"(!",(1_-4_x),")";x]}
 
-jssem:{$[(*|x)':";}\n";x;x,";"]}
+jssem:{$[(*|x)?";}\n";x;x,";"]}
 jsemb:{$["{"=*x;x;"{\n",x,"\n}\n"]}
 
 jsfmt:{
  x:@[x;1+find["}\nelse";x];" "]
  x:@[x;1+find["}\nwhil";x];" "]
  x:@[x;1+find["};\n"   ;x];" "]
- l:"\n"\:x;
- l@:&~l~\:"r=r;"
- l@:&~(""~/:l)|(,";")~/:l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
- ,/(s,'l),\:"\n"}
+ l:"\n"\x;
+ l@:&~l~\"r=r;"
+ l@:&~(""~/l)|(,";")~/l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
+ ,/(s,'l),\"\n"}
 
 / run time
 jsrnt:"
