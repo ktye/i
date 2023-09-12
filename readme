@@ -23,3 +23,17 @@ abs sin cos exp log find angle         abs sin cos exp log find angle
 imag conj  types:cisfzLDTvcdlx         imag conj  types:cisfzLDTvcdlx
 ?n(uniform) ?-n(normal) ?z(bi)         ?n(uniform) ?-n(normal) ?z(bi)
 n?n(with) -n?n(w/o) n?L(outof)         n?n(with)   random   -n?n(w/o)
+
+
+45663 K.wasm
+41671 k.wasm         (wasm-opt -Oz)
+22810 k.wasm.lz4     (lz4 -12)
+17609 k.wasm.zst     (zstd -19)
+40457 S.wasm         (generic loops with indirect calls)
+36596 s.wasm         (wasm-opt -Oz)
+21392 s.wasm.lz4     (lz4 -12)
+16512 s.wasm.zst     (zstd -19)
+
+30817 k.wasm.lz4.b64 (base64)
+28900 s.wasm.lz4.b64 (base64)
+
