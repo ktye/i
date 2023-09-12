@@ -300,16 +300,16 @@ func Scn(f, x K) K {
 	r = mk(Lt, xn)
 	rp := int32(r)
 	i := int32(1)
-	x0 := ati(rx(x), 0)
-	SetI64(rp, int64(rx(x0)))
+	z := ati(rx(x), 0)
+	SetI64(rp, int64(rx(z)))
 	rp += 8
 	for i < xn {
-		x0 = cal(rx(f), l2(x0, ati(rx(x), i)))
-		SetI64(rp, int64(rx(x0)))
+		z = cal(rx(f), l2(z, ati(rx(x), i)))
+		SetI64(rp, int64(rx(z)))
 		rp += 8
 		i++
 	}
-	dx(x0)
+	dx(z)
 	dx(x)
 	dx(f)
 	return uf(r)
