@@ -1,0 +1,66 @@
+package main
+
+//source locations (byte-index into src) are stored in verbs.
+//exec extracts them for error indication.
+//kov also stores them in a map for every primitive call.
+
+import (
+	"fmt"
+	"os"
+	"html"
+	"bytes"
+	. "github.com/ktye/wg/module"
+)
+
+var SP map[int32]bool
+var kovstart int32
+
+func init() {
+	SP = make(map[int32]bool)
+}
+func kov(p int32) {
+	SP[p-kovstart-1] = true
+}
+
+
+func kovinit() {
+	kovstart = 1 + nn(src())
+}
+func writekov() { //write kov.html
+	var f bytes.Buffer
+	f.Write([]byte(head))
+	s := src()
+	b := Bytes[int32(s) : int32(s) + nn(s)]
+	b = b[kovstart:]
+	x := make([]bool, len(b))
+	for i := range x {
+		if SP[int32(i)] {
+			x[i] = true
+		}
+	}
+	var span []byte
+	writespan := func(s bool) {
+		fmt.Fprintf(&f, "<span class=%v>%s</span>", s, html.EscapeString(string(span)))
+	}
+	x = append([]bool{x[0]}, x...)
+	for i := 1; i<len(x); i++ {
+		if x[i] != x[i-1] {
+			writespan(x[i-1])
+			span = nil
+		}
+		span = append(span, b[i-1])
+	}
+	writespan(x[len(x)-1])
+	fmt.Fprintln(&f, "</pre></body></html>")
+	os.WriteFile("kov.html", f.Bytes(), 0744)
+}
+
+const head = `<!DOCTYPE html>
+<head><meta charset="utf-8"><title>kov</title>
+<style>
+.true{color:red}
+.false{color:grey}
+</style>
+</head>
+<body><pre>
+`
