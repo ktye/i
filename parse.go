@@ -214,6 +214,14 @@ func plam(s0 int32) K {
 	if n != 125 {
 		trap(Parse)
 	}
+
+	r = dict(c)
+	if r != 0 {
+		dx(loc)
+		loc = slo
+		return r
+	}
+
 	cn := nn(c)
 	cp := int32(c)
 	if ar < 0 {
@@ -241,6 +249,15 @@ func slam(r K, ar, s0 int32) K {
 	rp := int32(r)
 	SetI32(rp-12, ar)
 	return K(rp) | (K(s0) << 32) | K(lf)<<59
+}
+func dict(c K) K { // each expr ends with sym:(64), terminated by ;(256) convert to: list #l 27(mkl) sym key
+/*
+	i:(&(256~/c)),#c
+	y:&/64~/c@j:i-1
+	s:c@k:j-1
+	$[(`S~@s)&y;(c(!#c)_i,j,k),(#i;`27;s;`12);0]
+*/
+	return 0
 }
 func pspec(r, n K) K {
 	ln := nn(n)
