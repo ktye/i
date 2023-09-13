@@ -1,28 +1,36 @@
-ktye/k ktye.github.io intro.md         ktye/k ktye.github.io intro.md
-+ flp add '  ech bin  x y' lin         + flp add  '  ech both bin lin
-- neg sub /  rdc mod  f n/ ndo         - neg sub  /  ovr/fix echright
-* fst mul \  scn div  x//y dec         * fst mul  \  scn/fix eachleft
-% sqr div ': ecp in   y\\x enc         % sqr div      / join   decode 
-! til key /: ecr split  f/:fix         ! til key mod  \ split  encode
-& wer min \: ecl join   f\:fix         & wer min  $[a;b;...]     cond
-| rev max while[c;a;b;..]              | rev max      while[c;a;b;..]
-< asc les $[a;b;...]      cond         < asc les         f:{[x;y]x+y}
-> dsc mor @[x;i;+;y]     amend         > dsc mor              "abc" c
-= grp eql .[x;i;+;y]     dmend         = grp eql  01234567   1 2 3  i
-~ not mtc k?t            group         ~ not mtc   :+-*%&|   4 5 6. f
-, enl cat k!t              key         , enl cat  <>=~!,^#   2a300  z
-^ srt cut t,d t,t t,'t    join         ^ srt cut  _$?@.     (1;2 3) L
-# cnt tak {[x;y]x+y}  "abc"  c         # cnt tak          `a`b!5 6  D
-_ flr drp             1 2 3  i         _ flr drp  t,d t,t t,'t   join
-$ str cst  01234567   4 5 6. f         $ str cst           k!t    key
-? unq fnd   :+-*%&|   2a300  z         ? unq fnd  in       k?t  group
-@ typ atx  <>=~!,^#  (1;2 3) L         @ typ atx  @[x;i;+;y]    amend
-. val cal  _$?@.   `a`b!5 6  D         . val cal  .[x;i;+;y]    dmend
-                                                                     
-abs sin cos exp log find angle         abs sin cos exp log find angle
-imag conj  types:cisfzLDTvcdlx         imag conj  types:cisfzLDTvcdlx
-?n(uniform) ?-n(normal) ?z(bi)         ?n(uniform) ?-n(normal) ?z(bi)
-n?n(with) -n?n(w/o) n?L(outof)         n?n(with)   random   -n?n(w/o)
+ktye/k ktye.github.io intro.md
++ flp add  '  ech both bin lin
+- neg sub  /  ovr/fix echright
+* fst mul  \  scn/fix eachleft
+% sqr div      / join   decode 
+! til key mod  \ split  encode
+& wer min  $[a;b;...]     cond
+| rev max      while[c;a;b;..]
+< asc les         f:{[x;y]x+y}
+> dsc mor              "abc" c
+= grp eql  01234567   1 2 3  i
+~ not mtc   :+-*%&|   4 5 6. f
+, enl cat  <>=~!,^#   2a300  z
+^ srt cut  _$?@.     (1;2 3) L
+# cnt tak          `a`b!5 6  D
+_ flr drp  t,d t,t t,'t   join
+$ str cst           k!t    key
+? unq fnd  in       k?t  group
+@ typ atx  @[x;i;+;y]    amend
+. val cal  .[x;i;+;y]    dmend
+                              
+abs sin cos exp log find angle
+imag conj  types:cisfzLDTvcdlx
+?n(uniform) ?-n(normal) ?z(bi)
+n?n(with)   random   -n?n(w/o)
+
+
+
+
+
+
+
+
 
 
 45663 K.wasm

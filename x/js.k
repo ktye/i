@@ -1,4 +1,4 @@
-/js compiler // \\ ': /: \:
+/js compiler
 
 F:(0#`)!();opts:``
 
