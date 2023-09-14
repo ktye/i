@@ -215,11 +215,13 @@ func plam(s0 int32) K {
 		trap(Parse)
 	}
 
-	r = dict(c)
-	if r != 0 {
-		dx(loc)
-		loc = slo
-		return r
+	if ar < 0 {
+		r = dict(c)
+		if r != 0 {
+			dx(loc)
+			loc = slo
+			return r
+		}
 	}
 
 	cn := nn(c)
@@ -250,13 +252,24 @@ func slam(r K, ar, s0 int32) K {
 	SetI32(rp-12, ar)
 	return K(rp) | (K(s0) << 32) | K(lf)<<59
 }
-func dict(c K) K { // each expr ends with sym:(64), terminated by ;(256) convert to: list #l 27(mkl) sym key
-/*
-	i:(&(256~/c)),#c
-	y:&/64~/c@j:i-1
-	s:c@k:j-1
-	$[(`S~@s)&y;(c(!#c)_i,j,k),(#i;`27;s;`12);0]
-*/
+func dict(c K) K { // each expr ends with sym:(64), separated by ;(256) convert to: list #l 27(mkl) sym key
+	i := cat1(Wer(Ecr(11, l2(256, rx(c)))), Ki(nn(c)))            // i:(&(256~/c)),#c
+	n := Ki(nn(i))                                                // n:#i
+	j := Add(Ki(-1), rx(i))                                       // j:i-1
+	k := Add(Ki(-1), rx(j))                                       // k:j-1
+	y := Ecr(11, l2(64, atv(rx(c), rx(j))))                       // y:(`64)~/c j
+	s := atv(rx(c), rx(k))                                        // s:c k
+	i = Cat(Cat(i, j), k)                                         // i:i,j,k
+	if int32(Rdc(6, l1(y))) == 1 && tp(s) == St && int32(n) > 1 { // (`S~@s)&1~&/y
+		c = Atx(c, Drp(i, Til(Ki(nn(c))))) // c = c i_!#c
+		if tp(c) == Lt {
+			return cat1(cat1(cat1(cat1(cat1(c, n), 27), 7), s), 76) // (c_i),n,(`27),(|),s,(!)
+		} else {
+			return l1(Key(s, c))
+		}
+	}
+	dx(s)
+	dx(i)
 	return 0
 }
 func pspec(r, n K) K {

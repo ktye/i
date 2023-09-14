@@ -47,7 +47,7 @@ TOK:{[x]m:{y/x\z};m1:{m[x;y,"[",(_O+"0"),"]";z]};x:m["¯";"_"]m["←";":"]m1["�
  r:b VEC b r                                /merge successive numbers (strong vector binding)   
  $[(!0)~e:&s=6;$[+/p:0N~/r:PRS'r;ERR@*(`val;E::P@*&p);r];ERR@*(`cha;E::*e)]}
 
-VEC:{x:,/|'{x," ",y}\'(&~b&same b:{(*x)?NM}'x)^x;x[i]:(#i:&b&same b)#,""}
+VEC:{x:,/|'{x," ",y}\'(&~b&same b:{(*x)?NM}'x)^x;x[i]:(#i:&b&same b)#,"";x}
  
 PRS:{                                                   / apl token           k value               k-type
  ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"      C
@@ -61,7 +61,7 @@ ER:{L::-1;x}
 F1:{[f;x]$[`L~@*|x;`dom;(*x;f x 1)]}
 F2:{[f;x;y]$[~0~e:ch[f;x;y];e;(!0)~a:*x;(*y;,/f[*x 1;y 1]);(!0)~b:*y;(a;,/f[x 1;*y 1]);a~b;(a;,/f[x 1;y 1]);ER`len]}
 F:(#OP)#"";Q:(#OP)#"";J:(#OP)#""          /Q stores reductions and J outer product
-f:{F[SY?*x]:(F1 x 1;F2 x 2);Q[SY?*x]:(x 2)/;J[SY?*x]:,/(x 2)/\}
+f:{F[SY?*x]:(F1 x 1;F2 x 2);Q[SY?*x]:(x 2)/;J[SY?*x]:,/(x 2)/\;J}
 ch:{[f;x;y]$[0~n:+/(`L=@'(*|x;*|y));0;1~n;ER`dom;(f~(=))|f~(~=);0;ER`dom]}
 binom:{f:*/1+!;(f y)%(f x)*f y-x}
 same:{$[#x;x=0,-1_x;x]}
@@ -121,7 +121,7 @@ DEAL:     {(,#r;r:O+(-_0.+**|x)?_0.+**|y)}
 CIRCULAR: {x:_0.+**|x;v:*|y;(*y;$[1~x;sin v;2~x;cos v;3~x;(sin v)%cos v;-3~x;(1p%180)*imag[1;v];4~x;%1+v*v;5~x;.5*(exp v)-exp@-v;6~x;.5*(exp v)+exp@-v;7~x;1-2%1+exp 2*v;%1-v*v])}
  
 
-f:{F[SY?*x]:1_x}
+f:{F[SY?*x]:1_x;F}
 f(  "⍴";{(,#*x;*x)}    ; RESHAPE                           )
 f( ,",";{(,#(x 1);x 1)}; CATENATE                          )
 f(  "⍳"; IOTA          ; INDEXOF                           )
@@ -151,8 +151,8 @@ MF:{[f;x]($[~`C~@f;*f;F[SY?f;0]])x}
 DF:{[f;x;y]($[`C~@f;F[SY?f;1];f 1])[x;y]}
 
 split:{x[0,-1+#x]:";";x[&(same s)&s:";"=*'x]:0;x@&~";"=*'x} /split index expression, fill space for empty index
-ifill:{[x;s]x[i]:{(,#x;x)}'O+!'s i:&x~\0}                   /fill 0s in index vector, given shape s
-drop:{x[i]:_0.+1_'x i:&~0~/x}
+ifill:{[x;s]x[i]:{(,#x;x)}'O+!'s i:&x~\0;x}                 /fill 0s in index vector, given shape s
+drop:{x[i]:_0.+1_'x i:&~0~/x;x}
 mo:{[y]n-:1;x[2+R]:("1",MF[1_y 1;1_y 2]);*y}                /apply monadic function (correct stack for leading +)
 
 /   case   action       PARSE TABLE
@@ -187,8 +187,8 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;,#y];y)                              /array from numeric literal, single number is atom
     `C~t   ;$[y~"⎕";":";SE>SY?y;ov("+",y);*y];"1",y]}           /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
- s:{E::P L;x[R-:1]:ev x 1+L-:1}                                 /shift from left(queue) to right(stack) within x
- r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\*'r)#r:R_x}           /reduce right side: match case, call action, update R pointer
+ s:{E::P L;x[R-:1]:ev x 1+L-:1;x}                               /shift from left(queue) to right(stack) within x
+ r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\*'r)#r:R_x;x}         /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/s x]                                            /shift once, reduce until fixpoint
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
  $[`s~@e:*|x R;e;`c~@e;`syn;~1~#x:R_x;`syn;*x]}                 /return the single noun left on the stack otherwise a syntax error

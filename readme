@@ -3,16 +3,16 @@ ktye/k ktye.github.io intro.md
 - neg sub  /  ovr/fix echright
 * fst mul  \  scn/fix eachleft
 % sqr div      / join   decode 
-! til key mod  \ split  encode
+! til key  mod \ split  encode
 & wer min  $[a;b;...]     cond
-| rev max      while[c;a;b;..]
-< asc les         f:{[x;y]x+y}
-> dsc mor              "abc" c
-= grp eql  01234567   1 2 3  i
-~ not mtc   :+-*%&|   4 5 6. f
-, enl cat  <>=~!,^#   2a300  z
-^ srt cut  _$?@.     (1;2 3) L
-# cnt tak          `a`b!5 6  D
+| rev max  while[c;a;b;d;e;..]
+< asc les  f:{x+y}   [bl;o;ck]   
+> dsc mor  01234567    "abc" c
+= grp eql   :+-*%&|   1 2 3  i
+~ not mtc  <>=~!,^#   4 5 6. f
+, enl cat  _$?@.      2a300  z
+^ srt cut            (1;2 3) L
+# cnt tak  {a:5;b:6}`a`b!5 6 D
 _ flr drp  t,d t,t t,'t   join
 $ str cst           k!t    key
 ? unq fnd  in       k?t  group
@@ -23,25 +23,3 @@ abs sin cos exp log find angle
 imag conj  types:cisfzLDTvcdlx
 ?n(uniform) ?-n(normal) ?z(bi)
 n?n(with)   random   -n?n(w/o)
-
-
-
-
-
-
-
-
-
-
-45663 K.wasm
-41671 k.wasm         (wasm-opt -Oz)
-22810 k.wasm.lz4     (lz4 -12)
-17609 k.wasm.zst     (zstd -19)
-40457 S.wasm         (generic loops with indirect calls)
-36596 s.wasm         (wasm-opt -Oz)
-21392 s.wasm.lz4     (lz4 -12)
-16512 s.wasm.zst     (zstd -19)
-
-30817 k.wasm.lz4.b64 (base64)
-28900 s.wasm.lz4.b64 (base64)
-
