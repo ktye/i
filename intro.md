@@ -50,11 +50,12 @@ for file i/o there are no numeric verbs and there is only 1 form:
 # special forms, adverbs and overloads
 the only keyword is `while`. there is block `[x;y;z]` similar to `*(z;y;x)` for use in cond `$[a;b;c]`.
 
-adverbs have verb overloads if the left arg is not a verb: `' / \ ': /: \:` are `bin mod div in join split`.
-- split and join allow vectors (e.g. words) on the left and are not restricted to chars
-- div: `x\y` is the same as `y%x`. division always remains within their domain, e.g. ints. to get floats uptype must be explicit: `x%2.`
-- encode decode need a double slash: `x//y` and `x\\y` (i always implement them late when everything is filled)
-
+there are 3 adverbs: `' / \` (each over scan). they have verb overloads if the left arg is not a function:
+- `x'y` is bin (binary search) or lin (linear interpolation) depending on x being an atom or a vector.
+- `x/y` and `x\y` are decode/encode or join/split depending on x being numeric or characteristic.
+the dyadic form of the slashes is each-right/each-left: `x+/y` and `x+\y'.
+there is no reduce/scan with initial values and no each-prior.
+- `f/x` and `f\x` is fixpoint if f is strictly monadic.
 
 # dots, names
 a dot is not part of a symbol: `a . b` can be written as `a.b`. to index a list/dict use `` d`a``.
