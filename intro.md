@@ -53,8 +53,8 @@ the only keyword is `while`. there is block `[x;y;z]` similar to `*(z;y;x)` for 
 there are 3 adverbs: `' / \` (each over scan). they have verb overloads if the left arg is not a function:
 - `x'y` is bin (binary search) or lin (linear interpolation) depending on x being an atom or a vector.
 - `x/y` and `x\y` are decode/encode or join/split depending on x being numeric or characteristic.
-the dyadic form of the slashes is each-right/each-left: `x+/y` and `x+\y'.
-there is no reduce/scan with initial values and no each-prior.
+- `x+/y` and `x+\y` is each-right/each-left.
+there is no reduce/scan with initial values and no each-prior, but higher order forms exist: `f3/[x;y;z]`.
 - `f/x` and `f\x` is fixpoint if f is strictly monadic.
 
 # dots, names
