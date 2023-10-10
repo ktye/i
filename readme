@@ -2,17 +2,17 @@ ktye/k ktye.github.io intro.md
 + flp add  '  ech both bin lin
 - neg sub  /  ovr/fix echright
 * fst mul  \  scn/fix eachleft
-% sqr div      / join   decode 
+% sqr div      / join   decode
 ! til key  mod \ split  encode
 & wer min  $[a;b;...]     cond
 | rev max  while[c;a;b;d;e;..]
-< asc les  f:{x+y}   [bl;o;ck]   
-> dsc mor  01234567    "abc" c
-= grp eql   :+-*%&|   1 2 3  i
-~ not mtc  <>=~!,^#   4 5 6. f
-, enl cat  _$?@.      2a300  z
-^ srt cut            (1;2 3) L
-# cnt tak  {a:5;b:6}`a`b!5 6 D
+< asc les  f:{x+y}   [bl;o;ck]
+> dsc mor              "abc" c
+= grp eql  01234567   1 2 3  i
+~ not mtc   :+-*%&|   4 5 6. f
+, enl cat  <>=~!,^#   2a300  z
+^ srt cut  _$?@.     (1;2 3) L
+# cnt tak           `a`b!5 6 D
 _ flr drp  t,d t,t t,'t   join
 $ str cst           k!t    key
 ? unq fnd  in       k?t  group
