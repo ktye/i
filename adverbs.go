@@ -141,7 +141,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			if xt == Tt {
 				return Ech(rdc(f), l1(Flp(x)))
 			}
-			r = Func[365+fp].(rdf)(int32(x), xt, xn)
+			r = Func[283+fp].(rdf)(int32(x), xt, xn) //365
 			if r != 0 {
 				dx(x)
 				return r
@@ -290,7 +290,7 @@ func Scn(f, x K) K {
 			if xt == Tt {
 				return Flp(Ech(scn(f), l1(Flp(x)))) // +f\'[x;+y]
 			}
-			r = Func[372+fp].(rdf)(int32(x), xt, xn)
+			r = Func[289+fp].(rdf)(int32(x), xt, xn) //372
 			if r != 0 {
 				dx(x)
 				return r

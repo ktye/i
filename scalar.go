@@ -18,7 +18,7 @@ type f4i = func(int32, int32, int32, int32)
 type f2Ff = func(int32, float64, int32, int32)
 type f2Zz = func(int32, float64, float64, int32, int32)
 
-func Neg(x K) K              { return nm(220, x) }
+func Neg(x K) K              { return nm(220, x) } //220
 func negi(x int32) int32     { return -x }
 func negf(x float64) float64 { return -x }
 func negz(x, y float64) K    { return Kz(-x, -y) }
@@ -35,7 +35,7 @@ func Abs(x K) K {
 	} else if xt == Zt {
 		return absZ(x)
 	}
-	return nm(227, x)
+	return nm(223, x) //227
 }
 func absi(x int32) int32 {
 	if x < 0 {
@@ -63,7 +63,7 @@ func Sqr(x K) K {
 	if tp(x)&15 != ft {
 		x = Add(Kf(0), x)
 	}
-	return nm(300, x)
+	return nm(244, x) //300
 }
 func sqrf(x float64) float64 { return F64sqrt(x) }
 
@@ -143,21 +143,21 @@ func Cnj(x K) K { // conj x
 	return x
 }
 
-func Add(x, y K) K                          { return nd(234, 2, x, y) }
+func Add(x, y K) K                          { return nd(226, 2, x, y) } //234
 func addi(x, y int32) int32                 { return x + y }
 func addf(x, y float64) float64             { return x + y }
 func addz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr+yr); SetF64(rp+8, xi+yi) }
-func Sub(x, y K) K                          { return nd(245, 3, x, y) }
+func Sub(x, y K) K                          { return nd(229, 3, x, y) } //245
 func subi(x, y int32) int32                 { return x - y }
 func subf(x, y float64) float64             { return x - y }
 func subz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr-yr); SetF64(rp+8, xi-yi) }
 
-func Mul(x, y K) K                          { return nd(256, 4, x, y) }
+func Mul(x, y K) K                          { return nd(232, 4, x, y) } //256
 func muli(x, y int32) int32                 { return x * y }
 func mulf(x, y float64) float64             { return x * y }
 func mulz(xr, xi, yr, yi float64, rp int32) { SetF64(rp, xr*yr-xi*yi); SetF64(rp+8, xr*yi+xi*yr) }
 
-func Mod(x, y K) K          { return nd(300, 41, x, y) }
+func Mod(x, y K) K          { return nd(244, 41, x, y) } //300
 func modi(x, y int32) int32 { return x % y }
 func idiv(x, y K, mod int32) K {
 	if mod != 0 {
@@ -165,7 +165,7 @@ func idiv(x, y K, mod int32) K {
 	}
 	return Div(x, y)
 }
-func Div(x, y K) K              { return nd(267, 5, x, y) }
+func Div(x, y K) K              { return nd(235, 5, x, y) } //267
 func divi(x, y int32) int32     { return x / y }
 func divf(x, y float64) float64 { return x / y }
 func divz(xr, xi, yr, yi float64, rp int32) {
@@ -185,7 +185,7 @@ func divz(xr, xi, yr, yi float64, rp int32) {
 	SetF64(rp+8, f)
 }
 
-func Min(x, y K) K { return nd(278, 6, x, y) }
+func Min(x, y K) K { return nd(238, 6, x, y) } //278
 func mini(x, y int32) int32 {
 	if x < y {
 		return x
@@ -203,7 +203,7 @@ func minz(xr, xi, yr, yi float64, rp int32) {
 	}
 }
 
-func Max(x, y K) K { return nd(289, 7, x, y) }
+func Max(x, y K) K { return nd(241, 7, x, y) } //289
 func maxi(x, y int32) int32 {
 	if x > y {
 		return x
@@ -222,7 +222,7 @@ func maxz(xr, xi, yr, yi float64, rp int32) {
 	}
 }
 
-func Eql(x, y K) K                     { return nc(308, 10, x, y) }
+func Eql(x, y K) K                     { return nc(247, 10, x, y) } //308
 func eqi(x, y int32) int32             { return I32B(x == y) }
 func eqf(x, y float64) int32           { return I32B((x != x) && (y != y) || x == y) }
 func eqz(xr, xi, yr, yi float64) int32 { return eqf(xr, yr) & eqf(xi, yi) }
@@ -239,7 +239,7 @@ func Les(x, y K) K { // x<y   `file<c
 		}
 		return writefile(cs(x), y)
 	}
-	return nc(323, 8, x, y)
+	return nc(255, 8, x, y) //323
 }
 func lti(x, y int32) int32   { return I32B(x < y) }
 func ltf(x, y float64) int32 { return I32B(x < y || x != x) }
@@ -250,7 +250,7 @@ func ltz(xr, xi, yr, yi float64) int32 {
 	return ltf(xr, yr)
 }
 
-func Mor(x, y K) K           { return nc(338, 9, x, y) }
+func Mor(x, y K) K           { return nc(263, 9, x, y) } //338
 func gti(x, y int32) int32   { return I32B(x > y) }
 func gtf(x, y float64) int32 { return I32B(x > y || y != y) }
 func gtz(xr, xi, yr, yi float64) int32 {
