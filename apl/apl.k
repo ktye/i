@@ -12,7 +12,7 @@
 / │           │ ⊂ │ ⊃ │ ∩ │ ∪ │ ⊥ │ ⊤ │ | │ ; │ : │ \ │         │
 / │  SHIFT    │ Z │ X │ C │ V │ B │ N │ M │ , │ . │ / │  SHIFT  │
 / └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴─────────┘
-/ try online:                             ktye.github.io/apl.html  // \\ ': /: \:
+/ try online:                             ktye.github.io/apl.html
 
 O:1; C:""; I:!0; E:0; P:!0; V:(0#`)!(); D:(); S:()
 

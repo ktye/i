@@ -34,11 +34,14 @@ fi
 
 wg        -nomain . > k.wat
 
-/c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
+#/c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
+#cp k.t          /c/k/ktye.github.io/k.t
+#wc -c /c/k/ktye.github.io/k.wasm
+#wasm-opt -Oz --enable-bulk-memory /c/k/ktye.github.io/k.wasm -o - | wc -c
 
-cp k.t          /c/k/ktye.github.io/k.t
 
-wc -c /c/k/ktye.github.io/k.wasm
-wasm-opt -Oz --enable-bulk-memory /c/k/ktye.github.io/k.wasm -o - | wc -c
+wc -c k.wasm
+/c/local/wabt/wat2wasm -o k.wasm k.wat
+wasm-opt -Oz --enable-bulk-memory k.wasm -o - | wc -c
 
 #rm k.k out k.wat

@@ -25,9 +25,9 @@ func Asc(x K) K { // <x  <`file
 	if tp(x) == st {
 		return readfile(cs(x))
 	}
-	return grade(x, 343)
+	return grade(x, 261) //343
 }
-func Dsc(x K) K { return grade(x, 336) } // >x
+func Dsc(x K) K { return grade(x, 254) } //336 // >x
 func grade(x K, f int32) K { // <x >x
 	r := K(0)
 	xt := tp(x)
@@ -40,7 +40,7 @@ func grade(x K, f int32) K { // <x >x
 	}
 	n := nn(x)
 	if xt == Tt {
-		return kxy(104, x, Ki(I32B(f == 336))) //gdt ngn:{(!#x){x@<y x}/|.+x}
+		return kxy(104, x, Ki(I32B(f == 254))) //336 //gdt ngn:{(!#x){x@<y x}/|.+x}
 	}
 	if n < 2 {
 		dx(x)
@@ -49,15 +49,11 @@ func grade(x K, f int32) K { // <x >x
 	r = seq(n)
 	rp := int32(r)
 	xp := int32(x)
-	//	if n < 16 {
-	//		igrd(rp, xp, n, sz(xt), f+int32(xt))
-	//	} else {
 	w := mk(It, n)
 	wp := int32(w)
 	Memorycopy(wp, rp, 4*n)
 	msrt(wp, rp, 0, n, xp, sz(xt), f+int32(xt))
 	dx(w)
-	//	}
 	dx(x)
 	return r
 }
