@@ -40,8 +40,8 @@ wg        -nomain . > k.wat
 #wasm-opt -Oz --enable-bulk-memory /c/k/ktye.github.io/k.wasm -o - | wc -c
 
 
-wc -c k.wasm
 /c/local/wabt/wat2wasm -o k.wasm k.wat
+wc -c k.wasm
 wasm-opt -Oz --enable-bulk-memory k.wasm -o - | wc -c
 
 #rm k.k out k.wat

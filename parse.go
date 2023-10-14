@@ -248,7 +248,10 @@ func pspec(r, n K) K {
 	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 465 {
 			dx(r)
-			return cond(n, ln)
+
+			//n = Out(n)
+			return l2(n, 22) // Cnd
+			//return pcnd(n, ln)
 		}
 	}
 	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]
@@ -285,8 +288,7 @@ func pwhl(x K, xn int32) K {
 		dx(x)
 		return ucat(l1(0), r) // null for empty while
 }
-*/
-func cond(x K, xn int32) K {
+func pcnd(x K, xn int32) K {
 	nxt := int32(0)
 	sum := int32(0)
 	xp := int32(x) + 8*xn
@@ -308,6 +310,7 @@ func cond(x K, xn int32) K {
 	}
 	return flat(x)
 }
+*/
 func plist(c K) K {
 	p := K(0)
 	r := mk(Lt, 0)

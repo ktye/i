@@ -253,7 +253,22 @@ func Whl(c, b K) K { // while[c;b..]
 	return r
 }
 
-func Cnd(x K) K { return nyi(x) }
+func Cnd(x K) K { // $[x0;x1;x2;..]
+	r := K(0)
+	n := nn(x) - 1
+	i := int32(0)
+	for i < n {
+		dx(r)
+		r = exec(ati(rx(x), i))
+		if int32(r) != 0 {
+			i++
+			break
+		}
+		i += 2
+	}
+	dx(r)
+	return exec(ati(x, i))
+}
 
 //vcount: func vcount(x K) {
 //vcount: 	i := Cnt(rx(x))
