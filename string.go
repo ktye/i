@@ -5,6 +5,15 @@ import (
 )
 
 func Kst(x K) K { return Atx(Ks(32), x) } // `k@
+/*
+func Kst(x K) K {
+	b := []byte(sK(x))
+	dx(x)
+	r := mk(Ct, int32(len(b)))
+	copy(Bytes[int32(r):], b)
+	return r
+}
+*/
 func Lst(x K) K { return Atx(Ks(40), x) } // `l@
 func Str(x K) K {
 	r := K(0)
@@ -275,3 +284,173 @@ func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	x = K(t)<<59 | K(int32(x))
 	return x
 }
+
+/* from k_test.go
+func sK(x K) string { //native Kst
+	xp := int32(x)
+	switch tp(x) {
+	case 0:
+		if x == 0 {
+			return ""
+		}
+		s := []byte("0:+-*%&|<>=~!,^#_$?@.':/:\\:")
+		var r string
+		itoa := func(x int32) string { return strconv.Itoa(int(x)) }
+		switch {
+		case xp < 64:
+			if xp < 23 {
+				r = string(s[xp])
+			} else {
+				r = "`" + itoa(xp)
+			}
+			return r
+		case xp < 128:
+			if xp-64 < 23 {
+				r = string(s[xp-64])
+			} else {
+				r = "`" + itoa(xp)
+			}
+			return r
+		case xp == 211:
+			return "@"
+		case xp == 212:
+			return "."
+		case xp >= 448 && xp-448 < 23:
+			return string(s[xp-448])
+		default:
+			return "`" + itoa(xp)
+		}
+	case ct:
+		return strconv.Quote(string([]byte{byte(xp)}))
+	case it:
+		return strconv.Itoa(int(xp))
+	case st:
+		n := nn(K(I64(0)))
+		if 8*n <= xp {
+			panic("illegal symbol")
+		}
+		x = cs(x)
+		dx(x)
+		xp = int32(x)
+		if nn(x) == 0 {
+			return "`"
+		}
+		return "`" + string(Bytes[xp:xp+nn(x)])
+	case ft:
+		return sflt(F64(xp))
+	case zt:
+		return sflz(F64(xp), F64(xp+8))
+	case cf:
+		xn := nn(x)
+		xp = int32(x) + 8*xn
+		s := ""
+		for i := int32(0); i < xn; i++ {
+			xp -= 8
+			s += sK(K(I64(xp)))
+		}
+		return s
+	case df:
+		a := []string{"'", "':", "/", "/:", "\\", "\\:"}
+		r := sK(K(I64(xp)))
+		p := I64(xp + 8)
+		return r + a[int(p)]
+	case pf:
+		f := K(I64(xp))
+		l := K(I64(xp + 8))
+		i := K(I64(xp + 16))
+		// if tp(f) == 0 && nn(i) == 1 && I32(int32(i)) == 1 {
+		if nn(i) == 1 && I32(int32(i)) == 1 {
+			return sK(K(I64(int32(l)))) + sK(f) // 1+
+		}
+		return "<prj>"
+	case lf:
+		x = K(I64(xp + 16))
+		xp = int32(x)
+		return string(Bytes[xp : xp+nn(x)])
+	case Ct:
+		return comma(1 == nn(x)) + strconv.Quote(string(Bytes[xp:xp+nn(x)]))
+	case It:
+		if nn(x) == 0 {
+			return "!0"
+		}
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = strconv.Itoa(int(I32(xp + 4*int32(i))))
+		}
+		return comma(1 == nn(x)) + strings.Join(r, " ")
+	case St:
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = sK(K(I32(xp)) | K(st)<<59)
+			xp += 4
+		}
+		if nn(x) == 0 {
+			return "0#`"
+		}
+		return comma(1 == nn(x)) + strings.Join(r, "")
+	case Ft:
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = sflt(F64(xp + 8*int32(i)))
+		}
+		return comma(1 == nn(x)) + strings.Join(r, " ")
+	case Zt:
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = sflz(F64(xp), F64(xp+8))
+			xp += 16
+		}
+		return comma(1 == nn(x)) + strings.Join(r, " ")
+	case Lt:
+		r := make([]string, nn(x))
+		for i := range r {
+			r[i] = sK(K(I64(xp)))
+			xp += 8
+		}
+		if len(r) == 1 {
+			return "," + r[0]
+		} else {
+			return "(" + strings.Join(r, ";") + ")"
+		}
+	case Dt:
+		return sK(K(I64(xp))) + "!" + sK(K(I64(xp+8)))
+	case Tt:
+		return "+" + sK(K(I64(xp))) + "!" + sK(K(I64(xp+8)))
+	default:
+		fmt.Println("type ", tp(x))
+		panic("type")
+	}
+}
+func sflt(x float64) string {
+	s := strconv.FormatFloat(x, 'g', -1, 64)
+	if strings.Index(s, ".") < 0 {
+		s += "."
+	}
+	switch {
+	case math.IsInf(x, 1):
+		return "0w"
+	case math.IsInf(x, -1):
+		return "-0w"
+	case math.IsNaN(x):
+		return "0n"
+	default:
+		return s
+	}
+}
+func sflz(x, y float64) (s string) {
+	phi := 180.0 / math.Pi * math.Atan2(y, x)
+	r := math.Hypot(x, y)
+	s = strconv.FormatFloat(r, 'g', -1, 64) + "a"
+	if phi != 0 {
+		s += sflt(phi)
+	}
+	return s
+}
+func comma(x bool) string {
+	if x {
+		return ","
+	} else {
+		return ""
+	}
+}
+*/

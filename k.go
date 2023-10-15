@@ -7,7 +7,7 @@ import (
 const nai int32 = -2147483648 // 0N
 var loc, xyz K
 var na, inf float64
-var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
+var pp, pe, sp, ary, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
 
 //   0....7  key
 //   8...15  val
@@ -26,6 +26,7 @@ func kinit() {
 	sp = 256
 	SetI64(552, int64(mk(Ct, 0))) //src
 	loc = 0
+	ary = 0
 	na = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
 	rand_ = 1592653589

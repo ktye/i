@@ -108,6 +108,10 @@ func t() K { // Lt
 		}
 		return r
 	} else if tp(r) == st {
+		s := int32(r) >> 3
+		if s < 4 {
+			ary = maxi(ary, s)
+		}
 		r = l2(r, 20|(K(ps)<<32)) // .`x (lookup)
 	} else {
 		rt := tp(r)
@@ -191,6 +195,8 @@ func plam(s0 int32) K {
 	r := K(0)
 	slo := loc
 	loc = 0
+	yra := ary
+	ary = 0
 	ar := int32(-1)
 	n := next()
 	if n == 91 { // argnames
@@ -214,27 +220,15 @@ func plam(s0 int32) K {
 	if n != 125 {
 		trap(Parse)
 	}
-	cn := nn(c)
-	cp := int32(c)
 	if ar < 0 {
-		ar = 0
-		for i := int32(0); i < cn; i++ {
-			r = K(I64(cp))
-			if tp(r) == 0 && int32(r) == 20 {
-				r = K(I64(cp - 8))
-				y := int32(r) >> 3
-				if tp(r) == st && y > 0 && y < 4 {
-					ar = maxi(ar, y)
-				}
-			}
-			cp += 8
-		}
+		ar = ary
 		loc = Cat(ntake(ar, rx(xyz)), loc)
 	}
 	i := Add(seq(1+ps-s0), Ki(s0-1))
 	s := atv(rx(src()), i)
 	r = l3(c, Unq(loc), s)
 	loc = slo
+	ary = yra
 	return l1(slam(r, ar, s0))
 }
 func slam(r K, ar, s0 int32) K {
@@ -248,69 +242,16 @@ func pspec(r, n K) K {
 	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 465 {
 			dx(r)
-
-			//n = Out(n)
-			return l2(n, 22) // Cnd
-			//return pcnd(n, ln)
+			return l2(n, 22) //Cnd
 		}
 	}
 	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]
 		dx(r)
 		r = Fst(rx(n))
-		return cat1(cat1(Enl(join(256, ndrop(1, n))), r), 86)
-		//return pwhl(n, ln-1)
+		return cat1(cat1(Enl(join(256, ndrop(1, n))), r), 86) //Whl
 	}
 	return 0
 }
-
-/*
-func pwhl(x K, xn int32) K {
-	c := Fst(rx(x))
-	return cat1(cat1(Enl(join(256, ndrop(1, x))), c), 86)
-
-		r := cat1(Fst(rx(x)), 0)
-		p := nn(r) - 1
-		r = cat1(r, 384) // jif
-		r = cat1(r, 256) // drop
-		xp := int32(x)
-		sum := int32(2)
-		for i := int32(0); i < xn; i++ {
-			if i != 0 {
-				r = cat1(r, 256)
-			}
-			xp += 8
-			y := x0(K(xp))
-			sum += 1 + nn(y)
-			r = ucat(r, y)
-		}
-		r = cat1(cat1(r, Ki(-8*(2+nn(r)))), 320) // jmp back
-		SetI64(int32(r)+8*p, int64(Ki(8*sum)))   // jif
-		dx(x)
-		return ucat(l1(0), r) // null for empty while
-}
-func pcnd(x K, xn int32) K {
-	nxt := int32(0)
-	sum := int32(0)
-	xp := int32(x) + 8*xn
-	state := int32(1)
-	for xp != int32(x) {
-		xp -= 8
-		r := K(I64(xp))
-		if sum > 0 {
-			state = 1 - state
-			if state != 0 {
-				r = cat1(cat1(r, Ki(nxt)), 384) // jif
-			} else {
-				r = cat1(cat1(r, Ki(sum)), 320) // j
-			}
-			SetI64(xp, int64(r))
-		}
-		nxt = 8 * nn(r)
-		sum += nxt
-	}
-	return flat(x)
-}
-*/
 func plist(c K) K {
 	p := K(0)
 	r := mk(Lt, 0)
