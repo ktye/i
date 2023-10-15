@@ -28,17 +28,16 @@ fi
 go install
 
 if [ "$1" = "cover" ]; then
-	go test -coverprofile=cov.out
+	go test -tags=small -coverprofile=cov.out
 	go tool cover -html=cov.out -o cov.html
 fi
 
 wg        -nomain . > k.wat
+wg -small -nomain . > s.wat
 
 /c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
 
 cp k.t          /c/k/ktye.github.io/k.t
-
-wc -c /c/k/ktye.github.io/k.wasm
-wasm-opt -Oz --enable-bulk-memory /c/k/ktye.github.io/k.wasm -o - | wc -c
+#cp apl/apl.*    /c/k/ktye.github.io/
 
 #rm k.k out k.wat
