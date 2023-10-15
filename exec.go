@@ -62,13 +62,17 @@ func exec(x K) K {
 				dx(a)
 				a = pop()
 			case 5: // 320       jump
-				p += int32(a)
-				a = pop()
+				trap(Nyi) //jumps will be removed, 320 will be RET 
+				//p += int32(a)
+				//a = pop()
+/*
 			case 6: // 384       jump if not
+				trap(Nyi) //jumps will be removed
 				u = pop()
 				p += int32(a) * I32B(int32(u) == 0)
 				dx(u)
 				a = pop()
+*/
 			default: //448..     quoted verb
 				push(a)
 				a = rx(u - 448)
