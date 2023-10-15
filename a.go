@@ -18,22 +18,22 @@ func init() {
 	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
 
-	Functions(220, negi, negf, negz) //220
-	Functions(223, absi, absf, nyi)  //227
-	Functions(226, addi, addf, addz) //234
-	Functions(229, subi, subf, subz) //245
-	Functions(232, muli, mulf, mulz) //256
-	Functions(235, divi, divf, divz) //267
-	Functions(238, mini, minf, minz) //278
-	Functions(241, maxi, maxf, maxz) //289
-	Functions(244, modi, sqrf, nyi)  //300
+	Functions(220, negi, negf, negz)
+	Functions(227, absi, absf)
+	Functions(234, addi, addf, addz)
+	Functions(245, subi, subf, subz)
+	Functions(256, muli, mulf, mulz)
+	Functions(267, divi, divf, divz)
+	Functions(278, mini, minf, minz)
+	Functions(289, maxi, maxf, maxz)
+	Functions(300, modi, sqrf, nyi)
 
-	Functions(247, eqi, eqf, eqz, eqC, eqI, eqI, eqF, eqZ) //308
-	Functions(255, lti, ltf, ltz, guC, guI, guI, guF, guZ) //323
-	Functions(263, gti, gtf, gtz, gdC, gdI, gdI, gdF, gdZ) //338
+	Functions(308, eqi, eqf, eqz, eqC, eqI, eqI, eqF, eqZ)
+	Functions(323, lti, ltf, ltz, guC, guI, guI, guF, guZ)
+	Functions(338, gti, gtf, gtz, gdC, gdI, gdI, gdF, gdZ)
 
-	Functions(271, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL) //353
+	Functions(353, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL)
 
-	Functions(285, sum, rd0, prd, rd0, min, max) //367
-	Functions(291, sums, rd0, prds, rd0, rd0)    //374
+	Functions(367, sum, rd0, prd, rd0, min, max)
+	Functions(374, sums, rd0, prds, rd0, rd0)
 }

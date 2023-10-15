@@ -173,6 +173,25 @@ func key(x, y K, t T) K { // Dt or Tt
 		}
 		x = Enl(x) //allow `a!,1 2 3 short for (`a)!,1 2 3
 	}
+	/*
+		if xt < 16 || xt == Dt {
+			if yt < 16 || yt == Dt {
+				return Key(Enl(x), Enl(y))
+			} else {
+				if xt == st && yt == Tt {
+					return keyt(x, y)
+				}
+				x = ntake(nn(y), x)
+			}
+		}
+		xn := nn(x)
+		if yt < 16 || yt == Dt {
+			y = ntake(nn(x), y)
+		}
+		if xn != nn(y) {
+			trap(Length)
+		}
+	*/
 	xn := nn(x)
 	if t == Tt {
 		if xn > 0 {
