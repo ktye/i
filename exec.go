@@ -237,24 +237,6 @@ func Dmd(x, i, v, y K) K {
 	return Amd(x, f, 1, Dmd(Atx(x, f), i, v, y))
 }
 
-func Whl(c, b K) K { // while[c;b..]
-	r := K(0)
-	for {
-		p := exec(rx(c))
-		dx(p)
-		if int32(p) == 0 {
-			break
-		}
-		dx(r)
-		r = exec(rx(b))
-	}
-	dx(c)
-	dx(b)
-	return r
-}
-
-func Cnd(x K) K { return nyi(x) }
-
 //vcount: func vcount(x K) {
 //vcount: 	i := Cnt(rx(x))
 //vcount: 	Printf("vcount %d\n", int32(i))

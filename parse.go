@@ -253,39 +253,31 @@ func pspec(r, n K) K {
 	}
 	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]
 		dx(r)
-		r = Fst(rx(n))
-		return cat1(cat1(Enl(join(256, ndrop(1, n))), r), 86)
-		//return pwhl(n, ln-1)
+		return whl(n, ln-1)
 	}
 	return 0
 }
-
-/*
-func pwhl(x K, xn int32) K {
-	c := Fst(rx(x))
-	return cat1(cat1(Enl(join(256, ndrop(1, x))), c), 86)
-
-		r := cat1(Fst(rx(x)), 0)
-		p := nn(r) - 1
-		r = cat1(r, 384) // jif
-		r = cat1(r, 256) // drop
-		xp := int32(x)
-		sum := int32(2)
-		for i := int32(0); i < xn; i++ {
-			if i != 0 {
-				r = cat1(r, 256)
-			}
-			xp += 8
-			y := x0(K(xp))
-			sum += 1 + nn(y)
-			r = ucat(r, y)
+func whl(x K, xn int32) K {
+	r := cat1(Fst(rx(x)), 0)
+	p := nn(r) - 1
+	r = cat1(r, 384) // jif
+	r = cat1(r, 256) // drop
+	xp := int32(x)
+	sum := int32(2)
+	for i := int32(0); i < xn; i++ {
+		if i != 0 {
+			r = cat1(r, 256)
 		}
-		r = cat1(cat1(r, Ki(-8*(2+nn(r)))), 320) // jmp back
-		SetI64(int32(r)+8*p, int64(Ki(8*sum)))   // jif
-		dx(x)
-		return ucat(l1(0), r) // null for empty while
+		xp += 8
+		y := x0(K(xp))
+		sum += 1 + nn(y)
+		r = ucat(r, y)
+	}
+	r = cat1(cat1(r, Ki(-8*(2+nn(r)))), 320) // jmp back
+	SetI64(int32(r)+8*p, int64(Ki(8*sum)))   // jif
+	dx(x)
+	return ucat(l1(0), r) // null for empty while
 }
-*/
 func cond(x K, xn int32) K {
 	nxt := int32(0)
 	sum := int32(0)
