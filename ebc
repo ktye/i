@@ -1,0 +1,62 @@
+ebc: embedded byte code
+
+currently some part of k is implemented in k (z.k) which is embedded
+in the program binary and evaluated by kinit.
+
+evaluation means:
+
+       tokenize         parse                execute
+ k-chars -> k-token-list -> k-instruction-list -> k-value+sideffects.
+
+
+maybe it's more space efficient to store another form in the binary:
+
+         parse2               execute
+ ebc-chars -> k-instruction-list -> k-value..
+
+
+parse2 is an alternative parser that is supposed to be simpler
+than the current parser.
+
+ebc should be close to the the instruction list and needs to be
+able to represent k-constants (lists, lambda, ..), verbs and some
+special instructions for the kvm.
+
+we can only win some space if parse can be rewritten in k, converted
+to ebc and embedded.
+
+the question is if:
+
+ (embedded) (native-code)      (native-code)
+  (parse.b + parse2)       <       parse
+
+
+a converter (a build tool outside the binary) generates parse.b
+by translating backwards from the kvm-instruction-list to ebc.
+
+
+
+                       - - e - b - c - -
+ 
+0....64  monadic builtins
+64..128  dyadic  builtins
+128      dyadic-indirect
+129      tetradic-@
+130      tetradic-.
+131      drop
+132      return
+133 v    quoted verb follows (1 byte immediate)
+134..137 k constants -1,0,1,2,3 (instead of 5-byte 139i)
+138 c    char constant c:1 byte imm
+139 i    int           i:4
+140 s    symbol        s:1  (256 symbols, value:8*s)
+141 f    float         f:8
+142 z    complex       z:16
+143 n C  chars n:1 byte length  
+144 n I  ints
+145 n S  symbols
+146 n F  floats
+147 n Z  complexi
+148 n L  list (is length 256 enough?)
+149 CSiL lambda k-source-str locals arity instruction-list(ebc encoded)
+
