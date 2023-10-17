@@ -4,3 +4,5 @@
 40297 36553 /remove inline while
 40161 36944 /remove inline cond, change arity calculation
 40135 36924 /remove jumps from kvm
+40202 36510 /terminate instruction list with 320
+

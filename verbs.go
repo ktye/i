@@ -733,6 +733,9 @@ func Val(x K) K {
 		return r
 	}
 	if xt == Lt {
+		if I64(ep(x)-8) != 320 {
+			x = cat1(x, 320)
+		}
 		return exec(x) // .L e.g. 1+2 is (1;2;`66)
 	}
 	if xt > Lt {
@@ -746,7 +749,7 @@ func Val(x K) K {
 func val(x K) K {
 	x = parse(tok(x))
 	xn := nn(x)
-	xp := int32(x) + 8*(xn-1)
+	xp := int32(x) + 8*(xn-2) //8*(xn-1)
 	a := int32(0)
 	if xn > 2 && I64(xp) == 64 {
 		a = 1

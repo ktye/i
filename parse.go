@@ -18,7 +18,7 @@ func parse(x K) K {
 		trap(Parse)
 	}
 	lfree(x)
-	return r
+	return cat1(r, 320)
 }
 func es() K {
 	r := mk(Lt, 0)
@@ -215,7 +215,7 @@ func plam(s0 int32) K {
 		pp -= 8
 		loc = mk(St, 0)
 	}
-	c := es()
+	c := cat1(es(), 320)
 	n = next()
 	if n != 125 {
 		trap(Parse)
@@ -242,13 +242,13 @@ func pspec(r, n K) K {
 	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 465 {
 			dx(r)
-			return l2(n, 22) //Cnd
+			return l2(Ecl(13, l2(n, 320)), 22) // Cnd   (n,\`320;`22)
 		}
 	}
 	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]
 		dx(r)
-		r = Fst(rx(n))
-		return cat1(cat1(Enl(join(256, ndrop(1, n))), r), 86) //Whl
+		r = cat1(Fst(rx(n)), 320)
+		return cat1(cat1(Enl(cat1(join(256, ndrop(1, n)), 320)), r), 86) //Whl
 	}
 	return 0
 }

@@ -19,10 +19,13 @@ func exec(x K) K {
 	b := K(0)
 	c := K(0)
 	xn := nn(x)
-	if xn == 0 {
+	if xn < 2 { //only `320 // xn == 0 {
 		dx(x)
 		return 0
 	}
+
+	//if I64(ep(x)-8)!=320{panic("exec not terminated")}
+
 	p := int32(x)
 	e := p + 8*xn
 	//kdb:var arg K
@@ -32,6 +35,11 @@ func exec(x K) K {
 			push(a)
 			a = rx(u)
 		} else {
+
+			if int32(u) == 320 { //todo
+				break
+			}
+
 			switch int32(u) >> 6 {
 			case 0: //   0..63   monadic
 				//kdb:arg=l1(rx(a))
@@ -62,17 +70,17 @@ func exec(x K) K {
 				dx(a)
 				a = pop()
 			case 5: // 320       jump
-				trap(Nyi) //jumps will be removed, 320 will be RET 
+				trap(Nyi) //jumps will be removed, 320 will be RET
 				//p += int32(a)
 				//a = pop()
-/*
-			case 6: // 384       jump if not
-				trap(Nyi) //jumps will be removed
-				u = pop()
-				p += int32(a) * I32B(int32(u) == 0)
-				dx(u)
-				a = pop()
-*/
+				/*
+					case 6: // 384       jump if not
+						trap(Nyi) //jumps will be removed
+						u = pop()
+						p += int32(a) * I32B(int32(u) == 0)
+						dx(u)
+						a = pop()
+				*/
 			default: //448..     quoted verb
 				push(a)
 				a = rx(u - 448)
