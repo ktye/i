@@ -293,8 +293,15 @@ func ntake(n int32, y K) K {
 		dx(y)
 		return r
 	}
-	r = seq(n)
 	yn := nn(y)
+
+	s := sz(t)
+	if I32(yp-4) == 1 && bucket(s*yn) == bucket(s*n) && n <= yn && t < Lt {
+		SetI32(yp-12, n)
+		return y
+	}
+
+	r = seq(n)
 	if n > yn && yn > 0 {
 		r = idiv(r, Ki(yn), 1)
 	}

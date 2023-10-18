@@ -13,6 +13,7 @@ func quoted(x K) int32 { return I32B(int32(x) >= 448 && tp(x) == 0) }
 func quote(x K) K      { return x + 448 }
 func unquote(x K) K    { return x - 448 }
 
+/*
 func exec(x K) K {
 	srcp = 0
 	a := K(0) // accumulator
@@ -73,14 +74,14 @@ func exec(x K) K {
 				trap(Nyi) //jumps will be removed, 320 will be RET
 				//p += int32(a)
 				//a = pop()
-				/*
-					case 6: // 384       jump if not
-						trap(Nyi) //jumps will be removed
-						u = pop()
-						p += int32(a) * I32B(int32(u) == 0)
-						dx(u)
-						a = pop()
-				*/
+				//
+				//	case 6: // 384       jump if not
+				//		trap(Nyi) //jumps will be removed
+				//		u = pop()
+				//		p += int32(a) * I32B(int32(u) == 0)
+				//		dx(u)
+				//		a = pop()
+				//
 			default: //448..     quoted verb
 				push(a)
 				a = rx(u - 448)
@@ -94,6 +95,7 @@ func exec(x K) K {
 	dx(x)
 	return a
 }
+*/
 
 //kdb:func fpush(f, x K){}
 //kdb:func fpop(){}
@@ -112,14 +114,23 @@ func push(x K) {
 	}
 }
 func pop() K {
+	if sp == 256 {
+		println("underflow")
+		return 0
+	}
+	sp -= 8
+	return K(I64(sp))
+}
+
+/*
+func pop() K {
 	sp -= 8
 	if sp < 256 {
 		trap(Stack)
 	}
-	//return K(I64(sp))
-	r := K(I64(sp))
-	return r
+	return K(I64(sp))
 }
+*/
 func lst(n K) K {
 	rn := int32(n)
 	r := mk(Lt, rn)
@@ -130,6 +141,9 @@ func lst(n K) K {
 	}
 	return uf(r)
 }
+
+//null is a pseudo function. it appears in the parser e.g. on empty list elements. it should should return 0 (as a value, like if it was quoted).
+//implemented as a function it pushed back it's argument on the stack.
 func nul(x K) K { push(x); return 0 }
 func lup(x K) K {
 	vp := I32(8) + int32(x)
@@ -267,11 +281,15 @@ func Whl(c, b K) K { // while[c;b..]
 
 func Cnd(x K) K { // $[x0;x1;x2;..]
 	r := K(0)
+	//fmt.Println("Cnd x", int32(x), sK(x))
 	n := nn(x) - 1
 	i := int32(0)
 	for i < n {
 		dx(r)
+		//ci := ati(rx(x), i)
+		//fmt.Println("cnd-ci", int32(ci))
 		r = exec(ati(rx(x), i))
+		//r = exec(ci)
 		if int32(r) != 0 {
 			i++
 			break
@@ -280,6 +298,9 @@ func Cnd(x K) K { // $[x0;x1;x2;..]
 	}
 	dx(r)
 	return exec(ati(x, i))
+	//xi := ati(x, i)
+	//fmt.Println("cnd-xi", int32(xi))
+	//return exec(xi)
 }
 
 //vcount: func vcount(x K) {

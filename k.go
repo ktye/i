@@ -37,6 +37,10 @@ func kinit() {
 	y := sc(Ku(121)) // `y 16
 	z := sc(Ku(122)) // `z 24
 	xyz = cat1(Cat(x, y), z)
+
+	RS = Wer(Ki(13)) //or maybe &5 or &13
+	push(0)          //this used to be acc (now sp is 264)
+
 	zk()
 }
 

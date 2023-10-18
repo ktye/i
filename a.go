@@ -37,3 +37,120 @@ func init() {
 	Functions(285, sum, rd0, prd, rd0, min, max) //367
 	Functions(291, sums, rd0, prds, rd0, rd0)    //374
 }
+
+// kvm
+var IP int32 //instruction pointer
+var RS K     //return stack
+
+func exec(x K) K {
+	//println("exec>sp", sp)
+	//println("exec IP", IP)
+	//println("exec#", nn(x), sK(x))
+	if nn(x) < 2 {
+		dx(x)
+		return 0
+	}
+
+	rpush(IP)
+	rpush(0)
+	IP = int32(x)
+	for step() != 0 {
+	}
+
+	//rpop() //0
+	IP = rpop()
+	dx(x)
+	r := pop()
+
+	//println("st", K(I64(256)))
+	//println("exec<sp", sp)
+	return r
+}
+func step() int32 {
+	var x, a, b, c K
+	for {
+		x = K(I64(IP)) //fetch instruction
+		//fmt.Println("fetch", sK(x))
+		if x == 320 {
+			//rest()
+			//println("retn")
+			IP = rpop()
+			//println("jmp IP", IP)
+			if IP != 0 {
+				//println("    IP", IP, ":", sK(K(Lt)<<59|K(IP)))
+			}
+			if IP == 0 {
+				//println("halt")
+				return 0 //halt
+			}
+			continue
+		}
+		break
+	}
+
+	/*
+		if tp(x) != 0 {
+			println("u", tp(x), sK(x))
+		} else {
+			println("v", int32(x))
+		}
+	*/
+
+	if tp(x) != 0 { //noun
+		push(rx(x))
+	} else {
+		v := int32(x)
+		//println("verb", v, v>>6)
+		switch v >> 6 {
+		case 0: //monadic
+			push(Func[v].(f1)(pop()))
+		case 1: //dyadic
+			a = pop()
+			push(Func[v].(f2)(a, pop()))
+		case 2: //dyadic indirect
+			a = pop()
+			b = pop()
+			push(Cal(a, l2(b, pop())))
+		case 3: //tetradic
+			a = pop()
+			b = pop()
+			c = pop()
+			push(Func[v].(f4)(a, b, c, pop()))
+		case 4: // drop
+			dx(pop())
+		case 5:
+			trap(Nyi) //todo RET
+		default: //quoted
+			push(x - 448)
+		}
+	}
+	IP += 8
+	return 1
+}
+func rpush(x int32) {
+	//fmt.Println("rpush #", nn(RS)+1, RS)
+	RS = cat1(RS, Ki(x))
+	/*
+		if RS != 10952754293765050768 {
+			println("RS push", RS, "relocation")
+			panic("RS")
+		}
+	*/
+}
+func rpop() int32 {
+	//fmt.Println("rpop  #", nn(RS)-1, RS)
+	if nn(RS) == 13 {
+		panic("rs underflow")
+	}
+	r := I32(int32(RS) + 4*(nn(RS)-1))
+
+	RS = ndrop(-1, RS)
+	/*
+		if RS != 10952754293765050768 {
+			println("RS pop", RS, "relocation")
+			panic("RS")
+		}
+	*/
+	//fmt.Println("rpop ", r)
+	return r
+}

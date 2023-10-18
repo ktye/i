@@ -18,6 +18,7 @@ import (
 var save []byte
 
 func newtest() {
+	fmt.Println("newtest")
 	Stdout = os.Stdout
 	rand_ = 1592653589
 	if save == nil {
@@ -27,7 +28,7 @@ func newtest() {
 	} else {
 		Bytes = make([]byte, len(save))
 		copy(Bytes, save)
-		pp, pe, sp = 0, 0, 256
+		pp, pe, sp = 0, 0, 264
 	}
 }
 func mkchars(b []byte) (r K) {
@@ -664,15 +665,20 @@ func TestArgs(t *testing.T) {
 	}
 }
 func reset() {
-	if sp != 256 {
-		panic(Stack)
+	//if sp != 256 {
+	if sp != 264 || I64(256) != 0 {
+		fmt.Println("sp", sp)
+		panic("reset: unbalanced stack")
 	}
 	dx(src())
 	dx(xyz)
 	dx(K(I64(0)))
+	//fmt.Println(sK(K(I64(8))))
 	dx(K(I64(8)))
+
+	dx(RS)
 	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
-		trap(Err)
+		panic("reset: mcount")
 	}
 	for i := int32(5); i < 31; i++ {
 		SetI32(4*i, 0)
