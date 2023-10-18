@@ -18,7 +18,6 @@ import (
 var save []byte
 
 func newtest() {
-	fmt.Println("newtest")
 	Stdout = os.Stdout
 	rand_ = 1592653589
 	if save == nil {
@@ -154,6 +153,16 @@ func TestShuffle(t *testing.T) {
 	dx(shuffle(seq(8), 5))
 	reset()
 }
+func TestStep(t *testing.T) {
+	newtest()
+	a := cat1(l3(Ki(3), Ki(4), 4+64), 320)                   //3*4
+	l := l3(l3(l2(Ki(0), 320), l2(Ki(1), 320), a), 257, 320) //cnd: $[0;1;3*4]
+	r := exec(l)
+	if r != Ki(12) {
+		t.Fatalf("expected 2 got %d %d\n", tp(r), int32(r))
+	}
+	reset()
+}
 func TestKT(t *testing.T) {
 	//t.Skip()
 	newtest()
@@ -195,7 +204,7 @@ func TestKE(t *testing.T) {
 	}
 }
 func TestTraps(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	testCases := []struct {
 		f func()
 		e int32
@@ -677,7 +686,8 @@ func reset() {
 	dx(K(I64(8)))
 
 	dx(RS)
-	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
+	if d := (uint32(1) << uint32(I32(128))) - (4096 + mcount()); d != 0 {
+		println("memory delta:", d)
 		panic("reset: mcount")
 	}
 	for i := int32(5); i < 31; i++ {

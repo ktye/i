@@ -242,7 +242,7 @@ func pspec(r, n K) K {
 	if nn(r) == 1 && ln > 2 { // $[..] cond
 		if tp(v) == 0 && int32(v) == 465 {
 			dx(r)
-			return l2(Ecl(13, l2(n, 320)), 22) // Cnd   (n,\`320;`22)
+			return l2(Ecl(13, l2(n, 320)), 257) // Cnd   (n,\`320;`257)
 		}
 	}
 	if nn(r) == 2 && ln > 1 && int32(v) == 64 { // while[..]

@@ -13,7 +13,7 @@ func init() {
 	Export(main, Asn, Atx, Cal, cs, dx, Kc, Kf, Ki, kinit, l2, mk, nn, repl, rx, sc, src, Srcp, tp, trap, Val)
 
 	//            0    :    +    -    *    %    &    |    <    >    =10   ~    !    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
-	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, Cnd, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, Img, Cnj, Ang, nyi, Uqs, nyi, Cos, Fwh, Las, Exp, Log, Sin, Tok, Prs)
+	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, nyi, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, Img, Cnj, Ang, nyi, Uqs, nyi, Cos, Fwh, Las, Exp, Log, Sin, Tok, Prs)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Min, Max, Les, Mor, Eql, Mtc, Key, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, Whl, Rdc, nyi, Scn, nyi, com, prj, Otu, In, Find, Hyp, Cpx, nyi, Rot, Enc, Dec, nyi, nyi, Bin, Mod, Pow, Lgn, nyi, nyi, Rtp)
 	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
@@ -45,9 +45,8 @@ var RS K     //return stack
 func exec(x K) K {
 	//println("exec>sp", sp)
 	//println("exec IP", IP)
-	//println("exec#", nn(x), sK(x))
+	println("exec#", nn(x), sK(x))
 	if nn(x) < 2 {
-		dx(x)
 		return 0
 	}
 
@@ -59,11 +58,12 @@ func exec(x K) K {
 
 	//rpop() //0
 	IP = rpop()
-	dx(x)
 	r := pop()
 
+	dx(x)
 	//println("st", K(I64(256)))
 	//println("exec<sp", sp)
+	println("exec return", sK(r))
 	return r
 }
 func step() int32 {
@@ -98,9 +98,10 @@ func step() int32 {
 
 	if tp(x) != 0 { //noun
 		push(rx(x))
+		//println("push", sK(x))
 	} else {
 		v := int32(x)
-		//println("verb", v, v>>6)
+		//println("v", v, v>>6)
 		switch v >> 6 {
 		case 0: //monadic
 			push(Func[v].(f1)(pop()))
@@ -117,7 +118,12 @@ func step() int32 {
 			c = pop()
 			push(Func[v].(f4)(a, b, c, pop()))
 		case 4: // drop
-			dx(pop())
+			if v == 256 {
+				dx(pop())
+			}
+			if v == 257 {
+				cnd(pop())
+			}
 		case 5:
 			trap(Nyi) //todo RET
 		default: //quoted
@@ -128,7 +134,7 @@ func step() int32 {
 	return 1
 }
 func rpush(x int32) {
-	//fmt.Println("rpush #", nn(RS)+1, RS)
+	//fmt.Println("rpush #", nn(RS)+1, RS, x)
 	RS = cat1(RS, Ki(x))
 	/*
 		if RS != 10952754293765050768 {
@@ -151,6 +157,6 @@ func rpop() int32 {
 			panic("RS")
 		}
 	*/
-	//fmt.Println("rpop ", r)
+	//fmt.Println("rpop ", r, "#", nn(RS))
 	return r
 }

@@ -279,28 +279,41 @@ func Whl(c, b K) K { // while[c;b..]
 	return r
 }
 
+/*
 func Cnd(x K) K { // $[x0;x1;x2;..]
-	r := K(0)
-	//fmt.Println("Cnd x", int32(x), sK(x))
+	c := K(0)
 	n := nn(x) - 1
 	i := int32(0)
 	for i < n {
-		dx(r)
-		//ci := ati(rx(x), i)
-		//fmt.Println("cnd-ci", int32(ci))
-		r = exec(ati(rx(x), i))
-		//r = exec(ci)
-		if int32(r) != 0 {
+		dx(c)
+		c = exec(ati(rx(x), i))
+		if int32(c) != 0 {
 			i++
 			break
 		}
 		i += 2
 	}
-	dx(r)
+	dx(c)
 	return exec(ati(x, i))
-	//xi := ati(x, i)
-	//fmt.Println("cnd-xi", int32(xi))
-	//return exec(xi)
+}
+*/
+func cnd(x K) { // $[x0;x1;x2;..]
+	c := K(0)
+	n := nn(x) - 1
+	i := int32(0)
+	for i < n {
+		dx(c)
+		c = exec(ati(rx(x), i)) //assume no tco in condition
+		if int32(c) != 0 {
+			i++
+			break
+		}
+		i += 2
+	}
+	dx(c)
+	x = ati(x, i)
+	dx(x)
+	IP = int32(x) - 8
 }
 
 //vcount: func vcount(x K) {
