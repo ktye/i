@@ -155,11 +155,14 @@ func TestShuffle(t *testing.T) {
 }
 func TestStep(t *testing.T) {
 	newtest()
+	/*
 	a := cat1(l3(Ki(3), Ki(4), 4+64), 320)                   //3*4
 	l := l3(l3(l2(Ki(0), 320), l2(Ki(1), 320), a), 257, 320) //cnd: $[0;1;3*4]
-	r := exec(l)
-	if r != Ki(12) {
-		t.Fatalf("expected 2 got %d %d\n", tp(r), int32(r))
+	*/
+	c := mkchars([]byte("1+$[0;1;3*4]"))
+	r := exec(parse(tok(c)))
+	if r != Ki(13) {
+		t.Fatalf("got %d %d\n", tp(r), int32(r))
 	}
 	reset()
 }

@@ -45,8 +45,9 @@ var RS K     //return stack
 func exec(x K) K {
 	//println("exec>sp", sp)
 	//println("exec IP", IP)
-	println("exec#", nn(x), sK(x))
+	//println("exec#", nn(x), sK(x))
 	if nn(x) < 2 {
+		dx(x)
 		return 0
 	}
 
@@ -63,7 +64,7 @@ func exec(x K) K {
 	dx(x)
 	//println("st", K(I64(256)))
 	//println("exec<sp", sp)
-	println("exec return", sK(r))
+	//println("exec return", sK(r))
 	return r
 }
 func step() int32 {
@@ -122,7 +123,7 @@ func step() int32 {
 				dx(pop())
 			}
 			if v == 257 {
-				cnd(pop())
+				cnd()
 			}
 		case 5:
 			trap(Nyi) //todo RET

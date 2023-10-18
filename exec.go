@@ -297,13 +297,15 @@ func Cnd(x K) K { // $[x0;x1;x2;..]
 	return exec(ati(x, i))
 }
 */
-func cnd(x K) { // $[x0;x1;x2;..]
+func cnd() { // $[x0;x1;x2;..]
+	rpush(IP + 8)
+	x := pop()
 	c := K(0)
 	n := nn(x) - 1
 	i := int32(0)
 	for i < n {
 		dx(c)
-		c = exec(ati(rx(x), i)) //assume no tco in condition
+		c = exec(ati(rx(x), i)) //assume no tail in condition
 		if int32(c) != 0 {
 			i++
 			break
