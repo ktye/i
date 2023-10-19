@@ -34,14 +34,14 @@ fi
 
 wg        -nomain . > k.wat
 
-#/c/local/wabt/wat2wasm -o /c/k/ktye.github.io/k.wasm k.wat
-#cp k.t          /c/k/ktye.github.io/k.t
-#wc -c /c/k/ktye.github.io/k.wasm
-#wasm-opt -Oz --enable-bulk-memory /c/k/ktye.github.io/k.wasm -o - | wc -c
-
 
 /c/local/wabt/wat2wasm -o k.wasm k.wat
 wc -c k.wasm
 wasm-opt -Oz --enable-bulk-memory k.wasm -o - | wc -c
+
+if [ "$1" = "web" ]; then
+	#cp k.wasm /c/k/ktye.github.io/k.wasm
+	ls *.go|grep -v _test.go|xargs cat >/c/k/ktye.github.io/k.go
+fi
 
 #rm k.k out k.wat
