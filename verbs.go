@@ -768,7 +768,7 @@ func val(x K) K {
 	}
 	return x
 }
-func Enc(x, y K) K { // x\\y
+func Enc(x, y K) K { // x\y
 	xt := tp(x)
 	n := int32(0)
 	if xt == It {
@@ -795,7 +795,7 @@ l:
 	dx(y)
 	return Rev(r)
 }
-func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
+func Dec(x, y K) K { // x/y   {z+x*y}/[0;x;y]
 	if tp(y) < 16 {
 		trap(Type)
 	}
