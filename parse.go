@@ -381,8 +381,9 @@ func monadic(x K) K {
 	l := lastp(x)
 	if quoted(l) != 0 {
 		r := cat1(ldrop(-1, x), unquote(l))
-		if int32(l) == 449 { // :x (return: identity+jump)
-			return cat1(cat1(r, Ki(1048576)), 320)
+		if int32(l) == 449 { // :x return lambda
+			//return cat1(cat1(r, Ki(1048576)), 320) //identity+long jump
+			return cat1(Enl(ndrop(-1, r)), 321) //quote + tailcall
 		} else {
 			return r
 		}

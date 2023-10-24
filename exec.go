@@ -25,7 +25,6 @@ func exec(x K) K {
 	}
 	p := int32(x)
 	e := p + 8*xn
-	//kdb:var arg K
 	for p < e {
 		u := K(I64(p))
 		if tp(u) != 0 {
@@ -34,35 +33,29 @@ func exec(x K) K {
 		} else {
 			switch int32(u) >> 6 {
 			case 0: //   0..63   monadic
-				//kdb:arg=l1(rx(a))
-				//kdb:fpush(u,arg)
 				a = Func[marksrc(u)].(f1)(a)
-				//kdb:dx(arg);fpop()
 			case 1: //  64..127  dyadic
-				//kdb:arg=l2(rx(a),rx(K(I64(sp-8))))
-				//kdb:fpush(u,arg)
 				a = Func[marksrc(u)].(f2)(a, pop())
-				//kdb:dx(arg);fpop()
 			case 2: // 128       dyadic indirect
-				//kdb:arg=l2(rx(K(I64(sp-8))),rx(K(I64(sp-16))))
 				marksrc(a)
-				//kdb:c:=rx(a)
-				//kdb:fpush(c,arg)
 				b = pop()
 				a = Cal(a, l2(b, pop()))
-				//kdb:dx(c);dx(arg);fpop()
 			case 3: // 192..255  tetradic
-				//kdb:arg=l2(l2(rx(a),rx(K(I64(sp-8)))),l2(rx(K(I64(sp-16))),rx(K(I64(sp-24)))))
-				//kdb:fpush(u,arg)
 				b = pop()
 				c = pop()
 				a = Func[marksrc(u)].(f4)(a, b, c, pop())
-				//kdb:dx(arg);fpop()
 			case 4: // 256       drop
 				dx(a)
 				a = pop()
 			case 5: // 320       jump
-				p += int32(a)
+				if u == 321 { //tail/return
+					dx(x)
+					x = a
+					e = ep(x)
+					p = int32(x) - 8
+				} else {
+					p = p + int32(a)
+				}
 				a = pop()
 			case 6: // 384       jump if not
 				u = pop()
@@ -82,10 +75,6 @@ func exec(x K) K {
 	dx(x)
 	return a
 }
-
-//kdb:func fpush(f, x K){}
-//kdb:func fpop(){}
-
 func marksrc(x K) int32 {
 	if p := 0xffffff & int32(x>>32); p != 0 {
 		srcp = p
