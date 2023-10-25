@@ -48,15 +48,39 @@ func exec(x K) K {
 				dx(a)
 				a = pop()
 			case 5: // 320       jump
-				if u == 321 { //tail/return
-					dx(x)
-					x = a
-					e = ep(x)
-					p = int32(x) - 8
+				if u != 320 { //tail/return
+					b = pop()
+					if tp(a) == 13 {
+						c = lam0(a, b)
+						if c == 0 {
+							c = pop() //todo remove check
+							if c != 0 {
+								trap(Stack)
+							}
+							lam3(pop())
+							lam1(a, explode(b))
+
+							dx(x)
+							x = rx(K(I64(int32(a))))
+							dx(a)
+
+							p = int32(x) - 8
+							e = ep(x)
+
+							a = 0
+						}
+					}
+					/*
+						dx(x)
+						x = a
+						e = ep(x)
+						p = int32(x) - 8
+					*/
+					//p = e
 				} else {
 					p = p + int32(a)
+					a = pop()
 				}
-				a = pop()
 			case 6: // 384       jump if not
 				u = pop()
 				p += int32(a) * I32B(int32(u) == 0)
@@ -67,11 +91,15 @@ func exec(x K) K {
 				a = rx(u - 448)
 			}
 		}
-		//vcount: vcount(a)
 		p += 8
 		continue
 	}
-	dx(pop())
+
+	q := pop() //todo remove check
+	if q != 0 {
+		trap(Stack)
+	}
+
 	dx(x)
 	return a
 }
@@ -93,9 +121,7 @@ func pop() K {
 	if sp < 256 {
 		trap(Stack)
 	}
-	//return K(I64(sp))
-	r := K(I64(sp))
-	return r
+	return K(I64(sp))
 }
 func lst(n K) K {
 	rn := int32(n)
@@ -108,6 +134,9 @@ func lst(n K) K {
 	return uf(r)
 }
 func nul(x K) K { push(x); return 0 }
+func rst(x K) K { //restore vars after lambda
+	return x
+}
 func lup(x K) K {
 	vp := I32(8) + int32(x)
 	r := x0(K(vp))
@@ -225,8 +254,3 @@ func Dmd(x, i, v, y K) K {
 	x = rx(x)
 	return Amd(x, f, 1, Dmd(Atx(x, f), i, v, y))
 }
-
-//vcount: func vcount(x K) {
-//vcount: 	i := Cnt(rx(x))
-//vcount: 	Printf("vcount %d\n", int32(i))
-//vcount: }

@@ -118,6 +118,8 @@ func native(f K, x K) K {
 	}
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
+
+/*
 func lambda(f K, x K) K {
 	fn := nn(f)
 	xn := nn(x)
@@ -168,6 +170,76 @@ func lambda(f K, x K) K {
 	pp, pe = spp, spe
 	return r
 }
+*/
+func lambda(f K, x K) K {
+	r := lam0(f, x)
+	if r != 0 {
+		return r
+	}
+	lam1(f, x)
+	return lam2(f)
+}
+func lam0(f K, x K) K { //test if lambda call has correct number of args
+	fn := nn(f)
+	xn := nn(x)
+	if xn < fn {
+		rx(f)
+		return prj(f, x)
+	}
+	if xn != fn {
+		return trap(Rank)
+	}
+	return 0
+}
+func lam1(f K, x K) { //save(push) locals, assign args
+	fp := int32(f)
+	lo := K(I64(fp + 8))
+	n := nn(lo)
+	a := nn(f)
+	z := mk(Zt, n) //use a complex vector to store symbols+values w/o refcounting
+	zp := int32(z)
+	xp := int32(x)
+	lp := int32(lo)
+	vp := I32(8)
+	for i := int32(0); i < n; i++ {
+		p := I32(lp)
+		SetI32(zp, p)
+		p += vp
+		SetI64(zp+8, I64(p))
+		if i < a { //args
+			SetI64(p, I64(xp))
+			xp += 8
+		} else { //locals
+			SetI64(p, 0)
+		}
+		lp += 4
+		zp += 16
+	}
+	rl(x)
+	dx(x)
+	push(z)
+}
+func lam2(f K) K { //execute lambda
+	r := exec(rx(K(I64(int32(f)))))
+	lam3(pop())
+	return r
+}
+func lam3(z K) { //restore saved arguments
+	if tp(z) != Zt {
+		trap(Type)
+	}
+	vp := I32(8)
+	zp := int32(z)
+	e := ep(z)
+	for zp < e {
+		p := vp + I32(zp)
+		dx(K(I64(p)))
+		SetI64(p, I64(zp+8))
+		zp += 16
+	}
+	dx(z)
+}
+
 func com(x, y K) K { return K(int32(l2(y, x))) | K(cf)<<59 } // compose
 func prj(f, x K) K { // project
 	r := K(0)

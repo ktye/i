@@ -153,6 +153,31 @@ func TestShuffle(t *testing.T) {
 	dx(shuffle(seq(8), 5))
 	reset()
 }
+func TestTail(t *testing.T) {
+	newtest()
+	// $[y;:g[x+y;y-1];x] is
+	// (`y;.;128;`384;1;`y;.;-;`y;.;`x;.;+;2;`27;`g;.;`322;16;`320;`x;.)
+
+	f := `f:{$[x;:x+f x-1;x]};f 10`
+	g := `g:{$[y;:g[x+y;y-1];x]};g[0;10]`
+	for _, s := range []string{f, g} {
+		newtest()
+		r := Val(mkchars([]byte(s)))
+		if r != Ki(55) {
+			println("got", r, sK(r), "sp", sp)
+			t.Fatal("55")
+		}
+		reset()
+	}
+
+	//large recursion (1-million calls) would overflow stack if not eliminated.
+	newtest()
+	r := Val(mkchars([]byte(`g:{$[y;:g[x+y;y-1];x]};g[0;1000000]`)))
+	if r != Ki(1783293664) { // lower 32 bit of +/!1000000
+		t.Fatal("tail failed")
+	}
+	reset()
+}
 func TestKT(t *testing.T) {
 	//t.Skip()
 	newtest()
@@ -836,6 +861,7 @@ func TestArgs(t *testing.T) {
 }
 func reset() {
 	if sp != 256 {
+		println(sp)
 		panic(Stack)
 	}
 	dx(src())

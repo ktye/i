@@ -209,6 +209,7 @@ func plam(s0 int32) K {
 		pp -= 8
 		loc = mk(St, 0)
 	}
+	//c := cat1(es(), 30) //rst
 	c := es()
 	n = next()
 	if n != 125 {
@@ -380,12 +381,21 @@ func dyadic(x, y K) K {
 func monadic(x K) K {
 	l := lastp(x)
 	if quoted(l) != 0 {
-		r := cat1(ldrop(-1, x), unquote(l))
+		//r := cat1(ldrop(-1, x), unquote(l))
+		r := ldrop(-1, x)
 		if int32(l) == 449 { // :x return lambda
 			//return cat1(cat1(r, Ki(1048576)), 320) //identity+long jump
-			return cat1(Enl(ndrop(-1, r)), 321) //quote + tailcall
+			//return cat1(Enl(ndrop(-1, r)), 321) //quote + tailcall
+			l = lastp(r)
+			if 0xff000000ffffffff&(l) == 84 {
+				//return cat1(ldrop(-1, r), 238+l)
+				return cat1(ldrop(-1, r), 238+l)
+			} else {
+				return cat1(cat1(r, Ki(1048576)), 320)
+				//return cat1(r, 321) // return/tail
+			}
 		} else {
-			return r
+			return cat1(r, unquote(l))
 		}
 	}
 	return cat1(x, 83) // dyadic-@
