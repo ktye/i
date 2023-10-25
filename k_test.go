@@ -173,7 +173,7 @@ func TestTail(t *testing.T) {
 	//large recursion (1-million calls) would overflow stack if not eliminated.
 	newtest()
 	r := Val(mkchars([]byte(`g:{$[y;:g[x+y;y-1];x]};g[0;1000000]`)))
-	if r != Ki(1783293664) { // lower 32 bit of +/!1000000
+	if r != Ki(1784293664) { // lower 32 bit of +/!1000001
 		t.Fatal("tail failed")
 	}
 	reset()
