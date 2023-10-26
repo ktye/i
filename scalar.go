@@ -743,21 +743,21 @@ func uptype(x K, dst T) K {
 	xp = int32(x)
 	r := mk(dst+16, xn)
 	rp := int32(r)
-	ep := ep(r)
+	e := ep(r)
 	if dst == it {
-		for rp < ep {
+		for rp < e {
 			SetI32(rp, I8(xp))
 			xp++
 			rp += 4
 		}
 	} else if dst == ft {
-		for rp < ep {
+		for rp < e {
 			SetF64(rp, float64(I32(xp)))
 			xp += 4
 			rp += 8
 		}
 	} else if dst == zt {
-		for rp < ep {
+		for rp < e {
 			SetF64(rp, F64(xp))
 			SetF64(rp+8, 0.0)
 			xp += 8
