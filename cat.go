@@ -30,6 +30,9 @@ func Cat(x, y K) K {
 	}
 	return x
 }
+func Enl(x K) K { return uf(l1(x)) }
+
+/*
 func Enl(x K) K {
 	t := tp(x)
 	if t > 0 && t < 7 {
@@ -60,6 +63,7 @@ func Enl(x K) K {
 	}
 	return l1(x)
 }
+*/
 func explode(x K) K {
 	r := K(0)
 	xt := tp(x)
