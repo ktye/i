@@ -48,9 +48,12 @@ func exec(x K) K {
 				dx(a)
 				a = pop()
 			case 5: // 320       jump
-				if u != 320 { //tail/return
+				if u != 320 { //tail/return @(321) .(322)
 					b = pop()
-					if tp(a) == 13 {
+					if tp(a) == 13 { //λ
+						if u == 321 { //:f@x -> :f.,x
+							b = l1(b)
+						}
 						c = lam0(a, b)
 						if c == 0 {
 							c = pop() //todo remove check
@@ -59,24 +62,17 @@ func exec(x K) K {
 							}
 							lam3(pop())
 							lam1(a, explode(b))
-
 							dx(x)
 							x = rx(K(I64(int32(a))))
 							dx(a)
-
 							p = int32(x) - 8
 							e = ep(x)
-
 							a = 0
 						}
 					}
-					/*
-						dx(x)
-						x = a
-						e = ep(x)
-						p = int32(x) - 8
-					*/
-					//p = e
+					if a != 0 { //no tail-call
+						a = Cal(a, b)
+					}
 				} else {
 					p = p + int32(a)
 					a = pop()

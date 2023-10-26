@@ -154,9 +154,16 @@ func TestShuffle(t *testing.T) {
 	reset()
 }
 func TestTail(t *testing.T) {
-	newtest()
 	// $[y;:g[x+y;y-1];x] is
 	// (`y;.;128;`384;1;`y;.;-;`y;.;`x;.;+;2;`27;`g;.;`322;16;`320;`x;.)
+
+	newtest()
+	h := `h:{$[x<0;-7;:h x-1]};h 5`
+	r := Val(mkchars([]byte(h)))
+	if r != Ki(-7) {
+		t.Fatal("tail -7")
+	}
+	reset()
 
 	f := `f:{$[x;:x+f x-1;x]};f 10`
 	g := `g:{$[y;:g[x+y;y-1];x]};g[0;10]`
@@ -172,11 +179,37 @@ func TestTail(t *testing.T) {
 
 	//large recursion (1-million calls) would overflow stack if not eliminated.
 	newtest()
-	r := Val(mkchars([]byte(`g:{$[y;:g[x+y;y-1];x]};g[0;1000000]`)))
+	r = Val(mkchars([]byte(`g:{$[y;:g[x+y;y-1];x]};g[0;1000000]`)))
 	if r != Ki(1784293664) { // lower 32 bit of +/!1000001
 		t.Fatal("tail failed")
 	}
 	reset()
+
+	newtest()
+	r = Val(mkchars([]byte(`f:{$[x<1000;:f 1+x;x]};f 3`)))
+	if r != Ki(1000) {
+		t.Fatal("tail failed")
+	}
+	reset()
+
+}
+func TestNoTail(t *testing.T) {
+	tc := []struct {
+		s string
+		o int32
+	}{
+		{`a:1 2;f:{:a x};f 1`, 2},
+		{`a:(1 2;3 4);f:{:a[x;y]};f[1;0]`, 3},
+	}
+	for _, x := range tc {
+		newtest()
+		r := Val(mkchars([]byte(x.s)))
+		if r != Ki(x.o) {
+			t.Fatalf("notail %s: got %d/%d\n", x.s, tp(r), int32(r))
+		}
+		reset()
+	}
+	newtest()
 }
 func TestKT(t *testing.T) {
 	//t.Skip()

@@ -386,10 +386,10 @@ func monadic(x K) K {
 		if int32(l) == 449 { // :x return lambda
 			//return cat1(cat1(r, Ki(1048576)), 320) //identity+long jump
 			//return cat1(Enl(ndrop(-1, r)), 321) //quote + tailcall
-			l = lastp(r)
-			if 0xff000000ffffffff&(l) == 84 {
-				//return cat1(ldrop(-1, r), 238+l)
+			l = 0xff000000ffffffff & lastp(r)
+			if l-83 < 2 { //83(@) 84(.)
 				return cat1(ldrop(-1, r), 238+l)
+				//return cat1(r, 238+l)
 			} else {
 				return cat1(cat1(r, Ki(1048576)), 320)
 				//return cat1(r, 321) // return/tail
