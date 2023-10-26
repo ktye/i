@@ -219,7 +219,8 @@ func plam(s0 int32) K {
 	cp := int32(c)
 	if ar < 0 {
 		ar = 0
-		for i := int32(0); i < cn; i++ {
+		for cn > 0 {
+			cn--
 			r = K(I64(cp))
 			if tp(r) == 0 && int32(r) == 20 {
 				r = K(I64(cp - 8))
@@ -334,16 +335,17 @@ func rlist(x, p K) K {
 		return Fst(x)
 	}
 	if p != 2 {
-		p = clist(x, n)
+		p = clist(x)
 		if p != 0 {
 			return l1(p)
 		}
 	}
 	return cat1(cat1(flat(Rev(x)), Ki(n)), 27)
 }
-func clist(x K, n int32) K {
+func clist(x K) K {
 	p := int32(x)
-	for i := int32(0); i < n; i++ {
+	e := ep(x)
+	for p < e {
 		xi := K(I64(p))
 		t := tp(xi)
 		if t != Lt {

@@ -32,9 +32,10 @@ func Fnd(x, y K) K { // x?y
 		}
 		r = mk(It, yn)
 		rp := int32(r)
+		e := ep(r)
 		if xt == Lt {
 			yp := int32(y)
-			for i := int32(0); i < yn; i++ {
+			for rp < e {
 				SetI32(rp, fndl(x, x0(K(yp))))
 				rp += 4
 				yp += 8
@@ -218,7 +219,7 @@ func match(x, y K) int32 {
 		case 4: // Zt
 			return mtF(xp, yp, e)
 		case 5: // Lt
-			for i := int32(0); i < xn; i++ {
+			for yp < e {
 				if match(K(I64(xp)), K(I64(yp))) == 0 {
 					return 0
 				}

@@ -141,7 +141,8 @@ func sf(x float64) K {
 	}
 	n := nn(r)
 	rp := int32(r)
-	for i := int32(0); i < n; i++ {
+	for n > 0 {
+		n--
 		if I8(rp) == '0' {
 			c++
 		} else {

@@ -49,7 +49,8 @@ func absZ(x K) K {
 	r := mk(Ft, n)
 	rp := int32(r)
 	xp := int32(x)
-	for i := int32(0); i < n; i++ {
+	for n > 0 {
+		n--
 		SetF64(rp, hypot(F64(xp), F64(xp+8)))
 		xp += 16
 		rp += 8
@@ -313,7 +314,8 @@ func Rot(x, y K) K { // r@deg
 		yn := nn(y)
 		r = mk(Zt, yn)
 		rp := int32(r)
-		for i := int32(0); i < yn; i++ {
+		for yn > 0 {
+			yn--
 			cosin(F64(yp), rp)
 			yp += 8
 			rp += 16
@@ -438,7 +440,8 @@ func nm(f int32, x K) K { //monadic
 		n := nn(x)
 		r = mk(Lt, n)
 		rp := int32(r)
-		for i := int32(0); i < n; i++ {
+		for n > 0 {
+			n--
 			SetI64(rp, int64(nm(f, x0(K(xp)))))
 			xp += 8
 			rp += 8
@@ -740,20 +743,21 @@ func uptype(x K, dst T) K {
 	xp = int32(x)
 	r := mk(dst+16, xn)
 	rp := int32(r)
+	ep := ep(r)
 	if dst == it {
-		for i := int32(0); i < xn; i++ {
+		for rp < ep {
 			SetI32(rp, I8(xp))
 			xp++
 			rp += 4
 		}
 	} else if dst == ft {
-		for i := int32(0); i < xn; i++ {
+		for rp < ep {
 			SetF64(rp, float64(I32(xp)))
 			xp += 4
 			rp += 8
 		}
 	} else if dst == zt {
-		for i := int32(0); i < xn; i++ {
+		for rp < ep {
 			SetF64(rp, F64(xp))
 			SetF64(rp+8, 0.0)
 			xp += 8

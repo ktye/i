@@ -105,11 +105,12 @@ func atv(x, y K) K { // x CT..LT
 	rp := int32(r)
 	xp := int32(x)
 	yp := int32(y)
+	e := ep(y)
 
 	na := missing(t - 16)
 	switch s >> 2 {
 	case 0:
-		for i := int32(0); i < yn; i++ {
+		for yp < e {
 			xi := I32(yp)
 			if uint32(xi) >= uint32(xn) {
 				SetI8(rp, int32(na))
@@ -120,7 +121,7 @@ func atv(x, y K) K { // x CT..LT
 			yp += 4
 		}
 	case 1:
-		for i := int32(0); i < yn; i++ {
+		for yp < e {
 			xi := I32(yp)
 			if uint32(xi) >= uint32(xn) {
 				SetI32(rp, int32(na))
@@ -131,7 +132,7 @@ func atv(x, y K) K { // x CT..LT
 			yp += 4
 		}
 	case 2:
-		for i := int32(0); i < yn; i++ {
+		for yp < e {
 			xi := I32(yp)
 			if uint32(xi) >= uint32(xn) {
 				if t == Lt {
@@ -146,7 +147,7 @@ func atv(x, y K) K { // x CT..LT
 			yp += 4
 		}
 	default:
-		for i := int32(0); i < yn; i++ {
+		for yp < e {
 			xi := I32(yp)
 			if uint32(xi) >= uint32(xn) {
 				SetI64(rp, I64(int32(na)))
@@ -189,6 +190,7 @@ func stv(x, i, y K) K {
 	xp := int32(x)
 	yp := int32(y)
 	ip := int32(i)
+	e := ep(y)
 	for j := int32(0); j < n; j++ {
 		xi := uint32(I32(ip + 4*j))
 		if xi >= uint32(xn) {
@@ -197,13 +199,13 @@ func stv(x, i, y K) K {
 	}
 	switch s >> 2 {
 	case 0:
-		for j := int32(0); j < n; j++ {
+		for yp < e {
 			SetI8(xp+I32(ip), I8(yp))
 			ip += 4
 			yp++
 		}
 	case 1:
-		for j := int32(0); j < n; j++ {
+		for yp < e {
 			SetI32(xp+4*I32(ip), I32(yp))
 			ip += 4
 			yp += 4
@@ -217,7 +219,7 @@ func stv(x, i, y K) K {
 			}
 			ip = int32(i)
 		}
-		for j := int32(0); j < n; j++ {
+		for yp < e {
 			SetI64(xp+8*I32(ip), I64(yp))
 			ip += 4
 			yp += 8
@@ -226,7 +228,7 @@ func stv(x, i, y K) K {
 			x = uf(x)
 		}
 	default:
-		for j := int32(0); j < n; j++ {
+		for yp < e {
 			xp = int32(x) + 16*I32(ip)
 			SetI64(xp, I64(yp))
 			SetI64(xp+8, I64(yp+8))

@@ -33,36 +33,36 @@ func Cat(x, y K) K {
 func Enl(x K) K { return uf(l1(x)) }
 
 /*
-func Enl(x K) K {
-	t := tp(x)
-	if t > 0 && t < 7 {
-		t += 16
-		r := mk(t, 1)
-		rp := int32(r)
-		xp := int32(x)
-		s := sz(t)
-		switch s >> 2 {
-		case 0:
-			SetI8(rp, xp)
-		case 1:
-			SetI32(rp, xp)
-		case 2:
-			SetI64(rp, I64(xp))
-		case 3:
-		case 4:
-			SetI64(rp, I64(xp))
-			SetI64(rp+8, I64(xp+8))
+	func Enl(x K) K {
+		t := tp(x)
+		if t > 0 && t < 7 {
+			t += 16
+			r := mk(t, 1)
+			rp := int32(r)
+			xp := int32(x)
+			s := sz(t)
+			switch s >> 2 {
+			case 0:
+				SetI8(rp, xp)
+			case 1:
+				SetI32(rp, xp)
+			case 2:
+				SetI64(rp, I64(xp))
+			case 3:
+			case 4:
+				SetI64(rp, I64(xp))
+				SetI64(rp+8, I64(xp+8))
+			}
+			dx(x)
+			return r
 		}
-		dx(x)
-		return r
-	}
-	if t == Dt {
-		if tp(K(I64(int32(x)))) == St {
-			return Flp(Ech(13, l1(x))) // +,'x
+		if t == Dt {
+			if tp(K(I64(int32(x)))) == St {
+				return Flp(Ech(13, l1(x))) // +,'x
+			}
 		}
+		return l1(x)
 	}
-	return l1(x)
-}
 */
 func explode(x K) K {
 	r := K(0)
@@ -129,7 +129,8 @@ func explode(x K) K {
 		rp := int32(r)
 		x = Flp(x)
 		xp := int32(x)
-		for i := int32(0); i < xn; i++ {
+		e := ep(r)
+		for rp < e {
 			SetI64(rp, int64(Key(rx(k), x0(K(xp)))))
 			xp += 8
 			rp += 8
@@ -142,9 +143,9 @@ func explode(x K) K {
 }
 func flat(x K) K { // ((..);(..)) -> (...)
 	r := mk(Lt, 0)
-	xn := nn(x)
 	xp := int32(x)
-	for i := int32(0); i < xn; i++ {
+	e := ep(x)
+	for xp < e {
 		r = Cat(r, x0(K(xp)))
 		xp += 8
 	}
@@ -211,7 +212,8 @@ func ucats(x K) K { // ,/ unitype-lists
 	s := sz(rt)
 	rp := int32(r)
 	xp = int32(x)
-	for i := int32(0); i < xn; i++ {
+	e := ep(x)
+	for xp < e {
 		xi := K(I64(xp))
 		rn = s * nn(xi)
 		Memorycopy(rp, int32(xi), rn)

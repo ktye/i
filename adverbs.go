@@ -356,28 +356,29 @@ func uf(x K) K {
 	r := mk(rt, xn)
 	s := sz(rt)
 	rp := int32(r)
+	e := ep(r)
 	xp = int32(x)
 	switch s >> 2 {
 	case 0:
-		for i := int32(0); i < xn; i++ {
+		for rp < e {
 			SetI8(rp, I32(xp))
 			xp += 8
 			rp++
 		}
 	case 1:
-		for i := int32(0); i < xn; i++ {
+		for rp < e {
 			SetI32(rp, I32(xp))
 			xp += 8
 			rp += 4
 		}
 	case 2:
-		for i := int32(0); i < xn; i++ {
+		for rp < e {
 			SetI64(rp, I64(I32(xp)))
 			xp += 8
 			rp += 8
 		}
 	default:
-		for i := int32(0); i < xn; i++ {
+		for rp < e {
 			s := I32(xp)
 			SetI64(rp, I64(s))
 			SetI64(rp+8, I64(s+8))
@@ -396,7 +397,8 @@ func ufd(x K) K {
 	}
 	n := nn(x)
 	xp := int32(x)
-	for i := int32(0); i < n; i++ {
+	for n > 0 {
+		n--
 		if match(r, K(I64(int32(I64(xp))))) == 0 {
 			dx(r)
 			return x

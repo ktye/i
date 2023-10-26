@@ -54,17 +54,16 @@ func exec(x K) K {
 						if u == 321 { //:f@x -> :f.,x
 							b = l1(b)
 						}
-						c = lam0(a, b)
+						c = lac(a, b)
 						if c == 0 {
 							c = pop() //todo remove check
 							if c != 0 {
 								trap(Stack)
 							}
-							lam3(pop())
-							lam1(a, explode(b))
+							epi()
+							pro(a, explode(b))
 							dx(x)
-							x = rx(K(I64(int32(a))))
-							dx(a)
+							x = r0(a)
 							p = int32(x) - 8
 							e = ep(x)
 							a = 0
@@ -120,19 +119,16 @@ func pop() K {
 	return K(I64(sp))
 }
 func lst(n K) K {
-	rn := int32(n)
-	r := mk(Lt, rn)
+	r := mk(Lt, int32(n))
 	rp := int32(r)
-	for i := int32(0); i < rn; i++ {
+	e := ep(r)
+	for rp < e {
 		SetI64(rp, int64(pop()))
 		rp += 8
 	}
 	return uf(r)
 }
 func nul(x K) K { push(x); return 0 }
-func rst(x K) K { //restore vars after lambda
-	return x
-}
 func lup(x K) K {
 	vp := I32(8) + int32(x)
 	r := x0(K(vp))

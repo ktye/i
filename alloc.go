@@ -121,7 +121,8 @@ func dx(x K) {
 				n = 3 // prj | lam
 			}
 			p := int32(x)
-			for i := int32(0); i < n; i++ {
+			e := p + 8*n
+			for p < e {
 				dx(K(I64(p)))
 				p += 8
 			}
@@ -130,11 +131,11 @@ func dx(x K) {
 	}
 }
 func rl(x K) { // ref list elements
-	xp := int32(x)
-	xn := nn(x)
-	for i := int32(0); i < xn; i++ {
-		rx(K(I64(xp)))
-		xp += 8
+	e := ep(x)
+	p := int32(x)
+	for e > p {
+		e -= 8
+		rx(K(I64(e)))
 	}
 }
 func lfree(x K) { // free list non-recursive

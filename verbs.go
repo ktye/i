@@ -30,7 +30,8 @@ func Flp(x K) K { // +x
 }
 func maxcount(xp int32, n int32) int32 { // |/#l
 	r := int32(0)
-	for i := int32(0); i < n; i++ {
+	for n > 0 {
+		n--
 		x := K(I64(xp))
 		xp += 8
 		if tp(x) < 16 {
@@ -256,7 +257,8 @@ func ntake(n int32, y K) K {
 		if s == 1 {
 			Memoryfill(rp, yp, n)
 		} else {
-			for i := int32(0); i < n; i++ {
+			for n > 0 {
+				n--
 				SetI32(rp, yp)
 				rp += 4
 			}
@@ -266,7 +268,8 @@ func ntake(n int32, y K) K {
 		r = mk(Ft, n)
 		rp := int32(r)
 		f := F64(yp)
-		for i := int32(0); i < n; i++ {
+		for n > 0 {
+			n--
 			SetF64(rp, f)
 			rp += 8
 		}
@@ -276,7 +279,8 @@ func ntake(n int32, y K) K {
 		r = mk(Zt, n)
 		rp := int32(r)
 		re, im := F64(yp), F64(yp+8)
-		for i := int32(0); i < n; i++ {
+		for n > 0 {
+			n--
 			SetF64(rp, re)
 			SetF64(rp+8, im)
 			rp += 16
@@ -286,7 +290,8 @@ func ntake(n int32, y K) K {
 	} else if t < 16 {
 		r = mk(Lt, n)
 		rp := int32(r)
-		for i := int32(0); i < n; i++ {
+		for n > 0 {
+			n--
 			SetI64(rp, int64(rx(y)))
 			rp += 8
 		}
@@ -406,13 +411,14 @@ func rcut(x, a, b K) K { // a, b start-stop ranges
 	ap, bp := int32(a), int32(b)
 	r := mk(Lt, n)
 	rp := int32(r)
-	for i := int32(0); i < n; i++ {
+	for n > 0 {
+		n--
 		o := I32(ap)
-		n := I32(bp) - o
-		if n < 0 {
+		m := I32(bp) - o
+		if m < 0 {
 			trap(Value)
 		}
-		SetI64(rp, int64(atv(rx(x), Add(Ki(o), seq(n)))))
+		SetI64(rp, int64(atv(rx(x), Add(Ki(o), seq(m)))))
 		rp += 8
 		ap += 4
 		bp += 4
@@ -542,7 +548,8 @@ func win(n int32, x K) K {
 	y := seq(n)
 	r := mk(Lt, 0)
 	m := 1 + nn(x) - n
-	for i := int32(0); i < m; i++ {
+	for m > 0 {
+		m--
 		r = ucat(r, l1(atv(rx(x), rx(y))))
 		y = Add(Ki(1), y)
 	}
@@ -590,11 +597,11 @@ func Flr(x K) K { // _x
 	case 2: //S
 		x = use(x)
 		return K(int32(x)) | K(It)<<59
-		//return Ech(16, l1(x))
 	case 3: //F
 		r = mk(It, xn)
 		rp = int32(r)
-		for i := int32(0); i < xn; i++ {
+		for xn > 0 {
+			xn--
 			SetI32(rp, int32(F64floor(F64(xp))))
 			xp += 8
 			rp += 4
@@ -602,7 +609,8 @@ func Flr(x K) K { // _x
 	case 4: // Z
 		r = mk(Ft, xn)
 		rp = int32(r)
-		for i := int32(0); i < xn; i++ {
+		for xn > 0 {
+			xn--
 			SetI64(rp, I64(xp))
 			xp += 16
 			rp += 8
@@ -646,7 +654,7 @@ func Rev(x K) K { // |x
 		return x
 	}
 	r = mk(It, xn)
-	rp := int32(r) + 4*xn
+	rp := ep(r)
 	for i := int32(0); i < xn; i++ {
 		rp -= 4
 		SetI32(rp, i)
@@ -673,7 +681,8 @@ func Wer(x K) K { // &x
 		rp := int32(r)
 		for i := int32(0); i < xn; i++ {
 			j := I32(xp)
-			for k := int32(0); k < j; k++ {
+			for j > 0 {
+				j--
 				SetI32(rp, i)
 				rp += 4
 			}

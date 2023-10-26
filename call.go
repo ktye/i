@@ -89,7 +89,8 @@ func calltrain(f, x, y K) K {
 	} else {
 		r = cal(x0(f), l2(x, y))
 	}
-	for i := int32(1); i < n; i++ {
+	for n > 1 {
+		n--
 		r = cal(x0(f+8), l1(r))
 	}
 	return r
@@ -120,66 +121,68 @@ func native(f K, x K) K {
 }
 
 /*
-func lambda(f K, x K) K {
-	fn := nn(f)
-	xn := nn(x)
-	if xn < fn {
-		rx(f)
-		return prj(f, x)
-	}
-	if xn != fn {
-		trap(Rank)
-	}
-	fp := int32(f)
-	c := K(I64(fp))
-	lo := K(I64(fp + 8))
-	nl := nn(lo)
-	sa := mk(It, 2*nl) //K(I64(fp + 16))
-	sp := int32(sa)
-	vp := I32(8)
-	lp := int32(lo)
-	xp := int32(x)
-	rl(x)
-	dx(x)
-	for i := int32(0); i < nl; i++ {
-		p := vp + I32(lp)
-		SetI64(sp, I64(p))
-		if i < fn {
-			SetI64(p, I64(xp))
-			xp += 8
-		} else {
-			SetI64(p, 0)
+	func lambda(f K, x K) K {
+		fn := nn(f)
+		xn := nn(x)
+		if xn < fn {
+			rx(f)
+			return prj(f, x)
 		}
-		sp += 8
-		lp += 4
+		if xn != fn {
+			trap(Rank)
+		}
+		fp := int32(f)
+		c := K(I64(fp))
+		lo := K(I64(fp + 8))
+		nl := nn(lo)
+		sa := mk(It, 2*nl) //K(I64(fp + 16))
+		sp := int32(sa)
+		vp := I32(8)
+		lp := int32(lo)
+		xp := int32(x)
+		rl(x)
+		dx(x)
+		for i := int32(0); i < nl; i++ {
+			p := vp + I32(lp)
+			SetI64(sp, I64(p))
+			if i < fn {
+				SetI64(p, I64(xp))
+				xp += 8
+			} else {
+				SetI64(p, 0)
+			}
+			sp += 8
+			lp += 4
+		}
+		spp, spe := pp, pe
+		r := exec(rx(c))
+		vp = I32(8)
+		sp = int32(sa)
+		lp = int32(lo)
+		for i := int32(0); i < nl; i++ {
+			p := vp + I32(lp)
+			dx(K(I64(p)))
+			SetI64(p, I64(sp))
+			SetI64(sp, 0)
+			lp += 4
+			sp += 8
+		}
+		dx(sa)
+		pp, pe = spp, spe
+		return r
 	}
-	spp, spe := pp, pe
-	r := exec(rx(c))
-	vp = I32(8)
-	sp = int32(sa)
-	lp = int32(lo)
-	for i := int32(0); i < nl; i++ {
-		p := vp + I32(lp)
-		dx(K(I64(p)))
-		SetI64(p, I64(sp))
-		SetI64(sp, 0)
-		lp += 4
-		sp += 8
-	}
-	dx(sa)
-	pp, pe = spp, spe
-	return r
-}
 */
 func lambda(f K, x K) K {
-	r := lam0(f, x)
+	r := lac(f, x)
 	if r != 0 {
 		return r
 	}
-	lam1(f, x)
-	return lam2(f)
+	pro(f, x)
+	r = exec(x0(f))
+	epi()
+	return r
 }
-func lam0(f K, x K) K { //test if lambda call has correct number of args
+func lac(f K, x K) K { //test if lambda call has correct number of args
 	fn := nn(f)
 	xn := nn(x)
 	if xn < fn {
@@ -191,48 +194,41 @@ func lam0(f K, x K) K { //test if lambda call has correct number of args
 	}
 	return 0
 }
-func lam1(f K, x K) { //save(push) locals, assign args
-	fp := int32(f)
-	lo := K(I64(fp + 8))
+func pro(f K, x K) { //save(push) locals, assign args
+	lo := K(I64(int32(f) + 8))
 	n := nn(lo)
 	a := nn(f)
 	z := mk(Zt, n) //use a complex vector to store symbols+values w/o refcounting
 	zp := int32(z)
-	xp := int32(x)
-	lp := int32(lo)
+	xp := ep(x)
 	vp := I32(8)
-	for i := int32(0); i < n; i++ {
-		p := I32(lp)
+	for n > 0 {
+		n -= 1
+		p := I32(int32(lo) + 4*n)
 		SetI32(zp, p)
 		p += vp
 		SetI64(zp+8, I64(p))
-		if i < a { //args
+		if n < a { //args
+			xp -= 8
 			SetI64(p, I64(xp))
-			xp += 8
 		} else { //locals
 			SetI64(p, 0)
 		}
-		lp += 4
 		zp += 16
 	}
 	rl(x)
 	dx(x)
 	push(z)
 }
-func lam2(f K) K { //execute lambda
-	r := exec(rx(K(I64(int32(f)))))
-	lam3(pop())
-	return r
-}
-func lam3(z K) { //restore saved arguments
+func epi() { //restore saved arguments
+	z := pop()
 	if tp(z) != Zt {
 		trap(Type)
 	}
-	vp := I32(8)
 	zp := int32(z)
 	e := ep(z)
 	for zp < e {
-		p := vp + I32(zp)
+		p := I32(8) + I32(zp)
 		dx(K(I64(p)))
 		SetI64(p, I64(zp+8))
 		zp += 16
