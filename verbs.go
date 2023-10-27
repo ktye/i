@@ -720,7 +720,7 @@ func fwh(xp, n int32) int32 { // *&I
 
 func Typ(x K) K { // @x
 	dx(x)
-	return sc(Enl(Kc(I8(520 + int32(tp(x))))))
+	return sc(Enl(Kc(I8(253 + int32(tp(x))))))
 }
 func Tok(x K) K { // `t@"src"
 	if tp(x) == Ct {

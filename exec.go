@@ -107,13 +107,13 @@ func marksrc(x K) int32 {
 func push(x K) {
 	SetI64(sp, int64(x))
 	sp += 8
-	if sp == 512 {
+	if sp == 4096 { //512 {
 		trap() //stack overflow
 	}
 }
 func pop() K {
 	sp -= 8
-	if sp < 256 {
+	if sp < 2048 {
 		trap() //stack underflow
 	}
 	return K(I64(sp))

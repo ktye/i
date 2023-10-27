@@ -27,7 +27,7 @@ func newtest() {
 	} else {
 		Bytes = make([]byte, len(save))
 		copy(Bytes, save)
-		pp, pe, sp = 0, 0, 256
+		pp, pe, sp = 0, 0, 2048
 	}
 }
 func mkchars(b []byte) (r K) {
@@ -892,7 +892,7 @@ func TestArgs(t *testing.T) {
 	}
 }
 func reset() {
-	if sp != 256 {
+	if sp != 2048 {
 		println(sp)
 		panic("sp")
 	}

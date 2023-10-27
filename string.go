@@ -70,7 +70,7 @@ func Str(x K) K {
 			if ip > 25 || ip == 0 {
 				return ucat(Ku('`'), si(xp))
 			}
-			r = Ku(uint64(I8(227 + ip)))
+			r = Ku(uint64(I8(226 + ip)))
 		case 1: //not reached
 			r = 0
 		case ct:
@@ -249,9 +249,17 @@ func prs(t T, y K) K { // s$C
 }
 func ts(x K) T {
 	c := int32(Fst(cs(x)))
-	for i := int32(521); i < 546; i++ {
+	/*
+		for i := int32(521); i < 546; i++ {
+			if I8(i) == c {
+				return T(i - 520)
+			}
+			continue
+		}
+	*/
+	for i := int32(254); i < 279; i++ {
 		if I8(i) == c {
-			return T(i - 520)
+			return T(i - 253)
 		}
 		continue
 	}

@@ -11,20 +11,19 @@ var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack posit
 
 //   0....7  key
 //   8...15  val
-//  16...19
+//  16...19  src(int32)
 //  20..127  free list
 // 128..131  memsize log2
-// 132..227  char map (starts at 100)
-// 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
-// 256..511  stack
-// 512..519  wasi iovec
-// 520..545  "vbcisfzldtcdpl000BCISFZLDT"
-// 552..559  src (aligned)
+// 132..226  char map (starts at 100)
+// 227..252  :+-*%!&|<>=~,^#_$?@.':/:\:
+// 253..279  vbcisfzldtcdpl000BCISFZLDT
+// 280.....  z.k
+// 2k....4k  stack
 
 func kinit() {
 	minit(12, 16) //4k..64k
-	sp = 256
-	SetI64(552, int64(mk(Ct, 0))) //src
+	sp = 2048
+	SetI32(16, int32(mk(Ct, 0))) //SetI64(512, int64(mk(Ct, 0))) //src
 	loc = 0
 	na = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))

@@ -12,10 +12,10 @@ package main
 import . "github.com/ktye/wg/module"
 
 func zk() {
-	Data(600, "$zk")
-	zn := int32($zn) // should end before 4k
+	Data(280, "$zk")
+	zn := int32($zn) // should end before 2k
 	x := mk(Ct, zn)
-	Memorycopy(int32(x), 600, zn)
+	Memorycopy(int32(x), 280, zn)
 	dx(Val(x))
 }
 EOF
@@ -34,10 +34,10 @@ if [ "$1" = "cover" ]; then
 fi
 
 if [ "$1" = "web" ]; then
-	wg -nomain . | wat2wasm - -o /c/k/ktye.github.io/k.wasm
+	wg -small -nomain . | wat2wasm - -o /c/k/ktye.github.io/k.wasm
 	#wasm-opt -Oz --enable-bulk-memory k.wasm -o - | wc -c
 	go run ./_/kdoc.go > /c/k/ktye.github.io/kdoc.html
 else
-	wg -nomain . | wat2wasm - --output=- | wc -c
+	wg -small -nomain . | wat2wasm - --output=- | wc -c
 fi
 
