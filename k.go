@@ -14,10 +14,10 @@ var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack posit
 //  16...19  src(int32)
 //  20..127  free list
 // 128..131  memsize log2
-// 132..226  char map (starts at 100)
-// 227..252  :+-*%!&|<>=~,^#_$?@.':/:\:
-// 253..279  vbcisfzldtcdpl000BCISFZLDT
-// 280.....  z.k
+// 132..226  char map (starts at 100)    -+
+// 227..252  :+-*%!&|<>=~,^#_$?@.':/:\:   | text
+// 253..279  vbcisfzldtcdpl000BCISFZLDT   | section
+// 280.....  z.k                         -+
 // 2k....4k  stack
 
 func kinit() {

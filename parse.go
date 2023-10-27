@@ -174,11 +174,15 @@ func pasn(x, y, r K) K {
 			x = cat1(cat1(ucat(l1(l), ldrop(-2, x)), 20), (K(sp)<<32)|(lp+128))
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
-			s := Fst(x) // (`x;.)
-			if loc != 0 && v == 449 {
-				loc = Cat(loc, rx(s))
+			if xn == 1 { // `x: is (,`x) but type Lt replace with `"x." to use with `x@
+				x = sc(cat1(cs(Fst(Fst(x))), Kc(46))) // `x: -> `"x."
+			} else {
+				x = Fst(x) // (`x;.)
 			}
-			x = l1(s)
+			if loc != 0 && v == 449 {
+				loc = Cat(loc, rx(x))
+			}
+			x = l1(x)
 			y = l1(448) // asn
 		} else { // modified
 			y = cat1(l2(unquote(l-32), Fst(rx(x))), 448)
