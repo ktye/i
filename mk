@@ -36,7 +36,7 @@ fi
 if [ "$1" = "web" ]; then
 	wg -small -nomain . | wat2wasm - -o /c/k/ktye.github.io/k.wasm
 	#wasm-opt -Oz --enable-bulk-memory k.wasm -o - | wc -c
-	go run ./_/kdoc.go > /c/k/ktye.github.io/kdoc.html
+	go run ./_/kdoc.go > /c/k/ktye.github.io/kdoc.htm
 else
 	wg -small -nomain . | wat2wasm - --output=- | wc -c
 fi

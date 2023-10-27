@@ -1,6 +1,6 @@
 package main
 
-// this file builds ktye.github.io/kdoc.html
+// this file builds ktye.github.io/kdoc.htm
 // $cd ..;go run _/kdoc.go
 
 import (
@@ -17,6 +17,7 @@ func main() {
 	H := html.EscapeString
 	R := func(x string) string { b, _ := os.ReadFile(x); return string(b) }
 	h := func(x, y, z string) { O(`<hr/><span id="` + x + `"><h2>` + y + `</h2>` + z + `</span>`) }
+	tick := func(x string) string { return strings.ReplaceAll(x, "°", "`") }
 
 	O(head)
 
@@ -108,17 +109,17 @@ func main() {
 	h("intro", "intro", intro)
 	h("invoke", "invoke", invoke)
 	h("types", "k type system", types)
-	h("literals", "literals", strings.ReplaceAll(literals, "°", "`"))
-	h("adverbs", "adverbs", strings.ReplaceAll(adverbs, "°", "`"))
+	h("literals", "literals", tick(literals))
+	h("adverbs", "adverbs", tick(adverbs))
 	h("control", "control flow", control)
 	h("heap", "heap memory", heap)
 	h("allocator", "memory allocator", allocator)
-	h("symtab", "symbol table", strings.ReplaceAll(symtab, "°", "`"))
+	h("symtab", "symbol table", tick(symtab))
 	h("kvm", "kvm - virtual machine - instruction set", kvm)
-	h("ir", "intermediate representation", strings.ReplaceAll(ir, "°", "`"))
+	h("ir", "intermediate representation", tick(ir))
 	h("mach", `abstract machine model`, mach)
 	h("syscalls", `system interface`, syscalls)
-	h("extend", "extend", extend)
+	h("extend", "extend", tick(extend))
 	h("embed", "embed", embed)
 	h("f77", "fortran", f77)
 	h("c", "c", cc)
@@ -143,7 +144,7 @@ a{text-decoration:none}
 #ref{display:inline-block;background:#ffe}
 #tty{display:inline-block;background:#004687;color:white;width:100%;margin-left:1em;margin-right:0.5em;outline:none;overflow:hidden}
 #top{display:flex}
-#src{overflow:auto;outline:none;margin:0}
+#doc{overflow:auto;outline:none;margin:0}
 #mono{position:absolute;left:100;top:100;visibility:hidden}
 </style>
 </head>
@@ -236,7 +237,7 @@ ir  abstract-machine  syscalls
 
 const src = `</pre>
 </div>
-<pre id="src">`
+<pre id="doc">`
 
 const zk = `
 z.k is placed in the initial memory section at 600 by <a href='#zk'>zk</a> called from <a href='#kinit'>kinit</a>
@@ -245,21 +246,26 @@ it contains the runtime part of the interpreter that is written in k. it also pr
 todo: s-dot@ k@ l@ space sin/cos..
 `
 
+//----------------------------------------------------------------------------------------------|
+
 const intro = `
 ktye/k is an implementation of the k programming language.
 this page documents the implementation of the interpreter.
 it is not an introduction to k or array programming in general.
 
-the focus of the implementation is a simple system at small size, portability and the possibility to embed and extend it into applications.
+the focus of the implementation is a simple system at small size, portability and the possibility
+to embed and extend it into applications.
 
- size     is measured in bytes of the wasm binary, around 40k. the actual size in bytes is the number in the banner of the repl.
- port     the source code looks like go but it isn't. it's a structural assembly language that also happens to satisfy the go compiler.
+ size     is measured in bytes of the wasm binary, below 40k. the actual size in bytes is the
+          number in the banner of the repl.
+ port     the source code looks like go but it isn't. it's a structural assembly language that
+          also happens to satisfy the go compiler.
           a <a href="https://github.com/ktye/wg">separate compiler</a> parses the source and writes a k table <a href="#ir">intermediate representation</a>.
 	  <a href="#compilers">compilers</a> written in k transform the IR to other languages: <a href="#cc">c</a> <a href="#go">go</a> <a href="#wasm">wasm</a> <a href="#wasi">wasi</a>.
-	  the fact that the source can also be directly compiled with a go compiler simplifies bootstrapping testing and development by no small amount.
+	  the fact that the source can also be directly compiled with a go compiler simplifies
+	  bootstrapping testing and development by no small amount.
  embed    ..
  extend   ..
- nolimits besides 32bit/4g: number of arguments, locals, globals, lambda code size, jump offsets, length of symbol names ... everything is unlimited
 
 try/compile/run
 try in the repl above, or see the any of the ports <a href="#cc">c</a> <a href="#go">go</a> <a href="#wasm">wasm</a> <a href="#wasi">wasi</a> <a href="#f77">fortran</a>.
@@ -271,7 +277,7 @@ $k a.k b.k      /run both files in order, drop to interactive mode
 $k a.k -e       /run a.k then exit
 $k a.k -e 'f x' /run a.k, eval f x then exit
 $k k.t          /runs tests, e.g. <https://raw.githubusercontent.com/ktye/i/master/k.t>k.t</a>
-e stands for both: exit and eval.
+-e stands for both: exit and eval.
 `
 
 const types = `
@@ -292,17 +298,19 @@ the base type of atoms or vectors is t&15
 
 values of type c i s carry their value withing the k value in the lower 32 bits.
 all other values live in heap memory. the lower 32 bits are the index to the start of the data section.
-flat vectors of type I S F Z store their vector data consecutive as 4 4 8 16 byte element widths.
+flat vectors of type I S F Z store their vector data consecutive as 4 4 8 16 byte widths per element.
 compound types m d p l x L D T store 64 bit k values in the data section.
-the length of vector values is accessed by <a href="#nn>nn</a> and stored as int32 12 bytes before the data section.
-values the live in heap memory also have their <a href="#allocator">refcount</a> stored at 4 bytes before the data section.
+the length of vector values is accessed by <a href="#nn>nn</a> and stored as int32 12 bytes before the data.
+values the live in heap memory also have their <a href="#allocator">refcount</a> stored at 4 bytes before the data.
 
-L is a general list that <a href="#uf">collapses/unifies</a> to flat vector if all values are equal.
+L is a general list that <a href="#uf">collapses/unifies</a> to flat vector if all values are atoms of the same type.
 D and T are always a 2 element list (keys and values of the same length) and their length field stores the length of the keys.
-D and T only differ by type, but a table is more restricted: it's keys must be symbols and values a general list (L) each containing a vector of the same size.
+D and T only differ by type, but a table is more restricted: it's keys must be symbols and values a general list (L)
+each containing a vector of the same size.
+
 the function types m d p l x store:
  m(function-list)                   forming the composition <a href="#calltrain">call train</a>
- d(base-function;adverb)            the adverb value is the function table index at 85 + <a href=#Ech">1</a> <a href=#Rdc">2</a> <a href=#Scn">3</a> 
+ d(base-function;adverb)            the adverb value is the function table index at 85 + <a href="#Ech">1</a> <a href="#Rdc">2</a> <a href="#Scn">3</a> 
  p(base-function;arglist;emptylist) <a href="#callprj">call projection</a>
  l(code;locals;string)              <a href="#lambda">call lambda</a>. code is the <a href="#kvm">instruction list</a> and locals a list of symbols including the arguments. the length field stores the arity.
  x(index/ptr;string)                <a href="#native">call native</a>, see <a href="#extend">extend</a>
@@ -313,7 +321,7 @@ e.g. when called with two arguments the function tables is indexed at value x+64
 
 some k values also store the source location offset in the lower bits of the upper 32 bit value.
 the offset is retrieved by 0xffffff & int32(x&gt;&gt;32) at execution time and stored in the global <i>srcp</i>.
-it is the offset to the executed source code which is stored in a k value written to 552 in the <a href=#heap>heap</a>.
+it is the offset to the executed source code which is stored in a k value written to <a href="#src">16</a> in the <a href=#heap>heap</a>.
 all k source is catenated to this value by the parser.
 `
 
@@ -360,21 +368,19 @@ const heap = `
 the <a href="#mach">abstract machine</a> has access to a linear range of heap memory. memory can only <a href="#Memorygrow">grow</a> but never shrinks.
 in the initial state it's size is one block of 64kb. addresses are byte indexes into the memory section.
 low addresses have special meaning, setup by <a href="#init">init</a> or created by <a href="#kinit">kinit</a>.
-memory above 4k is managed by the <a href="#allocator>allocator</a> and used to store k values.
+memory above 4k is managed by the <a href="#allocator">allocator</a> and used to store k values.
 
 byte-addr
    0....7  keys see <a href=#symtab>symbol table</a>
    8...15  vals
-  16...19
+  16...19  <a href="#src">src</a>(int32) catenated for <a href="#trap">error indication</a>
   20..127  free list see <a href="#allocator>memory allocator</a>
  128..131  currently allocated memory (log2)
- 132..227  <a href="#class">character classes</a> for the parser (starts at 100)
- 228..253  verbs :+-*%!&|<>=~,^#_$?@.':/:\:
- 256..511  stack see <a href="#kvm">kvm</a>
- 512..519  
- 520..545  "vbcisfzldtcdpl000BCISFZLDT" for printing types
- 552..559  pointer to src, catenated for error indication
- 600...4k  <a href="#z.k">z.k</a> (embedded source)
+ 132..226  <a href="#class">character classes</a> for the parser (starts at 100) ⎫
+ 228..252  :+-*%!&|<>=~,^#_$?@.':/:\:                                     ⎬ text section
+ 253..279  vbcisfzldtcdpl000BCISFZLDT  type symbols                       ⎮
+ 280.....  <a href="#z.k">z.k</a> (embedded source)                                          ⎭
+ 2k....4k  <a href="#kvm">kvm</a> stack
  4k....4g  vector-space
 `
 
@@ -557,11 +563,19 @@ const embed = `
 
 const extend = `
 the k interpreter can be extended when <a href="#embed">embedded</a> to a host application assigning native functions to a k variable.
-a native function is represented as a k value with type 14 that contains a list of two values: an identifier for the host system and the string form.
-the identifier may be an index to a table of registered native functions, e.g. as a k-verb (type 0) to prevent refcounting,
-or a pointer disguised as a character vector.
+a native function is represented as a k value with type 14 that contains a list of two values: an identifier for
+the host system and the string form.
+the identifier may be an index to a table of registered native functions,
+e.g. as a k-verb (type 0) to prevent refcounting, or a pointer disguised as a character vector.
 native function have <b>fixed arity</b>. the arity is stored in the <a href="#types">length field</a>.
-when called, the argument list has the length of the arity, otherwise a projection/error is triggered before the native function call.
+when called, the argument list has the length of the arity, otherwise a projection/error is triggered
+before the native function call.
+
+there is also a mild protection for k variables used in <a href="#z.k">z.k</a> which can be used in any k source:
+monadic functions assigned to a symbol including the backtick, e.g. °f:{+/x} use the symbol with a dot attached internally.
+these functions are called as overloads to @ e.g. with °f 2 3 4.
+z.k defines °x(hex) °t(token) °p(parse) °c(as-chars) °i(as-ints) °s(as symbols) °f(as-floats) °z(as-complexs)
+°(int) converts the numeric value of a basic verb or instruction to verb type(0). e.g. °@'1 2 3 is (:;+;-)
 `
 
 const f77 = `
