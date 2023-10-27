@@ -88,7 +88,8 @@ func Hyp(x, y K) K { // e.g.  norm:0. abs/x
 			return Kf(hypot(F64(xp), hypot(F64(yp), F64(yp+8))))
 		}
 	}
-	return trap(Nyi)
+	trap() //nyi
+	return 0
 }
 func Img(x K) K { // imag x
 	xt := tp(x)
@@ -302,7 +303,7 @@ func Rot(x, y K) K { // r@deg
 		return x
 	}
 	if tp(y)&15 > ft {
-		trap(Type)
+		trap() //type
 	}
 	y = uptype(y, ft)
 	yt := tp(y)
@@ -355,7 +356,7 @@ func fk(x K) float64 {
 		return float64(int32(x))
 	}
 	if t != ft {
-		trap(Type)
+		trap() //type
 	}
 	dx(x)
 	return F64(int32(x))
@@ -456,7 +457,8 @@ func nm(f int32, x K) K { //monadic
 		case 1:
 			return Ki(Func[f].(f1i)(xp))
 		case 2:
-			return trap(Type)
+			trap() //type
+			return 0
 		case 3:
 			r = Kf(Func[1+f].(f1f)(F64(xp)))
 			dx(x)
@@ -466,7 +468,8 @@ func nm(f int32, x K) K { //monadic
 			dx(x)
 			return r
 		default:
-			return trap(Type)
+			trap() //type
+			return 0
 		}
 	}
 	r = use1(x)
@@ -492,7 +495,7 @@ func nm(f int32, x K) K { //monadic
 			continue
 		}
 	case 2:
-		trap(Type)
+		trap() //type
 	default: //F/Z (only called for neg)
 		for rp < e {
 			SetF64(rp, Func[1+f].(f1f)(F64(xp)))
@@ -527,7 +530,8 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		case 1: // it
 			return Ki(Func[f].(f2i)(xp, yp))
 		case 2: // st
-			return trap(Type)
+			trap() //type
+			return 0
 		case 3:
 			dx(x)
 			dx(y)
@@ -586,7 +590,7 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			continue
 		}
 	case 2: // st
-		trap(Type)
+		trap() //type
 	case 3: // ft
 		for rp < e {
 			SetF64(rp, Func[1+f].(f2f)(F64(xp), F64(yp)))
@@ -680,7 +684,7 @@ func conform(x, y K) int32 { // 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vect
 	r := 2*I32B(tp(x) > 16) + I32B(tp(y) > 16)
 	if r == 3 {
 		if nn(x) != nn(y) {
-			trap(Length)
+			trap() //length
 		}
 	}
 	return r
@@ -730,7 +734,8 @@ func uptype(x K, dst T) K {
 			}
 			return Kz(f, 0)
 		} else {
-			return trap(Type)
+			trap() //type
+			return 0
 		}
 	}
 	if xt < It && dst == ft {
@@ -764,7 +769,7 @@ func uptype(x K, dst T) K {
 			rp += 16
 		}
 	} else {
-		trap(Type)
+		trap() //type
 	}
 	dx(x)
 	return r
@@ -784,7 +789,7 @@ func use1(x K) K {
 func use(x K) K {
 	xt := tp(x)
 	if xt < 16 || xt > Lt {
-		trap(Type)
+		trap() //type
 	}
 	if I32(int32(x)-4) == 1 {
 		return x

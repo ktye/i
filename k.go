@@ -167,7 +167,7 @@ func td(x K) K { // table from dict
 	r := x0(x)
 	x = r1(x)
 	if tp(r) != St || tp(x) != Lt {
-		trap(Type)
+		trap() //type
 	}
 	m := maxcount(int32(x), nn(x))
 	x = Ech(15, l2(Ki(m), x)) // (|/#'x)#'x

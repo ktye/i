@@ -51,7 +51,8 @@ func Atx(x, y K) K { // x@y
 		r = x0(y)
 		return Key(r, Atx(x, r1(y)))
 	}
-	return trap(Type) // f@
+	trap() //type f@
+	return 0
 }
 func ati(x K, i int32) K { // x CT..LT
 	r := K(0)
@@ -172,7 +173,7 @@ func atv(x, y K) K { // x CT..LT
 }
 func stv(x, i, y K) K {
 	if It != tp(i) {
-		trap(Type)
+		trap() //type
 	}
 	n := nn(i)
 	if n == 0 {
@@ -181,7 +182,7 @@ func stv(x, i, y K) K {
 		return x
 	}
 	if n != nn(y) {
-		trap(Length)
+		trap() //length
 	}
 	x = use(x)
 	xt := tp(x)
@@ -194,7 +195,7 @@ func stv(x, i, y K) K {
 	for j := int32(0); j < n; j++ {
 		xi := uint32(I32(ip + 4*j))
 		if xi >= uint32(xn) {
-			trap(Index)
+			trap() //index
 		}
 	}
 	switch s >> 2 {
@@ -248,7 +249,7 @@ func sti(x K, i int32, y K) K {
 	//}
 	xn := nn(x)
 	if i < 0 || i >= xn {
-		trap(Index)
+		trap() //index
 	}
 	s := sz(xt)
 	xp := int32(x)
@@ -279,7 +280,7 @@ func sti(x K, i int32, y K) K {
 func atdepth(x, y K) K {
 	xt := tp(x)
 	if xt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	f := Fst(rx(y))
 	if f == 0 {

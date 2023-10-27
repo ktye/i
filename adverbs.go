@@ -27,7 +27,7 @@ func Ech(f, x K) K {
 		return ecn(f, x)
 	}
 	if tp(x) < 16 {
-		trap(Type)
+		trap() //type
 	}
 	xt := tp(x)
 	if xt == Dt {
@@ -58,7 +58,7 @@ func ecn(f, x K) K {
 		if tp(f) == 0 && int32(f) == 13 {
 			if tp(r) == Tt && tp(x) == Tt { // T,'T (horcat)
 				if nn(r) != nn(x) {
-					trap(Length)
+					trap() //length
 				}
 				f = Cat(x0(r), x0(x))
 				return key(f, Cat(r1(r), r1(x)), Tt)
@@ -103,7 +103,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
-			trap(Nyi) // state machine
+			trap() //nyi state machine
 		}
 		x = Fst(x)
 		if t&15 == ct {
@@ -247,7 +247,7 @@ func Scn(f, x K) K {
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {
-			trap(Rank)
+			trap() //rank
 		}
 		x = Fst(x)
 		if t&15 == ct {
@@ -265,7 +265,6 @@ func Scn(f, x K) K {
 			return fix(f, x, Enl(x))
 		}
 	}
-	//kdb:if int32(f)==29{trap(Err);}
 	if nn(x) == 2 {
 		return Ecl(f, x)
 	}

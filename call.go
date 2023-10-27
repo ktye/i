@@ -51,7 +51,8 @@ func cal(f, x K) K {
 			z = x2(x)
 			r = Func[fp+192].(f4)(r, y, z, r3(x))
 		default:
-			r = trap(Rank)
+			trap() //rank
+			r = 0
 		}
 		r = r
 	case 1: // cf
@@ -61,7 +62,8 @@ func cal(f, x K) K {
 		case 1:
 			r = calltrain(f, x, r)
 		default:
-			r = trap(Rank)
+			trap() //rank
+			r = 0
 		}
 		r = r
 	case 2: // df
@@ -75,7 +77,8 @@ func cal(f, x K) K {
 	case 5: // xf
 		r = native(f, x)
 	default:
-		r = trap(Type)
+		trap() //type
+		r = 0
 	}
 	dx(f)
 	return r
@@ -103,7 +106,7 @@ func callprj(f, x K) K {
 			rx(f)
 			return prj(f, x)
 		}
-		trap(Rank)
+		trap() //rank
 	}
 	return Cal(x0(f), stv(x1(f), x2(f), x))
 }
@@ -115,7 +118,7 @@ func native(f K, x K) K {
 		return prj(f, x)
 	}
 	if xn != fn {
-		trap(Rank)
+		trap() //rank
 	}
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
@@ -190,7 +193,7 @@ func lac(f K, x K) K { //test if lambda call has correct number of args
 		return prj(f, x)
 	}
 	if xn != fn {
-		return trap(Rank)
+		trap() //rank
 	}
 	return 0
 }
@@ -223,7 +226,7 @@ func pro(f K, x K) { //save(push) locals, assign args
 func epi() { //restore saved arguments
 	z := pop()
 	if tp(z) != Zt {
-		trap(Type)
+		trap() //type/stack
 	}
 	zp := int32(z)
 	e := ep(z)

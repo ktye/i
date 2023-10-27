@@ -26,7 +26,7 @@ func tok(x K) K {
 				break
 			}
 			if i == 198 { // last-1
-				trap(Parse)
+				trap() //parse
 			}
 		}
 	}
@@ -49,7 +49,7 @@ func tchr() K {
 	q := uint32(0)
 	for {
 		if pp == pe {
-			trap(Parse)
+			trap() //parse
 		}
 		c := I8(pp)
 		pp++
@@ -267,7 +267,7 @@ func tvrb() K {
 		if I8(pp) == 58 { // :
 			pp++
 			if is(c, 8) != 0 {
-				trap(Parse)
+				trap() //parse
 			}
 			o = 97
 			/*

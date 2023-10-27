@@ -258,34 +258,33 @@ func TestTraps(t *testing.T) {
 	//t.Skip()
 	testCases := []struct {
 		f func()
-		e int32
 	}{
-		{func() { x := mk(It, 0); dx(x); dx(x) }, Unref},
-		{func() { mk(2, 3) }, Value},
-		{func() { cal(mk(It, 0), seq(3)) }, Type},
-		{func() { test(seq(3)) }, Type},
-		{func() { test(mkchars([]byte("1 2 /1 /2\n"))) }, Length},
-		{func() { test(mkchars([]byte("1 /2\n"))) }, Err},
-		{func() { sp = 0; reset() }, Stack},
-		{func() { mk(It, 0); reset() }, Err},
-		{func() { use(Key(seq(2), seq(2))) }, Type},
-		{func() { nyi(Ki(0)) }, Nyi},
-		{func() { ndrop(5, Key(seq(2), seq(2))) }, Type},
-		{func() { mfree(int32(seq(1)), 5) }, Unref},
+		{func() { x := mk(It, 0); dx(x); dx(x) }},
+		{func() { mk(2, 3) }},
+		{func() { cal(mk(It, 0), seq(3)) }},
+		{func() { test(seq(3)) }},
+		{func() { test(mkchars([]byte("1 2 /1 /2\n"))) }},
+		{func() { test(mkchars([]byte("1 /2\n"))) }},
+		{func() { sp = 0; reset() }},
+		{func() { mk(It, 0); reset() }},
+		{func() { use(Key(seq(2), seq(2))) }},
+		{func() { nyi(Ki(0)) }},
+		{func() { ndrop(5, Key(seq(2), seq(2))) }},
+		{func() { mfree(int32(seq(1)), 5) }},
 	}
 	for i, tc := range testCases {
 		newtest()
 		Stdout = io.Discard
 		e := tryf(tc.f)
-		if e != tc.e {
-			t.Fatalf("tc %d: expected %d got %d", i, tc.e, e)
+		if e != 123 {
+			t.Fatalf("tc %d: expected trap", i)
 		}
 	}
 }
 func tryf(f func()) (err int32) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = r.(int32)
+			err = 123
 		}
 	}()
 	f()
@@ -895,14 +894,14 @@ func TestArgs(t *testing.T) {
 func reset() {
 	if sp != 256 {
 		println(sp)
-		panic(Stack)
+		panic("sp")
 	}
 	dx(src())
 	dx(xyz)
 	dx(K(I64(0)))
 	dx(K(I64(8)))
 	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
-		trap(Err)
+		panic("memcount")
 	}
 	for i := int32(5); i < 31; i++ {
 		SetI32(4*i, 0)

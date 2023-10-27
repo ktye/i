@@ -58,7 +58,7 @@ func exec(x K) K {
 						if c == 0 {
 							c = pop() //todo remove check
 							if c != 0 {
-								trap(Stack)
+								trap() //stack
 							}
 							epi()
 							pro(a, explode(b))
@@ -92,7 +92,7 @@ func exec(x K) K {
 
 	q := pop() //todo remove check
 	if q != 0 {
-		trap(Stack)
+		trap() //stack
 	}
 
 	dx(x)
@@ -108,13 +108,13 @@ func push(x K) {
 	SetI64(sp, int64(x))
 	sp += 8
 	if sp == 512 {
-		trap(Stack)
+		trap() //stack overflow
 	}
 }
 func pop() K {
 	sp -= 8
 	if sp < 256 {
-		trap(Stack)
+		trap() //stack underflow
 	}
 	return K(I64(sp))
 }
@@ -136,7 +136,7 @@ func lup(x K) K {
 }
 func Asn(x, y K) K {
 	if tp(x) != st {
-		trap(Type)
+		trap() //type
 	}
 	vp := I32(8) + int32(x)
 	dx(K(I64(vp)))
@@ -149,7 +149,7 @@ func Amd(x, i, v, y K) K {
 		return Asn(x, Amd(Val(x), i, v, y))
 	}
 	if xt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	if tp(i) == Lt { // @[;;v;]/[x;y;i]
 		n := nn(i)
@@ -222,7 +222,7 @@ func Dmd(x, i, v, y K) K {
 	if tp(f) > 16 { // matrix-assign
 		n := nn(f)
 		if nn(i) != 1 {
-			trap(Rank)
+			trap() //rank
 		}
 		i = Fst(i)
 		if tp(f) == It && tp(x) == Tt {
@@ -230,7 +230,7 @@ func Dmd(x, i, v, y K) K {
 			return key(t, Dmd(r1(x), l2(Fnd(t, i), f), v, y), Tt)
 		}
 		if tp(f) != It || tp(x) != Lt {
-			trap(Nyi) // Dt
+			trap() // nyi Dt
 		}
 		x = use(x)
 		for j := int32(0); j < n; j++ {

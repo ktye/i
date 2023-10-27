@@ -141,7 +141,7 @@ func readfile(x K) K { // x C
 func writefile(x, y K) K { // x, y C
 	r := Write(int32(x), nn(x), int32(y), nn(y))
 	if r != 0 {
-		trap(Io)
+		trap() //io
 	}
 	dx(x)
 	return y

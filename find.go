@@ -16,7 +16,7 @@ func Fnd(x, y K) K { // x?y
 	}
 	if xt > Lt {
 		if xt == Tt {
-			trap(Nyi) // t?..
+			trap() //nyi t?..
 		}
 		r = x0(x)
 		return Atx(r, Fnd(r1(x), y))
@@ -55,7 +55,7 @@ func Fnd(x, y K) K { // x?y
 	} else if yt == Lt {
 		return Ecr(18, l2(x, y))
 	} else {
-		trap(Type)
+		trap() //type
 	}
 	dx(x)
 	dx(y)
@@ -146,7 +146,7 @@ func idx(x, a, b int32) int32 {
 func Find(x, y K) K { // find[pattern;string] returns all matches (It)
 	xt, yt := tp(x), tp(y)
 	if xt != yt || xt != Ct {
-		trap(Type)
+		trap() //type
 	}
 	xn, yn := nn(x), nn(y)
 	if xn == 0 || yn == 0 {
@@ -296,7 +296,7 @@ func In(x, y K) K {
 	if xt == yt && xt > 16 {
 		return Ecl(30, l2(x, y))
 	} else if xt+16 != yt {
-		trap(Type)
+		trap() //type
 	}
 	dx(y)
 	return in(x, y, xt)

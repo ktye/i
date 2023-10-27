@@ -9,13 +9,13 @@ var ps int32
 func Prs(x K) K { return parse(Tok(x)) } // `p"src"  `p(token list)
 func parse(x K) K {
 	if tp(x) != Lt {
-		trap(Type)
+		trap() //type
 	}
 	pp = int32(x)
 	pe = pp + 8*nn(x)
 	r := es()
 	if pp != pe {
-		trap(Parse)
+		trap() //parse
 	}
 	lfree(x)
 	return r
@@ -104,7 +104,7 @@ func t() K { // Lt
 	} else if r == K('[') {
 		r = es()
 		if next() != K(']') {
-			trap(Parse)
+			trap() //parse
 		}
 		return r
 	} else if tp(r) == st {
@@ -198,7 +198,7 @@ func plam(s0 int32) K {
 		ln := nn(n)
 		loc = Ech(4, l1(n)) // [a]->,(`a;.)  [a;b]->((`a;.);(`b;.))
 		if ln > 0 && tp(loc) != St {
-			trap(Parse)
+			trap() //parse
 		}
 		ar = nn(loc)
 		if ar == 0 {
@@ -213,7 +213,7 @@ func plam(s0 int32) K {
 	c := es()
 	n = next()
 	if n != 125 {
-		trap(Parse)
+		trap() //parse
 	}
 	cn := nn(c)
 	cp := int32(c)
@@ -315,7 +315,7 @@ func plist(c K) K {
 			pp -= 8
 		}
 		if n != 0 && b != 59 {
-			trap(Parse)
+			trap() //parse
 		}
 		n++
 		x := e(t()) &^ 1

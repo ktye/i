@@ -17,7 +17,7 @@ func alloc(n, s int32) int32 {
 	size := n * s
 	t := bucket(size)
 	if int64(n)*int64(s) > 2147483647 /*|| t > 31*/ {
-		trap(Grow)
+		trap() //grow (oom)
 	}
 	i := 4 * t
 	m := 4 * I32(128)
@@ -35,8 +35,8 @@ func alloc(n, s int32) int32 {
 		SetI32(u, I32(j))
 		SetI32(j, u)
 	}
-	if a&31 != 0 { // memory corruption
-		trap(Unref)
+	if a&31 != 0 {
+		trap() //memory corruption
 	}
 	return a
 }
@@ -47,7 +47,7 @@ func grow(p int32) int32 {
 
 	if g > 0 {
 		if Memorygrow(g) < 0 {
-			trap(Grow)
+			trap() //grow
 		}
 	}
 	minit(m, n)
@@ -55,7 +55,7 @@ func grow(p int32) int32 {
 }
 func mfree(x, bs int32) {
 	if x&31 != 0 {
-		trap(Unref)
+		trap() //memory corruption
 	}
 	t := 4 * bs
 	SetI32(x, I32(t))
@@ -70,7 +70,7 @@ func bucket(size int32) int32 {
 }
 func mk(t T, n int32) K {
 	if t < 17 {
-		trap(Value)
+		trap() //type
 	}
 	r := K(uint64(t) << uint64(59))
 	x := alloc(n, sz(t))
@@ -110,7 +110,7 @@ func dx(x K) {
 	rc := I32(p + 12)
 	SetI32(p+12, rc-1)
 	if rc == 0 {
-		trap(Unref)
+		trap() //unref
 	}
 	if rc == 1 {
 		n := nn(x)

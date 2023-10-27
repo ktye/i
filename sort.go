@@ -8,7 +8,7 @@ func Srt(x K) K { // ^x
 	r := K(0)
 	xt := tp(x)
 	if xt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	if xt == Dt {
 		r = x0(x)
@@ -32,7 +32,7 @@ func grade(x K, f int32) K { // <x >x
 	r := K(0)
 	xt := tp(x)
 	if xt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	if xt == Dt {
 		r = x0(x)

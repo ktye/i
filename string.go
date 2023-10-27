@@ -193,7 +193,7 @@ func Cst(x, y K) K { // x$y
 		y, yt = Enl(y), Ct
 	}
 	if tp(x) != st || yt != Ct {
-		trap(Type)
+		trap() //type
 	}
 	if int32(x) == 0 { // `$"sym"
 		return sc(y)
@@ -255,7 +255,7 @@ func ts(x K) T {
 		}
 		continue
 	}
-	trap(Value)
+	trap() //value
 	return 0
 }
 
@@ -264,12 +264,12 @@ func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	xt := tp(x)
 	t += T(16 * I32B(t < 16))
 	if xt < 16 || t < 17 || t > Zt {
-		trap(Type)
+		trap() //type
 	}
 	n := nn(x) * sz(xt)
 	s := sz(t)
 	if n%s != 0 {
-		trap(Length)
+		trap() //length
 	}
 	x = use(x)
 	SetI32(int32(x)-12, n/s)

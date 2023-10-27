@@ -37,3 +37,31 @@ func init() {
 	Functions(285, sum, rd0, prd, rd0, min, max) //367
 	Functions(291, sums, rd0, prds, rd0, rd0)    //374
 }
+
+func trap() {
+	s := src()
+	if srcp == 0 {
+		write(Ku(2608)) // 0\n
+	} else {
+		a := maxi(srcp-30, 0)
+		for i := a; i < srcp; i++ {
+			if I8(int32(s)+i) == 10 {
+				a = 1 + i
+			}
+		}
+		b := mini(nn(s), srcp+30)
+		for i := srcp; i < b; i++ {
+			if I8(int32(s)+i) == 10 {
+				b = i
+				break
+			}
+		}
+		Write(0, 0, int32(s)+a, b-a)
+		if srcp > a {
+			write(Cat(Kc(10), ntake(srcp-a-1, Kc(32))))
+		}
+	}
+	write(Ku(2654)) // ^\n
+	panic(srcp)
+}
+func Srcp() int32 { return srcp }

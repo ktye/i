@@ -4,7 +4,7 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-func nyi(x K) K { return trap(Nyi) }
+func nyi(x K) K { trap(); return 0 }
 func Idy(x K) K { return x } // :x
 func Dex(x, y K) K { // x:y
 	dx(x)
@@ -96,7 +96,8 @@ func Til(x K) K {
 	if xt == It {
 		return kx(120, x) // odo
 	}
-	return trap(Type)
+	trap() //type
+	return 0
 }
 func seq(n int32) K {
 	n = maxi(n, 0)
@@ -124,7 +125,7 @@ func Unq(x K) K { // ?x
 	}
 	if xt >= Lt {
 		if xt == Dt {
-			trap(Type)
+			trap() //type
 		}
 		if xt == Tt {
 			r = x0(x)
@@ -149,7 +150,7 @@ func Unq(x K) K { // ?x
 func Uqs(x K) K { // ?^x
 	xt := tp(x)
 	if xt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	return kx(88, x) // .uqs
 }
@@ -180,9 +181,9 @@ func key(x, y K, t T) K { // Dt or Tt
 			xn = nn(K(I64(int32(y))))
 		}
 	} else if xn != nn(y) {
-		trap(Length)
+		trap() //length
 	} else if yt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	x = l2(x, y)
 	SetI32(int32(x)-12, xn)
@@ -341,7 +342,7 @@ func ndrop(n int32, y K) K {
 	r := K(0)
 	yt := tp(y)
 	if yt < 16 || yt > Lt {
-		trap(Type)
+		trap() //type
 	}
 	yn := nn(y)
 	if n < 0 {
@@ -384,7 +385,7 @@ func Cut(x, y K) K { // x^y
 		return rcut(y, Cat(Ki(0), Add(Ki(1), x)), Cat(x, Ki(nn(y))))
 	}
 	if xt != it || yt < 16 {
-		trap(Type)
+		trap() //type
 	}
 	xp := int32(x)
 	if xp <= 0 {
@@ -416,7 +417,7 @@ func rcut(x, a, b K) K { // a, b start-stop ranges
 		o := I32(ap)
 		m := I32(bp) - o
 		if m < 0 {
-			trap(Value)
+			trap() //value
 		}
 		SetI64(rp, int64(atv(rx(x), Add(Ki(o), seq(m)))))
 		rp += 8
@@ -438,7 +439,7 @@ func split(x, y K) K {
 			xn = nn(x)
 			x = Find(x, rx(y))
 		} else {
-			trap(Type)
+			trap() //type
 		}
 	}
 	x = rx(x)
@@ -452,7 +453,7 @@ func join(x, y K) K {
 	}
 	yt := tp(y)
 	if yt != Lt {
-		trap(Type)
+		trap() //type
 	}
 	yp := int32(y)
 	yn := nn(y)
@@ -460,7 +461,7 @@ func join(x, y K) K {
 	for i := int32(0); i < yn; i++ {
 		v := x0(K(yp))
 		if tp(v) != xt {
-			trap(Type)
+			trap() //type
 		}
 		if i > 0 {
 			r = ucat(r, rx(x))
@@ -481,7 +482,8 @@ func Bin(x, y K) K { // x'y
 		if xt == it && yt > 16 {
 			return win(int32(x), y)
 		} else {
-			return trap(Type)
+			trap() //type
+			return 0
 		}
 	}
 	if xt == yt || yt == Lt {
@@ -489,7 +491,7 @@ func Bin(x, y K) K { // x'y
 	} else if xt == yt+16 {
 		r = Ki(ibin(x, y, xt))
 	} else {
-		trap(Type)
+		trap() //type
 	}
 	dx(x)
 	dx(y)
@@ -691,7 +693,7 @@ func Wer(x K) K { // &x
 	} else if xn == 0 {
 		r = mk(It, 0)
 	} else {
-		r = trap(Type)
+		trap() //type
 	}
 	dx(x)
 	return r
@@ -754,7 +756,8 @@ func Val(x K) K {
 		dx(x)
 		return r
 	} else {
-		return trap(Type)
+		trap() //type
+		return 0
 	}
 }
 func val(x K) K {
@@ -801,7 +804,7 @@ l:
 }
 func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
 	if tp(y) < 16 {
-		trap(Type)
+		trap() //type
 	}
 	r := Fst(rx(y))
 	n := nn(y)

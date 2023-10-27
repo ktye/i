@@ -28,33 +28,18 @@ func roll(x K) K { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
 		dx(x)
 		return kx(80, Ki(int32(F64floor(F64(xp))))) //.rz binormal
 	}
-	return trap(Type)
+	trap() //type
+	return 0
 }
 func deal(x, y K) K { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-#L)?L shuffle
 	yt := tp(y)
 	if yt > 16 {
 		return In(x, y)
-
-		/*
-			yn := nn(y)
-			if xp < 0 {
-				xp = -xp
-				if xp >= yn {
-					return atv(y, shuffle(seq(xp), yn)) //(-#L)?L
-				} else {
-					return atv(y, deal(x, Ki(yn))) // -n?L
-				}
-			} else {
-				return atv(y, randI(nn(y), xp)) // n?L
-			}
-		*/
 	}
-
 	if tp(x) != it {
-		trap(Type)
+		trap() //type
 	}
 	xp := int32(x)
-
 	if yt == ct {
 		return Add(Kc(97), Flr(deal(x, Ki(int32(y)-96))))
 	}
@@ -62,7 +47,7 @@ func deal(x, y K) K { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-
 		return Ech(17, l2(Ks(0), deal(x, Fst(cs(y))))) // `$'x?*$y
 	}
 	if yt != it {
-		trap(Type)
+		trap() //type
 	}
 	yp := int32(y)
 	if xp > 0 {
