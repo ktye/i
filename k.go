@@ -7,7 +7,7 @@ import (
 const nai int32 = -2147483648 // 0N
 var loc, xyz K
 var na, inf float64
-var pp, pe, sp, srcp, rand_ int32 //parse or execution position/end, stack position, src pointer
+var pp, pe, sp, srcp, rand_ int32 //parse position/end, stack position, src pointer
 
 //   0....7  key
 //   8...15  val
@@ -30,11 +30,10 @@ func kinit() {
 	rand_ = 1592653589
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-	sc(Ku(0))        // `   0
-	x := sc(Ku(120)) // `x  8
-	y := sc(Ku(121)) // `y 16
-	z := sc(Ku(122)) // `z 24
-	xyz = cat1(Cat(x, y), z)
+	sc(Ku(0))         // `   0
+	xyz = sc(Ku(120)) //`x`y`z -> 8 16 24
+	xyz = Cat(xyz, sc(Ku(121)))
+	xyz = cat1(xyz, sc(Ku(122)))
 	zk()
 }
 
