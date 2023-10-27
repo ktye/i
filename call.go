@@ -239,7 +239,7 @@ func epi() { //restore saved arguments
 	dx(z)
 }
 
-func com(x, y K) K { return K(int32(l2(y, x))) | K(cf)<<59 } // compose
+func com(x, y K) K { return ti(cf, int32(l2(y, x))) } // compose
 func prj(f, x K) K { // project
 	r := K(0)
 	if isfunc(tp(f)) == 0 {
@@ -269,7 +269,7 @@ func prj(f, x K) K { // project
 	}
 	r = l3(f, x, a)
 	SetI32(int32(r)-12, an)
-	return K(int32(r)) | K(pf)<<59
+	return ti(pf, int32(r))
 }
 func arity(f K) int32 {
 	t := tp(f)

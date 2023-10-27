@@ -72,11 +72,10 @@ func mk(t T, n int32) K {
 	if t < 17 {
 		trap() //type
 	}
-	r := K(uint64(t) << uint64(59))
 	x := alloc(n, sz(t))
 	SetI32(x+12, 1) //rc
 	SetI32(x+4, n)
-	return r | K(x+16)
+	return ti(t, x+16)
 }
 func tp(x K) T     { return T(uint64(x) >> 59) }
 func nn(x K) int32 { return I32(int32(x) - 12) }

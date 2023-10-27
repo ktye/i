@@ -84,20 +84,21 @@ const ( //base t&15          bytes  atom  vector
 //  p-12    p-4 p
 // [length][rc][data]
 
-func Kc(x int32) K { return K(uint32(x)) | K(ct)<<59 }
-func Ki(x int32) K { return K(uint32(x)) | K(it)<<59 }
-func Ks(x int32) K { return K(uint32(x)) | K(st)<<59 }
+func ti(t T, i int32) K { return K(t)<<59 | K(uint32(i)) }
+func Kc(x int32) K      { return ti(ct, x) }
+func Ki(x int32) K      { return ti(it, x) }
+func Ks(x int32) K      { return ti(st, x) }
 func Kf(x float64) K {
 	r := mk(Ft, 1)
 	SetF64(int32(r), x)
-	return K(int32(r)) | K(ft)<<59
+	return ti(ft, int32(r))
 }
 func Kz(x, y float64) K {
 	r := mk(Zt, 1)
 	rp := int32(r)
 	SetF64(rp, x)
 	SetF64(rp+8, y)
-	return K(rp) | K(zt)<<59
+	return ti(zt, rp)
 }
 func l1(x K) K {
 	r := mk(Lt, 1)
@@ -106,9 +107,10 @@ func l1(x K) K {
 }
 func l2t(x, y K, t T) K {
 	r := mk(Lt, 2)
-	SetI64(int32(r), int64(x))
-	SetI64(8+int32(r), int64(y))
-	return K(uint32(r)) | K(t)<<59
+	rp := int32(r)
+	SetI64(rp, int64(x))
+	SetI64(8+rp, int64(y))
+	return ti(t, rp)
 }
 func l2(x, y K) K    { return l2t(x, y, Lt) }
 func l3(x, y, z K) K { return cat1(l2(x, y), z) }
@@ -152,13 +154,13 @@ func sc(c K) K {
 	for i := int32(0); i < sn; i++ {
 		if match(c, K(I64(sp))) != 0 {
 			dx(c)
-			return K(sp-int32(s)) | K(st)<<59
+			return ti(st, sp-int32(s))
 		}
 		sp += 8
 	}
 	SetI64(0, int64(cat1(s, c)))
 	SetI64(8, int64(cat1(K(I64(8)), 0)))
-	return K(8*sn) | K(st)<<59
+	return ti(st, 8*sn)
 }
 func cs(x K) K { return x0(K(I32(0)) + x) }
 func td(x K) K { // table from dict
@@ -171,7 +173,7 @@ func td(x K) K { // table from dict
 	x = Ech(15, l2(Ki(m), x)) // (|/#'x)#'x
 	r = l2(r, x)
 	SetI32(int32(r)-12, m)
-	return K(int32(r)) | K(Tt)<<59
+	return ti(Tt, int32(r))
 }
 func missing(t T) K {
 	switch t - 2 {

@@ -21,7 +21,7 @@ func roll(x K) K { // ?x (atom) ?n(uniform 0..1) ?-n(normal) ?z(binormal)
 		} else {
 			r := kx(80, Ki((1+-xp)/2))
 			SetI32(int32(r)-12, -xp)
-			return K(int32(r)) | K(Ft)<<59 // normal
+			return ti(Ft, int32(r)) // normal
 		}
 	}
 	if xt == zt {

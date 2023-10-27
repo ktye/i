@@ -187,7 +187,7 @@ func key(x, y K, t T) K { // Dt or Tt
 	}
 	x = l2(x, y)
 	SetI32(int32(x)-12, xn)
-	return K(int32(x)) | K(t)<<59
+	return ti(t, int32(x))
 }
 func keyt(x, y K) K { // `s!t (key table: (`s#t)!`s_t)
 	x = rx(x)
@@ -598,7 +598,7 @@ func Flr(x K) K { // _x
 		}
 	case 2: //S
 		x = use(x)
-		return K(int32(x)) | K(It)<<59
+		return ti(It, int32(x))
 	case 3: //F
 		r = mk(It, xn)
 		rp = int32(r)

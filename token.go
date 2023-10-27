@@ -33,7 +33,7 @@ func tok(x K) K {
 	SetI32(16, int32(s)) //SetI64(512, int64(s))
 	return r
 }
-func src() K { return (K(18) << 59) | K(I32(16)) } // return K(I64(512)) }
+func src() K { return ti(Ct, I32(16)) }
 func tchr() K {
 	if I8(pp) == '0' && pp < pe { // 0x01ab (lower case only)
 		if I8(1+pp) == 'x' {
@@ -305,7 +305,7 @@ func tvar() K {
 		if is(c, 6) == 0 {
 			break
 		}
-		r = cat1(r, K(c)|K(ct)<<59)
+		r = cat1(r, ti(ct, c))
 		pp++
 	}
 	return sc(r)

@@ -17,7 +17,7 @@ func Str(x K) K {
 		switch xt - cf {
 		case 0: // cf
 			rx(x)
-			r = ucats(Rev(Str(K(xp) | K(Lt)<<59)))
+			r = ucats(Rev(Str(ti(Lt, xp))))
 		case 1: // df
 			r = Str(x0(x))
 			p := x1(x)
@@ -281,6 +281,5 @@ func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	}
 	x = use(x)
 	SetI32(int32(x)-12, n/s)
-	x = K(t)<<59 | K(int32(x))
-	return x
+	return ti(t, int32(x))
 }

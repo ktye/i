@@ -88,7 +88,7 @@ func ati(x K, i int32) K { // x CT..LT
 		return r
 	}
 	dx(x)
-	return r | K(t-16)<<59
+	return ti(t-16, int32(r))
 }
 func atv(x, y K) K { // x CT..LT
 	t := tp(x)

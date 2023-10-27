@@ -246,7 +246,7 @@ func plam(s0 int32) K {
 func slam(r K, ar, s0 int32) K {
 	rp := int32(r)
 	SetI32(rp-12, ar)
-	return K(rp) | (K(s0) << 32) | K(lf)<<59
+	return ti(lf, rp) | K(s0)<<32
 }
 func pspec(r, n K) K {
 	ln := nn(n)
