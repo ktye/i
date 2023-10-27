@@ -15,16 +15,6 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-/*
-func TestAsn(t *testing.T) {
-	newtest()
-	dx(Val(mkchars([]byte(`xxxtt:2*4`))))
-	dx(Val(mkchars([]byte("`yytt:2*4"))))
-	dx(Val(mkchars([]byte("`x`y:3"))))
-	reset()
-}
-*/
-
 var save []byte
 
 func newtest() {

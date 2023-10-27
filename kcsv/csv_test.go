@@ -17,7 +17,7 @@ func newtest() {
 	} else {
 		Bytes = make([]byte, len(save))
 		copy(Bytes, save)
-		pp, pe, sp = 0, 0, 256
+		pp, pe, sp = 0, 0, 2048
 	}
 }
 

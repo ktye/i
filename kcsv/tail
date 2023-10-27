@@ -310,7 +310,7 @@ func KC(s string) uint64 {
 }
 
 func (f *format) binary(w io.Writer, x uint64) {
-	dx(Val(KC("`\"pack.\":{w:{(`c@,#x),x};($t),$[`s~t:@x;`pack@$x;x~*x;w `c@,x;`L~@x;(`c@,#x),,/`pack@'x;(@x)':`D`T;(`pack@.x),`pack@!x;`S~t;,/`pack@$x;w `c x]}")))
+	dx(Val(KC("`pack:{w:{(`c@,#x),x};($t),$[`s~t:@x;`pack@$x;x~*x;w `c@,x;`L~@x;(`c@,#x),,/`pack@'x;(@x)?`D`T;(`pack@.x),`pack@!x;`S~t;,/`pack@$x;w `c x]}")))
 	y := Atx(sc(KC("pack")), x) // `pack@
 	wCK(w, y)
 }
