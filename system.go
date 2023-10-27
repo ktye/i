@@ -5,25 +5,9 @@ import (
 )
 
 func repl(x K) {
-	n := nn(x)
-	xp := int32(x)
-	s := int32(0)
-	if n > 0 {
-		s = I8(xp)
-		if I8(xp) == 92 && n > 1 { // \
-			c := I8(1 + xp)
-			if I8(1+xp) == '\\' {
-				Exit(0)
-			} else if c == 'm' {
-				dx(x)
-				dx(Out(Ki(I32(128))))
-			}
-			return
-		}
-	}
 	x = val(x)
 	if x != 0 {
-		if s == 32 {
+		if I8(int32(x)) == 32 {
 			dx(Out(x))
 		} else {
 			write(cat1(join(Kc(10), Lst(x)), Kc(10)))
