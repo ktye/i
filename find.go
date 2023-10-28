@@ -74,19 +74,19 @@ func fnd(x, y K, t T) int32 {
 	s := int32(0)
 	switch t - 2 {
 	case 0: // ct
-		r = inC(yp, xp, xe) //idxc(yp, xp, xe)
+		r = inC(yp, xp, xe)
 	case 1: // it
 		s = 2
-		r = inI(yp, xp, xe) //idxi(yp, xp, xe)
+		r = inI(yp, xp, xe)
 	case 2: // st
 		s = 2
-		r = inI(yp, xp, xe) //idxi(yp, xp, xe)
+		r = inI(yp, xp, xe)
 	case 3: // ft
 		s = 3
-		r = inF(F64(yp), xp, xe) //idxf(F64(yp), xp, xe)
+		r = inF(F64(yp), xp, xe)
 	default: // zt
 		s = 4
-		r = inZ(F64(yp), F64(yp+8), xp, xe) //idxz(F64(yp), F64(yp+8), xp, xe)
+		r = inZ(F64(yp), F64(yp+8), xp, xe)
 	}
 	if r == 0 {
 		return nai

@@ -31,39 +31,6 @@ func Cat(x, y K) K {
 	return x
 }
 func Enl(x K) K { return uf(l1(x)) }
-
-/*
-	func Enl(x K) K {
-		t := tp(x)
-		if t > 0 && t < 7 {
-			t += 16
-			r := mk(t, 1)
-			rp := int32(r)
-			xp := int32(x)
-			s := sz(t)
-			switch s >> 2 {
-			case 0:
-				SetI8(rp, xp)
-			case 1:
-				SetI32(rp, xp)
-			case 2:
-				SetI64(rp, I64(xp))
-			case 3:
-			case 4:
-				SetI64(rp, I64(xp))
-				SetI64(rp+8, I64(xp+8))
-			}
-			dx(x)
-			return r
-		}
-		if t == Dt {
-			if tp(K(I64(int32(x)))) == St {
-				return Flp(Ech(13, l1(x))) // +,'x
-			}
-		}
-		return l1(x)
-	}
-*/
 func explode(x K) K {
 	r := K(0)
 	xt := tp(x)
@@ -149,41 +116,6 @@ func dcat(x, y K) K { // d,d  t,t
 		return key(r, x, t)
 	}
 }
-func ucats(x K) K { // ,/ unitype-lists
-	rt := T(0)
-	xn := nn(x)
-	if xn == 0 {
-		return x
-	}
-	xp := int32(x)
-	rn := int32(0)
-	for i := int32(0); i < xn; i++ {
-		xi := K(I64(xp))
-		t := tp(xi)
-		if i == 0 {
-			rt = t
-		}
-		if rt != t || rt < 16 || t > Zt {
-			return 0
-		}
-		rn += nn(xi)
-		xp += 8
-	}
-	r := mk(rt, rn)
-	s := sz(rt)
-	rp := int32(r)
-	xp = int32(x)
-	e := ep(x)
-	for xp < e {
-		xi := K(I64(xp))
-		rn = s * nn(xi)
-		Memorycopy(rp, int32(xi), rn)
-		rp += rn
-		xp += 8
-	}
-	dx(x)
-	return r
-}
 func cat1(x, y K) K {
 	xt := tp(x)
 	xn := nn(x)
@@ -203,7 +135,6 @@ func cat1(x, y K) K {
 			SetI64(rp, int64(y))
 		}
 	} else if s == 16 {
-		//F64x2store(rp, F64x2load(yp))
 		Memorycopy(rp, yp, 16)
 		dx(y)
 	}

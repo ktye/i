@@ -17,7 +17,7 @@ func Str(x K) K {
 		switch xt - cf {
 		case 0: // cf
 			rx(x)
-			r = ucats(Rev(Str(ti(Lt, xp))))
+			r = Rdc(13, l1(Rev(Str(ti(Lt, xp)))))
 		case 1: // df
 			r = Str(x0(x))
 			p := x1(x)

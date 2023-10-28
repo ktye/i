@@ -151,17 +151,11 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			if xt < Lt {
 				return x
 			}
-			r = ucats(x)
-			if r != 0 {
-				return r
-			}
 		}
 	}
-
 	if xn == 0 {
 		return ov0(f, x)
 	}
-
 	i := int32(1)
 	x0 := ati(rx(x), 0)
 	for i < xn {
