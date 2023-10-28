@@ -43,7 +43,7 @@ goprg:{
  cons:nl y@&`con=T c
  vars:nl y@&`var=T c
  runt:$[`nort?opts;"";gornt]
- data:$[#D;"Data(0,\"",("\\x","\\x"/(#D)^`x D),"\")";""]
+ data:$[#D;"Data(",($o),",\"",(,/"\\x",/-2^`x (o:*&~D=_0)_D),"\")";""]
  tabl:nl y@&`tab=T c
  mems:nl y@&`mem=T c
  init:$[|/(#mems;#data;#tabl);nl("func init(){";mems;data;tabl;"}\n");""]
@@ -140,7 +140,7 @@ func Memoryfill(dst, val, n int32) { b := byte(val); for i := int32(0); i < n; i
 func Memorycopy2(dst, src, n int32) { copy(Bytes2[dst:], Bytes[src:src+n]) }
 func Memorycopy3(dst, src, n int32) { copy(Bytes[dst:], Bytes2[src:src+n]) }
 func Functions(i int, f interface{}) { for i >= len(Func) { Func = append(Func, nil) }; Func[i] = f }
-func Data(o int, x string) { copy(Bytes, x) }
+func Data(o int, x string) { copy(Bytes[o:], x) }
 func I8(addr int32) int32           { return int32(int8(Bytes[addr])) }
 func SetI8(addr int32, value int32) { Bytes[addr] = byte(value) }
 func I32(addr int32) int32  { return int32(binary.LittleEndian.Uint32(Bytes[addr:])) }

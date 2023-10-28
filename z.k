@@ -1,7 +1,7 @@
 /        64     72    80    88     96     104    112    120    128                 
 `k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
 
-`x:,/+"0123456789abcdef"@16 16\  /`x@ hex
+`x:,/+"0123456789abcdef"@16 16\256!256+  /`x@ hex
 `t:`45         /`t@ token
 `p:`46         /`p@ parse
 `c:(`46)[`c;]  /`c@ reinterpret
