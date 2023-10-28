@@ -35,6 +35,7 @@ func init() {
 
 	Functions(285, sum, rd0, prd, rd0, min, max) //367
 	Functions(291, sums, rd0, prds, rd0, rd0)    //374
+	Functions(296, mtC, mtC, mtC, mtF, mtF, mtL)
 }
 
 func trap() {

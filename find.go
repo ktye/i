@@ -4,6 +4,8 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
+type f3i = func(int32, int32, int32) int32
+
 func Fnd(x, y K) K { // x?y
 	r := K(0)
 	xt, yt := tp(x), tp(y)
@@ -206,28 +208,9 @@ func match(x, y K) int32 {
 			return 1
 		}
 		xp, yp := int32(x), int32(y)
-		e := ep(y)
-		switch xt - 18 {
-		case 0: // Ct
-			return mtC(xp, yp, e)
-		case 1: // It
-			return mtC(xp, yp, e) //mtI
-		case 2: // St
-			return mtC(xp, yp, e) //mtI
-		case 3: // Ft
-			return mtF(xp, yp, e)
-		case 4: // Zt
-			return mtF(xp, yp, e)
-		case 5: // Lt
-			for yp < e {
-				if match(K(I64(xp)), K(I64(yp))) == 0 {
-					return 0
-				}
-				xp += 8
-				yp += 8
-			}
-			return 1
-		default: // Dt, Tt
+		if xt < Dt {
+			return Func[278+xt].(f3i)(xp, yp, ep(y))
+		} else {
 			if match(K(I64(xp)), K(I64(yp))) != 0 {
 				return match(K(I64(xp+8)), K(I64(yp+8)))
 			}
@@ -283,6 +266,17 @@ func mtC(xp, yp, e int32) int32 {
 func mtF(xp, yp, e int32) int32 {
 	for yp < e {
 		if eqf(F64(xp), F64(yp)) == 0 {
+			return 0
+		}
+		xp += 8
+		yp += 8
+		continue
+	}
+	return 1
+}
+func mtL(xp, yp, e int32) int32 {
+	for yp < e {
+		if match(K(I64(xp)), K(I64(yp))) == 0 {
 			return 0
 		}
 		xp += 8
