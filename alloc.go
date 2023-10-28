@@ -137,6 +137,3 @@ func rl(x K) { // ref list elements
 		rx(K(I64(e)))
 	}
 }
-func lfree(x K) { // free list non-recursive
-	mfree(int32(x)-16, bucket(8*nn(x)))
-}

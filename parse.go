@@ -12,12 +12,13 @@ func parse(x K) K {
 		trap() //type
 	}
 	pp = int32(x)
-	pe = pp + 8*nn(x)
+	n := 8 * nn(x)
+	pe = n + pp
 	r := es()
 	if pp != pe {
 		trap() //parse
 	}
-	lfree(x)
+	mfree(int32(x)-16, bucket(n)) //free non-recursive
 	return r
 }
 func es() K {
