@@ -74,49 +74,10 @@ func explode(x K) K {
 		SetI64(int32(r), int64(x))
 	} else if xt < Lt {
 		xn := nn(x)
-		r = mk(Lt, xn)
-		if xn == 0 {
-			dx(x)
-			return r
-		}
-		xp, rp := int32(x), int32(r)
-		e := ep(x)
-		switch xt - 18 {
-		case 0: //Ct
-			for xp < e {
-				SetI64(rp, int64(Kc(I8(xp))))
-				rp += 8
-				xp++
-				continue
-			}
-		case 1: //It
-			for xp < e {
-				SetI64(rp, int64(Ki(I32(xp))))
-				rp += 8
-				xp += 4
-				continue
-			}
-		case 2: //St
-			for xp < e {
-				SetI64(rp, int64(Ks(I32(xp))))
-				rp += 8
-				xp += 4
-				continue
-			}
-		case 3: //Ft
-			for xp < e {
-				SetI64(rp, int64(Kf(F64(xp))))
-				rp += 8
-				xp += 8
-				continue
-			}
-		default: //Zt
-			for xp < e {
-				SetI64(rp, int64(Kz(F64(xp), F64(xp+8))))
-				rp += 8
-				xp += 16
-				continue
-			}
+		r = mk(Lt, nn(x))
+		rp := int32(r)
+		for i := int32(0); i < xn; i++ {
+			SetI64(rp+8*i, int64(ati(rx(x), i)))
 		}
 		dx(x)
 	} else if xt == Lt {
