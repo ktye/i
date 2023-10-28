@@ -1,7 +1,7 @@
-/               64     72    80    88     96     104    112    120    128                 
-``x`y`z`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
+/        64     72    80    88     96     104    112    120    128                 
+`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
 
-`x:{,/+"0123456789abcdef"@(x%16;16!x:256!256+x)} /`x@ (hex)
+`x:,/+"0123456789abcdef"@16 16\  /`x@ hex
 `t:`45         /`t@ token
 `p:`46         /`p@ parse
 `c:(`46)[`c;]  /`c@ reinterpret
@@ -18,7 +18,6 @@
 `grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}      /=x
 
 abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
-
 
 / pretty print  `l@x  `k@x
 `pad:{x@\!|/#'x}
@@ -45,9 +44,7 @@ abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
   x:$[`C~t;`str x;`S~t;c,(c:"`")/x;`L~t;$[1~n;*x;"(",(";"/x),")"];" "/x]
   $[m<#x:(("";",")(1~n)),x;((m-2)#x),"..";x]}
  t:@y;k:`kxy x
- $[`T~t;"+",d[+y;k];`D~t;d[y;k];0~#y;(.`"kst0.")@t;y~*y;a y;v[y;k;x]]} /344
-
-`kst0:`C`I`S`F`Z`L!(c,c:_34;"!0";"0#`";"0#0.";"0#0a";"()")
+ $[`T~t;"+",d[+y;k];`D~t;d[y;k];0~#y;(`C`I`S`F`Z`L!("\"\"";"!0";"0#`";"0#0.";"0@0a";"()"))t;y~*y;a y;v[y;k;x]]} /344
  
 `k:`kxy 1000000
 
