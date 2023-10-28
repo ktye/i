@@ -116,82 +116,26 @@ func ltL(x, y K) int32 { // sort lists lexically
 		return ltL(K(I64(xp+8)), K(I64(yp+8)))
 	}
 	xn, yn := nn(x), nn(y)
-	n := mini(xn, yn)
-	switch sz(xt) >> 2 {
-	case 0:
-		r = taoC(xp, yp, n)
-	case 1:
-		r = taoI(xp, yp, n)
-	case 2:
-		if xt == Lt {
-			r = taoL(xp, yp, n)
-		} else {
-			r = taoF(xp, yp, n)
-		}
-	default:
-		r = taoZ(xp, yp, n)
-	}
+	r = tao(x, y, mini(xn, yn))
 	if r == 2 {
 		return I32B(xn < yn)
 	} else {
 		return r
 	}
 }
-func taoC(xp, yp, n int32) int32 {
-	e := xp + n
-	for xp < e {
-		if I8(xp) != I8(yp) {
-			return I32B(I8(xp) < I8(yp))
+func tao(x, y K, n int32) int32 {
+	for i := int32(0); i < n; i++ {
+		xi := ati(rx(x), i)
+		yi := ati(rx(y), i)
+		if match(xi, yi) == 0 {
+			r := ltL(xi, yi) //Func[254+tp(x)].(f2i)(int32(xi), int32(yi))
+			dx(xi)
+			dx(yi)
+			return r
 		}
-		yp++
-		xp++
-	}
-	return 2
-}
-func taoI(xp, yp, n int32) int32 {
-	e := xp + 4*n
-	for xp < e {
-		if I32(xp) != I32(yp) {
-			return I32B(I32(xp) < I32(yp))
-		}
-		yp += 4
-		xp += 4
-	}
-	return 2
-}
-func taoL(xp, yp, n int32) int32 {
-	e := xp + 8*n
-	for xp < e {
-		x, y := K(I64(xp)), K(I64(yp))
-		if match(x, y) == 0 {
-			return ltL(x, y)
-		}
-		yp += 8
-		xp += 8
-	}
-	return 2
-}
-func taoF(xp, yp, n int32) int32 {
-	e := xp + 8*n
-	for xp < e {
-		x, y := F64(xp), F64(yp)
-		if eqf(x, y) == 0 {
-			return ltf(x, y)
-		}
-		yp += 8
-		xp += 8
-	}
-	return 2
-}
-func taoZ(xp, yp, n int32) int32 {
-	e := xp + 16*n
-	for xp < e {
-		xr, xi, yr, yi := F64(xp), F64(xp+8), F64(yp), F64(yp+8)
-		if eqz(xr, xi, yr, yi) == 0 {
-			return ltz(xr, xi, yr, yi)
-		}
-		yp += 16
-		xp += 16
+		dx(xi)
+		dx(yi)
+
 	}
 	return 2
 }
