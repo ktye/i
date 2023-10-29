@@ -383,7 +383,7 @@ func nf(f int32, x, y K) K {
 		r = mk(Ft, xn)
 	}
 	if xn > 0 {
-		f += 260 - 60*I32B(f == 106) //exp,log,sin,cos,pow only pow uses y
+		f += 233 - 60*I32B(f == 106) //exp,log,sin,cos,pow only pow uses y
 		dr := int32(r) - xp
 		e := xp + 8*xn
 		for xp < e {

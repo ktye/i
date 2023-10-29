@@ -17,22 +17,21 @@ func init() {
 	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
 
-	Functions(220, negi, negf, negz) //220
-	Functions(223, absi, absf, nyi)  //227
-	Functions(226, addi, addf, addz) //234
-	Functions(229, subi, subf, subz) //245
-	Functions(232, muli, mulf, mulz) //256
-	Functions(235, divi, divf, divz) //267
-	Functions(238, mini, minf, minz) //278
-	Functions(241, maxi, maxf, maxz) //289
-	Functions(244, modi, sqrf, nyi)  //300
+	Functions(220, negi, negf, negz)
+	Functions(223, absi, absf, nyi)
+	Functions(226, addi, addf, addz)
+	Functions(229, subi, subf, subz)
+	Functions(232, muli, mulf, mulz)
+	Functions(235, divi, divf, divz)
+	Functions(238, mini, minf, minz)
+	Functions(241, maxi, maxf, maxz)
+	Functions(244, modi, sqrf, nyi)
 
 	Functions(247, cmi, cmi, cmi, cmF, cmZ, cmC, cmI, cmI, cmF, cmZ, cmL)
-
-	Functions(285, sum, rd0, prd, rd0, min, max)
-	Functions(291, sums, rd0, prds, rd0, rd0)
-	Functions(296, mtC, mtC, mtC, mtF, mtF, mtL)
-	Functions(302, exp1, log1, sin1, cos1, pow2)
+	Functions(258, sum, rd0, prd, rd0, min, max)
+	Functions(264, sums, rd0, prds, rd0, rd0)
+	Functions(269, mtC, mtC, mtC, mtF, mtF, mtL)
+	Functions(275, exp1, log1, sin1, cos1, pow2)
 }
 
 func trap() {

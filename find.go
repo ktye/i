@@ -211,7 +211,7 @@ func match(x, y K) int32 {
 		}
 		xp, yp := int32(x), int32(y)
 		if xt < Dt {
-			return Func[278+xt].(f3i)(xp, yp, ep(y))
+			return Func[251+xt].(f3i)(xp, yp, ep(y))
 		} else {
 			if match(K(I64(xp)), K(I64(yp))) != 0 {
 				return match(K(I64(xp+8)), K(I64(yp+8)))
