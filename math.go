@@ -58,6 +58,11 @@ func ang2(y, x float64) float64 {
 	}
 	return deg
 }
+func exp1(xp, yp, rp int32) { SetF64(rp, exp(F64(xp))) }
+func log1(xp, yp, rp int32) { SetF64(rp, log(F64(xp))) }
+func pow2(xp, yp, rp int32) { SetF64(rp, pow(F64(xp), F64(yp))) }
+func sin1(xp, yp, rp int32) { cosin_(F64(xp), rp, 1) }
+func cos1(xp, yp, rp int32) { cosin_(F64(xp), rp, 2) }
 func cosin_(x float64, rp int32, csonly int32) {
 	c, s, ss, cs := 0.0, 0.0, int32(0), int32(0)
 	if x < 0 {

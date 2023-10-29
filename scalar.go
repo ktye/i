@@ -325,7 +325,7 @@ func Rot(x, y K) K { // r@deg
 	return Mul(r, x)
 }
 func Sin(x K) K { return nf(44, x, 0) } // sin x
-func Cos(x K) K { return nf(39, x, 0) } // cos x
+func Cos(x K) K { return nf(45, x, 0) } // cos x
 func Exp(x K) K { return nf(42, x, 0) } // exp x
 func Log(x K) K { return nf(43, x, 0) } // log x
 func Pow(y, x K) K { // x^y
@@ -362,7 +362,6 @@ func fk(x K) float64 {
 }
 func nf(f int32, x, y K) K {
 	r := K(0)
-	yf := 0.0
 	xt := tp(x)
 	if xt >= Lt {
 		if y == 0 {
@@ -371,63 +370,32 @@ func nf(f int32, x, y K) K {
 			return Ech(K(f-64), l2(y, x))
 		}
 	}
-	if y != 0 {
-		yf = fk(y)
-	}
 	if xt&15 < ft {
 		x = uptype(x, ft)
 		xt = tp(x)
 	}
 	xp := int32(x)
+	xn := int32(1)
 	if xt == ft {
 		r = Kf(0)
-		ff(f, int32(r), xp, 1, yf)
 	} else {
-		xn := nn(x)
+		xn = nn(x)
 		r = mk(Ft, xn)
-		if xn > 0 {
-			ff(f, int32(r), xp, xn, yf)
+	}
+	if xn > 0 {
+		f += 260 - 60*I32B(f == 106) //exp,log,sin,cos,pow only pow uses y
+		dr := int32(r) - xp
+		e := xp + 8*xn
+		for xp < e {
+			Func[f].(fi3)(xp, int32(y), xp+dr)
+			xp += 8
+			continue
 		}
 	}
 	dx(x)
+	dx(y)
 	return r
 }
-func ff(f, rp, xp, n int32, yf float64) {
-	e := xp + 8*n
-	switch f - 42 {
-	case 0:
-		for xp < e {
-			SetF64(rp, exp(F64(xp)))
-			rp += 8
-			xp += 8
-			continue
-		}
-	case 1:
-		for xp < e {
-			SetF64(rp, log(F64(xp)))
-			rp += 8
-			xp += 8
-			continue
-		}
-	default:
-		if f == 106 { // pow 42+64
-			for xp < e {
-				SetF64(rp, pow(F64(xp), yf))
-				rp += 8
-				xp += 8
-				continue
-			}
-		} else { // sin cos
-			for xp < e {
-				cosin_(F64(xp), rp, 1+I32B(f == 39))
-				rp += 8
-				xp += 8
-				continue
-			}
-		}
-	}
-}
-
 func nm(f int32, x K) K { //monadic
 	r := K(0)
 	xt := tp(x)

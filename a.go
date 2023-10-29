@@ -12,7 +12,7 @@ func init() {
 	Export(main, Asn, Atx, Cal, cs, dx, Kc, Kf, Ki, kinit, l2, mk, nn, repl, rx, sc, src, Srcp, tp, trap, Val)
 
 	//            0    :    +    -    *    %    &    |    <    >    =10   ~    !    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
-	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, nyi, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, Img, Cnj, Ang, nyi, Uqs, nyi, Cos, Fwh, Las, Exp, Log, Sin, Tok, Prs)
+	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, nyi, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, Img, Cnj, Ang, nyi, Uqs, nyi, Tok, Fwh, Las, Exp, Log, Sin, Cos, Prs)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Min, Max, Les, Mor, Eql, Mtc, Key, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, nyi, Rdc, nyi, Scn, nyi, com, prj, Otu, In, Find, Hyp, Cpx, nyi, Rot, Enc, Dec, nyi, nyi, Bin, Mod, Pow, Lgn, nyi, nyi, Rtp)
 	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym)
 	Functions(211, Amd, Dmd)
@@ -31,11 +31,11 @@ func init() {
 
 	Functions(271, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL) //353
 
-	Functions(285, sum, rd0, prd, rd0, min, max) //367
-	Functions(291, sums, rd0, prds, rd0, rd0)    //374
+	Functions(285, sum, rd0, prd, rd0, min, max)
+	Functions(291, sums, rd0, prds, rd0, rd0)
 	Functions(296, mtC, mtC, mtC, mtF, mtF, mtL)
+	Functions(302, exp1, log1, sin1, cos1, pow2)
 
-	// Functions(310, cmi, cmi, cmi, cmF, cmZ, cmC, cmI, cmI, cmF, cmZ)
 }
 
 func trap() {

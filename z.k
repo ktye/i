@@ -2,7 +2,7 @@
 `k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
 
 `x:,/+"0123456789abcdef"@16 16\256!256+  /`x@ hex
-`t:`45         /`t@ token
+`t:`39         /`t@ token
 `p:`46         /`p@ parse
 `c:(`46)[`c;]  /`c@ reinterpret
 `i:(`46)[`i;]
@@ -17,7 +17,7 @@
 `odo:{{y@(#y)!!x}/[*/x;&'x#'|*\-1_1,|x]}       /!I (odometer)
 `grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}      /=x
 
-abs:`32;sin:`44;cos:`39;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
+abs:`32;sin:`44;cos:`45;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
 
 / pretty print  `l@x  `k@x
 `pad:{x@\!|/#'x}
