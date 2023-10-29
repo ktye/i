@@ -135,14 +135,16 @@ const head = `<!KDOCTYPE html>
 <link rel="icon" type="image/png" sizes="16x16" href="db/kelas16.png">
 <title>kdoc</title>
 <style>
-*{font-family:monospace}
+*{font-family:monospace;margin:0}
 .q{color:green}.q:hover{cursor:pointer}
+.l{color:blue}.l:hover{cursor:pointer}
 .n{display:none}
 .h{font-weight:bold}
+.hidden{display:none}
 body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 a{text-decoration:none}
 #ref{display:inline-block;background:#ffe}
-#tty{display:inline-block;background:#004687;color:white;width:100%;margin-left:1em;margin-right:0.5em;outline:none;overflow:hidden}
+#tty{display:inline-block;background:#004687;color:white;width:100%;margin-left:0.5em;margin-right:0.5em;outline:none;overflow:hidden}
 #top{display:flex}
 #doc{overflow:auto;outline:none;margin:0}
 #mono{position:absolute;left:100;top:100;visibility:hidden}
@@ -201,6 +203,8 @@ let
 KC=x=>{let r=K.mk(18,x.length  );C().set(("string"===typeof x)?us(x):x,lo(r));return r},
 Ks=x=>K.sc(KC(x))
 
+
+let full=s=>{let a=[" ▲ "," ▼ "];ge("top").style.display=(s.textContent==a[0])?"none":"flex";s.textContent=a[1-a.indexOf(s.textContent)]}
 </script>
 
 <div id="top">
@@ -237,7 +241,7 @@ ir  abstract-machine  syscalls
 
 const src = `</pre>
 </div>
-<pre id="doc">`
+<pre id="doc"><span class="l" onclick="full(this)" style="position:sticky;float:right;top:0"> ▲ </span>`
 
 const zk = `
 z.k is placed in the initial memory section at 600 by <a href='#zk'>zk</a> called from <a href='#kinit'>kinit</a>
@@ -547,11 +551,13 @@ the abstrace machine requires a set of simplified syscalls.
 all arguments except for Native() are 32 bit integers:
 
  <span id="Args"      ><a href="#getargv">Args()</a>         :return number of command line arguments</span>
- <span id="Arg"       ><a href="#getargv">Arg(i,r)</a>       :call twice: first with r=0 returns the size of the argument, call again with allocated memory index</span>
- <span id="Read"      ><a href="#readfile">Read(f,n,d)</a>    :call twice: first with d=0 returns the size of the argument, call again with allocated memory index. n is the length of the filename and f it's memory index</span>
+ <span id="Arg"       ><a href="#getargv">Arg(i,r)</a>       :call twice: first with r=0 returns the size of the argument, call again with allocated memory index in r</span>
+ <span id="Read"      ><a href="#readfile">Read(f,n,d)</a>    :call twice: first with d=0 returns the size of the argument, call again with allocated memory index in r
+                 n is the length of the filename and f it's memory index</span>
  <span id="Write"     ><a href="#writefile">Write(f,n,b,m)</a> :write content at b and length m to file with name at f with length n</span>
  <span id="ReadIn"    ><a href="#readfile">ReadIn(d,n)</a>    :read from stdin at most n bytes and write to d. return number of bytes written</span>
- <span id="Native"    ><a href="#cal">Native(x,y)</a>    :<a href="#extend">native</a> function call x,y are 64bit. the native function is registered at x (e.g. an index or a pointer) and called with argument list y (a k value).</span>
+ <span id="Native"    ><a href="#cal">Native(x,y)</a>    :<a href="#extend">native</a> function call x,y are 64bit. the native function is registered at x (e.g. an index or a pointer) and
+                 called with argument list y (a k value).</span>
  <span id="Exit"      ><a href="#repl">Exit(c)</a>        :exit with code c</span>
 the reference implementation is imported from <a href="https://raw.githubusercontent.com/ktye/wg/master/module/system.go">wg/module/system.go</a>
 the wasm version imports the system interface as an import module implemented in js which can be different for each application,
