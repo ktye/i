@@ -586,6 +586,7 @@ func nc(ff, q int32, x, y K) K { //compare
 	if av == 0 { // atom-atom
 		dx(x)
 		dx(y)
+		// 11(derived), 12(proj), 13(lambda), 14(native)?
 		return Ki(I32B(q == Func[245+t].(f2i)(xp, yp)))
 	}
 	n := int32(0)

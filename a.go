@@ -27,15 +27,12 @@ func init() {
 	Functions(241, maxi, maxf, maxz) //289
 	Functions(244, modi, sqrf, nyi)  //300
 
-	Functions(247, cmi, cmi, cmi, cmF, cmZ, cmC, cmI, cmI, cmF, cmZ)
-
-	Functions(271, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL) //353
+	Functions(247, cmi, cmi, cmi, cmF, cmZ, cmC, cmI, cmI, cmF, cmZ, cmL)
 
 	Functions(285, sum, rd0, prd, rd0, min, max)
 	Functions(291, sums, rd0, prds, rd0, rd0)
 	Functions(296, mtC, mtC, mtC, mtF, mtF, mtL)
 	Functions(302, exp1, log1, sin1, cos1, pow2)
-
 }
 
 func trap() {
