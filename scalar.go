@@ -8,16 +8,7 @@ type f1i = func(int32) int32
 type f1f = func(float64) float64
 type f1z = func(float64, float64) K
 type f2i = func(int32, int32) int32
-type f2f = func(float64, float64) float64
-type f2c = func(float64, float64) int32
-type f2z = func(float64, float64, float64, float64, int32)
-type f2d = func(float64, float64, float64, float64) int32
 type fi3 = func(int32, int32, int32)
-type ff3i = func(float64, int32, int32, int32)
-type fF3i = func(float64, float64, int32, int32, int32)
-type f4i = func(int32, int32, int32, int32)
-type f2Ff = func(int32, float64, int32, int32)
-type f2Zz = func(int32, float64, float64, int32, int32)
 
 func Neg(x K) K              { return nm(220, x) } //220
 func negi(x int32) int32     { return -x }
@@ -576,6 +567,7 @@ func nd(f, ff int32, x, y K) K { //dyadic
 
 	rp := int32(r)
 	e := ep(r)
+	dz := int32(8) << I32B(t > ft)
 	switch t - 2 {
 	case 0: // ct
 		for rp < e {
@@ -595,22 +587,13 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		}
 	case 2: // st
 		trap() //type
-	case 3: // ft
+	default: // ft zt
 		for rp < e {
-			//SetF64(rp, Func[1+f].(f2f)(F64(xp), F64(yp)))
-			Func[1+f].(fi3)(xp, yp, rp)
+			Func[f-4+int32(t)].(fi3)(xp, yp, rp)
 			xp += ix
 			yp += iy
-			rp += 8
+			rp += dz
 			continue
-		}
-	default: // zt
-		for rp < e {
-			//Func[2+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8), rp)
-			Func[2+f].(fi3)(xp, yp, rp)
-			xp += ix
-			yp += iy
-			rp += 16
 		}
 	}
 	dx(x)
