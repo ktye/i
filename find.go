@@ -83,10 +83,12 @@ func fnd(x, y K, t T) int32 {
 		r = inI(yp, xp, xe)
 	case 3: // ft
 		s = 3
-		r = inF(F64(yp), xp, xe)
+		//r = inF(F64(yp), xp, xe)
+		r = inF(yp, xp, xe)
 	default: // zt
 		s = 4
-		r = inZ(F64(yp), F64(yp+8), xp, xe)
+		//r = inZ(F64(yp), F64(yp+8), xp, xe)
+		r = inZ(yp, xp, xe)
 	}
 	if r == 0 {
 		return nai
@@ -223,9 +225,9 @@ func match(x, y K) int32 {
 	}
 	switch int32(xt-ft) - 3*I32B(xt > 9) {
 	case 0: // ft
-		return eqf(F64(xp), F64(yp))
+		return I32B(0 == cmF(xp, yp)) //eqf(F64(xp), F64(yp))
 	case 1: // zt
-		return eqz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
+		return I32B(0 == cmZ(xp, yp)) //return eqz(F64(xp), F64(xp+8), F64(yp), F64(yp+8))
 	case 2: // composition
 		yn = 8 * nn(y)
 	case 3: // derived
@@ -265,7 +267,7 @@ func mtC(xp, yp, e int32) int32 {
 }
 func mtF(xp, yp, e int32) int32 {
 	for yp < e {
-		if eqf(F64(xp), F64(yp)) == 0 {
+		if cmF(xp, yp) != 0 { //eqf(F64(xp), F64(yp)) == 0 {
 			return 0
 		}
 		xp += 8
@@ -307,10 +309,12 @@ func in(x, y K, xt T) K {
 		e = inI(xp, yp, e)
 	case 3: //ft
 		dx(x)
-		e = inF(F64(xp), yp, e)
+		//e = inF(F64(xp), yp, e)
+		e = inF(xp, yp, e)
 	default: //zt
 		dx(x)
-		e = inZ(F64(xp), F64(xp+8), yp, e)
+		//e = inZ(F64(xp), F64(xp+8), yp, e)
+		e = inZ(xp, yp, e)
 	}
 	return Ki(I32B(e != 0))
 }
@@ -333,18 +337,24 @@ func inI(x, yp, e int32) int32 {
 	}
 	return 0
 }
-func inF(x float64, yp int32, e int32) int32 {
+
+// func inF(x float64, yp int32, e int32) int32 {
+func inF(xp, yp, e int32) int32 {
 	for yp < e {
-		if eqf(x, F64(yp)) != 0 {
+		//if eqf(x, F64(yp)) != 0 {
+		if cmF(xp, yp) == 0 {
 			return yp
 		}
 		yp += 8
 	}
 	return 0
 }
-func inZ(re, im float64, yp int32, e int32) int32 {
+
+// func inZ(re, im float64, yp int32, e int32) int32 {
+func inZ(xp, yp, e int32) int32 {
 	for yp < e {
-		if eqz(re, im, F64(yp), F64(yp+8)) != 0 {
+		//if eqz(re, im, F64(yp), F64(yp+8)) != 0 {
+		if cmZ(xp, yp) == 0 {
 			return yp
 		}
 		yp += 16
