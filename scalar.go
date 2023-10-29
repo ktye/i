@@ -257,7 +257,7 @@ func cmZ(x, y int32) int32 {
 	}
 }
 
-func Eql(x, y K) K { return nc(247, 10, 0, x, y) } //308
+func Eql(x, y K) K { return nc(10, 0, x, y) } //308
 func Les(x, y K) K { // x<y   `file<c
 	if tp(x) == st && tp(y) == Ct {
 		if int32(x) == 0 {
@@ -266,9 +266,9 @@ func Les(x, y K) K { // x<y   `file<c
 		}
 		return writefile(cs(x), y)
 	}
-	return nc(255, 8, -1, x, y) //323
+	return nc(8, -1, x, y) //323
 }
-func Mor(x, y K) K { return nc(263, 9, 1, x, y) } //338
+func Mor(x, y K) K { return nc(9, 1, x, y) } //338
 
 func Ang(x K) K { // angle x
 	r := K(0)
@@ -540,20 +540,12 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		case 2: // st
 			trap() //type
 			return 0
-		case 3:
-			r = Kf(0.0)
+		default: // ft zt
+			r = mk(16+t, 1) //Kf(0.0)
 			dx(x)
 			dx(y)
-			//return Kf(Func[1+f].(f2f)(F64(xp), F64(yp)))
-			Func[1+f].(fi3)(xp, yp, int32(r))
-			return r
-		default:
-			r = Kz(0, 0)
-			dx(x)
-			dx(y)
-			//Func[2+f].(f2z)(F64(xp), F64(xp+8), F64(yp), F64(yp+8), int32(r))
-			Func[2+f].(fi3)(xp, yp, int32(r))
-			return r
+			Func[f-4+int32(t)].(fi3)(xp, yp, int32(r))
+			return Fst(r)
 		}
 	}
 
@@ -625,12 +617,12 @@ func nd(f, ff int32, x, y K) K { //dyadic
 	dx(y)
 	return r
 }
-func nc(f, ff, q int32, x, y K) K { //compare
+func nc(ff, q int32, x, y K) K { //compare
 	r := K(0)
 	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
-		return key(r, nc(f, ff, q, dvals(x), dvals(y)), t)
+		return key(r, nc(ff, q, dvals(x), dvals(y)), t)
 	}
 	if t == Lt {
 		return Ech(K(ff), l2(x, y))
@@ -667,7 +659,6 @@ func nc(f, ff, q int32, x, y K) K { //compare
 		dx(y)
 		return r
 	}
-	f += 1 + int32(t)
 	rp := int32(r)
 	e := ep(r)
 	for rp < e {

@@ -27,11 +27,6 @@ func init() {
 	Functions(241, maxi, maxf, maxz) //289
 	Functions(244, modi, sqrf, nyi)  //300
 
-	/*
-		Functions(247, eqi, eqf, eqz, eqC, eqI, eqI, eqF, eqZ) //308
-		Functions(255, lti, ltf, ltz, guC, guI, guI, guF, guZ) //323
-		Functions(263, gti, gtf, gtz, gdC, gdI, gdI, gdF, gdZ) //338
-	*/
 	Functions(247, cmi, cmi, cmi, cmF, cmZ, cmC, cmI, cmI, cmF, cmZ)
 
 	Functions(271, guC, guC, guI, guI, guF, guZ, guL, gdC, gdC, gdI, gdI, gdF, gdZ, gdL) //353

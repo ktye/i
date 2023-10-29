@@ -89,9 +89,6 @@ func mrge(x, r, a, b, c, p, s, f int32) {
 // todo replace with cmX
 func guC(xp, yp int32) int32 { return I32B(I8(xp) < I8(yp)) }
 func guI(xp, yp int32) int32 { return I32B(I32(xp) < I32(yp)) }
-
-// func guF(xp, yp int32) int32 { return ltf(F64(xp), F64(yp)) }
-// func guZ(xp, yp int32) int32 { return ltz(F64(xp), F64(xp+8), F64(yp), F64(yp+8)) }
 func guF(xp, yp int32) int32 { return I32B(cmF(xp, yp) < 0) }
 func guZ(xp, yp int32) int32 { return I32B(cmZ(xp, yp) < 0) }
 func guL(xp, yp int32) int32 { return ltL(K(I64(xp)), K(I64(yp))) }
