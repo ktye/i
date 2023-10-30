@@ -44,8 +44,7 @@ func Ech(f, x K) K {
 		SetI64(rp, int64(Atx(rx(f), ati(rx(x), i))))
 		rp += 8
 	}
-	dx(f)
-	dx(x)
+	dxy(f, x)
 	return uf(r)
 }
 func ecn(f, x K) K {
@@ -81,9 +80,7 @@ func ec2(f, x, y K) K {
 		return Cal(f, l2(x, y))
 	case 1: // a-v
 		n = nn(y)
-	case 2: // v-a
-		n = nn(x)
-	default: // v-v
+	default: // v-a, v-v
 		n = nn(x)
 	}
 	r = mk(Lt, n)
@@ -93,8 +90,7 @@ func ec2(f, x, y K) K {
 		rp += 8
 	}
 	dx(f)
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return uf(r)
 }
 
@@ -162,8 +158,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 		x0 = cal(rx(f), l2(x0, ati(rx(x), i)))
 		i++
 	}
-	dx(x)
-	dx(f)
+	dxy(x, f)
 	return x0
 }
 func rdn(f, x, l K) K { // {x+y*z}/x  {x+y*z}\x
@@ -176,8 +171,7 @@ func rdn(f, x, l K) K { // {x+y*z}/x  {x+y*z}\x
 			l = cat1(l, rx(r))
 		}
 	}
-	dx(f)
-	dx(x)
+	dxy(f, x)
 	if l != 0 {
 		dx(r)
 		return uf(l)
@@ -206,8 +200,7 @@ func Ecr(f, x K) K { //x f/y
 		rp += 8
 	}
 	dx(f)
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return uf(r)
 }
 func fix(f, x, l K) K {
@@ -228,8 +221,7 @@ func fix(f, x, l K) K {
 		}
 	}
 	dx(f)
-	dx(r)
-	dx(y)
+	dxy(r, y)
 	if l != 0 {
 		dx(x)
 		return l
@@ -303,8 +295,7 @@ func Scn(f, x K) K {
 		i++
 	}
 	dx(z)
-	dx(x)
-	dx(f)
+	dxy(x, f)
 	return uf(r)
 }
 func Ecl(f, x K) K { // x f\y
@@ -321,8 +312,7 @@ func Ecl(f, x K) K { // x f\y
 		rp += 8
 	}
 	dx(f)
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return uf(r)
 }
 
@@ -402,7 +392,6 @@ func ufd(x K) K {
 }
 
 func ov0(f, x K) K {
-	dx(f)
-	dx(x)
+	dxy(f, x)
 	return missing(tp(x))
 }

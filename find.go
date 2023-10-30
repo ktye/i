@@ -59,8 +59,7 @@ func Fnd(x, y K) K { // x?y
 	} else {
 		trap() //type
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func fnd(x, y K, t T) int32 {
@@ -154,8 +153,7 @@ func Find(x, y K) K { // find[pattern;string] returns all matches (It)
 	}
 	xn, yn := nn(x), nn(y)
 	if xn == 0 || yn == 0 {
-		dx(x)
-		dx(y)
+		dxy(x, y)
 		return mk(It, 0)
 	}
 	r := mk(It, 0)

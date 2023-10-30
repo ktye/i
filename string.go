@@ -249,14 +249,6 @@ func prs(t T, y K) K { // s$C
 }
 func ts(x K) T {
 	c := int32(Fst(cs(x)))
-	/*
-		for i := int32(521); i < 546; i++ {
-			if I8(i) == c {
-				return T(i - 520)
-			}
-			continue
-		}
-	*/
 	for i := int32(254); i < 279; i++ {
 		if I8(i) == c {
 			return T(i - 253)

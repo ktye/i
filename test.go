@@ -25,6 +25,5 @@ func testi(l K, i int32) {
 		x = Out(x)
 		trap() //test fails
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 }

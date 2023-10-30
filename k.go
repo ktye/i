@@ -24,7 +24,6 @@ func kinit() {
 	minit(12, 16) //4k..64k
 	sp = 2048
 	SetI32(16, int32(mk(Ct, 0))) //SetI64(512, int64(mk(Ct, 0))) //src
-	loc = 0
 	na = F64reinterpret_i64(uint64(0x7FF8000000000001))
 	inf = F64reinterpret_i64(uint64(0x7FF0000000000000))
 	rand_ = 1592653589
@@ -113,7 +112,6 @@ func l2(x, y K) K    { return l2t(x, y, Lt) }
 func l3(x, y, z K) K { return cat1(l2(x, y), z) }
 func r0(x K) K       { r := x0(x); dx(x); return r }
 func r1(x K) K       { r := x1(x); dx(x); return r }
-func r3(x K) K       { r := x3(x); dx(x); return r }
 func x0(x K) K       { return rx(K(I64(int32(x)))) }
 func x1(x K) K       { return x0(x + 8) }
 func x2(x K) K       { return x0(x + 16) }
@@ -129,10 +127,8 @@ func Ku(x uint64) K { // Ct
 	SetI32(int32(r)-12, p-int32(r))
 	return r
 }
-func kx(u int32, x K) K     { return cal(Val(Ks(u)), l1(x)) }
-func kxy(u int32, x, y K) K { return cal(Val(Ks(u)), l2(x, y)) }
 
-/* encode bytes with: https://play.golang.org/p/4ethx6OEVCR
+/* encode bytes for Ku(..) with: https://play.golang.org/p/4ethx6OEVCR
 func enc(x []byte) uint64 {
 	r := uint32(0)
 	var o uint64 = 1
@@ -144,7 +140,8 @@ func enc(x []byte) uint64 {
 }
 */
 
-func sc(c K) K {
+func kx(u int32, x K) K { return cal(Val(Ks(u)), l1(x)) } //call k func from z.k
+func sc(c K) K { //symbol from chars
 	s := K(I64(0))
 	sp := int32(s)
 	sn := nn(s)
@@ -159,19 +156,7 @@ func sc(c K) K {
 	SetI64(8, int64(cat1(K(I64(8)), 0)))
 	return ti(st, 8*sn)
 }
-func cs(x K) K { return x0(K(I32(0)) + x) }
-func td(x K) K { // table from dict
-	r := x0(x)
-	x = r1(x)
-	if tp(r) != St || tp(x) != Lt {
-		trap() //type
-	}
-	m := maxcount(int32(x), nn(x))
-	x = Ech(15, l2(Ki(m), x)) // (|/#'x)#'x
-	r = l2(r, x)
-	SetI32(int32(r)-12, m)
-	return ti(Tt, int32(r))
-}
+func cs(x K) K { return x0(K(I32(0)) + x) } //chars from symbol
 func missing(t T) K {
 	switch t - 2 {
 	case 0: // ct

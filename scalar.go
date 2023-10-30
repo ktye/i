@@ -72,8 +72,7 @@ func Hyp(x, y K) K { // e.g.  norm:0. abs/x
 	if xt == ft {
 		xp := int32(x)
 		yp := int32(y)
-		dx(x)
-		dx(y)
+		dxy(x, y)
 		if yt == ft {
 			return Kf(hypot(F64(xp), F64(yp)))
 		} else if yt == zt {
@@ -121,9 +120,8 @@ func Cnj(x K) K { // conj x
 	if xt&15 < zt {
 		return x
 	}
-	xt = tp(x)
 	xp := int32(x)
-	if xt == zt {
+	if tp(x) == zt {
 		dx(x)
 		return Kz(F64(xp), -F64(xp+8))
 	}
@@ -220,23 +218,14 @@ func maxz(xp, yp, rp int32) {
 }
 
 // compare: 0(match) -1(x<y) 1(x>y)
-func cmi(x, y int32) int32 {
-	return I32B(x > y) - I32B(x < y)
-}
-func cmC(x, y int32) int32 {
-	x, y = I8(x), I8(y)
-	return I32B(x > y) - I32B(x < y)
-}
-func cmI(x, y int32) int32 {
-	x, y = I32(x), I32(y)
-	return I32B(x > y) - I32B(x < y)
-}
+func cmi(x, y int32) int32 { return I32B(x > y) - I32B(x < y) }
+func cmC(x, y int32) int32 { x, y = I8(x), I8(y); return I32B(x > y) - I32B(x < y) }
+func cmI(x, y int32) int32 { x, y = I32(x), I32(y); return I32B(x > y) - I32B(x < y) }
 func cmF(x, y int32) int32 {
 	a, b := I64(x), I64(y)
 	if 2 == I32B(a < 0)+I32B(b < 0) {
 		a, b = -a, -b
 	}
-	//println("cmF", a, b, F64(x), F64(y), a<b)
 	return I32B(a > b) - I32B(a < b)
 }
 func cmZ(x, y int32) int32 {
@@ -305,9 +294,8 @@ func Rot(x, y K) K { // r@deg
 		trap() //type
 	}
 	y = uptype(y, ft)
-	yt := tp(y)
 	yp := int32(y)
-	if yt == ft {
+	if tp(y) == ft {
 		r = Kz(0, 0)
 		cosin(F64(yp), int32(r))
 	} else {
@@ -392,8 +380,7 @@ func nf(f int32, x, y K) K {
 			continue
 		}
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func nm(f int32, x K) K { //monadic
@@ -501,8 +488,7 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			return 0
 		default: // ft zt
 			r = mk(16+t, 1) //Kf(0.0)
-			dx(x)
-			dx(y)
+			dxy(x, y)
 			Func[f-4+int32(t)].(fi3)(xp, yp, int32(r))
 			return Fst(r)
 		}
@@ -528,8 +514,7 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		r = use2(x, y)
 	}
 	if n == 0 {
-		dx(x)
-		dx(y)
+		dxy(x, y)
 		return r
 	}
 
@@ -564,8 +549,7 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			continue
 		}
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func nc(ff, q int32, x, y K) K { //compare
@@ -584,8 +568,7 @@ func nc(ff, q int32, x, y K) K { //compare
 	av := conform(x, y)
 	xp, yp := int32(x), int32(y)
 	if av == 0 { // atom-atom
-		dx(x)
-		dx(y)
+		dxy(x, y)
 		// 11(derived), 12(proj), 13(lambda), 14(native)?
 		return Ki(I32B(q == Func[245+t].(f2i)(xp, yp)))
 	}
@@ -607,8 +590,7 @@ func nc(ff, q int32, x, y K) K { //compare
 	}
 	r = mk(It, n)
 	if n == 0 {
-		dx(x)
-		dx(y)
+		dxy(x, y)
 		return r
 	}
 	rp := int32(r)
@@ -620,83 +602,9 @@ func nc(ff, q int32, x, y K) K { //compare
 		rp += 4
 		continue
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
-
-/*
-func nc(f, ff int32, x, y K) K { //compare
-
-		r := K(0)
-		t := dtypes(x, y)
-		if t > Lt {
-			r = dkeys(x, y)
-			return key(r, nc(f, ff, dvals(x), dvals(y)), t)
-		}
-		if t == Lt {
-			return Ech(K(ff), l2(x, y))
-		}
-		t = maxtype(x, y)
-		x = uptype(x, t)
-		y = uptype(y, t)
-		av := conform(x, y)
-		xp, yp := int32(x), int32(y)
-		if av == 0 { // atom-atom
-			switch t - 2 {
-			case 0: // ct
-				return Ki(Func[f].(f2i)(xp, yp))
-			case 1: // it
-				return Ki(Func[f].(f2i)(xp, yp))
-			case 2: // st
-				return Ki(Func[f].(f2i)(xp, yp))
-			case 3:
-				dx(x)
-				dx(y)
-				return Ki(Func[1+f].(f2c)(F64(xp), F64(yp)))
-			default:
-				dx(x)
-				dx(y)
-				return Ki(Func[2+f].(f2d)(F64(xp), F64(xp+8), F64(yp), F64(yp+8)))
-			}
-		}
-		n := int32(0)
-		ix := sz(t + 16)
-		iy := ix
-		if av == 1 { //av
-			x = Enl(x)
-			xp = int32(x)
-			ix = 0
-			n = nn(y)
-		} else if av == 2 { //va
-			n = nn(x)
-			y = Enl(y)
-			yp = int32(y)
-			iy = 0
-		} else {
-			n = nn(x)
-		}
-		r = mk(It, n)
-		if n == 0 {
-			dx(x)
-			dx(y)
-			return r
-		}
-		f += 1 + int32(t)
-		rp := int32(r)
-		e := ep(r)
-		for rp < e {
-			SetI32(rp, Func[f].(f2i)(xp, yp))
-			xp += ix
-			yp += iy
-			rp += 4
-			continue
-		}
-		dx(x)
-		dx(y)
-		return r
-	}
-*/
 func conform(x, y K) int32 { // 0:atom-atom 1:atom-vector, 2:vector-atom, 3:vector-vector
 	r := 2*I32B(tp(x) > 16) + I32B(tp(y) > 16)
 	if r == 3 {

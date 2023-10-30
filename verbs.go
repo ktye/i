@@ -12,21 +12,28 @@ func Dex(x, y K) K { // x:y
 }
 func Flp(x K) K { // +x
 	xt := tp(x)
-	switch xt - Lt {
-	case 0: // Lt   n:#x;  m:|/#x (,/m#/:x)[(!m)+\:m*!n]
+	if xt == Lt {
 		n := nn(x)
 		xp := int32(x)
 		m := Ki(maxcount(xp, n))
 		x = Atx(Rdc(13, l1(Ecr(15, l2(m, x)))), Ecl(2, l2(Til(m), Mul(m, Til(Ki(n))))))
-		return x
-	case 1: // Dt
-		return td(x)
-	case 2: // Tt
-		t := x0(x)
-		return Key(t, r1(x))
-	default:
-		return x
+	} else if xt > Lt {
+		r := x0(x)
+		x = r1(x)
+		if xt == Tt {
+			x = Key(r, x)
+		} else {
+			if tp(r) != St || tp(x) != Lt {
+				trap() //type
+			}
+			m := maxcount(int32(x), nn(x))
+			x = Ech(15, l2(Ki(m), x)) // (|/#'x)#'x
+			r = l2(r, x)
+			SetI32(int32(r)-12, m)
+			x = ti(Tt, int32(r))
+		}
 	}
+	return x
 }
 func maxcount(xp int32, n int32) int32 { // |/#l
 	r := int32(0)
@@ -102,20 +109,12 @@ func Til(x K) K {
 func seq(n int32) K {
 	n = maxi(n, 0)
 	r := mk(It, n)
-	if n == 0 {
-		return r
-	}
-	seqi(int32(r), ep(r))
-	return r
-}
-func seqi(p, e int32) {
-	i := int32(0)
-	for p < e {
-		SetI32(p, i)
-		i++
-		p += 4
+	for n > 0 {
+		n--
+		SetI32(int32(r)+4*n, n)
 		continue
 	}
+	return r
 }
 func Unq(x K) K { // ?x
 	r := K(0)
@@ -148,8 +147,7 @@ func Unq(x K) K { // ?x
 	return r
 }
 func Uqs(x K) K { // ?^x
-	xt := tp(x)
-	if xt < 16 {
+	if tp(x) < 16 {
 		trap() //type
 	}
 	return kx(88, x) // .uqs
@@ -402,8 +400,7 @@ func Cut(x, y K) K { // x^y
 		rp += 8
 		continue
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func cuts(x, y K) K { return rcut(y, x, cat1(ndrop(1, rx(x)), Ki(nn(y)))) }
@@ -424,8 +421,7 @@ func rcut(x, a, b K) K { // a, b start-stop ranges
 		ap += 4
 		bp += 4
 	}
-	dx(a)
-	dx(b)
+	dxy(a, b)
 	dx(x)
 	return r
 }
@@ -469,8 +465,7 @@ func join(x, y K) K {
 		r = ucat(r, v)
 		yp += 8
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func lin(x, y, z K) K { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
@@ -493,8 +488,7 @@ func Bin(x, y K) K { // x'y
 	} else {
 		trap() //type
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func ibin(x, y K, t T) int32 {
@@ -555,8 +549,7 @@ func win(n int32, x K) K {
 		r = ucat(r, l1(atv(rx(x), rx(y))))
 		y = Add(Ki(1), y)
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 
@@ -633,13 +626,7 @@ func lower(x K) K {
 	}
 	return x
 }
-func lc(x int32) int32 {
-	if x >= 'A' && x <= 'Z' {
-		return x + 32
-	} else {
-		return x
-	}
-}
+func lc(x int32) int32 { return x + 32*I32B(uint32(x-65) < 26) }
 
 func Rev(x K) K { // |x
 	r := K(0)
@@ -656,10 +643,11 @@ func Rev(x K) K { // |x
 		return x
 	}
 	r = mk(It, xn)
-	rp := ep(r)
-	for i := int32(0); i < xn; i++ {
-		rp -= 4
-		SetI32(rp, i)
+	rp := int32(r)
+	for xn > 0 {
+		xn--
+		SetI32(rp, xn)
+		rp += 4
 	}
 	return atv(x, r)
 }
@@ -702,22 +690,18 @@ func Fwh(x K) K { // *&x
 	t := tp(x)
 	if t == It {
 		dx(x)
-		return Ki(fwh(int32(x), nn(x)))
+		p := int32(x)
+		e := ep(x)
+		for p < e {
+			if I32(p) != 0 {
+				return Ki((p - int32(x)) >> 2)
+			}
+			p += 4
+		}
+		return Ki(nai)
 	}
 	return Fst(Wer(x))
 }
-func fwh(xp, n int32) int32 { // *&I
-	p := xp
-	e := xp + 4*n
-	for p < e {
-		if I8(p) != 0 {
-			return (p - xp) >> 2
-		}
-		p += 4
-	}
-	return nai
-}
-
 func Typ(x K) K { // @x
 	dx(x)
 	return sc(Enl(Kc(I8(253 + int32(tp(x))))))
@@ -798,8 +782,7 @@ l:
 			}
 		}
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return Rev(r)
 }
 func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
@@ -811,16 +794,14 @@ func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
 	for i := int32(1); i < n; i++ {
 		r = Add(ati(rx(y), i), Mul(ati(rx(x), i), r))
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func sumi(xp, xn int32) int32 {
 	r := int32(0)
-	e := xp + 4*xn
-	for xp < e {
-		r += I32(xp)
-		xp += 4
+	for xn > 0 {
+		xn--
+		r += I32(xp + 4*xn)
 	}
 	return r
 }

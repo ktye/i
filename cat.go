@@ -52,19 +52,12 @@ func explode(x K) K {
 	} else if xt == Tt {
 		xn := nn(x)
 		k := x0(x)
-		x = r1(x)
-		r = mk(Lt, xn)
-		rp := int32(r)
-		x = Flp(x)
-		xp := int32(x)
-		e := ep(r)
-		for rp < e {
-			SetI64(rp, int64(Key(rx(k), x0(K(xp)))))
-			xp += 8
-			rp += 8
+		x = Flp(r1(x))
+		r = mk(Lt, 0)
+		for i := int32(0); i < xn; i++ {
+			r = cat1(r, Key(rx(k), ati(rx(x), i)))
 		}
-		dx(x)
-		dx(k)
+		dxy(x, k)
 		return r
 	}
 	return r
@@ -80,7 +73,7 @@ func flat(x K) K { // ((..);(..)) -> (...)
 	dx(x)
 	return r
 }
-func ucat(x, y K) K { // Bt,Bt .. Lt,Lt
+func ucat(x, y K) K { // Bt,Bt .. Tt,Tt
 	xt := tp(x)
 	if xt > Lt {
 		return dcat(x, y)
@@ -164,6 +157,5 @@ func ncat(x, y K) K {
 	}
 	xt = maxtype(x, y)
 	x = uptype(x, xt)
-	y = uptype(y, xt)
-	return cat1(x, y)
+	return cat1(x, uptype(y, xt))
 }

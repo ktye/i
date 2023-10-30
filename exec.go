@@ -157,8 +157,7 @@ func Amd(x, i, v, y K) K {
 			x = Amd(x, ati(rx(i), j), rx(v), ati(rx(y), j))
 		}
 		dx(i)
-		dx(v)
-		dx(y)
+		dxy(v, y)
 		return x
 	}
 	if xt > Lt {
@@ -237,10 +236,8 @@ func Dmd(x, i, v, y K) K {
 			rj := int32(x) + 8*I32(int32(f)+4*j)
 			SetI64(rj, int64(Amd(K(I64(rj)), rx(i), rx(v), ati(rx(y), j))))
 		}
-		dx(f)
-		dx(i)
-		dx(v)
-		dx(y)
+		dxy(f, i)
+		dxy(v, y)
 		return x
 	}
 	x = rx(x)

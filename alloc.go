@@ -129,6 +129,7 @@ func dx(x K) {
 		mfree(p, bucket(sz(t)*n))
 	}
 }
+func dxy(x, y K) { dx(x); dx(y) }
 func rl(x K) { // ref list elements
 	e := ep(x)
 	p := int32(x)

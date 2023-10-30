@@ -65,10 +65,8 @@ func dofile(x K, c K) {
 	} else { // file (assign file:bytes..)
 		dx(Asn(sc(rx(x)), c))
 	}
-	dx(xe)
-	dx(x)
-	dx(tt)
-	dx(kk)
+	dxy(xe, x)
+	dxy(tt, kk)
 }
 func getargv() K {
 	n := Args()

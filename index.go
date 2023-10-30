@@ -167,8 +167,7 @@ func atv(x, y K) K { // x CT..LT
 		r = uf(r)
 	}
 	dx(na)
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func stv(x, i, y K) K {
@@ -177,8 +176,7 @@ func stv(x, i, y K) K {
 	}
 	n := nn(i)
 	if n == 0 {
-		dx(y)
-		dx(i)
+		dxy(y, i)
 		return x
 	}
 	if n != nn(y) {
@@ -237,16 +235,12 @@ func stv(x, i, y K) K {
 			yp += 16
 		}
 	}
-	dx(i)
-	dx(y)
+	dxy(i, y)
 	return x
 }
 func sti(x K, i int32, y K) K {
 	x = use(x)
 	xt := tp(x)
-	//if xt < Lt && yt != xt-16 {
-	//	trap(Type)
-	//}
 	xn := nn(x)
 	if i < 0 || i >= xn {
 		trap() //index

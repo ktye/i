@@ -92,8 +92,7 @@ func shuffle(r K, m int32) K { // I, inplace
 	n := nn(r)
 	m = mini(n-1, m)
 	for i := int32(0); i < m; i++ {
-		ii := i + randi(n-i)
-		j := rp + 4*(ii-i)
+		j := rp + 4*randi(n-i)
 		t := I32(rp)
 		SetI32(rp, I32(j))
 		SetI32(j, t)

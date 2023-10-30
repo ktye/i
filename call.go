@@ -17,6 +17,7 @@ func isfunc(t T) int32 { return I32B(t == 0 || (t < 16 && t > tt)) }
 func cal(f, x K) K {
 	r := K(0)
 	z := K(0)
+	y := K(0)
 	t := tp(f)
 	fp := int32(f)
 	xn := nn(x)
@@ -27,9 +28,12 @@ func cal(f, x K) K {
 		case 1:
 			r = x1(x)
 			x = r0(x)
-		case 2:
+		default:
 			r = x1(x)
 			z = x2(x)
+			if xn == 4 {
+				y = x3(x)
+			}
 			x = r0(x)
 		}
 	}
@@ -46,10 +50,7 @@ func cal(f, x K) K {
 		case 2:
 			r = Func[fp+192].(f4)(x, r, 1, z)
 		case 3:
-			r = x0(x)
-			y := x1(x)
-			z = x2(x)
-			r = Func[fp+192].(f4)(r, y, z, r3(x))
+			r = Func[fp+192].(f4)(x, r, z, y)
 		default:
 			trap() //rank
 			r = 0
@@ -122,59 +123,6 @@ func native(f K, x K) K {
 	}
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
-
-/*
-	func lambda(f K, x K) K {
-		fn := nn(f)
-		xn := nn(x)
-		if xn < fn {
-			rx(f)
-			return prj(f, x)
-		}
-		if xn != fn {
-			trap(Rank)
-		}
-		fp := int32(f)
-		c := K(I64(fp))
-		lo := K(I64(fp + 8))
-		nl := nn(lo)
-		sa := mk(It, 2*nl) //K(I64(fp + 16))
-		sp := int32(sa)
-		vp := I32(8)
-		lp := int32(lo)
-		xp := int32(x)
-		rl(x)
-		dx(x)
-		for i := int32(0); i < nl; i++ {
-			p := vp + I32(lp)
-			SetI64(sp, I64(p))
-			if i < fn {
-				SetI64(p, I64(xp))
-				xp += 8
-			} else {
-				SetI64(p, 0)
-			}
-			sp += 8
-			lp += 4
-		}
-		spp, spe := pp, pe
-		r := exec(rx(c))
-		vp = I32(8)
-		sp = int32(sa)
-		lp = int32(lo)
-		for i := int32(0); i < nl; i++ {
-			p := vp + I32(lp)
-			dx(K(I64(p)))
-			SetI64(p, I64(sp))
-			SetI64(sp, 0)
-			lp += 4
-			sp += 8
-		}
-		dx(sa)
-		pp, pe = spp, spe
-		return r
-	}
-*/
 func lambda(f K, x K) K {
 	r := lac(f, x)
 	if r != 0 {
@@ -272,8 +220,7 @@ func prj(f, x K) K { // project
 	return ti(pf, int32(r))
 }
 func arity(f K) int32 {
-	t := tp(f)
-	if t > df {
+	if tp(f) > df {
 		return nn(f)
 	}
 	return 2

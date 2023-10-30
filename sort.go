@@ -40,7 +40,7 @@ func grade(x K, f int32) K { // <x >x
 	}
 	n := nn(x)
 	if xt == Tt {
-		return kxy(104, x, Ki(I32B(f == -1))) //254 //gdt ngn:{(!#x){x@<y x}/|.+x}
+		return cal(Val(Ks(104)), l2(x, Ki(I32B(f == -1)))) //gdt ngn:{(!#x){x@<y x}/|.+x}
 	}
 	if n < 2 {
 		dx(x)
@@ -53,8 +53,7 @@ func grade(x K, f int32) K { // <x >x
 	wp := int32(w)
 	Memorycopy(wp, rp, 4*n)
 	msrt(wp, rp, 0, n, xp, int32(xt), f)
-	dx(w)
-	dx(x)
+	dxy(w, x)
 	return r
 }
 
