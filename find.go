@@ -169,8 +169,7 @@ func Find(x, y K) K { // find[pattern;string] returns all matches (It)
 		}
 		continue
 	}
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func findat(xp, yp, n int32) int32 {
@@ -178,15 +177,13 @@ func findat(xp, yp, n int32) int32 {
 		if I8(xp+i) != I8(yp+i) {
 			return 0
 		}
-		continue
 	}
 	return 1
 }
 
 func Mtc(x, y K) K {
 	r := Ki(match(x, y))
-	dx(x)
-	dx(y)
+	dxy(x, y)
 	return r
 }
 func match(x, y K) int32 {

@@ -112,7 +112,6 @@ func seq(n int32) K {
 	for n > 0 {
 		n--
 		SetI32(int32(r)+4*n, n)
-		continue
 	}
 	return r
 }
