@@ -98,8 +98,7 @@ func t() K { // Lt
 	}
 	verb := K(0)
 	if r == K('(') {
-		r = plist(41)
-		r = rlist(r&^1, 0)
+		r = rlist(plist(41)&^1, 0)
 	} else if r == K('{') {
 		r = plam(ps)
 	} else if r == K('[') {
@@ -127,10 +126,9 @@ f:
 		if n == 0 {
 			break f
 		}
-		a := int32(n)
-		tn := tp(n)
 		ks := K(ps) << 32
-		if tn == 0 && a > 20 && a < 27 { // +/
+		a := int32(n)
+		if tp(n) == 0 && a > 20 && a < 27 { // +/
 			r, verb = cat1(r, n), 1
 		} else if n == 91 { // [
 			verb = 0
@@ -144,8 +142,7 @@ f:
 			if nn(n) == 1 {
 				r = cat1(ucat(Fst(n), r), 83|ks)
 			} else {
-				n = rlist(n, 2)
-				r = cat1(Cat(n, r), p|ks)
+				r = cat1(Cat(rlist(n, 2), r), p|ks)
 			}
 		} else {
 			pp -= 8
