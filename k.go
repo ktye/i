@@ -101,14 +101,13 @@ func l1(x K) K {
 	SetI64(int32(r), int64(x))
 	return r
 }
-func l2t(x, y K, t T) K {
+func l2(x, y K) K {
 	r := mk(Lt, 2)
 	rp := int32(r)
 	SetI64(rp, int64(x))
 	SetI64(8+rp, int64(y))
-	return ti(t, rp)
+	return r
 }
-func l2(x, y K) K    { return l2t(x, y, Lt) }
 func l3(x, y, z K) K { return cat1(l2(x, y), z) }
 func r0(x K) K       { r := x0(x); dx(x); return r }
 func r1(x K) K       { r := x1(x); dx(x); return r }

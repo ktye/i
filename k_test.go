@@ -824,6 +824,7 @@ func comma(x bool) string {
 func TestNative(t *testing.T) {
 	newtest()
 	Native = nat
+	l2t := func(x, y K, t T) K { return ti(t, int32(l2(x, y))) }
 	f1 := l2t(K(1), mkchars([]byte("tilcnt")), xf)
 	SetI32(int32(f1)-12, 1)
 	f2 := l2t(K(2), mkchars([]byte("nativeadd")), xf)

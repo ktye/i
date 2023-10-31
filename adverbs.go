@@ -7,9 +7,9 @@ import (
 type rdf = func(int32, T, int32) K
 type scf = func(K, int32, T, int32) K
 
-func ech(x K) K { return l2t(x, 0, df) } // '
-func rdc(x K) K { return l2t(x, 2, df) } // /
-func scn(x K) K { return l2t(x, 4, df) } // \
+func ech(x K) K { return ti(df, int32(l2(x, 0))) } // '
+func rdc(x K) K { return ti(df, int32(l2(x, 2))) } // /
+func scn(x K) K { return ti(df, int32(l2(x, 4))) } // \
 
 func Ech(f, x K) K {
 	r := K(0)
