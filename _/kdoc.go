@@ -56,6 +56,32 @@ func main() {
 		}
 	}
 	cid := 0
+	ex := func(s string) int {
+		i := strings.Index(s, ")")
+		v := strings.Split(s[:i], ", ")
+		for i := range v {
+			O(`<a href="#` + v[i] + `" id='c:` + strconv.Itoa(cid) + `'>` + v[i] + `</a>`)
+			cid++
+			if i < len(v)-1 {
+				O(", ")
+			}
+		}
+		return i
+	}
+	fn := func(s string) int {
+		i := strings.Index(s, ")")
+		v := strings.Split(s[:i], ", ")
+		O("(" + v[0] + ", ")
+		v = v[1:]
+		for i := range v {
+			O(`<a href="#` + v[i] + `" id='c:` + strconv.Itoa(cid) + `'>` + v[i] + `</a>`)
+			cid++
+			if i < len(v)-1 {
+				O(", ")
+			}
+		}
+		return i
+	}
 	L := func(s string) {
 		r := regexp.MustCompile(`\w+\(`)
 		v := r.FindAllIndex([]byte(s), -1)
@@ -66,6 +92,14 @@ func main() {
 			O(`<a href="#` + s[a:b] + `" id='c:` + strconv.Itoa(cid) + `'>` + s[a:b] + `</a>`)
 			cid++
 			i = b
+			if s[a:b] == "Export" {
+				O("(")
+				b++
+				i = b + ex(s[b:])
+			} else if s[a:b] == "Functions" {
+				b++
+				i = b + fn(s[b:])
+			}
 		}
 		O(H(s[i:]))
 	}
