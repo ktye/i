@@ -66,9 +66,9 @@ func e(x K) K { // Lt
 			return a
 		}
 		if r == 0 || ev == 1 { // 1+ (projection)
-			x = cat1(ucat(cat1(cat1(ucat(l1(0), x), Ki(2)), 27), y), 92)
+			x = ucat1(cat1(ucat1(l1(0), x, Ki(2)), 27), y, 92)
 			if ev == 1 { // 1+-
-				return cat1(ucat(r, x), 91) + 1
+				return ucat1(r, x, 91) + 1
 			}
 			return x + 1
 		}
@@ -79,9 +79,9 @@ func e(x K) K { // Lt
 	r &^= 1
 	dx(y)
 	if xv == 0 {
-		return cat1(ucat(r, x), 83|K(xs)<<32) // juxtaposition
+		return ucat1(r, x, 83|K(xs)<<32) // juxtaposition
 	} else if (r == y && xv+yv == 2) || ev == 1 {
-		return cat1(ucat(r, x), 91) + 1 // composition
+		return ucat1(r, x, 91) + 1 // composition
 	}
 	return idiom(monadic(ucat(r, x))) // monadic
 }
@@ -140,7 +140,7 @@ f:
 				return s
 			}
 			if nn(n) == 1 {
-				r = cat1(ucat(Fst(n), r), 83|ks)
+				r = ucat1(Fst(n), r, 83|ks)
 			} else {
 				r = cat1(Cat(rlist(n, 2), r), p|ks)
 			}
@@ -169,7 +169,7 @@ func pasn(x, y, r K) K {
 			if lp == 92 {
 				lp = 84 // x[i;]:.. no projection
 			}
-			x = cat1(cat1(ucat(l1(l), ldrop(-2, x)), 20), (K(sp)<<32)|(lp+128))
+			x = cat1(ucat1(l1(l), ldrop(-2, x), 20), (K(sp)<<32)|(lp+128))
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
 			if xn == 1 { // `x: is (,`x) but type Lt replace with `"x." to use with `x@
@@ -239,12 +239,9 @@ func plam(s0 int32) K {
 	s := atv(rx(src()), i)
 	r = l3(c, Unq(loc), s)
 	loc = slo
-	return l1(slam(r, ar, s0))
-}
-func slam(r K, ar, s0 int32) K {
-	rp := int32(r)
-	SetI32(rp-12, ar)
-	return ti(lf, rp) | K(s0)<<32
+	cp = int32(r)
+	SetI32(cp-12, ar)
+	return l1(ti(lf, cp) | K(s0)<<32)
 }
 func pspec(r, n K) K {
 	ln := nn(n)
@@ -264,8 +261,7 @@ func pspec(r, n K) K {
 func whl(x K, xn int32) K {
 	r := cat1(Fst(rx(x)), 0)
 	p := nn(r) - 1
-	r = cat1(r, 384) // jif
-	r = cat1(r, 256) // drop
+	r = ucat(r, l2(384, 256)) //jif drop
 	xp := int32(x)
 	sum := int32(2)
 	for i := int32(0); i < xn; i++ {
@@ -378,25 +374,20 @@ func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
 func dyadic(x, y K) K {
 	l := lastp(y)
 	if quoted(l) != 0 {
-		return cat1(ucat(x, ldrop(-1, y)), 64+unquote(l))
+		return ucat1(x, ldrop(-1, y), 64+unquote(l))
 	}
-	return cat1(ucat(x, y), 128)
+	return ucat1(x, y, 128)
 }
 func monadic(x K) K {
 	l := lastp(x)
 	if quoted(l) != 0 {
-		//r := cat1(ldrop(-1, x), unquote(l))
 		r := ldrop(-1, x)
 		if int32(l) == 449 { // :x return lambda
-			//return cat1(cat1(r, Ki(1048576)), 320) //identity+long jump
-			//return cat1(Enl(ndrop(-1, r)), 321) //quote + tailcall
 			l = 0xff000000ffffffff & lastp(r)
 			if l-83 < 2 { //83(@) 84(.)
-				return cat1(ldrop(-1, r), 238+l)
-				//return cat1(r, 238+l)
+				return cat1(ldrop(-1, r), 238+l) //tail
 			} else {
-				return cat1(cat1(r, Ki(1048576)), 320)
-				//return cat1(r, 321) // return/tail
+				return cat1(cat1(r, Ki(1048576)), 320) //identity+long jump
 			}
 		} else {
 			return cat1(r, unquote(l))

@@ -109,6 +109,7 @@ func dcat(x, y K) K { // d,d  t,t
 		return key(r, x, t)
 	}
 }
+func ucat1(x, y, z K) K { return cat1(ucat(x, y), z) }
 func cat1(x, y K) K {
 	xt := tp(x)
 	xn := nn(x)
