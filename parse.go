@@ -32,7 +32,7 @@ func es() K {
 			continue
 		}
 		pp -= 8
-		x := e(t()) &^ 1
+		x := e(t())
 		if x == 0 {
 			break
 		}
@@ -44,8 +44,7 @@ func es() K {
 	return r
 }
 
-/*
-func isv(x K) int32 { //costs 96
+func v(x K) K { //costs 96 &^ - 1 + 1
 	// x=0  : 1
 	// ])   : 0
 	// 21.26: 1 (derived)
@@ -53,38 +52,47 @@ func isv(x K) int32 { //costs 96
 	// 447..: 1 (unapplied verb)
 	// else : 0
 	if x > 0 {
-		k := int32(K(I64(pp - 8))) // or: if is(I8(pp-8), 32) != 0 { return 0 }
+		k := int32(K(I64(pp - 8)))
 		if k == 41 || k == 93 {
 			return 0
 		}
 		l := lastp(x)
 		y := int32(l)
-		if tp(l) == 0 && uint32(y-20) < 7 || uint32(y-91) < 2 || y > 447 {
+		if tp(l) == 0 && (uint32(y-21) < 6 || uint32(y-91) < 2 || y > 447) {
 			return 1
 		}
 	}
 	return 0
 }
+
+/*
+func testv(x, v K) {
+	if isv(x) != int32(v) {
+		k := int32(K(I64(pp - 8)))
+		println("k", k, "x>0", x > 0)
+		println(sK(x), "v", v)
+		l := lastp(x)
+		println("x", l, tp(l), int32(l))
+		panic("testv")
+	}
+}
 */
 
 func e(x K) K { // Lt
 	r := K(0)
-	xv := x & 1
-	x &^= 1
+	xv := v(x)
 	if x == 0 {
 		return 0
 	}
 	xs := ps
 	y := t()
-	yv := y & 1
-	y &^= 1
+	yv := v(y)
 	if y == 0 {
-		return x + xv
+		return x
 	}
 	if yv != 0 && xv == 0 {
 		r = e(t())
-		ev := r & 1
-		r &^= 1
+		ev := v(r)
 		a := pasn(x, y, r)
 		if a != 0 {
 			return a
@@ -92,20 +100,19 @@ func e(x K) K { // Lt
 		if r == 0 || ev == 1 { // 1+ (projection)
 			x = ucat1(cat1(ucat1(l1(0), x, Ki(2)), 27), y, 92)
 			if ev == 1 { // 1+-
-				return ucat1(r, x, 91) + 1
+				return ucat1(r, x, 91)
 			}
-			return x + 1
+			return x
 		}
 		return dyadic(ucat(r, x), y) // dyadic
 	}
-	r = e(rx(y) + yv)
-	ev := r & 1
-	r &^= 1
+	r = e(rx(y))
+	ev := v(r)
 	dx(y)
 	if xv == 0 {
 		return ucat1(r, x, 83|K(xs)<<32) // juxtaposition
 	} else if (r == y && xv+yv == 2) || ev == 1 {
-		return ucat1(r, x, 91) + 1 // composition
+		return ucat1(r, x, 91) // composition
 	}
 	return idiom(monadic(ucat(r, x))) // monadic
 }
@@ -120,7 +127,6 @@ func t() K { // Lt
 			return 0
 		}
 	}
-	verb := K(0)
 	if r == K('(') {
 		r = rlist(plist(41)&^1, 0)
 	} else if r == K('{') {
@@ -136,7 +142,7 @@ func t() K { // Lt
 	} else {
 		rt := tp(r)
 		if rt == 0 {
-			r, verb = quote(r)|K(ps)<<32, 1
+			r = quote(r) | K(ps)<<32
 		} else if rt == St {
 			if nn(r) == 1 {
 				r = Fst(r)
@@ -153,9 +159,8 @@ f:
 		ks := K(ps) << 32
 		a := int32(n)
 		if tp(n) == 0 && a > 20 && a < 27 { // +/
-			r, verb = cat1(r, n), 1
+			r = cat1(r, n)
 		} else if n == 91 { // [
-			verb = 0
 			n = plist(93)
 			p := K(84) + 8*(n&1) // 92(project) or call(84)
 			n &^= 1
@@ -173,7 +178,7 @@ f:
 			break f // within else-if
 		}
 	}
-	return r + verb
+	return r
 }
 func pasn(x, y, r K) K {
 	l := K(I64(int32(y)))
@@ -340,7 +345,7 @@ func plist(c K) K {
 			trap() //parse
 		}
 		n++
-		x := e(t()) &^ 1
+		x := e(t())
 		if x == 0 {
 			p = 1
 		}
