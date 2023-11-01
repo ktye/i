@@ -99,7 +99,7 @@ func exec(x K) K {
 	return a
 }
 func marksrc(x K) int32 {
-	if p := 0xffffff & int32(x>>32); p != 0 {
+	if p := h48(x); p != 0 {
 		srcp = p
 	}
 	return int32(x)

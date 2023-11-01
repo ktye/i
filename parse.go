@@ -154,7 +154,7 @@ f:
 func pasn(x, y, r K) K {
 	l := K(I64(int32(y)))
 	v := int32(l)
-	sp := 0xffffff & int32(l>>32)
+	sp := h48(l)
 	if nn(y) == 1 && tp(l) == 0 && v == 449 || (v > 544 && v < 565) {
 		dx(y)
 		xn := nn(x)
@@ -163,7 +163,7 @@ func pasn(x, y, r K) K {
 				l -= 96
 			}
 			s := ati(rx(x), xn-3)
-			lp := 0xff000000ffffffff & lastp(x)
+			lp := c48lp(x)
 			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
 			// lp+128 is @[amd..] or .[dmd..]
 			if lp == 92 {
@@ -303,19 +303,14 @@ func cond(x K, xn int32) K {
 func plist(c K) K {
 	p := K(0)
 	r := mk(Lt, 0)
-	n := int32(0)
 	for {
 		b := next()
 		if b == 0 || b == c {
 			break
 		}
-		if n == 0 {
+		if nn(r) == 0 {
 			pp -= 8
 		}
-		if n != 0 && b != 59 {
-			trap() //parse
-		}
-		n++
 		x := e(t()) &^ 1
 		if x == 0 {
 			p = 1
@@ -365,12 +360,13 @@ func next() K {
 		return 0
 	}
 	r := K(I64(pp))
-	ps = 0xffffff & int32(r>>32)
-	r = r &^ (K(0xffffff) << 32)
+	ps = h48(r)
 	pp += 8
-	return r
+	return r & 0xff000000ffffffff
 }
-func lastp(x K) K { return K(I64(ep(x) - 8)) } //return K(I64(int32(x) + 8*(nn(x)-1))) } // K(I64(ep(x)-8))
+func lastp(x K) K   { return K(I64(ep(x) - 8)) }
+func h48(x K) int32 { return 0xffffff & int32(x>>32) }
+func c48lp(x K) K   { return 0xff000000ffffffff & lastp(x) }
 func dyadic(x, y K) K {
 	l := lastp(y)
 	if quoted(l) != 0 {
@@ -383,7 +379,7 @@ func monadic(x K) K {
 	if quoted(l) != 0 {
 		r := ldrop(-1, x)
 		if int32(l) == 449 { // :x return lambda
-			l = 0xff000000ffffffff & lastp(r)
+			l = c48lp(r)
 			if l-83 < 2 { //83(@) 84(.)
 				return cat1(ldrop(-1, r), 238+l) //tail
 			} else {
