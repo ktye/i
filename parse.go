@@ -43,6 +43,30 @@ func es() K {
 	}
 	return r
 }
+
+/*
+func isv(x K) int32 { //costs 96
+	// x=0  : 1
+	// ])   : 0
+	// 21.26: 1 (derived)
+	// 91,92: 1 (composition)
+	// 447..: 1 (unapplied verb)
+	// else : 0
+	if x > 0 {
+		k := int32(K(I64(pp - 8))) // or: if is(I8(pp-8), 32) != 0 { return 0 }
+		if k == 41 || k == 93 {
+			return 0
+		}
+		l := lastp(x)
+		y := int32(l)
+		if tp(l) == 0 && uint32(y-20) < 7 || uint32(y-91) < 2 || y > 447 {
+			return 1
+		}
+	}
+	return 0
+}
+*/
+
 func e(x K) K { // Lt
 	r := K(0)
 	xv := x & 1
@@ -370,7 +394,7 @@ func next() K {
 	pp += 8
 	return r
 }
-func lastp(x K) K { return K(I64(int32(x) + 8*(nn(x)-1))) }
+func lastp(x K) K { return K(I64(ep(x) - 8)) } //return K(I64(int32(x) + 8*(nn(x)-1))) } // K(I64(ep(x)-8))
 func dyadic(x, y K) K {
 	l := lastp(y)
 	if quoted(l) != 0 {
