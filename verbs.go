@@ -116,7 +116,7 @@ func seq(n int32) K {
 	return r
 }
 func Unq(x K) K { // ?x
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt < 16 {
 		return roll(x)
@@ -227,7 +227,7 @@ func Tak(x, y K) K { // x#y
 	return Atx(y, Wer(Cal(x, l1(y)))) // f#
 }
 func ntake(n int32, y K) K {
-	r := K(0)
+	var r K
 	t := tp(y)
 	if n == nai {
 		if t < 16 {
@@ -336,7 +336,7 @@ func Drp(x, y K) K { // x_y
 	return Atx(y, Wer(Not(Cal(x, l1(rx(y)))))) // f#
 }
 func ndrop(n int32, y K) K {
-	r := K(0)
+	var r K
 	yt := tp(y)
 	if yt < 16 || yt > Lt {
 		trap() //type
@@ -491,7 +491,7 @@ func Bin(x, y K) K { // x'y
 	return r
 }
 func ibin(x, y K, t T) int32 {
-	h := int32(0)
+	var h int32
 	k := int32(0)
 	n := nn(x)
 	xp := int32(x)
@@ -628,7 +628,7 @@ func lower(x K) K {
 func lc(x int32) int32 { return x + 32*I32B(uint32(x-65) < 26) }
 
 func Rev(x K) K { // |x
-	r := K(0)
+	var r K
 	t := tp(x)
 	if t < 16 {
 		return x
@@ -713,7 +713,7 @@ func Tok(x K) K { // `t@"src"
 	}
 }
 func Val(x K) K {
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt == st {
 		return lup(x)

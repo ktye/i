@@ -5,7 +5,7 @@ import (
 )
 
 func Atx(x, y K) K { // x@y
-	r := K(0)
+	var r K
 	xt, yt := tp(x), tp(y)
 	xp := int32(x)
 	if xt < 16 {

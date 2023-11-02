@@ -189,7 +189,7 @@ func epi() { //restore saved arguments
 
 func com(x, y K) K { return ti(cf, int32(l2(y, x))) } // compose
 func prj(f, x K) K { // project
-	r := K(0)
+	var r K
 	if isfunc(tp(f)) == 0 {
 		return atdepth(f, x)
 	}

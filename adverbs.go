@@ -12,7 +12,7 @@ func rdc(x K) K { return ti(df, int32(l2(x, 2))) } // /
 func scn(x K) K { return ti(df, int32(l2(x, 4))) } // \
 
 func Ech(f, x K) K {
-	r := K(0)
+	var r K
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
@@ -68,7 +68,7 @@ func ecn(f, x K) K {
 	return Ech(20, l2(f, Flp(x)))
 }
 func ec2(f, x, y K) K {
-	r := K(0)
+	var r K
 	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
@@ -95,7 +95,6 @@ func ec2(f, x, y K) K {
 }
 
 func Rdc(f, x K) K { // x f/y   (x=0):f/y
-	r := K(0)
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) == 2 {
@@ -137,7 +136,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			if xt == Tt {
 				return Ech(rdc(f), l1(Flp(x)))
 			}
-			r = Func[256+fp].(rdf)(int32(x), xt, xn) //365
+			r := Func[256+fp].(rdf)(int32(x), xt, xn) //365
 			if r != 0 {
 				dx(x)
 				return r
@@ -180,7 +179,7 @@ func rdn(f, x, l K) K { // {x+y*z}/x  {x+y*z}\x
 }
 
 func Ecr(f, x K) K { //x f/y
-	r := K(0)
+	var r K
 	y := x1(x)
 	x = r0(x)
 	yt := tp(y)
@@ -229,7 +228,7 @@ func fix(f, x, l K) K {
 	return x
 }
 func Scn(f, x K) K {
-	r := K(0)
+	var r K
 	t := tp(f)
 	if isfunc(t) == 0 {
 		if nn(x) != 1 {

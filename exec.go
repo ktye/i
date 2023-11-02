@@ -14,10 +14,9 @@ func quote(x K) K      { return x + 448 }
 func unquote(x K) K    { return x - 448 }
 
 func exec(x K) K {
+	var b, c K
 	srcp = 0
 	a := K(0) // accumulator
-	b := K(0)
-	c := K(0)
 	xn := nn(x)
 	if xn == 0 {
 		dx(x)

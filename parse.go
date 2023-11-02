@@ -44,7 +44,7 @@ func es() K {
 	return r
 }
 func e(x K) K { // Lt
-	r := K(0)
+	var r K
 	xv := x & 1
 	x &^= 1
 	if x == 0 {

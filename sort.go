@@ -5,7 +5,7 @@ import (
 )
 
 func Srt(x K) K { // ^x
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt < 16 {
 		trap() //type
@@ -29,7 +29,7 @@ func Asc(x K) K { // <x  <`file
 }
 func Dsc(x K) K { return grade(x, -1) } //254 // >x
 func grade(x K, f int32) K { // <x >x
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt < 16 {
 		trap() //type
@@ -67,7 +67,7 @@ func msrt(x, r, a, b, p, t, f int32) {
 	mrge(x, r, 4*a, 4*b, 4*c, p, t, f)
 }
 func mrge(x, r, a, b, c, p, t, f int32) {
-	q := int32(0)
+	var q int32
 	i, j := a, c
 	s := sz(T(t))
 	for k := a; k < b; k += 4 {
@@ -86,7 +86,7 @@ func mrge(x, r, a, b, c, p, t, f int32) {
 	}
 }
 func cmL(xp, yp int32) int32 { // compare lists lexically
-	r := int32(0)
+	var r int32
 	x, y := K(I64(xp)), K(I64(yp))
 	xt, yt := tp(x), tp(y)
 	if xt != yt {

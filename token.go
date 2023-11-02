@@ -210,7 +210,7 @@ func pexp(f float64) float64 {
 	return f * pow(10.0, float64(e))
 }
 func pflt(i int64) K {
-	c := int32(0)
+	var c int32
 	d := 1.0
 	f := float64(i)
 	pp++ // .
@@ -339,7 +339,7 @@ func tsym() K {
 	return r
 }
 func ws() {
-	c := int32(0)
+	var c int32
 	for pp < pe {
 		c = I8(pp)
 		if c == 10 || c > 32 {

@@ -118,9 +118,6 @@ func atan2(y, x float64) float64 {
 	return q
 }
 func atan(x float64) float64 {
-	//if x == 0 {
-	//	return x
-	//}
 	if x > 0 {
 		return satan(x)
 	} else {
@@ -143,7 +140,7 @@ func xatan(x float64) float64 {
 	return z
 }
 func exp(x float64) float64 {
-	k := int64(0)
+	var k int64
 	if x != x {
 		return x
 	}
@@ -227,28 +224,6 @@ func frexp3(f float64) int64 {
 	x := I64reinterpret_f64(f)
 	return exp + int64((x>>52)&2047) - 1022
 }
-
-/*
-	func frexp(f float64) (float64, int64) {
-		var exp int64
-		if f == 0.0 {
-			return f, 0
-		}
-		if f < -maxfloat || f > maxfloat || (f != f) {
-			return f, 0
-		}
-		nf := normalize(f)
-		if nf != f {
-			exp = -52
-			f = nf
-		}
-		x := I64reinterpret_f64(f)
-		exp += int64((x>>52)&2047) - 1022
-		x &^= 9218868437227405312
-		x |= 4602678819172646912
-		return F64reinterpret_i64(x), exp
-	}
-*/
 func normalize(x float64) float64 {
 	if F64abs(x) < 2.2250738585072014e-308 {
 		return x * 4.503599627370496e+15
@@ -287,8 +262,7 @@ func log(x float64) float64 {
 	return k*6.93147180369123816490e-01 - ((hfsq - (s*(hfsq+R) + k*1.90821492927058770002e-10)) - f)
 }
 func modabsfi(f float64) float64 {
-	if f < 1.0 {
-		// simplified for f > 0
+	if f < 1.0 { // simplified for f > 0
 		return 0
 	}
 	x := I64reinterpret_f64(f)

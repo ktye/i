@@ -251,7 +251,7 @@ func Les(x, y K) K { // x<y   `file<c
 func Mor(x, y K) K { return nc(9, 1, x, y) } //338
 
 func Ang(x K) K { // angle x
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt > Zt {
 		return Ech(35, l1(x))
@@ -282,7 +282,7 @@ func Ang(x K) K { // angle x
 	return r
 }
 func Rot(x, y K) K { // r@deg
-	r := K(0)
+	var r K
 	if tp(x) > Zt {
 		return Ech(35, l2(x, y))
 	}
@@ -349,7 +349,7 @@ func fk(x K) float64 {
 	return F64(int32(x))
 }
 func nf(f int32, x, y K) K {
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt >= Lt {
 		if y == 0 {
@@ -384,7 +384,7 @@ func nf(f int32, x, y K) K {
 	return r
 }
 func nm(f int32, x K) K { //monadic
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt > Lt {
 		r = x0(x)
@@ -462,7 +462,8 @@ func nm(f int32, x K) K { //monadic
 	return r
 }
 func nd(f, ff int32, x, y K) K { //dyadic
-	r := K(0)
+	var r K
+	var n int32
 	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
@@ -494,7 +495,6 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		}
 	}
 
-	n := int32(0)
 	ix := sz(t + 16)
 	iy := ix
 	if av == 1 { //av
@@ -553,7 +553,8 @@ func nd(f, ff int32, x, y K) K { //dyadic
 	return r
 }
 func nc(ff, q int32, x, y K) K { //compare
-	r := K(0)
+	var r K
+	var n int32
 	t := dtypes(x, y)
 	if t > Lt {
 		r = dkeys(x, y)
@@ -572,7 +573,6 @@ func nc(ff, q int32, x, y K) K { //compare
 		// 11(derived), 12(proj), 13(lambda), 14(native)?
 		return Ki(I32B(q == Func[245+t].(f2i)(xp, yp)))
 	}
-	n := int32(0)
 	ix := sz(t + 16)
 	iy := ix
 	if av == 1 { //av

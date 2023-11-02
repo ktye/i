@@ -6,7 +6,7 @@ import (
 
 func rd0(yp int32, t T, n int32) K { return 0 }
 func min(yp int32, t T, n int32) K { // &/x
-	xp := int32(0)
+	var xp int32
 	switch t - 18 {
 	case 0: // Ct
 		xp = 127
@@ -43,7 +43,7 @@ func min(yp int32, t T, n int32) K { // &/x
 	}
 }
 func max(yp int32, t T, n int32) K { // |/x
-	xp := int32(0)
+	var xp int32
 	switch t - 18 {
 	case 0: // Ct
 		xp = -128
@@ -60,6 +60,7 @@ func max(yp int32, t T, n int32) K { // |/x
 		}
 		return Ki(xp)
 	case 2: // St
+		xp = 0
 		for n > 0 {
 			n--
 			xp = maxi(xp, I32(yp))

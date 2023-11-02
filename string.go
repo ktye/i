@@ -7,7 +7,7 @@ import (
 func Kst(x K) K { return Atx(Ks(32), x) } // `k@
 func Lst(x K) K { return Atx(Ks(40), x) } // `l@
 func Str(x K) K {
-	r := K(0)
+	var r K
 	xt := tp(x)
 	if xt > 16 {
 		return Ech(17, l1(x))

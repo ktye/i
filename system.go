@@ -32,7 +32,7 @@ func write(x K) {
 	dx(x)
 }
 func readfile(x K) K { // x C
-	r := K(0)
+	var r K
 	if nn(x) == 0 {
 		r = mk(Ct, 496)
 		r = ntake(ReadIn(int32(r), 496), r)
