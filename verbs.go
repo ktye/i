@@ -151,12 +151,7 @@ func Uqs(x K) K { // ?^x
 	}
 	return kx(88, x) // .uqs
 }
-func Grp(x K) K { return kx(128, x) } // =x grp.
-func grp(x, y K) K { // s?T
-	x = rx(x)
-	y = rx(y)
-	return Atx(Drp(x, y), Grp(Atx(y, x)))
-}
+func Grp(x K) K    { return kx(128, x) }    // =x grp.
 func Key(x, y K) K { return key(x, y, Dt) } // x!y
 func key(x, y K, t T) K { // Dt or Tt
 	xt := tp(x)
@@ -166,8 +161,10 @@ func key(x, y K, t T) K { // Dt or Tt
 			return Mod(y, x)
 		}
 		if xt == st {
-			if yt == Tt {
-				return keyt(x, y) // s!t
+			if yt == Tt { // s!t (key table)
+				x = rx(x)
+				y = rx(y)
+				return Key(Tak(x, y), Drp(x, y))
 			}
 		}
 		x = Enl(x) //allow `a!,1 2 3 short for (`a)!,1 2 3
@@ -186,12 +183,6 @@ func key(x, y K, t T) K { // Dt or Tt
 	SetI32(int32(x)-12, xn)
 	return ti(t, int32(x))
 }
-func keyt(x, y K) K { // `s!t (key table: (`s#t)!`s_t)
-	x = rx(x)
-	y = rx(y)
-	return Key(Tak(x, y), Drp(x, y))
-}
-
 func Tak(x, y K) K { // x#y
 	xt := tp(x)
 	yt := tp(y)

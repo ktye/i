@@ -511,7 +511,11 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		r = use1(x)
 	} else {
 		n = nn(x)
-		r = use2(x, y)
+		if I32(int32(y)-4) == 1 {
+			r = rx(y)
+		} else {
+			r = use1(x)
+		}
 	}
 	if n == 0 {
 		dxy(x, y)
@@ -645,10 +649,8 @@ func uptype(x K, dst T) K {
 		return x
 	}
 	if xt < 16 {
-		if dst == ct {
-			return Kc(xp)
-		} else if dst == it {
-			return Ki(xp)
+		if dst < st {
+			return ti(dst, xp)
 		} else if dst == ft {
 			return Kf(float64(xp))
 		} else if dst == zt {
@@ -698,12 +700,6 @@ func uptype(x K, dst T) K {
 	}
 	dx(x)
 	return r
-}
-func use2(x, y K) K {
-	if I32(int32(y)-4) == 1 {
-		return rx(y)
-	}
-	return use1(x)
 }
 func use1(x K) K {
 	if I32(int32(x)-4) == 1 {

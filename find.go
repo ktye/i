@@ -10,8 +10,9 @@ func Fnd(x, y K) K { // x?y
 	r := K(0)
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
-		if yt == Tt {
-			return grp(x, y)
+		if yt == Tt { // s?T
+			r = Drp(rx(x), rx(y))
+			return Atx(r, Grp(Atx(y, x)))
 		} else {
 			return deal(x, y)
 		}
