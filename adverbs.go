@@ -136,7 +136,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			if xt == Tt {
 				return Ech(rdc(f), l1(Flp(x)))
 			}
-			r := Func[256+fp].(rdf)(int32(x), xt, xn) //365
+			r := Func[256+fp].(rdf)(int32(x), xt, ep(x)) //365
 			if r != 0 {
 				dx(x)
 				return r
@@ -267,19 +267,6 @@ func Scn(f, x K) K {
 	if xt == Dt {
 		r = x0(x)
 		return Key(r, Scn(f, l1(r1(x))))
-	}
-	if tp(f) == 0 {
-		fp := int32(f)
-		if fp == 2 || fp == 4 { // sums,prds (reduce.go)
-			if xt == Tt {
-				return Flp(Ech(scn(f), l1(Flp(x)))) // +f\'[x;+y]
-			}
-			r = Func[262+fp].(rdf)(int32(x), xt, xn) //372
-			if r != 0 {
-				dx(x)
-				return r
-			}
-		}
 	}
 	r = mk(Lt, xn)
 	rp := int32(r)

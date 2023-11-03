@@ -73,7 +73,7 @@ func randi(n int32) int32 {
 func randI(i, n int32) K {
 	r := mk(It, n)
 	rp := int32(r)
-	e := rp + 4*n
+	e := ep(r)
 	if i == 0 {
 		for rp < e {
 			SetI32(rp, rnd())

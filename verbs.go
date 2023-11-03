@@ -665,7 +665,7 @@ func Wer(x K) K { // &x
 	xn := nn(x)
 	xp := int32(x)
 	if t == It {
-		n := sumi(xp, xn)
+		n := sumi(xp, ep(x))
 		r = mk(It, n)
 		rp := int32(r)
 		for i := int32(0); i < xn; i++ {
@@ -765,7 +765,6 @@ func Enc(x, y K) K { // x\\y
 		n = nn(x)
 	}
 	r := mk(It, 0)
-	yn := int32(Cnt(rx(y)))
 l:
 	for {
 		n--
@@ -776,7 +775,7 @@ l:
 			break
 		}
 		if tp(y) > 16 && n < 0 {
-			if sumi(int32(y), yn) == 0 {
+			if sumi(int32(y), ep(y)) == 0 {
 				break l
 			}
 		}
@@ -794,13 +793,5 @@ func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
 		r = Add(ati(rx(y), i), Mul(ati(rx(x), i), r))
 	}
 	dxy(x, y)
-	return r
-}
-func sumi(xp, xn int32) int32 {
-	r := int32(0)
-	for xn > 0 {
-		xn--
-		r += I32(xp + 4*xn)
-	}
 	return r
 }
