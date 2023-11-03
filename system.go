@@ -5,9 +5,10 @@ import (
 )
 
 func repl(x K) {
+	c := I8(int32(x))
 	x = val(x)
 	if x != 0 {
-		if I8(int32(x)) == 32 {
+		if c == 32 {
 			dx(Out(x))
 		} else {
 			write(cat1(join(Kc(10), Lst(x)), Kc(10)))

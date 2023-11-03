@@ -6,10 +6,11 @@ import (
 
 func minit(a, b int32) {
 	p := int32(1 << a)
-	for i := a; i < b; i++ {
-		SetI32(4*i, p)
+	for a < b {
+		SetI32(4*a, p)
 		SetI32(p, 0)
 		p *= 2
+		a++
 	}
 	SetI32(128, b)
 }
@@ -93,11 +94,10 @@ func sz(t T) int32 {
 	return 8
 }
 func rx(x K) K {
-	if tp(x) < 5 {
-		return x
+	if tp(x) > 4 {
+		p := int32(x) - 4
+		SetI32(p, 1+I32(p))
 	}
-	p := int32(x) - 4
-	SetI32(p, 1+I32(p))
 	return x
 }
 func dx(x K) {

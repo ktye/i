@@ -18,15 +18,12 @@ func tok(x K) K {
 		if pp == pe {
 			break
 		}
-		for i := int32(193); i < 199; i++ { // tchr, tnms, tvrb, tpct, tvar, tsym
+		for i := int32(193); i < 200; i++ { // tchr, tnms, tvrb, tpct, tvar, tsym, trap
 			y := Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-int32(s)) << 32)
 				r = cat1(r, y)
 				break
-			}
-			if i == 198 { // last-1
-				trap() //parse
 			}
 		}
 	}

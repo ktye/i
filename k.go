@@ -114,7 +114,6 @@ func r1(x K) K       { r := x1(x); dx(x); return r }
 func x0(x K) K       { return rx(K(I64(int32(x)))) }
 func x1(x K) K       { return x0(x + 8) }
 func x2(x K) K       { return x0(x + 16) }
-func x3(x K) K       { return x0(x + 24) }
 func Ku(x uint64) K { // Ct
 	r := mk(Ct, 0)
 	p := int32(r)

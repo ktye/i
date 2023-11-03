@@ -32,7 +32,7 @@ func cal(f, x K) K {
 			r = x1(x)
 			z = x2(x)
 			if xn == 4 {
-				y = x3(x)
+				y = x0(x + 24)
 			}
 			x = r0(x)
 		}
@@ -59,9 +59,9 @@ func cal(f, x K) K {
 	case 1: // cf
 		switch xn - 1 {
 		case 0:
-			r = calltrain(f, x, 0)
+			r = calltrain(f, l1(x))
 		case 1:
-			r = calltrain(f, x, r)
+			r = calltrain(f, l2(x, r))
 		default:
 			trap() //rank
 			r = 0
@@ -84,21 +84,7 @@ func cal(f, x K) K {
 	dx(f)
 	return r
 }
-
-func calltrain(f, x, y K) K {
-	r := K(0)
-	n := nn(f)
-	if y == 0 {
-		r = cal(x0(f), l1(x))
-	} else {
-		r = cal(x0(f), l2(x, y))
-	}
-	for n > 1 {
-		n--
-		r = cal(x0(f+8), l1(r))
-	}
-	return r
-}
+func calltrain(f, x K) K { return cal(x0(f+8), l1(cal(x0(f), x))) }
 func callprj(f, x K) K {
 	n := nn(x)
 	fn := nn(f)
