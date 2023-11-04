@@ -96,28 +96,13 @@ func dcat(x, y K) K { // d,d  t,t
 }
 func ucat1(x, y, z K) K { return cat1(ucat(x, y), z) }
 func cat1(x, y K) K {
-	xt := tp(x)
-	xn := nn(x)
-	r := uspc(x, xt, 1)
-	s := sz(xt)
-	rp := int32(r) + s*xn
-	yp := int32(y)
-	if s == 1 {
-		SetI8(rp, yp)
-	} else if s == 4 {
-		SetI32(rp, yp)
-	} else if s == 8 {
-		if xt == Ft {
-			SetI64(rp, I64(yp))
-			dx(y)
-		} else {
-			SetI64(rp, int64(y))
-		}
-	} else if s == 16 {
-		Memorycopy(rp, yp, 16)
-		dx(y)
+	t := tp(x)
+	x = uspc(x, t, 1)
+	if t == Lt {
+		y = l1(rx(y))
+		x = ti(Ft, int32(x))
 	}
-	return r
+	return ti(t, int32(sti(x, nn(x)-1, y)))
 }
 func uspc(x K, xt T, ny int32) K {
 	r := K(0)
