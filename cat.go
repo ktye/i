@@ -7,7 +7,7 @@ import (
 func Cat(x, y K) K {
 	xt, yt := tp(x), tp(y)
 	if xt == Tt && yt == Dt {
-		y, yt = Enl(y), Tt
+		return dcat(x, y)
 	}
 	if xt&15 == yt&15 {
 		if xt < 16 {
@@ -32,13 +32,10 @@ func Cat(x, y K) K {
 }
 func Enl(x K) K { return uf(l1(x)) }
 func explode(x K) K {
-	r := K(0)
+	var r K
 	xt := tp(x)
-	if xt < 16 {
-		r = l1(x)
-	} else if xt == Dt {
-		r = mk(Lt, 1)
-		SetI64(int32(r), int64(x))
+	if xt < 16 || xt == Dt {
+		return l1(x)
 	} else if xt < Lt {
 		xn := nn(x)
 		r = mk(Lt, nn(x))
@@ -47,9 +44,8 @@ func explode(x K) K {
 			SetI64(rp+8*i, int64(ati(rx(x), i)))
 		}
 		dx(x)
-	} else if xt == Lt {
-		r = x
-	} else if xt == Tt {
+		return r
+	} else if xt == Tt { // Tt
 		xn := nn(x)
 		k := x0(x)
 		x = Flp(r1(x))
@@ -60,18 +56,7 @@ func explode(x K) K {
 		dxy(x, k)
 		return r
 	}
-	return r
-}
-func flat(x K) K { // ((..);(..)) -> (...)
-	r := mk(Lt, 0)
-	xp := int32(x)
-	e := ep(x)
-	for xp < e {
-		r = Cat(r, x0(K(xp)))
-		xp += 8
-	}
-	dx(x)
-	return r
+	return x
 }
 func ucat(x, y K) K { // Bt,Bt .. Tt,Tt
 	xt := tp(x)
@@ -150,13 +135,4 @@ func uspc(x K, xt T, ny int32) K {
 	}
 	SetI32(int32(r)-12, nx+ny)
 	return r
-}
-func ncat(x, y K) K {
-	xt := tp(x)
-	if xt < 16 {
-		x = Enl(x)
-	}
-	xt = maxtype(x, y)
-	x = uptype(x, xt)
-	return cat1(x, uptype(y, xt))
 }

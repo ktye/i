@@ -110,7 +110,13 @@ func tnms() K {
 		if x == 0 {
 			break
 		}
-		r = ncat(r, x)
+		t := tp(r)
+		if t < 16 {
+			r = Enl(r)
+		}
+		t = maxtype(r, x)
+		r = uptype(r, t)
+		r = cat1(r, uptype(x, t))
 	}
 	return r
 }

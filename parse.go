@@ -298,7 +298,7 @@ func cond(x K, xn int32) K {
 		nxt = 8 * nn(r)
 		sum += nxt
 	}
-	return flat(x)
+	return Rdc(13, l1(x))
 }
 func plist(c K) K {
 	p := K(0)
@@ -333,7 +333,7 @@ func rlist(x, p K) K {
 			return l1(p)
 		}
 	}
-	return cat1(cat1(flat(Rev(x)), Ki(n)), 27)
+	return cat1(cat1(Rdc(13, l1(Rev(x))), Ki(n)), 27)
 }
 func clist(x K) K {
 	p := int32(x)
@@ -352,7 +352,7 @@ func clist(x K) K {
 		}
 		p += 8
 	}
-	return uf(flat(x))
+	return uf(Rdc(13, l1(x)))
 }
 
 func next() K {
