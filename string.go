@@ -196,54 +196,22 @@ func Cst(x, y K) K { // x$y
 	if int32(x) == 0 { // `$"sym"
 		return sc(y)
 	}
-	return prs(ts(x), y)
-}
-func prs(t T, y K) K { // s$C
-	r := K(0)
-	yp, yn := int32(y), nn(y)
-	p, e := pp, pe
-	pp = yp
-	pe = yp + yn
-	tt := t & 15
-	if tt == 2 {
-		if t == Ct {
-			return y // `C$
-		} else {
-			return Fst(y) // `c$"x"
-		}
+	t := ts(x)
+	y = val(y)
+	yt = tp(y)
+	if t == yt {
+		return y
 	}
-	if t == 4 {
-		r = Fst(tsym()) // `s$"`a"
-	} else if t > 2 && t <= 6 {
-		r = tnum()
-		if tp(r) < t && r != 0 {
-			r = uptype(r, t) // `f$"1"
-		}
+	if y == 0 && t > 16 {
+		return mk(t, 0)
 	}
-	if t > Ct && t < Lt {
-		if pp == pe {
-			r = mk(t, 0) // `I$"" -> !0
-		} else {
-			if t == 20 {
-				r = tsym() // `S$"`a`b"
-			} else {
-				r = tnms()
-				if tp(r)&15 < t&15 && r != 0 {
-					r = uptype(r, t&15) // `F$"1 2"
-				}
-			}
-			if tp(r) == t-16 {
-				r = Enl(r) // `I$"1" -> ,1
-			}
-		}
+	if t-yt > 15 {
+		y = Enl(y)
 	}
-	if tp(r) != t || pp < pe {
-		dx(r)
-		r = 0
+	if t&15 > yt&15 {
+		y = uptype(y, t&15)
 	}
-	pp, pe = p, e
-	dx(y)
-	return r //0(parse error)
+	return y
 }
 func ts(x K) T {
 	c := inC(int32(Rdc(2, l1(cs(x)))), 254, 279)
