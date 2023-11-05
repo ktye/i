@@ -246,14 +246,10 @@ func prs(t T, y K) K { // s$C
 	return r //0(parse error)
 }
 func ts(x K) T {
-	c := int32(Fst(cs(x)))
-	for i := int32(254); i < 279; i++ {
-		if I8(i) == c {
-			return T(i - 253)
-		}
-		continue
+	c := inC(int32(Fst(cs(x))), 254, 279)
+	if c > 0 {
+		return T(c - 253)
 	}
-	trap() //value
 	return 0
 }
 
