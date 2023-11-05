@@ -460,17 +460,9 @@ func join(x, y K) K {
 }
 func lin(x, y, z K) K { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
 func Bin(x, y K) K { // x'y
-	r := K(0)
+	var r K
 	xt := tp(x)
 	yt := tp(y)
-	if xt < 16 || xt > Ft { // n' win?
-		if xt == it && yt > 16 {
-			return win(int32(x), y)
-		} else {
-			trap() //type
-			return 0
-		}
-	}
 	if xt == yt || yt == Lt {
 		return Ecr(40, l2(x, y))
 	} else if xt == yt+16 {
@@ -530,24 +522,12 @@ func ibin(x, y K, t T) int32 {
 	}
 	return 0 // not reached
 }
-func win(n int32, x K) K {
-	y := seq(n)
-	r := mk(Lt, 0)
-	m := 1 + nn(x) - n
-	for m > 0 {
-		m--
-		r = ucat(r, l1(atv(rx(x), rx(y))))
-		y = Add(Ki(1), y)
-	}
-	dxy(x, y)
-	return r
-}
-
 func Flr(x K) K { // _x
-	r := K(0)
+	var r K
 	rp := int32(0)
 	xt := tp(x)
 	xp := int32(x)
+
 	if xt < 16 {
 		switch xt - 2 {
 		case 0: // c
