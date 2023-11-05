@@ -42,16 +42,14 @@ func alloc(n, s int32) int32 {
 	return a
 }
 func grow(p int32) int32 {
-	m := I32(128)                       // old total memory (log2)
 	n := 1 + (p >> 2)                   // required total mem (log2)
 	g := (1 << (n - 16)) - Memorysize() // grow by 64k blocks
-
 	if g > 0 {
 		if Memorygrow(g) < 0 {
 			trap() //grow
 		}
 	}
-	minit(m, n)
+	minit(I32(128), n)
 	return n
 }
 func mfree(x, bs int32) {
@@ -62,13 +60,7 @@ func mfree(x, bs int32) {
 	SetI32(x, I32(t))
 	SetI32(t, x)
 }
-func bucket(size int32) int32 {
-	r := int32(32) - I32clz(15+size)
-	if r < 5 {
-		r = 5
-	}
-	return r
-}
+func bucket(size int32) int32 { return maxi(5, int32(32)-I32clz(15+size)) }
 func mk(t T, n int32) K {
 	if t < 17 {
 		trap() //type

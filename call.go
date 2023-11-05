@@ -5,9 +5,8 @@ import (
 )
 
 func Cal(x, y K) K {
-	xt := tp(x)
 	y = explode(y)
-	if isfunc(xt) != 0 {
+	if isfunc(tp(x)) != 0 {
 		return cal(x, y)
 	}
 	return atdepth(x, y)
@@ -100,11 +99,11 @@ func callprj(f, x K) K {
 func native(f K, x K) K {
 	fn := nn(f)
 	xn := nn(x)
-	if xn < fn {
-		rx(f)
-		return prj(f, x)
-	}
 	if xn != fn {
+		if xn < fn {
+			rx(f)
+			return prj(f, x)
+		}
 		trap() //rank
 	}
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
