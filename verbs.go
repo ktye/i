@@ -694,7 +694,7 @@ func Fwh(x K) K { // *&x
 }
 func Typ(x K) K { // @x
 	dx(x)
-	return sc(Enl(Kc(I8(253 + int32(tp(x))))))
+	return sc(Ku(uint64(I8(253 + int32(tp(x))))))
 }
 func Tok(x K) K { // `t@"src"
 	if tp(x) == Ct {
@@ -704,7 +704,6 @@ func Tok(x K) K { // `t@"src"
 	}
 }
 func Val(x K) K {
-	var r K
 	xt := tp(x)
 	if xt == st {
 		return lup(x)
@@ -714,21 +713,18 @@ func Val(x K) K {
 	}
 	if xt == lf || xt == xf { // lambda: (code;locals;string;arity)
 		//xp := int32(x)  // native: (ptr;string;arity)
-		r = l2(x0(x), x1(x))
+		r := l2(x0(x), x1(x))
 		if xt == lf {
 			r = cat1(r, x2(x))
 		}
-		r = cat1(r, Ki(nn(x)))
 		dx(x)
-		return r
+		return cat1(r, Ki(nn(x)))
 	}
 	if xt == Lt {
 		return exec(x) // .L e.g. 1+2 is (1;2;`66)
 	}
 	if xt > Lt {
-		r = x1(x)
-		dx(x)
-		return r
+		return r1(x)
 	} else {
 		trap() //type
 		return 0

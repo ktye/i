@@ -145,7 +145,7 @@ func Asn(x, y K) K {
 func Amd(x, i, v, y K) K {
 	xt := tp(x)
 	if xt == st {
-		return Asn(x, Amd(Val(x), i, v, y))
+		return Asn(x, Amd(lup(x), i, v, y))
 	}
 	if xt < 16 {
 		trap() //type
@@ -205,7 +205,7 @@ func Amd(x, i, v, y K) K {
 }
 func Dmd(x, i, v, y K) K {
 	if tp(x) == st {
-		return Asn(x, Dmd(Val(x), i, v, y))
+		return Asn(x, Dmd(lup(x), i, v, y))
 	}
 	i = explode(i)
 	f := Fst(rx(i))
@@ -239,6 +239,5 @@ func Dmd(x, i, v, y K) K {
 		dxy(v, y)
 		return x
 	}
-	x = rx(x)
-	return Amd(x, f, 1, Dmd(Atx(x, f), i, v, y))
+	return Amd(x, f, 1, Dmd(Atx(rx(x), f), i, v, y))
 }
