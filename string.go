@@ -246,13 +246,28 @@ func prs(t T, y K) K { // s$C
 	return r //0(parse error)
 }
 func ts(x K) T {
-	c := inC(int32(Fst(cs(x))), 254, 279)
+	c := inC(int32(Rdc(2, l1(cs(x)))), 254, 279)
 	if c > 0 {
 		return T(c - 253)
 	}
 	return 0
 }
+func rtp(t T, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
+	xt := tp(x)
+	if uint32(xt-18) > 5 {
+		trap()
+	}
+	n := nn(x) * sz(xt)
+	m := n / sz(t)
+	if n != m*sz(t) {
+		trap() //length
+	}
+	x = use(x)
+	SetI32(int32(x)-12, m)
+	return ti(t, int32(x))
+}
 
+/*
 func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	t := ts(y)
 	xt := tp(x)
@@ -269,3 +284,4 @@ func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	SetI32(int32(x)-12, n/s)
 	return ti(t, int32(x))
 }
+*/

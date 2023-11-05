@@ -18,7 +18,12 @@ func Atx(x, y K) K { // x@y
 					return K(int32(y))
 				}
 			}
-			return cal(Val(sc(cat1(cs(x), Kc('.')))), l1(y))
+			xt = ts(x) + 16
+			if uint32(xt-18) < 5 { // `c@ .. `z@
+				return rtp(xt, y)
+			} else {
+				return cal(Val(sc(cat1(cs(x), Kc('.')))), l1(y))
+			}
 		}
 	}
 	if xt > Lt && yt < Lt {
