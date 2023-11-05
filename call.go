@@ -12,7 +12,7 @@ func Cal(x, y K) K {
 	}
 	return atdepth(x, y)
 }
-func isfunc(t T) int32 { return I32B(t == 0 || (t < 16 && t > tt)) }
+func isfunc(t T) int32 { return I32B(t == 0 || uint32(t-10) < 5 ) }
 
 func cal(f, x K) K {
 	r := K(0)

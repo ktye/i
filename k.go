@@ -51,8 +51,6 @@ const ( //base t&15          bytes  atom  vector
 	ft T = 5 // float   8      5     21
 	zt T = 6 // complex(8)     6     22
 
-	dt T = 8  // dict   (8)           24
-	tt T = 9  // table  (8)           25
 	cf T = 10 // comp   (8)    10
 	df T = 11 // derived(8)    11
 	pf T = 12 // proj   (8)    12

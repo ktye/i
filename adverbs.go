@@ -317,7 +317,21 @@ func uf(x K) K {
 		xp += 8
 	}
 	if rt == Dt {
-		return ufd(x)
+		r := Til(x0(x))
+		if tp(r) != St {
+			dx(r)
+			return x
+		}
+		xp = int32(x)
+		for xn > 0 {
+			xn--
+			if match(r, K(I64(int32(I64(xp))))) == 0 {
+				dx(r)
+				return x
+			}
+			xp += 8
+		}
+		return key(r, Flp(Ech(20, l1(x))), Tt)
 	}
 	if rt == 0 || rt > zt {
 		return x
@@ -329,22 +343,4 @@ func uf(x K) K {
 	}
 	dx(x)
 	return r
-}
-func ufd(x K) K {
-	r := Til(x0(x))
-	if tp(r) != St {
-		dx(r)
-		return x
-	}
-	n := nn(x)
-	xp := int32(x)
-	for n > 0 {
-		n--
-		if match(r, K(I64(int32(I64(xp))))) == 0 {
-			dx(r)
-			return x
-		}
-		xp += 8
-	}
-	return key(r, Flp(Ech(20, l1(x))), Tt)
 }

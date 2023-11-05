@@ -13,7 +13,7 @@ func Str(x K) K {
 		return Ech(17, l1(x))
 	}
 	xp := int32(x)
-	if xt > dt {
+	if xt > 8 {
 		switch xt - cf {
 		case 0: // cf
 			rx(x)

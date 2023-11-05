@@ -9,7 +9,7 @@ func Atx(x, y K) K { // x@y
 	xt, yt := tp(x), tp(y)
 	xp := int32(x)
 	if xt < 16 {
-		if xt == 0 || xt > tt {
+		if xt == 0 || xt > 9 {
 			return cal(x, l1(y))
 		}
 		if xt == st {
