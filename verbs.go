@@ -711,7 +711,7 @@ func Val(x K) K {
 	if xt == Ct {
 		return val(x)
 	}
-	if xt == lf || xt == xf { // lambda: (code;locals;string;arity)
+	if xt == lf || xt == xf { // lambda: (code;string;locals;arity)
 		//xp := int32(x)  // native: (ptr;string;arity)
 		r := l2(x0(x), x1(x))
 		if xt == lf {

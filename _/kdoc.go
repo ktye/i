@@ -350,7 +350,7 @@ the function types m d p l x store:
  m(function-list)                   forming the composition <a href="#calltrain">call train</a>
  d(base-function;adverb)            the adverb value is the function table index at 85 + <a href="#Ech">1</a> <a href="#Rdc">2</a> <a href="#Scn">3</a> 
  p(base-function;arglist;emptylist) <a href="#callprj">call projection</a>
- l(code;locals;string)              <a href="#lambda">call lambda</a>. code is the <a href="#kvm">instruction list</a> and locals a list of symbols including the arguments. the length field stores the arity.
+ l(code;string;locals)              <a href="#lambda">call lambda</a>. code is the <a href="#kvm">instruction list</a> and locals a list of symbols including the arguments. the length field stores the arity.
  x(index/ptr;string)                <a href="#native">call native</a>, see <a href="#extend">extend</a>
 
 primitive verbs store a value between 0 and 64 that corresponds to the index into the indirect function table defined in <a href="#init">init</a>.

@@ -119,6 +119,13 @@ func dx(x K) {
 			} else if t == 12 || t == 13 {
 				n = 3 // prj | lam
 			}
+			/* if xf had 3 elements:
+			if uint32(t - 24) < 2 {
+				n = 2
+			} else if uint32(t - 12) < 3 {
+				n = 3
+			}
+			*/
 			p := int32(x)
 			e := p + 8*n
 			for p < e {

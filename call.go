@@ -132,7 +132,7 @@ func lac(f K, x K) K { //test if lambda call has correct number of args
 	return 0
 }
 func pro(f K, x K) { //save(push) locals, assign args
-	lo := K(I64(int32(f) + 8))
+	lo := K(I64(int32(f) + 16))
 	n := nn(lo)
 	a := nn(f)
 	z := mk(Zt, n) //use a complex vector to store symbols+values w/o refcounting

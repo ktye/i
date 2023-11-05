@@ -150,7 +150,7 @@ func match(x, y K) int32 {
 	case 4: // projection
 		yn = 24
 	case 5: // lambda
-		return match(K(I64(xp+16)), K(I64(yp+16))) // compare strings
+		return match(K(I64(xp+8)), K(I64(yp+8))) // compare strings
 	default: // xf
 		return I32B(I64(xp) == I64(yp))
 	}

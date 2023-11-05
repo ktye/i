@@ -73,7 +73,7 @@ const ( //base t&15          bytes  atom  vector
 // composition .. f2 f1 f0
 // derived     func    symb
 // projection  func    arglist  emptylist
-// lambda      code    locals   string
+// lambda      code    string	locals
 // native      ptr(Ct) string
 
 // ptr: int32(x)

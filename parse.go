@@ -237,7 +237,7 @@ func plam(s0 int32) K {
 	}
 	i := Add(seq(1+ps-s0), Ki(s0-1))
 	s := atv(rx(src()), i)
-	r = l3(c, Unq(loc), s)
+	r = l3(c, s, Unq(loc))
 	loc = slo
 	cp = int32(r)
 	SetI32(cp-12, ar)

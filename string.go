@@ -39,9 +39,7 @@ func Str(x K) K {
 			} else {
 				r = ucat(f, emb('[', ']', ndrop(-1, ndrop(1, Kst(l)))))
 			}
-		case 3: //lf
-			r = x2(x)
-		default: // native
+		default: //lf, native
 			r = x1(x)
 		}
 		dx(x)
