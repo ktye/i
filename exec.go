@@ -130,8 +130,7 @@ func lst(n K) K {
 func nul(x K) K { push(x); return 0 }
 func lup(x K) K {
 	vp := I32(8) + int32(x)
-	r := x0(K(vp))
-	return r
+	return x0(K(vp))
 }
 func Asn(x, y K) K {
 	if tp(x) != st {

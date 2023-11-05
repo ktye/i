@@ -7,7 +7,7 @@ import (
 type f3i = func(int32, int32, int32) int32
 
 func Fnd(x, y K) K { // x?y
-	r := K(0)
+	var r K
 	xt, yt := tp(x), tp(y)
 	if xt < 16 {
 		if yt == Tt { // s?T
@@ -70,9 +70,8 @@ func idx(x, a, b int32) int32 {
 }
 
 func Find(x, y K) K { // find[pattern;string] returns all matches (It)
-	t := tp(x)
-	if t != tp(y) || t != Ct {
-		trap() //type
+	if tp(x) != Ct || tp(y) != Ct {
+		trap()
 	}
 	xn, yn := nn(x), nn(y)
 	if xn*yn == 0 {
