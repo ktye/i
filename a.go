@@ -40,16 +40,14 @@ func trap() {
 		write(Ku(2608)) // 0\n
 	} else {
 		a := maxi(srcp-30, 0)
-		for i := a; i < srcp; i++ {
-			if I8(int32(s)+i) == 10 {
-				a = 1 + i
-			}
-		}
 		b := mini(nn(s), srcp+30)
-		for i := srcp; i < b; i++ {
+		for i := a; i < b; i++ {
 			if I8(int32(s)+i) == 10 {
-				b = i
-				break
+				if i < srcp {
+					a = 1 + i
+				} else {
+					b = i
+				}
 			}
 		}
 		Write(0, 0, int32(s)+a, b-a)

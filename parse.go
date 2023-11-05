@@ -335,7 +335,7 @@ func rlist(x, p K) K {
 	}
 	return cat1(cat1(Rdc(13, l1(Rev(x))), Ki(n)), 27)
 }
-func clist(x K) K {
+func clist(x K) K { //constant-fold list
 	p := int32(x)
 	e := ep(x)
 	for p < e {

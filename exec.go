@@ -192,7 +192,7 @@ func Amd(x, i, v, y K) K {
 		if xt != yt+16 {
 			x = explode(x)
 		}
-		return sti(x, int32(i), y)
+		return sti(use(x), int32(i), y)
 	}
 	if yt < 16 {
 		y = ntake(nn(i), y)

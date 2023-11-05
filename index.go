@@ -239,10 +239,8 @@ func stv(x, i, y K) K {
 	return x
 }
 func sti(x K, i int32, y K) K {
-	x = use(x)
 	xt := tp(x)
-	xn := nn(x)
-	if i < 0 || i >= xn {
+	if uint32(i) >= uint32(nn(x)) {
 		trap() //index
 	}
 	s := sz(xt)

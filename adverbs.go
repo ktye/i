@@ -149,7 +149,8 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 		}
 	}
 	if xn == 0 {
-		return ov0(f, x)
+		dxy(f, x)
+		return missing(xt)
 	}
 	i := int32(1)
 	x0 := ati(rx(x), 0)
@@ -321,39 +322,10 @@ func uf(x K) K {
 	if rt == 0 || rt > zt {
 		return x
 	}
-	rt += 16
-	r := mk(rt, xn)
-	s := sz(rt)
-	rp := int32(r)
-	e := ep(r)
-	xp = int32(x)
-	switch s >> 2 {
-	case 0:
-		for rp < e {
-			SetI8(rp, I32(xp))
-			xp += 8
-			rp++
-		}
-	case 1:
-		for rp < e {
-			SetI32(rp, I32(xp))
-			xp += 8
-			rp += 4
-		}
-	case 2:
-		for rp < e {
-			SetI64(rp, I64(I32(xp)))
-			xp += 8
-			rp += 8
-		}
-	default:
-		for rp < e {
-			s := I32(xp)
-			SetI64(rp, I64(s))
-			SetI64(rp+8, I64(s+8))
-			xp += 8
-			rp += 16
-		}
+	r := mk(rt+16, xn)
+	for xn > 0 {
+		xn--
+		r = sti(r, xn, ati(rx(x), xn))
 	}
 	dx(x)
 	return r
@@ -375,9 +347,4 @@ func ufd(x K) K {
 		xp += 8
 	}
 	return key(r, Flp(Ech(20, l1(x))), Tt)
-}
-
-func ov0(f, x K) K {
-	dxy(f, x)
-	return missing(tp(x))
 }
