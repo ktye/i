@@ -80,7 +80,7 @@ func main() {
         store()
         for {
                 write(Ku(32))
-                x := read()
+                x := readfile(mk(18,0))
                 try(x)
         }
 }
