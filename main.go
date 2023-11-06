@@ -13,7 +13,7 @@ func main() { // _start
 	store()
 	for {
 		write(Ku(32))
-		x := read()
+		x := readfile(mk(Ct, 0))
 		try(x)
 	}
 }

@@ -24,10 +24,6 @@ func Otu(x, y K) K {
 	write(cat1(Kst(x), Kc(':')))
 	return Out(y)
 }
-func read() K {
-	r := mk(Ct, 504)
-	return ntake(ReadIn(int32(r), 504), r)
-}
 func write(x K) {
 	Write(0, 0, int32(x), nn(x))
 	dx(x)
@@ -35,6 +31,7 @@ func write(x K) {
 func readfile(x K) K { // x C
 	var r K
 	if nn(x) == 0 {
+		dx(x)
 		r = mk(Ct, 496)
 		r = ntake(ReadIn(int32(r), 496), r)
 		return r
