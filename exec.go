@@ -55,10 +55,7 @@ func exec(x K) K {
 						}
 						c = lac(a, b)
 						if c == 0 {
-							c = pop() //todo remove check
-							if c != 0 {
-								trap() //stack
-							}
+							pop() //0
 							epi()
 							pro(a, explode(b))
 							dx(x)
@@ -88,12 +85,7 @@ func exec(x K) K {
 		p += 8
 		continue
 	}
-
-	q := pop() //todo remove check
-	if q != 0 {
-		trap() //stack
-	}
-
+	pop() //0
 	dx(x)
 	return a
 }

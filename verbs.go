@@ -174,10 +174,10 @@ func key(x, y K, t T) K { // Dt or Tt
 		if xn > 0 {
 			xn = nn(K(I64(int32(y))))
 		}
-	} else if xn != nn(y) {
-		trap() //length
 	} else if yt < 16 {
 		trap() //type
+	} else if xn != nn(y) {
+		trap() //length
 	}
 	x = l2(x, y)
 	SetI32(int32(x)-12, xn)

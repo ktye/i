@@ -157,10 +157,7 @@ func pro(f K, x K) { //save(push) locals, assign args
 	push(z)
 }
 func epi() { //restore saved arguments
-	z := pop()
-	if tp(z) != Zt {
-		trap() //type/stack
-	}
+	z := pop() //Zt
 	zp := int32(z)
 	e := ep(z)
 	for zp < e {

@@ -51,9 +51,9 @@ func ecn(f, x K) K {
 	if nn(x) == 2 {
 		r := x0(x)
 		x = r1(x)
-		if r == 0 {
-			return Ech(f, l1(x))
-		}
+		//if r == 0 { project?
+		//	return Ech(f, l1(x))
+		//}
 		if tp(f) == 0 && int32(f) == 13 {
 			if tp(r) == Tt && tp(x) == Tt { // T,'T (horcat)
 				if nn(r) != nn(x) {

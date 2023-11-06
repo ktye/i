@@ -21,6 +21,10 @@ func newtest() {
 	Stdout = os.Stdout
 	rand_ = 1592653589
 	if save == nil {
+		Bytes = make([]byte, 64*1024)
+		loc, xyz, pp, pe, sp, srcp, rand_ = 0, 0, 0, 0, 0, 0, 0
+		Data(132, "\x00\x01@\x01\x01\x01\x01\t\x10`\x01\x01\x01\x01\x01\t\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\x01 \x01\x01\x01\x01\x01BBBBBBBBBBBBBBBBBBBBBBBBBB\x10\t`\x01\x01\x00\xc2\xc2\xc2\xc2\xc2\xc2BBBBBBBBBBBBBBBBBBBB\x10\x01`\x01") // k_test.go: TestClass
+		Data(227, ":+-*%&|<>=~!,^#_$?@.':/:\\:vbcisfzldtmdplx00BCISFZLDT0")
 		kinit()
 		save = make([]byte, len(Bytes))
 		copy(save, Bytes)
@@ -233,7 +237,7 @@ func TestKT(t *testing.T) {
 	}
 }
 func TestKE(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	b, err := ioutil.ReadFile("k.e")
 	if err != nil {
 		t.Fatal(err)
@@ -243,16 +247,25 @@ func TestKE(t *testing.T) {
 		v = v[:len(v)-1]
 	}
 	for i := range v {
+		save = nil
 		newtest()
 		var buf bytes.Buffer
 		Stdout = &buf
-		e := tryf(func() { test(mkchars(append(v[i], 10))) })
-		exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
 		fmt.Println(string(v[i]))
-		if e != exp {
-			t.Fatalf("expected error %d got %d", exp, e)
+		e := tryf(func() { Val(mkchars(v[i])) })
+		if e != 123 {
+			t.Fatalf("expected error:\n%s\n", string(v[i]))
 		}
+		//e := tryf(func() { test(mkchars(append(v[i], 10))) })
+		//exp := parseError(strings.Split(strings.Split(string(v[i]), " /")[1], " ")[0])
+
+		//if e != 123 {
+		//	t.Fatalf("expected error got %d", e)
+		//}
 	}
+	save = nil
+	newtest()
+	reset()
 }
 func TestTraps(t *testing.T) {
 	//t.Skip()
@@ -289,15 +302,6 @@ func tryf(f func()) (err int32) {
 	}()
 	f()
 	return -1
-}
-func parseError(s string) int32 {
-	errs := []string{"Err", "Type", "Value", "Index", "Length", "Rank", "Parse", "Stack", "Grow", "Unref", "Io", "Nyi"} // err.go
-	for i, x := range errs {
-		if s == x {
-			return int32(i)
-		}
-	}
-	panic("unknown error: " + s)
 }
 func TestSymbols(t *testing.T) { // list symbols
 	newtest()

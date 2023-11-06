@@ -19,14 +19,7 @@ func Str(x K) K {
 			rx(x)
 			r = Rdc(13, l1(Rev(Str(ti(Lt, xp)))))
 		case 1: // df
-			r = Str(x0(x))
-			p := x1(x)
-			if int32(p)%2 != 0 {
-				p = cat1(Str(20+p), Kc(':'))
-			} else {
-				p = Str(21 + p)
-			}
-			r = ucat(r, p)
+			r = ucat(Str(x0(x)), Str(21+x1(x)))
 		case 2: //pf
 			f := x0(x)
 			l := x1(x)
@@ -234,22 +227,3 @@ func rtp(t T, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 	SetI32(int32(x)-12, m)
 	return ti(t, int32(x))
 }
-
-/*
-func Rtp(y K, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
-	t := ts(y)
-	xt := tp(x)
-	t += T(16 * I32B(t < 16))
-	if xt < 16 || t < 17 || t > Zt {
-		trap() //type
-	}
-	n := nn(x) * sz(xt)
-	s := sz(t)
-	if n%s != 0 {
-		trap() //length
-	}
-	x = use(x)
-	SetI32(int32(x)-12, n/s)
-	return ti(t, int32(x))
-}
-*/
