@@ -128,6 +128,9 @@ r:fft[f;`z@?2*n]
 ```
 see [details](https://github.com/ktye/i/tree/master/%2B/mat/fft)
 
+## interpolation
+lin:{$[`L~@z;lin[x;y]'z;[dx:0.+1_`d x;dy:0.+1_`d y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
+
 ## statistics
 ```
 avg:{(+/x)%0.+#x}

@@ -15,10 +15,6 @@ func Ech(f, x K) K {
 	var r K
 	t := tp(f)
 	if isfunc(t) == 0 {
-		if nn(x) == 2 {
-			r = x0(x)
-			return lin(r, f, r1(x))
-		}
 		return Bin(f, Fst(x))
 	}
 	if nn(x) == 1 {

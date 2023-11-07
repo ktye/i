@@ -458,7 +458,6 @@ func join(x, y K) K {
 	dxy(x, y)
 	return r
 }
-func lin(x, y, z K) K { return cal(Val(Ks(112)), l3(x, y, z)) } // x y'z  (z.k: `".lin")
 func Bin(x, y K) K { // x'y
 	var r K
 	xt := tp(x)
