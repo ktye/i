@@ -163,7 +163,7 @@ func pasn(x, y, r K) K {
 				l -= 96
 			}
 			s := ati(rx(x), xn-3)
-			lp := c48lp(x)
+			lp := 0xff000000ffffffff & lastp(x)
 			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
 			// lp+128 is @[amd..] or .[dmd..]
 			if lp == 92 {
@@ -366,7 +366,6 @@ func next() K {
 }
 func lastp(x K) K   { return K(I64(ep(x) - 8)) }
 func h48(x K) int32 { return 0xffffff & int32(x>>32) }
-func c48lp(x K) K   { return 0xff000000ffffffff & lastp(x) }
 func dyadic(x, y K) K {
 	l := lastp(y)
 	if quoted(l) != 0 {
@@ -377,16 +376,11 @@ func dyadic(x, y K) K {
 func monadic(x K) K {
 	l := lastp(x)
 	if quoted(l) != 0 {
-		r := ldrop(-1, x)
+		x = ldrop(-1, x)
 		if int32(l) == 449 { // :x return lambda
-			l = c48lp(r)
-			if l-83 < 2 { //83(@) 84(.)
-				return cat1(ldrop(-1, r), 238+l) //tail
-			} else {
-				return cat1(cat1(r, Ki(1048576)), 320) //identity+long jump
-			}
+			return cat1(cat1(x, Ki(1048576)), 320) //identity+long jump
 		} else {
-			return cat1(r, unquote(l))
+			return cat1(x, unquote(l))
 		}
 	}
 	return cat1(x, 83) // dyadic-@

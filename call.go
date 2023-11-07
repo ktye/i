@@ -108,17 +108,7 @@ func native(f K, x K) K {
 	}
 	return K(Native(int64(x0(f)), int64(x))) // +/api: KR
 }
-func lambda(f K, x K) K {
-	r := lac(f, x)
-	if r != 0 {
-		return r
-	}
-	pro(f, x)
-	r = exec(x0(f))
-	epi()
-	return r
-}
-func lac(f K, x K) K { //test if lambda call has correct number of args
+func lambda(f, x K) K {
 	fn := nn(f)
 	xn := nn(x)
 	if xn < fn {
@@ -128,9 +118,7 @@ func lac(f K, x K) K { //test if lambda call has correct number of args
 	if xn != fn {
 		trap() //rank
 	}
-	return 0
-}
-func pro(f K, x K) { //save(push) locals, assign args
+	//store vars
 	lo := K(I64(int32(f) + 16))
 	n := nn(lo)
 	a := nn(f)
@@ -154,11 +142,9 @@ func pro(f K, x K) { //save(push) locals, assign args
 	}
 	rl(x)
 	dx(x)
-	push(z)
-}
-func epi() { //restore saved arguments
-	z := pop() //Zt
-	zp := int32(z)
+	x = exec(x0(f)) //execute lambda code
+	//restore vars
+	zp = int32(z)
 	e := ep(z)
 	for zp < e {
 		p := I32(8) + I32(zp)
@@ -167,8 +153,8 @@ func epi() { //restore saved arguments
 		zp += 16
 	}
 	dx(z)
+	return x
 }
-
 func com(x, y K) K { return ti(cf, int32(l2(y, x))) } // compose
 func prj(f, x K) K { // project
 	var r K

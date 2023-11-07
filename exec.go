@@ -47,31 +47,8 @@ func exec(x K) K {
 				dx(a)
 				a = pop()
 			case 5: // 320       jump
-				if u != 320 { //tail/return @(321) .(322)
-					b = pop()
-					if tp(a) == 13 { //λ
-						if u == 321 { //:f@x -> :f.,x
-							b = l1(b)
-						}
-						c = lac(a, b)
-						if c == 0 {
-							pop() //0
-							epi()
-							pro(a, explode(b))
-							dx(x)
-							x = r0(a)
-							p = int32(x) - 8
-							e = ep(x)
-							a = 0
-						}
-					}
-					if a != 0 { //no tail-call
-						a = Cal(a, b)
-					}
-				} else {
-					p = p + int32(a)
-					a = pop()
-				}
+				p = p + int32(a)
+				a = pop()
 			case 6: // 384       jump if not
 				u = pop()
 				p += int32(a) * I32B(int32(u) == 0)
