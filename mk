@@ -38,6 +38,10 @@ if [ "$1" = "web" ]; then
 	wasm-opt -Oz --enable-bulk-memory   /c/k/ktye.github.io/k.wasm -o - | wc -c
 	go run ./_/kdoc.go > /c/k/ktye.github.io/kdoc.htm
 else
-	wg -small -nomain . | wat2wasm - --output=- | wc -c
+	wg -small -nomain . | wat2wasm - -o k.wasm 
+	wasm-opt -Oz --enable-bulk-memory   k.wasm -o z.wasm
+	zstd -19 -f z.wasm
+	wc -c k.wasm z.wasm z.wasm.zst
+	rm k.wasm z.wasm z.wasm.zst
 fi
 

@@ -1,0 +1,16 @@
+set -x
+set -e
+
+go install
+
+if [ "$1" = "cover" ]; then
+	go test -coverprofile=cov.out
+	go tool cover -html=cov.out -o cov.html
+fi
+
+wg ki.go | wat2wasm - -o k.wasm
+wasm-opt --enable-bulk-memory -Oz k.wasm -o z.wasm
+zstd -19 -f z.wasm
+wc -c k.wasm z.wasm z.wasm.zst
+
+rm k.wasm z.wasm z.wasm.zst

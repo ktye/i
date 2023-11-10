@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	. "github.com/ktye/wg/module"
 )
 
@@ -16,7 +14,7 @@ func init() {
 	Export(main, Asn, Atx, Cal, cs, dx, Kc, Ki, kinit, l2, mk, nn, repl, rx, sc, src, tp, trap, Val)
 
 	//            0    :    +    -    *    %    &    |    <    >    =10   ~    !    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
-	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, nyi, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, nyi, nyi, nyi, Uqs, nyi, Tok, Fwh, Las, nyi, nyi, nyi, nyi, Prs)
+	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, nyi, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, nyi, nyi, nyi, nyi, Uqs, nyi, Tok, Fwh, Las, nyi, nyi, nyi, nyi, Prs)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Min, Max, Les, Mor, Eql, Mtc, Key, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, nyi, Rdc, nyi, Scn, nyi, com, prj, Otu, In, Find, nyi, nyi, fdl, nyi, Enc, Dec, nyi, nyi, Bin, Mod, Pow, nyi)
 	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym, pop)
 	Functions(211, Amd, Dmd)
@@ -264,11 +262,6 @@ func mfree(x, bs int32) {
 }
 func bucket(size int32) int32 { return maxi(5, int32(32)-I32clz(15+size)) }
 func mk(t T, n int32) K {
-
-	if t == 5 || t == 6 || t == 21 || t == 22 {
-		panic("floats")
-	}
-
 	if t < 17 {
 		trap() //type
 	}
@@ -661,7 +654,7 @@ func uf(x K) K {
 		}
 		return key(r, Flp(Ech(20, l1(x))), Tt)
 	}
-	if rt == 0 {
+	if rt == 0 || rt > st {
 		return x
 	}
 	r := mk(rt+16, xn)
@@ -958,7 +951,6 @@ func cat1(x, y K) K {
 	t := tp(x)
 	x = uspc(x, t, 1)
 	if t == Lt {
-		//todo rx(y)?
 		SetI64(ep(x)-8, int64(y))
 		return x
 	}
@@ -1523,10 +1515,6 @@ func atv(x, y K) K { // x CT..LT
 			yp += 4
 		}
 	default:
-		if t != Lt {
-			fmt.Println(t)
-			panic("type..")
-		}
 		for yp < e {
 			xi := I32(yp)
 			if uint32(xi) >= uint32(xn) {
@@ -1701,8 +1689,8 @@ func dofile(x K, c K) {
 	xe := ntake(-2, rx(x))
 	if match(xe, kk) != 0 { // file.k (execute)
 		dx(val(c))
-	} else if match(xe, tt) != 0 { // file.t (test)
-		test(c)
+		//} else if match(xe, tt) != 0 { // file.t (test)
+		//	test(c)
 	} else { // file (assign file:bytes..)
 		dx(Asn(sc(rx(x)), c))
 	}
@@ -1720,14 +1708,6 @@ func getargv() K {
 		rp += 8
 	}
 	return r
-}
-
-func ipow(x K, y int32) K {
-	if tp(x) == It {
-		return Ecr(42, l2(Ki(y), x))
-	} else {
-		return Ki(iipow(int32(x), y))
-	}
 }
 func iipow(x, y int32) int32 {
 	r := int32(1)
@@ -2410,7 +2390,11 @@ func Les(x, y K) K { // x<y   `file<c
 func Mor(x, y K) K { return nc(9, 1, x, y) } //338
 
 func Pow(y, x K) K { // x^y
-	if tp(x)&15 != it {
+	xt := tp(x)
+	if xt > 16 {
+		return Ech(42, l2(y, x))
+	}
+	if tp(x) != it {
 		trap()
 	}
 	if tp(y) != it {
@@ -2419,7 +2403,7 @@ func Pow(y, x K) K { // x^y
 	if int32(y) < 0 {
 		trap()
 	}
-	return ipow(x, int32(y))
+	return Ki(iipow(int32(x), int32(y)))
 }
 func nm(f int32, x K) K { //monadic
 	var r K
@@ -3011,6 +2995,7 @@ func writefile(x, y K) K { // x, y C
 	return y
 }
 
+/*
 func test(x K) {
 	if tp(x) != Ct {
 		trap() //type
@@ -3038,6 +3023,7 @@ func testi(l K, i int32) {
 	}
 	dxy(x, y)
 }
+*/
 
 type ftok = func() K
 
@@ -3771,26 +3757,13 @@ func ibin(x, y K, t T) int32 {
 				k = h + 1
 			}
 		}
-	case 1:
+	default:
 		for {
 			if k > j {
 				return k - 1
 			}
 			h = (k + j) >> 1
 			if I32(xp+4*h) > yp {
-				j = h - 1
-			} else {
-				k = h + 1
-			}
-		}
-	default:
-		f := F64(yp)
-		for {
-			if k > j {
-				return k - 1
-			}
-			h = (k + j) >> 1
-			if F64(xp+8*h) > f {
 				j = h - 1
 			} else {
 				k = h + 1

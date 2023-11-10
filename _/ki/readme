@@ -1,0 +1,10 @@
+ktye/k integer version
+
+no float/complex
+`
+
+
+ktye/k   all  nofloat
+k.wasm 34434  25858  my compiler
+z.wasm 32270  24287  with wasm-opt -Oz
+z.zstd 15034  11405  compressed

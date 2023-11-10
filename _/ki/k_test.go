@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strconv"
@@ -34,10 +35,65 @@ func TestInit(t *testing.T) {
 	newtest()
 	reset()
 }
+func TestMk(t *testing.T) {
+	newtest()
+	x := Ki(3)
+	y := Til(Ki(4))
+	z := Add(x, y)
+	if tp(z) != It || nn(z) != 4 {
+		t.Fatal()
+	}
+	dx(z)
+	reset()
+}
+func TestKst(t *testing.T) {
+	newtest()
+	s := sk(Ki(3))
+	if s != "3" {
+		t.Fatal(s)
+	}
+	l := lk(Ki(3))
+	if len(l) != 1 || l[0] != `,"3"` {
+		t.Fatal(l)
+	}
+	reset()
+}
+func TestKT(t *testing.T) {
+	newtest()
+	b, e := os.ReadFile("k.t")
+	if e != nil {
+		t.Fatal(e)
+	}
+	v := bytes.Split(b, []byte{10})
+	for i := range v {
+		if len(v[i]) > 1 {
+			test(mkchars(append(v[i], 10)))
+			reset()
+		}
+	}
+	reset()
+}
 
 func mkchars(b []byte) (r K) {
 	r = mk(Ct, int32(len(b)))
 	copy(Bytes[int32(r):], b)
+	return r
+}
+func lk(x K) (r []string) {
+	x = Lst(x)
+	n := nn(x)
+	r = make([]string, n)
+	for i := int32(0); i < n; i++ {
+		r[i] = sk(ati(rx(x), i))
+	}
+	dx(x)
+	return r
+}
+func sk(x K) string {
+	x = Kst(x)
+	n := nn(x)
+	r := string(Bytes[int32(x) : int32(x)+n])
+	dx(x)
 	return r
 }
 func sK(x K) string {
@@ -223,4 +279,32 @@ func fcount(x int32) int32 {
 		x = I32(x)
 	}
 	return r
+}
+
+func test(x K) {
+	if tp(x) != Ct {
+		trap() //type
+	}
+	l := ndrop(-1, split(Kc(10), rx(x)))
+	n := nn(l)
+	dx(l)
+	for i := int32(0); i < n; i++ {
+		testi(rx(x), i)
+	}
+	dx(x)
+}
+func testi(l K, i int32) {
+	x := split(Ku(12064), ati(split(Kc(10), l), i))
+	if nn(x) != 2 {
+		trap() //length
+	}
+	y := x1(x)
+	x = r0(x)
+	dx(Out(ucat(ucat(rx(x), Ku(12064)), rx(y))))
+	x = Kst(val(x))
+	if match(x, y) == 0 {
+		x = Out(x)
+		trap() //test fails
+	}
+	dxy(x, y)
 }
