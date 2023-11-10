@@ -338,7 +338,7 @@ values of type c i s carry their value withing the k value in the lower 32 bits.
 all other values live in heap memory. the lower 32 bits are the index to the start of the data section.
 flat vectors of type I S F Z store their vector data consecutive as 4 4 8 16 byte widths per element.
 compound types m d p l x L D T store 64 bit k values in the data section.
-the length of vector values is accessed by <a href="#nn>nn</a> and stored as int32 12 bytes before the data.
+the length of vector values is accessed by <a href="#nn">nn</a> and stored as int32 12 bytes before the data.
 values the live in heap memory also have their <a href="#allocator">refcount</a> stored at 4 bytes before the data.
 
 L is a general list that <a href="#uf">collapses/unifies</a> to flat vector if all values are atoms of the same type.
