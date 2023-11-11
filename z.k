@@ -1,5 +1,5 @@
-/        64     72    80    88     96     104    112    120    128                 
-`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"odo."`"grp." /
+/        64     72    80    88     96     104    112    120             
+`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"grp." /
 
 `x:,/+"0123456789abcdef"@16 16\256!256+  /`x@ hex
 `t:`39         /`t@ token
@@ -9,7 +9,6 @@
 `uqf:{x@&(!#x)=x?x}                            /?xL
 `gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}  /<t >t  grade table
 
-`odo:{{y@(#y)!!x}/[*/x;&'x#'|*\-1_1,|x]}       /!I (odometer)
 `grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}      /=x
 
 abs:`32;sin:`44;cos:`45;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43

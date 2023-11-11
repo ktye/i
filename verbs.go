@@ -101,7 +101,7 @@ func Til(x K) K {
 		return seq(int32(x))
 	}
 	if xt == It {
-		return kx(120, x) // odo
+		return Enc(x, Til(Rdc(4, l1(rx(x))))) //{x\!*/x}
 	}
 	trap() //type
 	return 0
@@ -151,7 +151,7 @@ func Uqs(x K) K { // ?^x
 	}
 	return kx(88, x) // .uqs
 }
-func Grp(x K) K    { return kx(128, x) }    // =x grp.
+func Grp(x K) K    { return kx(120, x) }    // =x grp.
 func Key(x, y K) K { return key(x, y, Dt) } // x!y
 func key(x, y K, t T) K { // Dt or Tt
 	xt := tp(x)

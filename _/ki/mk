@@ -8,9 +8,24 @@ if [ "$1" = "cover" ]; then
 	go tool cover -html=cov.out -o cov.html
 fi
 
+
+if [ "$1" = "zk" ]; then
+  # embed z.k
+  sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
+  zn=`wc -c k.k | sed 's/ .*//'`
+  zk=`sed -e 's/\\\/\\\\\\\/g' -e 's/"/\\\"/g' -e 's/$/\\\/g' k.k | tr '\n' 'n'`
+  rm k.k
+  cat << EOF
+Data(280, "$zk")
+zn := int32($zn)
+EOF
+fi
+
+
 wg ki.go | wat2wasm - -o k.wasm
 wasm-opt --enable-bulk-memory -Oz k.wasm -o z.wasm
 zstd -19 -f z.wasm
 wc -c k.wasm z.wasm z.wasm.zst
 
 rm k.wasm z.wasm z.wasm.zst
+
