@@ -155,7 +155,7 @@ func mulz(xp, yp, rp int32) {
 }
 
 func Mod(x, y K) K          { return nd(244, 41, x, y) }
-func modi(x, y int32) int32 { x %= y; return x + y*I32B(x < 0) } //eucledian
+func modi(x, y int32) int32 { x = x % y; return x + y*I32B(x < 0) } //eucledian
 
 func Div(x, y K) K          { return nd(235, 5, x, y) }
 func divi(x, y int32) int32 { return x / y }
