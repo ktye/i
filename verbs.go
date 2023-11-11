@@ -295,7 +295,8 @@ func ntake(n int32, y K) K {
 	}
 	r = seq(n)
 	if n > yn && yn > 0 {
-		r = idiv(r, Ki(yn), 1)
+		//		r = idiv(r, Ki(yn), 1)
+		r = Mod(r, Ki(yn))
 	}
 	return atv(y, r)
 }
@@ -735,8 +736,8 @@ l:
 	for {
 		n--
 		xi := ati(rx(x), n)
-		r = Cat(r, Enl(idiv(rx(y), xi, 1)))
-		y = idiv(y, xi, 0)
+		r = Cat(r, Enl(Mod(rx(y), xi)))
+		y = Div(y, xi)
 		if n == 0 || (n < 0 && int32(y) == 0) {
 			break
 		}
