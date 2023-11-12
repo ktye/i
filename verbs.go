@@ -725,29 +725,36 @@ func val(x K) K {
 	}
 	return x
 }
-func Enc(x, y K) K { // x\\y
-	xt := tp(x)
+func Enc(x, y K) K {
+	yt := tp(y)
+	if yt == It {
+		return cal(lup(Ks(128)), l2(x, y))
+	}
+	if yt != it {
+		trap()
+	}
+	yi := int32(y)
 	n := int32(0)
-	if xt == It {
+	if tp(x) == It {
 		n = nn(x)
 	}
 	r := mk(It, 0)
-l:
 	for {
 		n--
-		xi := ati(rx(x), n)
-		r = Cat(r, Enl(Mod(rx(y), xi)))
-		y = Div(y, xi)
-		if n == 0 || (n < 0 && int32(y) == 0) {
+		xi := int32(ati(rx(x), n))
+		r = cat1(r, Ki(modi(yi, xi)))
+		yi = divi(yi, xi)
+		if n == 0 {
 			break
 		}
-		if tp(y) > 16 && n < 0 {
-			if sumi(int32(y), ep(y)) == 0 {
-				break l
+		if n < 0 && uint32(yi+1) < 2 {
+			if yi == -1 {
+				r = cat1(r, Ki(-1))
 			}
+			break
 		}
 	}
-	dxy(x, y)
+	dx(x)
 	return Rev(r)
 }
 func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]

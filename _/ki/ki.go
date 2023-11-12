@@ -2343,10 +2343,21 @@ func subi(x, y int32) int32 { return x - y }
 func Mul(x, y K) K          { return nd(232, 4, x, y) } //256
 func muli(x, y int32) int32 { return x * y }
 
-func Mod(x, y K) K          { return nd(244, 41, x, y) } //300
-func modi(x, y int32) int32 { x %= y; return x + y*I32B(x < 0) }
-func Div(x, y K) K          { return nd(235, 5, x, y) } //267
-func divi(x, y int32) int32 { return x / y }
+func Mod(x, y K) K { return nd(244, 41, x, y) } //300
+func modi(x, y int32) int32 {
+	if y == 0 {
+		return x //for dec
+	}
+	x = x % y
+	return x + y*I32B(x < 0) //euclidean, y>0
+}
+func Div(x, y K) K { return nd(235, 5, x, y) } //267
+func divi(x, y int32) int32 {
+	if y == 0 {
+		return x //dec
+	}
+	return (x - (y-1)*I32B(x < 0)) / y //euclidean, y>0
+}
 
 func Min(x, y K) K { return nd(238, 6, x, y) } //278
 func mini(x, y int32) int32 {
@@ -3945,29 +3956,36 @@ func val(x K) K {
 	}
 	return x
 }
-func Enc(x, y K) K { // x\\y
-	xt := tp(x)
+func Enc(x, y K) K {
+	yt := tp(y)
+	if yt == It {
+		return cal(lup(Ks(128)), l2(x, y))
+	}
+	if yt != it {
+		trap()
+	}
+	yi := int32(y)
 	n := int32(0)
-	if xt == It {
+	if tp(x) == It {
 		n = nn(x)
 	}
 	r := mk(It, 0)
-l:
 	for {
 		n--
-		xi := ati(rx(x), n)
-		r = Cat(r, Enl(Mod(rx(y), xi)))
-		y = Div(y, xi)
-		if n == 0 || (n < 0 && int32(y) == 0) {
+		xi := int32(ati(rx(x), n))
+		r = cat1(r, Ki(modi(yi, xi)))
+		yi = divi(yi, xi)
+		if n == 0 {
 			break
 		}
-		if tp(y) > 16 && n < 0 {
-			if sumi(int32(y), ep(y)) == 0 {
-				break l
+		if n < 0 && uint32(yi+1) < 2 {
+			if yi == -1 {
+				r = cat1(r, Ki(-1))
 			}
+			break
 		}
 	}
-	dxy(x, y)
+	dx(x)
 	return Rev(r)
 }
 func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
@@ -3983,8 +4001,8 @@ func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
 	return r
 }
 func zk() {
-	Data(280, "`k`l`a`b`while`\"rf.\"`\"rz.\"`\"uqs.\"`\"uqf.\"`\"gdt.\"`\"lin.\"`\"grp.\"\n`x:,/+\"0123456789abcdef\"@16 16\\256!\n`t:`39\n`p:`46\n`uqs:{x@&1,1_~x~'x@-1+!#x:^x}\n`uqf:{x@&(!#x)=x?x}\n`gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}\n`grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}\nabs:`32;find:`31\n`pad:{x@\\!|/#'x}\n`lxy:{\nkt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad(\"\";\"-\"),$x];(x,'\"|\"),'T[y;k]}\nd:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);\"|\"];k'x]]}\nT:{[x;k]$[`L?@'.x;,k x;(,*x),(,(#*x)#\"-\"),1_x:\" \"/'+`pad@'$(!x),'.x]}\nt:@y;k:`kxy@*x;h:*|x\ndd:(\"\";,\"..\")h<#y:$[(@y)?`L`D`T;y;y~*y;y;[t:`L;,y]]\ny:$[y~*y;y;(h&#y)#y]\n$[`D~t;d[y;k;kt;T];`T~t;T[y;k];y~*y;,k y;k'y],dd}\n`l:`lxy 70 20\n`str:{q:{c,(\"\\\\\"/(0,i)^@[x;i;(qs!\"tnr\\\"\\\\\")x i:&x?\\qs:\"\\t\\n\\r\\\"\\\\\"]),c:_34}\n$[|/x?\\\"\\t\\n\\r\"__!31;\"0x\",`x@x;q x]}\n`kxy:{\na:{t:@x;x:$x;$[`c~t;`str x;`s~t;\"`\",x;x]}\nd:{[x;k]r:\"!\",k@.x;n:#!x;x:k@!x;$[(n<2)|(@.x)?`D`T;\"(\",x,\")\";x],r}\nv:{[x;k;m]t:@x;x:(m&n:#x)#x\nx:$[`L~t;k'x;`C~t;x;$x]\nx:$[`C~t;`str x;`S~t;c,(c:\"`\")/x;`L~t;$[1~n;*x;\"(\",(\";\"/x),\")\"];\" \"/x]\n$[m<#x:((\"\";\",\")(1~n)),x;((m-2)#x),\"..\";x]}\nt:@y;k:`kxy x\n$[`T~t;\"+\",d[+y;k];`D~t;d[y;k];0~#y;(`C`I`S`L!(\"\\\"\\\"\";\"!0\";\"0#`\";\"()\"))t;y~*y;a y;v[y;k;x]]}\n`k:`kxy 1000000\n`d:{x-(*x),-1_x}\n")
-	zn := int32(1193)
+	Data(280, "`k`l`a`b`while`\"rf.\"`\"rz.\"`\"uqs.\"`\"uqf.\"`\"gdt.\"`\"lin.\"`\"grp.\"`\"enc.\"\n`x:,/+\"0123456789abcdef\"@16 16\\256!\n`t:`39\n`p:`46\n`enc:{$[#y;+(&'(|/c)-c:#'r),'r:{x\\y}/[x;y];(#x)#,!0]}\n`uqs:{x@&1,1_~x~'x@-1+!#x:^x}\n`uqf:{x@&(!#x)=x?x}\n`gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}\n`grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}\nabs:`32;find:`31\n`pad:{x@\\!|/#'x}\n`lxy:{\nkt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad(\"\";\"-\"),$x];(x,'\"|\"),'T[y;k]}\nd:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);\"|\"];k'x]]}\nT:{[x;k]$[`L?@'.x;,k x;(,*x),(,(#*x)#\"-\"),1_x:\" \"/'+`pad@'$(!x),'.x]}\nt:@y;k:`kxy@*x;h:*|x\ndd:(\"\";,\"..\")h<#y:$[(@y)?`L`D`T;y;y~*y;y;[t:`L;,y]]\ny:$[y~*y;y;(h&#y)#y]\n$[`D~t;d[y;k;kt;T];`T~t;T[y;k];y~*y;,k y;k'y],dd}\n`l:`lxy 70 20\n`str:{q:{c,(\"\\\\\"/(0,i)^@[x;i;(qs!\"tnr\\\"\\\\\")x i:&x?\\qs:\"\\t\\n\\r\\\"\\\\\"]),c:_34}\n$[|/x?\\\"\\t\\n\\r\"__!31;\"0x\",`x@x;q x]}\n`kxy:{\na:{t:@x;x:$x;$[`c~t;`str x;`s~t;\"`\",x;x]}\nd:{[x;k]r:\"!\",k@.x;n:#!x;x:k@!x;$[(n<2)|(@.x)?`D`T;\"(\",x,\")\";x],r}\nv:{[x;k;m]t:@x;x:(m&n:#x)#x\nx:$[`L~t;k'x;`C~t;x;$x]\nx:$[`C~t;`str x;`S~t;c,(c:\"`\")/x;`L~t;$[1~n;*x;\"(\",(\";\"/x),\")\"];\" \"/x]\n$[m<#x:((\"\";\",\")(1~n)),x;((m-2)#x),\"..\";x]}\nt:@y;k:`kxy x\n$[`T~t;\"+\",d[+y;k];`D~t;d[y;k];0~#y;(`C`I`S`L!(\"\\\"\\\"\";\"!0\";\"0#`\";\"()\"))t;y~*y;a y;v[y;k;x]]}\n`k:`kxy 1000000\n`d:{x-(*x),-1_x}\n")
+	zn := int32(1254)
 	x := mk(Ct, zn)
 	Memorycopy(int32(x), 280, zn)
 	dx(Val(x))

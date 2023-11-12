@@ -154,11 +154,22 @@ func mulz(xp, yp, rp int32) {
 	SetF64(rp+8, xr*yi+xi*yr)
 }
 
-func Mod(x, y K) K          { return nd(244, 41, x, y) }
-func modi(x, y int32) int32 { x = x % y; return x + y*I32B(x < 0) } //eucledian
+func Mod(x, y K) K { return nd(244, 41, x, y) }
+func modi(x, y int32) int32 {
+	if y == 0 {
+		return x //for dec
+	}
+	x = x % y
+	return x + y*I32B(x < 0) //euclidean, y>0
+}
 
-func Div(x, y K) K          { return nd(235, 5, x, y) }
-func divi(x, y int32) int32 { return x / y }
+func Div(x, y K) K { return nd(235, 5, x, y) }
+func divi(x, y int32) int32 {
+	if y == 0 {
+		return x //dec
+	}
+	return (x - (y-1)*I32B(x < 0)) / y //euclidean, y>0
+}
 func divf(xp, yp, rp int32) { SetF64(rp, F64(xp)/F64(yp)) }
 func divz(xp, yp, rp int32) {
 	xr, xi := F64(xp), F64(xp+8)
