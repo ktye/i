@@ -525,14 +525,7 @@ func Flr(x K) K { // _x
 			rp += 4
 		}
 	case 4: // Z
-		r = mk(Ft, xn)
-		rp = int32(r)
-		for xn > 0 {
-			xn--
-			SetI64(rp, I64(xp))
-			xp += 16
-			rp += 8
-		}
+		r = atv(rtp(Ft, rx(x)), Mul(Ki(2), seq(xn)))
 	default: // L/D/T
 		return Ech(16, l1(x))
 	}

@@ -88,18 +88,8 @@ func Img(x K) K { // imag x
 		return Ech(33, l1(x))
 	}
 	if xt == Zt {
-		xp := 8 + int32(x)
 		n := nn(x)
-		r := mk(Ft, n)
-		rp := int32(r)
-		e := rp + 8*n
-		for rp < e {
-			SetI64(rp, I64(xp))
-			xp += 16
-			rp += 8
-		}
-		dx(x)
-		return r
+		return atv(rtp(Ft, x), Add(Ki(1), Mul(Ki(2), seq(n))))
 	}
 	dx(x)
 	if xt == zt {
@@ -127,7 +117,7 @@ func Cnj(x K) K { // conj x
 	}
 	x = use(x)
 	xp = 8 + int32(x)
-	e := xp + 16*nn(x)
+	e := ep(x)
 	for xp < e {
 		SetF64(xp, -F64(xp))
 		xp += 16
