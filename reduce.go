@@ -30,7 +30,7 @@ func min(yp int32, t T, e int32) K { // &/x
 		}
 		return Ks(xp)
 	case 3: // Ft
-		f := F64reinterpret_i64(uint64(0x7FF0000000000000))
+		f := inf
 		for yp < e {
 			f = F64min(f, F64(yp))
 			yp += 8
@@ -65,7 +65,7 @@ func max(yp int32, t T, e int32) K { // |/x
 		}
 		return Ks(xp)
 	case 3: // Ft
-		f := F64reinterpret_i64(uint64(0xFFF0000000000000))
+		f := -inf
 		for yp < e {
 			f = F64max(f, F64(yp))
 			yp += 8

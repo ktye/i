@@ -101,9 +101,9 @@ func sf(x float64) K {
 		return Ku(28208) // 0n
 	}
 	u := uint64(I64reinterpret_f64(x))
-	if u == uint64(0x7FF0000000000000) {
+	if u == uint64(I64reinterpret_f64(inf)) {
 		return Ku(30512) // 0w
-	} else if u == uint64(0xFFF0000000000000) {
+	} else if u == uint64(I64reinterpret_f64(-inf)) {
 		return Ku(7811117) // -0w
 	}
 	if x < 0 {
