@@ -385,32 +385,9 @@ func split(x, y K) K {
 	x = rx(x)
 	return rcut(y, Cat(Ki(0), Add(Ki(xn), x)), cat1(x, Ki(nn(y))))
 }
-func join(x, y K) K {
-	xt := tp(x)
-	if xt < 16 {
-		x = Enl(x)
-		xt = tp(x)
-	}
-	yt := tp(y)
-	if yt != Lt {
-		trap() //type
-	}
-	yp := int32(y)
-	yn := nn(y)
-	r := mk(xt, 0)
-	for i := int32(0); i < yn; i++ {
-		v := x0(K(yp))
-		if tp(v) != xt {
-			trap() //type
-		}
-		if i > 0 {
-			r = ucat(r, rx(x))
-		}
-		r = ucat(r, v)
-		yp += 8
-	}
-	dxy(x, y)
-	return r
+func join(x, y K) K { // {(-#x)_,/y,\x}
+	n := -int32(Cnt(rx(x)))
+	return ndrop(n, Rdc(13, l1(Ecl(13, l2(y, x)))))
 }
 func Bin(x, y K) K { // x'y
 	var r K
