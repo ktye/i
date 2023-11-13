@@ -237,65 +237,18 @@ func ntake(n int32, y K) K {
 		}
 		return ndrop(n, y)
 	}
-	yp := int32(y)
-	if t < 5 {
-		t += 16
-		r = mk(t, n)
-		s := sz(t)
-		rp := int32(r)
-		if s == 1 {
-			Memoryfill(rp, yp, n)
-		} else {
-			for n > 0 {
-				n--
-				SetI32(rp, yp)
-				rp += 4
-			}
-		}
-		return r
-	} else if t == ft {
-		r = mk(Ft, n)
-		rp := int32(r)
-		f := F64(yp)
-		for n > 0 {
-			n--
-			SetF64(rp, f)
-			rp += 8
-		}
-		dx(y)
-		return r
-	} else if t == zt {
-		r = mk(Zt, n)
-		rp := int32(r)
-		re, im := F64(yp), F64(yp+8)
-		for n > 0 {
-			n--
-			SetF64(rp, re)
-			SetF64(rp+8, im)
-			rp += 16
-		}
-		dx(y)
-		return r
-	} else if t < 16 {
-		r = mk(Lt, n)
-		rp := int32(r)
-		for n > 0 {
-			n--
-			SetI64(rp, int64(rx(y)))
-			rp += 8
-		}
-		dx(y)
-		return r
+	if t < 16 {
+		return atv(Enl(y), Wer(Ki(n)))
 	}
 	yn := nn(y)
 	s := sz(t)
+	yp := int32(y)
 	if I32(yp-4) == 1 && bucket(s*yn) == bucket(s*n) && n <= yn && t < Lt {
 		SetI32(yp-12, n)
 		return y
 	}
 	r = seq(n)
 	if n > yn && yn > 0 {
-		//		r = idiv(r, Ki(yn), 1)
 		r = Mod(r, Ki(yn))
 	}
 	return atv(y, r)
