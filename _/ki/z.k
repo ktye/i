@@ -14,20 +14,6 @@
 
 abs:`32;find:`31
 
-/ pretty print  `l@x  `k@x
-`pad:{x@\!|/#'x}
-
-`lxy:{ /k
- kt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad("";"-"),$x];(x,'"|"),'T[y;k]}
- d:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);"|"];k'x]]}
- T:{[x;k]$[`L?@'.x;,k x;(,*x),(,(#*x)#"-"),1_x:" "/'+`pad@'$(!x),'.x]}
- t:@y;k:`kxy@*x;h:*|x
- dd:("";,"..")h<#y:$[(@y)?`L`D`T;y;y~*y;y;[t:`L;,y]]
- y:$[y~*y;y;(h&#y)#y]
- $[`D~t;d[y;k;kt;T];`T~t;T[y;k];y~*y;,k y;k'y],dd}
-
-`l:`lxy 70 20
-
 `str:{q:{c,("\\"/(0,i)^@[x;i;(qs!"tnr\"\\")x i:&x?\qs:"\t\n\r\"\\"]),c:_34}
  $[|/x?\"\t\n\r"__!31;"0x",`x@x;q x]}
 

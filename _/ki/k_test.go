@@ -52,10 +52,6 @@ func TestKst(t *testing.T) {
 	if s != "3" {
 		t.Fatal(s)
 	}
-	l := lk(Ki(3))
-	if len(l) != 1 || l[0] != `,"3"` {
-		t.Fatal(l)
-	}
 	reset()
 }
 func TestKT(t *testing.T) {
@@ -77,16 +73,6 @@ func TestKT(t *testing.T) {
 func mkchars(b []byte) (r K) {
 	r = mk(Ct, int32(len(b)))
 	copy(Bytes[int32(r):], b)
-	return r
-}
-func lk(x K) (r []string) {
-	x = Lst(x)
-	n := nn(x)
-	r = make([]string, n)
-	for i := int32(0); i < n; i++ {
-		r[i] = sk(ati(rx(x), i))
-	}
-	dx(x)
 	return r
 }
 func sk(x K) string {

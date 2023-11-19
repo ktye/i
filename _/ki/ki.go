@@ -2814,7 +2814,6 @@ func cmL(xp, yp int32) int32 { // compare lists lexically
 }
 
 func Kst(x K) K { return Atx(Ks(32), x) } // `k@
-func Lst(x K) K { return Atx(Ks(40), x) } // `l@
 func Str(x K) K {
 	var r K
 	xt := tp(x)
@@ -2955,14 +2954,9 @@ func rtp(t T, x K) K { // `c@ `i@ `s@ `f@ `z@ (reinterpret data)
 }
 
 func repl(x K) {
-	c := I8(int32(x))
 	x = val(x)
 	if x != 0 {
-		if c == 32 {
-			dx(Out(x))
-		} else {
-			write(cat1(join(Kc(10), Lst(x)), Kc(10)))
-		}
+		dx(Out(x))
 	}
 }
 
@@ -3960,8 +3954,8 @@ func Dec(x, y K) K { // x//y   {z+x*y}/[0;x;y]
 	return r
 }
 func zk() {
-	Data(280, "`k`l`a`b`while`\"rf.\"`\"rz.\"`\"uqs.\"`\"uqf.\"`\"gdt.\"`\"lin.\"`\"grp.\"`\"enc.\"\n`x:,/+\"0123456789abcdef\"@16 16\\256!\n`t:`39\n`p:`46\n`enc:{$[#y;+(&'(|/c)-c:#'r),'r:{x\\y}/[x;y];(#x)#,!0]}\n`uqs:{x@&1,1_~x~'x@-1+!#x:^x}\n`uqf:{x@&(!#x)=x?x}\n`gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}\n`grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}\nabs:`32;find:`31\n`pad:{x@\\!|/#'x}\n`lxy:{\nkt:{[x;y;k;T]x:$[`T~@x;T[x;k];`pad(\"\";\"-\"),$x];(x,'\"|\"),'T[y;k]}\nd:{[x;k;kt;T]r:!x;x:.x;$[`T~@x;kt[r;x;k;T];,'[,'[`pad(k'r);\"|\"];k'x]]}\nT:{[x;k]$[`L?@'.x;,k x;(,*x),(,(#*x)#\"-\"),1_x:\" \"/'+`pad@'$(!x),'.x]}\nt:@y;k:`kxy@*x;h:*|x\ndd:(\"\";,\"..\")h<#y:$[(@y)?`L`D`T;y;y~*y;y;[t:`L;,y]]\ny:$[y~*y;y;(h&#y)#y]\n$[`D~t;d[y;k;kt;T];`T~t;T[y;k];y~*y;,k y;k'y],dd}\n`l:`lxy 70 20\n`str:{q:{c,(\"\\\\\"/(0,i)^@[x;i;(qs!\"tnr\\\"\\\\\")x i:&x?\\qs:\"\\t\\n\\r\\\"\\\\\"]),c:_34}\n$[|/x?\\\"\\t\\n\\r\"__!31;\"0x\",`x@x;q x]}\n`kxy:{\na:{t:@x;x:$x;$[`c~t;`str x;`s~t;\"`\",x;x]}\nd:{[x;k]r:\"!\",k@.x;n:#!x;x:k@!x;$[(n<2)|(@.x)?`D`T;\"(\",x,\")\";x],r}\nv:{[x;k;m]t:@x;x:(m&n:#x)#x\nx:$[`L~t;k'x;`C~t;x;$x]\nx:$[`C~t;`str x;`S~t;c,(c:\"`\")/x;`L~t;$[1~n;*x;\"(\",(\";\"/x),\")\"];\" \"/x]\n$[m<#x:((\"\";\",\")(1~n)),x;((m-2)#x),\"..\";x]}\nt:@y;k:`kxy x\n$[`T~t;\"+\",d[+y;k];`D~t;d[y;k];0~#y;(`C`I`S`L!(\"\\\"\\\"\";\"!0\";\"0#`\";\"()\"))t;y~*y;a y;v[y;k;x]]}\n`k:`kxy 1000000\n`d:{x-(*x),-1_x}\n")
-	zn := int32(1254)
+	Data(280, "`k`l`a`b`while`\"rf.\"`\"rz.\"`\"uqs.\"`\"uqf.\"`\"gdt.\"`\"lin.\"`\"grp.\"`\"enc.\"\n`x:,/+\"0123456789abcdef\"@16 16\\256!\n`t:`39\n`p:`46\n`enc:{$[#y;+(&'(|/c)-c:#'r),'r:{x\\y}/[x;y];(#x)#,!0]}\n`uqs:{x@&1,1_~x~'x@-1+!#x:^x}\n`uqf:{x@&(!#x)=x?x}\n`gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}\n`grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}\nabs:`32;find:`31\n`str:{q:{c,(\"\\\\\"/(0,i)^@[x;i;(qs!\"tnr\\\"\\\\\")x i:&x?\\qs:\"\\t\\n\\r\\\"\\\\\"]),c:_34}\n$[|/x?\\\"\\t\\n\\r\"__!31;\"0x\",`x@x;q x]}\n`kxy:{\na:{t:@x;x:$x;$[`c~t;`str x;`s~t;\"`\",x;x]}\nd:{[x;k]r:\"!\",k@.x;n:#!x;x:k@!x;$[(n<2)|(@.x)?`D`T;\"(\",x,\")\";x],r}\nv:{[x;k;m]t:@x;x:(m&n:#x)#x\nx:$[`L~t;k'x;`C~t;x;$x]\nx:$[`C~t;`str x;`S~t;c,(c:\"`\")/x;`L~t;$[1~n;*x;\"(\",(\";\"/x),\")\"];\" \"/x]\n$[m<#x:((\"\";\",\")(1~n)),x;((m-2)#x),\"..\";x]}\nt:@y;k:`kxy x\n$[`T~t;\"+\",d[+y;k];`D~t;d[y;k];0~#y;(`C`I`S`L!(\"\\\"\\\"\";\"!0\";\"0#`\";\"()\"))t;y~*y;a y;v[y;k;x]]}\n`k:`kxy 1000000\n`d:{x-(*x),-1_x}\n")
+	zn := int32(866)
 	x := mk(Ct, zn)
 	Memorycopy(int32(x), 280, zn)
 	dx(Val(x))
