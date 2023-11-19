@@ -77,6 +77,11 @@ var pp, pe, sp, srcp, rand_ int32 //parse position/end, stack position, src poin
 
 func kinit() {
 	minit(12, 16) //4k..64k
+
+	//leak 1k at 4096..5120 that can be used as cpu stack for kos
+	//=> e.g. set sp to 8\5118 which is 011776
+	alloc(1000, 1)
+
 	sp = 2048
 	SetI32(16, int32(mk(Ct, 0))) //SetI64(512, int64(mk(Ct, 0))) //src
 	rand_ = 1592653589

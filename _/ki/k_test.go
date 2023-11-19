@@ -253,7 +253,8 @@ func reset() {
 	dx(xyz)
 	dx(K(I64(0)))
 	dx(K(I64(8)))
-	if (uint32(1)<<uint32(I32(128)))-(4096+mcount()) != 0 {
+	//additional 1024 for cpu stack (see kinit)
+	if (uint32(1)<<uint32(I32(128)))-(1024+4096+mcount()) != 0 {
 		panic("memcount")
 	}
 	for i := int32(5); i < 31; i++ {
