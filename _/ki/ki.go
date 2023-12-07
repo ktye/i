@@ -2167,18 +2167,23 @@ func deal(x, y K) K { // x?y (x atom) n?n(with replacement) -n?n(without) n?L (-
 	return ntake(-xp, shuffle(seq(yp), -xp)) //-n?m (no duplicates)
 }
 func randi(n int32) int32 {
-	v := uint32(rnd())
-	prod := uint64(v) * uint64(n)
-	low := uint32(prod)
-	if low < uint32(n) {
-		thresh := uint32(-n) % uint32(n)
-		for low < thresh {
-			v = uint32(rnd())
-			prod = uint64(v) * uint64(n)
-			low = uint32(prod)
-		}
+	//	v := uint32(rnd())
+	//	prod := uint64(v) * uint64(n)
+	//	low := uint32(prod)
+	//	if low < uint32(n) {
+	//		thresh := uint32(-n) % uint32(n)
+	//		for low < thresh {
+	//			v = uint32(rnd())
+	//			prod = uint64(v) * uint64(n)
+	//			low = uint32(prod)
+	//		}
+	//	}
+	//	return int32(prod >> 32)
+	r := rnd()
+	if r < 0 {
+		r = -r
 	}
-	return int32(prod >> 32)
+	return r % n
 }
 func randI(i, n int32) K {
 	r := mk(It, n)
