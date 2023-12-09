@@ -4,7 +4,9 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-// remove float64
+const nai int32 = -2147483648 // 0N
+var loc, xyz K
+var ps, pp, pe, sp, srcp, rand_ int32 //parse position/end, stack position, src pointer
 
 func init() {
 	Memory(1)
@@ -35,6 +37,17 @@ func init() {
 	Functions(270, inC, inI, inI)
 }
 
+func main() { // _start
+	kinit()
+	doargs()
+	write(Ku(2932601077199979)) // "ktye/k\n"
+	store()
+	for {
+		write(Ku(32))
+		x := readfile(mk(Ct, 0))
+		try(x)
+	}
+}
 func trap() {
 	s := src()
 	if srcp == 0 {
@@ -59,10 +72,6 @@ func trap() {
 	write(Ku(2654)) // ^\n
 	panic(srcp)
 }
-
-const nai int32 = -2147483648 // 0N
-var loc, xyz K
-var pp, pe, sp, srcp, rand_ int32 //parse position/end, stack position, src pointer
 
 //   0....7  key
 //   8...15  val
@@ -1640,18 +1649,6 @@ func atdepth(x, y K) K {
 	return atdepth(x, y)
 }
 
-func main() { // _start
-	kinit()
-	doargs()
-	write(Ku(2932601077199979)) // "ktye/k\n"
-	store()
-	for {
-		write(Ku(32))
-		x := readfile(mk(Ct, 0))
-		try(x)
-	}
-}
-
 func store() {
 	g := (1 << (I32(128) - 16)) - Memorysize2()
 	if g > 0 {
@@ -1728,8 +1725,6 @@ func iipow(x, y int32) int32 {
 	}
 	return r
 }
-
-var ps int32
 
 func Prs(x K) K { return parse(Tok(x)) } // `p"src"  `p(token list)
 func parse(x K) K {
@@ -2866,10 +2861,8 @@ func Str(x K) K {
 				ip -= 64
 			case 2: // 128     dyadic indirect
 				ip -= 128
-			case 3: // 192     tetradic
+			default: // 192     tetradic
 				ip -= 192
-				//default:
-				//	return ucat(Ku('`'), si(xp))
 			}
 			if ip > 25 || ip == 0 {
 				return ucat(Ku('`'), si(xp))

@@ -51,7 +51,7 @@ node type                    i-value             s-value
  cst     cast                -                   dst type        2 children: typ(src), arg
  typ     type                -                   type
  cnd     if condition        -                   `|result-type   2|3 children: if then [else]
- swc     switch              1(has default)      `|result-type   children: expr cases [default]
+ swc     switch              1                   `|result-type   children: expr cases default
  jmp     break/continue      1(break)|0(cont)    label
  for     loop                1(simple)           label           children: (cond|nop) (post|nop) body
  dfr     defer stmt node     -                   -               child: cal

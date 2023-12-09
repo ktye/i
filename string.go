@@ -53,10 +53,8 @@ func Str(x K) K {
 				ip -= 64
 			case 2: // 128     dyadic indirect
 				ip -= 128
-			case 3: // 192     tetradic
+			default: // 192     tetradic
 				ip -= 192
-				//default:
-				//	return ucat(Ku('`'), si(xp))
 			}
 			if ip > 25 || ip == 0 {
 				return ucat(Ku('`'), si(xp))
