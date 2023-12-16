@@ -165,14 +165,10 @@ func x0(x K) K       { return rx(K(I64(int32(x)))) }
 func x1(x K) K       { return x0(x + 8) }
 func x2(x K) K       { return x0(x + 16) }
 func Ku(x uint64) K { // Ct
-	r := mk(Ct, 0)
+	r := mk(Ct, 8)
 	p := int32(r)
-	for x != 0 {
-		SetI8(p, int32(x))
-		x >>= uint64(8)
-		p++
-	}
-	SetI32(int32(r)-12, p-int32(r))
+	SetI64(p, int64(x))
+	SetI32(p-12, idx(0, p, p+8)) //assume <8
 	return r
 }
 
