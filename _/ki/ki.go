@@ -96,7 +96,8 @@ func kinit() {
 	rand_ = 1592653589
 	SetI64(0, int64(mk(Lt, 0)))
 	SetI64(8, int64(mk(Lt, 0)))
-	xyz = Ech(17, l2(sc(Ku(0)), Ku(8026488))) //`$'"xyz": `x`y`z -> 8 16 24
+	xyz = sc(Ku(0))
+	xyz = Ech(17, l2(xyz, Ku(8026488))) //`$'"xyz": `x`y`z -> 8 16 24
 	zk()
 }
 
