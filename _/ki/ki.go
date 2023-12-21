@@ -24,22 +24,6 @@ func init() {
 	Functions(125, mtC, mtC, mtC, nyi, nyi, mtL)
 	Functions(131, tchr, tnms, tvrb, tpct, tvar, tsym, pop)
 	Functions(138, Amd, Dmd)
-
-	//Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym, pop)
-	//Functions(211, Amd, Dmd)
-	//Functions(220, negi) -> 47
-	//Functions(223, absi) -> 48
-	//Functions(226, addi) -> 49
-	//Functions(229, subi) -> 50
-	//Functions(232, muli) -> 51
-	//Functions(235, divi) -> 52
-	//Functions(238, mini) -> 53
-	//Functions(241, maxi) -> 54
-	//Functions(244, modi) -> 55
-	//Functions(247, cmi, cmi, cmi, nyi, nyi, cmC, cmI, cmI, nyi, nyi, cmL)
-	//Functions(258, sum, rd0, prd, rd0, min, max)
-	//Functions(264, mtC, mtC, mtC, nyi, nyi, mtL)
-	//Functions(270, inC, inI, inI) -> 56 57 58
 }
 
 func main() { // _start
