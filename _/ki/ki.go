@@ -15,26 +15,31 @@ func init() {
 	Data(227, ":+-*%&|<>=~!,^#_$?@.':/:\\:vbcisfzldtmdplx00BCISFZLDT0")
 	Export(main, Asn, Atx, Cal, cs, dx, Kc, Ki, kinit, l2, mk, nn, repl, rx, sc, src, tp, trap, Val)
 
-	//            0    :    +    -    *    %    &    |    <    >    =10   ~    !    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45
+	//            0    :    +    -    *    %    &    |    <    >    =10   ~    !    ,    ^    #    _    $    ?    @    .20  '    ':   /    /:   \    \:                  30                       35                       40                       45      
 	Functions(00, nul, Idy, Flp, Neg, Fst, Sqr, Wer, Rev, Asc, Dsc, Grp, Not, Til, Enl, Srt, Cnt, Flr, Str, Unq, Typ, Val, ech, nyi, rdc, nyi, scn, nyi, lst, Kst, Out, nyi, nyi, Abs, nyi, nyi, nyi, nyi, Uqs, nyi, Tok, Fwh, Las, nyi, nyi, nyi, nyi, Prs)
+	Functions(47, negi, absi, addi, subi, muli, divi, mini, maxi, modi, inC, inI, inI, nyi, nyi, nyi, nyi, nyi)
 	Functions(64, Asn, Dex, Add, Sub, Mul, Div, Min, Max, Les, Mor, Eql, Mtc, Key, Cat, Cut, Tak, Drp, Cst, Fnd, Atx, Cal, Ech, nyi, Rdc, nyi, Scn, nyi, com, prj, Otu, In, Find, nyi, nyi, fdl, nyi, Enc, Dec, nyi, nyi, Bin, Mod, Pow, nyi)
-	Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym, pop)
-	Functions(211, Amd, Dmd)
+	Functions(108, cmi, cmi, cmi, nyi, nyi, cmC, cmI, cmI, nyi, nyi, cmL)
+	Functions(119, sum, rd0, prd, rd0, min, max)
+	Functions(125, mtC, mtC, mtC, nyi, nyi, mtL)
+	Functions(131, tchr, tnms, tvrb, tpct, tvar, tsym, pop)
+	Functions(138, Amd, Dmd)
 
-	Functions(220, negi)
-	Functions(223, absi)
-	Functions(226, addi)
-	Functions(229, subi)
-	Functions(232, muli)
-	Functions(235, divi)
-	Functions(238, mini)
-	Functions(241, maxi)
-	Functions(244, modi)
-
-	Functions(247, cmi, cmi, cmi, nyi, nyi, cmC, cmI, cmI, nyi, nyi, cmL)
-	Functions(258, sum, rd0, prd, rd0, min, max)
-	Functions(264, mtC, mtC, mtC, nyi, nyi, mtL)
-	Functions(270, inC, inI, inI)
+	//Functions(193, tchr, tnms, tvrb, tpct, tvar, tsym, pop)
+	//Functions(211, Amd, Dmd)
+	//Functions(220, negi) -> 47
+	//Functions(223, absi) -> 48
+	//Functions(226, addi) -> 49
+	//Functions(229, subi) -> 50
+	//Functions(232, muli) -> 51
+	//Functions(235, divi) -> 52
+	//Functions(238, mini) -> 53
+	//Functions(241, maxi) -> 54
+	//Functions(244, modi) -> 55
+	//Functions(247, cmi, cmi, cmi, nyi, nyi, cmC, cmI, cmI, nyi, nyi, cmL)
+	//Functions(258, sum, rd0, prd, rd0, min, max)
+	//Functions(264, mtC, mtC, mtC, nyi, nyi, mtL)
+	//Functions(270, inC, inI, inI) -> 56 57 58
 }
 
 func main() { // _start
@@ -468,7 +473,7 @@ func Rdc(f, x K) K { // x f/y   (x=0):f/y
 			if xt == Tt {
 				return Ech(rdc(f), l1(Flp(x)))
 			}
-			r := Func[256+fp].(rdf)(int32(x), xt, ep(x)) //365
+			r := Func[117+fp].(rdf)(int32(x), xt, ep(x)) //365
 			if r != 0 {
 				dx(x)
 				return r
@@ -720,9 +725,9 @@ func cal(f, x K) K {
 		case 1:
 			r = Func[fp+64].(f2)(x, r)
 		case 2:
-			r = Func[fp+192].(f4)(x, r, 1, z)
+			r = Func[fp+119].(f4)(x, r, 1, z)
 		case 3:
-			r = Func[fp+192].(f4)(x, r, z, y)
+			r = Func[fp+119].(f4)(x, r, z, y)
 		default:
 			trap() //rank
 			r = 0
@@ -1023,7 +1028,7 @@ func exec(x K) K {
 			case 3: // 192..255  tetradic
 				b = pop()
 				c = pop()
-				a = Func[marksrc(u)].(f4)(a, b, c, pop())
+				a = Func[marksrc(u)-73].(f4)(a, b, c, pop())
 			case 4: // 256       drop
 				dx(a)
 				a = pop()
@@ -1229,7 +1234,7 @@ func fnd(x, y K, t T) int32 {
 		return nai
 	}
 	xp := int32(x)
-	r := Func[268+t].(f3i)(int32(y), xp, ep(x))
+	r := Func[54+t].(f3i)(int32(y), xp, ep(x))
 	if r == 0 {
 		return nai
 	}
@@ -1311,7 +1316,7 @@ func match(x, y K) int32 {
 		}
 		xp, yp := int32(x), int32(y)
 		if xt < Dt {
-			return Func[246+xt].(f3i)(xp, yp, ep(y))
+			return Func[107+xt].(f3i)(xp, yp, ep(y))
 		} else {
 			if match(K(I64(xp)), K(I64(yp))) != 0 {
 				return match(K(I64(xp+8)), K(I64(yp+8)))
@@ -1382,7 +1387,7 @@ func In(x, y K) K {
 		trap() //type
 	}
 	dxy(x, y)
-	return Ki(I32B(Func[268+xt].(f3i)(int32(x), int32(y), ep(y)) != 0))
+	return Ki(I32B(Func[54+xt].(f3i)(int32(x), int32(y), ep(y)) != 0))
 }
 func inC(x, yp, e int32) int32 {
 	for yp < e { // maybe splat x to int64
@@ -2316,7 +2321,7 @@ type f1i = func(int32) int32
 type f2i = func(int32, int32) int32
 type fi3 = func(int32, int32, int32)
 
-func Neg(x K) K          { return nm(220, x) } //220
+func Neg(x K) K          { return nm(47, x) }
 func negi(x int32) int32 { return -x }
 
 func Abs(x K) K {
@@ -2324,7 +2329,7 @@ func Abs(x K) K {
 	if xt > St {
 		return Ech(32, l1(x))
 	}
-	return nm(223, x) //227
+	return nm(48, x)
 }
 func absi(x int32) int32 {
 	if x < 0 {
@@ -2338,14 +2343,14 @@ func Sqr(x K) K {
 	return x
 }
 
-func Add(x, y K) K          { return nd(226, 2, x, y) } //234
+func Add(x, y K) K          { return nd(49, 2, x, y) }
 func addi(x, y int32) int32 { return x + y }
-func Sub(x, y K) K          { return nd(229, 3, x, y) } //245
+func Sub(x, y K) K          { return nd(50, 3, x, y) }
 func subi(x, y int32) int32 { return x - y }
-func Mul(x, y K) K          { return nd(232, 4, x, y) } //256
+func Mul(x, y K) K          { return nd(51, 4, x, y) }
 func muli(x, y int32) int32 { return x * y }
 
-func Mod(x, y K) K { return nd(244, 41, x, y) } //300
+func Mod(x, y K) K { return nd(55, 41, x, y) } //300
 func modi(x, y int32) int32 {
 	if y == 0 {
 		return x //for dec
@@ -2353,7 +2358,7 @@ func modi(x, y int32) int32 {
 	x = x % y
 	return x + y*I32B(x < 0) //euclidean, y>0
 }
-func Div(x, y K) K { return nd(235, 5, x, y) } //267
+func Div(x, y K) K { return nd(52, 5, x, y) }
 func divi(x, y int32) int32 {
 	if y == 0 {
 		return x //dec
@@ -2361,7 +2366,7 @@ func divi(x, y int32) int32 {
 	return (x - (y-1)*I32B(x < 0)) / y //euclidean, y>0
 }
 
-func Min(x, y K) K { return nd(238, 6, x, y) } //278
+func Min(x, y K) K { return nd(53, 6, x, y) }
 func mini(x, y int32) int32 {
 	if x < y {
 		return x
@@ -2369,7 +2374,7 @@ func mini(x, y int32) int32 {
 	return y
 }
 
-func Max(x, y K) K { return nd(241, 7, x, y) } //289
+func Max(x, y K) K { return nd(54, 7, x, y) }
 func maxi(x, y int32) int32 {
 	if x > y {
 		return x
@@ -2572,7 +2577,7 @@ func nc(ff, q int32, x, y K) K { //compare
 	if av == 0 { // atom-atom
 		dxy(x, y)
 		// 11(derived), 12(proj), 13(lambda), 14(native)?
-		return Ki(I32B(q == Func[245+t].(f2i)(xp, yp)))
+		return Ki(I32B(q == Func[106+t].(f2i)(xp, yp)))
 	}
 	ix := sz(t + 16)
 	iy := ix
@@ -2597,7 +2602,7 @@ func nc(ff, q int32, x, y K) K { //compare
 	rp := int32(r)
 	e := ep(r)
 	for rp < e {
-		SetI32(rp, I32B(q == Func[250+t].(f2i)(xp, yp)))
+		SetI32(rp, I32B(q == Func[111+t].(f2i)(xp, yp)))
 		xp += ix
 		yp += iy
 		rp += 4
@@ -2762,7 +2767,7 @@ func mrge(x, r, a, b, c, p, t, f int32) {
 	s := sz(T(t))
 	for k := a; k < b; k += 4 {
 		if i < c && j < b {
-			q = I32B(f == Func[234+t].(f2i)(p+s*I32(x+i), p+s*I32(x+j)))
+			q = I32B(f == Func[95+t].(f2i)(p+s*I32(x+i), p+s*I32(x+j)))
 		} else {
 			q = 0
 		}
@@ -2784,7 +2789,7 @@ func cmL(xp, yp int32) int32 { // compare lists lexically
 	}
 	if xt < 16 { // 11(derived), 12(proj), 13(lambda), 14(native)?
 		xp, yp := int32(x), int32(y)
-		return Func[245+xt].(f2i)(xp, yp)
+		return Func[106+xt].(f2i)(xp, yp)
 	}
 	if xt > Lt {
 		xp, yp := int32(x), int32(y)
@@ -2801,7 +2806,7 @@ func cmL(xp, yp int32) int32 { // compare lists lexically
 	s := sz(xt)
 	e := xp + n*s
 	for xp < e {
-		r = Func[234+xt].(f2i)(xp, xp+yp)
+		r = Func[95+xt].(f2i)(xp, xp+yp)
 		if r != 0 {
 			return r
 		}
@@ -3038,7 +3043,7 @@ func tok(x K) K {
 		if pp == pe {
 			break
 		}
-		for i := int32(193); i < 200; i++ { // tchr, tnms, tvrb, tpct, tvar, tsym, trap
+		for i := int32(131); i < 138; i++ { // tchr, tnms, tvrb, tpct, tvar, tsym, trap
 			y := Func[i].(ftok)()
 			if y != 0 {
 				y |= K(int64(pp-int32(s)) << 32)
