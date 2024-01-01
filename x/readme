@@ -2,11 +2,12 @@ k's source as a k table (k.k)
 
 t:+`n`t`p`i`s!(!#T;T;P;I;S) /node type parent i-value s-value
 
-k k.k go.k -e 'x:`"k.go"<go``'       /generate k.go main
-k k.k go.k -e 'x:`"k.go"<go`lib`k'   /generate k.go lib
-k k.k wa.k -e         '`<wa``'       /generate wasm(text)
-k k.k cc.k -e 'x:`"k.c" <cc``'       /generate k.c main
-k k.k js.k -e 'x:`"k.js"<js``'       /generate k.js; $qjs --std k.js
+k k.k go.k -e 'x:`"k.go"<go``'     /generate k.go main
+k k.k go.k -e 'x:`"k.go"<go`lib`k' /generate k.go lib
+k k.k wa.k -e         '`<wa``'     /generate wasm(text)
+k k.k cc.k -e 'x:`"k.c" <cc``'     /generate k.c main
+k k.k js.k -e 'x:`"k.js"<js``'     /generate k.js; $qjs --std k.js
+k k.k pd.k -e 'x:`"k.out"<pd``'    /k.out, k.off, k.map (pdp11) use $wg -k /ktye.github.io/pdp11/t/ki.go >k.k
 
 a compiler backend implements a function per node type to transform the node into string form.
 e.g. go transforms the table to a string of go program source code:
