@@ -1,0 +1,11 @@
+set -e
+set -x
+
+#nathanotterness.com/2021/10/tiny_elf_modernized.html
+
+if [ "$1" = "readelf" ]; then
+	readelf -SW a
+	exit 0
+fi
+
+nasm -fbin -oa k.a && chmod +x a && wc -c a
