@@ -1,0 +1,67 @@
+/c.k the compiler.
+
+compile:{(c1'x),\"\n"}
+
+c1:{($x),":\n ;",($.x)," todo.."}
+
+O:`<
+O"[bits 64]
+
+a0: equ 4096 * 40   ;load address
+
+db 0x7f,'E','L','F' ;11
+db 2
+db 1
+db 1
+db 0
+dq 0
+dw 2
+dw 0x3e
+dd 1
+dq main + a0
+dq phead
+dq 0
+dd 0
+dw 64
+dw 0x38
+dw 1
+dw 0x40
+dw 0
+dw 0
+
+phead:
+dd 1
+dd 5
+dq 0
+dq a0
+dq a0
+dq end
+dq end
+dq 0x200000
+"
+
+O compile`main`Q`W
+O"end:\n"
+
+/rax rcx rdx rbx rsp rbp rsi rdi r8..r15
+
+/main:
+/ mov rax,97
+/ call w
+/
+/q:
+/ mov rax, 60
+/ xor rdi, rdi
+/ syscall
+/
+/w:
+/ push rax
+/ xor rax,rax
+/ inc rax
+/ mov edi,eax
+/ mov rsi,rsp
+/ mov edx,eax
+/ syscall
+/ pop rsi
+/ ret
+
