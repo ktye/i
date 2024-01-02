@@ -7,7 +7,7 @@ Rx:`rax`rdi`rsi`rdx`rcx`r8`r9`r11`rbp`r10`r11`r12`r13`r14`r15
 all:,`main
 compile:{(c1'x),\"\n"}
 
-c1:{t:print tf(.x)
+c1:{t: print lift print tf(.x)
  ($x),":\n ;",($.x)," todo.."}
 
 tr:{y[`p]:0|x+y`p} /translate parent vector
@@ -19,11 +19,13 @@ tf:{               /table from func
  b:split(*.x)      /body (instruction list)
  {x,tr[#x]y}/(,pt),te'b} /catenate subtables
 te:{               /table from expression
- mo:{(-1_x),,(t1(`$$y),1,`),tr[   #x;   *|x]}
- dy:{(-2_x),,(t1(`$$y),2,`),tr[-1+#x;,/-2#x]}
+ mo:{(-1_x),,(t1`op1,1,(`$$y)),tr[   #x;   *|x]}
+ dy:{(-2_x),,(t1`op2,2,(`$$y)),tr[-1+#x;,/-2#x]}
  no:{$[`i~t:@x;t1(`lit;x;`);`s~t;t1(`var;0;x);0+`noun]}
  f:{$[~`v~@y;x,,no y;64>c:0+y;mo[x;y];dy[x;y]]}
 *f/(,pt),x}
+
+lift:{x[`p]-:+/p>/(p:x`p)i:&(`var=1_(x`t),`)&`"."=x`s;x i_!#x} / . var -> var
 
 split:{1_'(&(`256)~/x)^x:(`256),x}
 
