@@ -1,46 +1,41 @@
 /c.k the compiler.
 
+print:{`<(`l@x),\"\n";x}
+
+/8(args/scratch/rax:return) 7(saved by callee)
+Rx:`rax`rdi`rsi`rdx`rcx`r8`r9`r11`rbp`r10`r11`r12`r13`r14`r15
+all:,`main
 compile:{(c1'x),\"\n"}
 
-c1:{($x),":\n ;",($.x)," todo.."}
+c1:{t:print tf(.x)
+ ($x),":\n ;",($.x)," todo.."}
 
-O:`<
-O"[bits 64]
+tr:{y[`p]:0|x+y`p} /translate parent vector
+pt:+`p`t`i`s!(!0;0#`;!0;0#`)
+t1:+`p`t`i`s!(,0N),,'
+tf:{               /table from func
+ n:`n \#x          /arity
+ v:`v \(.x)2       /vars args,locals
+ b:split(*.x)      /body (instruction list)
+ {x,tr[#x]y}/(,pt),te'b} /catenate subtables
+te:{               /table from expression
+ mo:{(-1_x),,(t1(`$$y),1,`),tr[   #x;   *|x]}
+ dy:{(-2_x),,(t1(`$$y),2,`),tr[-1+#x;,/-2#x]}
+ no:{$[`i~t:@x;t1(`lit;x;`);`s~t;t1(`var;0;x);0+`noun]}
+ f:{$[~`v~@y;x,,no y;64>c:0+y;mo[x;y];dy[x;y]]}
+*f/(,pt),x}
 
-a0: equ 4096 * 40   ;load address
+split:{1_'(&(`256)~/x)^x:(`256),x}
 
+O:`<       /nathanotterness.com/2021/10/tiny_elf_modernized.html
+O"[bits 64]\na0: equ 4096 * 40   ;load address
 db 0x7f,'E','L','F' ;11
-db 2
-db 1
-db 1
-db 0
-dq 0
-dw 2
-dw 0x3e
-dd 1
-dq main + a0
-dq phead
-dq 0
-dd 0
-dw 64
-dw 0x38
-dw 1
-dw 0x40
-dw 0
-dw 0
+db 2\ndb 1\ndb 1\ndb 0\ndq 0\ndw 2\ndw 0x3e\ndd 1
+dq main + a0\ndq phead\ndq 0\ndd 0\ndw 64\ndw 0x38
+dw 1\ndw 0x40\ndw 0\ndw 0\n\nphead:
+dd 1\ndd 5\ndq 0\ndq a0\ndq a0\ndq end\ndq end\ndq 0x200000\n\n"
 
-phead:
-dd 1
-dd 5
-dq 0
-dq a0
-dq a0
-dq end
-dq end
-dq 0x200000
-"
-
-O compile`main`Q`W
+O compile all
 O"end:\n"
 
 /rax rcx rdx rbx rsp rbp rsi rdi r8..r15

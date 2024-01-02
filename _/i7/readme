@@ -15,3 +15,23 @@ $ xxd a
 00000060: 7800 0000 0000 0000 7800 0000 0000 0000  x.......x.......
 00000070: 0000 2000 0000 0000                      .. .....
 $ █
+
+
+l6 language
+syntax is k, meaning is asm (x86/64)
+it defines functions, only ints 64bit.
+ f:{a:x+y;2*a}
+function has args, locals. no globals.
+all vars live in registers.
+push/pop only at function boundaries.
+register allocation is automatic.
+body is list of expressions.
+an expression is:
+ assign: a:x+y
+ memory: b[]:y b[i]:y  b[8+8*i]:y   base index displacement scale
+ cond:   $[c;a;b]
+ loop:   ..
+ branch: ..
+ label:  `a
+ asm:    "mov rax,rdi"  ?
+ call:   f g[x;y]
