@@ -30,14 +30,14 @@ typedef float e2;
 #define zo(f) _ia32_##f##512
 #define zm(f) _ia32_##f##512_mask
 
-Z _ia32_sqrtps512(e2 V6 x, int y){e2 V6 r;for(u i=0;i<16;i++)r[i]=__builtin_sqrtf(x[i]);return r;}
-Z _ia32_permvarqi512(Z x, Z y){Z r;for(u i=0;i<64;i++)r[i]=y[x[i]];return r;}
-Z _ia32_permvarsi512(Z x, Z y){i2 V6 a=x,b=y,r; for(u i=0;i<16;i++)r[i]=b[a[i]]; return r;}
-Z _ia32_vpermi2varps512(Z x, Z y, Z z){i2 V6 a=x,i=y,b=z,r;int m;for(int j=0;j<16;j++){m=i[j]&0x0f;r[j]=((0xf0&i[j]))?b[m]:a[m];};return r; }
-Z _ia32_vpermi2varqi512(Z x, Z y, Z z){Z r;int m;for(u i=0;i<64;i++){m=63&y[i];r[i]=(64&y[i])?z[m]:x[m];};return r;}
-Z _ia32_selectb_512(u k, Z a, Z w){Z r;for(u i=0;i<64;i++)r[i]=(1&(k>>i))?a[i]:w[i]; return r;}
-u _ia32_cvtb2mask512(Z x){u r=0;for(u i=0;i<64;i++)r|=(x[i]>>7)?(1<<i):0; return r;}
-Z _ia32_compressqi512_mask(Z a, Z s, u k){Z r=s;int m=0;for(u i=0;i<64;i++){if(1&k>>i){r[m++]=a[i];}};return r;}
+Z _ia32_sqrtps512(     e2 V6 x, u y     ){e2 V6 r;                 for(u i=0;i<16;i++)             r[i]=__builtin_sqrtf(x[i]);    return r;}
+Z _ia32_permvarqi512(      Z x, Z y     ){Z r;                     for(u i=0;i<64;i++)             r[i]=x[y[i]];                  return r;}
+Z _ia32_permvarsi512(      Z x, Z y     ){i2 V6 a=x,b=y,r;         for(u i=0;i<16;i++)             r[i]=b[a[i]];                  return r;}
+Z _ia32_vpermi2varps512(   Z x, Z y, Z z){i2 V6 a=x,i=y,b=z,r;i2 m;for(u j=0;j<16;j++){m=i[j]&0x0f;r[j]=((0xf0&i[j]))?b[m]:a[m];};return r;}
+Z _ia32_vpermi2varqi512(   Z x, Z y, Z z){Z r;i2 m;                for(u i=0;i<64;i++){m=63&y[i];  r[i]=(64&y[i])?z[m]:x[m];};    return r;}
+Z _ia32_selectb_512(       u k, Z a, Z w){Z r;                     for(u i=0;i<64;i++)             r[i]=(1&(k>>i))?a[i]:w[i];     return r;}
+u _ia32_cvtb2mask512(      Z x          ){u r=0;                   for(u i=0;i<64;i++)             r  |=(x[i]>>7)?(1l<<i):0;      return r;}
+Z _ia32_compressqi512_mask(Z a, Z s, u k){Z r=s;i2 m=0;            for(u i=0;i<64;i++){if(1&k>>i)r[m++]=a[i];                   };return r;}
 
 #endif
 
@@ -55,8 +55,14 @@ Z sqrtps(){
  e2 V6 x;for(u i=0;i<16;i++)x[i]=(e2)i;
  return zo(sqrtps)(x,4);}
 Z permvarqi(){
- Z x=iota(),y=iota();
- y[1]=4;y[2]=3;
+ //Z x=iota(),y=iota();
+ Z x={49,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17
+  ,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33
+  ,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,10,51
+  ,52,53,54,55,56,57,58,59,60,61,62,63};
+ Z y={255,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
+  ,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
+  ,40,41,42,43,44,45,46,47,8,49,50,51,52,53,54,55,56,57,58,59,60,61,62};
  return zo(permvarqi)(x,y);}
 Z permvarsi(){
  i2 V6 x=jota(),y=jota();
@@ -81,10 +87,11 @@ Z selectb_(){
  Z x=iota(),y=reva();
  return zo(selectb_)(k,x,y);}
 u cvtb2mask(){
- Z x=iota();
- x[2]|=128;
- x[4]|=64;
- return zo(cvtb2mask)(x);}
+ Z x={0,0,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,
+    0,0,255,0,0,0,0,0,0,255,0,0,255,0,0,0,0,255,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+ u r = (u)zo(cvtb2mask)(x);
+ return r;}
 Z compressqi(){
  u k=0xff0fff0000000000;
  Z x=iota(),y=reva();
