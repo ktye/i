@@ -1,6 +1,9 @@
 /*
 builtin         intrinsic _mm512_..
 -----------------------------------
+ldmxcsr         _mm_setcsr(x)
+pdep_di         _pdep_u64(x,y)
+pext_di         _pext_u64(x,y)
 sqrtps          sqrt_round_ps(x,y)
 permvarqi       permutexvar_epi8(y,x)
 permvarsi       permutexvar_epi32(y,x)
@@ -25,10 +28,16 @@ typedef float e2;
 #define zm(f) bu(ia32_##f##512_mask)
 
 #ifdef XXX
+#undef bo
 #undef zo
 #undef zm
+#define bo(f) _ia32_##f
 #define zo(f) _ia32_##f##512
 #define zm(f) _ia32_##f##512_mask
+
+void _ia32_ldmxcsr(i2 i){}
+u _ia32_pdep_di(u x, u y){u r=0; for(u i=1; y; i+=i){if(x&i)r|=y&-y;y&=y-1;};return r;}
+u _ia32_pext_di(u x, u y){u r=0,m=0;for(u i=0;i<64;i++){if(1&(y>>i))r|=(1l&(x>>i))<<m++;};return r;}
 
 Z _ia32_sqrtps512(     e2 V6 x, u y     ){e2 V6 r;                 for(u i=0;i<16;i++)             r[i]=__builtin_sqrtf(x[i]);    return r;}
 Z _ia32_permvarqi512(      Z x, Z y     ){Z r;                     for(u i=0;i<64;i++)             r[i]=x[y[i]];                  return r;}
@@ -43,6 +52,7 @@ Z _ia32_compressqi512_mask(Z a, Z s, u k){Z r=s;i2 m=0;            for(u i=0;i<6
 
 #include<stdio.h>
 
+void U(u x){printf("%ld\n",x);}
 void P(Z x){for(u i=0;i<64;i++)printf("%02x ",x[i]);printf("\n");}
 void Q(i2 V6 x){for(u i=0;i<16;i++)printf("%08x ",x[i]);printf("\n");}
 void F(e2 V6 x){for(u i=0;i<16;i++)printf("%6.3f ",x[i]);printf("\n");}
@@ -51,6 +61,12 @@ Z jota(){i2 V6 r;for(u i=0;i<16;i++)r[i]=i;return r;}
 Z reva(){Z r;for(u i=0;i<64;i++)r[i]=63-i;return r;}
 Z rewa(){i2 V6 r;for(u i=0;i<16;i++)r[i]=15-i;return r;}
 Z alta(){i2 V6 r;for(u i=0;i<16;i++)r[i]=(i%2)?0:-1;return r;}
+u pdep_di(){
+ u x=123456789234,y=2302402;
+ return bo(pdep_di)(x,y);}
+u pext_di(){
+ u x=123456789234,y=2302402;
+ return bo(pext_di)(x,y);}
 Z sqrtps(){
  e2 V6 x;for(u i=0;i<16;i++)x[i]=(e2)i;
  return zo(sqrtps)(x,4);}
@@ -99,13 +115,15 @@ Z compressqi(){
 }
 
 int main(){
+ U(pdep_di());
+ U(pext_di());
  F(sqrtps());
  P(permvarqi());
  P(permvarsi());
  Q(vpermi2varps());
  P(vpermi2varqi());
  P(selectb_());
- printf("%lu\n",cvtb2mask());
+ U(cvtb2mask());
  P(reva());
  P(compressqi());
 }
