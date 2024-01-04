@@ -1,0 +1,15 @@
+set -e
+set -x
+
+if [ "$1" = clean ]; then
+	rm a b out.a out.b
+	exit 0
+fi
+
+clang-13 -DXXX  -Wno-psabi main.c -o a -lm
+clang-13 main.c -mbmi2 -mavx512f -mavx512bw -mavx512vbmi -mavx512vbmi2 -o b
+
+./a > out.a
+~/avx512/sde-external-9.21.1-2023-04-24-lin/sde64 -spr -- ./b > out.b
+diff out.a out.b
+
