@@ -1,0 +1,6 @@
+if [ "$1" = dep ]; then
+ wget https://github.com/ktye/i/releases/download/latest/k.go -O- |\
+ awk '/^func main/{x=1}{if(!x)print}/^}/{x=0}'          >k_.go
+fi
+
+go build
