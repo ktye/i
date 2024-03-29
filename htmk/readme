@@ -1,0 +1,39 @@
+http server
+
+build
+$sh mk
+
+use
+$htmk a.k b.k
+
+k runs inside an http server.
+the server sends local files from the current directory
+and handles special requests from k.
+
+k programs are given on the command line.
+they can register http routes using 5 builtins:
+
+  get put post patch delete
+
+example
+get["/table/t";{x;"<tr>..</tr>"}]
+
+these builtins receive 2 arguments: an url pattern and a callback function.
+the k function receives the requests body as input x and returns chars.
+
+queries
+the url pattern may contain a query definition:
+
+  "/a/b/c?q=i&u=f&w=s"
+
+the queries of requests to /a/b/c are parsed and converted to k vars
+of the registered type: i f s c (int float symbol chars).
+for the callback function they are available as globals.
+
+all requests that do not match any registered pattern are handled as file
+server requests.
+
+extra builtins
+
+ png x  /convert list of ints to png bytes, e.g. png 800^(800*600)?256^3
+
