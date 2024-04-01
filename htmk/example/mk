@@ -1,0 +1,3 @@
+if [ "$1" = dep ]; then
+ wget "https://unpkg.com/htmx.org@1.9.11/dist/htmx.min.js"
+fi

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"bytes"
 	_ "embed"
 	"image"
@@ -40,6 +41,8 @@ func main() {
 	if P == "" {
 		P = ":3001"
 	}
+//	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { fmt.Println("request", r.Method, r.URL) })
+	fmt.Println("http://localhost"+P)
 	http.ListenAndServe(P, nil)
 }
 func Ky(s string) uint64 { return sc(KC([]byte(s))) }
@@ -73,7 +76,9 @@ func Native(x, y int64) int64 {
 	h := hparse(CK(x0(uint64(y))))
 	h.m = []string{"GET", "PUT", "POST", "DELETE", "PATCH"}[x]
 	h.f = r1(uint64(y))
-	http.Handle(h.m+" "+h.p, h)
+	fmt.Println("register", h.m+" "+h.p)
+	//http.Handle(h.m+" "+h.p, h)
+	http.Handle(h.p, h)
 	return 0
 }
 func hparse(s string) (h H) {
@@ -89,6 +94,7 @@ func hparse(s string) (h H) {
 	return h
 }
 func (h H) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("serve html", h.m, h.p, h.f)
 	mu.Lock()
 	q := r.URL.Query()
 	for k, t := range h.q {
