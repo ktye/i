@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>htmk</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script src="/htmx.min.js"></script>
+
+<div id="T" class="large"><div id="but" style='display:flex;gap:0.5em' hx-get="/buttons" hx-trigger="load" hx-swap="afterbegin"></div></div>
+<div style="flex-grow:1;display:grid;grid-template-columns:auto 1fr">
+ <div id="L">
+  <select id="list" multiple hx-get="/table" hx-trigger="load"></select>
+  <!--div id="dict" style="display:none"></div-->
+ </div>
+ <div id="R">
+  <pre id="E"></pre>
+  <pre id="O"></pre>
+  <div id="P">
+ </div>
+</div>
+<div id="F">
+ <div id="foot" hx-get="/tablenames" hx-trigger="load" hx-swap="afterbegin" style="display:flex;gap:0.5em;flex-grow:1" class="large head"><span class="link">+</span><input id="sel" class="large head"/></div>
+ <div style="display:flex;flex-grow:1"><input id="B"/>
+  <span id="bac" class="large link" style="display:none;padding-top:2px;background:black;color:white">◀</span>
+  <span id="fwd" class="large link" style="display:none;padding-top:2px;background:black;color:white;padding-left:0.2em;padding-right:0.2em">▶</span>
+ </div>
+</div>
+<a id="dl" style="display:none"></a>
+
+
+
+<div hx-get="/blog" hx-swap="outerHTML">divers</div>
+</body></html>

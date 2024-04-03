@@ -1,49 +1,52 @@
 package main
 
 import (
-	"fmt"
 	"bytes"
 	_ "embed"
+	"fmt"
+	"html"
 	"image"
 	"image/png"
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 )
 
-// get put post patch delete
-// get["/table/t?row=i&col=i"]{x..}
+//      GET PUT POST DELETE PATCH
+// url["GET /table/t?row=i&col=i"]{x..}
 
 var mu sync.Mutex
 
 func main() {
 	kinit()
 	r := func(s string, i uint64, a int32) {
-		x := Asn(Ky(s), ti(14, int32(l2(i, KC([]byte(s))))))
-		SetI32(int32(x)-12, a)
+		SetI32(int32(Asn(Ky(s), ti(14, int32(l2(i, KC([]byte(s)))))))-12, a)
 	}
-	r("get", 0, 2)
-	r("put", 1, 2)
-	r("post", 2, 2)
-	r("delete", 3, 2)
-	r("patch", 4, 2)
-	r("png", 5, 1)
-	for _, f := range os.Args[1:] {
-		b, e := os.ReadFile(f)
-		fatal(e)
-		dx(Val(KC(b)))
+	r("url", 0, 2)
+	r("png", 1, 1)
+	r("html", 2, 1)
+
+	all, e := os.ReadDir("./")
+	fatal(e)
+	for _, f := range all {
+		if strings.HasSuffix(f.Name(), ".k") {
+			b, e := os.ReadFile(f.Name())
+			fatal(e)
+			dx(Val(KC(b)))
+		}
 	}
+
 	http.Handle("/", http.FileServer(http.Dir(".")))
-	P := os.Getenv("P")
-	if P == "" {
-		P = ":3001"
+	P := ":2024"
+	if len(os.Args) > 1 {
+		P = os.Args[1]
 	}
-//	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { fmt.Println("request", r.Method, r.URL) })
-	fmt.Println("http://localhost"+P)
-	http.ListenAndServe(P, nil)
+	fmt.Println("http://localhost" + P)
+	fatal(http.ListenAndServe(P, nil))
 }
 func Ky(s string) uint64 { return sc(KC([]byte(s))) }
 func KC(b []byte) uint64 { r := mk(Ct, int32(len(b))); copy(Bytes[int32(r):], b); return r }
@@ -64,20 +67,20 @@ func fatal(e error) {
 }
 
 type H struct {
-	m, p string
-	q    map[string]int32
-	f    uint64
+	p string
+	q map[string]int32
+	f uint64
 }
 
 func Native(x, y int64) int64 {
-	if x == 5 {
-		return int64(pngx(Fst(uint64(x))))
+	if x == 1 {
+		return int64(pngx(Fst(uint64(y))))
+	} else if x == 2 {
+		return int64(htm(Fst(uint64(y))))
 	}
 	h := hparse(CK(x0(uint64(y))))
-	h.m = []string{"GET", "PUT", "POST", "DELETE", "PATCH"}[x]
 	h.f = r1(uint64(y))
-	fmt.Println("register", h.m+" "+h.p)
-	//http.Handle(h.m+" "+h.p, h)
+	fmt.Println("register", h.p)
 	http.Handle(h.p, h)
 	return 0
 }
@@ -94,14 +97,14 @@ func hparse(s string) (h H) {
 	return h
 }
 func (h H) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("serve html", h.m, h.p, h.f)
+	fmt.Println("serve html", h.p, h.f)
 	mu.Lock()
 	q := r.URL.Query()
 	for k, t := range h.q {
 		dx(Asn(Ky(k), Kts(t, q.Get(k))))
 	}
 	b, _ := io.ReadAll(r.Body)
-	x := lambda(h.f, KC(b))
+	x := lambda(h.f, Enl(KC(b)))
 	if tp(x) != Ct {
 		x = Kst(x)
 	}
@@ -122,6 +125,12 @@ func Kts(t int32, s string) (r uint64) {
 		r = KC([]byte(s))
 	}
 	return r
+}
+
+var spaces = regexp.MustCompile("  ")
+
+func htm(x uint64) uint64 {
+	return KC([]byte(spaces.ReplaceAllString(html.EscapeString(string(CK(x))), "&nbsp;&nbsp;")))
 }
 func pngx(x uint64) uint64 {
 	n := 4 * int(nn(x))
