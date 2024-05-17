@@ -165,8 +165,8 @@ func main() {
 
 const head = `<!KDOCTYPE html>
 <head><meta charset="utf-8">
-<link rel="icon" type="image/png" sizes="32x32" href="db/kelas32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="db/kelas16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="kelas32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="kelas16.png">
 <title>kdoc</title>
 <style>
 *{font-family:monospace;margin:0}

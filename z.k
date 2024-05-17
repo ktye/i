@@ -1,13 +1,11 @@
-/        64     72    80    88     96     104    112    120    128    
-`k`l`a`b`while`"rf."`"rz."`"uqs."`"uqf."`"gdt."`"lin."`"grp."`"enc."
+/        64     72    80    88     96     104
+`k`l`a`b`while`"rf."`"rz."`"gdt."`"grp."`"enc."
 
 `x:,/+"0123456789abcdef"@16 16\256!            /`x@ hex
 `t:`39         /`t@ token
 `p:`46         /`p@ parse
 
 `enc:{$[#y;+(&'(|/c)-c:#'r),'r:{x\y}/[x;y];(#x)#,!0]}  /x\Y
-`uqs:{x@&1,1_~x~'x@-1+!#x:^x}                  /?^x
-`uqf:{x@&(!#x)=x?x}                            /?xL
 `gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}  /<t >t  grade table
 
 `grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}      /=x

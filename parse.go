@@ -395,8 +395,6 @@ func idiom(x K) K {
 	i := svrb(l) + svrb(l+8)<<6
 	if i == 262 || i == 263 { // *& 6 4 -> 40
 		i = 34 // 6->40(Fwh) 7->41(Las)
-	} else if i == 1166 { // ?^ 14 18
-		i = 23 // 14->37(Uqs)
 	} else {
 		return x
 	}

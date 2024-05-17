@@ -130,28 +130,11 @@ func Unq(x K) K { // ?x
 			x = r1(x)
 			return key(r, Flp(Unq(Flp(x))), xt)
 		}
-		return kx(96, x) // .uqf
 	}
-	xn := nn(x)
-	r = mk(xt, 0)
-	for i := int32(0); i < xn; i++ {
-		xi := ati(rx(x), i)
-		if int32(In(rx(xi), rx(r))) == 0 {
-			r = cat1(r, xi)
-		} else {
-			dx(xi)
-		}
-	}
-	dx(x)
-	return r
+	rx(rx(x))
+	return atv(x, Wer(Eql(seq(nn(x)), Fnd(x, x)))) // x@&(!#x)==x?x
 }
-func Uqs(x K) K { // ?^x
-	if tp(x) < 16 {
-		trap() //type
-	}
-	return kx(88, x) // .uqs
-}
-func Grp(x K) K    { return kx(120, x) }    // =x grp.
+func Grp(x K) K    { return kx(96, x) }     // =x grp.
 func Key(x, y K) K { return key(x, y, Dt) } // x!y
 func key(x, y K, t T) K { // Dt or Tt
 	xt := tp(x)
@@ -651,7 +634,7 @@ func val(x K) K {
 func Enc(x, y K) K {
 	yt := tp(y)
 	if yt == It {
-		return cal(lup(Ks(128)), l2(x, y))
+		return cal(lup(Ks(104)), l2(x, y))
 	}
 	if yt != it {
 		trap()
