@@ -90,7 +90,8 @@ func t() K { // Lt
 	if r == 0 {
 		return 0
 	}
-	if tp(r) == 0 && int32(r) < 127 {
+	rt := tp(r)
+	if rt == 0 && int32(r) < 127 {
 		if is(int32(r), 32) != 0 {
 			pp -= 8
 			return 0
@@ -107,10 +108,9 @@ func t() K { // Lt
 			trap() //parse
 		}
 		return r
-	} else if tp(r) == st {
+	} else if rt == st {
 		r = l2(r, 20|(K(ps)<<32)) // .`x (lookup)
 	} else {
-		rt := tp(r)
 		if rt == 0 {
 			r, verb = quote(r)|K(ps)<<32, 1
 		} else if rt == St {
@@ -145,6 +145,12 @@ f:
 				r = cat1(Cat(rlist(n, 2), r), p|ks)
 			}
 		} else {
+			if tp(n) == 4 && rt < 6 {
+				if is(I8(I32(16)+ps-2), 4) != 0 {
+					r = cat1(l3(n, 20, Fst(r)), 68|ks)
+					continue f
+				}
+			}
 			pp -= 8
 			break f // within else-if
 		}
