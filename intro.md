@@ -1,4 +1,4 @@
-a brief introduction about the pecularities of ktye/k  ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[fft](#fft);[stats](#statistics))
+a brief introduction about the pecularities of ktye/k  ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[fft](#fft);[stats](#statistics);[trans](#transpose))
 
 # get/compile
 get any version from here:
@@ -129,7 +129,10 @@ r:fft[f;`z@?2*n]
 see [details](https://github.com/ktye/i/tree/master/%2B/mat/fft)
 
 ## interpolation
+```
 lin:{$[`L~@z;lin[x;y]'z;[dx:0.+1_`d x;dy:0.+1_`d y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
+lin[0 4.;3 4.;0.+!5] /3. 3.25 3.5 3.75 4.
+```
 
 ## statistics
 ```
@@ -137,5 +140,12 @@ avg:{(+/x)%0.+#x}
 var:{(+/x*x:(x-avg x))%-1+#x}
 std:{%var x}
 med: **|2^^
+```
+
+## transpose (permute axes)
+```
+trans:{z@<(y x)/(!y)x} /y:input shape, output shape:y x, apl uses <x
+trans[1 2 0;4 3 2;!24] /0 6 12 18 1 7 13 19 2 8 14 20 3 9 15 21 4 10 16 22 5 11 17 23
+                       /in this case same as: ,/+^[*y;z]
 ```
 
