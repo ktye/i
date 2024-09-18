@@ -118,10 +118,10 @@ x-lusolve[lu A;b]
 
 ## singular value decomposition
 
-svd computes `A=USV'` using one-sided jacobi-hestenes iteration.
+svd computes `A=USV'` using one-sided jacobi iterations.
 both U and V are unitary and S contains the singular values on the diagonal.
 ```
-svd:{[A];n:#A
+svd:{[A];n:#A       /jacobi-hestenes  A:list of columns  real or complex
  d:{+/(conj x)*y}
  J:{(c;s:(z%a)*t*c:1%%1+t*t:((q>0)-q<0)%(abs q)+%1+q*q:(_0a+d[y;y]-d[x;x])%2*a:abs z)}
  R:{[c;s;x;y]((x*c)-y*conj s;(x*s)+y*c)}
@@ -138,7 +138,7 @@ P diagonolizes two columns of A using jacobi rotations computed by J and applied
 I contains all pairs of columns which are diagnolized in order.
 since old columns may be modified by calls to P,
 the procedure over all pairs must be repeated until convergence,
-done by the fixed point iteration `F/A'.
+done by the fixed point iteration F/A.
 
 if A is thin (more rows than columns), the svd can be done using R from the the qr decomposition of A.
 V and the singular values are the same, but U must be premultiplied with Q.
