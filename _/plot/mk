@@ -1,0 +1,2 @@
+(cat h;ls ../../*.go|grep -v main.go|grep -v _t|xargs cat|grep -v '^package'|awk '/import \(/{getline;getline;getline}/import ./{getline}{print}')>k_.go
+go build

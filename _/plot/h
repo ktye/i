@@ -1,0 +1,229 @@
+package main
+
+import (
+	"os"
+	"encoding/binary"
+	"math"
+	"strconv"
+	. "github.com/ktye/wg/module"
+	"github.com/mattn/go-sixel"
+	"github.com/ktye/plot"
+)
+
+func main() { // _start
+	Native = plotfunc
+	kinit()
+	p := ti(xf, int32(l2(Ki(0), Ku(1953459312))));SetI32(int32(p) - 12, 1)
+	dx(Asn(sc(Ku(1953459312)), p))
+	doargs()
+	//write(Ku(2932601077199979)) // "ktye/k\n"
+	os.Stdout.Write([]byte("\x1b[1;7;31mk\x1b[0;m\n"))
+	store()
+	interactive = true
+	for {
+		write(Ku(32))
+		x := readfile(mk(Ct, 0))
+		try(x)
+	}
+}
+
+var interactive bool = false
+var plotid int = 0
+var plts plot.Plots
+
+/*
+	plot -1                   /reset
+	plot 0                    / i:select current plot
+	plot`polar                / s: s in `xy`bar`polar`ampang`square
+	plot`xlabel`ylabel`title  /#S 1..3
+	plot(x;y0;y1;..)          /[x:i|f] y:i|f|z  multiple lines
+	plot axis                 /x:I|F #x 1...4 y1|x0,x1|x0,x1,0,y1|x0,x1,y0,y1
+ */
+
+func plotfunc(x, y64 int64) int64 {
+ 	for plotid >= len(plts) {
+		plts = append(plts, plot.Plot{})
+	}
+	y := K(y64)
+ 	y = Fst(y)
+	yt := tp(y)
+	switch yt {
+	case it:
+		i := int(int32(y))
+		if i < 0 {
+			plts, i = nil, 0
+		} else if i > 10 {
+			trap()
+		}
+		plotid = i
+		return int64(y)
+	case st:
+		plts[plotid].Type = plot.PlotType(sK(y))
+	case St:
+		yn := nn(y)
+		if yn < 1 || yn > 3 {
+			trap()
+		}
+		if yn == 1 {
+			plts[plotid].Title = sK(Fst(y))
+		} else if yn == 2 {
+			plts[plotid].Xlabel = sK(ati(rx(y), 0))
+			plts[plotid].Ylabel = sK(ati(y, 1))
+		} else if yn == 3 {
+			plts[plotid].Xlabel = sK(ati(rx(y), 0))
+			plts[plotid].Ylabel = sK(ati(rx(y), 1))
+			plts[plotid].Title = sK(ati(rx(y), 2))
+		}
+	case It:
+		y = uptype(y, ft)
+		fallthrough
+	case Ft:
+		f := FK(y)
+		yn := len(f)
+		if yn == 1 {
+			plts[plotid].Ymax = f[0]
+		} else if yn == 2 {
+			plts[plotid].Xmin = f[0]
+			plts[plotid].Xmax = f[1]
+		} else if yn == 3 {
+			plts[plotid].Xmin = f[0]
+			plts[plotid].Xmax = f[1]
+			plts[plotid].Ymax = f[2]
+		} else if yn == 4 {
+			plts[plotid].Xmin = f[0]
+			plts[plotid].Xmax = f[1]
+			plts[plotid].Ymin = f[2]
+			plts[plotid].Ymax = f[3]
+		} else {
+			trap()
+		}
+	case Lt:
+		yn := nn(y)
+		var x  []float64
+		for i := int32(0); i<yn; i++ {
+			yi := ati(rx(y), i)
+			ti := tp(yi)
+			if ti == It {
+				yi, ti = uptype(yi, ft), Ft
+			}
+			if ti == Ft {
+				if i == 0 {
+					x = FK(yi)
+				} else {
+					plts[plotid].Lines = append(plts[plotid].Lines, plot.Line{X:x,Y:FK(yi)})
+				}
+			} else if ti == Zt {
+				plts[plotid].Lines = append(plts[plotid].Lines, plot.Line{X:x,C:ZK(yi)})
+			} else {
+				trap()
+			}
+		}
+		dx(y)
+	default:
+		trap()
+	}
+	if interactive {
+		cols, _ := strconv.Atoi(os.Getenv("COLUMNS"))
+		rows, _ := strconv.Atoi(os.Getenv("LINES"))
+		//println("rows/cols", rows, cols)
+		if cols == 0 {
+			cols = 70
+		}
+		if rows == 0 {
+			rows = 20
+		}
+		w, h := 8*(cols-1), 16*(rows-2)
+		
+		p, e := plts.IPlots(w, h, 1)
+		if e == nil {
+			m := plot.Image(p, nil, w, h, 1)
+			sixel.NewEncoder(os.Stderr).Encode(m)
+		}
+	}
+	return int64(Ki(int32(plotid)))
+}
+
+func sK(x K) string { return string(CK(cs(x))) }
+func CK(x K) []byte { return Bytes[int32(x):int32(x)+nn(x)] }
+func FK(x K) []float64 {
+	n := int(nn(x))
+	r := make([]float64, n)
+	for i := 0; i<n; i++ {
+		r[i] = float(int32(x) + 8*int32(i))
+	}
+	dx(x)
+	return r
+}
+func ZK(x K) []complex128 {
+	n := int(nn(x))
+	r := make([]complex128, n)
+	for i := 0; i<n; i++ {
+		r[i] = complex(float(int32(x) + 16*int32(i)),float(int32(x) + 16*int32(i) + 8))
+	}
+	dx(x)
+	return r
+}
+func float(x int32) float64 { return math.Float64frombits(binary.LittleEndian.Uint64(Bytes[x:x+8])) }
+
+func store() {
+	g := (1 << (I32(128) - 16)) - Memorysize2()
+	if g > 0 {
+		Memorygrow2(g)
+	}
+	Memorycopy2(0, 0, int32(1)<<I32(128))
+}
+func catch() {
+	Memorycopy3(0, 0, int32(65536)*Memorysize2())
+}
+func try(x K) {
+	defer Catch(catch)
+	repl(x)
+	store()
+}
+
+func doargs() {
+	a := ndrop(1, getargv())
+	an := nn(a)
+	ee := Ku(25901) // -e
+	for i := int32(0); i < an; i++ {
+		x := x0(a)
+		if match(x, ee) != 0 { // -e (exit)
+			if i < an-1 {
+				dx(x)
+				x = x1(a)
+				dx(ee)
+				repl(x)
+			}
+			Exit(0)
+		}
+		dofile(x, readfile(rx(x)))
+		a += 8
+	}
+	dx(ee)
+}
+func dofile(x K, c K) {
+	kk := Ku(27438) // .k
+	tt := Ku(29742) // .t
+	xe := ntake(-2, rx(x))
+	if match(xe, kk) != 0 { // file.k (execute)
+		dx(val(c))
+	} else if match(xe, tt) != 0 { // file.t (test)
+		test(c)
+	} else { // file (assign file:bytes..)
+		dx(Asn(sc(rx(x)), c))
+	}
+	dxy(xe, x)
+	dxy(tt, kk)
+}
+func getargv() K {
+	n := Args()
+	r := mk(Lt, n)
+	rp := int32(r)
+	for i := int32(0); i < n; i++ {
+		s := mk(Ct, Arg(i, 0))
+		Arg(i, int32(s))
+		SetI64(rp, int64(s))
+		rp += 8
+	}
+	return r
+}
