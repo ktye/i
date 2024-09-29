@@ -47,5 +47,5 @@ $cc -c $DEF k.c
 
 
 ## link to k+
-$cc -o k+ k.o $MAT $DRW $RAY $SQL $LSQL  $LMAT $LDRW $LRAY
+$cc -o k+ k.o $MAT $DRW $RAY $SQL $LSQL  $LMAT $LDRW $LRAY -lm
 

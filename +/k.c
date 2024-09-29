@@ -46,7 +46,7 @@ int main(int args, char **argv){
  ktye_store();
  while(1){
   printf(" ");fflush(stdout);
-  K x = ktye_read( );
+  K x = ktye_readfile(ktye_mk(Ct,0));
   ktye_try(x);
  }
  return 0;
