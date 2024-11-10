@@ -177,6 +177,11 @@ r:fft[f;`z@?2*n]
 ```
 see [details](https://github.com/ktye/i/tree/master/%2B/mat/fft)
 
+or recursive (odd/even):
+```
+fft:{$[-1+n:#x;(x+r),(x:fft x o)-r:(1@(!n)*-180.%n)*fft[x 1+o:2*!n%:2];x]}
+```
+
 ## interpolation
 ```
 lin:{$[`L~@z;lin[x;y]'z;[dx:0.+1_`d x;dy:0.+1_`d y;b:(-2+#x)&0|x'z;(y b)+(dy b)*(z-x b)%dx b]]}
