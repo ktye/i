@@ -4,16 +4,36 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
+type fii = func(int32, int32)
 type f1i = func(int32) int32
 type f1f = func(float64) float64
 type f1z = func(float64, float64) K
 type f2i = func(int32, int32) int32
 type fi3 = func(int32, int32, int32)
+type fi4 = func(int32, int32, int32, int32)
+
+func ev(ep int32) int32 { return (15 + ep) & -16 }
+
+func patch0() { }
+func seqI(i, e int32) { }
+func negI(i, e int32) { }
+func negF(i, e int32) { }
+func absI(i, e int32) { }
+func absF(i, e int32) { }
+func sqrF(i, e int32) { }
+func ltC(x, y, r, e int32) {}
+func eqC(x, y, r, e int32) {}
+func gtC(x, y, r, e int32) {}
+func ltI(x, y, r, e int32) {}
+func eqI(x, y, r, e int32) {}
+func gtI(x, y, r, e int32) {}
+func patch1() { }
 
 func Neg(x K) K              { return nm(220, x) } //220
 func negi(x int32) int32     { return -x }
 func negf(x float64) float64 { return -x }
 func negz(x, y float64) K    { return Kz(-x, -y) }
+
 
 func Abs(x K) K {
 	xt := tp(x)
@@ -436,19 +456,11 @@ func nm(f int32, x K) K { //monadic
 			continue
 		}
 	case 1:
-		for xp < e {
-			SetI32(xp, Func[f].(f1i)(I32(xp)))
-			xp += 4
-			continue
-		}
+		Func[f+61].(fii)(xp, ev(e))
 	case 2:
 		trap() //type
 	default: //F/Z (only called for neg)
-		for xp < e {
-			SetF64(xp, Func[1+f].(f1f)(F64(xp)))
-			xp += 8
-			continue
-		}
+		Func[f+61].(fii)(xp, ev(e))
 	}
 	return x
 }
@@ -590,12 +602,17 @@ func nc(ff, q int32, x, y K) K { //compare
 	}
 	rp := int32(r)
 	e := ep(r)
-	for rp < e {
-		SetI32(rp, I32B(q == Func[250+t].(f2i)(xp, yp)))
-		xp += ix
-		yp += iy
-		rp += 4
-		continue
+	
+	if t < 6 { //cisf
+		Func[T(q)+288+3*(t-2)].(fi4)(xp, yp, rp, ev(e))
+	} else {
+		for rp < e {
+			SetI32(rp, I32B(q == Func[250+t].(f2i)(xp, yp)))
+			xp += ix
+			yp += iy
+			rp += 4
+			continue
+		}
 	}
 	dxy(x, y)
 	return r

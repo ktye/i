@@ -1,0 +1,14 @@
+set -e
+set -x
+wg . > _.wat
+
+awk '/patch0/{exit 0}{print}' _.wat                              > k.wat
+cat v.wat                                                       >> k.wat
+awk 'BEGIN{x=0}/patch1/{x=1;getline;getline}{if(x)print}' _.wat >> k.wat
+
+/c/local/wabt/wat2wasm.exe k.wat -o v.wasm
+cp v.wasm /c/k/ktye.github.io/v.wasm
+
+rm _.wat
+rm k.wat
+rm v.wasm
