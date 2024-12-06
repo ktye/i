@@ -14,7 +14,7 @@ type fi4 = func(int32, int32, int32, int32)
 
 func ev(ep int32) int32 { return (15 + ep) & -16 }
 
-func patch0() { }
+func patch0() { } //these functions are replaced by v.wat
 func seqI(i, e int32) { }
 func negI(i, e int32) { }
 func negF(i, e int32) { }
@@ -27,7 +27,26 @@ func gtC(x, y, r, e int32) {}
 func ltI(x, y, r, e int32) {}
 func eqI(x, y, r, e int32) {}
 func gtI(x, y, r, e int32) {}
+func ltcC(x, y, r, e int32) {}
+func eqcC(x, y, r, e int32) {}
+func gtcC(x, y, r, e int32) {}
+func ltiI(x, y, r, e int32) {}
+func eqiI(x, y, r, e int32) {}
+func gtiI(x, y, r, e int32) {}
+func addI(x, y, r, e int32) {}
+func addiI(x, y, r, e int32) {}
+func subI(x, y, r, e int32) {}
+func subiI(x, y, r, e int32) {}
+func mulI(x, y, r, e int32) {}
+func muliI(x, y, r, e int32) {}
+func minI(x, y, r, e int32) {}
+func miniI(x, y, r, e int32) {}
+func maxI(x, y, r, e int32) {}
+func maxiI(x, y, r, e int32) {}
 func patch1() { }
+
+//todo: mtC inC inI
+//todo: scale f64: add sub mul div min max  floor convert?
 
 func Neg(x K) K              { return nm(220, x) } //220
 func negi(x int32) int32     { return -x }
@@ -145,11 +164,11 @@ func Cnj(x K) K { // conj x
 	return x
 }
 
-func Add(x, y K) K          { return nd(226, 2, x, y) } //234
+func Add(x, y K) K          { return nd(226, 2, x, y) }
 func addi(x, y int32) int32 { return x + y }
 func addf(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)) }
 func addz(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)); SetF64(rp+8, F64(xp+8)+F64(yp+8)) }
-func Sub(x, y K) K          { return nd(229, 3, x, y) } //245
+func Sub(x, y K) K          { return nd(238, 3, x, y) }
 func subi(x, y int32) int32 { return x - y }
 func subf(xp, yp, rp int32) { SetF64(rp, F64(xp)-F64(yp)) }
 func subz(xp, yp, rp int32) { SetF64(rp, F64(xp)-F64(yp)); SetF64(rp+8, F64(xp+8)-F64(yp+8)) }
@@ -173,7 +192,7 @@ func modi(x, y int32) int32 {
 	return x + y*I32B(x < 0) //euclidean, y>0
 }
 
-func Div(x, y K) K { return nd(235, 5, x, y) }
+func Div(x, y K) K { return nd(241, 5, x, y) }
 func divi(x, y int32) int32 {
 	if y == 0 {
 		return x //dec
@@ -200,7 +219,7 @@ func divz(xp, yp, rp int32) {
 	SetF64(rp+8, f)
 }
 
-func Min(x, y K) K { return nd(238, 6, x, y) } //278
+func Min(x, y K) K { return nd(229, 6, x, y) }
 func mini(x, y int32) int32 {
 	if x < y {
 		return x
@@ -216,7 +235,7 @@ func minz(xp, yp, rp int32) {
 	SetI64(rp+8, I64(xp+8))
 }
 
-func Max(x, y K) K { return nd(241, 7, x, y) } //289
+func Max(x, y K) K { return nd(235, 7, x, y) } //289
 func maxi(x, y int32) int32 {
 	if x > y {
 		return x
@@ -510,7 +529,13 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		n = nn(x)
 		y = Enl(y)
 		yp = int32(y)
-		iy = 0
+		if f < 238 { // +*&|
+			xp = yp
+			yp = int32(x)
+			ix = 0
+		} else {
+			iy = 0
+		}
 		r = use1(x)
 	} else {
 		n = nn(x)
@@ -538,12 +563,24 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			continue
 		}
 	case 1: // it
-		for rp < e {
-			SetI32(rp, Func[f].(f2i)(I32(xp), I32(yp)))
-			xp += ix
-			yp += iy
-			rp += 4
-			continue
+		if f < 241 {
+			if av == 2 && ff == 3 { // v-a
+				SetI32(yp, -I32(yp))
+				addiI(yp, xp, rp, ev(e))
+			} else {
+				if av != 3 {
+					ff += 100
+				}
+				Func[304+ff].(fi4)(xp, yp, rp, ev(e))
+			}
+		} else {
+			for rp < e {
+				SetI32(rp, Func[f].(f2i)(I32(xp), I32(yp)))
+				xp += ix
+				yp += iy
+				rp += 4
+				continue
+			}
 		}
 	case 2: // st
 		trap() //type
@@ -589,9 +626,13 @@ func nc(ff, q int32, x, y K) K { //compare
 		n = nn(y)
 	} else if av == 2 { //va
 		n = nn(x)
-		y = Enl(y)
+		r = Enl(y)
+		y = x
 		yp = int32(y)
-		iy = 0
+		x = r
+		xp = int32(x)
+		q = -q
+		ix = 0
 	} else {
 		n = nn(x)
 	}
@@ -602,9 +643,11 @@ func nc(ff, q int32, x, y K) K { //compare
 	}
 	rp := int32(r)
 	e := ep(r)
-	
-	if t < 6 { //cisf
-		Func[T(q)+288+3*(t-2)].(fi4)(xp, yp, rp, ev(e))
+	if t < 5 { //cisf
+		if av < 3 {
+			q += 9
+		}
+		Func[T(q)+282+3*t].(fi4)(xp, yp, rp, ev(e))
 	} else {
 		for rp < e {
 			SetI32(rp, I32B(q == Func[250+t].(f2i)(xp, yp)))

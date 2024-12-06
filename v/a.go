@@ -19,12 +19,14 @@ func init() {
 
 	Functions(220, negi, negf, negz)
 	Functions(223, absi, absf, nyi)
+	
 	Functions(226, addi, addf, addz)
-	Functions(229, subi, subf, subz)
-	Functions(232, muli, mulf, mulz)
-	Functions(235, divi, divf, divz)
-	Functions(238, mini, minf, minz)
-	Functions(241, maxi, maxf, maxz)
+	Functions(229, mini, minf, minz)  //swap sub<->min div<->max
+	Functions(232, muli, mulf, mulz)  
+	Functions(235, maxi, maxf, maxz)
+	Functions(238, subi, subf, subz) 
+	Functions(241, divi, divf, divz) 
+	
 	Functions(244, modi, sqrf, nyi)
 
 	Functions(247, cmi, cmi, cmi, cmF, cmZ, cmC, cmI, cmI, cmF, cmZ, cmL)
@@ -35,10 +37,13 @@ func init() {
 	
 	Functions(281, negI, negF, negF)
 	Functions(284, absI, absF, nyi)
-	Functions(287, ltC, eqC, gtC, ltI, eqI, gtI, ltI, eqI, gtI) //, ltF, eqF, gtF)
+	Functions(287, ltC, eqC, gtC, ltI, eqI, gtI, ltI, eqI, gtI)
+	Functions(296, ltcC, eqcC, gtcC, ltiI, eqiI, gtiI, ltiI, eqiI, gtiI)
 	
 	Functions(305, sqrF)
-	//Functions(306, ltcC, eqcC, gtcC, ltiI, eqiI, gtiI, ltiI, eqiI, gtiI, ltfF, eqfF, gtiF)
+	Functions(306, addI, subI, mulI, nyi, minI, maxI)
+	Functions(406, addiI, subiI, muliI, nyi, miniI, maxiI)
+
 }
 
 func trap() {

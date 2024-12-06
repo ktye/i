@@ -12,3 +12,4 @@ cp v.wasm /c/k/ktye.github.io/v.wasm
 rm _.wat
 rm k.wat
 rm v.wasm
+
