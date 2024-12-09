@@ -1,0 +1,4 @@
+set -x
+set -e
+x=-Wfatal-errors
+cc $x k.c -lm
