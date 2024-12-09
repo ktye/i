@@ -43,10 +43,12 @@ func minI(x, y, r, e int32) {}
 func miniI(x, y, r, e int32) {}
 func maxI(x, y, r, e int32) {}
 func maxiI(x, y, r, e int32) {}
+func addz(xp, yp, rp int32) {}
+func fscale(x, r, e int32) {}
 func patch1() { }
 
 //todo: mtC inC inI
-//todo: scale f64: add sub mul div min max  floor convert?
+//todo: f64: add sub mul div min max  floor convert?
 
 func Neg(x K) K              { return nm(220, x) } //220
 func negi(x int32) int32     { return -x }
@@ -167,7 +169,7 @@ func Cnj(x K) K { // conj x
 func Add(x, y K) K          { return nd(226, 2, x, y) }
 func addi(x, y int32) int32 { return x + y }
 func addf(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)) }
-func addz(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)); SetF64(rp+8, F64(xp+8)+F64(yp+8)) }
+//func addz(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)); SetF64(rp+8, F64(xp+8)+F64(yp+8)) }
 func Sub(x, y K) K          { return nd(238, 3, x, y) }
 func subi(x, y int32) int32 { return x - y }
 func subf(xp, yp, rp int32) { SetF64(rp, F64(xp)-F64(yp)) }
@@ -181,6 +183,21 @@ func mulz(xp, yp, rp int32) {
 	yr, yi := F64(yp), F64(yp+8)
 	SetF64(rp, xr*yr-xi*yi)
 	SetF64(rp+8, xr*yi+xi*yr)
+}
+func scale(x, y K) K {
+	xp := int32(x)
+	r := use(y)
+	rp := int32(r)
+	e := ev(ep(r))
+	if tp(y) == Zt && F64(xp + 8) != 0 {
+		for rp < e {
+			mulz(xp, rp, rp)
+			rp += 16
+		}
+	} else {
+		fscale(xp, rp, e)
+	}
+	return r
 }
 
 func Mod(x, y K) K { return nd(244, 41, x, y) }
@@ -533,6 +550,9 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			xp = yp
 			yp = int32(x)
 			ix = 0
+			av = 1
+		} else if f == 241 {
+			return scale(Div(Kf(1.0), y), x)
 		} else {
 			iy = 0
 		}

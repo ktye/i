@@ -745,3 +745,31 @@
   i32.lt_s
   br_if 0
  end)
+(func $addz (param $x i32) (param $y i32) (param $r i32)
+ local.get $r
+ local.get $x
+ v128.load
+ local.get $y
+ v128.load
+ f64x2.add
+ v128.store)
+(func $fscale (param $x i32) (param $r i32) (param $e i32) (local $v v128)
+ local.get $x
+ v128.load64_splat
+ local.set $v
+ loop
+  local.get $r
+  local.get $v
+  local.get $r
+  v128.load
+  f64x2.mul
+  v128.store
+  local.get $r
+  i32.const 16
+  i32.add
+  local.tee $r
+  local.get $e
+  i32.lt_s
+  br_if 0
+ end)
+
