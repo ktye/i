@@ -1,0 +1,24 @@
+set -e
+set -x
+
+# patch for avx2 (32-byte vectors)
+# -smallest bucket 5->6
+# -alignment  +16 bytes
+
+if [ "$1" = "clean" ]; then
+ rm -f a.out _.c k.c out
+ exit 0
+fi
+
+# wget github.com/ktye/i/releases/download/latest/k.c
+
+#new header (vector version)
+cp head                  _.c
+awk -f remove.awk k.c >> _.c
+cat tail              >> _.c
+
+gcc -Wfatal-errors _.c -lm
+
+if [ "$1" = "t" ]; then
+ ./a.out ../../k.t -e
+fi

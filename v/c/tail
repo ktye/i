@@ -1,0 +1,41 @@
+static int32_t bucket(int32_t size){ return maxi(6,((int32_t)(32)-I32clz((31+size)))); }
+static int32_t alloc(int32_t n, int32_t s){
+ int32_t size,t,i,m,a,j8,u9;
+ size=(n*s);
+ t=bucket(size);
+ if(((int64_t)(n)*(int64_t)(s))>2147483647ll){
+  trap();
+ }
+ i=(4*t);
+ m=(4*I32(128));
+ for(;(!I32(i));)if(i>=m){
+  m=(4*grow(i));
+ } else {
+  i+=4;
+ }
+ a=I32(i);
+ SetI32(i,I32(a));
+ {
+  j8=(i-4);
+  for(;(j8>=(4*t));j8=(j8-4)){
+   u9=(a+((int32_t)(1)<<(j8>>2)));
+   SetI32(u9,I32(j8));
+   SetI32(j8,u9);
+  }
+ }
+ if((a&31)){
+  trap();
+ }
+ //printf("alloc %d*%d => %d\n",n,s,16+a);
+ return 16+a;               //align
+}
+static void mfree(int32_t x, int32_t bs){
+ int32_t t;
+ x-=16;                     //align
+ if((x&31)){
+  trap();
+ }
+ t=(4*bs);
+ SetI32(x,I32(t));
+ SetI32(t,x);
+}

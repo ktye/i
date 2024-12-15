@@ -1,0 +1,119 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdint.h>
+#include<string.h>
+#include<setjmp.h>
+#include<math.h>
+#define F64abs       fabs
+#define F64sqrt      sqrt
+#define F64floor     floor
+#define F64min       fmin
+#define F64max       fmax
+#define F64copysign  copysign
+#define Exit exit
+
+typedef  int32_t I5 __attribute((vector_size(32)));
+typedef uint64_t K5 __attribute((vector_size(32)));
+
+K5 U[1<<17],U2[1<<17];
+
+static char *M_, *M2_;
+static int32_t  *I_;
+static uint64_t *U_, *U2_;
+static void **F_;
+static int32_t memorysize_, memorysize2_;
+static int    args_;
+static char **argv_;
+static jmp_buf jb_;
+static void Memory (int32_t x){
+ memorysize_ =x;
+ U_ =(uint64_t*)U; //(uint64_t*)calloc((size_t)x,64*1024);
+ M_ =(char*)U; I_=(int32_t*)U;
+}
+static void Memory2(int32_t x){
+ memorysize2_=x; U2_=(uint64_t*)U2; M2_=(char*)U2;
+}
+static int32_t Memorysize(void){return memorysize_; }
+static int32_t Memorysize2(void){return memorysize2_;}
+static int32_t Memorygrow(int32_t delta){
+ int32_t r=memorysize_;
+ memorysize_+=delta;
+ printf("mem %llu kb\n",64*(size_t)memorysize_);
+ if(64*1024*(size_t)memorysize_>sizeof U){printf("oom\n");exit(1);}
+ return r;
+}
+static int32_t Memorygrow2(int32_t delta){
+ int32_t r=memorysize2_;
+ memorysize2_+=delta;
+ return r;
+}
+#define I8(x)          (int8_t)(M_[x])
+#define I32(x)                 (I_[(x)>>2])
+#define I64(x)        (int64_t)(U_[(x)>>3])
+#define F64(x)       ((double*)U_)[(x)>>3]
+static void SetI8( int32_t x,int32_t y){M_[x]=(char)(y);}
+static void SetI32(int32_t x,int32_t y){I_[(x)>>2]=(y);}
+static void SetI64(int32_t x,int64_t y){U_[(x)>>3]=(uint64_t)(y);}
+static void SetF64(int32_t x,double  y){((double*)U_)[(x)>>3]=(y);}
+#define I32B(x) (int32_t)(x)
+static void Memorycopy (int32_t dst, int32_t src, int32_t n){ memcpy(M_ +dst, M_ +src, (size_t)n); }
+static void Memorycopy2(int32_t dst, int32_t src, int32_t n){ memcpy(M2_+dst, M_ +src, (size_t)n); }
+static void Memorycopy3(int32_t dst, int32_t src, int32_t n){ memcpy( M_+dst, M2_+src, (size_t)n); }
+static void Memoryfill(int32_t p, int32_t v, int32_t n){ memset(M_+p, (int)v, (size_t)n); }
+static int32_t  I32clz(int32_t x) { return (int32_t)__builtin_clz((unsigned int)x); }
+static double   F64reinterpret_i64(uint64_t x){union{uint64_t i;double f;}u;u.i=x;return u.f;}
+static uint64_t I64reinterpret_f64(double   x){union{uint64_t i;double f;}u;u.f=x;return u.i;}
+static int32_t Args(void){ return args_; }
+static int32_t Arg(int32_t i, int32_t r){
+ if(i>=args_) return 0;
+ if(r ==   0) return (int32_t)strlen(argv_[i]);
+ memcpy(M_+r,argv_[i],strlen(argv_[i]));
+ return 0;
+}
+static int32_t Read(int32_t file, int32_t nfile, int32_t dst){
+ static char *filebuf = NULL;
+ static size_t      n = 0;
+ if(dst != 0){ memcpy(M_+dst,filebuf,n); return 0; }
+ char name[512];
+ if(nfile > 511) return -1;
+ memcpy(name, M_+file, (size_t)nfile);
+ name[nfile] = (char)0;
+ FILE *fp = fopen(name, "rb");
+ if(fp==NULL){if(filebuf!=NULL)free(filebuf);n=0;return -1;}
+ fseek(fp, 0, SEEK_END);
+ n=(size_t)ftell(fp);
+ fseek(fp, 0, SEEK_SET);
+ if(filebuf != NULL) free(filebuf);
+ filebuf = malloc(n);
+ if(n != fread(filebuf, 1, n, fp)){ fclose(fp); return -1; }
+ fclose(fp);
+ return (int32_t)n;
+}
+static int32_t Write(int32_t file, int32_t nfile, int32_t src, int32_t n){
+ if(nfile == 0){ fwrite(M_+src, 1, (size_t)n, stdout); return 0; }
+ char name[512];
+ memcpy(name, M_+file, (size_t)nfile);
+ name[nfile] = (char)0;
+ FILE *fp = fopen(name, "wb");
+ if(fp == NULL){ return -1; }
+ fwrite(M_+src, 1, (size_t)n, fp);
+ fclose(fp);
+ return 0;
+}
+static int32_t ReadIn(int32_t dst, int32_t n){
+ char *r = fgets(M_+dst, n, stdin);
+ if(r==NULL){ //todo eof
+  return 0;
+ }else return (int32_t)strnlen(M_+dst,(size_t)n);
+}
+static int64_t Native(int64_t x, int64_t y){
+#ifdef NATIVE
+ return cnative(x, y);
+#else
+ return 0*(x+y);
+#endif
+}
+static void panic(int32_t x) { longjmp(jb_,1); }
+
+static int32_t alloc(int32_t,int32_t);
+static void mfree(int32_t,int32_t);
