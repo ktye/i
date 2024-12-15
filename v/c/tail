@@ -39,3 +39,16 @@ static void mfree(int32_t x, int32_t bs){
  SetI32(x,I32(t));
  SetI32(t,x);
 }
+
+static int32_t pI(uint64_t x){return((int32_t)x)>>5;}
+static int32_t eI(uint64_t x){return(31+4*nn(x)+(int32_t)x)>>5;}
+static uint64_t seq(int32_t n){
+ I5 i={0,1,2,3,4,5,6,7};
+ uint64_t r;
+ n=maxi(n,0);
+ r=mk(It,n);
+ int32_t p=pI(r);
+ int32_t e=eI(r);
+ while(p<e){I[p++]=i;i+=8;}
+ return r;
+}

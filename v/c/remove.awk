@@ -6,6 +6,8 @@ BEGIN{x=-1}                     #skip header
 
 /^static int32_t alloc\(.*{$/{x=0}
 /^static void mfree\(.*{$/{x=0}
+/^static uint64_t seq\(.*{$/{x=0}
+
 
 {if(x>0)print}
 /^}/{if(!x)x=1}                 #end of function

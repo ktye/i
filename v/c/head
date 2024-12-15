@@ -15,6 +15,7 @@
 typedef  int32_t I5 __attribute((vector_size(32)));
 typedef uint64_t K5 __attribute((vector_size(32)));
 
+I5*I;
 K5 U[1<<17],U2[1<<17];
 
 static char *M_, *M2_;
@@ -28,7 +29,7 @@ static jmp_buf jb_;
 static void Memory (int32_t x){
  memorysize_ =x;
  U_ =(uint64_t*)U; //(uint64_t*)calloc((size_t)x,64*1024);
- M_ =(char*)U; I_=(int32_t*)U;
+ M_ =(char*)U; I_=(int32_t*)U; I=(I5*)U;
 }
 static void Memory2(int32_t x){
  memorysize2_=x; U2_=(uint64_t*)U2; M2_=(char*)U2;
