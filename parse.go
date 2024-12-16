@@ -178,10 +178,14 @@ func pasn(x, y, r K) K {
 			x = cat1(ucat1(l1(l), ldrop(-2, x), 20), (K(sp)<<32)|(lp+128))
 			y = l2(s, 448) // s:..
 		} else if v == 449 || v == 545 {
-			if xn == 1 { // `x: is (,`x) but type Lt replace with `"x." to use with `x@
-				x = sc(cat1(cs(Fst(Fst(x))), Kc(46))) // `x: -> `"x."
-			} else {
-				x = Fst(x) // (`x;.)
+			x = Fst(x)
+			if xn == 1 {
+				if tp(x) == st { //special: `x:.. defines functions for `x@. it is (,`x) but type Lt replaced with `"x."
+					x = sc(cat1(cs(Fst(x)), Kc(46))) // `x: -> `"x."
+				} else { //dex
+					dx(x)
+					return r
+				}
 			}
 			if loc != 0 && v == 449 {
 				loc = Cat(loc, rx(x))
