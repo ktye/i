@@ -1,0 +1,9 @@
+todo: patch these to _a.go init()
+        Functions(281, negI, negF, negF)
+        Functions(284, absI, absF, nyi)
+        Functions(287, ltC, eqC, gtC, ltI, eqI, gtI, ltI, eqI, gtI)
+        Functions(296, ltcC, eqcC, gtcC, ltiI, eqiI, gtiI, ltiI, eqiI, gtiI)
+
+        Functions(305, sqrF)
+        Functions(306, addI, subI, mulI, nyi, minI, maxI)
+        Functions(406, addiI, subiI, muliI, nyi, miniI, maxiI)
