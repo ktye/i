@@ -125,16 +125,16 @@ func Cnj(x K) K { // conj x
 	return x
 }
 
-func Add(x, y K) K          { return nd(226, 2, x, y) } //234
+func Add(x, y K) K          { return nd(226, 2, x, y) }
 func addi(x, y int32) int32 { return x + y }
 func addf(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)) }
 func addz(xp, yp, rp int32) { SetF64(rp, F64(xp)+F64(yp)); SetF64(rp+8, F64(xp+8)+F64(yp+8)) }
-func Sub(x, y K) K          { return nd(229, 3, x, y) } //245
+func Sub(x, y K) K          { return nd(238, 3, x, y) }
 func subi(x, y int32) int32 { return x - y }
 func subf(xp, yp, rp int32) { SetF64(rp, F64(xp)-F64(yp)) }
 func subz(xp, yp, rp int32) { SetF64(rp, F64(xp)-F64(yp)); SetF64(rp+8, F64(xp+8)-F64(yp+8)) }
 
-func Mul(x, y K) K          { return nd(232, 4, x, y) } //256
+func Mul(x, y K) K          { return nd(232, 4, x, y) }
 func muli(x, y int32) int32 { return x * y }
 func mulf(xp, yp, rp int32) { SetF64(rp, F64(xp)*F64(yp)) }
 func mulz(xp, yp, rp int32) {
@@ -153,7 +153,7 @@ func modi(x, y int32) int32 {
 	return x + y*I32B(x < 0) //euclidean, y>0
 }
 
-func Div(x, y K) K { return nd(235, 5, x, y) }
+func Div(x, y K) K { return nd(241, 5, x, y) }
 func divi(x, y int32) int32 {
 	if y == 0 {
 		return x //dec
@@ -180,7 +180,7 @@ func divz(xp, yp, rp int32) {
 	SetF64(rp+8, f)
 }
 
-func Min(x, y K) K { return nd(238, 6, x, y) } //278
+func Min(x, y K) K { return nd(229, 6, x, y) }
 func mini(x, y int32) int32 {
 	if x < y {
 		return x
@@ -196,7 +196,7 @@ func minz(xp, yp, rp int32) {
 	SetI64(rp+8, I64(xp+8))
 }
 
-func Max(x, y K) K { return nd(241, 7, x, y) } //289
+func Max(x, y K) K { return nd(235, 7, x, y) } //289
 func maxi(x, y int32) int32 {
 	if x > y {
 		return x
