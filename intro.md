@@ -7,10 +7,7 @@ get any version from here:
 |---|---|---|
 [k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran version|`gfortran k.f`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c version|`gcc k.c -lm`|
-[k.js](https://github.com/ktye/i/releases/download/latest/k.js)|js version|`qjs --std k.js` (quickjs)|
-[k.wasi](https://github.com/ktye/i/releases/download/latest/k.wasi)|standalone wasi binary||
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go version|`go build k.go`|
-[kdb.go](https://github.com/ktye/i/releases/download/latest/kdb.go)|[debugger](d)|`go build kdb.go`|
 
 e.g.
 ```

@@ -53,9 +53,6 @@ jobs:
         wg             . > k.wat
         ../wat2wasm -o k.wasm k.wat
 
-    - name: k.wasi
-      run: cd i/wasi && sh mk && ../../wat2wasm -o k.wasi _k.wat
-
     - name: k.f
       run: cd i/f77 && sh mk && sh mk test
     
@@ -70,9 +67,6 @@ jobs:
 
     - name: k.c
       run: cd i/x && k k.k cc.k -e 'x:`<cc``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
-    
-    - name: k.js
-      run: cd i/x && k k.k js.k -e 'x:`<js``' > k.js #test with qjs --std k.js ../k.t -e (takes 2min)
     
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0
@@ -100,16 +94,6 @@ jobs:
         asset_name: k.wasm
         asset_content_type: application/wasm
 
-    - name: upload k.wasi
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/wasi/k.wasi
-        asset_name: k.wasi
-        asset_content_type: application/wasm
-        
     - name: upload k.go
       uses: actions/upload-release-asset@v1
       env:
@@ -140,13 +124,3 @@ jobs:
         asset_name: k.c
         asset_content_type: text/plain
         
-    - name: upload k.js
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/x/k.js
-        asset_name: k.js
-        asset_content_type: text/plain
-    
