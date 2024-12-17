@@ -74,9 +74,6 @@ jobs:
     - name: k.js
       run: cd i/x && k k.k js.k -e 'x:`<js``' > k.js #test with qjs --std k.js ../k.t -e (takes 2min)
     
-    - name: kdb.go
-      run: cd i/d && sh mk kdb
-        
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0
       with:
@@ -153,13 +150,3 @@ jobs:
         asset_name: k.js
         asset_content_type: text/plain
     
-    - name: upload kdb.go
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./i/d/kdb.go
-        asset_name: kdb.go
-        asset_content_type: text/plain
-  
