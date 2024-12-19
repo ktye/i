@@ -18,7 +18,7 @@ func parse(x K) K {
 	if pp != pe {
 		trap() //parse
 	}
-	mfree(int32(x)-16, bucket(n)) //free non-recursive
+	mfree(int32(x)-vl, bucket(n)) //free non-recursive
 	return r
 }
 func es() K {

@@ -106,15 +106,6 @@ func Til(x K) K {
 	trap() //type
 	return 0
 }
-func seq(n int32) K {
-	n = maxi(n, 0)
-	r := mk(It, n)
-	for n > 0 {
-		n--
-		SetI32(int32(r)+4*n, n)
-	}
-	return r
-}
 func Unq(x K) K { // ?x
 	var r K
 	xt := tp(x)

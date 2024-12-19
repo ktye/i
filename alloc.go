@@ -39,7 +39,7 @@ func alloc(n, s int32) int32 {
 	if a&31 != 0 {
 		trap() //memory corruption
 	}
-	return a
+	return a + vl
 }
 func grow(p int32) int32 {
 	n := 1 + (p >> 2)                   // required total mem (log2)
@@ -60,15 +60,22 @@ func mfree(x, bs int32) {
 	SetI32(x, I32(t))
 	SetI32(t, x)
 }
-func bucket(size int32) int32 { return maxi(5, int32(32)-I32clz(15+size)) }
+func bucket(size int32) int32 { return maxi(b0, int32(32)-I32clz(bs+size)) }
 func mk(t T, n int32) K {
 	if t < 17 {
 		trap() //type
 	}
+	/*
 	x := alloc(n, sz(t))
 	SetI32(x+12, 1) //rc
 	SetI32(x+4, n)
 	return ti(t, x+16)
+	*/
+
+	x := alloc(n, sz(t))
+	SetI32(x-4, 1) //rc
+	SetI32(x-12, n)
+	return ti(t, x)
 }
 func tp(x K) T     { return T(uint64(x) >> 59) }
 func nn(x K) int32 { return I32(int32(x) - 12) }
@@ -97,9 +104,9 @@ func dx(x K) {
 	if t < 5 {
 		return
 	}
-	p := int32(x) - 16
-	rc := I32(p + 12)
-	SetI32(p+12, rc-1)
+	p := int32(x) - vl
+	rc := I32(p + vl - 4)
+	SetI32(p+vl-4, rc-1)
 	if rc == 0 {
 		trap() //unref
 	}
