@@ -9,10 +9,21 @@ import (
 func init() {
 	Functions(280, negI, negF, negF)
 	Functions(283, absI, absF, nyi)
+
+	//Functions(286, ltC, eqC, gtC, ltI, eqI, gtI, ltI, eqI, gtI)
+	//Functions(295, ltcC, eqcC, gtcC, ltiI, eqiI, gtiI, ltiI, eqiI, gtiI)
+
 	Functions(305, sqrF)
+
+	Functions(306, addI, subI, mulI, nyi, minI, maxI)
+	Functions(312, addiI, subiI, muliI, nyi, miniI, maxiI)
+	Functions(318, addF, subF, mulF, nyi, minF, maxF)
+	Functions(324, addfF, subfF, mulfF, nyi, minfF, maxfF)
 }
 
 type fii = func(int32, int32)
+type fi4 = func(int32, int32, int32, int32)
+
 func seq(n int32) K {
 	i := Iota()
 	a := int32(vl >> 2)
@@ -85,7 +96,186 @@ func scale(x, y K) K {
 	dx(x)
 	return r
 }
-
+func addI(x, y, r, e int32) {
+	for r < e {
+		VIstore(r, VIload(x).Add(VIload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func addF(x, y, r, e int32) {
+	for r < e {
+		VFstore(r, VFload(x).Add(VFload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func subI(x, y, r, e int32) {
+	for r < e {
+		VIstore(r, VIload(x).Sub(VIload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func subF(x, y, r, e int32) {
+	for r < e {
+		VFstore(r, VFload(x).Sub(VFload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func mulI(x, y, r, e int32) {
+	for r < e {
+		VIstore(r, VIload(x).Mul(VIload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func mulF(x, y, r, e int32) {
+	for r < e {
+		VFstore(r, VFload(x).Mul(VFload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func minI(x, y, r, e int32) {
+	for r < e {
+		VIstore(r, VIload(x).Min_s(VIload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func minF(x, y, r, e int32) {
+	for r < e {
+		VFstore(r, VFload(x).Pmin(VFload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func maxI(x, y, r, e int32) {
+	for r < e {
+		VIstore(r, VIload(x).Max_s(VIload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func maxF(x, y, r, e int32) {
+	for r < e {
+		VFstore(r, VFload(x).Pmax(VFload(y)))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func addiI(x, y, r, e int32) {
+	i := VIsplat(I32(x))
+	for r < e {
+		VIstore(r, VIload(y).Add(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func addfF(x, y, r, e int32) {
+	i := VFsplat(F64(x))
+	for r < e {
+		VFstore(r, VFload(y).Add(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func subiI(x, y, r, e int32) {
+	i := VIsplat(I32(x))
+	for r < e {
+		VIstore(r, i.Sub(VIload(y)))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func subfF(x, y, r, e int32) {
+	i := VFsplat(F64(x))
+	for r < e {
+		VFstore(r, i.Sub(VFload(y)))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func muliI(x, y, r, e int32) {
+	i := VIsplat(I32(x))
+	for r < e {
+		VIstore(r, VIload(y).Mul(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func mulfF(x, y, r, e int32) {
+	i := VFsplat(F64(x))
+	for r < e {
+		VFstore(r, VFload(y).Mul(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func miniI(x, y, r, e int32) {
+	i := VIsplat(I32(x))
+	for r < e {
+		VIstore(r, VIload(y).Min_s(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func minfF(x, y, r, e int32) {
+	i := VFsplat(F64(x))
+	for r < e {
+		VFstore(r, VFload(y).Pmin(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func maxiI(x, y, r, e int32) {
+	i := VIsplat(I32(x))
+	for r < e {
+		VIstore(r, VIload(y).Max_s(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func maxfF(x, y, r, e int32) {
+	i := VFsplat(F64(x))
+	for r < e {
+		VFstore(r, VFload(y).Pmax(i))
+		y += vl
+		r += vl
+		continue
+	}
+}
 func nm(f int32, x K) K { //monadic
 	var r K
 	xt := tp(x)
@@ -151,8 +341,6 @@ func nm(f int32, x K) K { //monadic
 	}
 	return x
 }
-
-//todo: see v/v.go
 func nd(f, ff int32, x, y K) K { //dyadic
 	var r K
 	var n int32
@@ -202,7 +390,16 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		n = nn(x)
 		y = Enl(y)
 		yp = int32(y)
-		iy = 0
+		if f < 238 { // +*&|
+			xp = yp
+			yp = int32(x)
+			ix = 0
+			av = 1
+		} else if f == 241 && t > st {
+			return scale(Div(Kf(1.0), y), x)
+		} else {
+			iy = 0
+		}
 		r = use1(x)
 	} else {
 		n = nn(x)
@@ -210,6 +407,9 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			r = rx(y)
 		} else {
 			r = use1(x)
+		}
+		if t == 6 && ff < 4 { // Z+Z Z-Z
+			t--
 		}
 	}
 	if n == 0 {
@@ -230,27 +430,52 @@ func nd(f, ff int32, x, y K) K { //dyadic
 			continue
 		}
 	case 1: // it
-		for rp < e {
-			SetI32(rp, Func[f].(f2i)(I32(xp), I32(yp)))
-			xp += ix
-			yp += iy
-			rp += 4
-			continue
+		if f < 241 {
+			if av == 2 && ff == 3 { // v-a
+				SetI32(yp, -I32(yp))
+				addiI(yp, xp, rp, ev(e))
+			} else {
+				if av != 3 {
+					ff += 6
+				}
+				Func[304+ff].(fi4)(xp, yp, rp, ev(e))
+			}
+		} else {
+			for rp < e {
+				SetI32(rp, Func[f].(f2i)(I32(xp), I32(yp)))
+				xp += ix
+				yp += iy
+				rp += 4
+				continue
+			}
 		}
 	case 2: // st
 		trap() //type
 	default: // ft zt
-		for rp < e {
-			Func[f-4+int32(t)].(fi3)(xp, yp, rp)
-			xp += ix
-			yp += iy
-			rp += dz
-			continue
+		if f < 241 && t == 5 {
+			if av == 2 && ff == 3 { // v-a
+				SetF64(yp, -F64(yp))
+				addfF(yp, xp, rp, ev(e))
+			} else {
+				if av != 3 {
+					ff += 6
+				}
+				Func[316+ff].(fi4)(xp, yp, rp, ev(e))
+			}
+		} else {
+			for rp < e {
+				Func[f-4+int32(t)].(fi3)(xp, yp, rp)
+				xp += ix
+				yp += iy
+				rp += dz
+				continue
+			}
 		}
 	}
 	dxy(x, y)
 	return r
 }
+//todo: see v/v.go
 func nc(ff, q int32, x, y K) K { //compare
 	var r K
 	var n int32
