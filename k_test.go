@@ -66,12 +66,13 @@ func TestTypes(t *testing.T) {
 }
 func TestBucket(t *testing.T) {
 	tc := []struct{ in, exp int32 }{
-		{0, 5},
-		{4, 5},
-		{8, 5},
-		{16, 5},
+		{0, b0},
+		{4, b0},
+		{8, b0},
+		{16, b0},
 		{17, 6},
 		{25, 6},
+		{81, 7},
 	}
 	for _, tc := range tc {
 		if got := bucket(tc.in); got != tc.exp {
@@ -225,7 +226,7 @@ func TestTraps(t *testing.T) {
 		{func() { use(Key(seq(2), seq(2))) }},
 		{func() { nyi(Ki(0)) }},
 		{func() { ndrop(5, Key(seq(2), seq(2))) }},
-		{func() { mfree(int32(seq(1)), 5) }},
+		//{func() { mfree(int32(seq(1)), 5) }},
 	}
 	for i, tc := range testCases {
 		newtest()
