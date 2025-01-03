@@ -10,9 +10,8 @@ func init() {
 	Functions(280, negI, negF, negF)
 	Functions(283, absI, absF, nyi)
 
-	//Functions(286, ltC, eqC, gtC, ltI, eqI, gtI, ltI, eqI, gtI)
-	//Functions(295, ltcC, eqcC, gtcC, ltiI, eqiI, gtiI, ltiI, eqiI, gtiI)
-
+	Functions(286, ltC, eqC, gtC, ltI, eqI, gtI, ltI, eqI, gtI)
+	Functions(295, ltcC, eqcC, gtcC, ltiI, eqiI, gtiI, ltiI, eqiI, gtiI)
 	Functions(305, sqrF)
 
 	Functions(306, addI, subI, mulI, nyi, minI, maxI)
@@ -276,6 +275,126 @@ func maxfF(x, y, r, e int32) {
 		continue
 	}
 }
+func ltC(x, y, r, e int32) {
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(VIloadB(x).Lt_s(VIloadB(y))))
+		x += vl >> 2
+		y += vl >> 2
+		r += vl
+		continue
+	}
+}
+func ltcC(x, y, r, e int32) {
+	c := VIsplat(I8(x))
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(c.Lt_s(VIloadB(y))))
+		y += vl >> 2
+		r += vl
+		continue
+	}
+}
+func eqC(x, y, r, e int32) {
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(VIloadB(x).Eq(VIloadB(y))))
+		x += vl >> 2
+		y += vl >> 2
+		r += vl
+		continue
+	}
+}
+func eqcC(x, y, r, e int32) {
+	c := VIsplat(I8(x))
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(c.Eq(VIloadB(y))))
+		y += vl >> 2
+		r += vl
+		continue
+	}
+}
+func gtC(x, y, r, e int32) {
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(VIloadB(x).Gt_s(VIloadB(y))))
+		x += vl >> 2
+		y += vl >> 2
+		r += vl
+		continue
+	}
+}
+func gtcC(x, y, r, e int32) {
+	c := VIsplat(I8(x))
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(c.Gt_s(VIloadB(y))))
+		y += vl >> 2
+		r += vl
+		continue
+	}
+}
+func ltI(x, y, r, e int32) {
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(VIload(x).Lt_s(VIload(y))))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func ltiI(x, y, r, e int32) {
+	c := VIsplat(I32(x))
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(c.Lt_s(VIload(y))))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func eqI(x, y, r, e int32) {
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(VIload(x).Eq(VIload(y))))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func eqiI(x, y, r, e int32) {
+	c := VIsplat(I32(x))
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(c.Eq(VIload(y))))
+		y += vl
+		r += vl
+		continue
+	}
+}
+func gtI(x, y, r, e int32) {
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(VIload(x).Gt_s(VIload(y))))
+		x += vl
+		y += vl
+		r += vl
+		continue
+	}
+}
+func gtiI(x, y, r, e int32) {
+	c := VIsplat(I32(x))
+	i := VI1()
+	for r < e {
+		VIstore(r, i.And(c.Gt_s(VIload(y))))
+		y += vl
+		r += vl
+		continue
+	}
+}
 func nm(f int32, x K) K { //monadic
 	var r K
 	xt := tp(x)
@@ -506,9 +625,13 @@ func nc(ff, q int32, x, y K) K { //compare
 		n = nn(y)
 	} else if av == 2 { //va
 		n = nn(x)
-		y = Enl(y)
+		r = Enl(y)
+		y = x
 		yp = int32(y)
-		iy = 0
+		x = r
+		xp = int32(x)
+		q = -q
+		ix = 0
 	} else {
 		n = nn(x)
 	}
@@ -519,12 +642,19 @@ func nc(ff, q int32, x, y K) K { //compare
 	}
 	rp := int32(r)
 	e := ep(r)
-	for rp < e {
-		SetI32(rp, I32B(q == Func[250+t].(f2i)(xp, yp)))
-		xp += ix
-		yp += iy
-		rp += 4
-		continue
+	if t < 5 { //cis
+		if av < 3 {
+			q += 9
+		}
+		Func[T(q)+281+3*t].(fi4)(xp, yp, rp, ev(e))
+	} else {
+		for rp < e {
+			SetI32(rp, I32B(q == Func[250+t].(f2i)(xp, yp)))
+			xp += ix
+			yp += iy
+			rp += 4
+			continue
+		}
 	}
 	dxy(x, y)
 	return r
