@@ -19,6 +19,52 @@ func seq(n int32) K {
         }
         return r
 }
+func minis(x, y, e int32) int32 {
+        for y < e {
+                x = mini(x, I32(y))
+                y += 4
+        }
+        return x
+}
+func maxis(x, y, e int32) int32 {
+        for y < e {
+                x = maxi(x, I32(y))
+                y += 4
+        }
+        return x
+}
+func minfs(y, e int32) float64 {
+        f := inf
+        for y < e {
+                f = F64min(f, F64(y))
+                y += 8
+        }
+        return f
+}
+func maxfs(y, e int32) float64 {
+        f := -inf
+        for y < e {
+                f = F64max(f, F64(y))
+                y += 8
+        }
+        return f
+}
+func sumi(xp, e int32) int32 {
+        r := int32(0)
+        for xp < e {
+                r += I32(xp)
+                xp += 4
+        }
+        return r
+}
+func sumf(xp, e, s int32) float64 {
+        r := 0.0
+        for xp < e {
+                r += F64(xp)
+                xp += s
+        }
+        return r
+}
 func nm(f int32, x K) K { //monadic
 	var r K
 	xt := tp(x)

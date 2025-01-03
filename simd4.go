@@ -17,3 +17,4 @@ const bs = 15 //lower bits set
 const vl = 16 //vector length 
 
 func ev(ep int32) int32 { return (15 + ep) & -16 }
+func eu(ep int32) int32 { return ep & -16 }

@@ -16,26 +16,11 @@ func min(yp int32, t T, e int32) K { // &/x
 		}
 		return Kc(xp)
 	case 1: // It
-		xp = 2147483647
-		for yp < e {
-			xp = mini(xp, I32(yp))
-			yp += 4
-		}
-		return Ki(xp)
+		return Ki(minis(2147483647, yp, e))
 	case 2: // St
-		xp = (nn(K(I64(8))) << 3) - 8
-		for yp < e {
-			xp = mini(xp, I32(yp))
-			yp += 4
-		}
-		return Ks(xp)
+		return Ks(minis((nn(K(I64(8))) << 3) - 8, yp, e))
 	case 3: // Ft
-		f := inf
-		for yp < e {
-			f = F64min(f, F64(yp))
-			yp += 8
-		}
-		return Kf(f)
+		return Kf(minfs(yp, e))
 	default:
 		return 0
 	}
@@ -51,26 +36,11 @@ func max(yp int32, t T, e int32) K { // |/x
 		}
 		return Kc(xp)
 	case 1: // It
-		xp = nai
-		for yp < e {
-			xp = maxi(xp, I32(yp))
-			yp += 4
-		}
-		return Ki(xp)
+		return Ki(maxis(nai, yp, e))
 	case 2: // St
-		xp = 0
-		for yp < e {
-			xp = maxi(xp, I32(yp))
-			yp += 4
-		}
-		return Ks(xp)
+		return Ks(maxis(0, yp, e))
 	case 3: // Ft
-		f := -inf
-		for yp < e {
-			f = F64max(f, F64(yp))
-			yp += 8
-		}
-		return Kf(f)
+		return Kf(maxfs(yp, e))
 	default:
 		return 0
 	}
@@ -98,22 +68,6 @@ func sum(yp int32, t T, e int32) K { // +/x
 	default:
 		return 0
 	}
-}
-func sumi(xp, e int32) int32 {
-	r := int32(0)
-	for xp < e {
-		r += I32(xp)
-		xp += 4
-	}
-	return r
-}
-func sumf(xp, e, s int32) float64 {
-	r := 0.0
-	for xp < e {
-		r += F64(xp)
-		xp += s
-	}
-	return r
 }
 func prd(yp int32, t T, e int32) K { // */x
 	xp := int32(1)
