@@ -57,6 +57,13 @@ ccfun:{
  body: 2_-1_y@*&`ast=T c
  ccfmt@,/(stat;ret;" ";$S x;"(";$[#args;args;"void"];"){\n";setj;locs;body;defr)}
 
+/trace:
+/ args:..
+/ argf:","/(``i`j`k`f!("%s";"%d";"%ld";"%lu";"%lf"))`,(S c)i:&`arg=T c
+/ argl:","/$`"__func__",S 1+c i
+/ trac:"printf(\"", argf, "\\n\"," , argl, ");"
+/ ..locs;trace;body..
+
 ccsig:{
  args:","/cctype S c@&`arg=T c:&x=P
  stat:$[I x;"";"static "]
