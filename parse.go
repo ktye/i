@@ -145,12 +145,6 @@ f:
 				r = cat1(Cat(rlist(n, 2), r), p|ks)
 			}
 		} else {
-			if tp(n) == 4 && rt < 6 {
-				if is(I8(I32(16)+ps-2), 4) != 0 {
-					r = cat1(l3(n, 20, Fst(r)), 68|ks)
-					continue f
-				}
-			}
 			pp -= 8
 			break f // within else-if
 		}
