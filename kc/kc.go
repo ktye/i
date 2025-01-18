@@ -99,14 +99,151 @@ func as(x, v, y []token) []token {
 	return append(append(y, x...), v...)
 }
 func dy(x, o, y []token) []token {
-	o[len(o)-1].n = 2
-	o[len(o)-1].v = false
-	return append(append(y, x...), o...)
+	d := o[len(o)-1]
+	d.n = 2
+	d.v = false
+	c := d.s[0]
+	tx, ty := x[len(x)-1].t, y[len(y)-1].t
+	rx, ry := rank(tx), rank(ty)
+	mxr := rx
+	if ry > mxr {
+		mxr = ry
+	}
+	switch c { // :+-*%&|<>=^!~,#_$?@.
+	case ':': 
+		d.t = ty
+	case '+','-','*','%','&','|':
+		d.t = maxtype(base(tx), base(ty)) - byte(32*mxr)
+	case '<','>','=':
+		d.t = []byte{'i','I','I'-32}[mxr]
+	case '^': // 3^v 
+		if tx == 'i' || tx == 'I' {
+			if ry != 1 {
+				E(d.p, "rank")
+			}
+			d.t = ty - 32
+		} else {
+			E(d.p, "type")
+		}
+	case '!':
+		if tx != 'i' || base(ty) != 'i' {
+			E(d.p, "type")
+		}
+		d.t = ty
+	case '~':
+		d.t = 'i'
+	case ',':
+		if base(tx) != base(ty) {
+			E(d.p, "type")
+		}
+		if rx == 0 && ry == 0 {
+			d.t = tx - 32
+		}
+	case '#':
+		if tx != 'i' {
+			E(d.p, "type")
+		}
+		d.t = ty
+		if ry == 0 {
+			d.t -= 32
+		}
+	case '_':
+		if tx != 'i' {
+			E(d.p, "type")
+		}
+		if ry == 0 {
+			E(d.p, "rank")
+		}
+		d.t = ty
+	case '$':
+		if tx != 'c' || tx != 'C' {
+			E(d.p, "type")
+		}
+		d.t = 'C'
+	case '?':
+		if base(tx) != base(ty) {
+			E(d.p, "type")
+		}
+		if ry > rx {
+			E(d.p, "rank")
+		}
+		d.t = []byte{'i', 'I', 'I' - 32}[ry]
+	case '@': //todo function calls
+		if base(ty) != 'i' {
+			E(d.p, "type")
+		}
+		if rx == 0 {
+			E(d.p, "rank")
+		}
+		d.t = base(tx) - byte(32*ry)
+	case '.':
+		//todo typecheck function arguments
+		d.t = tx
+	default:
+		E(d.p, "unknown dyadic primitive")
+	}
+	return append(append(y, x...), d)
 }
 func mo(o, x []token) []token {
-	o[len(o)-1].n = 1
-	o[len(o)-1].v = false
-	return append(x, o...)
+	m := o[len(o)-1]
+	m.n = 1
+	m.v = false
+	tx := x[len(x)-1]
+	m.t = tx.t // :+-*
+	c := m.s[0]
+	rk := rank(tx.t)
+	ops := ":+-*%&|<>=^!~,#_$?@."
+	mir := "00000211111000000000"
+	mar := "22222221111121222120"
+	i := strings.IndexByte(ops, c)
+	if i < 0 {
+		E(m.p, "unknown monadic primitive")
+	} else if rk < int(mir[i]-'0') || rk > int(mar[i]-'0') {
+		E(m.p, "rank")
+	}
+	switch c {
+	case ':','+','-','*':
+	case '%':
+		m.t = []byte{'f','F','F'-32}[rk]
+	case '&':
+	case '|':
+	case '<','>':
+		m.t = 'I'
+	case '=':
+		m.t = 'I' - 32
+	case '^':
+	case '!':
+		if m.t == 'i' {
+			m.t = 'I'
+		} else if m.t != 'I' {
+			E(m.p, "type must be i or I")
+		}
+	case '~':
+		m.t = []byte{'i','I','I'-32}[rk]
+	case ',':
+		m.t -= 32
+	case '#':
+		m.t = 'i'
+	case '_':
+		m.t = []byte{'i','I','I'-32}[rk]
+	case '$':
+		m.t = 'C'
+	case '?':
+		if m.t == 'i' {
+			m.t = 'F'
+		} else if rk == 1 {
+			E(m.p, "type must be i or rank 1")
+		}
+	case '@':
+		if rk > 0 {
+			m.t += 32
+		}
+	case '.':
+		E(m.p, "not implemented")
+	default:
+		E(m.p, "unknown monadic primitive")
+	}
+	return append(x, m)
 }
 func at(x, y []token) []token {
 	t := x[len(x)-1]
@@ -114,6 +251,23 @@ func at(x, y []token) []token {
 	t.v = true
 	t.n = 2
 	return append(append(y, x...), t)
+}
+func rank(c byte) int {
+	if c >= 'a' {
+		return 0
+	} else if c >= 'A' {
+		return 1
+	} else {
+		return 2
+	}
+}
+func base(c byte) byte { return byte(int(c) + 32*rank(c)) }
+func maxtype(a, b byte) byte {
+	ia, ib := strings.IndexByte("cifz", a), strings.IndexByte("cifz", b)
+	if ia > ib {
+		return a
+	}
+	return b
 }
 
 func t() []token {
