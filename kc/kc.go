@@ -11,10 +11,19 @@ const T="abcdefghijfekbabcdefghijfekbabcdefghidfeebabcdefghijfeebabcdefghijfeeba
 var tkst, sp, pp int
 var a, b = -1, 0
 var src []byte
+var glo map[string]byte
+var loc map[string]byte
+var fun map[string][]byte // "xyzr"
 
 func main() {
 	if len(os.Args) > 1 {
 		src = []byte(os.Args[1])
+		fun = map[string][]byte {
+			"f": []byte("ii"),
+			"g": []byte("iii"),
+		}
+		glo = map[string]byte{ "G": 'I' }
+		loc = map[string]byte{ "x":'i', "y":'i', "X":'I', "Y":'I', "a":'f', "b":'f', "A":'F', "B":'F'}
 		//for s := tok(); s != ""; s = tok() {
 		//	fmt.Println(s)
 		//}
@@ -86,22 +95,45 @@ type token struct {
 	n int    //arguments
 }
 
+
 func as(x, v, y []token) []token {
 	fmt.Println("as x:", x, "y:", y, "v:", v)
 	tx := x[len(x)-1]
-	if tx.s == "@" {
+	ty := y[len(y)-1]
+	p := v[len(v)-1].p
+	s := v[len(v)-1].s
+	if len(v) != 1 {
+		E(p, "assign")
+	} else if tx.s == "@" {
 		//indexed assign
 	} else if len(x) != 1 || 5 != cl(x[0].s[0]) {
-		E(v[len(v)-1].p, "must assign to variable")
+		E(p, "must assign to variable")
+	} else if s == ":" {
+		if l, o := loc[x[0].s]; o {
+			if l != ty.t {
+				E(p, "reassign type")
+			}
+		} else {
+			loc[x[0].s] = ty.t
+		}
+	} else {
+		E(p, "nyi modified")
 	}
 	v[len(v)-1].n = 2
 	v[len(v)-1].v = false
+	v[len(v)-1].t = ty.t
 	return append(append(y, x...), v...)
 }
 func dy(x, o, y []token) []token {
+	if len(o) == 1 {
+		o[len(o)-1].n = 2
+	}
+	o[len(o)-1].v = false
+	o[len(o)-1].t = dyt(x, o, y)
+	return append(append(y, x...), o...)
+}
+func dyt(x, o, y []token) (t byte) {
 	d := o[len(o)-1]
-	d.n = 2
-	d.v = false
 	c := d.s[0]
 	tx, ty := x[len(x)-1].t, y[len(y)-1].t
 	rx, ry := rank(tx), rank(ty)
@@ -109,19 +141,20 @@ func dy(x, o, y []token) []token {
 	if ry > mxr {
 		mxr = ry
 	}
+	t = '?'
 	switch c { // :+-*%&|<>=^!~,#_$?@.
 	case ':': 
-		d.t = ty
+		t = ty
 	case '+','-','*','%','&','|':
-		d.t = maxtype(base(tx), base(ty)) - byte(32*mxr)
+		t = maxtype(base(tx), base(ty)) - byte(32*mxr)
 	case '<','>','=':
-		d.t = []byte{'i','I','I'-32}[mxr]
+		t = []byte{'i','I','I'-32}[mxr]
 	case '^': // 3^v 
 		if tx == 'i' || tx == 'I' {
 			if ry != 1 {
 				E(d.p, "rank")
 			}
-			d.t = ty - 32
+			t = ty - 32
 		} else {
 			E(d.p, "type")
 		}
@@ -129,15 +162,15 @@ func dy(x, o, y []token) []token {
 		if tx != 'i' || base(ty) != 'i' {
 			E(d.p, "type")
 		}
-		d.t = ty
+		t = ty
 	case '~':
-		d.t = 'i'
+		t = 'i'
 	case ',':
 		if base(tx) != base(ty) {
 			E(d.p, "type")
 		}
 		if rx == 0 && ry == 0 {
-			d.t = tx - 32
+			t = tx - 32
 		}
 	case '#':
 		if tx != 'i' {
@@ -145,7 +178,7 @@ func dy(x, o, y []token) []token {
 		}
 		d.t = ty
 		if ry == 0 {
-			d.t -= 32
+			t -= 32
 		}
 	case '_':
 		if tx != 'i' {
@@ -154,12 +187,12 @@ func dy(x, o, y []token) []token {
 		if ry == 0 {
 			E(d.p, "rank")
 		}
-		d.t = ty
+		t = ty
 	case '$':
 		if tx != 'c' || tx != 'C' {
 			E(d.p, "type")
 		}
-		d.t = 'C'
+		t = 'C'
 	case '?':
 		if base(tx) != base(ty) {
 			E(d.p, "type")
@@ -167,34 +200,60 @@ func dy(x, o, y []token) []token {
 		if ry > rx {
 			E(d.p, "rank")
 		}
-		d.t = []byte{'i', 'I', 'I' - 32}[ry]
+		t = []byte{'i', 'I', 'I' - 32}[ry]
 	case '@': //todo function calls
-		if base(ty) != 'i' {
-			E(d.p, "type")
+		t = calt(x, [][]token{y})
+	case '.':
+		//todo typecheck function arguments
+		t = tx
+	case '/': // each-right
+		if ry == 0 {
+			E(d.p, "rank")
 		}
+		ly := y[len(y)-1]
+		ly.t += 32
+		t = dyt(x, o[:len(o)-1], []token{ly}) - 32
+	case '\\': //each-left
 		if rx == 0 {
 			E(d.p, "rank")
 		}
-		d.t = base(tx) - byte(32*ry)
-	case '.':
-		//todo typecheck function arguments
-		d.t = tx
+		lx := x[len(x)-1]
+		lx.t += 32
+		t = dyt([]token{lx}, o[:len(o)-1], y) - 32
+	case '\'': //each2
+		if rx == 0 || ry == 0 {
+			E(d.p, "rank")
+		}
+		lx := x[len(x)-1]
+		lx.t += 32
+		ly := x[len(y)-1]
+		ly.t += 32
+		t = dyt([]token{lx}, o[:len(o)-1], []token{ly}) - 32
 	default:
 		E(d.p, "unknown dyadic primitive")
 	}
-	return append(append(y, x...), d)
+	return t
 }
 func mo(o, x []token) []token {
+	mot(o, x)
+	o[len(o)-1].t = mot(o, x)
+	if len(o) == 1 {
+		o[len(o)-1].n = 1
+	}
+	o[len(o)-1].v = false
+	return append(x, o...)
+}
+func mot(o, x []token) (t byte) {
 	m := o[len(o)-1]
 	m.n = 1
 	m.v = false
 	tx := x[len(x)-1]
-	m.t = tx.t // :+-*
+	t = tx.t // :+-*
 	c := m.s[0]
 	rk := rank(tx.t)
-	ops := ":+-*%&|<>=^!~,#_$?@."
-	mir := "00000211111000000000"
-	mar := "22222221111121222120"
+	ops := `:+-*%&|<>=^!~,#_$?@./\'`
+	mir := "00000211111000000000111"
+	mar := "22222221111121222120222"
 	i := strings.IndexByte(ops, c)
 	if i < 0 {
 		E(m.p, "unknown monadic primitive")
@@ -204,54 +263,110 @@ func mo(o, x []token) []token {
 	switch c {
 	case ':','+','-','*':
 	case '%':
-		m.t = []byte{'f','F','F'-32}[rk]
+		t = []byte{'f','F','F'-32}[rk]
 	case '&':
 	case '|':
 	case '<','>':
-		m.t = 'I'
+		t = 'I'
 	case '=':
-		m.t = 'I' - 32
+		t = 'I' - 32
 	case '^':
 	case '!':
-		if m.t == 'i' {
-			m.t = 'I'
-		} else if m.t != 'I' {
+		if t == 'i' {
+			t = 'I'
+		} else if t != 'I' {
 			E(m.p, "type must be i or I")
 		}
 	case '~':
-		m.t = []byte{'i','I','I'-32}[rk]
+		t = []byte{'i','I','I'-32}[rk]
 	case ',':
-		m.t -= 32
+		t -= 32
 	case '#':
-		m.t = 'i'
+		t = 'i'
 	case '_':
-		m.t = []byte{'i','I','I'-32}[rk]
+		t = []byte{'i','I','I'-32}[rk]
 	case '$':
-		m.t = 'C'
+		t = 'C'
 	case '?':
-		if m.t == 'i' {
-			m.t = 'F'
+		if t == 'i' {
+			t = 'F'
 		} else if rk == 1 {
 			E(m.p, "type must be i or rank 1")
 		}
 	case '@':
 		if rk > 0 {
-			m.t += 32
+			t += 32
 		}
 	case '.':
 		E(m.p, "not implemented")
+	case '/':
+		tx.t += 32
+		t = dyt([]token{tx}, o[:len(o)-1], []token{tx})
+	case '\\':
+		tx.t += 32
+		t = dyt([]token{tx}, o[:len(o)-1], []token{tx}) - 32
+	case '\'':
+		tx.t += 32
+		t = mot(o[:len(o)-1], []token{tx}) - 32
 	default:
 		E(m.p, "unknown monadic primitive")
 	}
-	return append(x, m)
+	return t
 }
-func at(x, y []token) []token {
+func at(x, y []token, p int) []token {
 	t := x[len(x)-1]
 	t.s = "@"
 	t.v = true
+	t.p = p
 	t.n = 2
-	return append(append(y, x...), t)
+	return dy(x, []token{t}, y)
 }
+func call(f []token, x [][]token, p int) (r []token) {
+	t := calt(f, x)
+	if len(x) == 1 {
+		return append(append(x[0], f...), token{s:"@", p:p, t: t, n:2, v:false})
+	} else {
+		for i := range x {
+			r = append(r, x[len(x)-i-1]...)
+		}
+		return append(r, token{s:".", p:p, t: t, v:false, n:len(x)})
+	}
+}
+func calt(f []token, x [][]token) byte {
+	fn := f[len(f)-1]
+	s := fn.s
+	if 5 == cl(s[0]) {
+		if sig := fun[s]; sig != nil && loc[s] == 0 {
+			if len(sig) != 1 + len(x) {
+				E(fn.p, "valence")
+			}
+			for i, xi := range x {
+				if sig[len(sig)-i-2] != xi[len(xi)-1].t {
+					E(fn.p, "type")
+				}
+			}
+			return sig[len(sig)-1]
+		}
+	}
+	rk := rank(fn.t)
+	b := base(fn.t)
+	m := map[string]int { "i": rk-1, "I": rk, "ii":0, "iI":1, "Ii":1, "II":2}
+	if rk < len(x) || len(x) == 0 {
+		E(fn.p, "rank")
+	}
+	x0 := x[0]
+	it := []byte{x0[len(x0)-1].t}
+	if len(x) > 1 {
+		x1 := x[1]
+		it = append(it, x1[len(x1)-1].t)
+	}
+	r, o := m[string(it)]
+	if !o {
+		E(fn.p, "type")
+	}
+	return b - byte(32*r)
+}
+
 func rank(c byte) int {
 	if c >= 'a' {
 		return 0
@@ -291,6 +406,7 @@ func t() []token {
 	}
 	if 1 == len(x.s) && (3 == cl(c) || c == '-') {
 		x.v = true
+		x.t = '*'
 		if peak() == ':' {
 			tok()
 			x.s += ":"
@@ -341,17 +457,10 @@ func t() []token {
 			p := pp
 			tok()
 			y := rev(ls())
-			r = []token{}
-			for i := range y {
-				r = append(r, y[i]...)
-			}
-			//x.n = len(y)
-			r = append(r, x)
-			fmt.Println("y", y, "#y", len(y))
 			if len(y) == 1 {
-				r = append(r, token{p:p, s:"@", n:2})
+				r = at(r, y[0], p)
 			} else {
-				r = append(r, token{p:p, s:".", n:1+len(y)})
+				r = call(r, y, p)
 			}
 		} else {
 			break
@@ -382,7 +491,7 @@ func e(x []token) []token {
 	}
 	r := e(y)
 	if !tx.v {
-		return at(x, r)
+		return at(x, r, tx.p)
 	} else if len(r) == len(y) && ty.v && tx.v {
 		E(ty.p, "no composition")
 	}
