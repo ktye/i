@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-const C="aaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaadhddddebcdddjgmggggggggggdbdddddffffffffffffffffffffffffffblcddiffffkfffffffffffffffffffffbdcdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-const T="abcdefghijfekbabcdefghijfekbabcdefghidfeebabcdefghijfeebabcdefghijfeebabcdemmhidmeebabcdennhidoeebppppppprpppqppabcdemghidmeebabcdefnhijfeeblllllllllllllblllllllllllllbabcdemmhidmeebabcdennhidoeebabcdennhinneebppppppprpppqppppppppppppppppabcdefghidfeeb"
+const C = "aaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaadhddddebcdddjgmggggggggggdbdddddffffffffffffffffffffffffffblcddiffffkfffffffffffffffffffffbdcdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+const T = "abcdefghijfekbabcdefghijfekbabcdefghidfeebabcdefghijfeebabcdefghijfeebabcdemmhidmeebabcdennhidoeebppppppprpppqppabcdemghidmeebabcdefnhijfeeblllllllllllllblllllllllllllbabcdemmhidmeebabcdennhidoeebabcdennhinneebppppppprpppqppppppppppppppppabcdefghidfeeb"
+
 var tkst, sp, pp int
 var a, b = -1, 0
 var src []byte
@@ -18,12 +19,12 @@ var fun map[string][]byte // "xyzr"
 func main() {
 	if len(os.Args) > 1 {
 		src = []byte(os.Args[1])
-		fun = map[string][]byte {
+		fun = map[string][]byte{
 			"f": []byte("ii"),
 			"g": []byte("iii"),
 		}
-		glo = map[string]byte{ "G": 'I' }
-		loc = map[string]byte{ "x":'i', "y":'i', "X":'I', "Y":'I', "a":'f', "b":'f', "A":'F', "B":'F'}
+		glo = map[string]byte{"G": 'I'}
+		loc = map[string]byte{"x": 'i', "y": 'i', "X": 'I', "Y": 'I', "a": 'f', "b": 'f', "A": 'F', "B": 'F'}
 		//for s := tok(); s != ""; s = tok() {
 		//	fmt.Println(s)
 		//}
@@ -35,37 +36,37 @@ func main() {
 		fmt.Println()
 		for _, t := range r {
 			fmt.Printf("%c", t.t)
-		}	
+		}
 		fmt.Println()
 		for _, t := range r {
 			fmt.Printf("%d", t.n)
-		}	
+		}
 		fmt.Println()
 	}
 }
 func E(p int, s string) {
-	fmt.Println("p",p)
-	a, b  := 0, len(src)
+	fmt.Println("p", p)
+	a, b := 0, len(src)
 	if p >= a && p <= b {
-		for i := 0; i<10; i++ {
+		for i := 0; i < 10; i++ {
 			if p-i == 0 {
 				break
 			}
 			if src[p-i] == '\n' {
-				a = 1+p-i
+				a = 1 + p - i
 			}
 		}
-		for i := 0; i<20; i++ {
+		for i := 0; i < 20; i++ {
 			if p+i == b {
 				break
 			}
 			if src[p+i] == '\n' {
-				b = p+i
+				b = p + i
 			}
 		}
 		fmt.Println(string(src[a:b]))
 	}
-	for i:=0; i<p-a; i++ {
+	for i := 0; i < p-a; i++ {
 		fmt.Print(" ")
 	}
 	fmt.Println("^")
@@ -77,7 +78,7 @@ func linepos(x int) string {
 	if x < 0 || x >= len(src) {
 		return "file?:"
 	}
-	for i := 0; i<x; i++ {
+	for i := 0; i < x; i++ {
 		c++
 		if src[i] == 10 {
 			l++
@@ -94,7 +95,6 @@ type token struct {
 	v bool   //verb
 	n int    //arguments
 }
-
 
 func as(x, v, y []token) []token {
 	fmt.Println("as x:", x, "y:", y, "v:", v)
@@ -143,13 +143,13 @@ func dyt(x, o, y []token) (t byte) {
 	}
 	t = '?'
 	switch c { // :+-*%&|<>=^!~,#_$?@.
-	case ':': 
+	case ':':
 		t = ty
-	case '+','-','*','%','&','|':
+	case '+', '-', '*', '%', '&', '|':
 		t = maxtype(base(tx), base(ty)) - byte(32*mxr)
-	case '<','>','=':
-		t = []byte{'i','I','I'-32}[mxr]
-	case '^': // 3^v 
+	case '<', '>', '=':
+		t = []byte{'i', 'I', 'I' - 32}[mxr]
+	case '^': // 3^v
 		if tx == 'i' || tx == 'I' {
 			if ry != 1 {
 				E(d.p, "rank")
@@ -261,12 +261,12 @@ func mot(o, x []token) (t byte) {
 		E(m.p, "rank")
 	}
 	switch c {
-	case ':','+','-','*':
+	case ':', '+', '-', '*':
 	case '%':
-		t = []byte{'f','F','F'-32}[rk]
+		t = []byte{'f', 'F', 'F' - 32}[rk]
 	case '&':
 	case '|':
-	case '<','>':
+	case '<', '>':
 		t = 'I'
 	case '=':
 		t = 'I' - 32
@@ -278,13 +278,13 @@ func mot(o, x []token) (t byte) {
 			E(m.p, "type must be i or I")
 		}
 	case '~':
-		t = []byte{'i','I','I'-32}[rk]
+		t = []byte{'i', 'I', 'I' - 32}[rk]
 	case ',':
 		t -= 32
 	case '#':
 		t = 'i'
 	case '_':
-		t = []byte{'i','I','I'-32}[rk]
+		t = []byte{'i', 'I', 'I' - 32}[rk]
 	case '$':
 		t = 'C'
 	case '?':
@@ -324,12 +324,12 @@ func at(x, y []token, p int) []token {
 func call(f []token, x [][]token, p int) (r []token) {
 	t := calt(f, x)
 	if len(x) == 1 {
-		return append(append(x[0], f...), token{s:"@", p:p, t: t, n:2, v:false})
+		return append(append(x[0], f...), token{s: "@", p: p, t: t, n: 2, v: false})
 	} else {
 		for i := range x {
 			r = append(r, x[len(x)-i-1]...)
 		}
-		return append(r, token{s:".", p:p, t: t, v:false, n:len(x)})
+		return append(r, token{s: ".", p: p, t: t, v: false, n: len(x)})
 	}
 }
 func calt(f []token, x [][]token) byte {
@@ -337,7 +337,7 @@ func calt(f []token, x [][]token) byte {
 	s := fn.s
 	if 5 == cl(s[0]) {
 		if sig := fun[s]; sig != nil && loc[s] == 0 {
-			if len(sig) != 1 + len(x) {
+			if len(sig) != 1+len(x) {
 				E(fn.p, "valence")
 			}
 			for i, xi := range x {
@@ -350,7 +350,7 @@ func calt(f []token, x [][]token) byte {
 	}
 	rk := rank(fn.t)
 	b := base(fn.t)
-	m := map[string]int { "i": rk-1, "I": rk, "ii":0, "iI":1, "Ii":1, "II":2}
+	m := map[string]int{"i": rk - 1, "I": rk, "ii": 0, "iI": 1, "Ii": 1, "II": 2}
 	if rk < len(x) || len(x) == 0 {
 		E(fn.p, "rank")
 	}
@@ -386,13 +386,23 @@ func maxtype(a, b byte) byte {
 }
 
 func t() []token {
-	c := peak()
-	if c == 59 || 2 == cl(c) {
-		return nil //;])}
-	}
-	x := token{s: tok()}
-	if x.s == "" {
-		return nil
+	var x token
+	var c byte
+	for {
+		c = peak()
+		if c == 59 || 2 == cl(c) {
+			return nil //;])}
+		}
+		x = token{s: tok()}
+		if x.s == "" {
+			return nil
+		}
+		if len(x.s) > 1 && x.s[0] == '/' {
+			tok()
+			continue
+		} else {
+			break
+		}
 	}
 	c = x.s[0]
 	fmt.Printf("c %c %d\n", c, cl(c))
@@ -423,7 +433,7 @@ func t() []token {
 			r = []token{}
 			y = rev(y)
 			tp := byte(0)
-			for i := 0; i<len(y); i++ {
+			for i := 0; i < len(y); i++ {
 				te := y[i][len(y[i])-1].t
 				if i == 0 {
 					tp = te
@@ -432,7 +442,7 @@ func t() []token {
 				}
 				r = append(r, y[i]...)
 			}
-			r = append(r, token{p:p, s:"enlist", t: tp-32, n:len(y)})
+			r = append(r, token{p: p, s: "enlist", t: tp - 32, n: len(y)})
 		}
 	} else if c == '{' {
 		r = es()
@@ -440,12 +450,12 @@ func t() []token {
 			E(1+pp, "} expected")
 		}
 		tok()
-		return append(append([]token{x}, r...),token{s:"}", p:pp})
+		return append(append([]token{x}, r...), token{s: "}", p: pp})
 	}
 	for {
 		y := peak()
 		if strings.IndexByte(`'/\`, y) >= 0 {
-			y := token{s:tok()}
+			y := token{s: tok()}
 			y.p = pp
 			y.n = 1
 			y.v = true
@@ -484,7 +494,7 @@ func e(x []token) []token {
 			fmt.Println("r", r)
 			E(ty.p, "no projection")
 		}
-		if ty.s[len(ty.s)-1] ==':' {
+		if ty.s[len(ty.s)-1] == ':' {
 			return as(x, y, r)
 		}
 		return dy(x, y, r)
@@ -501,7 +511,7 @@ func es() (r []token) {
 	for {
 		if s := peak(); s == '\n' || s == ';' {
 			if len(r) > 0 && r[len(r)-1].s != ";" {
-				r = append(r, token{s:";",p:pp})
+				r = append(r, token{s: ";", p: pp})
 			}
 			tok()
 			continue
@@ -580,5 +590,5 @@ func peak() byte {
 	if b < 0 {
 		return 0
 	}
-	return src[b] 
+	return src[b]
 }
