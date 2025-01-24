@@ -27,15 +27,16 @@ func main() {
 	//do(`1+f[2*a;3*b]`)
 	//do(`2.3`)
 	//do(`a:2 3. 4`)
-	//do(`f:"ii":{a:x;a+y}`)
+	do(`f:"ii":{a:x;a+y}`)
+	do(`f:"i":{x*x:x+3}`) // x:x+3;x*x
 	do(`f:"i":{!x}`)
 }
 func do(x string) {
 	r := parse(x)
 	if len(r.c) != 0 {
-		E(r.t.p, "parse does not complete")
+		E(r.p, "parse does not complete")
 	}
-	fmt.Println(r.t.s)
+	fmt.Println(r.s)
 }
 func parse(x string) (r node) {
 	a, b, tkst, sp, pp = -1, 0, 0, 0, 0
@@ -46,9 +47,9 @@ func parse(x string) (r node) {
 	if len(c) == 1 {
 		r = c[0]
 	} else {
-		r = node{t:token{s:";"}, c:c}
+		r = node{s:";", c:c}
 	}
-	for _, f := range []func(x node) node{applyTyp, loop, emtC} {
+	for _, f := range []func(x node) node{applyTyp, splitAsn, loop, retLast, emtC} {
 		r = f(r)
 	}
 	return r
@@ -59,16 +60,16 @@ func emtC(x node) node {
 	for i := range x.c {
 		x.c[i] = emtC(x.c[i])
 	}
-	s, p, t := x.t.s, x.t.p, ""
+	s, p, t := x.s, x.p, ""
 	if strings.HasSuffix(s, ":") && len(x.c) == 3 {
-		t = x.c[0].t.s
-		if s := x.c[1].t.s; s != "" {
+		t = x.c[0].s
+		if s := x.c[1].s; s != "" {
 			t += "[" + s + "]"
 		}
-		t += "=" + x.c[2].t.s
+		t += "=" + x.c[2].s
 	} else if len(s) == 1 && contains(prims, s[0]) {
 		if len(x.c) == 1 {
-			s0 := x.c[0].t.s
+			s0 := x.c[0].s
 			if i := strings.IndexByte("+*%", s[0]); i >= 0 {
 				c := []string{"abs", "sqr", "sqrt"}[i]
 				t = c + "(" + s0 + ")"
@@ -78,13 +79,13 @@ func emtC(x node) node {
 				E(p, "emit monadic")
 			}
 		} else if len(x.c) == 2 {
-			s0, s1 := x.c[0].t.s, x.c[1].t.s
+			s0, s1 := x.c[0].s, x.c[1].s
 			if i := strings.IndexByte("+-*%&|", s[0]); i >= 0 {
 				c := []string{"+", "-", "*", "/", "min", "max"}[i]
 				if len(c) == 1 {
 					t = "(" + s0 + c + s1 + ")"
 				} else {
-					t = c + string(x.t.t) + "(" + s0 + "," + s1 + ")"
+					t = c + string(x.t) + "(" + s0 + "," + s1 + ")"
 				}
 			} else if s == "@" {
 				t = s0 + "[" + s1 + "]"
@@ -95,97 +96,164 @@ func emtC(x node) node {
 			E(p, "emit primitive")
 		}
 	} else if len(x.c) == 0 {
-		t = x.t.s
+		t = x.s
+	} else if s == ";" {
+		for _, c := range x.c {
+			t += " " + emtC(c).s + ";\n"
+		}
+	} else if s == "R" {
+		if strings.HasPrefix(x.c[0].s, "(") {
+			t = "return" + x.c[0].s
+		} else {
+			t = "return " + x.c[0].s
+		}
 	} else if s == "args" {
 		a := make([]string, len(x.c))
 		for i, c := range x.c {
-			a[i] = ctyp(c.t.t) + " " + c.t.s
+			a[i] = ctyp(c.t) + " " + c.s
 		}
 		t = "(" + strings.Join(a, ",") + ")"
 	} else if strings.HasPrefix(s, "lambda") {
-		t = ctyp(x.t.t) + " " + x.c[0].t.s + x.c[1].t.s + "{\n" + decl(x) + "\n"
-		c := x.c[2:]
-		for i := range c {
-			s := " " + c[i].t.s + ";"
-			if i == len(c) - 1 {
-				s = " return" + s
-			}
-			t += s + "\n"
-		}
-		t += "}\n"
+		t = ctyp(x.t) + " " + x.c[0].s + x.c[1].s + "{\n" + decl(x) + "\n" + x.c[2].s + "}\n"
 	} else if s == "N" { // todo pre
-		t = "N(" + x.c[1].t.s + "){\n"
+		t = "N(" + x.c[1].s + "){\n"
 		for _, c := range x.c[2:] {
-			t += "  " + c.t.s + ";\n"
+			t += "  " + c.s + ";\n"
 		}
 		t += "}\n"
 	} else {
 		println(s, len(x.c))
 		E(p, "emit")
 	}
-	x.t.s = t
+	x.s = t
 	x.c = nil
 	return x
 }
+func retLast(x node) node {
+	if strings.HasPrefix(x.s, "lambda") {
+		c := x.c[2]
+		if len(c.c) > 0 {
+			lc := c.c[len(c.c)-1]
+			lc = node{s:"R", p:lc.p, t:lc.t, c:[]node{lc}}
+			c.c[len(c.c)-1] = lc
+			x.c[2] = c
+		}
+	} else {
+		for i := range x.c {
+			x.c[i] = retLast(x.c[i])
+		}
+	}
+	return x
+}
+func splitAsn(x node) node { // x*x:3+x => x:3+x;x*x // (* x (: x (+ 3 x))) => (; (: x (+ 3 x) (* x x))
+	if strings.HasPrefix(x.s, "lambda") {
+		x.c[2] = asplit([]node{x.c[2]})[0]
+	} else {
+		for i, c := range x.c {
+			x.c[i] = splitAsn(c)
+		}
+	}
+	return x
+}
+func asplit(x []node) []node {
+	x0 := x[0]
+	if strings.HasSuffix(x0.s, ":") && len(x0.c) == 3 {
+		rhs := asplit([]node{x0.c[2]})
+		idx := asplit([]node{x0.c[1]})
+		x[0] = x0.c[0]
+		x = append(x, rhs[1:]...)
+		x = append(x, idx[1:]...)
+		x = append(x, node{s:x0.s, p:x0.p, t:x0.t, c:[]node{x0.c[0], idx[0], rhs[0]}})
+		return x
+	} else if x0.s == ";" { //insert assignments into innermost statement list
+		var r []node
+		for i := range x0.c {
+			c := asplit([]node{x0.c[i]})
+			if len(c) == 2 && strings.HasSuffix(c[1].s, ":") && c[1].c[0].s == c[0].s { //dont split x:y into x:y;y at 1st level
+				c = c[1:]
+			}
+			r = append(r, c[1:]...)
+			r = append(r, c[0])
+		}
+		x0.c = r
+		x[0] = x0
+		return x
+	}
+	for j := len(x0.c) - 1; j>=0; j-- {
+		c := asplit([]node{x0.c[j]})
+		x[0].c[j] = c[0]
+		x = append(x, c[1:]...)
+	}
+	return x
+}
+
 func applyTyp(x node) node {
-	if x.t.s == ":" && len(x.c) == 3 {
-		if strings.HasPrefix(x.c[2].t.s, "lambda") {
+	if x.s == ":" && len(x.c) == 3 {
+		if strings.HasPrefix(x.c[2].s, "lambda") {
 			return lambdaTyp(x.c[0], x.c[2])
 		}
 		x.c[2] = applyTyp(x.c[2])
-		t := x.c[2].t.t
+		t := x.c[2].t
 		x.c[1] = applyTyp(x.c[1])
 		if x.c[1].nil() == false {
-			if x.c[1].t.t == 'i' {
+			if x.c[1].t == 'i' {
 				t -= 32 // F[i]:f
-			} else if x.c[1].t.t != 'I' {
-				E(x.t.p, "index type")
+			} else if x.c[1].t != 'I' {
+				E(x.p, "index type")
 			}
 		}
-		s := x.c[0].t.s
+		s := x.c[0].s
 		if lt, o := loc[s]; o && lt != t {
-			E(x.t.p, "reassign type")
+			E(x.p, "reassign type")
 		}
 		loc[s] = t
-		x.c[0].t.t = t
-		x.t.t = t
+		x.c[0].t = t
+		x.t = t
 		return x
 	}
-	for i := range x.c {
-		j := len(x.c) - i - 1
-		if x.c[j].t.t == 0 {
-			x.c[j] = applyTyp(x.c[j])
+	if x.s == ";" {
+		for i := range x.c {
+			x.c[i] = applyTyp(x.c[i])
+		}
+	} else {
+		for i := range x.c {
+			j := len(x.c) - i - 1
+			if x.c[j].t == 0 {
+				x.c[j] = applyTyp(x.c[j])
+			}
 		}
 	}
-	s, p := x.t.s, x.t.p
+	s, p := x.s, x.p
 	lt, lo := loc[s]
 	ft, fn := fun[s]
 	_, gl := glo[s]
 	if s == "" { //(: v nil rhs)
 	} else if contains(prims, s[0]) {
 		if len(x.c) == 1 {
-			x.t.t = mot(s[0], x.c[0].t.t, p)
+			x.t = mot(s[0], x.c[0].t, p)
 		} else if len(x.c) == 2 {
-			x.t.t = dyt(s[0], x.c[0].t.t, x.c[1].t.t, p)
+			x.t = dyt(s[0], x.c[0].t, x.c[1].t, p)
 		} else  { //(: a nil rhs)
 			E(p, "typ?")
 		}
+	} else if s == ";" {
+		x.t = x.c[len(x.c)-1].t
 	} else if lo {
-		x.t.t = lt
+		x.t = lt
 	} else if fn {
-		x.t.t = ft[len(ft)-1]
+		x.t = ft[len(ft)-1]
 	} else if gl {
-		x.t.t = glo[s]
+		x.t = glo[s]
 	} else if isnum(s) && len(x.c) == 0 {
-		x.t.t = 'i'
+		x.t = 'i'
 		if contains(s, '.') {
-			x.t.t = 'f'
+			x.t = 'f'
 		}
 	} else if s == "vlit" {
-		x.t.t = 'I'
+		x.t = 'I'
 		for _, c := range x.c {
-			if contains(c.t.s, '.') {
-				x.t.t = 'F'
+			if contains(c.s, '.') {
+				x.t = 'F'
 			}
 		}
 	} else {
@@ -195,12 +263,12 @@ func applyTyp(x node) node {
 	return x
 }
 func lambdaTyp(sy, x node) node {
-	name := sy.t.s
-	p := x.t.p
-	if !contains(x.t.s, ':') {
+	name := sy.s
+	p := x.p
+	if !contains(x.s, ':') {
 		E(p, "untyped lambda")
 	}
-	v := strings.Split(x.t.s, ":")
+	v := strings.Split(x.s, ":")
 	var rt byte
 	if len(v) == 3 { // f:"i:ii":{..}
 		rt = v[1][0]
@@ -214,25 +282,25 @@ func lambdaTyp(sy, x node) node {
 	var xy []node
 	for i := range args {
 		loc[string(sym[i])] = args[i]
-		xy = append(xy, node{t:token{s:string(sym[i]), t:args[i]}})
+		xy = append(xy, node{s:string(sym[i]), t:args[i]})
 	}
 	for i := range x.c {
-		if x.c[i].t.t == 0 {
+		if x.c[i].t == 0 {
 			x.c[i] = applyTyp(x.c[i])
 		}
 	}
 	if rt == 0 {
-		rt = x.c[len(x.c)-1].t.t
+		rt = x.c[len(x.c)-1].t
 		fun[name] = append([]byte(args), rt)
 	}
-	x.t.t = rt
-	sy.t.t = rt
-	x.c = append([]node{sy, node{t:token{s:"args", t:rt}, c:xy}}, x.c...)
-	return x
+	x.t = rt
+	sy.t = rt
+	x.c = append([]node{sy, node{s:"args", t:rt, c:xy}}, x.c...)
+	return x //(symbol;args;body)
 }
 func decl(x node) (r string) {
 	a := make(map[string]bool)
-	s := x.c[1].t.s // (int x,int y)
+	s := x.c[1].s // (int x,int y)
 	for _, c := range strings.Split(s[1:len(s)-1], ",") {
 		_, s, _ := strings.Cut(c, " ")
 		if strings.HasPrefix(s, "*") {
@@ -401,39 +469,35 @@ func loop(x node) (r node) {
 	for i := range x.c {
 		x.c[i] = loop(x.c[i])
 	}
-	p := x.t.p
-	if x.t.s == "!" && len(x.c) == 1 {
-		r = node{t:x.t, c:x.c}
-		r.t.s = "N"
-		r.c = append(r.c, node{t:token{s:"", p:p}}, node{t:token{s:"i", p:p}}) //N(n;pre;body)
-		return r
+	p := x.p
+	if x.s == "!" && len(x.c) == 1 {
+		x.s = "N"
+		x.c = append(x.c, node{s:"", p:p}, node{s:"i", p:p}) //N(n;pre;body)
+		return x
 	}
 	//todo
 	return x
 }
 
-type token struct {
+type node struct {
 	s string //string
 	p int    //src position
 	t byte   //type iIfF..
 	v bool   //verb
 	n int    //arity
-}
-type node struct {
-	t token
 	c []node
 }
-func (n node) nil() bool { return n.t.s == "" }
+func (n node) nil() bool { return n.s == "" }
 func (n node) print(l int) {
 	//fmt.Print(strings.Repeat(" ", l))
 	if n.c == nil {
-		fmt.Printf("%s", n.t.s)
-		if n.t.t != 0 {
-			fmt.Printf("%c", n.t.t)
+		fmt.Printf("%s", n.s)
+		if n.t != 0 {
+			fmt.Printf("%c", n.t)
 		}
 		return
 	}
-	fmt.Printf("(%s%c", n.t.s, n.t.t)
+	fmt.Printf("(%s%c", n.s, n.t)
 	for i := range n.c {
 		fmt.Printf(" ")
 		n.c[i].print(1+l)
@@ -456,14 +520,14 @@ func (a node) eql(b node) bool {
 }
 
 func t() (r node) {
-	var x token
+	var x node
 	var c byte
 	for {
 		c = peak()
 		if c == 59 || 2 == cl(c) {
 			return r //;])}
 		}
-		x = token{s: tok()}
+		x = node{s: tok()}
 		if x.s == "" {
 			return r
 		}
@@ -487,16 +551,16 @@ func t() (r node) {
 			x.s += ":"
 		}
 	}
-	r.t = x
+	r = x
 
 	if c == '(' {
 		y := ls()
 		if 1 == len(y) {
 			r = y[0]
 		} else {
-			r.t.s = "enlist"
-			r.t.n = len(y)
-			r.c = y //rev? typecheck children
+			r.s = "enlist"
+			r.n = len(y)
+			r.c = y //rev?
 		}
 	} else if c == '{' {
 		if lle > 0 {
@@ -509,36 +573,37 @@ func t() (r node) {
 		}
 		tok()
 		lle--
-		r.t.s = "lambda"
-		r.c = l
+		r.s = "lambda"
+		r.c = []node{node{s:";", p:r.p, c:l}}
 	}
 	for {
 		y := peak()
 		if strings.IndexByte(`'/\`, y) >= 0 {
-			y := token{s: tok()}
+			y := node{s: tok()}
 			y.p = pp
 			y.n = 1
 			y.v = true
-			r = node{t:y, c:[]node{r}}
+			y.c = []node{r}
+			r = y
 		} else if y == '[' {
-			if len(r.c) > 0 || cl(r.t.s[0]) != 5 {
+			if len(r.c) > 0 || cl(r.s[0]) != 5 {
 				E(pp, "[ expected after variable")
 			}
 			p := pp
 			tok()
 			y := rev(ls())
 			if len(y) == 1 {
-				r = node{t:token{s:"@", p:p, n:2}, c:[]node{r, y[0]}}
+				r = node{s:"@", p:p, n:2, c:[]node{r, y[0]}}
 			} else {
-				r = node{t:token{s:".", p:p, n:len(y)}, c:append([]node{node{t:x}}, y...)}
+				r = node{s:".", p:p, n:len(y), c:append([]node{x}, y...)}
 			}
-		} else if (isnum(r.t.s) && len(r.c) == 0) || r.t.s == "vlit" { //vector literal
+		} else if (isnum(r.s) && len(r.c) == 0) || r.s == "vlit" { //vector literal
 			if 6 == cl(y) || (y == '-' && 6 == cl(src[1+b])) {
-				b := node{t:token{s: tok()}}
-				if r.t.s == "vlit" {
+				b := node{s: tok()}
+				if r.s == "vlit" {
 					r.c = append(r.c, b)
 				} else {
-					r = node{t:token{s:"vlit", p:r.t.p}, c:[]node{node{t:r.t}, b}}
+					r = node{s:"vlit", p:r.p, c:[]node{r, b}}
 				}
 			} else {
 				break
@@ -557,41 +622,42 @@ func e(x node) node {
 	if y.nil() {
 		return x
 	}
-	tx := x.t
-	ty := y.t
-	if ty.v && !tx.v {
+	if y.v && !x.v {
 		r := e(t())
-		if r.nil() || r.t.v {
-			E(ty.p, "no projection")
+		if r.nil() || r.v {
+			E(y.p, "no projection")
 		}
-		if ty.s[len(ty.s)-1] == ':' {
-			sy := tx
+		if y.s[len(y.s)-1] == ':' {
+			sy := x
 			var ix node
-			if x.t.s == "@" && len(x.c) == 2 {
-				sy = x.c[0].t
+			if x.s == "@" && len(x.c) == 2 {
+				sy = x.c[0]
 				ix = x.c[1]
 			}
-			if x.t.s[0] == '"' && r.t.s == "lambda" {
-				r.t.s = "lambda:" + x.t.s[1:len(x.t.s)-1]
+			if x.s[0] == '"' && r.s == "lambda" {
+				r.s = "lambda:" + x.s[1:len(x.s)-1]
 				return r
 			}
 			if len(y.c) != 0 || 5 != cl(sy.s[0]) {
-				E(ty.p, "assign")
+				E(y.p, "assign")
 			}
-			ty.v = false
-			return node{t:ty, c:[]node{node{t:sy}, ix, r}} //assign
+			y.v = false
+			y.c = []node{sy, ix, r}
+			return y //assign
 		}
-		ty.v = false
-		return node{t: ty, c: []node{x, r}} //dy(x, y, r)
+		y.v = false
+		y.c = []node{x, r}
+		return y //dy
 	}
 	r := e(y)
-	if !tx.v { //juxtaposition
-		return node{t: token{s:"@", n:2, p: tx.p}, c: []node{x, r}}
-	} else if ty.v && tx.v && r.eql(y) {
-		E(ty.p, "no composition")
+	if !x.v { //juxtaposition
+		return node{s:"@", n:2, p:x.p, c: []node{x, r}}
+	} else if y.v && x.v && r.eql(y) {
+		E(y.p, "no composition")
 	}
-	tx.v = false
-	return node{t:tx, c:[]node{r}} //mo(x, r)
+	x.v = false
+	x.c = []node{r}
+	return x //mo
 }
 func es() (r []node) {
 	for {
