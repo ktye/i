@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"strconv"
 )
 
 const C = "aaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaadhddddebcdddjgmggggggggggdbdddddffffffffffffffffffffffffffblcddiffffkfffffffffffffffffffffbdcdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -27,9 +28,11 @@ func main() {
 	//do(`1+f[2*a;3*b]`)
 	//do(`2.3`)
 	//do(`a:2 3. 4`)
-	do(`f:"ii":{a:x;a+y}`)
-	do(`f:"i":{x*x:x+3}`) // x:x+3;x*x
-	do(`f:"i":{!x}`)
+	//do(`f:"ii":{a:x;a+y}`)
+	//do(`f:"i":{x*x:x+3}`) // x:x+3;x*x
+	//do(`f:"i":{%-!x}`)
+	//do(`f:"i":{r:1+!x}`)
+	do(`f:"I":{1+x}`)
 }
 func do(x string) {
 	r := parse(x)
@@ -49,19 +52,26 @@ func parse(x string) (r node) {
 	} else {
 		r = node{s:";", c:c}
 	}
-	for _, f := range []func(x node) node{applyTyp, splitAsn, loop, retLast, emtC} {
+	for _, f := range []func(x node) node{applyTyp, splitAsn, inlambda(loop), liftloop, retLast, emtC} {
 		r = f(r)
 	}
 	return r
 }
 
-func ctyp(b byte) string { return map[byte]string{'i':"int",'f':"double",'c':"char",'I':"*int",'F':"*double",'C':"*char"}[b] }
+func ctyp(b byte) string { return map[byte]string{'i':"int",'f':"double",'c':"char",'I':"int*",'F':"double*",'C':"char*"}[b] }
+func ctypname(b byte, s string) string {
+	r := ctyp(b)
+	if strings.HasSuffix(r, "*") || strings.HasPrefix(s, "*") {
+		return r + s
+	}
+	return r + " " + s
+}
 func emtC(x node) node {
 	for i := range x.c {
 		x.c[i] = emtC(x.c[i])
 	}
 	s, p, t := x.s, x.p, ""
-	if strings.HasSuffix(s, ":") && len(x.c) == 3 {
+	if isasn(x) {
 		t = x.c[0].s
 		if s := x.c[1].s; s != "" {
 			t += "[" + s + "]"
@@ -101,26 +111,26 @@ func emtC(x node) node {
 		for _, c := range x.c {
 			t += " " + emtC(c).s + ";\n"
 		}
-	} else if s == "R" {
+	} else if s == "_R" {
 		if strings.HasPrefix(x.c[0].s, "(") {
 			t = "return" + x.c[0].s
 		} else {
 			t = "return " + x.c[0].s
 		}
-	} else if s == "args" {
+	} else if s == "_args" {
 		a := make([]string, len(x.c))
 		for i, c := range x.c {
-			a[i] = ctyp(c.t) + " " + c.s
+			a[i] = ctypname(c.t, c.s)
 		}
 		t = "(" + strings.Join(a, ",") + ")"
-	} else if strings.HasPrefix(s, "lambda") {
-		t = ctyp(x.t) + " " + x.c[0].s + x.c[1].s + "{\n" + decl(x) + "\n" + x.c[2].s + "}\n"
-	} else if s == "N" { // todo pre
-		t = "N(" + x.c[1].s + "){\n"
-		for _, c := range x.c[2:] {
-			t += "  " + c.s + ";\n"
-		}
+	} else if islam(s) {
+		t = ctypname(x.t,x.c[0].s) + x.c[1].s + "{\n" + decl(x) + "\n" + x.c[2].s + "}\n"
+	} else if s == "_N" { // todo pre
+		t = "N(" + x.c[0].s + "){\n"
+		t += "  " + x.c[1].s + ";\n"
 		t += "}\n"
+	} else if s == "_n" {
+		t = "$n(" + x.c[0].s + ")"
 	} else {
 		println(s, len(x.c))
 		E(p, "emit")
@@ -130,11 +140,11 @@ func emtC(x node) node {
 	return x
 }
 func retLast(x node) node {
-	if strings.HasPrefix(x.s, "lambda") {
+	if islam(x.s) {
 		c := x.c[2]
 		if len(c.c) > 0 {
 			lc := c.c[len(c.c)-1]
-			lc = node{s:"R", p:lc.p, t:lc.t, c:[]node{lc}}
+			lc = node{s:"_R", p:lc.p, t:lc.t, c:[]node{lc}}
 			c.c[len(c.c)-1] = lc
 			x.c[2] = c
 		}
@@ -145,8 +155,42 @@ func retLast(x node) node {
 	}
 	return x
 }
+func liftloop(x node) node {
+	if islam(x.s) {
+		x.c[2] = liftloops([]node{x.c[2]})[0]
+	} else {
+		for i, c := range x.c {
+			x.c[i] = liftloop(c)
+		}
+	}
+	return x
+}
+func liftloops(x []node) []node {
+	x0 := x[0]
+	if x0.s == "_N" {
+		ssa := func(t byte) node { return node{s:"ssa0", p:x0.p, t:t} } //todo
+		r := ssa(x0.t) //todo declare/asn
+		return append([]node{r, x0}, x[1:]...)
+	} else if x0.s == ";" {
+		var r []node
+		for i := range x0.c {
+			c := liftloops([]node{x0.c[i]})
+			r = append(r, c[1:]...)
+			r = append(r, c[0])
+		}
+		x0.c = r
+		x[0] = x0
+		return x
+	}
+	for j := len(x0.c)-1; j>=0; j-- {
+		c := liftloops([]node{x0.c[j]})
+		x[0].c[j] = c[0]
+		x = append(x, c[1:]...)
+	}
+	return x
+}
 func splitAsn(x node) node { // x*x:3+x => x:3+x;x*x // (* x (: x (+ 3 x))) => (; (: x (+ 3 x) (* x x))
-	if strings.HasPrefix(x.s, "lambda") {
+	if islam(x.s) {
 		x.c[2] = asplit([]node{x.c[2]})[0]
 	} else {
 		for i, c := range x.c {
@@ -157,7 +201,7 @@ func splitAsn(x node) node { // x*x:3+x => x:3+x;x*x // (* x (: x (+ 3 x))) => (
 }
 func asplit(x []node) []node {
 	x0 := x[0]
-	if strings.HasSuffix(x0.s, ":") && len(x0.c) == 3 {
+	if isasn(x0) {
 		rhs := asplit([]node{x0.c[2]})
 		idx := asplit([]node{x0.c[1]})
 		x[0] = x0.c[0]
@@ -186,10 +230,24 @@ func asplit(x []node) []node {
 	}
 	return x
 }
+func inlambda(f func(x node) node) func(x node) node {
+	var g func(x node) node
+	g = func(x node) node {
+		if islam(x.s) {
+			x.c[2] = f(x.c[2])
+		} else {
+			for i := range x.c {
+				x.c[i] = g(x.c[i])
+			}
+		}
+		return x
+	}
+	return g
+}
 
 func applyTyp(x node) node {
-	if x.s == ":" && len(x.c) == 3 {
-		if strings.HasPrefix(x.c[2].s, "lambda") {
+	if isasn(x) {
+		if islam(x.c[2].s) {
 			return lambdaTyp(x.c[0], x.c[2])
 		}
 		x.c[2] = applyTyp(x.c[2])
@@ -249,7 +307,7 @@ func applyTyp(x node) node {
 		if contains(s, '.') {
 			x.t = 'f'
 		}
-	} else if s == "vlit" {
+	} else if s == "_vlit" {
 		x.t = 'I'
 		for _, c := range x.c {
 			if contains(c.s, '.') {
@@ -295,7 +353,7 @@ func lambdaTyp(sy, x node) node {
 	}
 	x.t = rt
 	sy.t = rt
-	x.c = append([]node{sy, node{s:"args", t:rt, c:xy}}, x.c...)
+	x.c = append([]node{sy, node{s:"_args", t:rt, c:xy}}, x.c...)
 	return x //(symbol;args;body)
 }
 func decl(x node) (r string) {
@@ -327,11 +385,7 @@ func decl(x node) (r string) {
 	}
 	for _, t := range []byte("cifz") {
 		if v, o := b[t]; o {
-			sp := " "
-			if v[0][0] == '*' {
-				sp = ""
-			}
-			r += " " + ctyp(t) + sp + strings.Join(v, ",") + ";"
+			r += " " + ctypname(t,strings.Join(v, ",")) + ";"
 		}
 	}
 	return r
@@ -471,12 +525,62 @@ func loop(x node) (r node) {
 	}
 	p := x.p
 	if x.s == "!" && len(x.c) == 1 {
-		x.s = "N"
-		x.c = append(x.c, node{s:"", p:p}, node{s:"i", p:p}) //N(n;pre;body)
+		x.s = "_N"
+		x.c = append(x.c, node{s:"i", p:p}) //N(n;body;[pre])
 		return x
+	} else if len(x.c) == 1 && len(x.s) == 1 && contains("-*%", x.s[0]) {
+		t := x.t
+		if x.c[0].s == "_N" {
+			r := x.c[0]
+			c := r.c[1]
+			x.c[0] = c
+			r.c[1] = x
+			return r
+		} else if isvec(t) {
+			return node{s:"_N", t:t, p:x.p, c: []node{count(x), ati(x)}}
+		}
+	} else if len(x.c) == 2 && len(x.s) == 1 && contains("+-*%&|<=>", x.s[0]) {
+		t := x.t
+		if x.c[0].s == "_N" && x.c[1].s == "_N" {
+			l := x.c[0]
+			r := x.c[1]
+			x.c[0] = l.c[1]
+			x.c[1] = r.c[1]
+			r.c[1] = x
+			r.t = t
+			r.p = x.p
+			return r
+		} else if x.c[0].s == "_N" {
+			r := x.c[0]
+			x.c[0] = r.c[1]
+			return r
+		} else if x.c[1].s == "_N" {
+			r := x.c[1]
+			x.c[1] = r.c[1]
+			r.c[1] = x
+			return r
+		}
+	} else if isasn(x) && x.c[2].s == "_N" { //todo x[i]:..
+		r := x.c[2]
+		x.c[1] = node{s:"i", t:'i', p:x.p}
+		x.c[2] = r.c[1]
+		r.c[1] = x
+		return r
+	} else if isvec(x.t) && isnam(x.s) {
+		return node{s:"_N", p:x.p, t:x.t, c:[]node{count(x), ati(x)}}
 	}
-	//todo
 	return x
+}
+func ati(x node) node {	return node{s:"@", p:x.p, t:x.t - 32, c:[]node{x, node{s:"i", t:'i', p:x.p}}} }
+func count(x node) (n node) {
+	if x.s == "_vlit" {
+		n = node{s:strconv.Itoa(len(x.c)), p:x.p, t:'i'}
+	} else if isnam(x.s) {
+		n = node{s:"_n", p:x.p, t:'i', c:[]node{x}}
+	} else {
+		E(x.p, "cannot count")
+	}
+	return n
 }
 
 type node struct {
@@ -573,7 +677,7 @@ func t() (r node) {
 		}
 		tok()
 		lle--
-		r.s = "lambda"
+		r.s = "_lambda"
 		r.c = []node{node{s:";", p:r.p, c:l}}
 	}
 	for {
@@ -597,13 +701,13 @@ func t() (r node) {
 			} else {
 				r = node{s:".", p:p, n:len(y), c:append([]node{x}, y...)}
 			}
-		} else if (isnum(r.s) && len(r.c) == 0) || r.s == "vlit" { //vector literal
+		} else if (isnum(r.s) && len(r.c) == 0) || r.s == "_vlit" { //vector literal
 			if 6 == cl(y) || (y == '-' && 6 == cl(src[1+b])) {
 				b := node{s: tok()}
-				if r.s == "vlit" {
+				if r.s == "_vlit" {
 					r.c = append(r.c, b)
 				} else {
-					r = node{s:"vlit", p:r.p, c:[]node{r, b}}
+					r = node{s:"_vlit", p:r.p, c:[]node{r, b}}
 				}
 			} else {
 				break
@@ -634,8 +738,8 @@ func e(x node) node {
 				sy = x.c[0]
 				ix = x.c[1]
 			}
-			if x.s[0] == '"' && r.s == "lambda" {
-				r.s = "lambda:" + x.s[1:len(x.s)-1]
+			if x.s[0] == '"' && r.s == "_lambda" {
+				r.s = "_lambda:" + x.s[1:len(x.s)-1]
 				return r
 			}
 			if len(y.c) != 0 || 5 != cl(sy.s[0]) {
@@ -696,6 +800,10 @@ func rev(x []node) []node {
 	return r
 }
 func isnum(s string) bool { return (len(s) > 1 && s[0] == '-') || 6 == cl(s[0]) }
+func isnam(s string) bool { return len(s) > 0 && contains("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",s[0]) }
+func islam(s string) bool { return strings.HasPrefix(s, "_lambda") }
+func isvec(b byte) bool { return b < 'a' }
+func isasn(x node) bool { return len(x.c) == 3 && strings.HasSuffix(x.s, ":") }
 func contains(s string, b byte) bool { return strings.IndexByte(s, b) >= 0 }
 
 
