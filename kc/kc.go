@@ -18,11 +18,16 @@ const prior = ":+-*%&|<>=          "
 var tkst, sp, pp int
 var a, b = -1, 0
 var src []byte
-var lle = 0
+var ssb map[byte]int
 var glo map[string]byte
+var loc map[string]byte
 var fun map[string][]byte // "xyzr"
-var fns map[string]fnctx
-var fn fnctx
+
+func setfunc() {
+	ssb = make(map[byte]int)
+	loc = make(map[string]byte)
+}
+
 
 func main() {
 	//do(`1+2`)
@@ -33,36 +38,62 @@ func main() {
 	//do(`1+f[2*a;3*b]`)
 	//do(`2.3`)
 	//do(`a:2 3. 4`)
-	//do(`f:"ii":{a:x;a+y}`)
-	//do(`f:"i":{x*x:x+3}`) // x:x+3;x*x
-	do(`f:"i":{%-!x}`)
-	do(`g:"i":{+/!x}`)
-	do(`h:"i":{+\!x}`)
-	do(`p:"I":{-'3*x}`)
+	//do(`f:ii{a:x;a+y}`)
+	//do(`f:i{x*x:x+3}`) // x:x+3;x*x
+	//do(`f:i{%-!x}`)
+	//do(`g:i{+/!x}`)
+	//do(`h:i{+\!x}`)
+	do(`p:I{-'3*x}`)
+	//do(`med:"F":{@@|2^^x}`)
+	do(`X:5`)
+	do(`avg:F{(+/x)%#x}`)
+	//do(`var:"F":{(+/x*x:(x-avg x))%-1+#x}`)
+	//do(`fft:"Z":{$[-1+n:#x;(x+r),(x:fft x o)-r:(1@(!n)*-180.%n)*fft[x 1+o:2*!n%:2];x]}`)
 }
 func do(x string) {
-	r := parse(x)
-	if len(r.c) != 0 {
-		E(r.p, "parse does not complete")
-	}
-	fmt.Println(r.s)
-}
-func parse(x string) (r node) {
 	a, b, tkst, sp, pp = -1, 0, 0, 0, 0
 	src = []byte(x)
 	fun = make(map[string][]byte)
-	fns = make(map[string]fnctx)
-	c := es()
-	if len(c) == 1 {
-		r = c[0]
-	} else {
-		r = node{s: ";", c: c}
+	if glo == nil {
+		glo = make(map[string]byte)
 	}
-	for _, f := range []func(x node) node{rename, applyTyp, splitAsn, inlambda(loop), liftloop, retLast, emtc} {
-		r = f(r)
+
+	m := node{s:"_main", c:[]node{node{},node{}}}
+	g := []node{}
+	for _, x := range es() {
+		if isasn(x) {
+			if islam(x.c[2].s) {
+				setfunc()
+				o(x)
+			} else if isasn(x.c[2]) && islam(x.c[2].c[2].s) {
+				setfunc()
+				o(x)
+			} else { //global
+				glo[x.c[0].s] = 0
+				x = rename(typ(x))
+				g = append(g, x)
+				glo[x.c[0].s] = x.t
+//todo: decl global
+			}
+		} else {
+			g = append(g, rename(typ(x)))
+		}
 	}
-	//r.s = chead + r.s
-	return r
+	if len(g) > 2 {
+		setfunc()
+		m.c = append(m.c, node{s:";", c:g})
+		o(m)
+	}
+}
+func o(x node) {
+	F := []func(x node) node {
+		rename, typ, splitAsn, inlambda(loop), liftloop, 
+		retLast, emtc,
+	}
+	for _, f := range F {
+		x = f(x)
+	}
+	fmt.Println(x.s)
 }
 
 func ssa(t byte, p int) node {
@@ -70,9 +101,9 @@ func ssa(t byte, p int) node {
 	if t < 'A' {
 		u = "L" + string(t+32)
 	}
-	s := fmt.Sprintf("%s%d", u, fn.ssb[t])
-	fn.ssb[t]++
-	fn.loc[s] = t
+	s := fmt.Sprintf("%s%d", u, ssb[t])
+	ssb[t]++
+	loc[s] = t
 	return node{s: s, t: t, p: p}
 }
 func ctyp(b byte) string {
@@ -105,8 +136,8 @@ func emtc(x node) node {
 	} else if len(s) == 1 && contains(prims, s[0]) {
 		if len(x.c) == 1 {
 			s0 := x.c[0].s
-			if i := strings.IndexByte("+*%", s[0]); i >= 0 {
-				c := []string{"abs", "sqr", "sqrt"}[i]
+			if i := strings.IndexByte("+*%#", s[0]); i >= 0 {
+				c := []string{"abs", "sqr", "sqrt", "n1"}[i]
 				t = c + "(" + s0 + ")"
 			} else if s == "-" {
 				t = "-" + s0
@@ -142,12 +173,15 @@ func emtc(x node) node {
 		}
 	} else if s == "_R" {
 		r := x.c[0].s
-		for s, b := range fn.loc {
+		for s, b := range loc {
 			if s != r && b < 'a' {
 				t += "_(" + s + ");"
 			}
 		}
-		t += "return " + r
+		if contains("*(-", r[0]) == false {
+			r = " " + r
+		}
+		t += "return" + r
 	} else if s == "_args" {
 		a := make([]string, len(x.c))
 		for i, c := range x.c {
@@ -155,8 +189,9 @@ func emtc(x node) node {
 		}
 		t = "(" + strings.Join(a, ",") + ")"
 	} else if islam(s) {
-		setfunc(x.c[0].s)
 		t = ctypname(x.t, x.c[0].s) + x.c[1].s + "{\n" + decl(x) + x.c[2].s + "}\n"
+	} else if s == "_main" { //todo a:..
+		t = "int main(int _na,char**_a){\n" + decl(x) + x.c[2].s + "}\n"
 	} else if s == "_N" { // todo pre
 		n := x.c[0].s
 		t = "{int n=" + n + ";"
@@ -174,11 +209,11 @@ func emtc(x node) node {
 		}
 		t += "N"
 		s := x.c[1].s
-		if contains(s, ';') {
-			t += "{" + strings.ReplaceAll(s, "\n", "") + " }}\n"
-		} else {
-			t += s + ";}\n"
+		s = strings.ReplaceAll(s, "\n","")
+		if strings.HasSuffix(s, ";") == false {
+			s += ";"
 		}
+		t += "{" + s + "}}\n"
 	} else if s == "_n" {
 		t = "n1(" + x.c[0].s + ")"
 	} else {
@@ -190,7 +225,6 @@ func emtc(x node) node {
 }
 func retLast(x node) node {
 	if islam(x.s) {
-		setfunc(x.c[0].s)
 		c := x.c[2]
 		if len(c.c) > 0 {
 			lc := c.c[len(c.c)-1]
@@ -207,7 +241,6 @@ func retLast(x node) node {
 }
 func liftloop(x node) node {
 	if islam(x.s) {
-		setfunc(x.c[0].s)
 		x.c[2] = liftloops([]node{x.c[2]})[0]
 	} else {
 		for i, c := range x.c {
@@ -261,7 +294,6 @@ func liftloops(x []node) []node {
 }
 func splitAsn(x node) node { // x*x:3+x => x:3+x;x*x // (* x (: x (+ 3 x))) => (; (: x (+ 3 x) (* x x))
 	if islam(x.s) {
-		setfunc(x.c[0].s)
 		x.c[2] = asplit([]node{x.c[2]})[0]
 	} else {
 		for i, c := range x.c {
@@ -305,7 +337,6 @@ func inlambda(f func(x node) node) func(x node) node {
 	var g func(x node) node
 	g = func(x node) node {
 		if islam(x.s) {
-			setfunc(x.c[0].s)
 			x.c[2] = f(x.c[2])
 		} else {
 			for i := range x.c {
@@ -340,15 +371,16 @@ func rename(x node) node {
 	}
 	return x
 }
-func applyTyp(x node) node {
+func typ(x node) node {
 	if isasn(x) {
-		if islam(x.c[2].s) {
-			setfunc(x.c[0].s)
-			return lambdaTyp(x.c[0], x.c[2])
+		if islam(x.c[2].s) { // f:ii{..}
+			return lambdaTyp(x.c[0], x.c[2], 0)
+		} else if isasn(x.c[2]) && islam(x.c[2].c[2].s) { // f:i:ii{..}
+			return lambdaTyp(x.c[0], x.c[2].c[2], x.c[2].s[0])
 		}
-		x.c[2] = applyTyp(x.c[2])
+		x.c[2] = typ(x.c[2])
 		t := x.c[2].t
-		x.c[1] = applyTyp(x.c[1])
+		x.c[1] = typ(x.c[1])
 		if x.c[1].nil() == false {
 			if x.c[1].t == 'i' {
 				t -= 32 // F[i]:f
@@ -357,28 +389,28 @@ func applyTyp(x node) node {
 			}
 		}
 		s := x.c[0].s
-		if lt, o := fn.loc[s]; o && lt != t {
+		if lt, o := loc[s]; o && lt != t {
 			E(x.p, "reassign type")
 		}
-		fn.loc[s] = t
+		loc[s] = t
 		x.c[0].t = t
 		x.t = t
 		return x
 	}
 	if x.s == ";" {
 		for i := range x.c {
-			x.c[i] = applyTyp(x.c[i])
+			x.c[i] = typ(x.c[i])
 		}
 	} else {
 		for i := range x.c {
 			j := len(x.c) - i - 1
 			if x.c[j].t == 0 {
-				x.c[j] = applyTyp(x.c[j])
+				x.c[j] = typ(x.c[j])
 			}
 		}
 	}
 	s, p := x.s, x.p
-	lt, lo := fn.loc[s]
+	lt, lo := loc[s]
 	ft, fn := fun[s]
 	_, gl := glo[s]
 	if s == "" { //(: v nil rhs)
@@ -451,36 +483,38 @@ func applyTyp(x node) node {
 	}
 	return x
 }
-func lambdaTyp(sy, x node) node {
+func lambdaTyp(sy, x node, rt byte) node {
 	name := sy.s
 	p := x.p
-	if !contains(x.s, ':') {
+	v := strings.Split(x.s, ":")
+	if len(v) != 2 {
 		E(p, "untyped lambda")
 	}
-	v := strings.Split(x.s, ":")
-	var rt byte
-	if len(v) == 3 { // f:"i:ii":{..}
-		rt = v[1][0]
-		fun[name] = append([]byte(v[1]), rt)
-	} else if len(v) != 2 { // f:"ii":{..}
-		E(p, "untyped type annotation")
-	}
-	args := v[1]
+
+	args := []byte(v[1])
 	sym := "xyzabcdefghijklmnopqrstuvwxyz"
 	var xy []node
 	for i := range args {
-		fn.loc[string(sym[i])] = args[i]
+		if j := strings.IndexByte("SLAB", args[i]); j >= 0 {
+			args[i] = []byte{'C'-32, 'I'-32, 'F'-32, 'Z'-32}[i]
+		} else if contains("cifzCIFZ", args[i]) == false {
+			E(p, "type annotation")
+		}
+		loc[string(sym[i])] = args[i]
 		xy = append(xy, node{s: string(sym[i]), t: args[i]})
 	}
 	for i := range x.c {
 		if x.c[i].t == 0 {
-			x.c[i] = applyTyp(x.c[i])
+			x.c[i] = typ(x.c[i])
 		}
 	}
+	lt := x.c[len(x.c)-1].t
 	if rt == 0 {
-		rt = x.c[len(x.c)-1].t
-		fun[name] = append([]byte(args), rt)
+		rt = lt
+	} else if rt != lt {
+		E(p, "return type")
 	}
+	fun[name] = append(args, rt)
 	x.t = rt
 	sy.t = rt
 	x.c = append([]node{sy, node{s: "_args", t: rt, c: xy}}, x.c...)
@@ -496,7 +530,7 @@ func decl(x node) (r string) {
 		a[c] = true
 	}
 	b := make(map[byte][]string)
-	for s, t := range fn.loc {
+	for s, t := range loc {
 		if !a[s] {
 			p, z := "", ""
 			if t < 'A' {
@@ -763,28 +797,6 @@ func count(x node) (n node) {
 	return n
 }
 
-type fnctx struct {
-	name string
-	ssb  map[byte]int
-	loc  map[string]byte
-}
-
-func setfunc(s string) {
-	if fn.name != "" {
-		fns[fn.name] = fn
-	}
-	f, o := fns[s]
-	if !o {
-		f = fnctx{
-			name: s,
-			ssb:  make(map[byte]int),
-			loc:  make(map[string]byte),
-		}
-		fns[s] = f
-	}
-	fn = fns[s]
-}
-
 type node struct {
 	s string //string
 	p int    //src position
@@ -876,18 +888,7 @@ func t() (r node) {
 			r.c = y //rev?
 		}
 	} else if c == '{' {
-		if lle > 0 {
-			E(x.p, "block")
-		}
-		lle++
-		l := es()
-		if peak() != 125 {
-			E(pp, "missing "+string(125))
-		}
-		tok()
-		lle--
-		r.s = "_lambda"
-		r.c = []node{node{s: ";", p: r.p, c: l}}
+		E(x.p, "untyped lambda (todo block)")
 	}
 	for {
 		y := peak()
@@ -910,6 +911,16 @@ func t() (r node) {
 			} else {
 				r = node{s: ".", p: p, n: len(y), c: append([]node{x}, y...)}
 			}
+		} else if isnam(r.s) && len(r.c) == 0 && y == '{' {
+			tok()
+			l := es()
+			if peak() != 125 {
+				E(pp, "missing "+string(125))
+			}
+			tok()
+			r.s = "_lambda:" + r.s
+			r.c = []node{node{s: ";", p: r.p, c: l}}
+			return r
 		} else if (isnum(r.s) && len(r.c) == 0) || r.s == "_vlit" { //vector literal
 			if 6 == cl(y) || (y == '-' && 6 == cl(src[1+b])) {
 				b := node{s: tok()}
@@ -946,10 +957,6 @@ func e(x node) node {
 			if x.s == "@" && len(x.c) == 2 {
 				sy = x.c[0]
 				ix = x.c[1]
-			}
-			if x.s[0] == '"' && r.s == "_lambda" {
-				r.s = "_lambda:" + x.s[1:len(x.s)-1]
-				return r
 			}
 			if len(y.c) != 0 || 5 != cl(sy.s[0]) {
 				E(y.p, "assign")
