@@ -15,8 +15,8 @@ const prims = ":+-*%&|<>=^!~,#_$?@."
 const reduc = ":+-*%&|<>=  ~,      "
 const prior = ":+-*%&|<>=          "
 
-var tkst, sp, pp int
-var a, b = -1, 0
+//var tkst, sp, pp int
+//var a, b = -1, 0
 var src []byte
 var ssb map[byte]int
 var glo map[string]byte
@@ -56,8 +56,9 @@ func main() {
 	//do(`fft:"Z":{$[-1+n:#x;(x+r),(x:fft x o)-r:(1@(!n)*-180.%n)*fft[x 1+o:2*!n%:2];x]}`)
 }
 func do(x string) {
-	a, b, tkst, sp, pp = -1, 0, 0, 0, 0
-	src = []byte(x)
+	//a, b, tkst, sp, pp = -1, 0, 0, 0, 0
+	//src = []byte(x)
+	token(x)
 	fun = make(map[string][]byte)
 	if glo == nil {
 		glo = make(map[string]byte)
@@ -1154,6 +1155,8 @@ func maxtype(a, b byte) byte {
 	return b
 }
 func cl(c byte) int { return int(C[c]) - 97 }
+
+/*
 func nxt() int {
 	if sp == len(src) {
 		return -1
@@ -1200,6 +1203,16 @@ func peak() byte {
 		return 0
 	}
 	return src[b]
+}
+*/
+func token(s string) {
+	src = []byte(s)
+	w := make([]bool, len(src))
+	t := 0
+	for _, c := range src {
+		t = int(T[14*t+cl(c)]-97)
+		w[i] = 11 > t
+	}
 }
 
 const chead = `#include<stdlib.h>
