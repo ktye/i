@@ -175,9 +175,6 @@ func TestKT(t *testing.T) {
 	dofile(mkchars([]byte("k.t")), mkchars(b))
 	reset()
 	reset()
-	if err := os.Remove("out"); err != nil {
-		t.Fatal(err)
-	}
 }
 func TestKE(t *testing.T) {
 	//t.Skip()

@@ -1,15 +1,15 @@
-ktye/k ktye.github.io/kdoc.htm
-+ flp add  '  ech     both bin
-- neg sub  /  ovr/fix echright
-* fst mul  \  scn/fix eachleft
+ktye/k   ktye.github.io/k.html
++ flp add  '  ech pri both bin
+- neg sub  /  ovr fix echright
+* fst mul  \  scn fix eachleft
 % sqr div      / join   decode
 ! til key  mod \ split  encode
 & wer min  $[a;b;...]     cond
 | rev max  while[c;a;b;d;e;..]
 < asc les  f:{x+y}   [bl;o;ck]
-> dsc mor              "abc" c
+> dsc mor            "chars" c
 = grp eql  01234567   1 2 3  i
-~ not mtc   :+-*%&|   4 5 6. f
+~ not mtc   :+-*%&|  .4 5 6. f
 , enl cat  <>=~!,^#   2a300  z
 ^ srt cut  _$?@.     (1;2 3) L
 # cnt tak           `a`b!5 6 D

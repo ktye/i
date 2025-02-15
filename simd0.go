@@ -57,11 +57,11 @@ func sumi(xp, e int32) int32 {
         }
         return r
 }
-func sumf(xp, e, s int32) float64 {
+func sumf(xp, e int32) float64 {
         r := 0.0
         for xp < e {
                 r += F64(xp)
-                xp += s
+                xp += 8
         }
         return r
 }

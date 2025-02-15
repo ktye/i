@@ -1,6 +1,11 @@
 set -x
 set -e
 
+#wg -tags simd4 .
+#wg -c . > /tmp/k/k.c && cc -O3 -Wall /tmp/k/k.c -Wfatal-errors -lm
+#wg -tags simd5 -c . > /tmp/k/v.c && clang-17 -O3 -Wall -mavx2 /tmp/k/v.c -Wfatal-errors -lm
+#exit 0
+
 # embed z.k in z.go
 sed -e '/^\//d' -e 's,  */.*,,' -e 's/^ *//' -e '/^$/d' z.k > k.k
 zn=`wc -c k.k | sed 's/ .*//'`

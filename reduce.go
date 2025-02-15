@@ -60,14 +60,22 @@ func sum(yp int32, t T, e int32) K { // +/x
 		return 0
 	case 3: // Ft
 		f := 0.0
-		return Kf(f + sumf(yp, e, 8))
+		return Kf(f + sumf(yp, e))
 	case 4: // Zt
 		re := 0.0
 		im := 0.0
-		return Kz(re+sumf(yp, e, 16), im+sumf(yp+8, e, 16))
+		return Kz(re+sumz(yp, e), im+sumz(yp+8, e))
 	default:
 		return 0
 	}
+}
+func sumz(xp, e int32) float64 {
+	r := 0.0
+	for xp < e {
+		r += F64(xp)
+		xp += 16
+	}
+	return r
 }
 func prd(yp int32, t T, e int32) K { // */x
 	xp := int32(1)
