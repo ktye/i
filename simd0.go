@@ -65,6 +65,18 @@ func sumf(xp, e int32) float64 {
         }
         return r
 }
+func sumz(xp, e, rp int32) {
+	r := 0.0
+	i := 0.0
+	for xp < e {
+		r += F64(xp)
+		xp += 8
+		i += F64(xp)
+		xp += 8
+	}
+	SetF64(rp, r)
+	SetF64(rp+8, i)
+}
 func nm(f int32, x K) K { //monadic
 	var r K
 	xt := tp(x)

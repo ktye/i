@@ -18,3 +18,11 @@ const vl = 16 //vector length
 
 func ev(ep int32) int32 { return (15 + ep) & -16 }
 func eu(ep int32) int32 { return ep & -16 }
+func sumz(x, e, r int32) {
+	a := VFsplat(0.0)
+	for x < e {
+		a = a.Add(VFload(x))
+		x += vl
+	}
+	VFstore(r, a)
+}
