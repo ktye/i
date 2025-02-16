@@ -40,7 +40,6 @@ abs:`32;sin:`44;cos:`45;find:`31;imag:`33;conj:`34;angle:`35;exp:`42;log:`43
  $[`T~t;"+",d[+y;k];`D~t;d[y;k];0~#y;(`C`I`S`F`Z`L!("\"\"";"!0";"0#`";"0#0.";"0@0a";"()"))t;y~*y;a y;v[y;k;x]]} /344
  
 `k:`kxy 1000000
-`d:{x-(*x),-1_x}  /deltas
 
 /random
 `rf: {.5+(x?0)%4294967295.}           /?n (uniform)  e.g. ?100

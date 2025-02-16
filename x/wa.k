@@ -2,6 +2,7 @@
 F:(0#`)!()
 hx8:{[i]"0x",`x@|C i+!8}
 lp:{(~~)#@[&#x;x i;i:!#x]}
+delta:{x-(*x),-1_x}
 
 
 wa:{[o]opts::o
@@ -37,7 +38,7 @@ wamem:{y;""}
 wacon:{"(global $",($S x)," ",(watype S 1+x)," (",(*y),"))"}
 wavar:{"(global $",($S x)," (mut ",(watype S 1+x),") (",(*y),"))"}
 watab:{y;(I x;S x)}
-watbl:{"\n"/{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/'"$",''$(i:&~1=`d@*x)^(x:+x)1]}
+watbl:{"\n"/{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/'"$",''$(i:&~1=delta@*x)^(x:+x)1]}
 wafun:{s:$S x
  args:" "/y@&`arg=T c:&x=P
  rets:" "/y@&`res=T c

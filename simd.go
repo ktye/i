@@ -606,13 +606,19 @@ func nd(f, ff int32, x, y K) K { //dyadic
 		n = nn(x)
 		y = Enl(y)
 		yp = int32(y)
+		if t > st {
+			if f == 232 {
+				return scale(y, x)
+			}
+			if f == 241 {
+				return scale(Div(Kf(1.0), y), x)
+			}
+		}
 		if f < 238 { // +*&|
 			xp = yp
 			yp = int32(x)
 			ix = 0
 			av = 1
-		} else if f == 241 && t > st {
-			return scale(Div(Kf(1.0), y), x)
 		} else {
 			iy = 0
 		}

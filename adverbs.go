@@ -34,7 +34,7 @@ func Ech(f, x K) K {
 		x = explode(x)
 	}
 	if t == 0 && xt < Lt && int32(f) < 11 { // :+-*%&|<>=
-		return prior(f, x)
+		return prior(int32(f), x)
 	}
 	xn := nn(x)
 	r = mk(Lt, xn)
@@ -343,8 +343,18 @@ func uf(x K) K {
 	dx(x)
 	return r
 }
-func prior(f, x K) K {
-	//println("f",int32(f))
-	trap()
-	return x
+func prior(f int32, x K) K {
+	n := nn(x)
+	if n == 0 {
+		if f < 8 {
+			dx(x)
+			return mk(It, 0)
+		}
+		return x
+	}
+	a := Ki(0) // <=> first is always 0
+	if f < 8 { // :' rotates
+		a = ati(rx(x), (n-1)*I32B(f == 1)) // +-*%&| keep 1st element
+	}
+	return sti(Func[f+64].(f2)(x, atv(rx(x), Add(Ki(-1), seq(n)))), 0, a)
 }
