@@ -88,8 +88,7 @@ func Img(x K) K { // imag x
 		return Ech(33, l1(x))
 	}
 	if xt == Zt {
-		n := nn(x)
-		return atv(rtp(Ft, x), Add(Ki(1), Mul(Ki(2), seq(n))))
+		return reim(x, 8)
 	}
 	dx(x)
 	if xt == zt {

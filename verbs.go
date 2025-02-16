@@ -485,9 +485,27 @@ func Flr(x K) K { // _x
 			rp += 4
 		}
 	case 4: // Z
-		r = atv(rtp(Ft, rx(x)), Mul(Ki(2), seq(xn)))
+		return reim(x, 0)
 	default: // L/D/T
 		return Ech(16, l1(x))
+	}
+	dx(x)
+	return r
+}
+func reim(x K, o int32) K {
+	var r K
+	if tp(x) < 16 {
+		r = Kf(F64(int32(x) + o))
+	} else {
+		r = mk(Ft, nn(x))
+		p := int32(r)
+		o += int32(x)
+		e := ep(r)
+		for p < e {
+			SetF64(p, F64(o))
+			o += 16
+			p += 8
+		}
 	}
 	dx(x)
 	return r
@@ -599,6 +617,10 @@ func Val(x K) K {
 	}
 	if xt == Ct {
 		return val(x)
+	}
+	if xt&15 == zt {
+		rx(x)
+		return ucat(Enl(reim(x, 0)), Enl(reim(x, 8)))
 	}
 	if xt == lf || xt == xf { // lambda: (code;string;locals;arity)
 		//xp := int32(x)  // native: (ptr;string;arity)
