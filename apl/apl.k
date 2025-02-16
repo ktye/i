@@ -183,12 +183,13 @@ RUN:{L:-1+R:#x                                                  /gap buffer: x[L
  lu:{$[""~r:V x;`val;r]}                                        /lookup variable
  co:{[](":"~*c)|"i:"~c:*'x 0 1+R}                               /top stack is assign or index assign
  ov:{[y]$[(`C~@s:x L)&("+/"~y);$[SE>SY?s;"{";y];y]}             /change / to { if next token is a verb (compress vs over)
+ fi:{$[`L~@x;*'x;*x]}
  ev:{[y]                                                        /evaluate token on the move
   $[`s~t:@y;$[co[];("s";y);lu y]                                /lookup name if it's not an assignment
     `F~t   ;("1";$[1~#y;!0;,#y];y)                              /array from numeric literal, single number is atom
     `C~t   ;$[y~"⎕";":";SE>SY?y;ov("+",y);*y];"1",y]}           /build verbs, the rest are atoms ; . / \ ( ) [ ] :(assign)
  s:{E::P L;x[R-:1]:ev x 1+L-:1;x}                               /shift from left(queue) to right(stack) within x
- r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\*'r)#r:R_x;x}         /reduce right side: match case, call action, update R pointer
+ r:{x[R+:n-1]:PF[i]r:(n:#PC i:0|*&PC~'PN#\fi r)#r:R_x;x}        /reduce right side: match case, call action, update R pointer
  while[L>-1;x:r/s x]                                            /shift once, reduce until fixpoint
  $["+1"~*'r:R_x;x[R+:1]:("1",MF[1_r 0;1_r 1]);0]                /fix last monadic application
  $[`s~@e:*|x R;e;`c~@e;`syn;~1~#x:R_x;`syn;*x]}                 /return the single noun left on the stack otherwise a syntax error

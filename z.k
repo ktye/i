@@ -5,7 +5,7 @@
 `t:`39         /`t@ token
 `p:`46         /`p@ parse
 
-`enc:{$[#y;+(&'(|/c)-c:#'r),'r:{x\y}/[x;y];(#x)#,!0]}  /x\Y
+`enc:{$[#y;+(&','(|/c)-c:#'r),'r:{x\y}/[x;y];(#x)#,!0]}  /x\Y
 `gdt:{[t;g]($[g;{x@>y x};{x@<y x}])/(,!#t),|.t}  /<t >t  grade table
 
 `grp:{(x@*'g)!g:(&~a~'a@-1+!#a:x i)^i:<x}      /=x

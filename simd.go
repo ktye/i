@@ -17,7 +17,7 @@ func init() {
 	Functions(306, addI, subI, mulI, nyi, minI, maxI)
 	Functions(312, addiI, subiI, muliI, nyi, miniI, maxiI)
 	Functions(318, addF, subF, mulF, nyi, minF, maxF)
-	Functions(324, addfF, subfF, mulfF, nyi, minfF, maxfF)
+	Functions(324, addfF, subfF, nyi, nyi, minfF, maxfF)
 }
 
 type fii = func(int32, int32)
@@ -331,15 +331,6 @@ func muliI(x, y, r, e int32) {
 	i := VIsplat(I32(x))
 	for r < e {
 		VIstore(r, VIload(y).Mul(i))
-		y += vl
-		r += vl
-		continue
-	}
-}
-func mulfF(x, y, r, e int32) {
-	i := VFsplat(F64(x))
-	for r < e {
-		VFstore(r, VFload(y).Mul(i))
 		y += vl
 		r += vl
 		continue

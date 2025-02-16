@@ -33,6 +33,9 @@ func Ech(f, x K) K {
 	if xt == Tt {
 		x = explode(x)
 	}
+	if t == 0 && xt < Lt && int32(f) < 11 { // :+-*%&|<>=
+		return prior(f, x)
+	}
 	xn := nn(x)
 	r = mk(Lt, xn)
 	rp := int32(r)
@@ -339,4 +342,9 @@ func uf(x K) K {
 	}
 	dx(x)
 	return r
+}
+func prior(f, x K) K {
+	//println("f",int32(f))
+	trap()
+	return x
 }
