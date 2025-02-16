@@ -50,7 +50,6 @@ log[2a45;3] /Type
 3.5/4 /Type
 `a`b+1 2 /Type
 !"x" /Type
-?^3 /Type
 ?`a`b!1 2 /Type
 `a`b`c!1 2 /Length
 3_5 /Type
@@ -64,8 +63,6 @@ log[2a45;3] /Type
 3 4\:1 2 3 4 /Type
 "a"/:"alpha" /Type
 "a"/:("alpha";1 2) /Type
-^3 /Type
-<3 /Type
 ?`a /Type
 3.?1 2 3 /Type
 3.?4 /Type

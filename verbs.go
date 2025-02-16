@@ -125,7 +125,16 @@ func Unq(x K) K { // ?x
 	rx(rx(x))
 	return atv(x, Wer(Eql(seq(nn(x)), Fnd(x, x)))) // x@&(!#x)==x?x
 }
-func Grp(x K) K    { return kx(96, x) }     // =x grp.
+func Grp(x K) K {
+	if tp(x) == it {
+		return mat(10, x)
+	}
+	return kx(96, x) //= grp.
+}
+func mat(f, x K) K {
+	x = rx(seq(int32(x)))
+	return Ecr(f, l2(x, x))
+}
 func Key(x, y K) K { return key(x, y, Dt) } // x!y
 func key(x, y K, t T) K { // Dt or Tt
 	xt := tp(x)
@@ -499,7 +508,10 @@ func Rev(x K) K { // |x
 	var r K
 	t := tp(x)
 	if t < 16 {
-		return x
+		if t == it {
+			return Rev(Grp(x)) //antidiag
+		}
+		trap()
 	}
 	if t == Dt {
 		r = x0(x)

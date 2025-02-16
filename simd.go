@@ -1,4 +1,4 @@
-//go:build simd4||simd5
+//go:build simd4 || simd5
 
 package main
 
@@ -38,7 +38,7 @@ func seq(n int32) K {
 	return r
 }
 func minis(x, y, e int32) int32 {
-       	if e - y > 256 {
+	if e-y > 256 {
 		a := VIsplat(x)
 		u := eu(e)
 		for y < u {
@@ -49,13 +49,13 @@ func minis(x, y, e int32) int32 {
 		x = a.Hmin_s()
 	}
 	for y < e {
-                x = mini(x, I32(y))
-                y += 4
-        }
-        return x
+		x = mini(x, I32(y))
+		y += 4
+	}
+	return x
 }
 func maxis(x, y, e int32) int32 {
-       	if e - y > 256 {
+	if e-y > 256 {
 		a := VIsplat(x)
 		u := eu(e)
 		for y < u {
@@ -66,14 +66,14 @@ func maxis(x, y, e int32) int32 {
 		x = a.Hmax_s()
 	}
 	for y < e {
-                x = maxi(x, I32(y))
-                y += 4
-        }
-        return x
+		x = maxi(x, I32(y))
+		y += 4
+	}
+	return x
 }
 func minfs(y, e int32) float64 {
-        f := inf
-       	if e - y > 256 {
+	f := inf
+	if e-y > 256 {
 		a := VFsplat(f)
 		u := eu(e)
 		for y < u {
@@ -83,15 +83,15 @@ func minfs(y, e int32) float64 {
 		}
 		f = a.Hmin()
 	}
-        for y < e {
-                f = F64min(f, F64(y))
-                y += 8
-        }
-        return f
+	for y < e {
+		f = F64min(f, F64(y))
+		y += 8
+	}
+	return f
 }
 func maxfs(y, e int32) float64 {
-        f := -inf
-       	if e - y > 256 {
+	f := -inf
+	if e-y > 256 {
 		a := VFsplat(f)
 		u := eu(e)
 		for y < u {
@@ -101,15 +101,15 @@ func maxfs(y, e int32) float64 {
 		}
 		f = a.Hmax()
 	}
-        for y < e {
-                f = F64max(f, F64(y))
-                y += 8
-        }
-        return f
+	for y < e {
+		f = F64max(f, F64(y))
+		y += 8
+	}
+	return f
 }
 func sumi(xp, e int32) int32 {
-        r := int32(0)
-	if e - xp > 256 {
+	r := int32(0)
+	if e-xp > 256 {
 		a := VIsplat(0)
 		u := eu(e)
 		for xp < u {
@@ -119,15 +119,15 @@ func sumi(xp, e int32) int32 {
 		}
 		r = a.Hsum()
 	}
-        for xp < e {
-                r += I32(xp)
-                xp += 4
-        }
-        return r
+	for xp < e {
+		r += I32(xp)
+		xp += 4
+	}
+	return r
 }
 func sumf(xp, e int32) float64 {
-        r := 0.0
-	if e - xp > 256 {
+	r := 0.0
+	if e-xp > 256 {
 		a := VFsplat(0.0)
 		u := eu(e)
 		for xp < u {
@@ -137,11 +137,11 @@ func sumf(xp, e int32) float64 {
 		}
 		r = a.Hsum()
 	}
-        for xp < e {
-                r += F64(xp)
-                xp += 8
-        }
-        return r
+	for xp < e {
+		r += F64(xp)
+		xp += 8
+	}
+	return r
 }
 func negI(xp, e int32) {
 	for xp < e {
@@ -190,7 +190,7 @@ func scale(x, y K) K {
 	r := use(y)
 	rp := int32(r)
 	e := ev(ep(r))
-	if tp(y) == Zt && F64(xp + 8) != 0 {
+	if tp(y) == Zt && F64(xp+8) != 0 {
 		for rp < e {
 			mulz(xp, rp, rp)
 			rp += 16
@@ -691,7 +691,8 @@ func nd(f, ff int32, x, y K) K { //dyadic
 	dxy(x, y)
 	return r
 }
-//todo: see v/v.go
+
+// todo: see v/v.go
 func nc(ff, q int32, x, y K) K { //compare
 	var r K
 	var n int32

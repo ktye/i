@@ -12,7 +12,7 @@ func init() {
 	Simd(5)
 }
 
-const b0 = 6 //smallest bucket
+const b0 = 6  //smallest bucket
 const bs = 31 //lower bits set
 const vl = 32 //vector length
 
@@ -29,7 +29,7 @@ func sumz(x, e, r int32) {
 	im := a.HsumOdd()
 	for x < e {
 		re += F64(x)
-		im += F64(x+8)
+		im += F64(x + 8)
 		x += 16
 	}
 	SetF64(r, re)

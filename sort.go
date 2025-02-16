@@ -8,6 +8,10 @@ func Srt(x K) K { // ^x
 	var r K
 	xt := tp(x)
 	if xt < 16 {
+		if xt == it {
+			x = seq(int32(x))
+			return Div(x, Kf(float64(nn(x))))
+		}
 		trap() //type
 	}
 	if xt == Dt {
@@ -22,12 +26,20 @@ func Srt(x K) K { // ^x
 	return atv(x, Asc(rx(x)))
 }
 func Asc(x K) K { // <x  <`file
-	if tp(x) == st {
+	t := tp(x)
+	if t == st {
 		return readfile(cs(x))
+	} else if t == it {
+		return mat(8, x)
 	}
 	return grade(x, 1)
 }
-func Dsc(x K) K { return grade(x, -1) } //254 // >x
+func Dsc(x K) K {
+	if tp(x) == it {
+		return mat(9, x)
+	}
+	return grade(x, -1) //254 // >x
+}
 func grade(x K, f int32) K { // <x >x
 	var r K
 	xt := tp(x)

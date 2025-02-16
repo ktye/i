@@ -1,4 +1,4 @@
-//go:build !(simd4||simd5)
+//go:build !(simd4 || simd5)
 
 package main
 
@@ -6,64 +6,64 @@ import (
 	. "github.com/ktye/wg/module"
 )
 
-const b0 = 5 //smallest bucket
+const b0 = 5  //smallest bucket
 const bs = 15 //lower bits set
 const vl = 16 //vector length
 
 func seq(n int32) K {
-        n = maxi(n, 0)
-        r := mk(It, n)
-        for n > 0 {
-                n--
-                SetI32(int32(r)+4*n, n)
-        }
-        return r
+	n = maxi(n, 0)
+	r := mk(It, n)
+	for n > 0 {
+		n--
+		SetI32(int32(r)+4*n, n)
+	}
+	return r
 }
 func minis(x, y, e int32) int32 {
-        for y < e {
-                x = mini(x, I32(y))
-                y += 4
-        }
-        return x
+	for y < e {
+		x = mini(x, I32(y))
+		y += 4
+	}
+	return x
 }
 func maxis(x, y, e int32) int32 {
-        for y < e {
-                x = maxi(x, I32(y))
-                y += 4
-        }
-        return x
+	for y < e {
+		x = maxi(x, I32(y))
+		y += 4
+	}
+	return x
 }
 func minfs(y, e int32) float64 {
-        f := inf
-        for y < e {
-                f = F64min(f, F64(y))
-                y += 8
-        }
-        return f
+	f := inf
+	for y < e {
+		f = F64min(f, F64(y))
+		y += 8
+	}
+	return f
 }
 func maxfs(y, e int32) float64 {
-        f := -inf
-        for y < e {
-                f = F64max(f, F64(y))
-                y += 8
-        }
-        return f
+	f := -inf
+	for y < e {
+		f = F64max(f, F64(y))
+		y += 8
+	}
+	return f
 }
 func sumi(xp, e int32) int32 {
-        r := int32(0)
-        for xp < e {
-                r += I32(xp)
-                xp += 4
-        }
-        return r
+	r := int32(0)
+	for xp < e {
+		r += I32(xp)
+		xp += 4
+	}
+	return r
 }
 func sumf(xp, e int32) float64 {
-        r := 0.0
-        for xp < e {
-                r += F64(xp)
-                xp += 8
-        }
-        return r
+	r := 0.0
+	for xp < e {
+		r += F64(xp)
+		xp += 8
+	}
+	return r
 }
 func sumz(xp, e, rp int32) {
 	r := 0.0

@@ -18,7 +18,7 @@ func min(yp int32, t T, e int32) K { // &/x
 	case 1: // It
 		return Ki(minis(2147483647, yp, e))
 	case 2: // St
-		return Ks(minis((nn(K(I64(8))) << 3) - 8, yp, e))
+		return Ks(minis((nn(K(I64(8)))<<3)-8, yp, e))
 	case 3: // Ft
 		return Kf(minfs(yp, e))
 	default:

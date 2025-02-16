@@ -66,10 +66,10 @@ func mk(t T, n int32) K {
 		trap() //type
 	}
 	/*
-	x := alloc(n, sz(t))
-	SetI32(x+12, 1) //rc
-	SetI32(x+4, n)
-	return ti(t, x+16)
+		x := alloc(n, sz(t))
+		SetI32(x+12, 1) //rc
+		SetI32(x+4, n)
+		return ti(t, x+16)
 	*/
 
 	x := alloc(n, sz(t))
