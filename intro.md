@@ -7,6 +7,7 @@ get any version from here:
 |---|---|---|
 [k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran version|`gfortran k.f`|
 [k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c version|`gcc k.c -lm`|
+[kv.c](https://github.com/ktye/i/releases/download/latest/kv.c)|c simd5 |`clang-18 -O3 -mavx2 kv.c -lm`|
 [k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go version|`go build k.go`|
 
 e.g.
@@ -51,7 +52,8 @@ there are 3 adverbs: `' / \` (each over scan). they have verb overloads if the l
 - `x'y` is bin (binary search) or lin (linear interpolation) depending on x being an atom or a vector.
 - `x/y` and `x\y` are decode/encode or join/split depending on x being numeric or characteristic.
 - `x+/y` and `x+\y` is each-right/each-left.
-there is no reduce/scan with initial values and no each-prior, but higher order forms exist: `f3/[x;y;z]`.
+there is no reduce/scan with initial values, but higher order forms exist: `f3/[x;y;z]`.
+- `-'x` is each-prior/pairs. it is used only for `:+-*%&|<=>` and only for unnested vector arguments. otherwise each is called.
 - `f/x` and `f\x` is fixpoint if f is strictly monadic.
 
 # dots, names

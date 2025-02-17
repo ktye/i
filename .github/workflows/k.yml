@@ -67,6 +67,9 @@ jobs:
 
     - name: k.c
       run: cd i/x && k k.k cc.k -e 'x:`<cc``' > k.c && gcc -o kc k.c -lm && ./kc ../k.t -e
+
+    - name: kv.c
+      run: cd i && wg -tags simd5 -c . > kv.c && clang -O3 -Wall -mavx2 -Wfatal-errors kv.c -okv -lm && ./kv k.t -e
     
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0
@@ -105,6 +108,16 @@ jobs:
         asset_content_type: text/plain
 
     - name: upload k.c
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/x/k.c
+        asset_name: k.c
+        asset_content_type: text/plain
+
+    - name: upload kv.c
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
