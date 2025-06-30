@@ -1,9 +1,13 @@
 #!/usr/bin/env -S deno --allow-read
 //--allow-write
 
+//k [-m] [file.k] [datafile] [-e]
+//   -m: fft.k lu.k qr.k stats.k svd.k
+
 let argv=process.argv.slice(2),readfile=x=>Deno.readFileSync(x)
 let su=x=>t_.decode(x),t_=new TextDecoder("utf-8"),us=x=>_t.encode(x),_t=new TextEncoder("utf-8")
 let U=(o,n)=>new Uint8Array(K.memory.buffer,o,n),lo=x=>Number(BigInt.asUintN(32,x))
+let KC=x=>(K.mk(18,x.length),U().set(x,lo(r)),r)
 
 let nyi=_=>{throw new Error("nyi")}
 let fb
@@ -13,9 +17,15 @@ let I={"env":{Exit:Deno.exit,Args:nyi,Arg:nyi,ReadIn:nyi,Native:nyi,
  Write:(f,nf,s,n)=>(nf?nyi():Deno.stdout.writeSync(U(s,n))),
 }}
 
-let kw=readfile((Deno.build.os=="windows"?"c:/":"/c/")+"k/ktye.github.io/k.wasm")
+let kt=(Deno.build.os=="windows"?"c:/":"/c/")+"k/ktye.github.io/"
+let kw=readfile(kt+"k.wasm")
 let K=new WebAssembly.Instance(new WebAssembly.Module(kw),I).exports
 K.kinit()
+
+let lk=x=>K.dx(K.Val(KC(us(su(readfile(x)).split("\n\\")[0]))))
+let lf=x=>K.dx(K.Asn(KS(x),su(readfile(x))))
+let lm=_=>"fft lu qr stats svd".split(" ").forEach(x=>lk(kt+"klib/"+x+".k"))
+argv.forEach(x=>"-e"==x?Deno.exit(0):"-m"==x?lm():x.endsWith(".k")?lk(x):lf(x))
 
 console.log("ktye/k(deno)")
 let _k=1,repl=_=>{
