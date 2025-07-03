@@ -46,6 +46,7 @@ func tchr() K {
 	q := uint32(0)
 	for {
 		if pp == pe {
+			srcp = pe - I32(16)
 			trap() //parse
 		}
 		c := I8(pp)
@@ -270,16 +271,10 @@ func tvrb() K {
 		if I8(pp) == 58 { // :
 			pp++
 			if is(c, 8) != 0 {
+				srcp = pp - I32(16)
 				trap() //parse
 			}
 			o = 97
-			/*
-				if is(c, 8) != 0 {
-					o = 2 // ':
-				} else {
-					o = 97 // +:
-				}
-			*/
 		}
 	}
 	return K(o + idx(c, 227, 253))
