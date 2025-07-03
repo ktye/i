@@ -16,6 +16,7 @@ func parse(x K) K {
 	pe = n + pp
 	r := es()
 	if pp != pe {
+		srcp = ps
 		trap() //parse
 	}
 	mfree(int32(x)-vl, bucket(n)) //free non-recursive
@@ -105,6 +106,7 @@ func t() K { // Lt
 	} else if r == K('[') {
 		r = es()
 		if next() != K(']') {
+			srcp = ps
 			trap() //parse
 		}
 		return r
@@ -204,6 +206,7 @@ func plam(s0 int32) K {
 		ln := nn(n)
 		loc = Ech(4, l1(n)) // [a]->,(`a;.)  [a;b]->((`a;.);(`b;.))
 		if ln > 0 && tp(loc) != St {
+			srcp = ps
 			trap() //parse
 		}
 		ar = nn(loc)
@@ -219,6 +222,7 @@ func plam(s0 int32) K {
 	c := es()
 	n = next()
 	if n != 125 {
+		srcp = ps
 		trap() //parse
 	}
 	cn := nn(c)

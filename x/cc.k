@@ -53,7 +53,7 @@ ccfun:{
  ret:$[#r:", "/y@&`res=T c;r;"void"]
  locs:nl@{(cctype x)," ",y,";"}'[!g;.g:","/'(y i)@=(S c)i:&`loc=T c]
  defr:     *y@&`dfr=T c
- setj:$[#defr;"if(!setjmp(jb_)){";""]
+ setj:$[#defr;"jb__=1;if(!setjmp(jb_)){";""]
  body: 2_-1_y@*&`ast=T c
  ccfmt@,/(stat;ret;" ";$S x;"(";$[#args;args;"void"];"){\n";setj;locs;body;defr)}
 
@@ -162,6 +162,7 @@ static int32_t memorysize_, memorysize2_;
 static int    args_;
 static char **argv_;
 static jmp_buf jb_;
+static int jb__=0;
 static void Memory (int32_t x){memorysize_ =x;U_ =(uint64_t*)calloc((size_t)x,64*1024);M_ =(char*)U_; I_=(int32_t*)U_;}
 static void Memory2(int32_t x){memorysize2_=x;U2_=(uint64_t*)calloc((size_t)x,64*1024);M2_=(char*)U2_;}
 static int32_t Memorysize(void){return memorysize_; }
@@ -246,7 +247,7 @@ static int64_t Native(int64_t x, int64_t y){
  return 0*(x+y);
 #endif
 }
-static void panic(int32_t x) { longjmp(jb_,1); }
+static void panic(int32_t x) { if(!jb__)exit(1);longjmp(jb_,1); }
 "
 ccmain:"int main(int args, char **argv){
  args_=(int32_t)args;
