@@ -294,6 +294,9 @@ func cond(x K, xn int32) K {
 	for xp != int32(x) {
 		xp -= 8
 		r := K(I64(xp))
+		if r == 0 {
+			r = l1(r)
+		}
 		if sum > 0 {
 			state = 1 - state
 			if state != 0 {
