@@ -1,4 +1,4 @@
-a brief introduction about the pecularities of ktye/k  ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[svd](#singular-value-decomposition);[fft](#fft);[stats](#statistics);[trans](#transpose))
+ktye/k intro ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[svd](#singular-value-decomposition);[fft](#fft);[stats](#statistics);[trans](#transpose))
 
 # get/compile
 get any version from here:
@@ -19,7 +19,7 @@ ktye/k
  █
 ```
 
-or online at ktye.github.io
+or online at ktye.github.io/k.html
 
 # command line arguments
 - `k a.k b.k c.k` executes all files in order, as if they were catenated and drops into the repl
