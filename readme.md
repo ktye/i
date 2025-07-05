@@ -48,7 +48,7 @@ ktye/k
  █
 ```
 
-or online at ktye.github.io/k.html
+or [online](https://ktye.github.io/k.html)
 
 # command line arguments
 - `k a.k b.k c.k` executes all files in order, as if they were catenated and drops into the repl
