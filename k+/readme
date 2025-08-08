@@ -3,7 +3,6 @@
 
 set -e
 set -x
-CC=cc
 if [ "$1" = "get" ];then
  wget -Okc.orig https://github.com/ktye/i/releases/download/latest/k.c 
 fi
@@ -11,4 +10,8 @@ fi
 sed -e 's/math.h>$/math.h>\n#include"l.h"/' -e 's/kinit()/kinit();libs()/' kc.orig>k.c
 cat l.c                                                                          >>k.c
 
-$CC -O3 -march=native -ok+ k.c -lm
+CC=cc
+DD="-D BLAS"
+
+
+$CC -O3 -march=native -ok+ $DD k.c -lopenblas -lm

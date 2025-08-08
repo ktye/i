@@ -4,13 +4,46 @@ void reg(int64_t id, int64_t name, int32_t arity){
  dx(Asn(sc(Ku(name)),l));
 }
 void libs(void){ //encode strings with: https://play.golang.org/p/4ethx6OEVCR
- reg(0,846033518ull,1); //nrm2
+#ifdef BLAS
+ reg(0, 846033518ull,1); //nrm2
+ reg(1,1836413793ull,1); //asum
+ reg(2,2019650921ull,1); //imax
+#endif
  //reg(1,...);
  //reg(2,...);
 }
+int64_t fzvec(int64_t x){
+ int32_t xt=tp(x);
+ if(xt<16){x=Enl(x);xt=tp(x);}
+ if(xt<Ft){x=Add(Kf(0.0),x);}
+ if(xt>Zt)trap();
+ return x;
+}
+
+#ifdef BLAS
+double cblas_dnrm2(int,double*,int);
+double cblas_dasum(int,double*,int);
+int cblas_idamax(int,double*,int);
+int cblas_izamax(int,double*,int);
+#endif
+
+#define fp(x) ((double*)(M_+(int32_t)x))
+
 int64_t cnative(int64_t x, int64_t y){
+ int32_t xt,xn,i;
+ double r;
  switch(x){ //switch registered function id
- case 0:  printf("todo call blas nrm2\n"); return y; break;
+#ifdef BLAS
+ case 0:x=fzvec(Fst(y));xn=nn(x);if(xt==Zt)xn*=2;
+  r=cblas_dnrm2(xn,fp(x),1);
+  dx(x);return Kf(r);
+ case 1:x=fzvec(Fst(y));xn=nn(x);if(xt==Zt)xn*=2;
+  r=cblas_dasum(xn,fp(x),1);
+  dx(x);return Kf(r);
+ case 2:x=fzvec(Fst(y));xn=nn(x);
+  i=tp(x)==Ft?cblas_idamax(xn,fp(x),1):cblas_izamax(xn,fp(x),1);
+  dx(x);return Ki(i);
+#endif
  default: return y;
 }}
 
