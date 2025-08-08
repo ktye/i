@@ -1,0 +1,14 @@
+# extend k.c with some c-libraries using the native function type
+# blas lapack fftw lp_solve ..
+
+set -e
+set -x
+CC=cc
+if [ "$1" = "get" ];then
+ wget -Okc.orig https://github.com/ktye/i/releases/download/latest/k.c 
+fi
+
+sed -e 's/math.h>$/math.h>\n#include"l.h"/' -e 's/kinit()/kinit();libs()/' kc.orig>k.c
+cat l.c                                                                          >>k.c
+
+$CC -O3 -march=native -ok+ k.c -lm
