@@ -1,5 +1,20 @@
-# extend k.c with some c-libraries using the native function type
-# blas lapack fftw lp_solve ..
+# k+ extends k.c with some c-libraries using the native function type.
+# blas lapack fftw lp_solve ode specfun ..
+#
+# m.awk also replaces the builtin math functions with libm.
+#
+# example gemm             C := a*op(A)*op(B) + beta*C
+# gemm[a;A;rA;B;rB;op;b;C] C is reused only if refcount 1, op is 012 notrans/trans/herm
+# matrices(A, B) are passed as vectors, e.g. ,/3^?12
+# rA is the number of rows, if negative A is stored in column major format.
+# e.g. A:3^?12 is a list of length 3 containing length-4 vectors.
+# if these represent A matrix with 3 columns, rA is -4.
+# if they are a 3 rows of a matrix, rA is 3 
+
+# BLAS    /usr/include/x86_64-linux-gnu/cblas-netlib.h
+# nrm2[x] FZ l2 vector norm
+# asum[x] FZ l1 vector norm
+# imax[x] FZ index of l1 max element
 
 set -e
 set -x
@@ -7,11 +22,15 @@ if [ "$1" = "get" ];then
  wget -Okc.orig https://github.com/ktye/i/releases/download/latest/k.c 
 fi
 
-sed -e 's/math.h>$/math.h>\n#include"l.h"/' -e 's/kinit()/kinit();libs()/' kc.orig>k.c
-cat l.c                                                                          >>k.c
+awk -f m.awk kc.orig |\
+sed -e 's/math.h>$/math.h>\n#include"l.h"/' \
+    -e 's/kinit()/kinit();libs()/' \
+        >k.c
+cat m.c>>k.c
+cat l.c>>k.c
 
-CC=cc
-DD="-D BLAS"
-
-
-$CC -O3 -march=native -ok+ $DD k.c -lopenblas -lm
+ C=cc
+ O="-O0 -march=native"
+ D="-D BLAS   "
+ L="-lopenblas"
+$C $O $D -ok+ k.c $L -lm
