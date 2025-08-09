@@ -1,5 +1,5 @@
 # k+ extends k.c with some c-libraries using the native function type.
-# blas lapack fftw lp_solve ode specfun ..
+# blas lapack fftw lp_solve ode specfun curl sqlite..
 #
 # m.awk also replaces the builtin math functions with libm.
 #
@@ -17,6 +17,9 @@
 # imax[x] FZ  index of l1 max element
 # rot[c;s;x;y] c:f s:f x:FZ y:FZ  plane rotation
 # mv[a;A;rA;op;b;x;y] c:fz A:FZ b:fz y:FZ  a*A*x+b*y
+#
+# CURL
+# curl"https://ktye.github.io/k.png"
 
 set -e
 set -x
@@ -33,6 +36,6 @@ cat l.c>>k.c
 
  C=cc
  O="-O0 -march=native"
- D="-D BLAS   "
- L="-lopenblas"
+ D="-D    BLAS -DCURL"
+ L="-lopenblas -lcurl"
 $C $O $D -ok+ k.c $L -lm
