@@ -13,10 +13,11 @@
 
 # BLAS    /usr/include/x86_64-linux-gnu/cblas-netlib.h
 # nrm2[x] FZ  l2 vector norm         FZ mean double-float or complex vector
-# asum[x] FZ  l1 vector norm
-# imax[x] FZ  index of l1 max element
+# asum[x] FZ  l1 vector norm         some blas args are changed to facilitate projections
+# imax[x] FZ  index of l1 max element                               (changing input last)
 # rot[c;s;x;y] c:f s:f x:FZ y:FZ  plane rotation
-# mv[a;A;rA;op;b;x;y] c:fz A:FZ b:fz y:FZ  a*A*x+b*y
+# dot dotc todo
+# gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y
 #
 # CURL
 # curl"https://ktye.github.io/k.png"
@@ -28,23 +29,26 @@ set -x
 if [ "$1" = "get" ];then wget -Okc.orig https://github.com/ktye/i/releases/download/latest/k.c; fi
 
 L=""
-R=""
+W=""
 awk -f m.awk kc.orig |\
 sed -e 's/math.h>$/math.h>\n#include"l.h"/' \
-    -e 's/kinit()/kinit();libs()/' \
+    -e 's/kinit()/&;for(void(**f)()=\&__start_reg;f<\&__stop_reg;(*f++)());dx(Asn(help,hlp))/' \
            >k.c
 cat    m.c>>k.c
 cat    l.c>>k.c
 #           k.c
 
-#these lines can be uncommented individually:
-cat blas.c>>k.c;R="$R regblas();";L="$L -lopenblas"
-cat curl.c>>k.c;R="$R regcurl();";L="$L -lcurl"
+
+#these lines can be uncommented individually to exclude a package:
+cat blas.c>>k.c;L="$L -lopenblas";W="$W libopenblas.dll"
+cat curl.c>>k.c;L="$L -lcurl"    ;W="$W libcurl-x64.dll"
 #           k.c
 
-echo "void libs(void){$R dx(Asn(help,hlp));}" >> k.c
+#type help to see a the list of all registered functions and their arity
 
- K=-ok+
- C=cc
+if uname|grep Windows; then 
+ L="$W"; fi
  O="-O3 -march=native"
-$C $O $K k.c $L -lm
+ C=cc
+ K="-ok+ k.c"
+$C $O $K $L -lm

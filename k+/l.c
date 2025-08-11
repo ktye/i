@@ -1,8 +1,7 @@
-#define NX 128 //large enough to hold all external functions
+#define NX 64 //large enough to hold all external functions
 
 typedef uint64_t (*XF)(uint64_t);
 uint64_t IX=0;XF xtab[NX];
-uint64_t hlp=0,help=0;
 void reg(XF f, const char*name, int32_t arity){
  uint64_t c=mk(Ct,(int32_t)strlen(name));
  if(!help){help=sc(Ku(1886152040ull));hlp=Key(mk(St,0),mk(It,0));}
@@ -12,9 +11,14 @@ void reg(XF f, const char*name, int32_t arity){
 
  hlp=Cat(hlp,Key(Enl(s),Enl(Ki(arity))));
 
+ //a native function has type 14 and stores 2 values:
+ // -any identifier, we use a primary function type 0 (no refcounts)
+ // -a strings with the name used to display the function object
+ //the identifier & the arglist is passed to native() when the function is called.
  int64_t l=ti(14,(uint32_t)l2(IX, c));
  SetI32((int32_t)l-12,arity);
- dx(Asn(s,l));
+ dx(Asn(s,l)); //assign the function object to a global symbol, for the user to access it.
+ if(NX==IX){fprintf(stderr,"xtab is too small: increase NX in l.c\n");exit(1);}
  xtab[IX++]=f;
 }
 int64_t cnative(int64_t x,int64_t y){return(int64_t)xtab[(int32_t)x](y);}
@@ -22,7 +26,7 @@ int64_t cnative(int64_t x,int64_t y){return(int64_t)xtab[(int32_t)x](y);}
 
 
 //some helpers to unpack arguments
-static uint64_t FZ(int64_t x){
+static uint64_t FZ(int64_t x){ //real or complex vector arg
  int32_t xt=tp(x);
  if(xt<16)trap();
  if(xt<Ft){x=Add(Kf(0.0),x);}
