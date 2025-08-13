@@ -33,10 +33,16 @@ static uint64_t FZ(int64_t x){ //real or complex vector arg
  if(xt>Zt)trap();
  return x;
 }
+static uint64_t fF(int64_t x){int32_t t=tp(x); //f or F
+ if(t==ft||t==Ft)return x;
+ if(t<ft||(t>16&&t<Ft))return Add(Kf(0.0),x);
+ else trap();return 0;
+}
 static uint64_t x3(uint64_t x){return x0((x+24ull));}
 static uint64_t x5(uint64_t x){return x0((x+40ull));}
 static uint64_t x6(uint64_t x){return x0((x+48ull));}
 
+int   *IK(uint64_t x){return (int   *)(M_+(int32_t)x);       }
 double*FK(uint64_t x){return (double*)(M_+(int32_t)x);       }
 double f0(uint64_t x){return F64((int32_t)I64((int32_t)x  ));}
 double f1(uint64_t x){return F64((int32_t)I64((int32_t)x+8));}

@@ -1,32 +1,32 @@
-#e.g. on linux(debian..):   $sudo sh deps lin
-#windows requires msys2/mingw64: $sh deps win
+linux(debian): awk '/^l /print{$2}' | xargs apt install
+l openblas?
+l lapack?
+l liblpsolve?
+l libcurl?
+l umfpack?
+l arpack?
+l fftw?
+l sqlite?
+l r-mathlib
+l resvg?
 
 
-#linux(debian):
-#if [ "$1" = "lin" ]; then apt install \
-# openblas?
-# lapack?
-# liblpsolve?
-# libcurl?
-# umfpack?
-# arpack?
-# fftw?
-# sqlite?
-# r-mathlib
-# resvg?
-#fi
+windows(mingw-w64): awk '/^w /{print $2}' | xargs pacman -S
+w mingw-w64-x86_64-openblas
+w mingw-w64-x86_64-lapack
+w mingw-w64-x86_64-lpsolve
+w mingw-w64-x86_64-curl
+w mingw-w64-x86_64-suitesparse
+w mingw-w64-x86_64-arpack
+w mingw-w64-x86_64-fftw
+w mingw-w64-x86_64-sqlite3
+r-mathlib?
+resvg?
+r-mathlib standalone is called nmath:
 
-
-#windows(mingw-w64):
-if [ "$1" = "win" ]; then pacman -S \
- mingw-w64-x86_64-openblas \
- mingw-w64-x86_64-lapack \
- mingw-w64-x86_64-lpsolve \
- mingw-w64-x86_64-curl \
- mingw-w64-x86_64-suitesparse \
- mingw-w64-x86_64-arpack \
- mingw-w64-x86_64-fftw \
- mingw-w64-x86_64-sqlite3 \
-fi
-# r-mathlib?
-# resvg?
+ https://cran.uib.no/src/base/R-4/R-4.5.1.tar.gz
+ in R-4.5.1/src/nmath/standalone:
+  (cd ../../gnuwin32; make MkRules)
+  (cd ../../include; make -f Makefile.win config.h Rconfig.h Rmath.h)
+  make -f Makefile.win
+ dll does not seem to work..

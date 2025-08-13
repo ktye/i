@@ -22,7 +22,7 @@
 # CURL
 # curl"https://ktye.github.io/k.png"
 #
-# RMATH (r-mathlib) -lRmath
+# RMATH (r-mathlib)
 
 # dependencies linux/windows, see deps
 # - linux(debian)    see deps
@@ -36,16 +36,18 @@ L=""                        #windows: mingw64:  ls /mingw64/lib/*
 awk -f m.awk kc.orig |\
 sed -e 's/math.h>$/math.h>\n#include"l.h"/' \
     -e 's/kinit()/&;for(void(**f)()=\&__start_reg;f<\&__stop_reg;(*f++)());dx(Asn(help,hlp))/' \
-           >k.c
-cat    m.c>>k.c
-cat    l.c>>k.c
-#           k.c
+              >k.c
+cat       m.c>>k.c
+cat       l.c>>k.c
+#              k.c
 
 
 #these lines can be uncommented individually to exclude a package:
-cat blas.c>>k.c;L="$L -lopenblas"
-cat curl.c>>k.c;L="$L -lcurl"
-#           k.c
+cat    blas.c>>k.c;L="$L -lopenblas"
+cat    curl.c>>k.c;L="$L -lcurl"
+cat umfpack.c>>k.c;L="$L -lumfpack"
+#cat   rmath.c>>k.c;L="$L Rmath.dll"   #-lRmath
+#              k.c
 
 #type help to see a the list of all registered functions and their arity
 

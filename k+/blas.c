@@ -28,7 +28,7 @@ uint64_t gemv(uint64_t u){int32_t m,n;
  }
 }
 
-void blas(void){ //encode names with: https://play.golang.org/p/4ethx6OEVCR
+void blas(void){
  reg(nrm2,"nrm2",1); //c-func k-name arity
  reg(asum,"asum",1);
  reg(imax,"imax",1);
