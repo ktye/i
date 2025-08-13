@@ -1,0 +1,32 @@
+#e.g. on linux(debian..):   $sudo sh deps lin
+#windows requires msys2/mingw64: $sh deps win
+
+
+#linux(debian):
+#if [ "$1" = "lin" ]; then apt install \
+# openblas?
+# lapack?
+# liblpsolve?
+# libcurl?
+# umfpack?
+# arpack?
+# fftw?
+# sqlite?
+# r-mathlib
+# resvg?
+#fi
+
+
+#windows(mingw-w64):
+if [ "$1" = "win" ]; then pacman -S \
+ mingw-w64-x86_64-openblas \
+ mingw-w64-x86_64-lapack \
+ mingw-w64-x86_64-lpsolve \
+ mingw-w64-x86_64-curl \
+ mingw-w64-x86_64-suitesparse \
+ mingw-w64-x86_64-arpack \
+ mingw-w64-x86_64-fftw \
+ mingw-w64-x86_64-sqlite3 \
+fi
+# r-mathlib?
+# resvg?
