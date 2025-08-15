@@ -1,5 +1,5 @@
 # k+ extends k.c with some c-libraries using the native function type.
-# blas lapack fftw lp_solve ode specfun rmath curl sqlite..
+# blas lapack fftw lp_solve ode specfun curl sqlite..
 #
 # m.awk also replaces the builtin math functions with libm.
 #
@@ -19,14 +19,22 @@
 # dot dotc todo
 # gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y
 #
+# LAPACK
+# gesv[A;b]   or b,b,..  solve Ax=b, both col-major flat vectors
+# gels[n;A;b] or b,b,..  solve Ax=b least squares
+#
+# SPARSE  suitesparse:umfpack spqr 
+# spsolve[A;b] or (b;b;..) solve sparse system
+# spqr[A;b]    or  b,b,..  solve sparse least squares
+#
 # CURL
 # curl"https://ktye.github.io/k.png"
 #
-# RMATH (r-mathlib)
+# RMATH (r-mathlib standalone)
 
 # dependencies linux/windows, see deps
-# - linux(debian)    see deps
-# - windows(mingw64) see deps.$pacman -S mingw-w64-x86_64-lpsolve
+# - linux(debian13)  see deps
+# - windows(mingw64) see deps
 
 set -e
 set -x
@@ -43,10 +51,11 @@ cat       l.c>>k.c
 
 
 #these lines can be uncommented individually to exclude a package:
-#cat    blas.c>>k.c;L="$L -lopenblas"
-#cat    curl.c>>k.c;L="$L -lcurl"
+cat    blas.c>>k.c;L="$L -lopenblas"
+cat  lapack.c>>k.c;L="$L -llapacke"
+cat    curl.c>>k.c;L="$L -lcurl"
 cat  sparse.c>>k.c;L="$L -lumfpack -lspqr -lcholmod"
-#cat   rmath.c>>k.c;L="$L Rmath.dll"   #-lRmath
+#cat   rmath.c>>k.c;L="$L -lRmath"
 #              k.c
 
 #type help to see a the list of all registered functions and their arity

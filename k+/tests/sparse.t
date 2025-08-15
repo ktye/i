@@ -3,4 +3,5 @@ b:8. 45. -3. 3. 19. /
 r:1 2 3 4 5. /
 1e-12>|/abs spsolve[A;b]-r /1
 _0.5++/+/spsolve[A;(b;b;b)] /45
-spqr[A;b] /3
+1e-12>|/abs spqr[A;b]-r /1
++/_0.1+spqr[A;b,b,b] /45

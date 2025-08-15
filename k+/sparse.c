@@ -1,4 +1,3 @@
-#include<suitesparse/SuiteSparseQR_C.h>
 //umfpack solve sparse Ax=b
 int  umfpack_di_symbolic(int,int,int*,int*,double*,        void**,double*,double*);
 int  umfpack_zi_symbolic(int,int,int*,int*,double*,double*,void**,double*,double*);
@@ -11,7 +10,6 @@ int  umfpack_zi_solve(int,int*,int*,double*,double*,double*,double*,double*,doub
 void umfpack_di_free_numeric(void**);
 void umfpack_zi_free_numeric(void**);
 
-/*
 //spqr sparse least squares (cholmod.h spqr.h)
 typedef struct choldmod_dense_struct {
  size_t nrow,ncol,nzmax,d; //A is nrow x ncol, nmax(entries) d(lda>=nrow)
@@ -25,8 +23,8 @@ typedef struct cholmod_sparse_struct{
 } cholmod_sparse;
 int cholmod_start(void*cc);
 int cholmod_finish(void*cc);
+int cholmod_free_dense(cholmod_dense**,void*);
 cholmod_dense*SuiteSparseQR_C_backslash_default(cholmod_sparse*A,cholmod_dense*B,void*cc);
-*/
 
 uint64_t spqr(uint64_t x){ //todo: b maybe m-by-k dense..
  uint64_t common[400];//enough to hold cholmod_common structure (sizeof 2680)
@@ -35,20 +33,22 @@ uint64_t spqr(uint64_t x){ //todo: b maybe m-by-k dense..
  uint64_t M=x0(A),N=x1(A),Ap=x2(A),Ai=x3(A),Ax=FZ(x4(A));dx(A);int z=(tp(Ax)==Zt);
  if(tp(M)!=it||tp(N)!=it||tp(Ap)!=It||tp(Ai)!=It)trap();
  int32_t m=(int32_t)M,n=(int32_t)N;
- if(nn(B)!=m)trap();if(z&&tp(B)!=Zt)B=uptype(B,zt);
+ if(nn(Ap)!=1+n||nn(Ai)!=nn(Ax))trap();
+ int32_t nb=nn(B),k=nb/m;if(nb!=k*m)trap(); //k>1: multirhs flat colmajor vector
+ if(z&&tp(B)!=Zt)B=uptype(B,zt);
  void *cc=&common;cholmod_start(cc);
  cholmod_sparse a;
- a.nrow=m;a.ncol=n;a.nzmax=nn(A);a.p=IK(Ap);a.i=IK(Ai);a.nz=NULL;a.x=FK(A);a.z=NULL;
+ a.nrow=m;a.ncol=n;a.nzmax=nn(Ax);a.p=IK(Ap);a.i=IK(Ai);a.nz=NULL;a.x=FK(Ax);a.z=NULL;
  a.stype=0;a.itype=0;a.xtype=1+z;a.dtype=0;a.sorted=0;a.packed=1;
  cholmod_dense b;
- b.nrow=m;b.ncol=1;b.nzmax=m;b.x=FK(B);b.z=NULL;b.xtype=1+z;b.dtype=0;
+ b.nrow=m;b.ncol=k;b.nzmax=m;b.x=FK(B);b.z=NULL;b.xtype=1+z;b.dtype=0;
  cholmod_dense*r=SuiteSparseQR_C_backslash_default(&a,&b,cc);
- //printf("r: %d %d #%d xt%d dt%d: [", r->nrow, r->ncol, r->nzmax, r->xtype, r->dtype);
- //printf("%g %g %g %g %g]\n", r->x[0], r->x[1], r->x[2], r->x[3], r->x[4]);
+ dx(Ap);dx(Ai);dx(Ax);dx(B);
+ x=mk(z?Zt:Ft,nb);
+ memcpy(M_+(int32_t)x,r->x,nb<<(z?4:3));
+ cholmod_free_dense(&r,cc);
  cholmod_finish(cc);
- //todo is A/B overwritten? where is the workspace, what must be freed?
- //cholmod_free_dense(
- return Ki(0);
+ return x;
 }
 
 //dense matrix representation
@@ -63,6 +63,7 @@ uint64_t spsolve(uint64_t x){ // spsolve[A;b]
  uint64_t N=x1(A),Ap=x2(A),Ai=x3(A),Ax=FZ(x4(A));dx(A);
  if(tp(N)!=it||tp(Ap)!=It||tp(Ai)!=It)trap();
  int z=0,n=(int32_t)N;int*ap=IK(Ap),*ai=IK(Ai);double*ax=FK(Ax);void*sy,*nu;
+ if(nn(Ap)!=1+n||nn(Ai)!=nn(Ax))trap();
  if(tp(Ax)==Ft){
   if(umfpack_di_symbolic(n,n,ap,ai,ax,&sy,NULL,NULL))trap();
   if(umfpack_di_numeric(ap,ai,ax,sy,&nu, NULL,NULL)){umfpack_di_free_symbolic(&sy);trap();}
@@ -96,7 +97,6 @@ uint64_t spsolve(uint64_t x){ // spsolve[A;b]
  return mrhs?r:Fst(r);
 }
 void umfpack(void){
- printf("%d\n", sizeof(cholmod_common)); //2680
  reg(spsolve,"spsolve",2);
  reg(spqr,   "spqr",   2);
 }
@@ -132,6 +132,6 @@ void *Symbolic, *Numeric ;
 #include<stdio.h>
 #include<cholmod.h>
 int main(){
- printf("%d\n", sizeof(cholmod_common)); //2680(win) 2664(debian)
+ printf("%d\n", sizeof(cholmod_common)); //should be 2680
 }
 */

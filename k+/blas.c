@@ -35,4 +35,4 @@ void blas(void){
  reg(rot,  "rot",4);
  reg(gemv,"gemv",7);
 }
-__attribute((section("reg")))void*rblas=blas;
+__attribute((section("rek")))void*rblas=blas;

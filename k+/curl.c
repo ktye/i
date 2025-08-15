@@ -20,4 +20,4 @@ uint64_t kurl(uint64_t x){
  dx(x);return r;}
 
 void curl(void){reg(kurl,"curl",1);}
-__attribute((section("reg")))void*rcurl=curl;
+__attribute((section("rek")))void*rcurl=curl;

@@ -1,3 +1,48 @@
+int LAPACKE_dgesv(int,int,int,double*,int,int*,double*,int);
+int LAPACKE_zgesv(int,int,int,double*,int,int*,double*,int);
+int LAPACKE_dgels(int,char,int,int,int,double*,int,double*,int);
+int LAPACKE_zgels(int,char,int,int,int,double*,int,double*,int);
+int LAPACKE_dsyev(int,char,char,int,double*,int,double*);
+int LAPACKE_zheev(int,char,char,int,double*,int,double*);
+int LAPACKE_dgeev(int,char,char,int,double*,int,double*,double*,double*,int,double*,int);
+int LAPACKE_zgeev(int,char,char,int,double*,int,double*,        double*,int,double*,int);
+int LAPACKE_dgesvd(int,char,char,int,int,double*,int,double*,double*,int,double*,int,double*);
+int LAPACKE_zgesvd(int,char,char,int,int,double*,int,double*,double*,int,double*,int,double*);
+
+uint64_t gesv(uint64_t x){ //[A;B]
+ uint64_t A=FZ(rx(x0(x))),B=FZ(ati(x,1));
+ int32_t n=(int32_t)sqrt(nn(A));if(n*n!=nn(A))trap();
+ int32_t nb=nn(B),k=nb/n;if(nb!=k*n)trap();
+ int32_t t=maxtype(A,B);A=use(uptype(A,t));B=use(uptype(B,t));
+ int*p=malloc(4*n);int r;
+ if(t==zt)r=LAPACKE_zgesv(102,n,k,FK(A),n,p,FK(B),n);
+ else     r=LAPACKE_dgesv(102,n,k,FK(A),n,p,FK(B),n);
+ free(p);
+ if(r)trap();
+ dx(A);
+ return B;
+}
+uint64_t gels(uint64_t x){ //[rows;A;B]
+ uint64_t M=x0(x),A=FZ(rx(x1(x))),B=FZ(ati(x,2));
+ int32_t m=(int32_t)M;if(tp(M)!=it)trap();
+ int32_t n=nn(A)/m;if(n*m!=nn(A)||m<n)trap();
+ int32_t nb=nn(B),k=nb/m;if(n*k!=nb)trap();
+ int32_t r,t=maxtype(A,B);A=use(uptype(A,t));B=use(uptype(B,t));
+ if(t==zt)r=LAPACKE_zgels(102,'N',m,n,k,FK(A),m,FK(B),m);
+ else     r=LAPACKE_dgels(102,'N',m,n,k,FK(A),m,FK(B),m);
+ dx(A);return B;
+}
+void lapack(void){
+ reg(gesv,"gesv",2);
+ reg(gels,"gels",3);
+ //reg(geev,"geev",1);
+ //reg(geev,"geeV",1);
+ //reg(geev,"gesvd",1);
+ //reg(geev,"gesvD",1);
+}
+__attribute((section("rek")))void*rlapack=lapack;
+
+
 /*
 #include<stdlib.h>
 #include<string.h>
