@@ -39,6 +39,7 @@ static uint64_t fF(int64_t x){int32_t t=tp(x); //f or F
  else trap();return 0;
 }
 static uint64_t x3(uint64_t x){return x0((x+24ull));}
+static uint64_t x4(uint64_t x){return x0((x+32ull));}
 static uint64_t x5(uint64_t x){return x0((x+40ull));}
 static uint64_t x6(uint64_t x){return x0((x+48ull));}
 

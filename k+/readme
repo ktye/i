@@ -43,9 +43,9 @@ cat       l.c>>k.c
 
 
 #these lines can be uncommented individually to exclude a package:
-cat    blas.c>>k.c;L="$L -lopenblas"
-cat    curl.c>>k.c;L="$L -lcurl"
-cat umfpack.c>>k.c;L="$L -lumfpack"
+#cat    blas.c>>k.c;L="$L -lopenblas"
+#cat    curl.c>>k.c;L="$L -lcurl"
+cat  sparse.c>>k.c;L="$L -lumfpack -lspqr -lcholmod"
 #cat   rmath.c>>k.c;L="$L Rmath.dll"   #-lRmath
 #              k.c
 
