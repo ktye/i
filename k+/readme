@@ -35,7 +35,7 @@ if [ "$1" = "get" ];then wget -Okc.orig https://github.com/ktye/i/releases/downl
 L=""                        #windows: mingw64:  ls /mingw64/lib/*
 awk -f m.awk kc.orig |\
 sed -e 's/math.h>$/math.h>\n#include"l.h"/' \
-    -e 's/kinit()/&;for(void(**f)()=\&__start_reg;f<\&__stop_reg;(*f++)());dx(Asn(help,hlp))/' \
+    -e 's/kinit()/&;for(void(**f)()=\&__start_rek;f<\&__stop_rek;(*f++)());dx(Asn(help,hlp))/' \
               >k.c
 cat       m.c>>k.c
 cat       l.c>>k.c

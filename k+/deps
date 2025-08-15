@@ -3,7 +3,7 @@ l openblas?
 l lapack?
 l liblpsolve?
 l libcurl?
-l umfpack?
+l libsuitesparse-dev
 l arpack?
 l fftw?
 l sqlite?

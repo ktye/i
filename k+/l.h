@@ -11,4 +11,4 @@ static void cos1(int32_t,int32_t,int32_t);
 uint64_t hlp=0,help=0;
 
 //initialization magick, thanks @ovs.
-extern void(*__start_reg)(),(*__stop_reg)();
+extern void(*__start_rek)(),(*__stop_rek)();
