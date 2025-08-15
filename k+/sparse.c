@@ -10,46 +10,29 @@ int  umfpack_zi_solve(int,int*,int*,double*,double*,double*,double*,double*,doub
 void umfpack_di_free_numeric(void**);
 void umfpack_zi_free_numeric(void**);
 
-//spqr sparse least squares
+//spqr sparse least squares (cholmod.h spqr.h)
 typedef struct choldmod_dense_struct {
- size_t nrow; //A is nrow x ncol
- size_t ncol; 
- size_t nzmax; //entries
- size_t d; //leading dim >=nrow
- double *x;
- void *z;
- int xtype;
- int dtype;
+ size_t nrow,ncol,nzmax,d; //A is nrow x ncol, nmax(entries) d(lda>=nrow)
+ double *x;void *z;
+ int xtype,dtype;
 } cholmod_dense;
 typedef struct cholmod_sparse_struct{
- size_t nrow;
- size_t ncol;
- size_t nzmax;
- void *p; //[0..ncol] column pointers of the csc matrix
- void *i; //[0..nzmax-1], row indices
- void *nz; //NULL (unpack only)
- void *x; //size [2*]nzmax
- void *z; //NULL
- int stype; //0:unsymmetric, >0:square sym upper, <0:square sym lower
- int itype; //index type: 0(int32_t) 2(int64_t)
- int xtype; //1(real) 2(complex interleaved)
- int dtype; //0(double)
- int sorted; //0(unsorted)
- int packed; //1(packed nz ignored)
+ size_t nrow,ncol,nzmax;
+ void *p,*i,*nz,*x,*z;
+ int stype,itype,xtype,dtype,sorted,packed; //0:unsymmetric, >0:square sym upper, <0:square sym lower
 } cholmod_sparse;
-
 int cholmod_start(void*cc);
 int cholmod_finish(void*cc);
 cholmod_dense*SuiteSparseQR_C_backslash_default(cholmod_sparse*A,cholmod_dense*B,void*cc);
 
-uint64_t spqr(uint64_t x){
+uint64_t spqr(uint64_t x){ //todo: b maybe m-by-k dense..
  uint64_t common[400];//enough to hold cholmod_common structure (sizeof 2680)
  uint64_t A=rx(x0(x)),B=rx(x1(x));dx(x);
  if(tp(A)!=Lt||nn(A)!=5)trap();
  uint64_t M=x0(A),N=x1(A),Ap=x2(A),Ai=x3(A),Ax=FZ(x4(A));dx(A);int z=(tp(Ax)==Zt);
  if(tp(M)!=it||tp(N)!=it||tp(Ap)!=It||tp(Ai)!=It)trap();
  int32_t m=(int32_t)M,n=(int32_t)N;
- if(nn(z)!=m)trap();if(z&&tp(B)!=Zt)B=uptype(B,zt);
+ if(nn(B)!=m)trap();if(z&&tp(B)!=Zt)B=uptype(B,zt);
  void *cc=&common;cholmod_start(cc);
  cholmod_sparse a;
  a.nrow=m;a.ncol=n;a.nzmax=nn(A);a.p=IK(Ap);a.i=IK(Ai);a.nz=NULL;a.x=FK(A);a.z=NULL;
@@ -58,7 +41,7 @@ uint64_t spqr(uint64_t x){
  b.nrow=m;b.ncol=1;b.nzmax=m;b.x=FK(B);b.z=NULL;b.xtype=1+z;b.dtype=0;
  cholmod_dense*r=SuiteSparseQR_C_backslash_default(&a,&b,cc);
  printf("r: %d %d #%d xt%d dt%d: [", r->nrow, r->ncol, r->nzmax, r->xtype, r->dtype);
- printf("%g %g %g]\n", r->x[0], r->x[1], r->x[2]);
+ printf("%g %g %g %g %g]\n", r->x[0], r->x[1], r->x[2], r->x[3], r->x[4]);
  cholmod_finish(cc);
  //todo is A/B overwritten? where is the workspace, what must be freed?
  //cholmod_free_dense(
@@ -112,7 +95,7 @@ uint64_t spsolve(uint64_t x){ // spsolve[A;b]
 
 void umfpack(void){
  reg(spsolve,"spsolve",2);
- reg(spqr,"spqr",2);
+ reg(spqr,   "spqr",   2);
 }
 __attribute((section("reg")))void*rumpfpack=umfpack;
 
