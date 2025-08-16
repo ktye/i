@@ -28,8 +28,28 @@ uint64_t gemv(uint64_t u){int32_t m,n;
  }
 }
 
+uint64_t band(uint64_t x){ //symmetric layout only (1 1;2 2 2;3 3 3 3;4 4 4;5 5)
+ x=Fst(x);if(tp(x)!=Lt)trap();
+ int32_t m=nn(x),u=m/2;if(!(m&1))trap();
+ uint64_t d=FZ(ati(rx(x),u));if(tp(x)<16)trap();
+ int32_t n=nn(d),z=(tp(d)==Zt);
+ uint64_t r=mk(z?Zt:Ft,n*(m+u)); //additional space for lapack LU
+ char*p=M_+(int32_t)r;
+ const int32_t s=z?4:3;
+ memset(FK(r),0,(z?16:8)*n*(m+u));
+ int32_t o=0;for(int32_t i=0;i<m;i++){
+  uint64_t xi=FZ(ati(rx(x),i));
+  int32_t nx=nn(xi);
+  if(nx!=(i<u?n-u+i:n+u-i)||(z&&tp(xi)!=Zt))trap();
+  int32_t k=nn(ati(rx(x),u));
+  if(i>u)o++;memcpy(p+(o+(n*(m-1-i))<<s),FK(xi),nx<<s);dx(xi);
+ }
+ dx(x);return r;
+}
+
 void blas(void){
- reg(nrm2,"nrm2",1); //c-func k-name arity
+ reg(band,"band",1); //band matrix from diagonals, e.g. band(3 3 3;1 1 1 1;2 2 2) netlib.org/lapack/lug/node124.html
+ reg(nrm2,"nrm2",1);
  reg(asum,"asum",1);
  reg(imax,"imax",1);
  reg(rot,  "rot",4);

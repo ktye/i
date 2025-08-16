@@ -18,6 +18,8 @@
 # rot[c;s;x;y] c:f s:f x:FZ y:FZ  plane rotation
 # dot dotc todo
 # gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y
+# dbmv[a;A;rA;u;op;b;y;x] band matrix-vector a*A*x+b*y
+# band[x] convert list of diagonals to band matrix layout
 #
 # LAPACK
 # gesv[A;b]   or b,b,..  solve Ax=b, both col-major flat vectors
