@@ -11,12 +11,12 @@
 # if these represent a matrix with 3 columns, rA is -4.
 # if they are a 3 rows of a matrix, rA is 3 
 
-# BLAS    /usr/include/x86_64-linux-gnu/cblas-netlib.h
+# BLAS  /usr/include/x86_64-linux-gnu/cblas.h www.netlib.org/blas/blas.pdf
 # nrm2[x] FZ  l2 vector norm         FZ mean double-float or complex vector
 # asum[x] FZ  l1 vector norm         some blas args are changed to facilitate projections
 # imax[x] FZ  index of l1 max element                               (changing input last)
 # rot[c;s;x;y] c:f s:f x:FZ y:FZ  plane rotation
-# dot dotc todo
+# dot[x;y] +/x*y  dotc[x;y] +/(conj x)*y     scalar product
 # gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y  (if b:0, y can be any)
 # dbmv[a;A;rA;u;op;b;y;x] band matrix-vector a*A*x+b*y
 # band[x] convert list of diagonals to band matrix layout

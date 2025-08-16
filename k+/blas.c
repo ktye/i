@@ -1,9 +1,13 @@
+typedef struct{double r,i;}cmplex;
 double cblas_dnrm2(int,double*,int);
 double cblas_dasum(int,double*,int);
 int cblas_idamax(int,double*,int);
 int cblas_izamax(int,double*,int);
 void cblas_drot(int,double*,int,double*,int,double,double);
 void cblas_zdrot(int,void*,int,void*,int,double,double);
+double cblas_ddot(int,double*,int,double*,int);
+cmplex cblas_zdotu(int,double*,int,double*,int);
+cmplex cblas_zdotc(int,double*,int,double*,int);
 void cblas_dgemv(int,int,int,int,double, double*,int,double*,int,double, double*,int);
 void cblas_zgemv(int,int,int,int,double*,double*,int,double*,int,double*,double*,int);
 #define major(x) (101+(x<0))
@@ -16,16 +20,27 @@ uint64_t asum(uint64_t x){x=FZ(Fst(x));int32_t n=nn(x);if(tp(x)==Zt)n*=2;return 
 uint64_t imax(uint64_t x){x=FZ(Fst(x));int32_t n=nn(x);int32_t i=tp(x)==Ft?cblas_idamax(n,FK(x),1):cblas_izamax(n,FK(x),1);return Ki(i);}
 uint64_t rot(uint64_t y){double c=f0(y),s=f1(y);uint64_t x=FZ(x2(y)),q=x3(y);dx(y);x=use(x);y=use(q);
  tp(x)==Zt?cblas_zdrot(nn(x),FK(x),1,FK(y),1,c,s):cblas_drot(nn(x),FK(x),1,FK(y),1,c,s);return l2(x,y);}
+uint64_t dot(uint64_t L){int32_t n;
+ uint64_t x=FZ(rx(x0(L))),y=FZ(ati(L,1));
+ if(tp(x)!=tp(y)||(n=nn(x))!=nn(y))trap();dx(x);dx(y);
+ if(tp(x)==Zt){cmplex c=cblas_zdotu(n,FK(x),1,FK(y),1);return Kz(c.r,c.i);}
+ else         return Kf(cblas_ddot (n,FK(x),1,FK(y),1));
+}
+uint64_t dotc(uint64_t L){int32_t n;
+ uint64_t x=rx(x0(L)),y=ati(L,1);
+ if(tp(x)!=Zt||tp(y)!=Zt||(n=nn(x))!=nn(y))trap();dx(x);dx(y);
+ cmplex c=cblas_zdotc(n,FK(x),1,FK(y),1);return Kz(c.r,c.i);
+}
 uint64_t gemv(uint64_t L){ //y:gemv[a;A;rA;op;b;y;x]
  uint64_t a=rx(x0(L)),A=FZ(rx(x1(L))),b=rx(x4(L)),y=rx(x5(L)),x=FZ(ati(rx(L),6));
  int32_t rA=iL(L,2),op=iL(L,3);dx(A);
  int32_t m=rA<0?-rA:rA;
- int z=tp(A)==Zt;if(z)x=uptype(x,zt);
- if(tp(a)>16||tp(b)>16)trap(); a=uptype(a,z?zt:ft);
- y=b==Ki(0)?mk(tp(A),m):uptype(FZ(use(y)),z?zt:ft);b=uptype(b,z?zt:ft);
+ int z=tp(A)==Zt;int32_t t=ft+z,T=t+16;
+ if(  tp(a)!=t||tp(A)!=T||tp(x)!=T)trap();
+ if(b!=Ki(0)){if(tp(b)!=t||tp(y)!=T)trap();y=use(y);}
+ else y=mk(T,m);
  int n=nn(A)/m;
  if(nn(A)!=n*m||m!=nn(y))trap();
- //todo zgemv fails
  if(z)cblas_zgemv(major(rA),trans(op),m,n, FK(a),FK(A),rA<0?m:n,FK(x),1, FK(b),FK(y),1);
  else cblas_dgemv(major(rA),trans(op),m,n,*FK(a),FK(A),rA<0?m:n,FK(x),1,*FK(b),FK(y),1);
  dx(A);dx(b);dx(x);return y;
@@ -56,6 +71,8 @@ void blas(void){
  reg(asum,"asum",1);
  reg(imax,"imax",1);
  reg(rot,  "rot",4);
+ reg(dot,  "dot",2);
+ reg(dotc,"dotc",2);
  reg(gemv,"gemv",7);
 }
 __attribute((section("rek")))void*rblas=blas;
