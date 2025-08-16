@@ -17,7 +17,7 @@
 # imax[x] FZ  index of l1 max element                               (changing input last)
 # rot[c;s;x;y] c:f s:f x:FZ y:FZ  plane rotation
 # dot dotc todo
-# gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y
+# gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y  (if b:0, y can be any)
 # dbmv[a;A;rA;u;op;b;y;x] band matrix-vector a*A*x+b*y
 # band[x] convert list of diagonals to band matrix layout
 #
@@ -33,6 +33,8 @@
 # curl"https://ktye.github.io/k.png"
 #
 # RMATH (r-mathlib standalone)
+#
+# eig: https://digital.library.unt.edu/ark:/67531/metadc888190/m2/1/high_res_d/912651.pdf
 
 # dependencies linux/windows, see deps
 # - linux(debian13)  see deps

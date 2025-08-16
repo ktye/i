@@ -43,11 +43,9 @@ static uint64_t x4(uint64_t x){return x0((x+32ull));}
 static uint64_t x5(uint64_t x){return x0((x+40ull));}
 static uint64_t x6(uint64_t x){return x0((x+48ull));}
 
+int    iL(uint64_t x, int32_t k){uint64_t r=U_[k+(((int32_t)x)>>3)];if(tp(r)!=it)trap();return(int32_t)r;}
 int   *IK(uint64_t x){return (int   *)(M_+(int32_t)x);       }
 double*FK(uint64_t x){return (double*)(M_+(int32_t)x);       }
 double f0(uint64_t x){return F64((int32_t)I64((int32_t)x  ));}
 double f1(uint64_t x){return F64((int32_t)I64((int32_t)x+8));}
 double f4(uint64_t x){return F64((int32_t)I64((int32_t)x+32));}
-int32_t i2(uint64_t x){return I32((int32_t)I64((int32_t)x+16));}
-int32_t i3(uint64_t x){return I32((int32_t)I64((int32_t)x+24));}
-
