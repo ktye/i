@@ -19,9 +19,9 @@
 # dot[x;y] +/x*y  dotc[x;y] +/(conj x)*y     scalar product
 # gemv[a;A;rA;op;b;y;x] c:fz A:FZ b:fz y:FZ  a*A*x+b*y  (if b:0, y can be any)
 # dbmv[a;A;rA;u;op;b;y;x] band matrix-vector a*A*x+b*y
-# band[x] convert list of diagonals to band matrix layout
+# band[0;x] convert list of diagonals to band matrix layout, band[1;x] with space for LU
 #
-# LAPACK
+# LAPACK  icl.utk.edu/~mgates3/docs/lapack.html
 # gesv[A;b]   or b,b,..  solve Ax=b, both col-major flat vectors
 # gels[n;A;b] or b,b,..  solve Ax=b least squares
 #

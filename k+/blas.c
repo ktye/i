@@ -47,26 +47,26 @@ uint64_t gemv(uint64_t L){ //y:gemv[a;A;rA;op;b;y;x]
 }
 
 uint64_t band(uint64_t x){ //symmetric layout only (1 1;2 2 2;3 3 3 3;4 4 4;5 5)
- x=Fst(x);if(tp(x)!=Lt)trap();
- int32_t m=nn(x),u=m/2;if(!(m&1))trap();
+ int32_t lu=iL(x,0);x=ati(x,1);if(tp(x)!=Lt)trap();
+ int32_t m=nn(x),u=m/2;if(!(m&1))trap();lu*=u;
  uint64_t d=FZ(ati(rx(x),u));if(tp(x)<16)trap();
  int32_t n=nn(d),z=(tp(d)==Zt);
- uint64_t r=mk(z?Zt:Ft,n*(m+u)); //additional space for lapack LU
+ uint64_t r=mk(z?Zt:Ft,n*(m+lu)); //lu: additional space for lapack LU
  char*p=M_+(int32_t)r;
  const int32_t s=z?4:3;
- memset(FK(r),0,(z?16:8)*n*(m+u));
- int32_t o=0;for(int32_t i=0;i<m;i++){
+ memset(FK(r),0,(z?16:8)*n*(m+lu));
+ int32_t o=lu;for(int32_t i=0;i<m;i++){
   uint64_t xi=FZ(ati(rx(x),i));
   int32_t nx=nn(xi);
   if(nx!=(i<u?n-u+i:n+u-i)||(z&&tp(xi)!=Zt))trap();
   int32_t k=nn(ati(rx(x),u));
-  if(i>u)o++;memcpy(p+(o+(n*(m-1-i))<<s),FK(xi),nx<<s);dx(xi);
+  if(i>u)o++;memcpy(p+(o+(n*(m+lu-1-i))<<s),FK(xi),nx<<s);dx(xi);
  }
  dx(x);return r;
 }
 
 void blas(void){
- reg(band,"band",1); //band matrix from diagonals, e.g. band(3 3 3;1 1 1 1;2 2 2) netlib.org/lapack/lug/node124.html
+ reg(band,"band",2); //band matrix from diagonals, e.g. band(3 3 3;1 1 1 1;2 2 2) netlib.org/lapack/lug/node124.html
  reg(nrm2,"nrm2",1);
  reg(asum,"asum",1);
  reg(imax,"imax",1);
