@@ -164,15 +164,15 @@ func pasn(x, y, r K) K {
 			if v > 544 { // indexed-modified
 				l -= 96
 			}
-			s := ati(rx(x), xn-3)
 			lp := 0xff000000ffffffff & lastp(x)
-			// (+;.i.;`x;.;@) -> x:@[x;.i.;+;rhs] which is (+;.i.;`x;.;211 or 212)
+			// (+;.i.;`x;.;@) -> @[`x;.i.;+;rhs] which is (+;.i.;`x;211 or 212)
 			// lp+128 is @[amd..] or .[dmd..]
 			if lp == 92 {
 				lp = 84 // x[i;]:.. no projection
 			}
-			x = cat1(ucat1(l1(l), ldrop(-2, x), 20), (K(sp)<<32)|(lp+128))
-			y = l2(s, 448) // s:..
+			x = ucat1(l1(l), ldrop(-2, x), (K(sp)<<32)|(lp+128))
+			r = ucat(r, x)
+			return r
 		} else if v == 449 || v == 545 {
 			x = Fst(x)
 			if xn == 1 {

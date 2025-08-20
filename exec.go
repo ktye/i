@@ -113,7 +113,18 @@ func Asn(x, y K) K {
 func Amd(x, i, v, y K) K {
 	xt := tp(x)
 	if xt == st {
-		return Asn(x, Amd(lup(x), i, v, y))
+		a := lup(x)
+		if rc := I32(int32(a)-4); rc == 2 { //enable reuse for @[`x;i;+;y]
+			dx(a)
+			p := int32(a)
+			a = rx(Amd(a, i, v, y))
+			if int32(a) != p {
+				SetI64(I32(8)+int32(x), int64((a)))
+			}
+			return a
+		}
+		return Asn(x, Amd(a, i, v, y))
+		//return Asn(x, Amd(lup(x), i, v, y))
 	}
 	if xt < 16 {
 		trap() //type
