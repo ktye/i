@@ -32,23 +32,22 @@ n?n(with)   random   -n?n(w/o)
 # get/compile
 get any version from here:
 
-|file|what|compile|
+|file|what|compile|created with|
 |---|---|---|
-[k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran version|`gfortran k.f`|
-[k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c version|`gcc k.c -lm`|
-[kv.c](https://github.com/ktye/i/releases/download/latest/kv.c)|c simd5 |`clang-18 -O3 -mavx2 kv.c -lm`|
-[k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go version|`go build k.go`|
+[k.f](https://github.com/ktye/i/releases/download/latest/k.f)|fortran version|`gfortran k.f`|[f.go](https://github.com/ktye/wg/blob/master/f77/f.go)|
+[k.c](https://github.com/ktye/i/releases/download/latest/k.c)|c version|`gcc k.c -lm`|[cc.k](https://github.com/ktye/i/blob/master/x/cc.k)|
+[kv.c](https://github.com/ktye/i/releases/download/latest/kv.c)|c simd5 |`clang-18 -O3 -mavx2 kv.c -lm`|[c.go](https://github.com/ktye/wg/blob/master/c.go)|
+[k.go](https://github.com/ktye/i/releases/download/latest/k.go)|go version|`go build k.go`|[go.k](https://github.com/ktye/i/blob/master/x/go.k)|
+[k.wasm](https://ktye.github.io/k.wasm)|run [online](https://ktye.github.io.k.html)||[wat.go](https://github.com/ktye/wg/blob/master/wat.go)|
 
 e.g.
 ```
 $wget https://github.com/ktye/i/releases/download/latest/k.c
-$gcc -ok k.c -lm        #clang -ok -fwrapv -ffast-math k.c
+$gcc -ok k.c -lm          #clang -ok -fwrapv -ffast-math k.c
 $k
 ktye/k
  █
 ```
-
-or [online](https://ktye.github.io/k.html)
 
 # command line arguments
 - `k a.k b.k c.k` executes all files in order, as if they were catenated and drops into the repl
