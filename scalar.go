@@ -357,6 +357,9 @@ func nf(f int32, x, y K) K {
 		x = uptype(x, ft)
 		xt = tp(x)
 	}
+	if tp(y) < ft && y != 0 {
+		y = uptype(y, ft)
+	}
 	xp := int32(x)
 	xn := int32(1)
 	if xt == ft {
