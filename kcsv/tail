@@ -168,7 +168,7 @@ func (f *format) push(v []string) {
 func kint(s string) uint64 {
 	n, e := strconv.ParseInt(s, 10, 32)
 	if e != nil {
-		return Ki(nai)
+		return Ki(0)
 	} else {
 		return Ki(int32(n))
 	}

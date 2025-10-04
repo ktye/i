@@ -47,6 +47,7 @@ p:{x:w x
    i:&d&(-1_1,d|e|c?\L,A)&~b 
    x[i]:x[i],'":"
    x:x(&b&e&~-1_1,c?\L)_!#x
-   -1_,/{$[0N~i:dma?x;x;DMA i]," "}'x}
+   -1_,/{$[(#dma)~i:dma?x;x;DMA i]," "}'x}
+
 
  \p"1_'(&x=y)_y:x,y /comment"

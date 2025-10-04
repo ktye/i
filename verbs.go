@@ -203,13 +203,6 @@ func Tak(x, y K) K { // x#y
 func ntake(n int32, y K) K {
 	var r K
 	t := tp(y)
-	if n == nai {
-		if t < 16 {
-			n = 1
-		} else {
-			n = nn(y)
-		}
-	}
 	if n < 0 {
 		if tp(y) < 16 {
 			return ntake(-n, y)
@@ -595,7 +588,7 @@ func Fwh(x K) K { // *&x
 			}
 			p += 4
 		}
-		return Ki(nai)
+		return Ki(0)
 	}
 	return Fst(Wer(x))
 }

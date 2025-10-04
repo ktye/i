@@ -36,7 +36,7 @@ func max(yp int32, t T, e int32) K { // |/x
 		}
 		return Kc(xp)
 	case 1: // It
-		return Ki(maxis(nai, yp, e))
+		return Ki(maxis(-2147483648, yp, e))
 	case 2: // St
 		return Ks(maxis(0, yp, e))
 	case 3: // Ft

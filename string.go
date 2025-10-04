@@ -81,8 +81,8 @@ func emb(a, b int32, x K) K { return cat1(Cat(Kc(a), x), Kc(b)) }
 func si(x int32) K {
 	if x == 0 {
 		return Ku(uint64('0'))
-	} else if x == nai {
-		return Ku(20016) // 0N
+	} else if x == -2147483648 {
+		return ucat(Ku(57411703484973), Ku(241394135864))
 	} else if x < 0 {
 		return ucat(Ku(uint64('-')), si(-x))
 	}

@@ -38,13 +38,10 @@ func Fnd(x, y K) K { // x?y
 	return r
 }
 func fnd(x, y K, t T) int32 {
-	if nn(x) == 0 {
-		return nai
-	}
 	xp := int32(x)
 	r := Func[268+t].(f3i)(int32(y), xp, ep(x))
 	if r == 0 {
-		return nai
+		return nn(x)
 	}
 	return (r - xp) >> (31 - I32clz(sz(16+t)))
 }
@@ -58,7 +55,7 @@ func fdl(x, y K) K {
 		}
 		xp += 8
 	}
-	return Ki(nai)
+	return Ki(nn(x))
 }
 func idx(x, a, b int32) int32 {
 	for i := a; i < b; i++ {

@@ -45,17 +45,16 @@ TOK:{[x]m:{y/x\z};m1:{m[x;y,"[",(_O+"0"),"]";z]};x:m["¯";"_"]m["←";":"]m1["�
  P::0,+\#'r                                 /save token start positions within input C
  b:{P::P i:&~" "=*'x;x i}                   /blanks result in their own tokens, remove them
  r:b VEC b r                                /merge successive numbers (strong vector binding)   
- $[(!0)~e:&s=6;$[+/p:0N~/r:PRS'r;ERR@*(`val;E::P@*&p);r];ERR@*(`cha;E::*e)]}
+ $[(!0)~e:&s=6;$[+/p:0n~/r:PRS'r;ERR@*(`val;E::P@*&p);r];ERR@*(`cha;E::*e)]}
 
 VEC:{x:,/|'{x," ",y}\'(&~b&same b:{(*x)?NM}'x)^x;x[i]:(#i:&b&same b)#,"";x}
  
 PRS:{                                                   / apl token           k value               k-type
  ({x}                                                   / "⍳"   ,"+"   "⍰"  → "⍳"   ,"+"   "⍰"      C
-  {$[r:`F$" "/x@&~""~/x:" "\x:@[x;&x="_";"-"];r;0N]} / "_1.23E6"    "1"  → ,-1.23E6   ,1.0       F
+  {$[r:`F$" "/x@&~""~/x:" "\x:@[x;&x="_";"-"];r;0n]}  / "_1.23E6"    "1"  → ,-1.23E6   ,1.0       F
   `$                                                    / "X1"              → `X1                   s  
   {(,#x;x:UTF@"'"/v@&~""~/v:"'"\1_-1_x)}             / "'⍺ isn''t ⍵'"    → ("1";,14;"⍺ isn't ⍵") L
- )[*&~0N=(OP;NM;AZ;,"'")?\*x]x}
-
+ )[*&(*x)?/(OP;NM;AZ;,"'")]x}
 
 ER:{L::-1;x}
 F1:{[f;x]$[`L~@*|x;`dom;(*x;f x 1)]}
@@ -102,7 +101,7 @@ RESHAPE:  {(r;(y 1)@(#y 1)!!*/r:_0.+x 1)}
 CATENATE: {o:up[];(,#r;r:(o+x 1),o+y 1)} /APL"X←1 2"; APL"1 2,⍴X"
 COMPRESS: {[a;x;y]a:a-O;s:@[*y;a;#i:&_0.+*|x];(s;(*|y)@(*y)/@[p;a;i(p:!s)a])}
 EXPAND:   {[a;x;y]a:a-O;r:@[s:*y;a;#v:1=*|x];e:(*/r)#o:$[`L~t:@*|y;"";`I~t;0;0.];$[~(s a)~+/v;[I::0;`ran];(r;@[$[`L~t;,'e;e];r/@[i;a;(&v)(i:!s)a];*|y])]}
-INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+@[r;&0N=r:(o+*|x)?(o+*|y);#*|x])]}
+INDEXOF:  {o:up[];$[~1~#*x;[I::0;`ran];(*y;O+(o+*|x)?o+*|y)]}
 MEMBER:   {o:up[];(*x;(o+*|x)?\(o+*|y))}
 TAKEDROP: {[o;n;x]*|x;(n;(*|x)@(*x)/o+!n)}
 TAKE:     {$[~(#*|x)~(#*y);[I::0;`ran];0=*/s:abs i:_0.+*|x;(s;0#*|y);TAKEDROP[(i<0)*i+*y;s;y]]}

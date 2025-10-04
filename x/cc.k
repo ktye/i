@@ -9,9 +9,9 @@ cc:{[o]opts::o
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(ccneq;ccnop;ccnot;ccorr;ccbor;ccxor;ccret;ccshl;ccshr;ccstm;ccsub;ccswc;cctyp)
 
  ccren'`main`ldexp`hypot`atan2`atan`exp`log`pow /rename libm
- i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
+ i:i@&{(2~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
  rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)?\i     /rewrite cnd/swc expressions 
- S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
+ S[0]:$[(#o)~i:o?`lib;S 0;o 1+i]               /emit`lib`name (instead of main + remove func main)
  n:{x[y]+:1}/(,&#P),P;n[0]-:1;                 /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
@@ -78,7 +78,7 @@ ccflts:(0x25fab843dda06440;0x2cde25af6a56113f;0x182d4454fb21e93f;0x485555555555c
 ccflt:{x:C x+!8;$[#r:ccflts x;r;$*`f x]}
 cclit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
  y;i:I x;$[`f~t:S x;ccflt i
-           `i~t;$[0N~i;"(int32_t)0x80000000";$i]
+           `i~t;$[i~|/!0;"(int32_t)0x80000000";$i]
            `u~t;$[i<0;"0x",`x@|`c@,i;$i]
            `j~t;$[i~0;,"0";(-1~h:hi i)&0>l:lo i;$l;(h~0)&l>0;$l;hx8 i],"ll"
            `k~t;$[i~0;,"0";(0~h:hi i)&0<l:lo i;$l;hx8 i],"ull";"???"]}
