@@ -198,7 +198,8 @@ func stv(x, i, y K) K {
 	for j := int32(0); j < n; j++ {
 		xi := uint32(I32(ip + 4*j))
 		if xi >= uint32(xn) {
-			trap() //index
+			j := rx(Wer(Min(Mor(rx(i), Ki(-1)), Les(rx(i), Ki(xn)))))
+			return stv(x, atv(i, j), atv(y, j))
 		}
 	}
 	switch s >> 2 {
@@ -246,7 +247,8 @@ func stv(x, i, y K) K {
 func sti(x K, i int32, y K) K {
 	xt := tp(x)
 	if uint32(i) >= uint32(nn(x)) {
-		trap() //index
+		dx(y)
+		return x
 	}
 	s := sz(xt)
 	xp := int32(x)

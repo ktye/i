@@ -70,8 +70,6 @@ log[2a45;3] /Type
 +/`a`b`c /Type
 */`a`b`c /Type
 @[!10;!3;!4] /Length
-@[!10;10;4] /Index
-@[!10;8+!3;1 2 3] /Index
 @[1 2 3;0 1.;4 5] /Type
 2000000000#"a" /Grow
 2000000000#1a /Grow

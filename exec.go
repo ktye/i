@@ -114,7 +114,7 @@ func Amd(x, i, v, y K) K {
 	xt := tp(x)
 	if xt == st {
 		a := lup(x)
-		if rc := I32(int32(a)-4); rc == 2 { //enable reuse for @[`x;i;+;y]
+		if rc := I32(int32(a) - 4); rc == 2 { //enable reuse for @[`x;i;+;y]
 			dx(a)
 			p := int32(a)
 			a = rx(Amd(a, i, v, y))
