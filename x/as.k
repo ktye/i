@@ -1,6 +1,4 @@
-F:(0#`)!()
 hx8:{[i]"0x",`x@|C i+!8}
-delta:{x-(*x),-1_x}
 
 prg:{
  c:1_&P=0
@@ -19,7 +17,7 @@ mem:{y;""}
 con:{"(global $",($S x)," ",(type S 1+x)," (",(*y),"))"}
 var:{"(global $",($S x)," (mut ",(type S 1+x),") (",(*y),"))"}
 tab:{y;(I x;S x)}
-watbl:{"\n"/{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/'"$",''$(i:&~1=delta@*x)^(x:+x)1]}
+watbl:{"\n"/{"(elem (i32.const ",($x),") func ",y,")"}'[(*x)i;" "/'"$",''$(i:&~1=-'*x)^(x:+x)1]}
 fun:{s:$S x
  args:" "/y@&`arg=T c:&x=P
  rets:" "/y@&`res=T c
@@ -73,16 +71,16 @@ swc:{
 cnd:{"\n"/(*y;$[#t:type S x;"if (result ",t,")";"if"];y 1;$[3~#y;"else\n",(y 2);""],"\nend")}
 typ:{y;S x} /keep as symbol
 
-wa2: {"\n"/(z 0;z 1;(type S y),x)}
-wa2s:{"\n"/(z 0;z 1;(type t  ),x,sign@t:S y)}
-add:wa2".add";sub:wa2".sub"
-mul:wa2".mul";div:wa2s".div";mod:wa2s".rem"
-and:wa2".and";bnd:wa2".and"
-neq:wa2".ne"
-mor:wa2s".gt";gte:wa2s".ge";les:wa2s".lt";lte:wa2s".le";
-orr:wa2".or";bor:orr;xor:wa2".xor"
-eql:wa2".eq"
-shl:wa2".shl";shr:wa2s".shr"
+f2: {"\n"/(z 0;z 1;(type S y),x)}
+f2s:{"\n"/(z 0;z 1;(type t  ),x,sign@t:S y)}
+add:f2".add";sub:f2".sub"
+mul:f2".mul";div:f2s".div";mod:f2s".rem"
+and:f2".and";bnd:f2".and"
+neq:f2".ne"
+mor:f2s".gt";gte:f2s".ge";les:f2s".lt";lte:f2s".le";
+orr:f2".or";bor:orr;xor:f2".xor"
+eql:f2".eq"
+shl:f2".shl";shr:f2s".shr"
 
 type:`i`u`j`k`f!("i32";"i32";"i64";"i64";"f64")
 sign:`i`u`j`k`f!("_s";  "_u"; "_s"; "_u";   "")
@@ -98,11 +96,6 @@ cast:(""                 ;""                 ;"i32.wrap_i64"     ;"i32.wrap_i64"
       "f64.convert_i32_s";"f64.convert_i32_u";"f64.convert_i64_s";"f64.convert_i64_u";"")                /f
 
 
-F[`prg`mem`con`var`tab`fun`arg`sym`res`loc`ast`lod`sto]:(prg;mem;con;var;tab;fun;arg;sym;res;loc;ast;lod;sto)
-F[`add`and`bnd`ant`asn`cal`cli`cnd`dfr`div`drp`eql`cst]:(add;and;bnd;ant;asn;cal;cli;cnd;dfr;div;drp;eql;cst)
-F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(for;get;Get;gte;jmp;les;lit;lte;mod;mor;mul;neg)
-F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(neq;nop;not;orr;bor;xor;ret;shl;shr;stm;sub;swc;typ)
- 
 n:{x[y]+:1}/(,&#P),P;n[0]-:1
-s:{c:(0,(#x)-z)^x;(c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
+s:{c:(0,(#x)-z)^x;(c 0),,,/(.T y)[y;|c 1]}/[();|!#P;|n]
 `<*s
