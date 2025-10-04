@@ -13,7 +13,7 @@ wa:{[o]opts::o
  F[`for`get`Get`gte`jmp`les`lit`lte`mod`mor`mul`neg    ]:(wafor;waget;waGet;wagte;wajmp;wales;walit;walte;wamod;wamor;wamul;waneg)
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(waneq;wanop;wanot;waorr;wabor;waxor;waret;washl;washr;wastm;wasub;waswc;watyp)
  
- S[0]:$[0N~i:o?`lib;S 0;o 1+i]
+ S[0]:$[(#o)~i:o?`lib;S 0;o 1+i]
  n:{x[y]+:1}/(,&#P),P;n[0]-:1
  s:{c:(0,(#x)-z)^x
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]
@@ -74,7 +74,7 @@ wajmp:{y;"br ",$[`~S x;$1+I x;"$",($S x),$I x]}
 waflts:(,0x182d4454fb210940)!,"3.141592653589793" /predefined constants that don't roundtrip
 waflt:{x:C x+!8;$[#r:waflts x;r;$*`f x]}
 walit:{y;i:I x;(watype t),".const ",$[`f~t:S x;waflt i
-                 `i~t;$[0N~i;"-2147483648";$i]
+                 `i~t;$i
                  `u~t;$[i<0;"0x",`x@|`c@,i;$i]
 		 $[i~0;,"0";(-1~h:*`i C 4+i+!4)&0>j:*`i C i+!4; $j; (h~0)&j>0; $j; hx8 i]]}
 
