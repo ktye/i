@@ -4,6 +4,9 @@ set -x
 #go install /c/k/wg/cmd/wg
 #wg -k .. > k.k
 
+gcc -nostdlib -static l86.c
+exit 0
+
 if [ "$1" = "go" ]; then
  k k.k go.k -e 'x:`<go`pkg`k' > kg.go
  go fmt kg.go
