@@ -2,13 +2,13 @@
 //gcc -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables k.c
 //(objcopy --remove-section .comment a.out b.out)
 
-typedef uint  unsigned int;
-typedef ulong unsigned long;
+typedef unsigned int  uint;
+typedef unsigned long ulong;
 
 asm(".globl _start;_start:mov %rsp,%rdi;call cmain");
 
 
-                    static double F64copysign(double x,double y){union{double f;uint64_t i;}ux={x},uy={y};ux.i&=-1ull/2;ux.i|=uy.i&1ull<<63;return ux.f;}
+                    static double F64copysign(double x,double y){union{double f;ulong i;}ux={x},uy={y};ux.i&=-1ul/2;ux.i|=uy.i&1ul<<63;return ux.f;}
                     static double F64floor(double x){int i=(int)x;return(double)i;}
 __attribute((naked))static double F64abs(double x){ asm("xor %eax,%eax;dec %rax;shr %rax;movq %rax,%xmm1;andpd %xmm1,%xmm0;ret;");}
 __attribute((naked))static double F64sqrt(double x){ asm("sqrtsd %xmm0,%xmm0;ret");}
@@ -49,4 +49,4 @@ static int ReadIn(int dst,int n){return(int)read(1,_M+dst,n);}
 static long Native(long x,long y){return(x+y)*0;}
 static void panic(int x){Exit(1);}
 
-void cmain(char**a){argv=a;main_();}
+//void cmain(char**a){argv=a;main_();}

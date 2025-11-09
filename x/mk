@@ -4,9 +4,6 @@ set -x
 #go install /c/k/wg/cmd/wg
 #wg -k .. > k.k
 
-gcc -nostdlib -static l86.c
-exit 0
-
 if [ "$1" = "go" ]; then
  k k.k go.k -e 'x:`<go`pkg`k' > kg.go
  go fmt kg.go
@@ -23,6 +20,10 @@ elif [ "$1" = "cc" ]; then
  #c:/local/zig/zig cc -Wall -Wno-parentheses-equality -fwrapv -ffast-math k.c -o kc.exe -lm
 elif [ "$1" = "ctest" ]; then
  ./kc ../k.t -e
+elif [ "$1" = "l8" ]; then
+ k k.k cc.k -e 'x:`<cc``l8' >  k.c
+ #gcc -Wall -Wfatal-errors -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables -ol8 k.c
+ gcc -Wall -Wfatal-errors -ol8 k.c -lm
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa

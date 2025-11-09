@@ -12,6 +12,7 @@ cc:{[o]opts::o
  i:i@&{(2~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
  rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)?\i     /rewrite cnd/swc expressions 
  S[0]:$[(#o)~i:o?`lib;S 0;o 1+i]               /emit`lib`name (instead of main + remove func main)
+ $[`l8?o;cctype::`i`u`j`k`f!("int";"uint";"long";"ulong";"double");0]
  n:{x[y]+:1}/(,&#P),P;n[0]-:1;                 /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
@@ -37,8 +38,8 @@ ccprg:{
  fncs: ,/y@&`fun=T c:1_&P=0
  cons:nl y@&`con=T c
  vars:nl y@&`var=T c
- runt:$[`nort?opts;"";ccrnt]
- main:$[|/`nort`lib?\opts;"";ccmain]
+ runt:$[`nort?opts;"";`l8?opts;<`"l8.h";ccrnt]
+ main:$[|/`nort`lib?\opts;"";`l8?opts;"void cmain(char**a){argv=a;main_();}";ccmain]
  data:$[#D;"memcpy(M_,\"",("\\x","\\x"/(#D)^`x D),"\",",($#D),");";""]
  tabl:nl y@&`tab=T c
  tabl:$[#tabl;"F_=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
