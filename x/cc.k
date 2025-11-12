@@ -41,11 +41,10 @@ ccprg:{
  runt:$[`nort?opts;"";`l8?opts;<`"l8.h";ccrnt]
  main:$[|/`nort`lib?\opts;"";`l8?opts;"void cmain(char**a){argv=a;main_();}";ccmain]
  data:$[#D;"memcpy(M_,\"",("\\x","\\x"/(#D)^`x D),"\",",($#D),");";""]
- tabl:nl y@&`tab=T c
- tabl:$[#tabl;"F_=malloc(",($1+|/I@&`tab=T),"*sizeof(void*));\n";""],tabl
+ tabl:$[`tab?T;"static void*F_[]={",(,/" ",/$@[(1+|/i)#`trap;i:I@&`tab=T;S@&`tab=T],\",\n"),"};\n";""]
  mems:nl y@&`mem=T c
- init:$[|/(#mems;#data;#tabl);nl("void init(){\n";mems;data;tabl;"}\n");""]
- (runt;fpre;cons;vars),(,fncs),(ccfmt init),main}
+ init:$[|/(#mems;#data;#tabl);nl("void init(){\n";mems;data;"}\n");""]
+ (runt;fpre;cons;vars),(,fncs),tabl,(ccfmt init),main}
  
 ccfun:{
  $[(`main~S x)&`lib?opts; :""; 0]
@@ -72,7 +71,7 @@ ccsig:{
  stat,ret,($S x),"(",$[#args;args;"void"],");"}
 
 ccmem:{y;("Memory";$[`b~S x;"2";""];"(";$I x;");")}
-cctab:{y;("F_[";$I x;"]=(void*)";$S x;";\n")}
+cctab:{y;""}
 
 /floating point literals that don't roundtrip (written by mk flt)
 ccflts:(0x25fab843dda06440;0x2cde25af6a56113f;0x182d4454fb21e93f;0x485555555555c5bf;0xcd3b7f669ea0e63f;0x935555555555e53f;0xc64bac7e4f7e92be;0x4b5555555555a53f;0x5d1f29a9e5e55abe;0xf544c819a001fa3e;0x9b1a86a049faa8bd;0xe69d3f334f500340;0xec62bdfb9e516840;0xf16bd2c541bdbbbe;0xaf788e1dc571cc3f;0x182d4454fb210940;0x93bdbe166cc166bf;0x7a806b5b542830c0;0xcd9cd11ffdd8e53d;0xea49b0133f567e40;0xfe822b654715f73f;0x000000000000a03c;0x0000000000001000;0x075c143326a6913c;0x8eec28fd693650c0;0x00000000000030be;0x04fa97999999d93f;0xff799f501344d33f;0xa1487d56e31dc73e;0x03dfbf19a0012abf;0xd0f710111111813f;0x9425f7a17f00ecbf;0x730288368cc052c0;0x3bbee2d2180e7b40;0xef39fafe422e8640;0x44523edf12f1c23f;0x000000002d44643e;0x7051cc989846e83c;0x25ba052dbfb85ec0;0x51302dd5104987c0;0x0000000000003043;0x399d52a246df913f;0x00000040fb21e93f;0x555555555555c53f;0xde03cb966446c73f;0xffffffffffffef7f;0x0000e0fe422ee63f;0xd0a4be726937663e;0x9fc678d0099ac33f;0x000000000000e043;0x053f4e7b9dee213e;0x182d4454fb21f93f;0x3c60145bc4db3840;0x0ee526157bcbdb3f;0x914fc1166cc156bf;0x000000000000303e;0x83c8c96d305ff43f;0x763c7935ef39ea3d;0x599322942449d23f;0x8dedb5a0f7c6b03e;0xf8c1631adca54c40)!("165.02700983169885";"6.613756321437934e-05";"0.7853981633974483";"-0.1666666666666663";"0.7071067811865476";"0.6666666666666735";"-2.755731417929674e-07";"0.041666666666666595";"-2.5050747762857807e-08";"2.4801587288851704e-05";"-1.1358536521387682e-11";"2.414213562373095";"194.5506571482614";"-1.6533902205465252e-06";"0.22222198432149784";"3.141592653589793";"-0.0027777777777015593";"-16.157537187333652";"1.5896230157654656e-10";"485.3903996359137";"1.4426950408889634";"1.1102230246251565e-16";"2.2250738585072014e-308";"6.123233995736766e-17";"-64.85021904942025";"-3.725290298461914e-09";"0.3999999999940942";"0.3010299956639812";"2.7557313621385722e-06";"-0.0001984126982958954";"0.008333333333322118";"-0.8750608600031904";"-75.00855792314705";"432.88106049129027";"709.782712893384";"0.14798198605116586";"3.774894707930798e-08";"2.6951514290790595e-15";"-122.88666844901361";"-745.1332191019411";"4.503599627370496e+15";"0.017453292519943295";"0.7853981256484985";"0.16666666666666666";"0.1818357216161805";"1.7976931348623157e+308";"0.6931471803691238";"4.1381367970572385e-08";"0.15313837699209373";"9.223372036854776e+18";"2.087570084197473e-09";"1.5707963267948966";"24.858464901423062";"0.4342944819032518";"-0.0013888888888873056";"3.725290298461914e-09";"1.2732395447351628";"1.9082149292705877e-10";"0.2857142874366239";"1e-06";"57.29577951308232")
@@ -158,7 +157,7 @@ ccrnt:"#include<stdio.h>
 static char *M_, *M2_;
 static int32_t  *I_;
 static uint64_t *U_, *U2_;
-static void **F_;
+static void  *F_[];
 static int32_t memorysize_, memorysize2_;
 static int    args_;
 static char **argv_;
@@ -194,7 +193,7 @@ static void SetF64(int32_t x,double  y){((double*)U_)[(x)>>3]=(y);}
 static void Memorycopy (int32_t dst, int32_t src, int32_t n){ memcpy(M_ +dst, M_ +src, (size_t)n); }
 static void Memorycopy2(int32_t dst, int32_t src, int32_t n){ memcpy(M2_+dst, M_ +src, (size_t)n); }
 static void Memorycopy3(int32_t dst, int32_t src, int32_t n){ memcpy( M_+dst, M2_+src, (size_t)n); }
-static void Memoryfill(int32_t p, int32_t v, int32_t n){ memset(M_+p, (int)v, (size_t)n); }
+//static void Memoryfill(int32_t p, int32_t v, int32_t n){ memset(M_+p, (int)v, (size_t)n); }
 static int32_t  I32clz(int32_t x) { return (int32_t)__builtin_clz((unsigned int)x); }
 static double   F64reinterpret_i64(uint64_t x){union{uint64_t i;double f;}u;u.i=x;return u.f;}
 static uint64_t I64reinterpret_f64(double   x){union{uint64_t i;double f;}u;u.f=x;return u.i;}

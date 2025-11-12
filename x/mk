@@ -23,7 +23,7 @@ elif [ "$1" = "ctest" ]; then
 elif [ "$1" = "l8" ]; then
  k k.k cc.k -e 'x:`<cc``l8' >  k.c
  #gcc -Wall -Wfatal-errors -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables -ol8 k.c
- gcc -Wall -Wfatal-errors -ol8 k.c -lm
+ gcc -Wall -Wfatal-errors -nostdlib -static -ol8 k.c -lm
 elif [ "$1" = "wa" ]; then
  k k.k wa.k -e 'x:`<wa``' >  k.wa
  /c/local/wabt/wat2wasm k.wa
