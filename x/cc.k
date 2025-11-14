@@ -39,7 +39,7 @@ ccprg:{
  cons:nl y@&`con=T c
  vars:nl y@&`var=T c
  runt:$[`nort?opts;"";`l8?opts;<`"l8.h";ccrnt]
- main:$[|/`nort`lib?\opts;"";`l8?opts;"void cmain(char**a){argv=a;main_();}";ccmain]
+ main:$[|/`nort`lib?\opts;"";`l8?opts;"void cmain(char**a){argv=a;init();main_();}";ccmain]
  data:$[#D;"memcpy(M_,\"",("\\x","\\x"/(#D)^`x D),"\",",($#D),");";""]
  tabl:$[`tab?T;"static void*F_[]={",(,/" ",/$@[(1+|/i)#`trap;i:I@&`tab=T;S@&`tab=T],\",\n"),"};\n";""]
  mems:nl y@&`mem=T c

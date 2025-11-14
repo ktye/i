@@ -15,9 +15,16 @@ __attribute((naked))static double F64sqrt(double x){ asm("sqrtsd %xmm0,%xmm0;ret
 __attribute((naked))static double F64min(double x,double y){asm("minsd %xmm0,%xmm0;ret;\n");}
 __attribute((naked))static double F64max(double x,double y){asm("maxsd %xmm0,%xmm0;ret;\n");}
 
-__attribute((naked))long sysread( long fd,char*b,int n){asm("xor %rax,%rax;syscall;ret");}
-__attribute((naked))long syswrite(long fd,char*b,int n){asm("mov $1,%rax;syscall;ret");}
+__attribute((naked))long brk(long x){asm("mov $12,%rax;syscall;ret");}
+__attribute((naked))long sread( long fd,char*b,int n){asm("xor %rax,%rax;syscall;ret");}
+__attribute((naked))long swrite(long fd,char*b,int n){asm("mov $1,%rax;syscall;ret");}
 __attribute((naked))void Exit(int x){asm("mov $60,%rax;syscall");}
+
+static void wl(ulong x){ //debug-only
+ char s[32];s[31]=10;s[30]='0';
+ if(!x){swrite(1,s+30,2);return;}
+ int i=31;while(x){s[--i]='0'+(x%10);x/=10;}
+ swrite(1,s+i,32-i);}
 
 extern char _end[];
 #define M_ _end
@@ -25,11 +32,11 @@ extern char _end[];
 #define U_ ((ulong*)M_)
 static void*F_[];   //dispatch table
 #define int32_t int //some literals
-static int Memorysize(void){ return 2; } //todo brk
-static int Memorygrow(int delta){ return 2; } //todo
-static void Memory(int x){}
+static ulong pages_=0;
+static int Memorysize(void){return pages_;}
+static int Memorygrow(int d){pages_+=d;if(pages_>16384)return -1;brk((pages_<<16)+(ulong)_end);return pages_-d;}
+static void Memory(int x){Memorygrow(x);wl(brk(0)-(long)_end);}
 static void Memory2(int x){}
-
 
 //todo try/catch
 static int jb_,jb__;
@@ -60,13 +67,12 @@ static ulong  I64reinterpret_f64(double x){union{ulong i;double f;}u;u.f=x;retur
 
 char**argv;
 static int Args(void){return((int*)argv)[0];};
-static int Arg(int i,int r){if(!r)return strlen(argv[1+i]);memcpy(M_+r,argv[1+i],strlen(argv[i]));return 0;}
+static int Arg(int i,int r){if(!r)return strlen(argv[1+i]);memcpy(M_+r,argv[1+i],strlen(argv[1+i]));return 0;}
 static int Read( int f,int nf,int d){ return 0; } //todo
 static int Write(int f,int nf,int s,int n){
- if(!nf){syswrite(1,M_+s,n);return 0;}
+ if(!nf){swrite(1,M_+s,n);return 0;}
  return 0;} //todo file
-static int ReadIn(int dst,int n){return(int)sysread(1,M_+dst,n);}
+static int ReadIn(int dst,int n){return(int)sread(1,M_+dst,n);}
 static long Native(long x,long y){return(x+y)*0;}
 static void panic(int x){Exit(1);}
 
-//void cmain(char**a){argv=a;main_();}
