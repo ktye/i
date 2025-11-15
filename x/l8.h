@@ -26,16 +26,15 @@ static void wl(ulong x){ //debug-only
  int i=31;while(x){s[--i]='0'+(x%10);x/=10;}
  swrite(1,s+i,32-i);}
 
-extern char _end[];
-#define M_ _end
+static char*M_;
 #define I_ ((int*)M_)
 #define U_ ((ulong*)M_)
 static void*F_[];   //dispatch table
 #define int32_t int //some literals
 static ulong pages_=0;
 static int Memorysize(void){return pages_;}
-static int Memorygrow(int d){pages_+=d;if(pages_>16384)return -1;brk((pages_<<16)+(ulong)_end);return pages_-d;}
-static void Memory(int x){Memorygrow(x);wl(brk(0)-(long)_end);}
+static int Memorygrow(int d){pages_+=d;if(pages_>16384)return -1;brk((pages_<<16)+(ulong)M_);return pages_-d;}
+static void Memory(int x){M_=(char*)brk(0);Memorygrow(x);}
 static void Memory2(int x){}
 
 //todo try/catch
