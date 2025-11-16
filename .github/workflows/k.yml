@@ -71,6 +71,11 @@ jobs:
     - name: kv.c
       run: cd i && wg -tags simd5 -c . > kv.c && clang -O3 -Wall -mavx2 -Wfatal-errors kv.c -okv -lm && ./kv k.t -e
     
+    - name: l8.c
+      run: cd i/x && k k.k cc.k -e 'x:`<cc``l8' > l8.c
+           gcc -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables -ol8_ l8.c
+           objcopy --remove-section .comment l8_ l8
+
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0
       with:
@@ -125,5 +130,15 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./i/kv.c
         asset_name: kv.c
+        asset_content_type: text/plain
+
+    - name: upload l8.c
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./i/x/l8.c
+        asset_name: l8.c
         asset_content_type: text/plain
         
