@@ -73,10 +73,10 @@ jobs:
     
     - name: l8.c
       run: |
-      	cd i/x && k k.k cc.k -e 'x:`<cc``l8' > l8.c
+        cd i/x && k k.k cc.k -e 'x:`<cc``l8' > l8.c
         gcc -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables -ol8_ l8.c
         objcopy --remove-section .comment l8_ l8
-	./l8 ../k.t -e
+        ./l8 ../k.t -e
 
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0
