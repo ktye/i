@@ -47,7 +47,7 @@ ccprg:{
  (runt;fpre;cons;vars),(,fncs),tabl,(ccfmt init),main}
  
 ccfun:{
- $[(`main~S x)&`lib?opts; :""; 0]
+ $[(`main~S x)&`lib?opts; :"";(`l8?opts)&+/`store`catch=S x; :"";0]
  stat:$[I x;"";"static "]
  args:", "/y@&`arg=T c:&x=P
  ret:$[#r:", "/y@&`res=T c;r;"void"]

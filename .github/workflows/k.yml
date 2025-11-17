@@ -72,9 +72,11 @@ jobs:
       run: cd i && wg -tags simd5 -c . > kv.c && clang -O3 -Wall -mavx2 -Wfatal-errors kv.c -okv -lm && ./kv k.t -e
     
     - name: l8.c
-      run: cd i/x && k k.k cc.k -e 'x:`<cc``l8' > l8.c
-           gcc -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables -ol8_ l8.c
-           objcopy --remove-section .comment l8_ l8
+      run: |
+      	cd i/x && k k.k cc.k -e 'x:`<cc``l8' > l8.c
+        gcc -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables -ol8_ l8.c
+        objcopy --remove-section .comment l8_ l8
+	./l8 ../k.t -e
 
     - name: delete release
       uses: dev-drprasad/delete-older-releases@v0.2.0

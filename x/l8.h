@@ -1,4 +1,3 @@
-
 //gcc -Os -s -nostdlib -static -Wl,--nmagic -Wl,--build-id=none -fno-asynchronous-unwind-tables k.c
 //(objcopy --remove-section .comment a.out b.out)
 
@@ -16,17 +15,19 @@ __attribute((naked))long swrite(long fd,char*b,uint n){asm("mov $1,%rax;syscall;
 __attribute((naked))void Exit(int x){asm("mov $60,%rax;syscall");}
 
                     static double F64copysign(double x,double y){union{double f;ulong i;}ux={x},uy={y};ux.i&=-1ul/2;ux.i|=uy.i&1ul<<63;return ux.f;}
-                    static double F64floor(double x){long i=(long)(x<0?x-1.:x);return(long)i;}
+                    static double F64floor(double x){double f=(double)(long)x;return x==f?f:x<0?f-1.0:f;}
 __attribute((naked))static double F64abs(double x){ asm("xor %eax,%eax;dec %rax;shr %rax;movq %rax,%xmm1;andpd %xmm1,%xmm0;ret;");}
 __attribute((naked))static double F64sqrt(double x){ asm("sqrtsd %xmm0,%xmm0;ret");}
 __attribute((naked))static double F64min(double x,double y){asm("minsd %xmm1,%xmm0;ret;\n");}
 __attribute((naked))static double F64max(double x,double y){asm("maxsd %xmm1,%xmm0;ret;\n");}
 
+/*
 static void wl(ulong x){ //debug-only
  char s[32];s[31]=10;s[30]='0';
  if(!x){swrite(1,s+30,2);return;}
  int i=31;while(x){s[--i]='0'+(x%10);x/=10;}
  swrite(1,s+i,32-i);}
+*/
 
 static char*M_;
 static ulong brk0;
@@ -43,52 +44,21 @@ static void Memory2(int x){}
 //try/catch
 static void*jb_[5];static int jb__=0;
 #define setjmp  __builtin_setjmp
-#define longjmp __builtin_setlongjmp
+#define longjmp __builtin_longjmp
 static void panic(int x){if(!jb__)Exit(1);longjmp(jb_,1); }
-static int Memorysize2(void){return 0; }
-static void Memorygrow2(int x){}
-static int Memorycopy2(void/*int x,int y,int z*/){if(pages__){/*copy backwards*/ ulong o=(ulong)M_-brk0;for(int i=0;i<n;i++)U_[i-o]=U[i];M_=(char*)brk0; }
- pages__=pages_;brk(brk0+(pages_<<17));ulong n=pages_<<13;for(int i=0;i<n;i++)U_[i+n]=U_[i];M_=brk0+(pages_<<16);return 0;}
-static int Memorycopy3(int x,int y,int z){pages_=pages__;pages__=0;M_=(char*)brk0;brk(brk0+(pages_<<16));return 0;}
-/*
-void main_(void){
- ulong x2;
- kinit();
- doargs();
- write(Ku(0x000a6b2f6579746bull));
- store();
- for(;;){
-  write(Ku(32ull));
-  x2=readfile(mk(Ct,0));
-  try(x2);
- }
-}
-static void store(void){ //we ignore everything, just use the call to Memorycopy2
- int g;
- g=((1<<(I32(128)-16))-Memorysize2());
- if(g>0){
-  Memorygrow2(g);
- }
- Memorycopy2(0,0,((int)(1)<<I32(128)));
-}
-static void catch(void){ //catch is Memorysize2, the size calculation is ignored
- Memorycopy3(0,0,((int)(65536)*Memorysize2()));
-}
-static void try(ulong x){
- jb__=1;if(!setjmp(jb_)){;
-  repl(x);
-  store();
- }else{catch();}
-}
-*/
+static void store(void){ulong n=pages_<<13;if(pages__){/*copy backwards*/ulong o=((ulong)M_-brk0)>>3;for(int i=0;i<n;i++)U_[i-o]=U_[i];M_=(char*)brk0; }
+ pages__=pages_;brk(brk0+(pages_<<17));for(int i=0;i<n;i++)U_[i+n]=U_[i];M_=(char*)(brk0+(pages_<<16));}
+static void catch(void){pages_=pages__;pages__=0;M_=(char*)brk0;brk(brk0+(pages_<<16));}
+/* k repl does:
+   main(){ store(); for(;;){ write(Ku(32)); ulong x=readfile(mk(Ct,0)); try(x); }}
+   try(ulong x){ jb__=1;if(!setjmp(jb_)){ repl(x); store(); }else{catch();      }}
 
-/*
  brk0<--pages_-->brk
   M_...
   +--------------+     without try/catch   M_ is always brk0, brk increases occasionally
 
 
- brk0            M_             brk
+ brk0            M_            brk
   +--------------+--------------+                  store() initial call: double memory, copy forward set new M_
          +----------------^ copy forward left-to-right is ok
 
@@ -102,20 +72,15 @@ static void try(ulong x){
   +------------------------+-----------------+     store() (no error) copy backwards, reset M_, shrink brk
           ^---------------------+  left-to-right
 
- brk0      pages__         M_         pages_          brk   prepare for next try:
+ brk0      pages__         M_         pages_          brk   also in store() prepare for next try:
   +------------------------+---------------------------+    increase brk, copy forward
 
 
 catch():
  brk0     pages_          brk
-  M_                              in case of errors: reset
-  +------------------------+      Memorycopy3 does not copy anything but resets pages_, M_ and brk,  pages__=0
-  
-
-in k.c, store() calls Memorycopy2 (calls to Memorysize2/Memorygrow2 are ignored)
-        catch() calls Memorycopy3, args are ignored.
+  M_                              in case of errors:
+  +------------------------+      reset pages_, M_ and brk,  pages__=0
  */
-
 
 
 #define I8(x)             (int)(M_[x])
