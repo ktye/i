@@ -1,4 +1,4 @@
-# ktye/k intro ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[svd](#singular-value-decomposition);[fft](#fft);[stats](#statistics);[trans](#transpose-permute-axes))
+# ktye/k intro ([qr](#qr-decomposition-least-squares);[lu](#lu-decomposition);[svd](#singular-value-decomposition);[fft](#fft);[stats](#statistics);[perm](#permutation);[trans](#transpose-permute-axes))
 
 ```
 ktye/k   ktye.github.io/k.html
@@ -229,6 +229,11 @@ z95:{1.97*(((std@_x)^b)+(std imag x)^b)^1%b:3.2}
 mavg:{(y-(-#y)#(-x)_y:+\y)%x}
 mmax:{while[x-:1;y:{x|(*x),-1_x}y];y}
 mmin:{while[x-:1;y:{x&(*x),-1_x}y];y}
+```
+
+## permutations
+```
+(,/@\)/|,\,'<'=5   (tubular)
 ```
 
 ## transpose (permute axes)
