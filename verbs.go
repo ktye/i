@@ -258,11 +258,27 @@ func ntake(n int32, y K) K {
 		SetI32(yp-12, n)
 		return y
 	}
-	r = seq(n)
-	if n > yn && yn > 0 {
-		r = Mod(r, Ki(yn))
+	if n > yn {
+		r = seqm(n, yn)
+	} else {
+		r = seq(n)
 	}
 	return atv(y, r)
+}
+func seqm(n, m int32) K {
+	r := mk(It, n)
+	k := int32(0)
+	p := int32(r)
+	e := p + n<<2
+	for p < e {
+		SetI32(p, k)
+		k++
+		if k == m {
+			k = 0
+		}
+		p += 4
+	}
+	return r
 }
 func Drp(x, y K) K { // x_y
 	xt := tp(x)
