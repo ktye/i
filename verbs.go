@@ -101,10 +101,45 @@ func Til(x K) K {
 		return seq(int32(x))
 	}
 	if xt == It {
-		return Enc(x, Til(Rdc(4, l1(rx(x))))) //{x\!*/x}
+		return odo(x) // {x\!*/x}
 	}
 	trap() //type
 	return 0
+}
+func odo(x K) K {
+	y := Scn(4, Enl(rx(x)))
+	n := maxi(0, int32(Las(rx(y))))
+	m := nn(x)
+	r := mk(Lt, m)
+	i := int32(0)
+	m <<= 2
+	for i < m {
+		SetI64(int32(r)+i<<1, int64(odo1(I32(int32(x)+i), divi(n, I32(int32(y)+i)), n)))
+		i += 4
+	}
+	dx(x)
+	dx(y)
+	return r
+}
+func odo1(a, b, n int32) K {
+	r := mk(It, n)
+	k := int32(0)
+	i := int32(0)
+	p := int32(r)
+	e := ep(r)
+	for p < e {
+		SetI32(p, k)
+		i++
+		if i == b {
+			i = 0
+			k++
+			if k == a {
+				k = 0
+			}
+		}
+		p += 4
+	}
+	return r
 }
 func Unq(x K) K { // ?x
 	var r K
