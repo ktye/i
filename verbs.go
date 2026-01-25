@@ -112,7 +112,7 @@ func odo(x K) K {
 	m := nn(x)
 	r := mk(Lt, m)
 	i := int32(0)
-	m <<= 2
+	m *= 4
 	for i < m {
 		SetI64(int32(r)+i<<1, int64(odo1(I32(int32(x)+i), divi(n, I32(int32(y)+i)), n)))
 		i += 4
