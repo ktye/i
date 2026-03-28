@@ -9,9 +9,9 @@ js:{[o]opts::o
  F[`neq`nop`not`orr`bor`xor`ret`shl`shr`stm`sub`swc`typ]:(jsneq;jsnop;jsnot;jsorr;jsbor;jsxor;jsret;jsshl;jsshr;jsstm;jssub;jsswc;jstyp)
 
  jsren'`in`try`catch
- i:i@&{(0N~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
+ i:i@&{(2~|/(T 1_c)?`swc`stm)&3=#c:&P=x}'i:&T=`cnd  /keep ternary
  rwcnd'|j@&~(j:&(~`=S)&(T=`cnd)|T=`swc)?\i     /rewrite cnd/swc expressions 
- S[0]:$[0N~i:o?`lib;S 0;o 1+i]                 /emit`lib`name (instead of main + remove func main)
+ S[0]:$[(#o)~i:o?`lib;S 0;o 1+i]               /emit`lib`name (instead of main + remove func main)
  n:{x[y]+:1}/(,&#P),P;n[0]-:1;                 /number of children per node
  s:{c:(0,(#x)-z)^x                             /cut args from stack
    (c 0),,,/(F T y)[y;|c 1]}/[();|!#P;|n]      /fold over the tree in reverse order
@@ -71,7 +71,7 @@ jsflts:(0x25fab843dda06440;0x2cde25af6a56113f;0x182d4454fb21e93f;0x485555555555c
 jsflt:{x:C x+!8;$[#r:jsflts x;r;$*`f x]}
 jslit:{hi:{*`i C 4+x+!4};lo:{*`i C x+!4}
  y;i:I x;jsty[t;$[`f~t:S x;jsflt i
-           `i~t;$[0N~i;"-2147483648";$i]
+           `i~t;$[i~|/!0;"-2147483648";$i]
            `u~t;$i,"n"
            `j~t;$[i~0;,"0n";(-1~h:hi i)&0>l:lo i;($l),"n";(h~0)&l>0;($l),"n";"J(BigInt(\"",(hx8 i),"\"))"]
            `k~t;$[i~0;,"0n";(0~h:hi i)&0<l:lo i;($l),"n";"BigInt(\"",(hx8 i),"\")"];"???"]]}
@@ -102,7 +102,8 @@ jsdrp:{y}
 jscli:{n:I x;jsty[S x;"_F[",(*y),"](",(","/n#1_y),")"]}
 jsasn:{r:(s:$S x),"=",(*|y),";\n";
  $[((n:6+2*#s)#r)~s,"=I(",s,"+I(";$["+=1"~-3#r:s,"+=",(n_-4_r);s,"++";r],";\n";r]}
-jscnd:{$[S x; (jsnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(jsnd y 0),(jsemb jssem y 1),$[3~#y;"else ",(jsemb jssem y 2);""]]}
+/jscnd:{$[S x; (jsnd@*y;"?(";y 1;"):(";y 2;")") ;"if",(jsnd y 0),(jsemb jssem y 1),$[3~#y;"else ",(jsemb jssem y 2);""]]}
+jscnd:{"if",(jsnd y 0),(jsemb jssem y 1),$[3~#y;"else ",(jsemb jssem y 2);""]}
 jsnop:{y;""}
 jsswc:{("switch(";*y;"){\n"),(1_(@[("case ",/$-1+!#y); (-1+#y)*I x; "default"] ,\":"),'(jssem'y),\"break;\n"),"}" }
  
@@ -131,7 +132,7 @@ jsfmt:{
  x:@[x;1+find["};\n"   ;x];" "]
  l:"\n"\x;
  l@:&~l~\"r=r;"
- l@:&~(""~/l)|(,";")~/l;s:_32+&'(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
+ l@:&~(""~/l)|(,";")~/l;s:_32+&','(-"}"=*'l)+-1_0,+\+/'("{"=l)-"}"=l
  ,/(s,'l),\"\n"}
 
 / run time
