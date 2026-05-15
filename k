@@ -1,4 +1,4 @@
-Ki(K:i){i|32\2} Kf(K:f){r:Ktn[1;3];Fr0:x;jr|32\-3} Kz(K:z){r:Ktn[1;4];Zr0:x;jr|32\-4}                   /  +   -   *   %   !   &   |   <   >   =   ~   ,   ^   #   _   $   =   @   .  
+Ki(K:i){i|32\2} Kf(K:f){r:Ktn[1;3];Fr0:x;jr|32\-3} Kz(K:z){r:Ktn[1;4];Zr0:x;jr|32\-4}                   /  +   -   *   %   !   &   |   <   >   =   ~   ,   ^   #   _   $   ?   @   .  
 Mal(p:i) Mfr(:p) Kfr(:j){t:i.32/j;p:px;c:Ip[-2]-1;!c? if(!t)Ip[-1]/Kfr Jpi; Mfr x; :Ix[-2]:c}           / abs neg sqr sqt til flp rev asc dsc grp not enl srt cnt flr str unq fst val
 Ktn(K:ii){r:Mal@y\x?[3;0;2;3;4];Ir[-2]:1;Ir[-1]:y;ri|32\x}                                              / add sub mul div mod min max les mor eql neq cat cut tak drp fmt fnd atx cal
 Ufy{(!nx)? x: t:tx0; !t? x: nx/if(t~txi){t:0;break};t?[n#c.xi;n#i.xi;n#f.xi;n#z.xi]}                    /  '   '   '   '   /   /   /   /   \   \   \  \     $[c;cnd;else]     if(c)e;
